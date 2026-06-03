@@ -101,9 +101,7 @@ def schema_cache_path(name: str, domain: str | None = None) -> Path:
 
 
 def schema_cache_candidates(name: str, domain: str | None = None) -> list[Path]:
-    primary = schema_cache_path(name, domain)
-    legacy = SCHEMA_DIR / f"{name}.json"
-    return [primary] if primary == legacy else [primary, legacy]
+    return [schema_cache_path(name, domain)]
 
 
 def filters_cache_path(name: str, domain: str | None = None) -> Path:
@@ -111,9 +109,7 @@ def filters_cache_path(name: str, domain: str | None = None) -> Path:
 
 
 def filters_cache_candidates(name: str, domain: str | None = None) -> list[Path]:
-    primary = filters_cache_path(name, domain)
-    legacy = FILTERS_DIR / f"{name}.json"
-    return [primary] if primary == legacy else [primary, legacy]
+    return [filters_cache_path(name, domain)]
 
 
 def groups_cache_path(domain: str | None = None) -> Path:
@@ -121,11 +117,4 @@ def groups_cache_path(domain: str | None = None) -> Path:
 
 
 def groups_cache_candidates(domain: str | None = None) -> list[Path]:
-    primary = groups_cache_path(domain)
-    legacy = CONFIG_DIR / "groups.json"
-    legacy_cache = CACHE_DIR / "groups.json"
-    candidates = [primary]
-    for p in (legacy_cache, legacy):
-        if p != primary:
-            candidates.append(p)
-    return candidates
+    return [groups_cache_path(domain)]

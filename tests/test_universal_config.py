@@ -58,7 +58,6 @@ def test_cache_paths_are_tenant_scoped_with_legacy_fallback(monkeypatch, tmp_pat
     assert config.groups_cache_path() == cache / "groups--demo.freshservice.com.json"
     assert config.schema_cache_candidates("changes") == [
         cache / "schema" / "demo.freshservice.com--changes.json",
-        cache / "schema" / "changes.json",
     ]
 
 
