@@ -58,15 +58,13 @@ fsv completion doctor
 
 fsv does **not** drive a browser or read browser storage. You bring the cookies.
 
-1. Configure your tenant: `fsv auth setup --domain yourcompany.freshservice.com`
-2. Open `https://yourcompany.freshservice.com` in any browser, complete SSO login.
-3. Open DevTools → Network tab → click any `/api/_/...` request.
-4. Copy the value of the `Cookie:` request header (right-click → Copy value).
-5. Paste into fsv:
+1. Open `https://yourcompany.freshservice.com` in any browser, complete SSO login.
+2. Open DevTools → Network tab → click any `/api/_/...` request.
+3. Copy the value of the `Cookie:` request header (right-click → Copy value).
+4. Paste into fsv:
 
 ```bash
-fsv auth setup --domain yourcompany.freshservice.com
-fsv auth login                                                    # interactive prompt
+fsv auth login --domain yourcompany.freshservice.com              # interactive prompt
 pbpaste | fsv auth login --domain yourcompany.freshservice.com --header -
 fsv auth login -d yourcompany.freshservice.com -H "_x_m=...; _x_d=...; ..."
 ```
@@ -125,7 +123,7 @@ fsv changes  ls | search | get | update | create | clone | download | url | stat
 fsv tickets  ls | search | get | update | url | reply | activity | tasks | fields | lookup | filters
 fsv problems ls | search | get | update | url | add-note | notes | activity | tasks | fields | lookup | filters
 
-fsv auth setup --domain yourcompany.freshservice.com
+fsv auth login --domain yourcompany.freshservice.com
 fsv auth status
 fsv config set <key> <value>
 fsv cache status | refresh | clear

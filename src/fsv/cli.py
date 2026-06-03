@@ -1731,25 +1731,8 @@ auth_app = typer.Typer(
     no_args_is_help=True,
     help="authenticate and manage sessions",
     rich_markup_mode="rich",
-    epilog="[bold]Examples:[/bold]  fsv auth setup --domain acme.freshservice.com  |  fsv auth login  |  fsv auth status",
+    epilog="[bold]Examples:[/bold]  fsv auth login  |  fsv auth login --domain acme.freshservice.com  |  fsv auth status",
 )
-
-
-@auth_app.command("setup", epilog="[bold]Examples:[/bold]  fsv auth setup --domain acme.freshservice.com")
-def auth_setup(
-    domain: Optional[str] = typer.Option(None, "--domain", "-d", help="Freshservice domain or URL, e.g. acme.freshservice.com"),
-    no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
-) -> None:
-    """Configure Freshservice tenant."""
-    if domain is None:
-        if _no_input(no_input):
-            _err("pass --domain when using --no-input")
-        domain = typer.prompt("Freshservice domain", default=config.DOMAIN or "yourcompany.freshservice.com")
-    try:
-        saved = config.set_domain(domain)
-    except ValueError as e:
-        _err(str(e))
-    console.print(f"domain = {saved}")
 
 
 def _resolve_domain(no_input: bool = False) -> bool:
@@ -1868,7 +1851,7 @@ app.add_typer(auth_app, name="auth")
 
 
 HELP_TOPICS = {
-    "auth": "Login: fsv auth setup --domain yourcompany.freshservice.com; fsv auth login; fsv auth status. Scripts: use fsv auth login --domain ... --header ... --store file.",
+    "auth": "Login: fsv auth login --domain yourcompany.freshservice.com; fsv auth status. Scripts: use fsv auth login --domain ... --header ... --store file.",
     "workflow": "Daily flow: fsv changes ls --where status=Open; fsv changes get CHN-1234 --internal; fsv changes update CHN-1234 --set 'field=value'; fsv changes download CHN-1234 --all.",
     "fields": "Discover fields with fsv changes fields, fsv changes fields --choices status, and fsv changes lookup requester alice@example.com. Prefer dedicated flags for default fields; use --set for custom fields.",
     "scripting": "Use --json or --output csv/tsv for scripts. Use --no-input in CI. Use --dry-run before updates. Do not parse rich table output.",
