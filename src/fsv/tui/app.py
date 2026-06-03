@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shlex
 import subprocess
 import webbrowser
 from typing import Any
@@ -385,7 +386,15 @@ class FsvApp(App):
             return [], None
         sch = self._schemas.get(self.entity, {"fields": []})
         fields_list = sch.get("fields") or []
-        if not value or value.endswith(" "):
+        if not value:
+            return [], None
+        # If inside a quoted value, suppress suggestions (can't split safely)
+        try:
+            tokens = shlex.split(value)
+            in_quote = False
+        except ValueError:
+            in_quote = True
+        if in_quote or value.endswith(" "):
             return [], None
         current = value.rsplit(" ", 1)[-1]
         if not current:
@@ -498,7 +507,13 @@ class FsvApp(App):
         self.query_one("#suggestion-bar", Static).display = False
         self._suggestions = []
         self.query_one("#list", DataTable).focus()
-        self._active_filters = raw.split() if raw.strip() else []
+        if raw.strip():
+            try:
+                self._active_filters = shlex.split(raw)
+            except ValueError:
+                self._active_filters = raw.split()
+        else:
+            self._active_filters = []
         self._reload_list("[dim]filtering...[/]")
 
     def _cancel_filter_input(self) -> None:
