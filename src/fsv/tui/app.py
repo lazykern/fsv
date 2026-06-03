@@ -781,14 +781,14 @@ class FsvApp(App):
                 table.move_cursor(row=table.row_count - 1)
             event.stop()
             event.prevent_default()
-        elif key == "h":
+        elif key == "h" or key == "left":
             if pane == "detail":
                 self._step_detail_tab(-1)
             else:
                 self._prev_entity()
             event.stop()
             event.prevent_default()
-        elif key == "l":
+        elif key == "l" or key == "right":
             if pane == "detail":
                 self._step_detail_tab(1)
             else:
