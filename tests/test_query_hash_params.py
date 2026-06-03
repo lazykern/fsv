@@ -28,7 +28,7 @@ def test_problem_where_uses_query_hash_only(monkeypatch):
         per_page=10,
         page=1,
         all_pages=False,
-        v2=False,
+
         format_="json",
         json_out=True,
     )
@@ -62,7 +62,7 @@ def test_change_where_keeps_advanced_query_hash_blank(monkeypatch):
         per_page=10,
         page=1,
         all_pages=False,
-        v2=False,
+
         format_="json",
         json_out=True,
     )
@@ -96,7 +96,7 @@ def test_ticket_query_hash_supports_order_and_advanced_query_hash(monkeypatch):
         per_page=100,
         page=1,
         all_pages=False,
-        v2=False,
+
         format_="json",
         json_out=True,
         raw_query_hash="[{\"condition\":\"requester_id\"}]",
