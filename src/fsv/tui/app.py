@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import shlex
 import subprocess
 import webbrowser
@@ -73,6 +74,8 @@ class HelpScreen(ModalScreen[None]):
 
 [bold]Filter[/]
   [cyan]/[/]            open filter input (FIELD=VALUE, space-separated)
+  [cyan]↑/↓[/] or [cyan]Ctrl+P/N[/]  browse filter history
+  [cyan]Tab[/]          autocomplete field/value
   [cyan]Esc[/]          cancel filter input
   [cyan]Enter[/]        apply filter and reload
   empty input clears active filter
@@ -130,6 +133,11 @@ class FsvApp(App):
         self._active_filters: list[str] = []
         self._filter_error: str | None = None
         self._suggestions: list[str] = []
+        self._filter_history: list[str] = []
+        self._history_idx: int = -1
+        self._history_saved: str = ""
+        self._history_nav_lock: int = 0
+        self._load_filter_history()
 
     def compose(self) -> ComposeResult:
         yield Static(id="header")
@@ -378,6 +386,45 @@ class FsvApp(App):
         self._filter_error = error
         self._render_filter_bar()
 
+    def _load_filter_history(self) -> None:
+        try:
+            from fsv.config import filters_cache_path
+            path = filters_cache_path("tui_history")
+            if path.exists():
+                self._filter_history = json.loads(path.read_text()).get("history", [])[:100]
+        except Exception:
+            pass
+
+    def _save_filter_history(self) -> None:
+        try:
+            from fsv.config import filters_cache_path, ensure_dirs
+            ensure_dirs()
+            path = filters_cache_path("tui_history")
+            path.write_text(json.dumps({"history": self._filter_history[:100]}))
+        except Exception:
+            pass
+
+    def _history_navigate(self, direction: int) -> None:
+        """direction: +1 = older (up), -1 = newer (down)."""
+        if not self._filter_history and direction > 0:
+            return
+        inp = self.query_one("#filter-input", Input)
+        if self._history_idx == -1:
+            self._history_saved = inp.value
+        new_idx = self._history_idx + direction
+        if new_idx >= len(self._filter_history):
+            return
+        if new_idx < -1:
+            return
+        self._history_idx = new_idx
+        self._history_nav_lock += 1
+        if self._history_idx == -1:
+            inp.value = self._history_saved
+        else:
+            inp.value = self._filter_history[self._history_idx]
+        inp.cursor_position = len(inp.value)
+        self._update_suggestion_bar(inp.value)
+
     _PSEUDO_DATE_FIELDS = ("created_at", "updated_at", "due_by")
 
     def _get_suggestions(self, value: str) -> tuple[list[str], str | None]:
@@ -496,9 +543,17 @@ class FsvApp(App):
             self.notify("Filters not supported in work view", severity="warning")
             return
         inp = self.query_one("#filter-input", Input)
-        inp.value = " ".join(self._active_filters)
+        current_val = " ".join(self._active_filters)
+        inp.value = current_val
         inp.display = True
         inp.focus()
+        # If current value matches most recent history, start already there
+        # so the first Up press goes to the entry before it
+        if self._filter_history and self._filter_history[0] == current_val.strip():
+            self._history_idx = 0
+        else:
+            self._history_idx = -1
+        self._history_saved = current_val
         self._update_suggestion_bar(inp.value)
 
     def _apply_filter(self, raw: str) -> None:
@@ -506,12 +561,17 @@ class FsvApp(App):
         inp.display = False
         self.query_one("#suggestion-bar", Static).display = False
         self._suggestions = []
+        self._history_idx = -1
         self.query_one("#list", DataTable).focus()
         if raw.strip():
             try:
                 self._active_filters = shlex.split(raw)
             except ValueError:
                 self._active_filters = raw.split()
+            entry = raw.strip()
+            self._filter_history = [entry] + [h for h in self._filter_history if h != entry]
+            self._filter_history = self._filter_history[:100]
+            self._save_filter_history()
         else:
             self._active_filters = []
         self._reload_list("[dim]filtering...[/]")
@@ -521,6 +581,7 @@ class FsvApp(App):
         inp.display = False
         self.query_one("#suggestion-bar", Static).display = False
         self._suggestions = []
+        self._history_idx = -1
         self.query_one("#list", DataTable).focus()
         self._render_filter_bar()
 
@@ -928,12 +989,16 @@ class FsvApp(App):
 
     def on_input_changed(self, event: Input.Changed) -> None:
         if event.input.id == "filter-input":
+            if self._history_nav_lock > 0:
+                self._history_nav_lock -= 1
+            else:
+                self._history_idx = -1
             self._update_suggestion_bar(event.value)
 
     def on_key(self, event) -> None:
         key = event.key
 
-        # When filter input is open, intercept Escape and Tab; let Input handle the rest
+        # When filter input is open, intercept Escape, Tab, and history navigation
         inp = self.query_one("#filter-input", Input)
         if inp.display and inp.has_focus:
             if key == "escape":
@@ -943,6 +1008,16 @@ class FsvApp(App):
                 return
             if key == "tab":
                 self._complete_first_suggestion()
+                event.stop()
+                event.prevent_default()
+                return
+            if key in ("up", "ctrl+p"):
+                self._history_navigate(1)
+                event.stop()
+                event.prevent_default()
+                return
+            if key in ("down", "ctrl+n"):
+                self._history_navigate(-1)
                 event.stop()
                 event.prevent_default()
                 return
