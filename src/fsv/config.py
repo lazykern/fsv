@@ -6,11 +6,12 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 CONFIG_DIR = Path(os.environ.get("FSV_CONFIG_DIR", Path.home() / ".config" / "fsv"))
+CACHE_DIR = Path(os.environ.get("FSV_CACHE_DIR", Path.home() / ".cache" / "fsv"))
+
 CONFIG_FILE = CONFIG_DIR / "config.json"
 SESSION_FILE = CONFIG_DIR / "session.json"
-SCHEMA_DIR = CONFIG_DIR / "schema"
-FILTERS_DIR = CONFIG_DIR / "filters"
-CACHE_DIR = CONFIG_DIR / "cache"
+SCHEMA_DIR = CACHE_DIR / "schema"
+FILTERS_DIR = CACHE_DIR / "filters"
 
 
 def ensure_dirs() -> None:
@@ -116,10 +117,15 @@ def filters_cache_candidates(name: str, domain: str | None = None) -> list[Path]
 
 
 def groups_cache_path(domain: str | None = None) -> Path:
-    return CONFIG_DIR / f"groups--{cache_domain_key(domain)}.json"
+    return CACHE_DIR / f"groups--{cache_domain_key(domain)}.json"
 
 
 def groups_cache_candidates(domain: str | None = None) -> list[Path]:
     primary = groups_cache_path(domain)
     legacy = CONFIG_DIR / "groups.json"
-    return [primary] if primary == legacy else [primary, legacy]
+    legacy_cache = CACHE_DIR / "groups.json"
+    candidates = [primary]
+    for p in (legacy_cache, legacy):
+        if p != primary:
+            candidates.append(p)
+    return candidates

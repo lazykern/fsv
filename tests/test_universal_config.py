@@ -9,6 +9,7 @@ from typer.testing import CliRunner
 
 def fresh_config(monkeypatch, tmp_path):
     monkeypatch.setenv("FSV_CONFIG_DIR", str(tmp_path))
+    monkeypatch.setenv("FSV_CACHE_DIR", str(tmp_path / "cache"))
     for name in list(sys.modules):
         if name == "fsv.config" or name.startswith("fsv."):
             sys.modules.pop(name, None)
@@ -46,27 +47,18 @@ def test_set_domain_normalizes_and_persists(monkeypatch, tmp_path):
     assert json.loads((tmp_path / "config.json").read_text())["domain"] == "acme.freshservice.com"
 
 
-def test_setup_command_writes_domain(monkeypatch, tmp_path):
-    fresh_config(monkeypatch, tmp_path)
-    import fsv.cli as cli
-
-    result = CliRunner().invoke(cli.app, ["auth", "setup", "--domain", "demo.freshservice.com"])
-
-    assert result.exit_code == 0, result.output
-    assert "demo.freshservice.com" in result.output
-    assert json.loads((tmp_path / "config.json").read_text())["domain"] == "demo.freshservice.com"
-
 
 def test_cache_paths_are_tenant_scoped_with_legacy_fallback(monkeypatch, tmp_path):
     config = fresh_config(monkeypatch, tmp_path)
     config.set_domain("demo.freshservice.com")
 
-    assert config.schema_cache_path("changes") == tmp_path / "schema" / "demo.freshservice.com--changes.json"
-    assert config.filters_cache_path("changes") == tmp_path / "filters" / "demo.freshservice.com--changes.json"
-    assert config.groups_cache_path() == tmp_path / "groups--demo.freshservice.com.json"
+    cache = tmp_path / "cache"
+    assert config.schema_cache_path("changes") == cache / "schema" / "demo.freshservice.com--changes.json"
+    assert config.filters_cache_path("changes") == cache / "filters" / "demo.freshservice.com--changes.json"
+    assert config.groups_cache_path() == cache / "groups--demo.freshservice.com.json"
     assert config.schema_cache_candidates("changes") == [
-        tmp_path / "schema" / "demo.freshservice.com--changes.json",
-        tmp_path / "schema" / "changes.json",
+        cache / "schema" / "demo.freshservice.com--changes.json",
+        cache / "schema" / "changes.json",
     ]
 
 
@@ -89,24 +81,24 @@ def test_login_accepts_domain_without_prior_setup(monkeypatch, tmp_path):
     assert session["domain"] == "demo.freshservice.com"
 
 
-def test_no_input_setup_requires_domain(monkeypatch, tmp_path):
+def test_no_input_login_requires_domain(monkeypatch, tmp_path):
     fresh_config(monkeypatch, tmp_path)
     import fsv.cli as cli
 
-    result = CliRunner().invoke(cli.app, ["--no-input", "auth", "setup"])
+    result = CliRunner().invoke(cli.app, ["--no-input", "auth", "login", "--header", "x=y"])
 
     assert result.exit_code == 1
-    assert "pass --domain" in result.output
+    assert "--domain" in result.output
 
 
-def test_local_no_input_setup_requires_domain(monkeypatch, tmp_path):
+def test_local_no_input_login_requires_domain(monkeypatch, tmp_path):
     fresh_config(monkeypatch, tmp_path)
     import fsv.cli as cli
 
-    result = CliRunner().invoke(cli.app, ["auth", "setup", "--no-input"])
+    result = CliRunner().invoke(cli.app, ["auth", "login", "--no-input", "--header", "x=y"])
 
     assert result.exit_code == 1
-    assert "pass --domain" in result.output
+    assert "--domain" in result.output
 
 
 def test_no_input_login_requires_header(monkeypatch, tmp_path):
