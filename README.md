@@ -1,6 +1,12 @@
 # fsv
 
-Freshservice CLI. Drives changes, tickets, problems via session-cookie auth (no API key required).
+Freshservice CLI. Drives changes, tickets, and problems via session-cookie auth — no API key required.
+
+## How it works
+
+fsv talks to the **internal** `/api/_/` endpoints that the Freshservice web UI uses — not the public v2 REST API. These endpoints expose richer data and have no published rate cap. Access requires a valid browser session cookie, which you paste in once and fsv stores locally.
+
+The public v2 API (`/api/v2/`) is also used for a handful of operations (schema, task writes, approvals). Both paths share the same cookie.
 
 ## Install
 
@@ -9,7 +15,13 @@ cd ~/lab/work/fsv
 uv sync
 ```
 
-Run via `uv run fsv ...` or install globally: `uv tool install --editable .`
+Run ad hoc: `uv run fsv ...`
+
+Install globally (adds `fsv` to PATH):
+
+```bash
+uv tool install --editable .
+```
 
 ### Shell completion
 
@@ -24,7 +36,7 @@ Completion is schema-aware after cache refresh. Login auto-refreshes cache.
 ```bash
 fsv tickets ls --where sta<TAB>            # status=
 fsv tickets ls --where status=<TAB>        # Open, Pending, ...
-fsv changes ls --where requester=phu<TAB>  # requester email (network)
+fsv changes ls --where requester=ali<TAB>  # requester email (network)
 fsv changes fields --choices add_<TAB>     # add_database_task, ...
 ```
 
@@ -46,9 +58,7 @@ fsv completion doctor
 
 fsv does **not** drive a browser or read browser storage. You bring the cookies.
 
-Steps:
-
-1. Configure your tenant: `fsv auth setup --domain yourcompany.freshservice.com` (or pass `fsv auth login --domain ...`).
+1. Configure your tenant: `fsv auth setup --domain yourcompany.freshservice.com`
 2. Open `https://yourcompany.freshservice.com` in any browser, complete SSO login.
 3. Open DevTools → Network tab → click any `/api/_/...` request.
 4. Copy the value of the `Cookie:` request header (right-click → Copy value).
@@ -56,7 +66,7 @@ Steps:
 
 ```bash
 fsv auth setup --domain yourcompany.freshservice.com
-fsv auth login                                           # interactive prompt
+fsv auth login                                                    # interactive prompt
 pbpaste | fsv auth login --domain yourcompany.freshservice.com --header -
 fsv auth login -d yourcompany.freshservice.com -H "_x_m=...; _x_d=...; ..."
 ```
@@ -64,8 +74,6 @@ fsv auth login -d yourcompany.freshservice.com -H "_x_m=...; _x_d=...; ..."
 The Network-tab Cookie header includes HttpOnly cookies (`_itildesk_session`, `user_credentials`) which `document.cookie` cannot read — required for API access.
 
 ### Storage backends
-
-Choose where the cookies live:
 
 ```bash
 fsv auth login --store file       # ~/.config/fsv/session.json (plain JSON, chmod 600)
@@ -85,6 +93,31 @@ Tested. Freshworks login endpoint requires reCAPTCHA Enterprise tokens (Google J
 
 **Security note**: fsv never reads browser cookie databases, keychains, or profiles. No DLP concerns.
 
+## Quick start
+
+```bash
+# Check auth
+fsv auth status
+
+# List open changes
+fsv changes ls --where status=Open
+
+# Get a change with full detail
+fsv changes get CHN-1234
+
+# Update a ticket
+fsv tickets update INC-5678 --status Pending --agent alice@example.com
+
+# Add a private note to a change
+fsv changes add-note CHN-1234 "PVT result PASS"
+
+# Clone a change
+fsv changes clone CHN-1234 --with-tasks --with-planning
+
+# Download all attachments
+fsv changes download CHN-1234 --all --out ./evidence
+```
+
 ## Commands
 
 ```
@@ -101,25 +134,24 @@ fsv cache status | refresh | clear
 ### List
 
 ```bash
-fsv changes ls                              # internal API (denorm names)
-fsv changes ls --v2                         # v2 API
+fsv changes ls                              # list changes
 fsv changes ls --all                        # auto-paginate
-fsv tickets ls --where requester=alex@example.com --where 'created_at>=2025-05-01T00:00:00+07:00'
+fsv tickets ls --where requester=alice@example.com --where 'created_at>=2025-05-01T00:00:00+07:00'
 fsv tickets ls --where agent="Jane Agent"
 fsv tickets ls --where status=Open --where priority=High
 fsv tickets ls --where status=Open --where status=Pending --or
 fsv changes ls --where "Change Category=Infrastructure"
 fsv tickets ls --where status=Open --debug  # show resolved query_hash
 
-Operators: `=` (equals), `!=` (not equals). For dates: `>=`, `<=`, `>`, `<` also work.
+# Operators: = (equals), != (not equals). For dates: >=, <=, >, < also work.
 fsv tickets fields requester                # schema-discovered fields
 fsv tickets fields --default                # portable Freshservice fields
 fsv changes fields --custom                 # tenant-specific fields
 fsv changes fields --choices "Change Category"
-fsv tickets lookup requester alex@example.com
+fsv tickets lookup requester alice@example.com
 fsv changes lookup "Change Category" Infrastructure
-fsv tickets ls --output csv                 # table | json | csv | tsv (`-o`, `--format` also work)
-fsv problems ls --filter "All Problems"
+fsv tickets ls --output csv                 # table | json | csv | tsv (-o also works)
+fsv problems ls --view "All Problems"
 ```
 
 ### Search / Get / Activity / Tasks
@@ -127,34 +159,34 @@ fsv problems ls --filter "All Problems"
 ```bash
 fsv tickets search "status:2 AND priority:3"
 fsv tickets search "status:2" -o tsv
-fsv changes get CHN-16337
-fsv changes get CHN-16337 --internal    # /api/_/ adds status_name, group_name, etc
-fsv changes get CHN-16337 --stats       # adds planning_fields + timestamps
-fsv changes get CHN-16337 --json | jq .
-fsv changes activity CHN-16337 -n 20
-fsv changes tasks CHN-16337
-fsv changes url CHN-16337
+fsv changes get CHN-1234
+fsv changes get CHN-1234 --stats       # adds planning_fields + timestamps
+fsv changes get CHN-1234 --json | jq .
+fsv changes activity CHN-1234 -n 20
+fsv changes tasks CHN-1234
+fsv changes url CHN-1234
 ```
 
 ### Write
 
 ```bash
-fsv changes update CHN-16337 --status Closed --priority Medium --dry-run
-fsv changes update CHN-16337 --planning "Others Document" --description "Evidence attached" --file evidence.xlsx
+fsv changes update CHN-1234 --status Closed --priority Medium --dry-run
+fsv changes update CHN-1234 --planning "Others Document" --description "Evidence attached" --file evidence.xlsx
 fsv changes create --dry-run
-fsv changes clone CHN-16337 --with-tasks --with-planning
-fsv changes download CHN-16337 --all --out ./evidence
-fsv changes assets CHN-16337 --search app
-fsv changes associations CHN-16337 --add SR-565163 --dry-run
-fsv tickets update INC-589683 --status Pending --agent alex@example.com
-fsv tickets update INC-589683 --group "Service Desk"
-fsv changes add-note CHN-16337 "PVT result PASS"      # private by default
-fsv changes add-note CHN-16337 "..." --public
-fsv tickets reply INC-589683 "<HTML or text>"
+fsv changes clone CHN-1234 --with-tasks --with-planning
+fsv changes download CHN-1234 --all --out ./evidence
+fsv changes assets CHN-1234 --search app
+fsv changes associations CHN-1234 --add SR-5678 --dry-run
+fsv tickets update INC-9012 --status Pending --agent alice@example.com
+fsv tickets update INC-9012 --group "Service Desk"
+fsv changes add-note CHN-1234 "PVT result PASS"      # private by default
+fsv changes add-note CHN-1234 "..." --public
+fsv tickets reply INC-9012 "<HTML or text>"
 ```
 
 ## Notes
 
+- **Internal API**: `/api/_/` endpoints mirror what the Freshservice web UI calls — richer payloads, no published rate cap. v2 API (`/api/v2/`) used for schema, task writes, and approvals.
 - **Rate limit**: v2 API = 400 req/day per tenant. `/api/_/` no published cap.
 - **Cookies**: Re-login when 401/redirect to freshid. Sessions last ~days to weeks. Login auto-refreshes schema + completion cache.
 - **Filter discovery**: `fsv {changes|tickets|problems} filters` lists saved filter names.

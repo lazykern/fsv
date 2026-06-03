@@ -52,7 +52,7 @@ def test_get_resource_ticket_json_includes_requested_items(monkeypatch):
     monkeypatch.setattr(cli.schema_mod, "load", lambda res, c: {"fields": []})
     monkeypatch.setattr(cli, "emit_json", lambda data: emitted.append(data))
 
-    cli.get_resource(TICKETS, "SR-1", False, False, True)
+    cli.get_resource(TICKETS, "SR-1", False, True)
 
     assert emitted[0]["requested_items"][0]["stage"]["name"] == "Requested"
     assert emitted[0]["requested_items"][0]["item"]["name"] == "Access Request"

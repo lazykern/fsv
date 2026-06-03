@@ -75,7 +75,7 @@ def test_search_and_list_wiring():
         assert _param_keywords(fn, "sort")["autocompletion"] == "completion.complete_search_sort"
 
     ls_fn = _functions("ls")[0]
-    assert _param_keywords(ls_fn, "view")["autocompletion"] == "completion.complete_filter_name(res)"
+    assert _param_keywords(ls_fn, "filter_name")["autocompletion"] == "completion.complete_filter_name(res)"
     assert _param_keywords(ls_fn, "order_by")["autocompletion"] == "completion.complete_field_names(res)"
     assert _param_keywords(ls_fn, "order_type")["autocompletion"] == "completion.complete_sort_order"
 

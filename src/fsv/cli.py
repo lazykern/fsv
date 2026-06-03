@@ -262,7 +262,7 @@ def _emit_items(items: list[dict], res: Resource, sch: dict[str, Any], fmt: Outp
     elif fmt == "table":
         console.print(render.list_table(items, res, sch))
     else:
-        _err("--format must be table, json, csv, or tsv")
+        _err("--output must be table, json, csv, or tsv")
 
 
 def _emit_fmt(raw: Any, flat_rows: list[dict], fmt: OutputFormat | str, json_out: bool) -> bool:
@@ -777,7 +777,6 @@ def list_resource(
     per_page: int,
     page: int,
     all_pages: bool,
-    v2: bool,
     format_: OutputFormat | str,
     json_out: bool,
     or_grouping: bool = False,
@@ -792,8 +791,6 @@ def list_resource(
     if debug:
         _show_query_explain(explanation, query, or_grouping)
         return
-    if v2 and qh:
-        _err("--where filters require internal API; remove --v2")
     params: dict[str, Any] = {"per_page": per_page, "page": page}
     if filter_name:
         params["filter"] = filter_name
@@ -814,31 +811,21 @@ def list_resource(
     def load_items() -> tuple[list[dict], dict[str, Any]]:
         if all_pages or n_pages is not None:
             params["per_page"] = 100
+            params["include"] = res.list_include
             acc: list[dict] = []
             limit = n_pages if n_pages is not None else None
-            if v2:
-                for i, data in enumerate(c.v2_get_paginated(res.api_path, params), 1):
-                    acc.extend(data.get(res.list_key, []))
-                    err.print(f"  fetched {len(acc)} so far...", highlight=False)
-                    if limit is not None and i >= limit:
-                        break
-            else:
-                params["include"] = res.list_include
-                start_page = page
-                for p in range(start_page, start_page + (limit or 100)):
-                    params["page"] = p
-                    data = c.int_get(res.api_path, params=params)
-                    items = data.get(res.list_key, [])
-                    acc.extend(items)
-                    err.print(f"  fetched {len(acc)} so far...", highlight=False)
-                    if len(items) < params["per_page"]:
-                        break
+            start_page = page
+            for p in range(start_page, start_page + (limit or 100)):
+                params["page"] = p
+                data = c.int_get(res.api_path, params=params)
+                items = data.get(res.list_key, [])
+                acc.extend(items)
+                err.print(f"  fetched {len(acc)} so far...", highlight=False)
+                if len(items) < params["per_page"]:
+                    break
             return acc, schema_mod.load(res, c)
-        if v2:
-            data = c.v2_get(res.api_path, params=params)
-        else:
-            params["include"] = res.list_include
-            data = c.int_get(res.api_path, params=params)
+        params["include"] = res.list_include
+        data = c.int_get(res.api_path, params=params)
         return data[res.list_key], schema_mod.load(res, c)
 
     items, sch = _api(load_items)
@@ -871,25 +858,21 @@ def _ticket_requested_items(ticket_id: int, c: Any) -> list[dict[str, Any]]:
     return out
 
 
-def get_resource(res: Resource, id_: str, stats: bool, internal: bool, json_out: bool) -> None:
+def get_resource(res: Resource, id_: str, stats: bool, json_out: bool) -> None:
     cid = _cid(id_, res)
     c = _client()
 
     def load_item() -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
         requested_items: list[dict[str, Any]] = []
-        if internal or res in (CHANGES, PROBLEMS, TICKETS):
-            if res == TICKETS:
-                params = {"include": "requester,stats,phone,feedback,ticket_status"}
-            elif res in (CHANGES, PROBLEMS):
-                params = {"include": "requester,stats"}
-            else:
-                params = None
-            data = c.int_get(f"{res.api_path}/{cid}", params=params)
-            if res == TICKETS:
-                requested_items = _ticket_requested_items(cid, c)
+        if res == TICKETS:
+            params = {"include": "requester,stats,phone,feedback,ticket_status"}
+        elif res in (CHANGES, PROBLEMS):
+            params = {"include": "requester,stats"}
         else:
-            params = {"include": "stats"} if stats else None
-            data = c.v2_get(f"{res.api_path}/{cid}", params=params)
+            params = None
+        data = c.int_get(f"{res.api_path}/{cid}", params=params)
+        if res == TICKETS:
+            requested_items = _ticket_requested_items(cid, c)
         return data, schema_mod.load(res, c), requested_items
 
     data, sch, requested_items = _api(load_item)
@@ -1560,7 +1543,6 @@ def filter_resource(res: Resource, query: str, per_page: int, page: int, format_
             filter_name=None,
             where=where,
             debug=False,
-            v2=False,
             format_=format_,
             json_out=json_out,
             or_grouping=or_grouping,
@@ -2234,8 +2216,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
         f"fsv {res.name} ls --all --output json"
     ))
     def ls(
-        filter_name: Optional[str] = typer.Option(None, "--filter", "-f", autocompletion=completion.complete_filter_name(res)),
-        view: Optional[str] = typer.Option(None, "--view", help="UI view/filter name, e.g. new_and_my_open", autocompletion=completion.complete_filter_name(res)),
+        filter_name: Optional[str] = typer.Option(None, "--view", help="saved view name, e.g. new_and_my_open", autocompletion=completion.complete_filter_name(res)),
         where: Optional[list[str]] = typer.Option(None, "--where", "-w", help="field=value filters, e.g. requester=me@example.com or status=Open", autocompletion=completion.complete_where(res)),
         query_hash: Optional[str] = typer.Option(None, "--query-hash", help="raw or URL-encoded Freshservice query_hash JSON array"),
         or_grouping: bool = typer.Option(False, "--or", help="combine --where conditions with OR instead of AND"),
@@ -2246,23 +2227,19 @@ def _make_subapp(res: Resource) -> typer.Typer:
         order_type: SortOrder = typer.Option(SortOrder.asc, "--order-type", help="asc | desc", autocompletion=completion.complete_sort_order),
         all_pages: bool = typer.Option(False, "--all", "-a", help="fetch all pages (auto-paginate)"),
         n_pages: Optional[int] = typer.Option(None, "--npages", "-N", help="fetch exactly N pages"),
-        v2: bool = typer.Option(False, "--v2", help="use v2 API"),
-        format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", "--format", help="output format", autocompletion=completion.complete_format),
+        format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         pager: bool = typer.Option(True, "--pager/--no-pager", help="page long table output when stdout is a TTY"),
     ) -> None:
         f"""List {res.name}."""
-        if view and filter_name and view != filter_name:
-            _err("pass either --filter or --view, not both")
         list_resource(
             res,
-            view or filter_name,
+            filter_name,
             where or [],
             debug,
             per_page,
             page,
             all_pages,
-            v2,
             format_,
             json_out,
             or_grouping,
@@ -2276,24 +2253,22 @@ def _make_subapp(res: Resource) -> typer.Typer:
     @sub.command("get", help=f"Show one {singular}.", epilog=(
         f"[bold]Examples:[/bold]  "
         f"fsv {res.name} get {_pfx}-1234  |  "
-        f"fsv {res.name} get {_pfx}-1234 --internal  |  "
         f"fsv {res.name} get {_pfx}-1234 --json"
     ))
     def get(
         id_: str = typer.Argument(..., metavar="ID"),
         stats: bool = typer.Option(False, "--stats", help="include stats + planning_fields"),
-        internal: bool = typer.Option(False, "--internal", help="use /api/_/ (default for changes; more denorm fields)"),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     ) -> None:
         f"""Show one {res.name[:-1]} by id."""
-        get_resource(res, id_, stats, internal, json_out)
+        get_resource(res, id_, stats, json_out)
 
     @sub.command("activity", help=f"List {singular} activity.", epilog=(
-        f"[bold]Examples:[/bold]  fsv {res.name} activity {_pfx}-1234  |  fsv {res.name} activity {_pfx}-1234 -n 50 --json"
+        f"[bold]Examples:[/bold]  fsv {res.name} activity {_pfx}-1234  |  fsv {res.name} activity {_pfx}-1234 -l 50 --json"
     ))
     def activity(
         id_: str = typer.Argument(...),
-        limit: int = typer.Option(20, "-n", "--limit"),
+        limit: int = typer.Option(20, "-l", "--limit"),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     ) -> None:
         activity_resource(res, id_, limit, json_out)
@@ -2303,7 +2278,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
     ))
     def tasks(
         id_: str = typer.Argument(...),
-        format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", "--format", help="output format", autocompletion=completion.complete_format),
+        format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     ) -> None:
         tasks_resource(res, id_, format_, json_out)
@@ -2324,7 +2299,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             per_page: int = typer.Option(30, "--per-page", "-n"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm add/remove mutation"),
-            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", "--format", help="output format", autocompletion=completion.complete_format),
+            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         ) -> None:
             try:
@@ -2430,7 +2405,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
         ))
         def approvals(
             id_: str = typer.Argument(...),
-            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", "--format", help="output format", autocompletion=completion.complete_format),
+            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         ) -> None:
             """List approvals for a change (read-only)."""
@@ -2508,7 +2483,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             remove: Optional[List[str]] = typer.Option(None, "--remove", help="ticket ID(s) to dissociate", autocompletion=_complete_ticket_for_change),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
-            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", "--format", help="output format", autocompletion=completion.complete_format),
+            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         ) -> None:
             """List, search, or manage associated tickets for a change.
@@ -2651,7 +2626,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
         query: str = typer.Argument(..., help='DSL query, e.g. "status:Open AND priority:High"', autocompletion=completion.complete_search_dsl),
         per_page: int = typer.Option(30, "--per-page", "-n"),
         page: int = typer.Option(1, "--page", "-p"),
-        format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", "--format", help="output format", autocompletion=completion.complete_format),
+        format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         all_pages: bool = typer.Option(False, "--all", "-a", help="fetch all pages (auto-paginate)"),
         n_pages: Optional[int] = typer.Option(None, "--npages", "-N", help="fetch exactly N pages"),
@@ -2923,7 +2898,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             ))
             def approvals(
                 id_: str = typer.Argument(...),
-                format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", "--format", help="output format", autocompletion=completion.complete_format),
+                format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
                 json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
             ) -> None:
                 ticket_approvals_resource(id_, format_, json_out)
@@ -2933,7 +2908,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             ))
             def associations(
                 id_: str = typer.Argument(...),
-                format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", "--format", help="output format", autocompletion=completion.complete_format),
+                format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
                 json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
             ) -> None:
                 ticket_associations_resource(id_, format_, json_out)
@@ -3203,7 +3178,7 @@ def global_search_cmd(
     query: str = typer.Argument(..., help="Free-text term, e.g. 'EDP'"),
     page: int = typer.Option(1, "--page", "-p"),
     sort: SearchSort = typer.Option(SearchSort.relevance, "--sort", help="relevance | created | modified", autocompletion=completion.complete_search_sort),
-    format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", "--format", help="output format", autocompletion=completion.complete_format),
+    format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
     json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     n_pages: Optional[int] = typer.Option(None, "--npages", "-N", help="fetch exactly N pages (30 results each)"),
     all_pages: bool = typer.Option(False, "--all", "-a", help="fetch all pages (auto-paginate)"),

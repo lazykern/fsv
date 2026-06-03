@@ -53,7 +53,6 @@ def test_change_filter_delegates_to_internal_list(monkeypatch):
                 "filter_name": None,
                 "where": ["priority=3", "status=1"],
                 "debug": False,
-                "v2": False,
                 "format_": "json",
                 "json_out": True,
                 "or_grouping": False,
