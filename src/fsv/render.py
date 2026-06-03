@@ -109,7 +109,7 @@ def list_table(items: list[dict], resource: Resource, schema: dict[str, Any]) ->
             row.append(schema_mod.choice_label("change_type", x.get("change_type"), schema) or "-")
         row += [
             schema_mod.PRIORITY.get(x.get("priority") or 0, "-"),
-            (x.get("subject") or "")[:80],
+            x.get("subject") or "",
             ((x.get("requester") or {}).get("name") if isinstance(x.get("requester"), dict) else "-") or "-",
         ]
         t.add_row(*row)

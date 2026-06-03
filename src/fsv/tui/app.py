@@ -111,6 +111,7 @@ class FsvApp(App):
         self._pending_detail_key: str | None = None
         self._pending_sub_key: str | None = None
         self._detail_debounce_timer = None
+        self._entity_debounce_timer = None
         self._list_fr = 11
         self._detail_fr = 9
 
@@ -870,7 +871,12 @@ class FsvApp(App):
             return
         self.entity = name
         self.detail_tab_idx = 0
-        self._reload_list("[dim]loading rows...[/]")
+        self._render_header()
+        if self._entity_debounce_timer is not None:
+            self._entity_debounce_timer.stop()
+        self._entity_debounce_timer = self.set_timer(
+            0.2, lambda: self._reload_list("[dim]loading rows...[/]")
+        )
 
     def _next_entity(self) -> None:
         idx = ENTITY_TABS.index(self.entity)
