@@ -13,10 +13,11 @@ from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.reactive import var
 from textual.screen import ModalScreen
-from textual.widgets import DataTable, Static
+from textual.widgets import DataTable, Input, Static
 
 from fsv import schema as schema_mod, service
 from fsv.client import APIError, get_client
+from fsv.query import build_query_hash_from_schema
 from fsv.render import strip_html
 from fsv.resources import CHANGES, PROBLEMS, TICKETS, Resource, format_id
 
@@ -69,6 +70,13 @@ class HelpScreen(ModalScreen[None]):
   [cyan]1-8[/]          switch detail tab
   [cyan]\\[][/cyan]         resize list/detail pane
 
+[bold]Filter[/]
+  [cyan]/[/]            open filter input (FIELD=VALUE, space-separated)
+  [cyan]Esc[/]          cancel filter input
+  [cyan]Enter[/]        apply filter and reload
+  empty input clears active filter
+  not supported in work view
+
 [bold]Selection[/]
   moving list cursor loads detail automatically
   [cyan]y[/]            copy selected display id
@@ -118,12 +126,15 @@ class FsvApp(App):
         self._per_page = 100
         self._has_more = False
         self._loading_more = False
+        self._active_filters: list[str] = []
+        self._filter_error: str | None = None
 
     def compose(self) -> ComposeResult:
         yield Static(id="header")
         with Vertical(id="main"):
             with Vertical(id="list-pane"):
                 yield DataTable(id="list")
+                yield Input(id="filter-input", placeholder="status=Open priority=High")
                 yield Static(id="filter-bar")
             with Vertical(id="detail"):
                 yield Static(id="detail-bar")
@@ -137,6 +148,9 @@ class FsvApp(App):
         self.screen.styles.background = "transparent"
         for widget in self.query("Vertical, VerticalScroll, Static"):
             widget.styles.background = "transparent"
+        filter_input = self.query_one("#filter-input", Input)
+        filter_input.display = False
+        filter_input.styles.background = "transparent"
         table = self.query_one("#list", DataTable)
         table.cursor_type = "row"
         table.zebra_stripes = False
@@ -160,7 +174,17 @@ class FsvApp(App):
             items, total = service.list_work_items(client=c)
         else:
             res = _resource_for_entity(self.entity)
-            items, total = service.list_items(res, client=c, page=self._page, per_page=self._per_page)
+            query_hash: str | None = None
+            if self._active_filters:
+                try:
+                    sch = self._schemas.get(res.name, {"fields": []})
+                    query_hash = build_query_hash_from_schema(c, res, sch, self._active_filters)
+                except ValueError as exc:
+                    self.call_from_thread(self._set_filter_error, str(exc))
+                    return
+            items, total = service.list_items(
+                res, client=c, page=self._page, per_page=self._per_page, query_hash=query_hash
+            )
 
         self.call_from_thread(self._populate_list, items, total, append)
 
@@ -346,6 +370,32 @@ class FsvApp(App):
         self._render_filter_bar()
         self._render_status()
 
+    def _set_filter_error(self, error: str) -> None:
+        self._filter_error = error
+        self._render_filter_bar()
+
+    def _open_filter_input(self) -> None:
+        if self.entity == "work":
+            self.notify("Filters not supported in work view", severity="warning")
+            return
+        inp = self.query_one("#filter-input", Input)
+        inp.value = " ".join(self._active_filters)
+        inp.display = True
+        inp.focus()
+
+    def _apply_filter(self, raw: str) -> None:
+        inp = self.query_one("#filter-input", Input)
+        inp.display = False
+        self.query_one("#list", DataTable).focus()
+        self._active_filters = raw.split() if raw.strip() else []
+        self._reload_list("[dim]filtering...[/]")
+
+    def _cancel_filter_input(self) -> None:
+        inp = self.query_one("#filter-input", Input)
+        inp.display = False
+        self.query_one("#list", DataTable).focus()
+        self._render_filter_bar()
+
     def _load_more(self) -> None:
         self._loading_more = True
         self._page += 1
@@ -360,6 +410,7 @@ class FsvApp(App):
         self._has_more = False
         self._loading_more = False
         self._g_pending = False
+        self._filter_error = None
         self._detail_cache.clear()
         self._sub_cache.clear()
         self.query_one("#list", DataTable).clear(columns=True)
@@ -392,8 +443,14 @@ class FsvApp(App):
         total = self._total
         count = f"{rows}/{total}" if total > rows else str(rows)
         loading = "  [yellow]loading more…[/]" if self._loading_more else ""
+        if self._filter_error:
+            filter_part = f"[red]filter error: {escape(self._filter_error)}[/]"
+        elif self._active_filters:
+            filter_part = f"[yellow]filter: {escape(' '.join(self._active_filters))}[/]"
+        else:
+            filter_part = "[dim]/ to filter[/]"
         self.query_one("#filter-bar", Static).update(
-            Text.from_markup(f"[dim]filter=none  focus={pane}  sel={sel}  {count} rows[/]{loading}")
+            Text.from_markup(f"{filter_part}  [dim]focus={pane}  sel={sel}  {count} rows[/]{loading}")
         )
 
     def _render_detail_bar(self, item: dict, resource: Resource) -> None:
@@ -491,8 +548,8 @@ class FsvApp(App):
             "[bold]gw/gt/gp/gc[/] entity  "
             "[bold]1-8[/] detail tab  "
             "[bold]\\[][/bold] resize  "
+            "[bold]/[/] filter  "
             "[bold]o[/] browser  "
-            "[bold]spc[/] mark  "
             "[bold]r[/] reload  "
             "[bold]y[/] yank  "
             "[bold]q[/]/[bold]Ctrl+C[/] quit  "
@@ -736,8 +793,23 @@ class FsvApp(App):
 
     # ── Key handling ────────────────────────────────────────
 
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        if event.input.id == "filter-input":
+            self._apply_filter(event.value)
+            event.stop()
+
     def on_key(self, event) -> None:
         key = event.key
+
+        # When filter input is open, intercept only Escape; let Input handle the rest
+        inp = self.query_one("#filter-input", Input)
+        if inp.display and inp.has_focus:
+            if key == "escape":
+                self._cancel_filter_input()
+                event.stop()
+                event.prevent_default()
+            return
+
         table = self.query_one("#list", DataTable)
         detail = self.query_one("#detail-scroll", VerticalScroll)
         pane = self._active_pane()
@@ -763,7 +835,11 @@ class FsvApp(App):
             event.prevent_default()
             return
 
-        if key == "tab":
+        if key == "slash":
+            self._open_filter_input()
+            event.stop()
+            event.prevent_default()
+        elif key == "tab":
             self._toggle_pane()
             event.stop()
             event.prevent_default()
@@ -910,6 +986,8 @@ class FsvApp(App):
             return
         self.entity = name
         self.detail_tab_idx = 0
+        self._active_filters = []
+        self._filter_error = None
         self._render_header()
         if self._entity_debounce_timer is not None:
             self._entity_debounce_timer.stop()

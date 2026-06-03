@@ -168,7 +168,7 @@ def _api(fn: Callable[[], T]) -> T:
         if VERBOSE:
             err.print(f"[dim]api {(time.time()-t0)*1000:.0f}ms[/]")
         return result
-    except (SessionError, APIError) as e:
+    except (SessionError, APIError, ValueError) as e:
         _err(str(e))
 
 
