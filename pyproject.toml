@@ -1,0 +1,29 @@
+[project]
+name = "fsv"
+version = "2026.05.29"
+description = "Freshservice CLI"
+readme = "README.md"
+authors = [
+    { name = "Phusit Somboonyingsuk" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "argon2-cffi>=25.1.0",
+    "cryptography>=46.0.3",
+    "httpx>=0.28.1",
+    "prompt-toolkit>=3.0.52",
+    "rich>=15.0.0",
+    "typer>=0.25.1",
+]
+
+[project.scripts]
+fsv = "fsv:main"
+
+[build-system]
+requires = ["uv_build>=0.11.7,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
