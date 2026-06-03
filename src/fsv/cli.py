@@ -2615,7 +2615,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
         per_page: int = typer.Option(30, "--per-page", "-n"),
         page: int = typer.Option(1, "--page", "-p"),
         order_by: Optional[str] = typer.Option(None, "--order-by", help="sort field, e.g. created_at", autocompletion=completion.complete_field_names(res)),
-        order_type: SortOrder = typer.Option(SortOrder.asc, "--order-type", help="asc | desc", autocompletion=completion.complete_sort_order),
+        order_type: SortOrder = typer.Option(SortOrder.desc, "--order-type", help="asc | desc", autocompletion=completion.complete_sort_order),
         all_pages: bool = typer.Option(False, "--all", "-a", help="fetch all pages (auto-paginate)"),
         n_pages: Optional[int] = typer.Option(None, "--npages", "-N", help="fetch exactly N pages"),
         format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
