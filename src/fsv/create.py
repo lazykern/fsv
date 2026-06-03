@@ -697,12 +697,26 @@ def get_change_approvals(change_id: int, c: Client | None = None) -> list[dict[s
 
 
 def get_change_assets(change_id: int, c: Client | None = None) -> list[dict[str, Any]]:
-    """Fetch CIs/assets associated with a change (cis + services + softwares)."""
     if c is None:
         c = get_client()
+    try:
+        data = c.int_get(f"changes/{change_id}/assets")
+        if "associated_assets" in data:
+            return data.get("associated_assets") or []
+    except APIError as e:
+        if e.status != 404:
+            raise
     items: list[dict[str, Any]] = []
     for atype in ("cis", "services", "softwares"):
-        data = c.int_get(f"changes/{change_id}/associated-cis", params={"page": 1, "per_page": 100, "association_type": atype})
+        try:
+            data = c.int_get(
+                f"changes/{change_id}/associated-cis",
+                params={"page": 1, "per_page": 100, "association_type": atype},
+            )
+        except APIError as e:
+            if e.status != 404:
+                raise
+            continue
         items.extend(data.get("data", []))
     return items
 
@@ -752,9 +766,14 @@ def get_change_associations(change_id: int, c: Client | None = None) -> dict[str
     """Fetch associated tickets, problems, and releases for a change."""
     if c is None:
         c = get_client()
-    tickets = c.int_get(f"changes/{change_id}/tickets").get("tickets", [])
-    problems = c.int_get(f"changes/{change_id}/problems").get("problems", [])
-    releases = c.int_get(f"changes/{change_id}/releases").get("releases", [])
+    def _get(path: str, key: str) -> list:
+        try:
+            return c.int_get(path).get(key, [])
+        except APIError:
+            return []
+    tickets = _get(f"changes/{change_id}/tickets", "tickets")
+    problems = _get(f"changes/{change_id}/problems", "problems")
+    releases = _get(f"changes/{change_id}/releases", "releases")
     return {"tickets": tickets, "problems": problems, "releases": releases}
 
 
