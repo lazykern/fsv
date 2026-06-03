@@ -1,7 +1,7 @@
 """Reusable data-fetching layer for both CLI and TUI."""
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 from typing import Any
 
 from fsv import config, schema as schema_mod
@@ -45,20 +45,25 @@ def list_work_items(
     page: int = 1,
 ) -> tuple[list[dict[str, Any]], int]:
     c = client or get_client()
-    all_items: list[dict[str, Any]] = []
+    results: list[list[dict[str, Any]]] = [[] for _ in range(3)]
 
-    def _fetch(res: Resource) -> list[dict[str, Any]]:
+    def _fetch(res: Resource, idx: int) -> None:
         try:
             items, _ = list_items(res, client=c, page=page, per_page=per_page)
-            return items
+            results[idx] = items
         except Exception:
-            return []
+            pass
 
-    with ThreadPoolExecutor(max_workers=3) as pool:
-        futures = {pool.submit(_fetch, res): res for res in (TICKETS, CHANGES, PROBLEMS)}
-        for fut in as_completed(futures):
-            all_items.extend(fut.result())
+    threads = [
+        threading.Thread(target=_fetch, args=(res, idx), daemon=True)
+        for idx, res in enumerate((TICKETS, CHANGES, PROBLEMS))
+    ]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
 
+    all_items = [item for bucket in results for item in bucket]
     all_items.sort(key=lambda x: x.get("updated_at") or "", reverse=True)
     return all_items, len(all_items)
 
