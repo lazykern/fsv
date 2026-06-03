@@ -10,16 +10,37 @@ fsv also uses the public v2 API (`/api/v2/`) for schema, task writes, and approv
 
 ## Install
 
+### End users
+
+Install from GitHub:
+
 ```bash
-cd ~/lab/work/fsv
-uv sync
+uv tool install git+https://github.com/lazykern/fsv.git
 ```
 
-Run ad hoc: `uv run fsv ...`
-
-Install globally (adds `fsv` to PATH):
+Upgrade later with:
 
 ```bash
+uv tool upgrade fsv
+```
+
+### Contributors / local checkout
+
+```bash
+git clone git@github.com:lazykern/fsv.git
+cd fsv
+uv sync
+uv tool install --editable .
+```
+
+Run ad hoc from checkout: `uv run fsv ...`
+
+Update local editable install:
+
+```bash
+cd /path/to/fsv
+git pull --ff-only
+uv sync
 uv tool install --editable .
 ```
 
@@ -52,6 +73,33 @@ Debug:
 
 ```bash
 fsv completion doctor
+```
+
+## Upgrade / staying current
+
+Check installed version:
+
+```bash
+fsv --version
+```
+
+fsv does not auto-update itself. To know when new release ships:
+
+- Watch GitHub releases: <https://github.com/lazykern/fsv/releases>
+- In GitHub UI: **Watch → Custom → Releases**
+
+If you installed from GitHub with `uv tool install git+https://github.com/lazykern/fsv.git`, upgrade with:
+
+```bash
+uv tool upgrade fsv
+```
+
+If you run from local checkout only:
+
+```bash
+cd /path/to/fsv
+git pull --ff-only
+uv sync
 ```
 
 ## Login
@@ -173,7 +221,11 @@ fsv changes update CHN-1234 --planning "Others Document" --description "Evidence
 fsv changes create --dry-run
 fsv changes clone CHN-1234 --with-tasks --with-planning
 fsv changes download CHN-1234 --all --out ./evidence
+fsv changes assets CHN-1234 --list-categories
 fsv changes assets CHN-1234 --search app
+fsv changes assets CHN-1234 --search OOS --category "Application Portfolio"
+fsv changes assets CHN-1234 --add OOS --category "Application Portfolio" --dry-run
+fsv changes assets CHN-1234 --pick --yes
 fsv changes associations CHN-1234 --add SR-5678 --dry-run
 fsv tickets update INC-9012 --status Pending --agent alice@example.com
 fsv tickets update INC-9012 --group "Service Desk"
@@ -193,8 +245,9 @@ fsv tickets reply INC-9012 "<HTML or text>"
 - **AND/OR grouping**: Default AND; add `--or` for OR grouping (e.g., `fsv tickets ls --where status=Open --where status=Pending --or`).
 - **Custom field values**: Custom fields use text labels (e.g., `--where 'Business Service=Email'`), default fields use choice IDs in filters.
 - **Update values**: `update --status/--priority` accepts labels or IDs; `--agent/--group` accepts names/emails or IDs; `--planning` accepts planning field label/name/id.
-- **Autocomplete**: `lookup` searches requesters, agents, groups, and schema choices; `--where requester=...` and `--where agent=...` use the same resolver.
+- **Autocomplete**: `lookup` searches requesters, agents, groups, and schema choices; `--where requester=...` and `--where agent=...` use the same resolver. `changes assets --category` completes from Freshservice CMDB asset types.
 - **Debug**: `--debug` shows resolved query_hash for inspection.
+- **Change asset categories**: `changes assets --list-categories` reads category/type labels from `/cmdb/items`. Asset search endpoint `/api/_/assets-to-associate` does not expose server-side category filtering, so `--category` filters matched rows client-side by asset type label. `--pick` requires TTY and prompts for category first when `--category` omitted.
 - **Display IDs**: CHN- (changes), INC-/SR- (tickets — discriminate by `type`), PRB- (problems).
 - **Config**: `fsv config set completion.network on` enables remote requester/agent completion.
 - **Schema cache**: 7d TTL in `~/.config/fsv/schema/`, namespaced by tenant. Use `fsv cache refresh` to force (`fsv completion refresh` is an alias).

@@ -9,6 +9,7 @@ import sys
 import threading
 import time
 from datetime import datetime
+from html import unescape
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from enum import Enum
 from pathlib import Path
@@ -974,6 +975,11 @@ def tasks_resource(res: Resource, id_: str, format_: OutputFormat | str = "table
     console.print(t)
 
 
+_ASSET_CATEGORY_SELECT_RE = re.compile(r'<select[^>]*name="ci_type_id"[^>]*>(.*?)</select>', re.I | re.S)
+_ASSET_CATEGORY_OPTION_RE = re.compile(r'<option(?:\s+value(?:="([^"]*)")?)?[^>]*>(.*?)</option>', re.I | re.S)
+_ASSET_CATEGORY_CACHE: list[dict[str, str]] | None = None
+
+
 def _asset_display(asset: dict[str, Any]) -> dict[str, Any]:
     ci = asset.get("config_item") if isinstance(asset.get("config_item"), dict) else asset
     return {
@@ -987,43 +993,306 @@ def _asset_display(asset: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def assets_resource(id_: str, search: str | None, add: list[int], remove: list[int], page: int, per_page: int,
-                    dry_run: bool, yes: bool, json_out: bool, format_: OutputFormat | str = "table") -> None:
-    actions = sum(1 for active in (search is not None, bool(add), bool(remove)) if active)
+def _fetch_asset_categories(c: Client | None = None) -> list[dict[str, str]]:
+    global _ASSET_CATEGORY_CACHE
+    if _ASSET_CATEGORY_CACHE is not None:
+        return _ASSET_CATEGORY_CACHE
+    if c is None:
+        c = get_client()
+    html = c._client.get(
+        f"https://{config.DOMAIN}/cmdb/items",
+        headers={"Accept": "text/html,application/xhtml+xml"},
+        follow_redirects=True,
+    ).text
+    out: list[dict[str, str]] = []
+    seen: set[str] = set()
+    block_match = _ASSET_CATEGORY_SELECT_RE.search(html)
+    if not block_match:
+        _err("could not load asset categories from /cmdb/items")
+    block = block_match.group(1)
+    for ci_type_id, raw_label in _ASSET_CATEGORY_OPTION_RE.findall(block):
+        label = " ".join(unescape(re.sub(r"<[^>]+>", "", raw_label)).split())
+        if not label:
+            continue
+        key = label.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append({
+            "name": "All assets" if not ci_type_id and key == "all assets" else label,
+            "filter": "all_assets" if not ci_type_id else ci_type_id,
+            "ci_type_id": ci_type_id,
+        })
+    _ASSET_CATEGORY_CACHE = out
+    return out
+
+
+def _resolve_asset_category(value: str, c: Client | None = None) -> dict[str, str]:
+    raw = " ".join(str(value).strip().split())
+    if not raw:
+        _err("empty asset category")
+    if raw.casefold() in {"all", "all assets"}:
+        return {"name": "All assets", "filter": "all_assets", "ci_type_id": ""}
+    categories = _fetch_asset_categories(c)
+    folded = raw.casefold()
+    exact = [cat for cat in categories if cat["name"].casefold() == folded]
+    if len(exact) == 1:
+        return exact[0]
+    if len(exact) > 1:
+        shown = ", ".join(cat["name"] for cat in exact[:5])
+        _err(f"multiple asset categories match {value!r}: {shown}")
+    matches = [cat for cat in categories if folded in cat["name"].casefold()]
+    if len(matches) == 1:
+        return matches[0]
+    if not matches:
+        _err(f"unknown asset category: {value!r}. Try --list-categories")
+    shown = ", ".join(cat["name"] for cat in matches[:8])
+    _err(f"multiple asset categories match {value!r}: {shown}")
+
+
+def _filter_assets_by_category(items: list[dict[str, Any]], category: dict[str, str] | None) -> list[dict[str, Any]]:
+    if not category or category.get("filter") == "all_assets":
+        return items
+    wanted = category["name"].casefold()
+    out: list[dict[str, Any]] = []
+    for item in items:
+        row = item if "type" in item and "name" in item else _asset_display(item)
+        if str(row.get("type") or "").casefold() == wanted:
+            out.append(item)
+    return out
+
+
+def _resolve_change_asset_id(
+    change_id: int,
+    value: str,
+    c: Client | None = None,
+    associated: bool = False,
+    category: dict[str, str] | None = None,
+) -> int:
+    raw = str(value).strip()
+    if raw.isdigit():
+        return int(raw)
+    if c is None:
+        c = get_client()
+    folded = raw.casefold()
+    if associated:
+        rows = _filter_assets_by_category([_asset_display(asset) for asset in get_change_assets(change_id, c)], category)
+        exact = [row for row in rows if str(row.get("id") or "") == raw or str(row.get("name") or "").casefold() == folded]
+        if len(exact) == 1:
+            return int(exact[0]["id"])
+        if len(exact) > 1:
+            shown = ", ".join(f"{row['name']} [{row['id']}]" for row in exact[:5])
+            _err(f"multiple associated assets match {value!r}: {shown}")
+        matches = [row for row in rows if folded in str(row.get("name") or "").casefold()]
+        if len(matches) == 1:
+            return int(matches[0]["id"])
+        if not matches:
+            suffix = f" in category {category['name']!r}" if category else ""
+            _err(f"asset not associated on {format_id({'id': change_id}, CHANGES)}{suffix}: {value!r}")
+        shown = ", ".join(f"{row['name']} [{row['id']}]" for row in matches[:5])
+        _err(f"multiple associated assets match {value!r}: {shown}")
+    assets = search_assets_for_change(change_id, raw, per_page=50, c=c).get("assets") or []
+    assets = _filter_assets_by_category(assets, category)
+    exact = [asset for asset in assets if str(asset.get("display_id") or "") == raw or str(asset.get("name") or "").casefold() == folded]
+    if len(exact) == 1:
+        return int(exact[0]["display_id"])
+    if len(exact) > 1:
+        shown = ", ".join(f"{asset.get('name') or '-'} [{asset.get('display_id') or '?'}]" for asset in exact[:5])
+        _err(f"multiple assets match {value!r}: {shown}")
+    if len(assets) == 1:
+        return int(assets[0]["display_id"])
+    if not assets:
+        suffix = f" in category {category['name']!r}" if category else ""
+        _err(f"no asset match{suffix}: {value}")
+    shown = ", ".join(f"{asset.get('name') or '-'} [{asset.get('display_id') or '?'}]" for asset in assets[:5])
+    _err(f"multiple assets match {value!r}: {shown}")
+
+
+def _resolve_change_asset_ids(
+    change_id: int,
+    values: list[str],
+    c: Client | None = None,
+    associated: bool = False,
+    category: dict[str, str] | None = None,
+) -> list[int]:
+    if c is None:
+        c = get_client()
+    out: list[int] = []
+    seen: set[int] = set()
+    for value in values:
+        did = _resolve_change_asset_id(change_id, value, c, associated=associated, category=category)
+        if did not in seen:
+            seen.add(did)
+            out.append(did)
+    return out
+
+
+def _prompt_text(title: str, text: str, default: str = "") -> str | None:
+    from prompt_toolkit.shortcuts import input_dialog
+    return input_dialog(title=title, text=text, default=default).run()
+
+
+def _prompt_multi_select(title: str, text: str, values: list[tuple[str, str]]) -> list[str] | None:
+    from prompt_toolkit.shortcuts import checkboxlist_dialog
+    result = checkboxlist_dialog(title=title, text=text, values=values).run()
+    return list(result) if result else result
+
+
+def _prompt_asset_category(c: Client | None = None) -> dict[str, str] | None:
+    if c is None:
+        c = get_client()
+    value = _prompt_text(
+        "Asset category",
+        "Category for asset search. Leave empty for All assets.",
+        default="All assets",
+    )
+    if value is None:
+        return None
+    raw = value.strip() or "All assets"
+    return _resolve_asset_category(raw, c)
+
+
+def _pick_change_assets(change_id: int, c: Client | None = None, category: dict[str, str] | None = None) -> list[int]:
+    if _no_input() or not sys.stdin.isatty():
+        _err("interactive picker requires TTY")
+    if c is None:
+        c = get_client()
+    if category is None:
+        category = _prompt_asset_category(c)
+        if category is None:
+            raise typer.Exit(0)
+    prompt = f"Search assets for {format_id({'id': change_id}, CHANGES)}"
+    if category and category.get("filter") != "all_assets":
+        prompt += f"\nCategory: {category['name']}"
+    query = _prompt_text("Associate assets", prompt)
+    if query is None:
+        raise typer.Exit(0)
+    items = search_assets_for_change(change_id, query, per_page=50, c=c).get("assets") or []
+    items = _filter_assets_by_category(items, category)
+    if not items:
+        suffix = f" in category {category['name']!r}" if category else ""
+        _err(f"no asset match{suffix}: {query}")
+    values = [
+        (
+            str(item.get("display_id") or ""),
+            f"[{item.get('display_id') or '?'}] {item.get('name') or '-'} · {item.get('ci_type_name') or '-'} · {item.get('location_name') or '-'}",
+        )
+        for item in items
+        if item.get("display_id")
+    ]
+    selected = _prompt_multi_select(
+        "Associate assets",
+        f"Select asset(s) for {format_id({'id': change_id}, CHANGES)}",
+        values,
+    )
+    if selected is None:
+        raise typer.Exit(0)
+    return [int(value) for value in selected]
+
+
+def _pick_change_tickets(change_id: int, c: Client | None = None) -> list[int]:
+    if _no_input() or not sys.stdin.isatty():
+        _err("interactive picker requires TTY")
+    if c is None:
+        c = get_client()
+    query = _prompt_text("Associate tickets", f"Search ticket ID or subject for {format_id({'id': change_id}, CHANGES)}")
+    if query is None:
+        raise typer.Exit(0)
+    items = search_change_tickets(query, c)
+    if not items:
+        _err(f"no ticket match: {query}")
+    values = [
+        (
+            str(item.get("id") or ""),
+            f"[{item.get('human_display_id') or format_id(item, TICKETS)}] {item.get('subject') or '-'} · {item.get('status_name') or item.get('status') or '-'}",
+        )
+        for item in items
+        if item.get("id")
+    ]
+    selected = _prompt_multi_select(
+        "Associate tickets",
+        f"Select ticket(s) for {format_id({'id': change_id}, CHANGES)}",
+        values,
+    )
+    if selected is None:
+        raise typer.Exit(0)
+    return [int(value) for value in selected]
+
+
+def assets_resource(id_: str, search: str | None, add: list[str], remove: list[str], page: int, per_page: int,
+                    dry_run: bool, yes: bool, json_out: bool, format_: OutputFormat | str = "table",
+                    pick: bool = False, category_name: str | None = None, list_categories: bool = False) -> None:
+    actions = sum(1 for active in (search is not None, bool(add), bool(remove), pick, list_categories) if active)
     if actions > 1:
-        _err("choose only one action: --search, --add, or --remove")
+        _err("choose only one action: --search, --add, --remove, --pick, or --list-categories")
     cid = _cid(id_, CHANGES)
     c = _client()
-    if add:
+    category = _resolve_asset_category(category_name, c) if category_name else None
+    if list_categories:
+        items = _fetch_asset_categories(c)
+        if _emit_fmt(items, items, format_, json_out):
+            return
+        t = Table(title="Asset categories")
+        t.add_column("Name")
+        t.add_column("CI Type ID", style="dim")
+        for item in items:
+            t.add_row(item.get("name") or "-", item.get("ci_type_id") or "-")
+        console.print(t)
+        return
+    if pick:
+        asset_ids = _pick_change_assets(cid, c, category)
+        if not asset_ids:
+            console.print("cancelled")
+            return
         if dry_run:
-            emit_json({"action": "associate_assets", "change_id": cid, "asset_ids": add})
+            emit_json({"action": "associate_assets", "change_id": cid, "asset_ids": asset_ids})
             return
         if not yes:
             if _no_input() or not sys.stdin.isatty():
                 _err("pass --yes to associate assets")
-            typer.confirm(f"Associate {len(add)} asset(s) with {format_id({'id': cid}, CHANGES)}?", abort=True)
-        _api(lambda: associate_assets(cid, add, c))
-        console.print(f"[green]associated[/] {len(add)} asset(s) with {format_id({'id': cid}, CHANGES)}")
+            typer.confirm(f"Associate {len(asset_ids)} asset(s) with {format_id({'id': cid}, CHANGES)}?", abort=True)
+        _api(lambda: associate_assets(cid, asset_ids, c))
+        console.print(f"[green]associated[/] {len(asset_ids)} asset(s) with {format_id({'id': cid}, CHANGES)}")
+        return
+    if add:
+        asset_ids = _resolve_change_asset_ids(cid, add, c, category=category)
+        if dry_run:
+            emit_json({"action": "associate_assets", "change_id": cid, "asset_ids": asset_ids})
+            return
+        if not yes:
+            if _no_input() or not sys.stdin.isatty():
+                _err("pass --yes to associate assets")
+            typer.confirm(f"Associate {len(asset_ids)} asset(s) with {format_id({'id': cid}, CHANGES)}?", abort=True)
+        _api(lambda: associate_assets(cid, asset_ids, c))
+        console.print(f"[green]associated[/] {len(asset_ids)} asset(s) with {format_id({'id': cid}, CHANGES)}")
         return
     if remove:
+        asset_ids = _resolve_change_asset_ids(cid, remove, c, associated=True, category=category)
         if dry_run:
-            emit_json({"action": "dissociate_assets", "change_id": cid, "asset_display_ids": remove})
+            emit_json({"action": "dissociate_assets", "change_id": cid, "asset_display_ids": asset_ids})
             return
         if not yes:
             if _no_input() or not sys.stdin.isatty():
                 _err("pass --yes to remove assets")
-            typer.confirm(f"Remove {len(remove)} asset(s) from {format_id({'id': cid}, CHANGES)}?", abort=True)
-        _api(lambda: dissociate_assets(cid, remove, c))
-        console.print(f"[green]removed[/] {len(remove)} asset(s) from {format_id({'id': cid}, CHANGES)}")
+            typer.confirm(f"Remove {len(asset_ids)} asset(s) from {format_id({'id': cid}, CHANGES)}?", abort=True)
+        _api(lambda: dissociate_assets(cid, asset_ids, c))
+        console.print(f"[green]removed[/] {len(asset_ids)} asset(s) from {format_id({'id': cid}, CHANGES)}")
         return
     if search is not None:
         data = _api(lambda: search_assets_for_change(cid, search, page, per_page, c))
-        items = data.get("assets") or []
+        items = _filter_assets_by_category(data.get("assets") or [], category)
         flat_rows = [_asset_display(x) for x in items]
-        if _emit_fmt(data, flat_rows, format_, json_out):
+        payload = data
+        if category:
+            payload = {
+                **data,
+                "assets": items,
+                "meta": {**(data.get("meta") or {}), "filtered_count": len(items), "category": category["name"]},
+            }
+        if _emit_fmt(payload, flat_rows, format_, json_out):
             return
     else:
-        items = _api(lambda: get_change_assets(cid, c))
+        items = _filter_assets_by_category(_api(lambda: get_change_assets(cid, c)), category)
         flat_rows = [_asset_display(x) for x in items]
         if _emit_fmt(items, flat_rows, format_, json_out):
             return
@@ -1078,12 +1347,34 @@ def _complete_task_id(ctx: typer.Context, incomplete: str) -> Iterable[tuple[str
 
 def _asset_candidates(ctx: typer.Context, incomplete: str) -> list[dict[str, Any]]:
     cid = _ctx_change_id(ctx)
-    if cid is None or not _network_completion_enabled() or len(incomplete.strip()) < 2:
+    if cid is None or len(incomplete.strip()) < 2:
         return []
     try:
         return list((search_assets_for_change(cid, incomplete, per_page=10).get("assets") or []))
     except Exception:
         return []
+
+
+def _complete_asset_category(incomplete: str) -> Iterable[tuple[str, str]]:
+    try:
+        categories = _fetch_asset_categories()
+    except Exception:
+        categories = [{"name": "All assets", "ci_type_id": ""}]
+    emitted: set[str] = set()
+    probe = incomplete.casefold()
+    for item in categories:
+        name = str(item.get("name") or "")
+        if not name or name in emitted:
+            continue
+        if not probe or name.casefold().startswith(probe):
+            emitted.add(name)
+            detail = f"ci_type_id={item.get('ci_type_id')}" if item.get("ci_type_id") else "all"
+            yield (name, detail)
+    if "All assets" not in emitted and "all assets".startswith(probe):
+        yield ("All assets", "all")
+    if "all".startswith(probe):
+        yield ("all", "All assets")
+    yield (incomplete, "")
 
 
 def _complete_asset_search_for_change(ctx: typer.Context, incomplete: str) -> Iterable[tuple[str, str]]:
@@ -1235,7 +1526,7 @@ _complete_task_environment = _complete_task_custom_field("environment")
 
 
 def _complete_ticket_for_change(incomplete: str) -> Iterable[tuple[str, str]]:
-    if not _network_completion_enabled() or len(incomplete.strip()) < 2:
+    if len(incomplete.strip()) < 2:
         yield (incomplete, "")
         return
     try:
@@ -1246,6 +1537,67 @@ def _complete_ticket_for_change(incomplete: str) -> Iterable[tuple[str, str]]:
     except Exception:
         pass
     yield (incomplete, "")
+
+
+def _resolve_change_ticket_id(value: str, c: Client | None = None) -> int:
+    raw = str(value).strip()
+    try:
+        return parse_id(raw, TICKETS)
+    except ValueError:
+        pass
+    if c is None:
+        c = get_client()
+    tickets = search_change_tickets(raw, c)
+    if not tickets:
+        _err(f"no ticket match: {value}")
+    folded = raw.casefold()
+    exact = [
+        ticket for ticket in tickets
+        if str(ticket.get("human_display_id") or format_id(ticket, TICKETS)).casefold() == folded
+        or str(ticket.get("subject") or "").casefold() == folded
+    ]
+    if len(exact) == 1:
+        return int(exact[0]["id"])
+    if len(exact) > 1:
+        shown = ", ".join(str(ticket.get("human_display_id") or format_id(ticket, TICKETS)) for ticket in exact[:5])
+        _err(f"multiple ticket matches for {value!r}: {shown}")
+    if len(tickets) == 1:
+        return int(tickets[0]["id"])
+    shown = ", ".join(str(ticket.get("human_display_id") or format_id(ticket, TICKETS)) for ticket in tickets[:5])
+    _err(f"multiple ticket matches for {value!r}: {shown}")
+
+
+def _resolve_associated_change_ticket_id(change_id: int, value: str, c: Client | None = None) -> int:
+    raw = str(value).strip()
+    try:
+        target_id = parse_id(raw, TICKETS)
+    except ValueError:
+        target_id = None
+    if c is None:
+        c = get_client()
+    tickets = get_change_associations(change_id, c).get("tickets", [])
+    if target_id is not None:
+        for ticket in tickets:
+            if int(ticket.get("id") or 0) == target_id:
+                return target_id
+    folded = raw.casefold()
+    exact = [
+        ticket for ticket in tickets
+        if str(ticket.get("human_display_id") or format_id(ticket, TICKETS)).casefold() == folded
+        or str(ticket.get("subject") or "").casefold() == folded
+    ]
+    if len(exact) == 1:
+        return int(exact[0]["id"])
+    if len(exact) > 1:
+        shown = ", ".join(str(ticket.get("human_display_id") or format_id(ticket, TICKETS)) for ticket in exact[:5])
+        _err(f"multiple associated ticket matches for {value!r}: {shown}")
+    matches = [ticket for ticket in tickets if folded in str(ticket.get("subject") or "").casefold()]
+    if len(matches) == 1:
+        return int(matches[0]["id"])
+    if not matches:
+        _err(f"ticket not associated on change #{change_id}: {value!r}")
+    shown = ", ".join(str(ticket.get("human_display_id") or format_id(ticket, TICKETS)) for ticket in matches[:5])
+    _err(f"multiple associated ticket matches for {value!r}: {shown}")
 
 
 def _ticket_id(value: str) -> int:
@@ -2271,22 +2623,43 @@ def _make_subapp(res: Resource) -> typer.Typer:
             "[bold]Examples:[/bold]  "
             "fsv changes assets CHN-1234  |  "
             "fsv changes assets CHN-1234 --search app  |  "
-            "fsv changes assets CHN-1234 --add 456 --dry-run"
+            "fsv changes assets CHN-1234 --search EDP --category 'Application Portfolio'  |  "
+            "fsv changes assets CHN-1234 --add 456 --dry-run  |  "
+            "fsv changes assets CHN-1234 --add 'EDP' --category 'Application Portfolio' --yes  |  "
+            "fsv changes assets CHN-1234 --pick --category 'Application Portfolio' --yes  |  "
+            "fsv changes assets CHN-1234 --list-categories"
         ))
         def assets(
             id_: str = typer.Argument(..., metavar="CHANGE_ID"),
             search: Optional[str] = typer.Option(None, "--search", "-q", help="search assets available to associate", autocompletion=_complete_asset_search_for_change),
-            add: Optional[List[int]] = typer.Option(None, "--add", help="asset display ID(s) to associate", autocompletion=_complete_asset_id_for_change),
-            remove: Optional[List[int]] = typer.Option(None, "--remove", help="asset display ID(s) to remove", autocompletion=_complete_associated_asset_for_change),
+            add: Optional[List[str]] = typer.Option(None, "--add", help="asset display ID(s) or names to associate", autocompletion=_complete_asset_id_for_change),
+            remove: Optional[List[str]] = typer.Option(None, "--remove", help="asset display ID(s) or names to remove", autocompletion=_complete_associated_asset_for_change),
             page: int = typer.Option(1, "--page", "-p"),
             per_page: int = typer.Option(30, "--per-page", "-n"),
+            category: Optional[str] = typer.Option(None, "--category", help="asset category/type label from Freshservice UI", autocompletion=_complete_asset_category),
+            list_categories: bool = typer.Option(False, "--list-categories", help="show available asset categories from /cmdb/items"),
+            pick: bool = typer.Option(False, "--pick", help="interactive picker for add flow; prompts for category first when omitted"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm add/remove mutation"),
             format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         ) -> None:
             try:
-                assets_resource(id_, search, list(add or []), list(remove or []), page, per_page, dry_run, yes, json_out, format_)
+                assets_resource(
+                    id_,
+                    search,
+                    list(add or []),
+                    list(remove or []),
+                    page,
+                    per_page,
+                    dry_run,
+                    yes,
+                    json_out,
+                    format_,
+                    pick=pick,
+                    category_name=category,
+                    list_categories=list_categories,
+                )
             except (SessionError, APIError, ValueError) as e:
                 _err(str(e))
 
@@ -2457,13 +2830,16 @@ def _make_subapp(res: Resource) -> typer.Typer:
             "[bold]Examples:[/bold]  "
             "fsv changes associations CHN-1234  |  "
             "fsv changes associations CHN-1234 --search SR-123  |  "
-            "fsv changes associations CHN-1234 --add SR-123 --dry-run"
+            "fsv changes associations CHN-1234 --add SR-123 --dry-run  |  "
+            "fsv changes associations CHN-1234 --add 'Napimpat' --yes  |  "
+            "fsv changes associations CHN-1234 --pick --yes"
         ))
         def associations(
             id_: str = typer.Argument(...),
             search: Optional[str] = typer.Option(None, "--search", "-q", help="search tickets available to associate", autocompletion=_complete_ticket_for_change),
-            add: Optional[List[str]] = typer.Option(None, "--add", help="ticket ID(s) to associate, e.g. SR-565163", autocompletion=_complete_ticket_for_change),
-            remove: Optional[List[str]] = typer.Option(None, "--remove", help="ticket ID(s) to dissociate", autocompletion=_complete_ticket_for_change),
+            add: Optional[List[str]] = typer.Option(None, "--add", help="ticket ID(s) or subject text to associate, e.g. SR-565163", autocompletion=_complete_ticket_for_change),
+            remove: Optional[List[str]] = typer.Option(None, "--remove", help="ticket ID(s) or subject text to dissociate", autocompletion=_complete_ticket_for_change),
+            pick: bool = typer.Option(False, "--pick", help="interactive picker for add flow"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
             format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
@@ -2476,7 +2852,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             --remove SR-565163     dissociate a ticket
             """
             try:
-                actions = sum(1 for active in (search is not None, bool(add), bool(remove)) if active)
+                actions = sum(1 for active in (search is not None, bool(add), bool(remove), pick) if active)
                 if actions > 1:
                     _err("choose only one action: --search, --add, or --remove")
                 cid = _cid(id_, res)
@@ -2487,8 +2863,23 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     else:
                         _print_tickets(items, "Ticket search")
                     return
+                if pick:
+                    ids = _pick_change_tickets(cid)
+                    if not ids:
+                        console.print("cancelled")
+                        return
+                    if dry_run:
+                        emit_json({"action": "associate_tickets", "change_id": cid, "ticket_ids": ids})
+                        return
+                    if not yes:
+                        if _no_input() or not sys.stdin.isatty():
+                            _err("pass --yes to confirm")
+                        typer.confirm(f"Associate {len(ids)} ticket(s) with #{cid}?", abort=True)
+                    associate_ticket(cid, ids)
+                    console.print(f"[green]associated[/] {len(ids)} ticket(s) with #{cid}")
+                    return
                 if add:
-                    ids = [_ticket_id(x) for x in add]
+                    ids = [_resolve_change_ticket_id(x) for x in add]
                     if dry_run:
                         emit_json({"action": "associate_tickets", "change_id": cid, "ticket_ids": ids})
                         return
@@ -2500,7 +2891,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     console.print(f"[green]associated[/] {len(ids)} ticket(s) with #{cid}")
                     return
                 if remove:
-                    ids = [_ticket_id(x) for x in remove]
+                    ids = [_resolve_associated_change_ticket_id(cid, x) for x in remove]
                     if dry_run:
                         emit_json({"action": "dissociate_tickets", "change_id": cid, "ticket_ids": ids})
                         return
@@ -3175,6 +3566,13 @@ def global_search_cmd(
         raise
     except Exception as e:
         _err(str(e))
+
+
+@app.command()
+def tui() -> None:
+    """Launch interactive TUI."""
+    from fsv.tui import launch
+    launch()
 
 
 for r in REGISTRY.values():

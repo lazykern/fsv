@@ -1,0 +1,91 @@
+Screen {
+    layout: vertical;
+}
+
+#header {
+    dock: top;
+    height: 1;
+    background: $surface;
+    padding: 0 1;
+}
+
+#main {
+    height: 1fr;
+}
+
+#list-pane {
+    height: 11fr;
+    min-height: 8;
+}
+
+#list-pane:focus-within {
+    border-bottom: heavy $success;
+}
+
+#list {
+    height: 1fr;
+    min-height: 4;
+}
+
+#list > .datatable--header {
+    background: $surface;
+}
+
+#filter-bar {
+    height: 1;
+    background: $surface-darken-1;
+    color: $text-muted;
+    padding: 0 1;
+}
+
+#detail {
+    height: 9fr;
+    min-height: 8;
+    border-top: heavy $accent;
+}
+
+#detail:focus-within {
+    border-top: heavy $success;
+}
+
+#detail-bar {
+    height: 1;
+    background: $surface;
+    padding: 0 1;
+}
+
+#detail-tabs {
+    height: 1;
+    background: $panel;
+    padding: 0 1;
+}
+
+#detail-scroll {
+    height: 1fr;
+    padding: 0 1;
+}
+
+#detail-content {
+    padding: 0;
+}
+
+#status-bar {
+    dock: bottom;
+    height: 1;
+    background: $surface;
+    padding: 0 1;
+}
+
+#key-hints {
+    dock: bottom;
+    height: 1;
+    background: $panel;
+    color: $text-muted;
+    padding: 0 1;
+}
+
+.tab-active {
+    background: $accent;
+    color: $text;
+    text-style: bold;
+}

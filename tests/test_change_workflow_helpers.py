@@ -3,16 +3,46 @@ from __future__ import annotations
 import pytest
 
 from fsv import create
+from fsv.client import APIError
 
 
 class WorkflowClient:
     def __init__(self):
         self.puts = []
-        self.asset_response = {"cis": [{"id": 9}], "services": [], "softwares": []}
+        self.asset_response_direct: dict | Exception = {
+            "associated_assets": [
+                {
+                    "id": 9,
+                    "config_item": {
+                        "display_id": 123,
+                        "name": "EDP",
+                        "ci_type_name": "Application Portfolio",
+                    },
+                }
+            ]
+        }
+        self.asset_response_fallback = {
+            "cis": [
+                {
+                    "id": 9,
+                    "config_item": {
+                        "display_id": 123,
+                        "name": "EDP",
+                        "ci_type_name": "Application Portfolio",
+                    },
+                }
+            ],
+            "services": [],
+            "softwares": [],
+        }
 
     def int_get(self, path, params=None):
+        if path == "changes/1/assets":
+            if isinstance(self.asset_response_direct, Exception):
+                raise self.asset_response_direct
+            return self.asset_response_direct
         if path == "changes/1/associated-cis":
-            return {"data": self.asset_response[params["association_type"]]}
+            return {"data": self.asset_response_fallback[params["association_type"]]}
         if path == "assets-to-associate":
             return {"assets": [{"display_id": 123, "name": "EDP"}], "meta": {"total_count": 1}, "params": params}
         if path == "changes/tickets/search":
@@ -34,13 +64,13 @@ def test_assets_resource_rejects_multiple_actions():
     import fsv.cli as cli
 
     with pytest.raises(cli.typer.Exit):
-        cli.assets_resource("CHN-1", "edp", [123], [], 1, 30, True, False, False)
+        cli.assets_resource("CHN-1", "edp", ["123"], [], 1, 30, True, False, False)
 
 
 def test_change_assets_list_search_and_associate():
     c = WorkflowClient()
 
-    assert create.get_change_assets(1, c=c) == [{"id": 9}]
+    assert create.get_change_assets(1, c=c) == c.asset_response_direct["associated_assets"]
     search = create.search_assets_for_change(1, "edp", c=c)
     assert search["assets"] == [{"display_id": 123, "name": "EDP"}]
     assert search["params"]["search_term"] == "edp"
@@ -49,6 +79,13 @@ def test_change_assets_list_search_and_associate():
 
     create.associate_assets(1, [123], c=c)
     assert c.puts == [("PUT", "changes/1/assets/associate", {"item_ids": [123]})]
+
+
+def test_get_change_assets_falls_back_to_associated_cis_when_assets_404():
+    c = WorkflowClient()
+    c.asset_response_direct = APIError(404, "")
+
+    assert create.get_change_assets(1, c=c) == c.asset_response_fallback["cis"]
 
 
 def test_delete_task():
@@ -61,13 +98,11 @@ def test_delete_task():
 
 def test_dissociate_assets():
     c = WorkflowClient()
-    c.asset_response = {
-        "cis": [
+    c.asset_response_direct = {
+        "associated_assets": [
             {"id": 16001574706, "config_item": {"display_id": 38679, "name": "OOS", "ci_type_name": "Application Portfolio"}},
             {"id": 16001572545, "config_item": {"display_id": 27914, "name": "EDP", "ci_type_name": "Application Portfolio"}},
-        ],
-        "services": [],
-        "softwares": [],
+        ]
     }
 
     create.dissociate_assets(1, [38679], c=c)
