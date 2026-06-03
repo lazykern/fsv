@@ -24,7 +24,7 @@ def test_no_tenant_domain_default(monkeypatch, tmp_path):
     try:
         config.require_domain()
     except RuntimeError as e:
-        assert "fsv auth setup" in str(e)
+        assert "fsv auth login" in str(e)
     else:
         raise AssertionError("missing domain should fail")
 

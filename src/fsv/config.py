@@ -82,7 +82,7 @@ def set_domain(value: str) -> str:
 def require_domain() -> str:
     if DOMAIN:
         return DOMAIN
-    raise RuntimeError("no Freshservice domain; run `fsv auth setup --domain yourcompany.freshservice.com` or `fsv auth login --domain yourcompany.freshservice.com`")
+    raise RuntimeError("no Freshservice domain; run `fsv auth login --domain yourcompany.freshservice.com`")
 
 
 def cache_domain_key(domain: str | None = None) -> str:
