@@ -1,12 +1,12 @@
 # fsv
 
-Freshservice CLI. Drives changes, tickets, and problems via session-cookie auth — no API key required.
+Freshservice CLI. Drives changes, tickets, and problems via session-cookie auth; no API key needed.
 
 ## How it works
 
-fsv talks to the **internal** `/api/_/` endpoints that the Freshservice web UI uses — not the public v2 REST API. These endpoints expose richer data and have no published rate cap. Access requires a valid browser session cookie, which you paste in once and fsv stores locally.
+fsv calls the **internal** `/api/_/` endpoints the Freshservice web UI uses, not the public v2 REST API. These endpoints expose richer data with no published rate cap. Paste a valid browser session cookie once; fsv stores it locally.
 
-The public v2 API (`/api/v2/`) is also used for a handful of operations (schema, task writes, approvals). Both paths share the same cookie.
+fsv also uses the public v2 API (`/api/v2/`) for schema, task writes, and approvals. Both paths share the same cookie.
 
 ## Install
 
@@ -40,13 +40,13 @@ fsv changes ls --where requester=ali<TAB>  # requester email (network)
 fsv changes fields --choices add_<TAB>     # add_database_task, ...
 ```
 
-By default completion reads local schema cache only and never calls Freshservice. Enable network requester/agent completion:
+Completion reads the local schema cache and skips network calls by default. Enable network requester/agent completion:
 
 ```bash
 fsv config set completion.network on
 ```
 
-Remote completion needs a 2+ character prefix; blank completion falls back to shell file completion.
+Remote completion requires a 2+ character prefix; without one, the shell falls back to file completion.
 
 Debug:
 
@@ -69,7 +69,7 @@ pbpaste | fsv auth login --domain yourcompany.freshservice.com --header -
 fsv auth login -d yourcompany.freshservice.com -H "_x_m=...; _x_d=...; ..."
 ```
 
-The Network-tab Cookie header includes HttpOnly cookies (`_itildesk_session`, `user_credentials`) which `document.cookie` cannot read — required for API access.
+The Network-tab Cookie header includes HttpOnly cookies (`_itildesk_session`, `user_credentials`) that `document.cookie` cannot read; fsv needs these for API access.
 
 ### Storage backends
 
@@ -87,7 +87,7 @@ Argon mode asks for a passphrase on save and read. Keychain first-read prompts m
 
 ### Why not username/password?
 
-Tested. Freshworks login endpoint requires reCAPTCHA Enterprise tokens (Google JS sandbox + risk signals). Cloudflare bot-detection on top. No headless path works. Paste-only stays.
+The Freshworks login endpoint requires reCAPTCHA Enterprise tokens (Google JS sandbox + risk signals) with Cloudflare bot detection on top. No headless path works; cookie paste is the only option.
 
 **Security note**: fsv never reads browser cookie databases, keychains, or profiles. No DLP concerns.
 
