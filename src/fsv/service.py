@@ -18,6 +18,7 @@ def list_items(
     filter_name: str | None = None,
     order_by: str | None = None,
     order_type: str = "desc",
+    query_hash: str | None = None,
 ) -> tuple[list[dict[str, Any]], int]:
     c = client or get_client()
     params: dict[str, Any] = {
@@ -31,6 +32,10 @@ def list_items(
     if order_by:
         params["order_by"] = order_by
         params["order_type"] = order_type
+    if query_hash:
+        params["query_hash"] = query_hash
+        if resource.name in ("changes", "tickets"):
+            params["advanced_query_hash"] = ""
     data = c.int_get(resource.api_path, params=params)
     items = data.get(resource.list_key, [])
     total = (data.get("meta") or {}).get("total_count") or data.get("total") or len(items)

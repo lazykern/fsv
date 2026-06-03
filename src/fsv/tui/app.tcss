@@ -47,6 +47,17 @@ DataTable > .datatable--even-row {
 }
 
 
+#filter-input {
+    height: 1;
+    border: none;
+    padding: 0 1;
+    background: transparent;
+}
+
+#filter-input:focus {
+    border: none;
+}
+
 #filter-bar {
     height: 1;
     color: $text-muted;
