@@ -58,6 +58,12 @@ DataTable > .datatable--even-row {
     border: none;
 }
 
+#suggestion-bar {
+    height: 1;
+    padding: 0 1;
+    background: transparent;
+}
+
 #filter-bar {
     height: 1;
     color: $text-muted;
