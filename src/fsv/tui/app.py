@@ -114,6 +114,10 @@ class FsvApp(App):
         self._entity_debounce_timer = None
         self._list_fr = 11
         self._detail_fr = 9
+        self._page = 1
+        self._per_page = 100
+        self._has_more = False
+        self._loading_more = False
 
     def compose(self) -> ComposeResult:
         yield Static(id="header")
@@ -146,7 +150,7 @@ class FsvApp(App):
     # ── Data loading ────────────────────────────────────────
 
     @work(thread=True, exclusive=True, group="list")
-    def _load_list(self) -> None:
+    def _load_list(self, append: bool = False) -> None:
         c = get_client()
         for res in ALL_RESOURCES:
             if res.name not in self._schemas:
@@ -156,28 +160,41 @@ class FsvApp(App):
             items, total = service.list_work_items(client=c)
         else:
             res = _resource_for_entity(self.entity)
-            items, total = service.list_items(res, client=c)
+            items, total = service.list_items(res, client=c, page=self._page, per_page=self._per_page)
 
-        self.call_from_thread(self._populate_list, items, total)
+        self.call_from_thread(self._populate_list, items, total, append)
 
-    def _populate_list(self, items: list[dict], total: int) -> None:
-        self._items = items
+    def _populate_list(self, items: list[dict], total: int, append: bool = False) -> None:
+        self._loading_more = False
         self._total = total
-        table = self.query_one("#list", DataTable)
-        table.clear(columns=True)
 
         if self.entity == "work":
-            table.add_columns("", "ID", "MODULE", "SUBJECT", "STATUS", "PRI", "GROUP/OWNER", "UPDATED")
+            self._has_more = False
         else:
-            table.add_columns("", "ID", "STATUS", "PRI", "SUBJECT", "REQUESTER")
+            self._has_more = len(items) == self._per_page
+
+        table = self.query_one("#list", DataTable)
+
+        if not append:
+            self._items = items
+            table.clear(columns=True)
+            if self.entity == "work":
+                table.add_columns("", "ID", "MODULE", "SUBJECT", "STATUS", "PRI", "GROUP/OWNER", "UPDATED")
+            else:
+                table.add_columns("", "ID", "STATUS", "PRI", "SUBJECT", "REQUESTER")
+            offset = 0
+        else:
+            offset = len(self._items)
+            self._items.extend(items)
 
         for idx, item in enumerate(items):
+            row_num = offset + idx
             res: Resource = item.get("_resource", TICKETS)
             schema = self._schemas.get(res.name, {"fields": []})
             did = format_id(item, res)
             status = service.resolve_status(item, res, schema)
             pri = service.resolve_priority(item)
-            sel = f"{idx + 1:02d}"
+            sel = f"{row_num + 1:03d}"
 
             if self.entity == "work":
                 module = res.name.upper()
@@ -190,10 +207,10 @@ class FsvApp(App):
                 requester = ((item.get("requester") or {}).get("name") if isinstance(item.get("requester"), dict) else "") or ""
                 table.add_row(sel, did, status, pri, subject, requester, key=did)
 
-        if items:
+        if not append and items:
             self._clear_detail("[dim]loading details...[/]")
             table.move_cursor(row=0)
-        else:
+        elif not append and not items:
             self._clear_detail("[dim]no rows[/]")
 
         self._render_header()
@@ -329,9 +346,19 @@ class FsvApp(App):
         self._render_filter_bar()
         self._render_status()
 
+    def _load_more(self) -> None:
+        self._loading_more = True
+        self._page += 1
+        self._render_filter_bar()
+        self._render_status()
+        self._load_list(append=True)
+
     def _reload_list(self, message: str = "[dim]reloading...[/]") -> None:
         self._items = []
         self._total = 0
+        self._page = 1
+        self._has_more = False
+        self._loading_more = False
         self._g_pending = False
         self._detail_cache.clear()
         self._sub_cache.clear()
@@ -353,14 +380,20 @@ class FsvApp(App):
             else:
                 parts.append(f"{label}  ")
         rows = len(self._items)
-        parts.append(f"  [dim]{rows} rows  ? help[/]")
+        total = self._total
+        count = f"{rows}/{total}" if total > rows else str(rows)
+        parts.append(f"  [dim]{count} rows  ? help[/]")
         self.query_one("#header", Static).update(Text.from_markup("".join(parts)))
 
     def _render_filter_bar(self) -> None:
         sel = format_id(self._selected, self._selected["_resource"]) if self._selected else "-"
         pane = self._active_pane()
+        rows = len(self._items)
+        total = self._total
+        count = f"{rows}/{total}" if total > rows else str(rows)
+        loading = "  [yellow]loading more…[/]" if self._loading_more else ""
         self.query_one("#filter-bar", Static).update(
-            Text(f"filter=none  focus={pane}  sel={sel}", style="dim")
+            Text.from_markup(f"[dim]filter=none  focus={pane}  sel={sel}  {count} rows[/]{loading}")
         )
 
     def _render_detail_bar(self, item: dict, resource: Resource) -> None:
@@ -439,10 +472,13 @@ class FsvApp(App):
             tab_name = self._current_tab_name(self._selected["_resource"])
             sel = f" > {did} > {tab_name}"
         rows = len(self._items)
+        total = self._total
+        count = f"{rows}/{total}" if total > rows else str(rows)
         pane = self._active_pane()
         bar = self.query_one("#status-bar", Static)
         text = Text(f"{entity}{sel}    ")
-        text.append(f"pane={pane} · {rows} rows", style="dim")
+        suffix = "loading more…" if self._loading_more else f"{count} rows"
+        text.append(f"pane={pane} · {suffix}", style="dim")
         bar.update(text)
 
     def _render_key_hints(self) -> None:
@@ -856,6 +892,9 @@ class FsvApp(App):
         self._detail_debounce_timer = self.set_timer(
             0.15, lambda: self._load_detail(item, detail_key)
         )
+        table = self.query_one("#list", DataTable)
+        if table.cursor_row == table.row_count - 1 and self._has_more and not self._loading_more:
+            self._load_more()
 
     def _find_item(self, display_id: str) -> dict | None:
         for item in self._items:
