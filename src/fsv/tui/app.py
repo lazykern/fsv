@@ -377,14 +377,14 @@ class FsvApp(App):
         self._filter_error = error
         self._render_filter_bar()
 
+    _PSEUDO_DATE_FIELDS = ("created_at", "updated_at", "due_by")
+
     def _get_suggestions(self, value: str) -> tuple[list[str], str | None]:
         """Returns (completable_suggestions, hint_or_None)."""
         if self.entity == "work":
             return [], None
         sch = self._schemas.get(self.entity, {"fields": []})
         fields_list = sch.get("fields") or []
-        if not fields_list:
-            return [], None
         if not value or value.endswith(" "):
             return [], None
         current = value.rsplit(" ", 1)[-1]
@@ -393,16 +393,20 @@ class FsvApp(App):
         current_lower = current.lower()
         if "=" not in current:
             matches: list[str] = []
+            for name in self._PSEUDO_DATE_FIELDS:
+                if name.startswith(current_lower) and name not in matches:
+                    matches.append(name)
             for f in fields_list:
                 name = f.get("name") or ""
                 label = f.get("label") or ""
-                if name.lower().startswith(current_lower) or label.lower().startswith(current_lower):
-                    if name not in matches:
-                        matches.append(name)
+                if (name.lower().startswith(current_lower) or label.lower().startswith(current_lower)) and name not in matches:
+                    matches.append(name)
             return matches[:8], None
         field_part, _, val_prefix = current.partition("=")
         field_lower = field_part.lower()
         val_lower = val_prefix.lower()
+        if field_lower in self._PSEUDO_DATE_FIELDS:
+            return [], "YYYY-MM-DD  (operators: = != > >= < <=)"
         matched = None
         for f in fields_list:
             if (f.get("name") or "").lower() == field_lower:
@@ -415,23 +419,31 @@ class FsvApp(App):
                     break
         if not matched:
             return [], None
+        ftype = (matched.get("field_type") or "").lower()
+        fname = (matched.get("name") or "").lower()
         choices = matched.get("choices") or []
         if not choices:
-            fname = (matched.get("name") or "").lower()
-            ftype = (matched.get("field_type") or "").lower()
             if fname in ("requester",) or "requester" in ftype:
                 return [], "name or email"
             if fname in ("agent", "responder") or "agent" in ftype:
                 return [], "agent name"
             if fname == "group" or "group" in ftype:
                 return [], "group name"
+            if fname == "department" or "department" in ftype:
+                return [], "department name"
+            if "lookup" in ftype:
+                return [], "name"
+            if "checkbox" in ftype:
+                return ["true", "false"], None
+            if "number" in ftype:
+                return [], "number"
             if "date" in ftype:
                 return [], "YYYY-MM-DD"
             return [], "text"
         suggestions: list[str] = []
         for c in choices:
             v = c.get("value") or c.get("name") or ""
-            if v.lower().startswith(val_lower):
+            if v and v.lower().startswith(val_lower):
                 suggestions.append(v)
         return suggestions[:8], None
 
