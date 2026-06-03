@@ -131,6 +131,9 @@ def get_assets(
     if resource.name == "changes":
         from fsv.create import get_change_assets
         return get_change_assets(item_id, c)
+    if resource.name == "tickets":
+        data = c.int_get(f"{resource.api_path}/{item_id}/associated_assets")
+        return data.get("associated_assets", [])
     data = c.int_get(f"{resource.api_path}/{item_id}/assets")
     return data.get("assets", [])
 

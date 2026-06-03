@@ -9,13 +9,14 @@ from rich.text import Text
 
 from textual import work
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.reactive import var
 from textual.screen import ModalScreen
 from textual.widgets import DataTable, Static
 
 from fsv import schema as schema_mod, service
-from fsv.client import get_client
+from fsv.client import APIError, get_client
 from fsv.render import strip_html
 from fsv.resources import CHANGES, PROBLEMS, TICKETS, Resource, format_id
 
@@ -51,7 +52,6 @@ class HelpScreen(ModalScreen[None]):
         width: 76;
         height: auto;
         max-height: 90%;
-        background: $surface;
         border: heavy $accent;
         padding: 1 2;
     }
@@ -67,16 +67,16 @@ class HelpScreen(ModalScreen[None]):
   [cyan]h/l[/]          entity in list pane, tabs in detail pane
   [cyan]gw/gt/gp/gc[/]  jump to work/tickets/problems/changes
   [cyan]1-8[/]          switch detail tab
+  [cyan]\\[][/cyan]         resize list/detail pane
 
 [bold]Selection[/]
   moving list cursor loads detail automatically
-  [cyan]space[/]        mark current row
   [cyan]y[/]            copy selected display id
-  [cyan]enter[/]/[cyan]o[/]      open selected item in browser
+  [cyan]o[/]            open selected item in browser
 
 [bold]App[/]
   [cyan]r[/]            reload list and clear caches
-  [cyan]ctrl+q[/]       quit
+  [cyan]q[/]/[cyan]ctrl+c[/]     quit
   [cyan]?[/]            close/open this help
 
 Press any key to close."""
@@ -93,12 +93,13 @@ Press any key to close."""
 class FsvApp(App):
     CSS_PATH = "app.tcss"
     TITLE = "fsv"
+    BINDINGS = [Binding("ctrl+c", "quit", "Quit", priority=True, show=False)]
 
     entity = var("work")
     detail_tab_idx = var(0)
 
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(ansi_color=True)
         self._items: list[dict[str, Any]] = []
         self._total = 0
         self._schemas: dict[str, dict] = {}
@@ -109,7 +110,9 @@ class FsvApp(App):
         self._g_pending_pane = "list"
         self._pending_detail_key: str | None = None
         self._pending_sub_key: str | None = None
-        self._marked: set[str] = set()
+        self._detail_debounce_timer = None
+        self._list_fr = 11
+        self._detail_fr = 9
 
     def compose(self) -> ComposeResult:
         yield Static(id="header")
@@ -126,9 +129,13 @@ class FsvApp(App):
         yield Static(id="key-hints")
 
     def on_mount(self) -> None:
+        self.screen.styles.background = "transparent"
+        for widget in self.query("Vertical, VerticalScroll, Static"):
+            widget.styles.background = "transparent"
         table = self.query_one("#list", DataTable)
         table.cursor_type = "row"
-        table.zebra_stripes = True
+        table.zebra_stripes = False
+        table.styles.background = "transparent"
         table.focus()
         self._render_header()
         self._render_key_hints()
@@ -159,7 +166,7 @@ class FsvApp(App):
         table.clear(columns=True)
 
         if self.entity == "work":
-            table.add_columns("", "M", "ID", "MODULE", "SUBJECT", "STATUS", "PRI", "GROUP/OWNER", "UPDATED")
+            table.add_columns("", "ID", "MODULE", "SUBJECT", "STATUS", "PRI", "GROUP/OWNER", "UPDATED")
         else:
             table.add_columns("", "ID", "STATUS", "PRI", "SUBJECT", "REQUESTER")
 
@@ -169,7 +176,6 @@ class FsvApp(App):
             did = format_id(item, res)
             status = service.resolve_status(item, res, schema)
             pri = service.resolve_priority(item)
-            mark = "*" if did in self._marked else ""
             sel = f"{idx + 1:02d}"
 
             if self.entity == "work":
@@ -177,7 +183,7 @@ class FsvApp(App):
                 subject = (item.get("subject") or "")[:60]
                 group = ((item.get("group") or {}).get("name") if isinstance(item.get("group"), dict) else "") or ""
                 updated = (item.get("updated_at") or "")[:10]
-                table.add_row(sel, mark, did, module, subject, status, pri, group, updated, key=did)
+                table.add_row(sel, did, module, subject, status, pri, group, updated, key=did)
             else:
                 subject = (item.get("subject") or "")[:80]
                 requester = ((item.get("requester") or {}).get("name") if isinstance(item.get("requester"), dict) else "") or ""
@@ -232,22 +238,25 @@ class FsvApp(App):
             data = self._sub_cache[cache_key]
         else:
             c = get_client()
-            if tab_name in ("notes", "conversations"):
-                data = service.get_notes(res, item_id, client=c)
-            elif tab_name == "tasks":
-                data = service.get_tasks(res, item_id, client=c)
-            elif tab_name == "approvals":
-                data = service.get_approvals(res, item_id, client=c)
-            elif tab_name == "assets":
-                data = service.get_assets(res, item_id, client=c)
-            elif tab_name == "associations":
-                data = service.get_associations(res, item_id, client=c)
-            elif tab_name == "activity":
-                data = service.get_activities(res, item_id, client=c)
-            elif tab_name == "resolution":
-                data = item
-            else:
-                data = None
+            try:
+                if tab_name in ("notes", "conversations"):
+                    data = service.get_notes(res, item_id, client=c)
+                elif tab_name == "tasks":
+                    data = service.get_tasks(res, item_id, client=c)
+                elif tab_name == "approvals":
+                    data = service.get_approvals(res, item_id, client=c)
+                elif tab_name == "assets":
+                    data = service.get_assets(res, item_id, client=c)
+                elif tab_name == "associations":
+                    data = service.get_associations(res, item_id, client=c)
+                elif tab_name == "activity":
+                    data = service.get_activities(res, item_id, client=c)
+                elif tab_name == "resolution":
+                    data = item
+                else:
+                    data = None
+            except APIError as exc:
+                data = [] if exc.status == 404 else None
             self._sub_cache[cache_key] = data
 
         self.call_from_thread(self._render_sub_content, tab_name, data, res, sub_key)
@@ -284,6 +293,12 @@ class FsvApp(App):
 
     def _toggle_pane(self) -> None:
         self._focus_pane("detail" if self._active_pane() == "list" else "list")
+
+    def _resize_panes(self, delta: int) -> None:
+        self._list_fr = max(3, min(17, self._list_fr + delta))
+        self._detail_fr = max(3, min(17, self._detail_fr - delta))
+        self.query_one("#list-pane").styles.height = f"{self._list_fr}fr"
+        self.query_one("#detail").styles.height = f"{self._detail_fr}fr"
 
     def _scroll_detail_home(self) -> None:
         self.query_one("#detail-scroll", VerticalScroll).scroll_home(animate=False, immediate=True)
@@ -337,8 +352,7 @@ class FsvApp(App):
             else:
                 parts.append(f"{label}  ")
         rows = len(self._items)
-        marked = len(self._marked)
-        parts.append(f"  [dim]{rows} rows · {marked} marked  ? help[/]")
+        parts.append(f"  [dim]{rows} rows  ? help[/]")
         self.query_one("#header", Static).update(Text.from_markup("".join(parts)))
 
     def _render_filter_bar(self) -> None:
@@ -424,11 +438,10 @@ class FsvApp(App):
             tab_name = self._current_tab_name(self._selected["_resource"])
             sel = f" > {did} > {tab_name}"
         rows = len(self._items)
-        marked = len(self._marked)
         pane = self._active_pane()
         bar = self.query_one("#status-bar", Static)
         text = Text(f"{entity}{sel}    ")
-        text.append(f"pane={pane} · {rows} rows · {marked} marked", style="dim")
+        text.append(f"pane={pane} · {rows} rows", style="dim")
         bar.update(text)
 
     def _render_key_hints(self) -> None:
@@ -440,11 +453,12 @@ class FsvApp(App):
             "[bold]h/l[/] entity/tab  "
             "[bold]gw/gt/gp/gc[/] entity  "
             "[bold]1-8[/] detail tab  "
-            "[bold]Enter/o[/] browser  "
+            "[bold]\\[][/bold] resize  "
+            "[bold]o[/] browser  "
             "[bold]spc[/] mark  "
             "[bold]r[/] reload  "
             "[bold]y[/] yank  "
-            "[bold]Ctrl+Q[/] quit  "
+            "[bold]q[/]/[bold]Ctrl+C[/] quit  "
             "[bold]?[/] help"
         )
         self.query_one("#key-hints", Static).update(Text.from_markup(hints))
@@ -716,12 +730,16 @@ class FsvApp(App):
             self._toggle_pane()
             event.stop()
             event.prevent_default()
-        elif key in ("question_mark", "?"):
-            self.push_screen(HelpScreen())
+        elif key == "ctrl+j":
+            self._focus_pane("detail")
             event.stop()
             event.prevent_default()
-        elif key == "enter":
-            self._open_browser()
+        elif key == "ctrl+k":
+            self._focus_pane("list")
+            event.stop()
+            event.prevent_default()
+        elif key in ("question_mark", "?"):
+            self.push_screen(HelpScreen())
             event.stop()
             event.prevent_default()
         elif key == "j" or key == "down":
@@ -777,10 +795,6 @@ class FsvApp(App):
                 self._next_entity()
             event.stop()
             event.prevent_default()
-        elif key == "space":
-            self._toggle_mark()
-            event.stop()
-            event.prevent_default()
         elif key == "o":
             self._open_browser()
             event.stop()
@@ -793,8 +807,16 @@ class FsvApp(App):
             self._yank()
             event.stop()
             event.prevent_default()
-        elif key == "ctrl+q":
+        elif key == "q":
             self.exit()
+            event.stop()
+            event.prevent_default()
+        elif key == "left_square_bracket":
+            self._resize_panes(-1)
+            event.stop()
+            event.prevent_default()
+        elif key == "right_square_bracket":
+            self._resize_panes(1)
             event.stop()
             event.prevent_default()
         elif key in ("1", "2", "3", "4", "5", "6", "7", "8"):
@@ -816,12 +838,23 @@ class FsvApp(App):
             return
         did = str(event.row_key.value)
         item = self._find_item(did)
-        if item:
-            res: Resource = item.get("_resource", TICKETS)
-            self.detail_tab_idx = 0
-            detail_key = self._item_key(item, res)
+        if not item:
+            return
+        res: Resource = item.get("_resource", TICKETS)
+        self.detail_tab_idx = 0
+        detail_key = self._item_key(item, res)
+        cache_key = f"{res.name}:{item.get('id')}"
+        if cache_key in self._detail_cache:
+            self._pending_detail_key = detail_key
+            self._pending_sub_key = None
+            self._show_detail(self._detail_cache[cache_key], res, detail_key)
+        else:
             self._set_pending_detail(detail_key)
-            self._load_detail(item, detail_key)
+        if self._detail_debounce_timer is not None:
+            self._detail_debounce_timer.stop()
+        self._detail_debounce_timer = self.set_timer(
+            0.15, lambda: self._load_detail(item, detail_key)
+        )
 
     def _find_item(self, display_id: str) -> dict | None:
         for item in self._items:
@@ -862,27 +895,6 @@ class FsvApp(App):
         self._render_detail_content(self._selected, res)
         self._render_filter_bar()
         self._render_status()
-
-    def _toggle_mark(self) -> None:
-        table = self.query_one("#list", DataTable)
-        row_key = table.cursor_row
-        if row_key is None or row_key >= len(self._items):
-            return
-        item = self._items[row_key]
-        res: Resource = item.get("_resource", TICKETS)
-        did = format_id(item, res)
-        if did in self._marked:
-            self._marked.discard(did)
-        else:
-            self._marked.add(did)
-        if self.entity == "work":
-            try:
-                table.update_cell(did, "M", "*" if did in self._marked else "")
-            except Exception:
-                pass
-        self._render_filter_bar()
-        self._render_status()
-        self._render_header()
 
     def _open_browser(self) -> None:
         if not self._selected:
