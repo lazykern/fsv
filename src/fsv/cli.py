@@ -575,6 +575,11 @@ def _parse_where(expr: str) -> tuple[str, str, str]:
     return field.strip(), op, _strip_quotes(value)
 
 
+def _where_field(expr: str) -> str:
+    m = re.match(r"^(.+?)(>=|<=|!=|~=|=|>|<)", expr.strip())
+    return m.group(1).strip() if m else expr.strip()
+
+
 def _choice_value(field: dict[str, Any], raw: str, type_: str) -> Any:
     choices = field.get("choices") or []
     if not choices:
@@ -2431,6 +2436,57 @@ def config_set(
     console.print(f"{key} = {value}")
 
 
+_defaults_app = typer.Typer(
+    no_args_is_help=True,
+    help="manage default --where filters per resource",
+    epilog=(
+        "[bold]Examples:[/bold]  "
+        "fsv config defaults show  |  "
+        "fsv config defaults set changes --where agent=me@example.com  |  "
+        "fsv config defaults clear changes"
+    ),
+)
+
+
+@_defaults_app.command("show", epilog="[bold]Examples:[/bold]  fsv config defaults show")
+def defaults_show(
+    resource: Optional[str] = typer.Argument(None, help="changes|tickets|problems; omit for all"),
+) -> None:
+    """Show default --where filters."""
+    names = [resource] if resource else list(REGISTRY)
+    for name in names:
+        exprs = config.get_default_where(name)
+        if exprs:
+            for expr in exprs:
+                console.print(f"{name}: {expr}")
+        else:
+            console.print(f"{name}: (none)")
+
+
+@_defaults_app.command("set", epilog="[bold]Examples:[/bold]  fsv config defaults set changes --where agent=me@example.com --where status=Open")
+def defaults_set(
+    resource: str = typer.Argument(..., help="changes|tickets|problems"),
+    where: list[str] = typer.Option(..., "--where", "-w", help="field=value filter; repeat to add multiple"),
+) -> None:
+    """Set (replace) default --where filters for a resource."""
+    if resource not in REGISTRY:
+        _err(f"unknown resource {resource!r}; choose: {', '.join(REGISTRY)}")
+    config.set_default_where(resource, where)
+    console.print(f"defaults.{resource}.where = {where}")
+
+
+@_defaults_app.command("clear", epilog="[bold]Examples:[/bold]  fsv config defaults clear changes")
+def defaults_clear(
+    resource: str = typer.Argument(..., help="changes|tickets|problems"),
+) -> None:
+    """Clear default --where filters for a resource."""
+    if resource not in REGISTRY:
+        _err(f"unknown resource {resource!r}; choose: {', '.join(REGISTRY)}")
+    config.clear_default_where(resource)
+    console.print(f"defaults.{resource}.where cleared")
+
+
+config_app.add_typer(_defaults_app, name="defaults")
 app.add_typer(config_app, name="config")
 
 
@@ -2565,12 +2621,18 @@ def _make_subapp(res: Resource) -> typer.Typer:
         format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         pager: bool = typer.Option(True, "--pager/--no-pager", help="page long table output when stdout is a TTY"),
+        no_defaults: bool = typer.Option(False, "--no-defaults", help="ignore default --where filters from config"),
     ) -> None:
         f"""List {res.name}."""
+        explicit_where = where or []
+        default_where = [] if no_defaults else config.get_default_where(res.name)
+        if default_where and explicit_where:
+            explicit_fields = {_where_field(e) for e in explicit_where}
+            default_where = [e for e in default_where if _where_field(e) not in explicit_fields]
         list_resource(
             res,
             filter_name,
-            where or [],
+            default_where + explicit_where,
             debug,
             per_page,
             page,

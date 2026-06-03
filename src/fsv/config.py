@@ -112,6 +112,22 @@ def filters_cache_candidates(name: str, domain: str | None = None) -> list[Path]
     return [filters_cache_path(name, domain)]
 
 
+def get_default_where(res_name: str) -> list[str]:
+    return list((load_config().get("defaults") or {}).get(res_name, {}).get("where") or [])
+
+
+def set_default_where(res_name: str, exprs: list[str]) -> None:
+    cfg = load_config()
+    cfg.setdefault("defaults", {}).setdefault(res_name, {})["where"] = list(exprs)
+    save_config(cfg)
+
+
+def clear_default_where(res_name: str) -> None:
+    cfg = load_config()
+    (cfg.get("defaults") or {}).pop(res_name, None)
+    save_config(cfg)
+
+
 def groups_cache_path(domain: str | None = None) -> Path:
     return CACHE_DIR / f"groups--{cache_domain_key(domain)}.json"
 
