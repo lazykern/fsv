@@ -377,18 +377,19 @@ class FsvApp(App):
         self._filter_error = error
         self._render_filter_bar()
 
-    def _get_suggestions(self, value: str) -> list[str]:
+    def _get_suggestions(self, value: str) -> tuple[list[str], str | None]:
+        """Returns (completable_suggestions, hint_or_None)."""
         if self.entity == "work":
-            return []
+            return [], None
         sch = self._schemas.get(self.entity, {"fields": []})
         fields_list = sch.get("fields") or []
         if not fields_list:
-            return []
+            return [], None
         if not value or value.endswith(" "):
-            return []
+            return [], None
         current = value.rsplit(" ", 1)[-1]
         if not current:
-            return []
+            return [], None
         current_lower = current.lower()
         if "=" not in current:
             matches: list[str] = []
@@ -398,7 +399,7 @@ class FsvApp(App):
                 if name.lower().startswith(current_lower) or label.lower().startswith(current_lower):
                     if name not in matches:
                         matches.append(name)
-            return matches[:8]
+            return matches[:8], None
         field_part, _, val_prefix = current.partition("=")
         field_lower = field_part.lower()
         val_lower = val_prefix.lower()
@@ -413,21 +414,37 @@ class FsvApp(App):
                     matched = f
                     break
         if not matched:
-            return []
+            return [], None
         choices = matched.get("choices") or []
+        if not choices:
+            fname = (matched.get("name") or "").lower()
+            ftype = (matched.get("field_type") or "").lower()
+            if fname in ("requester",) or "requester" in ftype:
+                return [], "name or email"
+            if fname in ("agent", "responder") or "agent" in ftype:
+                return [], "agent name"
+            if fname == "group" or "group" in ftype:
+                return [], "group name"
+            if "date" in ftype:
+                return [], "YYYY-MM-DD"
+            return [], "text"
         suggestions: list[str] = []
         for c in choices:
             v = c.get("value") or c.get("name") or ""
             if v.lower().startswith(val_lower):
                 suggestions.append(v)
-        return suggestions[:8]
+        return suggestions[:8], None
 
     def _update_suggestion_bar(self, value: str) -> None:
-        suggestions = self._get_suggestions(value)
+        suggestions, hint = self._get_suggestions(value)
         self._suggestions = suggestions
         bar = self.query_one("#suggestion-bar", Static)
         if not suggestions:
-            bar.display = False
+            if hint:
+                bar.update(Text.from_markup(f"[dim]{escape(hint)}[/]"))
+                bar.display = True
+            else:
+                bar.display = False
             return
         parts = [f"[cyan]{escape(suggestions[0])}[/]"]
         for s in suggestions[1:]:
