@@ -128,6 +128,7 @@ class FsvApp(App):
         self._loading_more = False
         self._active_filters: list[str] = []
         self._filter_error: str | None = None
+        self._suggestions: list[str] = []
 
     def compose(self) -> ComposeResult:
         yield Static(id="header")
@@ -135,6 +136,7 @@ class FsvApp(App):
             with Vertical(id="list-pane"):
                 yield DataTable(id="list")
                 yield Input(id="filter-input", placeholder="status=Open priority=High")
+                yield Static(id="suggestion-bar")
                 yield Static(id="filter-bar")
             with Vertical(id="detail"):
                 yield Static(id="detail-bar")
@@ -151,6 +153,7 @@ class FsvApp(App):
         filter_input = self.query_one("#filter-input", Input)
         filter_input.display = False
         filter_input.styles.background = "transparent"
+        self.query_one("#suggestion-bar", Static).display = False
         table = self.query_one("#list", DataTable)
         table.cursor_type = "row"
         table.zebra_stripes = False
@@ -374,6 +377,82 @@ class FsvApp(App):
         self._filter_error = error
         self._render_filter_bar()
 
+    def _get_suggestions(self, value: str) -> list[str]:
+        if self.entity == "work":
+            return []
+        sch = self._schemas.get(self.entity, {"fields": []})
+        fields_list = sch.get("fields") or []
+        if not fields_list:
+            return []
+        if not value or value.endswith(" "):
+            return []
+        current = value.rsplit(" ", 1)[-1]
+        if not current:
+            return []
+        current_lower = current.lower()
+        if "=" not in current:
+            matches: list[str] = []
+            for f in fields_list:
+                name = f.get("name") or ""
+                label = f.get("label") or ""
+                if name.lower().startswith(current_lower) or label.lower().startswith(current_lower):
+                    if name not in matches:
+                        matches.append(name)
+            return matches[:8]
+        field_part, _, val_prefix = current.partition("=")
+        field_lower = field_part.lower()
+        val_lower = val_prefix.lower()
+        matched = None
+        for f in fields_list:
+            if (f.get("name") or "").lower() == field_lower:
+                matched = f
+                break
+        if not matched:
+            for f in fields_list:
+                if (f.get("name") or "").lower().startswith(field_lower):
+                    matched = f
+                    break
+        if not matched:
+            return []
+        choices = matched.get("choices") or []
+        suggestions: list[str] = []
+        for c in choices:
+            v = c.get("value") or c.get("name") or ""
+            if v.lower().startswith(val_lower):
+                suggestions.append(v)
+        return suggestions[:8]
+
+    def _update_suggestion_bar(self, value: str) -> None:
+        suggestions = self._get_suggestions(value)
+        self._suggestions = suggestions
+        bar = self.query_one("#suggestion-bar", Static)
+        if not suggestions:
+            bar.display = False
+            return
+        parts = [f"[cyan]{escape(suggestions[0])}[/]"]
+        for s in suggestions[1:]:
+            parts.append(f"[dim]{escape(s)}[/]")
+        bar.update(Text.from_markup("  ".join(parts) + "  [dim]tab→[/]"))
+        bar.display = True
+
+    def _complete_first_suggestion(self) -> None:
+        if not self._suggestions:
+            return
+        inp = self.query_one("#filter-input", Input)
+        value = inp.value
+        suggestion = self._suggestions[0]
+        last_space = value.rfind(" ")
+        prefix = value[:last_space + 1] if last_space >= 0 else ""
+        current = value[last_space + 1:] if last_space >= 0 else value
+        if "=" not in current:
+            new_value = prefix + suggestion + "="
+        else:
+            field_part = current.partition("=")[0]
+            new_value = prefix + field_part + "=" + suggestion + " "
+        inp.value = new_value
+        inp.cursor_position = len(new_value)
+        self._update_suggestion_bar(new_value)
+
     def _open_filter_input(self) -> None:
         if self.entity == "work":
             self.notify("Filters not supported in work view", severity="warning")
@@ -382,10 +461,13 @@ class FsvApp(App):
         inp.value = " ".join(self._active_filters)
         inp.display = True
         inp.focus()
+        self._update_suggestion_bar(inp.value)
 
     def _apply_filter(self, raw: str) -> None:
         inp = self.query_one("#filter-input", Input)
         inp.display = False
+        self.query_one("#suggestion-bar", Static).display = False
+        self._suggestions = []
         self.query_one("#list", DataTable).focus()
         self._active_filters = raw.split() if raw.strip() else []
         self._reload_list("[dim]filtering...[/]")
@@ -393,6 +475,8 @@ class FsvApp(App):
     def _cancel_filter_input(self) -> None:
         inp = self.query_one("#filter-input", Input)
         inp.display = False
+        self.query_one("#suggestion-bar", Static).display = False
+        self._suggestions = []
         self.query_one("#list", DataTable).focus()
         self._render_filter_bar()
 
@@ -798,16 +882,26 @@ class FsvApp(App):
             self._apply_filter(event.value)
             event.stop()
 
+    def on_input_changed(self, event: Input.Changed) -> None:
+        if event.input.id == "filter-input":
+            self._update_suggestion_bar(event.value)
+
     def on_key(self, event) -> None:
         key = event.key
 
-        # When filter input is open, intercept only Escape; let Input handle the rest
+        # When filter input is open, intercept Escape and Tab; let Input handle the rest
         inp = self.query_one("#filter-input", Input)
         if inp.display and inp.has_focus:
             if key == "escape":
                 self._cancel_filter_input()
                 event.stop()
                 event.prevent_default()
+                return
+            if key == "tab":
+                self._complete_first_suggestion()
+                event.stop()
+                event.prevent_default()
+                return
             return
 
         table = self.query_one("#list", DataTable)
