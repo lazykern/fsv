@@ -1,0 +1,25 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Local capture/debug artifacts
+*.har
+example_har_*.txt
+--output
+
+# Virtual environments
+.venv
+
+# macOS
+.DS_Store
+
+# Local Claude settings
+.claude/settings.local.json
+
+# Test fixtures (may contain real data)
+tests/fixtures/
+tests/fixtures.zip
