@@ -6,6 +6,39 @@ Freshservice CLI. Drives changes, tickets, and problems via session-cookie auth;
 
 Interactive TUI with filter autocomplete, pagination, fulltext search, and keyboard navigation. Launch with `fsv tui`.
 
+## Quickstart
+
+**1. Install**
+
+```bash
+uv tool install git+https://github.com/lazykern/fsv.git
+```
+
+**2. Login** — fsv needs a browser session cookie (no API key, no password).
+
+Open `https://yourcompany.freshservice.com`, log in via SSO, then:
+
+1. Open DevTools → Network tab → click any `/api/_/...` request
+2. Right-click the `Cookie:` request header → **Copy value**
+3. Paste into fsv:
+
+```bash
+fsv auth login --domain yourcompany.freshservice.com
+# paste the cookie value when prompted
+```
+
+**3. Use it**
+
+```bash
+fsv auth status                            # confirm login
+fsv changes ls --where status=Open         # list open changes
+fsv changes get CHN-1234                   # get a change
+fsv tickets ls --where agent=alice@example.com
+fsv tui                                    # interactive TUI
+```
+
+---
+
 ## How it works
 
 fsv calls the **internal** `/api/_/` endpoints the Freshservice web UI uses, not the public v2 REST API. These endpoints expose richer data with no published rate cap. Paste a valid browser session cookie once; fsv stores it locally.
