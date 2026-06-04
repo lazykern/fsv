@@ -911,7 +911,7 @@ class FsvApp(App):
         if not append:
             self._items = items
             table.clear(columns=True)
-            table.add_columns("", "ID", "STATUS", "PRI", "SUBJECT", "REQUESTER")
+            table.add_columns("", "ID", "STATUS", "SUBJECT", "AGENT", "GROUP")
             offset = 0
         else:
             offset = len(self._items)
@@ -922,14 +922,11 @@ class FsvApp(App):
             res: Resource = item.get("_resource", TICKETS)
             did = format_id(item, res)
             status = item.get("status") or ""
-            pri = item.get("priority_label") or ""
             sel = f"{row_num + 1:03d}"
             subject = (item.get("subject") or "")[:80]
-            requester = ""
-            req = item.get("requester")
-            if isinstance(req, dict):
-                requester = req.get("name") or ""
-            table.add_row(sel, did, status, pri, subject, requester, key=did)
+            agent = item.get("_agent") or ""
+            group = item.get("_group") or ""
+            table.add_row(sel, did, status, subject, agent, group, key=did)
         if not append and items:
             self._clear_detail("[dim]loading details...[/]")
             table.move_cursor(row=0)

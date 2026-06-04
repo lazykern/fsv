@@ -68,6 +68,7 @@ def _normalize_search_result(row: dict, entity: str) -> dict[str, Any] | None:
         return None
     item_id = int(m.group(1))
     display_id = row.get(f"{prefix}_display_id") or ""
+    group_key = "ticket_group" if prefix == "ticket" else "itil_module_group"
     return {
         "id": item_id,
         "display_id": item_id,
@@ -75,7 +76,9 @@ def _normalize_search_result(row: dict, entity: str) -> dict[str, Any] | None:
         "subject": strip_html(row.get("subject") or ""),
         "status": row.get(f"{prefix}_status") or "",
         "priority_label": row.get(f"{prefix}_priority") or "",
-        "requester": {"name": row.get(owner_field) or ""},
+        "requester": {"name": ""},
+        "_agent": row.get(owner_field) or "",
+        "_group": row.get(group_key) or "",
         "created_at": row.get("created_at") or "",
         "_resource": resource,
         "_search_result": True,
