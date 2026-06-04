@@ -1,21 +1,52 @@
 from __future__ import annotations
 
-import csv
-import html
-import json
-import re
+import os as _os
 import sys
 from typing import Any
 
-from rich.console import Console
-from rich.markup import escape
-from rich.table import Table
+_COMPLETING = bool(_os.environ.get('_FSV_COMPLETE'))
 
-from fsv import schema as schema_mod
-from fsv.resources import Resource, format_id
+if _COMPLETING:
+    class _NullConsole:
+        def print(self, *a, **kw): pass
+        def status(self, *a, **kw): return self
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+    console = _NullConsole()
+    err = _NullConsole()
+    escape = str
+    Table = None  # type: ignore[assignment,misc]
+    from fsv.resources import Resource, format_id
+else:
+    import csv
+    import html
+    import json
+    import re
+    from rich.console import Console
+    from rich.markup import escape
+    from rich.table import Table
+    from fsv.resources import Resource, format_id
+    console = Console()
+    err = Console(stderr=True, style="dim")
 
-console = Console()
-err = Console(stderr=True, style="dim")
+
+class _LazyModule:
+    __slots__ = ('_name', '_mod')
+
+    def __init__(self, name: str):
+        object.__setattr__(self, '_name', name)
+        object.__setattr__(self, '_mod', None)
+
+    def __getattr__(self, attr: str):
+        mod = object.__getattribute__(self, '_mod')
+        if mod is None:
+            import importlib
+            mod = importlib.import_module(object.__getattribute__(self, '_name'))
+            object.__setattr__(self, '_mod', mod)
+        return getattr(mod, attr)
+
+
+schema_mod = _LazyModule('fsv.schema')
 
 _CUSTOM_FIELD_CATEGORY_ORDER = ("choices", "text", "dates", "numbers", "booleans", "other")
 

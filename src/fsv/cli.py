@@ -3,61 +3,35 @@ from __future__ import annotations
 import json
 import os
 import re
-import shutil
-import subprocess
 import sys
-import threading
 import time
-from datetime import datetime
-from html import unescape
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Iterable, List, Optional, TypeVar
 from urllib.parse import unquote
 
 import typer
-from rich.markup import escape
-from rich.table import Table
 
-from fsv import completion, config, render, schema as schema_mod, service, state_flow
-from fsv.cache import (
-    load as _cache_load,
-    refresh_async as _cache_refresh_async,
-    save as _cache_save,
-    mark_stale as _cache_mark_stale,
-)
-from fsv.client import APIError, Client, get_client, reset_client
+from fsv import completion, config, render
+from fsv.errors import APIError, SessionError
 from fsv.config import CONFIG_DIR, SCHEMA_DIR
-from fsv.create import (
-    change_template, change_clone_data, submit_change,
-    clone_tasks, clone_assets, clone_planning_fields,
-    get_change_for_edit, update_change, update_planning_field, resolve_planning_field,
-    attach_files_to_change, download_attachment, set_due_by,
-    get_change_approvals, get_change_associations, get_change_assets,
-    search_assets_for_change, associate_assets, search_change_tickets, get_change_activities,
-    associate_ticket, dissociate_ticket,
-    get_task_for_edit, update_task, delete_task, dissociate_assets,
-)
-from fsv.editor import edit_json, EditorAbort
 from fsv.render import console, emit_json, err, strip_html
 from fsv.resources import CHANGES, PROBLEMS, TICKETS, REGISTRY, Resource, format_id, parse_id
-from fsv.session import (
-    SessionError,
-    current_backend,
-    login_interactive,
-    logout as session_logout,
-    parse_cookie_header,
-    save_cookies,
-    session_age_hours,
-    validate,
-)
+
+_COMPLETING = bool(os.environ.get('_FSV_COMPLETE'))
+
+if not _COMPLETING:
+    from rich.markup import escape
+    from rich.table import Table
+else:
+    escape = str  # type: ignore[assignment]
+    Table = None  # type: ignore[assignment,misc]
 
 app = typer.Typer(
     add_completion=True,
     no_args_is_help=True,
     help="Freshservice CLI",
-    rich_markup_mode="rich",
+    rich_markup_mode=None if _COMPLETING else "rich",
     context_settings={"help_option_names": ["-h", "--help"]},
     epilog=(
         "[bold]Examples:[/bold]  "
@@ -173,6 +147,8 @@ def _api(fn: Callable[[], T]) -> T:
 
 
 def _client():
+    from fsv.client import get_client
+    from fsv.session import session_age_hours
     if session_age_hours() is None:
         err.print("[red]error[/red]: no session; run `fsv auth login`")
         raise SystemExit(1)
@@ -185,6 +161,7 @@ def _client():
 
 def _edit_body(data: dict[str, Any], hint: str, no_input: bool = False) -> dict[str, Any]:
     """Open $EDITOR with JSON data, return edited body."""
+    from fsv.editor import edit_json, EditorAbort
     if _no_input(no_input):
         _err("editor disabled by --no-input; use --dry-run/--dry or provide non-interactive flags")
     from fsv.editor import edit_json, EditorAbort
@@ -195,6 +172,7 @@ def _edit_body(data: dict[str, Any], hint: str, no_input: bool = False) -> dict[
 
 
 def _choose_store() -> str:
+    from fsv.session import current_backend
     options = []
     if sys.platform == "darwin":
         options.append(("keychain", "macOS Keychain; recommended"))
@@ -236,6 +214,7 @@ def _cid(id_: str, res: Resource) -> int:
 
 
 def _page_text(text: str) -> bool:
+    import subprocess
     pager = os.environ.get("PAGER") or "less -R"
     try:
         proc = subprocess.run(pager, input=text, text=True, shell=True, check=False)
@@ -245,6 +224,7 @@ def _page_text(text: str) -> bool:
 
 
 def _should_page(row_count: int, enabled: bool) -> bool:
+    import shutil
     if not enabled or not sys.stdout.isatty():
         return False
     return row_count + 4 > shutil.get_terminal_size((80, 24)).lines
@@ -362,6 +342,7 @@ def fields_resource(
     refresh: bool,
     json_out: bool,
 ) -> None:
+    from fsv import schema as schema_mod
     if default and custom:
         _err("use --default or --custom, not both")
     c = _client()
@@ -396,6 +377,7 @@ def fields_resource(
 
 
 def lookup_resource(res: Resource, kind: str, query: str, json_out: bool) -> None:
+    from fsv import schema as schema_mod
     c = _client()
     key = kind.casefold()
     if key in ("requester", "requesters"):
@@ -515,6 +497,7 @@ def _resolve_group(c: Any, value: str) -> str:
 
 
 def _resolve_update_choice(sch: dict[str, Any], field_name: str, raw: str) -> int | str:
+    from fsv import schema as schema_mod
     if raw.isdigit():
         return int(raw)
     f = _find_schema_field(sch, field_name)
@@ -538,6 +521,7 @@ def _resolve_update_choice(sch: dict[str, Any], field_name: str, raw: str) -> in
 
 
 def _status_label(sch: dict[str, Any], status: int | str) -> str:
+    from fsv import schema as schema_mod
     label = schema_mod.choice_label("status", status, sch)
     return label if label != "-" else str(status)
 
@@ -757,6 +741,7 @@ def _build_query_hash(
     where: list[str],
     or_grouping: bool = False,
 ) -> tuple[Optional[str], list[dict[str, Any]], list[dict[str, Any]]]:
+    from fsv import schema as schema_mod
     query: list[dict[str, Any]] = []
     explain: list[dict[str, Any]] = []
     if raw:
@@ -792,6 +777,8 @@ def list_resource(
     order_type: SortOrder | str | None = None,
     n_pages: int | None = None,
 ) -> None:
+    from fsv import schema as schema_mod
+    from fsv import service
     c = _client()
     qh, query, explanation = _api(lambda: _build_query_hash(c, res, raw_query_hash, where, or_grouping))
     if debug:
@@ -837,6 +824,8 @@ def list_resource(
 
 
 def get_resource(res: Resource, id_: str, stats: bool, json_out: bool) -> None:
+    from fsv import schema as schema_mod
+    from fsv import service
     cid = _cid(id_, res)
     c = _client()
 
@@ -869,6 +858,7 @@ def get_resource(res: Resource, id_: str, stats: bool, json_out: bool) -> None:
 
 
 def _local_dt(value: str | None) -> datetime | None:
+    from datetime import datetime
     if not value:
         return None
     try:
@@ -878,6 +868,7 @@ def _local_dt(value: str | None) -> datetime | None:
 
 
 def _activity_day(dt: datetime | None) -> str:
+    from datetime import datetime
     if not dt:
         return "Unknown"
     today = datetime.now().astimezone().date()
@@ -893,6 +884,8 @@ def _activity_text(value: str | None) -> str:
 
 
 def activity_resource(res: Resource, id_: str, limit: int, json_out: bool) -> None:
+    from fsv import service
+    from fsv.create import get_change_activities
     cid = _cid(id_, res)
     c = _client()
     acts = _api(lambda: get_change_activities(cid, c) if res == CHANGES else service.get_activities(res, cid, client=c))[:limit]
@@ -914,6 +907,7 @@ def activity_resource(res: Resource, id_: str, limit: int, json_out: bool) -> No
 
 
 def tasks_resource(res: Resource, id_: str, format_: OutputFormat | str = "table", json_out: bool = False) -> None:
+    from fsv import service
     cid = _cid(id_, res)
     c = _client()
     items = _api(lambda: service.get_tasks(res, cid, client=c))
@@ -973,6 +967,8 @@ def _asset_display(asset: dict[str, Any]) -> dict[str, Any]:
 
 
 def _fetch_asset_categories(c: Client | None = None) -> list[dict[str, str]]:
+    from fsv.client import get_client
+    from html import unescape
     global _ASSET_CATEGORY_CACHE
     if _ASSET_CATEGORY_CACHE is not None:
         return _ASSET_CATEGORY_CACHE
@@ -1048,6 +1044,8 @@ def _resolve_change_asset_id(
     associated: bool = False,
     category: dict[str, str] | None = None,
 ) -> int:
+    from fsv.client import get_client
+    from fsv.create import get_change_assets, search_assets_for_change
     raw = str(value).strip()
     if raw.isdigit():
         return int(raw)
@@ -1094,6 +1092,7 @@ def _resolve_change_asset_ids(
     associated: bool = False,
     category: dict[str, str] | None = None,
 ) -> list[int]:
+    from fsv.client import get_client
     if c is None:
         c = get_client()
     out: list[int] = []
@@ -1118,6 +1117,7 @@ def _prompt_multi_select(title: str, text: str, values: list[tuple[str, str]]) -
 
 
 def _prompt_asset_category(c: Client | None = None) -> dict[str, str] | None:
+    from fsv.client import get_client
     if c is None:
         c = get_client()
     value = _prompt_text(
@@ -1132,6 +1132,8 @@ def _prompt_asset_category(c: Client | None = None) -> dict[str, str] | None:
 
 
 def _pick_change_assets(change_id: int, c: Client | None = None, category: dict[str, str] | None = None) -> list[int]:
+    from fsv.client import get_client
+    from fsv.create import search_assets_for_change
     if _no_input() or not sys.stdin.isatty():
         _err("interactive picker requires TTY")
     if c is None:
@@ -1170,6 +1172,8 @@ def _pick_change_assets(change_id: int, c: Client | None = None, category: dict[
 
 
 def _pick_change_tickets(change_id: int, c: Client | None = None) -> list[int]:
+    from fsv.client import get_client
+    from fsv.create import search_change_tickets
     if _no_input() or not sys.stdin.isatty():
         _err("interactive picker requires TTY")
     if c is None:
@@ -1201,6 +1205,12 @@ def _pick_change_tickets(change_id: int, c: Client | None = None) -> list[int]:
 def assets_resource(id_: str, search: str | None, add: list[str], remove: list[str], page: int, per_page: int,
                     dry_run: bool, yes: bool, json_out: bool, format_: OutputFormat | str = "table",
                     pick: bool = False, category_name: str | None = None, list_categories: bool = False) -> None:
+    from fsv.create import (
+        associate_assets,
+        dissociate_assets,
+        get_change_assets,
+        search_assets_for_change,
+    )
     actions = sum(1 for active in (search is not None, bool(add), bool(remove), pick, list_categories) if active)
     if actions > 1:
         _err("choose only one action: --search, --add, --remove, --pick, or --list-categories")
@@ -1325,6 +1335,7 @@ def _complete_task_id(ctx: typer.Context, incomplete: str) -> Iterable[tuple[str
 
 
 def _asset_candidates(ctx: typer.Context, incomplete: str) -> list[dict[str, Any]]:
+    from fsv.create import search_assets_for_change
     cid = _ctx_change_id(ctx)
     if cid is None or len(incomplete.strip()) < 2:
         return []
@@ -1377,6 +1388,7 @@ def _complete_asset_id_for_change(ctx: typer.Context, incomplete: str) -> Iterab
 
 
 def _complete_associated_asset_for_change(ctx: typer.Context, incomplete: str) -> Iterable[tuple[str, str]]:
+    from fsv.create import get_change_assets
     cid = _ctx_change_id(ctx)
     if cid is None:
         return
@@ -1505,6 +1517,7 @@ _complete_task_environment = _complete_task_custom_field("environment")
 
 
 def _complete_ticket_for_change(incomplete: str) -> Iterable[tuple[str, str]]:
+    from fsv.create import search_change_tickets
     if len(incomplete.strip()) < 2:
         yield (incomplete, "")
         return
@@ -1519,6 +1532,8 @@ def _complete_ticket_for_change(incomplete: str) -> Iterable[tuple[str, str]]:
 
 
 def _resolve_change_ticket_id(value: str, c: Client | None = None) -> int:
+    from fsv.client import get_client
+    from fsv.create import search_change_tickets
     raw = str(value).strip()
     try:
         return parse_id(raw, TICKETS)
@@ -1547,6 +1562,8 @@ def _resolve_change_ticket_id(value: str, c: Client | None = None) -> int:
 
 
 def _resolve_associated_change_ticket_id(change_id: int, value: str, c: Client | None = None) -> int:
+    from fsv.client import get_client
+    from fsv.create import get_change_associations
     raw = str(value).strip()
     try:
         target_id = parse_id(raw, TICKETS)
@@ -1595,6 +1612,7 @@ def _print_tickets(items: list[dict[str, Any]], title: str = "Tickets") -> None:
 
 
 def notes_resource(res: Resource, id_: str, page: int, per_page: int, json_out: bool, all_pages: bool = False, n_pages: int | None = None) -> None:
+    from fsv import service
     cid = _cid(id_, res)
     c = _client()
     if all_pages or n_pages is not None:
@@ -1632,6 +1650,7 @@ def notes_resource(res: Resource, id_: str, page: int, per_page: int, json_out: 
 
 
 def conversations_resource(id_: str, page: int, per_page: int, json_out: bool, all_pages: bool = False, n_pages: int | None = None) -> None:
+    from fsv import service
     cid = _cid(id_, TICKETS)
     c = _client()
     if all_pages or n_pages is not None:
@@ -1670,6 +1689,7 @@ def conversations_resource(id_: str, page: int, per_page: int, json_out: bool, a
 
 
 def ticket_approvals_resource(id_: str, format_: OutputFormat | str = "table", json_out: bool = False) -> None:
+    from fsv import service
     cid = _cid(id_, TICKETS)
     c = _client()
     items = _api(lambda: service.get_ticket_approvals(TICKETS, cid, client=c))
@@ -1704,6 +1724,7 @@ def ticket_approvals_resource(id_: str, format_: OutputFormat | str = "table", j
 
 
 def ticket_associations_resource(id_: str, format_: OutputFormat | str = "table", json_out: bool = False) -> None:
+    from fsv import schema as schema_mod
     cid = _cid(id_, TICKETS)
     c = _client()
     tabs = _api(lambda: c.int_get(f"tickets/{cid}/tabs"))
@@ -1803,6 +1824,7 @@ def _search_dsl_to_where(query: str) -> tuple[list[str], bool]:
 
 
 def _fulltext_search(res: Resource, query: str, page: int, json_out: bool, sort: SearchSort, all_pages: bool = False, n_pages: int | None = None) -> None:
+    from fsv import service
     c = _client()
     if n_pages is not None or all_pages:
         all_results: list[dict] = []
@@ -1844,6 +1866,7 @@ def search_resource(res: Resource, query: str, page: int, json_out: bool, sort: 
 
 
 def filter_resource(res: Resource, query: str, per_page: int, page: int, format_: OutputFormat | str, json_out: bool, all_pages: bool = False, n_pages: int | None = None) -> None:
+    from fsv import schema as schema_mod
     if res in (CHANGES, PROBLEMS):
         where, or_grouping = _search_dsl_to_where(query)
         list_resource(
@@ -1901,6 +1924,7 @@ _SEARCH_TYPE_LABEL = {
 
 
 def _search_clean(s: str | None) -> str:
+    from html import unescape
     import html as _html
     return _html.unescape(re.sub(r"<[^>]+>", "", s or "")).strip()
 
@@ -1986,6 +2010,8 @@ def update_resource(
     no_input: bool = False,
     set_: Optional[List[str]] = None,
 ) -> None:
+    from fsv import schema as schema_mod
+    from fsv import service
     cid = _cid(id_, res)
     c = _client()
     sch = _api(lambda: schema_mod.load(res, c))
@@ -2018,6 +2044,7 @@ def update_resource(
 
 
 def note_resource(res: Resource, id_: str, body: str, public: bool) -> None:
+    from fsv import service
     cid = _cid(id_, res)
     c = _client()
     n = _api(lambda: service.add_note(res, cid, body, public=public, client=c))
@@ -2026,6 +2053,7 @@ def note_resource(res: Resource, id_: str, body: str, public: bool) -> None:
 
 
 def reply_resource(res: Resource, id_: str, body: str) -> None:
+    from fsv import service
     cid = _cid(id_, res)
     c = _client()
     reply = _api(lambda: service.add_reply(res, cid, body, client=c))
@@ -2035,7 +2063,7 @@ def reply_resource(res: Resource, id_: str, body: str) -> None:
 auth_app = typer.Typer(
     no_args_is_help=True,
     help="authenticate and manage sessions",
-    rich_markup_mode="rich",
+    rich_markup_mode=None if _COMPLETING else "rich",
     epilog="[bold]Examples:[/bold]  fsv auth login  |  fsv auth login --domain acme.freshservice.com  |  fsv auth status",
 )
 
@@ -2065,6 +2093,8 @@ def auth_login(
     no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
 ) -> None:
     """Save Freshservice session cookies."""
+    from fsv.client import get_client, reset_client
+    from fsv.session import login_interactive, parse_cookie_header, save_cookies, validate
     no_input = _no_input(no_input)
     if store is not None and store not in ("file", "argon", "keychain"):
         _err("--store must be 'file', 'argon', or 'keychain'")
@@ -2119,6 +2149,7 @@ def auth_logout(
     no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
 ) -> None:
     """Wipe stored session (file + Keychain + backend pref)."""
+    from fsv.session import logout as session_logout
     if not yes:
         domain = config.DOMAIN or "Freshservice"
         if sys.stdin.isatty() and not _no_input(no_input):
@@ -2132,6 +2163,7 @@ def auth_logout(
 @auth_app.command("status", epilog="[bold]Examples:[/bold]  fsv auth status")
 def auth_status() -> None:
     """Show current agent identity and session status."""
+    from fsv.session import session_age_hours
     age = session_age_hours()
     if age is None:
         _err("no session; run `fsv auth login`")
@@ -2196,6 +2228,11 @@ def _refresh_cache(verbose: bool = True, blocking: bool = True) -> None:
 
     When *blocking* is False, spawns background threads and returns immediately.
     """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from fsv import schema as schema_mod
+    from fsv.cache import save as _cache_save
+    from fsv.client import Client
+    import threading
     resources = list(REGISTRY.values())
 
     def _fetch_schema(r: Resource) -> tuple[str, int] | None:
@@ -2314,6 +2351,7 @@ def completion_refresh() -> None:
 @completion_app.command("doctor", epilog="[bold]Examples:[/bold]  fsv completion doctor")
 def completion_doctor() -> None:
     """Show completion install/cache diagnostics."""
+    import shutil
     t = Table(title="completion doctor")
     t.add_column("check")
     t.add_column("value")
@@ -2505,6 +2543,7 @@ def cache_clear(
 ) -> None:
     """Delete cached data."""
     import shutil
+    import shutil
 
     if target == "schema" or target == "all":
         if SCHEMA_DIR.exists():
@@ -2535,7 +2574,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
     sub = typer.Typer(
         no_args_is_help=True,
         help=f"{res.name} commands",
-        rich_markup_mode="rich",
+        rich_markup_mode=None if _COMPLETING else "rich",
         epilog=(
             f"[bold]Examples:[/bold]  "
             f"fsv {res.name} ls --where status=Open  |  "
@@ -2626,6 +2665,17 @@ def _make_subapp(res: Resource) -> typer.Typer:
         format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     ) -> None:
+        from fsv import state_flow
+        from fsv.create import (
+            associate_ticket,
+            delete_task,
+            dissociate_ticket,
+            get_change_approvals,
+            get_change_associations,
+            get_task_for_edit,
+            search_change_tickets,
+            update_task,
+        )
         tasks_resource(res, id_, format_, json_out)
 
     if res == CHANGES:
@@ -3023,6 +3073,23 @@ def _make_subapp(res: Resource) -> typer.Typer:
     ))
     def url(id_: str = typer.Argument(..., metavar="ID")) -> None:
         f"""Print the browser URL for a {res.name[:-1]}."""
+        from fsv import schema as schema_mod
+        from fsv import service
+        from fsv.create import (
+            attach_files_to_change,
+            change_clone_data,
+            change_template,
+            clone_assets,
+            clone_planning_fields,
+            clone_tasks,
+            download_attachment,
+            get_change_for_edit,
+            resolve_planning_field,
+            set_due_by,
+            submit_change,
+            update_change,
+            update_planning_field,
+        )
         url_resource(res, id_)
 
     if res == CHANGES:

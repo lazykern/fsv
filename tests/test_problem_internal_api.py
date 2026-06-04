@@ -40,7 +40,7 @@ def test_problem_update_uses_internal_api(monkeypatch):
             return {"problem": {"id": 1, "human_display_id": "PRB-1"}}
 
     monkeypatch.setattr(cli, "_client", lambda: FakeClient())
-    monkeypatch.setattr(cli.schema_mod, "load", lambda res, c: {
+    monkeypatch.setattr("fsv.schema.load", lambda res, c: {
         "fields": [
             {"name": "priority", "choices": [{"id": 1, "value": "Low"}, {"id": 2, "value": "Medium"}]}
         ]

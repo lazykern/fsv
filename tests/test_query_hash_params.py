@@ -16,7 +16,7 @@ def test_problem_where_uses_query_hash_only(monkeypatch):
 
     monkeypatch.setattr(cli, "_client", lambda: FakeClient())
     monkeypatch.setattr(cli, "_api", lambda fn: fn())
-    monkeypatch.setattr(cli.schema_mod, "load", lambda res, c: {"fields": []})
+    monkeypatch.setattr("fsv.schema.load", lambda res, c: {"fields": []})
     monkeypatch.setattr(cli, "_build_query_hash", lambda c, res, raw, where, or_grouping: ("qh", [], []))
     monkeypatch.setattr(cli, "_emit_items", lambda *args, **kwargs: None)
 
@@ -50,7 +50,7 @@ def test_change_where_keeps_advanced_query_hash_blank(monkeypatch):
 
     monkeypatch.setattr(cli, "_client", lambda: FakeClient())
     monkeypatch.setattr(cli, "_api", lambda fn: fn())
-    monkeypatch.setattr(cli.schema_mod, "load", lambda res, c: {"fields": []})
+    monkeypatch.setattr("fsv.schema.load", lambda res, c: {"fields": []})
     monkeypatch.setattr(cli, "_build_query_hash", lambda c, res, raw, where, or_grouping: ("qh", [], []))
     monkeypatch.setattr(cli, "_emit_items", lambda *args, **kwargs: None)
 
@@ -84,7 +84,7 @@ def test_ticket_query_hash_supports_order_and_advanced_query_hash(monkeypatch):
 
     monkeypatch.setattr(cli, "_client", lambda: FakeClient())
     monkeypatch.setattr(cli, "_api", lambda fn: fn())
-    monkeypatch.setattr(cli.schema_mod, "load", lambda res, c: {"fields": []})
+    monkeypatch.setattr("fsv.schema.load", lambda res, c: {"fields": []})
     monkeypatch.setattr(cli, "_build_query_hash", lambda c, res, raw, where, or_grouping: (raw, [], []))
     monkeypatch.setattr(cli, "_emit_items", lambda *args, **kwargs: None)
 

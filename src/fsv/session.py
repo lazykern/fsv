@@ -17,6 +17,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from fsv import config
 from fsv.config import CONFIG_DIR, SESSION_FILE, ensure_dirs
+from fsv.errors import SessionError
 
 REQUIRED_COOKIES = ("_x_m", "_x_d", "_x_w", "fw-session-id")
 STORE_PREF_FILE = CONFIG_DIR / "store"
@@ -25,10 +26,6 @@ KEYCHAIN_ACCOUNT = "fsv-session"
 _SESSION_CACHE: tuple[Backend, str] | None = None
 
 Backend = Literal["file", "argon", "keychain"]
-
-
-class SessionError(Exception):
-    pass
 
 
 # ---------- backend selection ----------

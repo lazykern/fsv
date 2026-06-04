@@ -7,16 +7,10 @@ from typing import Any, Iterator
 import httpx
 
 from fsv import config
+from fsv.errors import APIError
 from fsv.session import SessionError, load_cookies, update_cookie
 
 UA = "fsv/0.1 (Freshservice CLI)"
-
-
-class APIError(Exception):
-    def __init__(self, status: int, body: Any) -> None:
-        super().__init__(f"HTTP {status}: {body}")
-        self.status = status
-        self.body = body
 
 
 _instance: "Client | None" = None

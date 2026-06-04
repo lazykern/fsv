@@ -48,7 +48,7 @@ def test_get_resource_change_stats_json_includes_planning(monkeypatch):
             raise AssertionError((path, params))
 
     monkeypatch.setattr(cli, "_client", lambda: FakeClient())
-    monkeypatch.setattr(cli.schema_mod, "load", lambda res, c: {"fields": [{"name": "change_reason", "label": "Reason", "field_type": "default_change_reason"}]})
+    monkeypatch.setattr("fsv.schema.load", lambda res, c: {"fields": [{"name": "change_reason", "label": "Reason", "field_type": "default_change_reason"}]})
     monkeypatch.setattr(cli, "emit_json", lambda data: emitted.append(data))
 
     cli.get_resource(CHANGES, "CHN-1", True, True)

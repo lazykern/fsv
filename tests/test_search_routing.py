@@ -91,7 +91,7 @@ def test_ticket_filter_keeps_v2_filter(monkeypatch):
             return {"tickets": [], "total": 0}
 
     monkeypatch.setattr(cli, "_client", lambda: FakeClient())
-    monkeypatch.setattr(cli.schema_mod, "load", lambda res, c: {"fields": []})
+    monkeypatch.setattr("fsv.schema.load", lambda res, c: {"fields": []})
     monkeypatch.setattr(cli, "_emit_items", lambda *args, **kwargs: None)
 
     cli.filter_resource(TICKETS, "status:2", 30, 1, "json", True)
