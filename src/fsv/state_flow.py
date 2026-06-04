@@ -156,6 +156,74 @@ def render_compact(change: dict[str, Any], console: Console | None = None, conte
     out.print(f"[dim]          `fsv changes state {hid}` for full flow[/]")
 
 
+def render_state_diagram(change: dict[str, Any], console: Console | None = None, context: int = 3) -> None:
+    """Render state flow diagram showing context around current state.
+
+    Shows: ... → [past] → [CURRENT] → [future] → ...
+    Current state highlighted boldly. Progress shown at top.
+    """
+    from rich.markup import escape
+
+    out = console or Console()
+    c = get_client()
+
+    state_flow_id = change.get("state_flow_id")
+    if not state_flow_id:
+        return
+
+    try:
+        flow = get_state_flow(state_flow_id, client=c)
+    except Exception:
+        return
+
+    state_list = flow.get("state_list", [])
+    if not state_list:
+        return
+
+    current = change.get("status")
+    traversal = set(change.get("state_traversal") or [])
+
+    cur_idx = next((i for i, s in enumerate(state_list) if s["id"] == current), None)
+    if cur_idx is None:
+        return
+
+    total = len(state_list)
+    done = len(traversal)
+    pct = round((done / total) * 100) if total > 0 else 0
+
+    lo = max(0, cur_idx - context)
+    hi = min(total - 1, cur_idx + context)
+    window = state_list[lo : hi + 1]
+
+    parts: list[str] = []
+    if lo > 0:
+        parts.append("[dim]…[/]")
+
+    for i, state in enumerate(window):
+        sid, name = state["id"], escape(state["value"])
+        state_abs_idx = lo + i
+        visited = sid in traversal
+        is_current = state_abs_idx == cur_idx
+
+        if is_current:
+            parts.append(f"[bold yellow on blue] ▶ {name} [/]")
+        elif visited:
+            parts.append(f"[green]✓ {name}[/]")
+        else:
+            parts.append(f"[dim]{name}[/]")
+
+    if hi < total - 1:
+        parts.append("[dim]…[/]")
+
+    sep = " [dim]→[/] "
+    flow_line = sep.join(parts)
+
+    out.print(f"[bold cyan]state flow:[/] [bold]{pct}%[/] complete  [dim]({done}/{total})[/]")
+    out.print(flow_line)
+    if lo > 0 or hi < total - 1:
+        out.print(f"[dim]  use `fsv changes state {change.get('human_display_id')}` for full flow[/]")
+
+
 def _try_get_approvals(change_id: int, c: Client) -> list[dict[str, Any]]:
     try:
         return c.int_get(f"changes/{change_id}/approvals").get("approvals", [])
