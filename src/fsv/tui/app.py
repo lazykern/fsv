@@ -16,6 +16,7 @@ from textual.containers import Vertical, VerticalScroll
 from textual.reactive import var
 from textual.screen import ModalScreen
 from textual.widgets import DataTable, Input, Static
+from textual.widgets._data_table import RowKey
 
 from fsv import config, schema as schema_mod, service
 from fsv.client import APIError, get_client
@@ -165,6 +166,8 @@ class FsvApp(App):
         self._search_sort: str = "relevance"
         self._search_page: int = 1
         self._search_has_more: bool = False
+        self._search_seq: int = 0
+        self._search_cache: dict[str | None, tuple[list[dict], dict[str, int], int, bool]] = {}
         self._state_flow_cache: dict[int, list[dict]] = {}
         self._load_filter_history()
 
@@ -486,16 +489,33 @@ class FsvApp(App):
         """Returns (completable_suggestions, hint_or_None)."""
         sch = self._schemas.get(self.entity, {"fields": []})
         fields_list = sch.get("fields") or []
+
+        def _all_fields() -> list[str]:
+            seen: set[str] = set()
+            out: list[str] = []
+            for name in self._PSEUDO_DATE_FIELDS:
+                if name not in seen:
+                    seen.add(name)
+                    out.append(name)
+            for f in fields_list:
+                name = f.get("name") or ""
+                if name and name not in seen:
+                    seen.add(name)
+                    out.append(name)
+            return out
+
         if not value:
-            return [], None
+            return _all_fields(), None
         # If inside a quoted value, suppress suggestions (can't split safely)
         try:
             tokens = shlex.split(value)
             in_quote = False
         except ValueError:
             in_quote = True
-        if in_quote or value.endswith(" "):
+        if in_quote:
             return [], None
+        if value.endswith(" "):
+            return _all_fields(), None
         current = value.rsplit(" ", 1)[-1]
         if not current:
             return [], None
@@ -511,7 +531,7 @@ class FsvApp(App):
                 label = f.get("label") or ""
                 if (name.lower().startswith(current_lower) or label.lower().startswith(current_lower)) and name not in matches:
                     matches.append(name)
-            return matches[:8], None
+            return matches, None
         field_part, _op, val_prefix = split
         field_lower = field_part.lower()
         val_lower = val_prefix.lower()
@@ -544,7 +564,7 @@ class FsvApp(App):
                 if not vals:
                     try:
                         from fsv.completion import _cached_groups
-                        vals = [g["name"] for g in _cached_groups() if str(g.get("name", "")).lower().startswith(val_lower)][:8]
+                        vals = [g["name"] for g in _cached_groups() if str(g.get("name", "")).lower().startswith(val_lower)]
                     except Exception:
                         pass
                 return (vals, None) if vals else ([], "group name")
@@ -566,7 +586,7 @@ class FsvApp(App):
             v = c.get("value") or c.get("name") or ""
             if v and v.lower().startswith(val_lower):
                 suggestions.append(v)
-        return suggestions[:8], None
+        return suggestions, None
 
     def _update_suggestion_bar(self, value: str) -> None:
         suggestions, hint = self._get_suggestions(value)
@@ -580,21 +600,37 @@ class FsvApp(App):
                 bar.display = False
             self._maybe_schedule_network_lookup(value)
             return
-        parts = [f"[bold cyan]{escape(suggestions[0])}[/]"]
-        for s in suggestions[1:]:
+        _WIN = 8
+        visible = suggestions[:_WIN]
+        overflow = len(suggestions) - _WIN
+        parts = [f"[bold cyan]{escape(visible[0])}[/]"]
+        for s in visible[1:]:
             parts.append(f"[dim]{escape(s)}[/]")
-        bar.update(Text.from_markup("  ".join(parts) + "  [dim]tab→[/]"))
+        suffix = f"  [dim](+{overflow} more)  tab→[/]" if overflow > 0 else "  [dim]tab→[/]"
+        bar.update(Text.from_markup("  ".join(parts) + suffix))
         bar.display = True
         self._maybe_schedule_network_lookup(value)
 
     def _show_suggestions_cycling(self, suggestions: list[str], active_idx: int) -> None:
         bar = self.query_one("#suggestion-bar", Static)
+        _WIN = 8
+        total = len(suggestions)
+        if total <= _WIN:
+            lo, hi = 0, total
+        else:
+            lo = max(0, min(active_idx - _WIN // 2, total - _WIN))
+            hi = lo + _WIN
         parts = []
-        for i, s in enumerate(suggestions):
+        if lo > 0:
+            parts.append(f"[dim]…[/]")
+        for i in range(lo, hi):
+            s = suggestions[i]
             if i == active_idx:
                 parts.append(f"[bold cyan]{escape(s)}[/]")
             else:
                 parts.append(f"[dim]{escape(s)}[/]")
+        if hi < total:
+            parts.append(f"[dim]…[/]")
         bar.update(Text.from_markup("  ".join(parts) + "  [dim]tab→[/]"))
         bar.display = True
 
@@ -606,7 +642,7 @@ class FsvApp(App):
             self._tab_base = value
             self._suggestion_idx = 0
 
-        suggestions, _ = self._get_suggestions(self._tab_base)
+        suggestions = self._suggestions if self._suggestions else self._get_suggestions(self._tab_base)[0]
         if not suggestions:
             self._tab_base = None
             return
@@ -748,6 +784,8 @@ class FsvApp(App):
         inp.value = current_val
         inp.display = True
         inp.focus()
+        end = len(current_val)
+        self.call_after_refresh(lambda: setattr(inp, "cursor_position", end))
         if self._filter_history and self._filter_history[0] == current_val.strip():
             self._history_idx = 0
         else:
@@ -814,6 +852,8 @@ class FsvApp(App):
             else:
                 self.query_one("#list", DataTable).focus()
             return
+        self._search_seq += 1
+        self._search_cache.clear()
         self._search_mode = True
         self._search_term = term
         self._search_entity = None
@@ -840,6 +880,8 @@ class FsvApp(App):
         self.query_one("#list", DataTable).focus()
 
     def _exit_search_mode(self) -> None:
+        self._search_seq += 1
+        self._search_cache.clear()
         self._search_mode = False
         self._search_term = ""
         self._search_totals = {}
@@ -861,7 +903,12 @@ class FsvApp(App):
         new_entity = tabs[new_idx]
         if new_entity == self._search_entity:
             return
+        self._save_search_cache()
+        if new_entity in self._search_cache:
+            self._restore_search_cache(new_entity)
+            return
         if new_entity is None:
+            self._search_seq += 1
             self._search_entity = None
             self._search_page = 1
             self._search_has_more = False
@@ -881,6 +928,7 @@ class FsvApp(App):
     def _search_narrow_entity(self, entity: str) -> None:
         if not self._search_mode or not self._search_term:
             return
+        self._search_seq += 1
         self._search_entity = entity
         self._search_page = 1
         self._search_has_more = False
@@ -895,8 +943,51 @@ class FsvApp(App):
         self._render_header()
         self._load_search()
 
+    def _save_search_cache(self) -> None:
+        if self._items:
+            self._search_cache[self._search_entity] = (
+                list(self._items),
+                dict(self._search_totals),
+                self._search_page,
+                self._search_has_more,
+            )
+
+    def _restore_search_cache(self, entity: str | None) -> None:
+        items, totals, page, has_more = self._search_cache[entity]
+        self._search_seq += 1
+        self._search_entity = entity
+        self._search_page = page
+        self._search_has_more = has_more
+        self._items = list(items)
+        self._search_totals = totals
+        if entity and entity in totals:
+            self._total = totals[entity]
+        else:
+            self._total = sum(totals.values())
+        table = self.query_one("#list", DataTable)
+        table.clear(columns=True)
+        table.add_columns("", "ID", "STATUS", "SUBJECT", "AGENT", "GROUP")
+        for idx, item in enumerate(self._items):
+            res: Resource = item.get("_resource", TICKETS)
+            did = format_id(item, res)
+            status = item.get("status") or ""
+            sel = f"{idx + 1:03d}"
+            subject = (item.get("subject") or "")[:80]
+            agent = item.get("_agent") or ""
+            group = item.get("_group") or ""
+            table.add_row(sel, did, status, subject, agent, group, key=did)
+        if self._items:
+            table.move_cursor(row=0)
+            self._clear_detail("[dim]loading details...[/]")
+        else:
+            self._clear_detail("[dim]no results[/]")
+        self._render_header()
+        self._render_filter_bar()
+        self._render_status()
+
     @work(thread=True, exclusive=True, group="list")
     def _load_search(self, append: bool = False) -> None:
+        seq = self._search_seq
         c = get_client()
         for res in ALL_RESOURCES:
             if res.name not in self._schemas:
@@ -908,9 +999,11 @@ class FsvApp(App):
             page=self._search_page,
             client=c,
         )
-        self.call_from_thread(self._populate_search, items, totals, append)
+        self.call_from_thread(self._populate_search, items, totals, append, seq)
 
-    def _populate_search(self, items: list[dict], totals: dict[str, int], append: bool = False) -> None:
+    def _populate_search(self, items: list[dict], totals: dict[str, int], append: bool = False, seq: int = -1) -> None:
+        if seq != self._search_seq:
+            return
         self._search_totals = totals
         self._loading_more = False
         entity = self._search_entity
@@ -931,10 +1024,13 @@ class FsvApp(App):
             offset = len(self._items)
             self._items.extend(items)
 
+        existing_keys = set(table.rows)
         for idx, item in enumerate(items):
             row_num = offset + idx
             res: Resource = item.get("_resource", TICKETS)
             did = format_id(item, res)
+            if RowKey(did) in existing_keys:
+                continue
             status = item.get("status") or ""
             sel = f"{row_num + 1:03d}"
             subject = (item.get("subject") or "")[:80]
@@ -960,6 +1056,8 @@ class FsvApp(App):
         self._load_search(append=True)
 
     def _cycle_search_sort(self) -> None:
+        self._search_seq += 1
+        self._search_cache.clear()
         order = ["relevance", "created", "modified"]
         idx = order.index(self._search_sort) if self._search_sort in order else 0
         self._search_sort = order[(idx + 1) % len(order)]
@@ -1133,8 +1231,10 @@ class FsvApp(App):
         subject = item.get("subject") or ""
         bar = self.query_one("#detail-bar", Static)
         text = Text()
-        text.append(f"[{status}]", style="bold green")
-        text.append(f"  {did} {subject[:80]}  ")
+        if resource.name != "changes":
+            text.append(f"[{status}]", style="bold green")
+            text.append("  ")
+        text.append(f"{did} {subject[:80]}  ")
         text.append(str(pri), style="dim")
         bar.update(text)
 

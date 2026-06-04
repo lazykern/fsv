@@ -21,25 +21,25 @@ def test_render_detail_bar_treats_subject_as_plain_text(monkeypatch):
     target = StubStatic()
 
     monkeypatch.setattr(app, "query_one", lambda *args, **kwargs: target)
-    monkeypatch.setattr(tui_app.service, "resolve_status", lambda *args, **kwargs: "Pending Review by PCU")
+    monkeypatch.setattr(tui_app.service, "resolve_status", lambda *args, **kwargs: "Pending Review")
     monkeypatch.setattr(tui_app.service, "resolve_priority", lambda *args, **kwargs: "Low")
 
     item = {
-        "id": 16395,
-        "subject": "CBS-DEP [#SR-591044] update [bold]param[/bold]",
+        "id": 123,
+        "subject": "demo change [#REF-1] update [bold]param[/bold]",
     }
 
     app._render_detail_bar(item, CHANGES)
 
     assert isinstance(target.content, Text)
-    assert target.content.plain == "[Pending Review by PCU]  CHN-16395 CBS-DEP [#SR-591044] update [bold]param[/bold]  Low"
+    assert target.content.plain == "CHN-123 demo change [#REF-1] update [bold]param[/bold]  Low"
 
 
 def test_format_details_escapes_markup_like_values(monkeypatch):
     app = FsvApp()
     app._schemas = {"changes": {"fields": []}}
 
-    monkeypatch.setattr(tui_app.service, "resolve_status", lambda *args, **kwargs: "Pending [Review]")
+    monkeypatch.setattr(tui_app.service, "resolve_status", lambda *args, **kwargs: "Review [Pending]")
     monkeypatch.setattr(tui_app.service, "resolve_priority", lambda *args, **kwargs: "Low [P4]")
     monkeypatch.setattr(tui_app.schema_mod, "choice_label", lambda *args, **kwargs: "Normal [#1]")
     monkeypatch.setattr(tui_app.schema_mod, "field", lambda *args, **kwargs: {"label": "Guide [v2]"})
@@ -47,7 +47,7 @@ def test_format_details_escapes_markup_like_values(monkeypatch):
     item = {
         "id": 1,
         "subject": "Need [bold]fix[/bold] #tag",
-        "description": "desc [#SR-1] [green]x[/]",
+        "description": "desc [#REF-1] [green]x[/]",
         "change_type": 1,
         "risk": 1,
         "requester": {"name": "User [name]"},
@@ -61,8 +61,8 @@ def test_format_details_escapes_markup_like_values(monkeypatch):
     plain = text.plain
 
     assert "Need [bold]fix[/bold] #tag" in plain
-    assert "desc [#SR-1] [green]x[/]" in plain
-    assert "Pending [Review]" in plain
+    assert "desc [#REF-1] [green]x[/]" in plain
+    assert "Review [Pending]" in plain
     assert "Low [P4]" in plain
     assert "Normal [#1]" in plain
     assert "User [name]" in plain
