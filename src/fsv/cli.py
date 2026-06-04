@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 import re
 import sys
@@ -406,6 +405,7 @@ def lookup_resource(res: Resource, kind: str, query: str, json_out: bool) -> Non
 
 
 def _load_query_hash(raw: str) -> list[dict[str, Any]]:
+    import json
     try:
         loaded = json.loads(unquote(raw))
     except json.JSONDecodeError as e:
@@ -741,6 +741,7 @@ def _build_query_hash(
     where: list[str],
     or_grouping: bool = False,
 ) -> tuple[Optional[str], list[dict[str, Any]], list[dict[str, Any]]]:
+    import json
     from fsv import schema as schema_mod
     query: list[dict[str, Any]] = []
     explain: list[dict[str, Any]] = []
@@ -2416,6 +2417,7 @@ def config_set(
     cfg = completion._config_load()
     sec = cfg.setdefault(section, {})
     sec[prop] = value
+    import json
     p = CONFIG_DIR / "config.json"
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(cfg, indent=2))
