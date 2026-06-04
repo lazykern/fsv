@@ -44,6 +44,90 @@ def list_items(
     return items, total
 
 
+_SEARCH_ENTITY_MAP = {
+    "tickets": TICKETS,
+    "problems": PROBLEMS,
+    "changes": CHANGES,
+}
+
+
+def _normalize_search_result(row: dict, entity: str) -> dict[str, Any] | None:
+    import re
+    resource = _SEARCH_ENTITY_MAP.get(entity)
+    if resource is None:
+        return None
+    if row.get("ticket_path"):
+        prefix = "ticket"
+        owner_field = "responder_name"
+    else:
+        prefix = "itil_module"
+        owner_field = "owner_name"
+    path = row.get(f"{prefix}_path") or ""
+    m = re.search(r"/(\d+)$", path)
+    if not m:
+        return None
+    item_id = int(m.group(1))
+    display_id = row.get(f"{prefix}_display_id") or ""
+    return {
+        "id": item_id,
+        "display_id": item_id,
+        "human_display_id": display_id,
+        "subject": strip_html(row.get("subject") or ""),
+        "status": row.get(f"{prefix}_status") or "",
+        "priority_label": row.get(f"{prefix}_priority") or "",
+        "requester": {"name": row.get(owner_field) or ""},
+        "created_at": row.get("created_at") or "",
+        "_resource": resource,
+        "_search_result": True,
+    }
+
+
+def search_items(
+    term: str,
+    entity: str | None = None,
+    sort: str | None = None,
+    page: int = 1,
+    client: Client | None = None,
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    c = client or get_client()
+    if entity and entity in _SEARCH_ENTITY_MAP:
+        data = c.fulltext_search(entity, term, page=page, sort=sort)
+        items = []
+        for row in data.get("results", []):
+            norm = _normalize_search_result(row, entity)
+            if norm:
+                items.append(norm)
+        totals = {entity: data.get("total_entries", len(items))}
+        return items, totals
+
+    entities = ["tickets", "problems", "changes"]
+    results: list[list[dict[str, Any]]] = [[] for _ in entities]
+    totals: dict[str, int] = {}
+
+    def _fetch(ent: str, idx: int) -> None:
+        try:
+            data = c.fulltext_search(ent, term, page=page, sort=sort)
+            for row in data.get("results", []):
+                norm = _normalize_search_result(row, ent)
+                if norm:
+                    results[idx].append(norm)
+            totals[ent] = data.get("total_entries", len(results[idx]))
+        except Exception:
+            pass
+
+    threads = [
+        threading.Thread(target=_fetch, args=(ent, idx), daemon=True)
+        for idx, ent in enumerate(entities)
+    ]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    all_items = [item for bucket in results for item in bucket]
+    return all_items, totals
+
+
 def list_work_items(
     client: Client | None = None,
     per_page: int = 30,

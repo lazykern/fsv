@@ -82,6 +82,13 @@ class HelpScreen(ModalScreen[None]):
   [cyan]1-8[/]          switch detail tab
   [cyan]\\[][/cyan]         resize list/detail pane
 
+[bold]Search[/]
+  [cyan]f[/]            fulltext search across all entities
+  [cyan]h/l[/]          narrow results: all → tickets → problems → changes
+  [cyan]s[/]            cycle sort: relevance → date created → last modified
+  [cyan]Esc[/]          exit search mode
+  pagination auto-loads at list bottom (per-entity only)
+
 [bold]Filter[/]
   [cyan]/[/]            open filter input (FIELD=VALUE, space-separated)
   [cyan]↑/↓[/] or [cyan]Ctrl+P/N[/]  browse filter history
@@ -151,6 +158,13 @@ class FsvApp(App):
         self._history_idx: int = -1
         self._history_saved: str = ""
         self._history_nav_lock: int = 0
+        self._search_mode: bool = False
+        self._search_term: str = ""
+        self._search_totals: dict[str, int] = {}
+        self._search_entity: str | None = None
+        self._search_sort: str = "relevance"
+        self._search_page: int = 1
+        self._search_has_more: bool = False
         self._load_filter_history()
 
     def compose(self) -> ComposeResult:
@@ -159,6 +173,7 @@ class FsvApp(App):
             with Vertical(id="list-pane"):
                 yield DataTable(id="list")
                 yield Input(id="filter-input", placeholder="status=Open priority=High")
+                yield Input(id="search-input", placeholder="search freshservice...")
                 yield Static(id="suggestion-bar")
                 yield Static(id="filter-bar")
             with Vertical(id="detail"):
@@ -176,6 +191,9 @@ class FsvApp(App):
         filter_input = self.query_one("#filter-input", Input)
         filter_input.display = False
         filter_input.styles.background = "transparent"
+        search_input = self.query_one("#search-input", Input)
+        search_input.display = False
+        search_input.styles.background = "transparent"
         self.query_one("#suggestion-bar", Static).display = False
         table = self.query_one("#list", DataTable)
         table.cursor_type = "row"
@@ -768,6 +786,183 @@ class FsvApp(App):
         self.query_one("#list", DataTable).focus()
         self._render_filter_bar()
 
+    def _open_search_input(self) -> None:
+        inp = self.query_one("#search-input", Input)
+        inp.value = self._search_term if self._search_mode else ""
+        inp.display = True
+        inp.focus()
+
+    def _apply_search(self, raw: str) -> None:
+        inp = self.query_one("#search-input", Input)
+        inp.display = False
+        term = raw.strip()
+        if not term:
+            if self._search_mode:
+                self._exit_search_mode()
+            else:
+                self.query_one("#list", DataTable).focus()
+            return
+        self._search_mode = True
+        self._search_term = term
+        self._search_entity = None
+        self._search_sort = "relevance"
+        self._search_page = 1
+        self._search_has_more = False
+        self._active_filters = []
+        self._filter_error = None
+        self._items = []
+        self._total = 0
+        self._page = 1
+        self._has_more = False
+        self._detail_cache.clear()
+        self._sub_cache.clear()
+        self.query_one("#list", DataTable).clear(columns=True)
+        self._focus_pane("list")
+        self._render_header()
+        self._clear_detail("[dim]searching...[/]")
+        self._load_search()
+
+    def _cancel_search_input(self) -> None:
+        inp = self.query_one("#search-input", Input)
+        inp.display = False
+        self.query_one("#list", DataTable).focus()
+
+    def _exit_search_mode(self) -> None:
+        self._search_mode = False
+        self._search_term = ""
+        self._search_totals = {}
+        self._search_entity = None
+        self._search_sort = "relevance"
+        self._search_page = 1
+        self._search_has_more = False
+        self._reload_list("[dim]loading rows...[/]")
+
+    def _step_search_entity(self, delta: int) -> None:
+        tabs: list[str | None] = [None, "tickets", "problems", "changes"]
+        try:
+            idx = tabs.index(self._search_entity)
+        except ValueError:
+            idx = 0
+        new_idx = (idx + delta) % len(tabs)
+        new_entity = tabs[new_idx]
+        if new_entity == self._search_entity:
+            return
+        if new_entity is None:
+            self._search_entity = None
+            self._search_page = 1
+            self._search_has_more = False
+            self._items = []
+            self._total = 0
+            self._page = 1
+            self._has_more = False
+            self._detail_cache.clear()
+            self._sub_cache.clear()
+            self.query_one("#list", DataTable).clear(columns=True)
+            self._clear_detail("[dim]searching...[/]")
+            self._render_header()
+            self._load_search()
+        else:
+            self._search_narrow_entity(new_entity)
+
+    def _search_narrow_entity(self, entity: str) -> None:
+        if not self._search_mode or not self._search_term:
+            return
+        self._search_entity = entity
+        self._search_page = 1
+        self._search_has_more = False
+        self._items = []
+        self._total = 0
+        self._page = 1
+        self._has_more = False
+        self._detail_cache.clear()
+        self._sub_cache.clear()
+        self.query_one("#list", DataTable).clear(columns=True)
+        self._clear_detail("[dim]searching...[/]")
+        self._render_header()
+        self._load_search()
+
+    @work(thread=True, exclusive=True, group="list")
+    def _load_search(self, append: bool = False) -> None:
+        c = get_client()
+        for res in ALL_RESOURCES:
+            if res.name not in self._schemas:
+                self._schemas[res.name] = schema_mod.load(res, c)
+        items, totals = service.search_items(
+            self._search_term,
+            entity=self._search_entity,
+            sort=self._search_sort,
+            page=self._search_page,
+            client=c,
+        )
+        self.call_from_thread(self._populate_search, items, totals, append)
+
+    def _populate_search(self, items: list[dict], totals: dict[str, int], append: bool = False) -> None:
+        self._search_totals = totals
+        self._loading_more = False
+        entity = self._search_entity
+        if entity and entity in totals:
+            self._total = totals[entity]
+            self._search_has_more = len(items) == 30
+        else:
+            self._total = sum(totals.values())
+            self._search_has_more = False
+
+        table = self.query_one("#list", DataTable)
+        if not append:
+            self._items = items
+            table.clear(columns=True)
+            table.add_columns("", "ID", "STATUS", "PRI", "SUBJECT", "REQUESTER")
+            offset = 0
+        else:
+            offset = len(self._items)
+            self._items.extend(items)
+
+        for idx, item in enumerate(items):
+            row_num = offset + idx
+            res: Resource = item.get("_resource", TICKETS)
+            did = format_id(item, res)
+            status = item.get("status") or ""
+            pri = item.get("priority_label") or ""
+            sel = f"{row_num + 1:03d}"
+            subject = (item.get("subject") or "")[:80]
+            requester = ""
+            req = item.get("requester")
+            if isinstance(req, dict):
+                requester = req.get("name") or ""
+            table.add_row(sel, did, status, pri, subject, requester, key=did)
+        if not append and items:
+            self._clear_detail("[dim]loading details...[/]")
+            table.move_cursor(row=0)
+        elif not append and not items:
+            self._clear_detail("[dim]no results[/]")
+        self._render_header()
+        self._render_filter_bar()
+        self._render_status()
+
+    def _search_load_more(self) -> None:
+        if not self._search_has_more or self._loading_more:
+            return
+        self._loading_more = True
+        self._search_page += 1
+        self._render_filter_bar()
+        self._render_status()
+        self._load_search(append=True)
+
+    def _cycle_search_sort(self) -> None:
+        order = ["relevance", "created", "modified"]
+        idx = order.index(self._search_sort) if self._search_sort in order else 0
+        self._search_sort = order[(idx + 1) % len(order)]
+        self._search_page = 1
+        self._search_has_more = False
+        self._items = []
+        self._total = 0
+        self._detail_cache.clear()
+        self._sub_cache.clear()
+        self.query_one("#list", DataTable).clear(columns=True)
+        self._clear_detail("[dim]searching...[/]")
+        self._render_header()
+        self._load_search()
+
     def _load_more(self) -> None:
         self._loading_more = True
         self._page += 1
@@ -795,17 +990,38 @@ class FsvApp(App):
 
     def _render_header(self) -> None:
         parts = []
-        parts.append("[bold cyan]fsv[/] :: freshservice  ")
-        for tab in ENTITY_TABS:
-            label = tab.upper()
-            if tab == self.entity:
-                parts.append(f"[bold reverse] {label} [/] ")
+        if self._search_mode:
+            parts.append(f"[bold cyan]fsv[/] :: [yellow bold]search[/] [yellow]{escape(self._search_term)}[/]  ")
+            all_label = "ALL"
+            if self._search_entity is None:
+                parts.append(f"[bold reverse] {all_label} [/] ")
             else:
-                parts.append(f"{label}  ")
-        rows = len(self._items)
-        total = self._total
-        count = f"{rows}/{total}" if total > rows else str(rows)
-        parts.append(f"  [dim]{count} rows  ? help[/]")
+                parts.append(f"{all_label}  ")
+            for tab in ENTITY_TABS:
+                label = tab.upper()
+                cnt = self._search_totals.get(tab)
+                cnt_str = f"({cnt})" if cnt is not None else ""
+                if tab == self._search_entity:
+                    parts.append(f"[bold reverse] {label}{cnt_str} [/] ")
+                else:
+                    parts.append(f"{label}{cnt_str}  ")
+            rows = len(self._items)
+            total = self._total
+            count = f"{rows}/{total}" if total > rows else str(rows)
+            sort_label = {"relevance": "relevance", "created": "date created", "modified": "last modified"}.get(self._search_sort, self._search_sort)
+            parts.append(f"  [dim]{count} shown  sort:{sort_label}  Esc exit[/]")
+        else:
+            parts.append("[bold cyan]fsv[/] :: freshservice  ")
+            for tab in ENTITY_TABS:
+                label = tab.upper()
+                if tab == self.entity:
+                    parts.append(f"[bold reverse] {label} [/] ")
+                else:
+                    parts.append(f"{label}  ")
+            rows = len(self._items)
+            total = self._total
+            count = f"{rows}/{total}" if total > rows else str(rows)
+            parts.append(f"  [dim]{count} rows  ? help[/]")
         self.query_one("#header", Static).update(Text.from_markup("".join(parts)))
 
     def _render_filter_bar(self) -> None:
@@ -815,7 +1031,9 @@ class FsvApp(App):
         total = self._total
         count = f"{rows}/{total}" if total > rows else str(rows)
         loading = "  [yellow]loading more…[/]" if self._loading_more else ""
-        if self._filter_error:
+        if self._search_mode:
+            filter_part = f"[yellow]search: {escape(self._search_term)}[/]  [dim]h/l narrow  s sort  Esc exit  f new search[/]"
+        elif self._filter_error:
             filter_part = f"[red]filter error: {escape(self._filter_error)}[/]"
         elif self._active_filters:
             filter_part = f"[yellow]filter: {escape(' '.join(self._active_filters))}[/]"
@@ -894,7 +1112,12 @@ class FsvApp(App):
         self._reset_detail_scroll()
 
     def _render_status(self) -> None:
-        entity = self.entity.upper()
+        if self._search_mode:
+            label = f"SEARCH: {self._search_term}"
+            if self._search_entity:
+                label += f" > {self._search_entity.upper()}"
+        else:
+            label = self.entity.upper()
         sel = ""
         if self._selected:
             did = format_id(self._selected, self._selected["_resource"])
@@ -905,7 +1128,7 @@ class FsvApp(App):
         count = f"{rows}/{total}" if total > rows else str(rows)
         pane = self._active_pane()
         bar = self.query_one("#status-bar", Static)
-        text = Text(f"{entity}{sel}    ")
+        text = Text(f"{label}{sel}    ")
         suffix = "loading more…" if self._loading_more else f"{count} rows"
         text.append(f"pane={pane} · {suffix}", style="dim")
         bar.update(text)
@@ -920,6 +1143,7 @@ class FsvApp(App):
             "[bold]gw/gt/gp/gc[/] entity  "
             "[bold]1-8[/] detail tab  "
             "[bold]\\[][/bold] resize  "
+            "[bold]f[/] search  "
             "[bold]/[/] filter  "
             "[bold]o[/] browser  "
             "[bold]r[/] reload  "
@@ -1169,6 +1393,9 @@ class FsvApp(App):
         if event.input.id == "filter-input":
             self._apply_filter(event.value)
             event.stop()
+        elif event.input.id == "search-input":
+            self._apply_search(event.value)
+            event.stop()
 
     def on_input_changed(self, event: Input.Changed) -> None:
         if event.input.id == "filter-input":
@@ -1187,7 +1414,14 @@ class FsvApp(App):
     def on_key(self, event) -> None:
         key = event.key
 
-        # When filter input is open, intercept Escape, Tab, and history navigation
+        search_inp = self.query_one("#search-input", Input)
+        if search_inp.display and search_inp.has_focus:
+            if key == "escape":
+                self._cancel_search_input()
+                event.stop()
+                event.prevent_default()
+            return
+
         inp = self.query_one("#filter-input", Input)
         if inp.display and inp.has_focus:
             if key == "escape":
@@ -1225,7 +1459,10 @@ class FsvApp(App):
                 else:
                     table.move_cursor(row=0)
             elif key in ENTITY_TAB_KEY:
-                self._switch_entity(ENTITY_TAB_KEY[key])
+                if self._search_mode:
+                    self._search_narrow_entity(ENTITY_TAB_KEY[key])
+                else:
+                    self._switch_entity(ENTITY_TAB_KEY[key])
             event.stop()
             event.prevent_default()
             return
@@ -1237,7 +1474,25 @@ class FsvApp(App):
             event.prevent_default()
             return
 
+        if key == "f":
+            self._open_search_input()
+            event.stop()
+            event.prevent_default()
+            return
+        if key == "escape" and self._search_mode:
+            self._exit_search_mode()
+            event.stop()
+            event.prevent_default()
+            return
+        if key == "s" and self._search_mode:
+            self._cycle_search_sort()
+            event.stop()
+            event.prevent_default()
+            return
+
         if key == "slash":
+            if self._search_mode:
+                return
             self._open_filter_input()
             event.stop()
             event.prevent_default()
@@ -1299,6 +1554,8 @@ class FsvApp(App):
         elif key == "h" or key == "left":
             if pane == "detail":
                 self._step_detail_tab(-1)
+            elif self._search_mode:
+                self._step_search_entity(-1)
             else:
                 self._prev_entity()
             event.stop()
@@ -1306,6 +1563,8 @@ class FsvApp(App):
         elif key == "l" or key == "right":
             if pane == "detail":
                 self._step_detail_tab(1)
+            elif self._search_mode:
+                self._step_search_entity(1)
             else:
                 self._next_entity()
             event.stop()
@@ -1315,7 +1574,10 @@ class FsvApp(App):
             event.stop()
             event.prevent_default()
         elif key == "r":
-            self._reload_list()
+            if self._search_mode:
+                self._apply_search(self._search_term)
+            else:
+                self._reload_list()
             event.stop()
             event.prevent_default()
         elif key == "y":
@@ -1371,8 +1633,11 @@ class FsvApp(App):
             0.15, lambda: self._load_detail(item, detail_key)
         )
         table = self.query_one("#list", DataTable)
-        if table.cursor_row == table.row_count - 1 and self._has_more and not self._loading_more:
-            self._load_more()
+        if table.cursor_row == table.row_count - 1 and not self._loading_more:
+            if self._search_mode and self._search_has_more:
+                self._search_load_more()
+            elif self._has_more:
+                self._load_more()
 
     def _find_item(self, display_id: str) -> dict | None:
         for item in self._items:
