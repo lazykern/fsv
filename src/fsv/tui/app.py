@@ -165,6 +165,7 @@ class FsvApp(App):
         self._search_sort: str = "relevance"
         self._search_page: int = 1
         self._search_has_more: bool = False
+        self._state_flow_cache: dict[int, list[dict]] = {}
         self._load_filter_history()
 
     def compose(self) -> ComposeResult:
@@ -178,6 +179,7 @@ class FsvApp(App):
                 yield Static(id="filter-bar")
             with Vertical(id="detail"):
                 yield Static(id="detail-bar")
+                yield Static(id="state-flow-bar")
                 yield Static(id="detail-tabs")
                 with VerticalScroll(id="detail-scroll"):
                     yield Static(id="detail-content")
@@ -188,6 +190,7 @@ class FsvApp(App):
         self.screen.styles.background = "transparent"
         for widget in self.query("Vertical, VerticalScroll, Static"):
             widget.styles.background = "transparent"
+        self.query_one("#state-flow-bar", Static).display = False
         filter_input = self.query_one("#filter-input", Input)
         filter_input.display = False
         filter_input.styles.background = "transparent"
@@ -290,6 +293,7 @@ class FsvApp(App):
         self._selected = item
         self._pending_sub_key = None
         self._render_detail_bar(item, resource)
+        self._trigger_state_flow(item, resource)
         self._render_detail_tabs(resource)
         self._render_detail_content(item, resource)
         self._render_filter_bar()
@@ -381,6 +385,8 @@ class FsvApp(App):
         self._pending_detail_key = None
         self._pending_sub_key = None
         self.query_one("#detail-bar", Static).update("")
+        self.query_one("#state-flow-bar", Static).update("")
+        self.query_one("#state-flow-bar", Static).display = False
         self.query_one("#detail-tabs", Static).update("")
         self.query_one("#detail-content", Static).update(Text.from_markup(message))
         self._reset_detail_scroll()
@@ -1047,6 +1053,68 @@ class FsvApp(App):
         self.query_one("#filter-bar", Static).update(
             Text.from_markup(f"{filter_part}  [dim]focus={pane}  sel={sel}  {count} rows[/]{loading}")
         )
+
+    def _trigger_state_flow(self, item: dict, resource: Resource) -> None:
+        bar = self.query_one("#state-flow-bar", Static)
+        if resource.name != "changes":
+            bar.update("")
+            bar.display = False
+            return
+        state_flow_id = item.get("state_flow_id")
+        if not state_flow_id:
+            bar.display = False
+            return
+        if state_flow_id in self._state_flow_cache:
+            self._render_state_flow_bar(item)
+        else:
+            bar.update(Text.from_markup("[dim]loading flow…[/]"))
+            bar.display = True
+            self._fetch_state_flow(item)
+
+    @work(thread=True, exclusive=True, group="state-flow")
+    def _fetch_state_flow(self, item: dict) -> None:
+        state_flow_id = item.get("state_flow_id")
+        if not state_flow_id:
+            return
+        try:
+            from fsv.state_flow import get_state_flow
+            flow = get_state_flow(state_flow_id)
+            self._state_flow_cache[state_flow_id] = flow.get("state_list", [])
+        except Exception:
+            return
+        self.call_from_thread(self._on_state_flow_loaded, item)
+
+    def _on_state_flow_loaded(self, item: dict) -> None:
+        if not self._selected or self._selected.get("id") != item.get("id"):
+            return
+        self._render_state_flow_bar(item)
+
+    def _render_state_flow_bar(self, item: dict) -> None:
+        bar = self.query_one("#state-flow-bar", Static)
+        state_flow_id = item.get("state_flow_id")
+        state_list = self._state_flow_cache.get(state_flow_id, [])
+        if not state_list:
+            bar.display = False
+            return
+        current = item.get("status")
+        traversal = set(item.get("state_traversal") or [])
+        cur_idx = next((i for i, s in enumerate(state_list) if s["id"] == current), None)
+        if cur_idx is None:
+            bar.display = False
+            return
+        parts: list[str] = []
+        for i, state in enumerate(state_list):
+            sid, name = state["id"], escape(state["value"])
+            is_current = i == cur_idx
+            visited = sid in traversal
+            if is_current:
+                parts.append(f"[bold black on green] {name} [/]")
+            elif visited:
+                parts.append(name)
+            else:
+                parts.append(f"[dim]{name}[/]")
+        bar.update(Text.from_markup(" [dim]>[/] ".join(parts)))
+        bar.display = True
 
     def _render_detail_bar(self, item: dict, resource: Resource) -> None:
         schema = self._schemas.get(resource.name, {"fields": []})
