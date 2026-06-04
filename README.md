@@ -4,6 +4,8 @@ Freshservice CLI. Drives changes, tickets, and problems via session-cookie auth;
 
 ![fsv TUI demo](assets/fsv-tui-demo.png)
 
+Interactive TUI with filter autocomplete, pagination, fulltext search, and keyboard navigation. Launch with `fsv tui`.
+
 ## How it works
 
 fsv calls the **internal** `/api/_/` endpoints the Freshservice web UI uses, not the public v2 REST API. These endpoints expose richer data with no published rate cap. Paste a valid browser session cookie once; fsv stores it locally.
@@ -169,6 +171,8 @@ fsv changes download CHN-1234 --all --out ./evidence
 ## Commands
 
 ```
+fsv tui                                    # interactive TUI
+
 fsv changes  ls | search | get | update | create | clone | download | url | state | approvals | activity | tasks | task-update | task-delete | assets | associations | add-note | notes | fields | lookup | filters
 fsv tickets  ls | search | get | update | url | reply | activity | tasks | fields | lookup | filters
 fsv problems ls | search | get | update | url | add-note | notes | activity | tasks | fields | lookup | filters
@@ -263,10 +267,19 @@ src/fsv/
   session.py      # cookie load/save and paste-based login helpers
   client.py       # singleton httpx wrapper, CSRF for /api/_/, rate limit headers
   resources.py    # Resource dataclass + registry (CHANGES/TICKETS/PROBLEMS)
+  service.py      # shared service layer (list, search, get, update) used by CLI + TUI
   schema.py       # form_fields cache + choice_label helper
+  query.py        # --where filter parsing and query_hash building
+  state_flow.py   # approval lifecycle state flow rendering
+  cache.py        # schema cache management
+  completion.py   # shell completion (schema-aware + network lookup)
+  create.py       # create/clone workflow
   editor.py       # JSONC editor workflow for create/clone/edit
   render.py       # rich Table + JSON/CSV/TSV output
   cli.py          # typer app + per-resource sub-apps from registry
+  tui/
+    app.py        # Textual TUI (filter autocomplete, pagination, search)
+    app.tcss      # TUI stylesheet
 ```
 
 Adding a new resource = ~10 LoC in `resources.py` when the tenant exposes that Freshservice module.
