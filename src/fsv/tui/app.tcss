@@ -96,6 +96,11 @@ DataTable > .datatable--even-row {
     padding: 0 1;
 }
 
+#state-flow-bar {
+    height: 1;
+    padding: 0 1;
+}
+
 #detail-tabs {
     height: 1;
     padding: 0 1;

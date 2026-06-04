@@ -9,6 +9,7 @@ from fsv.tui.app import FsvApp
 class StubStatic:
     def __init__(self):
         self.content = None
+        self.display = True
 
     def update(self, content, layout=True):
         self.content = content
@@ -28,6 +29,7 @@ def _setup_app(monkeypatch):
     app = FsvApp()
     widgets = {
         "#detail-bar": StubStatic(),
+        "#state-flow-bar": StubStatic(),
         "#detail-tabs": StubStatic(),
         "#detail-content": StubStatic(),
         "#detail-scroll": StubScroll(),
