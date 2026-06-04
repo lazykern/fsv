@@ -83,8 +83,7 @@ def test_assets_resource_search_filters_json_payload_by_category(monkeypatch):
         lambda value, c=None: {"name": "Batch", "filter": "16000510422", "ci_type_id": "16000510422"},
     )
     monkeypatch.setattr(
-        cli,
-        "search_assets_for_change",
+        "fsv.create.search_assets_for_change",
         lambda change_id, search, page=1, per_page=30, c=None: {
             "assets": [
                 {"display_id": 37451, "name": "EDP_TO_CBO_GROUP2", "ci_type_name": "Batch", "location_name": "--"},
@@ -136,8 +135,7 @@ def test_assets_resource_pick_prompts_category_before_search(monkeypatch):
         lambda title, text, values: (selections.append((title, text, values)) or [values[0][0]]),
     )
     monkeypatch.setattr(
-        cli,
-        "search_assets_for_change",
+        "fsv.create.search_assets_for_change",
         lambda change_id, search, page=1, per_page=50, c=None: {
             "assets": [
                 {"display_id": 38679, "name": "OOS (Object OS)", "ci_type_name": "Application Portfolio", "location_name": "--"},

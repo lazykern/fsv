@@ -49,7 +49,7 @@ def test_get_resource_ticket_json_includes_requested_items(monkeypatch):
             raise AssertionError((path, params))
 
     monkeypatch.setattr(cli, "_client", lambda: FakeClient())
-    monkeypatch.setattr(cli.schema_mod, "load", lambda res, c: {"fields": []})
+    monkeypatch.setattr("fsv.schema.load", lambda res, c: {"fields": []})
     monkeypatch.setattr(cli, "emit_json", lambda data: emitted.append(data))
 
     cli.get_resource(TICKETS, "SR-1", False, True)
