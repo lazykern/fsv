@@ -1102,17 +1102,26 @@ class FsvApp(App):
         if cur_idx is None:
             bar.display = False
             return
+
+        total = len(state_list)
+        context = 3
+        lo = max(0, cur_idx - context)
+        hi = min(total - 1, cur_idx + context)
+
         parts: list[str] = []
-        for i, state in enumerate(state_list):
-            sid, name = state["id"], escape(state["value"])
-            is_current = i == cur_idx
-            visited = sid in traversal
-            if is_current:
+        if lo > 0:
+            parts.append("[dim]…[/]")
+        for i in range(lo, hi + 1):
+            sid, name = state_list[i]["id"], escape(state_list[i]["value"])
+            if i == cur_idx:
                 parts.append(f"[bold black on green] {name} [/]")
-            elif visited:
+            elif sid in traversal:
                 parts.append(name)
             else:
                 parts.append(f"[dim]{name}[/]")
+        if hi < total - 1:
+            parts.append("[dim]…[/]")
+
         bar.update(Text.from_markup(" [dim]>[/] ".join(parts)))
         bar.display = True
 
