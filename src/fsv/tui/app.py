@@ -1682,9 +1682,7 @@ class FsvApp(App):
             return
         res: Resource = self._selected.get("_resource", TICKETS)
         tabs = DETAIL_TAB_LABELS.get(res.name, ["details"])
-        next_idx = max(0, min(len(tabs) - 1, self.detail_tab_idx + delta))
-        if next_idx == self.detail_tab_idx:
-            return
+        next_idx = (self.detail_tab_idx + delta) % len(tabs)
         self.detail_tab_idx = next_idx
         self._render_detail_tabs(res)
         self._render_detail_content(self._selected, res)
