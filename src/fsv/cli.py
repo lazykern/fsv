@@ -81,6 +81,25 @@ def _patch_typer_shell_detection(force: bool = False) -> None:
 
     _typer_completion_shared._get_shell_name = _wrapped
     _typer_completion._get_shell_name = _wrapped
+
+    # Route --show-completion through the fast generator too
+    def _fast_get_completion_script(
+        prog_name: str, complete_var: str, shell: str
+    ) -> str:
+        try:
+            from fsv.completion_gen import build_script
+            return build_script(shell, prog_name)
+        except Exception:
+            return _typer_completion_shared._fsv_original_get_completion_script(
+                prog_name=prog_name, complete_var=complete_var, shell=shell
+            )
+
+    if not getattr(_typer_completion_shared, "_fsv_original_get_completion_script", None):
+        _typer_completion_shared._fsv_original_get_completion_script = (
+            _typer_completion_shared.get_completion_script
+        )
+        _typer_completion_shared.get_completion_script = _fast_get_completion_script
+
     _TYPER_SHELL_PATCHED = True
 
 
@@ -2322,12 +2341,11 @@ def completion_show(
     shell: Optional[str] = typer.Argument(None, help="bash|zsh|fish|powershell|pwsh", autocompletion=completion.complete_shell),
 ) -> None:
     """Show shell completion script."""
-    from typer._completion_shared import get_completion_script
+    from fsv.completion_gen import build_script
 
     shell_name = _completion_shell(shell)
     prog_name = Path(sys.argv[0]).name
-    complete_var = f"_{prog_name.replace('-', '_').upper()}_COMPLETE"
-    sys.stdout.write(get_completion_script(prog_name=prog_name, complete_var=complete_var, shell=shell_name) + "\n")
+    sys.stdout.write(build_script(shell_name, prog_name))
 
 
 @completion_app.command("install", epilog="[bold]Examples:[/bold]  fsv completion install  |  fsv completion install zsh")
@@ -2335,11 +2353,39 @@ def completion_install(
     shell: Optional[str] = typer.Argument(None, help="bash|zsh|fish|powershell|pwsh", autocompletion=completion.complete_shell),
 ) -> None:
     """Install shell completion for current shell."""
-    from typer._completion_shared import install as _install_completion
+    from fsv.completion_gen import build_script
 
     shell_name = _completion_shell(shell)
-    installed_shell, path = _install_completion(shell=shell_name, prog_name=Path(sys.argv[0]).name)
-    console.print(f"{installed_shell} completion installed in {path}")
+    prog_name = Path(sys.argv[0]).name
+    script = build_script(shell_name, prog_name)
+
+    if shell_name == "fish":
+        fish_dir = Path.home() / ".config" / "fish" / "completions"
+        fish_dir.mkdir(parents=True, exist_ok=True)
+        path = fish_dir / f"{prog_name}.fish"
+        path.write_text(script)
+        console.print(f"fish completion installed in {path}")
+    elif shell_name in ("bash", "zsh"):
+        # Write standalone script; append source line to shell config
+        script_path = Path.home() / f".{prog_name}-complete.{shell_name}"
+        script_path.write_text(script)
+        if shell_name == "bash":
+            rc_file = Path.home() / ".bashrc"
+        else:
+            rc_file = Path.home() / ".zshrc"
+        source_line = f"\n. {script_path}\n"
+        existing = rc_file.read_text() if rc_file.exists() else ""
+        if str(script_path) not in existing:
+            with rc_file.open("a") as f:
+                f.write(source_line)
+        console.print(f"{shell_name} completion installed in {script_path}")
+        console.print(f"sourced from {rc_file}")
+    else:
+        # powershell/pwsh: fall back to typer
+        from typer._completion_shared import install as _install_completion
+        installed_shell, path = _install_completion(shell=shell_name, prog_name=prog_name)
+        console.print(f"{installed_shell} completion installed in {path}")
+
     console.print("restart shell: exec $SHELL")
 
 

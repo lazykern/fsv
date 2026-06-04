@@ -4,9 +4,12 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Any, Iterable
+from typing import TYPE_CHECKING, Any, Iterable
 
-import typer
+if TYPE_CHECKING:
+    import typer
+elif not os.environ.get("FSV_THIN_COMPLETE"):
+    import typer
 
 from fsv.cache import load as _cache_load
 from fsv.config import (
