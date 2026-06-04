@@ -246,7 +246,7 @@ def detail_panel(item: dict, resource: Resource, schema: dict[str, Any]) -> None
     console.print(f"[green]status[/]    {item.get('status_name') or schema_mod.choice_label('status', sid, schema)}  (id={sid})")
     if resource.name == "changes":
         from fsv import state_flow as _state_flow
-        _state_flow.render_compact(item, console)
+        _state_flow.render_state_diagram(item, console)
         console.print(f"type      {schema_mod.choice_label('change_type', item.get('change_type'), schema)}")
         console.print(f"risk      {schema_mod.RISK.get(item.get('risk'), '-')}")
     if resource.name == "tickets":
