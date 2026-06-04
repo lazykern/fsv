@@ -221,8 +221,28 @@ def test_bash_script_has_complete_function():
     assert "complete -F _fsv_complete fsv" in script
 
 
+def test_bash_script_uses_sys_executable():
+    from fsv.completion_gen import build_script
+    script = build_script("bash", "fsv")
+    assert "fsv._complete" in script
+    assert " python " not in script and not script.strip().endswith(" python")
+
+
 def test_zsh_script_has_compdef():
     from fsv.completion_gen import build_script
     script = build_script("zsh", "fsv")
     assert "#compdef fsv" in script
     assert "_fsv()" in script
+
+
+def test_zsh_script_has_dynamic_completions():
+    from fsv.completion_gen import build_script
+    script = build_script("zsh", "fsv")
+    assert "fsv._complete" in script
+    assert "complete_where" in script
+
+
+def test_zsh_script_uses_sys_executable():
+    from fsv.completion_gen import build_script
+    script = build_script("zsh", "fsv")
+    assert " python " not in script and not script.strip().endswith(" python")
