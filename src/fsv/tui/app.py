@@ -17,7 +17,7 @@ from textual.reactive import var
 from textual.screen import ModalScreen
 from textual.widgets import DataTable, Input, Static
 
-from fsv import schema as schema_mod, service
+from fsv import config, schema as schema_mod, service
 from fsv.client import APIError, get_client
 from fsv.query import build_query_hash_from_schema
 from fsv.render import strip_html
@@ -146,7 +146,7 @@ class FsvApp(App):
         self._per_page = 100
         self._has_more = False
         self._loading_more = False
-        self._active_filters: list[str] = []
+        self._active_filters: list[str] = self._get_default_filters("tickets")
         self._filter_error: str | None = None
         self._suggestions: list[str] = []
         self._suggestion_idx: int = 0
@@ -401,6 +401,12 @@ class FsvApp(App):
     def _set_filter_error(self, error: str) -> None:
         self._filter_error = error
         self._render_filter_bar()
+
+    def _get_default_filters(self, entity: str) -> list[str]:
+        try:
+            return config.get_default_where(entity)
+        except Exception:
+            return []
 
     def _load_filter_history(self) -> None:
         try:
@@ -835,6 +841,8 @@ class FsvApp(App):
         self._search_sort = "relevance"
         self._search_page = 1
         self._search_has_more = False
+        self._active_filters = self._get_default_filters(self.entity)
+        self._filter_error = None
         self._reload_list("[dim]loading rows...[/]")
 
     def _step_search_entity(self, delta: int) -> None:
@@ -1650,7 +1658,7 @@ class FsvApp(App):
             return
         self.entity = name
         self.detail_tab_idx = 0
-        self._active_filters = []
+        self._active_filters = self._get_default_filters(name)
         self._filter_error = None
         self._render_header()
         if self._entity_debounce_timer is not None:
