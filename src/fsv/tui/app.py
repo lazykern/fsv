@@ -26,7 +26,17 @@ from fsv.resources import CHANGES, PROBLEMS, TICKETS, Resource, format_id
 
 ALL_RESOURCES = (TICKETS, CHANGES, PROBLEMS)
 
-ENTITY_TABS = ("work", "tickets", "problems", "changes")
+_OPERATORS = (">=", "<=", "!=", "~=", "=", ">", "<")
+
+
+def _split_filter_token(token: str) -> tuple[str, str, str] | None:
+    for op in _OPERATORS:
+        if op in token:
+            left, right = token.split(op, 1)
+            return left.strip(), op, right
+    return None
+
+ENTITY_TABS = ("tickets", "problems", "changes")
 
 DETAIL_TAB_LABELS: dict[str, list[str]] = {
     "changes": ["details", "notes", "tasks", "assets", "associations", "approvals", "activity"],
@@ -34,7 +44,7 @@ DETAIL_TAB_LABELS: dict[str, list[str]] = {
     "problems": ["details", "notes", "tasks", "assets", "associations", "activity"],
 }
 
-ENTITY_TAB_KEY = {"w": "work", "t": "tickets", "p": "problems", "c": "changes"}
+ENTITY_TAB_KEY = {"t": "tickets", "p": "problems", "c": "changes"}
 
 
 def _resource_for_entity(name: str) -> Resource | None:
@@ -68,7 +78,7 @@ class HelpScreen(ModalScreen[None]):
   [cyan]J/K[/]          move or scroll ×5
   [cyan]G/gg[/]         bottom/top in active pane
   [cyan]h/l[/]          entity in list pane, tabs in detail pane
-  [cyan]gw/gt/gp/gc[/]  jump to work/tickets/problems/changes
+  [cyan]gt/gp/gc[/]     jump to tickets/problems/changes
   [cyan]1-8[/]          switch detail tab
   [cyan]\\[][/cyan]         resize list/detail pane
 
@@ -79,7 +89,6 @@ class HelpScreen(ModalScreen[None]):
   [cyan]Esc[/]          cancel filter input
   [cyan]Enter[/]        apply filter and reload
   empty input clears active filter
-  not supported in work view
 
 [bold]Selection[/]
   moving list cursor loads detail automatically
@@ -107,7 +116,7 @@ class FsvApp(App):
     TITLE = "fsv"
     BINDINGS = [Binding("ctrl+c", "quit", "Quit", priority=True, show=False)]
 
-    entity = var("work")
+    entity = var("tickets")
     detail_tab_idx = var(0)
 
     def __init__(self) -> None:
@@ -133,6 +142,11 @@ class FsvApp(App):
         self._active_filters: list[str] = []
         self._filter_error: str | None = None
         self._suggestions: list[str] = []
+        self._suggestion_idx: int = 0
+        self._tab_lock: int = 0
+        self._tab_base: str | None = None
+        self._completion_lookup_timer = None
+        self._completion_lookup_key: str = ""
         self._filter_history: list[str] = []
         self._history_idx: int = -1
         self._history_saved: str = ""
@@ -182,21 +196,18 @@ class FsvApp(App):
             if res.name not in self._schemas:
                 self._schemas[res.name] = schema_mod.load(res, c)
 
-        if self.entity == "work":
-            items, total = service.list_work_items(client=c)
-        else:
-            res = _resource_for_entity(self.entity)
-            query_hash: str | None = None
-            if self._active_filters:
-                try:
-                    sch = self._schemas.get(res.name, {"fields": []})
-                    query_hash = build_query_hash_from_schema(c, res, sch, self._active_filters)
-                except ValueError as exc:
-                    self.call_from_thread(self._set_filter_error, str(exc))
-                    return
-            items, total = service.list_items(
-                res, client=c, page=self._page, per_page=self._per_page, query_hash=query_hash
-            )
+        res = _resource_for_entity(self.entity)
+        query_hash: str | None = None
+        if self._active_filters:
+            try:
+                sch = self._schemas.get(res.name, {"fields": []})
+                query_hash = build_query_hash_from_schema(c, res, sch, self._active_filters)
+            except ValueError as exc:
+                self.call_from_thread(self._set_filter_error, str(exc))
+                return
+        items, total = service.list_items(
+            res, client=c, page=self._page, per_page=self._per_page, query_hash=query_hash
+        )
 
         self.call_from_thread(self._populate_list, items, total, append)
 
@@ -204,20 +215,14 @@ class FsvApp(App):
         self._loading_more = False
         self._total = total
 
-        if self.entity == "work":
-            self._has_more = False
-        else:
-            self._has_more = len(items) == self._per_page
+        self._has_more = len(items) == self._per_page
 
         table = self.query_one("#list", DataTable)
 
         if not append:
             self._items = items
             table.clear(columns=True)
-            if self.entity == "work":
-                table.add_columns("", "ID", "MODULE", "SUBJECT", "STATUS", "PRI", "GROUP/OWNER", "UPDATED")
-            else:
-                table.add_columns("", "ID", "STATUS", "PRI", "SUBJECT", "REQUESTER")
+            table.add_columns("", "ID", "STATUS", "PRI", "SUBJECT", "REQUESTER")
             offset = 0
         else:
             offset = len(self._items)
@@ -232,16 +237,9 @@ class FsvApp(App):
             pri = service.resolve_priority(item)
             sel = f"{row_num + 1:03d}"
 
-            if self.entity == "work":
-                module = res.name.upper()
-                subject = (item.get("subject") or "")[:60]
-                group = ((item.get("group") or {}).get("name") if isinstance(item.get("group"), dict) else "") or ""
-                updated = (item.get("updated_at") or "")[:10]
-                table.add_row(sel, did, module, subject, status, pri, group, updated, key=did)
-            else:
-                subject = (item.get("subject") or "")[:80]
-                requester = ((item.get("requester") or {}).get("name") if isinstance(item.get("requester"), dict) else "") or ""
-                table.add_row(sel, did, status, pri, subject, requester, key=did)
+            subject = (item.get("subject") or "")[:80]
+            requester = ((item.get("requester") or {}).get("name") if isinstance(item.get("requester"), dict) else "") or ""
+            table.add_row(sel, did, status, pri, subject, requester, key=did)
 
         if not append and items:
             self._clear_detail("[dim]loading details...[/]")
@@ -418,6 +416,8 @@ class FsvApp(App):
             return
         self._history_idx = new_idx
         self._history_nav_lock += 1
+        self._suggestion_idx = 0
+        self._tab_base = None
         if self._history_idx == -1:
             inp.value = self._history_saved
         else:
@@ -454,8 +454,6 @@ class FsvApp(App):
 
     def _get_suggestions(self, value: str) -> tuple[list[str], str | None]:
         """Returns (completable_suggestions, hint_or_None)."""
-        if self.entity == "work":
-            return [], None
         sch = self._schemas.get(self.entity, {"fields": []})
         fields_list = sch.get("fields") or []
         if not value:
@@ -472,7 +470,8 @@ class FsvApp(App):
         if not current:
             return [], None
         current_lower = current.lower()
-        if "=" not in current:
+        split = _split_filter_token(current)
+        if split is None:
             matches: list[str] = []
             for name in self._PSEUDO_DATE_FIELDS:
                 if name.startswith(current_lower) and name not in matches:
@@ -483,7 +482,7 @@ class FsvApp(App):
                 if (name.lower().startswith(current_lower) or label.lower().startswith(current_lower)) and name not in matches:
                     matches.append(name)
             return matches[:8], None
-        field_part, _, val_prefix = current.partition("=")
+        field_part, _op, val_prefix = split
         field_lower = field_part.lower()
         val_lower = val_prefix.lower()
         if field_lower in self._PSEUDO_DATE_FIELDS:
@@ -512,6 +511,12 @@ class FsvApp(App):
                 return (vals, None) if vals else ([], "agent name")
             if fname == "group" or "group" in ftype:
                 vals = self._extract_item_values("group", val_prefix)
+                if not vals:
+                    try:
+                        from fsv.completion import _cached_groups
+                        vals = [g["name"] for g in _cached_groups() if str(g.get("name", "")).lower().startswith(val_lower)][:8]
+                    except Exception:
+                        pass
                 return (vals, None) if vals else ([], "group name")
             if fname == "department" or "department" in ftype:
                 vals = self._extract_item_values("department", val_prefix)
@@ -543,48 +548,183 @@ class FsvApp(App):
                 bar.display = True
             else:
                 bar.display = False
+            self._maybe_schedule_network_lookup(value)
             return
-        parts = [f"[cyan]{escape(suggestions[0])}[/]"]
+        parts = [f"[bold cyan]{escape(suggestions[0])}[/]"]
         for s in suggestions[1:]:
             parts.append(f"[dim]{escape(s)}[/]")
         bar.update(Text.from_markup("  ".join(parts) + "  [dim]tab→[/]"))
         bar.display = True
+        self._maybe_schedule_network_lookup(value)
 
-    def _complete_first_suggestion(self) -> None:
-        if not self._suggestions:
-            return
+    def _show_suggestions_cycling(self, suggestions: list[str], active_idx: int) -> None:
+        bar = self.query_one("#suggestion-bar", Static)
+        parts = []
+        for i, s in enumerate(suggestions):
+            if i == active_idx:
+                parts.append(f"[bold cyan]{escape(s)}[/]")
+            else:
+                parts.append(f"[dim]{escape(s)}[/]")
+        bar.update(Text.from_markup("  ".join(parts) + "  [dim]tab→[/]"))
+        bar.display = True
+
+    def _complete_suggestion(self) -> None:
         inp = self.query_one("#filter-input", Input)
         value = inp.value
-        suggestion = self._suggestions[0]
-        last_space = value.rfind(" ")
-        prefix = value[:last_space + 1] if last_space >= 0 else ""
-        current = value[last_space + 1:] if last_space >= 0 else value
-        if "=" not in current:
-            new_value = prefix + suggestion + "="
+
+        if self._tab_base is None:
+            self._tab_base = value
+            self._suggestion_idx = 0
+
+        suggestions, _ = self._get_suggestions(self._tab_base)
+        if not suggestions:
+            self._tab_base = None
+            return
+
+        last_space = self._tab_base.rfind(" ")
+        prefix = self._tab_base[:last_space + 1] if last_space >= 0 else ""
+        current = self._tab_base[last_space + 1:] if last_space >= 0 else self._tab_base
+        split = _split_filter_token(current)
+
+        idx = self._suggestion_idx % len(suggestions)
+        suggestion = suggestions[idx]
+
+        if split is None:
+            if len(suggestions) == 1:
+                new_value = prefix + suggestion + "="
+                self._tab_base = None
+                self._suggestion_idx = 0
+                if new_value != value:
+                    self._tab_lock += 1
+                    inp.value = new_value
+                    inp.cursor_position = len(new_value)
+                self._update_suggestion_bar(new_value)
+                return
+            else:
+                new_value = prefix + suggestion
+                self._suggestion_idx = (idx + 1) % len(suggestions)
         else:
-            field_part = current.partition("=")[0]
+            field_part, op, _ = split
             val = f'"{suggestion}"' if " " in suggestion else suggestion
-            new_value = prefix + field_part + "=" + val + " "
-        inp.value = new_value
-        inp.cursor_position = len(new_value)
-        self._update_suggestion_bar(new_value)
+            new_value = prefix + field_part + op + val
+            self._suggestion_idx = (idx + 1) % len(suggestions)
+
+        if new_value != value:
+            self._tab_lock += 1
+            inp.value = new_value
+            inp.cursor_position = len(new_value)
+
+        self._show_suggestions_cycling(suggestions, idx)
+
+    def _maybe_schedule_network_lookup(self, value: str) -> None:
+        try:
+            from fsv.completion import _completion_network
+            if not _completion_network():
+                return
+        except Exception:
+            return
+        if self._tab_base is not None:
+            return
+        if value.endswith(" "):
+            return
+        current = value.rsplit(" ", 1)[-1]
+        split = _split_filter_token(current)
+        if split is None:
+            return
+        field_part, _, val_prefix = split
+        if len(val_prefix.strip()) < 2:
+            if self._completion_lookup_timer is not None:
+                self._completion_lookup_timer.stop()
+                self._completion_lookup_timer = None
+            return
+        field_lower = field_part.lower()
+        sch = self._schemas.get(self.entity, {"fields": []})
+        matched = None
+        for f in (sch.get("fields") or []):
+            if (f.get("name") or "").lower() == field_lower:
+                matched = f
+                break
+        if not matched:
+            return
+        fname = (matched.get("name") or "").lower()
+        ftype = (matched.get("field_type") or "").lower()
+        if fname in ("requester",) or "requester" in ftype:
+            kind, link = "requesters", None
+        elif fname in ("agent", "responder") or "agent" in ftype:
+            kind, link = "agents", None
+        elif "lookup" in ftype:
+            link = (matched.get("lookup_config") or {}).get("link")
+            if not link:
+                return
+            kind = "lookup"
+        else:
+            return
+        lookup_key = f"{kind}:{val_prefix}"
+        if self._completion_lookup_key == lookup_key:
+            return
+        if self._completion_lookup_timer is not None:
+            self._completion_lookup_timer.stop()
+        self._completion_lookup_key = lookup_key
+        self._completion_lookup_timer = self.set_timer(
+            0.3, lambda: self._run_network_lookup(lookup_key, val_prefix, kind, link)
+        )
+
+    @work(thread=True, exclusive=True, group="completion")
+    def _run_network_lookup(self, lookup_key: str, val_prefix: str, kind: str, link: str | None) -> None:
+        if lookup_key != self._completion_lookup_key:
+            return
+        try:
+            if kind == "lookup" and link:
+                c = get_client()
+                rows = c.lookup_choices(link, val_prefix)
+                r = val_prefix.casefold()
+                rows.sort(key=lambda x: 0 if str(x.get("email") or "").casefold().startswith(r) or str(x.get("name") or "").casefold().startswith(r) else 1)
+                suggestions: list[str] = []
+                for row in rows[:8]:
+                    name_ = str(row.get("name") or "")
+                    email_ = str(row.get("email") or "")
+                    val = email_ if email_ and email_.casefold().startswith(r) else name_
+                    if val and val not in suggestions:
+                        suggestions.append(val)
+            else:
+                from fsv.completion import _remote_user_values
+                results = _remote_user_values(kind, val_prefix)
+                suggestions = [v for v, _ in results[:8]]
+        except Exception:
+            return
+        self.call_from_thread(self._apply_network_suggestions, lookup_key, suggestions)
+
+    def _apply_network_suggestions(self, lookup_key: str, suggestions: list[str]) -> None:
+        if lookup_key != self._completion_lookup_key:
+            return
+        if self._tab_base is not None:
+            return
+        inp = self.query_one("#filter-input", Input)
+        if not inp.display or not inp.has_focus:
+            return
+        if not suggestions:
+            return
+        self._suggestions = suggestions
+        parts = [f"[bold cyan]{escape(suggestions[0])}[/]"]
+        for s in suggestions[1:]:
+            parts.append(f"[dim]{escape(s)}[/]")
+        bar = self.query_one("#suggestion-bar", Static)
+        bar.update(Text.from_markup("  ".join(parts) + "  [dim]tab→[/]"))
+        bar.display = True
 
     def _open_filter_input(self) -> None:
-        if self.entity == "work":
-            self.notify("Filters not supported in work view", severity="warning")
-            return
         inp = self.query_one("#filter-input", Input)
         current_val = " ".join(self._active_filters)
         inp.value = current_val
         inp.display = True
         inp.focus()
-        # If current value matches most recent history, start already there
-        # so the first Up press goes to the entry before it
         if self._filter_history and self._filter_history[0] == current_val.strip():
             self._history_idx = 0
         else:
             self._history_idx = -1
         self._history_saved = current_val
+        self._suggestion_idx = 0
+        self._tab_base = None
         self._update_suggestion_bar(inp.value)
 
     def _apply_filter(self, raw: str) -> None:
@@ -592,6 +732,12 @@ class FsvApp(App):
         inp.display = False
         self.query_one("#suggestion-bar", Static).display = False
         self._suggestions = []
+        self._suggestion_idx = 0
+        self._tab_base = None
+        if self._completion_lookup_timer is not None:
+            self._completion_lookup_timer.stop()
+            self._completion_lookup_timer = None
+        self._completion_lookup_key = ""
         self._history_idx = -1
         self.query_one("#list", DataTable).focus()
         if raw.strip():
@@ -612,6 +758,12 @@ class FsvApp(App):
         inp.display = False
         self.query_one("#suggestion-bar", Static).display = False
         self._suggestions = []
+        self._suggestion_idx = 0
+        self._tab_base = None
+        if self._completion_lookup_timer is not None:
+            self._completion_lookup_timer.stop()
+            self._completion_lookup_timer = None
+        self._completion_lookup_key = ""
         self._history_idx = -1
         self.query_one("#list", DataTable).focus()
         self._render_filter_bar()
@@ -1022,9 +1174,15 @@ class FsvApp(App):
         if event.input.id == "filter-input":
             if self._history_nav_lock > 0:
                 self._history_nav_lock -= 1
+                self._update_suggestion_bar(event.value)
+            elif self._tab_lock > 0:
+                self._tab_lock -= 1
+                # bar already updated by _complete_suggestion
             else:
                 self._history_idx = -1
-            self._update_suggestion_bar(event.value)
+                self._suggestion_idx = 0
+                self._tab_base = None
+                self._update_suggestion_bar(event.value)
 
     def on_key(self, event) -> None:
         key = event.key
@@ -1038,7 +1196,7 @@ class FsvApp(App):
                 event.prevent_default()
                 return
             if key == "tab":
-                self._complete_first_suggestion()
+                self._complete_suggestion()
                 event.stop()
                 event.prevent_default()
                 return
@@ -1113,7 +1271,7 @@ class FsvApp(App):
                 table.action_cursor_up()
             event.stop()
             event.prevent_default()
-        elif key == "J":
+        elif key in ("J", "right_curly_bracket"):
             if pane == "detail":
                 for _ in range(5):
                     detail.scroll_down(animate=False, immediate=True)
@@ -1122,7 +1280,7 @@ class FsvApp(App):
                     table.action_cursor_down()
             event.stop()
             event.prevent_default()
-        elif key == "K":
+        elif key in ("K", "left_curly_bracket"):
             if pane == "detail":
                 for _ in range(5):
                     detail.scroll_up(animate=False, immediate=True)
