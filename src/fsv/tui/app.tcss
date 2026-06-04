@@ -58,6 +58,17 @@ DataTable > .datatable--even-row {
     border: none;
 }
 
+#search-input {
+    height: 1;
+    border: none;
+    padding: 0 1;
+    background: transparent;
+}
+
+#search-input:focus {
+    border: none;
+}
+
 #suggestion-bar {
     height: 1;
     padding: 0 1;
