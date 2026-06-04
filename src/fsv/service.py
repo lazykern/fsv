@@ -19,6 +19,7 @@ def list_items(
     order_by: str | None = None,
     order_type: str = "desc",
     query_hash: str | None = None,
+    or_grouping: bool = False,
 ) -> tuple[list[dict[str, Any]], int]:
     c = client or get_client()
     params: dict[str, Any] = {
@@ -33,9 +34,13 @@ def list_items(
         params["order_by"] = order_by
         params["order_type"] = order_type
     if query_hash:
-        params["query_hash"] = query_hash
-        if resource.name in ("changes", "tickets"):
-            params["advanced_query_hash"] = ""
+        if or_grouping:
+            params["advanced_query_hash"] = query_hash
+            params["query_hash"] = ""
+        else:
+            params["query_hash"] = query_hash
+            if resource.name in ("changes", "tickets"):
+                params["advanced_query_hash"] = ""
     data = c.int_get(resource.api_path, params=params)
     items = data.get(resource.list_key, [])
     total = (data.get("meta") or {}).get("total_count") or data.get("total") or len(items)
@@ -164,13 +169,17 @@ def get_item(
     resource: Resource,
     item_id: int,
     client: Client | None = None,
+    includes: str | None = None,
 ) -> dict[str, Any]:
     c = client or get_client()
-    include = None
-    if resource.name == "tickets":
+    if includes is not None:
+        include = includes
+    elif resource.name == "tickets":
         include = "requester,stats,phone,feedback,ticket_status"
     elif resource.name in ("changes", "problems"):
         include = "requester,stats"
+    else:
+        include = None
     params: dict[str, Any] = {}
     if include:
         params["include"] = include
@@ -189,18 +198,18 @@ def get_activities(
 
 
 def get_notes(
-    resource: Resource, item_id: int, client: Client | None = None, page: int = 1,
+    resource: Resource, item_id: int, client: Client | None = None, page: int = 1, per_page: int = 30,
 ) -> list[dict[str, Any]]:
     c = client or get_client()
     if resource.name == "tickets":
         data = c.int_get(
             f"tickets/{item_id}/conversations",
-            params={"page": page, "include": "user,phone,feedback"},
+            params={"page": page, "per_page": per_page, "include": "user,phone,feedback"},
         )
         return data.get("conversations", [])
     data = c.int_get(
         f"{resource.api_path}/{item_id}/notes",
-        params={"page": page, "include": "user"},
+        params={"page": page, "per_page": per_page, "include": "user"},
     )
     return data.get("notes", [])
 
@@ -214,6 +223,14 @@ def get_tasks(
 
 
 def get_approvals(
+    resource: Resource, item_id: int, client: Client | None = None,
+) -> list[dict[str, Any]]:
+    c = client or get_client()
+    data = c.int_get(f"{resource.api_path}/{item_id}/approvals")
+    return data.get("approvals", [])
+
+
+def get_ticket_approvals(
     resource: Resource, item_id: int, client: Client | None = None,
 ) -> list[dict[str, Any]]:
     c = client or get_client()
@@ -299,6 +316,43 @@ def get_requested_items(
     return result
 
 
+def update_item(
+    resource: Resource,
+    item_id: int,
+    body: dict[str, Any],
+    client: Client | None = None,
+) -> dict[str, Any]:
+    c = client or get_client()
+    data = c.int_put(f"{resource.api_path}/{item_id}", body)
+    return data.get(resource.item_key, data)
+
+
+def add_note(
+    resource: Resource,
+    item_id: int,
+    body: str,
+    public: bool = False,
+    client: Client | None = None,
+) -> dict[str, Any]:
+    c = client or get_client()
+    payload: dict[str, Any] = {"body": body}
+    if resource.name in ("changes", "problems"):
+        payload["private"] = not public
+    data = c.int_post(f"{resource.api_path}/{item_id}/notes", payload)
+    return data.get("note", data)
+
+
+def add_reply(
+    resource: Resource,
+    item_id: int,
+    body: str,
+    client: Client | None = None,
+) -> dict[str, Any]:
+    c = client or get_client()
+    data = c.int_post(f"{resource.api_path}/{item_id}/reply", {"body": body})
+    return data.get("conversation", data)
+
+
 def resolve_status(item: dict, resource: Resource, schema: dict) -> str:
     sid = item.get("status")
     return (
@@ -317,3 +371,49 @@ def resolve_priority(item: dict) -> str:
 
 def item_url(resource: Resource, item_id: int) -> str:
     return f"https://{config.DOMAIN}/a/{resource.api_path}/{item_id}"
+
+
+from fsv.create import (  # noqa: E402
+    submit_change,
+    update_change,
+    associate_assets,
+    dissociate_assets,
+    associate_ticket,
+    dissociate_ticket,
+    update_task,
+    delete_task,
+    update_planning_field,
+    set_due_by,
+    clone_tasks,
+    clone_assets,
+    clone_planning_fields,
+    attach_files_to_change,
+    download_attachment,
+    get_change_approvals,
+    get_change_associations,
+    get_change_assets,
+    search_assets_for_change,
+    search_change_tickets,
+    get_change_activities,
+    get_change_for_edit,
+    get_task_for_edit,
+)
+
+__all__ = [
+    "list_items", "search_items", "list_work_items",
+    "get_item", "get_activities", "get_notes", "get_tasks",
+    "get_approvals", "get_ticket_approvals", "get_assets", "get_associations",
+    "get_requested_items",
+    "update_item", "add_note", "add_reply",
+    "resolve_status", "resolve_priority", "item_url",
+    "submit_change", "update_change",
+    "associate_assets", "dissociate_assets",
+    "associate_ticket", "dissociate_ticket",
+    "update_task", "delete_task",
+    "update_planning_field", "set_due_by",
+    "clone_tasks", "clone_assets", "clone_planning_fields",
+    "attach_files_to_change", "download_attachment",
+    "get_change_approvals", "get_change_associations", "get_change_assets",
+    "search_assets_for_change", "search_change_tickets",
+    "get_change_activities", "get_change_for_edit", "get_task_for_edit",
+]

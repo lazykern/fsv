@@ -20,7 +20,7 @@ import typer
 from rich.markup import escape
 from rich.table import Table
 
-from fsv import completion, config, render, schema as schema_mod, state_flow
+from fsv import completion, config, render, schema as schema_mod, service, state_flow
 from fsv.cache import (
     load as _cache_load,
     refresh_async as _cache_refresh_async,
@@ -797,42 +797,31 @@ def list_resource(
     if debug:
         _show_query_explain(explanation, query, or_grouping)
         return
-    params: dict[str, Any] = {"per_page": per_page, "page": page}
-    if filter_name:
-        params["filter"] = filter_name
-    if order_by:
-        params["order_by"] = order_by
-    if order_type:
-        params["order_type"] = order_type.value if isinstance(order_type, SortOrder) else order_type
-    if qh:
-        if or_grouping:
-            if res != CHANGES:
-                _err(f"OR grouping not supported for {res.name}; use AND filters")
-            params.update({"advanced_query_hash": qh, "cache": "true", "query_hash": ""})
-        else:
-            params.update({"cache": "true", "query_hash": qh})
-            if res in (CHANGES, TICKETS):
-                params["advanced_query_hash"] = ""
+    if or_grouping and res != CHANGES:
+        _err(f"OR grouping not supported for {res.name}; use AND filters")
+    ot = order_type.value if isinstance(order_type, SortOrder) else order_type
 
     def load_items() -> tuple[list[dict], dict[str, Any]]:
         if all_pages or n_pages is not None:
-            params["per_page"] = 100
-            params["include"] = res.list_include
             acc: list[dict] = []
             limit = n_pages if n_pages is not None else None
-            start_page = page
-            for p in range(start_page, start_page + (limit or 100)):
-                params["page"] = p
-                data = c.int_get(res.api_path, params=params)
-                items = data.get(res.list_key, [])
-                acc.extend(items)
+            for p in range(page, page + (limit or 100)):
+                batch, _ = service.list_items(
+                    res, client=c, page=p, per_page=100,
+                    filter_name=filter_name, order_by=order_by, order_type=ot,
+                    query_hash=qh, or_grouping=or_grouping,
+                )
+                acc.extend(batch)
                 err.print(f"  fetched {len(acc)} so far...", highlight=False)
-                if len(items) < params["per_page"]:
+                if len(batch) < 100:
                     break
             return acc, schema_mod.load(res, c)
-        params["include"] = res.list_include
-        data = c.int_get(res.api_path, params=params)
-        return data[res.list_key], schema_mod.load(res, c)
+        items, _ = service.list_items(
+            res, client=c, page=page, per_page=per_page,
+            filter_name=filter_name, order_by=order_by, order_type=ot,
+            query_hash=qh, or_grouping=or_grouping,
+        )
+        return items, schema_mod.load(res, c)
 
     items, sch = _api(load_items)
     fmt = format_.value if isinstance(format_, OutputFormat) else format_
@@ -847,42 +836,16 @@ def list_resource(
         err.print(f"{len(items)} rows")
 
 
-def _ticket_requested_items(ticket_id: int, c: Any) -> list[dict[str, Any]]:
-    data = c.int_get(f"tickets/{ticket_id}/requested_items")
-    items = data.get("requested_items") or []
-    out: list[dict[str, Any]] = []
-    for item in items:
-        rid = item.get("id")
-        if not rid:
-            out.append(item)
-            continue
-        detail = c.int_get(f"tickets/{ticket_id}/requested_items/{rid}", params={"view": "more_info"})
-        detailed = detail.get("requested_item", detail)
-        merged = {**item, **detailed}
-        merged["item"] = {**(item.get("item") or {}), **(detailed.get("item") or {})}
-        out.append(merged)
-    return out
-
-
 def get_resource(res: Resource, id_: str, stats: bool, json_out: bool) -> None:
     cid = _cid(id_, res)
     c = _client()
 
     def load_item() -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
-        requested_items: list[dict[str, Any]] = []
-        if res == TICKETS:
-            params = {"include": "requester,stats,phone,feedback,ticket_status"}
-        elif res in (CHANGES, PROBLEMS):
-            params = {"include": "requester,stats"}
-        else:
-            params = None
-        data = c.int_get(f"{res.api_path}/{cid}", params=params)
-        if res == TICKETS:
-            requested_items = _ticket_requested_items(cid, c)
-        return data, schema_mod.load(res, c), requested_items
+        item = service.get_item(res, cid, client=c)
+        requested_items = service.get_requested_items(cid, client=c) if res == TICKETS else []
+        return item, schema_mod.load(res, c), requested_items
 
-    data, sch, requested_items = _api(load_item)
-    item = data.get(res.item_key, data)
+    item, sch, requested_items = _api(load_item)
     if requested_items:
         item = {**item, "requested_items": requested_items}
     if json_out:
@@ -920,7 +883,7 @@ def _activity_text(value: str | None) -> str:
 def activity_resource(res: Resource, id_: str, limit: int, json_out: bool) -> None:
     cid = _cid(id_, res)
     c = _client()
-    acts = _api(lambda: get_change_activities(cid, c) if res == CHANGES else c.int_get(f"{res.api_path}/{cid}/activities").get("activities", []))[:limit]
+    acts = _api(lambda: get_change_activities(cid, c) if res == CHANGES else service.get_activities(res, cid, client=c))[:limit]
     if json_out:
         emit_json(acts)
         return
@@ -941,8 +904,7 @@ def activity_resource(res: Resource, id_: str, limit: int, json_out: bool) -> No
 def tasks_resource(res: Resource, id_: str, format_: OutputFormat | str = "table", json_out: bool = False) -> None:
     cid = _cid(id_, res)
     c = _client()
-    data = _api(lambda: c.int_get(f"{res.api_path}/{cid}/tasks"))
-    items = data.get("tasks") or []
+    items = _api(lambda: service.get_tasks(res, cid, client=c))
     def _flat(x: dict) -> dict:
         cf = x.get("custom_fields") or {}
         row: dict = {
@@ -1627,19 +1589,14 @@ def notes_resource(res: Resource, id_: str, page: int, per_page: int, json_out: 
         limit = n_pages if n_pages is not None else None
         acc: list[dict] = []
         for p in range(page, page + (limit or 100)):
-            data = _api(lambda _p=p: c.int_get(f"{res.api_path}/{cid}/notes", {"include": "user", "page": _p, "per_page": per_page}))
-            batch = data.get("notes") or []
+            batch = _api(lambda _p=p: service.get_notes(res, cid, client=c, page=_p, per_page=per_page))
             acc.extend(batch)
             err.print(f"  fetched {len(acc)}...", highlight=False)
             if len(batch) < per_page or (limit is not None and p - page + 1 >= limit):
                 break
         items = acc
     else:
-        data = _api(lambda: c.int_get(
-            f"{res.api_path}/{cid}/notes",
-            {"include": "user", "page": page, "per_page": per_page},
-        ))
-        items = data.get("notes") or []
+        items = _api(lambda: service.get_notes(res, cid, client=c, page=page, per_page=per_page))
     if json_out:
         emit_json(items)
         return
@@ -1669,19 +1626,14 @@ def conversations_resource(id_: str, page: int, per_page: int, json_out: bool, a
         limit = n_pages if n_pages is not None else None
         acc: list[dict] = []
         for p in range(page, page + (limit or 100)):
-            data = _api(lambda _p=p: c.int_get(f"tickets/{cid}/conversations", {"include": "user,phone,feedback", "page": _p, "per_page": per_page}))
-            batch = data.get("conversations") or []
+            batch = _api(lambda _p=p: service.get_notes(TICKETS, cid, client=c, page=_p, per_page=per_page))
             acc.extend(batch)
             err.print(f"  fetched {len(acc)}...", highlight=False)
             if len(batch) < per_page or (limit is not None and p - page + 1 >= limit):
                 break
         items = acc
     else:
-        data = _api(lambda: c.int_get(
-            f"tickets/{cid}/conversations",
-            {"include": "user,phone,feedback", "page": page, "per_page": per_page},
-        ))
-        items = data.get("conversations") or []
+        items = _api(lambda: service.get_notes(TICKETS, cid, client=c, page=page, per_page=per_page))
     if json_out:
         emit_json(items)
         return
@@ -1708,8 +1660,7 @@ def conversations_resource(id_: str, page: int, per_page: int, json_out: bool, a
 def ticket_approvals_resource(id_: str, format_: OutputFormat | str = "table", json_out: bool = False) -> None:
     cid = _cid(id_, TICKETS)
     c = _client()
-    data = _api(lambda: c.int_get(f"tickets/{cid}/approvals"))
-    items = data.get("approvals") or []
+    items = _api(lambda: service.get_ticket_approvals(TICKETS, cid, client=c))
     def _flat(a: dict) -> dict:
         remark = (a.get("remark") or [{}])[0]
         decided = remark.get("updated_at") or a.get("updated_at") or "-"
@@ -1840,7 +1791,6 @@ def _search_dsl_to_where(query: str) -> tuple[list[str], bool]:
 
 
 def _fulltext_search(res: Resource, query: str, page: int, json_out: bool, sort: SearchSort, all_pages: bool = False, n_pages: int | None = None) -> None:
-    import html as _html
     c = _client()
     if n_pages is not None or all_pages:
         all_results: list[dict] = []
@@ -1849,9 +1799,8 @@ def _fulltext_search(res: Resource, query: str, page: int, json_out: bool, sort:
         limit = n_pages if n_pages is not None else None
         fetched = 0
         while True:
-            data = _api(lambda _p=p: c.fulltext_search(res.api_path, query, page=_p, sort=sort.value))
-            batch = [r for r in data.get("results", []) if r.get("id")]
-            total = data.get("total_entries", len(all_results) + len(batch))
+            batch, totals = _api(lambda _p=p: service.search_items(query, entity=res.name, sort=sort.value, page=_p, client=c))
+            total = totals.get(res.name, len(all_results) + len(batch))
             all_results.extend(batch)
             fetched += 1
             err.print(f"  fetched {len(all_results)} / {total}...", highlight=False)
@@ -1860,11 +1809,10 @@ def _fulltext_search(res: Resource, query: str, page: int, json_out: bool, sort:
             p += 1
         results = all_results
     else:
-        data = _api(lambda: c.fulltext_search(res.api_path, query, page=page, sort=sort.value))
-        results = [r for r in data.get("results", []) if r.get("id")]
-        total = data.get("total_entries", len(results))
+        results, totals = _api(lambda: service.search_items(query, entity=res.name, sort=sort.value, page=page, client=c))
+        total = totals.get(res.name, len(results))
     if json_out:
-        emit_json(results)
+        emit_json([{k: v for k, v in r.items() if not k.startswith("_")} for r in results])
         return
     t = Table()
     t.add_column("ID", style="cyan", no_wrap=True)
@@ -1873,14 +1821,8 @@ def _fulltext_search(res: Resource, query: str, page: int, json_out: bool, sort:
     t.add_column("Pri")
     t.add_column("Group", style="dim")
     for r in results:
-        subj = _html.unescape(re.sub(r"<[^>]+>", "", r.get("subject") or ""))
-        did = (r.get("itil_module_display_id") or r.get("ticket_display_id") or
-               r.get("display_id") or str(r.get("id", "-")))
-        status = (r.get("itil_module_status") or r.get("ticket_status") or
-                  r.get("status") or "-")
-        pri = str(r.get("itil_module_priority") or r.get("ticket_priority") or "-")
-        group = str(r.get("itil_module_group") or r.get("ticket_group") or "-")
-        t.add_row(str(did), subj[:80], status, pri, group)
+        did = r.get("human_display_id") or str(r.get("display_id") or "-")
+        t.add_row(did, (r.get("subject") or "")[:80], r.get("status") or "-", r.get("priority_label") or "-", r.get("_group") or "-")
     console.print(t)
     err.print(f"{len(results)} rows (total: {total})")
 
@@ -2056,8 +1998,7 @@ def update_resource(
     if dry_run:
         _emit_dry_run(res, cid, body)
         return
-    data = _api(lambda: c.int_put(f"{res.api_path}/{cid}", body))
-    item = data.get(res.item_key, data)
+    item = _api(lambda: service.update_item(res, cid, body, client=c))
     if json_out:
         emit_json(item)
         return
@@ -2067,11 +2008,7 @@ def update_resource(
 def note_resource(res: Resource, id_: str, body: str, public: bool) -> None:
     cid = _cid(id_, res)
     c = _client()
-    payload: dict = {"body": body}
-    if res in (CHANGES, PROBLEMS):
-        payload["private"] = not public
-    r = _api(lambda: c.int_post(f"{res.api_path}/{cid}/notes", payload))
-    n = r.get("note") or r
+    n = _api(lambda: service.add_note(res, cid, body, public=public, client=c))
     visibility = "public" if public else "private"
     console.print(f"[green]added[/] {visibility} note {n.get('id')}")
 
@@ -2079,8 +2016,7 @@ def note_resource(res: Resource, id_: str, body: str, public: bool) -> None:
 def reply_resource(res: Resource, id_: str, body: str) -> None:
     cid = _cid(id_, res)
     c = _client()
-    r = _api(lambda: c.int_post(f"{res.api_path}/{cid}/reply", {"body": body}))
-    reply = r.get("conversation") or r
+    reply = _api(lambda: service.add_reply(res, cid, body, client=c))
     console.print(f"[green]added[/] reply {reply.get('id', '')}")
 
 
