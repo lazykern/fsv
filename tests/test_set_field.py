@@ -223,6 +223,6 @@ def test_subject_passthrough():
 
 # ── unknown field → raises SystemExit (via _err) ─────────────────────────────
 def test_unknown_field_raises():
-    import click
-    with pytest.raises((SystemExit, click.exceptions.Exit)):
+    import fsv.cli as cli
+    with pytest.raises((SystemExit, cli.typer.Exit)):
         _resolve_set_field(C, SCHEMA, "nonexistent_xyz", "value")

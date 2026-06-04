@@ -1,7 +1,9 @@
 """Reusable data-fetching layer for both CLI and TUI."""
 from __future__ import annotations
 
+import re
 import threading
+from html import unescape
 from typing import Any
 
 from fsv import config, schema as schema_mod
@@ -57,7 +59,6 @@ _SEARCH_ENTITY_MAP = {
 
 
 def _normalize_search_result(row: dict, entity: str) -> dict[str, Any] | None:
-    import re
     resource = _SEARCH_ENTITY_MAP.get(entity)
     if resource is None:
         return None
@@ -70,7 +71,10 @@ def _normalize_search_result(row: dict, entity: str) -> dict[str, Any] | None:
     path = row.get(f"{prefix}_path") or ""
     m = re.search(r"/(\d+)$", path)
     if not m:
-        return None
+        out = dict(row)
+        out["_resource"] = resource
+        out["_search_result"] = True
+        return out
     item_id = int(m.group(1))
     display_id = row.get(f"{prefix}_display_id") or ""
     group_key = "ticket_group" if prefix == "ticket" else "itil_module_group"
@@ -308,12 +312,72 @@ def get_requested_items(
                     f"tickets/{item_id}/requested_items/{rid}",
                     params={"view": "more_info"},
                 )
-                result.append({**item, **detail.get("requested_item", detail)})
+                detailed = detail.get("requested_item", detail)
+                merged = {**item, **detailed}
+                merged["item"] = {**(item.get("item") or {}), **(detailed.get("item") or {})}
+                result.append(merged)
             except Exception:
                 result.append(item)
         else:
             result.append(item)
     return result
+
+
+PLANNING_FIELD_TYPES = {
+    "planning_field",
+    "default_change_reason",
+    "default_change_impact",
+    "default_change_plan",
+    "default_backout_plan",
+}
+
+
+def get_change_planning_field_definitions(
+    schema: dict[str, Any] | None = None, client: Client | None = None,
+) -> list[dict[str, Any]]:
+    if schema is None:
+        schema = schema_mod.load(CHANGES, client or get_client())
+    fields = schema.get("fields", []) or []
+    return [f for f in fields if str(f.get("field_type") or "") in PLANNING_FIELD_TYPES]
+
+
+def get_change_planning_fields(
+    change_id: int, client: Client | None = None,
+) -> list[dict[str, Any]]:
+    c = client or get_client()
+    data = c.int_get(f"changes/{change_id}/planning-fields")
+    return data.get("change_planning_fields", [])
+
+
+def planning_fields_by_name(fields: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    return {str(f.get("name")): f for f in fields if f.get("name")}
+
+
+def extract_description_attachment_urls(html: str | None) -> list[str]:
+    text = unescape(str(html or ""))
+    urls: list[str] = []
+    for m in re.finditer(r"(?:https?://[^\"'<>\s]+)?/helpdesk/attachments/(\d+)(?:\?[^\"'<>\s]+)?", text):
+        url = m.group(0)
+        if url.startswith("/"):
+            url = f"https://{config.DOMAIN}{url}"
+        if url not in urls:
+            urls.append(url)
+    return urls
+
+
+def get_change_evidence(
+    change_id: int, client: Client | None = None,
+) -> dict[str, Any]:
+    c = client or get_client()
+    change = get_item(CHANGES, change_id, client=c)
+    planning_fields = get_change_planning_fields(change_id, client=c)
+    return {
+        "change": change,
+        "planning_fields": planning_fields,
+        "planning_fields_by_name": planning_fields_by_name(planning_fields),
+        "main_attachments": change.get("attachments") or [],
+        "description_attachment_urls": extract_description_attachment_urls(change.get("description")),
+    }
 
 
 def update_item(
@@ -403,7 +467,9 @@ __all__ = [
     "list_items", "search_items", "list_work_items",
     "get_item", "get_activities", "get_notes", "get_tasks",
     "get_approvals", "get_ticket_approvals", "get_assets", "get_associations",
-    "get_requested_items",
+    "get_requested_items", "get_change_planning_field_definitions",
+    "get_change_planning_fields", "planning_fields_by_name",
+    "extract_description_attachment_urls", "get_change_evidence",
     "update_item", "add_note", "add_reply",
     "resolve_status", "resolve_priority", "item_url",
     "submit_change", "update_change",
