@@ -841,9 +841,21 @@ def get_resource(res: Resource, id_: str, stats: bool, json_out: bool) -> None:
     c = _client()
 
     def load_item() -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
-        item = service.get_item(res, cid, client=c)
+        sch = schema_mod.load(res, c)
+        if stats and res == CHANGES:
+            evidence = service.get_change_evidence(cid, client=c)
+            item = {
+                **evidence["change"],
+                "planning_fields": evidence["planning_fields_by_name"],
+                "change_planning_fields": evidence["planning_fields"],
+                "planning_field_definitions": service.get_change_planning_field_definitions(sch),
+                "main_attachments": evidence["main_attachments"],
+                "description_attachment_urls": evidence["description_attachment_urls"],
+            }
+        else:
+            item = service.get_item(res, cid, client=c)
         requested_items = service.get_requested_items(cid, client=c) if res == TICKETS else []
-        return item, schema_mod.load(res, c), requested_items
+        return item, sch, requested_items
 
     item, sch, requested_items = _api(load_item)
     if requested_items:
@@ -3196,10 +3208,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 out_dir = out or Path(f"CHN-{cid}")
                 results: list[dict[str, Any]] = []
 
+                evidence: dict[str, Any] | None = None
                 if all_planning or planning:
-                    data = c.int_get(f"changes/{cid}/planning-fields")
-                    fields = data.get("change_planning_fields", [])
-                    by_name = {f.get("name"): f for f in fields if f.get("name")}
+                    evidence = service.get_change_evidence(cid, client=c)
+                    fields = evidence["planning_fields"]
+                    by_name = evidence["planning_fields_by_name"]
                     selected: list[str] = []
                     if all_planning:
                         selected.extend(str(f.get("name")) for f in fields if f.get("name") and f.get("attachments"))
@@ -3218,27 +3231,16 @@ def _make_subapp(res: Resource) -> typer.Typer:
                             item["status"] = "skipped" if item.get("skipped") else "downloaded"
                             results.append(item)
 
-                change: dict[str, Any] | None = None
                 if main_attachments or description_attachments:
-                    raw = c.int_get(f"changes/{cid}")
-                    change = raw.get("change", raw)
+                    evidence = evidence or service.get_change_evidence(cid, client=c)
                 if main_attachments:
-                    for att in (change or {}).get("attachments") or []:
+                    for att in (evidence or {}).get("main_attachments") or []:
                         item = download_attachment(att, out_dir, force=force, c=c)
                         item["source"] = "attachments"
                         item["status"] = "skipped" if item.get("skipped") else "downloaded"
                         results.append(item)
                 if description_attachments:
-                    from html import unescape as _html_unescape
-                    html = _html_unescape(str((change or {}).get("description") or ""))
-                    urls: list[str] = []
-                    for m in re.finditer(r"(?:https?://[^\"'<>\s]+)?/helpdesk/attachments/(\d+)(?:\?[^\"'<>\s]+)?", html):
-                        url = m.group(0)
-                        if url.startswith("/"):
-                            url = f"https://{config.DOMAIN}{url}"
-                        if url not in urls:
-                            urls.append(url)
-                    for url in urls:
+                    for url in (evidence or {}).get("description_attachment_urls") or []:
                         att_id = url.rstrip("/").split("/")[-1].split("?")[0]
                         item = download_attachment({"canonical_url": url, "name": f"attachment-{att_id}"}, out_dir, force=force, c=c)
                         item["source"] = "description"
