@@ -33,7 +33,7 @@ fsv auth login --domain yourcompany.freshservice.com
 fsv auth status                            # confirm login
 fsv changes ls --where status=Open         # list open changes
 fsv changes get CHN-1234                   # get a change
-fsv tickets ls --where agent=alice@example.com
+fsv tickets ls --where requester=alice@example.com
 fsv tui                                    # interactive TUI
 ```
 
