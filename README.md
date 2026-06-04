@@ -2,6 +2,8 @@
 
 Freshservice CLI. Drives changes, tickets, and problems via session-cookie auth; no API key needed.
 
+![fsv TUI demo](assets/fsv-tui-demo.png)
+
 ## How it works
 
 fsv calls the **internal** `/api/_/` endpoints the Freshservice web UI uses, not the public v2 REST API. These endpoints expose richer data with no published rate cap. Paste a valid browser session cookie once; fsv stores it locally.
