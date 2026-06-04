@@ -16,7 +16,7 @@ uv tool install git+https://github.com/lazykern/fsv.git
 
 **2. Login** — fsv needs a browser session cookie (no API key, no password).
 
-Open `https://yourcompany.freshservice.com`, log in via SSO, then:
+Open `https://yourcompany.freshservice.com`, log in, then:
 
 1. Open DevTools → Network tab → click any `/api/_/...` request
 2. Right-click the `Cookie:` request header → **Copy value**
@@ -276,7 +276,6 @@ fsv tickets reply INC-9012 "<HTML or text>"
 ## Notes
 
 - **Internal API**: `/api/_/` endpoints mirror what the Freshservice web UI calls — richer payloads, no published rate cap. v2 API (`/api/v2/`) used for schema, task writes, and approvals.
-- **Rate limit**: v2 API = 400 req/day per tenant. `/api/_/` no published cap.
 - **Cookies**: Re-login when 401/redirect to freshid. Sessions last ~days to weeks. Login auto-refreshes schema + completion cache.
 - **Filter discovery**: `fsv {changes|tickets|problems} filters` lists saved filter names.
 - **Field discovery**: `fields` marks `default_field=true` as portable/default and `false` as tenant custom; `fields --choices FIELD` counts/lists choices.
