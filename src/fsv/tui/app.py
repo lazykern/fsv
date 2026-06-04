@@ -427,6 +427,31 @@ class FsvApp(App):
 
     _PSEUDO_DATE_FIELDS = ("created_at", "updated_at", "due_by")
 
+    def _extract_item_values(self, fname: str, val_prefix: str) -> list[str]:
+        seen: set[str] = set()
+        result: list[str] = []
+        val_lower = val_prefix.lower()
+        for item in self._items:
+            raw = item.get(fname)
+            if raw is None and fname == "responder":
+                raw = item.get("agent")
+            val: str | None = None
+            if isinstance(raw, dict):
+                val = raw.get("name")
+            elif isinstance(raw, str) and raw:
+                val = raw
+            if val is None:
+                cf = item.get("custom_fields") or {}
+                raw_cf = cf.get(fname)
+                if isinstance(raw_cf, str) and raw_cf:
+                    val = raw_cf
+            if val and val.lower().startswith(val_lower) and val not in seen:
+                seen.add(val)
+                result.append(val)
+                if len(result) >= 8:
+                    break
+        return result
+
     def _get_suggestions(self, value: str) -> tuple[list[str], str | None]:
         """Returns (completable_suggestions, hint_or_None)."""
         if self.entity == "work":
@@ -480,15 +505,20 @@ class FsvApp(App):
         choices = matched.get("choices") or []
         if not choices:
             if fname in ("requester",) or "requester" in ftype:
-                return [], "name or email"
+                vals = self._extract_item_values("requester", val_prefix)
+                return (vals, None) if vals else ([], "name or email")
             if fname in ("agent", "responder") or "agent" in ftype:
-                return [], "agent name"
+                vals = self._extract_item_values("responder", val_prefix)
+                return (vals, None) if vals else ([], "agent name")
             if fname == "group" or "group" in ftype:
-                return [], "group name"
+                vals = self._extract_item_values("group", val_prefix)
+                return (vals, None) if vals else ([], "group name")
             if fname == "department" or "department" in ftype:
-                return [], "department name"
+                vals = self._extract_item_values("department", val_prefix)
+                return (vals, None) if vals else ([], "department name")
             if "lookup" in ftype:
-                return [], "name"
+                vals = self._extract_item_values(fname, val_prefix)
+                return (vals, None) if vals else ([], "name")
             if "checkbox" in ftype:
                 return ["true", "false"], None
             if "number" in ftype:
@@ -533,7 +563,8 @@ class FsvApp(App):
             new_value = prefix + suggestion + "="
         else:
             field_part = current.partition("=")[0]
-            new_value = prefix + field_part + "=" + suggestion + " "
+            val = f'"{suggestion}"' if " " in suggestion else suggestion
+            new_value = prefix + field_part + "=" + val + " "
         inp.value = new_value
         inp.cursor_position = len(new_value)
         self._update_suggestion_bar(new_value)
