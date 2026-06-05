@@ -48,7 +48,6 @@ def _completions(
         "complete_config_value": _c.complete_config_value,
         "complete_cache_target": _c.complete_cache_target,
         "complete_search_sort": _c.complete_search_sort,
-        "complete_search_dsl": _c.complete_search_dsl,
         "complete_duplicate_mode": _c.complete_duplicate_mode,
         "complete_group_query": _c.complete_group_query,
         "complete_update_agent_id": _c.complete_update_agent_id,

@@ -48,6 +48,14 @@ def test_choice_completion_helpers(monkeypatch):
     assert ("109", "observed on current change") in values
 
 
+def test_view_completion_returns_ids_matching_names(monkeypatch):
+    from fsv.resources import CHANGES
+
+    monkeypatch.setattr(completion, "_cached_filters", lambda res: [{"id": "all", "name": "All Changes"}])
+
+    assert ("all", "All Changes") in list(completion.complete_filter_name(CHANGES)("All"))
+
+
 def test_task_choice_value_uses_dynamic_field_defs(monkeypatch):
     monkeypatch.setattr(cli, "_task_field_defs", lambda: [{"name": "cf_environment", "choices": [{"id": 11, "value": "Production"}, {"id": 12, "value": "UAT"}]}])
 

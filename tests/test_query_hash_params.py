@@ -71,6 +71,43 @@ def test_change_where_keeps_advanced_query_hash_blank(monkeypatch):
     assert seen["params"]["advanced_query_hash"] == ""
 
 
+def test_view_name_resolves_to_filter_id(monkeypatch):
+    import fsv.cli as cli
+    import fsv.service as service
+
+    seen = {}
+
+    class FakeClient:
+        pass
+
+    monkeypatch.setattr(cli, "_client", lambda: FakeClient())
+    monkeypatch.setattr(cli, "_api", lambda fn: fn())
+    monkeypatch.setattr(cli, "_load_views", lambda c, res: [{"id": "all", "name": "All Changes"}])
+    monkeypatch.setattr("fsv.schema.load", lambda res, c: {"fields": []})
+    monkeypatch.setattr(cli, "_build_query_hash", lambda c, res, raw, where, or_grouping: (None, [], []))
+    monkeypatch.setattr(cli, "_emit_items", lambda *args, **kwargs: None)
+
+    def fake_list_items(res, **kwargs):
+        seen.update(kwargs)
+        return [], 0
+
+    monkeypatch.setattr(service, "list_items", fake_list_items)
+
+    cli.list_resource(
+        CHANGES,
+        filter_name="All Changes",
+        where=[],
+        debug=False,
+        per_page=10,
+        page=1,
+        all_pages=False,
+        format_="json",
+        json_out=True,
+    )
+
+    assert seen["filter_name"] == "all"
+
+
 def test_ticket_query_hash_supports_order_and_advanced_query_hash(monkeypatch):
     import fsv.cli as cli
 
