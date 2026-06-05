@@ -3827,7 +3827,7 @@ def _setup_network_completion() -> None:
 def _setup_defaults() -> None:
     console.print("\n[bold]── Default filters ──[/bold]")
     console.print("set default --where filters for every `ls` query")
-    console.print("examples: status=Open, agent=alice@example.com")
+    console.print("examples: status=Open, agent=alice@example.com, requester=john@example.com")
 
     for name in REGISTRY:
         current = config.get_default_where(name)
