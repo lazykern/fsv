@@ -1776,7 +1776,16 @@ def ticket_approvals_resource(id_: str, format_: OutputFormat | str = "table", j
     from fsv import service
     cid = _cid(id_, TICKETS)
     c = _client()
-    items = _api(lambda: service.get_ticket_approvals(TICKETS, cid, client=c))
+    try:
+        items = service.get_ticket_approvals(TICKETS, cid, client=c)
+    except APIError as e:
+        if e.status == 404:
+            prefix = id_.split("-", 1)[0].upper() if "-" in id_ else "ticket"
+            hint = "ticket approvals not available for this ticket"
+            if prefix == "INC":
+                hint += "; INC tickets often do not expose approvals, try SR or another approval-capable ticket"
+            _err(hint)
+        _err(str(e))
     def _flat(a: dict) -> dict:
         remark = (a.get("remark") or [{}])[0]
         decided = remark.get("updated_at") or a.get("updated_at") or "-"
@@ -2539,7 +2548,10 @@ def cache_status() -> None:
 
     items = []
     for res in REGISTRY.values():
-        for kind, candidates in (("schema", config.schema_cache_candidates(res.name)), ("filters", config.filters_cache_candidates(res.name))):
+        for kind, label, candidates in (
+            ("schema", "schema", config.schema_cache_candidates(res.name)),
+            ("filters", "views", config.filters_cache_candidates(res.name)),
+        ):
             chosen = None
             doc = None
             stale = True
@@ -2554,7 +2566,7 @@ def cache_status() -> None:
             age = (time.time() - saved) / 3600
             ttl = TTL.get(kind, 3600)
             ttl_s = f"{ttl / 3600:.0f}h" if ttl >= 3600 else f"{ttl / 60:.0f}m"
-            items.append((res.name, kind, f"{age:.1f}h", f"{'stale' if stale else 'ok'}", ttl_s))
+            items.append((res.name, label, f"{age:.1f}h", f"{'stale' if stale else 'ok'}", ttl_s))
     chosen = None
     doc = None
     stale = True
@@ -2586,23 +2598,24 @@ def cache_refresh() -> None:
     _refresh_cache(verbose=True, blocking=True)
 
 
-@cache_app.command("clear", epilog="[bold]Examples:[/bold]  fsv cache clear schema  |  fsv cache clear all")
+@cache_app.command("clear", epilog="[bold]Examples:[/bold]  fsv cache clear views  |  fsv cache clear all")
 def cache_clear(
-    target: Optional[str] = typer.Argument(None, help="schema|filters|groups|all", autocompletion=completion.complete_cache_target),
+    target: Optional[str] = typer.Argument(None, help="schema|views|groups|all", autocompletion=completion.complete_cache_target),
 ) -> None:
     """Delete cached data."""
     import shutil
-    import shutil
 
-    if target == "schema" or target == "all":
+    if target is None or target not in {"schema", "views", "filters", "groups", "all"}:
+        _err("choose schema|views|groups|all")
+    if target in ("schema", "all"):
         if SCHEMA_DIR.exists():
             shutil.rmtree(SCHEMA_DIR)
             console.print("schema cache cleared")
-    if target == "filters" or target == "all":
+    if target in ("views", "filters", "all"):
         fd = CONFIG_DIR / "filters"
         if fd.exists():
             shutil.rmtree(fd)
-            console.print("filters cache cleared")
+            console.print("views cache cleared")
     if target in ("groups", "all"):
         removed = False
         for gp in config.groups_cache_candidates():
@@ -2611,8 +2624,6 @@ def cache_clear(
                 removed = True
         if removed:
             console.print("groups cache cleared")
-    if target is None:
-        _err("choose schema|filters|groups|all")
 
 
 app.add_typer(cache_app, name="cache")
@@ -3370,8 +3381,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 _err(str(e))
     else:
         if res == TICKETS:
-            @sub.command("approvals", help="List ticket approvals.", epilog=(
-                f"[bold]Examples:[/bold]  fsv {res.name} approvals {_pfx}-1234  |  fsv {res.name} approvals {_pfx}-1234 --json"
+            @sub.command("approvals", help="List ticket approvals for approval-capable tickets; some INC tickets may return 404.", epilog=(
+                f"[bold]Examples:[/bold]  fsv {res.name} approvals SR-1234  |  fsv {res.name} approvals SR-1234 --json"
             ))
             def approvals(
                 id_: str = typer.Argument(...),

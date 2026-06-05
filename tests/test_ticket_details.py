@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from io import StringIO
 
+import pytest
 from rich.console import Console
+from typer.testing import CliRunner
 
 from fsv.resources import TICKETS
 
@@ -212,6 +214,36 @@ def test_ticket_approvals_resource_uses_internal_endpoint(monkeypatch):
 
     assert emitted[0][0]["member"]["name"] == "Approver"
     assert emitted[0][0]["status"]["name"] == "approved"
+
+
+def test_ticket_approvals_resource_shows_inc_hint_on_404(monkeypatch, capsys):
+    import fsv.cli as cli
+
+    class FakeClient:
+        def int_get(self, path, params=None):
+            raise cli.APIError(404, "")
+
+    monkeypatch.setattr(cli, "_client", lambda: FakeClient())
+
+    with pytest.raises(cli.typer.Exit):
+        cli.ticket_approvals_resource("INC-1", json_out=True)
+
+    err = capsys.readouterr().err
+    assert "INC tickets often do not" in err
+    assert "expose approvals" in err
+
+
+def test_ticket_approvals_help_uses_sr_example():
+    import fsv.cli as cli
+
+    result = CliRunner().invoke(cli.app, ["tickets", "approvals", "--help"])
+
+    assert result.exit_code == 0
+    assert "approval-capable tickets" in result.output
+    assert "some INC tickets may" in result.output
+    assert "return 404" in result.output
+    assert "SR-1234" in result.output
+    assert "INC-1234" not in result.output
 
 
 def test_ticket_associations_resource_uses_ticket_endpoints(monkeypatch):
