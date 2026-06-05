@@ -48,7 +48,7 @@ _STATIC_COMPLETERS: dict[str, list[tuple[str, str]]] = {
     ],
     "complete_cache_target": [
         ("schema", "field definitions"),
-        ("filters", "saved view names"),
+        ("views", "saved view names"),
         ("groups", "agent groups"),
         ("all", "everything"),
     ],

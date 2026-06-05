@@ -170,7 +170,7 @@ STATIC_PREFIXES = [
     # (completer_name, resource, token, minimum_expected_values)
     ("complete_format", "-", "", ["table", "json", "csv", "tsv"]),
     ("complete_sort_order", "-", "", ["asc", "desc"]),
-    ("complete_cache_target", "-", "", ["schema", "filters", "groups", "all"]),
+    ("complete_cache_target", "-", "", ["schema", "views", "groups", "all"]),
     ("complete_store", "-", "", ["file", "argon", "keychain"]),
 ]
 

@@ -206,9 +206,9 @@ fsv changes download CHN-1234 --all --out ./evidence
 ```
 fsv tui                                    # interactive TUI
 
-fsv changes  ls | search | get | update | create | clone | download | url | state | approvals | activity | tasks | task-update | task-delete | assets | associations | add-note | notes | fields | lookup | views
-fsv tickets  ls | search | get | update | url | reply | activity | tasks | fields | lookup | views
-fsv problems ls | search | get | update | url | add-note | notes | activity | tasks | fields | lookup | views
+fsv changes  ls | search | get | update | create | clone | download | url | state | approvals | activity | tasks | tasks-update | tasks-delete | assets | associations | add-note | notes | fields | lookup | views
+fsv tickets  ls | search | get | update | url | reply | activity | tasks | approvals | associations | download | conversations | fields | lookup | views
+fsv problems ls | search | get | update | url | add-note | notes | activity | tasks | download | fields | lookup | views
 
 fsv setup                                  # interactive setup wizard
 fsv auth login --domain yourcompany.freshservice.com
@@ -293,6 +293,7 @@ fsv tickets reply INC-9012 "<HTML or text>"
 - **Debug**: `--debug` shows resolved query_hash for inspection.
 - **Change asset categories**: `changes assets --list-categories` reads category/type labels from `/cmdb/items`. Asset search endpoint `/api/_/assets-to-associate` does not expose server-side category filtering, so `--category` filters matched rows client-side by asset type label. `--pick` requires TTY and prompts for category first when `--category` omitted.
 - **Display IDs**: CHN- (changes), INC-/SR- (tickets — discriminate by `type`), PRB- (problems).
+- **Ticket approvals**: `fsv tickets approvals` is for approval-capable tickets; live tenant checks showed SR works consistently, while some INC tickets work and some return 404.
 - **Setup**: `fsv setup` walks through domain, auth, shell completion, network completion, and default filters interactively.
 - **Config**: `fsv config set completion.network on` enables remote requester/agent completion.
 - **Schema cache**: 7d TTL in `~/.config/fsv/schema/`, namespaced by tenant. Use `fsv cache refresh` to force (`fsv completion refresh` is an alias).

@@ -487,7 +487,7 @@ def complete_config_value(incomplete: str) -> Iterable[tuple[str, str]]:
 def complete_cache_target(incomplete: str) -> Iterable[tuple[str, str]]:
     yield from _complete_pairs(incomplete, (
         ("schema", "field definitions"),
-        ("filters", "saved view names"),
+        ("views", "saved view names"),
         ("groups", "agent groups"),
         ("all", "everything"),
     ))
