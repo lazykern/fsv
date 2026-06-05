@@ -48,7 +48,7 @@ _STATIC_COMPLETERS: dict[str, list[tuple[str, str]]] = {
     ],
     "complete_cache_target": [
         ("schema", "field definitions"),
-        ("filters", "saved filter names"),
+        ("filters", "saved view names"),
         ("groups", "agent groups"),
         ("all", "everything"),
     ],
@@ -56,16 +56,6 @@ _STATIC_COMPLETERS: dict[str, list[tuple[str, str]]] = {
         ("relevance", "best text match"),
         ("created", "created time"),
         ("modified", "last modified time"),
-    ],
-    "complete_search_dsl": [
-        ("status:", "Open, Pending, Resolved, Closed"),
-        ("priority:", "1:Low 2:Medium 3:High 4:Urgent"),
-        ("type:", "Service Request or Incident"),
-        ("agent_id:", "agent user id"),
-        ("group_id:", "group id"),
-        ("requester_id:", "requester user id"),
-        ("created_at:", "2025-01-01"),
-        ("updated_at:", "2025-01-01"),
     ],
     "complete_duplicate_mode": [
         ("prompt", "ask on duplicate filename"),

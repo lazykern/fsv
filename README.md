@@ -206,9 +206,9 @@ fsv changes download CHN-1234 --all --out ./evidence
 ```
 fsv tui                                    # interactive TUI
 
-fsv changes  ls | search | get | update | create | clone | download | url | state | approvals | activity | tasks | task-update | task-delete | assets | associations | add-note | notes | fields | lookup | filters
-fsv tickets  ls | search | get | update | url | reply | activity | tasks | fields | lookup | filters
-fsv problems ls | search | get | update | url | add-note | notes | activity | tasks | fields | lookup | filters
+fsv changes  ls | search | get | update | create | clone | download | url | state | approvals | activity | tasks | task-update | task-delete | assets | associations | add-note | notes | fields | lookup | views
+fsv tickets  ls | search | get | update | url | reply | activity | tasks | fields | lookup | views
+fsv problems ls | search | get | update | url | add-note | notes | activity | tasks | fields | lookup | views
 
 fsv setup                                  # interactive setup wizard
 fsv auth login --domain yourcompany.freshservice.com
@@ -233,18 +233,20 @@ fsv tickets ls --where status=Open --debug  # show resolved query_hash
 fsv tickets fields requester                # schema-discovered fields
 fsv tickets fields --default                # portable Freshservice fields
 fsv changes fields --custom                 # tenant-specific fields
+fsv changes fields --required               # fields required to create (the * column marks them)
 fsv changes fields --choices "Change Category"
 fsv tickets lookup requester alice@example.com
 fsv changes lookup "Change Category" Infrastructure
 fsv tickets ls --output csv                 # table | json | csv | tsv (-o also works)
+fsv problems views                            # list saved views
 fsv problems ls --view "All Problems"
 ```
 
 ### Search / Get / Activity / Tasks
 
 ```bash
-fsv tickets search "status:2 AND priority:3"
-fsv tickets search "status:2" -o tsv
+fsv tickets search "database error"
+fsv tickets search "payment timeout" -o tsv
 fsv changes get CHN-1234
 fsv changes get CHN-1234 --stats       # adds planning_fields + timestamps
 fsv changes get CHN-1234 --json | jq .
@@ -258,6 +260,9 @@ fsv changes url CHN-1234
 ```bash
 fsv changes update CHN-1234 --status Closed --priority Medium --dry-run
 fsv changes update CHN-1234 --planning "Others Document" --description "Evidence attached" --file evidence.xlsx
+fsv changes create                                   # opens $EDITOR with a JSON template
+fsv changes create --subject "Patch DB" --status Open --priority High --set "Change Category=Infrastructure"
+fsv changes create --subject "Patch DB" --set "requester=alice@example.com" --no-input   # scriptable
 fsv changes create --dry-run
 fsv changes clone CHN-1234 --with-tasks --with-planning
 fsv changes download CHN-1234 --all --out ./evidence
@@ -278,9 +283,9 @@ fsv tickets reply INC-9012 "<HTML or text>"
 
 - **Internal API**: `/api/_/` endpoints mirror what the Freshservice web UI calls — richer payloads, no published rate cap. v2 API (`/api/v2/`) used for schema, task writes, and approvals.
 - **Cookies**: Re-login when 401/redirect to freshid. Sessions last ~days to weeks. Login auto-refreshes schema + completion cache.
-- **Filter discovery**: `fsv {changes|tickets|problems} filters` lists saved filter names.
+- **View discovery**: `fsv {changes|tickets|problems} views` lists saved Freshservice views for `ls --view`.
 - **Field discovery**: `fields` marks `default_field=true` as portable/default and `false` as tenant custom; `fields --choices FIELD` counts/lists choices.
-- **Schema filters**: repeat `--where FIELD=VALUE`; fields resolve by current tenant schema, so custom fields remain tenant-specific.
+- **Schema filters**: repeat `ls --where FIELD=VALUE`; fields resolve by current tenant schema, so custom fields remain tenant-specific. There is no singular `filter` command.
 - **AND/OR grouping**: Default AND; add `--or` for OR grouping (e.g., `fsv tickets ls --where status=Open --where status=Pending --or`).
 - **Custom field values**: Custom fields use text labels (e.g., `--where 'Business Service=Email'`), default fields use choice IDs in filters.
 - **Update values**: `update --status/--priority` accepts labels or IDs; `--agent/--group` accepts names/emails or IDs; `--planning` accepts planning field label/name/id.

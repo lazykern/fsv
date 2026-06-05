@@ -49,6 +49,15 @@ SKIP_TYPES = {
     "custom_content", "planning_field",
 }
 
+# Embedded FK fields are read-only as objects; the create API takes a *_id key
+# instead. The template must scaffold the *_id placeholder, not drop the field.
+_TEMPLATE_FK_PLACEHOLDERS = {
+    "requester": ("requester_id", "<requester email or ID>"),
+    "agent": ("agent_id", "<agent email/name or ID>"),
+    "group": ("group_id", "<group name or ID>"),
+    "department": ("department_id", "<department name or ID>"),
+}
+
 TASK_READ_ONLY_FIELDS = READ_ONLY_FIELDS | {
     "stack_rank", "taskable_display_id", "taskable_type", "user_id",
     "task_due_status", "is_editable", "status_ola_timer", "ola_stopped_at",
@@ -69,9 +78,15 @@ def _build_template(schema_fields: list[dict[str, Any]], level: str) -> dict[str
         ftype = str(f.get("field_type") or "")
         if ftype in SKIP_TYPES:
             continue
+        required = f.get("required", False)
+        if name in _TEMPLATE_FK_PLACEHOLDERS:
+            if level == "required" and not required:
+                continue
+            key, placeholder = _TEMPLATE_FK_PLACEHOLDERS[name]
+            template[key] = placeholder
+            continue
         if name in READ_ONLY_FIELDS:
             continue
-        required = f.get("required", False)
         if level == "required" and not required:
             continue
         val = _field_default(f)

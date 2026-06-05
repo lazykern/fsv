@@ -298,7 +298,7 @@ def complete_format(incomplete: str) -> Iterable[tuple[str, str]]:
     ))
 
 
-def _cached_filters(res: Resource) -> list[str]:
+def _cached_filters(res: Resource) -> list[dict[str, str]]:
     if not res.filters_path:
         return []
     doc = None
@@ -312,7 +312,11 @@ def _cached_filters(res: Resource) -> list[str]:
     filters = (data_obj or doc).get("filters") if isinstance(data_obj, dict) else (data_obj or doc.get("filters"))
     if not isinstance(filters, list):
         filters = doc.get("filters") or []
-    return [str(f.get("name") or "") for f in filters if isinstance(f, dict) and f.get("name")]
+    return [
+        {"id": str(f.get("id") or ""), "name": str(f.get("name") or "")}
+        for f in filters
+        if isinstance(f, dict) and (f.get("id") or f.get("name"))
+    ]
 
 
 def _cached_groups() -> list[dict[str, Any]]:
@@ -340,9 +344,11 @@ def complete_store(incomplete: str) -> Iterable[tuple[str, str]]:
 
 def complete_filter_name(res: Resource):
     def complete(incomplete: str) -> Iterable[tuple[str, str]]:
-        for name in _cached_filters(res):
-            if _match(name, incomplete):
-                yield (name, "saved filter")
+        for item in _cached_filters(res):
+            view_id = item["id"]
+            name = item["name"]
+            if view_id and (_match(view_id, incomplete) or _match(name, incomplete)):
+                yield (view_id, name or "saved view")
         yield (incomplete, "")
     return complete
 
@@ -481,7 +487,7 @@ def complete_config_value(incomplete: str) -> Iterable[tuple[str, str]]:
 def complete_cache_target(incomplete: str) -> Iterable[tuple[str, str]]:
     yield from _complete_pairs(incomplete, (
         ("schema", "field definitions"),
-        ("filters", "saved filter names"),
+        ("filters", "saved view names"),
         ("groups", "agent groups"),
         ("all", "everything"),
     ))
@@ -549,23 +555,6 @@ def complete_help_topic(topics: Iterable[str]):
         yield from _complete_pairs(incomplete, topic_list)
 
     return complete
-
-
-def complete_search_dsl(incomplete: str) -> Iterable[tuple[str, str]]:
-    snippets = [
-        ("status:", "Open, Pending, Resolved, Closed"),
-        ("priority:", "1:Low 2:Medium 3:High 4:Urgent"),
-        ("type:", "'Service Request' or Incident"),
-        ("agent_id:", "agent user id"),
-        ("group_id:", "group id"),
-        ("requester_id:", "requester user id"),
-        ("created_at:", "'2025-01-01'"),
-        ("updated_at:", "'2025-01-01'"),
-    ]
-    for prefix, hint in snippets:
-        if _match(prefix, incomplete):
-            yield (prefix, hint)
-    yield (incomplete, "")
 
 
 def complete_where(res: Resource):

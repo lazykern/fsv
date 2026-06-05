@@ -338,6 +338,7 @@ def _show_fields_table(fields: list[dict[str, Any]]) -> None:
     t.add_column("label")
     t.add_column("type")
     t.add_column("scope")
+    t.add_column("req", justify="center")
     t.add_column("choices", style="dim")
     for f in fields:
         ch = f.get("choices") or []
@@ -346,6 +347,7 @@ def _show_fields_table(fields: list[dict[str, Any]]) -> None:
             f.get("label", "?"),
             f.get("field_type", "?"),
             _field_scope(f),
+            "[red]*[/]" if f.get("required") else "",
             str(len(ch)) if ch else "-",
         )
     console.print(t)
@@ -359,6 +361,7 @@ def fields_resource(
     choices: Optional[str],
     refresh: bool,
     json_out: bool,
+    required: bool = False,
 ) -> None:
     from fsv import schema as schema_mod
     if default and custom:
@@ -388,6 +391,8 @@ def fields_resource(
         fields = [f for f in fields if f.get("default_field")]
     if custom:
         fields = [f for f in fields if not f.get("default_field")]
+    if required:
+        fields = [f for f in fields if f.get("required")]
     if json_out:
         emit_json(fields)
         return
@@ -658,6 +663,44 @@ def _resolve_set_field(c: Any, sch: dict[str, Any], field_text: str, raw_value: 
     return name, raw_value
 
 
+# Required schema field name → acceptable create-body keys (FK fields map to *_id).
+_REQUIRED_FK_KEYS = {
+    "requester": ("requester_id", "requester", "email"),
+    "agent": ("agent_id", "agent"),
+    "group": ("group_id", "group"),
+    "department": ("department_id", "department"),
+}
+
+
+def _missing_required_change_fields(sch: dict[str, Any], body: dict[str, Any]) -> list[str]:
+    """Labels of schema-required change fields absent from a create body.
+
+    Maps embedded FK fields (requester/agent/group/department) to their *_id
+    body keys. Skips default_status — the server auto-defaults it at create.
+    Presence-only: a required checkbox left False is the server's job to reject.
+    """
+    present = set(body.keys())
+    missing: list[str] = []
+    for f in sch.get("fields", []) or []:
+        if not f.get("required"):
+            continue
+        ftype = str(f.get("field_type") or "")
+        if ftype == "default_status":
+            continue
+        name = str(f.get("name") or "")
+        keys = _REQUIRED_FK_KEYS.get(name, (name,))
+        if not any(k in present for k in keys):
+            missing.append(str(f.get("label") or name))
+    return missing
+
+
+def _check_required(sch: dict[str, Any], body: dict[str, Any]) -> None:
+    missing = _missing_required_change_fields(sch, body)
+    if missing:
+        _err("missing required field(s): " + ", ".join(missing) +
+             "\n  supply via flags/--set (or in the editor), or pass --no-validate to skip")
+
+
 def _where_operator(op: str) -> str:
     if op == "=":
         return "is_in"
@@ -739,6 +782,25 @@ def _merge_date_ranges(query: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
+def _merge_same_conditions(query: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    seen: dict[tuple[str, str], dict[str, Any]] = {}
+    out: list[dict[str, Any]] = []
+    for item in query:
+        op = item.get("operator")
+        if op not in ("is_in", "is_not_in"):
+            out.append(item)
+            continue
+        key = (item.get("condition"), op, item.get("type"))
+        if key not in seen:
+            merged = dict(item)
+            merged["value"] = list(item.get("value") or [])
+            seen[key] = merged
+            out.append(merged)
+        else:
+            seen[key]["value"].extend(item.get("value") or [])
+    return out
+
+
 def _show_query_explain(explain: list[dict[str, Any]], query: list[dict[str, Any]], or_grouping: bool = False) -> None:
     t = Table(title="query")
     t.add_column("field")
@@ -772,6 +834,7 @@ def _build_query_hash(
         for expr in where:
             query.append(_resolve_where(c, res, sch, expr, explain))
     query = _merge_date_ranges(query)
+    query = _merge_same_conditions(query)
     if not query:
         return None, query, explain
     if or_grouping:
@@ -800,6 +863,7 @@ def list_resource(
     from fsv import schema as schema_mod
     from fsv import service
     c = _client()
+    filter_name = _api(lambda: _resolve_view_name(c, res, filter_name))
     qh, query, explanation = _api(lambda: _build_query_hash(c, res, raw_query_hash, where, or_grouping))
     if debug:
         _show_query_explain(explanation, query, or_grouping)
@@ -1799,48 +1863,37 @@ def ticket_associations_resource(id_: str, format_: OutputFormat | str = "table"
         console.print(t)
 
 
-def filters_resource(res: Resource) -> None:
-    c = _client()
-    data = _api(lambda: c.int_get(res.filters_path or ""))
+def _load_views(c: Any, res: Resource) -> list[dict[str, Any]]:
+    data = c.int_get(res.filters_path or "")
     key = next((k for k in data if k.endswith("_filters")), None)
+    return data.get(key, []) if key else []
+
+
+def _resolve_view_name(c: Any, res: Resource, view: str | None) -> str | None:
+    if not view:
+        return view
+    views = _load_views(c, res)
+    wanted = view.strip().casefold()
+    for item in views:
+        view_id = str(item.get("id") or "")
+        if view_id.casefold() == wanted:
+            return view_id
+    for item in views:
+        name = str(item.get("name") or "")
+        if name.casefold() == wanted:
+            return str(item.get("id") or view)
+    return view
+
+
+def views_resource(res: Resource) -> None:
+    c = _client()
+    views = _api(lambda: _load_views(c, res))
     t = Table()
     t.add_column("id", style="cyan")
     t.add_column("name")
-    for f in data.get(key, []) if key else []:
+    for f in views:
         t.add_row(str(f.get("id") or "-"), str(f.get("name") or "-"))
     console.print(t)
-
-
-def _search_dsl_to_where(query: str) -> tuple[list[str], bool]:
-    text = query.strip()
-    if not text:
-        _err("empty search query")
-    parts = re.split(r"\s+(AND|OR)\s+", text, flags=re.IGNORECASE)
-    clauses = [parts[i].strip() for i in range(0, len(parts), 2)]
-    joins = [parts[i].upper() for i in range(1, len(parts), 2)]
-    if not clauses or any(not c for c in clauses):
-        _err(f"invalid search query: {query}")
-    if joins and any(j != joins[0] for j in joins):
-        _err("mixed AND/OR not supported for changes/problems search; use one join type")
-    where: list[str] = []
-    for clause in clauses:
-        if ":" not in clause:
-            _err(f"invalid search clause: {clause!r}; expected field:value")
-        field, raw_value = clause.split(":", 1)
-        field = field.strip()
-        value = raw_value.strip()
-        op = "="
-        for candidate in (">=", "<=", "!=", ">", "<"):
-            if value.startswith(candidate):
-                op = candidate
-                value = value[len(candidate):].strip()
-                break
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
-            value = value[1:-1]
-        if not field or not value:
-            _err(f"invalid search clause: {clause!r}")
-        where.append(f"{field}{op}{value}")
-    return where, bool(joins and joins[0] == "OR")
 
 
 def _fulltext_search(res: Resource, query: str, page: int, json_out: bool, sort: SearchSort, all_pages: bool = False, n_pages: int | None = None) -> None:
@@ -1883,54 +1936,6 @@ def _fulltext_search(res: Resource, query: str, page: int, json_out: bool, sort:
 
 def search_resource(res: Resource, query: str, page: int, json_out: bool, sort: SearchSort, all_pages: bool = False, n_pages: int | None = None) -> None:
     _fulltext_search(res, query, page, json_out, sort, all_pages, n_pages)
-
-
-def filter_resource(res: Resource, query: str, per_page: int, page: int, format_: OutputFormat | str, json_out: bool, all_pages: bool = False, n_pages: int | None = None) -> None:
-    from fsv import schema as schema_mod
-    if res in (CHANGES, PROBLEMS):
-        where, or_grouping = _search_dsl_to_where(query)
-        list_resource(
-            res,
-            per_page=per_page,
-            page=page,
-            all_pages=all_pages,
-            filter_name=None,
-            where=where,
-            debug=False,
-            format_=format_,
-            json_out=json_out,
-            or_grouping=or_grouping,
-            pager=True,
-            n_pages=n_pages,
-        )
-        return
-    c = _client()
-    if all_pages or n_pages is not None:
-        limit = n_pages if n_pages is not None else None
-        acc: list[dict] = []
-        sch = _api(lambda: schema_mod.load(res, c))
-        total = 0
-        for p in range(page, page + (limit or 100)):
-            data = _api(lambda _p=p: c.v2_get(f"{res.api_path}/filter", params={"query": f'"{query}"', "per_page": per_page, "page": _p}))
-            batch = data.get(res.list_key, [])
-            total = data.get("total", total)
-            acc.extend(batch)
-            err.print(f"  fetched {len(acc)} / {total}...", highlight=False)
-            if len(batch) < per_page or (limit is not None and p - page + 1 >= limit):
-                break
-        _emit_items(acc, res, sch, format_, json_out)
-        if not json_out and format_ == "table":
-            err.print(f"{len(acc)} rows (total: {total})")
-        return
-    data, sch = _api(lambda: (
-        c.v2_get(f"{res.api_path}/filter", params={"query": f'"{query}"', "per_page": per_page, "page": page}),
-        schema_mod.load(res, c),
-    ))
-    items = data.get(res.list_key, [])
-    total = data.get("total", len(items))
-    _emit_items(items, res, sch, format_, json_out)
-    if not json_out and format_ == "table":
-        err.print(f"{len(items)} rows (total: {total})")
 
 
 _SEARCH_TYPE_LABEL = {
@@ -2274,7 +2279,7 @@ def _refresh_cache(verbose: bool = True, blocking: bool = True) -> None:
             filters = data.get(key, []) if key else []
             p = config.filters_cache_path(r.name)
             _cache_save(p, "filters", {"filters": filters})
-            return (f"{r.name} filters", len(filters))
+            return (f"{r.name} views", len(filters))
         finally:
             c.close()
 
@@ -3037,19 +3042,20 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 _err(str(e))
 
     @sub.command("fields", help=f"List discoverable {singular} fields.", epilog=(
-        f"[bold]Examples:[/bold]  fsv {res.name} fields  |  fsv {res.name} fields --choices status  |  fsv {res.name} fields --custom"
+        f"[bold]Examples:[/bold]  fsv {res.name} fields  |  fsv {res.name} fields --required  |  fsv {res.name} fields --choices status  |  fsv {res.name} fields --custom"
     ))
     def fields(
         search: Optional[str] = typer.Argument(None, help="field name/label search", autocompletion=completion.complete_field_names(res)),
         default: bool = typer.Option(False, "--default", help="show portable Freshservice fields only"),
         custom: bool = typer.Option(False, "--custom", help="show tenant custom fields only"),
+        required: bool = typer.Option(False, "--required", help="show only fields required to create"),
         choices: Optional[str] = typer.Option(None, "--choices", help="show choices for a field", autocompletion=completion.complete_choice_field_names(res)),
         refresh: bool = typer.Option(False, "--refresh"),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     ) -> None:
         f"""List discoverable {res.name} fields."""
         try:
-            fields_resource(res, search, default, custom, choices, refresh, json_out)
+            fields_resource(res, search, default, custom, choices, refresh, json_out, required)
         except (SessionError, APIError) as e:
             _err(str(e))
         except typer.Exit:
@@ -3076,12 +3082,12 @@ def _make_subapp(res: Resource) -> typer.Typer:
             _err(str(e))
 
     if res.filters_path:
-        @sub.command("filters", help="List saved filter names.", epilog=(
-            f"[bold]Examples:[/bold]  fsv {res.name} filters"
+        @sub.command("views", help="List saved view names.", epilog=(
+            f"[bold]Examples:[/bold]  fsv {res.name} views  |  fsv {res.name} ls --view all"
         ))
-        def filters() -> None:
-            """List saved filter names."""
-            filters_resource(res)
+        def views() -> None:
+            """List saved view names."""
+            views_resource(res)
 
     @sub.command("search", help=f"Full-text keyword search {res.name}.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} search 'EDP'  |  fsv {res.name} search 'EDP' --npages 3  |  fsv {res.name} search 'EDP' --all  |  fsv {res.name} search 'data migration' --json"
@@ -3097,26 +3103,14 @@ def _make_subapp(res: Resource) -> typer.Typer:
         f"""Full-text keyword search {res.name}."""
         search_resource(res, query, page, json_out, sort, all_pages, n_pages)
 
-    @sub.command("filter", help=f"Filter {res.name} by field query (DSL).", epilog=(
-        f"[bold]Examples:[/bold]  fsv {res.name} filter 'status:Open'  |  fsv {res.name} filter 'status:Open' --all  |  fsv {res.name} filter 'status:Open AND priority:High' --json"
-    ))
-    def filter_cmd(
-        query: str = typer.Argument(..., help='DSL query, e.g. "status:Open AND priority:High"', autocompletion=completion.complete_search_dsl),
-        per_page: int = typer.Option(30, "--per-page", "-n"),
-        page: int = typer.Option(1, "--page", "-p"),
-        format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
-        json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
-        all_pages: bool = typer.Option(False, "--all", "-a", help="fetch all pages (auto-paginate)"),
-        n_pages: Optional[int] = typer.Option(None, "--npages", "-N", help="fetch exactly N pages"),
-    ) -> None:
-        f"""Filter {res.name} using Freshservice query DSL."""
-        filter_resource(res, query, per_page, page, format_, json_out, all_pages, n_pages)
-
     @sub.command("url", help=f"Print {singular} browser URL.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} url {_pfx}-1234"
     ))
     def url(id_: str = typer.Argument(..., metavar="ID")) -> None:
         f"""Print the browser URL for a {res.name[:-1]}."""
+        url_resource(res, id_)
+
+    if res == CHANGES:
         from fsv import schema as schema_mod
         from fsv import service
         from fsv.create import (
@@ -3134,9 +3128,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             update_change,
             update_planning_field,
         )
-        url_resource(res, id_)
 
-    if res == CHANGES:
         @sub.command("update", help="Update change fields.", epilog=(
             f"[bold]Examples:[/bold]  "
             f"fsv changes update {_pfx}-1234 --status 'In Progress'  |  "
@@ -3438,6 +3430,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         ) -> None:
             try:
+                from fsv.create import download_attachment
                 cid = _cid(id_, res)
                 c = _client()
                 if all_:
@@ -3554,28 +3547,73 @@ def _make_subapp(res: Resource) -> typer.Typer:
         @sub.command("create", help="Create a change.", epilog=(
             "[bold]Examples:[/bold]  "
             "fsv changes create  |  "
+            "fsv changes create --subject 'Patch DB' --status Open --priority High  |  "
+            "fsv changes create --subject 'Patch DB' --set 'Change Category=Infrastructure' --no-input  |  "
             "fsv changes create --optional  |  "
             "fsv changes create --dry-run"
         ))
         def create(
-            optional: bool = typer.Option(False, "--optional", "-o", help="include optional fields in template"),
-            all_fields: bool = typer.Option(False, "--all", "-a", help="include all fields in template"),
-            dry: bool = typer.Option(False, "--dry-run", help="print template to stdout, do not create"),
+            subject: Optional[str] = typer.Option(None, "--subject", help="change subject/title"),
+            description: Optional[str] = typer.Option(None, "--description", "--desc", help="description HTML/text; use '-' for stdin"),
+            status: Optional[str] = typer.Option(None, "--status", "-s", help="status label or ID", autocompletion=completion.complete_update_choice(res, "status")),
+            priority: Optional[str] = typer.Option(None, "--priority", "-p", help="priority label or ID", autocompletion=completion.complete_update_choice(res, "priority")),
+            agent_id: Optional[str] = typer.Option(None, "--agent", "--agent-id", help="agent name/email/user ID", autocompletion=completion.complete_update_agent_id),
+            group_id: Optional[str] = typer.Option(None, "--group", "--group-id", help="group name or ID", autocompletion=completion.complete_update_group_id),
+            set_: Optional[List[str]] = typer.Option(None, "--set", help="set FIELD=VALUE (repeatable)", autocompletion=completion.complete_set(res)),
+            optional: bool = typer.Option(False, "--optional", "-o", help="include optional fields in editor template"),
+            all_fields: bool = typer.Option(False, "--all", help="include all fields in editor template"),
+            dry: bool = typer.Option(False, "--dry-run", help="print resolved payload/template, do not create"),
+            no_validate: bool = typer.Option(False, "--no-validate", help="skip client-side required-field check"),
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
-            no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
+            no_input: bool = typer.Option(False, "--no-input", help="fail instead of opening editor"),
         ) -> None:
-            """Create a new change via $EDITOR.
+            """Create a new change.
 
-            Opens $EDITOR with a JSON template.
-            Edit, save, and close to submit."""
+            Pass field flags (--subject/--status/--set/...) for a scriptable,
+            label-resolving create. With no field flags, opens $EDITOR with a
+            JSON template; edit, save, and close to submit."""
             try:
-                level = "all" if all_fields else ("optional" if optional else "required")
-                template = change_template(level)
-                if dry:
-                    emit_json(template)
-                    return
-                body = _edit_body(template, "Creating new change", no_input)
-                created = submit_change(body)
+                field_flags = bool(set_ or subject is not None or description is not None
+                                   or any(v is not None for v in [status, priority, agent_id, group_id]))
+                if field_flags:
+                    c = _client()
+                    sch = _api(lambda: schema_mod.load(res, c))
+                    body: dict[str, Any] = {}
+                    if subject is not None:
+                        body["subject"] = subject
+                    if description is not None:
+                        body["description"] = sys.stdin.read() if description == "-" else description
+                    if status is not None:
+                        body["status"] = _resolve_update_choice(sch, "status", status)
+                    if priority is not None:
+                        body["priority"] = _resolve_update_choice(sch, "priority", priority)
+                    if agent_id is not None:
+                        body["agent_id"] = int(_resolve_agent(c, agent_id))
+                    if group_id is not None:
+                        body["group_id"] = int(_resolve_group(c, group_id))
+                    for expr in set_ or []:
+                        if "=" not in expr:
+                            _err(f"--set requires FIELD=VALUE format, got: {expr!r}")
+                        field_text, _, raw_value = expr.partition("=")
+                        k, v = _resolve_set_field(c, sch, field_text.strip(), raw_value)
+                        body[k] = v
+                    if dry:
+                        emit_json({"dry_run": True, "action": "create", "body": body})
+                        return
+                    if not no_validate:
+                        _check_required(sch, body)
+                    created = submit_change(body, c)
+                else:
+                    level = "all" if all_fields else ("optional" if optional else "required")
+                    template = change_template(level)
+                    if dry:
+                        emit_json(template)
+                        return
+                    body = _edit_body(template, "Creating new change", no_input)
+                    c = _client()
+                    if not no_validate:
+                        _check_required(_api(lambda: schema_mod.load(res, c)), body)
+                    created = submit_change(body, c)
                 cid = created.get("id", "?")
                 if json_out:
                     emit_json(created)
