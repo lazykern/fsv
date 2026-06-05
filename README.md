@@ -14,17 +14,17 @@ Interactive TUI with filter autocomplete, pagination, fulltext search, and keybo
 uv tool install git+https://github.com/lazykern/fsv.git
 ```
 
-**2. Login** — fsv needs a browser session cookie (no API key, no password).
+**2. Setup** — interactive wizard configures domain, auth, shell completion, and defaults:
 
-Open `https://yourcompany.freshservice.com`, log in, then:
+```bash
+fsv setup
+```
 
-1. Open DevTools → Network tab → click any `/api/_/...` request
-2. Right-click the `Cookie:` request header → **Copy value**
-3. Paste into fsv:
+Or set up manually:
 
 ```bash
 fsv auth login --domain yourcompany.freshservice.com
-# paste the cookie value when prompted
+# paste the cookie value when prompted (see Login section below)
 ```
 
 **3. Use it**
@@ -210,6 +210,7 @@ fsv changes  ls | search | get | update | create | clone | download | url | stat
 fsv tickets  ls | search | get | update | url | reply | activity | tasks | fields | lookup | filters
 fsv problems ls | search | get | update | url | add-note | notes | activity | tasks | fields | lookup | filters
 
+fsv setup                                  # interactive setup wizard
 fsv auth login --domain yourcompany.freshservice.com
 fsv auth status
 fsv config set <key> <value>
@@ -287,6 +288,7 @@ fsv tickets reply INC-9012 "<HTML or text>"
 - **Debug**: `--debug` shows resolved query_hash for inspection.
 - **Change asset categories**: `changes assets --list-categories` reads category/type labels from `/cmdb/items`. Asset search endpoint `/api/_/assets-to-associate` does not expose server-side category filtering, so `--category` filters matched rows client-side by asset type label. `--pick` requires TTY and prompts for category first when `--category` omitted.
 - **Display IDs**: CHN- (changes), INC-/SR- (tickets — discriminate by `type`), PRB- (problems).
+- **Setup**: `fsv setup` walks through domain, auth, shell completion, network completion, and default filters interactively.
 - **Config**: `fsv config set completion.network on` enables remote requester/agent completion.
 - **Schema cache**: 7d TTL in `~/.config/fsv/schema/`, namespaced by tenant. Use `fsv cache refresh` to force (`fsv completion refresh` is an alias).
 
