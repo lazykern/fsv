@@ -2459,14 +2459,10 @@ def config_set(
     """Set a config value."""
     section, _, prop = key.partition(".")
     if not section or key not in _CONFIG_KEYS:
-        _err(f"unknown key: {key}; supported: {list(possible)}")
-    cfg = completion._config_load()
-    sec = cfg.setdefault(section, {})
-    sec[prop] = value
-    import json
-    p = CONFIG_DIR / "config.json"
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(cfg, indent=2))
+        _err(f"unknown key: {key}; supported: {list(_CONFIG_KEYS)}")
+    cfg = config.load_config()
+    cfg.setdefault(section, {})[prop] = value
+    config.save_config(cfg)
     console.print(f"{key} = {value}")
 
 
@@ -3681,6 +3677,224 @@ def global_search_cmd(
         raise
     except Exception as e:
         _err(str(e))
+
+
+# ── setup wizard ──────────────────────────────────────────────
+
+
+def _setup_show_status() -> None:
+    from fsv.session import session_age_hours, current_backend
+
+    table = Table(title="Current status", show_header=False)
+    table.add_column("Setting", style="bold")
+    table.add_column("Value")
+
+    table.add_row("domain", config.DOMAIN or "[dim](not set)[/dim]")
+
+    age = session_age_hours()
+    if age is not None:
+        backend = current_backend()
+        table.add_row("auth", f"[green]✓[/green] {backend}, {age:.1f}h ago")
+    else:
+        table.add_row("auth", "[red]✗[/red] not logged in")
+
+    installed_shells: list[str] = []
+    if (Path.home() / ".config" / "fish" / "completions" / "fsv.fish").exists():
+        installed_shells.append("fish")
+    for sh in ("bash", "zsh"):
+        if (Path.home() / f".fsv-complete.{sh}").exists():
+            installed_shells.append(sh)
+    if installed_shells:
+        table.add_row("completion", f"[green]✓[/green] {', '.join(installed_shells)}")
+    else:
+        table.add_row("completion", "[red]✗[/red] not installed")
+
+    network = (config.load_config().get("completion") or {}).get("network", "[dim](unset)[/dim]")
+    table.add_row("network completion", str(network))
+
+    for name in REGISTRY:
+        exprs = config.get_default_where(name)
+        val = ", ".join(exprs) if exprs else "[dim](none)[/dim]"
+        table.add_row(f"defaults.{name}", val)
+
+    console.print(table)
+
+
+def _setup_domain() -> None:
+    console.print("\n[bold]── Domain ──[/bold]")
+    _resolve_domain()
+    console.print(f"domain set to [bold]{config.DOMAIN}[/bold]")
+
+
+def _setup_auth() -> None:
+    console.print("\n[bold]── Authentication ──[/bold]")
+    if not config.DOMAIN:
+        console.print("domain required first")
+        _resolve_domain()
+
+    from fsv.client import get_client, reset_client
+    from fsv.session import login_interactive, save_cookies
+
+    try:
+        cookies = login_interactive()
+    except SessionError as e:
+        _err(str(e))
+
+    store = _choose_store()
+    backend = save_cookies(cookies, store)
+    target = "Keychain" if backend == "keychain" else "~/.config/fsv/session.json"
+    console.print(f"saved {len(cookies)} cookies to {target}")
+
+    try:
+        reset_client()
+        c = get_client()
+        agent = c.me()
+        name = f"{agent.get('first_name', '')} {agent.get('last_name', '')}".strip()
+        email = agent.get("email", "")
+        console.print(f"logged in as: [bold]{name}[/bold] <{email}>")
+        err.print("warming cache in background...", highlight=False)
+        _refresh_cache(verbose=False, blocking=False)
+    except Exception as e:
+        err.print(f"[yellow]warning[/yellow]: saved but could not verify: {e}")
+
+
+def _setup_completion_install() -> None:
+    console.print("\n[bold]── Shell completion ──[/bold]")
+    from fsv.completion_gen import build_script
+
+    shell_name = _shell_from_env()
+    if not shell_name:
+        err.print("[yellow]could not detect shell; skipping[/yellow]")
+        return
+
+    prog_name = Path(sys.argv[0]).name
+
+    if shell_name == "fish":
+        comp_path = Path.home() / ".config" / "fish" / "completions" / f"{prog_name}.fish"
+    elif shell_name in ("bash", "zsh"):
+        comp_path = Path.home() / f".{prog_name}-complete.{shell_name}"
+    else:
+        comp_path = None
+
+    if comp_path and comp_path.exists():
+        console.print(f"already installed: {comp_path}")
+        if not typer.confirm("Reinstall?", default=False):
+            return
+    else:
+        if not typer.confirm(f"Install {shell_name} completion?", default=True):
+            return
+
+    script = build_script(shell_name, prog_name)
+
+    if shell_name == "fish":
+        fish_dir = Path.home() / ".config" / "fish" / "completions"
+        fish_dir.mkdir(parents=True, exist_ok=True)
+        path = fish_dir / f"{prog_name}.fish"
+        path.write_text(script)
+        console.print(f"installed: {path}")
+    elif shell_name in ("bash", "zsh"):
+        script_path = Path.home() / f".{prog_name}-complete.{shell_name}"
+        script_path.write_text(script)
+        rc_file = Path.home() / (".bashrc" if shell_name == "bash" else ".zshrc")
+        source_line = f"\n. {script_path}\n"
+        existing = rc_file.read_text() if rc_file.exists() else ""
+        if str(script_path) not in existing:
+            with rc_file.open("a") as f:
+                f.write(source_line)
+        console.print(f"installed: {script_path}")
+        console.print(f"sourced from: {rc_file}")
+
+    console.print("restart shell: exec $SHELL")
+
+
+def _setup_network_completion() -> None:
+    console.print("\n[bold]── Network completion ──[/bold]")
+    cfg = config.load_config()
+    current = (cfg.get("completion") or {}).get("network", "(unset)")
+    console.print(f"current: {current}")
+    console.print("when on, TAB fetches live requester/agent names")
+
+    answer = typer.prompt("Enable? [on/off]", default="on").strip().lower()
+    if answer not in ("on", "off"):
+        err.print("[yellow]expected on/off; skipping[/yellow]")
+        return
+
+    cfg.setdefault("completion", {})["network"] = answer
+    config.save_config(cfg)
+    console.print(f"completion.network = {answer}")
+
+
+def _setup_defaults() -> None:
+    console.print("\n[bold]── Default filters ──[/bold]")
+    console.print("set default --where filters for every `ls` query")
+    console.print("examples: status=Open, agent=alice@example.com")
+
+    for name in REGISTRY:
+        current = config.get_default_where(name)
+        hint = f" [{', '.join(current)}]" if current else ""
+        answer = typer.prompt(
+            f"\n{name} --where (comma-sep, enter to skip){hint}",
+            default="",
+            show_default=False,
+        ).strip()
+
+        if not answer:
+            continue
+
+        exprs = [e.strip() for e in answer.split(",") if e.strip()]
+        if exprs:
+            config.set_default_where(name, exprs)
+            console.print(f"  defaults.{name}.where = {exprs}")
+
+
+_SETUP_ITEMS = [
+    ("Domain", "Freshservice instance URL"),
+    ("Authentication", "Login with session cookies"),
+    ("Shell completion", "Install tab completion"),
+    ("Network completion", "Remote requester/agent lookup"),
+    ("Default filters", "Default --where per resource"),
+    ("All", "Run full setup"),
+]
+
+
+@app.command("setup", epilog="[bold]Examples:[/bold]  fsv setup")
+def setup() -> None:
+    """Interactive setup wizard."""
+    if not sys.stdin.isatty():
+        _err("setup requires an interactive terminal")
+
+    _setup_show_status()
+    console.print()
+
+    table = Table(show_header=False)
+    table.add_column("#", justify="right", style="bold cyan")
+    table.add_column("Item", style="bold")
+    table.add_column("Description")
+    for i, (name, desc) in enumerate(_SETUP_ITEMS, 1):
+        table.add_row(str(i), name, desc)
+    console.print(table)
+
+    while True:
+        answer = typer.prompt("Choose", default="6").strip()
+        if answer.isdigit() and 1 <= int(answer) <= len(_SETUP_ITEMS):
+            choice = int(answer)
+            break
+        err.print(f"[red]error[/red]: choose 1-{len(_SETUP_ITEMS)}")
+
+    run_all = choice == 6
+
+    if choice == 1 or run_all:
+        _setup_domain()
+    if choice == 2 or run_all:
+        _setup_auth()
+    if choice == 3 or run_all:
+        _setup_completion_install()
+    if choice == 4 or run_all:
+        _setup_network_completion()
+    if choice == 5 or run_all:
+        _setup_defaults()
+
+    console.print("\n[green]✓[/green] setup complete")
 
 
 @app.command()
