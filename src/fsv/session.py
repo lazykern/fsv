@@ -383,6 +383,7 @@ def _extract_cookie_from_input(raw: str) -> str:
 
 
 def login_interactive() -> dict[str, str]:
+    sys.stderr.write(f"Open your Freshservice portal: https://{config.DOMAIN}/\n")
     sys.stderr.write("DevTools → Network tab → click any /api/_/ request → Headers tab\n")
     sys.stderr.write("RIGHT-CLICK the Cookie header → Copy value  (don't drag-select, value is truncated)\n")
     sys.stderr.write("Also accepts: Cookie: header line, all request headers, cURL, or fetch snippet.\n")
