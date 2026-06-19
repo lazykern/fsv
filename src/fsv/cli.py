@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import os
 import re
 import sys
@@ -10,6 +11,8 @@ from typing import Any, Callable, Iterable, List, Optional, TypeVar
 from urllib.parse import unquote
 
 import typer
+import typer.main as _typer_main
+from typer.core import TyperCommand, TyperGroup, TyperOption
 
 from fsv import completion, config, render
 from fsv.errors import APIError, SessionError
@@ -26,7 +29,121 @@ else:
     escape = str  # type: ignore[assignment]
     Table = None  # type: ignore[assignment,misc]
 
+_ROOT_FLAGS_ANYWHERE = {"-v", "--verbose"}
+_GLOBAL_HELP_PANEL = "Global options"
+
+
+def _option_arity(command: TyperGroup | TyperCommand | None, token: str) -> int:
+    if command is None or "=" in token:
+        return 0
+    name = token.split("=", 1)[0]
+    for param in getattr(command, "params", []):
+        if not isinstance(param, TyperOption):
+            continue
+        if name not in [*param.opts, *param.secondary_opts]:
+            continue
+        if param.is_flag:
+            return 0
+        return max(int(getattr(param, "nargs", 1) or 1), 1)
+    return 0
+
+
+def _reorder_root_flags(root: TyperGroup, args: list[str]) -> list[str]:
+    moved: list[str] = []
+    kept: list[str] = []
+    current: TyperGroup | TyperCommand | None = root
+    command_started = False
+    skip = 0
+    passthrough = False
+    for token in args:
+        if passthrough:
+            kept.append(token)
+            continue
+        if skip:
+            kept.append(token)
+            skip -= 1
+            continue
+        if token == "--":
+            passthrough = True
+            kept.append(token)
+            continue
+        if command_started and token in _ROOT_FLAGS_ANYWHERE:
+            moved.append(token)
+            continue
+        if token.startswith("-"):
+            skip = _option_arity(current, token)
+            kept.append(token)
+            continue
+        if isinstance(current, TyperGroup) and token in current.commands:
+            command_started = True
+            current = current.commands[token]
+        kept.append(token)
+    return moved + kept if moved else args
+
+
+def _global_help_params(current: TyperGroup | TyperCommand, ctx: typer.Context) -> list[TyperOption]:
+    if not getattr(ctx, "_fsv_include_global_help", False):
+        return []
+    root = ctx.find_root()
+    root_command = getattr(root, "command", None)
+    if root_command is None or root_command is current:
+        return []
+    params: list[TyperOption] = []
+    for param in getattr(root_command, "params", []):
+        if not isinstance(param, TyperOption):
+            continue
+        if not _ROOT_FLAGS_ANYWHERE.intersection([*param.opts, *param.secondary_opts]):
+            continue
+        clone = copy.copy(param)
+        clone.rich_help_panel = _GLOBAL_HELP_PANEL
+        params.append(clone)
+    return params
+
+
+class _FSVHelpMixin:
+    def get_params(self, ctx: typer.Context):
+        params = list(super().get_params(ctx))
+        params.extend(_global_help_params(self, ctx))
+        return params
+
+    def format_help(self, ctx: typer.Context, formatter) -> None:
+        previous = getattr(ctx, "_fsv_include_global_help", False)
+        ctx._fsv_include_global_help = True
+        try:
+            super().format_help(ctx, formatter)
+        finally:
+            ctx._fsv_include_global_help = previous
+
+
+class FSVCommand(_FSVHelpMixin, TyperCommand):
+    pass
+
+
+class FSVGroup(_FSVHelpMixin, TyperGroup):
+    def parse_args(self, ctx: typer.Context, args: list[str]) -> list[str]:
+        return super().parse_args(ctx, _reorder_root_flags(self, args))
+
+
+class ChangeLegacyGroup(FSVGroup):
+    def parse_args(self, ctx: typer.Context, args: list[str]) -> list[str]:
+        routed = list(args)
+        if routed and not routed[0].startswith("-") and routed[0] not in self.commands:
+            try:
+                parse_id(routed[0], CHANGES)
+            except ValueError:
+                pass
+            else:
+                ctx.meta["fsv_legacy_nested"] = True
+                routed = ["legacy", *routed]
+        return super().parse_args(ctx, routed)
+
+
+_typer_main.TyperCommand = FSVCommand
+_typer_main.TyperGroup = FSVGroup
+
+
 app = typer.Typer(
+    cls=FSVGroup,
     add_completion=True,
     no_args_is_help=True,
     help="Freshservice CLI",
@@ -125,6 +242,8 @@ def main(
         raise typer.Exit(0)
     NO_INPUT = no_input
     VERBOSE = verbose
+    from fsv.client import set_verbose
+    set_verbose(verbose)
     if ctx.invoked_subcommand is None:
         console.print(ctx.get_help())
         raise typer.Exit(0)
@@ -155,11 +274,7 @@ def _err(msg: str, code: int = 1) -> None:
 
 def _api(fn: Callable[[], T]) -> T:
     try:
-        t0 = time.time() if VERBOSE else 0.0
-        result = fn()
-        if VERBOSE:
-            err.print(f"[dim]api {(time.time()-t0)*1000:.0f}ms[/]")
-        return result
+        return fn()
     except (SessionError, APIError, ValueError) as e:
         _err(str(e))
 
@@ -362,6 +477,7 @@ def fields_resource(
     refresh: bool,
     json_out: bool,
     required: bool = False,
+    format_: OutputFormat | str = "table",
 ) -> None:
     from fsv import schema as schema_mod
     if default and custom:
@@ -373,8 +489,8 @@ def fields_resource(
         if not f:
             _err(f"field not found: {choices}; run `fsv {res.name} fields`")
         items = f.get("choices") or []
-        if json_out:
-            emit_json(items)
+        flat = [{"id": str(x.get("id") or "-"), "value": str(x.get("value") or x.get("name") or x.get("label") or "-"), "detail": str(x.get("requester_display_value") or x.get("display_id") or "")} for x in items]
+        if _emit_fmt(items, flat, format_, json_out):
             return
         t = Table()
         t.add_column("id")
@@ -393,13 +509,12 @@ def fields_resource(
         fields = [f for f in fields if not f.get("default_field")]
     if required:
         fields = [f for f in fields if f.get("required")]
-    if json_out:
-        emit_json(fields)
+    if _emit_fmt(fields, fields, format_, json_out):
         return
     _show_fields_table(fields)
 
 
-def lookup_resource(res: Resource, kind: str, query: str, json_out: bool) -> None:
+def lookup_resource(res: Resource, kind: str, query: str, json_out: bool, format_: OutputFormat | str = "table") -> None:
     from fsv import schema as schema_mod
     c = _client()
     key = kind.casefold()
@@ -416,8 +531,8 @@ def lookup_resource(res: Resource, kind: str, query: str, json_out: bool) -> Non
         if not f:
             _err(f"unknown lookup kind or field: {kind}")
         items = [x for x in f.get("choices") or [] if not query or query.casefold() in str(x.get("value") or x.get("label") or x.get("name") or x.get("id")).casefold()]
-    if json_out:
-        emit_json(items)
+    flat = [{"id": str(x.get("user_id") or x.get("id") or "-"), "value": str(x.get("value") or x.get("name") or x.get("label") or "-"), "detail": str(x.get("email") or x.get("details") or "")} for x in items]
+    if _emit_fmt(items, flat, format_, json_out):
         return
     t = Table()
     t.add_column("id")
@@ -907,7 +1022,7 @@ def list_resource(
         err.print(f"{len(items)} rows")
 
 
-def get_resource(res: Resource, id_: str, stats: bool, json_out: bool) -> None:
+def get_resource(res: Resource, id_: str, stats: bool, json_out: bool, format_: OutputFormat | str = "table") -> None:
     from fsv import schema as schema_mod
     from fsv import service
     cid = _cid(id_, res)
@@ -933,8 +1048,7 @@ def get_resource(res: Resource, id_: str, stats: bool, json_out: bool) -> None:
     item, sch, requested_items = _api(load_item)
     if requested_items:
         item = {**item, "requested_items": requested_items}
-    if json_out:
-        emit_json(item)
+    if _emit_fmt(item, [item], format_, json_out):
         return
     render.detail_panel(item, res, sch)
     if requested_items:
@@ -967,14 +1081,14 @@ def _activity_text(value: str | None) -> str:
     return re.sub(r"\s+", " ", strip_html(value)).strip()
 
 
-def activity_resource(res: Resource, id_: str, limit: int, json_out: bool) -> None:
+def activity_resource(res: Resource, id_: str, limit: int, json_out: bool, format_: OutputFormat | str = "table") -> None:
     from fsv import service
     from fsv.create import get_change_activities
     cid = _cid(id_, res)
     c = _client()
     acts = _api(lambda: get_change_activities(cid, c) if res == CHANGES else service.get_activities(res, cid, client=c))[:limit]
-    if json_out:
-        emit_json(acts)
+    flat = [{"day": _activity_day(_local_dt(a.get("created_at"))), "time": (lambda dt: dt.strftime("%H:%M") if dt else "--:--")(_local_dt(a.get("created_at"))), "actor": (a.get("actor") or {}).get("name", "?"), "content": _activity_text(a.get("content"))} for a in acts]
+    if _emit_fmt(acts, flat, format_, json_out):
         return
     last_day = None
     for a in acts:
@@ -1298,7 +1412,6 @@ def assets_resource(id_: str, search: str | None, add: list[str], remove: list[s
     actions = sum(1 for active in (search is not None, bool(add), bool(remove), pick, list_categories) if active)
     if actions > 1:
         _err("choose only one action: --search, --add, --remove, --pick, or --list-categories")
-    cid = _cid(id_, CHANGES)
     c = _client()
     category = _resolve_asset_category(category_name, c) if category_name else None
     if list_categories:
@@ -1312,43 +1425,56 @@ def assets_resource(id_: str, search: str | None, add: list[str], remove: list[s
             t.add_row(item.get("name") or "-", item.get("ci_type_id") or "-")
         console.print(t)
         return
+    cid = _cid(id_, CHANGES)
     if pick:
         asset_ids = _pick_change_assets(cid, c, category)
         if not asset_ids:
             console.print("cancelled")
             return
+        payload = {"action": "associate_assets", "change_id": cid, "asset_ids": asset_ids}
         if dry_run:
-            emit_json({"action": "associate_assets", "change_id": cid, "asset_ids": asset_ids})
+            emit_json(payload)
             return
         if not yes:
             if _no_input() or not sys.stdin.isatty():
                 _err("pass --yes to associate assets")
             typer.confirm(f"Associate {len(asset_ids)} asset(s) with {format_id({'id': cid}, CHANGES)}?", abort=True)
         _api(lambda: associate_assets(cid, asset_ids, c))
+        if json_out:
+            emit_json({**payload, "ok": True})
+            return
         console.print(f"[green]associated[/] {len(asset_ids)} asset(s) with {format_id({'id': cid}, CHANGES)}")
         return
     if add:
         asset_ids = _resolve_change_asset_ids(cid, add, c, category=category)
+        payload = {"action": "associate_assets", "change_id": cid, "asset_ids": asset_ids}
         if dry_run:
-            emit_json({"action": "associate_assets", "change_id": cid, "asset_ids": asset_ids})
+            emit_json(payload)
             return
         if not yes:
             if _no_input() or not sys.stdin.isatty():
                 _err("pass --yes to associate assets")
             typer.confirm(f"Associate {len(asset_ids)} asset(s) with {format_id({'id': cid}, CHANGES)}?", abort=True)
         _api(lambda: associate_assets(cid, asset_ids, c))
+        if json_out:
+            emit_json({**payload, "ok": True})
+            return
         console.print(f"[green]associated[/] {len(asset_ids)} asset(s) with {format_id({'id': cid}, CHANGES)}")
         return
     if remove:
         asset_ids = _resolve_change_asset_ids(cid, remove, c, associated=True, category=category)
+        payload = {"action": "dissociate_assets", "change_id": cid, "asset_display_ids": asset_ids}
         if dry_run:
-            emit_json({"action": "dissociate_assets", "change_id": cid, "asset_display_ids": asset_ids})
+            emit_json(payload)
             return
         if not yes:
             if _no_input() or not sys.stdin.isatty():
                 _err("pass --yes to remove assets")
             typer.confirm(f"Remove {len(asset_ids)} asset(s) from {format_id({'id': cid}, CHANGES)}?", abort=True)
         _api(lambda: dissociate_assets(cid, asset_ids, c))
+        if json_out:
+            emit_json({**payload, "ok": True})
+            return
         console.print(f"[green]removed[/] {len(asset_ids)} asset(s) from {format_id({'id': cid}, CHANGES)}")
         return
     if search is not None:
@@ -1381,6 +1507,137 @@ def assets_resource(id_: str, search: str | None, add: list[str], remove: list[s
         row = _asset_display(item)
         t.add_row(*(str(row[k]) for k in ("id", "name", "type", "used_by", "location", "state", "serial")))
     console.print(t)
+
+
+def asset_categories_resource(format_: OutputFormat | str = "table", json_out: bool = False) -> None:
+    items = _fetch_asset_categories(_client())
+    if _emit_fmt(items, items, format_, json_out):
+        return
+    t = Table(title="Asset categories")
+    t.add_column("Name")
+    t.add_column("CI Type ID", style="dim")
+    for item in items:
+        t.add_row(item.get("name") or "-", item.get("ci_type_id") or "-")
+    console.print(t)
+
+
+def change_associations_resource(
+    id_: str,
+    search: str | None,
+    add: list[str],
+    remove: list[str],
+    dry_run: bool,
+    yes: bool,
+    json_out: bool,
+    format_: OutputFormat | str = "table",
+    pick: bool = False,
+) -> None:
+    from fsv.create import (
+        associate_ticket,
+        dissociate_ticket,
+        get_change_associations,
+        search_change_tickets,
+    )
+
+    actions = sum(1 for active in (search is not None, bool(add), bool(remove), pick) if active)
+    if actions > 1:
+        _err("choose only one action: --search, --add, or --remove")
+    cid = _cid(id_, CHANGES)
+    if search is not None:
+        items = search_change_tickets(search)
+        flat_rows = [
+            {
+                "id": item.get("human_display_id") or str(item.get("id", "-")),
+                "subject": item.get("subject") or item.get("title") or "-",
+                "status": item.get("status_name") or str(item.get("status", "-")),
+            }
+            for item in items
+        ]
+        if _emit_fmt(items, flat_rows, format_, json_out):
+            return
+        _print_tickets(items, "Ticket search")
+        return
+    if pick:
+        ids = _pick_change_tickets(cid)
+        if not ids:
+            console.print("cancelled")
+            return
+        payload = {"action": "associate_tickets", "change_id": cid, "ticket_ids": ids}
+        if dry_run:
+            emit_json(payload)
+            return
+        if not yes:
+            if _no_input() or not sys.stdin.isatty():
+                _err("pass --yes to confirm")
+            typer.confirm(f"Associate {len(ids)} ticket(s) with #{cid}?", abort=True)
+        associate_ticket(cid, ids)
+        if json_out:
+            emit_json({**payload, "ok": True})
+            return
+        console.print(f"[green]associated[/] {len(ids)} ticket(s) with #{cid}")
+        return
+    if add:
+        ids = [_resolve_change_ticket_id(x) for x in add]
+        payload = {"action": "associate_tickets", "change_id": cid, "ticket_ids": ids}
+        if dry_run:
+            emit_json(payload)
+            return
+        if not yes:
+            if _no_input() or not sys.stdin.isatty():
+                _err("pass --yes to confirm")
+            typer.confirm(f"Associate {len(ids)} ticket(s) with #{cid}?", abort=True)
+        associate_ticket(cid, ids)
+        if json_out:
+            emit_json({**payload, "ok": True})
+            return
+        console.print(f"[green]associated[/] {len(ids)} ticket(s) with #{cid}")
+        return
+    if remove:
+        ids = [_resolve_associated_change_ticket_id(cid, x) for x in remove]
+        payload = {"action": "dissociate_tickets", "change_id": cid, "ticket_ids": ids}
+        if dry_run:
+            emit_json(payload)
+            return
+        if not yes:
+            if _no_input() or not sys.stdin.isatty():
+                _err("pass --yes to confirm")
+            typer.confirm(f"Dissociate {len(ids)} ticket(s) from #{cid}?", abort=True)
+        for tid in ids:
+            dissociate_ticket(cid, tid)
+        if json_out:
+            emit_json({**payload, "ok": True})
+            return
+        console.print(f"[green]dissociated[/] {len(ids)} ticket(s) from #{cid}")
+        return
+    assoc = get_change_associations(cid)
+    flat_rows = [
+        {
+            "type": k,
+            "id": item.get("human_display_id") or str(item.get("id", "-")),
+            "subject": item.get("subject") or item.get("title") or "-",
+            "status": item.get("status_name") or str(item.get("status", "-")),
+        }
+        for k, itms in assoc.items() for item in itms
+    ]
+    if _emit_fmt(assoc, flat_rows, format_, json_out):
+        return
+    any_shown = False
+    for kind, items in assoc.items():
+        if not items:
+            continue
+        any_shown = True
+        t = Table(title=kind.capitalize())
+        t.add_column("ID", style="cyan")
+        t.add_column("Subject")
+        t.add_column("Status")
+        for item in items:
+            hid = item.get("human_display_id") or str(item.get("id", "-"))
+            subj = item.get("subject") or item.get("title") or "-"
+            st = item.get("status_name") or str(item.get("status", "-"))
+            t.add_row(hid, subj, st)
+        console.print(t)
+    if not any_shown:
+        console.print("no associations")
 
 
 def _network_completion_enabled() -> bool:
@@ -1695,7 +1952,7 @@ def _print_tickets(items: list[dict[str, Any]], title: str = "Tickets") -> None:
     console.print(t)
 
 
-def notes_resource(res: Resource, id_: str, page: int, per_page: int, json_out: bool, all_pages: bool = False, n_pages: int | None = None) -> None:
+def notes_resource(res: Resource, id_: str, page: int, per_page: int, json_out: bool, all_pages: bool = False, n_pages: int | None = None, format_: OutputFormat | str = "table") -> None:
     from fsv import service
     cid = _cid(id_, res)
     c = _client()
@@ -1711,8 +1968,8 @@ def notes_resource(res: Resource, id_: str, page: int, per_page: int, json_out: 
         items = acc
     else:
         items = _api(lambda: service.get_notes(res, cid, client=c, page=page, per_page=per_page))
-    if json_out:
-        emit_json(items)
+    flat = [{"id": str(x.get("id", "-")), "created_at": (x.get("created_at") or "-")[:19], "author": ((x.get("user") or {}).get("name") or str(x.get("user_id", "-"))), "visibility": "private" if x.get("private") else "public", "body": x.get("body_text") or strip_html(x.get("body")) or ""} for x in items]
+    if _emit_fmt(items, flat, format_, json_out):
         return
     t = Table()
     t.add_column("ID", style="cyan")
@@ -1733,7 +1990,7 @@ def notes_resource(res: Resource, id_: str, page: int, per_page: int, json_out: 
     console.print(t)
 
 
-def conversations_resource(id_: str, page: int, per_page: int, json_out: bool, all_pages: bool = False, n_pages: int | None = None) -> None:
+def conversations_resource(id_: str, page: int, per_page: int, json_out: bool, all_pages: bool = False, n_pages: int | None = None, format_: OutputFormat | str = "table") -> None:
     from fsv import service
     cid = _cid(id_, TICKETS)
     c = _client()
@@ -1749,8 +2006,8 @@ def conversations_resource(id_: str, page: int, per_page: int, json_out: bool, a
         items = acc
     else:
         items = _api(lambda: service.get_notes(TICKETS, cid, client=c, page=page, per_page=per_page))
-    if json_out:
-        emit_json(items)
+    flat = [{"id": str(x.get("id", "-")), "created_at": (x.get("created_at") or "-")[:19], "author": ((x.get("user") or {}).get("name") or str(x.get("user_id", "-"))), "kind": "private note" if x.get("private") else ("incoming" if x.get("incoming") else "public reply"), "body": x.get("body_text") or strip_html(x.get("body")) or ""} for x in items]
+    if _emit_fmt(items, flat, format_, json_out):
         return
     t = Table()
     t.add_column("ID", style="cyan")
@@ -1894,9 +2151,12 @@ def _resolve_view_name(c: Any, res: Resource, view: str | None) -> str | None:
     return view
 
 
-def views_resource(res: Resource) -> None:
+def views_resource(res: Resource, format_: OutputFormat | str = "table", json_out: bool = False) -> None:
     c = _client()
     views = _api(lambda: _load_views(c, res))
+    flat = [{"id": str(f.get("id") or "-"), "name": str(f.get("name") or "-")} for f in views]
+    if _emit_fmt(views, flat, format_, json_out):
+        return
     t = Table()
     t.add_column("id", style="cyan")
     t.add_column("name")
@@ -1905,7 +2165,7 @@ def views_resource(res: Resource) -> None:
     console.print(t)
 
 
-def _fulltext_search(res: Resource, query: str, page: int, json_out: bool, sort: SearchSort, all_pages: bool = False, n_pages: int | None = None) -> None:
+def _fulltext_search(res: Resource, query: str, page: int, json_out: bool, sort: SearchSort, all_pages: bool = False, n_pages: int | None = None, format_: OutputFormat | str = "table") -> None:
     from fsv import service
     c = _client()
     if n_pages is not None or all_pages:
@@ -1927,8 +2187,9 @@ def _fulltext_search(res: Resource, query: str, page: int, json_out: bool, sort:
     else:
         results, totals = _api(lambda: service.search_items(query, entity=res.name, sort=sort.value, page=page, client=c))
         total = totals.get(res.name, len(results))
-    if json_out:
-        emit_json([{k: v for k, v in r.items() if not k.startswith("_")} for r in results])
+    clean = [{k: v for k, v in r.items() if not k.startswith("_")} for r in results]
+    flat = [{"id": r.get("human_display_id") or str(r.get("display_id") or "-"), "subject": (r.get("subject") or "")[:80], "status": r.get("status") or "-", "priority": r.get("priority_label") or "-", "group": r.get("_group") or "-"} for r in results]
+    if _emit_fmt(clean, flat, format_, json_out):
         return
     t = Table()
     t.add_column("ID", style="cyan", no_wrap=True)
@@ -1943,8 +2204,8 @@ def _fulltext_search(res: Resource, query: str, page: int, json_out: bool, sort:
     err.print(f"{len(results)} rows (total: {total})")
 
 
-def search_resource(res: Resource, query: str, page: int, json_out: bool, sort: SearchSort, all_pages: bool = False, n_pages: int | None = None) -> None:
-    _fulltext_search(res, query, page, json_out, sort, all_pages, n_pages)
+def search_resource(res: Resource, query: str, page: int, json_out: bool, sort: SearchSort, all_pages: bool = False, n_pages: int | None = None, format_: OutputFormat | str = "table") -> None:
+    _fulltext_search(res, query, page, json_out, sort, all_pages, n_pages, format_)
 
 
 _SEARCH_TYPE_LABEL = {
@@ -2119,20 +2380,25 @@ def _resolve_domain(no_input: bool = False) -> bool:
     return looks_like_url
 
 
-@auth_app.command("login", epilog="[bold]Examples:[/bold]  fsv auth login  |  pbpaste | fsv auth login --header - --store keychain")
+@auth_app.command("login", epilog="[bold]Examples:[/bold]  fsv auth login --browser  |  pbpaste | fsv auth login --header - --store keychain")
 def auth_login(
     domain: Optional[str] = typer.Option(None, "--domain", "-d", help="Freshservice domain or URL, e.g. acme.freshservice.com. Saved before login."),
     header: Optional[str] = typer.Option(None, "--header", "-H", help="Cookie header string. Use '-' to read from stdin."),
+    browser: bool = typer.Option(False, "--browser", help="Open an isolated browser, let you finish SSO/MFA, then read HttpOnly cookies via CDP."),
     store: Optional[str] = typer.Option(None, "--store", help="Where to save: 'file' (plain chmod 600), 'argon' (Argon2id + AES-GCM), or 'keychain' (macOS Keychain). Interactive when omitted; default keychain on macOS.", autocompletion=completion.complete_store),
     no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
 ) -> None:
     """Save Freshservice session cookies."""
     from fsv.client import get_client, reset_client
-    from fsv.session import login_interactive, parse_cookie_header, save_cookies, validate
+    from fsv.session import login_browser, login_interactive, parse_cookie_header, save_cookies, validate
     no_input = _no_input(no_input)
     if store is not None and store not in ("file", "argon", "keychain"):
         _err("--store must be 'file', 'argon', or 'keychain'")
-    if header is None and no_input:
+    if browser and header is not None:
+        _err("use either --browser or --header, not both")
+    if browser and no_input:
+        _err("--browser is interactive; do not use --no-input")
+    if header is None and not browser and no_input:
         _err("pass --header when using --no-input")
     explicit_domain = domain is not None
     url_pasted = False
@@ -2149,7 +2415,9 @@ def auth_login(
     if not explicit_domain and sys.stdin.isatty() and url_pasted and not no_input:
         typer.confirm(f"Extracted {config.DOMAIN} — login?", default=True, abort=True)
     try:
-        if header is not None:
+        if browser:
+            cookies = login_browser()
+        elif header is not None:
             if header == "-":
                 header = sys.stdin.read().strip()
             cookies = parse_cookie_header(header)
@@ -2222,10 +2490,10 @@ app.add_typer(auth_app, name="auth")
 
 
 HELP_TOPICS = {
-    "auth": "Login: fsv auth login --domain yourcompany.freshservice.com; fsv auth status. Scripts: use fsv auth login --domain ... --header ... --store file.",
+    "auth": "Login: fsv auth login --browser --domain yourcompany.freshservice.com; fsv auth status. Scripts: use fsv auth login --domain ... --header ... --store file.",
     "workflow": "Daily flow: fsv changes ls --where status=Open; fsv changes get CHN-1234 --internal; fsv changes update CHN-1234 --set 'field=value'; fsv changes download CHN-1234 --all.",
     "fields": "Discover fields with fsv changes fields, fsv changes fields --choices status, and fsv changes lookup requester alice@example.com. Prefer dedicated flags for default fields; use --set for custom fields.",
-    "scripting": "Use --json or --output csv/tsv for scripts. Use --no-input in CI. Use --dry-run before updates. Do not parse rich table output.",
+    "scripting": "Use --json for create/update/clone/download. Use --output json/csv/tsv for list/search commands. Use --no-input in CI. Use --dry-run before updates. Do not parse rich table output.",
     "comments": "Tickets use reply. Changes/problems use add-note. Use --public only when notes should be visible outside private workflow.",
 }
 
@@ -2702,10 +2970,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
     def get(
         id_: str = typer.Argument(..., metavar="ID"),
         stats: bool = typer.Option(False, "--stats", help="include stats + planning_fields"),
+        format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     ) -> None:
         f"""Show one {res.name[:-1]} by id."""
-        get_resource(res, id_, stats, json_out)
+        get_resource(res, id_, stats, json_out, format_)
 
     @sub.command("activity", help=f"List {singular} activity.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} activity {_pfx}-1234  |  fsv {res.name} activity {_pfx}-1234 -l 50 --json"
@@ -2713,9 +2982,10 @@ def _make_subapp(res: Resource) -> typer.Typer:
     def activity(
         id_: str = typer.Argument(...),
         limit: int = typer.Option(20, "-l", "--limit"),
+        format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     ) -> None:
-        activity_resource(res, id_, limit, json_out)
+        activity_resource(res, id_, limit, json_out, format_)
 
     @sub.command("tasks", help=f"List {singular} tasks.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} tasks {_pfx}-1234  |  fsv {res.name} tasks {_pfx}-1234 --json"
@@ -2739,16 +3009,28 @@ def _make_subapp(res: Resource) -> typer.Typer:
         tasks_resource(res, id_, format_, json_out)
 
     if res == CHANGES:
-        @sub.command("assets", help="List, search, or associate change assets.", epilog=(
-            "[bold]Examples:[/bold]  "
-            "fsv changes assets CHN-1234  |  "
-            "fsv changes assets CHN-1234 --search app  |  "
-            "fsv changes assets CHN-1234 --search EDP --category 'Application Portfolio'  |  "
-            "fsv changes assets CHN-1234 --add 456 --dry-run  |  "
-            "fsv changes assets CHN-1234 --add 'EDP' --category 'Application Portfolio' --yes  |  "
-            "fsv changes assets CHN-1234 --pick --category 'Application Portfolio' --yes  |  "
-            "fsv changes assets CHN-1234 --list-categories"
-        ))
+        assets_app = typer.Typer(
+            cls=ChangeLegacyGroup,
+            invoke_without_command=True,
+            no_args_is_help=True,
+            help="Manage change assets.",
+            rich_markup_mode=None if _COMPLETING else "rich",
+            epilog=(
+                "[bold]Examples:[/bold]  "
+                "fsv changes assets ls CHN-1234  |  "
+                "fsv changes assets search CHN-1234 app --category 'Application Portfolio'  |  "
+                "fsv changes assets add CHN-1234 456 --dry-run  |  "
+                "fsv changes assets pick CHN-1234 --category 'Application Portfolio' --yes  |  "
+                "fsv changes assets categories"
+            ),
+        )
+
+        @assets_app.callback()
+        def assets_group(ctx: typer.Context) -> None:
+            if ctx.meta.get("fsv_legacy_nested"):
+                err.print("[yellow]deprecated[/]: use `fsv changes assets <ls|search|add|remove|pick|categories> ...`", highlight=False)
+
+        @assets_app.command("legacy", hidden=True)
         def assets(
             id_: str = typer.Argument(..., metavar="CHANGE_ID"),
             search: Optional[str] = typer.Option(None, "--search", "-q", help="search assets available to associate", autocompletion=_complete_asset_search_for_change),
@@ -2783,6 +3065,88 @@ def _make_subapp(res: Resource) -> typer.Typer:
             except (SessionError, APIError, ValueError) as e:
                 _err(str(e))
 
+        @assets_app.command("ls", help="List associated change assets.", epilog="[bold]Examples:[/bold]  fsv changes assets ls CHN-1234  |  fsv changes assets ls CHN-1234 --category 'Application Portfolio' --json")
+        def assets_ls(
+            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
+            page: int = typer.Option(1, "--page", "-p"),
+            per_page: int = typer.Option(30, "--per-page", "-n"),
+            category: Optional[str] = typer.Option(None, "--category", help="asset category/type label from Freshservice UI", autocompletion=_complete_asset_category),
+            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
+            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+        ) -> None:
+            try:
+                assets_resource(id_, None, [], [], page, per_page, False, False, json_out, format_, category_name=category)
+            except (SessionError, APIError, ValueError) as e:
+                _err(str(e))
+
+        @assets_app.command("search", help="Search assets available to associate.", epilog="[bold]Examples:[/bold]  fsv changes assets search CHN-1234 app  |  fsv changes assets search CHN-1234 EDP --category 'Application Portfolio' --json")
+        def assets_search(
+            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
+            query: str = typer.Argument(..., metavar="QUERY", autocompletion=_complete_asset_search_for_change),
+            page: int = typer.Option(1, "--page", "-p"),
+            per_page: int = typer.Option(30, "--per-page", "-n"),
+            category: Optional[str] = typer.Option(None, "--category", help="asset category/type label from Freshservice UI", autocompletion=_complete_asset_category),
+            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
+            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+        ) -> None:
+            try:
+                assets_resource(id_, query, [], [], page, per_page, False, False, json_out, format_, category_name=category)
+            except (SessionError, APIError, ValueError) as e:
+                _err(str(e))
+
+        @assets_app.command("add", help="Associate asset(s) to change.", epilog="[bold]Examples:[/bold]  fsv changes assets add CHN-1234 456 --dry-run  |  fsv changes assets add CHN-1234 OOS --category 'Application Portfolio' --yes")
+        def assets_add(
+            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
+            assets_: List[str] = typer.Argument(..., metavar="ASSET", autocompletion=_complete_asset_id_for_change),
+            category: Optional[str] = typer.Option(None, "--category", help="asset category/type label from Freshservice UI", autocompletion=_complete_asset_category),
+            dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
+            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
+        ) -> None:
+            try:
+                assets_resource(id_, None, list(assets_), [], 1, 30, dry_run, yes, json_out, pick=False, category_name=category)
+            except (SessionError, APIError, ValueError) as e:
+                _err(str(e))
+
+        @assets_app.command("remove", help="Remove asset(s) from change.", epilog="[bold]Examples:[/bold]  fsv changes assets remove CHN-1234 456 --dry-run  |  fsv changes assets remove CHN-1234 OOS --category 'Application Portfolio' --yes")
+        def assets_remove(
+            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
+            assets_: List[str] = typer.Argument(..., metavar="ASSET", autocompletion=_complete_associated_asset_for_change),
+            category: Optional[str] = typer.Option(None, "--category", help="asset category/type label from Freshservice UI", autocompletion=_complete_asset_category),
+            dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
+            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
+        ) -> None:
+            try:
+                assets_resource(id_, None, [], list(assets_), 1, 30, dry_run, yes, json_out, pick=False, category_name=category)
+            except (SessionError, APIError, ValueError) as e:
+                _err(str(e))
+
+        @assets_app.command("pick", help="Interactively pick asset(s) to associate.", epilog="[bold]Examples:[/bold]  fsv changes assets pick CHN-1234 --category 'Application Portfolio' --yes  |  fsv changes assets pick CHN-1234 --dry-run")
+        def assets_pick(
+            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
+            category: Optional[str] = typer.Option(None, "--category", help="asset category/type label from Freshservice UI", autocompletion=_complete_asset_category),
+            dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
+            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
+        ) -> None:
+            try:
+                assets_resource(id_, None, [], [], 1, 30, dry_run, yes, json_out, pick=True, category_name=category)
+            except (SessionError, APIError, ValueError) as e:
+                _err(str(e))
+
+        @assets_app.command("categories", help="List available asset categories.", epilog="[bold]Examples:[/bold]  fsv changes assets categories  |  fsv changes assets categories --json")
+        def assets_categories(
+            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
+            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+        ) -> None:
+            try:
+                asset_categories_resource(format_, json_out)
+            except (SessionError, APIError, ValueError) as e:
+                _err(str(e))
+
+        sub.add_typer(assets_app, name="assets")
+
         @sub.command("tasks-update", help="Update a change task.", epilog=(
             "[bold]Examples:[/bold]  "
             "fsv changes tasks-update CHN-1234 987 --status Completed --dry-run  |  "
@@ -2802,10 +3166,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
             planned_end: Optional[str] = typer.Option(None, "--planned-end", help="ISO-8601 planned end"),
             edit: bool = typer.Option(False, "--edit", "-e", help="open $EDITOR with all task fields"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
-            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Update a task on a change. Use --edit for full edit or flags for quick update."""
+            from fsv.create import get_task_for_edit, update_task
             try:
                 cid = _cid(id_, res)
                 if edit:
@@ -2924,6 +3289,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
         ))
         def state(
             id_: str = typer.Argument(..., metavar="ID"),
+            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         ) -> None:
             """Show the ordered approval flow for a change.
@@ -2936,9 +3302,12 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 c = _client()
                 data = c.int_get(f"changes/{cid}")
                 change = data.get("change", data)
-                if json_out:
+                fmt = format_.value if isinstance(format_, OutputFormat) else format_
+                if json_out or fmt == "json":
                     flow_data = state_flow.get_state_flow(change["state_flow_id"], c)
                     emit_json({"change": change, "flow": flow_data})
+                elif fmt in ("csv", "tsv"):
+                    render.emit_delimited([change], "," if fmt == "csv" else "\t")
                 else:
                     state_flow.render_flow(change, console)
             except KeyError:
@@ -2946,14 +3315,28 @@ def _make_subapp(res: Resource) -> typer.Typer:
             except (SessionError, APIError) as e:
                 _err(str(e))
 
-        @sub.command("associations", help="List, search, or manage associated tickets.", epilog=(
-            "[bold]Examples:[/bold]  "
-            "fsv changes associations CHN-1234  |  "
-            "fsv changes associations CHN-1234 --search SR-123  |  "
-            "fsv changes associations CHN-1234 --add SR-123 --dry-run  |  "
-            "fsv changes associations CHN-1234 --add 'Napimpat' --yes  |  "
-            "fsv changes associations CHN-1234 --pick --yes"
-        ))
+        associations_app = typer.Typer(
+            cls=ChangeLegacyGroup,
+            invoke_without_command=True,
+            no_args_is_help=True,
+            help="Manage change ticket associations.",
+            rich_markup_mode=None if _COMPLETING else "rich",
+            epilog=(
+                "[bold]Examples:[/bold]  "
+                "fsv changes associations ls CHN-1234  |  "
+                "fsv changes associations search CHN-1234 SR-123  |  "
+                "fsv changes associations add CHN-1234 SR-123 --dry-run  |  "
+                "fsv changes associations remove CHN-1234 SR-123 --yes  |  "
+                "fsv changes associations pick CHN-1234 --yes"
+            ),
+        )
+
+        @associations_app.callback()
+        def associations_group(ctx: typer.Context) -> None:
+            if ctx.meta.get("fsv_legacy_nested"):
+                err.print("[yellow]deprecated[/]: use `fsv changes associations <ls|search|add|remove|pick> ...`", highlight=False)
+
+        @associations_app.command("legacy", hidden=True)
         def associations(
             id_: str = typer.Argument(...),
             search: Optional[str] = typer.Option(None, "--search", "-q", help="search tickets available to associate", autocompletion=_complete_ticket_for_change),
@@ -2965,92 +3348,73 @@ def _make_subapp(res: Resource) -> typer.Typer:
             format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         ) -> None:
-            """List, search, or manage associated tickets for a change.
-
-            --search sr-565163      find an initiating ticket
-            --add SR-565163        associate a ticket
-            --remove SR-565163     dissociate a ticket
-            """
             try:
-                actions = sum(1 for active in (search is not None, bool(add), bool(remove), pick) if active)
-                if actions > 1:
-                    _err("choose only one action: --search, --add, or --remove")
-                cid = _cid(id_, res)
-                if search:
-                    items = search_change_tickets(search)
-                    if json_out:
-                        emit_json(items)
-                    else:
-                        _print_tickets(items, "Ticket search")
-                    return
-                if pick:
-                    ids = _pick_change_tickets(cid)
-                    if not ids:
-                        console.print("cancelled")
-                        return
-                    if dry_run:
-                        emit_json({"action": "associate_tickets", "change_id": cid, "ticket_ids": ids})
-                        return
-                    if not yes:
-                        if _no_input() or not sys.stdin.isatty():
-                            _err("pass --yes to confirm")
-                        typer.confirm(f"Associate {len(ids)} ticket(s) with #{cid}?", abort=True)
-                    associate_ticket(cid, ids)
-                    console.print(f"[green]associated[/] {len(ids)} ticket(s) with #{cid}")
-                    return
-                if add:
-                    ids = [_resolve_change_ticket_id(x) for x in add]
-                    if dry_run:
-                        emit_json({"action": "associate_tickets", "change_id": cid, "ticket_ids": ids})
-                        return
-                    if not yes:
-                        if _no_input() or not sys.stdin.isatty():
-                            _err("pass --yes to confirm")
-                        typer.confirm(f"Associate {len(ids)} ticket(s) with #{cid}?", abort=True)
-                    associate_ticket(cid, ids)
-                    console.print(f"[green]associated[/] {len(ids)} ticket(s) with #{cid}")
-                    return
-                if remove:
-                    ids = [_resolve_associated_change_ticket_id(cid, x) for x in remove]
-                    if dry_run:
-                        emit_json({"action": "dissociate_tickets", "change_id": cid, "ticket_ids": ids})
-                        return
-                    if not yes:
-                        if _no_input() or not sys.stdin.isatty():
-                            _err("pass --yes to confirm")
-                        typer.confirm(f"Dissociate {len(ids)} ticket(s) from #{cid}?", abort=True)
-                    for tid in ids:
-                        dissociate_ticket(cid, tid)
-                    console.print(f"[green]dissociated[/] {len(ids)} ticket(s) from #{cid}")
-                    return
-                assoc = get_change_associations(cid)
-                flat_rows = [
-                    {"type": k, "id": item.get("human_display_id") or str(item.get("id", "-")),
-                     "subject": item.get("subject") or item.get("title") or "-",
-                     "status": item.get("status_name") or str(item.get("status", "-"))}
-                    for k, itms in assoc.items() for item in itms
-                ]
-                if _emit_fmt(assoc, flat_rows, format_, json_out):
-                    return
-                any_shown = False
-                for kind, items in assoc.items():
-                    if not items:
-                        continue
-                    any_shown = True
-                    t = Table(title=kind.capitalize())
-                    t.add_column("ID", style="cyan")
-                    t.add_column("Subject")
-                    t.add_column("Status")
-                    for item in items:
-                        hid = item.get("human_display_id") or str(item.get("id", "-"))
-                        subj = item.get("subject") or item.get("title") or "-"
-                        st = item.get("status_name") or str(item.get("status", "-"))
-                        t.add_row(hid, subj, st)
-                    console.print(t)
-                if not any_shown:
-                    console.print("no associations")
+                change_associations_resource(id_, search, list(add or []), list(remove or []), dry_run, yes, json_out, format_, pick=pick)
             except (SessionError, APIError, ValueError) as e:
                 _err(str(e))
+
+        @associations_app.command("ls", help="List associated tickets for change.", epilog="[bold]Examples:[/bold]  fsv changes associations ls CHN-1234  |  fsv changes associations ls CHN-1234 --json")
+        def associations_ls(
+            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
+            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
+            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+        ) -> None:
+            try:
+                change_associations_resource(id_, None, [], [], False, False, json_out, format_)
+            except (SessionError, APIError, ValueError) as e:
+                _err(str(e))
+
+        @associations_app.command("search", help="Search tickets available to associate.", epilog="[bold]Examples:[/bold]  fsv changes associations search CHN-1234 SR-123  |  fsv changes associations search CHN-1234 Napimpat --output csv")
+        def associations_search(
+            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
+            query: str = typer.Argument(..., metavar="QUERY", autocompletion=_complete_ticket_for_change),
+            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
+            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+        ) -> None:
+            try:
+                change_associations_resource(id_, query, [], [], False, False, json_out, format_)
+            except (SessionError, APIError, ValueError) as e:
+                _err(str(e))
+
+        @associations_app.command("add", help="Associate ticket(s) to change.", epilog="[bold]Examples:[/bold]  fsv changes associations add CHN-1234 SR-123 --dry-run  |  fsv changes associations add CHN-1234 'Napimpat' --yes")
+        def associations_add(
+            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
+            tickets_: List[str] = typer.Argument(..., metavar="TICKET", autocompletion=_complete_ticket_for_change),
+            dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
+            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
+        ) -> None:
+            try:
+                change_associations_resource(id_, None, list(tickets_), [], dry_run, yes, json_out)
+            except (SessionError, APIError, ValueError) as e:
+                _err(str(e))
+
+        @associations_app.command("remove", help="Dissociate ticket(s) from change.", epilog="[bold]Examples:[/bold]  fsv changes associations remove CHN-1234 SR-123 --dry-run  |  fsv changes associations remove CHN-1234 SR-123 --yes")
+        def associations_remove(
+            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
+            tickets_: List[str] = typer.Argument(..., metavar="TICKET", autocompletion=_complete_ticket_for_change),
+            dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
+            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
+        ) -> None:
+            try:
+                change_associations_resource(id_, None, [], list(tickets_), dry_run, yes, json_out)
+            except (SessionError, APIError, ValueError) as e:
+                _err(str(e))
+
+        @associations_app.command("pick", help="Interactively pick ticket(s) to associate.", epilog="[bold]Examples:[/bold]  fsv changes associations pick CHN-1234 --yes  |  fsv changes associations pick CHN-1234 --dry-run")
+        def associations_pick(
+            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
+            dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
+            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
+        ) -> None:
+            try:
+                change_associations_resource(id_, None, [], [], dry_run, yes, json_out, pick=True)
+            except (SessionError, APIError, ValueError) as e:
+                _err(str(e))
+
+        sub.add_typer(associations_app, name="associations")
 
     @sub.command("fields", help=f"List discoverable {singular} fields.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} fields  |  fsv {res.name} fields --required  |  fsv {res.name} fields --choices status  |  fsv {res.name} fields --custom"
@@ -3062,11 +3426,12 @@ def _make_subapp(res: Resource) -> typer.Typer:
         required: bool = typer.Option(False, "--required", help="show only fields required to create"),
         choices: Optional[str] = typer.Option(None, "--choices", help="show choices for a field", autocompletion=completion.complete_choice_field_names(res)),
         refresh: bool = typer.Option(False, "--refresh"),
+        format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     ) -> None:
         f"""List discoverable {res.name} fields."""
         try:
-            fields_resource(res, search, default, custom, choices, refresh, json_out, required)
+            fields_resource(res, search, default, custom, choices, refresh, json_out, required, format_)
         except (SessionError, APIError) as e:
             _err(str(e))
         except typer.Exit:
@@ -3080,11 +3445,12 @@ def _make_subapp(res: Resource) -> typer.Typer:
     def lookup(
         kind: str = typer.Argument(..., help="requester | agent | group | field name/label", autocompletion=completion.complete_lookup_kind(res)),
         query: str = typer.Argument("", help="name/email/text to search", autocompletion=completion.complete_lookup_query(res)),
+        format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     ) -> None:
         f"""Autocomplete users, groups, or field choices."""
         try:
-            lookup_resource(res, kind, query, json_out)
+            lookup_resource(res, kind, query, json_out, format_)
         except (SessionError, APIError) as e:
             _err(str(e))
         except typer.Exit:
@@ -3096,9 +3462,12 @@ def _make_subapp(res: Resource) -> typer.Typer:
         @sub.command("views", help="List saved view names.", epilog=(
             f"[bold]Examples:[/bold]  fsv {res.name} views  |  fsv {res.name} ls --view all"
         ))
-        def views() -> None:
+        def views(
+            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
+            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+        ) -> None:
             """List saved view names."""
-            views_resource(res)
+            views_resource(res, format_, json_out)
 
     @sub.command("search", help=f"Full-text keyword search {res.name}.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} search 'EDP'  |  fsv {res.name} search 'EDP' --npages 3  |  fsv {res.name} search 'EDP' --all  |  fsv {res.name} search 'data migration' --json"
@@ -3107,12 +3476,13 @@ def _make_subapp(res: Resource) -> typer.Typer:
         query: str = typer.Argument(..., help="free-text keyword(s)"),
         page: int = typer.Option(1, "--page", "-p"),
         sort: SearchSort = typer.Option(SearchSort.relevance, "--sort", help="relevance | created | modified", autocompletion=completion.complete_search_sort),
+        format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         n_pages: Optional[int] = typer.Option(None, "--npages", "-N", help="fetch exactly N pages (30 results each)"),
         all_pages: bool = typer.Option(False, "--all", "-a", help="fetch all pages (auto-paginate)"),
     ) -> None:
         f"""Full-text keyword search {res.name}."""
-        search_resource(res, query, page, json_out, sort, all_pages, n_pages)
+        search_resource(res, query, page, json_out, sort, all_pages, n_pages, format_)
 
     @sub.command("url", help=f"Print {singular} browser URL.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} url {_pfx}-1234"
@@ -3166,7 +3536,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             due_by: Optional[str] = typer.Option(None, "--due-by", help="set resolution due date (ISO-8601, e.g. 2026-06-09T18:00:00+07:00)"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm terminal status transitions"),
-            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Update fields on a change."""
@@ -3271,8 +3641,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
                         updated = update_change(cid, quick)
                         if json_out:
                             emit_json(updated)
-                        else:
-                            console.print(f"[green]updated[/] {format_id(updated, res)}")
+                            return
+                        console.print(f"[green]updated[/] {format_id(updated, res)}")
                         return
                     if attach_result and attach_result.get("_fsv_noop"):
                         skipped = ", ".join(attach_result.get("skipped") or [])
@@ -3281,8 +3651,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     if attach_result:
                         if json_out:
                             emit_json(attach_result)
-                        else:
-                            console.print(f"[green]updated[/] {format_id({'id': cid}, res)}")
+                            return
+                        console.print(f"[green]updated[/] {format_id({'id': cid}, res)}")
                         return
 
                 _err("nothing to update; use --edit, --attach, --planning, --set, or pass --status/--priority/--agent/--group")
@@ -3296,7 +3666,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
         @sub.command("download", help="Download change attachments.", epilog=(
             "[bold]Examples:[/bold]  "
             "fsv changes download CHN-1234  |  "
-            "fsv changes download CHN-1234 --all --out ./evidence  |  "
+            "fsv changes download CHN-1234 --all --dir ./evidence  |  "
             "fsv changes download CHN-1234 --planning 'Test Plan'"
         ))
         def download(
@@ -3306,9 +3676,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
             main_attachments: bool = typer.Option(False, "--attachments", "--main-attachments", help="download main change attachments"),
             description_attachments: bool = typer.Option(False, "--description-attachments", help="download attachment links found in description HTML"),
             all_: bool = typer.Option(False, "--all", help="download planning, main, and description attachments"),
-            out: Optional[Path] = typer.Option(None, "--out", "-o", help="output directory (default: ./CHN-<id>)"),
+            out: Optional[Path] = typer.Option(None, "--dir", "--out", help="output directory (default: ./CHN-<id>)"),
             force: bool = typer.Option(False, "--force", help="overwrite existing files"),
-            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+            json_out: bool = typer.Option(False, "--json", help="emit JSON manifest"),
         ) -> None:
             try:
                 cid = _cid(id_, res)
@@ -3416,7 +3786,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             set_: Optional[List[str]] = typer.Option(None, "--set", help="set FIELD=VALUE (repeatable)", autocompletion=completion.complete_set(res)),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm terminal status transitions"),
-            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Update basic fields."""
@@ -3428,7 +3798,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
 
         @sub.command("download", help=f"Download {singular} attachments.", epilog=(
             f"[bold]Examples:[/bold]  fsv {res.name} download {_pfx}-1234  |  "
-            f"fsv {res.name} download {_pfx}-1234 --all --out ./evidence"
+            f"fsv {res.name} download {_pfx}-1234 --all --dir ./evidence"
         ))
         def download_generic(
             id_: str = typer.Argument(..., metavar="ID"),
@@ -3436,9 +3806,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
             threads: bool = typer.Option(False, _threads_flag, help=_threads_help),
             description_attachments: bool = typer.Option(False, "--description-attachments", help="download attachment links found in description HTML"),
             all_: bool = typer.Option(False, "--all", help="download all attachments from all sources"),
-            out: Optional[Path] = typer.Option(None, "--out", "-o", help="output directory"),
+            out: Optional[Path] = typer.Option(None, "--dir", "--out", help="output directory"),
             force: bool = typer.Option(False, "--force", help="overwrite existing files"),
-            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+            json_out: bool = typer.Option(False, "--json", help="emit JSON manifest"),
         ) -> None:
             try:
                 from fsv.create import download_attachment
@@ -3519,7 +3889,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             with_tasks: bool = typer.Option(False, "--with-tasks", help="clone tasks from source change"),
             with_assets: bool = typer.Option(False, "--with-assets", help="associate same assets as source change"),
             with_planning: bool = typer.Option(False, "--with-planning", help="clone planning fields (text + attachments)"),
-            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Clone a change — pre-fills form and opens $EDITOR."""
@@ -3571,11 +3941,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
             agent_id: Optional[str] = typer.Option(None, "--agent", "--agent-id", help="agent name/email/user ID", autocompletion=completion.complete_update_agent_id),
             group_id: Optional[str] = typer.Option(None, "--group", "--group-id", help="group name or ID", autocompletion=completion.complete_update_group_id),
             set_: Optional[List[str]] = typer.Option(None, "--set", help="set FIELD=VALUE (repeatable)", autocompletion=completion.complete_set(res)),
-            optional: bool = typer.Option(False, "--optional", "-o", help="include optional fields in editor template"),
+            optional: bool = typer.Option(False, "--optional", "-O", help="include optional fields in editor template"),
             all_fields: bool = typer.Option(False, "--all", help="include all fields in editor template"),
             dry: bool = typer.Option(False, "--dry-run", help="print resolved payload/template, do not create"),
             no_validate: bool = typer.Option(False, "--no-validate", help="skip client-side required-field check"),
-            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of opening editor"),
         ) -> None:
             """Create a new change.
@@ -3647,12 +4017,13 @@ def _make_subapp(res: Resource) -> typer.Typer:
             id_: str = typer.Argument(...),
             page: int = typer.Option(1, "--page", "-p"),
             per_page: int = typer.Option(30, "--per-page", "-n"),
+            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
             all_pages: bool = typer.Option(False, "--all", "-a", help="fetch all pages (auto-paginate)"),
             n_pages: Optional[int] = typer.Option(None, "--npages", "-N", help="fetch exactly N pages"),
         ) -> None:
             """List notes using the browser-session internal endpoint."""
-            notes_resource(res, id_, page, per_page, json_out, all_pages, n_pages)
+            notes_resource(res, id_, page, per_page, json_out, all_pages, n_pages, format_)
 
         @sub.command("add-note", help=f"Add {singular} note.", epilog=(
             f"[bold]Note:[/bold] Changes/problems use add-note; tickets use reply.  "
@@ -3676,11 +4047,12 @@ def _make_subapp(res: Resource) -> typer.Typer:
             id_: str = typer.Argument(...),
             page: int = typer.Option(1, "--page", "-p"),
             per_page: int = typer.Option(30, "--per-page", "-n"),
+            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
             all_pages: bool = typer.Option(False, "--all", "-a", help="fetch all pages (auto-paginate)"),
             n_pages: Optional[int] = typer.Option(None, "--npages", "-N", help="fetch exactly N pages"),
         ) -> None:
-            conversations_resource(id_, page, per_page, json_out, all_pages, n_pages)
+            conversations_resource(id_, page, per_page, json_out, all_pages, n_pages, format_)
 
         @sub.command("reply", help="Add a ticket reply.", epilog=(
             f"[bold]Note:[/bold] Tickets use reply; changes/problems use add-note.  "

@@ -5,11 +5,17 @@ import getpass
 import json
 import os
 import re
+import shutil
+import socket
+import struct
 import subprocess
 import sys
+import tempfile
 import time
+import urllib.parse
+import urllib.request
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from argon2.low_level import Type, hash_secret_raw
 from cryptography.exceptions import InvalidTag
@@ -397,3 +403,200 @@ def login_interactive() -> dict[str, str]:
     cookies = parse_cookie_header(line)
     validate(cookies)
     return cookies
+
+
+def _browser_executable() -> str | None:
+    env = os.environ.get("FSV_BROWSER")
+    candidates = [
+        env,
+        shutil.which("google-chrome"),
+        shutil.which("google-chrome-stable"),
+        shutil.which("chromium"),
+        shutil.which("chromium-browser"),
+        shutil.which("chrome"),
+        shutil.which("msedge"),
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/Applications/Chromium.app/Contents/MacOS/Chromium",
+        "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+        "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+    ]
+    for item in candidates:
+        if item and Path(item).exists():
+            return item
+    return None
+
+
+def _http_json(url: str, timeout: float = 2) -> Any:
+    with urllib.request.urlopen(url, timeout=timeout) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def _devtools_port(profile_dir: str, proc: subprocess.Popen) -> int:
+    port_file = Path(profile_dir) / "DevToolsActivePort"
+    for _ in range(100):
+        if proc.poll() is not None:
+            raise SessionError("browser exited before DevTools started")
+        if port_file.exists():
+            line = port_file.read_text().splitlines()[0]
+            return int(line)
+        time.sleep(0.1)
+    raise SessionError("browser DevTools port did not start")
+
+
+def _page_ws_url(port: int, domain: str) -> str:
+    targets = _http_json(f"http://127.0.0.1:{port}/json/list")
+    if not isinstance(targets, list):
+        raise SessionError("browser DevTools target list was invalid")
+    pages = [t for t in targets if isinstance(t, dict) and t.get("type") == "page" and t.get("webSocketDebuggerUrl")]
+    target = next((t for t in pages if domain in str(t.get("url", ""))), pages[0] if pages else None)
+    if not target:
+        raise SessionError("browser page target not found")
+    return str(target["webSocketDebuggerUrl"])
+
+
+def _ws_read_exact(sock: socket.socket, n: int) -> bytes:
+    chunks: list[bytes] = []
+    remaining = n
+    while remaining:
+        chunk = sock.recv(remaining)
+        if not chunk:
+            raise SessionError("browser DevTools websocket closed")
+        chunks.append(chunk)
+        remaining -= len(chunk)
+    return b"".join(chunks)
+
+
+def _ws_send_text(sock: socket.socket, text: str) -> None:
+    payload = text.encode("utf-8")
+    header = bytearray([0x81])
+    if len(payload) < 126:
+        header.append(0x80 | len(payload))
+    elif len(payload) <= 0xFFFF:
+        header.extend([0x80 | 126])
+        header.extend(struct.pack("!H", len(payload)))
+    else:
+        header.extend([0x80 | 127])
+        header.extend(struct.pack("!Q", len(payload)))
+    mask = os.urandom(4)
+    masked = bytes(b ^ mask[i % 4] for i, b in enumerate(payload))
+    sock.sendall(bytes(header) + mask + masked)
+
+
+def _ws_recv_text(sock: socket.socket) -> str:
+    while True:
+        b1, b2 = _ws_read_exact(sock, 2)
+        opcode = b1 & 0x0F
+        length = b2 & 0x7F
+        if length == 126:
+            length = struct.unpack("!H", _ws_read_exact(sock, 2))[0]
+        elif length == 127:
+            length = struct.unpack("!Q", _ws_read_exact(sock, 8))[0]
+        mask = _ws_read_exact(sock, 4) if b2 & 0x80 else b""
+        payload = _ws_read_exact(sock, length)
+        if mask:
+            payload = bytes(b ^ mask[i % 4] for i, b in enumerate(payload))
+        if opcode == 8:
+            raise SessionError("browser DevTools websocket closed")
+        if opcode == 9:
+            continue
+        if opcode == 1:
+            return payload.decode("utf-8")
+
+
+def _cdp_call(ws_url: str, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+    parsed = urllib.parse.urlparse(ws_url)
+    host = parsed.hostname or "127.0.0.1"
+    port = parsed.port or 80
+    path = parsed.path + (("?" + parsed.query) if parsed.query else "")
+    key = base64.b64encode(os.urandom(16)).decode("ascii")
+    with socket.create_connection((host, port), timeout=5) as sock:
+        sock.settimeout(5)
+        request = (
+            f"GET {path} HTTP/1.1\r\n"
+            f"Host: {host}:{port}\r\n"
+            "Upgrade: websocket\r\n"
+            "Connection: Upgrade\r\n"
+            f"Sec-WebSocket-Key: {key}\r\n"
+            "Sec-WebSocket-Version: 13\r\n\r\n"
+        )
+        sock.sendall(request.encode("ascii"))
+        response = b""
+        while b"\r\n\r\n" not in response:
+            response += sock.recv(4096)
+        if b" 101 " not in response.split(b"\r\n", 1)[0]:
+            raise SessionError("browser DevTools websocket handshake failed")
+        _ws_send_text(sock, json.dumps({"id": 1, "method": method, "params": params or {}}))
+        while True:
+            msg = json.loads(_ws_recv_text(sock))
+            if msg.get("id") != 1:
+                continue
+            if "error" in msg:
+                raise SessionError(str(msg["error"]))
+            result = msg.get("result", {})
+            return result if isinstance(result, dict) else {}
+
+
+def _direct_browser_cookies(port: int, domain: str) -> dict[str, str]:
+    ws_url = _page_ws_url(port, domain)
+    try:
+        data = _cdp_call(ws_url, "Network.getCookies", {"urls": [f"https://{domain}/"]})
+    except SessionError:
+        data = _cdp_call(ws_url, "Network.getAllCookies")
+    cookies = data.get("cookies")
+    if not isinstance(cookies, list):
+        raise SessionError("browser cookie output did not contain a cookie list")
+    out: dict[str, str] = {}
+    for item in cookies:
+        if not isinstance(item, dict):
+            continue
+        name = item.get("name")
+        value = item.get("value")
+        if isinstance(name, str) and name and isinstance(value, str):
+            out[name] = value
+    return out
+
+
+def login_browser() -> dict[str, str]:
+    """Open an isolated browser and read its cookies via CDP."""
+    domain = config.require_domain()
+    exe = _browser_executable()
+    if not exe:
+        raise SessionError("browser login requires Chrome, Chromium, Edge, or Brave; set FSV_BROWSER=/path/to/browser, or use `--header`")
+
+    url = f"https://{domain}/"
+    timeout = int(os.environ.get("FSV_BROWSER_LOGIN_TIMEOUT", "600"))
+    deadline = time.time() + timeout
+    last_error = ""
+    sys.stderr.write(f"Opening browser for {url}\n")
+    sys.stderr.write("Complete SSO/MFA in that window. fsv will check cookies every 2s. Press Ctrl-C to cancel.\n")
+    with tempfile.TemporaryDirectory(prefix="fsv-browser-") as profile_dir:
+        proc = subprocess.Popen([
+            exe,
+            f"--user-data-dir={profile_dir}",
+            "--remote-debugging-port=0",
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--new-window",
+            url,
+        ])
+        try:
+            port = _devtools_port(profile_dir, proc)
+            while time.time() < deadline:
+                cookies = _direct_browser_cookies(port, domain)
+                try:
+                    validate(cookies)
+                    return cookies
+                except SessionError as e:
+                    msg = str(e)
+                    if msg != last_error:
+                        sys.stderr.write(f"Waiting for login: {msg}\n")
+                        last_error = msg
+                    time.sleep(2)
+            raise SessionError(f"browser login timed out after {timeout}s")
+        finally:
+            proc.terminate()
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+    raise SessionError("browser login failed")
