@@ -145,28 +145,31 @@ class TaskUpdateClient:
         self.puts = []
 
     def int_get(self, path, params=None):
-        assert path == "changes/1/tasks/1"
-        return {
-            "task": {
-                "id": 1,
-                "status": 1,
-                "title": "FSV task 1",
-                "custom_fields": {},
-                "human_display_id": "TSK-1",
-            }
-        }
+        raise AssertionError("update_task must not fetch and merge stale task fields")
 
     def int_put(self, path, body=None):
         self.puts.append((path, body))
         return {"task": body["change_task"]}
 
 
-def test_update_task_does_not_hardcode_required_custom_fields():
+def test_update_task_sends_only_requested_fields():
     c = TaskUpdateClient()
 
     task = create.update_task(1, 1, {"status": 2}, c=c)
 
     assert task["status"] == 2
-    assert c.puts == [
-        ("changes/1/tasks/1", {"change_task": {"status": 2, "title": "FSV task 1"}})
-    ]
+    assert c.puts == [("changes/1/tasks/1", {"change_task": {"status": 2}})]
+
+
+def test_update_task_filters_readonly_or_empty_custom_fields():
+    c = TaskUpdateClient()
+
+    task = create.update_task(
+        1,
+        1,
+        {"custom_fields": {"system": 100, "environment": None, "team_name": "x"}},
+        c=c,
+    )
+
+    assert task == {"custom_fields": {"system": 100}}
+    assert c.puts == [("changes/1/tasks/1", {"change_task": {"custom_fields": {"system": 100}}})]

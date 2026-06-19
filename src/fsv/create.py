@@ -858,27 +858,20 @@ def delete_task(change_id: int, task_id: int, c: Client | None = None) -> None:
 def update_task(change_id: int, task_id: int, body: dict[str, Any], c: Client | None = None) -> dict[str, Any]:
     """PUT update a task on a change.
 
-    Merges with existing task data. Custom fields are preserved when present,
-    but not hardcoded per-tenant — server-side validation decides what is
-    required for the current workspace.
+    Sends only the fields explicitly provided in `body`. Does NOT merge all
+    existing fields back — avoids 400 validation errors when stale/removed
+    choice values exist on the task server-side.
     """
     if c is None:
         c = get_client()
-    existing = c.int_get(f"changes/{change_id}/tasks/{task_id}").get("task", {})
-    merged = {k: v for k, v in existing.items() if k not in TASK_READ_ONLY_FIELDS and v is not None}
-    existing_cf = existing.get("custom_fields") or {}
-    body_cf = body.pop("custom_fields", {}) or {}
-    merged.update(body)
-    final_cf = {
-        k: v
-        for k, v in {**existing_cf, **body_cf}.items()
-        if k not in TASK_READONLY_CF and v is not None
-    }
-    if final_cf:
-        merged["custom_fields"] = final_cf
-    else:
-        merged.pop("custom_fields", None)
-    data = c.int_put(f"changes/{change_id}/tasks/{task_id}", {"change_task": merged})
+    payload = dict(body)
+    body_cf = payload.pop("custom_fields", None)
+    if body_cf:
+        payload["custom_fields"] = {
+            k: v for k, v in body_cf.items()
+            if k not in TASK_READONLY_CF and v is not None
+        }
+    data = c.int_put(f"changes/{change_id}/tasks/{task_id}", {"change_task": payload})
     return data.get("task", data)
 
 

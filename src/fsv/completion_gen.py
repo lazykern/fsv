@@ -133,10 +133,28 @@ class _Command:
         self.subcommands = subcommands
 
 
-def _walk(typer_app: Any, path: list[str]) -> _Command:
+def _filter_params_by_flags(params: list[_Param], allowed_flags: set[str] | None) -> list[_Param]:
+    if not allowed_flags:
+        return list(params)
+    return [p for p in params if allowed_flags.intersection(p.flags)]
+
+
+def _walk(
+    typer_app: Any,
+    path: list[str],
+    inherited_params: list[_Param] | None = None,
+    inherited_flags: set[str] | None = None,
+) -> _Command:
     """Recursively walk a Typer app into a _Command tree."""
-    params: list[_Param] = []
+    inherited_params = list(inherited_params or [])
+    inherited_flags = set(inherited_flags or set())
     subcommands: list[_Command] = []
+
+    callback_info = getattr(typer_app, "registered_callback", None)
+    callback = getattr(callback_info, "callback", None)
+    local_params = _extract_params(callback) if callback is not None else []
+    params = inherited_params + local_params
+    next_inherited_params = inherited_params + _filter_params_by_flags(local_params, inherited_flags)
 
     # Root-level commands (direct callbacks on this app)
     for cmd_info in getattr(typer_app, "registered_commands", []):
@@ -146,7 +164,7 @@ def _walk(typer_app: Any, path: list[str]) -> _Command:
         name = cmd_info.name or (cb.__name__.replace("_", "-") if cb else None)
         if name is None:
             continue
-        sub_params = _extract_params(cb)
+        sub_params = next_inherited_params + _extract_params(cb)
         sub_help = (getattr(cb, "__doc__", "") or "").split("\n")[0].strip()
         subcommands.append(
             _Command(path=path + [name], help=sub_help, params=sub_params, subcommands=[])
@@ -158,7 +176,7 @@ def _walk(typer_app: Any, path: list[str]) -> _Command:
         sub_app = grp_info.typer_instance
         if grp_name is None or sub_app is None:
             continue
-        sub = _walk(sub_app, path + [grp_name])
+        sub = _walk(sub_app, path + [grp_name], next_inherited_params, inherited_flags)
         subcommands.append(sub)
 
     help_text = ""
@@ -221,17 +239,20 @@ def _fish_lines(cmd: _Command, prog: str, py_exec: str) -> list[str]:
     lines: list[str] = []
     path = cmd.path[1:]  # drop prog name
 
+    def _join_cond(*parts: str) -> str:
+        return "; and ".join(part for part in parts if part)
+
     cond = _fish_cond(path)
-    n_cond = f" -n '{cond}'" if cond else ""
 
     # Direct sub-commands at this level
     direct_subcmds = [
         s.path[-1] for s in cmd.subcommands if len(s.path) == len(cmd.path) + 1
     ]
+    subcommand_absent = ""
     if direct_subcmds:
         not_yet = " ".join(shlex.quote(c) for c in direct_subcmds)
-        not_cond = f"not __fish_seen_subcommand_from {not_yet}"
-        full_cond = f"{cond}; and {not_cond}" if cond else not_cond
+        subcommand_absent = f"not __fish_seen_subcommand_from {not_yet}"
+        full_cond = _join_cond(cond, subcommand_absent)
         for sub in cmd.subcommands:
             if len(sub.path) != len(cmd.path) + 1:
                 continue
@@ -243,28 +264,29 @@ def _fish_lines(cmd: _Command, prog: str, py_exec: str) -> list[str]:
 
     # All value-expecting flags for this command (used to suppress flag names during value entry)
     value_flags = [f for p in cmd.params if p.kind in ("static", "dynamic", "freeform") for f in p.flags]
+    not_value_prev = ""
     if value_flags:
         vf_q = " ".join(shlex.quote(f) for f in value_flags)
         not_value_prev = f"not contains -- (commandline -opc)[-1] {vf_q}"
-        flag_guard = f"{cond}; and {not_value_prev}" if cond else not_value_prev
-    else:
-        flag_guard = cond
+    flag_guard = _join_cond(cond, not_value_prev)
+    root_scope = subcommand_absent if not path else ""
 
     # Params for this command
     for p in cmd.params:
+        param_guard = _join_cond(flag_guard, root_scope)
         for flag in p.flags:
             flag_q = shlex.quote(flag)
             if p.kind == "boolean":
-                n_flag_cond = f" -n '{flag_guard}'" if flag_guard else ""
+                n_flag_cond = f" -n '{param_guard}'" if param_guard else ""
                 lines.append(f"complete -c {prog} -f{n_flag_cond} -a {flag_q}")
             elif p.kind in ("static", "dynamic", "freeform"):
-                n_flag_cond = f" -n '{flag_guard}'" if flag_guard else ""
+                n_flag_cond = f" -n '{param_guard}'" if param_guard else ""
                 lines.append(f"complete -c {prog} -f{n_flag_cond} -a {flag_q}")
 
         if p.kind == "static" and p.static_values:
             flags_q = " ".join(shlex.quote(f) for f in p.flags)
             prev = f"contains -- (commandline -opc)[-1] {flags_q}"
-            vc = f"{cond}; and {prev}" if cond else prev
+            vc = _join_cond(cond, prev, root_scope)
             for val, desc in p.static_values:
                 lines.append(
                     f"complete -c {prog} -f -n '{vc}'"
@@ -275,7 +297,7 @@ def _fish_lines(cmd: _Command, prog: str, py_exec: str) -> list[str]:
         elif p.kind == "dynamic":
             flags_q = " ".join(shlex.quote(f) for f in p.flags)
             prev = f"contains -- (commandline -opc)[-1] {flags_q}"
-            vc = f"{cond}; and {prev}" if cond else prev
+            vc = _join_cond(cond, prev, root_scope)
             resource = p.resource or "-"
             extra = " -- (commandline -opc)" if p.completer == "complete_lookup_query" else ""
             py_call = (
@@ -502,9 +524,9 @@ def _emit_zsh(root: _Command, prog: str) -> str:
 
 def build_script(shell: str, prog_name: str) -> str:
     """Build a shell-native completion script for *prog_name* targeting *shell*."""
-    from fsv.cli import app
+    from fsv.cli import _ROOT_FLAGS_ANYWHERE, app
 
-    root = _walk(app, [prog_name])
+    root = _walk(app, [prog_name], inherited_flags=set(_ROOT_FLAGS_ANYWHERE))
 
     if shell == "fish":
         return _emit_fish(root, prog_name)

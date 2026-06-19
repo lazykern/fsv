@@ -107,6 +107,32 @@ def test_static_value_flag_output():
     assert "json" in values
 
 
+@pytest.mark.parametrize(
+    ("resource_name", "cmd_name"),
+    [
+        ("changes", "tasks-update"),
+        ("changes", "update"),
+        ("changes", "download"),
+        ("changes", "clone"),
+        ("changes", "create"),
+        ("tickets", "update"),
+        ("tickets", "download"),
+        ("problems", "update"),
+        ("problems", "download"),
+    ],
+)
+def test_mutation_commands_do_not_have_output(resource_name, cmd_name):
+    assert _get_param(resource_name, cmd_name, "--output") is None
+
+
+@pytest.mark.parametrize(("resource_name", "cmd_name"), [("changes", "download"), ("tickets", "download"), ("problems", "download")])
+def test_download_commands_use_dir_alias(resource_name, cmd_name):
+    p = _get_param(resource_name, cmd_name, "--dir")
+    assert p is not None
+    assert "--out" in p.flags
+    assert "-d" not in p.flags
+
+
 def test_dynamic_value_flag_where():
     p = _get_param("changes", "ls", "--where")
     assert p is not None
@@ -151,6 +177,21 @@ def test_fish_script_has_static_output_values():
     script = build_script("fish", "fsv")
     assert "table" in script
     assert "json" in script
+
+
+def test_fish_script_includes_global_verbose_for_leaf_commands():
+    from fsv.completion_gen import build_script
+    script = build_script("fish", "fsv")
+    assert "__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ls" in script
+    assert " -a --verbose" in script
+    assert " -a -v" in script
+
+
+def test_fish_script_scopes_root_only_flags_to_pre_subcommand():
+    from fsv.completion_gen import build_script
+    script = build_script("fish", "fsv")
+    assert "complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth completion config cache changes tickets problems' -a --version" in script
+    assert "complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --version" not in script
 
 
 def test_fish_script_contains_complete_fish_and_no_files():
@@ -219,6 +260,14 @@ def test_bash_script_has_complete_function():
     script = build_script("bash", "fsv")
     assert "_fsv_complete()" in script
     assert "complete -F _fsv_complete fsv" in script
+
+
+def test_bash_script_includes_global_verbose_for_leaf_commands():
+    from fsv.completion_gen import build_script
+    script = build_script("bash", "fsv")
+    assert '"changes ls")' in script
+    assert "--verbose" in script
+    assert "-v" in script
 
 
 def test_bash_script_uses_sys_executable():

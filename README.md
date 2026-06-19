@@ -23,8 +23,8 @@ fsv setup
 Or set up manually:
 
 ```bash
-fsv auth login --domain yourcompany.freshservice.com
-# paste the cookie value when prompted (see Login section below)
+fsv auth login --browser --domain yourcompany.freshservice.com
+# complete SSO/MFA in the opened browser (see Login section below)
 ```
 
 **3. Use it**
@@ -41,7 +41,7 @@ fsv tui                                    # interactive TUI
 
 ## How it works
 
-fsv calls the **internal** `/api/_/` endpoints the Freshservice web UI uses, not the public v2 REST API. These endpoints expose richer data with no published rate cap. Paste a valid browser session cookie once; fsv stores it locally.
+fsv calls the **internal** `/api/_/` endpoints the Freshservice web UI uses, not the public v2 REST API. These endpoints expose richer data with no published rate cap. Log in once through browser-assisted auth or paste a valid browser session cookie; fsv stores it locally.
 
 fsv also uses the public v2 API (`/api/v2/`) for schema, task writes, and approvals. Both paths share the same cookie.
 
@@ -141,7 +141,15 @@ uv sync
 
 ## Login
 
-fsv does **not** drive a browser or read browser storage. You bring the cookies.
+Preferred path: let fsv open an isolated browser, finish SSO/MFA there, then fsv checks every 2 seconds until it can read the browser cookies via CDP and store them.
+
+```bash
+fsv auth login --browser --domain yourcompany.freshservice.com
+```
+
+Browser login requires Chrome, Chromium, Edge, or Brave. If fsv cannot find your browser, set `FSV_BROWSER=/path/to/browser`.
+
+Manual fallback still works:
 
 1. Open `https://yourcompany.freshservice.com` in any browser, complete SSO login.
 2. Open DevTools → Network tab → click any `/api/_/...` request.
@@ -154,7 +162,7 @@ pbpaste | fsv auth login --domain yourcompany.freshservice.com --header -
 fsv auth login -d yourcompany.freshservice.com -H "_x_m=...; _x_d=...; ..."
 ```
 
-The Network-tab Cookie header includes HttpOnly cookies (`_itildesk_session`, `user_credentials`) that `document.cookie` cannot read; fsv needs these for API access.
+The browser/Network cookie set includes HttpOnly cookies (`_itildesk_session`, `user_credentials`) that `document.cookie` cannot read; fsv needs these for API access.
 
 ### Storage backends
 
@@ -172,9 +180,9 @@ Argon mode asks for a passphrase on save and read. Keychain first-read prompts m
 
 ### Why not username/password?
 
-The Freshworks login endpoint requires reCAPTCHA Enterprise tokens (Google JS sandbox + risk signals) with Cloudflare bot detection on top. No headless path works; cookie paste is the only option.
+The Freshworks login endpoint requires reCAPTCHA Enterprise tokens (Google JS sandbox + risk signals) with Cloudflare bot detection on top. No headless username/password path works; use `--browser` or paste the Cookie header manually.
 
-**Security note**: fsv never reads browser cookie databases, keychains, or profiles. No DLP concerns.
+**Security note**: browser-assisted login launches an isolated temporary browser profile with CDP enabled and does not read existing Chrome/Safari cookie databases, keychains, or profiles. Do not rely on saved browser passwords in that window persisting after login. Manual login reads only what you paste.
 
 ## Quick start
 
@@ -198,7 +206,7 @@ fsv changes add-note CHN-1234 "PVT result PASS"
 fsv changes clone CHN-1234 --with-tasks --with-planning
 
 # Download all attachments
-fsv changes download CHN-1234 --all --out ./evidence
+fsv changes download CHN-1234 --all --dir ./evidence
 ```
 
 ## Commands
@@ -265,13 +273,13 @@ fsv changes create --subject "Patch DB" --status Open --priority High --set "Cha
 fsv changes create --subject "Patch DB" --set "requester=alice@example.com" --no-input   # scriptable
 fsv changes create --dry-run
 fsv changes clone CHN-1234 --with-tasks --with-planning
-fsv changes download CHN-1234 --all --out ./evidence
-fsv changes assets CHN-1234 --list-categories
-fsv changes assets CHN-1234 --search app
-fsv changes assets CHN-1234 --search OOS --category "Application Portfolio"
-fsv changes assets CHN-1234 --add OOS --category "Application Portfolio" --dry-run
-fsv changes assets CHN-1234 --pick --yes
-fsv changes associations CHN-1234 --add SR-5678 --dry-run
+fsv changes download CHN-1234 --all --dir ./evidence
+fsv changes assets categories
+fsv changes assets search CHN-1234 app
+fsv changes assets search CHN-1234 OOS --category "Application Portfolio"
+fsv changes assets add CHN-1234 OOS --category "Application Portfolio" --dry-run
+fsv changes assets pick CHN-1234 --yes
+fsv changes associations add CHN-1234 SR-5678 --dry-run
 fsv tickets update INC-9012 --status Pending --agent alice@example.com
 fsv tickets update INC-9012 --group "Service Desk"
 fsv changes add-note CHN-1234 "PVT result PASS"      # private by default
@@ -289,9 +297,11 @@ fsv tickets reply INC-9012 "<HTML or text>"
 - **AND/OR grouping**: Default AND; add `--or` for OR grouping (e.g., `fsv tickets ls --where status=Open --where status=Pending --or`).
 - **Custom field values**: Custom fields use text labels (e.g., `--where 'Business Service=Email'`), default fields use choice IDs in filters.
 - **Update values**: `update --status/--priority` accepts labels or IDs; `--agent/--group` accepts names/emails or IDs; `--planning` accepts planning field label/name/id.
-- **Autocomplete**: `lookup` searches requesters, agents, groups, and schema choices; `--where requester=...` and `--where agent=...` use the same resolver. `changes assets --category` completes from Freshservice CMDB asset types.
+- **Machine output**: write/download commands use `--json`; `--output` stays on read/list/search commands.
+- **Nested asset/association commands**: use `changes assets {ls|search|add|remove|pick|categories}` and `changes associations {ls|search|add|remove|pick}`. Legacy flag-only forms still work but print deprecation warning.
+- **Autocomplete**: `lookup` searches requesters, agents, groups, and schema choices; `--where requester=...` and `--where agent=...` use the same resolver. `changes assets {ls|search|add|remove|pick} --category` completes from Freshservice CMDB asset types.
 - **Debug**: `--debug` shows resolved query_hash for inspection.
-- **Change asset categories**: `changes assets --list-categories` reads category/type labels from `/cmdb/items`. Asset search endpoint `/api/_/assets-to-associate` does not expose server-side category filtering, so `--category` filters matched rows client-side by asset type label. `--pick` requires TTY and prompts for category first when `--category` omitted.
+- **Change asset categories**: `changes assets categories` reads category/type labels from `/cmdb/items`. Asset search endpoint `/api/_/assets-to-associate` does not expose server-side category filtering, so `--category` filters matched rows client-side by asset type label. `assets pick` prompts for category first when `--category` omitted.
 - **Display IDs**: CHN- (changes), INC-/SR- (tickets — discriminate by `type`), PRB- (problems).
 - **Ticket approvals**: `fsv tickets approvals` is for approval-capable tickets; live tenant checks showed SR works consistently, while some INC tickets work and some return 404.
 - **Setup**: `fsv setup` walks through domain, auth, shell completion, network completion, and default filters interactively.

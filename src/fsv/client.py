@@ -1,19 +1,144 @@
 from __future__ import annotations
 
 import atexit
+import json
 import re
+import time
 from typing import Any, Iterator
+from urllib.parse import parse_qsl, quote, urlsplit
 
 import httpx
 
 from fsv import config
 from fsv.errors import APIError
+from fsv.render import err
 from fsv.session import SessionError, load_cookies, update_cookie
 
 UA = "fsv/0.1 (Freshservice CLI)"
 
 
 _instance: "Client | None" = None
+_VERBOSE = False
+_REDACT_KEYS = {
+    "access-token",
+    "api-key",
+    "apikey",
+    "authorization",
+    "cookie",
+    "csrf",
+    "password",
+    "refresh-token",
+    "secret",
+    "session-token",
+    "token",
+    "x-csrf-token",
+}
+_RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+_IDEMPOTENT_METHODS = {"GET", "HEAD", "OPTIONS"}
+_MAX_RETRIES = 2
+_RETRY_DELAYS = (0.5, 1.5)
+
+
+def set_verbose(value: bool) -> None:
+    global _VERBOSE
+    _VERBOSE = bool(value)
+
+
+def is_verbose() -> bool:
+    return _VERBOSE
+
+
+def _redact(value: Any) -> Any:
+    if isinstance(value, dict):
+        out: dict[Any, Any] = {}
+        for k, v in value.items():
+            key = str(k).strip().lower().replace("_", "-")
+            out[k] = "[redacted]" if key in _REDACT_KEYS else _redact(v)
+        return out
+    if isinstance(value, list):
+        return [_redact(v) for v in value]
+    if isinstance(value, tuple):
+        return tuple(_redact(v) for v in value)
+    return value
+
+
+def _query_string(url: str, params: dict[str, Any] | None) -> str:
+    parts = list(parse_qsl(urlsplit(url).query, keep_blank_values=True))
+    for key, value in (params or {}).items():
+        if value is None:
+            continue
+        if isinstance(value, (list, tuple)):
+            for item in value:
+                parts.append((str(key), "" if item is None else str(item)))
+        else:
+            parts.append((str(key), str(value)))
+    if not parts:
+        return ""
+    return "&".join(
+        f"{quote(key, safe='-._~')}={quote(value, safe='-._~,/:@')}"
+        for key, value in parts
+    )
+
+
+def _request_target(url: str, params: dict[str, Any] | None) -> str:
+    parsed = urlsplit(url)
+    path = parsed.path or "/"
+    query = _query_string(url, params)
+    return f"{path}?{query}" if query else path
+
+
+def _body_preview(kw: dict[str, Any]) -> str:
+    raw = ""
+    if kw.get("json") is not None:
+        raw = json.dumps(_redact(kw["json"]), ensure_ascii=False, separators=(",", ":"), default=str)
+    elif kw.get("data") is not None:
+        data = kw["data"]
+        raw = data.decode("utf-8", errors="replace") if isinstance(data, bytes) else str(data)
+    if not raw:
+        return ""
+    if len(raw) > 300:
+        raw = raw[:297] + "..."
+    return f" body={raw}"
+
+
+def _log_line(method: str, url: str, kw: dict[str, Any], outcome: str) -> None:
+    if not _VERBOSE:
+        return
+    body = _body_preview(kw) if method.upper() not in {"GET", "HEAD"} else ""
+    err.print(f"[api] {method.upper()} {_request_target(url, kw.get('params'))}{body} -> {outcome}", markup=False, highlight=False)
+
+
+def _retry_after_seconds(headers: httpx.Headers) -> float | None:
+    raw = headers.get("retry-after")
+    if not raw:
+        return None
+    try:
+        return max(0.0, min(float(raw), 10.0))
+    except ValueError:
+        return None
+
+
+def _retry_delay(attempt: int, response: httpx.Response | None = None) -> float:
+    if response is not None:
+        retry_after = _retry_after_seconds(response.headers)
+        if retry_after is not None:
+            return retry_after
+    return _RETRY_DELAYS[min(attempt, len(_RETRY_DELAYS) - 1)]
+
+
+def _should_retry(method: str, response: httpx.Response | None = None, exc: BaseException | None = None) -> bool:
+    if method.upper() not in _IDEMPOTENT_METHODS:
+        return False
+    if exc is not None:
+        return isinstance(exc, httpx.TransportError)
+    return response is not None and response.status_code in _RETRYABLE_STATUS
+
+
+def _response_body(r: httpx.Response) -> object:
+    try:
+        return r.json()
+    except Exception:
+        return r.text[:500]
 
 
 def get_client() -> "Client":
@@ -57,8 +182,41 @@ class Client:
     def __exit__(self, *_: object) -> None:
         self.close()
 
+    def _send(self, method: str, url: str, **kw: Any) -> httpx.Response:
+        last_exc: BaseException | None = None
+        for attempt in range(_MAX_RETRIES + 1):
+            t0 = time.time()
+            try:
+                r = self._client.request(method, url, **kw)
+            except Exception as e:
+                last_exc = e
+                if attempt < _MAX_RETRIES and _should_retry(method, exc=e):
+                    delay = _retry_delay(attempt)
+                    _log_line(method, url, kw, f"{type(e).__name__}: {e}; retry in {delay:g}s")
+                    time.sleep(delay)
+                    continue
+                _log_line(method, url, kw, f"{type(e).__name__}: {e}")
+                raise
+
+            rem = r.headers.get("x-ratelimit-remaining")
+            tot = r.headers.get("x-ratelimit-total")
+            if rem:
+                self._rl_rem = int(rem)
+            if tot:
+                self._rl_tot = int(tot)
+            rl = f" rl={rem}/{tot}" if rem and tot else ""
+            elapsed = f"{(time.time() - t0) * 1000:.0f}ms"
+            if attempt < _MAX_RETRIES and _should_retry(method, response=r):
+                delay = _retry_delay(attempt, r)
+                _log_line(method, url, kw, f"{r.status_code} {elapsed}{rl}; retry in {delay:g}s")
+                time.sleep(delay)
+                continue
+            _log_line(method, url, kw, f"{r.status_code} {elapsed}{rl}")
+            return r
+        raise last_exc or RuntimeError("request failed without response")
+
     def _request(self, method: str, url: str, **kw: Any) -> Any:
-        r = self._client.request(method, url, **kw)
+        r = self._send(method, url, **kw)
         location = (r.headers.get("location") or "").lower()
         if r.status_code in (301, 302) and "freshid" in location:
             raise SessionError("session expired; run `fsv auth login`")
@@ -68,17 +226,7 @@ class Client:
         if r.status_code == 200 and "text/html" in ct and "/api/" in url:
             raise SessionError("session expired; run `fsv auth login`")
         if r.status_code >= 400:
-            try:
-                body = r.json()
-            except Exception:
-                body = r.text[:500]
-            raise APIError(r.status_code, body)
-        rem = r.headers.get("x-ratelimit-remaining")
-        tot = r.headers.get("x-ratelimit-total")
-        if rem:
-            self._rl_rem = int(rem)
-        if tot:
-            self._rl_tot = int(tot)
+            raise APIError(r.status_code, _response_body(r), method, _request_target(url, kw.get("params")))
         fw = self._client.cookies.get("fw-session-id")
         if fw and fw != self._fw_session_id:
             self._fw_session_id = fw
@@ -178,9 +326,12 @@ class Client:
             return self._csrf
         _html_headers = {"Accept": "text/html,application/xhtml+xml"}
         for path in ("/a/changes", "/a/tickets", "/a/dashboard"):
-            html = self._client.get(f"https://{config.DOMAIN}{path}",
-                                    headers=_html_headers,
-                                    follow_redirects=True).text
+            html = self._send(
+                "GET",
+                f"https://{config.DOMAIN}{path}",
+                headers=_html_headers,
+                follow_redirects=True,
+            ).text
             m = (re.search(r'name="csrf-token"\s+content="([^"]+)"', html)
                  or re.search(r'<meta\s+content="([^"]+)"\s+name="csrf-token"', html))
             if m:
@@ -205,7 +356,8 @@ class Client:
         if not self._fw_domain:
             return False
         try:
-            self._client.post(
+            self._send(
+                "POST",
                 f"https://{self._fw_domain}/api/v2/session",
                 json={"session_token": fw_session_id, "checkSessionOnlyOnce": False},
                 headers={"Content-Type": "application/json"},
@@ -222,7 +374,7 @@ class Client:
         params = dict(params or {})
         for page in range(1, max_pages + 1):
             params["page"] = page
-            r = self._client.request("GET", f"{config.API_V2}/{path.lstrip('/')}", params=params)
+            r = self._send("GET", f"{config.API_V2}/{path.lstrip('/')}", params=params)
             location = (r.headers.get("location") or "").lower()
             if r.status_code in (301, 302) and "freshid" in location:
                 raise SessionError("session expired; run `fsv auth login`")
@@ -232,11 +384,7 @@ class Client:
             if r.status_code == 200 and "text/html" in ct:
                 raise SessionError("session expired; run `fsv auth login`")
             if r.status_code >= 400:
-                try:
-                    body = r.json()
-                except Exception:
-                    body = r.text[:500]
-                raise APIError(r.status_code, body)
+                raise APIError(r.status_code, _response_body(r), "GET", _request_target(f"{config.API_V2}/{path.lstrip('/')}", params))
             data = r.json()
             yield data
             link = r.headers.get("link", "")
@@ -246,11 +394,5 @@ class Client:
     def rate_limit_remaining(self) -> tuple[int | None, int | None]:
         if self._rl_rem is not None:
             return self._rl_rem, self._rl_tot
-        r = self._client.get(f"{config.API_V2}/changes?per_page=1")
-        rem = r.headers.get("x-ratelimit-remaining")
-        tot = r.headers.get("x-ratelimit-total")
-        if rem:
-            self._rl_rem = int(rem)
-        if tot:
-            self._rl_tot = int(tot)
+        self._send("GET", f"{config.API_V2}/changes?per_page=1")
         return self._rl_rem, self._rl_tot

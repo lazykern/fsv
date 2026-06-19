@@ -9,7 +9,7 @@ def test_views_command(monkeypatch):
     import fsv.cli as cli
 
     calls = []
-    monkeypatch.setattr(cli, "views_resource", lambda res: calls.append(res.name))
+    monkeypatch.setattr(cli, "views_resource", lambda res, format_="table", json_out=False: calls.append(res.name))
 
     result = CliRunner().invoke(cli.app, ["changes", "views"])
 
