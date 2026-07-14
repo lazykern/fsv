@@ -166,8 +166,11 @@ class Client:
         self._rl_tot: int | None = None
         cookies = load_cookies()
         self._fw_session_id: str | None = cookies.get("fw-session-id")
+        jar = httpx.Cookies()
+        for k, v in cookies.items():
+            jar.set(k, v, domain=config.DOMAIN)
         self._client = httpx.Client(
-            cookies=cookies,
+            cookies=jar,
             timeout=30.0,
             follow_redirects=False,
             headers={"User-Agent": UA, "Accept": "application/json"},
