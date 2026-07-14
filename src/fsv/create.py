@@ -146,7 +146,10 @@ def change_clone_data(change_id: int, c: Client | None = None) -> dict[str, Any]
     if "custom_fields" in change:
         cf = change.pop("custom_fields")
         if isinstance(cf, dict):
-            change.update(cf)
+            change.update({
+                k: v["id"] if isinstance(v, dict) and set(v) == {"id", "value"} else v
+                for k, v in cf.items()
+            })
 
     out: dict[str, Any] = {}
     for k, v in change.items():
@@ -439,7 +442,10 @@ def get_change_for_edit(change_id: int, c: Client | None = None) -> dict[str, An
     if "custom_fields" in change:
         cf = change.pop("custom_fields")
         if isinstance(cf, dict):
-            change.update(cf)
+            change.update({
+                k: v["id"] if isinstance(v, dict) and set(v) == {"id", "value"} else v
+                for k, v in cf.items()
+            })
 
     return {k: v for k, v in change.items() if k not in READ_ONLY_FIELDS}
 
@@ -464,6 +470,8 @@ def update_change(change_id: int, body: dict[str, Any], c: Client | None = None)
     for k, v in body.items():
         sf = sf_names.get(k, {})
         is_default = sf.get("default_field", False)
+        if isinstance(v, dict) and set(v) == {"id", "value"}:
+            v = v["id"]  # unwrap lookup {id, value} → id
         if k in CORE_NAMES or is_default:
             core[k] = v
         else:
@@ -993,6 +1001,8 @@ def submit_change(body: dict[str, Any], c: Client | None = None) -> dict[str, An
     for k, v in body.items():
         sf = sf_names.get(k, {})
         is_default = sf.get("default_field", False)
+        if isinstance(v, dict) and set(v) == {"id", "value"}:
+            v = v["id"]  # unwrap lookup {id, value} → id
         if k in CORE_NAMES or is_default:
             core[k] = v
         else:
