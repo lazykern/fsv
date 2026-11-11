@@ -10,6 +10,7 @@ from fsv.formmeta import (ClientResolver, RULES_UNAVAILABLE_KEY, apply_answers,
                          find_field, is_requester, load_meta, resolve_requester)
 from fsv.forms import FormState
 from fsv.forms.payload import _check, _module_body
+from fsv.readback import same_text, submitted_value_matches
 from fsv.resources import PROBLEMS, parse_id
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
 from fsv.views import collect_pages
@@ -135,8 +136,15 @@ def send(plan: ProblemPlan, client: Any, *, reviewed_hash: str | None) -> dict[s
         else:
             rows = inventory(client, plan.target, "notes" if key == "note" else "tasks")
             row = next((r for r in rows if str(r.get("id")) == str(exact_id)), None)
+        def matches(key: str, actual: Any, expected: Any) -> bool:
+            if create and key == "custom_fields":
+                return submitted_value_matches(actual, expected)
+            if create and key == "description":
+                return same_text(actual, expected)
+            return type(actual) is type(expected) and actual == expected
+
         fields = {k: "unavailable" if row is None or k not in row else
-                  "matched" if type(row[k]) is type(value) and row[k] == value else "mismatched"
+                  "matched" if matches(k, row[k], value) else "mismatched"
                   for k, value in plan.payload.items()}
         return {key + "_id": exact_id, "fields": fields,
                 "verified": row is not None and all(v == "matched" for v in fields.values())}

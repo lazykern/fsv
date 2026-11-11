@@ -53,6 +53,8 @@ def wire(request, monkeypatch, tmp_path):
                 return httpx.Response(200, json={key: rows, "has_more": False})
             if path.startswith("problems/"):
                 row = copy.deepcopy(state["rows"][int(path.split("/")[1])])
+                if state["writes"] and state.get("normalize"):
+                    state["normalize"](row)
                 if state["writes"] and state["readback"] == "missing":
                     row.pop("email", None)
                 return httpx.Response(200, json={"problem": row})
@@ -88,6 +90,38 @@ def wire(request, monkeypatch, tmp_path):
 
 def create(w):
     return flow.create_plan(w["client"], {"Subject": "Acme problem", "Description": "Acme details", "Status": "Open", "Priority": "Low", "Impact": "Low"}, "person@example.com")
+
+
+@pytest.mark.parametrize("actual,matched", [
+    ({"acme_count": "7", "default_flag": None}, True),
+    ({"acme_count": 7, "default_flag": False}, True),
+    ({"acme_count": "8"}, False),
+    ({"default_flag": None}, False),
+    ({"acme_count": True}, False),
+    (None, False),
+])
+def test_create_verifies_only_submitted_custom_fields(wire, actual, matched):
+    wire["fields"].append({"id": 601, "name": "acme_count", "label": "Acme count",
+                           "field_type": "custom_number", "position": 20})
+    answers = {"Subject": "Acme problem", "Description": "Acme details", "Status": "Open",
+               "Priority": "Low", "Impact": "Low", "Acme count": 7}
+    plan = flow.create_plan(wire["client"], answers, "person@example.com")
+    assert plan.payload["custom_fields"] == {"acme_count": 7}
+    def normalize(row):
+        row["custom_fields"] = actual
+        row["description"] = "Acme details"
+    wire["normalize"] = normalize
+    result = flow.send(plan, wire["client"], reviewed_hash=plan.hash)
+    assert result["verified"] is matched
+    assert result["fields"]["custom_fields"] == ("matched" if matched else "mismatched")
+    assert result["fields"]["description"] == "matched"
+    assert len(wire["writes"]) == 1
+
+
+def test_create_allows_server_custom_defaults_when_none_submitted(wire):
+    plan = create(wire)
+    wire["normalize"] = lambda row: row.update(custom_fields={"acme_default": None})
+    assert flow.send(plan, wire["client"], reviewed_hash=plan.hash)["verified"]
 
 
 def test_form_engine_create_and_exact_readback(wire):

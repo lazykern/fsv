@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 import re
 from typing import Any
 
@@ -11,6 +12,35 @@ def same_text(actual: Any, expected: Any) -> bool:
     from fsv.views import one_line
 
     return isinstance(actual, str) and isinstance(expected, str) and one_line(actual) == one_line(expected)
+
+
+def submitted_value_matches(actual: Any, expected: Any) -> bool:
+    """Compare submitted keys only, allowing canonical scalar wire normalization.
+
+    Missing keys, nulls, booleans and ordered lists remain distinct. In particular,
+    do not turn arbitrary numeric-looking text (e.g. leading-zero codes) into IDs.
+    """
+    if isinstance(expected, dict):
+        return isinstance(actual, dict) and all(
+            key in actual and submitted_value_matches(actual[key], value)
+            for key, value in expected.items())
+    if isinstance(expected, list):
+        return isinstance(actual, list) and len(actual) == len(expected) and all(
+            submitted_value_matches(a, e) for a, e in zip(actual, expected))
+    if type(actual) is type(expected):
+        return actual == expected
+    if type(expected) is bool:
+        return isinstance(actual, str) and actual.casefold() == str(expected).lower()
+    if type(actual) is bool or actual is None or expected is None:
+        return False
+    if type(expected) in (int, float) and isinstance(actual, str):
+        try:
+            return Decimal(actual).is_finite() and Decimal(actual) == Decimal(str(expected))
+        except InvalidOperation:
+            return False
+    if isinstance(expected, str) and type(actual) in (int, float):
+        return str(actual) == expected
+    return False
 
 
 def same_instant(actual: Any, expected: Any) -> bool:
