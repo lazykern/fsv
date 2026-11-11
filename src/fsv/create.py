@@ -606,69 +606,63 @@ def planning_server_key(defn: Mapping[str, Any]) -> str:
 
 
 def resolve_planning_definition(value: str, schema_fields: list[dict[str, Any]]) -> dict[str, Any]:
-    """A planning field by its label (what drafts and presets use: labels are
-    the same on every account while internal names are not), else by this
-    account's name or id, else by a looser match (``planning-field-`` /
-    ``cf_`` prefixes, export label, help text, singular/plural)."""
+    """Resolve an exact server identity or a unique exact current label."""
     raw = str(value or "").strip()
     defs = planning_definitions(schema_fields)
-    key = _norm_label(raw)
-    by_label = [f for f in defs if _norm_label(f.get("label")) == key]
-    if len(by_label) == 1:
-        return by_label[0]
-    for f in defs:
-        if raw in (str(f.get("name") or ""), str(f.get("id") or "")):
-            return f
+    identities = [f for f in defs if raw and raw in (str(f.get("name") or ""), str(f.get("id") or ""))]
+    labels = [f for f in defs if raw and _norm_label(f.get("label")) == _norm_label(raw)]
+    matches = identities or labels
+    if len(matches) > 1:
+        raise APIError(0, f"ambiguous planning field: {value!r}; select an exact identity")
+    if matches:
+        return matches[0]
     aliases = [raw]
     if raw.startswith("planning-field-"):
         aliases.append(raw.removeprefix("planning-field-"))
     aliases.extend(a.removeprefix("cf_") for a in list(aliases) if a.startswith("cf_"))
     keys = {_planning_key(a) for a in aliases} | {_singular_key(a) for a in aliases}
     keys.discard("")
+    matches = []
     for f in defs:
-        candidates = [
-            f.get("name"), f.get("id"), f.get("label"), f.get("export_label"),
-            f.get("helptext"), f.get("description"), f"planning-field-{f.get('name')}",
-            f"planning-field-cf_{f.get('name')}", f"cf_{f.get('name')}",
-        ]
-        cand_keys = {_planning_key(c) for c in candidates if c} | {_singular_key(c) for c in candidates if c}
-        if keys & cand_keys:
-            return f
+        candidates = [f.get("name"), f.get("id"), f.get("label"), f.get("export_label"),
+                      f.get("helptext"), f.get("description"), f"planning-field-{f.get('name')}",
+                      f"planning-field-cf_{f.get('name')}", f"cf_{f.get('name')}"]
+        candidate_keys = {_planning_key(c) for c in candidates if c} | {_singular_key(c) for c in candidates if c}
+        if keys & candidate_keys:
+            matches.append(f)
+    if len(matches) > 1:
+        raise APIError(0, f"ambiguous planning field: {value!r}; select an exact identity")
+    if matches:
+        return matches[0]
     known = ", ".join(str(f.get("label") or f.get("name")) for f in defs[:12])
     raise APIError(0, f"planning field not found: {value!r}; choices: {known}")
 
 
 def resolve_planning_field(value: str, schema_fields: list[dict[str, Any]]) -> str:
-    """The server key of the planning field ``value`` names (label first)."""
+    """The current server key for a planning field."""
     return planning_server_key(resolve_planning_definition(value, schema_fields))
 
 
 def match_planning_row(defn: Mapping[str, Any], rows: list[dict[str, Any]],
                        defs: list[dict[str, Any]] | None = None) -> dict[str, Any] | None:
-    """The ``change_planning_fields`` row for a definition: by name, then id,
-    then label, then (when the row list mirrors the definitions one to one)
-    by position. Never assumes a fixed internal name."""
+    """Bind by unique identity, then unique exact label; never by position."""
     rows = [r for r in rows or [] if isinstance(r, Mapping)]
     name, fid, label = defn.get("name"), defn.get("id"), _norm_label(defn.get("label"))
-    if name:
-        hit = next((r for r in rows if str(r.get("name") or "") == str(name)), None)
-        if hit is not None:
-            return hit
-    if fid is not None:
-        for k in ("field_id", "planning_field_id", "id"):
-            hit = next((r for r in rows if r.get(k) is not None and str(r.get(k)) == str(fid)), None)
-            if hit is not None:
-                return hit
-    if label:
-        hits = [r for r in rows if _norm_label(r.get("label")) == label]
-        if len(hits) == 1:
-            return hits[0]
-    if defs is not None and len(rows) == len(defs) and all(not r.get("label") and not r.get("name") for r in rows):
-        try:
-            return rows[[id(d) for d in defs].index(id(defn))]
-        except ValueError:
-            return None
-    return None
+    hits = [r for r in rows if name and str(r.get("name") or "") == str(name)]
+    if not hits and fid is not None:
+        hits = [r for r in rows if any(r.get(k) is not None and str(r[k]) == str(fid)
+                                       for k in ("field_id", "planning_field_id", "id"))]
+    if not hits and label:
+        # An explicit foreign definition id rules out an otherwise matching label.
+        hits = [r for r in rows if _norm_label(r.get("label")) == label and not (
+            fid is not None and any(r.get(k) is not None and str(r[k]) != str(fid)
+                                    for k in ("field_id", "planning_field_id")))]
+    if len(hits) > 1:
+        raise APIError(0, f"ambiguous planning rows for {label or name or fid!r}")
+    if hits and fid is not None and any(hits[0].get(k) is not None and str(hits[0][k]) != str(fid)
+                                        for k in ("field_id", "planning_field_id")):
+        raise APIError(0, f"conflicting planning row identity for {label or name or fid!r}")
+    return hits[0] if hits else None
 
 
 def _planning_description(field: dict[str, Any] | None) -> str:
@@ -778,14 +772,16 @@ def update_planning_field(
 
     # Fetch existing field content
     data = c.int_get(f"changes/{change_id}/planning-fields")
-    rows = [f for f in data.get("change_planning_fields", []) or [] if isinstance(f, dict)]
-    fields = {f["name"]: f for f in rows if f.get("name")}
-    existing = fields.get(field_id)
-    if existing is None and label:
-        # the row may carry another internal name on this account: match by label
-        existing = match_planning_row({"label": label}, rows)
-        if existing is not None and existing.get("name"):
-            field_id = str(existing["name"])
+    if not isinstance(data, Mapping) or not isinstance(data.get("change_planning_fields"), list):
+        raise APIError(0, "planning rows unavailable; cannot safely determine the write target")
+    rows = data["change_planning_fields"]
+    if any(not isinstance(row, Mapping) for row in rows):
+        raise APIError(0, "invalid planning row; cannot safely determine the write target")
+    existing = match_planning_row({"name": field_id, "label": label}, rows)
+    if existing is None and any(not (r.get("name") or r.get("label")) for r in rows):
+        raise APIError(0, "unidentified planning row; cannot safely determine the write target")
+    if existing is not None and existing.get("name"):
+        field_id = str(existing["name"])
 
     attachments = list((existing or {}).get("attachments", []) or [])
     all_att_ids = [att_id for att_id in (_attachment_id(a) for a in attachments) if att_id is not None]

@@ -28,6 +28,37 @@ def test_label_wins_over_another_fields_internal_name():
     assert create.resolve_planning_field("9000013003", GLOBEX_PLANNING) == "cfp_gx_checklist"
 
 
+def test_ambiguous_labels_and_helptext_never_select_first():
+    rows = [dict(GLOBEX_PLANNING[0], label="Review", helptext="Shared help"),
+            dict(GLOBEX_PLANNING[1], label="Review", helptext="Shared help")]
+    with pytest.raises(Exception, match="ambiguous"):
+        create.resolve_planning_definition("Review", rows)
+    with pytest.raises(Exception, match="ambiguous"):
+        create.resolve_planning_definition("Shared help", rows)
+    assert create.resolve_planning_definition(rows[1]["name"], rows) == rows[1]
+
+
+def test_reordered_opaque_rows_never_match_position_or_conflicting_id():
+    rows = [{"id": 111}, {"id": 222}, {"id": 333}]
+    assert create.match_planning_row(GLOBEX_PLANNING[0], rows[::-1], GLOBEX_PLANNING) is None
+    conflicting = [{"field_id": 123, "label": "Backout Plan"}]
+    assert create.match_planning_row(GLOBEX_PLANNING[0], conflicting) is None
+    with pytest.raises(Exception, match="ambiguous"):
+        create.match_planning_row({"label": "Review"}, [{"label": "Review"}, {"label": "Review"}])
+
+
+def test_opaque_existing_rows_block_before_writes():
+    class C:
+        def int_get(self, path):
+            return {"change_planning_fields": [{"id": 111}]}
+
+        def int_post(self, *args):
+            pytest.fail("must not write")
+
+    with pytest.raises(Exception, match="unidentified"):
+        create.update_planning_field(1, "rollout_plan", description="x", c=C())
+
+
 def test_no_hardcoded_name_aliases():
     with pytest.raises(Exception, match="planning field not found"):
         create.resolve_planning_field("reason_for_change", GLOBEX_PLANNING)

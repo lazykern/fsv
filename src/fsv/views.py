@@ -762,7 +762,14 @@ def load_planning(c: Any, record: Mapping[str, Any], schema: Mapping[str, Any] |
     out = []
     for d in defs:
         name = str(d.get("name") or "")
-        v = match_planning_row(d, rows, defs) or {}
+        try:
+            matched = match_planning_row(d, rows, defs)
+        except APIError:
+            return None, Missing("ambiguous planning rows")
+        if matched is None and any(not (r.get("name") or r.get("label") or r.get("field_id")
+                                         or r.get("planning_field_id")) for r in rows):
+            return None, Missing("unidentified planning rows")
+        v = matched or {}
         text = html_to_text(v.get("description") or v.get("description_html") or "") or str(v.get("description_text") or "").strip()
         out.append(PlanningEntry(name, html.unescape(str(d.get("label") or name)),
                                  one_line(d.get("helptext") or d.get("description") or ""), text,
