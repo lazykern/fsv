@@ -83,7 +83,7 @@ class ConversationPlan:
 
     @property
     def path(self) -> str:
-        return f"tickets/{self.ticket_id}/" + ("reply" if self.kind == "reply" else "notes")
+        return f"tickets/{self.ticket_id}/" + {"reply": "reply", "forward": "forward", "note": "notes"}[self.kind]
 
     @property
     def hash(self) -> str:
@@ -93,21 +93,44 @@ class ConversationPlan:
     def review(self) -> dict[str, Any]:
         return {"action": f"ticket_{self.kind}", "method": "POST", "path": f"/api/_/{self.path}",
                 "payload": self.payload, "status_label": self.status_label, "plan_hash": self.hash,
-                "warning": "A reply is public and may notify recipients; notes may also trigger tenant workflows."}
+                "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."}
 
 
 def build_plan(client: Any, ticket_id: str | int, body: str, *, kind: str = "reply",
                cc: tuple[str, ...] = (), public: bool = False, notify: tuple[str, ...] = (),
-               body_format: Literal["plain", "html"] = "plain", set_status: str | None = None) -> ConversationPlan:
-    if kind not in ("reply", "note"):
+               body_format: Literal["plain", "html"] = "plain", set_status: str | None = None,
+               bcc: tuple[str, ...] = (), sender: str | None = None) -> ConversationPlan:
+    from fsv.ticket_notes import _EMAIL
+    if kind not in ("reply", "note", "forward"):
         raise ValueError("invalid conversation kind")
     note = note_plan(ticket_id, body, public=public, notify_emails=notify, body_format=body_format)
+    if sender is not None and not _EMAIL.fullmatch(sender):
+        raise ValueError("sender must be a plain configured support email address")
+    if kind == "forward" and (not sender or not notify or set_status is not None or cc or bcc):
+        raise ValueError("whole-ticket forward requires explicit sender and recipients; no combined status/CC/BCC wire is proven")
+    if kind == "note" and (bcc or sender):
+        raise ValueError("note sender/BCC wire is not proven")
+    if bcc and (cc or set_status is not None):
+        raise ValueError("combined BCC/CC/status wire is not proven")
+    if bcc and (not sender or any(not _EMAIL.fullmatch(v) for v in bcc)):
+        raise ValueError("BCC requires a configured --sender and bare recipient emails")
     if kind == "reply":
         if any(not _valid_recipient(v) for v in cc):
             raise ValueError("invalid CC recipient")
         payload = {"body": note.body_html, "conversation_from_summary": False,
                    "cc_emails": list(cc), "full_text": note.body_html,
                    "translate_reply": False, "freddy_message_id": None}
+        if bcc:
+            payload["bcc_emails"] = list(bcc)
+            if not cc:
+                payload.pop("cc_emails")
+        if sender:
+            payload["from_email"] = sender
+    elif kind == "forward":
+        if any(not _EMAIL.fullmatch(v) for v in notify):
+            raise ValueError("forward requires bare recipient emails")
+        payload = {"body": note.body_html, "from_email": sender, "notify_emails": list(notify),
+                   "conversation_from_summary": False, "private": True}
     else:
         payload = note.payload
     record_hash = None
@@ -125,7 +148,7 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
     if plan.hash != reviewed_hash or not plan.tenant or plan.tenant != config.DOMAIN:
         raise ConversationError("tenant or review hash changed; review again")
     payload = plan.payload
-    if (plan.kind == "reply" or not payload.get("private", True)) and not public_confirmed:
+    if (plan.kind in ("reply", "forward") or not payload.get("private", True)) and not public_confirmed:
         raise ConversationError("public conversation requires explicit confirmation")
     action = f"ticket_{plan.kind}_reviewed"
     events = [r for r in journal.read() if r.get("kind") == f"plan:{action}" and r.get("plan") == plan.hash]
@@ -135,6 +158,10 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
         status_id, token, record_hash = status_context(client, plan.ticket_id, plan.status_label)
         if record_hash != plan.record_hash or payload.get("helpdesk_ticket") != {"status": status_id, "br_validation_excludes": token}:
             raise ConversationError("ticket or status metadata changed; review again")
+    # New recipient variants are looked up again before any send. No opaque
+    # user IDs or guessed sender identities are substituted into the payload.
+    for address in payload.get("bcc_emails", []) + (payload.get("notify_emails", []) if plan.kind == "forward" else []):
+        recipients(client, [address])
     try:
         csrf = client._get_csrf()
     except Exception:
@@ -166,9 +193,14 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
         exact = next((row for row in rows if str(row.get("id")) == str(conv_id)), None)
         expected = {"body": payload["body"]}
         if plan.kind == "reply":
-            expected["cc_emails"] = payload["cc_emails"]
+            if "cc_emails" in payload:
+                expected["cc_emails"] = payload["cc_emails"]
+            if "bcc_emails" in payload:
+                expected["bcc_emails"] = payload["bcc_emails"]
         else:
             expected.update(private=payload["private"], notify_emails=payload["notify_emails"])
+        if "from_email" in payload:
+            expected["from_email"] = payload["from_email"]
         fields = {k: ("unavailable" if exact is None or k not in exact else
                       "matched" if exact[k] == v else "mismatched") for k, v in expected.items()}
         if plan.status_label is not None:

@@ -26,6 +26,22 @@ fields and combined Resolved/Closed workflows are refused. Readback reports
 missing fields as unavailable, not verified. Legacy basic update flags remain
 available; `--reviewed` selects this stricter path explicitly.
 
+## BCC replies and whole-ticket forwards
+
+```sh
+fsv tickets reply INC-123 'Acme update' --bcc person@example.com --sender support@example.com --dry-run
+fsv tickets forward INC-123 'Acme update' --to person@example.com --sender support@example.com --dry-run
+```
+
+Both require `--yes --expect-plan FULL_HASH` to send after review. Recipients
+must resolve uniquely and are checked again before sending. `--sender` must
+be the configured support mailbox: it is explicitly user-asserted, never
+inferred or certified against an unproven mailbox endpoint. BCC and forward
+payloads have blocked-wire evidence, not accepted-send proof. Whole-ticket
+forward is not conversation forwarding; BCC+CC/status, alternate-To, and
+reply-all remain refused or unsupported. Missing BCC/sender readback fields
+remain unavailable, and a successful send is never replayed to obtain them.
+
 Schema reads use a seven-day cache, including legacy cache envelopes. Stale
 reads are identified internally with `stale` and `source`, warn on stderr,
 and start a background refresh; JSON stdout remains parseable. Force a

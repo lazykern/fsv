@@ -4722,6 +4722,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
             id_: str = typer.Argument(...),
             body: str = typer.Argument(...),
             cc: Optional[List[str]] = typer.Option(None, "--cc", help="CC email from user lookup (repeatable)"),
+            bcc: Optional[List[str]] = typer.Option(None, "--bcc", help="BCC plain email from user lookup (repeatable; requires --sender)"),
+            sender: Optional[str] = typer.Option(None, "--sender", help="explicit configured support mailbox; not inferred"),
             set_status: Optional[str] = typer.Option(None, "--set-status", help="send and set status (Pending only; resolved from runtime metadata)"),
             expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full hash from prior reply review"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print the reply without sending it"),
@@ -4729,14 +4731,16 @@ def _make_subapp(res: Resource) -> typer.Typer:
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Add a reply (conversation) to a ticket."""
-            if not cc and set_status is None and expect_plan is None:
+            if not cc and not bcc and sender is None and set_status is None and expect_plan is None:
                 reply_resource(res, id_, body, dry_run, yes, no_input)
                 return
             import json
             from fsv.ticket_conversation import ConversationError, build_plan, recipients, send
             try:
                 c = _client()
-                plan = build_plan(c, id_, body, cc=recipients(c, list(cc or [])), set_status=set_status)
+                recipients(c, list(bcc or []))
+                plan = build_plan(c, id_, body, cc=recipients(c, list(cc or [])), bcc=tuple(bcc or ()),
+                                  sender=sender, set_status=set_status)
                 if dry_run:
                     typer.echo(json.dumps({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
                     return
@@ -4753,6 +4757,32 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     return
                 result = send(plan, c, reviewed_hash=plan.hash, public_confirmed=True)
                 typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+            except (ValueError, ConversationError) as exc:
+                typer.echo(str(exc), err=True)
+                raise typer.Exit(2) from None
+
+        @sub.command("forward", help="Review and forward a whole ticket (not an individual conversation).")
+        def forward(
+            id_: str = typer.Argument(..., metavar="ID"),
+            body: str = typer.Argument(...),
+            to: List[str] = typer.Option(..., "--to", help="plain recipient email (repeatable)"),
+            sender: str = typer.Option(..., "--sender", help="configured support mailbox; not inferred"),
+            dry_run: bool = typer.Option(False, "--dry-run"),
+            yes: bool = typer.Option(False, "--yes"),
+            expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+        ) -> None:
+            import json
+            from fsv.ticket_conversation import ConversationError, build_plan, recipients, send
+            try:
+                c = _client()
+                recipients(c, to)
+                plan = build_plan(c, id_, body, kind="forward", notify=tuple(to), sender=sender)
+                if dry_run:
+                    typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                    return
+                if not yes or expect_plan != plan.hash:
+                    raise ConversationError("review with --dry-run, then pass --yes and the full --expect-plan hash")
+                typer.echo(json.dumps(send(plan, c, reviewed_hash=expect_plan, public_confirmed=True), indent=2))
             except (ValueError, ConversationError) as exc:
                 typer.echo(str(exc), err=True)
                 raise typer.Exit(2) from None

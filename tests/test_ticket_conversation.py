@@ -112,3 +112,57 @@ def test_cli_reply_and_note_review_then_send(monkeypatch):
     r = runner.invoke(cli.app, args + ["--yes", "--expect-plan", doc["plan_hash"]])
     assert r.exit_code == 0, r.output
     assert len(c.writes) == 2 and c.writes[-1][1].endswith("/notes")
+
+
+@pytest.mark.parametrize("kind", ["reply", "forward"])
+def test_bcc_and_whole_ticket_forward_exact_wire_hash_and_readback(monkeypatch, kind):
+    c = Client()
+    options = {"bcc": ("person@example.com",)} if kind == "reply" else {"notify": ("person@example.com",)}
+    p = conv.build_plan(c, 123, "Acme update", kind=kind, sender="support@example.com", **options)
+    assert p.payload["from_email"] == "support@example.com"
+    key = "bcc_emails" if kind == "reply" else "notify_emails"
+    assert p.payload[key] == ["person@example.com"]
+    if kind == "forward":
+        assert p.path.endswith("/forward")
+        assert p.payload == {"body": "<div>Acme update</div>", "from_email": "support@example.com",
+                             "notify_emails": ["person@example.com"], "conversation_from_summary": False, "private": True}
+    changed = conv.build_plan(c, 123, "Acme update", kind=kind, sender="other@example.com", **options)
+    assert p.hash != changed.hash
+    monkeypatch.setattr(conv, "load_conversations", lambda *a, **kw: ([{"id": 456, **p.payload}], {}, []))
+    result = conv.send(p, c, reviewed_hash=p.hash, public_confirmed=True)
+    assert result["verified"] and len(c.writes) == 1
+
+
+def test_bcc_missing_readback_is_unavailable_not_verified(monkeypatch):
+    c = Client()
+    p = conv.build_plan(c, 123, "Hello", bcc=("person@example.com",), sender="support@example.com")
+    monkeypatch.setattr(conv, "load_conversations", lambda *a, **kw: ([{"id": 456, "body": p.payload["body"], "cc_emails": []}], {}, []))
+    result = conv.send(p, c, reviewed_hash=p.hash, public_confirmed=True)
+    assert not result["verified"] and result["fields"]["bcc_emails"] == "unavailable"
+    with pytest.raises(conv.ConversationError, match="was sent"):
+        conv.send(p, c, reviewed_hash=p.hash, public_confirmed=True)
+    assert len(c.writes) == 1
+
+
+def test_bcc_and_forward_cli_require_exact_review(monkeypatch):
+    c = Client()
+    monkeypatch.setattr(cli, "_client", lambda: c)
+    runner = CliRunner()
+    for args in (["tickets", "reply", "123", "Hello", "--bcc", "person@example.com", "--sender", "support@example.com"],
+                 ["tickets", "forward", "123", "Hello", "--to", "person@example.com", "--sender", "support@example.com"]):
+        review = runner.invoke(cli.app, args + ["--dry-run"])
+        assert review.exit_code == 0, review.output
+        digest = json.loads(review.output)["plan_hash"]
+        assert runner.invoke(cli.app, args + ["--yes"]).exit_code == 2
+        sent = runner.invoke(cli.app, args + ["--yes", "--expect-plan", digest])
+        assert sent.exit_code == 0, sent.output
+    assert len(c.writes) == 2
+
+
+def test_forward_uncaptured_variants_refused():
+    c = Client()
+    with pytest.raises(ValueError, match="sender"):
+        conv.build_plan(c, 123, "Hello", bcc=("person@example.com",))
+    with pytest.raises(ValueError, match="forward requires"):
+        conv.build_plan(c, 123, "Hello", kind="forward", sender="support@example.com", notify=("person@example.com",), set_status="Pending")
+
