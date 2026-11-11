@@ -12,19 +12,21 @@ from rich.text import Text
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical, VerticalScroll
+from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.reactive import var
 from textual.screen import ModalScreen
 from textual.widgets import DataTable, Input, Static
 from textual.widgets._data_table import RowKey
 
-from fsv import config, schema as schema_mod, service
-from fsv.client import APIError, get_client
+from fsv import config, pages, schema as schema_mod, service
+from fsv import views as V
+from fsv.client import get_client
+from fsv.errors import SessionError
 from fsv.query import build_query_hash_from_schema
 from fsv.render import strip_html
 from fsv.resources import CHANGES, PROBLEMS, TICKETS, Resource, format_id
 from fsv.tui import actions
-from fsv.tui.modals import ConfirmScreen, NoteScreen, StatusScreen
+from fsv.tui.modals import ConfirmScreen, NoteScreen, StatusScreen, ViewPickerScreen
 
 
 ALL_RESOURCES = (TICKETS, CHANGES, PROBLEMS)
@@ -52,6 +54,27 @@ ENTITY_TAB_KEY = {"t": "tickets", "p": "problems", "c": "changes"}
 
 def _resource_for_entity(name: str) -> Resource | None:
     return {"tickets": TICKETS, "problems": PROBLEMS, "changes": CHANGES}.get(name)
+
+
+def _form_session(mode: str, item: dict | None, page: Any = None) -> Any:
+    """The ``fsv.formui`` session for a new change, or for editing ``item``
+    (``change_session(client, mode=..., target=..., record=...)``)."""
+    import fsv.formui as formui  # noqa: PLC0415 - optional
+
+    record = dict(page.record) if page is not None else (dict(item) if item else None)
+    if record is not None:
+        record.pop("_resource", None)
+    client = get_client()
+    factory = getattr(formui, "change_session", None)
+    if callable(factory):
+        if mode == "new":
+            return factory(client)
+        return factory(client, mode="edit", target=(record or {}).get("display_id") or (record or {}).get("id"),
+                       record=record)
+    fn = getattr(formui, "open_new_change" if mode == "new" else "open_edit_change", None)
+    if callable(fn):
+        return fn(client) if mode == "new" else fn(client, record)
+    raise ImportError("fsv.formui has no change_session")
 
 
 def _markup(value: Any) -> str:
@@ -82,7 +105,8 @@ class HelpScreen(ModalScreen[None]):
   [cyan]G/gg[/]         bottom/top in active pane
   [cyan]h/l[/]          entity in list pane, tabs in detail pane
   [cyan]gt/gp/gc[/]     jump to tickets/problems/changes
-  [cyan]1-8[/]          switch detail tab
+  [cyan]1-9[/]          switch detail tab (the tabs the web shows for the item)
+  [cyan]v[/]            pick a saved view by name (the list opens with the default view)
   [cyan]\\[][/cyan]         resize list/detail pane
 
 [bold]Search[/]
@@ -104,6 +128,10 @@ class HelpScreen(ModalScreen[None]):
   moving list cursor loads detail automatically
   [cyan]y[/]            copy selected display id
   [cyan]o[/]            open selected item in browser
+
+[bold]Forms[/] (changes; off with --read-only)
+  [cyan]N[/]            new change (full-screen form)
+  [cyan]e[/]            edit the selected change
 
 [bold]Write actions[/] (changes/tickets; off with --read-only)
   [cyan]s[/]            change status: pick, then confirm
@@ -177,6 +205,17 @@ class FsvApp(App):
         self._search_seq: int = 0
         self._search_cache: dict[str | None, tuple[list[dict], dict[str, int], int, bool]] = {}
         self._state_flow_cache: dict[int, list[dict]] = {}
+        # site-like views: saved views per entity, the current one, the
+        # signed-in agent, list meta, and the loaded detail pages
+        self._views: dict[str, list[Any]] = {}
+        self._view: dict[str, Any] = {}
+        self._headers: dict[str, list[dict[str, Any]]] = {}
+        self._me: dict[str, Any] | None = None
+        self._tz: Any = None
+        self._list_total: int | None = None
+        self._list_sort: str = "created_at"
+        self._columns: list[Any] = []
+        self._details: dict[str, Any] = {}
         self._load_filter_history()
 
     def compose(self) -> ComposeResult:
@@ -191,9 +230,13 @@ class FsvApp(App):
             with Vertical(id="detail"):
                 yield Static(id="detail-bar")
                 yield Static(id="state-flow-bar")
+                yield Static(id="reporter-line")
                 yield Static(id="detail-tabs")
-                with VerticalScroll(id="detail-scroll"):
-                    yield Static(id="detail-content")
+                with Horizontal(id="detail-body"):
+                    with VerticalScroll(id="detail-scroll"):
+                        yield Static(id="detail-content")
+                    with VerticalScroll(id="detail-side"):
+                        yield Static(id="detail-props")
         yield Static(id="status-bar")
         yield Static(id="key-hints")
 
@@ -202,6 +245,8 @@ class FsvApp(App):
         for widget in self.query("Vertical, VerticalScroll, Static"):
             widget.styles.background = "transparent"
         self.query_one("#state-flow-bar", Static).display = False
+        self.query_one("#reporter-line", Static).display = False
+        self.query_one("#detail-side").display = False
         filter_input = self.query_one("#filter-input", Input)
         filter_input.display = False
         filter_input.styles.background = "transparent"
@@ -226,9 +271,23 @@ class FsvApp(App):
         c = get_client()
         for res in ALL_RESOURCES:
             if res.name not in self._schemas:
-                self._schemas[res.name] = schema_mod.load(res, c)
+                try:
+                    self._schemas[res.name] = schema_mod.load(res, c)
+                except SessionError:
+                    raise
+                except Exception:  # noqa: BLE001 - module off on this account (e.g. no problems)
+                    self._schemas[res.name] = {"fields": []}
+        if self._me is None:
+            self._me = V.current_user(c)
+            self._tz = V.user_tz(self._me)
 
         res = _resource_for_entity(self.entity)
+        if res.name not in self._views:
+            views, _miss = V.load_views(c, res)
+            self._views[res.name] = views
+            self._view.setdefault(res.name, V.default_view(views))
+        if res == TICKETS and res.name not in self._headers:
+            self._headers[res.name] = V.ticket_headers(c)
         query_hash: str | None = None
         if self._active_filters:
             try:
@@ -237,11 +296,24 @@ class FsvApp(App):
             except ValueError as exc:
                 self.call_from_thread(self._set_filter_error, str(exc))
                 return
-        items, total = service.list_items(
-            res, client=c, page=self._page, per_page=self._per_page, query_hash=query_hash
+        view = None if self._active_filters else self._view.get(res.name)
+        order_by, order_type = "created_at", "desc"
+        if view is not None and view.raw:
+            settings = V.view_settings(c, res, view)
+            if settings.get("order_by"):
+                order_by, order_type = settings["order_by"], settings.get("order_type") or "desc"
+        self._list_sort = order_by
+        items, data = service.list_page(
+            res, client=c, page=self._page, per_page=self._per_page, query_hash=query_hash,
+            filter_name=view.id if view is not None else None, order_by=order_by, order_type=order_type,
         )
+        total, _more = V.list_meta(data, items, self._page, self._per_page)
+        self._list_total = total
 
-        self.call_from_thread(self._populate_list, items, total, append)
+        self.call_from_thread(self._populate_list, items, total if total is not None else len(items), append)
+
+    def _list_columns(self, res: Resource) -> list[Any]:
+        return V.list_columns(res, self._schemas.get(res.name, {"fields": []}), self._headers.get(res.name))
 
     def _populate_list(self, items: list[dict], total: int, append: bool = False) -> None:
         self._loading_more = False
@@ -250,25 +322,45 @@ class FsvApp(App):
         self._has_more = len(items) == self._per_page
 
         table = self.query_one("#list", DataTable)
+        res_now = _resource_for_entity(self.entity) or TICKETS
 
         if not append:
             self._items = items
+            self._columns = self._list_columns(res_now) if not self._search_mode else []
             table.clear(columns=True)
-            table.add_columns("", "ID", "STATUS", "PRI", "SUBJECT", "REQUESTER")
+            if self._columns:
+                table.add_columns("", *[col.label for col in self._columns])
+            else:
+                table.add_columns("", "ID", "STATUS", "PRI", "SUBJECT", "REQUESTER")
             offset = 0
         else:
             offset = len(self._items)
             self._items.extend(items)
 
+        me_id = (self._me or {}).get("id")
         for idx, item in enumerate(items):
             row_num = offset + idx
             res: Resource = item.get("_resource", TICKETS)
             schema = self._schemas.get(res.name, {"fields": []})
             did = format_id(item, res)
+            sel = f"{row_num + 1:03d}"
+            if self._columns:
+                row = V.list_row(item, res, self._columns, schema, me_id, self._tz)
+                cells: list[Any] = []
+                for col in self._columns:
+                    val = row.get(col.key, "")
+                    if col.key == "subject":
+                        t = Text(f"#{did} ", style="dim cyan")
+                        t.append((val or "")[:80])
+                        cells.append(t)
+                    elif col.key == "status":
+                        cells.append(Text(val, style="green"))
+                    else:
+                        cells.append(Text(val or "--", style="" if val else "dim"))
+                table.add_row(sel, *cells, key=did)
+                continue
             status = service.resolve_status(item, res, schema)
             pri = service.resolve_priority(item)
-            sel = f"{row_num + 1:03d}"
-
             subject = (item.get("subject") or "")[:80]
             requester = ((item.get("requester") or {}).get("name") if isinstance(item.get("requester"), dict) else "") or ""
             table.add_row(sel, did, status, pri, subject, requester, key=did)
@@ -289,20 +381,46 @@ class FsvApp(App):
         item_id = item.get("id")
         cache_key = f"{res.name}:{item_id}"
 
-        if cache_key in self._detail_cache:
+        if cache_key in self._detail_cache and cache_key in self._details:
             detail = self._detail_cache[cache_key]
         else:
             c = get_client()
-            detail = service.get_item(res, item_id, client=c)
-            self._detail_cache[cache_key] = detail
+            try:
+                page = V.load_detail(c, res, item_id, schema=self._schemas.get(res.name))
+            except Exception as exc:  # noqa: BLE001 - shown in the pane
+                if cache_key not in self._detail_cache:
+                    self.call_from_thread(self._detail_error, detail_key, actions.clean_error(exc))
+                    return
+                page = None
+            if page is not None:
+                page.record["_resource"] = res
+                self._details[cache_key] = page
+                detail = page.record
+                self._detail_cache[cache_key] = detail
+            else:
+                detail = self._detail_cache[cache_key]
 
         self.call_from_thread(self._show_detail, detail, res, detail_key)
+
+    def _detail_error(self, detail_key: str, message: str) -> None:
+        if self._pending_detail_key != detail_key:
+            return
+        self.query_one("#detail-content", Static).update(Text(f"could not load: {message}", style="red"))
+
+    def _page_for(self, item: dict | None) -> Any:
+        if not item:
+            return None
+        res: Resource = item.get("_resource", TICKETS)
+        return self._details.get(f"{res.name}:{item.get('id')}")
 
     def _show_detail(self, item: dict, resource: Resource, detail_key: str) -> None:
         if self._pending_detail_key != detail_key:
             return
         self._selected = item
         self._pending_sub_key = None
+        tabs = self._tab_names(resource)
+        if self.detail_tab_idx >= len(tabs):
+            self.detail_tab_idx = 0
         self._render_detail_bar(item, resource)
         self._trigger_state_flow(item, resource)
         self._render_detail_tabs(resource)
@@ -323,25 +441,12 @@ class FsvApp(App):
             data = self._sub_cache[cache_key]
         else:
             c = get_client()
+            page = self._page_for(item)
+            record = page.record if page is not None else item
             try:
-                if tab_name in ("notes", "conversations"):
-                    data = service.get_notes(res, item_id, client=c)
-                elif tab_name == "tasks":
-                    data = service.get_tasks(res, item_id, client=c)
-                elif tab_name == "approvals":
-                    data = service.get_approvals(res, item_id, client=c)
-                elif tab_name == "assets":
-                    data = service.get_assets(res, item_id, client=c)
-                elif tab_name == "associations":
-                    data = service.get_associations(res, item_id, client=c)
-                elif tab_name == "activity":
-                    data = service.get_activities(res, item_id, client=c)
-                elif tab_name == "resolution":
-                    data = item
-                else:
-                    data = None
-            except APIError as exc:
-                data = [] if exc.status == 404 else None
+                data = V.load_tab(c, res, record, tab_name)
+            except Exception as exc:  # noqa: BLE001 - shown in the pane
+                data = V.TabData(tab_name, V.tab_label(tab_name), missing=V.Missing(actions.clean_error(exc)))
             self._sub_cache[cache_key] = data
 
         self.call_from_thread(self._render_sub_content, tab_name, data, res, sub_key)
@@ -355,13 +460,38 @@ class FsvApp(App):
         resource: Resource = self._selected.get("_resource", TICKETS)
         return self._item_key(self._selected, resource)
 
-    def _current_tab_name(self, resource: Resource | None = None) -> str:
+    def _tab_names(self, resource: Resource | None = None) -> list[str]:
+        """The tabs the web shows for the selected item (from the tabs API),
+        else fsv's fallback list."""
+        page = self._page_for(self._selected)
+        if page is not None and (resource is None or page.resource.name == resource.name):
+            return page.tab_names()
         if resource is None:
-            if not self._selected:
-                return "details"
-            resource = self._selected.get("_resource", TICKETS)
-        tabs = DETAIL_TAB_LABELS.get(resource.name, ["details"])
+            resource = (self._selected or {}).get("_resource", TICKETS)
+        return DETAIL_TAB_LABELS.get(resource.name, ["details"])
+
+    def _current_tab_name(self, resource: Resource | None = None) -> str:
+        if resource is None and not self._selected:
+            return "details"
+        tabs = self._tab_names(resource)
         return tabs[min(self.detail_tab_idx, len(tabs) - 1)]
+
+    def _maybe(self, selector: str) -> Any:
+        try:
+            return self.query_one(selector)
+        except Exception:  # noqa: BLE001 - optional widget (tests stub query_one)
+            return None
+
+    def _show_side(self, lines: list[str] | None) -> None:
+        side, props = self._maybe("#detail-side"), self._maybe("#detail-props")
+        if side is None or props is None:
+            return
+        if lines is None:
+            side.display = False
+            props.update("")
+            return
+        props.update(Text.from_markup("\n".join(lines)))
+        side.display = True
 
     def _active_pane(self) -> str:
         if self.query_one("#detail-scroll", VerticalScroll).has_focus_within:
@@ -398,6 +528,11 @@ class FsvApp(App):
         self.query_one("#detail-bar", Static).update("")
         self.query_one("#state-flow-bar", Static).update("")
         self.query_one("#state-flow-bar", Static).display = False
+        rep_line = self._maybe("#reporter-line")
+        if rep_line is not None:
+            rep_line.update("")
+            rep_line.display = False
+        self._show_side(None)
         self.query_one("#detail-tabs", Static).update("")
         self.query_one("#detail-content", Static).update(Text.from_markup(message))
         self._reset_detail_scroll()
@@ -410,6 +545,7 @@ class FsvApp(App):
         self._pending_sub_key = None
         self.query_one("#detail-bar", Static).update("")
         self.query_one("#detail-tabs", Static).update("")
+        self._show_side(None)
         self.query_one("#detail-content", Static).update(Text.from_markup(message))
         self._reset_detail_scroll()
         self._render_filter_bar()
@@ -1135,11 +1271,96 @@ class FsvApp(App):
                     parts.append(f"[bold reverse] {label} [/] ")
                 else:
                     parts.append(f"{label}  ")
-            rows = len(self._items)
-            total = self._total
-            count = f"{rows}/{total}" if total > rows else str(rows)
-            parts.append(f"  [dim]{count} rows  ? help[/]")
+            parts.append("  " + self._view_header())
+            parts.append("  [dim]v views  ? help[/]")
         self.query_one("#header", Static).update(Text.from_markup("".join(parts)))
+
+    def _view_header(self) -> str:
+        """``<view> · 1-100 of N · Sort by: Created Date`` like the web."""
+        res = _resource_for_entity(self.entity) or TICKETS
+        view = None if self._active_filters else self._view.get(res.name)
+        name = view.name if view is not None else ("Filtered" if self._active_filters else f"All {res.name}")
+        rows = len(self._items)
+        rng = f"1-{rows}" if rows else "0"
+        total = self._list_total if self._list_total is not None else (self._total or rows)
+        of = f" of {total}" if total >= rows else f" of {rows}+"
+        sort = V.sort_label(self._list_sort, self._schemas.get(res.name))
+        return f"[bold]{escape(name)}[/][dim] · {rng}{of} · Sort by: {escape(sort)}[/]"
+
+    def _pick_view(self) -> None:
+        if self._search_mode:
+            return
+        res = _resource_for_entity(self.entity) or TICKETS
+        views = self._views.get(res.name) or []
+        if not views:
+            self.notify("No saved views on this account for " + res.name, severity="warning")
+            return
+
+        def picked(view: Any) -> None:
+            if view is None:
+                return
+            self._view[res.name] = view
+            self._active_filters = []
+            self._reload_list(f"[dim]loading {escape(view.name)}...[/]")
+
+        self.push_screen(ViewPickerScreen(views, self._view.get(res.name), title=f"{res.name.capitalize()} views"), picked)
+
+    def _open_form(self, mode: str) -> None:
+        """``N`` new change / ``e`` edit the selected change in the full-screen
+        form (``fsv.formui``), when that module is installed."""
+        if self.read_only:
+            self.notify("Read-only mode: write actions are disabled", severity="warning")
+            return
+        item = self._selected
+        if mode == "edit" and (not item or item.get("_resource", TICKETS).name != "changes"):
+            self.notify("Select a change to edit", severity="warning")
+            return
+        try:
+            import fsv.formui as formui  # noqa: PLC0415 - optional, built separately
+            screen_cls = formui.FormScreen
+        except (ImportError, AttributeError):
+            self.notify("form UI not available", severity="warning")
+            return
+        self.notify("opening the form…", timeout=2)
+        self._build_form(mode, item, screen_cls)
+
+    @work(thread=True, exclusive=True, group="form")
+    def _build_form(self, mode: str, item: dict | None, screen_cls: Any) -> None:
+        try:
+            session = _form_session(mode, item, self._page_for(item))
+        except Exception as exc:  # noqa: BLE001 - shown as a toast
+            self.call_from_thread(self.notify, f"form UI not available: {actions.clean_error(exc)}",
+                                  severity="warning")
+            return
+        self.call_from_thread(self._push_form, screen_cls, session, mode, item)
+
+    def _push_form(self, screen_cls: Any, session: Any, mode: str, item: dict | None) -> None:
+        def done(result: Any) -> None:
+            action = getattr(result, "action", None)
+            if action == "save_draft":
+                self.notify(f"Draft saved: {getattr(result, 'saved_path', '')}")
+            elif action == "submit" and getattr(result, "plan", None) is not None:
+                self._send_form(session, result, mode, item)
+
+        try:
+            self.push_screen(screen_cls(session), done)
+        except Exception as exc:  # noqa: BLE001
+            self.notify(f"form UI not available: {actions.clean_error(exc)}", severity="warning")
+
+    @work(thread=True, group="write")
+    def _send_form(self, session: Any, result: Any, mode: str, item: dict | None) -> None:
+        try:
+            out = session.send(result.plan)
+        except Exception as exc:  # noqa: BLE001 - shown as a toast
+            self.call_from_thread(self.notify, actions.clean_error(exc), title="Write failed",
+                                  severity="error", timeout=8)
+            return
+        done = (out or {}).get("human_display_id") if isinstance(out, dict) else None
+        if mode == "edit" and item is not None:
+            self.call_from_thread(self._after_write, item.get("_resource", CHANGES), item, "Change updated")
+        else:
+            self.call_from_thread(self.notify, f"Change created {done or ''}".strip())
+            self.call_from_thread(self._reload_list)
 
     def _render_filter_bar(self) -> None:
         sel = format_id(self._selected, self._selected["_resource"]) if self._selected else "-"
@@ -1161,84 +1382,38 @@ class FsvApp(App):
         )
 
     def _trigger_state_flow(self, item: dict, resource: Resource) -> None:
+        """Lifecycle bar + reporter line from the loaded page (no extra calls;
+        accounts without a lifecycle just show none)."""
         bar = self.query_one("#state-flow-bar", Static)
-        if resource.name != "changes":
-            bar.update("")
-            bar.display = False
-            return
-        state_flow_id = item.get("state_flow_id")
-        if not state_flow_id:
-            bar.display = False
-            return
-        if state_flow_id in self._state_flow_cache:
-            self._render_state_flow_bar(item)
-        else:
-            bar.update(Text.from_markup("[dim]loading flow…[/]"))
-            bar.display = True
-            self._fetch_state_flow(item)
-
-    @work(thread=True, exclusive=True, group="state-flow")
-    def _fetch_state_flow(self, item: dict) -> None:
-        state_flow_id = item.get("state_flow_id")
-        if not state_flow_id:
-            return
-        try:
-            from fsv.state_flow import get_state_flow
-            flow = get_state_flow(state_flow_id)
-            self._state_flow_cache[state_flow_id] = flow.get("state_list", [])
-        except Exception:
-            return
-        self.call_from_thread(self._on_state_flow_loaded, item)
-
-    def _on_state_flow_loaded(self, item: dict) -> None:
-        if not self._selected or self._selected.get("id") != item.get("id"):
-            return
-        self._render_state_flow_bar(item)
-
-    def _render_state_flow_bar(self, item: dict) -> None:
-        bar = self.query_one("#state-flow-bar", Static)
-        state_flow_id = item.get("state_flow_id")
-        state_list = self._state_flow_cache.get(state_flow_id, [])
-        if not state_list:
-            bar.display = False
-            return
-        current = item.get("status")
-        traversal = set(item.get("state_traversal") or [])
-        cur_idx = next((i for i, s in enumerate(state_list) if s["id"] == current), None)
-        if cur_idx is None:
-            bar.display = False
-            return
-
-        total = len(state_list)
-        context = 3
-        lo = max(0, cur_idx - context)
-        hi = min(total - 1, cur_idx + context)
-
-        parts: list[str] = []
-        if lo > 0:
-            parts.append("[dim]…[/]")
-        for i in range(lo, hi + 1):
-            sid, name = state_list[i]["id"], escape(state_list[i]["value"])
-            if i == cur_idx:
-                parts.append(f"[bold black on green] {name} [/]")
-            elif sid in traversal:
-                parts.append(name)
-            else:
-                parts.append(f"[dim]{name}[/]")
-        if hi < total - 1:
-            parts.append("[dim]…[/]")
-
-        bar.update(Text.from_markup(" [dim]>[/] ".join(parts)))
-        bar.display = True
+        page = self._page_for(item)
+        markup = pages.lifecycle_markup(page.lifecycle, context=3) if page is not None else ""
+        bar.update(Text.from_markup(markup) if markup else "")
+        bar.display = bool(markup)
+        rep_line = self._maybe("#reporter-line")
+        if rep_line is not None:
+            text = pages.reporter_markup(page) if page is not None else ""
+            rep_line.update(Text.from_markup(text) if text else "")
+            rep_line.display = bool(text)
 
     def _render_detail_bar(self, item: dict, resource: Resource) -> None:
+        bar = self.query_one("#detail-bar", Static)
+        page = self._page_for(item)
+        did = format_id(item, resource)
+        subject = item.get("subject") or ""
+        text = Text()
+        if page is not None:
+            text.append(f"#{did} ", style="bold cyan")
+            text.append(f"{subject[:90]}  ", style="bold")
+            text.append(page.badge, style="bold green")
+            due = page.due_text()
+            stats = page.record.get("stats") or {}
+            if due and not (resource.name == "tickets" and (stats.get("resolved_at") or stats.get("closed_at"))):
+                text.append(f", due {due}", style="dim")
+            bar.update(text)
+            return
         schema = self._schemas.get(resource.name, {"fields": []})
         status = service.resolve_status(item, resource, schema)
         pri = service.resolve_priority(item)
-        did = format_id(item, resource)
-        subject = item.get("subject") or ""
-        bar = self.query_one("#detail-bar", Static)
-        text = Text()
         if resource.name != "changes":
             text.append(f"[{status}]", style="bold green")
             text.append("  ")
@@ -1247,6 +1422,12 @@ class FsvApp(App):
         bar.update(text)
 
     def _render_detail_tabs(self, resource: Resource) -> None:
+        page = self._page_for(self._selected)
+        if page is not None and page.resource.name == resource.name:
+            active = self._current_tab_name(resource)
+            self.query_one("#detail-tabs", Static).update(
+                Text.from_markup(pages.tab_bar(page, active, numbered=True)))
+            return
         tabs = DETAIL_TAB_LABELS.get(resource.name, ["details"])
         parts = []
         for idx, tab in enumerate(tabs):
@@ -1264,10 +1445,17 @@ class FsvApp(App):
 
         if tab_name == "details":
             self._pending_sub_key = None
-            content = self._format_details(item, resource)
+            page = self._page_for(item)
+            if page is not None:
+                content = "\n".join(pages.main_lines(page) + [""] + pages.notes_lines(page))
+                self._show_side(pages.side_lines(page))
+            else:
+                content = self._format_details(item, resource)
+                self._show_side(None)
             self.query_one("#detail-content", Static).update(Text.from_markup(content))
             self._reset_detail_scroll()
         else:
+            self._show_side(None)
             sub_key = f"{self._item_key(item, resource)}:{tab_name}"
             self._pending_sub_key = sub_key
             self.query_one("#detail-content", Static).update(
@@ -1282,7 +1470,11 @@ class FsvApp(App):
         current_key = self._selected_key()
         if current_key is None or f"{current_key}:{self._current_tab_name(resource)}" != sub_key:
             return
-        if tab_name in ("notes", "conversations"):
+        if isinstance(data, V.TabData):
+            page = self._page_for(self._selected)
+            content = "\n".join([""] + pages.tab_lines(data, page.tz if page else self._tz,
+                                                         page.schema if page else None) + [""])
+        elif tab_name in ("notes", "conversations"):
             content = self._format_notes(data)
         elif tab_name == "tasks":
             content = self._format_tasks(data)
@@ -1324,7 +1516,7 @@ class FsvApp(App):
         bar.update(text)
 
     def _render_key_hints(self) -> None:
-        write = "" if self.read_only else "[bold]s[/] status  [bold]n[/] note  "
+        write = "" if self.read_only else "[bold]s[/] status  [bold]n[/] note  [bold]N[/]/[bold]e[/] new/edit  "
         rkey = "[bold]r[/] reload  " if self.read_only else "[bold]r[/] reload/reply  "
         hints = (
             "[bold]Tab[/] pane  "
@@ -1333,7 +1525,8 @@ class FsvApp(App):
             "[bold]G/gg[/] ↕  "
             "[bold]h/l[/] entity/tab  "
             "[bold]gw/gt/gp/gc[/] entity  "
-            "[bold]1-8[/] detail tab  "
+            "[bold]1-9[/] detail tab  "
+            "[bold]v[/] views  "
             "[bold]\\[][/bold] resize  "
             "[bold]f[/] search  "
             "[bold]/[/] filter  "
@@ -1795,11 +1988,23 @@ class FsvApp(App):
             self._resize_panes(1)
             event.stop()
             event.prevent_default()
-        elif key in ("1", "2", "3", "4", "5", "6", "7", "8"):
+        elif key == "v":
+            self._pick_view()
+            event.stop()
+            event.prevent_default()
+        elif key in ("N", "shift+n"):
+            self._open_form("new")
+            event.stop()
+            event.prevent_default()
+        elif key == "e":
+            self._open_form("edit")
+            event.stop()
+            event.prevent_default()
+        elif key in ("1", "2", "3", "4", "5", "6", "7", "8", "9"):
             idx = int(key) - 1
             if self._selected:
                 res = self._selected.get("_resource", TICKETS)
-                tabs = DETAIL_TAB_LABELS.get(res.name, ["details"])
+                tabs = self._tab_names(res)
                 if idx < len(tabs):
                     self.detail_tab_idx = idx
                     self._render_detail_tabs(res)
@@ -1875,7 +2080,7 @@ class FsvApp(App):
         if not self._selected:
             return
         res: Resource = self._selected.get("_resource", TICKETS)
-        tabs = DETAIL_TAB_LABELS.get(res.name, ["details"])
+        tabs = self._tab_names(res)
         next_idx = (self.detail_tab_idx + delta) % len(tabs)
         self.detail_tab_idx = next_idx
         self._render_detail_tabs(res)

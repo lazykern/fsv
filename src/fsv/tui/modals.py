@@ -1,4 +1,4 @@
-"""Modal screens for TUI write actions."""
+"""Modal screens for TUI write actions and the saved-view picker."""
 from __future__ import annotations
 
 from typing import Any
@@ -10,7 +10,7 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Button, OptionList, Static, TextArea
+from textual.widgets import Button, Input, OptionList, Static, TextArea
 from textual.widgets.option_list import Option
 
 
@@ -166,3 +166,70 @@ class NoteScreen(ModalScreen["tuple[str, bool] | None"]):
         event.stop()
         self.dismiss(None)
 
+
+
+class ViewPickerScreen(ModalScreen["Any | None"]):
+    """Pick a saved view by name (type to filter). Dismisses with the view or None."""
+
+    BINDINGS = [Binding("escape", "cancel", "Cancel")]
+
+    def __init__(self, views: list[Any], current: Any = None, title: str = "Views") -> None:
+        super().__init__()
+        self._views = list(views)
+        self._current = current
+        self._title = title
+        self._shown: list[Any] = list(views)
+
+    def compose(self) -> ComposeResult:
+        with Vertical(classes="dialog", id="view-dialog"):
+            yield Static(f"[bold]{escape(self._title)}[/]", classes="dialog-title")
+            yield Input(placeholder="type to filter views", id="view-filter")
+            yield OptionList(id="view-options")
+            yield Static("[dim]Enter open · ↑/↓ move · Esc cancel[/]", classes="dialog-hint")
+
+    def on_mount(self) -> None:
+        self._fill("")
+        self.query_one("#view-filter", Input).focus()
+
+    def _fill(self, text: str) -> None:
+        needle = " ".join(text.split()).casefold()
+        self._shown = [v for v in self._views if needle in str(getattr(v, "name", v)).casefold()]
+        ol = self.query_one("#view-options", OptionList)
+        ol.clear_options()
+        for v in self._shown:
+            mark = "▸ " if self._current is not None and v == self._current else "  "
+            kind = "" if getattr(v, "system", False) else "  [dim](custom)[/]"
+            ol.add_option(Option(Text.from_markup(mark + escape(str(getattr(v, "name", v))) + kind)))
+        if self._shown:
+            idx = next((i for i, v in enumerate(self._shown) if v == self._current), 0)
+            ol.highlighted = idx
+
+    @on(Input.Changed, "#view-filter")
+    def _filter(self, event: Input.Changed) -> None:
+        event.stop()
+        self._fill(event.value)
+
+    @on(Input.Submitted, "#view-filter")
+    def _submit(self, event: Input.Submitted) -> None:
+        event.stop()
+        ol = self.query_one("#view-options", OptionList)
+        if self._shown and ol.highlighted is not None:
+            self.dismiss(self._shown[ol.highlighted])
+
+    def on_key(self, event: Any) -> None:
+        if event.key in ("down", "up"):
+            ol = self.query_one("#view-options", OptionList)
+            if not self._shown:
+                return
+            cur = ol.highlighted or 0
+            ol.highlighted = max(0, min(len(self._shown) - 1, cur + (1 if event.key == "down" else -1)))
+            event.stop()
+            event.prevent_default()
+
+    @on(OptionList.OptionSelected, "#view-options")
+    def _selected(self, event: OptionList.OptionSelected) -> None:
+        event.stop()
+        self.dismiss(self._shown[event.option_index])
+
+    def action_cancel(self) -> None:
+        self.dismiss(None)
