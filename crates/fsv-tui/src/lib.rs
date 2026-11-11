@@ -19,4 +19,4 @@ pub mod view;
 
 pub use app::App;
 pub use backend::{Backend, BasicPages, Pages};
-pub use runtime::launch;
+pub use runtime::{launch, run};

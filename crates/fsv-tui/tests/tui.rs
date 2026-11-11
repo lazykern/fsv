@@ -274,3 +274,59 @@ fn help_modal_opens_and_closes() {
     app.press("escape");
     assert!(app.modals.is_empty());
 }
+
+/// `fsv.tui.launch(read_only)`: `FsvApp(read_only=...).run()`. The loop
+/// mounts, draws, ignores key releases and idle polls, dispatches presses
+/// and stops on `q`; read-only reaches the app.
+#[test]
+fn launch_loop_mounts_draws_dispatches_and_quits() {
+    use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+    let key = |c: char, kind: KeyEventKind| {
+        let mut k = KeyEvent::new(KeyCode::Char(c), KeyModifiers::NONE);
+        k.kind = kind;
+        Some(Event::Key(k))
+    };
+    let mut events = vec![
+        None,
+        key('q', KeyEventKind::Release),
+        key('s', KeyEventKind::Press),
+        key('q', KeyEventKind::Press),
+    ]
+    .into_iter();
+    let mock = Arc::new(Mock::default());
+    let app = App::new_inline(mock.clone(), Arc::new(BasicPages), true);
+    let mut term = match Terminal::new(TestBackend::new(120, 36)) {
+        Ok(t) => t,
+        Err(e) => panic!("terminal: {e}"),
+    };
+    let app = match fsv_tui::run(&mut term, app, || {
+        events
+            .next()
+            .ok_or_else(|| std::io::Error::other("no more events"))
+    }) {
+        Ok(app) => app,
+        Err(e) => panic!("loop: {e}"),
+    };
+    assert!(app.quit && app.read_only);
+    assert!(
+        app.toasts
+            .iter()
+            .any(|t| t.message == "Read-only mode: write actions are disabled")
+    );
+    let drawn: String = term
+        .backend()
+        .buffer()
+        .content()
+        .iter()
+        .map(|c| c.symbol())
+        .collect();
+    assert!(drawn.contains("TICKETS"), "{drawn}");
+
+    let mut none = std::iter::empty::<Option<Event>>();
+    let app = App::new_inline(mock, Arc::new(BasicPages), false);
+    let err = fsv_tui::run(&mut term, app, || {
+        none.next()
+            .ok_or_else(|| std::io::Error::other("no more events"))
+    });
+    assert!(err.is_err_and(|e| e.to_string() == "no more events"));
+}

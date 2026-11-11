@@ -82,6 +82,8 @@ pub enum ModalResult {
     Status(Value, String),
     /// Note `(body, public)`.
     Note(String, bool),
+    /// Ctrl+O on a ticket note: `(body, public, {"edit_options": True})`.
+    NoteOptions(String, bool),
     /// Picker / choice value.
     Choice(Value),
     Text(String),
@@ -205,7 +207,13 @@ pub struct NoteModal {
     pub public: bool,
     pub text: LineInput,
     pub focus: NoteFocus,
+    /// Ctrl+O asks for recipient/status options (`ticket_options=True`).
+    pub ticket_options: bool,
+    /// `PlanningTextScreen`: a planning editor, never a private/public note.
+    pub planning: bool,
 }
+
+pub const PLANNING_VISIBILITY: &str = "Text/HTML saved verbatim; no attachment changes";
 
 impl NoteModal {
     pub fn new(target: &str, reply: bool, can_toggle: bool) -> NoteModal {
@@ -216,11 +224,48 @@ impl NoteModal {
             public: reply,
             text: LineInput::multiline(),
             focus: NoteFocus::Text,
+            ticket_options: false,
+            planning: false,
         }
     }
 
+    pub fn with_ticket_options(mut self, on: bool) -> NoteModal {
+        self.ticket_options = on;
+        self
+    }
+
+    /// `PlanningTextScreen(target, initial)`.
+    pub fn planning(target: &str, initial: &str) -> NoteModal {
+        let mut n = NoteModal::new(target, false, false);
+        n.planning = true;
+        n.text.set_value(initial);
+        n
+    }
+
+    pub fn title(&self) -> String {
+        if self.planning {
+            format!("Edit planning text: {}", escape(&self.target))
+        } else {
+            let what = if self.reply { "reply" } else { "note" };
+            format!("[bold]Add {what}[/]  [dim]{}[/]", escape(&self.target))
+        }
+    }
+
+    pub fn hint(&self) -> String {
+        if self.planning {
+            return "Ctrl+S review · Esc cancel".into();
+        }
+        let mut hint = "Ctrl+S continue · Ctrl+T toggle · Esc cancel".to_string();
+        if self.ticket_options {
+            hint.push_str(" · Ctrl+O recipients/status options");
+        }
+        hint
+    }
+
     pub fn visibility(&self) -> &'static str {
-        if self.reply {
+        if self.planning {
+            PLANNING_VISIBILITY
+        } else if self.reply {
             "[b]Visibility: PUBLIC reply[/] [dim](sent to the requester)[/]"
         } else if self.can_toggle {
             if self.public {
@@ -250,6 +295,19 @@ impl NoteModal {
     fn action_toggle_public(&mut self) {
         if self.can_toggle {
             self.public = !self.public;
+        }
+    }
+
+    /// Ctrl+O: hand the body to the ticket options menu.
+    fn action_options(&self) -> Outcome {
+        if !self.ticket_options {
+            return Outcome::Stay;
+        }
+        let body = self.text.value().trim();
+        if body.is_empty() {
+            Outcome::Warn("Note is empty".into())
+        } else {
+            Outcome::Close(ModalResult::NoteOptions(body.to_string(), self.public))
         }
     }
 
@@ -532,6 +590,7 @@ impl Modal {
                     Outcome::Stay
                 }
                 "ctrl+s" => n.action_submit(),
+                "ctrl+o" => n.action_options(),
                 "tab" => {
                     n.focus = match n.focus {
                         NoteFocus::Text => NoteFocus::Continue,
@@ -695,7 +754,6 @@ impl Modal {
                 frame(f, rect);
                 let inner = dialog_block().inner(rect);
                 f.render_widget(dialog_block(), rect);
-                let what = if n.reply { "reply" } else { "note" };
                 let [t, _, ta, vis, prev, btn, h] = Layout::vertical([
                     Constraint::Length(1),
                     Constraint::Length(1),
@@ -706,13 +764,7 @@ impl Modal {
                     Constraint::Length(1),
                 ])
                 .areas(inner);
-                f.render_widget(
-                    Paragraph::new(to_line(&format!(
-                        "[bold]Add {what}[/]  [dim]{}[/]",
-                        escape(&n.target)
-                    ))),
-                    t,
-                );
+                f.render_widget(Paragraph::new(to_line(&n.title())), t);
                 let border = if n.focus == NoteFocus::Text {
                     PRIMARY
                 } else {
@@ -745,33 +797,33 @@ impl Modal {
                     Paragraph::new(vec![Line::default(), to_line(visibility)]),
                     vis,
                 );
-                let mut preview = vec![Span::styled(
-                    "Preview: ",
-                    Style::default().add_modifier(Modifier::BOLD),
-                )];
-                preview.push(match body {
-                    None => Span::styled("(empty)", Style::default().add_modifier(Modifier::DIM)),
-                    Some(b) => Span::raw(b),
-                });
-                f.render_widget(
-                    Paragraph::new(vec![Line::default(), Line::from(preview)])
-                        .wrap(Wrap { trim: false }),
-                    prev,
-                );
+                if !n.planning {
+                    let mut preview = vec![Span::styled(
+                        "Preview: ",
+                        Style::default().add_modifier(Modifier::BOLD),
+                    )];
+                    preview.push(match body {
+                        None => {
+                            Span::styled("(empty)", Style::default().add_modifier(Modifier::DIM))
+                        }
+                        Some(b) => Span::raw(b),
+                    });
+                    f.render_widget(
+                        Paragraph::new(vec![Line::default(), Line::from(preview)])
+                            .wrap(Wrap { trim: false }),
+                        prev,
+                    );
+                }
+                let submit = if n.planning { "Review" } else { "Continue" };
                 buttons(
                     f,
                     btn,
                     &[
-                        ("Continue", PRIMARY, n.focus == NoteFocus::Continue),
+                        (submit, PRIMARY, n.focus == NoteFocus::Continue),
                         ("Cancel", PRIMARY, n.focus == NoteFocus::Cancel),
                     ],
                 );
-                f.render_widget(
-                    Paragraph::new(to_line(
-                        "[dim]Ctrl+S continue · Ctrl+T toggle · Esc cancel[/]",
-                    )),
-                    h,
-                );
+                f.render_widget(Paragraph::new(to_line(&format!("[dim]{}[/]", n.hint()))), h);
             }
             Modal::Picker(p) => {
                 let list_h = (p.shown.len() as u16).clamp(1, 18);
@@ -1246,6 +1298,51 @@ mod tests {
         fixed.action_toggle_public();
         assert!(!fixed.public);
         assert_eq!(fixed.action_submit(), Outcome::Warn("Note is empty".into()));
+    }
+
+    /// `NoteScreen.action_options` and the `ticket_options` hint.
+    #[test]
+    fn note_action_options_only_for_ticket_notes_with_text() {
+        let mut n = NoteModal::new("INC-1", false, true);
+        n.changed(&keys::parse("x"));
+        assert_eq!(n.action_options(), Outcome::Stay);
+        assert_eq!(n.hint(), "Ctrl+S continue · Ctrl+T toggle · Esc cancel");
+        let mut t = NoteModal::new("INC-1", false, true).with_ticket_options(true);
+        assert_eq!(
+            t.hint(),
+            "Ctrl+S continue · Ctrl+T toggle · Esc cancel · Ctrl+O recipients/status options"
+        );
+        assert_eq!(t.action_options(), Outcome::Warn("Note is empty".into()));
+        t.changed(&keys::parse("x"));
+        t.action_toggle_public();
+        let mut m = Modal::Note(t);
+        assert_eq!(
+            m.handle(&keys::parse("ctrl+o")),
+            Outcome::Close(ModalResult::NoteOptions("x".into(), true))
+        );
+    }
+
+    /// `PlanningTextScreen.__init__` / `compose`: initial text, fixed
+    /// visibility line, never public, and Ctrl+S returns the stripped text.
+    #[test]
+    fn planning_text_screen_init_and_compose() {
+        let mut p = NoteModal::planning("acme_plan", "  old\ntext ");
+        assert_eq!(p.title(), "Edit planning text: acme_plan");
+        assert_eq!(p.hint(), "Ctrl+S review · Esc cancel");
+        assert_eq!(p.visibility(), PLANNING_VISIBILITY);
+        assert_eq!(p.text.value(), "  old\ntext ");
+        assert!(!p.reply && !p.public && !p.can_toggle && !p.ticket_options);
+        p.action_toggle_public();
+        assert!(!p.public);
+        assert_eq!(p.action_options(), Outcome::Stay);
+        assert_eq!(
+            p.action_submit(),
+            Outcome::Close(ModalResult::Note("old\ntext".into(), false))
+        );
+        assert_eq!(
+            NoteModal::planning("[x]", "").title(),
+            "Edit planning text: \\[x]"
+        );
     }
 
     #[test]

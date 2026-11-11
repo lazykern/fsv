@@ -164,12 +164,33 @@ CLI divergences:
 
 | Python | Rust | status |
 |---|---|---|
-| `tui/app.py`, `actions.py`, `modals.py` | `fsv_tui` | partial. `cargo test -p fsv-tui --offline` was 85 passed (33 unit, 46 in `tests/keys.rs`, 6 in `tests/tui.rs`). Key bindings, modals, status/note/reply/approval/download flows and the `a` menu are covered against a recording `Backend`. Gaps below. |
+| `tui/app.py`, `actions.py`, `modals.py`, `tui/__init__.launch` | `fsv_tui` (`app`, `app/reviewed.rs`, `modals`, `runtime::{launch, run}`) | partial. `cargo test -p fsv-tui --offline` was 190 passed (115 unit, 7 in `tests/actions.rs`, 61 in `tests/keys.rs`, 7 in `tests/tui.rs`). Key bindings, modals, status/note/approval/download/form flows, the `a` menu, ticket property edit (`e` on a ticket), known-error mark, native planning text, and ticket reply/note options (Ctrl+O) are covered against a recording `Backend`. The new flows mirror `test_tui_ticket_options.py`, `test_tui_ticket_properties.py`, `test_planning_text.py` and `test_problem_known_error.py`; all 23 of those Python tests pass. Gaps below. |
 
-- No `Backend` implementation exists. `fsv tui` cannot reach a server until the binary supplies one to `launch`.
-- `N` and `e` (create and edit forms) show "form UI not available". `fsv-formui` is not wired, so `form_result` is tested but unused.
-- Page text goes through a local `Pages` trait (`BasicPages`), not `fsv-views`, which already has the real renderers.
-- Task add/update/delete and link/unlink from the `a` menu have helper tests but no end-to-end `TestBackend` test.
+- `FsvApp._maybe` is a Textual `query_one` shim, so it has no counterpart. `FsvApp._set_filter_error` has no caller in Python (dead), so it is not ported; `filter_error` is set directly.
+- `launch` needs a terminal. Its loop is `fsv_tui::run(terminal, app, next_event)`, tested with `TestBackend` and scripted events.
 - The key-hint row advertises `gw`, which does nothing. Copied from Python; Python does the same.
 - Help dialog is clipped on 36-row terminals and does not scroll.
-- Approvals go through four `Backend` methods that default to "unavailable". `fsv_api::approvals` supplies the rules.
+- Plain ticket replies (`r`, Ctrl+S) go through `ticket_conversation_plan` / `send_ticket_conversation`, as in Python. `Backend::add_reply` and the "Confirm reply" path are now unreachable, because `can_reply` is tickets-only. They are kept so `LiveBackend` keeps compiling.
+- Python marks these workers `exclusive=True`, so a second press cancels the first. Rust runs both, like the other TUI workers (see the stale-generation divergence).
+
+### fsv-tui → fsv-app wiring (new `Backend` methods, all default to "… is not available in this build")
+
+`LiveBackend` in `fsv-app/src/tui.rs` should implement:
+
+| `Backend` method | Python call | fsv-api today |
+|---|---|---|
+| `ticket_property_fields(ticket_id) -> Vec<PropertyField>` | `formmeta.load_meta(c, "ticket", "edit", fresh=True, module_id=ticket_id)`, then keep `spec.fields` where `(f.sent or f.field_type == "default_requested_for") and not f.synthetic and f.is_input() and f.kind != unsupported and (f.is_custom or f.api_name in {subject, description, requester, requested_for, group, agent, status, priority, urgency, impact, source, category, ticket_type})`. `name = api_name`, `label`. For `kind == dropdown`, `choices = Some([(ch.value, ch.label) for visible ch])`, else `None`. | `fsv_api::formmeta::load_meta(c, store, "ticket", "edit", true, &id)` + `FormMeta::spec()`. |
+| `ticket_property_plan(ticket_id, name, value) -> ReviewPlan` | `ticket_properties.build_plan(c, ticket_id, answers={name: value})` | **missing**: `fsv_api::properties::build_plan` has no `answers` argument (only tags and planned dates). Python also resolves `requested_for` by email and hashes `answers_json` + `meta.fingerprint.hash`. Port those first. `review = plan.review()`, `hash = plan.hash()`. |
+| `send_ticket_property(plan) -> Value` | `ticket_properties.send(plan, c, reviewed_hash=plan.hash)` | `fsv_api::properties::send(&plan, c, journal, store, Some(&hash))`. Keep the `PropertyPlan` in `ReviewPlan.raw` or rebuild it from there. |
+| `known_error_plan(problem_id) -> ReviewPlan` | `problem_known_error.build_plan(c, id)`: a `WritePlan("problem_known_error_mark", cid, domain, "PUT", "problems/{cid}", '{"known_error": true}', plan_hash(record))` | **missing**: no `problem_known_error` or `reviewed_write` module in fsv-api. |
+| `send_known_error(plan) -> Value` | `problem_known_error.send(plan, c, reviewed_hash=plan.hash)` | **missing** (same). |
+| `planning_definitions(module) -> Vec<Value>` | `planning_text.definitions(c, module)`. `changes`: `create.planning_definitions(schema.load(CHANGES, force=True)["fields"])`. `problems`: the three fixed `{name, label}` rows. | **missing**: no `planning_text` module. |
+| `planning_row(module, id, section) -> Option<Value>` | `create.match_planning_row({"name": section}, planning_text.inventory(c, module, id))` | `fsv_api::site::match_planning_row` exists. `inventory` (`GET {module}/{id}/planning-fields` with completeness checks) is **missing**. The TUI does the "preservation is unavailable" check itself. |
+| `planning_text_plan(module, id, section, description) -> ReviewPlan` | `planning_text.build_plan(c, module, id, section, description)` | **missing**. |
+| `send_planning_text(plan) -> Value` | `planning_text.send(plan, c, reviewed_hash=plan.hash)` | **missing**. |
+| `ticket_conversation_plan(ticket_id, body, &ConversationRequest) -> ReviewPlan` | `recipients(c, cc)`, `recipients(c, notify)`, `recipients(c, bcc)` (validation only), then `build_plan(c, id, body, kind="reply"/"note", public, cc, notify, bcc, sender, set_status)` | `fsv_api::conversations::{recipients, build_plan}`. **Gap**: `ConversationArgs` has no `bcc`/`sender` (nor `forward`, which the TUI never uses). Python's `bcc_emails` / `from_email` payload keys and their validation need porting. Set `ReviewPlan.raw = plan.payload()`: the TUI reads `private` from it. Set `review = plan.review()`, `hash = plan.hash()`. |
+| `send_ticket_conversation(plan, public_confirmed) -> Value` | `ticket_conversation.send(plan, c, reviewed_hash=plan.hash, public_confirmed=...)` | `fsv_api::conversations::send(&plan, c, journal, store, Some(&hash), public_confirmed)` |
+
+Each send result is shown pretty-printed with `json.dumps(indent=2)`. A truthy `verified` reloads the record.
+
+- Ticket reply/note option values ("Comma-separated plain emails (empty clears)", "Configured support email") accept an empty Enter, which clears the field. Python's `ValueScreen` ignores an empty Enter there, so a set CC/notify/BCC/sender cannot be cleared despite the prompt.

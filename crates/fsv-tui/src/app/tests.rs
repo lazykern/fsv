@@ -1328,6 +1328,7 @@ fn open_form_create_choice_and_launch_create() {
     a.modals.clear();
     a.create_choice("change");
     assert_eq!(last_toast(&a), "form UI not available");
+    a.selected = None;
     a.open_form("edit");
     assert_eq!(last_toast(&a), "Select a change to edit");
     a.selected = Some(change(3));
@@ -1554,6 +1555,18 @@ fn action_menu_choices_and_guards() {
             "Cancel approval group",
             "List approval groups",
             "Download selected attachment",
+            "Edit native planning/analysis text",
+        ]
+    );
+    a.modals.clear();
+    a.selected = Some(Item::new(&PROBLEMS, json!({"id": 4, "display_id": 4})));
+    a.action_menu();
+    assert_eq!(
+        picker_labels(&a).1,
+        vec![
+            "Download selected attachment",
+            "Edit native planning/analysis text",
+            "Mark as known error",
         ]
     );
     a.modals.clear();
@@ -2095,4 +2108,153 @@ fn backend_trait_defaults_are_unavailable_not_panics() {
         Some("change tasks is not available in this build")
     );
     let _: &Resource = &TICKETS;
+}
+
+#[test]
+fn reviewed_write_defaults_are_unavailable() {
+    struct Bare;
+    impl Backend for Bare {}
+    let p = plan(json!({}));
+    let msgs = [
+        Bare.ticket_property_fields(&json!(1))
+            .err()
+            .map(|e| e.to_string()),
+        Bare.send_known_error(&p).err().map(|e| e.to_string()),
+        Bare.planning_definitions("changes")
+            .err()
+            .map(|e| e.to_string()),
+        Bare.send_ticket_conversation(&p, true)
+            .err()
+            .map(|e| e.to_string()),
+    ];
+    assert_eq!(
+        msgs.map(Option::unwrap_or_default),
+        [
+            "ticket property edits is not available in this build",
+            "known-error marks is not available in this build",
+            "planning text is not available in this build",
+            "ticket conversations is not available in this build",
+        ]
+        .map(String::from)
+    );
+}
+
+/// `test_read_only_blocks_ticket_options_sender` and
+/// `test_readonly_property_picker_never_prepares`: no picker, no review.
+#[test]
+fn read_only_never_prepares_reviewed_writes() {
+    let (mut a, m) = start(Mock::new(1), true);
+    let t = Item::new(&TICKETS, json!({"id": 123}));
+    let p = Item::new(&PROBLEMS, json!({"id": 5}));
+    a.ticket_conversation_options(t.clone(), "Acme".into(), true, true, Default::default());
+    a.prepare_ticket_conversation(t.clone(), "Acme".into(), true, true, Default::default());
+    a.load_ticket_property_fields(t.clone());
+    a.prepare_ticket_property(t, "subject".into(), json!("Acme"));
+    a.prepare_known_error(p.clone());
+    a.load_planning_sections(p);
+    a.settle();
+    assert!(a.modals.is_empty());
+    assert!(m.calls("detail").len() <= 1);
+}
+
+/// A `FormScreen` that is already done with the given action.
+struct DoneForm {
+    action: &'static str,
+    sent: Arc<Mutex<Vec<String>>>,
+}
+
+impl FormView for DoneForm {
+    fn tick(&mut self, _now: Duration) {}
+    fn handle_key(&mut self, _key: &KeyEvent) {}
+    fn render(
+        &mut self,
+        _area: crate::backend::Rect,
+        _buf: &mut crate::backend::Buffer,
+    ) -> Option<crate::backend::Position> {
+        None
+    }
+    fn done(&self) -> bool {
+        true
+    }
+    fn finish(self: Box<Self>) -> FormExit {
+        match self.action {
+            "save_draft" => FormExit::Draft("/tmp/acme-draft.yaml".into()),
+            "submit" => FormExit::Submit(Box::new(DoneSend(self.sent))),
+            _ => FormExit::Cancelled,
+        }
+    }
+}
+
+struct DoneSend(Arc<Mutex<Vec<String>>>);
+
+impl FormSend for DoneSend {
+    fn send(self: Box<Self>) -> BResult<Value> {
+        self.0.lock().unwrap().push("send".into());
+        Ok(json!({"created": {"id": 99, "display_id": 12}}))
+    }
+}
+
+fn opened(
+    action: &'static str,
+    mode: &str,
+    item: Option<Item>,
+) -> (OpenedForm, Arc<Mutex<Vec<String>>>) {
+    let sent = Arc::new(Mutex::new(Vec::new()));
+    let view = Box::new(DoneForm {
+        action,
+        sent: sent.clone(),
+    });
+    (
+        OpenedForm {
+            view,
+            mode: mode.into(),
+            item,
+        },
+        sent,
+    )
+}
+
+/// `_build_form` failure toasts "Form unavailable: …"; `_push_form`'s
+/// `done` toasts a draft path or hands a submit to `_send_form`, which
+/// toasts `form_result` for a create and reloads the change for an edit.
+#[test]
+fn build_form_push_form_and_send_form() {
+    let (mut a, _) = app(1);
+    a.build_form("new", None, None);
+    a.settle();
+    assert_eq!(
+        failure(&a).message,
+        "Form unavailable: the form UI is not available in this build"
+    );
+    a.modals.clear();
+
+    let (f, sent) = opened("save_draft", "incident", None);
+    a.push_form(f);
+    assert!(!a.form_open());
+    assert_eq!(last_toast(&a), "Draft saved: /tmp/acme-draft.yaml");
+    assert!(sent.lock().unwrap().is_empty());
+
+    let (f, sent) = opened("cancel", "new", None);
+    let n = a.toasts.len();
+    a.push_form(f);
+    a.settle();
+    assert_eq!((a.toasts.len(), sent.lock().unwrap().len()), (n, 0));
+
+    let (f, sent) = opened("submit", "new", None);
+    a.push_form(f);
+    a.settle();
+    assert_eq!(*sent.lock().unwrap(), ["send"]);
+    assert!(toasts(&a).contains(&("Change created CHN-12".into(), Severity::Information)));
+
+    let (f, sent) = opened("submit", "edit", Some(change(3)));
+    a.push_form(f);
+    a.settle();
+    assert_eq!(sent.lock().unwrap().len(), 1);
+    assert_eq!(last_toast(&a), "Change updated");
+
+    a.read_only = true;
+    let (f, sent) = opened("submit", "new", None);
+    a.push_form(f);
+    a.settle();
+    assert!(sent.lock().unwrap().is_empty());
 }

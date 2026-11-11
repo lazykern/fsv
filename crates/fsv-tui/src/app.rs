@@ -349,6 +349,8 @@ pub enum Cont {
         body: Map<String, Value>,
         plan: Option<ReviewPlan>,
     },
+    /// Ticket property, known-error, planning text and ticket conversation flows.
+    Reviewed(reviewed::Step),
     CreateChoice,
     CatalogCategory {
         items: Vec<Value>,
@@ -426,6 +428,13 @@ pub enum Ui {
     },
     Form(OpenedForm),
     ReloadList,
+    /// `call_from_thread(push_screen, modal, callback)`.
+    Push(Box<Modal>, Cont),
+    /// `OutcomeScreen(title, message)`.
+    Outcome {
+        title: String,
+        message: String,
+    },
 }
 
 #[derive(Debug, Default)]
@@ -935,6 +944,10 @@ impl App {
             Ui::ApprovalResult { item, result } => self.approval_result(item, result),
             Ui::Form(opened) => self.push_form(opened),
             Ui::ReloadList => self.reload_list("[dim]reloading...[/]"),
+            Ui::Push(modal, cont) => self.push(*modal, cont),
+            Ui::Outcome { title, message } => {
+                self.push(Modal::outcome(&title, &message), Cont::None)
+            }
         }
     }
 
@@ -2552,7 +2565,16 @@ impl App {
             (Cont::StatusConfirmed { item, id, label }, R::Bool(true)) => {
                 self.do_write(WriteKind::Status(id, label), item)
             }
+            (Cont::NoteComposed { item, reply }, R::NoteOptions(body, public))
+                if item.res.name == "tickets" =>
+            {
+                self.ticket_conversation_options(item, body, public, reply, Default::default())
+            }
             (Cont::NoteComposed { item, reply }, R::Note(body, public)) => {
+                if item.res.name == "tickets" && reply {
+                    self.prepare_ticket_conversation(item, body, public, reply, Default::default());
+                    return;
+                }
                 if item.res.name == "tickets" && !reply {
                     self.review_ticket_note(item, body, public);
                     return;
@@ -2961,6 +2983,7 @@ impl App {
                 );
             }
             (Cont::CatalogItem, R::Choice(row)) => self.launch_create("sr", Some(row)),
+            (Cont::Reviewed(step), result) => self.resume_reviewed(step, result),
             _ => {}
         }
     }
@@ -3028,7 +3051,8 @@ impl App {
             self.notify("Not available for this item type", Severity::Warning);
             return;
         }
-        let modal = NoteModal::new(&self.target_label(&item), reply, true);
+        let modal = NoteModal::new(&self.target_label(&item), reply, true)
+            .with_ticket_options(item.res.name == "tickets");
         self.push(Modal::Note(modal), Cont::NoteComposed { item, reply });
     }
 
@@ -3150,6 +3174,15 @@ impl App {
             }
         }
         choices.push((json!("download"), "Download selected attachment".into()));
+        if matches!(item.res.name, "changes" | "problems") {
+            choices.push((
+                json!("planning-text"),
+                "Edit native planning/analysis text".into(),
+            ));
+        }
+        if item.res.name == "problems" {
+            choices.push((json!("known-error"), "Mark as known error".into()));
+        }
         self.push(
             Modal::choices("Selected record actions", choices),
             Cont::ActionMenu { item },
@@ -3161,6 +3194,8 @@ impl App {
             return;
         }
         match kind {
+            "known-error" => self.prepare_known_error(item),
+            "planning-text" => self.load_planning_sections(item),
             "task-add" => self.compose_change_task(item),
             "approval-request" => self.compose_approval_request(item),
             "approval-respond" | "approval-cancel" | "approval-groups" => {
@@ -3698,6 +3733,10 @@ impl App {
             self.push(Modal::choices("Create", choices), Cont::CreateChoice);
             return;
         }
+        if let Some(item) = self.selected.clone().filter(|s| s.res.name == "tickets") {
+            self.load_ticket_property_fields(item);
+            return;
+        }
         if self
             .selected
             .as_ref()
@@ -4067,6 +4106,8 @@ fn execute_action_job(
         )),
     }
 }
+
+mod reviewed;
 
 #[cfg(test)]
 mod tests;

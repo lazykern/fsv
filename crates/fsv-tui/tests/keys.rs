@@ -8,8 +8,8 @@ use crossterm::event::{KeyCode, KeyEvent};
 use fsv_core::resource::Resource;
 use fsv_tui::app::{App, Focus};
 use fsv_tui::backend::{
-    BResult, DetailPage, Failure, FormExit, FormRequest, FormSend, FormView, Item, ListRequest,
-    ReviewPlan, SearchResult, TabData, TabInfo, View,
+    BResult, ConversationRequest, DetailPage, Failure, FormExit, FormRequest, FormSend, FormView,
+    Item, ListRequest, PropertyField, ReviewPlan, SearchResult, TabData, TabInfo, View,
 };
 use fsv_tui::modals::Modal;
 use fsv_tui::{Backend, BasicPages, view};
@@ -34,6 +34,9 @@ struct Mock {
     form_fails: bool,
     send_fails: bool,
     sent: Arc<Mutex<Vec<String>>>,
+    planning_attachments: bool,
+    no_planning: bool,
+    unverified: bool,
 }
 
 /// A stand-in `FormScreen`: `s` submits, `d` saves a draft, `escape`
@@ -348,6 +351,107 @@ impl Backend for Mock {
     fn send_approval(&self, p: &ReviewPlan, _read_only: bool) -> BResult<Value> {
         self.log(format!("send-approval {}", p.hash));
         Ok(json!({"verified": !self.approval_unverified, "id": 31}))
+    }
+    fn ticket_property_fields(&self, ticket_id: &Value) -> BResult<Vec<PropertyField>> {
+        self.log(format!("property-fields {ticket_id}"));
+        Ok(vec![
+            PropertyField {
+                name: "subject".into(),
+                label: "Subject".into(),
+                choices: None,
+            },
+            PropertyField {
+                name: "priority".into(),
+                label: "Priority".into(),
+                choices: Some(vec![(json!(1), "Low".into()), (json!(4), "Urgent".into())]),
+            },
+        ])
+    }
+    fn ticket_property_plan(
+        &self,
+        ticket_id: &Value,
+        name: &str,
+        value: &Value,
+    ) -> BResult<ReviewPlan> {
+        self.log(format!("property-plan {ticket_id} {name} {value}"));
+        Ok(plan(
+            json!({"before": {name: "old"}, "after": {name: value}, "plan_hash": "p1"}),
+            false,
+        ))
+    }
+    fn send_ticket_property(&self, p: &ReviewPlan) -> BResult<Value> {
+        self.log(format!("property-send {}", p.hash));
+        Ok(json!({"status": "updated", "verified": !self.unverified}))
+    }
+    fn known_error_plan(&self, problem_id: &Value) -> BResult<ReviewPlan> {
+        self.log(format!("known-error-plan {problem_id}"));
+        Ok(plan(
+            json!({"method": "PUT", "payload": {"known_error": true}}),
+            false,
+        ))
+    }
+    fn send_known_error(&self, p: &ReviewPlan) -> BResult<Value> {
+        self.log(format!("known-error-send {}", p.hash));
+        Ok(json!({"verified": !self.unverified}))
+    }
+    fn planning_definitions(&self, module: &str) -> BResult<Vec<Value>> {
+        self.log(format!("planning-defs {module}"));
+        if self.no_planning {
+            return Ok(Vec::new());
+        }
+        Ok(vec![
+            json!({"name": "acme_plan", "label": "Acme plan", "id": 1}),
+        ])
+    }
+    fn planning_row(&self, module: &str, id: &Value, section: &str) -> BResult<Option<Value>> {
+        self.log(format!("planning-row {module} {id} {section}"));
+        let attachments = if self.planning_attachments {
+            json!([{"id": 1}])
+        } else {
+            json!([])
+        };
+        Ok(Some(
+            json!({"description": "old text", "attachments": attachments}),
+        ))
+    }
+    fn planning_text_plan(
+        &self,
+        module: &str,
+        id: &Value,
+        section: &str,
+        description: &str,
+    ) -> BResult<ReviewPlan> {
+        self.log(format!(
+            "planning-plan {module} {id} {section} {description:?}"
+        ));
+        Ok(plan(
+            json!({"section": section, "description": description, "plan_hash": "q1"}),
+            false,
+        ))
+    }
+    fn send_planning_text(&self, p: &ReviewPlan) -> BResult<Value> {
+        self.log(format!("planning-send {}", p.hash));
+        Ok(json!({"verified": !self.unverified}))
+    }
+    fn ticket_conversation_plan(
+        &self,
+        ticket_id: &Value,
+        body: &str,
+        req: &ConversationRequest,
+    ) -> BResult<ReviewPlan> {
+        self.log(format!("conversation-plan {ticket_id} {body} {req:?}"));
+        let payload = if req.reply {
+            json!({"body": body, "cc_emails": req.cc})
+        } else {
+            json!({"body": body, "private": !req.public, "notify_emails": req.notify})
+        };
+        let mut p = plan(json!({"payload": payload, "plan_hash": "c1"}), false);
+        p.raw = payload;
+        Ok(p)
+    }
+    fn send_ticket_conversation(&self, p: &ReviewPlan, public_confirmed: bool) -> BResult<Value> {
+        self.log(format!("conversation-send {} {public_confirmed}", p.hash));
+        Ok(json!({"conversation_id": 456, "verified": !self.unverified}))
     }
 }
 
@@ -887,10 +991,29 @@ fn r_in_detail_pane_replies_to_a_ticket() {
     assert!(s.contains("Add reply") && s.contains("PUBLIC reply"), "{s}");
     a.type_text("thanks");
     a.press("ctrl+s");
-    assert!(screen(&a).contains("Confirm reply"));
+    a.settle();
+    assert!(screen(&a).contains("Review exact ticket conversation"));
+    assert_eq!(
+        m.calls("conversation-plan"),
+        [format!(
+            "conversation-plan 1 thanks {:?}",
+            ConversationRequest {
+                reply: true,
+                public: true,
+                ..Default::default()
+            }
+        )]
+    );
+    a.press("y");
+    assert!(screen(&a).contains("Confirm PUBLIC mail/visibility"));
+    assert!(m.calls("conversation-send").is_empty());
     a.press("y");
     a.settle();
-    assert_eq!(m.calls("reply"), vec!["reply tickets 1 thanks".to_string()]);
+    let sends = m.calls("conversation-send");
+    assert!(sends.len() == 1 && sends[0].ends_with(" true"), "{sends:?}");
+    assert!(m.calls("reply").is_empty());
+    assert!(screen(&a).contains("Conversation result — do not resend"));
+    assert!(toasts(&a).contains(&"Exact conversation verified".to_string()));
 }
 
 #[test]
@@ -989,9 +1112,10 @@ fn a_menu_lists_change_and_ticket_actions() {
     a.press("a");
     if let Some(Modal::Picker(p)) = top(&a) {
         let labels = p.labels();
-        assert_eq!(labels.len(), 10);
+        assert_eq!(labels.len(), 11);
         assert_eq!(labels[5], "  Request approval");
         assert_eq!(labels[9], "  Download selected attachment");
+        assert_eq!(labels[10], "  Edit native planning/analysis text");
     } else {
         panic!("no menu");
     }
@@ -1220,9 +1344,10 @@ fn shift_n_opens_the_create_chooser() {
 
 #[test]
 fn e_edits_only_a_selected_change() {
-    let (mut a, _) = app(3);
+    let (mut a, _) = app(0);
     a.press("e");
     assert!(toasts(&a).iter().any(|t| t == "Select a change to edit"));
+    let (mut a, _) = app(3);
     to_changes(&mut a);
     a.press("e");
     assert!(toasts(&a).iter().any(|t| t == "form UI not available"));
@@ -1384,4 +1509,398 @@ fn form_copy_goes_to_the_clipboard_and_ctrl_q_quits() {
     assert_eq!(m.calls("copy"), ["copy copied"]);
     a.press("ctrl+q");
     assert!(a.quit);
+}
+
+// ── Reviewed writes (properties, known error, planning, conversations) ──
+
+fn to_problems(app: &mut App) {
+    app.press("g");
+    app.press("p");
+    app.advance(Duration::from_millis(250));
+    app.advance(Duration::from_millis(200));
+    assert_eq!(app.entity, "problems");
+}
+
+fn picker(app: &App) -> (String, Vec<String>) {
+    match top(app) {
+        Some(Modal::Picker(p)) => (p.title.clone(), p.labels()),
+        m => panic!("not a picker: {m:?}"),
+    }
+}
+
+fn confirm(app: &App) -> (String, Vec<String>) {
+    match top(app) {
+        Some(Modal::Confirm(c)) => (c.title.clone(), c.lines.clone()),
+        m => panic!("not a confirm: {m:?}"),
+    }
+}
+
+fn outcome(app: &App) -> (String, String) {
+    match top(app) {
+        Some(Modal::Outcome(f)) => (f.title.clone(), f.message.clone()),
+        m => panic!("not an outcome: {m:?}"),
+    }
+}
+
+fn value_title(app: &App) -> String {
+    match top(app) {
+        Some(Modal::Value(v)) => v.title.clone(),
+        m => panic!("not a value screen: {m:?}"),
+    }
+}
+
+fn pick(app: &mut App, text: &str) {
+    app.type_text(text);
+    app.press("enter");
+    app.settle();
+}
+
+/// `test_tui_property_field_picker_review_and_outcome`, both `cancel` cases.
+#[test]
+fn e_on_a_ticket_reviews_one_property_and_sends_once() {
+    for cancel in [true, false] {
+        let (mut a, m) = app(3);
+        a.press("e");
+        a.settle();
+        assert_eq!(m.calls("property-fields"), ["property-fields 1"]);
+        assert_eq!(
+            picker(&a),
+            (
+                "Edit ticket/SR property — one field per review".into(),
+                vec!["  Subject".into(), "  Priority".into()]
+            )
+        );
+        pick(&mut a, "Subject");
+        assert_eq!(
+            value_title(&a),
+            "Subject — exact value/name/email; comma-separated for multiple values"
+        );
+        pick(&mut a, "Globex maintenance");
+        assert_eq!(
+            m.calls("property-plan"),
+            [r#"property-plan 1 subject "Globex maintenance""#]
+        );
+        let (title, lines) = confirm(&a);
+        assert_eq!(title, "Review exact ticket property");
+        assert!(
+            lines[0].contains("Globex maintenance")
+                && lines[0].contains("before")
+                && lines[0].contains("plan_hash"),
+            "{lines:?}"
+        );
+        assert!(m.calls("property-send").is_empty());
+        a.press(if cancel { "escape" } else { "y" });
+        a.settle();
+        assert_eq!(m.calls("property-send").len(), usize::from(!cancel));
+        if cancel {
+            assert!(a.modals.is_empty());
+        } else {
+            let (t, msg) = outcome(&a);
+            assert_eq!(t, "Property result — do not resend");
+            assert!(msg.contains("\"verified\": true"), "{msg}");
+            assert!(toasts(&a).contains(&"Ticket property verified".to_string()));
+        }
+    }
+}
+
+#[test]
+fn e_on_a_ticket_dropdown_picks_a_visible_choice() {
+    let (mut a, m) = app(3);
+    a.press("e");
+    a.settle();
+    pick(&mut a, "Priority");
+    assert_eq!(
+        picker(&a),
+        ("Priority".into(), vec!["  Low".into(), "  Urgent".into()])
+    );
+    pick(&mut a, "Urgent");
+    assert_eq!(m.calls("property-plan"), ["property-plan 1 priority 4"]);
+    assert_eq!(confirm(&a).0, "Review exact ticket property");
+}
+
+#[test]
+fn unverified_property_shows_the_outcome_without_reloading() {
+    let (mut a, m) = start(
+        Mock {
+            unverified: true,
+            ..Mock::new(3)
+        },
+        false,
+    );
+    a.press("e");
+    a.settle();
+    pick(&mut a, "Subject");
+    pick(&mut a, "x");
+    let details = m.calls("detail").len();
+    a.press("y");
+    a.settle();
+    assert_eq!(outcome(&a).0, "Property result — do not resend");
+    assert!(!toasts(&a).contains(&"Ticket property verified".to_string()));
+    assert_eq!(m.calls("detail").len(), details);
+}
+
+/// `test_tui_known_error_review_and_cancel`, both `cancel` cases.
+#[test]
+fn a_known_error_on_a_problem_reviews_then_sends_once() {
+    for cancel in [true, false] {
+        let (mut a, m) = app(3);
+        to_problems(&mut a);
+        a.press("a");
+        assert_eq!(
+            picker(&a).1,
+            [
+                "  Download selected attachment",
+                "  Edit native planning/analysis text",
+                "  Mark as known error"
+            ]
+        );
+        pick(&mut a, "known error");
+        assert_eq!(m.calls("known-error-plan"), ["known-error-plan 1"]);
+        let (title, lines) = confirm(&a);
+        assert_eq!(title, "Review known-error mark");
+        assert!(lines[0].contains("\"known_error\": true"), "{lines:?}");
+        assert_eq!(
+            lines[1],
+            "This does not resolve/close the problem or publish a knowledge article. Reversal is not implemented."
+        );
+        a.press(if cancel { "escape" } else { "y" });
+        a.settle();
+        assert_eq!(m.calls("known-error-send").len(), usize::from(!cancel));
+        if !cancel {
+            assert_eq!(outcome(&a).0, "Known-error result — do not resend");
+            assert!(toasts(&a).contains(&"Known-error state verified".to_string()));
+        }
+    }
+}
+
+/// `test_tui_planning_picker_editor_review_and_outcome`, both `cancel` cases.
+#[test]
+fn a_planning_text_picks_a_section_edits_reviews_and_sends_once() {
+    for cancel in [true, false] {
+        let (mut a, m) = app(3);
+        to_changes(&mut a);
+        a.press("a");
+        pick(&mut a, "native planning");
+        assert_eq!(m.calls("planning-defs"), ["planning-defs changes"]);
+        assert_eq!(
+            picker(&a),
+            (
+                "Native planning/analysis section".into(),
+                vec!["  Acme plan".into()]
+            )
+        );
+        a.press("enter");
+        a.settle();
+        assert_eq!(
+            m.calls("planning-row"),
+            ["planning-row changes 1 acme_plan"]
+        );
+        assert!(matches!(top(&a), Some(Modal::Note(n)) if n.planning));
+        let s = screen(&a);
+        assert!(
+            s.contains("Edit planning text: acme_plan")
+                && s.contains("Text/HTML saved verbatim; no attachment changes")
+                && s.contains("old text")
+                && s.contains("Review")
+                && s.contains("Ctrl+S review · Esc cancel")
+                && !s.contains("Preview:"),
+            "{s}"
+        );
+        a.press("ctrl+t");
+        a.press("enter");
+        a.type_text("second line");
+        a.press("ctrl+s");
+        a.settle();
+        assert_eq!(
+            m.calls("planning-plan"),
+            [r#"planning-plan changes 1 acme_plan "old text\nsecond line""#]
+        );
+        let (title, lines) = confirm(&a);
+        assert_eq!(title, "Review exact planning text");
+        assert!(lines[0].contains("acme_plan") && lines[0].contains("plan_hash"));
+        assert!(m.calls("planning-send").is_empty());
+        a.press(if cancel { "escape" } else { "y" });
+        a.settle();
+        assert_eq!(m.calls("planning-send").len(), usize::from(!cancel));
+        if !cancel {
+            assert_eq!(outcome(&a).0, "Planning result — do not resend");
+            assert!(toasts(&a).contains(&"Planning text verified".to_string()));
+        }
+    }
+}
+
+#[test]
+fn a_planning_text_refuses_attachments_and_empty_metadata() {
+    let (mut a, m) = start(
+        Mock {
+            planning_attachments: true,
+            ..Mock::new(3)
+        },
+        false,
+    );
+    to_problems(&mut a);
+    a.press("a");
+    pick(&mut a, "native planning");
+    assert_eq!(m.calls("planning-defs"), ["planning-defs problems"]);
+    a.press("enter");
+    a.settle();
+    assert!(matches!(top(&a), Some(Modal::Failure(_))));
+    assert!(screen(&a).contains("Planning text/attachment preservation is unavailable"));
+
+    let (mut b, _) = start(
+        Mock {
+            no_planning: true,
+            ..Mock::new(3)
+        },
+        false,
+    );
+    to_changes(&mut b);
+    b.press("a");
+    pick(&mut b, "native planning");
+    assert!(matches!(top(&b), Some(Modal::Failure(_))));
+    assert!(screen(&b).contains("No native planning sections in current metadata"));
+}
+
+/// `test_ticket_options_recipients_review_and_public_consent`, all four
+/// `(reply, cancel)` cases.
+#[test]
+fn ctrl_o_ticket_options_add_recipients_review_and_ask_public_consent() {
+    for (reply, cancel) in [(true, true), (true, false), (false, true), (false, false)] {
+        let (mut a, m) = app(3);
+        if reply {
+            a.press("tab");
+        }
+        a.press(if reply { "r" } else { "n" });
+        assert!(matches!(top(&a), Some(Modal::Note(n)) if n.ticket_options));
+        a.type_text("Acme update");
+        a.press("ctrl+o");
+        let (title, labels) = picker(&a);
+        if reply {
+            assert_eq!(title, "Reply recipient/status options");
+            assert_eq!(
+                labels,
+                [
+                    "  Review exact reply",
+                    "  Status: unchanged (toggle Pending)",
+                    "  CC emails",
+                    "  BCC emails (no CC/status combination)",
+                    "  Configured sender (required for BCC)"
+                ]
+            );
+        } else {
+            assert_eq!(title, "Note notification/status options");
+            assert_eq!(
+                labels,
+                [
+                    "  Review exact note",
+                    "  Status: unchanged (toggle Pending)",
+                    "  Notify-to emails"
+                ]
+            );
+        }
+        pick(
+            &mut a,
+            if reply {
+                "CC emails"
+            } else {
+                "Notify-to emails"
+            },
+        );
+        assert_eq!(
+            value_title(&a),
+            "Comma-separated plain emails (empty clears)"
+        );
+        pick(&mut a, "person@example.com");
+        assert!(matches!(top(&a), Some(Modal::Picker(_))));
+        a.press("enter");
+        a.settle();
+        let (title, lines) = confirm(&a);
+        assert_eq!(title, "Review exact ticket conversation");
+        let review = lines.join("\n");
+        assert!(review.contains("person@example.com") && review.contains("plan_hash"));
+        assert!(review.contains(if reply {
+            "\"cc_emails\""
+        } else {
+            "\"notify_emails\""
+        }));
+        assert!(m.calls("conversation-send").is_empty());
+        a.press(if cancel { "escape" } else { "y" });
+        if !cancel && reply {
+            let (title, lines) = confirm(&a);
+            assert_eq!(title, "Confirm PUBLIC mail/visibility");
+            assert_eq!(
+                lines,
+                [
+                    "Review every recipient. This public conversation may send email and trigger workflows."
+                ]
+            );
+            assert!(m.calls("conversation-send").is_empty());
+            a.press("y");
+        }
+        a.settle();
+        let sends = m.calls("conversation-send");
+        assert_eq!(sends.len(), usize::from(!cancel));
+        if !cancel {
+            assert!(sends[0].ends_with(if reply { " true" } else { " false" }));
+            let (t, msg) = outcome(&a);
+            assert_eq!(t, "Conversation result — do not resend");
+            assert!(msg.contains("456"));
+            a.press("escape");
+        }
+    }
+}
+
+#[test]
+fn ticket_options_toggle_pending_set_sender_and_clear_with_empty() {
+    let (mut a, m) = app(3);
+    a.press("tab");
+    a.press("r");
+    a.type_text("Acme");
+    a.press("ctrl+o");
+    pick(&mut a, "Status");
+    assert!(
+        picker(&a)
+            .1
+            .contains(&"  Status: Pending (toggle Pending)".to_string())
+    );
+    pick(&mut a, "Configured sender");
+    assert_eq!(value_title(&a), "Configured support email");
+    pick(&mut a, "help@acme.test");
+    pick(&mut a, "CC emails");
+    pick(&mut a, "a@acme.test");
+    pick(&mut a, "CC emails");
+    for _ in 0.."a@acme.test".len() {
+        a.press("backspace");
+    }
+    a.press("enter");
+    pick(&mut a, "Review exact reply");
+    assert_eq!(
+        m.calls("conversation-plan"),
+        [format!(
+            "conversation-plan 1 Acme {:?}",
+            ConversationRequest {
+                reply: true,
+                public: true,
+                sender: Some("help@acme.test".into()),
+                set_status: Some("Pending".into()),
+                ..Default::default()
+            }
+        )]
+    );
+}
+
+#[test]
+fn ctrl_o_needs_text_and_a_ticket() {
+    let (mut a, m) = app(3);
+    a.press("n");
+    a.press("ctrl+o");
+    assert!(matches!(top(&a), Some(Modal::Note(_))));
+    assert!(toasts(&a).contains(&"Note is empty".to_string()));
+    let (mut b, _) = app(3);
+    to_changes(&mut b);
+    b.press("n");
+    b.type_text("x");
+    b.press("ctrl+o");
+    assert!(matches!(top(&b), Some(Modal::Note(n)) if !n.ticket_options));
+    assert!(m.calls("conversation-plan").is_empty());
 }

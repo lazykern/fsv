@@ -227,6 +227,30 @@ pub const TASK_NOTIFY_BEFORE: &[&str] = &[
     "2 Hours",
 ];
 
+/// One editable ticket/SR property (`FieldSpec` after `_load_ticket_property_fields`'
+/// filter). `choices` is `Some` for a dropdown: its visible `(value, label)` pairs.
+#[derive(Clone, Debug, PartialEq)]
+pub struct PropertyField {
+    pub name: String,
+    pub label: String,
+    pub choices: Option<Vec<(Value, String)>>,
+}
+
+/// `_prepare_ticket_conversation`'s keyword arguments, after the TUI split
+/// the comma-separated option strings.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct ConversationRequest {
+    /// `kind="reply"`, else `"note"`.
+    pub reply: bool,
+    pub public: bool,
+    pub cc: Vec<String>,
+    pub notify: Vec<String>,
+    pub bcc: Vec<String>,
+    pub sender: Option<String>,
+    /// `Some("Pending")` when the Pending toggle is on.
+    pub set_status: Option<String>,
+}
+
 /// The form `N` / `e` open (`_build_form(mode, item, ...)`).
 #[derive(Clone, Debug)]
 pub struct FormRequest {
@@ -451,6 +475,75 @@ pub trait Backend: Send + Sync {
     }
     fn delete_task(&self, change_id: &Value, task_id: &Value) -> BResult<()> {
         Err(Failure::unavailable("task deletes"))
+    }
+
+    // ── reviewed single-purpose writes ──────────────────────
+    /// `load_meta("ticket", "edit", fresh=True, module_id=ticket_id)` filtered
+    /// to the fields `e` offers on a ticket.
+    fn ticket_property_fields(&self, ticket_id: &Value) -> BResult<Vec<PropertyField>> {
+        Err(Failure::unavailable("ticket property edits"))
+    }
+    /// `ticket_properties.build_plan(ticket_id, answers={name: value})`.
+    fn ticket_property_plan(
+        &self,
+        ticket_id: &Value,
+        name: &str,
+        value: &Value,
+    ) -> BResult<ReviewPlan> {
+        Err(Failure::unavailable("ticket property edits"))
+    }
+    /// `ticket_properties.send(plan, reviewed_hash=plan.hash)`.
+    fn send_ticket_property(&self, plan: &ReviewPlan) -> BResult<Value> {
+        Err(Failure::unavailable("ticket property edits"))
+    }
+    /// `problem_known_error.build_plan(problem_id)`.
+    fn known_error_plan(&self, problem_id: &Value) -> BResult<ReviewPlan> {
+        Err(Failure::unavailable("known-error marks"))
+    }
+    /// `problem_known_error.send(plan, reviewed_hash=plan.hash)`.
+    fn send_known_error(&self, plan: &ReviewPlan) -> BResult<Value> {
+        Err(Failure::unavailable("known-error marks"))
+    }
+    /// `planning_text.definitions(module)`; `module` is `changes` or `problems`.
+    fn planning_definitions(&self, module: &str) -> BResult<Vec<Value>> {
+        Err(Failure::unavailable("planning text"))
+    }
+    /// `match_planning_row({"name": section}, planning_text.inventory(module, id))`.
+    fn planning_row(&self, module: &str, id: &Value, section: &str) -> BResult<Option<Value>> {
+        Err(Failure::unavailable("planning text"))
+    }
+    /// `planning_text.build_plan(module, id, section, description)`.
+    fn planning_text_plan(
+        &self,
+        module: &str,
+        id: &Value,
+        section: &str,
+        description: &str,
+    ) -> BResult<ReviewPlan> {
+        Err(Failure::unavailable("planning text"))
+    }
+    /// `planning_text.send(plan, reviewed_hash=plan.hash)`.
+    fn send_planning_text(&self, plan: &ReviewPlan) -> BResult<Value> {
+        Err(Failure::unavailable("planning text"))
+    }
+    /// `ticket_conversation.recipients` for cc / notify / bcc, then
+    /// `build_plan`. `raw` must be the plan's payload: the TUI reads
+    /// `private` from it to decide on the public-consent step.
+    fn ticket_conversation_plan(
+        &self,
+        ticket_id: &Value,
+        body: &str,
+        req: &ConversationRequest,
+    ) -> BResult<ReviewPlan> {
+        Err(Failure::unavailable("ticket conversations"))
+    }
+    /// `ticket_conversation.send(plan, reviewed_hash=plan.hash, public_confirmed=...)`.
+    fn send_ticket_conversation(
+        &self,
+        plan: &ReviewPlan,
+        public_confirmed: bool,
+    ) -> BResult<Value> {
+        Err(Failure::unavailable("ticket conversations"))
     }
 
     // ── create forms ────────────────────────────────────────
