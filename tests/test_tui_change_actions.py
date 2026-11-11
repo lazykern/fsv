@@ -15,6 +15,7 @@ from fsv.tui.modals import ChoiceScreen, ConfirmScreen, FailureScreen, ValueScre
 from test_tui_integration import offline  # noqa: F401
 
 ITEM = {"id": 9000001001, "display_id": 11, "_resource": CHANGES}
+STATUS_FIELDS = [{"name": "status", "choices": [{"id": 1, "value": "Open"}, {"id": 3, "value": "Completed"}]}]
 TARGET = {"id": 9000001002, "display_id": 22, "title": "Acme task", "subject": "Acme access", "status": 1}
 
 
@@ -41,6 +42,8 @@ def test_exact_helper_one_send(kind, body, expected):
 @pytest.mark.parametrize("kind", ["task-update", "task-delete", "link", "unlink", "download"])
 @pytest.mark.parametrize("confirm", [False, True])
 def test_selected_action_review(offline, monkeypatch, kind, confirm):
+    from fsv import task_status
+    monkeypatch.setattr(task_status, "fields_from", lambda client: STATUS_FIELDS)
     sent = []
     monkeypatch.setattr(create, "get_task_for_edit", lambda *a, **kw: TARGET.copy())
     monkeypatch.setattr(actions, "apply_change_action", lambda *args: sent.append(args) or {"verified": True})
@@ -122,8 +125,8 @@ def test_action_failure_no_retry(offline, monkeypatch, stage):
 
 
 def test_task_diff_only_and_validation():
-    assert actions.task_patch({"status": 3}, "status", "3") == {}
-    assert actions.task_patch({"status": 1}, "status", "3") == {"status": 3}
+    assert actions.task_patch({"status": 3}, "status", "3", STATUS_FIELDS) == {}
+    assert actions.task_patch({"status": 1}, "status", "3", STATUS_FIELDS) == {"status": 3}
     assert actions.task_patch({}, "owner_id", "9000001003") == {"owner_id": 9000001003}
     with pytest.raises(ValueError):
         actions.task_patch({}, "status", "9")

@@ -1751,8 +1751,8 @@ class FsvApp(App):
             tid = task.get("id", "?")
             title = task.get("title") or task.get("description") or "-"
             status_val = task.get("status")
-            status_map = {1: "Open", 2: "In Progress", 3: "Completed"}
-            status = status_map.get(status_val, str(status_val))
+            from fsv.task_status import display as task_status_display
+            status = task_status_display(task.get("status_name") or status_val)
             group = (task.get("group") or {}).get("name") if isinstance(task.get("group"), dict) else ""
             agent = (task.get("agent") or {}).get("name") if isinstance(task.get("agent"), dict) else ""
             due = (task.get("due_date") or "")[:10]
@@ -2305,7 +2305,7 @@ class FsvApp(App):
             status = values.pop("status", "Open")
             cid = item.get("display_id") or item["id"]
             change_tasks.status_label(status)
-            change_tasks.build_plan(cid, title, **values)
+            change_tasks.build_plan(cid, title, status_id=1, **values)
             owner_id = change_tasks.resolve_owner(owner)
             plan = change_tasks.build_plan(cid, title, owner_id=owner_id,
                                            group_id=change_tasks.resolve_group(group), status=status,
@@ -2389,6 +2389,8 @@ class FsvApp(App):
         from fsv import create
         try:
             current = create.get_task_for_edit(item.get("display_id") or item["id"], target["id"], c=get_client())
+            from fsv.task_status import fields_from
+            target = {**target, "_status_fields": fields_from(get_client())}
             self.call_from_thread(self._edit_task_field, item, target, current)
         except Exception as exc:
             self.call_from_thread(self._show_failure, f"Task unavailable: {exc}")
@@ -2401,7 +2403,7 @@ class FsvApp(App):
                 if value is None:
                     return
                 try:
-                    body = actions.task_patch(current, field, value)
+                    body = actions.task_patch(current, field, value, target.get("_status_fields"))
                 except ValueError as exc:
                     self._show_failure(str(exc))
                     return
@@ -2409,7 +2411,7 @@ class FsvApp(App):
                     self._confirm_action("task-update", item, {**target, "_before": {k: current.get(k) for k in body}}, body)
                 else:
                     self.notify("No change; nothing sent")
-            title = f"Task {target['id']}: {field}" + (" (1 Open, 2 In Progress, 3 Completed)" if field == "status" else "")
+            title = f"Task {target['id']}: {field}"
             self.push_screen(ValueScreen(title, str(current.get(field) or "")), value_picked)
         self.push_screen(ChoiceScreen([("title", "Title"), ("status", "Status"),
                                       ("group_id", "Group ID"), ("owner_id", "Agent ID")],

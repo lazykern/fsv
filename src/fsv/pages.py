@@ -251,7 +251,7 @@ def _status_text(v: Any) -> str:
     return "" if v is None else str(v)
 
 
-TASK_STATUS = {1: "Open", 2: "In Progress", 3: "Completed"}
+from fsv.task_status import display as task_status_display
 
 
 def tab_lines(td: V.TabData, tz: dt.tzinfo | None = None, schema: Mapping[str, Any] | None = None) -> list[str]:
@@ -287,8 +287,8 @@ def _tasks_tab(td: V.TabData, tz: Any, schema: Any) -> list[str]:
         return ["[dim]no tasks[/]"]
     out = []
     for t in rows:
-        st = t.get("status_name") or _status_text(t.get("status_info")) or TASK_STATUS.get(t.get("status"), _status_text(t.get("status")))
-        icon = "[green]✓[/]" if t.get("status") == 3 else "[yellow]◐[/]" if t.get("status") == 2 else "○"
+        st = t.get("status_name") or _status_text(t.get("status_info")) or task_status_display(t.get("status"))
+        icon = "○"
         tid = t.get("human_display_id") or (f"#{t.get('display_id') or t.get('id')}")
         out.append(f"{icon} [bold]{_e(t.get('title') or '-')}[/] [dim]{_e(tid)}[/]")
         bits = [st]

@@ -13,7 +13,7 @@ from typing import Any
 
 import typer
 
-from fsv import config, journal, views
+from fsv import config, journal, views, task_status
 from fsv.client import get_client
 from fsv.errors import APIError
 from fsv.resources import CHANGES, parse_id
@@ -78,27 +78,16 @@ def resolve_group(value: str | None, client: Any = None) -> int | None:
 
 
 def status_label(value: str) -> str:
-    for label in STATUS_LABELS:
-        if isinstance(value, str) and value.casefold() == label.casefold():
-            return label
-    raise ValueError("status must be Open, In Progress, Completed or Blocked")
+    if not isinstance(value, str) or not value.strip() or any(ord(c) < 32 for c in value):
+        raise ValueError("status must be a nonempty runtime label or ID")
+    return value.strip()
 
 
 def resolve_status(value: str, client: Any = None) -> int:
     label = status_label(value)
-    # Only these IDs have request evidence. Do not extrapolate the other IDs.
-    if label in ("Open", "In Progress"):
-        return {"Open": 1, "In Progress": 2}[label]
     try:
         c = client if client is not None else get_client()
-        data = c.int_get("change_task_fields", {"include_deleted_choices": "true"})
-        fields = next(data[k] for k in ("change_task_fields", "task_fields", "fields") if k in data)
-        matches = [choice for field in fields if field.get("name") == "status"
-                   for choice in field.get("choices", [])
-                   if str(choice.get("value") or choice.get("label") or choice.get("name") or "").casefold() == label.casefold()]
-        if len(matches) != 1 or _id(matches[0].get("id")) is None:
-            raise ValueError()
-        return int(matches[0]["id"])
+        return task_status.resolve(label, task_status.fields_from(c))[0]
     except Exception:
         raise TaskError(f"{label} requires an exact runtime task-status metadata ID; no ID inferred and no POST attempted") from None
 
@@ -210,14 +199,8 @@ def build_plan(change_id: int | str, title: str, *, owner_id: int | None = None,
     if group_id is not None and (type(group_id) is not int or group_id <= 0):
         raise ValueError("group ID must be a positive integer or none")
     label = status_label(status)
-    if status_id is None:
-        if label not in ("Open", "In Progress"):
-            raise ValueError("status ID must first be resolved from runtime metadata")
-        status_id = {"Open": 1, "In Progress": 2}[label]
-    if type(status_id) is not int or status_id <= 0 or (
-            label not in ("Open", "In Progress") and status_id in (1, 2)) or (
-            label in ("Open", "In Progress") and status_id != {"Open": 1, "In Progress": 2}[label]):
-        raise ValueError("invalid status ID for reviewed label")
+    if type(status_id) is not int or status_id <= 0:
+        raise ValueError("status ID must first be resolved from runtime metadata")
     reminder = next((k for k in NOTIFY_BEFORE if isinstance(notify_before, str)
                      and k.casefold() == notify_before.casefold()), None)
     if reminder is None:
@@ -360,7 +343,7 @@ def register(app: typer.Typer) -> None:
         title: str = typer.Option(..., "--title", help="exact task title to review"),
         owner: str | None = typer.Option(None, "--owner", help="explicit user ID or exact agent email; default none, no implicit self"),
         group: str | None = typer.Option(None, "--group", help="positive group ID or exact group name"),
-        status: str = typer.Option("Open", "--status", help="Open, In Progress, Completed or Blocked; last two require runtime metadata"),
+        status: str = typer.Option("Open", "--status", help="exact active runtime status label or ID (including the default Open)"),
         note: str | None = typer.Option(None, "--note", help="plain text, HTML-escaped"),
         notify_before: str = typer.Option("Never", "--notify-before", help="Never, 15 Minutes, 30 Minutes, 45 Minutes, 1 Hour, 2 Hours"),
         planned_start: str | None = typer.Option(None, "--planned-start", help="ISO date/time with explicit timezone offset"),
@@ -381,7 +364,7 @@ def register(app: typer.Typer) -> None:
                            planned_start=planned_start, planned_end=planned_end, planned_effort=planned_effort)
             # Validate local inputs before resolving any remote values.
             status_label(status)
-            build_plan(id_, title, **options)
+            build_plan(id_, title, status_id=1, **options)
             plan = build_plan(id_, title, owner_id=resolve_owner(owner), group_id=resolve_group(group),
                               status=status, status_id=resolve_status(status), **options)
             if dry_run:

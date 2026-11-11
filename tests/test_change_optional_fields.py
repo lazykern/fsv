@@ -16,7 +16,7 @@ OPTIONS: dict[str, Any] = dict(group_id=9000004001, status="In Progress", note="
 
 
 def test_task_optional_wire_and_review():
-    plan = tasks.build_plan(123, "Acme rollout", **OPTIONS)
+    plan = tasks.build_plan(123, "Acme rollout", status_id=2, **OPTIONS)
     assert plan.payload == {"title": "Acme rollout", "status": 2, "notify_before": 1800,
                             "group_id": 9000004001,
                             "description": "<div><p>&lt;Acme&gt; &amp; review<br>Next step</p></div>",
@@ -26,12 +26,12 @@ def test_task_optional_wire_and_review():
     review = plan.review()
     assert review["payload"] == plan.payload and review["note_text"] == OPTIONS["note"]
     assert review["status_label"] == "In Progress" and review["reminder"] == "30 Minutes"
-    assert tasks.build_plan(123, "Acme rollout", **{**OPTIONS, "planned_effort": "1h30m"}).hash == plan.hash
+    assert tasks.build_plan(123, "Acme rollout", status_id=2, **{**OPTIONS, "planned_effort": "1h30m"}).hash == plan.hash
 
 
 @pytest.mark.parametrize("label,seconds", tasks.NOTIFY_BEFORE.items())
 def test_all_reminder_labels(label, seconds):
-    plan = tasks.build_plan(123, "Acme review", notify_before=label.lower())
+    plan = tasks.build_plan(123, "Acme review", status_id=1, notify_before=label.lower())
     assert plan.payload["notify_before"] == seconds
     assert plan.review()["reminder"] == label
 
@@ -39,32 +39,32 @@ def test_all_reminder_labels(label, seconds):
 @pytest.mark.parametrize("raw,wire", [("1h30m", "1h 30m"), ("01:30", "1h 30m"),
                                       ("2h", "2h 0m"), ("30m", "0h 30m"), ("90m", "1h 30m")])
 def test_effort_normalizes(raw, wire):
-    assert tasks.build_plan(123, "Acme review", planned_effort=raw).payload["planned_effort"] == wire
+    assert tasks.build_plan(123, "Acme review", status_id=1, planned_effort=raw).payload["planned_effort"] == wire
 
 
-@pytest.mark.parametrize("options", [dict(group_id=0), dict(group_id=True), dict(status="Done"),
-    dict(status="Completed"), dict(status="In Progress", status_id=3), dict(notify_before="10 Minutes"),
+@pytest.mark.parametrize("options", [dict(group_id=0), dict(group_id=True), dict(status=""),
+    dict(status="Completed", status_id=None), dict(status="In Progress", status_id=0), dict(notify_before="10 Minutes"),
     dict(note="bad\x00"), dict(planned_effort="1.5h"), dict(planned_effort="01:99"),
     dict(planned_effort="-1h"), dict(planned_start="2026-12-05"),
     dict(planned_start="2026-12-05T12:30:00"), dict(planned_start="2026-12-05T12:30:00.123Z"),
     dict(planned_start="2026-12-06T00:00Z", planned_end="2026-12-05T00:00Z")])
 def test_invalid_optional_values(options):
     with pytest.raises(ValueError):
-        tasks.build_plan(123, "Acme review", **options)
+        tasks.build_plan(123, "Acme review", **{"status_id": 2, **options})
 
 
 def test_blank_optional_fields_omitted_and_z_date():
-    plan = tasks.build_plan(123, "Acme review", note=" \n", planned_effort=" ", planned_start="", planned_end="")
+    plan = tasks.build_plan(123, "Acme review", status_id=1, note=" \n", planned_effort=" ", planned_start="", planned_end="")
     assert plan.payload == {"title": "Acme review", "status": 1, "notify_before": 0}
-    assert tasks.build_plan(123, "Acme review", planned_start="2026-12-05T00:00Z").planned_start == "2026-12-05T00:00:00+00:00"
+    assert tasks.build_plan(123, "Acme review", status_id=1, planned_start="2026-12-05T00:00Z").planned_start == "2026-12-05T00:00:00+00:00"
 
 
 @pytest.mark.parametrize("key,value", [("group_id", 9000004002), ("status", "Open"), ("note", "Other text"),
     ("notify_before", "Never"), ("planned_start", "2026-12-04T00:00Z"),
     ("planned_end", "2026-12-07T00:00Z"), ("planned_effort", "2h")])
 def test_every_optional_field_hash_bound(monkeypatch, key, value):
-    original = tasks.build_plan(123, "Acme review", **OPTIONS)
-    changed = tasks.build_plan(123, "Acme review", **{**OPTIONS, key: value})
+    original = tasks.build_plan(123, "Acme review", status_id=2, **OPTIONS)
+    changed = tasks.build_plan(123, "Acme review", **{**OPTIONS, key: value, "status_id": 1 if key == "status" else 2})
     assert original.hash != changed.hash
     monkeypatch.setattr(tasks, "get_client", lambda: pytest.fail("hash mismatch must not construct client"))
     with pytest.raises(tasks.TaskError, match="hash"):
@@ -102,7 +102,7 @@ def test_group_resolution_explicit_and_exact(monkeypatch):
 
 @pytest.mark.parametrize("mode", ["complete", "absent", "mismatch", "different-offset"])
 def test_task_optional_readback_single_attempt(monkeypatch, mode):
-    plan = tasks.build_plan(123, "Acme review", **OPTIONS)
+    plan = tasks.build_plan(123, "Acme review", status_id=2, **OPTIONS)
     row = {"id": 9000002010, "owner_id": None, **plan.payload}
     if mode == "absent":
         row.pop("description")
@@ -132,7 +132,7 @@ def test_task_optional_readback_single_attempt(monkeypatch, mode):
 
 
 def test_cli_all_optional_fields_local_review(monkeypatch):
-    monkeypatch.setattr(tasks, "get_client", lambda: pytest.fail("local draft network"))
+    monkeypatch.setattr(tasks, "resolve_status", lambda value, client=None: {"Open": 1, "In Progress": 2}[value])
     result = CliRunner().invoke(cli.app, ["changes", "tasks-add", "CHN-123", "--title", "Acme review",
         "--group", "9000004001", "--status", "In Progress", "--note", "<literal>",
         "--notify-before", "2 Hours", "--planned-start", "2026-12-05T00:00-05:00",
@@ -186,7 +186,7 @@ def test_approval_rule_wrong_readback_and_hash_rejected(monkeypatch, rule):
 
 
 def test_default_task_hash_preserves_existing_journal_guard(monkeypatch):
-    plan = tasks.build_plan(123, "Acme review")
+    plan = tasks.build_plan(123, "Acme review", status_id=1)
     legacy_hash = journal.plan_hash({"tenant": plan.tenant, "path": plan.path,
                                     "payload": {"title": "Acme review", "status": 1, "notify_before": 0}})
     assert legacy_hash is not None and plan.hash == legacy_hash
@@ -213,7 +213,7 @@ def test_cli_status_metadata_and_local_validation_before_lookup(monkeypatch, lab
 
 
 def test_missing_response_id_contradictory_optional_fields_unknown(monkeypatch):
-    plan = tasks.build_plan(123, "Acme review", planned_effort="1h30m")
+    plan = tasks.build_plan(123, "Acme review", status_id=1, planned_effort="1h30m")
     inventories = iter([[], [{"id": 9000002010, "title": plan.title, "owner_id": None,
                              "planned_effort": "2h 0m"}]])
     monkeypatch.setattr(tasks, "_inventory", lambda *a: next(inventories))

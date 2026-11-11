@@ -167,6 +167,8 @@ def test_update_edit_final_body_is_gated(monkeypatch, tmp_path):
 
 
 def test_tasks_update_flags_and_edit_gated(monkeypatch):
+    monkeypatch.setattr(cli, "_task_field_defs", lambda: [{"name": "status", "choices": [
+        {"id": 1, "value": "Open"}, {"id": 2, "value": "In Progress"}, {"id": 3, "value": "Completed"}]}])
     sent = []
     monkeypatch.setattr(create, "update_task", lambda cid, tid, body, c=None: sent.append(body) or {"id": tid})
     monkeypatch.setattr(create, "get_task_for_edit", lambda cid, tid, c=None: {"status": 1, "owner_id": 5, "title": "t"})

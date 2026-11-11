@@ -32,7 +32,7 @@ def test_one_exact_post_and_readback(monkeypatch, tenant, owner, envelope):
         return httpx.Response(200, json={"tasks": [old] if len(calls) == 1 else [old, exact]})
     c = mock_client(monkeypatch, handler)
     try:
-        plan = tasks.build_plan("CHN-123", exact["title"], owner_id=owner)
+        plan = tasks.build_plan("CHN-123", exact["title"], status_id=1, owner_id=owner)
         result = tasks.send(plan, c, reviewed_hash=plan.hash)
         posts = [r for r in calls if r.method == "POST"]
         assert len(posts) == 1 and str(posts[0].url) == f"https://{tenant}/api/_/changes/123/tasks"
@@ -79,7 +79,7 @@ def test_missing_response_id_never_guesses_or_resubmits(monkeypatch, case):
         return httpx.Response(200, json={"tasks": rows, "meta": {"has_next": case == "partial"}})
     c = mock_client(monkeypatch, handler)
     try:
-        plan = tasks.build_plan(123, row["title"], owner_id=row["owner_id"])
+        plan = tasks.build_plan(123, row["title"], status_id=1, owner_id=row["owner_id"])
         with pytest.raises(tasks.TaskError, match="outcome unknown"):
             tasks.send(plan, c, reviewed_hash=plan.hash)
         assert [r["event"] for r in journal.read() if r["kind"] == "plan:change_task_create"] == ["started"]
@@ -102,7 +102,7 @@ def test_post_failure_single_attempt(monkeypatch, failure):
         return httpx.Response(failure, json={"error": "synthetic rejection"})
     c = mock_client(monkeypatch, handler)
     try:
-        plan = tasks.build_plan(123, "Acme review")
+        plan = tasks.build_plan(123, "Acme review", status_id=1)
         with pytest.raises(tasks.TaskError, match="rejected|unknown"):
             tasks.send(plan, c, reviewed_hash=plan.hash)
         assert len([r for r in calls if r.method == "POST"]) == 1
@@ -126,7 +126,7 @@ def test_returned_id_not_replaced_with_title_match(monkeypatch, readback):
                               else {"tasks": [] if len(calls) == 1 else readback})
     c = mock_client(monkeypatch, handler)
     try:
-        plan = tasks.build_plan(123, "Acme review")
+        plan = tasks.build_plan(123, "Acme review", status_id=1)
         result = tasks.send(plan, c, reviewed_hash=plan.hash)
         assert result["task_id"] == 9000002010 and result["verified"] is False
         assert "do not resend" in result["warning"]
@@ -140,7 +140,7 @@ def test_returned_id_not_replaced_with_title_match(monkeypatch, readback):
 @pytest.mark.parametrize("mode", ["dry_run", "read_only", "cancel", "hash", "tenant"])
 def test_pre_send_guards_no_io(monkeypatch, mode):
     monkeypatch.setattr(tasks, "get_client", lambda: pytest.fail("client should not be constructed"))
-    plan = tasks.build_plan(123, "Acme review")
+    plan = tasks.build_plan(123, "Acme review", status_id=1)
     kw = {"reviewed_hash": plan.hash}
     if mode in ("dry_run", "read_only"):
         kw[mode] = True
@@ -168,7 +168,7 @@ def test_preparation_failure_no_post(monkeypatch, case):
         c._get_csrf = lambda: (_ for _ in ()).throw(RuntimeError())
     else:
         monkeypatch.setattr(journal, "record_plan", lambda *a, **k: None)
-    plan = tasks.build_plan(123, "Acme review")
+    plan = tasks.build_plan(123, "Acme review", status_id=1)
     with pytest.raises(tasks.TaskError, match="no task"):
         tasks.send(plan, c, reviewed_hash=plan.hash)
 
@@ -178,7 +178,7 @@ def test_preparation_failure_no_post(monkeypatch, case):
     (123, "x", True), (123, "x", 0), (123, "x", "123")])
 def test_invalid_plan(cid, title, owner):
     with pytest.raises(ValueError):
-        tasks.build_plan(cid, title, owner_id=owner)
+        tasks.build_plan(cid, title, status_id=1, owner_id=owner)
 
 
 def test_owner_resolution_exact_and_explicit(monkeypatch):
@@ -200,7 +200,7 @@ def test_owner_resolution_exact_and_explicit(monkeypatch):
     (["--no-input"], None), (["--yes"], None), (["--read-only"], None),
     (["--yes", "--expect-plan", "wrong"], None)])
 def test_cli_review_and_guards(monkeypatch, args, input_):
-    monkeypatch.setattr(tasks, "get_client", lambda: pytest.fail("client forbidden"))
+    monkeypatch.setattr(tasks, "resolve_status", lambda value, client=None: {"Open": 1, "In Progress": 2}[value])
     r = CliRunner().invoke(cli.app, ["changes", "tasks-add", "CHN-123", "--title", "Acme review", *args], input=input_)
     assert r.exit_code == (0 if args == ["--dry-run", "--json"] or not args else 2), r.output
     if "--dry-run" in args:
@@ -210,6 +210,7 @@ def test_cli_review_and_guards(monkeypatch, args, input_):
 
 
 def test_cli_reviewed_hash_send(monkeypatch):
+    monkeypatch.setattr(tasks, "resolve_status", lambda value, client=None: 1)
     runner = CliRunner()
     base = ["changes", "tasks-add", "CHN-123", "--title", "Globex review", "--owner", "9000002001"]
     draft = runner.invoke(cli.app, [*base, "--dry-run", "--json"])
@@ -245,7 +246,7 @@ def test_pagination_baseline_and_readback(monkeypatch, baseline_complete):
         return httpx.Response(200, json={"tasks": [old, exact] if posted else [old], "meta": {"has_next": False}})
     c = mock_client(monkeypatch, handler)
     try:
-        plan = tasks.build_plan(123, old["title"], owner_id=old["owner_id"])
+        plan = tasks.build_plan(123, old["title"], status_id=1, owner_id=old["owner_id"])
         if baseline_complete:
             result = tasks.send(plan, c, reviewed_hash=plan.hash)
             assert result["task_id"] == exact["id"] and result["verified"] is True
@@ -262,7 +263,7 @@ def test_unknown_owner_readback_is_not_unassigned(monkeypatch):
     monkeypatch.setattr(tasks, "_inventory", lambda *a: [] if not journal.read() else [
         {"id": 9000002010, "title": "Acme review"}])
     c = SimpleNamespace(_get_csrf=lambda: "synthetic-token", _request=lambda *a, **k: {})
-    plan = tasks.build_plan(123, "Acme review")
+    plan = tasks.build_plan(123, "Acme review", status_id=1)
     with pytest.raises(tasks.TaskError, match="outcome unknown"):
         tasks.send(plan, c, reviewed_hash=plan.hash)
 

@@ -2013,21 +2013,18 @@ def _complete_associated_asset_for_change(ctx: typer.Context, incomplete: str) -
 
 
 def _complete_task_status(incomplete: str) -> Iterable[tuple[str, str]]:
-    for value, help_text in (("Open", "id=1"), ("Completed", "id=2"), ("1", "Open"), ("2", "Completed")):
-        if value.casefold().startswith(incomplete.casefold()):
-            yield (value, help_text)
-    yield (incomplete, "")
+    from fsv.task_status import active_choices
+    try:
+        for ident, label in active_choices(_task_field_defs()):
+            if label.casefold().startswith(incomplete.casefold()):
+                yield (label, f"id={ident}")
+    except ValueError:
+        return
 
 
 def _task_status_value(value: str) -> int:
-    raw = value.strip()
-    if raw.isdigit():
-        return int(raw)
-    mapping = {"open": 1, "completed": 2, "complete": 2, "done": 2, "closed": 2}
-    key = raw.casefold()
-    if key not in mapping:
-        raise ValueError("task status must be Open/Completed or numeric ID")
-    return mapping[key]
+    from fsv.task_status import resolve
+    return resolve(value, _task_field_defs())[0]
 
 
 def _task_field_defs() -> list[dict[str, Any]]:
@@ -3612,6 +3609,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 if edit:
                     current = get_task_for_edit(cid, task_id)
                     body = _edit_body(current, f"Editing task {task_id} on change #{cid}", no_input)
+                    if "status" in body:
+                        body["status"] = _task_status_value(str(body["status"]))
                     risks = _task_risks(body, current)
                     if dry_run:
                         emit_json({"action": "update_task", "change_id": cid, "task_id": task_id, "body": body,

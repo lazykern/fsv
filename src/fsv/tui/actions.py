@@ -136,15 +136,16 @@ def form_result(mode: str, out: Any) -> tuple[str, str]:
     return label, str(human or (f"{prefix}-{display}" if display is not None else f"ID {internal}" if internal is not None else "(ID unavailable; inspect journal)"))
 
 
-def task_patch(current: dict, field: str, value: Any) -> dict:
+def task_patch(current: dict, field: str, value: Any, fields: list[dict] | None = None) -> dict:
     if field not in ("title", "status", "group_id", "owner_id"):
         raise ValueError("Unsupported task field")
-    if field != "title":
+    if field == "status":
+        from fsv.task_status import resolve
+        value = resolve(str(value), fields or [])[0]
+    elif field != "title":
         if not value.isdecimal() or int(value) < 1:
             raise ValueError("Enter a positive numeric ID")
         value = int(value)
-    if field == "status" and value not in (1, 2, 3):
-        raise ValueError("Task status must be 1 Open, 2 In Progress, or 3 Completed")
     return {} if current.get(field) == value else {field: value}
 
 
