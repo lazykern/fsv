@@ -1187,6 +1187,17 @@ fn catalog(a: SrCatalogArgs) -> CmdResult {
     Ok(())
 }
 
+/// `_attachment_rule`.
+fn attachment_rule(item: &fsv_forms::spec::ServiceItem) -> &'static str {
+    if !item.allow_attachments {
+        "not accepted"
+    } else if item.attachment_mandatory {
+        "required: at least one general file"
+    } else {
+        "optional"
+    }
+}
+
 /// `fields_doc`.
 fn fields_doc(meta: &cat::ItemMeta) -> fsv_core::Result<Value> {
     let form = |e: fsv_forms::FormError| Error::exit(2, e.to_string());
@@ -1211,13 +1222,7 @@ fn fields_doc(meta: &cat::ItemMeta) -> fsv_core::Result<Value> {
         !blockers.is_empty() || !fsv_api::formmeta::rules_warnings(&meta.rules).is_empty();
     let effective =
         (!uncertain).then(|| ev.attachments_required.unwrap_or(item.attachment_mandatory));
-    let mut rule = if !item.allow_attachments {
-        "not accepted".to_string()
-    } else if item.attachment_mandatory {
-        "required: at least one general file".to_string()
-    } else {
-        "optional".to_string()
-    };
+    let mut rule = attachment_rule(&item).to_string();
     if item.allow_attachments && uncertain {
         rule.push_str(" (base; effective requirement unknown)");
     } else if item.allow_attachments && ev.attachments_required.is_some() {
@@ -1498,5 +1503,33 @@ pub(crate) fn expanduser(s: &str) -> String {
         format!("{}/{rest}", home().trim_end_matches('/'))
     } else {
         s.to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Values from `cli_sr._attachment_rule`.
+    #[test]
+    fn attachment_rules() {
+        let item = |allow: bool, mandatory: bool| fsv_forms::spec::ServiceItem {
+            id: Value::Null,
+            display_id: Value::Null,
+            name: String::new(),
+            short_description: String::new(),
+            category_name: String::new(),
+            description_html: String::new(),
+            allow_attachments: allow,
+            attachment_mandatory: mandatory,
+            allow_quantity: false,
+            subject_template: String::new(),
+        };
+        assert_eq!(attachment_rule(&item(false, true)), "not accepted");
+        assert_eq!(
+            attachment_rule(&item(true, true)),
+            "required: at least one general file"
+        );
+        assert_eq!(attachment_rule(&item(true, false)), "optional");
     }
 }

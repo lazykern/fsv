@@ -2,8 +2,10 @@
 """Run Python and Rust fsv with the same routes; diff stdout, stderr, exit
 code and the requests sent. Dev aid only; the Rust tests never run Python.
 
-Usage: cmp.py ROUTES.json [--stdin TEXT] [--files DIR] [--show] [--emit TEST_NAME] -- ARGS...
+Usage: cmp.py ROUTES.json [--stdin TEXT] [--files DIR] [--pre ARGV_JSON]... [--show] [--emit TEST_NAME] -- ARGS...
 With --emit, a Rust test asserting Python's output is appended to $EMIT_TO (or printed).
+Each --pre runs first in the same home (output ignored), e.g. --pre '["config","set","k","v"]'.
+FSV_RS_BIN overrides the Rust binary; CMP_TIMEOUT (seconds, default 60) bounds each run.
 """
 
 import difflib
@@ -25,9 +27,18 @@ stdin = ""
 files = None
 show = False
 emit = None
+pre = []
+tty = False
+extra_env = []
 while argv and argv[0] != "--":
     opt = argv.pop(0)
-    if opt == "--stdin":
+    if opt == "--pre":
+        pre.append(json.loads(argv.pop(0)))
+    elif opt == "--tty":
+        tty = True
+    elif opt == "--env":
+        extra_env.append(tuple(argv.pop(0).split("=", 1)))
+    elif opt == "--stdin":
         stdin = argv.pop(0)
     elif opt == "--files":
         files = os.path.abspath(argv.pop(0))
@@ -58,19 +69,34 @@ def run(impl):
     env = {"HOME": h, "FSV_CONFIG_DIR": cfg, "FSV_CACHE_DIR": os.path.join(h, "cache"),
            "XDG_STATE_HOME": os.path.join(h, "state"), "FSV_NO_KEYCHAIN": "1", "NO_COLOR": "1",
            "COLUMNS": "200", "TZ": "UTC", "PATH": "/usr/bin:/bin"}
-    if impl == "py":
-        cmd = [os.path.join(PY, ".venv/bin/python"), os.path.join(HERE, "run_py.py"), routes, log, "--", *args]
-    else:
+    env.update(dict(extra_env))
+    if tty:
+        env["FSV_TEST_TTY"] = "1"
+
+    def command(a):
+        if impl == "py":
+            return [os.path.join(PY, ".venv/bin/python"), os.path.join(HERE, "run_py.py"), routes, log, "--", *a]
+        return [os.environ.get("FSV_RS_BIN", os.path.join(ROOT, "target/debug/fsv")), *a]
+    if impl != "py":
         env["FSV_TEST_ROUTES"] = routes
         env["FSV_TEST_LOG"] = log
-        cmd = [os.path.join(ROOT, "target/debug/fsv"), *args]
-    p = subprocess.run(cmd, cwd=work, env=env, input=stdin.encode(), capture_output=True)
+    timeout = float(os.environ.get("CMP_TIMEOUT", "60"))
+    for a in pre:
+        subprocess.run(command(a), cwd=work, env=env, input=b"", capture_output=True, timeout=timeout)
+    if os.path.exists(log):
+        os.remove(log)
+    p = subprocess.run(command(args), cwd=work, env=env, input=stdin.encode(), capture_output=True,
+                       timeout=timeout)
     p.stdout = p.stdout.decode("utf-8", "replace")
     p.stderr = p.stderr.decode("utf-8", "replace")
     reqs = []
     if os.path.exists(log):
         for line in open(log):
-            r = json.loads(line)
+            try:
+                r = json.loads(line)
+            except ValueError:
+                reqs.append("(unparsable log line: concurrent requests)")
+                continue
             reqs.append(f"{r['method']} {r['url']} {json.dumps(r['body'], sort_keys=True)}")
     listing = []
     for d, _, fs in os.walk(work):
@@ -124,8 +150,16 @@ if emit and same_out:
         if m not in ("GET", "HEAD"):
             writes.append(f'"{m} {url.split("acme.freshservice.com", 1)[1].split("?")[0]}"')
     stdin_arg = f"Some({json.dumps(stdin)})" if stdin else "None"
-    rust = [f"#[test]", f"fn {emit}() {{",
-            f'    let r = run_fixture("{fixture}", &[{argl}], {stdin_arg});',
+    steps = ", ".join("&[" + ", ".join(json.dumps(x) for x in a) + "]" for a in pre)
+    if tty or extra_env:
+        envl = ", ".join(f"({json.dumps(k)}, {json.dumps(v)})" for k, v in extra_env)
+        call = (f'    let r = run_with("{fixture}", &[{steps}], &[{argl}], {stdin_arg}, '
+                f'Opts {{ tty: {"true" if tty else "false"}, env: &[{envl}] }});')
+    elif pre:
+        call = f'    let r = run_steps("{fixture}", &[{steps}], &[{argl}], {stdin_arg});'
+    else:
+        call = f'    let r = run_fixture("{fixture}", &[{argl}], {stdin_arg});'
+    rust = [f"#[test]", f"fn {emit}() {{", call,
             f'    assert_eq!(r.code, {py["exit"][0]}, "{{}}", r.err);',
             f'    assert_eq!(r.out, {lit(py["stdout"], py_raw["stdout"])});',
             f'    assert_eq!(r.err, {lit(py["stderr"], py_raw["stderr"])});']

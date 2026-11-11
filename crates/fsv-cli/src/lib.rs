@@ -5,6 +5,7 @@
 
 mod app;
 mod cmd;
+mod filters;
 pub mod generated;
 mod lazy;
 mod lookup;

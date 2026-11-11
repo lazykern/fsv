@@ -55,6 +55,28 @@ fn change_label(id: i64) -> String {
     format_id(&json!({"id": id}), &CHANGES)
 }
 
+/// `_print_tickets`.
+fn print_tickets(items: &[Value], title: &str) {
+    let mut t = Table::new().title(title.to_string());
+    t.add_column(Column::new("ID").style("cyan"));
+    t.add_column(Column::new("Subject"));
+    t.add_column(Column::new("Status"));
+    for item in items {
+        let subj = s(item, "subject");
+        let status = item
+            .get("status_name")
+            .filter(|v| fsv_py::truthy(v))
+            .map(fsv_py::py_str)
+            .unwrap_or_else(|| item.get("status").map_or("-".into(), fsv_py::py_str));
+        t.add_row([
+            ticket_label(item),
+            if subj.is_empty() { "-".into() } else { subj },
+            status,
+        ]);
+    }
+    out().print_table(&t);
+}
+
 fn ticket_label(t: &Value) -> String {
     let hid = s(t, "human_display_id");
     if hid.is_empty() {
@@ -229,7 +251,9 @@ fn resolve_asset_category(value: &str, c: &Client) -> Result<Category, Error> {
 
 /// `_filter_assets_by_category`.
 fn filter_by_category(items: Vec<Value>, category: Option<&Category>) -> Vec<Value> {
-    let Some(cat) = category.filter(|c| c.get("filter") != Some(&json!("all_assets"))) else {
+    let Some(cat) =
+        category.filter(|c| !c.is_empty() && c.get("filter") != Some(&json!("all_assets")))
+    else {
         return items;
     };
     let wanted = casefold(&cat_name(cat));
@@ -380,6 +404,7 @@ fn resolve_asset_id(
     }
 }
 
+/// Port of fsv.cli._resolve_change_asset_ids.
 fn resolve_asset_ids(
     id: i64,
     values: &[String],
@@ -435,22 +460,25 @@ fn require_tty() -> CmdResult {
     Ok(())
 }
 
+/// `_prompt_asset_category`: `None` when the prompt is cancelled.
+fn prompt_asset_category(c: &Client) -> Result<Option<Category>, Error> {
+    let Some(v) = prompt_text(
+        "Asset category",
+        "Category for asset search. Leave empty for All assets.",
+        "All assets",
+    ) else {
+        return Ok(None);
+    };
+    let raw = fsv_core::pystr::strip(&v);
+    resolve_asset_category(if raw.is_empty() { "All assets" } else { raw }, c).map(Some)
+}
+
 /// `_pick_change_assets`.
 fn pick_assets(id: i64, c: &Client, category: Option<Category>) -> Result<Vec<i64>, Error> {
     require_tty()?;
     let category = match category {
         Some(cat) => cat,
-        None => {
-            let Some(v) = prompt_text(
-                "Asset category",
-                "Category for asset search. Leave empty for All assets.",
-                "All assets",
-            ) else {
-                return Err(Error::exit(0, ""));
-            };
-            let raw = fsv_core::pystr::strip(&v);
-            resolve_asset_category(if raw.is_empty() { "All assets" } else { raw }, c)?
-        }
+        None => prompt_asset_category(c)?.ok_or_else(|| Error::exit(0, ""))?,
     };
     let mut prompt = format!("Search assets for {}", change_label(id));
     if category.get("filter") != Some(&json!("all_assets")) {
@@ -976,24 +1004,7 @@ pub fn associations(o: AssocOpts) -> CmdResult {
         if emit_fmt(&Value::Array(items.clone()), &flat, fmt)? {
             return Ok(());
         }
-        let mut t = Table::new().title("Ticket search");
-        t.add_column(Column::new("ID").style("cyan"));
-        t.add_column(Column::new("Subject"));
-        t.add_column(Column::new("Status"));
-        for item in &items {
-            let subj = s(item, "subject");
-            let status = item
-                .get("status_name")
-                .filter(|v| fsv_py::truthy(v))
-                .map(fsv_py::py_str)
-                .unwrap_or_else(|| item.get("status").map_or("-".into(), fsv_py::py_str));
-            t.add_row([
-                ticket_label(item),
-                if subj.is_empty() { "-".into() } else { subj },
-                status,
-            ]);
-        }
-        out().print_table(&t);
+        print_tickets(&items, "Ticket search");
         return Ok(());
     }
     if o.pick || !o.add.is_empty() || !o.remove.is_empty() {
@@ -1138,4 +1149,56 @@ pub fn associations(o: AssocOpts) -> CmdResult {
         });
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Values from `cli._prefixed_value`, `_asset_display` and
+    /// `_filter_assets_by_category`.
+    #[test]
+    fn prefixed_value_prefers_the_ci_type() {
+        let ci = json!({"ci_type_id": 7, "asset_state_3": "Old", "asset_state_7": "In Use", "serial_number_1": "", "serial_number_2": "SN2"});
+        assert_eq!(prefixed_value(&ci, "asset_state_"), Some(json!("In Use")));
+        assert_eq!(prefixed_value(&ci, "serial_number_"), Some(json!("SN2")));
+        assert_eq!(prefixed_value(&ci, "nope_"), None);
+        assert_eq!(
+            prefixed_value(&json!({"asset_state_1": null}), "asset_state_"),
+            None
+        );
+    }
+
+    #[test]
+    fn asset_display_rows() {
+        let nested = json!({"id": 5, "config_item": {"display_id": 12, "name": "Mac", "ci_type_name": "Laptop", "user_name": "Ann", "asset_state_1": "In Use"}});
+        assert_eq!(
+            asset_display(&nested),
+            json!({"id": 12, "name": "Mac", "type": "Laptop", "used_by": "Ann", "location": "-", "state": "In Use", "serial": "-"})
+        );
+        let flat = json!({"id": 6, "name": "", "asset_type": "Server", "used_by": "Bob", "location_name": "BKK", "serial_number_9": "S9"});
+        assert_eq!(
+            asset_display(&flat),
+            json!({"id": 6, "name": "-", "type": "Server", "used_by": "Bob", "location": "BKK", "state": "-", "serial": "S9"})
+        );
+    }
+
+    #[test]
+    fn filter_by_category_matches_type() {
+        let items = vec![
+            json!({"name": "Mac", "type": "Laptop"}),
+            json!({"id": 2, "ci_type_name": "laptop"}),
+            json!({"name": "Box", "type": "Server"}),
+        ];
+        let cat = |v: Value| v.as_object().cloned().unwrap();
+        let laptop = cat(json!({"name": "LAPTOP"}));
+        assert_eq!(
+            filter_by_category(items.clone(), Some(&laptop)),
+            vec![items[0].clone(), items[1].clone()]
+        );
+        let all = cat(json!({"name": "All", "filter": "all_assets"}));
+        assert_eq!(filter_by_category(items.clone(), Some(&all)), items);
+        assert_eq!(filter_by_category(items.clone(), Some(&Map::new())), items);
+        assert_eq!(filter_by_category(items.clone(), None), items);
+    }
 }

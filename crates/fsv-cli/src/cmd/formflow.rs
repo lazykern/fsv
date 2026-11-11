@@ -54,6 +54,7 @@ impl<'a> Requester<'a> {
         }
     }
 
+    /// Port of fsv.change_cli._Requester.value, fsv.cli_sr._Requester.value.
     pub fn value(&self, draft: &Draft) -> Option<String> {
         if let Some(v) = nonempty(&self.flag)
             .or_else(|| nonempty(&draft.requester))
@@ -69,6 +70,7 @@ impl<'a> Requester<'a> {
             .filter(|s| !s.is_empty())
     }
 
+    /// Port of fsv.change_cli._Requester.ask.
     pub fn ask(&self) -> Result<()> {
         let v = term::prompt("Requester (email)", Some(""), false)?;
         *self.prompted.borrow_mut() = Some(v).filter(|s| !s.is_empty());
@@ -91,6 +93,7 @@ impl<'a> Requester<'a> {
     }
 
     /// `(requester, problem)`; a `ValueError` from the lookup is the problem.
+    /// Port of fsv.change_cli._Requester.resolve, fsv.cli_sr._Requester.resolve.
     pub fn resolve(&self, draft: &Draft) -> Result<(Option<LookupValue>, Option<String>)> {
         let Some(v) = self.value(draft) else {
             return Ok((None, None));
@@ -279,7 +282,7 @@ pub fn draft_error(e: Error) -> Error {
     }
 }
 
-/// `EditorAbort` leaves with exit 1.
+/// `EditorAbort` leaves with exit 1. Port of fsv.change_cli._abort_editor.
 pub fn editor_abort(e: Error) -> Error {
     match e {
         Error::EditorAbort(m) => flow_exit(1, m),

@@ -416,7 +416,7 @@ pub fn status_label(sch: &Value, status: &Value) -> String {
 }
 
 /// `_choice_value`.
-fn choice_value(field: &Value, raw: &str, type_: &str) -> Result<Value> {
+pub(crate) fn choice_value(field: &Value, raw: &str, type_: &str) -> Result<Value> {
     let choices = field
         .get("choices")
         .and_then(Value::as_array)
@@ -613,4 +613,67 @@ pub fn risks_for_item_write(
             kind: "item",
         },
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Values from `cli._format_field_ref` and `cli._candidate_label`.
+    #[test]
+    fn format_field_ref_columns() {
+        let f = json!({"name": "cf_x", "label": "X", "field_type": "custom_dropdown", "default_field": false});
+        assert_eq!(format_field_ref(&f), "cf_x  X  custom_dropdown  custom");
+        assert_eq!(
+            format_field_ref(&json!({"name": "status"})),
+            "status  None  None  custom"
+        );
+    }
+
+    #[test]
+    fn candidate_labels() {
+        let got: Vec<String> = [
+            json!({"value": "Ann", "email": "a@x", "details": "d"}),
+            json!({"id": 3}),
+            json!({"name": "N", "id": 4}),
+            json!({"value": "V", "email": "V"}),
+        ]
+        .iter()
+        .map(candidate_label)
+        .collect();
+        assert_eq!(got, ["Ann <d>", "3", "N", "V"]);
+    }
+
+    /// Values from `cli._resolve_update_choice`; failures exit 2.
+    #[test]
+    fn resolve_update_choice_active_only() {
+        let sch = json!({"fields": [
+            {"name": "status", "label": "Status", "choices": [
+                {"id": 2, "value": "Open"}, {"id": 3, "value": "Old", "deleted": true},
+                {"id": 4, "name": "Pending"}, {"id": 5, "value": "Dup"}, {"id": 6, "label": "dup"},
+            ]},
+            {"name": "empty", "label": "Empty", "choices": []},
+        ]});
+        for (field, raw, want) in [
+            ("status", "open", json!(2)),
+            ("status", "2", json!(2)),
+            ("status", "PENDING", json!(4)),
+        ] {
+            assert_eq!(
+                resolve_update_choice(&sch, field, raw).unwrap(),
+                want,
+                "{raw}"
+            );
+        }
+        for (field, raw) in [
+            ("status", "3"),
+            ("status", "Old"),
+            ("status", "dup"),
+            ("empty", "x"),
+            ("nosuch", "x"),
+        ] {
+            let e = resolve_update_choice(&sch, field, raw).unwrap_err();
+            assert_eq!(e.exit_code(), 2, "{field}={raw}");
+        }
+    }
 }

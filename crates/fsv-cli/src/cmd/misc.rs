@@ -83,6 +83,7 @@ fn search_clean(s: &str) -> String {
 }
 
 /// `_search_extract`: `(type, id, title, status, group)`.
+/// Port of fsv.cli._search_extract.
 pub fn search_extract(r: &Value) -> [String; 5] {
     let rt = first_str(r, &["result_type"], "");
     let label = SEARCH_TYPE_LABEL
@@ -151,6 +152,7 @@ fn results_with_type(data: &Value) -> Vec<Value> {
 }
 
 /// `fsv search QUERY` (`global_search`).
+/// Port of fsv.cli.global_search, fsv.cli.global_search_cmd.
 pub fn search(a: SearchArgs) -> CmdResult {
     let c = client()?;
     let sort = Some(a.sort.as_str());
@@ -236,6 +238,14 @@ const SETUP_ITEMS: [(&str, &str); 6] = [
     ("All", "Run full setup"),
 ];
 
+/// `_setup_domain`.
+fn setup_domain() -> CmdResult {
+    out().print("\n[bold]── Domain ──[/bold]");
+    crate::cmd::auth::resolve_domain(false)?;
+    out().print(&format!("domain set to [bold]{}[/bold]", config::domain()));
+    Ok(())
+}
+
 /// `fsv setup`.
 pub fn setup(prog: &str) -> CmdResult {
     if !stdin_tty() {
@@ -263,9 +273,7 @@ pub fn setup(prog: &str) -> CmdResult {
     };
     let all = choice == 6;
     if choice == 1 || all {
-        out().print("\n[bold]── Domain ──[/bold]");
-        crate::cmd::auth::resolve_domain(false)?;
-        out().print(&format!("domain set to [bold]{}[/bold]", config::domain()));
+        setup_domain()?;
     }
     if choice == 2 || all {
         setup_auth()?;
@@ -525,4 +533,38 @@ pub fn tui_read_only(flag: bool) -> bool {
 /// `fsv tui`.
 pub fn tui(a: TuiArgs) -> CmdResult {
     fsv_app::run_tui(tui_read_only(a.read_only)).map_err(crate::util::uncaught)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Values from `cli._search_clean` / `cli._search_extract`.
+    #[test]
+    fn search_clean_strips_tags_and_entities() {
+        assert_eq!(search_clean("  <b>A &amp; B</b> "), "A & B");
+        assert_eq!(search_clean(""), "");
+    }
+
+    #[test]
+    fn search_extract_rows() {
+        let cases = [
+            (
+                json!({"result_type": "helpdesk_ticket", "ticket_display_id": "#SR-1", "subject": "<i>Hi</i>", "status_name": "Open", "group_name": "Ops"}),
+                ["Ticket", "#SR-1", "Hi", "-", "-"],
+            ),
+            (
+                json!({"result_type": "", "id": 7, "name": "N"}),
+                ["-", "7", "N", "-", "-"],
+            ),
+            (
+                json!({"result_type": "weird", "display_id": 0, "id": 9, "title": "T"}),
+                ["weird", "9", "T", "-", "-"],
+            ),
+            (json!({}), ["-", "-", "", "-", "-"]),
+        ];
+        for (r, want) in cases {
+            assert_eq!(search_extract(&r), want.map(String::from), "{r}");
+        }
+    }
 }

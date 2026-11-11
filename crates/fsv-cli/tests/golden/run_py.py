@@ -6,10 +6,14 @@ its own; stdout/stderr/exit code are fsv's.
 """
 
 import json
+import os
 import sys
 from urllib.parse import parse_qsl, urlsplit
 
 import httpx
+
+if os.environ.get("FSV_TEST_TTY"):
+    sys.stdin.isatty = lambda: True
 
 routes_path, log_path = sys.argv[1], sys.argv[2]
 args = sys.argv[sys.argv.index("--") + 1:]

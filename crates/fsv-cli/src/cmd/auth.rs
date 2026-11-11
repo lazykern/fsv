@@ -1,12 +1,11 @@
 //! `fsv auth login|logout|status`.
 
 use std::io::Read;
-use std::sync::Arc;
 
 use fsv_core::config;
 use fsv_core::session::{self, Backend};
 use fsv_core::term::{self, Column, Justify, Table, err, out};
-use fsv_core::{Client, Ctx, Error, Result};
+use fsv_core::{Error, Result};
 
 use crate::cmd::cache;
 use crate::generated::{AuthLoginArgs, AuthLogoutArgs};
@@ -39,8 +38,7 @@ pub fn resolve_domain(local_no_input: bool) -> Result<bool> {
 /// `_validate_new_cookies`.
 pub(crate) fn validate_new_cookies(cookies: &session::Cookies) -> CmdResult {
     let domain = config::domain();
-    let probe = Client::with_cookies(Arc::new(Ctx::from_process()), cookies.clone())
-        .and_then(|c| c.check_session());
+    let probe = crate::util::client_with_cookies(cookies).and_then(|c| c.check_session());
     match probe {
         Ok(_) => Ok(()),
         Err(Error::Session(_)) => Err(fail(
@@ -124,7 +122,7 @@ fn report_login() {
     let domain = config::domain();
     session::clear_cache();
     fsv_core::client::reset_client();
-    let checked = fsv_core::get_client().and_then(|c| c.check_session());
+    let checked = crate::util::shared_client().and_then(|c| c.check_session());
     match checked {
         Ok(agent) => {
             let s = |k: &str| agent.get(k).map(fsv_py::py_str).unwrap_or_default();

@@ -84,6 +84,7 @@ fn option_arity(cmd: &Command, token: &str) -> usize {
 
 /// `_reorder_root_flags` plus `ChangeLegacyGroup` routing. Returns the new
 /// argv (without the program name) and the deprecation notice to print.
+/// Port of fsv.cli.FSVGroup.parse_args, fsv.cli.ChangeLegacyGroup.parse_args.
 pub fn rewrite(root: &Command, args: &[String]) -> (Vec<String>, Option<&'static str>) {
     let mut moved = Vec::new();
     let mut kept: Vec<String> = Vec::new();
@@ -188,6 +189,7 @@ fn leaf(m: &ArgMatches) -> (Vec<String>, &ArgMatches) {
 }
 
 /// Run fsv with `argv` (program name first); returns the exit code.
+/// Port of fsv.cli.main.
 pub fn run(argv: Vec<String>) -> i32 {
     let args: Vec<String> = argv.iter().skip(1).cloned().collect();
     if args.first().map(String::as_str) == Some("_complete")
@@ -247,6 +249,104 @@ fn clap_error(e: clap::Error) -> i32 {
         _ => {
             let _ = e.print();
             2
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn argv(a: &[&str]) -> Vec<String> {
+        a.iter().map(|s| s.to_string()).collect()
+    }
+
+    /// Expected argv from `cli._reorder_root_flags` on the Typer tree.
+    #[test]
+    fn rewrite_moves_verbose_to_the_front() {
+        let root = command();
+        for (input, want) in [
+            (&["changes", "ls", "-v"][..], &["-v", "changes", "ls"][..]),
+            (&["-v", "changes", "ls"], &["-v", "changes", "ls"]),
+            (
+                &["changes", "--json", "ls", "--where", "x", "--no-input"],
+                &["changes", "--json", "ls", "--where", "x", "--no-input"],
+            ),
+            (
+                &["changes", "ls", "--where", "-v", "--verbose"],
+                &["--verbose", "changes", "ls", "--where", "-v"],
+            ),
+            (
+                &["changes", "ls", "--where=-v", "-v"],
+                &["-v", "changes", "ls", "--where=-v"],
+            ),
+            (
+                &["changes", "ls", "--", "-v"],
+                &["changes", "ls", "--", "-v"],
+            ),
+            (
+                &["tickets", "get", "1", "--verbose", "--format", "-v"],
+                &["--verbose", "-v", "tickets", "get", "1", "--format"],
+            ),
+            (
+                &["config", "set", "-v", "k", "v"],
+                &["-v", "config", "set", "k", "v"],
+            ),
+            (&["changes", "assets", "ls"], &["changes", "assets", "ls"]),
+        ] {
+            assert_eq!(
+                rewrite(&root, &argv(input)),
+                (argv(want), None),
+                "{input:?}"
+            );
+        }
+    }
+
+    /// Port of fsv.cli.ChangeLegacyGroup.parse_args: an ID after
+    /// `changes assets|associations` routes to the hidden `legacy` group.
+    #[test]
+    fn rewrite_routes_legacy_change_ids() {
+        let root = command();
+        let (args, notice) = rewrite(&root, &argv(&["changes", "assets", "CHN-5", "ls"]));
+        assert_eq!(args, argv(&["changes", "assets", "legacy", "CHN-5", "ls"]));
+        assert!(
+            notice
+                .unwrap()
+                .contains("fsv changes assets <ls|search|add|remove|pick|categories>")
+        );
+        let (args, notice) = rewrite(&root, &argv(&["changes", "associations", "12", "ls"]));
+        assert_eq!(
+            args,
+            argv(&["changes", "associations", "legacy", "12", "ls"])
+        );
+        assert!(
+            notice
+                .unwrap()
+                .contains("fsv changes associations <ls|search|add|remove|pick>")
+        );
+        let (args, notice) = rewrite(&root, &argv(&["changes", "assets", "nope"]));
+        assert_eq!((args, notice), (argv(&["changes", "assets", "nope"]), None));
+    }
+
+    /// Values from `cli._option_arity` on `changes ls`.
+    #[test]
+    fn option_arity_counts_value_options() {
+        let root = command();
+        let ls = root
+            .find_subcommand("changes")
+            .and_then(|c| c.find_subcommand("ls"))
+            .unwrap();
+        for (token, want) in [
+            ("--where", 1),
+            ("-w", 1),
+            ("--where=x", 0),
+            ("--json", 0),
+            ("--limit", 0),
+            ("-n", 1),
+            ("--nope", 0),
+            ("x", 0),
+        ] {
+            assert_eq!(option_arity(ls, token), want, "{token}");
         }
     }
 }

@@ -168,6 +168,7 @@ fn tasks() -> Vec<Task> {
 }
 
 /// `_refresh_cache(verbose=True, blocking=True)`; rows in completion order.
+/// Port of fsv.cli._refresh_cache.
 pub fn refresh() -> CmdResult {
     let (tx, rx) = std::sync::mpsc::channel();
     std::thread::scope(|s| {

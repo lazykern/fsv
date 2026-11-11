@@ -64,6 +64,7 @@ pub fn uncaught(e: Error) -> Error {
 }
 
 /// Final exit code for a command result, printing what is still unprinted.
+/// Port of fsv.cli._flow_exit (the `Error::Exit` arm).
 pub fn report(result: CmdResult) -> i32 {
     match result {
         Ok(()) => 0,
@@ -89,7 +90,13 @@ pub fn no_input(local: bool) -> bool {
     fsv_core::runtime::no_input() || local
 }
 
+/// `sys.stdin.isatty()`. Debug builds treat `FSV_TEST_TTY=1` as a terminal
+/// so tests can script prompts through a pipe.
 pub fn stdin_tty() -> bool {
+    #[cfg(debug_assertions)]
+    if std::env::var_os("FSV_TEST_TTY").is_some_and(|v| !v.is_empty()) {
+        return true;
+    }
     std::io::stdin().is_terminal()
 }
 
@@ -113,6 +120,19 @@ pub fn shared_client() -> Result<Arc<Client>> {
         }
     }
     fsv_core::get_client()
+}
+
+/// A client probing `cookies` instead of the stored session.
+pub fn client_with_cookies(cookies: &fsv_core::session::Cookies) -> Result<Client> {
+    let ctx = Arc::new(fsv_core::Ctx::from_process());
+    #[cfg(debug_assertions)]
+    if let Some(t) = crate::mock::transport() {
+        return Client::builder(ctx)
+            .transport(t)
+            .cookies(cookies.clone())
+            .build();
+    }
+    Client::with_cookies(ctx, cookies.clone())
 }
 
 /// `_client()`.

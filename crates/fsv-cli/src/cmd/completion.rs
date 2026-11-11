@@ -153,7 +153,8 @@ pub fn doctor(prog: &str) -> CmdResult {
     Ok(())
 }
 
-/// Root `--show-completion`.
+/// Root `--show-completion`. Port of fsv.cli._patch_typer_shell_detection
+/// (shell detection via `shell_from_env`).
 pub fn show_eager(prog: &str) -> CmdResult {
     let Some(shell) = shell_from_env() else {
         return Err(fail("could not detect shell", 1));

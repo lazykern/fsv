@@ -37,85 +37,89 @@ pub fn dispatch(sub: &str, m: &ArgMatches) -> CmdResult {
     match sub {
         "explain" => explain(parse(m)?),
         "fields" => fields(parse(m)?),
-        "dump" => {
-            let a: FormDumpArgs = parse(m)?;
-            let module = module(&a.module)?;
-            if a.mode != "new" && a.mode != "edit" {
-                return Err(form_fail("--mode must be new or edit"));
-            }
-            let c = client()?;
-            let meta = load(&c, module, &a.mode, true, &Value::Null)?;
-            let snap = json!({
-                "fsv_form_snapshot": SNAPSHOT_VERSION,
-                "module": module,
-                "form_type": meta.form_type,
-                "workspace_id": meta.workspace_id,
-                "taken_at": jiff::Zoned::now().strftime("%Y-%m-%dT%H:%M:%S%z").to_string(),
-                "fields": meta.raw_fields(),
-                "business_rules": rule_list(&meta.rules),
-            });
-            print_json(&snap);
-            Ok(())
-        }
-        "diff" => {
-            let a: FormDiffArgs = parse(m)?;
-            let old = read_snapshot(&a.snapshot)?;
-            let new = if let Some(other) = a.against.as_deref().filter(|s| !s.is_empty()) {
-                read_snapshot(other)?
-            } else {
-                let c = client()?;
-                let mode = if old.get("form_type").and_then(Value::as_str) == Some("edit_form") {
-                    "edit"
-                } else {
-                    "new"
-                };
-                let module = old
-                    .get("module")
-                    .filter(|v| fsv_py::truthy(v))
-                    .map_or_else(|| "change".to_string(), fsv_py::py_str);
-                let meta = load(&c, &module, mode, true, &Value::Null)?;
-                json!({"fields": meta.raw_fields(), "business_rules": rule_list(&meta.rules)})
-            };
-            let changes = diff_snapshots(&old, &new);
-            if a.output == "json" {
-                print_json(&Value::Array(changes));
-                return Ok(());
-            }
-            if changes.is_empty() {
-                out().print("no changes");
-                return Ok(());
-            }
-            for ch in &changes {
-                let s = |k: &str| ch.get(k).filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str);
-                let ident = s("label").or_else(|| s("name")).unwrap_or_default();
-                let kind = fsv_py::py_str(&ch["kind"]);
-                let r = if kind == "field" { "name" } else { "id" };
-                let reference = fsv_py::py_str(ch.get(r).unwrap_or(&Value::Null));
-                let sign = match ch["change"].as_str() {
-                    Some("added") => "[green]+[/green]",
-                    Some("removed") => "[red]-[/red]",
-                    _ => "[yellow]~[/yellow]",
-                };
-                let mut line = format!(
-                    "{sign} {kind} {} [dim]({})[/dim]",
-                    escape(&ident),
-                    escape(&reference)
-                );
-                if let Some(what) = ch
-                    .get("what")
-                    .and_then(Value::as_array)
-                    .filter(|w| !w.is_empty())
-                {
-                    let parts: Vec<String> = what.iter().map(fsv_py::py_str).collect();
-                    line.push_str(&format!(": {}", escape(&parts.join("; "))));
-                }
-                out().print(&line);
-            }
-            out().print(&format!("[dim]{} difference(s)[/dim]", changes.len()));
-            Ok(())
-        }
+        "dump" => dump(parse(m)?),
+        "diff" => diff(parse(m)?),
         _ => Err(Error::other(format!("unknown command: form {sub}"))),
     }
+}
+
+/// `fsv form dump`.
+fn dump(a: FormDumpArgs) -> CmdResult {
+    let module = module(&a.module)?;
+    if a.mode != "new" && a.mode != "edit" {
+        return Err(form_fail("--mode must be new or edit"));
+    }
+    let c = client()?;
+    let meta = load(&c, module, &a.mode, true, &Value::Null)?;
+    let snap = json!({
+        "fsv_form_snapshot": SNAPSHOT_VERSION,
+        "module": module,
+        "form_type": meta.form_type,
+        "workspace_id": meta.workspace_id,
+        "taken_at": jiff::Zoned::now().strftime("%Y-%m-%dT%H:%M:%S%z").to_string(),
+        "fields": meta.raw_fields(),
+        "business_rules": rule_list(&meta.rules),
+    });
+    print_json(&snap);
+    Ok(())
+}
+
+/// `fsv form diff`.
+fn diff(a: FormDiffArgs) -> CmdResult {
+    let old = read_snapshot(&a.snapshot)?;
+    let new = if let Some(other) = a.against.as_deref().filter(|s| !s.is_empty()) {
+        read_snapshot(other)?
+    } else {
+        let c = client()?;
+        let mode = if old.get("form_type").and_then(Value::as_str) == Some("edit_form") {
+            "edit"
+        } else {
+            "new"
+        };
+        let module = old
+            .get("module")
+            .filter(|v| fsv_py::truthy(v))
+            .map_or_else(|| "change".to_string(), fsv_py::py_str);
+        let meta = load(&c, &module, mode, true, &Value::Null)?;
+        json!({"fields": meta.raw_fields(), "business_rules": rule_list(&meta.rules)})
+    };
+    let changes = diff_snapshots(&old, &new);
+    if a.output == "json" {
+        print_json(&Value::Array(changes));
+        return Ok(());
+    }
+    if changes.is_empty() {
+        out().print("no changes");
+        return Ok(());
+    }
+    for ch in &changes {
+        let s = |k: &str| ch.get(k).filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str);
+        let ident = s("label").or_else(|| s("name")).unwrap_or_default();
+        let kind = fsv_py::py_str(&ch["kind"]);
+        let r = if kind == "field" { "name" } else { "id" };
+        let reference = fsv_py::py_str(ch.get(r).unwrap_or(&Value::Null));
+        let sign = match ch["change"].as_str() {
+            Some("added") => "[green]+[/green]",
+            Some("removed") => "[red]-[/red]",
+            _ => "[yellow]~[/yellow]",
+        };
+        let mut line = format!(
+            "{sign} {kind} {} [dim]({})[/dim]",
+            escape(&ident),
+            escape(&reference)
+        );
+        if let Some(what) = ch
+            .get("what")
+            .and_then(Value::as_array)
+            .filter(|w| !w.is_empty())
+        {
+            let parts: Vec<String> = what.iter().map(fsv_py::py_str).collect();
+            line.push_str(&format!(": {}", escape(&parts.join("; "))));
+        }
+        out().print(&line);
+    }
+    out().print(&format!("[dim]{} difference(s)[/dim]", changes.len()));
+    Ok(())
 }
 
 /// `_guard`: form errors exit 2, the rest by their exit code.
@@ -685,4 +689,69 @@ fn read_snapshot(path: &str) -> Result<Value> {
         )));
     }
     Ok(data)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Values from `form_cli._module`, `_one_line`, `_choice_labels` and
+    /// `diff_snapshots`.
+    #[test]
+    fn module_names() {
+        assert_eq!(module("Changes ").unwrap(), "change");
+        assert_eq!(module("TICKETS").unwrap(), "ticket");
+        assert_eq!(module("changess").unwrap(), "change");
+    }
+
+    #[test]
+    fn one_line_collapses_and_truncates() {
+        assert_eq!(one_line("<p>a  b</p>\n c", 100), "a b c");
+        assert_eq!(one_line("xxxxx", 4), "xxx…");
+        assert_eq!(one_line("abcd", 4), "abcd");
+    }
+
+    #[test]
+    fn choice_labels_fallbacks() {
+        let f = json!({"choices": [{"value": "A"}, {"name": "B"}, {"id": 3}, "C", {"value": ""}]});
+        assert_eq!(choice_labels(&f), ["A", "B", "3", "C", "None"]);
+    }
+
+    #[test]
+    fn diff_snapshots_fields_and_rules() {
+        let old = json!({
+            "fields": [
+                {"name": "a", "label": "A", "choices": [{"value": "x"}, {"value": "y"}]},
+                {"name": "gone", "label": "Gone"},
+                {"name": "r", "label": "R", "required": false, "choices": [{"value": "p"}, {"value": "q"}]},
+            ],
+            "business_rules": [
+                {"id": 1, "name": "One", "x": 1, "updated_at": "t"},
+                {"id": 2, "is_reversible": true, "name": "Two"},
+            ],
+        });
+        let new = json!({
+            "fields": [
+                {"name": "a", "label": "A2", "choices": [{"value": "y"}, {"value": "z"}]},
+                {"name": "new", "label": "New"},
+                {"name": "r", "label": "R", "required": true, "choices": [{"value": "q"}, {"value": "p"}]},
+            ],
+            "business_rules": [
+                {"id": 1, "name": "One", "x": 2, "updated_at": "u"},
+                {"id": 3, "name": "Three"},
+            ],
+        });
+        assert_eq!(
+            Value::Array(diff_snapshots(&old, &new)),
+            json!([
+                {"kind": "field", "change": "added", "name": "new", "label": "New"},
+                {"kind": "field", "change": "removed", "name": "gone", "label": "Gone"},
+                {"kind": "field", "change": "changed", "name": "a", "label": "A2", "what": ["label: 'A' -> 'A2'", "choices +['z'] -['x']"]},
+                {"kind": "field", "change": "changed", "name": "r", "label": "R", "what": ["required: False -> True", "choices reordered"]},
+                {"kind": "rule", "change": "added", "id": "3/fixed", "name": "Three"},
+                {"kind": "rule", "change": "removed", "id": "2/rev", "name": "Two"},
+                {"kind": "rule", "change": "changed", "id": "1/fixed", "name": "One", "what": ["x"]},
+            ])
+        );
+    }
 }

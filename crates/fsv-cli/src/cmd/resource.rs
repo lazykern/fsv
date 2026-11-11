@@ -15,7 +15,7 @@ use crate::util::{
     CmdResult, cid, client, confirm_writes, emit_dry_run, emit_dry_run_as, emit_fmt, fail_exc,
     first_str, format_cid, head, obj, plain_fail, uncaught, usage,
 };
-use crate::{lookup, schema};
+use crate::{filters, lookup, schema};
 
 /// `fsv RES ls`.
 pub fn ls(res: &'static Resource, a: ResLsArgs) -> CmdResult {
@@ -86,16 +86,25 @@ fn build_query_hash(
     where_: &[String],
     or_grouping: bool,
 ) -> Result<(Option<String>, Vec<Value>, Vec<fsv_api::Explain>)> {
-    let sch = if where_.is_empty() {
-        None
-    } else {
-        Some(schema::load(res, c, false)?)
-    };
-    let dir = fsv_app::tui::ClientDirectory(c.clone());
-    let (_, query, explain) =
-        fsv_api::build_query_hash(Some(&dir), res.name, sch.as_ref(), where_, raw, or_grouping)
-            .map_err(|e| Error::Value(e.0))?;
-    let query = merge_same_conditions(query);
+    let mut query = Vec::new();
+    let mut explain = Vec::new();
+    if let Some(raw) = raw.filter(|s| !s.is_empty()) {
+        query.extend(filters::load_query_hash(raw)?);
+        explain.push(fsv_api::Explain {
+            field: "query_hash".into(),
+            condition: "raw".into(),
+            operator: "raw".into(),
+            type_name: "raw".into(),
+            value: raw.to_string(),
+        });
+    }
+    if !where_.is_empty() {
+        let sch = schema::load(res, c, false)?;
+        for expr in where_ {
+            query.push(filters::resolve_where(c, res, &sch, expr, &mut explain)?);
+        }
+    }
+    let query = merge_same_conditions(filters::merge_date_ranges(query));
     if query.is_empty() {
         return Ok((None, query, explain));
     }
@@ -461,8 +470,21 @@ fn load_detail(
     Ok(d)
 }
 
-/// `views.current_user`: the signed-in agent, `{}` when unreadable.
-fn current_user(c: &fsv_core::Client) -> Result<Value> {
+/// `views.current_user`: the signed-in agent, `{}` when unreadable; fetched
+/// once per run (Python caches it on the client).
+pub(crate) fn current_user(c: &fsv_core::Client) -> Result<Value> {
+    static ME: std::sync::Mutex<Option<Value>> = std::sync::Mutex::new(None);
+    if let Some(me) = ME.lock().ok().and_then(|g| g.clone()) {
+        return Ok(me);
+    }
+    let me = fetch_current_user(c)?;
+    if let Ok(mut g) = ME.lock() {
+        *g = Some(me.clone());
+    }
+    Ok(me)
+}
+
+fn fetch_current_user(c: &fsv_core::Client) -> Result<Value> {
     let mut me = match c.me() {
         Ok(Value::Object(m)) => m,
         Err(e @ Error::Session(_)) => return Err(fail_exc(e)),
@@ -484,7 +506,7 @@ fn current_user(c: &fsv_core::Client) -> Result<Value> {
     Ok(Value::Object(me))
 }
 
-/// `fsv RES activity ID`.
+/// `fsv RES activity ID`. Port of fsv.cli.activity_resource.
 pub fn activity(res: &'static Resource, a: ResActivityArgs) -> CmdResult {
     let id = cid(&a.id_, res)?;
     let c = client()?;
@@ -546,7 +568,7 @@ pub fn activity(res: &'static Resource, a: ResActivityArgs) -> CmdResult {
     Ok(())
 }
 
-/// `fsv RES tasks ID`.
+/// `fsv RES tasks ID`. Port of fsv.cli.tasks_resource.
 pub fn tasks(res: &'static Resource, a: ResTasksArgs) -> CmdResult {
     let id = cid(&a.id_, res)?;
     let c = client()?;
@@ -729,7 +751,7 @@ fn activity_text(v: Option<&Value>) -> String {
     pystr::strip(&WS.replace_all(&html, " ")).to_string()
 }
 
-/// `fsv RES fields`.
+/// `fsv RES fields`. Port of fsv.cli.fields_resource, fsv.cli._show_fields_table.
 pub fn fields(res: &'static Resource, a: ResFieldsArgs) -> CmdResult {
     if a.default && a.custom {
         return Err(usage("use --default or --custom, not both"));
@@ -1185,6 +1207,7 @@ fn history_rows(
 }
 
 /// `notes_resource` / `conversations_resource`.
+/// Port of fsv.cli.conversations_resource.
 pub fn history(res: &'static Resource, a: HistoryArgs<'_>) -> CmdResult {
     let id = cid(a.id_, res)?;
     let c = client()?;
@@ -1517,4 +1540,54 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
 /// Generic `download` (tickets, problems).
 pub fn download(res: &'static Resource, a: ResDownloadArgs) -> CmdResult {
     crate::cmd::download::generic(res, a)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Values from `cli._where_field`, `_merge_same_conditions`,
+    /// `_activity_day` and `_activity_text`.
+    #[test]
+    fn where_field_names() {
+        let got: Vec<String> = ["  Status = Open", "a>=b", "noop", " x ~= y"]
+            .iter()
+            .map(|e| where_field(e))
+            .collect();
+        assert_eq!(got, ["Status", "a", "noop", "x"]);
+    }
+
+    #[test]
+    fn merge_same_conditions_joins_is_in() {
+        let q = vec![
+            json!({"condition": "status", "operator": "is_in", "type": "default", "value": [2]}),
+            json!({"condition": "d", "operator": "custom_date", "type": "default", "value": {"from": "x"}}),
+            json!({"condition": "status", "operator": "is_in", "type": "default", "value": [4]}),
+            json!({"condition": "status", "operator": "is_not_in", "type": "default", "value": [5]}),
+            json!({"condition": "status", "operator": "is_in", "type": "custom_field", "value": null}),
+        ];
+        assert_eq!(
+            Value::Array(merge_same_conditions(q)),
+            json!([
+                {"condition": "status", "operator": "is_in", "type": "default", "value": [2, 4]},
+                {"condition": "d", "operator": "custom_date", "type": "default", "value": {"from": "x"}},
+                {"condition": "status", "operator": "is_not_in", "type": "default", "value": [5]},
+                {"condition": "status", "operator": "is_in", "type": "custom_field", "value": []},
+            ])
+        );
+    }
+
+    #[test]
+    fn activity_day_and_text() {
+        assert_eq!(activity_day(None), "Unknown");
+        let old = local_dt(Some(&json!("2020-01-02T03:04:00")));
+        assert_eq!(activity_day(old.as_ref()), "2020-01-02");
+        assert_eq!(activity_day(Some(&jiff::Zoned::now())), "Today");
+        assert_eq!(local_dt(Some(&json!(""))), None);
+        assert_eq!(activity_text(None), "");
+        assert_eq!(
+            activity_text(Some(&json!("<p>Hi\n\n <b>there</b></p>  &amp; x"))),
+            "Hi there & x"
+        );
+    }
 }

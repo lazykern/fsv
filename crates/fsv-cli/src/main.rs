@@ -4,6 +4,7 @@ extern "C" fn on_sigint(_: libc::c_int) {
     unsafe { libc::_exit(130) }
 }
 
+/// Port of fsv.__init__.main.
 fn main() {
     #[cfg(unix)]
     unsafe {

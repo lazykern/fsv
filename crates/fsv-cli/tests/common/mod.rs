@@ -58,6 +58,7 @@ pub struct Env {
     pub stdin: Option<String>,
     pub cwd: Option<PathBuf>,
     pub session: bool,
+    pub vars: Vec<(String, String)>,
 }
 
 /// Routes from `tests/fixtures/routes/NAME.json`.
@@ -70,11 +71,47 @@ pub fn fixture(name: &str) -> Vec<Value> {
 
 /// Run `args` against a route fixture in a fresh home (cwd = `HOME/work`).
 pub fn run_fixture(name: &str, args: &[&str], stdin: Option<&str>) -> Run {
+    run_steps(name, &[], args, stdin)
+}
+
+/// `run_fixture` after running each of `pre` in the same home with empty
+/// stdin; only the last run is returned.
+pub fn run_steps(name: &str, pre: &[&[&str]], args: &[&str], stdin: Option<&str>) -> Run {
+    run_with(name, pre, args, stdin, Opts::default())
+}
+
+/// Extra process settings for [`run_with`].
+#[derive(Default)]
+pub struct Opts<'a> {
+    /// `FSV_TEST_TTY=1`: stdin counts as a terminal (prompts read the pipe).
+    pub tty: bool,
+    pub env: &'a [(&'a str, &'a str)],
+}
+
+/// [`run_steps`] with [`Opts`].
+pub fn run_with(
+    name: &str,
+    pre: &[&[&str]],
+    args: &[&str],
+    stdin: Option<&str>,
+    opts: Opts<'_>,
+) -> Run {
     let mut env = Env::new(fixture(name));
-    env.stdin = stdin.map(str::to_string);
     let work = env.home().join("work");
     std::fs::create_dir_all(&work).unwrap();
     env.cwd = Some(work);
+    if opts.tty {
+        env.vars.push(("FSV_TEST_TTY".into(), "1".into()));
+    }
+    for (k, v) in opts.env {
+        env.vars.push((k.to_string(), v.to_string()));
+    }
+    env.stdin = Some(String::new());
+    for step in pre {
+        env.run(step);
+        env.session = false;
+    }
+    env.stdin = stdin.map(str::to_string);
     env.run(args)
 }
 
@@ -96,6 +133,7 @@ impl Env {
             stdin: None,
             cwd: None,
             session: true,
+            vars: Vec::new(),
         }
     }
 
@@ -149,6 +187,7 @@ impl Env {
             .env("TZ", "UTC")
             .env("FSV_TEST_ROUTES", &routes)
             .env("FSV_TEST_LOG", &log)
+            .envs(self.vars.iter().map(|(k, v)| (k, v)))
             .stdin(if self.stdin.is_some() {
                 Stdio::piped()
             } else {

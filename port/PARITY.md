@@ -214,7 +214,10 @@ No divergences from this pass.
 | `cli.py` command tree (111 nodes: root, 13 groups, 97 leaves) | `fsv_cli::generated`, `app` | ported. `tests/tree.rs` checks every node's name, hidden flag, options, positionals and help text against a Python dump. |
 | `cli.py` `help`, `search`, `auth`, `cache`, `journal`, `config`, `completion`, `views`, `url`, `<res> lookup` | `fsv_cli::cmd::*` | ported. |
 | `cli.py` `tickets add-note` (reviewed, no `--set-status`), `changes tasks-delete --dry-run`, `changes update --due-by --dry-run` | `cmd::tickets`, `cmd::changes` | ported. |
-| `<res> ls/get/activity/tasks/notes/fields`, `update`, `download`, `tickets reply/create/conversations/approvals/associations`, `changes create/update` (form path), `changes tasks-add/-update/approvals/state/clone/assets/associations`, `sr *`, `form *`, `tui`, `setup` | `fsv_cli::pending` | **not ported.** Each runs its local checks, prints `error: X is not ported to Rust yet`, exits 1. Blocked on schema, views, formmeta, catalog and change-flow wiring in `fsv-api`/`fsv-flows`/`fsv-views`. |
+| `<res> ls/get/activity/tasks/notes/fields`, `update`, `download`, `tickets reply/create/conversations/approvals/associations`, `changes create/update`, `changes tasks-*/approvals/state/clone/assets/associations`, `sr *`, `form *`, `tui`, `setup` | `fsv_cli::cmd::*` | ported. Golden tests in `tests/{read,write,local,where}_cmds.rs` were emitted from Python runs on the same routes (`tests/golden/cmp.py --emit`). |
+| `cli._resolve_where`, `_parse_where`, `_where_operator`, `_date_condition`, `_where_schema_field`, `_load_query_hash`, `_merge_date_ranges` | `fsv_cli::filters` | ported. `ls --where` used `fsv_api::resolve_where` (the `query.py` resolver), which rejects field labels and aliases (`Agents`, `Assigned to`, `Created`), periods (`Last 6 months`), `me`, `(empty)`, plural cuts and date `!=`. It now uses the CLI resolver; `tests/where_cmds.rs` pins 37 Python runs plus 3 sent payloads. |
+| `views.current_user` | `cmd::resource::current_user` | ported, fetched once per run as Python caches it on the client (`requester=me` made a second `agents/me` call). |
+| `cli._complete_tab`, `_ctx_change_id`, `_complete_task_id`, `_asset_candidates`, `_complete_asset_category`, `_complete_asset_search_for_change`, `_complete_asset_id_for_change`, `_complete_associated_asset_for_change`, `_complete_task_status`, `_task_field_name_matches`, `_task_field_choice_pairs`, `_task_observed_value_pairs`, `_complete_task_custom_field`, `_complete_ticket_for_change` | none | n/a. Typer `autocompletion=` callbacks. fsv's generated scripts call `fsv._complete`, which dispatches only `fsv.completion` names, so Python never runs them. |
 | `gen_tree.py` (generator for `generated.rs`) | none | missing from disk. `generated.rs` was hand-edited after generation: module renamed to `generated` (`gen` is reserved in edition 2024), struct doc comments removed, hint fields fixed. Regenerating needs the script rewritten. |
 
 CLI divergences:
@@ -222,6 +225,11 @@ CLI divergences:
 - Completion scripts call `FSV_THIN_COMPLETE=1 fsv _complete` in place of `python -m fsv._complete`.
 - `FSV_COMPLETION_NETWORK=1` gates live completers. It is a new env switch, read only in `cmd/completion.rs`.
 - `--backup-replaced` carries a `value_flag` override so completion treats it as taking a value, as Python's generator does.
+- `--query-hash` with bad JSON prints `error: invalid --query-hash JSON: ` as Python does, then serde_json's message (`[{` gives `EOF while parsing an object at line 1 column 2`) where Python prints `json.JSONDecodeError`'s (`Expecting property name enclosed in double quotes: line 1 column 3 (char 2)`). Exit 2 in both.
+- `fsv tui` with no terminal exits 1 with an error. Python hangs waiting for Textual's driver.
+- `--show-completion` / `--install-completion` with an undetectable shell print `error: could not detect shell; ...` and exit 1. Typer prints `Shell  not supported.` or `Shell None is not supported.`, also exit 1. Shell detection reads only `$SHELL`; Typer asks shellingham about the parent process first.
+- `form dump/diff/explain/fields` accept `changes` and `tickets`. Upstream 6797301 added `problems` to `formmeta.MODULES`; that is part of the triaged upstream range, so the unsupported-form message still lists two modules.
+- Test-only: debug builds treat `FSV_TEST_TTY=1` as an interactive stdin (`util::stdin_tty`) so golden tests can script prompts through a pipe; `tests/golden/run_py.py` patches `sys.stdin.isatty` the same way. Release builds ignore it.
 
 ## fsv-formui
 
