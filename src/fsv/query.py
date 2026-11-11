@@ -7,6 +7,11 @@ from typing import Any
 from urllib.parse import unquote
 
 
+def _isdigit(text: str) -> bool:
+    """ASCII-only digits (str.isdigit accepts e.g. superscripts and Thai digits)."""
+    return text.isascii() and text.isdigit()
+
+
 def _strip_quotes(value: str) -> str:
     value = value.strip()
     if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
@@ -81,7 +86,7 @@ def _pick_lookup(kind: str, value: str, results: list[dict[str, Any]], exact_key
 
 
 def _resolve_requester(c: Any, value: str) -> dict[str, Any]:
-    if value.isdigit():
+    if _isdigit(value):
         return {"id": int(value), "name": value}
     item = _pick_lookup(
         "requester",
@@ -93,7 +98,7 @@ def _resolve_requester(c: Any, value: str) -> dict[str, Any]:
 
 
 def _resolve_agent(c: Any, value: str) -> str:
-    if value.isdigit():
+    if _isdigit(value):
         return value
     item = _pick_lookup("agent", value, c.autocomplete("agents", value), ("value", "id", "email", "details"))
     user_id = item.get("user_id")
@@ -103,7 +108,7 @@ def _resolve_agent(c: Any, value: str) -> str:
 
 
 def _resolve_group(c: Any, value: str) -> str:
-    if value.isdigit():
+    if _isdigit(value):
         return value
     data = c.int_get("bootstrap/agents_groups")
     folded = value.casefold()
@@ -121,7 +126,7 @@ def _resolve_group(c: Any, value: str) -> str:
 def _choice_value(field: dict[str, Any], raw: str, type_: str) -> Any:
     choices = field.get("choices") or []
     if not choices:
-        return int(raw) if raw.isdigit() else raw
+        return int(raw) if _isdigit(raw) else raw
     folded = raw.casefold()
     for c in choices:
         if str(c.get("id") or "") == raw:
@@ -164,11 +169,18 @@ def _resolve_where(
     field_text, op, raw = _parse_where(expr)
     pseudo_dates = {"created_at", "updated_at", "due_by", "planned_start_date", "planned_end_date"}
     if field_text in pseudo_dates:
+        # Note: Freshservice date ranges are inclusive on both ends, so `>`
+        # behaves like `>=` and `<` like `<=` (a strict bound can't be expressed).
         if op in (">", ">="):
             value: Any = {"from": raw}
         elif op in ("<", "<="):
             value = {"to": raw}
-        elif op in ("=", "!="):
+        elif op == "!=":
+            raise ValueError(
+                f"operator '!=' is not supported for date field {field_text!r}; "
+                "use a range such as `>=` / `<=`"
+            )
+        elif op == "=":
             value = {"from": raw, "to": raw}
         else:
             raise ValueError(f"unsupported date operator {op!r}; use = != >= <= > <")
@@ -177,7 +189,7 @@ def _resolve_where(
         if op in (">", "<", ">=", "<=", "~="):
             raise ValueError(f"operator {op!r} not supported on ID fields; use = or !=")
         operator = "is_in" if op == "=" else "is_not_in"
-        val: Any = int(raw) if raw.isdigit() else raw
+        val: Any = int(raw) if _isdigit(raw) else raw
         return _query_item(field_text, operator, [val], "default", explain, field_text, raw)
 
     f = _find_schema_field(sch, field_text)
@@ -206,7 +218,7 @@ def _resolve_where(
     if f.get("choices") or "dropdown" in ftype or ftype in ("default_status", "default_priority"):
         val = _choice_value(f, raw, type_)
         return _query_item(name, operator, [val], type_, explain, name, str(val))
-    val = int(raw) if raw.isdigit() and ftype.endswith("number") else raw
+    val = int(raw) if _isdigit(raw) and ftype.endswith("number") else raw
     return _query_item(name, operator, [val], type_, explain, name, raw)
 
 
@@ -230,7 +242,11 @@ def _merge_date_ranges(query: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def _load_query_hash(raw: str) -> list[dict[str, Any]]:
     try:
-        loaded = json.loads(unquote(raw))
+        # Decode percent-escapes at most once, and only when the text is not
+        # already JSON (otherwise a literal "%25" inside a value would be
+        # decoded twice).
+        text = raw if raw.lstrip().startswith(("[", "{")) else unquote(raw)
+        loaded = json.loads(text)
     except json.JSONDecodeError as e:
         raise ValueError(f"invalid query-hash JSON: {e}")
     if not isinstance(loaded, list):
