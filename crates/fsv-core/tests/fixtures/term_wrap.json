@@ -1,0 +1,1634 @@
+[
+ {
+  "width": 20,
+  "markup": "[red]error[/red]: cannot create: Field 'Change Type' is required; Field 'Planned Start Date' is required",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "error: cannot \ncreate: Field \n'Change Type' is \nrequired; Field \n'Planned Start Date'\nis required\n"
+ },
+ {
+  "width": 20,
+  "markup": "[red]error[/red]: cannot create: Field 'Change Type' is required; Field 'Planned Start Date' is required",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\u001b[31merror\u001b[0m: cannot \ncreate: Field \n'Change Type' is \nrequired; Field \n'Planned Start Date'\nis required\n"
+ },
+ {
+  "width": 20,
+  "markup": "[red]error[/red]: cannot create: Field 'Change Type' is required; Field 'Planned Start Date' is required",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "error: cannot \ncreate: Field \n'Change Type' is \nrequired; Field \n'Planned Start Date'\nis required\n"
+ },
+ {
+  "width": 20,
+  "markup": "[red]error[/red]: cannot create: Field 'Change Type' is required; Field 'Planned Start Date' is required",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2;31merror\u001b[0m\u001b[2m: cannot \u001b[0m\n\u001b[2mcreate: Field \u001b[0m\n\u001b[2m'Change Type' is \u001b[0m\n\u001b[2mrequired; Field \u001b[0m\n\u001b[2m'Planned Start Date'\u001b[0m\n\u001b[2mis required\u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "--no-validate: sending without the client-side required check: Field 'Impact' is required; Field 'Group' is required",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "--no-validate: \nsending without the \nclient-side required\ncheck: Field \n'Impact' is \nrequired; Field \n'Group' is required\n"
+ },
+ {
+  "width": 20,
+  "markup": "--no-validate: sending without the client-side required check: Field 'Impact' is required; Field 'Group' is required",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "--no-validate: \nsending without the \nclient-side required\ncheck: Field \n'Impact' is \nrequired; Field \n'Group' is required\n"
+ },
+ {
+  "width": 20,
+  "markup": "--no-validate: sending without the client-side required check: Field 'Impact' is required; Field 'Group' is required",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "--no-validate: \nsending without the \nclient-side required\ncheck: Field \n'Impact' is \nrequired; Field \n'Group' is required\n"
+ },
+ {
+  "width": 20,
+  "markup": "--no-validate: sending without the client-side required check: Field 'Impact' is required; Field 'Group' is required",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2m--no-validate: \u001b[0m\n\u001b[2msending without the \u001b[0m\n\u001b[2mclient-side required\u001b[0m\n\u001b[2mcheck: Field \u001b[0m\n\u001b[2m'Impact' is \u001b[0m\n\u001b[2mrequired; Field \u001b[0m\n\u001b[2m'Group' is required\u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "hello world foo",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "hello world foo\n"
+ },
+ {
+  "width": 20,
+  "markup": "hello world foo",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "hello world foo\n"
+ },
+ {
+  "width": 20,
+  "markup": "hello world foo",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "hello world foo\n"
+ },
+ {
+  "width": 20,
+  "markup": "hello world foo",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mhello world foo\u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "a\tb\tlonger words here and there\tx",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "a       b       \nlonger words here \nand there     x\n"
+ },
+ {
+  "width": 20,
+  "markup": "a\tb\tlonger words here and there\tx",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "a       b       \nlonger words here \nand there     x\n"
+ },
+ {
+  "width": 20,
+  "markup": "a\tb\tlonger words here and there\tx",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "a       b       \nlonger words here \nand there     x\n"
+ },
+ {
+  "width": 20,
+  "markup": "a\tb\tlonger words here and there\tx",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2ma       b       \u001b[0m\n\u001b[2mlonger words here \u001b[0m\n\u001b[2mand there     x\u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "[cyan]x[/cyan]\t[bold]tabbed[/bold]\ty",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "x       tabbed  y\n"
+ },
+ {
+  "width": 20,
+  "markup": "[cyan]x[/cyan]\t[bold]tabbed[/bold]\ty",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\u001b[36mx\u001b[0m       \u001b[1mtabbed\u001b[0m  y\n"
+ },
+ {
+  "width": 20,
+  "markup": "[cyan]x[/cyan]\t[bold]tabbed[/bold]\ty",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "x       tabbed  y\n"
+ },
+ {
+  "width": 20,
+  "markup": "[cyan]x[/cyan]\t[bold]tabbed[/bold]\ty",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2;36mx\u001b[0m\u001b[2m       \u001b[0m\u001b[1;2mtabbed\u001b[0m\u001b[2m  y\u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "aaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaa end\n"
+ },
+ {
+  "width": 20,
+  "markup": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "aaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaa end\n"
+ },
+ {
+  "width": 20,
+  "markup": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "aaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaa end\n"
+ },
+ {
+  "width": 20,
+  "markup": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2maaaaaaaaaaaaaaaaaaaa\u001b[0m\n\u001b[2maaaaaaaaaaaaaaaaaaaa\u001b[0m\n\u001b[2maaaaaaaaaaaaaaaaaaaa\u001b[0m\n\u001b[2maaaaaaaaaaaaaaaa end\u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "word   spaced    words      at    the  boundary  of  the   line width here x",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "word   spaced    \nwords      at    the\nboundary  of  the   \nline width here x\n"
+ },
+ {
+  "width": 20,
+  "markup": "word   spaced    words      at    the  boundary  of  the   line width here x",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "word   spaced    \nwords      at    the\nboundary  of  the   \nline width here x\n"
+ },
+ {
+  "width": 20,
+  "markup": "word   spaced    words      at    the  boundary  of  the   line width here x",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "word   spaced    \nwords      at    the\nboundary  of  the   \nline width here x\n"
+ },
+ {
+  "width": 20,
+  "markup": "word   spaced    words      at    the  boundary  of  the   line width here x",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mword   spaced    \u001b[0m\n\u001b[2mwords      at    the\u001b[0m\n\u001b[2mboundary  of  the   \u001b[0m\n\u001b[2mline width here x\u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "[bold]line one is long enough to wrap around the twenty[/bold]\nsecond [cyan]line[/cyan] too long to fit in",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "line one is long \nenough to wrap \naround the twenty\nsecond line too long\nto fit in\n"
+ },
+ {
+  "width": 20,
+  "markup": "[bold]line one is long enough to wrap around the twenty[/bold]\nsecond [cyan]line[/cyan] too long to fit in",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\u001b[1mline one is long \u001b[0m\n\u001b[1menough to wrap \u001b[0m\n\u001b[1maround the twenty\u001b[0m\nsecond \u001b[36mline\u001b[0m too long\nto fit in\n"
+ },
+ {
+  "width": 20,
+  "markup": "[bold]line one is long enough to wrap around the twenty[/bold]\nsecond [cyan]line[/cyan] too long to fit in",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "line one is long \nenough to wrap \naround the twenty\nsecond line too long\nto fit in\n"
+ },
+ {
+  "width": 20,
+  "markup": "[bold]line one is long enough to wrap around the twenty[/bold]\nsecond [cyan]line[/cyan] too long to fit in",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[1;2mline one is long \u001b[0m\n\u001b[1;2menough to wrap \u001b[0m\n\u001b[1;2maround the twenty\u001b[0m\n\u001b[2msecond \u001b[0m\u001b[2;36mline\u001b[0m\u001b[2m too long\u001b[0m\n\u001b[2mto fit in\u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "trailing   ",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "trailing   \n"
+ },
+ {
+  "width": 20,
+  "markup": "trailing   ",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "trailing   \n"
+ },
+ {
+  "width": 20,
+  "markup": "trailing   ",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "trailing   \n"
+ },
+ {
+  "width": 20,
+  "markup": "trailing   ",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mtrailing   \u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "   leading spaces before a long sentence that wraps",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "   leading spaces \nbefore a long \nsentence that wraps\n"
+ },
+ {
+  "width": 20,
+  "markup": "   leading spaces before a long sentence that wraps",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "   leading spaces \nbefore a long \nsentence that wraps\n"
+ },
+ {
+  "width": 20,
+  "markup": "   leading spaces before a long sentence that wraps",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "   leading spaces \nbefore a long \nsentence that wraps\n"
+ },
+ {
+  "width": 20,
+  "markup": "   leading spaces before a long sentence that wraps",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2m   leading spaces \u001b[0m\n\u001b[2mbefore a long \u001b[0m\n\u001b[2msentence that wraps\u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "中文字符中文字符中文字符 wide chars 中文字符中文字符",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "中文字符中文字符中文\n字符 wide chars \n中文字符中文字符\n"
+ },
+ {
+  "width": 20,
+  "markup": "中文字符中文字符中文字符 wide chars 中文字符中文字符",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "中文字符中文字符中文\n字符 wide chars \n中文字符中文字符\n"
+ },
+ {
+  "width": 20,
+  "markup": "中文字符中文字符中文字符 wide chars 中文字符中文字符",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "中文字符中文字符中文\n字符 wide chars \n中文字符中文字符\n"
+ },
+ {
+  "width": 20,
+  "markup": "中文字符中文字符中文字符 wide chars 中文字符中文字符",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2m中文字符中文字符中文\u001b[0m\n\u001b[2m字符 wide chars \u001b[0m\n\u001b[2m中文字符中文字符\u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "\n"
+ },
+ {
+  "width": 20,
+  "markup": "",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\n"
+ },
+ {
+  "width": 20,
+  "markup": "",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "\n"
+ },
+ {
+  "width": 20,
+  "markup": "",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\n"
+ },
+ {
+  "width": 20,
+  "markup": "one\n\ntwo\n",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "one\n\ntwo\n\n"
+ },
+ {
+  "width": 20,
+  "markup": "one\n\ntwo\n",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "one\n\ntwo\n\n"
+ },
+ {
+  "width": 20,
+  "markup": "one\n\ntwo\n",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "one\n\ntwo\n\n"
+ },
+ {
+  "width": 20,
+  "markup": "one\n\ntwo\n",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mone\u001b[0m\n\n\u001b[2mtwo\u001b[0m\n\n"
+ },
+ {
+  "width": 20,
+  "markup": "[green]status[/]    Pending approval from the change advisory board  (id=3)",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "status    Pending \napproval from the \nchange advisory \nboard  (id=3)\n"
+ },
+ {
+  "width": 20,
+  "markup": "[green]status[/]    Pending approval from the change advisory board  (id=3)",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\u001b[32mstatus\u001b[0m    Pending \napproval from the \nchange advisory \nboard  (id=3)\n"
+ },
+ {
+  "width": 20,
+  "markup": "[green]status[/]    Pending approval from the change advisory board  (id=3)",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "status    Pending \napproval from the \nchange advisory \nboard  (id=3)\n"
+ },
+ {
+  "width": 20,
+  "markup": "[green]status[/]    Pending approval from the change advisory board  (id=3)",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2;32mstatus\u001b[0m\u001b[2m    Pending \u001b[0m\n\u001b[2mapproval from the \u001b[0m\n\u001b[2mchange advisory \u001b[0m\n\u001b[2mboard  (id=3)\u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "path \n/a/very/long/path/wi\nthout/any/spaces/tha\nt/needs/folding/at/t\nhe/width.txt ok\n"
+ },
+ {
+  "width": 20,
+  "markup": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "path \n/a/very/long/path/wi\nthout/any/spaces/tha\nt/needs/folding/at/t\nhe/width.txt ok\n"
+ },
+ {
+  "width": 20,
+  "markup": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "path \n/a/very/long/path/wi\nthout/any/spaces/tha\nt/needs/folding/at/t\nhe/width.txt ok\n"
+ },
+ {
+  "width": 20,
+  "markup": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mpath \u001b[0m\n\u001b[2m/a/very/long/path/wi\u001b[0m\n\u001b[2mthout/any/spaces/tha\u001b[0m\n\u001b[2mt/needs/folding/at/t\u001b[0m\n\u001b[2mhe/width.txt ok\u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf",
+  "soft": true,
+  "stream": "out",
+  "color": false,
+  "out": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf\n"
+ },
+ {
+  "width": 20,
+  "markup": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf",
+  "soft": true,
+  "stream": "out",
+  "color": true,
+  "out": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf\n"
+ },
+ {
+  "width": 20,
+  "markup": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf",
+  "soft": true,
+  "stream": "err",
+  "color": false,
+  "out": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf\n"
+ },
+ {
+  "width": 20,
+  "markup": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf",
+  "soft": true,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mSaved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf\u001b[0m\u001b[2m\n\u001b[0m"
+ },
+ {
+  "width": 20,
+  "markup": "Saved to a\tb\nnext [bold]line[/bold]",
+  "soft": true,
+  "stream": "out",
+  "color": false,
+  "out": "Saved to a      b\nnext line\n"
+ },
+ {
+  "width": 20,
+  "markup": "Saved to a\tb\nnext [bold]line[/bold]",
+  "soft": true,
+  "stream": "out",
+  "color": true,
+  "out": "Saved to a      b\nnext \u001b[1mline\u001b[0m\n"
+ },
+ {
+  "width": 20,
+  "markup": "Saved to a\tb\nnext [bold]line[/bold]",
+  "soft": true,
+  "stream": "err",
+  "color": false,
+  "out": "Saved to a      b\nnext line\n"
+ },
+ {
+  "width": 20,
+  "markup": "Saved to a\tb\nnext [bold]line[/bold]",
+  "soft": true,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mSaved to a      b\nnext \u001b[0m\u001b[1;2mline\u001b[0m\u001b[2m\n\u001b[0m"
+ },
+ {
+  "width": 60,
+  "markup": "[red]error[/red]: cannot create: Field 'Change Type' is required; Field 'Planned Start Date' is required",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "error: cannot create: Field 'Change Type' is required; Field\n'Planned Start Date' is required\n"
+ },
+ {
+  "width": 60,
+  "markup": "[red]error[/red]: cannot create: Field 'Change Type' is required; Field 'Planned Start Date' is required",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\u001b[31merror\u001b[0m: cannot create: Field 'Change Type' is required; Field\n'Planned Start Date' is required\n"
+ },
+ {
+  "width": 60,
+  "markup": "[red]error[/red]: cannot create: Field 'Change Type' is required; Field 'Planned Start Date' is required",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "error: cannot create: Field 'Change Type' is required; Field\n'Planned Start Date' is required\n"
+ },
+ {
+  "width": 60,
+  "markup": "[red]error[/red]: cannot create: Field 'Change Type' is required; Field 'Planned Start Date' is required",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2;31merror\u001b[0m\u001b[2m: cannot create: Field 'Change Type' is required; Field\u001b[0m\n\u001b[2m'Planned Start Date' is required\u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "--no-validate: sending without the client-side required check: Field 'Impact' is required; Field 'Group' is required",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "--no-validate: sending without the client-side required \ncheck: Field 'Impact' is required; Field 'Group' is required\n"
+ },
+ {
+  "width": 60,
+  "markup": "--no-validate: sending without the client-side required check: Field 'Impact' is required; Field 'Group' is required",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "--no-validate: sending without the client-side required \ncheck: Field 'Impact' is required; Field 'Group' is required\n"
+ },
+ {
+  "width": 60,
+  "markup": "--no-validate: sending without the client-side required check: Field 'Impact' is required; Field 'Group' is required",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "--no-validate: sending without the client-side required \ncheck: Field 'Impact' is required; Field 'Group' is required\n"
+ },
+ {
+  "width": 60,
+  "markup": "--no-validate: sending without the client-side required check: Field 'Impact' is required; Field 'Group' is required",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2m--no-validate: sending without the client-side required \u001b[0m\n\u001b[2mcheck: Field 'Impact' is required; Field 'Group' is required\u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "hello world foo",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "hello world foo\n"
+ },
+ {
+  "width": 60,
+  "markup": "hello world foo",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "hello world foo\n"
+ },
+ {
+  "width": 60,
+  "markup": "hello world foo",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "hello world foo\n"
+ },
+ {
+  "width": 60,
+  "markup": "hello world foo",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mhello world foo\u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "a\tb\tlonger words here and there\tx",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "a       b       longer words here and there     x\n"
+ },
+ {
+  "width": 60,
+  "markup": "a\tb\tlonger words here and there\tx",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "a       b       longer words here and there     x\n"
+ },
+ {
+  "width": 60,
+  "markup": "a\tb\tlonger words here and there\tx",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "a       b       longer words here and there     x\n"
+ },
+ {
+  "width": 60,
+  "markup": "a\tb\tlonger words here and there\tx",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2ma       b       longer words here and there     x\u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "[cyan]x[/cyan]\t[bold]tabbed[/bold]\ty",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "x       tabbed  y\n"
+ },
+ {
+  "width": 60,
+  "markup": "[cyan]x[/cyan]\t[bold]tabbed[/bold]\ty",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\u001b[36mx\u001b[0m       \u001b[1mtabbed\u001b[0m  y\n"
+ },
+ {
+  "width": 60,
+  "markup": "[cyan]x[/cyan]\t[bold]tabbed[/bold]\ty",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "x       tabbed  y\n"
+ },
+ {
+  "width": 60,
+  "markup": "[cyan]x[/cyan]\t[bold]tabbed[/bold]\ty",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2;36mx\u001b[0m\u001b[2m       \u001b[0m\u001b[1;2mtabbed\u001b[0m\u001b[2m  y\u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaa end\n"
+ },
+ {
+  "width": 60,
+  "markup": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaa end\n"
+ },
+ {
+  "width": 60,
+  "markup": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaa end\n"
+ },
+ {
+  "width": 60,
+  "markup": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2maaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\u001b[0m\n\u001b[2maaaaaaaaaaaaaaaa end\u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "word   spaced    words      at    the  boundary  of  the   line width here x",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "word   spaced    words      at    the  boundary  of  the   \nline width here x\n"
+ },
+ {
+  "width": 60,
+  "markup": "word   spaced    words      at    the  boundary  of  the   line width here x",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "word   spaced    words      at    the  boundary  of  the   \nline width here x\n"
+ },
+ {
+  "width": 60,
+  "markup": "word   spaced    words      at    the  boundary  of  the   line width here x",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "word   spaced    words      at    the  boundary  of  the   \nline width here x\n"
+ },
+ {
+  "width": 60,
+  "markup": "word   spaced    words      at    the  boundary  of  the   line width here x",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mword   spaced    words      at    the  boundary  of  the   \u001b[0m\n\u001b[2mline width here x\u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "[bold]line one is long enough to wrap around the twenty[/bold]\nsecond [cyan]line[/cyan] too long to fit in",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "line one is long enough to wrap around the twenty\nsecond line too long to fit in\n"
+ },
+ {
+  "width": 60,
+  "markup": "[bold]line one is long enough to wrap around the twenty[/bold]\nsecond [cyan]line[/cyan] too long to fit in",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\u001b[1mline one is long enough to wrap around the twenty\u001b[0m\nsecond \u001b[36mline\u001b[0m too long to fit in\n"
+ },
+ {
+  "width": 60,
+  "markup": "[bold]line one is long enough to wrap around the twenty[/bold]\nsecond [cyan]line[/cyan] too long to fit in",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "line one is long enough to wrap around the twenty\nsecond line too long to fit in\n"
+ },
+ {
+  "width": 60,
+  "markup": "[bold]line one is long enough to wrap around the twenty[/bold]\nsecond [cyan]line[/cyan] too long to fit in",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[1;2mline one is long enough to wrap around the twenty\u001b[0m\n\u001b[2msecond \u001b[0m\u001b[2;36mline\u001b[0m\u001b[2m too long to fit in\u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "trailing   ",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "trailing   \n"
+ },
+ {
+  "width": 60,
+  "markup": "trailing   ",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "trailing   \n"
+ },
+ {
+  "width": 60,
+  "markup": "trailing   ",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "trailing   \n"
+ },
+ {
+  "width": 60,
+  "markup": "trailing   ",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mtrailing   \u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "   leading spaces before a long sentence that wraps",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "   leading spaces before a long sentence that wraps\n"
+ },
+ {
+  "width": 60,
+  "markup": "   leading spaces before a long sentence that wraps",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "   leading spaces before a long sentence that wraps\n"
+ },
+ {
+  "width": 60,
+  "markup": "   leading spaces before a long sentence that wraps",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "   leading spaces before a long sentence that wraps\n"
+ },
+ {
+  "width": 60,
+  "markup": "   leading spaces before a long sentence that wraps",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2m   leading spaces before a long sentence that wraps\u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "中文字符中文字符中文字符 wide chars 中文字符中文字符",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "中文字符中文字符中文字符 wide chars 中文字符中文字符\n"
+ },
+ {
+  "width": 60,
+  "markup": "中文字符中文字符中文字符 wide chars 中文字符中文字符",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "中文字符中文字符中文字符 wide chars 中文字符中文字符\n"
+ },
+ {
+  "width": 60,
+  "markup": "中文字符中文字符中文字符 wide chars 中文字符中文字符",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "中文字符中文字符中文字符 wide chars 中文字符中文字符\n"
+ },
+ {
+  "width": 60,
+  "markup": "中文字符中文字符中文字符 wide chars 中文字符中文字符",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2m中文字符中文字符中文字符 wide chars 中文字符中文字符\u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "\n"
+ },
+ {
+  "width": 60,
+  "markup": "",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\n"
+ },
+ {
+  "width": 60,
+  "markup": "",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "\n"
+ },
+ {
+  "width": 60,
+  "markup": "",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\n"
+ },
+ {
+  "width": 60,
+  "markup": "one\n\ntwo\n",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "one\n\ntwo\n\n"
+ },
+ {
+  "width": 60,
+  "markup": "one\n\ntwo\n",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "one\n\ntwo\n\n"
+ },
+ {
+  "width": 60,
+  "markup": "one\n\ntwo\n",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "one\n\ntwo\n\n"
+ },
+ {
+  "width": 60,
+  "markup": "one\n\ntwo\n",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mone\u001b[0m\n\n\u001b[2mtwo\u001b[0m\n\n"
+ },
+ {
+  "width": 60,
+  "markup": "[green]status[/]    Pending approval from the change advisory board  (id=3)",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "status    Pending approval from the change advisory board  \n(id=3)\n"
+ },
+ {
+  "width": 60,
+  "markup": "[green]status[/]    Pending approval from the change advisory board  (id=3)",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\u001b[32mstatus\u001b[0m    Pending approval from the change advisory board  \n(id=3)\n"
+ },
+ {
+  "width": 60,
+  "markup": "[green]status[/]    Pending approval from the change advisory board  (id=3)",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "status    Pending approval from the change advisory board  \n(id=3)\n"
+ },
+ {
+  "width": 60,
+  "markup": "[green]status[/]    Pending approval from the change advisory board  (id=3)",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2;32mstatus\u001b[0m\u001b[2m    Pending approval from the change advisory board  \u001b[0m\n\u001b[2m(id=3)\u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "path \n/a/very/long/path/without/any/spaces/that/needs/folding/at/t\nhe/width.txt ok\n"
+ },
+ {
+  "width": 60,
+  "markup": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "path \n/a/very/long/path/without/any/spaces/that/needs/folding/at/t\nhe/width.txt ok\n"
+ },
+ {
+  "width": 60,
+  "markup": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "path \n/a/very/long/path/without/any/spaces/that/needs/folding/at/t\nhe/width.txt ok\n"
+ },
+ {
+  "width": 60,
+  "markup": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mpath \u001b[0m\n\u001b[2m/a/very/long/path/without/any/spaces/that/needs/folding/at/t\u001b[0m\n\u001b[2mhe/width.txt ok\u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf",
+  "soft": true,
+  "stream": "out",
+  "color": false,
+  "out": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf\n"
+ },
+ {
+  "width": 60,
+  "markup": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf",
+  "soft": true,
+  "stream": "out",
+  "color": true,
+  "out": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf\n"
+ },
+ {
+  "width": 60,
+  "markup": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf",
+  "soft": true,
+  "stream": "err",
+  "color": false,
+  "out": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf\n"
+ },
+ {
+  "width": 60,
+  "markup": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf",
+  "soft": true,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mSaved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf\u001b[0m\u001b[2m\n\u001b[0m"
+ },
+ {
+  "width": 60,
+  "markup": "Saved to a\tb\nnext [bold]line[/bold]",
+  "soft": true,
+  "stream": "out",
+  "color": false,
+  "out": "Saved to a      b\nnext line\n"
+ },
+ {
+  "width": 60,
+  "markup": "Saved to a\tb\nnext [bold]line[/bold]",
+  "soft": true,
+  "stream": "out",
+  "color": true,
+  "out": "Saved to a      b\nnext \u001b[1mline\u001b[0m\n"
+ },
+ {
+  "width": 60,
+  "markup": "Saved to a\tb\nnext [bold]line[/bold]",
+  "soft": true,
+  "stream": "err",
+  "color": false,
+  "out": "Saved to a      b\nnext line\n"
+ },
+ {
+  "width": 60,
+  "markup": "Saved to a\tb\nnext [bold]line[/bold]",
+  "soft": true,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mSaved to a      b\nnext \u001b[0m\u001b[1;2mline\u001b[0m\u001b[2m\n\u001b[0m"
+ },
+ {
+  "width": 80,
+  "markup": "[red]error[/red]: cannot create: Field 'Change Type' is required; Field 'Planned Start Date' is required",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "error: cannot create: Field 'Change Type' is required; Field 'Planned Start \nDate' is required\n"
+ },
+ {
+  "width": 80,
+  "markup": "[red]error[/red]: cannot create: Field 'Change Type' is required; Field 'Planned Start Date' is required",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\u001b[31merror\u001b[0m: cannot create: Field 'Change Type' is required; Field 'Planned Start \nDate' is required\n"
+ },
+ {
+  "width": 80,
+  "markup": "[red]error[/red]: cannot create: Field 'Change Type' is required; Field 'Planned Start Date' is required",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "error: cannot create: Field 'Change Type' is required; Field 'Planned Start \nDate' is required\n"
+ },
+ {
+  "width": 80,
+  "markup": "[red]error[/red]: cannot create: Field 'Change Type' is required; Field 'Planned Start Date' is required",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2;31merror\u001b[0m\u001b[2m: cannot create: Field 'Change Type' is required; Field 'Planned Start \u001b[0m\n\u001b[2mDate' is required\u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "--no-validate: sending without the client-side required check: Field 'Impact' is required; Field 'Group' is required",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "--no-validate: sending without the client-side required check: Field 'Impact' is\nrequired; Field 'Group' is required\n"
+ },
+ {
+  "width": 80,
+  "markup": "--no-validate: sending without the client-side required check: Field 'Impact' is required; Field 'Group' is required",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "--no-validate: sending without the client-side required check: Field 'Impact' is\nrequired; Field 'Group' is required\n"
+ },
+ {
+  "width": 80,
+  "markup": "--no-validate: sending without the client-side required check: Field 'Impact' is required; Field 'Group' is required",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "--no-validate: sending without the client-side required check: Field 'Impact' is\nrequired; Field 'Group' is required\n"
+ },
+ {
+  "width": 80,
+  "markup": "--no-validate: sending without the client-side required check: Field 'Impact' is required; Field 'Group' is required",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2m--no-validate: sending without the client-side required check: Field 'Impact' is\u001b[0m\n\u001b[2mrequired; Field 'Group' is required\u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "hello world foo",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "hello world foo\n"
+ },
+ {
+  "width": 80,
+  "markup": "hello world foo",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "hello world foo\n"
+ },
+ {
+  "width": 80,
+  "markup": "hello world foo",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "hello world foo\n"
+ },
+ {
+  "width": 80,
+  "markup": "hello world foo",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mhello world foo\u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "a\tb\tlonger words here and there\tx",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "a       b       longer words here and there     x\n"
+ },
+ {
+  "width": 80,
+  "markup": "a\tb\tlonger words here and there\tx",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "a       b       longer words here and there     x\n"
+ },
+ {
+  "width": 80,
+  "markup": "a\tb\tlonger words here and there\tx",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "a       b       longer words here and there     x\n"
+ },
+ {
+  "width": 80,
+  "markup": "a\tb\tlonger words here and there\tx",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2ma       b       longer words here and there     x\u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "[cyan]x[/cyan]\t[bold]tabbed[/bold]\ty",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "x       tabbed  y\n"
+ },
+ {
+  "width": 80,
+  "markup": "[cyan]x[/cyan]\t[bold]tabbed[/bold]\ty",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\u001b[36mx\u001b[0m       \u001b[1mtabbed\u001b[0m  y\n"
+ },
+ {
+  "width": 80,
+  "markup": "[cyan]x[/cyan]\t[bold]tabbed[/bold]\ty",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "x       tabbed  y\n"
+ },
+ {
+  "width": 80,
+  "markup": "[cyan]x[/cyan]\t[bold]tabbed[/bold]\ty",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2;36mx\u001b[0m\u001b[2m       \u001b[0m\u001b[1;2mtabbed\u001b[0m\u001b[2m  y\u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end\n"
+ },
+ {
+  "width": 80,
+  "markup": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end\n"
+ },
+ {
+  "width": 80,
+  "markup": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end\n"
+ },
+ {
+  "width": 80,
+  "markup": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2maaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa end\u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "word   spaced    words      at    the  boundary  of  the   line width here x",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "word   spaced    words      at    the  boundary  of  the   line width here x\n"
+ },
+ {
+  "width": 80,
+  "markup": "word   spaced    words      at    the  boundary  of  the   line width here x",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "word   spaced    words      at    the  boundary  of  the   line width here x\n"
+ },
+ {
+  "width": 80,
+  "markup": "word   spaced    words      at    the  boundary  of  the   line width here x",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "word   spaced    words      at    the  boundary  of  the   line width here x\n"
+ },
+ {
+  "width": 80,
+  "markup": "word   spaced    words      at    the  boundary  of  the   line width here x",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mword   spaced    words      at    the  boundary  of  the   line width here x\u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "[bold]line one is long enough to wrap around the twenty[/bold]\nsecond [cyan]line[/cyan] too long to fit in",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "line one is long enough to wrap around the twenty\nsecond line too long to fit in\n"
+ },
+ {
+  "width": 80,
+  "markup": "[bold]line one is long enough to wrap around the twenty[/bold]\nsecond [cyan]line[/cyan] too long to fit in",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\u001b[1mline one is long enough to wrap around the twenty\u001b[0m\nsecond \u001b[36mline\u001b[0m too long to fit in\n"
+ },
+ {
+  "width": 80,
+  "markup": "[bold]line one is long enough to wrap around the twenty[/bold]\nsecond [cyan]line[/cyan] too long to fit in",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "line one is long enough to wrap around the twenty\nsecond line too long to fit in\n"
+ },
+ {
+  "width": 80,
+  "markup": "[bold]line one is long enough to wrap around the twenty[/bold]\nsecond [cyan]line[/cyan] too long to fit in",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[1;2mline one is long enough to wrap around the twenty\u001b[0m\n\u001b[2msecond \u001b[0m\u001b[2;36mline\u001b[0m\u001b[2m too long to fit in\u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "trailing   ",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "trailing   \n"
+ },
+ {
+  "width": 80,
+  "markup": "trailing   ",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "trailing   \n"
+ },
+ {
+  "width": 80,
+  "markup": "trailing   ",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "trailing   \n"
+ },
+ {
+  "width": 80,
+  "markup": "trailing   ",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mtrailing   \u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "   leading spaces before a long sentence that wraps",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "   leading spaces before a long sentence that wraps\n"
+ },
+ {
+  "width": 80,
+  "markup": "   leading spaces before a long sentence that wraps",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "   leading spaces before a long sentence that wraps\n"
+ },
+ {
+  "width": 80,
+  "markup": "   leading spaces before a long sentence that wraps",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "   leading spaces before a long sentence that wraps\n"
+ },
+ {
+  "width": 80,
+  "markup": "   leading spaces before a long sentence that wraps",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2m   leading spaces before a long sentence that wraps\u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "中文字符中文字符中文字符 wide chars 中文字符中文字符",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "中文字符中文字符中文字符 wide chars 中文字符中文字符\n"
+ },
+ {
+  "width": 80,
+  "markup": "中文字符中文字符中文字符 wide chars 中文字符中文字符",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "中文字符中文字符中文字符 wide chars 中文字符中文字符\n"
+ },
+ {
+  "width": 80,
+  "markup": "中文字符中文字符中文字符 wide chars 中文字符中文字符",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "中文字符中文字符中文字符 wide chars 中文字符中文字符\n"
+ },
+ {
+  "width": 80,
+  "markup": "中文字符中文字符中文字符 wide chars 中文字符中文字符",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2m中文字符中文字符中文字符 wide chars 中文字符中文字符\u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "\n"
+ },
+ {
+  "width": 80,
+  "markup": "",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\n"
+ },
+ {
+  "width": 80,
+  "markup": "",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "\n"
+ },
+ {
+  "width": 80,
+  "markup": "",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\n"
+ },
+ {
+  "width": 80,
+  "markup": "one\n\ntwo\n",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "one\n\ntwo\n\n"
+ },
+ {
+  "width": 80,
+  "markup": "one\n\ntwo\n",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "one\n\ntwo\n\n"
+ },
+ {
+  "width": 80,
+  "markup": "one\n\ntwo\n",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "one\n\ntwo\n\n"
+ },
+ {
+  "width": 80,
+  "markup": "one\n\ntwo\n",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mone\u001b[0m\n\n\u001b[2mtwo\u001b[0m\n\n"
+ },
+ {
+  "width": 80,
+  "markup": "[green]status[/]    Pending approval from the change advisory board  (id=3)",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "status    Pending approval from the change advisory board  (id=3)\n"
+ },
+ {
+  "width": 80,
+  "markup": "[green]status[/]    Pending approval from the change advisory board  (id=3)",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "\u001b[32mstatus\u001b[0m    Pending approval from the change advisory board  (id=3)\n"
+ },
+ {
+  "width": 80,
+  "markup": "[green]status[/]    Pending approval from the change advisory board  (id=3)",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "status    Pending approval from the change advisory board  (id=3)\n"
+ },
+ {
+  "width": 80,
+  "markup": "[green]status[/]    Pending approval from the change advisory board  (id=3)",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2;32mstatus\u001b[0m\u001b[2m    Pending approval from the change advisory board  (id=3)\u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok",
+  "soft": false,
+  "stream": "out",
+  "color": false,
+  "out": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok\n"
+ },
+ {
+  "width": 80,
+  "markup": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok",
+  "soft": false,
+  "stream": "out",
+  "color": true,
+  "out": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok\n"
+ },
+ {
+  "width": 80,
+  "markup": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok",
+  "soft": false,
+  "stream": "err",
+  "color": false,
+  "out": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok\n"
+ },
+ {
+  "width": 80,
+  "markup": "path /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok",
+  "soft": false,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mpath /a/very/long/path/without/any/spaces/that/needs/folding/at/the/width.txt ok\u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf",
+  "soft": true,
+  "stream": "out",
+  "color": false,
+  "out": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf\n"
+ },
+ {
+  "width": 80,
+  "markup": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf",
+  "soft": true,
+  "stream": "out",
+  "color": true,
+  "out": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf\n"
+ },
+ {
+  "width": 80,
+  "markup": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf",
+  "soft": true,
+  "stream": "err",
+  "color": false,
+  "out": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf\n"
+ },
+ {
+  "width": 80,
+  "markup": "Saved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf",
+  "soft": true,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mSaved to /very/long/path/that/goes/on/and/on/for/ever/and/ever/file[1].pdf\u001b[0m\u001b[2m\n\u001b[0m"
+ },
+ {
+  "width": 80,
+  "markup": "Saved to a\tb\nnext [bold]line[/bold]",
+  "soft": true,
+  "stream": "out",
+  "color": false,
+  "out": "Saved to a      b\nnext line\n"
+ },
+ {
+  "width": 80,
+  "markup": "Saved to a\tb\nnext [bold]line[/bold]",
+  "soft": true,
+  "stream": "out",
+  "color": true,
+  "out": "Saved to a      b\nnext \u001b[1mline\u001b[0m\n"
+ },
+ {
+  "width": 80,
+  "markup": "Saved to a\tb\nnext [bold]line[/bold]",
+  "soft": true,
+  "stream": "err",
+  "color": false,
+  "out": "Saved to a      b\nnext line\n"
+ },
+ {
+  "width": 80,
+  "markup": "Saved to a\tb\nnext [bold]line[/bold]",
+  "soft": true,
+  "stream": "err",
+  "color": true,
+  "out": "\u001b[2mSaved to a      b\nnext \u001b[0m\u001b[1;2mline\u001b[0m\u001b[2m\n\u001b[0m"
+ }
+]

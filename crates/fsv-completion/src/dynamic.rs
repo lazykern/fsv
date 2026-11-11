@@ -674,7 +674,7 @@ fn complete_update_group_id(incomplete: &str) -> Pairs {
 
 /// Port of fsv.completion.complete_update_choice: labels and ids of one
 /// field's choices, then the fallback labels for status/priority/impact/risk.
-/// `_complete` has no arm for it, so the generated scripts print nothing.
+/// The scripts pass the field after `--`.
 pub fn complete_update_choice(res: &Resource, field_name: &str, incomplete: &str) -> Pairs {
     let mut out = Pairs::new();
     let mut emitted: Vec<String> = Vec::new();
@@ -866,6 +866,10 @@ fn complete_in(
         "complete_lookup_query" => {
             complete_lookup_query(env, res, &extract_flag(extra, &["--kind", "-k"]), token)
         }
+        "complete_update_choice" => match extra.first() {
+            Some(field) => complete_update_choice(res, field, token),
+            None => Vec::new(),
+        },
         _ => Vec::new(),
     }
 }

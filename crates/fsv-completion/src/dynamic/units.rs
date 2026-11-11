@@ -285,12 +285,50 @@ fn field_matches_matches_python() {
     }
 }
 
-/// `complete_update_choice` and `complete_help_topic` have no arm in
-/// `fsv._complete._completions`, so the thin path prints nothing for them.
+/// `complete_help_topic` has no arm in `fsv._complete._completions`, so the
+/// thin path prints nothing for it.
 #[test]
-fn completers_without_thin_dispatch_print_nothing() {
-    for completer in ["complete_update_choice", "complete_help_topic"] {
-        assert!(complete(completer, "changes", "O", &[], false).is_empty());
-        assert!(complete(completer, "-", "a", &[], false).is_empty());
+fn help_topic_has_no_thin_dispatch() {
+    assert!(complete("complete_help_topic", "changes", "O", &[], false).is_empty());
+    assert!(complete("complete_help_topic", "-", "a", &[], false).is_empty());
+}
+
+/// `_complete <shell> complete_update_choice <res> <token> -- <field>` prints
+/// what `fsv.completion.complete_update_choice(res, field)` returns. Python
+/// has no arm for it and prints nothing.
+#[test]
+fn update_choice_dispatches_with_the_field_after_dashes() {
+    fixture_cache();
+    let remote = FakeRemote::new();
+    let env = Env {
+        network: false,
+        remote: &remote,
+    };
+    let x = extra();
+    let mut checked = 0;
+    for name in ["changes", "tickets", "problems"] {
+        for row in x["update_choice"][name].as_array().expect("rows") {
+            let (field, token) = (s(&row[0]), s(&row[1]));
+            let mut want = String::new();
+            for p in row[2].as_array().expect("pairs") {
+                let (value, help) = (s(&p[0]), s(&p[1]));
+                if value.is_empty() || value == token {
+                    continue;
+                }
+                want.push_str(&if help.is_empty() {
+                    format!("{value}\n")
+                } else {
+                    format!("{value}\t{help}\n")
+                });
+            }
+            let argv: Vec<String> = ["fish", "complete_update_choice", name, token, "--", field]
+                .iter()
+                .map(|a| a.to_string())
+                .collect();
+            assert_eq!(run_in(&env, &argv), want, "{name} {row}");
+            checked += usize::from(!want.is_empty());
+        }
     }
+    assert!(checked > 0);
+    assert!(complete("complete_update_choice", "changes", "O", &[], false).is_empty());
 }

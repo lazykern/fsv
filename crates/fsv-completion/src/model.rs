@@ -107,6 +107,9 @@ pub enum Kind {
     Dynamic {
         completer: String,
         resource: Option<String>,
+        /// The field `complete_update_choice` completes (the option id);
+        /// `None` for every other completer.
+        field: Option<String>,
     },
     Freeform,
 }
@@ -160,6 +163,7 @@ fn param_for(cmd: &Command, hint: &OptionHint) -> Param {
         Kind::Dynamic {
             completer: c.to_string(),
             resource: hint.resource.map(str::to_string),
+            field: (c == "complete_update_choice").then(|| hint.id.to_string()),
         }
     } else {
         Kind::Freeform
@@ -303,11 +307,13 @@ mod tests {
             [
                 Kind::Dynamic {
                     completer: "complete_where".into(),
-                    resource: Some("changes".into())
+                    resource: Some("changes".into()),
+                    field: None,
                 },
                 Kind::Dynamic {
                     completer: "complete_lookup_query".into(),
-                    resource: Some("changes".into())
+                    resource: Some("changes".into()),
+                    field: None,
                 },
                 Kind::Freeform,
                 Kind::Freeform,

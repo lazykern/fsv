@@ -935,16 +935,29 @@ fn retry_delay(attempt: usize, response: Option<&Response>) -> f64 {
     RETRY_DELAYS[attempt.min(RETRY_DELAYS.len() - 1)]
 }
 
-/// The URL with `params` merged into its query, encoded like the log target.
+/// httpx 0.28 `Request(method, url, params=params)`: any `params`, even an
+/// empty map, replace the URL's own query. Values are `urlencode`d
+/// (`quote_plus`); `true`/`false` are lowercase and `None` is an empty value.
 fn wire_url(url: &str, params: Option<&Map<String, Value>>) -> String {
-    let base = url
-        .split('#')
-        .next()
-        .unwrap_or("")
-        .split('?')
-        .next()
-        .unwrap_or("");
-    let query = log::query_string(url, params);
+    let url = url.split('#').next().unwrap_or("");
+    let Some(params) = params else {
+        return url.to_string();
+    };
+    let base = url.split('?').next().unwrap_or("");
+    let value_str = |v: &Value| match v {
+        Value::Bool(true) => "true".to_string(),
+        Value::Bool(false) => "false".to_string(),
+        Value::Null => String::new(),
+        other => fsv_py::py_str(other),
+    };
+    let mut pairs: Vec<(&str, String)> = Vec::new();
+    for (key, value) in params {
+        match value {
+            Value::Array(items) => pairs.extend(items.iter().map(|i| (key.as_str(), value_str(i)))),
+            other => pairs.push((key, value_str(other))),
+        }
+    }
+    let query = pystr::urlencode(&pairs);
     if query.is_empty() {
         base.to_string()
     } else {

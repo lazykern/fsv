@@ -2,8 +2,8 @@
 //! `typer.prompt`/`typer.confirm`.
 //!
 //! Markup becomes ANSI when the stream is a terminal and `NO_COLOR` is
-//! unset (`FORCE_COLOR` forces color); otherwise tags are stripped. Plain
-//! `print` output is not hard-wrapped (Rich soft-wraps at terminal width).
+//! unset (`FORCE_COLOR` forces color); otherwise tags are stripped. `print`
+//! word-wraps at the console width like Rich; `print_soft` does not.
 
 mod markup;
 mod prompt;
@@ -213,14 +213,43 @@ impl Console {
             .join("\n")
     }
 
-    /// `console.print(markup)`.
+    /// `console.print(markup)`: word-wrapped at [`Console::width`].
     pub fn print(&self, markup: &str) {
-        self.write_str(&(self.render(markup) + "\n"));
+        self.print_text(&markup::render(markup), false);
     }
 
-    /// `console.print(text, markup=False)`.
+    /// `console.print(text, markup=False)`: word-wrapped at [`Console::width`].
     pub fn print_plain(&self, text: &str) {
-        self.write_str(&(self.render_text(&Text::plain(text)) + "\n"));
+        self.print_text(&Text::plain(text), false);
+    }
+
+    /// `console.print(markup, soft_wrap=True)`: never wrapped or cropped.
+    pub fn print_soft(&self, markup: &str) {
+        self.print_text(&markup::render(markup), true);
+    }
+
+    fn print_text(&self, t: &Text, soft: bool) {
+        self.write_str(&self.printed(t, soft, self.width(), self.color()));
+    }
+
+    /// What `console.print` writes for `t`, newline included.
+    fn printed(&self, t: &Text, soft: bool, width: usize, color: bool) -> String {
+        if soft {
+            let mut s = text::to_ansi(&text::soft_line(t, self.base), color);
+            let sgr = self.base.sgr();
+            if color && !sgr.is_empty() {
+                s.push_str(&format!("\x1b[{sgr}m\n\x1b[0m"));
+            } else {
+                s.push('\n');
+            }
+            return s;
+        }
+        let mut s = String::new();
+        for line in text::print_lines(t, self.base, width) {
+            s.push_str(&text::to_ansi(&line, color));
+            s.push('\n');
+        }
+        s
     }
 
     /// `console.print()` (empty line).
@@ -382,6 +411,47 @@ mod tests {
         if !std::io::stdout().is_terminal() {
             assert!(!should_page(1000, true));
         }
+    }
+
+    #[test]
+    fn print_wraps_like_rich() {
+        let rows: Vec<serde_json::Value> =
+            serde_json::from_str(include_str!("../../tests/fixtures/term_wrap.json")).unwrap();
+        let mut failed = Vec::new();
+        for r in &rows {
+            let console = if r["stream"] == "err" { err() } else { out() };
+            let got = console.printed(
+                &markup::render(r["markup"].as_str().unwrap()),
+                r["soft"].as_bool().unwrap(),
+                r["width"].as_u64().unwrap() as usize,
+                r["color"].as_bool().unwrap(),
+            );
+            if got != r["out"].as_str().unwrap() {
+                failed.push(format!("{r}\n  got {got:?}"));
+            }
+        }
+        assert!(
+            failed.is_empty(),
+            "{} of {} differ:\n{}",
+            failed.len(),
+            rows.len(),
+            failed.join("\n")
+        );
+    }
+
+    #[test]
+    fn print_uses_columns_and_print_soft_does_not_wrap() {
+        let _env = crate::testenv::isolated();
+        crate::testenv::set("COLUMNS", "20");
+        let ((), text) = capture(|| {
+            out().print("[red]error[/red]: cannot create: the plan");
+            out().print_plain("[x] plain text that wraps");
+            out().print_soft("Saved to /a/long/path/to/a/file.pdf");
+        });
+        assert_eq!(
+            text,
+            "error: cannot \ncreate: the plan\n[x] plain text that \nwraps\nSaved to /a/long/path/to/a/file.pdf\n"
+        );
     }
 
     #[test]

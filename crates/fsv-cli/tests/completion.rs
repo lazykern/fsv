@@ -1,9 +1,30 @@
 //! Generated completion scripts match `completion_gen.py` output
 //! (`tests/golden/dump_completion.py`, executable replaced by `@FSV_EXE@`).
 
+/// Rust passes the field to `complete_update_choice` (`-- status`), which
+/// Python's scripts omit; see port/PARITY.md, fsv-completion.
+fn without_update_choice_field(script: &str) -> String {
+    let mut out: String = script
+        .lines()
+        .map(|l| {
+            if l.contains("complete_update_choice") {
+                l.replace(" -- status", "").replace(" -- priority", "")
+            } else {
+                l.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    if script.ends_with('\n') {
+        out.push('\n');
+    }
+    out
+}
+
 fn check(shell: &str, want: &str) {
     let tree = fsv_cli::completion_tree("fsv");
     let got = fsv_completion::build_script(shell, &tree, "fsv", "@FSV_EXE@").unwrap();
+    let got = without_update_choice_field(&got);
     if got != want {
         let line = got
             .lines()

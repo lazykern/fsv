@@ -137,13 +137,9 @@ pub fn write_risks(
             risks.push(format!("change status -> {label}"));
         } else {
             let what = resource.strip_suffix('s').unwrap_or(resource);
-            match status_closes(resource, value, &label) {
-                Some(true) => risks.push(format!("{what} status -> {label}")),
-                None => risks.push(format!(
-                    "{what} status -> {label} (fsv cannot tell whether this status closes it)"
-                )),
-                Some(false) => {}
-            }
+            risks.push(format!(
+                "{what} status -> {label} (status semantics and workflows require confirmation)"
+            ));
         }
     }
     if let Some(key) = ASSIGNEE_KEYS
@@ -243,25 +239,113 @@ mod tests {
     }
 
     #[test]
-    fn ticket_only_terminal_status_is_risky() {
-        assert!(
-            !risks(
+    fn ticket_every_status_transition_is_risky() {
+        let t = |status, current| risks("tickets", json!({"status": status}), Some(current), "");
+        assert!(!t(4, json!({"status": 1})).is_empty());
+        assert!(!t(2, json!({"status": 1})).is_empty());
+        assert!(t(2, json!({"status": 2})).is_empty());
+    }
+
+    #[test]
+    fn localized_terminal_status_needs_confirmation() {
+        let german = |v: &Value| match v.as_i64() {
+            Some(2) => "Offen".to_string(),
+            Some(5) => "Geschlossen".to_string(),
+            _ => fsv_py::py_str(v),
+        };
+        let english = |v: &Value| match v.as_i64() {
+            Some(2) => "Open".to_string(),
+            Some(3) => "Pending".to_string(),
+            Some(4) => "Resolved".to_string(),
+            _ => "None".to_string(),
+        };
+        let cerrado = |_: &Value| "Cerrado".to_string();
+        let pending = |_: &Value| "Pending final closure".to_string();
+        let cur = obj(json!({"status": 2}));
+        let run = |res: &str, status: i64, label: &dyn Fn(&Value) -> String| {
+            let ctx = RiskContext {
+                current: Some(&cur),
+                status_label: Some(label),
+                kind: "",
+            };
+            write_risks(res, &obj(json!({"status": status})), &ctx)
+        };
+        assert!(!run("tickets", 5, &german).is_empty());
+        let unknown = run("tickets", 12, &german);
+        assert!(unknown[0].contains("confirmation"));
+        assert!(!run("problems", 3, &cerrado).is_empty());
+        assert!(!run("tickets", 3, &english).is_empty());
+        assert!(!run("tickets", 99, &pending).is_empty());
+        assert!(!run("tickets", 4, &english).is_empty());
+    }
+
+    #[test]
+    fn risk_texts_match_python() {
+        let gate = " (status semantics and workflows require confirmation)";
+        for (res, body, current, kind, want) in [
+            (
                 "tickets",
                 json!({"status": 4}),
                 Some(json!({"status": 1})),
-                ""
-            )
-            .is_empty()
-        );
-        assert!(
-            risks(
+                "",
+                vec![format!("ticket status -> Resolved{gate}")],
+            ),
+            (
                 "tickets",
                 json!({"status": 2}),
-                Some(json!({"status": 1})),
-                ""
-            )
-            .is_empty()
-        );
+                Some(json!({"status": 2})),
+                "",
+                vec![],
+            ),
+            (
+                "tickets",
+                json!({"status": {"id": 3}}),
+                None,
+                "",
+                vec![format!("ticket status -> Closed{gate}")],
+            ),
+            (
+                "releases",
+                json!({"status": 2, "agent_id": 7, "responder_id": 8, "group_id": {"id": 9}}),
+                None,
+                "",
+                vec![
+                    format!("release status -> Planning{gate}"),
+                    "reassign agent (agent_id=7)".into(),
+                    "reassign group (group_id=9)".into(),
+                ],
+            ),
+            (
+                "changes",
+                json!({"status": 2}),
+                None,
+                "",
+                vec!["change status -> Planning".into()],
+            ),
+            (
+                "changes",
+                json!({"status": 3, "owner_id": 5}),
+                None,
+                "task",
+                vec![
+                    "task status -> Closed".into(),
+                    "reassign agent (owner_id=5)".into(),
+                ],
+            ),
+            (
+                "x",
+                json!({"status": 1}),
+                Some(json!({})),
+                "",
+                vec![format!("x status -> Open{gate}")],
+            ),
+        ] {
+            assert_eq!(
+                risks(res, body.clone(), current, kind),
+                want,
+                "{res} {body}"
+            );
+        }
     }
 
     #[test]

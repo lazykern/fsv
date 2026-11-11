@@ -28,6 +28,19 @@ fn last(path: &[String]) -> &str {
     path.last().map_or("", String::as_str)
 }
 
+/// Arguments after the token: the command line for `complete_lookup_query`
+/// (`words` is the shell's expansion of it), the field for
+/// `complete_update_choice`.
+fn extra_args(completer: &str, field: Option<&str>, words: &str) -> String {
+    if completer == "complete_lookup_query" {
+        format!(" -- {words}")
+    } else if let Some(field) = field {
+        format!(" -- {}", q(field))
+    } else {
+        String::new()
+    }
+}
+
 fn fish_lines(cmd: &Node, prog: &str, exe: &str, lines: &mut Vec<String>) {
     let path = &cmd.path[1..];
     let cond = fish_cond(path);
@@ -97,14 +110,11 @@ fn fish_lines(cmd: &Node, prog: &str, exe: &str, lines: &mut Vec<String>) {
             Kind::Dynamic {
                 completer,
                 resource,
+                field,
             } => {
                 let vc = join_cond(&[&cond, &prev, root_scope]);
                 let resource = resource.as_deref().unwrap_or("-");
-                let extra = if completer == "complete_lookup_query" {
-                    " -- (commandline -opc)"
-                } else {
-                    ""
-                };
+                let extra = extra_args(completer, field.as_deref(), "(commandline -opc)");
                 let call = format!(
                     "(FSV_THIN_COMPLETE=1 {exe} _complete fish {completer} {resource} (commandline -ct){extra})"
                 );
@@ -157,7 +167,10 @@ fn sorted_cases(root: &Node) -> Vec<Case<'_>> {
     cases
 }
 
-type ValueCases<'a> = (Vec<(&'a str, String)>, Vec<(&'a str, &'a str, &'a str)>);
+type ValueCases<'a> = (
+    Vec<(&'a str, String)>,
+    Vec<(&'a str, &'a str, &'a str, Option<&'a str>)>,
+);
 
 fn value_cases(node: &Node) -> ValueCases<'_> {
     let mut stat = Vec::new();
@@ -174,11 +187,13 @@ fn value_cases(node: &Node) -> ValueCases<'_> {
                 Kind::Dynamic {
                     completer,
                     resource,
+                    field,
                 } => {
                     dynamic.push((
                         f.as_str(),
                         completer.as_str(),
                         resource.as_deref().unwrap_or("-"),
+                        field.as_deref(),
                     ));
                 }
                 _ => {}
@@ -233,12 +248,8 @@ pub fn emit_bash(root: &Node, prog: &str, exe: &str) -> String {
                 lines.push(format!("                {f})"));
                 lines.push(format!("                    COMPREPLY=( $(compgen -W \"{vals}\" -- \"$cur\") ); return 0 ;;"));
             }
-            for (f, completer, resource) in &dynamic {
-                let extra = if *completer == "complete_lookup_query" {
-                    " -- \"${COMP_WORDS[@]}\""
-                } else {
-                    ""
-                };
+            for (f, completer, resource, field) in &dynamic {
+                let extra = extra_args(completer, *field, "\"${COMP_WORDS[@]}\"");
                 lines.push(format!("                {f})"));
                 lines.push(format!(
                     "                    COMPREPLY=( $(FSV_THIN_COMPLETE=1 {exe} _complete bash {completer} {resource} \"$cur\"{extra}) ); return 0 ;;"
@@ -296,12 +307,8 @@ pub fn emit_zsh(root: &Node, prog: &str, exe: &str) -> String {
                 lines.push(format!("                {f})"));
                 lines.push(format!("                    compadd {vals}; return 0 ;;"));
             }
-            for (f, completer, resource) in &dynamic {
-                let extra = if *completer == "complete_lookup_query" {
-                    " -- \"${words[@]}\""
-                } else {
-                    ""
-                };
+            for (f, completer, resource, field) in &dynamic {
+                let extra = extra_args(completer, *field, "\"${words[@]}\"");
                 lines.push(format!("                {f})"));
                 lines.push(format!(
                     "                    local _vals; _vals=($( FSV_THIN_COMPLETE=1 {exe} _complete zsh {completer} {resource} \"$cur\"{extra} ))"
@@ -417,6 +424,38 @@ mod tests {
                 ""
             ]
         );
+    }
+
+    #[test]
+    fn update_choice_scripts_pass_the_field() {
+        assert_eq!(
+            extra_args("complete_update_choice", Some("status"), "W"),
+            " -- status"
+        );
+        assert_eq!(extra_args("complete_lookup_query", None, "W"), " -- W");
+        assert_eq!(extra_args("complete_where", None, "W"), "");
+        let node = Node {
+            path: strings(&["fsv", "changes", "update"]),
+            help: String::new(),
+            params: vec![crate::model::Param {
+                flags: strings(&["--status", "-s"]),
+                kind: Kind::Dynamic {
+                    completer: "complete_update_choice".into(),
+                    resource: Some("changes".into()),
+                    field: Some("status".into()),
+                },
+            }],
+            subcommands: Vec::new(),
+        };
+        let mut lines = Vec::new();
+        fish_lines(&node, PROG, EXE, &mut lines);
+        assert!(lines.iter().any(|l| l.contains(
+            "_complete fish complete_update_choice changes (commandline -ct) -- status)"
+        )));
+        let bash = emit_bash(&node, PROG, EXE);
+        assert!(bash.contains("_complete bash complete_update_choice changes \"$cur\" -- status)"));
+        let zsh = emit_zsh(&node, PROG, EXE);
+        assert!(zsh.contains("_complete zsh complete_update_choice changes \"$cur\" -- status ))"));
     }
 
     #[test]

@@ -139,9 +139,9 @@ Known test limits, not behavior changes: relative times use the real clock, so t
 
 | Python | Rust | status |
 |---|---|---|
-| `_complete._completions`, `main` | `dynamic::complete`, `run` | ported. `cargo test -p fsv-completion --offline` was 38 passed. |
+| `_complete._completions`, `main` | `dynamic::complete`, `run` | ported. `cargo test -p fsv-completion --offline` was 40 passed. |
 | `completion` completers, including `complete_format`, `complete_store`, `complete_shell`, `complete_sort_order`, `complete_config_key`, `complete_config_value`, `complete_cache_target`, `complete_search_sort`, `complete_duplicate_mode` | one Rust fn each in `dynamic` | ported. |
-| `completion.complete_update_choice`, `complete_help_topic` | `fsv_completion::{complete_update_choice, complete_help_topic}` | ported. Neither has an arm in `_complete`, in Python or Rust, so the generated scripts print nothing for `--status`/`--priority`. |
+| `completion.complete_update_choice`, `complete_help_topic` | `fsv_completion::{complete_update_choice, complete_help_topic}` | ported. `complete_update_choice` is dispatched by `_complete` (see Divergences). `complete_help_topic` has no arm in `_complete`, in Python or Rust. |
 | `completion._config_load`, `_completion_network` | `fsv_completion::{config_load, completion_network}` | ported with the directory and env value passed in. `fsv-cli` (`cmd::completion::network_enabled`) and `fsv-app` still keep their own copies; theirs treat `network: 1.0` as off, Python treats it as on. |
 | `completion_gen` walk and emitters | `model`, `emit` | ported. `_extract_params`, `_filter_params_by_flags`, `_is_bool_annotation` (clap action plus `value_flag`), `_collect_bash`/`_collect_zsh` (one `collect`) have their own fns. |
 
@@ -155,6 +155,7 @@ Not ported, with reasons:
 Divergences:
 - `completion_network` returns off when `completion` is not an object (null, a string) or `config.json` is not an object. Python raises `AttributeError`. `_complete` swallows it, but `completion doctor` and the TUI crash.
 - `complete_update_choice` skips choices that are not objects. Python raises `AttributeError`.
+- `--status <TAB>` and `--priority <TAB>` on `update` and `create` complete. Python's scripts call `_complete … complete_update_choice <resource> <token>`, but `_complete` has no arm for that completer, so Python prints nothing. Rust scripts append `-- <field>` (`status` or `priority`, the option id) and `_complete` answers with `complete_update_choice(resource, field)`. Without a field it still prints nothing. Only these script lines differ from Python's: `fsv-cli/tests/fixtures/completion.{bash,zsh,fish}` need the `-- status` / `-- priority` suffix.
 
 Golden values: `port/golden/gen_fsv_completion_extra.py` writes `tests/fixtures/extra_expected.json`.
 
@@ -167,7 +168,11 @@ Golden values: `port/golden/gen_fsv_completion_extra.py` writes `tests/fixtures/
 | `session._read_secret` | `paste::read_secret` (`collect_secret`, `read_piped`) | ported. Key-loop expectations come from Python reading a pty. |
 | `session._http_json`, `_page_ws_url`, `_cdp_call`, `_direct_browser_cookies` | `browser` | ported. Tested against a local `TcpListener` DevTools fake running the same scenarios Python ran: ping, event and foreign-id frames, error fallback to `getAllCookies`, a non-object result, and close. |
 | `journal._command`, `errors.APIError.__init__` | `journal::command`, `ApiError::{new, with_request}` | ported. |
-| `cargo test -p fsv-core --offline` | | was 169 passed. |
+| Rich `Console.print` soft wrap (`render.console` / `render.err`) | `term::Console::{print, print_plain, print_soft}` | ported. `print` and `print_plain` word-wrap at the console width (`$COLUMNS`, else the terminal, else 80) with Rich's default justify and `fold` overflow: no padding, trailing spaces kept unless past the width, long words folded, tabs expanded to 8-cell stops. `print_soft` is `soft_wrap=True` (only `cli_sr` "Saved to …" uses it). `render` stays unwrapped for `fsv-views`. 204 cases (widths 20/60/80, stdout/stderr, color on/off) match Rich 15.0.0 byte for byte. |
+| `safety.write_risks` | `safety::write_risks` | ported from Python 273ffde: every status change on a non-change resource is a risk, `<what> status -> <label> (status semantics and workflows require confirmation)`. `status_closes` is kept (Python keeps it too) but no longer decides. |
+| httpx query encoding (`Client._request(params=…)`) | `client::wire_url` | ported. Byte-identical to `httpx.Client().build_request(...).url` (httpx 0.28.1): `urlencode` with `quote_plus`: space is `+`, and everything except letters, digits and `_.-~` is percent-encoded (`@` → `%40`, `,` → `%2C`, `/` → `%2F`). `true`/`false` lowercase, `None` sent as `key=` (the old Rust code skipped it), list values repeated. Any `params` map, even an empty one, replaces the URL's own query, as httpx does; no fsv caller passes both. The `--verbose` log target keeps Python's own `_query_string` encoding. |
+| `client._int_request` 403 replay | `Client::int_request` | already matched 273ffde: CSRF is fetched first and a write is never replayed. |
+| `cargo test -p fsv-core --offline` | | was 174 passed. |
 
 Not ported, with reasons:
 - `session._ws_read_exact`, `_ws_send_text`, `_ws_recv_text`: `tungstenite` does the websocket framing. Their behavior is covered through `cdp_call`.
@@ -179,7 +184,9 @@ Divergences:
 - Ctrl-C at the hidden cookie prompt is read as a byte and gives `Error::Aborted`. Python leaves ISIG on and gets `KeyboardInterrupt`.
 - The CDP client answers server pings with a pong and checks `Sec-WebSocket-Accept`. Python ignores pings and only checks for `101` in the status line.
 
-Golden values: `port/golden/gen_fsv_core_session.py` writes `tests/fixtures/session_expected.json`. `strip_html.json` comes from `gen_fsv_views_extra.py`.
+Golden values: `port/golden/gen_fsv_core_session.py` writes `tests/fixtures/session_expected.json`. `strip_html.json` comes from `gen_fsv_views_extra.py`. `port/golden/gen_fsv_core_term_wrap.py` writes `tests/fixtures/term_wrap.json`. The httpx URLs in `client::tests::wire_url_matches_httpx` and the `write_risks` texts in `safety::tests` were printed by the Python worktree.
+
+Known gaps: Rich emits one SGR run per markup span; Rust merges adjacent runs with the same style, so colored bytes can differ when two spans share a style. Plain text is identical. With `TERM=dumb` on a real terminal Rich ignores `$COLUMNS` unless `$LINES` is also set; Rust always honors `$COLUMNS`.
 
 ## fsv-forms
 

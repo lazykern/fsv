@@ -95,6 +95,62 @@ fn ctx_paths_and_tenant() {
 }
 
 #[test]
+fn wire_url_matches_httpx() {
+    // str(httpx.Client().build_request("GET", url, params=params).url), httpx 0.28.1
+    let cases = [
+        (
+            "https://acme.freshservice.com/api/v2/changes",
+            Some(
+                json!({"query": "\"agent_id:5 AND created_at:>'2026-01-01'\"", "page": 2, "per_page": 100}),
+            ),
+            "https://acme.freshservice.com/api/v2/changes?query=%22agent_id%3A5+AND+created_at%3A%3E%272026-01-01%27%22&page=2&per_page=100",
+        ),
+        (
+            "https://acme.freshservice.com/search/autocomplete/requesters",
+            Some(json!({"q": "jane.doe+x@acme.com, bob smith", "qf": "details"})),
+            "https://acme.freshservice.com/search/autocomplete/requesters?q=jane.doe%2Bx%40acme.com%2C+bob+smith&qf=details",
+        ),
+        (
+            "https://acme.freshservice.com/search/changes",
+            Some(json!({"term": "ünïcode 中 #1 & 50%", "page": 1, "search_sort": "created_at"})),
+            "https://acme.freshservice.com/search/changes?term=%C3%BCn%C3%AFcode+%E4%B8%AD+%231+%26+50%25&page=1&search_sort=created_at",
+        ),
+        (
+            "https://acme.freshservice.com/x?a=1&b=2",
+            Some(
+                json!({"b": "z", "t": true, "f": false, "fl": 1.5, "n": null, "l": ["x y", null, 3]}),
+            ),
+            "https://acme.freshservice.com/x?b=z&t=true&f=false&fl=1.5&n=&l=x+y&l=&l=3",
+        ),
+        (
+            "https://acme.freshservice.com/x?a=1&b=2",
+            Some(json!({})),
+            "https://acme.freshservice.com/x",
+        ),
+        (
+            "https://acme.freshservice.com/x?a=1&b=2#frag",
+            None,
+            "https://acme.freshservice.com/x?a=1&b=2",
+        ),
+        (
+            "https://acme.freshservice.com/x",
+            Some(json!({"s": "~-._*()!'/:;=?[]{}|\\^`<>\""})),
+            "https://acme.freshservice.com/x?s=~-._%2A%28%29%21%27%2F%3A%3B%3D%3F%5B%5D%7B%7D%7C%5C%5E%60%3C%3E%22",
+        ),
+    ];
+    for (url, p, want) in cases {
+        let p = p.map(params);
+        let got = wire_url(url, p.as_ref());
+        assert_eq!(got, want);
+        assert_eq!(
+            Url::parse(&got).unwrap().as_str(),
+            want,
+            "url crate keeps the bytes"
+        );
+    }
+}
+
+#[test]
 fn get_sends_params_headers_and_tenant_cookies() {
     let h = harness(MockTransport::queue(vec![ok_json(
         json!({"agent": {"id": 7}}),
@@ -108,7 +164,7 @@ fn get_sends_params_headers_and_tenant_cookies() {
     let req = &h.mock.requests()[0];
     assert_eq!(
         req.url,
-        "https://acme.freshservice.com/api/v2/agents/me?query=a%20b&ids=1&ids=2"
+        "https://acme.freshservice.com/api/v2/agents/me?query=a+b&skip=&ids=1&ids=2"
     );
     assert_eq!(req.header("user-agent"), Some(UA));
     assert_eq!(req.header("accept"), Some("application/json"));
@@ -954,7 +1010,7 @@ fn autocomplete_params_and_results() {
     );
     assert_eq!(
         h.mock.requests()[0].url,
-        "https://acme.freshservice.com/search/autocomplete/requesters?q=ad%20a&qf=email&x=1"
+        "https://acme.freshservice.com/search/autocomplete/requesters?q=ad+a&qf=email&x=1"
     );
     assert!(
         h.client

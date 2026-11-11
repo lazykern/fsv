@@ -205,8 +205,8 @@ Python uses `rich`. Replace with `fsv_core::term`:
 - `term::prompt` / `term::confirm` ≙ `typer.prompt` / `typer.confirm`
   (same prompt text, `[default]` rendering, `(y/N)` suffixes, abort
   semantics → `Error::Aborted` / exit 1 with "Aborted!").
-- Plain `console.print` text is not hard-wrapped (deliberate divergence,
-  Rich soft-wraps at terminal width).
+- `Console::print` word-wraps at the console width like Rich;
+  `Console::print_soft` matches Rich's `soft_wrap=True`. `render()` does not wrap.
 
 Exact byte parity is required for machine formats (`--json`, `-o json`,
 csv, tsv, YAML drafts, `--print-plan` style outputs). Human tables and

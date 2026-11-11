@@ -136,6 +136,7 @@ pub(crate) fn dump(node: &Node) -> Value {
             Kind::Dynamic {
                 completer,
                 resource,
+                ..
             } => json!({"flags": p.flags, "kind": "dynamic", "completer": completer, "resource": resource}),
         })
         .collect();

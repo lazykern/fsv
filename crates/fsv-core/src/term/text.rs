@@ -136,7 +136,7 @@ fn divide_line(chars: &[char], width: usize, fold: bool) -> Vec<usize> {
                 let mut cw = 0;
                 for (k, c) in word.iter().enumerate() {
                     let w = char_width(*c);
-                    if cw + w > width && cw > 0 {
+                    if cw + w > width {
                         chunks.push((cs, start + k));
                         cs = start + k;
                         cw = 0;
@@ -262,7 +262,69 @@ fn expand_tab(c: char) -> char {
     if c == '\t' { ' ' } else { c }
 }
 
-/// Lines of `text` without wrapping (for plain `console.print`).
+/// Rich `Text.expand_tabs()` (8-cell stops) on one line; the padding takes
+/// the tab's style.
+fn expand_tabs(line: Line) -> Line {
+    if !line.iter().any(|(c, _)| *c == '\t') {
+        return line;
+    }
+    let mut out = Vec::with_capacity(line.len());
+    let mut cells = 0;
+    for (c, s) in line {
+        if c == '\t' {
+            let pad = 8 - (cells + 1) % 8;
+            let n = 1 + if pad == 8 { 0 } else { pad };
+            out.extend(std::iter::repeat_n((' ', s), n));
+            cells += n;
+        } else {
+            cells += char_width(c);
+            out.push((c, s));
+        }
+    }
+    out
+}
+
+/// Lines `console.print(text)` writes at `width`: Rich's default justify
+/// (no padding) and `fold` overflow.
+pub fn print_lines(text: &Text, base: Style, width: usize) -> Vec<Line> {
+    let width = width.max(1);
+    let mut out = Vec::new();
+    for para in lines(text, base).into_iter().map(expand_tabs) {
+        let plain: Vec<char> = para.iter().map(|(c, _)| *c).collect();
+        let mut s = 0;
+        for o in divide_line(&plain, width, true)
+            .into_iter()
+            .chain(std::iter::once(para.len()))
+        {
+            let mut line = para[s..o].to_vec();
+            s = o;
+            rstrip_end(&mut line, width);
+            truncate(&mut line, width, Overflow::Fold, false, base);
+            out.push(line);
+        }
+    }
+    out
+}
+
+/// `console.print(text, soft_wrap=True)`: one run with tabs expanded and
+/// newlines kept (styled like the text around them), never wrapped or cropped.
+pub fn soft_line(text: &Text, base: Style) -> Line {
+    let styles = text.char_styles(base);
+    let mut out: Line = Vec::new();
+    let mut para: Line = Vec::new();
+    for (c, s) in text.plain.chars().zip(styles) {
+        if c == '\n' {
+            out.extend(expand_tabs(std::mem::take(&mut para)));
+            out.push((c, s));
+        } else {
+            para.push((c, s));
+        }
+    }
+    out.extend(expand_tabs(para));
+    out
+}
+
+/// Lines of `text` without wrapping.
 pub fn lines(text: &Text, base: Style) -> Vec<Line> {
     let styles = text.char_styles(base);
     let mut out = vec![Vec::new()];
