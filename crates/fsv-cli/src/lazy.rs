@@ -89,4 +89,10 @@ impl Api for LazyApi {
             .map(|c| Api::workspace_cookies(c.as_ref()))
             .unwrap_or_default()
     }
+    fn me(&self) -> Result<Value> {
+        Api::me(self.get()?.as_ref())
+    }
+    fn v2_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
+        Api::v2_get(self.get()?.as_ref(), path, params)
+    }
 }

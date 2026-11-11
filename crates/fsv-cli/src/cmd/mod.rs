@@ -13,6 +13,7 @@ pub mod links;
 pub mod misc;
 pub mod resource;
 pub mod review;
+pub mod reviewed;
 pub mod sr;
 pub mod tickets;
 
@@ -87,6 +88,13 @@ fn resource_dispatch(res: &'static Resource, sub: &str, m: &ArgMatches) -> CmdRe
         "update" => resource::update(res, parse(m)?),
         "download" if res.name == "changes" => changes::download(parse(m)?),
         "download" => resource::download(res, parse(m)?),
+        "watchers list" => reviewed::watchers_list(res, parse(m)?),
+        "watchers set" => reviewed::watchers_set(res, parse(m)?),
+        "planning-text" => reviewed::planning_text(res, parse(m)?),
+        "mark-known-error" => reviewed::mark_known_error(parse(m)?),
+        "time list" => reviewed::time_list(parse(m)?),
+        "time write" => reviewed::time_write(parse(m)?),
+        "bulk-priority" => reviewed::bulk_priority(parse(m)?),
         _ if res.name == "changes" => changes::dispatch(sub, m),
         _ => tickets::dispatch(sub, m),
     }

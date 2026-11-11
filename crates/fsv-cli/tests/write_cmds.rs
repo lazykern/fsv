@@ -169,7 +169,7 @@ fn update_props_mixed() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"do not combine ticket properties with other update flags; review separate updates
+        r#"ticket read did not include: tags
 "#
     );
 }

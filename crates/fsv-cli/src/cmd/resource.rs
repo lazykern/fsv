@@ -1346,26 +1346,8 @@ pub fn reply(
 
 /// Generic `update` (tickets, problems).
 pub fn update(res: &'static Resource, a: ResUpdateArgs) -> CmdResult {
-    if !a.tag.is_empty() || a.planned_start.is_some() || a.planned_end.is_some() {
-        if res.name != TICKETS.name {
-            return Err(plain_fail(
-                "--tag and planned dates are supported only for tickets",
-                2,
-            ));
-        }
-        if a.status.is_some()
-            || a.priority.is_some()
-            || a.agent_id.is_some()
-            || a.group_id.is_some()
-            || !a.set_.is_empty()
-        {
-            return Err(plain_fail(
-                "do not combine ticket properties with other update flags; review separate updates",
-                2,
-            ));
-        }
-        let c = client()?;
-        return ticket_properties(&a, &c).map_err(|e| match e {
+    if a.reviewed || !a.tag.is_empty() || a.planned_start.is_some() || a.planned_end.is_some() {
+        return ticket_properties(res, &a).map_err(|e| match e {
             Error::Value(m) => plain_fail(&m, 2),
             Error::Exit { code: 2, message } if !message.is_empty() => plain_fail(&message, 2),
             other => uncaught(other),
@@ -1373,23 +1355,63 @@ pub fn update(res: &'static Resource, a: ResUpdateArgs) -> CmdResult {
     }
     if a.expect_plan.as_deref().is_some_and(|s| !s.is_empty()) {
         return Err(usage(
-            "--expect-plan is only supported with --tag, --planned-start or --planned-end",
+            "--expect-plan requires --reviewed, --tag, --planned-start or --planned-end",
         ));
     }
     update_resource(res, &a)
 }
 
+/// `--set` and the core flags as property answers (field name or label -> value).
+fn property_answers(a: &ResUpdateArgs) -> Result<Map<String, Value>, Error> {
+    let mut answers = Map::new();
+    for expr in &a.set_ {
+        let (name, value) = expr.split_once('=').unwrap_or((expr, ""));
+        let name = fsv_core::pystr::strip(name);
+        if !expr.contains('=') || name.is_empty() || answers.contains_key(name) {
+            return Err(Error::exit(2, "--set requires unique FIELD=VALUE answers"));
+        }
+        answers.insert(name.to_string(), json!(value));
+    }
+    for (name, value) in [
+        ("status", &a.status),
+        ("priority", &a.priority),
+        ("agent", &a.agent_id),
+        ("group", &a.group_id),
+    ] {
+        if let Some(value) = value {
+            if answers.contains_key(name) {
+                return Err(Error::exit(2, format!("duplicate property answer: {name}")));
+            }
+            answers.insert(name.into(), json!(value));
+        }
+    }
+    Ok(answers)
+}
+
 /// Reviewed ticket property update (`ticket_properties`).
-fn ticket_properties(a: &ResUpdateArgs, c: &fsv_core::Client) -> CmdResult {
+fn ticket_properties(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
+    if res.name != TICKETS.name {
+        return Err(Error::exit(
+            2,
+            "--tag and planned dates are supported only for tickets",
+        ));
+    }
+    let answers = property_answers(a)?;
+    let c = client()?;
     let store = fsv_api::formmeta::DiskStore::current();
-    let plan = fsv_api::properties::build_plan(
-        c,
-        &store,
-        &a.id_,
-        (!a.tag.is_empty()).then_some(a.tag.as_slice()),
-        a.planned_start.as_deref(),
-        a.planned_end.as_deref(),
-    )?;
+    let api: std::sync::Arc<dyn fsv_api::service::Api + Send + Sync> = c.clone();
+    let resolver = || -> Option<std::sync::Arc<dyn fsv_forms::LookupResolver>> {
+        Some(std::sync::Arc::new(fsv_api::formmeta::ClientResolver::new(
+            api.clone(),
+        )))
+    };
+    let args = fsv_api::properties::PropertyArgs {
+        tags: (!a.tag.is_empty()).then_some(a.tag.as_slice()),
+        planned_start: a.planned_start.as_deref(),
+        planned_end: a.planned_end.as_deref(),
+        answers: Some(&answers),
+    };
+    let plan = fsv_api::properties::build_plan_with(c.as_ref(), &store, &a.id_, &args, resolver())?;
     let pretty = |v: &Value| {
         fsv_py::Dumps::default()
             .indent(2)
@@ -1426,12 +1448,13 @@ fn ticket_properties(a: &ResUpdateArgs, c: &fsv_core::Client) -> CmdResult {
         println!("Cancelled; no update attempted.");
         return Ok(());
     }
-    let result = fsv_api::properties::send(
+    let result = fsv_api::properties::send_with(
         &plan,
-        c,
+        c.as_ref(),
         &fsv_api::service::DiskJournal,
         &store,
         Some(&hash),
+        resolver(),
     )?;
     println!("{}", pretty(&result));
     Ok(())

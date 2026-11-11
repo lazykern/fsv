@@ -6,6 +6,8 @@ Usage: cmp.py ROUTES.json [--stdin TEXT] [--files DIR] [--pre ARGV_JSON]... [--s
 With --emit, a Rust test asserting Python's output is appended to $EMIT_TO (or printed).
 Each --pre runs first in the same home (output ignored), e.g. --pre '["config","set","k","v"]'.
 FSV_RS_BIN overrides the Rust binary; CMP_TIMEOUT (seconds, default 60) bounds each run.
+FSV_PY_SRC (e.g. a `git archive <commit>` src/ dir) runs that Python source instead
+of the repo's, to compare against the commit the port has triaged.
 """
 
 import difflib
@@ -72,6 +74,8 @@ def run(impl):
     env.update(dict(extra_env))
     if tty:
         env["FSV_TEST_TTY"] = "1"
+    if impl == "py" and os.environ.get("FSV_PY_SRC"):
+        env["PYTHONPATH"] = os.environ["FSV_PY_SRC"]
 
     def command(a):
         if impl == "py":

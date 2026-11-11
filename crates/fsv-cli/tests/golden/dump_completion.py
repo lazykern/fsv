@@ -17,6 +17,7 @@ import sys
 
 from fsv import completion_gen as g
 from fsv.cli import _ROOT_FLAGS_ANYWHERE, app
+from not_ported import NOT_PORTED
 
 EXE = "@FSV_EXE@"
 
@@ -43,8 +44,19 @@ def to_json(cmd):
     }
 
 
+def ported(path):
+    return not any(" ".join(path[:n]) in NOT_PORTED for n in range(1, len(path) + 1))
+
+
+def prune(cmd):
+    cmd.subcommands = [s for s in cmd.subcommands if ported(s.path)]
+    for s in cmd.subcommands:
+        prune(s)
+
+
 out = pathlib.Path(sys.argv[1])
 root = g._walk(app, ["fsv"], inherited_flags=set(_ROOT_FLAGS_ANYWHERE))
+prune(root)
 split_flags(root)
 (out / "completion_tree.json").write_text(json.dumps(to_json(root), indent=1, ensure_ascii=False) + "\n")
 sys.executable = EXE

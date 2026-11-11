@@ -105,7 +105,7 @@ fn tree_matches_python() {
     let mut problems = Vec::new();
     walk(&tree, &cmd, &mut seen, &mut problems);
     assert!(problems.is_empty(), "{}", problems.join("\n"));
-    assert_eq!(seen.len(), 111);
+    assert_eq!(seen.len(), 125);
 }
 
 #[test]
@@ -119,7 +119,7 @@ fn every_command_path_is_reachable() {
     }
     let mut all = vec![];
     paths(&fsv_cli::command(), "fsv", &mut all);
-    assert_eq!(all.len(), 110);
+    assert_eq!(all.len(), 124);
     for p in [
         "fsv changes assets legacy",
         "fsv changes approval-request",

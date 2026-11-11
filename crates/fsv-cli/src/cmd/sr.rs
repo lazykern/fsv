@@ -365,13 +365,22 @@ fn sr_send(
         cat::duplicate_check(&new, o.allow_duplicate, journal)?;
     }
     formflow::expect_hash(&new.hash, &new.errors, o.expect)?;
-    cat::execute(
+    cat::execute_detailed(
         &new,
         deps.api.as_ref(),
         journal,
         &cat::upload,
         o.allow_duplicate,
     )
+    .map_err(|e| match e {
+        cat::Executed::Refused(e) => e,
+        cat::Executed::Failed(f) => {
+            if let Some(note) = f.uploaded_note() {
+                err().print(&note);
+            }
+            f.into_error()
+        }
+    })
 }
 
 /// `cli_sr.create_command` after the input checks.

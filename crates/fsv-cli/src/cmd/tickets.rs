@@ -38,6 +38,7 @@ pub fn dispatch(sub: &str, m: &ArgMatches) -> CmdResult {
             )
         }
         "reply" => reply(parse(m)?),
+        "forward" => forward(parse(m)?),
         "create" => create(parse(m)?),
         "approvals" => approvals(parse(m)?),
         "associations" => associations(parse(m)?),
@@ -471,7 +472,12 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
 }
 
 fn reply(a: TicketsReplyArgs) -> CmdResult {
-    if a.cc.is_empty() && a.set_status.is_none() && a.expect_plan.is_none() {
+    if a.cc.is_empty()
+        && a.bcc.is_empty()
+        && a.sender.is_none()
+        && a.set_status.is_none()
+        && a.expect_plan.is_none()
+    {
         return resource::reply(&TICKETS, &a.id_, &a.body, a.dry_run, a.yes, a.no_input);
     }
     let c = client()?;
@@ -480,6 +486,7 @@ fn reply(a: TicketsReplyArgs) -> CmdResult {
 
 fn reply_reviewed(a: &TicketsReplyArgs, c: &fsv_core::Client) -> Result<()> {
     let store = DiskStore::current();
+    conversations::recipients(c, &a.bcc)?;
     let cc = conversations::recipients(c, &a.cc)?;
     let args = ConversationArgs {
         kind: "reply",
@@ -487,7 +494,11 @@ fn reply_reviewed(a: &TicketsReplyArgs, c: &fsv_core::Client) -> Result<()> {
         set_status: a.set_status.as_deref(),
         ..Default::default()
     };
-    let plan = conversations::build_plan(c, &store, &a.id_, &a.body, &args)?;
+    let mail = conversations::MailArgs {
+        bcc: &a.bcc,
+        sender: a.sender.as_deref(),
+    };
+    let plan = conversations::build_plan_mail(c, &store, &a.id_, &a.body, &args, &mail)?;
     let review = plan.review();
     if a.dry_run {
         let mut out = serde_json::Map::new();
@@ -520,6 +531,38 @@ fn reply_reviewed(a: &TicketsReplyArgs, c: &fsv_core::Client) -> Result<()> {
     let result = conversations::send(&plan, c, &DiskJournal, &store, Some(&hash), true)?;
     println!("{}", pretty(&result));
     Ok(())
+}
+
+/// `tickets forward`: a whole-ticket forward, JSON review only.
+fn forward(a: TicketsForwardArgs) -> CmdResult {
+    use crate::cmd::reviewed::{dumps, print_dry_run, refusal, require_review};
+    let c = client()?;
+    let run = || -> Result<()> {
+        let store = DiskStore::current();
+        conversations::recipients(c.as_ref(), &a.to)?;
+        let args = ConversationArgs {
+            kind: "forward",
+            notify: &a.to,
+            ..Default::default()
+        };
+        let mail = conversations::MailArgs {
+            bcc: &[],
+            sender: Some(&a.sender),
+        };
+        let plan =
+            conversations::build_plan_mail(c.as_ref(), &store, &a.id_, &a.body, &args, &mail)?;
+        if a.dry_run {
+            print_dry_run(plan.review());
+            return Ok(());
+        }
+        let hash = plan.hash();
+        require_review(a.yes, a.expect_plan.as_deref(), &hash)?;
+        let result =
+            conversations::send(&plan, c.as_ref(), &DiskJournal, &store, Some(&hash), true)?;
+        println!("{}", dumps(&result));
+        Ok(())
+    };
+    run().map_err(refusal)
 }
 
 fn create(a: TicketsCreateArgs) -> CmdResult {

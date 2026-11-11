@@ -8,6 +8,13 @@ pub enum OutputFormat {
     Tsv,
 }
 
+/// `reviewed_cli.ReviewOutput`: reviewed commands whose review and readback
+/// are JSON only.
+#[derive(ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReviewOutput {
+    Json,
+}
+
 #[derive(ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SearchSort {
     Relevance,

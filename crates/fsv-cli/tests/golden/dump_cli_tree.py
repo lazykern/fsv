@@ -13,6 +13,7 @@ from typer.core import TyperOption
 import typer.main
 
 from fsv.cli import app
+from not_ported import NOT_PORTED
 
 
 def _default(v):
@@ -59,7 +60,8 @@ def _walk(cmd, path):
     }
     if hasattr(cmd, "commands"):
         for name, sub in cmd.commands.items():
-            node["commands"].append(_walk(sub, f"{path} {name}"))
+            if f"{path} {name}" not in NOT_PORTED:
+                node["commands"].append(_walk(sub, f"{path} {name}"))
     return node
 
 

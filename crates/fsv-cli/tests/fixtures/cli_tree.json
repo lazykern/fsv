@@ -3139,6 +3139,171 @@
      "commands": []
     },
     {
+     "path": "fsv changes planning-text",
+     "help": "Review a native planning/analysis text section; no files.",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "id_",
+       "kind": "argument",
+       "opts": [
+        "id_"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "ID",
+       "envvar": null
+      },
+      {
+       "name": "section",
+       "kind": "option",
+       "opts": [
+        "--section"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "exact metadata label/name; problems: Root Cause, Impact, Symptoms",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "description",
+       "kind": "option",
+       "opts": [
+        "--description"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "text/HTML; reviewed verbatim",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "output",
+       "kind": "option",
+       "opts": [
+        "--output",
+        "-o"
+       ],
+       "secondary_opts": [],
+       "type": "choice",
+       "choices": [
+        "json"
+       ],
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": "json",
+       "hidden": false,
+       "help": "output format (JSON only)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "alias for --output json",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
      "path": "fsv changes fields",
      "help": "List discoverable change fields.",
      "epilog": "[bold]Examples:[/bold]  fsv changes fields  |  fsv changes fields --required  |  fsv changes fields --choices status  |  fsv changes fields --custom",
@@ -7041,6 +7206,234 @@
        "commands": []
       }
      ]
+    },
+    {
+     "path": "fsv changes watchers",
+     "help": "Read watcher membership and review self-only watch changes.",
+     "epilog": null,
+     "hidden": false,
+     "group": true,
+     "params": [],
+     "commands": [
+      {
+       "path": "fsv changes watchers list",
+       "help": "",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "id_",
+         "kind": "argument",
+         "opts": [
+          "id_"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "ID",
+         "envvar": null
+        },
+        {
+         "name": "output",
+         "kind": "option",
+         "opts": [
+          "--output",
+          "-o"
+         ],
+         "secondary_opts": [],
+         "type": "choice",
+         "choices": [
+          "json"
+         ],
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "json",
+         "hidden": false,
+         "help": "output format (JSON only)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": "alias for --output json",
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv changes watchers set",
+       "help": "",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "id_",
+         "kind": "argument",
+         "opts": [
+          "id_"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "ID",
+         "envvar": null
+        },
+        {
+         "name": "watch",
+         "kind": "option",
+         "opts": [
+          "--watch"
+         ],
+         "secondary_opts": [
+          "--unwatch"
+         ],
+         "type": "boolean",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "output",
+         "kind": "option",
+         "opts": [
+          "--output",
+          "-o"
+         ],
+         "secondary_opts": [],
+         "type": "choice",
+         "choices": [
+          "json"
+         ],
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "json",
+         "hidden": false,
+         "help": "output format (JSON only)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": "alias for --output json",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      }
+     ]
     }
    ]
   },
@@ -7673,6 +8066,152 @@
        "default": false,
        "hidden": false,
        "help": "alias for --output json",
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv tickets bulk-priority",
+     "help": "Review priority for explicit ticket IDs; no filter/all-pages expansion.",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "ids",
+       "kind": "argument",
+       "opts": [
+        "ids"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": -1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "ID...",
+       "envvar": null
+      },
+      {
+       "name": "priority",
+       "kind": "option",
+       "opts": [
+        "--priority"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "output",
+       "kind": "option",
+       "opts": [
+        "--output",
+        "-o"
+       ],
+       "secondary_opts": [],
+       "type": "choice",
+       "choices": [
+        "json"
+       ],
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": "json",
+       "hidden": false,
+       "help": "output format (JSON only)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "alias for --output json",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
        "metavar": null,
        "envvar": null
       }
@@ -9069,6 +9608,25 @@
        "envvar": null
       },
       {
+       "name": "reviewed",
+       "kind": "option",
+       "opts": [
+        "--reviewed"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "tickets only: evaluate --set and core flags as a hash-bound property plan",
+       "metavar": null,
+       "envvar": null
+      },
+      {
        "name": "expect_plan",
        "kind": "option",
        "opts": [
@@ -9549,6 +10107,44 @@
        "envvar": null
       },
       {
+       "name": "bcc",
+       "kind": "option",
+       "opts": [
+        "--bcc"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "BCC plain email from user lookup (repeatable; requires --sender)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "sender",
+       "kind": "option",
+       "opts": [
+        "--sender"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "explicit configured support mailbox; not inferred",
+       "metavar": null,
+       "envvar": null
+      },
+      {
        "name": "set_status",
        "kind": "option",
        "opts": [
@@ -9646,6 +10242,720 @@
       }
      ],
      "commands": []
+    },
+    {
+     "path": "fsv tickets forward",
+     "help": "Review and forward a whole ticket (not an individual conversation).",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "id_",
+       "kind": "argument",
+       "opts": [
+        "id_"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "ID",
+       "envvar": null
+      },
+      {
+       "name": "body",
+       "kind": "argument",
+       "opts": [
+        "body"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "to",
+       "kind": "option",
+       "opts": [
+        "--to"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "plain recipient email (repeatable)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "sender",
+       "kind": "option",
+       "opts": [
+        "--sender"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "configured support mailbox; not inferred",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "output",
+       "kind": "option",
+       "opts": [
+        "--output",
+        "-o"
+       ],
+       "secondary_opts": [],
+       "type": "choice",
+       "choices": [
+        "json"
+       ],
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": "json",
+       "hidden": false,
+       "help": "output format (JSON only)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "alias for --output json",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv tickets watchers",
+     "help": "Read watcher membership and review self-only watch changes.",
+     "epilog": null,
+     "hidden": false,
+     "group": true,
+     "params": [],
+     "commands": [
+      {
+       "path": "fsv tickets watchers list",
+       "help": "",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "id_",
+         "kind": "argument",
+         "opts": [
+          "id_"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "ID",
+         "envvar": null
+        },
+        {
+         "name": "output",
+         "kind": "option",
+         "opts": [
+          "--output",
+          "-o"
+         ],
+         "secondary_opts": [],
+         "type": "choice",
+         "choices": [
+          "json"
+         ],
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "json",
+         "hidden": false,
+         "help": "output format (JSON only)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": "alias for --output json",
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv tickets watchers set",
+       "help": "",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "id_",
+         "kind": "argument",
+         "opts": [
+          "id_"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "ID",
+         "envvar": null
+        },
+        {
+         "name": "watch",
+         "kind": "option",
+         "opts": [
+          "--watch"
+         ],
+         "secondary_opts": [
+          "--unwatch"
+         ],
+         "type": "boolean",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "output",
+         "kind": "option",
+         "opts": [
+          "--output",
+          "-o"
+         ],
+         "secondary_opts": [],
+         "type": "choice",
+         "choices": [
+          "json"
+         ],
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "json",
+         "hidden": false,
+         "help": "output format (JSON only)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": "alias for --output json",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      }
+     ]
+    },
+    {
+     "path": "fsv tickets time",
+     "help": "Reviewed self-owned, nonbillable manual time entries.",
+     "epilog": null,
+     "hidden": false,
+     "group": true,
+     "params": [],
+     "commands": [
+      {
+       "path": "fsv tickets time list",
+       "help": "",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "id_",
+         "kind": "argument",
+         "opts": [
+          "id_"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "ID",
+         "envvar": null
+        },
+        {
+         "name": "output",
+         "kind": "option",
+         "opts": [
+          "--output",
+          "-o"
+         ],
+         "secondary_opts": [],
+         "type": "choice",
+         "choices": [
+          "json"
+         ],
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "json",
+         "hidden": false,
+         "help": "output format (JSON only)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": "alias for --output json",
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv tickets time write",
+       "help": "",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "id_",
+         "kind": "argument",
+         "opts": [
+          "id_"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": "ID",
+         "envvar": null
+        },
+        {
+         "name": "action",
+         "kind": "argument",
+         "opts": [
+          "action"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "create | update | delete",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "entry",
+         "kind": "option",
+         "opts": [
+          "--entry"
+         ],
+         "secondary_opts": [],
+         "type": "integer",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "exact existing entry ID for update/delete",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "spent",
+         "kind": "option",
+         "opts": [
+          "--spent"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "manual duration HH:MM",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "executed_at",
+         "kind": "option",
+         "opts": [
+          "--executed-at"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": "ISO timestamp with explicit offset",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "note",
+         "kind": "option",
+         "opts": [
+          "--note"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "dry_run",
+         "kind": "option",
+         "opts": [
+          "--dry-run"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "yes",
+         "kind": "option",
+         "opts": [
+          "--yes"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "output",
+         "kind": "option",
+         "opts": [
+          "--output",
+          "-o"
+         ],
+         "secondary_opts": [],
+         "type": "choice",
+         "choices": [
+          "json"
+         ],
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": "json",
+         "hidden": false,
+         "help": "output format (JSON only)",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": "alias for --output json",
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "expect_plan",
+         "kind": "option",
+         "opts": [
+          "--expect-plan"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      }
+     ]
     }
    ]
   },
@@ -10278,6 +11588,298 @@
        "default": false,
        "hidden": false,
        "help": "alias for --output json",
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv problems mark-known-error",
+     "help": "Review marking a problem as a known error; no reversal wire is proven.",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "id_",
+       "kind": "argument",
+       "opts": [
+        "id_"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "ID",
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "output",
+       "kind": "option",
+       "opts": [
+        "--output",
+        "-o"
+       ],
+       "secondary_opts": [],
+       "type": "choice",
+       "choices": [
+        "json"
+       ],
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": "json",
+       "hidden": false,
+       "help": "output format (JSON only)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "alias for --output json",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv problems planning-text",
+     "help": "Review a native planning/analysis text section; no files.",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "id_",
+       "kind": "argument",
+       "opts": [
+        "id_"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "ID",
+       "envvar": null
+      },
+      {
+       "name": "section",
+       "kind": "option",
+       "opts": [
+        "--section"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "exact metadata label/name; problems: Root Cause, Impact, Symptoms",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "description",
+       "kind": "option",
+       "opts": [
+        "--description"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "text/HTML; reviewed verbatim",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "output",
+       "kind": "option",
+       "opts": [
+        "--output",
+        "-o"
+       ],
+       "secondary_opts": [],
+       "type": "choice",
+       "choices": [
+        "json"
+       ],
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": "json",
+       "hidden": false,
+       "help": "output format (JSON only)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "alias for --output json",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
        "metavar": null,
        "envvar": null
       }
@@ -10981,6 +12583,25 @@
        "default": null,
        "hidden": false,
        "help": "tickets only: ISO date/time with explicit UTC offset",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "reviewed",
+       "kind": "option",
+       "opts": [
+        "--reviewed"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "tickets only: evaluate --set and core flags as a hash-bound property plan",
        "metavar": null,
        "envvar": null
       },
