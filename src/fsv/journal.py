@@ -1,6 +1,6 @@
 """Local write journal: an append-only JSONL record of every write request.
 
-Location: ``$XDG_STATE_HOME/fsv/journal.jsonl`` (default ``~/.local/state/fsv``).
+Location: ``$XDG_STATE_HOME/fsv/journals/<profile>/<tenant>/journal.jsonl``.
 Entries never contain cookies, headers or request bodies: only a SHA-256 of
 the normalized JSON body (the "plan hash"), so what was sent can be compared
 with a reviewed draft without storing its content.
@@ -15,13 +15,18 @@ import time
 from pathlib import Path
 from typing import Any
 
+from fsv import config
+
 _ID_SEGMENT = re.compile(r"^\d+$")
 _VERBS = {"POST": "create", "PUT": "update", "PATCH": "update", "DELETE": "delete"}
 
 
 def journal_path() -> Path:
     base = os.environ.get("XDG_STATE_HOME") or str(Path.home() / ".local" / "state")
-    return Path(base) / "fsv" / "journal.jsonl"
+    profile = hashlib.sha256(os.fsencode(config.CONFIG_DIR.resolve())).hexdigest()
+    domain = config.DOMAIN
+    tenant = hashlib.sha256(domain.encode("utf-8")).hexdigest() if domain else "unknown"
+    return Path(base) / "fsv" / "journals" / profile / tenant / "journal.jsonl"
 
 
 def plan_hash(body: Any) -> str | None:
@@ -98,7 +103,7 @@ def record(method: str, url: str, body: Any, *, status: int | None, ok: bool,
             "created_id": _created_id(response) if ok and method.upper() == "POST" else None,
         }
         if error:
-            entry["error"] = error[:120]
+            entry["error"] = "details omitted"
         p = journal_path()
         p.parent.mkdir(parents=True, exist_ok=True)
         fd = os.open(p, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
@@ -160,9 +165,15 @@ def record_plan(event: str, plan: str, *, action: str, target: Any = None, creat
             "created_id": created_id,
         }
         if steps is not None:
-            entry["steps"] = steps
+            # Filenames and exception messages can contain private data.
+            entry["steps"] = [
+                {"step": s.get("step") if s.get("step") in
+                 ("create", "update", "attachments", "upload", "place-request", "after")
+                 else "other", "ok": bool(s.get("ok"))}
+                for s in steps
+            ]
         if error:
-            entry["error"] = error[:200]
+            entry["error"] = "details omitted"
         _append(entry)
     except Exception:
         pass

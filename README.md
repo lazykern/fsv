@@ -204,7 +204,9 @@ Remote lookups need at least two characters. Use `fsv completion doctor` to trou
 
 Add `-v` for request and response details. List commands also accept `--debug` to show the resolved query hash.
 
-`fsv journal tail -n 20` shows recent writes, including failed requests and created IDs. The journal stores metadata, not request bodies or cookies, in `$XDG_STATE_HOME/fsv/journal.jsonl` (default `~/.local/state/fsv/journal.jsonl`). It currently shares that location across configurations.
+`fsv journal tail -n 20` shows recent writes, including failed requests and created IDs. The journal stores metadata, not request bodies or cookies. Each resolved configuration directory and configured domain has its own journal under `$XDG_STATE_HOME/fsv/journals/` (default `~/.local/state/fsv/journals/`). The directory names are hashes; `fsv journal path` prints the active path. Without a configured domain, it uses an `unknown` tenant directory. An explicit `XDG_STATE_HOME` controls the root for every profile.
+
+The former shared journal at `$XDG_STATE_HOME/fsv/journal.jsonl` is left untouched. You can inspect it directly as JSONL; there is no legacy-view or migration flag. It is not used for duplicate checks because its entries cannot reliably be assigned to a profile and tenant. Review old entries before retrying a create after upgrading.
 
 | Exit code | Meaning |
 |---|---|

@@ -13,7 +13,7 @@ from typer.testing import CliRunner
 
 import fsv.cli as cli
 from fsv import client as client_mod
-from fsv import editor, journal
+from fsv import config, editor, journal
 from fsv.errors import APIError
 
 runner = CliRunner()
@@ -29,8 +29,73 @@ def _client_with(handler):
 
 def test_journal_path_respects_xdg_state_home(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "st"))
-    assert journal.journal_path() == tmp_path / "st" / "fsv" / "journal.jsonl"
-    assert str(journal.journal_path()).startswith(str(tmp_path))
+    path = journal.journal_path()
+    assert path.relative_to(tmp_path / "st" / "fsv" / "journals")
+    assert path.name == "journal.jsonl"
+    assert "acme" not in str(path)
+
+
+def test_journal_isolates_profiles_tenants_and_legacy(tmp_path, monkeypatch):
+    state = tmp_path / "state"
+    monkeypatch.setenv("XDG_STATE_HOME", str(state))
+    legacy = state / "fsv" / "journal.jsonl"
+    legacy.parent.mkdir(parents=True)
+    legacy.write_text('{"kind":"plan:create","plan":"same","event":"done","epoch":9999999999}\n')
+
+    def select(profile, domain):
+        monkeypatch.setenv("FSV_CONFIG_DIR", str(profile))
+        profile.mkdir(exist_ok=True)
+        (profile / "config.json").write_text(json.dumps({"domain": domain}))
+        config.reload()
+        return journal.journal_path()
+
+    acme_a = select(tmp_path / "a", "acme.freshservice.com")
+    assert journal.read() == []
+    assert journal.recent_plan("same", action="create") is None
+    journal.record_plan("started", "same", action="create")
+    journal.record_plan("done", "same", action="create", created_id=1)
+    journal.record("POST", "https://acme.freshservice.com/api/v2/tickets", {"private": "BODY"},
+                   status=422, ok=False, error="COOKIE BODY")
+    assert journal.recent_plan("same", action="create")["event"] == "done"
+    assert journal.read()[-1]["ok"] is False
+
+    acme_b = select(tmp_path / "b", "acme.freshservice.com")
+    assert acme_b != acme_a and journal.read() == []
+    assert journal.recent_plan("same", action="create") is None
+    journal.record_plan("started", "same", action="create")
+    journal.record_plan("failed", "same", action="create", error="COOKIE BODY")
+    assert journal.recent_plan("same", action="create") is None
+
+    globex_a = select(tmp_path / "a", "globex.freshservice.com")
+    assert globex_a not in (acme_a, acme_b) and journal.read() == []
+    assert journal.recent_plan("same", action="create") is None
+    journal.record_plan("started", "same", action="create")
+    assert journal.recent_plan("same", action="create")["event"] == "started"
+    assert select(tmp_path / "a", "acme.freshservice.com") == acme_a
+    assert journal.recent_plan("same", action="create")["event"] == "done"
+    assert legacy.read_text().count('"plan":"same"') == 1
+    for path in (acme_a, acme_b, globex_a):
+        assert "COOKIE" not in path.read_text() and "BODY" not in path.read_text()
+
+
+def test_journal_unknown_tenant_path_and_help_without_session(tmp_path, monkeypatch):
+    monkeypatch.setenv("FSV_CONFIG_DIR", str(tmp_path / "empty"))
+    config.reload()
+    path = journal.journal_path()
+    assert path.parent.name == "unknown"
+    assert runner.invoke(cli.app, ["journal", "path"]).output.strip() == str(path)
+    assert runner.invoke(cli.app, ["journal", "--help"]).exit_code == 0
+    assert not path.exists()
+
+
+def test_journal_plan_does_not_store_error_or_filenames():
+    journal.record_plan("done", "same", action="create", error="SECRET BODY",
+                        steps=[{"step": "attachments", "ok": False,
+                                "files": ["PRIVATE FILE"], "error": "SECRET BODY"}])
+    row = journal.read()[0]
+    assert row["steps"] == [{"step": "attachments", "ok": False}]
+    assert "SECRET BODY" not in journal.journal_path().read_text()
+    assert "PRIVATE FILE" not in journal.journal_path().read_text()
 
 
 def test_plan_hash_is_order_independent_and_none_for_no_body():
