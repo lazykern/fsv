@@ -11,6 +11,9 @@ pub struct Cookie {
     /// Lowercase host or domain, no leading dot.
     pub domain: String,
     pub host_only: bool,
+    /// The cookie came with a `Domain` attribute, so Python's jar keys it
+    /// under `.domain` (a separate bucket from the host-only one).
+    pub dotted: bool,
     pub path: String,
     pub secure: bool,
 }
@@ -18,6 +21,16 @@ pub struct Cookie {
 impl Cookie {
     fn domain_matches(&self, host: &str) -> bool {
         host == self.domain || (!self.host_only && host.ends_with(&format!(".{}", self.domain)))
+    }
+
+    /// Domain bucket name in Python's `http.cookiejar` (leading dot when a
+    /// `Domain` attribute was given).
+    fn jar_domain(&self) -> String {
+        if self.dotted {
+            format!(".{}", self.domain)
+        } else {
+            self.domain.clone()
+        }
     }
 
     fn path_matches(&self, path: &str) -> bool {
@@ -30,7 +43,12 @@ impl Cookie {
 #[derive(Clone, Debug, Default)]
 pub struct CookieJar {
     tenant: String,
+    /// Storage order: a replaced cookie keeps its slot, a new one goes last.
     cookies: Vec<Cookie>,
+    /// Every `(domain bucket, path)` ever created, in creation order. Python's
+    /// jar is nested dicts that never drop an emptied bucket, so a bucket keeps
+    /// its place in the iteration order after its last cookie is gone.
+    buckets: Vec<(String, String)>,
 }
 
 impl CookieJar {
@@ -38,11 +56,37 @@ impl CookieJar {
         CookieJar {
             tenant: tenant.to_ascii_lowercase(),
             cookies: Vec::new(),
+            buckets: Vec::new(),
         }
     }
 
+    /// Cookies in storage order (see [`CookieJar::ordered`] for Python's order).
     pub fn cookies(&self) -> &[Cookie] {
         &self.cookies
+    }
+
+    /// Port of iterating `httpx.Cookies().jar` (`http.cookiejar.CookieJar.__iter__`):
+    /// by domain bucket in first-creation order, then path bucket in
+    /// first-creation order, then cookie in dict insertion order.
+    pub fn ordered(&self) -> Vec<&Cookie> {
+        let mut domains: Vec<&str> = Vec::new();
+        for (d, _) in &self.buckets {
+            if !domains.contains(&d.as_str()) {
+                domains.push(d);
+            }
+        }
+        let mut out: Vec<&Cookie> = self.cookies.iter().collect();
+        out.sort_by_key(|c| {
+            let d = c.jar_domain();
+            let di = domains.iter().position(|x| *x == d).unwrap_or(usize::MAX);
+            let bi = self
+                .buckets
+                .iter()
+                .position(|(bd, bp)| *bd == d && *bp == c.path)
+                .unwrap_or(usize::MAX);
+            (di, bi)
+        });
+        out
     }
 
     /// `_make_cookie`: host-scoped, Secure session cookie on the tenant.
@@ -53,21 +97,33 @@ impl CookieJar {
             value: value.into(),
             domain: tenant,
             host_only: true,
+            dotted: false,
             path: "/".into(),
             secure: true,
         });
     }
 
     fn store(&mut self, cookie: Cookie) {
-        self.cookies.retain(|c| {
-            !(c.name == cookie.name && c.domain == cookie.domain && c.path == cookie.path)
-        });
-        self.cookies.push(cookie);
+        let bucket = (cookie.jar_domain(), cookie.path.clone());
+        if !self.buckets.contains(&bucket) {
+            self.buckets.push(bucket);
+        }
+        let same = |c: &Cookie| {
+            c.name == cookie.name && c.domain == cookie.domain && c.path == cookie.path
+        };
+        match self.cookies.iter().position(same) {
+            Some(i) => self.cookies[i] = cookie,
+            None => self.cookies.push(cookie),
+        }
     }
 
     /// Value of `name`, preferring the tenant-domain cookie when several exist (`_fw_cookie`).
     pub fn get(&self, name: &str) -> Option<&str> {
-        let found: Vec<&Cookie> = self.cookies.iter().filter(|c| c.name == name).collect();
+        let found: Vec<&Cookie> = self
+            .ordered()
+            .into_iter()
+            .filter(|c| c.name == name)
+            .collect();
         let exact: Vec<&Cookie> = found
             .iter()
             .copied()
@@ -87,8 +143,8 @@ impl CookieJar {
         };
         let https = url.scheme() == "https";
         let mut matching: Vec<&Cookie> = self
-            .cookies
-            .iter()
+            .ordered()
+            .into_iter()
             .filter(|c| c.domain_matches(&host) && c.path_matches(path) && (https || !c.secure))
             .collect();
         if matching.is_empty() {
@@ -187,6 +243,7 @@ fn parse_set_cookie(
             _ => {}
         }
     }
+    let dotted = domain_attr.is_some();
     let (domain, host_only) = if host == tenant {
         (tenant.to_string(), true)
     } else if let Some(d) = domain_attr {
@@ -206,6 +263,7 @@ fn parse_set_cookie(
         value: value.trim().to_string(),
         domain,
         host_only,
+        dotted,
         path: path.unwrap_or_else(|| default_path(request_path)),
         secure,
     };

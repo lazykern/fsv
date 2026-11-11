@@ -1123,3 +1123,133 @@ fn int_put_and_int_patch_send_json_with_csrf() {
         );
     }
 }
+
+/// Expected lists come from running httpx (`Client(cookies=jar,
+/// transport=MockTransport)`, `list(client.cookies.jar)`) through the same
+/// sequence: session cookies via `jar.jar.set_cookie(_make_cookie(..))`,
+/// then four responses with these `Set-Cookie` headers.
+#[test]
+fn cookies_follow_python_httpx_jar_order() {
+    let steps: [(&str, &[&str]); 4] = [
+        (
+            "https://acme.freshservice.com/a",
+            &[
+                "newc=1; Path=/",
+                "fw-session-id=rot; Path=/",
+                "pa=1; Path=/a",
+                "wsp_workspace=7; Path=/",
+            ],
+        ),
+        (
+            "https://sso.example.com/x/y",
+            &["o1=1", "o2=2; Domain=.example.com; Path=/", "o3=3; Path=/x"],
+        ),
+        (
+            "https://acme.freshservice.com/a/b",
+            &[
+                "late=1; Path=/",
+                "_x_m=; Max-Age=0; Path=/",
+                "pa2=2; Path=/a",
+                "_x_m=again; Path=/",
+            ],
+        ),
+        (
+            "https://acme.freshservice.com/a",
+            &["lastws_workspace=9; Domain=.acme.freshservice.com; Path=/"],
+        ),
+    ];
+    let expected: [&[(&str, &str)]; 4] = [
+        &[
+            ("_x_m", "m"),
+            ("_x_d", "d"),
+            ("_x_w", "w"),
+            ("fw-session-id", "rot"),
+            ("user_workspace", "3"),
+            ("newc", "1"),
+            ("wsp_workspace", "7"),
+            ("pa", "1"),
+        ],
+        &[
+            ("_x_m", "m"),
+            ("_x_d", "d"),
+            ("_x_w", "w"),
+            ("fw-session-id", "rot"),
+            ("user_workspace", "3"),
+            ("newc", "1"),
+            ("wsp_workspace", "7"),
+            ("pa", "1"),
+            ("o1", "1"),
+            ("o3", "3"),
+            ("o2", "2"),
+        ],
+        &[
+            ("_x_d", "d"),
+            ("_x_w", "w"),
+            ("fw-session-id", "rot"),
+            ("user_workspace", "3"),
+            ("newc", "1"),
+            ("wsp_workspace", "7"),
+            ("late", "1"),
+            ("_x_m", "again"),
+            ("pa", "1"),
+            ("pa2", "2"),
+            ("o1", "1"),
+            ("o3", "3"),
+            ("o2", "2"),
+        ],
+        &[
+            ("_x_d", "d"),
+            ("_x_w", "w"),
+            ("fw-session-id", "rot"),
+            ("user_workspace", "3"),
+            ("newc", "1"),
+            ("wsp_workspace", "7"),
+            ("late", "1"),
+            ("_x_m", "again"),
+            ("pa", "1"),
+            ("pa2", "2"),
+            ("o1", "1"),
+            ("o3", "3"),
+            ("o2", "2"),
+            ("lastws_workspace", "9"),
+        ],
+    ];
+    let queue = Mutex::new(steps.iter().map(|(_, sc)| *sc).collect::<Vec<_>>());
+    queue.lock().unwrap().reverse();
+    let mock = MockTransport::new(move |_| {
+        let sc = queue.lock().unwrap().pop().unwrap();
+        let mut r = Response::json(200, &json!({}));
+        for s in sc {
+            r = r.with_header("set-cookie", s);
+        }
+        Ok(r)
+    });
+    let mut cookies = session_cookies();
+    cookies.insert("user_workspace".into(), "3".into());
+    let client = Client::builder(ctx_at(Path::new("/nonexistent/fsv-client-test")))
+        .transport(mock.clone())
+        .cookies(cookies)
+        .build()
+        .unwrap();
+    let pairs = |v: &[(&str, &str)]| -> Vec<(String, String)> {
+        v.iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
+    };
+    assert_eq!(
+        client.cookies(),
+        pairs(&[
+            ("_x_m", "m"),
+            ("_x_d", "d"),
+            ("_x_w", "w"),
+            ("fw-session-id", "fw1"),
+            ("user_workspace", "3"),
+        ]),
+        "loaded session, stored order"
+    );
+    for ((url, _), want) in steps.iter().zip(expected) {
+        client.send("GET", url, &RequestOpts::default()).unwrap();
+        assert_eq!(client.cookies(), pairs(want), "after {url}");
+    }
+    assert_eq!(mock.gets().len(), 4);
+}

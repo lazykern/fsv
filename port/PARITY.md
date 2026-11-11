@@ -86,7 +86,8 @@ those stay identical.
 
 | Python | Rust | status |
 |---|---|---|
-| live wiring behind `views` reads, `formmeta.load_meta`, `create` writes, form session plan/save/send, TUI backend and pages | `fsv_app::{source, meta, writer, form, tui}` | partial. `cargo test -p fsv-app --offline` was 86 passed. Request paths, bodies and plan hashes captured from Python. `run_tui` and `run_form` need a terminal and have no tests. |
+| live wiring behind `views` reads, `formmeta.load_meta`, `create` writes, form session plan/save/send, TUI backend and pages | `fsv_app::{source, meta, writer, form, tui}` | partial. `cargo test -p fsv-app --offline` was 94 passed. Request paths, bodies and plan hashes captured from Python. `run_tui` and `run_form` need a terminal and have no tests. |
+| `tui.app._prepare_ticket_conversation` / `_send_ticket_conversation`, `_load_ticket_property_fields`, `_send_ticket_property` | `LiveBackend::{ticket_conversation_plan, send_ticket_conversation, ticket_property_fields, send_ticket_property}` | partial. Golden: `port/golden/gen_fsv_app_tui_reviewed.py` → `src/tui/testdata/reviewed_expected.json` (reply with CC + Pending, private note with notify, sender/BCC refusals, the property picker filter, a tag-plan send). `ticket_property_plan` is refused (see below). |
 | `change_cli._send`, `cli_sr._send`, `ticket_flow.send`, `_report_partial` for a form-reviewed plan; `tui.actions.failure_detail` attributes | `Submitted::send_cli`, `send_checked`, `send_confirmed`, `SendError::{report, outcome}`, `tui::forms::send_submitted` | ported. Golden: `port/golden/gen_fsv_app_send.py` (metadata changed after review: diff lines, exit 4 without a terminal, re-review and confirm in one, exit 2 when the new form needs answers; partial failure lines and exit 5; SR equivalents). |
 
 - Form review rows can show lookup ids where Python shows names. `fsv_flows` drafts hold JSON answers.
@@ -98,6 +99,11 @@ those stay identical.
 - `FormSession.send` (TUI, `FormBackend::send`) still refuses a changed plan with exit 4, as Python does. The CLI re-confirm lives in `Submitted::send_cli`. Until fsv-cli calls it in place of `session.send`, the form paths of `changes create/update` and `sr create` exit 4 where Python shows the diff and asks again, and a partial change failure exits 1 with the one-line message where Python prints `_report_partial` and exits 5.
 - A service-request form send that fails after upload or at place-request does not print `cli_sr._send`'s `uploaded attachment ids (not attached to any request): ...` line or its `{step} failed: HTTP N; ...` exit, and the TUI failure detail has no `uploaded`/`error` lines. `fsv_api::catalog::execute` flattens `SendFailure` into `Error::other`, so the step, uploads and cause are gone, and the exit code is 1 instead of the cause's. The fix belongs in fsv-api (a structured `SendFailure`). `fsv-cli`'s flow-path `sr_send` has the same gap.
 - In tests, the upload progress line (`  uploading a.txt... ok (5 B)`) skips `term::capture` because it goes straight to stderr. Its text matches Python.
+- Reviewed conversation plans stay in `LiveBackend` by hash, because `ReviewPlan.raw` is only the payload (the TUI reads `private` from it). A send for a hash this backend did not plan is refused: "the conversation plan was not built by this session; review it again". Python's TUI cannot reach that case.
+- Ticket reply/note Sender and BCC: `fsv_api::conversations::ConversationArgs` has no `bcc`/`sender`. The backend still looks BCC up with `recipients` and runs Python's checks in Python's order, with the same texts: "sender must be a plain configured support email address", "note sender/BCC wire is not proven", "combined BCC/CC/status wire is not proven", "BCC requires a configured --sender and bare recipient emails". A request that passes them, which Python sends with `from_email` / `bcc_emails`, is refused with "replies with a sender or BCC are not available in this build; clear Sender and BCC to send". Waits on fsv-api `a5a8381`.
+- The reply/note review `warning` is fsv-api's older text ("A reply is public and may notify recipients; …"). Python now says "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration." The hash does not include it.
+- A conversation send does not re-resolve the CC recipients before the POST. Python's `send` calls `recipients` again ("CC recipient identity changed; review again"), and for BCC addresses too. Both are fsv-api gaps.
+- `e` on a ticket lists the fields (`ticket_property_fields` matches Python's filter and requests), but picking one and entering a value is refused with "reviewed ticket property edits from the form are not available in this build; use the web form". `fsv_api::properties::build_plan` has no `answers` (`f761a01`, plus `3057492` / `774f4f1` for the beneficiary). The older tag and planned-date flags do not cover any of it: the picker never lists tags or planned dates, and Python's `answers` path refuses them too ("Start: update wire is not proven"). `send_ticket_property` is wired: it takes a `property_review(&PropertyPlan)` and calls `properties::send`. Once `answers` lands, the plan hash must also include `metadata_hash`.
 
 ## fsv-api (started)
 
@@ -127,7 +133,7 @@ Gaps:
 |---|---|---|
 | `pages.py`, `render.py` | `fsv_views::pages`, `fsv_views::render` | ported. `cargo test -p fsv-views --offline` was 99 passed. Expected strings came from running the Python functions. |
 | `views.py` loaders (`load_tab`, `load_detail`, conversations, requested items) | `fsv_views::detail`, `fsv_views::source` | ported, covered from `coverage`. |
-| `views.ticket_headers` | `fsv_views::source::ticket_headers` | ported. `fsv-app` (`tui.rs` `ticket_headers`) still has its own inline copy. |
+| `views.ticket_headers` | `fsv_views::source::ticket_headers` | ported. `fsv-app`'s `LiveBackend::ticket_headers` calls it. |
 | `render._requested_item_field_defs` | `render::field_defs` | ported. |
 | `render.strip_html` | `fsv_core::output::strip_html` | ported in fsv-core. |
 
@@ -142,7 +148,7 @@ Known test limits, not behavior changes: relative times use the real clock, so t
 | `_complete._completions`, `main` | `dynamic::complete`, `run` | ported. `cargo test -p fsv-completion --offline` was 40 passed. |
 | `completion` completers, including `complete_format`, `complete_store`, `complete_shell`, `complete_sort_order`, `complete_config_key`, `complete_config_value`, `complete_cache_target`, `complete_search_sort`, `complete_duplicate_mode` | one Rust fn each in `dynamic` | ported. |
 | `completion.complete_update_choice`, `complete_help_topic` | `fsv_completion::{complete_update_choice, complete_help_topic}` | ported. `complete_update_choice` is dispatched by `_complete` (see Divergences). `complete_help_topic` has no arm in `_complete`, in Python or Rust. |
-| `completion._config_load`, `_completion_network` | `fsv_completion::{config_load, completion_network}` | ported with the directory and env value passed in. `fsv-cli` (`cmd::completion::network_enabled`) and `fsv-app` still keep their own copies; theirs treat `network: 1.0` as off, Python treats it as on. |
+| `completion._config_load`, `_completion_network` | `fsv_completion::{config_load, completion_network}` | ported with the directory and env value passed in. `fsv-app`'s TUI backend calls it. `fsv-cli` (`cmd::completion::network_enabled`) still keeps its own copy, which treats `network: 1.0` as off; Python treats it as on. |
 | `completion_gen` walk and emitters | `model`, `emit` | ported. `_extract_params`, `_filter_params_by_flags`, `_is_bool_annotation` (clap action plus `value_flag`), `_collect_bash`/`_collect_zsh` (one `collect`) have their own fns. |
 
 Not ported, with reasons:
@@ -172,7 +178,8 @@ Golden values: `port/golden/gen_fsv_completion_extra.py` writes `tests/fixtures/
 | `safety.write_risks` | `safety::write_risks` | ported from Python 273ffde: every status change on a non-change resource is a risk, `<what> status -> <label> (status semantics and workflows require confirmation)`. `status_closes` is kept (Python keeps it too) but no longer decides. |
 | httpx query encoding (`Client._request(params=…)`) | `client::wire_url` | ported. Byte-identical to `httpx.Client().build_request(...).url` (httpx 0.28.1): `urlencode` with `quote_plus`: space is `+`, and everything except letters, digits and `_.-~` is percent-encoded (`@` → `%40`, `,` → `%2C`, `/` → `%2F`). `true`/`false` lowercase, `None` sent as `key=` (the old Rust code skipped it), list values repeated. Any `params` map, even an empty one, replaces the URL's own query, as httpx does; no fsv caller passes both. The `--verbose` log target keeps Python's own `_query_string` encoding. |
 | `client._int_request` 403 replay | `Client::int_request` | already matched 273ffde: CSRF is fetched first and a write is never replayed. |
-| `cargo test -p fsv-core --offline` | | was 174 passed. |
+| `formmeta._cookie_workspace` jar walk (`client._client.cookies.jar`) | `Client::cookies`, `CookieJar::ordered` | ported. Iterates like `http.cookiejar`: domain bucket, then path bucket, then cookie, each in first-creation order; a replaced cookie keeps its slot; `get`, `header_for` and the `fw-session-id` pick follow the same order. Divergence: a tenant cookie that arrives both with and without `Domain` is one cookie in Rust (tenant cookies are host-only), two in Python. |
+| `cargo test -p fsv-core --offline` | | 175 passed. |
 
 Not ported, with reasons:
 - `session._ws_read_exact`, `_ws_send_text`, `_ws_recv_text`: `tungstenite` does the websocket framing. Their behavior is covered through `cdp_call`.
@@ -283,6 +290,8 @@ CLI divergences:
 | `send_planning_text(plan) -> Value` | `planning_text.send(plan, c, reviewed_hash=plan.hash)` | **missing**. |
 | `ticket_conversation_plan(ticket_id, body, &ConversationRequest) -> ReviewPlan` | `recipients(c, cc)`, `recipients(c, notify)`, `recipients(c, bcc)` (validation only), then `build_plan(c, id, body, kind="reply"/"note", public, cc, notify, bcc, sender, set_status)` | `fsv_api::conversations::{recipients, build_plan}`. **Gap**: `ConversationArgs` has no `bcc`/`sender` (nor `forward`, which the TUI never uses). Python's `bcc_emails` / `from_email` payload keys and their validation need porting. Set `ReviewPlan.raw = plan.payload()`: the TUI reads `private` from it. Set `review = plan.review()`, `hash = plan.hash()`. |
 | `send_ticket_conversation(plan, public_confirmed) -> Value` | `ticket_conversation.send(plan, c, reviewed_hash=plan.hash, public_confirmed=...)` | `fsv_api::conversations::send(&plan, c, journal, store, Some(&hash), public_confirmed)` |
+
+`LiveBackend` now implements `ticket_conversation_plan`, `send_ticket_conversation`, `ticket_property_fields` and `send_ticket_property`. `ticket_property_plan` refuses every field until fsv-api has `answers`. The known-error and planning-text hooks still use the defaults. See the fsv-app section.
 
 Each send result is shown pretty-printed with `json.dumps(indent=2)`. A truthy `verified` reloads the record.
 

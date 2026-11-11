@@ -223,6 +223,22 @@ impl Client {
         self.state().jar.get(name).map(str::to_string)
     }
 
+    /// Port of the jar iteration in `formmeta._cookie_workspace`:
+    /// `for ck in client._client.cookies.jar: (ck.name, ck.value)`.
+    ///
+    /// Every cookie of every domain and path, no filtering, in the order
+    /// `http.cookiejar` yields them (domain bucket, then path bucket, then
+    /// insertion, each by first creation; a replaced cookie keeps its slot).
+    /// Python reads only `name` and `value`, so the domain is not returned.
+    pub fn cookies(&self) -> Vec<(String, String)> {
+        self.state()
+            .jar
+            .ordered()
+            .into_iter()
+            .map(|c| (c.name.clone(), c.value.clone()))
+            .collect()
+    }
+
     /// Freshworks identity host seen on the app page (`*.myfreshworks.com`).
     pub fn fw_domain(&self) -> Option<String> {
         self.state().fw_domain.clone()
