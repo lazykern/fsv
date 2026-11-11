@@ -11,24 +11,7 @@ from fsv.formmeta import RULES_UNAVAILABLE_KEY, apply_answers, is_requester, is_
 from fsv.forms import FormError, FormState, LookupValue
 from fsv.forms.errors import PayloadError
 from fsv.forms.payload import build_ticket_payload
-from fsv.forms.rules import Condition, ConditionGroup, RulesEngine
 from fsv.review import Review
-
-
-def _missing_rule_context(engine: RulesEngine) -> bool:
-    """Check every applicable condition, including short-circuited branches."""
-    def missing(group: ConditionGroup) -> bool:
-        for item in group.items:
-            if isinstance(item, ConditionGroup):
-                if missing(item):
-                    return True
-            elif isinstance(item, Condition) and item.source != "form":
-                values = getattr(engine.context, item.source, None)
-                if values is None or item.field not in values:
-                    return True
-        return False
-
-    return any(missing(rule.condition) for rule in engine.rules_for("new"))
 
 
 def build_create_plan(meta: Any, draft: Draft, *, resolver: Any, requester: LookupValue | None,
@@ -69,7 +52,7 @@ def build_create_plan(meta: Any, draft: Draft, *, resolver: Any, requester: Look
     # are visible/required. Static checks are not a safe substitute.
     if meta.rules.get(RULES_UNAVAILABLE_KEY):
         errors.append("business rules are unavailable; use the web form")
-    if (_missing_rule_context(state.rules)
+    if (state.rules.unavailable_dependencies("new")
             or any("unknown field" in w or "none was given" in w for w in state.rules.warnings)):
         errors.append("business rules reference unavailable fields or context; use the web form")
     for raw in meta.raw_fields:

@@ -644,6 +644,39 @@ class RulesEngine:
     def rules_for(self, mode: str = "new") -> list[Rule]:
         return [r for r in self.rules if r.applies_to(mode, self.user_type)]
 
+    def unavailable_dependencies(self, mode: str = "new") -> list[str]:
+        """Unresolved fields or context needed by applicable rules.
+
+        Inspect all branches, not just those reached by boolean evaluation.
+        A present key with an empty value is known; a missing key is not.
+        Callers preparing writes should treat any result as a blocker.
+        """
+        problems: list[str] = []
+
+        def add(message: str) -> None:
+            if message not in problems:
+                problems.append(message)
+
+        def inspect(group: ConditionGroup, rule: Rule) -> None:
+            for condition in group.items:
+                if isinstance(condition, ConditionGroup):
+                    inspect(condition, rule)
+                elif condition.source == "form":
+                    if condition.field is None:
+                        add(f"rule {rule.name!r}: unknown condition field {condition.name!r}")
+                else:
+                    values = getattr(self.context, condition.source, None)
+                    if values is None or condition.field not in values:
+                        add(f"rule {rule.name!r}: unavailable {condition.source} context field {condition.field!r}")
+
+        for rule in self.rules_for(mode):
+            inspect(rule.condition, rule)
+            for action in rule.actions:
+                for target in action.all_targets:
+                    if target.api is None and target.base not in PSEUDO_TARGETS:
+                        add(f"rule {rule.name!r}: unknown action field {target.raw!r}")
+        return problems
+
     def position_order(self, names: Iterable[str]) -> list[str]:
         """Field names sorted in web form order (the replay contract)."""
         return sorted(names, key=lambda n: (self._pos.get(n, 1 << 30), n))
