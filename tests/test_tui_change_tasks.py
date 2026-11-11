@@ -38,6 +38,8 @@ def test_main_tui_task_review(offline, monkeypatch, owner_mode, cancel):
                 await pilot.press("enter")
             else:
                 await pilot.press("enter")
+            assert isinstance(app.screen, ChoiceScreen)
+            await pilot.press("enter")  # Review with optional fields omitted
             await app.workers.wait_for_complete()
             await pilot.pause()
             assert isinstance(app.screen, ConfirmScreen)
@@ -95,11 +97,77 @@ def test_read_only_blocks_menu_composition_review_and_sender(offline, monkeypatc
             await pilot.press("a")
             app._prepare_action("task-add", item)
             app._compose_change_task(item)
+            app._change_task_options(item, "Acme task", None, {"note": "Draft"})
             app._review_change_task(item, plan)
             app._prepare_change_task(item, "Acme task", "agent@example.com")
             app._send_change_task(item, plan)
             await app.workers.wait_for_complete()
             assert not isinstance(app.screen, (ChoiceScreen, ValueScreen, ConfirmScreen))
+    asyncio.run(go())
+    assert journal.read() == []
+
+
+def test_tui_all_optional_fields_review_and_hash(offline, monkeypatch):
+    monkeypatch.setattr(change_tasks, "get_client", lambda: pytest.fail("numeric draft should be local"))
+    monkeypatch.setattr(change_tasks, "send", lambda *a, **k: pytest.fail("review/cancel sent task"))
+    async def go():
+        app = FsvApp()
+        async with app.run_test(size=(120, 40)) as pilot:
+            item = {"id": 123, "_resource": CHANGES}
+            app._change_task_options(item, "Globex task", None)
+            await pilot.pause()
+
+            async def choose(label):
+                assert isinstance(app.screen, ChoiceScreen)
+                app.screen.query_one(Input).value = label
+                await pilot.pause()
+                await pilot.press("enter")
+
+            for label, value in [("Group ID", "9000004001"), ("Note (plain text)", "<literal> & check"),
+                                 ("Planned start", "2026-12-05T00:00Z"),
+                                 ("Planned end", "2026-12-06T00:00Z"), ("Planned effort", "01:30")]:
+                await choose(label)
+                assert isinstance(app.screen, ValueScreen)
+                app.screen.query_one(Input).value = value
+                await pilot.press("enter")
+            await choose("Status")
+            await choose("In Progress")
+            await choose("Notify Before")
+            await choose("45 Minutes")
+            await choose("Review exact task")
+            await app.workers.wait_for_complete()
+            await pilot.pause()
+            assert isinstance(app.screen, ConfirmScreen)
+            import json
+            review = json.loads(app.screen._lines[0])
+            assert review["payload"] == {"title": "Globex task", "status": 2, "notify_before": 2700,
+                "group_id": 9000004001, "description": "<div><p>&lt;literal&gt; &amp; check</p></div>",
+                "planned_start_date": "2026-12-05T00:00:00+00:00",
+                "planned_end_date": "2026-12-06T00:00:00+00:00", "planned_effort": "1h 30m"}
+            assert review["plan_hash"] == change_tasks.build_plan(123, "Globex task", group_id=9000004001,
+                status="In Progress", note="<literal> & check", notify_before="45 Minutes",
+                planned_start="2026-12-05T00:00Z", planned_end="2026-12-06T00:00Z", planned_effort="01:30").hash
+            await pilot.press("escape")
+    asyncio.run(go())
+    assert journal.read() == []
+
+
+def test_tui_optional_fields_clear_and_cancel(offline, monkeypatch):
+    monkeypatch.setattr(change_tasks, "get_client", lambda: pytest.fail("cancel constructed client"))
+    monkeypatch.setattr(change_tasks, "send", lambda *a, **k: pytest.fail("cancel sent task"))
+    async def go():
+        app = FsvApp()
+        async with app.run_test(size=(120, 40)) as pilot:
+            app._change_task_options({"id": 123, "_resource": CHANGES}, "Acme task", None,
+                                     {"note": "Draft", "planned_effort": "2h"})
+            await pilot.pause()
+            app.screen.query_one(Input).value = "Clear optional fields"
+            await pilot.pause()
+            await pilot.press("enter")
+            assert isinstance(app.screen, ChoiceScreen)
+            assert all("Draft" not in row.name and "2h" not in row.name for row in app.screen._views)
+            await pilot.press("escape")
+            await app.workers.wait_for_complete()
     asyncio.run(go())
     assert journal.read() == []
 

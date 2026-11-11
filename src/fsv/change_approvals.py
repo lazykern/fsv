@@ -1,6 +1,6 @@
 """Reviewed manual approval REQUEST, verified by new per-member approval IDs.
 
-Only Everyone is supported. Never trust the POST response as proof of creation
+Four captured rules are supported. Never trust the POST response as proof of creation
 or replay a POST to recover an identifier. Chains can additionally verify group names.
 """
 from __future__ import annotations
@@ -19,6 +19,8 @@ from fsv.client import get_client
 from fsv.errors import APIError
 from fsv.resources import CHANGES, parse_id
 
+RULES = {"everyone": (1, "Everyone"), "anyone": (2, "Anyone"),
+         "majority": (3, "Majority"), "first-responder": (4, "First responder")}
 _ACTION = "change_approval_request"
 _UNKNOWN = "approval request outcome unknown; inspect the change and journal before any retry; do not resubmit"
 _WARNING = ("Approval emails are irreversible; cancel/revoke cannot recall them. "
@@ -86,6 +88,7 @@ class ApprovalPlan:
     message: str
     approver_ids: tuple[int, ...]
     tenant: str
+    rule: str = "everyone"
 
     @property
     def path(self) -> str:
@@ -94,7 +97,7 @@ class ApprovalPlan:
     @property
     def payload(self) -> dict[str, Any]:
         content = html.escape(self.message.replace("\r\n", "\n").replace("\r", "\n")).replace("\n", "<br>")
-        return {"approval_groups": [{"name": self.name, "approval_type": 1,
+        return {"approval_groups": [{"name": self.name, "approval_type": RULES[self.rule][0],
                 "email_content": f'<p dir="ltr">{content}</p>',
                 "notified_to": list(self.approver_ids)}]}
 
@@ -105,13 +108,13 @@ class ApprovalPlan:
     def review(self) -> dict[str, Any]:
         return {"action": _ACTION, "tenant": self.tenant, "change_id": self.change_id,
                 "method": "POST", "path": f"/api/_/{self.path}", "payload": self.payload,
-                "recipients": list(self.approver_ids), "approval_rule": "Everyone",
+                "recipients": list(self.approver_ids), "approval_rule": RULES[self.rule][1],
                 "message_text": self.message, "plan_hash": self.hash, "warning": _WARNING,
-                "verification": "Complete before/after approval record IDs, exact new recipients, requested status and Everyone rule. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
+                "verification": "Complete before/after approval record IDs, exact new recipients, requested status and exact selected rule ID. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
                 "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted."}
 
 
-def build_plan(change_id: int | str, name: str, message: str, *, approver_ids: Sequence[int]) -> ApprovalPlan:
+def build_plan(change_id: int | str, name: str, message: str, *, approver_ids: Sequence[int], rule: str = "everyone") -> ApprovalPlan:
     if isinstance(change_id, bool) or not isinstance(change_id, (int, str)):
         raise ValueError("change ID must be a positive display ID")
     cid = parse_id(str(change_id), CHANGES)
@@ -127,7 +130,9 @@ def build_plan(change_id: int | str, name: str, message: str, *, approver_ids: S
         raise ValueError("at least one explicit positive agent ID is required")
     if len(set(approver_ids)) != len(approver_ids):
         raise ValueError("duplicate approver; specify each agent exactly once")
-    return ApprovalPlan(cid, name, message, tuple(approver_ids), config.DOMAIN)
+    if rule not in RULES:
+        raise ValueError("rule must be everyone, anyone, majority or first-responder")
+    return ApprovalPlan(cid, name, message, tuple(approver_ids), config.DOMAIN, rule)
 
 
 class _InventoryPlan(Protocol):
@@ -273,7 +278,7 @@ def get_change_approval_groups(change_id: int, c: Any = None) -> list[dict[str, 
 
 
 def _verify_new(rows: list[dict[str, Any]], plan: ApprovalPlan) -> None:
-    """One fresh, requested Everyone record per explicit recipient; no extras.
+    """One fresh, requested selected-rule record per explicit recipient; no extras.
 
     Group name/ID are absent from the observed list. Neither level_id nor user_id
     is a substitute. Existing approval records are only baseline ID evidence.
@@ -285,10 +290,10 @@ def _verify_new(rows: list[dict[str, Any]], plan: ApprovalPlan) -> None:
         if aid is None or (member is not None and (
                 not isinstance(member, dict) or _id(member.get("id")) != aid)):
             raise ApprovalError("approval member identity unavailable or conflicting")
-        for key, expected_id, expected_name in (("status", 0, "requested"), ("type", 1, "everyone")):
+        for key, expected_id, expected_name in (("status", 0, "requested"), ("type", RULES[plan.rule][0], "everyone" if plan.rule == "everyone" else None)):
             value = row.get(key)
             if (not isinstance(value, dict) or type(value.get("id")) is not int
-                    or value["id"] != expected_id or value.get("name") != expected_name):
+                    or value["id"] != expected_id or (expected_name is not None and value.get("name") != expected_name)):
                 raise ApprovalError("approval status or rule does not match the request")
         members.append(aid)
     if len(members) != len(plan.approver_ids) or set(members) != set(plan.approver_ids):
@@ -297,7 +302,7 @@ def _verify_new(rows: list[dict[str, Any]], plan: ApprovalPlan) -> None:
 
 def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
          read_only: bool = False, dry_run: bool = False) -> dict[str, Any]:
-    if build_plan(plan.change_id, plan.name, plan.message, approver_ids=plan.approver_ids) != plan:
+    if build_plan(plan.change_id, plan.name, plan.message, approver_ids=plan.approver_ids, rule=plan.rule) != plan:
         raise ApprovalError("approval plan or tenant changed; review a new plan")
     if dry_run:
         return {"status": "dry_run", **plan.review()}
@@ -381,12 +386,13 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
 
 
 def register(app: typer.Typer) -> None:
-    @app.command("approval-request", help="Review and REQUEST manual change approval (Everyone; sends irreversible emails).")
+    @app.command("approval-request", help="Review and REQUEST manual change approval (selected rule; sends irreversible emails).")
     def approval_request(
         id_: str = typer.Argument(..., metavar="CHANGE_ID"),
         name: str = typer.Option(..., "--name", help="exact approval group name"),
         message: str = typer.Option(..., "--message", help="plain text; always HTML-escaped"),
         approver: list[str] = typer.Option(..., "--approver", help="explicit agent ID or exact email (repeatable; no implicit recipients)"),
+        rule: str = typer.Option("everyone", "--rule", help="everyone, anyone, majority or first-responder"),
         dry_run: bool = typer.Option(False, "--dry-run", help="review only; emails may require read-only lookup"),
         read_only: bool = typer.Option(False, "--read-only", help="refuse approval requests"),
         yes: bool = typer.Option(False, "--yes", "-y", help="confirm the full previously reviewed --expect-plan"),
@@ -398,8 +404,8 @@ def register(app: typer.Typer) -> None:
             if read_only and not dry_run:
                 raise ApprovalError("read-only mode: no approval request was sent")
             # Validate everything local before any email lookup.
-            build_plan(id_, name, message, approver_ids=[1])
-            plan = build_plan(id_, name, message, approver_ids=resolve_approvers(approver))
+            build_plan(id_, name, message, approver_ids=[1], rule=rule)
+            plan = build_plan(id_, name, message, approver_ids=resolve_approvers(approver), rule=rule)
             if dry_run:
                 typer.echo(json.dumps(send(plan, reviewed_hash=None, dry_run=True), indent=2))
                 return

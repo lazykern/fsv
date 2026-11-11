@@ -2249,23 +2249,67 @@ class FsvApp(App):
                 if mode is None or self.read_only:
                     return
                 if mode == "none":
-                    self._prepare_change_task(item, title, None)
+                    self._change_task_options(item, title, None)
                 else:
                     self.push_screen(ValueScreen("Explicit task owner user ID or exact email (no implicit self)"),
-                                     lambda owner: self._prepare_change_task(item, title, owner) if owner is not None else None)
+                                     lambda owner: self._change_task_options(item, title, owner) if owner is not None else None)
             self.push_screen(ChoiceScreen([("none", "No owner (default)"),
                                            ("explicit", "Explicit owner user ID or email")], "Task owner"), owner_mode)
         self.push_screen(ValueScreen("New change task title — Open; reminder Never"), titled)
 
+    def _change_task_options(self, item: dict, title: str, owner: str | None,
+                             options: dict | None = None) -> None:
+        """Reuse the existing pickers/inputs; no separate form engine or sender."""
+        from fsv import change_tasks
+        if self.read_only:
+            return
+        values = dict(options or {})
+        fields = {"group": "Group ID or exact name", "status": "Status", "note": "Note (plain text)",
+                  "notify_before": "Notify Before", "planned_start": "Planned start (ISO with offset)",
+                  "planned_end": "Planned end (ISO with offset)", "planned_effort": "Planned effort (1h30m or 01:30)"}
+
+        def set_value(key, value):
+            if value is None or self.read_only:
+                return
+            values[key] = value
+            self._change_task_options(item, title, owner, values)
+
+        def selected(key):
+            if key is None or self.read_only:
+                return
+            if key == "review":
+                self._prepare_change_task(item, title, owner, values)
+            elif key == "clear":
+                self._change_task_options(item, title, owner)
+            elif key == "status":
+                self.push_screen(ChoiceScreen([(v, v) for v in change_tasks.STATUS_LABELS], "Task status"),
+                                 lambda value: set_value(key, value))
+            elif key == "notify_before":
+                self.push_screen(ChoiceScreen([(v, v) for v in change_tasks.NOTIFY_BEFORE], "Notify Before"),
+                                 lambda value: set_value(key, value))
+            else:
+                self.push_screen(ValueScreen(fields[key], values.get(key, "")), lambda value: set_value(key, value))
+
+        choices = [("review", "Review exact task"), *[(key, f"{label}: {values.get(key, 'default / omitted')}")
+                    for key, label in fields.items()], ("clear", "Clear optional fields")]
+        self.push_screen(ChoiceScreen(choices, "Task optional fields — defaults Open / Never; others omitted"), selected)
+
     @work(thread=True, exclusive=True, group="task-create-review")
-    def _prepare_change_task(self, item: dict, title: str, owner: str | None) -> None:
+    def _prepare_change_task(self, item: dict, title: str, owner: str | None, options: dict | None = None) -> None:
         from fsv import change_tasks
         if self.read_only:
             return
         try:
-            change_tasks.build_plan(item.get("display_id") or item["id"], title)
+            values = dict(options or {})
+            group = values.pop("group", None)
+            status = values.pop("status", "Open")
+            cid = item.get("display_id") or item["id"]
+            change_tasks.status_label(status)
+            change_tasks.build_plan(cid, title, **values)
             owner_id = change_tasks.resolve_owner(owner)
-            plan = change_tasks.build_plan(item.get("display_id") or item["id"], title, owner_id=owner_id)
+            plan = change_tasks.build_plan(cid, title, owner_id=owner_id,
+                                           group_id=change_tasks.resolve_group(group), status=status,
+                                           status_id=change_tasks.resolve_status(status), **values)
             self.call_from_thread(self._review_change_task, item, plan)
         except Exception as exc:
             self.call_from_thread(self._show_failure, actions.failure_detail(exc))
@@ -2286,9 +2330,9 @@ class FsvApp(App):
         except Exception as exc:
             self.call_from_thread(self._show_failure, actions.failure_detail(exc))
             return
-        if not result.get("verified"):
+        if not result.get("verified") or result.get("unverified_fields"):
             self.call_from_thread(self._show_failure,
-                                  f"Task ID {result.get('task_id')} submitted; readback unverified.\n{result.get('warning', '')}\nDo not resend.")
+                                  f"Task ID {result.get('task_id')} submitted; readback incomplete or unverified.\n{result.get('warning', '')}\nDo not resend.")
             return
         self.call_from_thread(self._after_write, CHANGES, item, f"Task {result['task_id']} verified")
 

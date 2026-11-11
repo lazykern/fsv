@@ -2,7 +2,10 @@
 
 `fsv changes approval-request` **requests** manual approval from explicitly named
 agents. It does not approve a change, change its status, or trigger its state-flow
-transition. The only supported rule is **Everyone** (`approval_type: 1`).
+transition. Captured rules are **Everyone** (`1`, default), **Anyone** (`2`),
+**Majority** (`3`) and **First responder** (`4`), selected with
+`--rule everyone|anyone|majority|first-responder`. The review shows the selected
+rule and its exact wire value; the rule is hash-bound.
 
 **Approval emails are irreversible; cancelling does not recall sent emails.** Review
 the exact recipients, tenant, change, group name and escaped message before
@@ -40,7 +43,7 @@ fsv changes approval-request CHN-1234 --name "Acme review" \
   --yes --expect-plan "$PLAN_HASH" --no-input --json
 ```
 
-The hash binds tenant, change display ID, exact group name, Everyone rule,
+The hash binds tenant, change display ID, exact group name, selected rule,
 escaped message and explicit recipients. A hash prefix or a changed draft fails.
 `--yes` requires the matching hash from a prior review; `--no-input` never
 prompts. Without `--yes`, a default-No prompt explicitly confirms sending the
@@ -83,6 +86,27 @@ interpreted as markup. Multiline messages and repeated recipients are supported
 local extensions of the single-recipient, single-paragraph capture, tested
 offline, not claims of accepted live behavior.
 
+### Rule variants and recipient-kind limits
+
+```bash
+fsv changes approval-request CHN-1234 --name "Globex review" \
+  --message "Please review the rollout." --approver 9000003001 \
+  --rule first-responder --dry-run --json
+```
+
+All four `approval_type` values were established by intercepted, aborted POSTs.
+Everyone also has prior accepted/read-back evidence; the other variants have
+browser serialization evidence only, not demonstrated server acceptance or
+notification delivery. Repeat exactly the chosen `--rule` when sending with the
+review hash; changing the rule invalidates that hash.
+
+There is deliberately **no `--approver-group`**. Agent groups and CAB selection
+resolved to explicit `notified_to` member ID lists, with no persisted group/CAB
+ID in the captured request. Passing a group ID as an approver would target the
+wrong namespace. Use explicit `--approver` agent IDs instead. Requester groups
+and impacted-service owners had no usable capture, so no mapping is inferred.
+No group expansion, default members or fabricated group wire key is implemented.
+
 ## Verification and unknown outcomes
 
 The sender reads the **complete paginated approvals inventory** before sending,
@@ -96,7 +120,10 @@ groups alone. All baseline IDs must remain present. The entire set of new record
 contain exactly one row per requested approver: their positive `member_id` values
 must equal the requested approver set, with no duplicates or unrelated new rows.
 Each new row must have `status: {id: 0, name: "requested"}` and
-`type: {id: 1, name: "everyone"}`. An existing requested approval for the same
+a `type.id` equal to the selected captured rule ID. Everyone additionally requires
+its observed `type.name: "everyone"`. Read-back names for the other rules were not
+captured and are retained raw, not guessed or compared to invented spellings.
+An existing requested approval for the same
 recipient does not count as new evidence. Concurrent extra requests are ambiguous,
 even if some new records match. Missing recipients, already-decided new records,
 or a different rule also leave the outcome unknown.
