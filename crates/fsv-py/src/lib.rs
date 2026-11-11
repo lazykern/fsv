@@ -9,10 +9,12 @@
 mod float;
 mod json;
 mod repr;
+mod value;
 
 pub use float::float_repr;
 pub use json::{Dumps, canonical, compact, dumps, pretty};
 pub use repr::{py_repr, py_repr_str, py_str};
+pub use value::{ValueExt, truthy};
 
 /// `serde_json` object type (insertion ordered, like a Python dict).
 pub type Map = serde_json::Map<String, serde_json::Value>;

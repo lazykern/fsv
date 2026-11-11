@@ -13,13 +13,22 @@ default and help string) is in `port/cli-surface.txt`.
 
 ## Goal
 
-Behavioral parity with the Python tool: same commands and flags, same exit
-codes, same JSON/CSV/TSV output, same files on disk (config, session,
-cache, journal, drafts) so an existing user's state keeps working, same
-HTTP requests (paths, params, bodies, headers), same safety checks and
-plan hashes. Restructure freely where Rust allows a cleaner design, but
-never change observable behavior silently. Any deliberate divergence goes
-into `port/PARITY.md` under "Divergences" with a reason.
+Behavioral parity with the Python tool: same commands and flags, same
+JSON/CSV/TSV output, same files on disk (config, session, cache, journal,
+drafts) so an existing user's state keeps working, same HTTP requests
+(paths, params, bodies, headers), same safety checks and plan hashes.
+
+Fix the Python tool where it is wrong. Dead code stays unported. A crash,
+a swallowed error, a command that writes the wrong directory, an exit code
+that disagrees with the README table, or a key that cannot be pressed again
+gets the behavior a user would expect. Record every such fix in
+`port/PARITY.md` under "Divergences": what Python does, what Rust does, why.
+That list is the end-of-port review.
+
+Do not "fix" wire formats. Request paths, bodies, plan hashes, journal
+kinds, cache filenames, session bytes and draft YAML keys stay identical,
+including when the Python shape looks ugly. A hash change silently disables
+duplicate-send protection.
 
 ## Crates (dependency order)
 
@@ -28,17 +37,23 @@ into `port/PARITY.md` under "Divergences" with a reason.
 | `fsv-py` | — | CPython-exact `json.dumps` (`canonical`, `Dumps`), `float_repr`, `py_str`/`py_repr`. Done. |
 | `fsv-core` | `errors`, `config`, `cache`, `journal`, `session`, `client`, `resources`, `yamlio`, `mdlite`, `editor`, `safety`, `review` (table part), text helpers (`render.strip_html`, `render.fmt_dt`, `render.fmt_value`, `render.emit_json`, `render.emit_delimited`), terminal output (`rich` Console/markup/Table/rule replacement), prompts (`typer.prompt/confirm`) | infrastructure; no Freshservice domain logic beyond the HTTP client |
 | `fsv-forms` | `forms/*` (`spec`, `rules`, `state`, `payload`, `plan`, `fetch`, `tz`, `errors`), `formui/fuzzy`, `formui/when` | pure form engine, no I/O; depends only on `fsv-py` |
-| `fsv-api` | `schema`, `query`, `service`, `create`, `state_flow`, `task_status`, `change_tasks`, `change_approvals`, `change_approval_actions`, `change_associations`, `ticket_notes`, `formmeta`, `cache`-backed lookups, `completion.py` data helpers (`_cached_groups`, `_remote_user_values`, …) | Freshservice resource operations |
-| `fsv-flows` | `drafts`, `change_flow`, `ticket_flow`, `catalog`, `cli_sr.render_sr_template` | form create/update orchestration (plan → review → send) |
-| `fsv-views` | `views`, `pages`, `render` (tables/panels) | site-style list/detail loading and rendering |
+| `fsv-api` | `schema`, `query`, `service`, `create`, `views` (as `site`: loaders only), `state_flow` fetch half, `task_status`, `change_tasks`, `change_approvals`, `change_approval_actions`, `change_associations`, `ticket_notes`, `formmeta`, `attachments` (`cli_sr._attachment_rows`/`_download`, `create._attachment_url`, `catalog.is_file_value`/`safe_target`/`domain_url`), completion data helpers | Freshservice operations. `views.py` lives here because `change_tasks`, approvals, associations and `ticket_notes` call it and it calls them back. |
+| `fsv-flows` | `drafts`, `change_flow`, `ticket_flow`, `catalog`, `cli_sr.render_sr_template` | plan → review → send. Reuses `fsv_api::attachments`. |
+| `fsv-views` | `pages`, `render` (Rich tables/panels), `state_flow` render half (`render_flow`, `render_compact`, `render_state_diagram`) | markup strings only. Depends on fsv-api, not on fsv-flows. |
 | `fsv-formui` | `formui/session`, `formui/lookups`, `formui/widgets`, `formui/screens`, `formui/app` | ratatui form UI; `session` logic stays UI-agnostic |
-| `fsv-tui` | `tui/app`, `tui/modals`, `tui/actions` | ratatui full-screen app |
-| `fsv-completion` | `completion_gen`, `_complete`, completion parts of `completion.py` | shell scripts + `_FSV_COMPLETE` runtime protocol |
+| `fsv-tui` | `tui/app`, `tui/modals`, `tui/actions` | ratatui. Depends on fsv-views, fsv-formui, fsv-flows, fsv-api. |
+| `fsv-completion` | `completion_gen`, `_complete` | takes `&clap::Command` from fsv-cli. Must not depend on fsv-cli. |
 | `fsv-cli` (package `fsv`, binary `fsv`) | `cli`, `change_cli`, `ticket_cli`, `cli_sr`, `form_cli`, `__init__` | clap command tree, glue only |
 
-Move a function to the lowest crate that can own it (e.g. the TUI imports
-`cli_sr._attachment_rows`; that belongs in `fsv-views` or `fsv-api`).
-Upstream crates must not depend on downstream ones.
+```
+fsv-py ← fsv-forms ← fsv-core ← fsv-api ← fsv-flows ← fsv-formui ← fsv-tui ← fsv-cli
+                        ↑          ↑  ↖── fsv-views ←──────────────────┘      ↑
+                        └──────────┴──── fsv-completion ──────────────────────┘
+```
+
+fsv-core may depend on fsv-forms (pure, no cycle) so `Error::Form` can hold
+`fsv_forms::FormError`. No other edge runs backwards. Full rationale:
+`port/specs/design-review.md`.
 
 ## Libraries
 
@@ -46,51 +61,133 @@ Declared once in the root `Cargo.toml` `[workspace.dependencies]`; crates
 use `foo.workspace = true`. Preferred choices:
 
 - JSON: `serde_json` with `preserve_order` (dict insertion order matters).
-  Server data stays `serde_json::Value`; use typed structs only where it
-  clarifies code without losing unknown keys.
+  Server records stay `Value`. Do not use `#[serde(flatten)]` on anything
+  re-emitted or hashed: it reorders keys. Do not enable `arbitrary_precision`.
+  Type only Python dataclasses and on-disk envelopes (cache, journal, session,
+  argon), with field order equal to Python's dict order. `config.json` stays
+  `Value` (unknown keys survive; written `sort_keys=True`).
+- Python truthiness (`x.get(k) or {}`) goes through `fsv_py::ValueExt`
+  (`truthy`, `get_truthy`, `obj_or_empty`, `list_or_empty`, `py_get_str`).
+  Hand-rolled `.get().and_then(Value::as_object)` treats `""`/`0`/`false`
+  differently from Python and is a parity bug.
 - Anything hashed or compared with Python output: `fsv_py::canonical` /
-  `fsv_py::Dumps`. Never `serde_json::to_string` for those.
-- HTTP: `reqwest` blocking + rustls, cookie handling done by hand (host
-  scoped jar; parse `Set-Cookie`), redirects disabled by default.
+  `fsv_py::Dumps`, with the flags named at the call site. There is no shared
+  "write JSON" helper. `config.json`: indent 2, sort_keys, ensure_ascii.
+  Cache: indent 2, ensure_ascii false. Journal: default separators,
+  ensure_ascii false. Session payload: default separators, ensure_ascii true.
+  `plan_hash`: sort_keys, separators `(",", ":")`, ensure_ascii false.
+- HTTP: blocking `reqwest` + rustls. `Client: Send + Sync`, shared as
+  `Arc<Client>`; cookie jar and CSRF behind a `Mutex`; no `&mut self`.
+  httpx `timeout=30` is per phase, so set connect and read timeouts to 30s
+  and never a 30s total deadline (uploads and downloads exceed it).
+  Redirects are a manual loop (max 20) with per-request `follow`: cookie jar
+  updates on every hop, and Freshservice cookies go only to the tenant host.
+  `Client::fetch_raw(url, follow)` is what the download call sites use
+  (no retry, no journal, no status mapping). TUI workers do not cancel
+  in-flight HTTP; they capture a generation (`AtomicU64`) and the UI drops
+  stale `(gen, Result)` pairs. `keepalive()` has no Python caller; port it
+  but do not build the TUI around it. The transport is a trait so tests
+  inject a mock that records `gets`, `writes` and `paths` (the Acme and
+  Globex tenants). The real transport is reqwest.
 - Regex: `regex`; `fancy-regex` only when backreferences/lookaround are needed.
 - Time zones/dates: `jiff` (IANA tz). Python `zoneinfo` → `jiff::tz`.
-- YAML: `yaml-rust2` event parser with our own scalar resolution (see
-  `yamlio.py`: every plain scalar is a string except null and true/false).
+- YAML: `yaml-rust2` with our own plain-scalar resolution. The contract
+  (verified against Python) is in `port/specs/design-review.md` item 8:
+  no merge keys, duplicate keys last-wins at the first position, explicit
+  `!!str`/`!!int`/`!!float`/`!!bool`/`!!null` tags honored, aliases copied,
+  a single document, typed keys stringified with `fsv_py::py_str`. Error
+  wording may differ from PyYAML; exit code stays 2.
 - Crypto: `argon2` (Argon2id, v19), `aes-gcm`, `sha2`, `md-5`, `base64`.
 - Terminal: `crossterm` (+ `ratatui` for full-screen UIs).
 - CLI: `clap` derive.
 - Errors: `thiserror`.
 
-## Global state
+## Context, not process globals
 
-Python keeps module globals (`config.DOMAIN`, `client._VERBOSE`, the
-client singleton, `cli.NO_INPUT`). In Rust:
+Library crates never read the environment and never a process-wide config.
+`cargo test` runs tests in parallel, and edition 2024 makes `env::set_var`
+unsafe. Tests build a `Ctx`; they do not rebind the process.
 
-- `fsv_core::config` owns paths + domain in a process-wide `RwLock` with
-  `config::domain()`, `config::paths()`, `config::reload()`,
-  `config::set_domain()`. Paths are recomputed from env on `reload()` so
-  tests can point `FSV_CONFIG_DIR`/`FSV_CACHE_DIR` at temp dirs.
-- `fsv_core::client::get_client()` returns a shared `Arc<Client>`; client
-  internals use interior mutability so the TUI can call from worker threads.
-- Runtime flags (`verbose`, `no_input`) live in `fsv_core::runtime`.
-- The current command path for journal entries (`ctx.command_path`, e.g.
-  `"fsv changes create"`) is set by the CLI in `fsv_core::runtime`.
+```rust
+pub struct Paths { pub config_dir: PathBuf, pub cache_dir: PathBuf, pub state_home: PathBuf }
+impl Paths {
+    pub fn from_env() -> Paths;     // only reader of FSV_CONFIG_DIR, FSV_CACHE_DIR, XDG_STATE_HOME, HOME
+    pub fn under(root: &Path) -> Paths;
+}
+pub struct Tenant { pub domain: String, pub api_v2: String, pub api_int: String, pub login_url: String }
+pub struct Flags { pub verbose: bool, pub no_input: bool }
+pub struct Ctx { pub paths: Paths, pub tenant: Option<Tenant>, pub flags: Flags, pub command_path: Option<String> }
+```
+
+`journal`, `session` and `config` take `&Ctx` or `&Paths`. `cache::load` /
+`save` take a path the caller computed from `ctx.paths`. `Client` holds
+`Arc<Ctx>` and is `Send + Sync`. `fsv auth login --domain` builds a new
+`Ctx` and a new `Client`; it does not mutate the old one.
+
+`fsv_core::runtime::install(Arc<Ctx>)` (`OnceLock`) exists for the binary
+edge only: fsv-cli `main`, and fsv-tui / fsv-completion when they have no
+`Ctx` in hand. Library code does not call it.
+
+Session `update_cookie` is an unlocked read-modify-write in Python. Rust
+TUI workers overlap, so the session store takes one process mutex.
 
 ## Errors and exit codes
 
-`fsv_core::Error` mirrors Python exception classes:
+`exit_code_for` walks `__cause__ or __context__`. `raise X from None` hides
+the cause from `str()` but the context still decides the exit code: a
+`TaskError` raised inside `except APIError(409)` exits 4, inside
+`except APIError(500)` exits 5. `ValueError` is checked before the context,
+so a usage error exits 2 even when an `APIError` was swallowed.
+`Display` never includes the context. `--verbose` appends `APIError.detail()`.
 
-- `Api(ApiError { status, body: Value, method, target })` (`APIError`,
-  same `Display` as Python `str()`, plus `detail()`),
-- `Session(String)` (`SessionError`),
-- `Value(String)` (`ValueError` and subclasses → exit 2),
-- `Exit { code, message }` (flow exits such as `FlowExit`),
-- `Other(String)` (exit 1), `Io`, `Aborted` (Ctrl-C / refused prompt).
+```rust
+pub enum Error {
+    Api(ApiError),                                          // 409 or duplicate regex → 4, else 5
+    Session(String),                                        // 3
+    Usage { message: String, context: Option<Box<Error>> }, // ValueError family → 2
+    Exit { code: i32, message: String },                    // FlowExit
+    Form(fsv_forms::FormError),                             // CLI sites that map FormError to 2 match this
+    Failed { kind: &'static str, message: String, context: Option<Box<Error>> },
+        // TaskError, NoteError, ApprovalError, EditorAbort, …: code = context if Api/Session, else 1
+    Partial(Box<PartialFailure>),  // created_id, uploaded, steps, error
+    Send(Box<SendFailure>),        // step, uploaded, error; exit code comes from `error`
+    Io(std::io::Error),
+    Aborted,                       // click abort prints "Aborted!"; _err_exc prints "Aborted."
+}
+impl Error {
+    pub fn exit_code(&self) -> i32;
+    pub fn with_context(self, swallowed: Error) -> Error;
+}
+```
 
-`Error::exit_code()` reproduces `errors.exit_code_for` (0 ok, 1 other,
-2 usage, 3 session, 4 conflict, 5 rejected). Domain crates may define
-their own error enums but must convert into `fsv_core::Error` preserving
-the exit-code class (Python `__cause__` chains → wrap the source).
+An empty message falls back to `kind` (`str(exc) or type(exc).__name__`).
+Domain crates may keep a typed error internally, but every Python
+`except APIError: raise X(...) from None` becomes `.with_context(api_err)`.
+
+## Terminal output
+
+`pages.py` returns Rich markup that both the CLI and the TUI render.
+Call sites keep markup strings (~450 of them). fsv-core owns the only parser:
+
+```rust
+pub struct Span { pub text: String, pub style: Style }
+pub fn parse(markup: &str) -> Vec<Vec<Span>>;
+pub fn escape(s: &str) -> String;   // byte-exact rich.markup.escape
+pub fn plain(markup: &str) -> String;
+```
+
+The CLI turns spans into ANSI (TTY, no `NO_COLOR`) or plain text. fsv-tui
+maps `Span` to ratatui in one adapter; fsv-core does not depend on ratatui.
+`term::Table` cells are markup, measured with `plain()` and `unicode-width`,
+folded like Rich `overflow="fold"`. A stray closing tag is rendered literally
+(Rich would raise). `err` is dim by default.
+
+`term::prompt` / `term::confirm` match typer: `Text [default]: `, `Text [y/N]: `,
+re-prompt on invalid, abort → exit 1.
+
+Byte-exact parity is required for `--json`, `-o json|csv|tsv`, YAML drafts
+and plan output. Human tables match content, order, wording and columns.
+Box glyphs, Rich auto-highlight and `:emoji:` substitution may differ.
 
 ## Terminal output
 
@@ -125,12 +222,25 @@ details may differ slightly.
   `filters/…`, `groups--<domain>.json`, `lookup/<md5>.json`, envelope
   `{_kind, saved_at, checked_at, changed_at, hash, etag, latency_ms,
   fetch_count, data}` written with `json.dumps(indent=2, ensure_ascii=False)`.
-- Journal: `$XDG_STATE_HOME/fsv/journals/<sha256(resolved config dir)>/<sha256(domain)|unknown>/journal.jsonl`.
+- Journal: `$XDG_STATE_HOME/fsv/journals/<sha256(py_resolve(config dir))>/<sha256(domain)|unknown>/journal.jsonl`.
+  `py_resolve` matches `Path.resolve()`: non-strict (the directory need not
+  exist), symlinks resolved (`/var` → `/private/var` on macOS), and no
+  Windows `\\?\` prefix. `std::fs::canonicalize` is wrong here and would
+  split the journal from Python's, which disables duplicate-send protection.
+  Use the `dunce` crate plus a non-strict walk. Journal `kind`, plan action
+  and step strings are load-bearing; keep them as constants in one module
+  (the list is in design-review item 9).
 - Atomic writes: temp file in the same directory + rename, mode 0600.
-- Session stores: `file` (plain JSON), `argon` (Argon2id t=3 m=65536 p=4,
-  32-byte key, AES-256-GCM with the domain as AAD, JSON envelope),
-  `keychain` (macOS `security` CLI, base64 payload, service `fsv`,
-  account `fsv-session`).
+  Write LF on every platform. Python on Windows writes CRLF; readers accept
+  both. This is a recorded divergence.
+- Session stores, exactly Python's set and no others: `file` (plain JSON),
+  `argon` (Argon2id t=3 m=65536 p=4, 32-byte key, AES-256-GCM, domain as
+  AAD), `keychain` (macOS `security -i` on stdin, base64 payload, legacy
+  raw JSON still reads, service `fsv`, account `fsv-session`). Unknown
+  `store` values are ignored. Default: `session.json` exists → `file`,
+  else darwin and not `FSV_NO_KEYCHAIN` → `keychain`, else `file`. No
+  Windows Credential Manager in this port: writing `keychain` there makes
+  the Python build shell out to `security` and fail.
 
 Timestamps written by Python with `time.time()` are floats; write floats
 too (`saved_at` etc.) so both versions read each other's files.
@@ -161,6 +271,82 @@ Only edit files inside the crate(s) you own plus (if needed) new entries
 in the root `[workspace.dependencies]`. Never run `git commit`, `git
 stash`, `git checkout` or `cargo fmt` at the workspace level; format only
 your crate (`cargo fmt -p <crate>`).
+
+## CLI contract
+
+`port/specs/cli.md` is the command spec (handler, calls, prompts, output,
+exit code, test file). The clap tree must reproduce these typer quirks;
+`global = true` is not a substitute:
+
+- Bare `fsv` and bare groups print help to stdout and exit 2. `fsv -v` and
+  `fsv --no-input` print help and exit 0. `-h`/`--help` exit 0.
+- `-v`/`--verbose` after a subcommand is moved to the front before parsing,
+  except after `--` and except when it is an option value (`--body -v`).
+  `--no-input` and `-V` are not moved. `--version` is only valid before the
+  subcommand and prints `fsv 2026.5.29` to stdout.
+- Uncaught Ctrl-C exits 130 with no message. A refused prompt prints
+  `Aborted.` and exits 1.
+- `fsv changes assets CHN-1 …` and `associations` rewrite to the hidden
+  `legacy` command and print the deprecation warning.
+- `--expect-plan`: create/update/`sr create` accept a prefix of at least 12
+  hex digits. tasks-add, the approval commands, associations and ticket
+  add-note require the full hash when `--yes` is set.
+- Root `--no-input` is ignored by tasks-add, the approval commands, ticket
+  add-note and `sr create`. `auth status` with no session exits 2; other
+  commands exit 3. `tickets create` maps a form error to exit 1; `changes
+  create`/`update` map it to 2.
+- Seven JSON writers differ in indent, `ensure_ascii`, internal-key stripping
+  and the trailing newline. Name the flags at each call site. CSV/TSV use
+  `\r\n`, write `None` as empty, and print nothing when there are no rows
+  (global search still prints the header).
+- Do not port the dead code listed in cli.md §5. `changes update` reaches
+  the form engine for `--set`/`--edit`/`--from`/`--preset`; the quick path
+  only handles status, priority, agent, group and `--attach`.
+
+`cache clear views` deletes `CONFIG_DIR/filters` in Python, so the views
+cache is never cleared. Rust clears `CACHE_DIR/filters`. No test asserts
+the wrong directory. Recorded as a divergence.
+
+## TUI contract
+
+`port/specs/tui.md` is the form UI and main TUI spec: screens, keys,
+workers, theme colors, and which Python test pins which behavior.
+
+- `fsv-formui` owns a `kit` (event loop, focus, modal stack, theme, widgets)
+  that `fsv-tui` reuses. Split it into its own crate only if a third
+  consumer appears.
+- Widgets: `ratatui-textarea` 0.9.4 for multi-line text. Do not use
+  `tui-textarea` (stuck on ratatui 0.29). `tui-markdown` 0.3.13 for the F3
+  preview. `tui-input` is optional. Popup, scroll-view and widget-list
+  crates are skipped; the kit draws those itself. Clipboard copy uses
+  crossterm `osc52`. `y` on macOS still shells out to `pbcopy`.
+- Key order is Textual's: priority bindings, focused widget, ancestors,
+  screen, then the app handler. A `g` prefix sits on the app handler.
+  Keys from a pushed form never reach the main app handler.
+- Workers are threads plus a generation counter and the same epoch checks
+  Python uses. A worker error toasts. It does not exit the process.
+- Combobox: remote people search debounces 0.25s and drops a late answer
+  whose query is no longer current. Enter never picks a result from an
+  earlier search. Typed person text is not a committed value.
+- Field commits debounce 0.3s or happen on blur. Setting a value from code
+  does not emit a change. An unreadable date stays in the box and clears
+  the plan hash until it is fixed.
+- Write flows (task, link, note, download) are an enum of continuations.
+  None of them retry a send.
+- Tests use ratatui `TestBackend` with an inline executor and a manual
+  clock: `press("ctrl+s")`, `settle()` drains due timers and workers.
+  Snapshots are `insta` and stay few; assertions carry the parity.
+- The status bar is its own row above the key hints. Textual docks both to
+  the bottom, so the hints hide the status. Showing both is the divergence.
+
+## Design review
+
+Decisions that are expensive to undo (crate boundaries, client sync vs async,
+error types, on-disk formats, public APIs other crates will bind to) get a
+second opinion from an advisor agent before the next wave of crates is
+written. Verdicts land in `port/specs/design-review.md`; accepted changes are
+folded back into this file. Do not relitigate a settled verdict without new
+evidence.
 
 ## Parity ledger
 
