@@ -174,17 +174,20 @@ class ViewPickerScreen(ModalScreen["Any | None"]):
 
     BINDINGS = [Binding("escape", "cancel", "Cancel")]
 
-    def __init__(self, views: list[Any], current: Any = None, title: str = "Views") -> None:
+    def __init__(self, views: list[Any], current: Any = None, title: str = "Views", *,
+                 placeholder: str = "type to filter views", show_view_kind: bool = True) -> None:
         super().__init__()
         self._views = list(views)
         self._current = current
         self._title = title
+        self._placeholder = placeholder
+        self._show_view_kind = show_view_kind
         self._shown: list[Any] = list(views)
 
     def compose(self) -> ComposeResult:
         with Vertical(classes="dialog", id="view-dialog"):
             yield Static(f"[bold]{escape(self._title)}[/]", classes="dialog-title")
-            yield Input(placeholder="type to filter views", id="view-filter")
+            yield Input(placeholder=self._placeholder, id="view-filter")
             yield OptionList(id="view-options")
             yield Static("[dim]Enter open · ↑/↓ move · Esc cancel[/]", classes="dialog-hint")
 
@@ -199,7 +202,7 @@ class ViewPickerScreen(ModalScreen["Any | None"]):
         ol.clear_options()
         for v in self._shown:
             mark = "▸ " if self._current is not None and v == self._current else "  "
-            kind = "" if getattr(v, "system", False) else "  [dim](custom)[/]"
+            kind = "" if not self._show_view_kind or getattr(v, "system", False) else "  [dim](custom)[/]"
             ol.add_option(Option(Text.from_markup(mark + escape(str(getattr(v, "name", v))) + kind)))
         if self._shown:
             idx = next((i for i, v in enumerate(self._shown) if v == self._current), 0)
@@ -241,7 +244,8 @@ class ChoiceScreen(ViewPickerScreen):
 
     def __init__(self, choices: list[tuple[Any, str]], title: str) -> None:
         from types import SimpleNamespace
-        super().__init__([SimpleNamespace(value=value, name=label) for value, label in choices], title=title)
+        super().__init__([SimpleNamespace(value=value, name=label) for value, label in choices],
+                         title=title, placeholder="type to filter choices", show_view_kind=False)
 
     def dismiss(self, result=None):
         return super().dismiss(result.value if result is not None else None)

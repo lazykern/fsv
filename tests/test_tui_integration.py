@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 from textual.screen import ModalScreen
-from textual.widgets import Input
+from textual.widgets import Input, OptionList
 
 from fsv import catalog, formui
 from fsv.formui import session as form_sessions
@@ -54,6 +54,10 @@ def test_create_dispatch_cancel(offline, monkeypatch, kind, keys):
         async with app.run_test() as pilot:
             await pilot.press("N")
             assert isinstance(app.screen, ChoiceScreen)
+            assert app.screen.query_one(Input).placeholder == "type to filter choices"
+            options = app.screen.query_one(OptionList)
+            assert all("custom" not in str(options.get_option_at_index(i).prompt)
+                       for i in range(options.option_count))
             await pilot.press(*keys)
             await app.workers.wait_for_complete()
             await pilot.pause()
