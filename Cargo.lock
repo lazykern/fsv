@@ -883,6 +883,7 @@ name = "fsv-app"
 version = "2026.5.29"
 dependencies = [
  "fsv-api",
+ "fsv-completion",
  "fsv-core",
  "fsv-flows",
  "fsv-forms",

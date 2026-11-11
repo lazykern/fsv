@@ -47,9 +47,9 @@ Counts: **16 ported, 9 partial, 7 missing.**
 | `a5a8381` | 11-12 03:25 | feat(tickets): add reviewed BCC replies and whole-ticket forwards | missing | fsv-api, fsv-cli, fsv-completion |
 | `ddd756a` | 11-12 03:30 | feat(watchers): add reviewed ticket and change self-watch workflows | missing | fsv-core/fsv-api (`me`), fsv-api, fsv-cli, fsv-completion |
 | `9622e3f` | 11-12 03:35 | feat(tickets): add reviewed nonbillable self time CRUD | missing | fsv-api, fsv-cli, fsv-completion |
-| `5bc5d4d` | 11-12 03:45 | feat(tui): review ticket recipient and status conversation options | partial | fsv-app (fsv-tui done) |
+| `5bc5d4d` | 11-12 03:45 | feat(tui): review ticket recipient and status conversation options | partial | fsv-api sender/BCC via `a5a8381` (fsv-tui done; fsv-app `tui.rs` `ticket_conversation_plan` / `send_ticket_conversation` done) |
 | `f711010` | 11-12 03:51 | feat(planning): add reviewed native text saves and TUI editor | partial | fsv-api, fsv-cli, fsv-app, fsv-completion (fsv-tui done) |
-| `3057492` | 11-12 04:00 | feat(tui): edit reviewed ticket properties and SR beneficiaries | partial | fsv-api, fsv-app (fsv-tui done) |
+| `3057492` | 11-12 04:00 | feat(tui): edit reviewed ticket properties and SR beneficiaries | partial | fsv-api, then fsv-app `ticket_property_plan` (fsv-tui done; fsv-app field picker and send done) |
 | `f7bf04a` | 11-12 04:07 | feat(problems): add reviewed known-error mark and TUI action | partial | fsv-api, fsv-cli, fsv-app, fsv-completion (fsv-tui done) |
 | `1dc7ab6` | 11-12 04:13 | test(writes): exercise ticket property and mail transport guards | partial | fsv-api |
 | `c0210a7` | 11-12 04:20 | feat(tickets): add reviewed explicit-ID bulk priority | missing | fsv-api, fsv-cli, fsv-completion |
@@ -57,26 +57,23 @@ Counts: **16 ported, 9 partial, 7 missing.**
 | `4d778c3` | 11-12 04:38 | fix(readback): compare durations and offset timestamps semantically | partial | fsv-api |
 | `b7d96a7` | 11-12 04:43 | fix(cli): accept consistent JSON options on reviewed commands | missing | fsv-cli, fsv-completion |
 
-## Live regressions in the Rust TUI (fix first)
+## Live regressions in the Rust TUI
 
-The fsv-tui half of `5bc5d4d` / `3057492` is ported, but `LiveBackend`
-(`crates/fsv-app/src/tui.rs:478`) keeps the default `Failure::unavailable`
-for every reviewed hook. So in the real binary:
+The fsv-tui half of `5bc5d4d` / `3057492` routed two existing actions
+through new reviewed `Backend` hooks. `LiveBackend` (`crates/fsv-app/src/tui.rs`)
+now implements them:
 
-- A plain **ticket reply** (`r`, Ctrl+S) now always goes through
-  `prepare_ticket_conversation` (`crates/fsv-tui/src/app.rs:2575`) and fails
-  with "ticket conversations unavailable". Before the port of `5bc5d4d` it
-  used `add_reply`.
-- **`e` on a ticket** calls `load_ticket_property_fields`
-  (`crates/fsv-tui/src/app.rs:3737`) and fails with "ticket property edits
-  unavailable".
-- `a` → known error / planning text fail the same way; those were new
-  features, so nothing regressed there.
-
-The fsv-app work under `5bc5d4d` and `3057492` removes both regressions. The
-reply hook only needs the reply/note-with-CC/Pending part of
-`fsv_api::conversations`, which already exists, so it does not wait on the
-BCC/forward work.
+- A plain **ticket reply** (`r`, Ctrl+S) and a note go through
+  `ticket_conversation_plan` / `send_ticket_conversation` over
+  `fsv_api::conversations` (CC, notify, Pending). **Fixed.** Sender and BCC
+  are still refused until fsv-api has `a5a8381`.
+- **`e` on a ticket** lists the fields (`ticket_property_fields`). Picking a
+  field and a value is still refused: `ticket_property_plan` waits on
+  `answers` in `fsv_api::properties` (`f761a01`). Python itself refuses the
+  tag and planned-date fields on that path, so the older flags cannot stand
+  in. **Partly fixed:** the picker opens, the edit does not.
+- `a` → known error / planning text still use the default unavailable
+  error. Those were new features, so nothing regressed there.
 
 ## Per-commit work
 
@@ -350,16 +347,16 @@ path (`crates/fsv-tui/src/app/reviewed.rs:479-585`, `app.rs:2567-2580`,
 
 Missing:
 
-- **fsv-app** `tui.rs` `impl Backend for LiveBackend`: implement
-  `ticket_conversation_plan` (recipients for cc and notify; bcc goes through
-  `recipients` only as a check; `conversations::build_plan` with kind
-  reply/note, public, set_status; return a `ReviewPlan` whose `raw` is the
-  payload, because the TUI reads `private` from it) and
-  `send_ticket_conversation` (`conversations::send(…, public_confirmed)`).
-  This fixes the plain-reply regression above.
-- **fsv-api**: bcc/sender come from `a5a8381`. Until then the backend should
-  refuse a request with bcc/sender using the Python validation text, not
-  drop the values silently.
+- **fsv-app**: done. `ticket_conversation_plan` and
+  `send_ticket_conversation` in `tui.rs` (golden
+  `port/golden/gen_fsv_app_tui_reviewed.py`). A request with sender or BCC is
+  refused with Python's validation text, and with "replies with a sender or
+  BCC are not available in this build; clear Sender and BCC to send" when it
+  passes those checks.
+- **fsv-api**: bcc/sender come from `a5a8381`. After that, fsv-app passes
+  `req.bcc` / `req.sender` through and drops `refuse_mail_options`. Also
+  update the review warning text and the CC/BCC recheck in `send` (see the
+  PARITY.md fsv-app section).
 - Python tests: `tests/test_tui_ticket_options.py` (both),
   `tests/test_tui_actions.py` reply test (plain reply calls the reviewed
   send with `"<div>thanks</div>"`, after a PUBLIC consent screen).
@@ -410,14 +407,11 @@ Missing:
   (`api_name == "requested_for" && field_type == "default_requested_for"`)
   is writable even when `!sent`; allowed keys gain `requested_for_id`; key
   is `{api_name}_id` for `requester` and `requested_for`.
-- **fsv-app** `tui.rs`: `ticket_property_fields` (`load_meta("ticket",
-  "edit", fresh, module_id)`; keep fields where `(sent || field_type ==
-  default_requested_for) && !synthetic && is_input && kind != unsupported &&
-  (is_custom || api_name in {subject, description, requester,
-  requested_for, group, agent, status, priority, urgency, impact, source,
-  category, ticket_type})`; dropdowns carry visible `(value, label)`
-  choices), `ticket_property_plan` (`build_plan(answers={name: value})`),
-  `send_ticket_property`. This fixes the `e` regression above.
+- **fsv-app** `tui.rs`: `ticket_property_fields` and `send_ticket_property`
+  (on `property_review(&PropertyPlan)` raw) are done. Still to do:
+  `ticket_property_plan` as `build_plan(answers={name: value})` once fsv-api
+  has `answers`. It returns `property_review(&plan)`. Until then it refuses
+  every field.
 - Python tests: `tests/test_tui_ticket_properties.py::test_tui_property_field_picker_review_and_outcome`,
   `::test_requested_for_update_is_property_only_and_resolves_current_user`,
   `::test_readonly_property_picker_never_prepares`,

@@ -15,15 +15,19 @@ use serde_json::{Map, Value, json};
 use fsv_api::Directory;
 use fsv_api::approvals::{self, ActionPlan, ApprovalPlan};
 use fsv_api::associations::{self, AssociationPlan, SendOpts};
+use fsv_api::conversations::{self, ConversationArgs, ConversationPlan};
 use fsv_api::formmeta::{DiskStore, MetaStore};
 use fsv_api::notes::{self, BodyFormat, NotePlan};
+use fsv_api::properties::{self, PropertyPlan};
 use fsv_api::service::{self as svc, Api, Journal, ListArgs};
 use fsv_api::tasks::{self, TaskArgs, TaskPlan};
 use fsv_api::{QueryError, site};
 use fsv_core::{Client, Error, Result};
+use fsv_forms::Kind;
+use fsv_forms::spec::REQUESTED_FOR_TYPE;
 use fsv_tui::backend::{
-    BResult, DetailPage, Failure, FormRequest, FormView, Item, ListRequest, Missing, Res,
-    ReviewPlan, SearchResult, TabData, TabInfo, View,
+    BResult, ConversationRequest, DetailPage, Failure, FormRequest, FormView, Item, ListRequest,
+    Missing, PropertyField, Res, ReviewPlan, SearchResult, TabData, TabInfo, View,
 };
 use fsv_tui::{Backend, BasicPages, Pages};
 use fsv_views::{Detail, DetailInput, SessionError};
@@ -137,7 +141,29 @@ pub struct LiveBackend {
     me: Mutex<Option<Value>>,
     /// What `N` / `e` forms talk to; `None`: [`FormDeps::live`] per form.
     form_deps: Option<forms::DepsFactory>,
+    /// Reviewed conversation plans by hash (the most recent
+    /// [`PLAN_CACHE_SIZE`]): their [`ReviewPlan::raw`] is only the payload.
+    conversations: Mutex<IndexMap<String, ConversationPlan>>,
 }
+
+const PLAN_CACHE_SIZE: usize = 16;
+
+/// `_load_ticket_property_fields`' core ticket fields.
+const PROPERTY_CORE: &[&str] = &[
+    "subject",
+    "description",
+    "requester",
+    "requested_for",
+    "group",
+    "agent",
+    "status",
+    "priority",
+    "urgency",
+    "impact",
+    "source",
+    "category",
+    "ticket_type",
+];
 
 fn session(e: SessionError) -> Failure {
     Failure::from(Error::Session(e.0))
@@ -264,6 +290,7 @@ impl LiveBackend {
             browser: Arc::new(desktop::open_in_browser),
             me: Mutex::new(None),
             form_deps: None,
+            conversations: Mutex::new(IndexMap::new()),
         }
     }
 
@@ -369,15 +396,88 @@ impl LiveBackend {
 
     /// `completion._completion_network()`.
     fn network_on(&self) -> bool {
-        if std::env::var("FSV_COMPLETION_NETWORK").as_deref() == Ok("1") {
-            return true;
+        let env = std::env::var("FSV_COMPLETION_NETWORK").ok();
+        fsv_completion::completion_network(env.as_deref(), &Value::Object(self.config.clone()))
+    }
+
+    fn keep_conversation(&self, p: ConversationPlan) {
+        let mut g = self
+            .conversations
+            .lock()
+            .unwrap_or_else(|p| p.into_inner());
+        g.insert(p.hash(), p);
+        while g.len() > PLAN_CACHE_SIZE {
+            g.shift_remove_index(0);
         }
-        match self.config.get("completion").and_then(|c| c.get("network")) {
-            Some(Value::String(v)) => matches!(v.as_str(), "on" | "true" | "1"),
-            Some(Value::Bool(b)) => *b,
-            Some(Value::Number(n)) => n.as_f64() == Some(1.0),
-            _ => false,
-        }
+    }
+
+    fn conversation(&self, hash: &str) -> Option<ConversationPlan> {
+        self.conversations
+            .lock()
+            .unwrap_or_else(|p| p.into_inner())
+            .get(hash)
+            .cloned()
+    }
+}
+
+/// `ticket_conversation.build_plan`'s sender and BCC checks, after the note
+/// body checks as in Python. A request that passes them still needs the
+/// `from_email` / `bcc_emails` payload, which `fsv_api::conversations` does
+/// not build, so it is refused too.
+fn refuse_mail_options(
+    ticket_id: &str,
+    body: &str,
+    req: &ConversationRequest,
+    cc: &[String],
+    notify: &[String],
+    sender: Option<&str>,
+    tenant: &str,
+) -> Failure {
+    if let Err(e) = notes::build_plan(
+        ticket_id,
+        body,
+        req.public,
+        notify,
+        BodyFormat::Plain,
+        tenant,
+    ) {
+        return e.into();
+    }
+    let bare = |v: &str| notes::EMAIL.is_match(v);
+    let bcc = !req.bcc.is_empty();
+    Failure::value(if sender.is_some_and(|s| !bare(s)) {
+        "sender must be a plain configured support email address"
+    } else if !req.reply {
+        "note sender/BCC wire is not proven"
+    } else if bcc && (!cc.is_empty() || req.set_status.is_some()) {
+        "combined BCC/CC/status wire is not proven"
+    } else if bcc && (sender.is_none() || req.bcc.iter().any(|v| !bare(v))) {
+        "BCC requires a configured --sender and bare recipient emails"
+    } else {
+        "replies with a sender or BCC are not available in this build; clear Sender and BCC to send"
+    })
+}
+
+/// A [`PropertyPlan`] as the TUI reviews it; [`ReviewPlan::raw`] carries
+/// its fields for the send.
+pub fn property_review(p: &PropertyPlan) -> ReviewPlan {
+    ReviewPlan {
+        review: Value::Object(p.review()),
+        hash: p.hash(),
+        public: false,
+        target_id: json!(p.ticket_id),
+        raw: json!({"kind": "ticket_property", "ticket_id": p.ticket_id, "tenant": p.tenant, "body_json": p.body_json,
+                    "before_json": p.before_json, "record_hash": p.record_hash}),
+    }
+}
+
+fn property_plan(raw: &Value) -> PropertyPlan {
+    PropertyPlan {
+        ticket_id: i64_at(raw, "ticket_id"),
+        tenant: str_at(raw, "tenant"),
+        body_json: str_at(raw, "body_json"),
+        before_json: str_at(raw, "before_json"),
+        record_hash: str_at(raw, "record_hash"),
     }
 }
 
@@ -554,16 +654,7 @@ impl Backend for LiveBackend {
     }
 
     fn ticket_headers(&self) -> BResult<Vec<Value>> {
-        let got =
-            fsv_api::views::optional_get(self.api(), "tickets/headers", None, "list headers")?;
-        Ok(match got {
-            Ok(Value::Object(m)) => m
-                .get("headers")
-                .and_then(Value::as_array)
-                .map(|a| a.iter().filter(|h| h.is_object()).cloned().collect())
-                .unwrap_or_default(),
-            _ => Vec::new(),
-        })
+        fsv_views::source::ticket_headers(&mut self.src()).map_err(session)
     }
 
     /// `views.view_settings`.
@@ -715,6 +806,137 @@ impl Backend for LiveBackend {
             self.journal.as_ref(),
             Self::sends(&plan.hash, read_only),
             public_confirmed,
+        )?)
+    }
+
+    /// `app._prepare_ticket_conversation`: CC and notify resolved to exact
+    /// users, BCC looked up as a check only, then `build_plan`.
+    fn ticket_conversation_plan(
+        &self,
+        ticket_id: &Value,
+        body: &str,
+        req: &ConversationRequest,
+    ) -> BResult<ReviewPlan> {
+        let cc = conversations::recipients(self.api(), &req.cc)?;
+        let notify = conversations::recipients(self.api(), &req.notify)?;
+        conversations::recipients(self.api(), &req.bcc)?;
+        let tid = s(ticket_id);
+        let sender = req.sender.as_deref().filter(|v| !v.is_empty());
+        if sender.is_some() || !req.bcc.is_empty() {
+            return Err(refuse_mail_options(
+                &tid,
+                body,
+                req,
+                &cc,
+                &notify,
+                sender,
+                &self.domain(),
+            ));
+        }
+        let args = ConversationArgs {
+            kind: if req.reply { "reply" } else { "note" },
+            cc: &cc,
+            public: req.public,
+            notify: &notify,
+            format: BodyFormat::Plain,
+            set_status: req.set_status.as_deref(),
+        };
+        let p = conversations::build_plan(self.api(), self.store.as_ref(), &tid, body, &args)?;
+        let payload = p.payload();
+        let plan = ReviewPlan {
+            review: Value::Object(p.review()),
+            hash: p.hash(),
+            public: p.kind == "reply" || payload.get("private") == Some(&Value::Bool(false)),
+            target_id: json!(p.ticket_id),
+            raw: payload,
+        };
+        self.keep_conversation(p);
+        Ok(plan)
+    }
+
+    /// `ticket_conversation.send(plan, reviewed_hash=plan.hash, public_confirmed=...)`.
+    fn send_ticket_conversation(
+        &self,
+        plan: &ReviewPlan,
+        public_confirmed: bool,
+    ) -> BResult<Value> {
+        let Some(p) = self.conversation(&plan.hash) else {
+            return Err(Failure::value(
+                "the conversation plan was not built by this session; review it again",
+            ));
+        };
+        Ok(conversations::send(
+            &p,
+            self.api(),
+            self.journal.as_ref(),
+            self.store.as_ref(),
+            Some(&plan.hash),
+            public_confirmed,
+        )?)
+    }
+
+    /// `app._load_ticket_property_fields`: the fresh edit form's writable
+    /// core and custom inputs.
+    fn ticket_property_fields(&self, ticket_id: &Value) -> BResult<Vec<PropertyField>> {
+        let meta = fsv_api::formmeta::load_meta(
+            self.api(),
+            self.store.as_ref(),
+            "ticket",
+            "edit",
+            true,
+            ticket_id,
+        )?;
+        let spec = meta.spec();
+        Ok(spec
+            .fields()
+            .iter()
+            .filter(|f| {
+                (f.sent || f.field_type == REQUESTED_FOR_TYPE)
+                    && !f.synthetic
+                    && f.is_input()
+                    && f.kind != Kind::Unsupported
+                    && (f.is_custom || PROPERTY_CORE.contains(&f.api_name.as_str()))
+            })
+            .map(|f| PropertyField {
+                name: f.api_name.clone(),
+                label: f.label.clone(),
+                choices: (f.kind == Kind::Dropdown).then(|| {
+                    f.choices
+                        .iter()
+                        .filter(|ch| ch.visible)
+                        .map(|ch| (json!(ch.value), ch.label.clone()))
+                        .collect()
+                }),
+            })
+            .collect())
+    }
+
+    /// `ticket_properties.build_plan(ticket_id, answers={name: value})`.
+    /// `fsv_api::properties::build_plan` has no `answers` yet, and every
+    /// field the picker offers needs them: Python's answers path also
+    /// refuses the tag and planned-date fields the older flags cover.
+    fn ticket_property_plan(
+        &self,
+        _ticket_id: &Value,
+        _name: &str,
+        _value: &Value,
+    ) -> BResult<ReviewPlan> {
+        Err(Failure::from(Error::other(
+            "reviewed ticket property edits from the form are not available in this build; use the web form",
+        )))
+    }
+
+    /// `ticket_properties.send(plan, reviewed_hash=plan.hash)`.
+    fn send_ticket_property(&self, plan: &ReviewPlan) -> BResult<Value> {
+        if plan.raw.get("kind").and_then(Value::as_str) != Some("ticket_property") {
+            return Err(Failure::value("not a ticket property plan"));
+        }
+        Ok(properties::send(
+            &property_plan(&plan.raw),
+            self.api(),
+            self.journal.as_ref(),
+            self.store.as_ref(),
+            Some(&plan.hash),
         )?)
     }
 
@@ -1154,3 +1376,5 @@ pub fn run_tui(read_only: bool) -> Result<()> {
 mod tests;
 #[cfg(test)]
 mod tests_actions;
+#[cfg(test)]
+mod tests_reviewed;

@@ -14,6 +14,7 @@ fsv-flows.workspace = true
 fsv-views.workspace = true
 fsv-formui.workspace = true
 fsv-tui.workspace = true
+fsv-completion.workspace = true
 serde_json.workspace = true
 indexmap.workspace = true
 jiff.workspace = true

@@ -405,7 +405,7 @@ fn session_send_refuses_a_changed_service_request() {
     assert!(f.writes().is_empty());
 }
 
-const SR_HEAD: &str = "the catalog item or its rules changed since the review; the plan is now different:\n  payload br_validation_excludes changed\n";
+const SR_HEAD: &str = "the catalog item or its rules changed since the review; the plan is now \ndifferent:\n  payload br_validation_excludes changed\n";
 
 #[test]
 fn sr_cli_prints_the_diff_and_exits_4_without_a_terminal() {
@@ -433,7 +433,8 @@ fn sr_cli_in_a_terminal_places_the_confirmed_request() {
     let out = r.unwrap();
     assert_eq!(asked, ["Place the updated request?"]);
     let want = format!(
-        "{SR_HEAD}──────── Review: New service request: Laptop ────────\nCatalog item  Laptop (#5)\nRequester     Jane Doe <jane@example.com>\nReason        broken é\nWill notify / create work for\n  This sends a real service request to the catalog item's fulfilment team.\n  Requester: Jane Doe (approvals route via Jane Doe’s manager)\nWarnings\n  Separate requested-for is available via --requested-for; requester remains unchanged.\nplan {SR_NEW_HASH}\n"
+        "{}──────── Review: New service request: Laptop ────────\nCatalog item  Laptop (#5)\nRequester     Jane Doe <jane@example.com>\nReason        broken é\nWill notify / create work for\n  This sends a real service request to the catalog item's fulfilment team.\n  Requester: Jane Doe (approvals route via Jane Doe’s manager)\nWarnings\n  Separate requested-for is available via --requested-for; requester remains\nunchanged.\nplan {SR_NEW_HASH}\n",
+        without_meta_line(SR_HEAD)
     );
     assert_eq!(without_meta_line(&text), want);
     assert_eq!(out["plan_hash"], json!(SR_NEW_HASH));

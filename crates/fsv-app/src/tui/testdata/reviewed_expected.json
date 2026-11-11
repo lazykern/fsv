@@ -1,0 +1,617 @@
+{
+  "fields": [
+    {
+      "id": 1,
+      "name": "subject",
+      "label": "Subject",
+      "description": "",
+      "field_type": "default_subject",
+      "required": false,
+      "required_for_closure": false,
+      "position": 1,
+      "default_field": true,
+      "choices": [],
+      "nested_fields": [],
+      "placeholder": "",
+      "helptext": "",
+      "hint": false,
+      "content": null,
+      "displayed_to_agents": true,
+      "data_source": 0,
+      "lookup_config": null,
+      "workspace_id": 1,
+      "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+      "id": 2,
+      "name": "description",
+      "label": "Description",
+      "description": "",
+      "field_type": "default_description",
+      "required": false,
+      "required_for_closure": false,
+      "position": 2,
+      "default_field": true,
+      "choices": [],
+      "nested_fields": [],
+      "placeholder": "",
+      "helptext": "",
+      "hint": false,
+      "content": null,
+      "displayed_to_agents": true,
+      "data_source": 0,
+      "lookup_config": null,
+      "workspace_id": 1,
+      "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+      "id": 3,
+      "name": "status",
+      "label": "Status",
+      "description": "",
+      "field_type": "default_status",
+      "required": false,
+      "required_for_closure": false,
+      "position": 3,
+      "default_field": true,
+      "choices": [
+        {
+          "id": 2,
+          "value": "Open"
+        },
+        {
+          "id": 3,
+          "value": "Pending"
+        },
+        {
+          "id": 5,
+          "value": "Closed"
+        }
+      ],
+      "nested_fields": [],
+      "placeholder": "",
+      "helptext": "",
+      "hint": false,
+      "content": null,
+      "displayed_to_agents": true,
+      "data_source": 0,
+      "lookup_config": null,
+      "workspace_id": 1,
+      "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+      "id": 4,
+      "name": "priority",
+      "label": "Priority",
+      "description": "",
+      "field_type": "default_priority",
+      "required": false,
+      "required_for_closure": false,
+      "position": 4,
+      "default_field": true,
+      "choices": [
+        {
+          "id": 1,
+          "value": "Low"
+        },
+        {
+          "id": 3,
+          "value": "High"
+        }
+      ],
+      "nested_fields": [],
+      "placeholder": "",
+      "helptext": "",
+      "hint": false,
+      "content": null,
+      "displayed_to_agents": true,
+      "data_source": 0,
+      "lookup_config": null,
+      "workspace_id": 1,
+      "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+      "id": 5,
+      "name": "planned_start_date",
+      "label": "Start",
+      "description": "",
+      "field_type": "default_planned_start_date",
+      "required": false,
+      "required_for_closure": false,
+      "position": 5,
+      "default_field": true,
+      "choices": [],
+      "nested_fields": [],
+      "placeholder": "",
+      "helptext": "",
+      "hint": false,
+      "content": null,
+      "displayed_to_agents": true,
+      "data_source": 0,
+      "lookup_config": null,
+      "workspace_id": 1,
+      "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+      "id": 6,
+      "name": "cost_code",
+      "label": "Cost Code",
+      "description": "",
+      "field_type": "custom_text",
+      "required": false,
+      "required_for_closure": false,
+      "position": 6,
+      "default_field": false,
+      "choices": [],
+      "nested_fields": [],
+      "placeholder": "",
+      "helptext": "",
+      "hint": false,
+      "content": null,
+      "displayed_to_agents": true,
+      "data_source": 0,
+      "lookup_config": null,
+      "workspace_id": 2,
+      "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+      "id": 7,
+      "name": "notice",
+      "label": "Notice",
+      "description": "",
+      "field_type": "custom_content",
+      "required": false,
+      "required_for_closure": false,
+      "position": 7,
+      "default_field": false,
+      "choices": [],
+      "nested_fields": [],
+      "placeholder": "",
+      "helptext": "",
+      "hint": false,
+      "content": "<p>Read me</p>",
+      "displayed_to_agents": true,
+      "data_source": 0,
+      "lookup_config": null,
+      "workspace_id": 2,
+      "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+      "id": 8,
+      "name": "requested_for",
+      "label": "Beneficiary",
+      "description": "",
+      "field_type": "default_requested_for",
+      "required": false,
+      "required_for_closure": false,
+      "position": 8,
+      "default_field": true,
+      "choices": [],
+      "nested_fields": [],
+      "placeholder": "",
+      "helptext": "",
+      "hint": false,
+      "content": null,
+      "displayed_to_agents": true,
+      "data_source": 0,
+      "lookup_config": null,
+      "workspace_id": 1,
+      "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+      "id": 9,
+      "name": "department",
+      "label": "Department",
+      "description": "",
+      "field_type": "default_department",
+      "required": false,
+      "required_for_closure": false,
+      "position": 9,
+      "default_field": true,
+      "choices": [],
+      "nested_fields": [],
+      "placeholder": "",
+      "helptext": "",
+      "hint": false,
+      "content": null,
+      "displayed_to_agents": true,
+      "data_source": 0,
+      "lookup_config": null,
+      "workspace_id": 1,
+      "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+      "id": 10,
+      "name": "region",
+      "label": "Region",
+      "description": "",
+      "field_type": "custom_dropdown",
+      "required": false,
+      "required_for_closure": false,
+      "position": 10,
+      "default_field": false,
+      "choices": [
+        {
+          "id": 31,
+          "value": "North"
+        },
+        {
+          "id": 32,
+          "value": "South"
+        }
+      ],
+      "nested_fields": [],
+      "placeholder": "",
+      "helptext": "",
+      "hint": false,
+      "content": null,
+      "displayed_to_agents": true,
+      "data_source": 0,
+      "lookup_config": null,
+      "workspace_id": 2,
+      "updated_at": "2030-01-02T03:04:05Z"
+    }
+  ],
+  "row": {
+    "id": 123,
+    "subject": "Test",
+    "status": 2,
+    "priority": 1,
+    "tags": [
+      "old"
+    ],
+    "planned_start_date": null,
+    "planned_end_date": null
+  },
+  "reply": {
+    "plan_lines": [
+      "GET /search/autocomplete/requesters?q=person@example.com&qf=value&all_users=true",
+      "GET /api/_/tickets/123",
+      "GET /api/_/ticket_form_fields",
+      "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields."
+    ],
+    "payload_json": "{\"body\": \"<div>Acme update</div>\", \"cc_emails\": [\"Acme User <person@example.com>\"], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"status\": 3}, \"translate_reply\": false}",
+    "hash": "2ef8059dd98a3d7275aa81398a003ce7ecc08359405992984957d155cb011440",
+    "review": {
+      "action": "ticket_reply",
+      "method": "POST",
+      "path": "/api/_/tickets/123/reply",
+      "payload": {
+        "body": "<div>Acme update</div>",
+        "cc_emails": [
+          "Acme User <person@example.com>"
+        ],
+        "conversation_from_summary": false,
+        "freddy_message_id": null,
+        "full_text": "<div>Acme update</div>",
+        "helpdesk_ticket": {
+          "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+          "status": 3
+        },
+        "translate_reply": false
+      },
+      "status_label": "Pending",
+      "plan_hash": "2ef8059dd98a3d7275aa81398a003ce7ecc08359405992984957d155cb011440",
+      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+    },
+    "send_lines": [
+      "GET /api/_/tickets/123",
+      "GET /api/_/ticket_form_fields",
+      "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields.",
+      "GET /search/autocomplete/requesters?q=person@example.com&qf=value&all_users=true",
+      "POST /api/_/tickets/123/reply",
+      "GET /api/_/tickets/123/conversations?include=user,phone,feedback&per_page=30&page=1",
+      "GET /api/_/tickets/123"
+    ],
+    "send_bodies": [
+      "{\"body\": \"<div>Acme update</div>\", \"cc_emails\": [\"Acme User <person@example.com>\"], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"status\": 3}, \"translate_reply\": false}"
+    ],
+    "result": {
+      "status": "submitted",
+      "conversation_id": 456,
+      "ticket_id": 123,
+      "plan_hash": "2ef8059dd98a3d7275aa81398a003ce7ecc08359405992984957d155cb011440",
+      "verified": true,
+      "fields": {
+        "body": "matched",
+        "cc_emails": "matched",
+        "ticket_status": "matched"
+      }
+    }
+  },
+  "note": {
+    "plan_lines": [
+      "GET /search/autocomplete/requesters?q=b@example.com&qf=value&all_users=true"
+    ],
+    "payload_json": "{\"body\": \"<div>Acme note</div>\", \"conversation_from_summary\": false, \"notify_emails\": [\"Acme User <b@example.com>\"], \"private\": true}",
+    "hash": "967ae22d869c4989e1681fdd95c62c72365099085fd288c0ca06d047410bfee4",
+    "review": {
+      "action": "ticket_note",
+      "method": "POST",
+      "path": "/api/_/tickets/123/notes",
+      "payload": {
+        "body": "<div>Acme note</div>",
+        "conversation_from_summary": false,
+        "notify_emails": [
+          "Acme User <b@example.com>"
+        ],
+        "private": true
+      },
+      "status_label": null,
+      "plan_hash": "967ae22d869c4989e1681fdd95c62c72365099085fd288c0ca06d047410bfee4",
+      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+    },
+    "send_lines": [
+      "POST /api/_/tickets/123/notes",
+      "GET /api/_/tickets/123/conversations?include=user,phone,feedback&per_page=30&page=1"
+    ],
+    "send_bodies": [
+      "{\"body\": \"<div>Acme note</div>\", \"conversation_from_summary\": false, \"notify_emails\": [\"Acme User <b@example.com>\"], \"private\": true}"
+    ],
+    "result": {
+      "status": "submitted",
+      "conversation_id": 457,
+      "ticket_id": 123,
+      "plan_hash": "967ae22d869c4989e1681fdd95c62c72365099085fd288c0ca06d047410bfee4",
+      "verified": true,
+      "fields": {
+        "body": "matched",
+        "private": "matched",
+        "notify_emails": "matched"
+      }
+    }
+  },
+  "refusals": [
+    {
+      "reply": false,
+      "options": {
+        "sender": "help@acme.example.com"
+      },
+      "error": "note sender/BCC wire is not proven",
+      "payload": null,
+      "lines": []
+    },
+    {
+      "reply": false,
+      "options": {
+        "bcc": "x@example.com"
+      },
+      "error": "note sender/BCC wire is not proven",
+      "payload": null,
+      "lines": [
+        "GET /search/autocomplete/requesters?q=x@example.com&qf=value&all_users=true"
+      ]
+    },
+    {
+      "reply": true,
+      "options": {
+        "sender": "Help <help@acme.example.com>"
+      },
+      "error": "sender must be a plain configured support email address",
+      "payload": null,
+      "lines": []
+    },
+    {
+      "reply": true,
+      "options": {
+        "bcc": "x@example.com",
+        "cc": "person@example.com"
+      },
+      "error": "combined BCC/CC/status wire is not proven",
+      "payload": null,
+      "lines": [
+        "GET /search/autocomplete/requesters?q=person@example.com&qf=value&all_users=true",
+        "GET /search/autocomplete/requesters?q=x@example.com&qf=value&all_users=true"
+      ]
+    },
+    {
+      "reply": true,
+      "options": {
+        "bcc": "x@example.com",
+        "pending": true
+      },
+      "error": "combined BCC/CC/status wire is not proven",
+      "payload": null,
+      "lines": [
+        "GET /search/autocomplete/requesters?q=x@example.com&qf=value&all_users=true"
+      ]
+    },
+    {
+      "reply": true,
+      "options": {
+        "bcc": "x@example.com"
+      },
+      "error": "BCC requires a configured --sender and bare recipient emails",
+      "payload": null,
+      "lines": [
+        "GET /search/autocomplete/requesters?q=x@example.com&qf=value&all_users=true"
+      ]
+    },
+    {
+      "reply": true,
+      "options": {
+        "bcc": "Ann <x@example.com>",
+        "sender": "help@acme.example.com"
+      },
+      "error": "CC must be a plain email address",
+      "payload": null,
+      "lines": []
+    },
+    {
+      "reply": true,
+      "options": {
+        "bcc": "x@example.com",
+        "sender": "help@acme.example.com"
+      },
+      "error": null,
+      "payload": {
+        "bcc_emails": [
+          "x@example.com"
+        ],
+        "body": "<div>Acme</div>",
+        "conversation_from_summary": false,
+        "freddy_message_id": null,
+        "from_email": "help@acme.example.com",
+        "full_text": "<div>Acme</div>",
+        "translate_reply": false
+      },
+      "lines": [
+        "GET /search/autocomplete/requesters?q=x@example.com&qf=value&all_users=true"
+      ]
+    },
+    {
+      "reply": true,
+      "options": {
+        "sender": "help@acme.example.com"
+      },
+      "error": null,
+      "payload": {
+        "body": "<div>Acme</div>",
+        "cc_emails": [],
+        "conversation_from_summary": false,
+        "freddy_message_id": null,
+        "from_email": "help@acme.example.com",
+        "full_text": "<div>Acme</div>",
+        "translate_reply": false
+      },
+      "lines": []
+    }
+  ],
+  "property_fields": {
+    "lines": [
+      "GET /api/_/ticket_form_fields",
+      "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields."
+    ],
+    "fields": [
+      {
+        "name": "subject",
+        "label": "Subject",
+        "choices": null
+      },
+      {
+        "name": "description",
+        "label": "Description",
+        "choices": null
+      },
+      {
+        "name": "status",
+        "label": "Status",
+        "choices": [
+          [
+            "Open",
+            "Open"
+          ],
+          [
+            "Pending",
+            "Pending"
+          ],
+          [
+            "Closed",
+            "Closed"
+          ]
+        ]
+      },
+      {
+        "name": "priority",
+        "label": "Priority",
+        "choices": [
+          [
+            "Low",
+            "Low"
+          ],
+          [
+            "High",
+            "High"
+          ]
+        ]
+      },
+      {
+        "name": "cost_code",
+        "label": "Cost Code",
+        "choices": null
+      },
+      {
+        "name": "requested_for",
+        "label": "Beneficiary",
+        "choices": null
+      },
+      {
+        "name": "region",
+        "label": "Region",
+        "choices": [
+          [
+            "North",
+            "North"
+          ],
+          [
+            "South",
+            "South"
+          ]
+        ]
+      }
+    ]
+  },
+  "property_send": {
+    "plan_lines": [
+      "GET /api/_/tickets/123",
+      "GET /api/_/ticket_form_fields",
+      "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields."
+    ],
+    "hash": "e20e59603bf4bbd699890c32989591e68544dbeb88ccd1967501241a83703cb4",
+    "review": {
+      "action": "ticket_properties",
+      "method": "PUT",
+      "path": "/api/_/tickets/123",
+      "before": {
+        "tags": [
+          "old"
+        ]
+      },
+      "after": {
+        "tags": [
+          "Acme",
+          "one"
+        ]
+      },
+      "payload": {
+        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+        "tags": [
+          "Acme",
+          "one"
+        ]
+      },
+      "plan_hash": "e20e59603bf4bbd699890c32989591e68544dbeb88ccd1967501241a83703cb4",
+      "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+    },
+    "body_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"tags\": [\"Acme\", \"one\"]}",
+    "before_json": "{\"tags\": [\"old\"]}",
+    "record_hash": "60e758f884ee3ef9a8deadc3f28925745b6320bbb388b98ee9a5242ca64777eb",
+    "send_lines": [
+      "GET /api/_/tickets/123",
+      "GET /api/_/ticket_form_fields",
+      "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields.",
+      "PUT /api/_/tickets/123",
+      "GET /api/_/tickets/123"
+    ],
+    "send_bodies": [
+      "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"tags\": [\"Acme\", \"one\"]}"
+    ],
+    "result": {
+      "status": "submitted",
+      "ticket_id": 123,
+      "plan_hash": "e20e59603bf4bbd699890c32989591e68544dbeb88ccd1967501241a83703cb4",
+      "verified": true,
+      "fields": {
+        "tags": "matched"
+      }
+    }
+  },
+  "answers_for_flag_fields": {
+    "planned_start_date": {
+      "error": "Start: update wire is not proven"
+    },
+    "tags": {
+      "error": "could not evaluate ticket edit form and rules; no update attempted"
+    }
+  }
+}

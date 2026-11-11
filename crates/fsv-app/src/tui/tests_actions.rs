@@ -693,7 +693,9 @@ fn remote_people_suggestions_follow_completion_remote_user_values() {
         for (v, want) in [
             (json!(true), true),
             (json!(1), true),
+            (json!(1.0), true),
             (json!("true"), true),
+            (json!([]), false),
             (json!("off"), false),
             (json!(0), false),
         ] {
