@@ -21,7 +21,7 @@ def test_cc_wire_and_hash(recipients):
     assert ("CC", ", ".join(recipients)) in plan.review.rows
 
 
-@pytest.mark.parametrize("recipient", ["bad", "Name <a@example.com>", "a@example.com\nb@example.com"])
+@pytest.mark.parametrize("recipient", ["bad", "Name <a@example.com>", "a@example.com\nb@example.com", "a\x00@example.com"])
 def test_invalid_cc_blocks_plan(recipient):
     p = ticket_flow.build_create_plan(meta(), draft(), resolver=None, requester=WHO, cc_emails=(recipient,))
     assert not p.ok and not p.hash

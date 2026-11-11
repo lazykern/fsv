@@ -530,11 +530,11 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
         problems.insert(0, REQUESTER_MISSING)
     elif not requester.email:
         problems.insert(0, f"requester {requester} has no email address")
-    from fsv.ticket_notes import _EMAIL
+    from fsv.ticket_notes import _EMAIL, _valid_recipient
     if requested_for is not None and (not isinstance(requested_for, LookupValue) or
-                                      not isinstance(requested_for.email, str) or not _EMAIL.fullmatch(requested_for.email)):
+                                      not isinstance(requested_for.email, str) or not _valid_recipient(requested_for.email) or not _EMAIL.fullmatch(requested_for.email)):
         problems.append("requested-for must resolve to a user with a plain email address")
-    valid_cc = isinstance(cc_emails, (list, tuple)) and all(isinstance(v, str) and _EMAIL.fullmatch(v) for v in cc_emails)
+    valid_cc = isinstance(cc_emails, (list, tuple)) and all(isinstance(v, str) and _valid_recipient(v) and _EMAIL.fullmatch(v) for v in cc_emails)
     if not valid_cc:
         problems.append("CC recipients must be plain email addresses")
 

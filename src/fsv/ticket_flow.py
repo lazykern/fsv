@@ -62,8 +62,8 @@ def build_create_plan(meta: Any, draft: Draft, *, resolver: Any, requester: Look
                 errors.append(f"{field.label}: deprecated or deleted field cannot be sent")
     if requester is None or not requester.email:
         errors.insert(0, "requester email is required; use --requester or the draft requester key")
-    from fsv.ticket_notes import _EMAIL
-    if not isinstance(cc_emails, (list, tuple)) or any(not isinstance(v, str) or not _EMAIL.fullmatch(v) for v in cc_emails):
+    from fsv.ticket_notes import _EMAIL, _valid_recipient
+    if not isinstance(cc_emails, (list, tuple)) or any(not isinstance(v, str) or not _valid_recipient(v) or not _EMAIL.fullmatch(v) for v in cc_emails):
         errors.append("CC recipients must be plain email addresses")
     payload = None
     if requester is not None and requester.email:

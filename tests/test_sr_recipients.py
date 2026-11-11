@@ -46,6 +46,10 @@ def test_invalid_cc_and_missing_target_email_block():
     assert not p.ok and not p.hash
     assert any("CC" in e for e in p.errors)
     assert any("requested-for" in e for e in p.errors)
+    p = catalog.build_sr_plan(meta(), Draft(), resolver=None, requester=ACTOR,
+                              requested_for=LookupValue(12, "Target", "bad\x00@example.com"),
+                              cc_emails=("bad\x00@example.com",))
+    assert not p.ok and any("CC" in e for e in p.errors) and any("requested-for" in e for e in p.errors)
 
 
 class Client:

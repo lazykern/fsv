@@ -641,7 +641,7 @@ def create_command(
     def build(d: Draft, ack_all: bool = ack, m: cat.ItemMeta | None = None) -> cat.SRPlan:
         req, problem = who.resolve(d)
         from fsv.formmeta import resolve_requester
-        from fsv.ticket_notes import _EMAIL
+        from fsv.ticket_notes import _EMAIL, _valid_recipient
         target = None
         if requested_for is not None:
             try:
@@ -651,7 +651,7 @@ def create_command(
         resolved_cc = []
         resolved_cc_ids = []
         for email in cc or ():
-            if not _EMAIL.fullmatch(email):
+            if not _valid_recipient(email) or not _EMAIL.fullmatch(email):
                 raise FlowExit(2, "CC must be a plain email address")
             try:
                 person = resolve_requester(client, email)
