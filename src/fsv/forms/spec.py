@@ -149,11 +149,16 @@ _USER_LOOKUP_SOURCE = 5
 
 # Service-catalog ("formserv") field type codes -> kind.
 SR_TYPE_KINDS: dict[int, str] = {
+    501: "lookup",
+    502: "lookup",
     1001: "text",
     1003: "dropdown",
+    1006: "checkbox",
     1007: "date",  # datetime unless field_options.date_only == "true"
     1008: "textarea",
     1014: "attachment",
+    1019: "dropdown",
+    1021: "number",
     1024: "notice",
 }
 
@@ -264,6 +269,9 @@ class Field:
     date_only: bool = False
     lookup_entity: str | None = None
     lookup_link: str | None = None
+    # Retain catalog options separately from the executable module-form link;
+    # one observed lookup search does not establish all catalog contracts.
+    lookup_config: Mapping[str, Any] | None = None
     allowed_file_types: tuple[str, ...] = ()
     max_files: int | None = None
     sent: bool = True  # False: shown and answerable, but its request key is unknown (never sent)
@@ -371,13 +379,16 @@ class FormSpec:
     def resolve_name(self, name: str) -> str | None:
         """Map a business-rule / web DOM field name to the API name.
 
-        Handles ``customFields.x`` / ``customField.sr_x`` prefixes, camelCase
+        Handles ``customFields.x`` / ``customField.sr_x`` prefixes, catalog
+        ``cf_`` aliases, camelCase
         DOM names (``plannedStartDate``), and ``*_id`` foreign keys
         (``department_id`` -> ``department``). Returns None when unknown.
         """
         if not name:
             return None
         n = str(name)
+        if n in self.by_name:
+            return n
         for p in _PREFIXES:
             if n.startswith(p):
                 n = n[len(p):]
@@ -387,6 +398,8 @@ class FormSpec:
             if c in _NAME_ALIASES:
                 cands.append(_NAME_ALIASES[c])
             if c.startswith("sr_"):
+                cands.append(c[3:])
+            if self.module == "service_request" and c.startswith("cf_"):
                 cands.append(c[3:])
             if c.endswith("_id"):
                 cands.append(c[:-3])
@@ -435,9 +448,13 @@ class FormSpec:
         parent = self.by_name.get(f.parent)
         if not parent:
             return None
-        for s in parent.sections:
-            if name in s.fields:
-                return parent, s.choices
+        choices = tuple(dict.fromkeys(choice for s in parent.sections if name in s.fields for choice in s.choices))
+        if choices or any(name in s.fields for s in parent.sections):
+            return parent, choices
+        # Catalog descendants not mapped by a choice must not appear by
+        # default. Module-form nested fields use a different mechanism.
+        if self.module == "service_request":
+            return parent, ()
         return None
 
     def choices_for(self, f: Field, values: Mapping[str, Any]) -> tuple[Choice, ...]:
@@ -502,9 +519,18 @@ class FormSpec:
         for f, sections in pending_sections:
             out = []
             for s in sections:
-                names = tuple(id_to_name[str(i)] for i in s.get("fields", []) if str(i) in id_to_name)
+                unknown = [i for i in s.get("fields", []) if str(i) not in id_to_name]
+                if unknown:
+                    raise ValueError(f"item field {f.api_name!r}: section references unknown child id")
+                names = tuple(id_to_name[str(i)] for i in s.get("fields", []))
+                if any(next(child for child in fields if child.api_name == n).parent != f.api_name for n in names):
+                    raise ValueError(f"item field {f.api_name!r}: section references a non-child field")
                 out.append(Section(choices=tuple(norm(x) for x in s.get("choices", [])), fields=names))
             f.sections = tuple(out)
+        for child in fields:
+            if child.parent and not any(child.api_name in s.fields for s in
+                                        next(f for f in fields if f.api_name == child.parent).sections):
+                warnings.append(f"item field {child.api_name!r}: no section choice reveals this child; hidden")
         configs = si.get("configs") or {}
         item = ServiceItem(
             id=si.get("id"),
@@ -812,29 +838,28 @@ def _field_from_sr(
     choices, helptext = split_choice_help(choices, helptext)
     sections: list[dict[str, Any]] = []
     info = opts.get("section_info")
-    if info:
+    has_info = info not in (None, "")
+    if has_info:
         try:
             for s in json.loads(info) if isinstance(info, str) else info:
                 sections.append({"fields": s.get("sectionFields") or [], "choices": s.get("sectionChoices") or []})
-        except (ValueError, TypeError):
-            warnings.append(f"item field {name!r}: unreadable section_info")
+        except (ValueError, TypeError, AttributeError) as exc:
+            raise ValueError(f"item field {name!r}: unreadable section_info") from exc
     dep_sections = []
+    has_dep = False
     for x in raw_choices:
-        dep = (x.get("dependent_ids") or {}).get("field") or []
+        dependent = x.get("dependent_ids") or {}
+        has_dep = has_dep or "field" in dependent
+        dep = dependent.get("field") or []
         if dep:
             dep_sections.append({"fields": dep, "choices": [x.get("value")]})
-    if not sections:
+    if not has_info:
         sections = dep_sections
-    elif dep_sections:
-        # Both sources present: formserv's choices[].dependent_ids is what
-        # reveals the child fields; section_info normally mirrors it. Merge
-        # anything section_info is missing.
-        covered = {(norm(ch), str(fid)) for s in sections for ch in s["choices"] for fid in s["fields"]}
-        extra = [s for s in dep_sections
-                 if any((norm(s["choices"][0]), str(fid)) not in covered for fid in s["fields"])]
-        if extra:
-            warnings.append(f"item field {name!r}: section_info and dependent_ids differ; using both")
-            sections = sections + extra
+    elif has_dep:
+        info_pairs = {(norm(ch), str(fid)) for s in sections for ch in s["choices"] for fid in s["fields"]}
+        dep_pairs = {(norm(ch), str(fid)) for s in dep_sections for ch in s["choices"] for fid in s["fields"]}
+        if info_pairs != dep_pairs:
+            raise ValueError(f"item field {name!r}: section_info and dependent_ids differ")
     file_types: tuple[str, ...] = ()
     if opts.get("allowed_file_types"):
         try:
@@ -845,6 +870,9 @@ def _field_from_sr(
     max_files = None
     if str(opts.get("max_attachment_limit", "")).isdigit():
         max_files = int(opts["max_attachment_limit"])
+    is_lookup = code in (501, 502)
+    if is_lookup:
+        warnings.append(f"item field {name!r}: catalog lookup submission is unverified; selection is not sent")
     f = Field(
         api_name=name,
         label=label,
@@ -858,11 +886,15 @@ def _field_from_sr(
         is_custom=True,
         field_type=f"formserv:{code}",
         id=c.get("id"),
+        multi=code == 502,
         visible_base=c.get("visible", True) is not False,
         on_form=True,
         content=content,
         parent=parent,
         date_only=kind == "date",
+        lookup_entity="catalog_lookup" if is_lookup else None,
+        lookup_config=dict(opts) if is_lookup else None,
+        sent=not is_lookup,
         allowed_file_types=file_types,
         max_files=max_files,
     )
