@@ -830,8 +830,12 @@ def _download(c: Any, att: dict[str, Any], directory: Path, force: bool) -> dict
     if r.status_code >= 400:
         return {**row, "status": "error", "error": f"HTTP {r.status_code}"}
     Path(directory).expanduser().mkdir(parents=True, exist_ok=True)
-    with open(target, "wb" if force else "xb") as fh:
-        fh.write(r.content)
+    try:
+        with open(target, "wb" if force else "xb") as fh:
+            fh.write(r.content)
+    except FileExistsError:
+        # Another process created the file after the preflight check.
+        return {**row, "path": str(target), "status": "exists"}
     return {**row, "path": str(target), "size": len(r.content), "status": "downloaded"}
 
 

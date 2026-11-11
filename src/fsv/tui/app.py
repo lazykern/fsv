@@ -2375,7 +2375,7 @@ class FsvApp(App):
                 self._load_task_editor(item, target)
             elif kind == "download":
                 self.push_screen(ValueScreen("Download destination directory", "."),
-                                 lambda path: self._confirm_action(kind, item, target, {"destination": path}) if path else None)
+                                 lambda path: self._prepare_download(item, target, path) if path else None)
             else:
                 self._confirm_action(kind, item, target, {})
 
@@ -2383,6 +2383,29 @@ class FsvApp(App):
         if warnings:
             self.notify("\n".join(map(str, warnings)), severity="warning", timeout=15)
         self.push_screen(ChoiceScreen(choices, title), picked)
+
+    def _prepare_download(self, item: dict, target: dict, directory: str, name: str | None = None) -> None:
+        """Resolve collisions inside Textual; never overwrite an existing file."""
+        from pathlib import Path
+        from fsv.catalog import safe_target
+
+        if self.read_only:
+            return
+        name = name if name is not None else str(target.get("name") or f"attachment-{target.get('id', '')}")
+        try:
+            path = safe_target(directory, name)
+        except ValueError as exc:
+            self._show_failure(str(exc))
+            return
+        if Path(path).exists():
+            def choose(action):
+                if action == "rename" and not self.read_only:
+                    self.push_screen(ValueScreen("Save as filename (no directories)", name),
+                                     lambda new: self._prepare_download(item, target, directory, new) if new else None)
+            self.push_screen(ChoiceScreen([("skip", "Skip download"), ("rename", "Choose another filename")],
+                                          f"File exists: {path} — no overwrite"), choose)
+            return
+        self._confirm_action("download", item, {**target, "name": name}, {"destination": directory})
 
     @work(thread=True, exclusive=True, group="task-read")
     def _load_task_editor(self, item: dict, target: dict) -> None:
