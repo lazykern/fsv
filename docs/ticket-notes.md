@@ -60,8 +60,10 @@ fsv tickets add-note SR-123 --body 'Customer-visible update' --public \
 ```
 
 Every send prints the exact HTML payload, plain preview, visibility and explicit
-recipient list before confirmation. `--notify-email agent@example.com` can be
-repeated. Plain text is escaped by default, with div paragraphs and br line
+recipient list before confirmation. `--notify-email 'Agent Example <agent@example.com>'`
+can be repeated; this formatted string shape was observed in the blocked request.
+Bare addresses are retained for compatibility but their acceptance was not established
+by this capture. The input is not resolved or rewritten. Plain text is escaped by default, with div paragraphs and br line
 breaks matching form-payload conventions. `--html` retains supplied HTML exactly;
 it does not sanitize it. Unlike automatic HTML detection, plain mode does not
 interpret a leading `<` as markup. Empty bodies and markup-only HTML are rejected.
@@ -106,9 +108,8 @@ read-only setting; this module does not import TUI configuration.
 
 The sender resolves CSRF using existing read-only client preparation and records
 a hash-only `plan:ticket_note` journal event before sending. Failure to persist
-that event stops the operation. It deliberately bypasses `Client.int_post`,
-whose internal 403 refresh path can send a second POST, and uses the existing
-lower-level `_request` once. No retry, alternate endpoint, reply fallback, or
+that event stops the operation. It calls the lower-level `_request` once after
+CSRF preparation. No retry, alternate endpoint, reply fallback, or
 implicit recipient is introduced. Body text is not included in verbose request
 previews or plan-journal events.
 
@@ -118,9 +119,10 @@ object, `conversation` object or direct ID-bearing object; these are defensive
 response decoders, not assertions of an observed accepted-response shape.
 The existing paginated conversation loader reads the same ticket and matches
 **only that exact ID**. It never substitutes the newest entry or a body-text
-match. `result['readback']` contains the matching conversation and `verified` is
-true only if it was found. A missing/incomplete/failed read-back returns
-`verified:false` plus a warning while retaining the returned ID. Submission is
+match. `identity_verified` reports that the returned ID was found. The result
+reports each of body, visibility and recipients as matched, mismatched or
+unavailable. `verified` is true only when all three match and conversation
+read-back is complete. Missing fields are not proof of equality. Submission is
 not retried because read-back failed.
 
 Transport errors, ambiguous HTTP outcomes, malformed responses and missing IDs

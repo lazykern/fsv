@@ -23,6 +23,13 @@ from fsv.views import load_conversations
 
 _ACTION = "ticket_note"
 _EMAIL = re.compile(r"[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+\Z")
+_FORMATTED_EMAIL = re.compile(r"[^<>\r\n]+ <([^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+)>\Z")
+
+
+def _valid_recipient(value: Any) -> bool:
+    if not isinstance(value, str) or any(ord(ch) < 32 or ord(ch) == 127 for ch in value):
+        return False
+    return bool(_EMAIL.fullmatch(value) or _FORMATTED_EMAIL.fullmatch(value))
 
 
 class NoteError(RuntimeError):
@@ -91,8 +98,7 @@ def build_plan(ticket_id: int | str, body: str, *, public: bool = False,
                                                  and not isinstance(notify_emails, (list, tuple))):
         raise ValueError("notify_emails must be a list or tuple of email addresses")
     recipients = tuple(notify_emails or ())
-    if any(not isinstance(email, str) or not _EMAIL.fullmatch(email)
-           or any(ord(char) < 32 or ord(char) == 127 for char in email) for email in recipients):
+    if any(not _valid_recipient(email) for email in recipients):
         raise ValueError("notify_emails contains an invalid email address")
     return NotePlan(cid, body_html, public, recipients, config.DOMAIN)
 
@@ -155,8 +161,7 @@ def send(plan: NotePlan, client: Any = None, *, reviewed_hash: str | None,
     if not plan.tenant:
         raise NoteError("configure a tenant before sending a note")
     _duplicate(plan)
-    # int_post/_int_request silently repeats a POST on 403. Use the existing
-    # lower-level request once instead, as the reviewed incident sender does.
+    # Prepare CSRF first and submit the reviewed payload once.
     try:
         c = client if client is not None else get_client()
         csrf = c._get_csrf()
@@ -171,7 +176,7 @@ def send(plan: NotePlan, client: Any = None, *, reviewed_hash: str | None,
                               content=json.dumps(plan.payload, ensure_ascii=False).encode("utf-8"),
                               headers={"Content-Type": "application/json", "X-CSRF-Token": csrf})
     except APIError as exc:
-        if 400 <= exc.status < 500 and exc.status not in (408, 429):
+        if 400 <= exc.status < 500 and exc.status not in (403, 408, 429):
             journal.record_plan("failed", plan.hash, action=_ACTION, target=plan.ticket_id)
             raise NoteError(f"note rejected (HTTP {exc.status}); no automatic retry") from None
         raise NoteError("note outcome unknown; check the exact ticket and journal before any retry") from None
@@ -183,16 +188,25 @@ def send(plan: NotePlan, client: Any = None, *, reviewed_hash: str | None,
         raise NoteError("note response has no exact note ID; outcome unknown, check the ticket before any retry")
     journal.record_plan("done", plan.hash, action=_ACTION, target=plan.ticket_id, created_id=nid)
     result: dict[str, Any] = {"status": "submitted", "ticket_id": plan.ticket_id, "note_id": nid,
-                              "note": note, "plan_hash": plan.hash, "verified": False, "readback": None}
+                              "note": note, "plan_hash": plan.hash, "verified": False, "readback": None,
+                              "identity_verified": False, "fields_verified": False,
+                              "readback_complete": False}
     try:
         rows, meta, missing = load_conversations(c, plan.ticket_id, all_pages=True)
         exact = next((row for row in rows if _note_id(row) is not None and str(row["id"]) == str(nid)), None)
         result["readback"] = exact
-        result["verified"] = exact is not None
-        if exact is None:
-            result["warning"] = "Returned note ID not found in conversation read-back; do not resend."
-            if missing or meta.get("partial"):
-                result["warning"] += " Read-back was incomplete."
+        result["readback_complete"] = not missing and not meta.get("partial")
+        result["identity_verified"] = exact is not None
+        if exact is not None:
+            expected = {"body": plan.body_html, "private": not plan.public,
+                        "notify_emails": list(plan.notify_emails)}
+            result["fields"] = {key: ("unavailable" if key not in exact else
+                                      "matched" if exact[key] == value else "mismatched")
+                                for key, value in expected.items()}
+            result["fields_verified"] = all(value == "matched" for value in result["fields"].values())
+            result["verified"] = result["fields_verified"] and result["readback_complete"]
+        if not result["verified"]:
+            result["warning"] = "Read-back did not fully verify the note fields and history; do not resend."
     except Exception:
         result["warning"] = "Note returned an ID but conversation read-back failed; do not resend."
     return result

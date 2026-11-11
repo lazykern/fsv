@@ -49,7 +49,8 @@ def app():
 @pytest.mark.parametrize("envelope", ["note", "conversation", None])
 def test_exact_wire_and_returned_identity(monkeypatch, tenant, public, envelope, recipients):
     seen = []
-    exact = {"id": 9000001001, "body": "<div>Acme review</div>", "private": not public, "source": 2}
+    exact = {"id": 9000001001, "body": "<div>Acme review</div>", "private": not public,
+             "notify_emails": recipients or [], "source": 2}
 
     def handler(req):
         seen.append(req)
@@ -84,16 +85,51 @@ def test_exact_wire_and_returned_identity(monkeypatch, tenant, public, envelope,
 
 
 def test_notification_list_and_immutable_review():
-    recipients = ["agent@example.com", "reviewer@example.com"]
+    recipients = ["Agent Example <agent@example.com>", "reviewer@example.com"]
     plan = notes.build_plan(123, "Globex review", notify_emails=recipients)
     recipients.append("other@example.com")
     payload = plan.payload
     payload["notify_emails"].append("another@example.com")
     payload["private"] = False
-    assert plan.payload["notify_emails"] == ["agent@example.com", "reviewer@example.com"]
+    assert plan.payload["notify_emails"] == ["Agent Example <agent@example.com>", "reviewer@example.com"]
     assert plan.payload["private"] is True
     assert notes.build_plan(123, "Globex review").payload["notify_emails"] == []
     assert plan.hash != notes.build_plan(124, "Globex review", notify_emails=recipients[:2]).hash
+
+
+@pytest.mark.parametrize("actual,expected_status", [(None, "unavailable"), (["wrong@example.com"], "mismatched")])
+def test_exact_identity_does_not_prove_notification_fields(monkeypatch, tenant, actual, expected_status):
+    plan = notes.build_plan(123, "Acme review", notify_emails=["Agent Example <agent@example.com>"])
+    conversation = {"id": 9000001001, "body": plan.body_html, "private": True}
+    if actual is not None:
+        conversation["notify_emails"] = actual
+
+    def handler(req):
+        if req.method == "POST":
+            assert json.loads(req.content)["notify_emails"] == ["Agent Example <agent@example.com>"]
+            return httpx.Response(200, json={"note": {"id": 9000001001}})
+        return httpx.Response(200, json={"conversations": [conversation], "meta": {"count": 1}})
+
+    c = mock_client(monkeypatch, handler)
+    try:
+        result = notes.send(plan, c, reviewed_hash=plan.hash)
+        assert result["identity_verified"] is True
+        assert result["verified"] is False
+        assert result["fields"]["notify_emails"] == expected_status
+        assert "do not resend" in result["warning"]
+    finally:
+        c.close()
+
+
+def test_legacy_plan_hash_remains_guarded(monkeypatch, tenant):
+    plan = notes.build_plan(123, "Acme review", notify_emails=["agent@example.com"])
+    old_hash = journal.plan_hash({"tenant": tenant, "path": "tickets/123/notes", "payload": {
+        "body": "<div>Acme review</div>", "conversation_from_summary": False,
+        "private": True, "notify_emails": ["agent@example.com"]}})
+    assert plan.hash == old_hash
+    journal.record_plan("started", old_hash, action="ticket_note", target=123)
+    with pytest.raises(notes.NoteError, match="outcome is unknown"):
+        notes.send(plan, reviewed_hash=plan.hash)
 
 
 def test_html_plain_conventions():
@@ -114,7 +150,7 @@ def test_html_plain_conventions():
     (123, "review", {"notify_emails": ["not-an-email"]}),
     (123, "review", {"notify_emails": [None]}),
     (123, "review", {"notify_emails": ["agent@example.com\nother@example.com"]}),
-    (123, "review", {"notify_emails": ["Agent <agent@example.com>"]}),
+    (123, "review", {"notify_emails": ["Agent <invalid>"]}),
 ])
 def test_invalid_inputs(ticket_id, body, kwargs):
     with pytest.raises(ValueError):
@@ -176,7 +212,7 @@ def test_one_post_no_retry_or_fallback(monkeypatch, tenant, failure):
         assert seen[0].method == "POST"
         assert seen[0].url.path == "/api/_/tickets/123/notes"
         events = [r["event"] for r in journal.read() if r.get("kind") == "plan:ticket_note"]
-        ambiguous = failure in (401, 408, 429, 500, 503, "timeout", "malformed")
+        ambiguous = failure in (401, 403, 408, 429, 500, 503, "timeout", "malformed")
         assert events == (["started"] if ambiguous else ["started", "failed"])
         if ambiguous:
             with pytest.raises(notes.NoteError, match="sent or its outcome is unknown"):
