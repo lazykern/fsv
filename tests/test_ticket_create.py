@@ -13,7 +13,8 @@ from fsv import journal, ticket_flow
 from fsv.drafts import Draft
 from fsv.errors import APIError
 from fsv.formmeta import FormMeta
-from fsv.forms import LookupValue, decode_br_validation_excludes
+from fsv.forms import (FormState, LookupValue, RulesEngine, build_br_validation_excludes,
+                       decode_br_validation_excludes)
 from fsv.formui.session import ticket_session
 
 
@@ -156,6 +157,90 @@ def test_missing_rule_context_and_unknown_target_fail_closed():
     p = plan(m)
     assert not p.ok and any("unavailable fields or context" in e for e in p.errors)
     assert not p.hash
+
+
+@pytest.mark.parametrize("tenant", ["Acme", "Globex"])
+@pytest.mark.parametrize("source", ["system", "current_user", "requester", "requested_for"])
+def test_short_circuited_missing_context_fails_closed(tenant, source, monkeypatch):
+    m = meta()
+    r = a._rule(9000004991, tenant + " context", {"any": [
+        {"name": "subject", "evaluate_on": "ticket", "operator": "selected"},
+        {"all": [{"name": "region", "evaluate_on": source, "operator": "is", "value": "west"}]},
+    ]}, [a._a("hide", ["priority"])])
+    r["module_type"] = "ticket"
+    m.rules["business_rules"].append(r)
+    # A nonempty but incomplete mapping must not be mistaken for known context.
+    context_key = "user" if source == "current_user" else source
+    def engine():
+        from fsv.forms import RuleContext
+        context = RuleContext(module="ticket", workspace_id=2)
+        from dataclasses import replace
+        return RulesEngine(m.spec, m.rules, context=replace(context, **{context_key: {"other": "value"}}))
+    monkeypatch.setattr(m, "engine", engine)
+    p = plan(m)
+    assert not any("none was given" in w for w in p.state.rules.warnings)
+    assert not p.ok and not p.hash
+    assert any("unavailable fields or context" in e for e in p.errors)
+    with pytest.raises(change_flow.FlowExit):
+        ticket_flow.execute(p, Client())
+
+
+def test_supplied_context_allows_plan_and_edit_only_context_is_ignored(monkeypatch):
+    from fsv.forms import RuleContext
+    m = meta()
+    rule = a._rule(9000004995, "Portal", {"all": [
+        {"name": "portal", "evaluate_on": "system", "operator": "is", "value": "east"},
+    ]}, [a._a("hide", ["priority"])])
+    rule["module_type"] = "ticket"
+    m.rules["business_rules"].append(rule)
+    monkeypatch.setattr(m, "engine", lambda: RulesEngine(
+        m.spec, m.rules, context=RuleContext(module="ticket", workspace_id=2, system={"portal": "west"})))
+    assert plan(m).ok
+    rule["form_type"] = "edit_form"
+    monkeypatch.setattr(m, "engine", lambda: RulesEngine(m.spec, m.rules, module="ticket", workspace_id=2))
+    assert plan(m).ok
+
+
+@pytest.mark.parametrize("tenant", ["Acme", "Globex"])
+def test_unknown_condition_and_target_independently_fail_closed(tenant):
+    for unknown in ("condition", "target"):
+        m = meta()
+        condition = "customFields.missing" if unknown == "condition" else "subject"
+        target = "customFields.missing" if unknown == "target" else "priority"
+        r = a._rule(9000004992, tenant + " unknown", {"all": [
+            {"name": condition, "evaluate_on": "ticket", "operator": "selected"},
+        ]}, [a._a("hide", [target])])
+        r["module_type"] = "ticket"
+        m.rules["business_rules"].append(r)
+        p = plan(m)
+        assert not p.ok and not p.hash
+        assert any("unavailable fields or context" in e for e in p.errors)
+
+
+def test_ticket_token_preserves_answer_event_order():
+    m = meta()
+    m.rules["business_rules"] = []
+    for rid, name, field, value, target in (
+        (9000004993, "Cloud", "customFields.cloud_only", "No", "customFields.staging_start"),
+        (9000004994, "Stage", "customFields.stage", "Live", "customFields.staging_end"),
+    ):
+        r = a._rule(rid, name, {"all": [{"name": field, "evaluate_on": "ticket",
+                                           "operator": "is", "value": value}]},
+                    [a._a("hide", [target])])
+        r["module_type"] = "ticket"
+        m.rules["business_rules"].append(r)
+    st = FormState(m.spec, m.engine(), event_order="history")
+    st.set("stage", "Live")
+    st.set("cloud_only", "No")
+    token = build_br_validation_excludes(st.evaluated, "ticket")
+    assert decode_br_validation_excludes(token)["hidden"] == [
+        f"staging_end_{a.ACCOUNT}", f"staging_start_{a.ACCOUNT}"]
+    # Independent compact JSON encoding, not a copied token.
+    import base64
+    payload = {"optional": "[]", "disabled": "[]",
+               "hidden": json.dumps([f"staging_end_{a.ACCOUNT}", f"staging_start_{a.ACCOUNT}"])}
+    enc = lambda s: base64.b64encode(s.encode()).decode()
+    assert token == enc('{"alg":"HS256","typ":"JWT"}') + "." + enc(json.dumps(payload, separators=(",", ":")))
 
 
 def test_real_metadata_loader_uses_ticket_query(monkeypatch):
