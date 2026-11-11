@@ -27,7 +27,9 @@ missing fields as unavailable, not verified. Legacy basic update flags remain
 available; `--reviewed` selects this stricter path explicitly. A real runtime
 `default_requested_for` field uses the separately captured SR
 `requested_for_id` update key; this does not enable that field for change or
-incident creation. Missing beneficiary-dependent rule context still blocks.
+incident creation. Beneficiary edits discard the previous person's rule
+attributes; missing exact beneficiary-dependent context blocks instead of
+reusing actor/old-person metadata.
 
 The main TUI's **e** key on a ticket/SR opens a metadata-backed property
 picker, then a value/choice picker and exact before/after/hash review. Each

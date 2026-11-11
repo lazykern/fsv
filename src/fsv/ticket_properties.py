@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Any
 
@@ -94,7 +94,12 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
         meta = load_meta(c, "ticket", "edit", fresh=True, module_id=cid)
         if meta.rules.get(RULES_UNAVAILABLE_KEY):
             raise PropertyError("ticket business rules are unavailable; use the web form")
-        state = FormState(meta.spec, meta.engine(), mode="edit", existing=existing_from_record(meta.spec, row),
+        engine = meta.engine()
+        if any(meta.spec.field(name).api_name == "requested_for" for name in answers or {}):
+            # Cached rule attributes describe the old beneficiary, not the
+            # newly selected person. Missing exact context must block rules.
+            engine.context = replace(engine.context, requested_for=None)
+        state = FormState(meta.spec, engine, mode="edit", existing=existing_from_record(meta.spec, row),
                           resolver=ClientResolver(c))
         answered = set()
         for name, value in (answers or {}).items():

@@ -62,6 +62,25 @@ def test_requested_for_update_is_property_only_and_resolves_current_user(propert
     assert props.send(p, c, reviewed_hash=p.hash)["verified"]
 
 
+def test_beneficiary_edit_never_reuses_previous_person_rule_context(property_setup, monkeypatch):
+    from test_catalog_safety import rule
+    m = rich_metadata()
+    m.form_fields["ticket_fields"].append({"id": 9000009001, "name": "requested_for", "label": "Beneficiary",
+        "field_type": "default_requested_for", "position": 7, "default_field": True})
+    r = rule([{"name": "department_id", "operator": "is", "value": ["9"], "evaluate_on": "requested_for"}],
+             [{"name": ["subject"], "property": "hide"}])
+    r.pop("item_id")
+    r["module_type"] = "ticket"
+    m.rules = {"business_rules": [r], "requested_for": {"department_id": "9"}}
+    monkeypatch.setattr(props, "load_meta", lambda *a, **kw: m)
+    c = Client()
+    c.row["requested_for_id"] = 901
+    monkeypatch.setattr(c, "autocomplete", lambda *a, **kw: [{"id": 902, "name": "Acme User", "email": "person@example.com"}], raising=False)
+    with pytest.raises(props.PropertyError, match="unavailable fields or context"):
+        props.build_plan(c, "SR-123", answers={"Beneficiary": "person@example.com"})
+    assert not c.writes
+
+
 def test_readonly_property_picker_never_prepares(offline, property_setup, monkeypatch):
     monkeypatch.setattr(formmeta, "load_meta", lambda *a, **kw: pytest.fail("read-only metadata fetch"))
     async def go():
