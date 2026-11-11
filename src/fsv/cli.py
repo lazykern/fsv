@@ -4226,6 +4226,38 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 _err_exc(e)
     else:
         if res == TICKETS:
+            @sub.command("create", help="Create an incident using the ticket form and business rules.")
+            def ticket_create(
+                from_: Optional[str] = typer.Option(None, "--from", help="YAML draft"),
+                set_: Optional[List[str]] = typer.Option(None, "--set", help="answer LABEL=VALUE (repeatable)"),
+                preset: Optional[str] = typer.Option(None, "--preset", help="draft preset"),
+                edit: bool = typer.Option(False, "--edit", "-e", help="edit YAML in a terminal"),
+                requester: Optional[str] = typer.Option(None, "--requester", help="requester email or exact name"),
+                dry: bool = typer.Option(False, "--dry-run", help="review and show the payload without sending"),
+                format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="table or json"),
+                json_out: bool = typer.Option(False, "--json", help="emit JSON"),
+                yes: bool = typer.Option(False, "--yes", "-y", help="confirm create"),
+                expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="reviewed plan hash prefix"),
+                allow_duplicate: bool = typer.Option(False, "--allow-duplicate", help="allow a known completed duplicate"),
+                ack: bool = typer.Option(False, "--ack", help="acknowledge blocking rule messages"),
+                no_input: bool = typer.Option(False, "--no-input", help="never prompt"),
+            ) -> None:
+                from fsv.change_flow import FlowExit
+                from fsv.ticket_cli import create_command
+                try:
+                    create_command(_client, from_file=from_, sets=list(set_ or []), preset=preset, edit=edit,
+                                   requester=requester, dry_run=dry, as_json=json_out or format_ == OutputFormat.json,
+                                   yes=yes, expect_plan=expect_plan, allow_duplicate=allow_duplicate, ack=ack,
+                                   no_input=_no_input(no_input))
+                except FlowExit as e:
+                    _flow_exit(e)
+                except (SessionError, APIError) as e:
+                    _err_exc(e)
+                except (SystemExit, typer.Exit):
+                    raise
+                except Exception as e:
+                    _err_exc(e)
+
             @sub.command("approvals", help="List ticket approvals for approval-capable tickets; some INC tickets may return 404.", epilog=(
                 f"[bold]Examples:[/bold]  fsv {res.name} approvals SR-1234  |  fsv {res.name} approvals SR-1234 --json"
             ))

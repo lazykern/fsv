@@ -47,7 +47,8 @@ from fsv.forms import (
 )
 from fsv.safety import norm
 
-MODULES = {"change": ("change_form_fields", "change_fields")}
+MODULES = {"change": ("change_form_fields", "change_fields"),
+           "ticket": ("ticket_form_fields", "ticket_fields")}
 FORM_TYPES = {"new": "new_form", "edit": "edit_form"}
 cache.TTL.setdefault("form_rules", 3600)
 
@@ -65,7 +66,7 @@ RECORD_KEYS = {
 def module_name(text: str) -> str:
     t = (text or "").strip().lower().rstrip("s")
     if t not in MODULES:
-        raise ValueError(f"unsupported form {text!r}; supported: changes")
+        raise ValueError(f"unsupported form {text!r}; supported: changes, tickets")
     return t
 
 

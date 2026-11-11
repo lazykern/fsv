@@ -177,8 +177,8 @@ class FormSession:
                  target: Any = None, requester: LookupValue | None = None, requester_note: str = "",
                  dry_run: bool = False, status_label: Callable[[Any], str] | None = None,
                  resolver: Any = None) -> None:
-        if kind not in ("change", "sr") or mode not in ("new", "edit"):
-            raise ValueError("kind must be change|sr and mode new|edit")
+        if kind not in ("change", "sr", "ticket") or mode not in ("new", "edit") or (kind == "ticket" and mode != "new"):
+            raise ValueError("kind must be change|sr|ticket and mode new|edit (ticket: new only)")
         self.kind, self.mode, self.meta, self.client = kind, mode, meta, client
         self.title = title
         self.record = record or {}
@@ -256,12 +256,11 @@ class FormSession:
 
     def _build_items(self) -> list[FormItem]:
         out: list[FormItem] = []
-        if self.kind == "sr":
+        if self.kind == "sr" or (self.kind == "ticket" and self._requester_field() is None):
             out.append(FormItem(REQUESTER, "Requester", "lookup", entity="user",
-                                help="Who the request is for (approvals route via their manager). "
-                                     "Type part of a name or email."))
+                                help="Select the requester by name or email."))
         for f in self.spec.ordered():
-            if self.kind == "change" and self.mode == "new" and is_status(f):
+            if self.kind in ("change", "ticket") and self.mode == "new" and is_status(f):
                 continue  # status on create is the form default (shown on the review)
             widget = WIDGET_FOR_KIND.get(f.kind, "text")
             entity = ENTITY_FOR_KIND.get(f.kind, f.lookup_entity or "lookup") if widget == "lookup" else None
@@ -362,7 +361,7 @@ class FormSession:
         acknowledged on the review, so they are not listed)."""
         out: list[str] = []
         special = self._requester_is_special()
-        if special and self.requester is None and (self.kind == "sr" or self._requester_field() is not None):
+        if special and self.requester is None and (self.kind in ("sr", "ticket") or self._requester_field() is not None):
             out.append("Requester is required")
         req = self._requester_field()
         for e in self.state.errors():
@@ -572,14 +571,14 @@ class FormSession:
             err = "pick a person from the list"
             self.errors_by_key[it.key] = err
             return Outcome(error=err)
-        if raw is not None and self.kind == "sr" and not raw.email:
+        if raw is not None and self.kind in ("sr", "ticket") and not raw.email:
             err = f"{raw} has no email address"
             self.errors_by_key[it.key] = err
             return Outcome(error=err)
         self.requester = raw
         self.draft.requester = (raw.email or raw.display) if raw is not None else None
         req = self._requester_field()
-        if req is not None and self.kind == "change":
+        if req is not None and self.kind in ("change", "ticket"):
             try:
                 self.state.set(req.api_name, raw)
             except FormError as e:
@@ -669,6 +668,9 @@ class FormSession:
         elif self.kind == "change":
             plan = flow.build_update_plan(m, self.draft, self.record, self.target, resolver=self.resolver,
                                           ack_all=ack, status_label=self.status_label)
+        elif self.kind == "ticket":
+            from fsv import ticket_flow
+            plan = ticket_flow.build_create_plan(m, self.draft, resolver=self.resolver, requester=self.requester, ack_all=ack)
         else:
             plan = cat.build_sr_plan(m, self.draft, resolver=self.resolver, requester=self.requester, ack_all=ack)
         pending = [e for e in self.input_errors() if e not in plan.errors]
@@ -682,7 +684,7 @@ class FormSession:
         return plan
 
     def default_draft_path(self) -> str:
-        name = "sr-draft.yaml" if self.kind == "sr" else (
+        name = "ticket-draft.yaml" if self.kind == "ticket" else "sr-draft.yaml" if self.kind == "sr" else (
             f"change-{self.target}-draft.yaml" if self.mode == "edit" else "change-draft.yaml")
         return str(Path.cwd() / name)
 
@@ -704,6 +706,8 @@ class FormSession:
         ack = " --ack" if self.ack else ""
         if self.kind == "sr":
             return f"fsv sr create {self.meta.display_id} --from {q} --yes --expect-plan {h}{ack}"
+        if self.kind == "ticket":
+            return f"fsv tickets create --from {q} --yes --expect-plan {h}{ack}"
         if self.mode == "edit":
             return f"fsv changes update {self.target} --from {q} --yes --expect-plan {h}{ack}"
         return f"fsv changes create --from {q} --yes --expect-plan {h}{ack}"
@@ -716,6 +720,9 @@ class FormSession:
 
         if self.dry_run:
             raise flow.FlowExit(2, "dry run: nothing is sent")
+        if self.kind == "ticket":
+            from fsv import ticket_flow
+            return ticket_flow.send(plan, self.client, lambda m: self.build_plan(meta=m), allow_duplicate=allow_duplicate)
         if self.kind == "sr":
             cat.duplicate_check(plan, allow_duplicate)
             new, diff = cat.freshen(plan, self.client, lambda m: self.build_plan(meta=m))
@@ -781,9 +788,24 @@ def sr_session(client: Any, item_ref: Any = None, *, meta: Any = None, requester
                        requester_note=note, dry_run=dry_run)
 
 
+def ticket_session(client: Any, *, meta: Any = None, requester: LookupValue | None = None,
+                   dry_run: bool = False) -> FormSession:
+    """Reusable incident form; requester is never implicitly the signed-in agent."""
+    from fsv.formmeta import load_meta
+
+    meta = meta or load_meta(client, "ticket", "new")
+    note = ""
+    if requester is None:
+        requester, note = _default_requester(client, "requester")
+    return FormSession(kind="ticket", mode="new", meta=meta, client=client, title="New Incident",
+                       requester=requester, requester_note=note, dry_run=dry_run)
+
+
 def open_session(kind: str, **ctx: Any) -> FormSession:
     if kind in ("change", "changes"):
         return change_session(**ctx)
     if kind in ("sr", "service_request"):
         return sr_session(**ctx)
-    raise ValueError(f"unknown form kind {kind!r}; expected change or sr")
+    if kind in ("ticket", "tickets", "incident"):
+        return ticket_session(**ctx)
+    raise ValueError(f"unknown form kind {kind!r}; expected change, ticket or sr")
