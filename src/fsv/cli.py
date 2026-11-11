@@ -681,26 +681,21 @@ def _resolve_group(c: Any, value: str) -> str:
 
 
 def _resolve_update_choice(sch: dict[str, Any], field_name: str, raw: str) -> int | str:
-    from fsv import schema as schema_mod
-    if raw.isdigit():
-        return int(raw)
     f = _find_schema_field(sch, field_name)
-    if f:
+    choices = [c for c in (f or {}).get("choices", [])
+               if isinstance(c, dict) and not c.get("deleted") and not c.get("is_deleted")]
+    if raw.isdigit():
+        matches = [c for c in choices if str(c.get("id")) == raw]
+    else:
         folded = raw.casefold()
-        for c in f.get("choices") or []:
-            label = str(c.get("value") or c.get("name") or c.get("label") or "")
-            if label.casefold() == folded:
-                return c.get("id", c.get("value", raw))
-    fallback = {"priority": schema_mod.PRIORITY}.get(field_name, {})
-    for cid, label in fallback.items():
-        if label.casefold() == raw.casefold():
-            return cid
-    choices = []
-    if f:
-        choices = [str(c.get("value") or c.get("name") or c.get("label") or c.get("id")) for c in f.get("choices") or []]
-    if field_name == "priority" and not choices:
-        choices = list(schema_mod.PRIORITY.values())
-    suffix = f"; choices: {', '.join(choices[:12])}" if choices else "; use numeric ID"
+        matches = [c for c in choices if any(str(c.get(k) or "").casefold() == folded
+                                              for k in ("value", "name", "label"))]
+    if len(matches) > 1:
+        _err(f"ambiguous {field_name}: {raw!r}; select a unique active ID")
+    if len(matches) == 1 and matches[0].get("id") is not None:
+        return matches[0]["id"]
+    labels = [str(c.get("value") or c.get("name") or c.get("label") or c.get("id")) for c in choices]
+    suffix = f"; choices: {', '.join(labels[:12])}" if labels else "; active choice metadata unavailable"
     _err(f"unknown {field_name}: {raw!r}{suffix}")
 
 
@@ -843,12 +838,19 @@ def _resolve_set_field(c: Any, sch: dict[str, Any], field_text: str, raw_value: 
 
     # checkbox
     if "checkbox" in ftype:
-        return name, raw_value.lower() in ("true", "1", "yes", "on")
+        value = raw_value.strip().casefold()
+        if value not in ("true", "1", "yes", "on", "false", "0", "no", "off"):
+            _err(f"invalid boolean for {field_text!r}: {raw_value!r}")
+        return name, value in ("true", "1", "yes", "on")
 
     # multi-select → list
     if "multi_select" in ftype:
         parts = [p.strip() for p in raw_value.split(",") if p.strip()]
         return name, [_choice_value(f, p, type_) for p in parts]
+
+    # Status and priority must use a unique active schema choice even via --set.
+    if name in ("status", "priority") and (ftype in ("default_status", "default_priority") or type_ != "custom_field"):
+        return name, _resolve_update_choice(sch, name, raw_value)
 
     # dropdown with choices
     choices = f.get("choices") or []
