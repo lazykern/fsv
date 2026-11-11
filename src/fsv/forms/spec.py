@@ -125,6 +125,7 @@ _NAME_ALIASES: dict[str, str] = {
     "requester_id": "requester",
     "change_window_id": "change_window",
     "type": "ticket_type",
+    "description_html": "description",
 }
 _PREFIXES = ("customFields.", "customField.", "custom_fields.", "custom_field.")
 CUSTOM_PREFIXES = _PREFIXES
@@ -633,7 +634,21 @@ def _fields_from_form_field(f: Mapping[str, Any], warnings: list[str]) -> list[F
 
 
 def _link_ticket_sections(spec: FormSpec, raw: Sequence[Mapping[str, Any]]) -> None:
-    """Dynamic sections (``sections: [{choice_ids, ticket_field_ids}]``)."""
+    """Dynamic sections (``sections: [{choice_ids, ticket_field_ids}]``).
+
+    A field flagged ``belongs_to_section`` that no section lists is never
+    revealed by a choice: it starts hidden (a rule may still show it)."""
+    _link_sections(spec, raw)
+    for f in raw:
+        if not f.get("belongs_to_section"):
+            continue
+        fld = spec.by_name.get(str(f.get("name")))
+        if fld is not None and not fld.parent and fld.visible_base:
+            fld.visible_base = False
+            spec.warnings.append(f"field {fld.api_name!r} belongs to a section that no choice reveals; hidden")
+
+
+def _link_sections(spec: FormSpec, raw: Sequence[Mapping[str, Any]]) -> None:
     for f in raw:
         sections = f.get("sections") or []
         if not sections:

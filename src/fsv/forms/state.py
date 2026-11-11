@@ -16,7 +16,16 @@ import re
 from dataclasses import dataclass, field as dc_field
 from typing import Any, Mapping, Protocol, Sequence
 from fsv.forms.errors import AmbiguousLookupError, FieldDisabledError, ValueParseError
-from fsv.forms.rules import Conflict, Decision, EvaluatedForm, Explanation, Message, RulesEngine, is_empty
+from fsv.forms.rules import (
+    Conflict,
+    Decision,
+    EvaluatedForm,
+    Explanation,
+    Message,
+    RulesEngine,
+    is_empty,
+    offered_choices,
+)
 from fsv.forms.spec import Choice, Field, FormSpec, norm, plain_text
 from fsv.forms.tz import resolve_timezone
 
@@ -68,6 +77,10 @@ class Diff:
     messages_removed: list[Message] = dc_field(default_factory=list)
     populated: dict[str, Any] = dc_field(default_factory=dict)
     cleared: list[str] = dc_field(default_factory=list)
+    # populate="restrict": field -> labels now on offer (restricted) ...
+    restricted: dict[str, list[str]] = dc_field(default_factory=dict)
+    # ... and fields whose full choice list is back
+    unrestricted: list[str] = dc_field(default_factory=list)
 
     def __bool__(self) -> bool:
         return any(
@@ -80,6 +93,8 @@ class Diff:
                 self.messages_removed,
                 self.populated,
                 self.cleared,
+                self.restricted,
+                self.unrestricted,
             )
         )
 
@@ -104,6 +119,10 @@ class Diff:
             out.append(f"filled in: {spec.by_name[name].label} = {value}")
         if self.cleared:
             out.append(f"cleared: {labels(self.cleared)}")
+        for name, offered in self.restricted.items():
+            out.append(f"choices limited: {spec.by_name[name].label} -> {', '.join(offered) or '(none)'}")
+        if self.unrestricted:
+            out.append(f"all choices offered again: {labels(self.unrestricted)}")
         out.extend(f"message: {m.text}" for m in self.messages_added)
         return out
 
@@ -299,11 +318,18 @@ class FormState:
         raise ValueParseError(f.label, raw, f"unsupported field kind {k!r}")  # pragma: no cover
 
     def _choices(self, f: Field) -> tuple[Choice, ...]:
-        pool = self.spec.choices_for(f, {**self.evaluated.values, **self.values})
+        values = {**self.evaluated.values, **self.values}
+        pool = self.spec.choices_for(f, values)
         if f.is_nested_level and not pool:
             parent = self.spec.by_name.get(f.parent or "")
             raise ValueParseError(f.label, None, f"choose {parent.label if parent else 'the parent level'} first")
         return pool
+
+    def choices(self, name: str) -> tuple[Choice, ...]:
+        """Choices the field offers now (nested levels and ``populate``
+        restrictions applied); hidden choices included, check ``.visible``."""
+        f = self.spec.field(name)
+        return offered_choices(self.spec, f, {**self.evaluated.values, **self.values}, self.evaluated.restricted)
 
     def _parse_choice(self, f: Field, raw: Any) -> Choice:
         pool = self._choices(f)
@@ -314,6 +340,15 @@ class FormState:
             opts = [c.label for c in pool if c.visible]
             shown = ", ".join(opts[:15]) + (f", … ({len(opts)} total)" if len(opts) > 15 else "")
             raise ValueParseError(f.label, raw, f"{raw!r} is not a valid choice; choose one of: {shown}", opts)
+        offered = offered_choices(self.spec, f, {**self.evaluated.values, **self.values}, self.evaluated.restricted)
+        if f.choice(ch.value, offered) is None:
+            opts = [c.label for c in offered if c.visible]
+            _, d = self.evaluated.restriction_for(f.api_name)
+            by = f" by rule {d.rule_name!r} (id {d.rule_id})" if d is not None else ""
+            allowed = ", ".join(opts) if opts else "nothing (choose another upper level first)"
+            raise ValueParseError(
+                f.label, raw, f"{ch.label!r} is not offered now: the choices are limited{by} to: {allowed}", opts
+            )
         return ch
 
     def _parse_multi(self, f: Field, raw: Any) -> list[Choice]:
@@ -402,7 +437,20 @@ class FormState:
         """Everything that would stop the web form from submitting
         (blocking messages count until acknowledged)."""
         out = [f"{f.label} is required" for f in self.missing_required()]
+        out.extend(self.unavailable_errors())
         out.extend(f"blocked by rule (acknowledge to continue): {m.text}" for m in self.unacknowledged())
+        return out
+
+    def unavailable_errors(self) -> list[str]:
+        """Visible fields whose value a ``populate`` restriction no longer
+        offers (e.g. answered before the rule limited the choices)."""
+        out = []
+        for name, (v, d) in self.evaluated.unavailable.items():
+            f = self.spec.by_name[name]
+            opts = [c.label for c in self.evaluated.choices(name) if c.visible]
+            by = f" by rule {d.rule_name!r} (id {d.rule_id})" if d is not None else ""
+            out.append(f"{f.label}: {_display(self.spec, f, v, self.evaluated.values)!r} is not offered any more; "
+                       f"the choices are limited{by} to: {', '.join(opts) or '(none)'}")
         return out
 
     def dropped(self) -> list[tuple[Field, Any, Decision | None]]:
@@ -456,6 +504,12 @@ class FormState:
             f = self.spec.by_name[name]
             rows.append(("Replaced", f"{f.label}: your value {_display(self.spec, f, old, self.evaluated.values)!r} "
                                      f"was replaced by rule {rid} (populate)"))
+        for name, (v, d) in self.evaluated.unavailable.items():
+            f = self.spec.by_name[name]
+            by = f" by rule {d.rule_name!r}" if d is not None else ""
+            rows.append(("Not offered", f"{f.label} = {_display(self.spec, f, v, self.evaluated.values)} "
+                                        f"(choices limited{by}; pick one of: "
+                                        f"{', '.join(c.label for c in self.evaluated.choices(name) if c.visible)})"))
         for f, v, d in self.dropped():
             why = f"hidden by rule {d.rule_name!r}" if d and d.action == "hide" else "hidden"
             rows.append(("Dropped", f"{f.label} = {_display(self.spec, f, v, self.evaluated.values)} ({why}; not sent)"))
@@ -488,6 +542,10 @@ def _diff(name: str, before: EvaluatedForm, after: EvaluatedForm) -> Diff:
     for n, rid in after.populated.items():
         if before.populated.get(n) != rid or before.values.get(n) != after.values.get(n):
             d.populated[n] = after.values.get(n)
+    for n, r in after.restricted.items():
+        if before.restricted.get(n) != r:
+            d.restricted[n] = [c.label for c in after.choices(n) if c.visible]
+    d.unrestricted = [n for n in before.restricted if n not in after.restricted]
     return d
 
 

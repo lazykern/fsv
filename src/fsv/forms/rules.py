@@ -7,13 +7,15 @@ Two evaluation models are implemented (``RulesEngine(model=...)``):
     1. On load, every rule is evaluated in array order against the load
        values (defaults on a new form, the record on an edit form); a
        reversible rule that does not match applies its reverse.
-    2. Each user change of field F is a *change event*: only the rules whose
-       conditions reference F are evaluated, in array order. A matching rule
-       applies its actions; a reversible rule is reversed only when it goes
-       from matching to not matching (``event_reverse="transition"``;
-       ``"always"`` reverses on every non-match).
-    3. ``populate`` sets a value but does not cascade: it fires no change
-       event for the field it filled.
+    2. Each user change is a *change event* that evaluates every rule again,
+       in array order, on the current state (``event_scope="all"``). A
+       matching rule applies its actions; a reversible rule that does not
+       match applies its reverse every time (``event_reverse="always"``).
+       ``event_scope="referenced"`` runs only the rules whose conditions read
+       the changed field; ``event_reverse="transition"`` reverses only when a
+       rule goes from matching to not matching (the earlier semantics).
+    3. ``populate`` restricts the choices of a dropdown (see below); it
+       fires no change event.
     Answers that arrive without an order (YAML, ``--set``) are replayed as
     change events in web field order (``position``: a person filling the
     form top to bottom). Setting a field to the value it already has is not
@@ -21,8 +23,18 @@ Two evaluation models are implemented (``RulesEngine(model=...)``):
 
 ``"replay"`` (pure function of the values)
     Every evaluation starts from the metadata and applies *every* rule in
-    order; a later rule overrides an earlier one. ``populate`` never
-    overwrites a value the user set and feeds back until it settles.
+    order; a later rule overrides an earlier one.
+
+``populate`` (``RulesEngine(populate=...)``):
+
+``"restrict"`` (default, what the web does)
+    The action's ``values`` (choice ``display_id``s; for nested fields a
+    tree ``[{display_id, nested_options}]``) become the only choices the
+    dropdown offers (plus the empty choice). The field's value is NOT set.
+    A reversible rule that stops matching restores the full choice list.
+``"set"`` (legacy)
+    The first value is filled in as the field's value. In the replay model
+    it never overwrites a user value and feeds back until it settles.
 
 In both models a matching rule applies its actions; a rule that does not
 match applies the reverse (show<->hide, mandate<->unmandate,
@@ -32,11 +44,11 @@ are separate rules evaluated in order.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field as dc_field
+from dataclasses import dataclass, field as dc_field, replace
 from typing import Any, Collection, Iterable, Mapping, Sequence
 
-from fsv.forms.errors import UnsupportedRuleError
-from fsv.forms.spec import CUSTOM_PREFIXES, Choice, Field, FormSpec, norm
+from fsv.forms.errors import FormRuleError, UnsupportedRuleError
+from fsv.forms.spec import CHOICE_KINDS, CUSTOM_PREFIXES, Choice, Field, FormSpec, norm
 
 SUPPORTED_OPERATORS = frozenset({"is", "is_not", "includes", "does_not_include", "selected", "not_selected"})
 SUPPORTED_ACTIONS = frozenset({"show", "hide", "mandate", "unmandate", "populate", "disable", "message"})
@@ -44,17 +56,25 @@ SUPPORTED_ACTIONS = frozenset({"show", "hide", "mandate", "unmandate", "populate
 FORM_SOURCES = frozenset({"change", "ticket", "problem", "release", "service_request", "form"})
 # ... and those that read a person record from the rule context.
 USER_SOURCES: dict[str, str] = {"current_user": "user", "requester": "requester", "requested_for": "requested_for"}
-SUPPORTED_EVALUATE_ON = FORM_SOURCES | frozenset(USER_SOURCES)
+# ... and those that read the context's ``system`` mapping (e.g. ``portal``:
+# the id of the portal the form is opened in).
+CONTEXT_SOURCES: dict[str, str] = {**USER_SOURCES, "system": "system"}
+SUPPORTED_EVALUATE_ON = FORM_SOURCES | frozenset(CONTEXT_SOURCES)
 # Action targets that are not form fields but form-level switches.
 PSEUDO_TARGETS = frozenset({"attachment_ids"})  # general request attachments (SR)
-_REVERSE = {"show": "hide", "hide": "show", "mandate": "unmandate", "unmandate": "mandate", "disable": "enable"}
+_REVERSE = {"show": "hide", "hide": "show", "mandate": "unmandate", "unmandate": "mandate", "disable": "enable",
+            "populate": "restore"}
 _KIND = {"show": "visible", "hide": "visible", "mandate": "required", "unmandate": "required",
          "disable": "disabled", "enable": "disabled"}
 _POSITIVE = frozenset({"show", "mandate", "disable"})
 _MODES = {"new": "new_form", "edit": "edit_form"}
 MODELS = ("event", "replay")
-# Default model. Chosen by scoring both models against the captured web
-# forms (see docs/forms.md, "Choosing the model").
+# What ``populate`` does: restrict the dropdown's choices (web behaviour,
+# default) or set the value (legacy). See the module docstring.
+POPULATE_MODES = ("restrict", "set")
+DEFAULT_POPULATE = "restrict"
+# Default model. Chosen by scoring every variant against captured web forms
+# (see docs/forms.md, "Choosing the model").
 DEFAULT_MODEL = "event"
 MAX_PASSES = 8
 # How to treat several entries with the same rule id in one response:
@@ -64,6 +84,14 @@ MAX_PASSES = 8
 #   "first"/"last" keep one entry per id (first position; first/last content).
 #   "none"  keep everything.
 DEDUPE_POLICIES = ("exact", "first", "last", "none")
+# Event model: which rules a change event runs. "referenced": the rules whose
+# conditions read the changed field; "all": every rule, in array order.
+EVENT_SCOPES = ("referenced", "all")
+# Defaults chosen by scoring every variant against live-web captures (see
+# docs/forms.md, "Choosing the model"): every change re-runs every rule, and a
+# reversible rule that does not match applies its reverse each time.
+DEFAULT_EVENT_SCOPE = "all"
+DEFAULT_EVENT_REVERSE = "always"
 
 
 def is_empty(value: Any) -> bool:
@@ -81,7 +109,9 @@ class RuleContext:
 
     ``workspace_id`` may be one id or a collection (a user in workspaces 1
     and 2); ``None`` disables workspace filtering. ``user`` is the
-    ``user`` object of the business_rules response.
+    ``user`` object of the business_rules response. ``system`` holds the
+    values ``evaluate_on: "system"`` conditions read (e.g.
+    ``{"portal": <portal id>}``).
     """
 
     module: str | None = None
@@ -92,6 +122,7 @@ class RuleContext:
     user: Mapping[str, Any] | None = None
     requester: Mapping[str, Any] | None = None
     requested_for: Mapping[str, Any] | None = None
+    system: Mapping[str, Any] | None = None
 
     def workspaces(self) -> set[str] | None:
         if self.workspace_id is None:
@@ -107,7 +138,7 @@ class Condition:
     field: str | None  # API name (None if unknown or not a form field)
     operator: str
     values: tuple[str, ...] = ()
-    source: str = "form"  # "form" | "user" | "requester" | "requested_for"
+    source: str = "form"  # "form" | "user" | "requester" | "requested_for" | "system"
 
 
 @dataclass(frozen=True)
@@ -175,7 +206,7 @@ class Decision:
 
     rule_id: Any
     rule_name: str
-    action: str  # show/hide/mandate/unmandate/disable/enable
+    action: str  # show/hide/mandate/unmandate/disable/enable/populate/restore
     matched: bool  # False: reverse action of a reversible rule that did not match
     event: str | None = None  # field whose change triggered it; None = load / replay
     rule_index: int = -1
@@ -239,6 +270,26 @@ class ExcludeName:
 EXCLUDE_KEYS = ("optional", "disabled", "hidden")
 
 
+@dataclass(frozen=True)
+class ChoiceRestriction:
+    """The choices a ``populate`` action leaves on offer for one dropdown.
+
+    ``allowed`` maps each offered choice (normalised choice value) to the
+    restriction of its nested options: ``None`` means all of them. The
+    empty choice (``--``) is always offered; the field's value is not set.
+    """
+
+    allowed: Mapping[str, "ChoiceRestriction | None"]
+    rule_id: Any = None
+    rule_name: str = ""
+
+    def offers(self, value: Any) -> bool:
+        return norm(value) in self.allowed
+
+    def below(self, value: Any) -> "ChoiceRestriction | None":
+        return self.allowed.get(norm(value))
+
+
 @dataclass
 class EvaluatedForm:
     visible: list[str]  # ordered, inputs and notices
@@ -260,9 +311,31 @@ class EvaluatedForm:
     attachments_required: bool | None = None  # rule override for item attachments
     account_id: str | None = None
     spec: FormSpec | None = dc_field(default=None, repr=False, compare=False)
+    # populate="restrict": field (top level) -> choices still on offer, and
+    # the populate decision in effect (also kept for restores)
+    restricted: dict[str, ChoiceRestriction] = dc_field(default_factory=dict)
+    restricted_by: dict[str, Decision] = dc_field(default_factory=dict)
+    # visible fields whose value is not on offer any more: field -> (value, decision)
+    unavailable: dict[str, tuple[Any, Decision | None]] = dc_field(default_factory=dict)
+    populate_mode: str = DEFAULT_POPULATE
 
     def __post_init__(self) -> None:
         self._vis = set(self.visible)
+
+    def choices(self, name: str) -> tuple[Choice, ...]:
+        """Choices the dropdown offers now: nested levels follow the upper
+        levels, and a ``populate`` restriction keeps only its choices."""
+        if self.spec is None:
+            raise ValueError("choices() needs the FormSpec (evaluate through a RulesEngine)")
+        return offered_choices(self.spec, self.spec.field(name), self.values, self.restricted)
+
+    def restriction_for(self, name: str) -> tuple[ChoiceRestriction | None, Decision | None]:
+        """The restriction that applies to ``name`` (its top-level field's)
+        and the decision that set it."""
+        if self.spec is None:
+            return None, None
+        top = _nested_chain(self.spec, self.spec.field(name))[0].api_name
+        return self.restricted.get(top), self.restricted_by.get(top)
 
     def is_visible(self, name: str) -> bool:
         return name in self._vis
@@ -307,6 +380,9 @@ class EvaluatedForm:
             d = self.decisions.get((n, "disabled"))
             if d is not None or n in self.disabled:
                 out.append(Explanation(n, f.label, "disabled", n in self.disabled, "rule" if d else "metadata", d))
+            r, d = self.restriction_for(n)
+            if d is not None and f.kind in CHOICE_KINDS:
+                out.append(Explanation(n, f.label, "choices restricted", r is not None, "rule", d))
         return out
 
 
@@ -338,7 +414,10 @@ class RulesEngine:
         strict: bool = True,
         model: str | None = None,
         same_value_fires: bool = False,
-        event_reverse: str = "transition",
+        event_reverse: str | None = None,
+        populate: str | None = None,
+        system: Mapping[str, Any] | None = None,
+        event_scope: str | None = None,
     ) -> None:
         if dedupe not in DEDUPE_POLICIES:
             raise ValueError(f"dedupe must be one of {DEDUPE_POLICIES}")
@@ -353,7 +432,14 @@ class RulesEngine:
                 item_id=item_id,
                 workspace_id=workspace_id,
                 user=user if user is not None else raw_user,
+                system=system,
             )
+        elif system is not None and context.system is None:
+            context = replace(context, system=system)
+        populate = populate or DEFAULT_POPULATE
+        if populate not in POPULATE_MODES:
+            raise ValueError(f"populate must be one of {POPULATE_MODES}")
+        self.populate = populate
         self.context = context
         self.spec = spec
         self.module = context.module
@@ -364,9 +450,14 @@ class RulesEngine:
         self.strict = strict
         self.model = model
         self.same_value_fires = same_value_fires
+        event_reverse = event_reverse or DEFAULT_EVENT_REVERSE
+        event_scope = event_scope or DEFAULT_EVENT_SCOPE
         if event_reverse not in ("transition", "always"):
             raise ValueError("event_reverse must be 'transition' or 'always'")
         self.event_reverse = event_reverse
+        if event_scope not in EVENT_SCOPES:
+            raise ValueError(f"event_scope must be one of {EVENT_SCOPES}")
+        self.event_scope = event_scope
         self.warnings: list[str] = []
         self.unsupported: list[str] = []
         self.skipped: list[str] = []
@@ -380,7 +471,16 @@ class RulesEngine:
 
     # -- loading ----------------------------------------------------------
     def _load(self, data: Any) -> list[Rule]:
-        raw = data.get("business_rules", []) if isinstance(data, Mapping) else list(data or [])
+        if isinstance(data, Mapping):
+            raw = data.get("business_rules", data.get("business_rule")) or []
+        else:
+            raw = list(data or [])
+        listing = [r for r in raw if "condition_data" not in r and "action_data" not in r]
+        if listing:
+            raise FormRuleError(
+                f"{len(listing)} business rule(s) have no conditions or actions: this is the rules listing, "
+                "not the form's rules. Fetch them with fsv.forms.business_rules_query(...) (ember_api=true)."
+            )
         kept: list[Mapping[str, Any]] = []
         for r in raw:
             why = self._filter(r)
@@ -494,9 +594,9 @@ class RulesEngine:
             raw_name = str(c.get("name") or "")
             val = c.get("value")
             vals = tuple(str(v) for v in val) if isinstance(val, (list, tuple)) else (() if val is None else (str(val),))
-            if ev_key in USER_SOURCES:
+            if ev_key in CONTEXT_SOURCES:
                 attr = raw_name.split(".")[-1]
-                items.append(Condition(raw_name, attr, op, vals, USER_SOURCES[ev_key]))
+                items.append(Condition(raw_name, attr, op, vals, CONTEXT_SOURCES[ev_key]))
                 continue
             api = self.spec.resolve_name(raw_name)
             if api is None:
@@ -643,7 +743,7 @@ class RulesEngine:
             st.populated.pop(name, None)
             changed = {name} | self._clear_lower_levels(name, st)
             for rule in rules:
-                if not rule.fields & changed:
+                if self.event_scope == "referenced" and not rule.fields & changed:
                     continue
                 ok = self._match_group(rule.condition, st.values)
                 if not ok and self.event_reverse == "transition" and rule.index not in st.last_match:
@@ -700,6 +800,11 @@ class RulesEngine:
             prop = a.property if ok else (_REVERSE.get(a.property) if rule.reversible else None)
             if prop is None:
                 continue
+            if self.populate == "restrict" and a.property == "populate":
+                self._restrict(rule, a, ok, st, event)
+                continue
+            if prop == "restore":
+                continue  # populate="set": a reverse leaves the value alone
             if prop == "message":
                 st.messages[rule.index] = [Message(t, rule.id, rule.name, rule.is_validation) for t in a.targets]
                 continue
@@ -743,6 +848,51 @@ class RulesEngine:
                 if ok:
                     st.matched_decisions.setdefault((n, kind), []).append(d)
 
+    def _restrict(self, rule: Rule, a: Action, ok: bool, st: "_State", event: str | None) -> None:
+        """populate="restrict": a matching rule limits the choices; a
+        reversible rule that does not match restores them."""
+        d = Decision(rule.id, rule.name, "populate" if ok else "restore", ok, event, rule.index)
+        for t in a.all_targets:
+            if t.api is None:
+                continue
+            f = self.spec.by_name[t.api]
+            if not ok:
+                st.restricted.pop(t.api, None)
+                st.restricted_by[t.api] = d
+                continue
+            r = self._restriction(f, a.values, rule)
+            if r is not None:
+                st.restricted[t.api] = r
+                st.restricted_by[t.api] = d
+
+    def _restriction(self, f: Field, values: Sequence[Any], rule: Rule) -> ChoiceRestriction | None:
+        if f.kind not in CHOICE_KINDS:
+            self.warnings.append(f"rule {rule.name!r}: populate on {f.api_name!r}, which has no choices, ignored")
+            return None
+
+        def build(pool: Sequence[Choice], vals: Sequence[Any]) -> dict[str, ChoiceRestriction | None]:
+            out: dict[str, ChoiceRestriction | None] = {}
+            for raw in vals:
+                kids = None
+                if isinstance(raw, Mapping):
+                    kids = raw.get("nested_options")
+                    raw = raw.get("display_id", raw.get("id", raw.get("value")))
+                ch = _choice_in(pool, raw)
+                if ch is None:
+                    self.warnings.append(
+                        f"rule {rule.name!r}: populate value {raw!r} is not a choice of {f.api_name!r}; ignored")
+                    continue
+                # null / empty nested_options: every nested option stays on offer
+                out[norm(ch.value)] = ChoiceRestriction(build(ch.children, kids), rule.id, rule.name) if kids else None
+            return out
+
+        allowed = build(f.choices, values)
+        if not allowed:
+            if values:
+                self.warnings.append(f"rule {rule.name!r}: populate on {f.api_name!r} offers no known choice; ignored")
+            return None
+        return ChoiceRestriction(allowed, rule.id, rule.name)
+
     def _finish(self, st: "_State", model: str) -> EvaluatedForm:
         visible: list[str] = []
         shown: set[str] = set()
@@ -776,6 +926,20 @@ class RulesEngine:
                 conflicts.append(Conflict(n, kind, tuple(uniq), st.why[(n, kind)]))
         messages = [m for i in sorted(st.messages) for m in st.messages[i]]
         excludes = self._excludes(st)
+        unavailable: dict[str, tuple[Any, Decision | None]] = {}
+        if st.restricted:
+            for n in visible:
+                f = self.spec.by_name[n]
+                v = values.get(n)
+                if f.kind not in CHOICE_KINDS or is_empty(v):
+                    continue
+                top = _nested_chain(self.spec, f)[0].api_name
+                if top not in st.restricted:
+                    continue
+                pool = offered_choices(self.spec, f, values, st.restricted)
+                items = v if isinstance(v, (list, tuple)) else [v]
+                if any(f.choice(x, pool) is None for x in items):
+                    unavailable[n] = (v, st.restricted_by.get(top))
         return EvaluatedForm(
             visible=visible,
             required=required,
@@ -793,6 +957,10 @@ class RulesEngine:
             attachments_required=st.pseudo_req.get("attachment_ids"),
             account_id=self.spec.account_id,
             spec=self.spec,
+            restricted=dict(st.restricted),
+            restricted_by=dict(st.restricted_by),
+            unavailable=unavailable,
+            populate_mode=self.populate,
         )
 
     def _excludes(self, st: "_State") -> dict[str, list[ExcludeName]]:
@@ -813,6 +981,25 @@ class RulesEngine:
             if static and not now:
                 optional.append(x)
         disabled = [x for n, x in st.reg["disabled"].items() if n in st.dis]
+        # A custom nested field a rule hid takes its lower levels with it: the
+        # web lists them after the rule actions, as hidden and as optional.
+        names_h = {(x.base, x.custom) for x in hidden}
+        names_o = {(x.base, x.custom) for x in optional}
+        for n in list(st.reg["visible"]):
+            f = self.spec.by_name.get(n)
+            if f is None or st.vis.get(n, True) or f.kind != "nested" or not f.is_custom or f.is_nested_level:
+                continue
+            for lvl in f.levels:
+                lf = self.spec.by_name.get(lvl)
+                if lf is None or not lf.on_form:
+                    continue
+                key = (lvl, True)
+                if key not in names_h:
+                    hidden.append(ExcludeName(lvl, True))
+                    names_h.add(key)
+                if key not in names_o and not st.req.get(lvl):
+                    optional.append(ExcludeName(lvl, True))
+                    names_o.add(key)
         return {"optional": optional, "disabled": disabled, "hidden": hidden}
 
     # -- matching ---------------------------------------------------------
@@ -825,7 +1012,8 @@ class RulesEngine:
     def _person(self, source: str) -> Mapping[str, Any] | None:
         person = getattr(self.context, source, None)
         if person is None:
-            msg = f"rules read the {source} record but none was given; its conditions see empty values"
+            what = "system values (RuleContext.system)" if source == "system" else f"the {source} record"
+            msg = f"rules read {what} but none was given; their conditions see empty values"
             if msg not in self.warnings:
                 self.warnings.append(msg)
         return person
@@ -901,6 +1089,50 @@ def _condition_fields(g: ConditionGroup) -> set[str]:
     return out
 
 
+def _nested_chain(spec: FormSpec, f: Field) -> list[Field]:
+    """[top field, level 2, ...] down to ``f`` (just ``[f]`` if not nested)."""
+    chain = [f]
+    cur = f
+    while cur.is_nested_level and cur.parent in spec.by_name:
+        cur = spec.by_name[cur.parent]
+        chain.insert(0, cur)
+    return chain
+
+
+def offered_choices(
+    spec: FormSpec, f: Field, values: Mapping[str, Any], restricted: Mapping[str, ChoiceRestriction]
+) -> tuple[Choice, ...]:
+    """Choices ``f`` offers given the upper nested levels' values and the
+    ``populate`` restrictions in effect."""
+    pool = spec.choices_for(f, values)
+    chain = _nested_chain(spec, f)
+    node: ChoiceRestriction | None = restricted.get(chain[0].api_name)
+    for upper in chain[:-1]:
+        if node is None:
+            return pool
+        v = values.get(upper.api_name)
+        if is_empty(v) or not node.offers(v):
+            return ()
+        node = node.below(v)
+    if node is None:
+        return pool
+    return tuple(c for c in pool if node.offers(c.value))
+
+
+def _choice_in(pool: Sequence[Choice], raw: Any) -> Choice | None:
+    """Populate values are choice ``display_id``s; fall back to id, then value/label."""
+    key = norm(raw)
+    for attr in ("display_id", "id"):
+        for c in pool:
+            v = getattr(c, attr)
+            if v is not None and norm(v) == key:
+                return c
+    for c in pool:
+        if norm(c.value) == key or norm(c.label) == key:
+            return c
+    return None
+
+
 def _choice_by_any(f: Field, raw: Any) -> Choice | None:
     """Populate values are choice ``display_id``s; fall back to id/value."""
     ch = f.choice_by_display_id(raw)
@@ -943,6 +1175,8 @@ class _State:
         default_factory=lambda: {"visible": {}, "required": {}, "disabled": {}}
     )
     pseudo_req: dict[str, bool] = dc_field(default_factory=dict)
+    restricted: dict[str, ChoiceRestriction] = dc_field(default_factory=dict)
+    restricted_by: dict[str, Decision] = dc_field(default_factory=dict)
     refused: list[tuple[str, Decision | None]] = dc_field(default_factory=list)
     overridden: dict[str, tuple[Any, Any]] = dc_field(default_factory=dict)
 

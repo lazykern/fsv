@@ -207,6 +207,7 @@ def _lookup_id(f: Field, v: Any) -> Any:
 
 def _problems(state: FormState, skip: Sequence[str] = ()) -> list[str]:
     out = [f"{f.label} is required" for f in state.missing_required() if f.api_name not in skip]
+    out.extend(state.unavailable_errors())
     out.extend(f"blocked by rule (acknowledge to continue): {m.text}" for m in state.unacknowledged())
     return out
 

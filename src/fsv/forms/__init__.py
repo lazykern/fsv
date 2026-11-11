@@ -24,6 +24,7 @@ from fsv.forms.errors import (
     UnsupportedRuleError,
     ValueParseError,
 )
+from fsv.forms.fetch import BusinessRulesQuery, RulesResponse, business_rules_query, parse_business_rules
 from fsv.forms.payload import (
     BR_VALIDATION_EXCLUDES,
     build_br_validation_excludes,
@@ -38,11 +39,17 @@ from fsv.forms.payload import (
 )
 from fsv.forms.plan import MetadataFingerprint, canonical_json, metadata_fingerprint, plan_hash, plan_matches
 from fsv.forms.rules import (
+    DEFAULT_EVENT_REVERSE,
+    DEFAULT_EVENT_SCOPE,
     DEFAULT_MODEL,
+    DEFAULT_POPULATE,
+    EVENT_SCOPES,
     MODELS,
+    POPULATE_MODES,
     SUPPORTED_ACTIONS,
     SUPPORTED_EVALUATE_ON,
     SUPPORTED_OPERATORS,
+    ChoiceRestriction,
     Conflict,
     Decision,
     EvaluatedForm,
@@ -51,6 +58,7 @@ from fsv.forms.rules import (
     Rule,
     RuleContext,
     RulesEngine,
+    offered_choices,
 )
 from fsv.forms.spec import KINDS, Choice, Field, FormSpec, Section, ServiceItem, plain_text
 from fsv.forms.state import Diff, FormState, LookupResolver, LookupValue
@@ -59,11 +67,17 @@ from fsv.forms.tz import resolve_timezone
 __all__ = [
     "AmbiguousLookupError",
     "BR_VALIDATION_EXCLUDES",
+    "BusinessRulesQuery",
     "Choice",
+    "ChoiceRestriction",
     "Conflict",
+    "DEFAULT_EVENT_REVERSE",
+    "DEFAULT_EVENT_SCOPE",
     "DEFAULT_MODEL",
+    "DEFAULT_POPULATE",
     "Decision",
     "Diff",
+    "EVENT_SCOPES",
     "EvaluatedForm",
     "Explanation",
     "Field",
@@ -78,10 +92,12 @@ __all__ = [
     "MODELS",
     "Message",
     "MetadataFingerprint",
+    "POPULATE_MODES",
     "PayloadError",
     "Rule",
     "RuleContext",
     "RulesEngine",
+    "RulesResponse",
     "SUPPORTED_ACTIONS",
     "SUPPORTED_EVALUATE_ON",
     "SUPPORTED_OPERATORS",
@@ -91,6 +107,7 @@ __all__ = [
     "UnsupportedRuleError",
     "ValueParseError",
     "build_br_validation_excludes",
+    "business_rules_query",
     "build_change_payload",
     "build_sr_payload",
     "build_ticket_payload",
@@ -100,6 +117,8 @@ __all__ = [
     "excludes_lists",
     "format_requester",
     "metadata_fingerprint",
+    "offered_choices",
+    "parse_business_rules",
     "plain_text",
     "plan_hash",
     "plan_matches",
