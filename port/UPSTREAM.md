@@ -19,7 +19,7 @@ needs for each.
 Statuses: `ported` (Rust has the behavior), `partial` (some is missing),
 `missing` (nothing in Rust).
 
-Counts: **20 ported, 11 partial, 1 missing.** (fsv-api half of `f761a01`…`4d778c3` landed after triage; see the per-commit notes.)
+Counts: **30 ported, 2 partial, 0 missing.** (fsv-api half of `f761a01`…`4d778c3` landed after triage; the fsv-cli/fsv-completion half after that, with goldens captured from Python `dbe553c`; see the per-commit notes.)
 
 ## Ledger
 
@@ -43,20 +43,20 @@ Counts: **20 ported, 11 partial, 1 missing.** (fsv-api half of `f761a01`…`4d77
 | `42b561f` | 11-12 02:27 | fix(sr): accept requested-for in catalog drafts | ported | fsv-flows `sr.rs:27-120`, `:314`; fsv-cli `sr.rs:406` |
 | `ccc3a64` | 11-12 02:58 | fix(forms): resolve metadata-backed custom lookup selections | ported | fsv-forms `state.rs:840`; fsv-api `formmeta.rs:787-943`; fsv-formui `lookups.rs` |
 | `7903e2a` | 11-12 03:06 | fix(changes): route legacy updates through reviewed form plans | ported | fsv-flows and fsv-cli done |
-| `d18bab9` | 11-12 03:11 | fix(schema): expose stale metadata and synchronous refresh | partial | fsv-completion (fsv-cli done) |
-| `f761a01` | 11-12 03:20 | feat(tickets): review metadata-backed property updates | partial | fsv-api ported (`properties.rs:128`, `:189`, `:374`, `:462`); fsv-cli, fsv-completion |
-| `a5a8381` | 11-12 03:25 | feat(tickets): add reviewed BCC replies and whole-ticket forwards | partial | fsv-api ported (`conversations.rs:169`, `:206`, `:242`, `:394`); fsv-cli, fsv-completion |
-| `ddd756a` | 11-12 03:30 | feat(watchers): add reviewed ticket and change self-watch workflows | partial | fsv-api ported (`service.rs:68`, `reviewed_write.rs:23`, `:64`, `watchers.rs:21`, `:70`, `:119`); fsv-cli `LazyApi` forwards `me`/`v2_get`; fsv-cli commands, fsv-completion |
-| `9622e3f` | 11-12 03:35 | feat(tickets): add reviewed nonbillable self time CRUD | partial | fsv-api ported (`ticket_time.rs:48`, `:71`); fsv-cli, fsv-completion |
+| `d18bab9` | 11-12 03:11 | fix(schema): expose stale metadata and synchronous refresh | ported | fsv-cli; fsv-completion goldens re-dumped (`--refresh`) |
+| `f761a01` | 11-12 03:20 | feat(tickets): review metadata-backed property updates | ported | fsv-api (`properties.rs:128`, `:189`, `:374`, `:462`); fsv-cli `update --reviewed`/`--set` answers (`resource.rs` `ticket_properties`); fsv-completion |
+| `a5a8381` | 11-12 03:25 | feat(tickets): add reviewed BCC replies and whole-ticket forwards | ported | fsv-api (`conversations.rs:169`, `:206`, `:242`, `:394`); fsv-cli `tickets.rs` `forward`, `reply --bcc/--sender`; fsv-completion |
+| `ddd756a` | 11-12 03:30 | feat(watchers): add reviewed ticket and change self-watch workflows | ported | fsv-api (`service.rs:68`, `reviewed_write.rs:23`, `:64`, `watchers.rs:21`, `:70`, `:119`); fsv-cli `LazyApi` forwards `me`/`v2_get`, `reviewed.rs` `watchers_list`/`watchers_set`; fsv-completion |
+| `9622e3f` | 11-12 03:35 | feat(tickets): add reviewed nonbillable self time CRUD | ported | fsv-api (`ticket_time.rs:48`, `:71`); fsv-cli `reviewed.rs` `time_list`/`time_write`; fsv-completion |
 | `5bc5d4d` | 11-12 03:45 | feat(tui): review ticket recipient and status conversation options | ported | fsv-tui; fsv-api `conversations::build_plan_mail`; fsv-app `tui.rs` `ticket_conversation_plan` |
-| `f711010` | 11-12 03:51 | feat(planning): add reviewed native text saves and TUI editor | partial | fsv-api ported (`planning_text.rs:34`, `:132`); fsv-tui and fsv-app (`LiveBackend::planning_*`) done; fsv-cli, fsv-completion |
+| `f711010` | 11-12 03:51 | feat(planning): add reviewed native text saves and TUI editor | ported | fsv-api (`planning_text.rs:34`, `:132`); fsv-tui and fsv-app (`LiveBackend::planning_*`); fsv-cli `reviewed.rs` `planning_text`; fsv-completion |
 | `3057492` | 11-12 04:00 | feat(tui): edit reviewed ticket properties and SR beneficiaries | ported | fsv-api `properties.rs:218`, `:374`; fsv-tui; fsv-app `tui.rs` `ticket_property_plan` / `send_ticket_property` (`build_plan_with` / `send_with`) |
-| `f7bf04a` | 11-12 04:07 | feat(problems): add reviewed known-error mark and TUI action | partial | fsv-api ported (`problem_known_error.rs:36`); fsv-tui and fsv-app (`LiveBackend::known_error_plan` / `send_known_error`) done; fsv-cli, fsv-completion |
+| `f7bf04a` | 11-12 04:07 | feat(problems): add reviewed known-error mark and TUI action | ported | fsv-api (`problem_known_error.rs:36`); fsv-tui and fsv-app (`LiveBackend::known_error_plan` / `send_known_error`); fsv-cli `reviewed.rs` `mark_known_error`; fsv-completion |
 | `1dc7ab6` | 11-12 04:13 | test(writes): exercise ticket property and mail transport guards | partial | fsv-api CC re-check ported (`conversations.rs:389`); the byte/header-level HTTP tests are ported as `FakeApi` tests only |
-| `c0210a7` | 11-12 04:20 | feat(tickets): add reviewed explicit-ID bulk priority | partial | fsv-api ported (`bulk_priority.rs:49`, `:125`); fsv-cli, fsv-completion |
+| `c0210a7` | 11-12 04:20 | feat(tickets): add reviewed explicit-ID bulk priority | ported | fsv-api (`bulk_priority.rs:49`, `:125`); fsv-cli `reviewed.rs` `bulk_priority`; fsv-completion |
 | `774f4f1` | 11-12 04:26 | fix(tickets): invalidate old beneficiary rule context | ported | fsv-api `properties.rs:218` |
 | `4d778c3` | 11-12 04:38 | fix(readback): compare durations and offset timestamps semantically | ported | fsv-api `readback.rs:15`, `:29`, `:50`; `properties.rs:540`, `tasks.rs:428` |
-| `b7d96a7` | 11-12 04:43 | fix(cli): accept consistent JSON options on reviewed commands | missing | fsv-cli, fsv-completion |
+| `b7d96a7` | 11-12 04:43 | fix(cli): accept consistent JSON options on reviewed commands | ported | fsv-cli `types.rs` `ReviewOutput`; fsv-completion |
 
 ## Live regressions in the Rust TUI
 
@@ -135,7 +135,7 @@ Not ported, Python tests: `tests/test_create_flags.py::test_update_resolves_labe
   set), `::test_change_planning_status_needs_yes`, `::test_same_status_is_not_gated`,
   `::test_reassign_gated`.
 
-### `d18bab9` fix(schema): expose stale metadata and synchronous refresh — partial
+### `d18bab9` fix(schema): expose stale metadata and synchronous refresh — ported
 
 Ported: `schema::load` returns `stale`/`source`, warns on stale cache,
 `force` bypasses cache (`crates/fsv-api/src/schema.rs:261-379`);
@@ -148,13 +148,15 @@ current schema choices synchronously") → `schema::load(res, c, true)`.
 added); goldens `lookup_refresh_refetches_schema` and
 `lookup_uses_cached_schema` in `read_cmds.rs`.
 
-Missing:
+Ported (fsv-completion): `completion_tree.json` and the bash/fish/zsh
+goldens re-dumped; the three `lookup` hints gained `refresh`.
 
-- **fsv-completion**: the new flag shows up in the completion tree/goldens.
+Not ported:
+
 - Python tests: `tests/test_schema_cache.py` (all four new tests; mostly
   covered by `schema.rs:538-620`).
 
-### `f761a01` feat(tickets): review metadata-backed property updates — partial
+### `f761a01` feat(tickets): review metadata-backed property updates — ported
 
 **fsv-api ported:** `properties::build_plan_with` / `send_with` with
 `PropertyArgs.answers`, returning `AnsweredPropertyPlan` (`properties.rs:128`,
@@ -192,7 +194,10 @@ literals compile; the old `build_plan` / `send` wrap the new ones.
   - `send` rebuilds with the stored answers; readback for `custom_fields`
     matches when every expected key is present and equal (subset, not whole
     dict).
-- **fsv-cli** `resource.rs` `update` (`:1325`): add `--reviewed` ("tickets
+- **fsv-cli** (done; `property_answers` / `ticket_properties` in
+  `resource.rs`, goldens `update_reviewed_*` and `update_expect_plan_needs_reviewed`
+  in `tests/upstream_cmds.rs`; `write_cmds.rs` `update_props_mixed` re-captured)
+  `resource.rs` `update` (`:1325`): add `--reviewed` ("tickets
   only: evaluate --set and core flags as a hash-bound property plan"). Enter
   the property path when `reviewed || tag || planned dates`. Build answers
   from `--set` (`"--set requires unique FIELD=VALUE answers"`) and core flags
@@ -200,13 +205,13 @@ literals compile; the old `build_plan` / `send` wrap the new ones.
   {name}"`). Drop the old "do not combine ticket properties…" refusal. The
   `--expect-plan` misuse message becomes `"--expect-plan requires
   --reviewed, --tag, --planned-start or --planned-end"`.
-- **fsv-completion**: `--reviewed` on `tickets update` / `problems update`.
+- **fsv-completion** (done): `--reviewed` on `tickets update` / `problems update`.
 - Python tests: `tests/test_ticket_properties.py::test_full_properties_runtime_enums_and_custom_readback`
   (`priority == 73`, `subject == "Globex"`, `custom_fields == {"cost_code":
   "new"}`, one write, verified), `::test_reviewed_cli_uses_full_hash_and_refuses_unproven_closure`,
   `::test_legacy_property_hash_identity_is_unchanged` (pins the old hash).
 
-### `a5a8381` feat(tickets): add reviewed BCC replies and whole-ticket forwards — partial
+### `a5a8381` feat(tickets): add reviewed BCC replies and whole-ticket forwards — ported
 
 **fsv-api ported:** `conversations::build_plan_mail(.., &MailArgs { bcc, sender })`
 (`conversations.rs:206`, `:242`); `ConversationArgs` is unchanged and
@@ -240,7 +245,8 @@ Rust `ConversationArgs` has no `bcc`/`sender`, and `kind` accepts only
     `recipients` again for each bcc address and (forward) each notify
     address. Readback `expected` includes `cc_emails` only if present,
     `bcc_emails` if present, `from_email` if present.
-- **fsv-cli** `tickets.rs`: `reply --bcc` (repeatable, "BCC plain email from
+- **fsv-cli** (done; goldens `reply_bcc_*` / `forward_*` in
+  `tests/upstream_cmds.rs`, fixture `ticket_mail.json`) `tickets.rs`: `reply --bcc` (repeatable, "BCC plain email from
   user lookup (repeatable; requires --sender)") and `--sender`; the
   simple-path test becomes `cc empty && bcc empty && sender none && status
   none && expect none`. BCC addresses go through `recipients` (result
@@ -250,12 +256,12 @@ Rust `ConversationArgs` has no `bcc`/`sender`, and `kind` accepts only
   "dry_run", **review}`; otherwise requires `--yes` and an exact
   `--expect-plan`, else `"review with --dry-run, then pass --yes and the
   full --expect-plan hash"` (exit 2).
-- **fsv-completion**: new command and flags.
+- **fsv-completion** (done): new command and flags.
 - Python tests: `tests/test_ticket_conversation.py::test_bcc_and_whole_ticket_forward_exact_wire_hash_and_readback`
   (reply, forward), `::test_bcc_missing_readback_is_unavailable_not_verified`,
   `::test_bcc_and_forward_cli_require_exact_review`, `::test_forward_uncaptured_variants_refused`.
 
-### `ddd756a` feat(watchers): add reviewed ticket and change self-watch workflows — partial
+### `ddd756a` feat(watchers): add reviewed ticket and change self-watch workflows — ported
 
 **fsv-api ported:** `Api::me` / `Api::v2_get` (defaulted, `service.rs:68`,
 `:72`; `Client` overrides), `reviewed_write.rs`, `watchers.rs`. The other
@@ -307,16 +313,17 @@ New Python modules `reviewed_write.py` (shared single-attempt primitive),
   DELETE), `send` (rebuild even for no-ops; already-in-state →
   `{"status":"already_in_requested_state","verified":true,"plan_hash"}`;
   verify compares the full expected membership).
-- **fsv-cli**: `fsv {tickets,changes} watchers list ID` → `{"watcher_ids":
+- **fsv-cli** (done; `cmd/reviewed.rs`, goldens in `tests/upstream_cmds.rs`,
+  fixture `watchers.json`): `fsv {tickets,changes} watchers list ID` → `{"watcher_ids":
   […]}` (errors as Click BadParameter); `watchers set ID --watch|--unwatch
   [--dry-run] [--yes] [--expect-plan]` with the same `--yes`/hash rule as
   forward.
-- **fsv-completion**: new group and commands.
+- **fsv-completion** (done): new group and commands.
 - Python tests: `tests/test_watchers.py` (all; exact methods, ambiguous
   403/429/500 leaves `started`, stale identity, partial membership, no-op,
   readback/journal failures, CLI hash flow).
 
-### `9622e3f` feat(tickets): add reviewed nonbillable self time CRUD — partial
+### `9622e3f` feat(tickets): add reviewed nonbillable self time CRUD — ported
 
 **fsv-api ported:** `ticket_time.rs` (`TimeArgs`, `build_plan`, `send`).
 
@@ -345,10 +352,11 @@ New `ticket_time.py` / `ticket_time_cli.py`. Depends on `reviewed_write`,
     needs the exact returned `time_entry.id`; delete verifies absence;
     fields use `same_duration` / `same_instant` / strict type+value equality
     (`0` is not `false`).
-- **fsv-cli**: `fsv tickets time list ID` (JSON inventory, indent 2) and
+- **fsv-cli** (done; `cmd/reviewed.rs`, goldens `time_*` in
+  `tests/upstream_cmds.rs`, fixture `ticket_time.json`): `fsv tickets time list ID` (JSON inventory, indent 2) and
   `fsv tickets time write ID ACTION [--entry N] [--spent] [--executed-at]
   [--note] [--dry-run] [--yes] [--expect-plan]`.
-- **fsv-completion**: new group and commands.
+- **fsv-completion** (done): new group and commands.
 - Python tests: `tests/test_ticket_time.py` (all),
   `tests/test_readback_normalization.py::test_normalized_exact_id_transport_readback`,
   `::test_note_only_update_preserves_normalized_minutes` (`{"time_spent":
@@ -373,7 +381,7 @@ Missing:
   `tests/test_tui_actions.py` reply test (plain reply calls the reviewed
   send with `"<div>thanks</div>"`, after a PUBLIC consent screen).
 
-### `f711010` feat(planning): add reviewed native text saves and TUI editor — partial
+### `f711010` feat(planning): add reviewed native text saves and TUI editor — ported
 
 **fsv-api ported:** `planning_text.rs` (schema injectable via `ChangeSchema`;
 `live_change_schema` = `schema::load_forced`).
@@ -403,13 +411,17 @@ Missing:
   Helpers exist: `fsv_api::create::{planning_definitions,
   planning_server_key, resolve_planning_definition, match_planning_row}`
   (`create.rs:1013-1142`).
-- **fsv-cli**: `fsv {changes,problems} planning-text ID --section S
-  --description D [--dry-run] [--yes] [--expect-plan]`.
+- **fsv-cli** (done; `cmd/reviewed.rs`, goldens in `tests/upstream_cmds.rs`,
+  fixture `planning.json`): `fsv {changes,problems} planning-text ID --section S
+  --description D [--dry-run] [--yes] [--expect-plan]`. At `dbe553c` an
+  unknown section is an uncaught `APIError` (exit 1); Python commits after
+  `dbe553c` (`10c3281`…`92002d7`) change `planning_cli`/`planning_text`
+  (error handling, `--section` completers) and are not graded here.
 - **fsv-app**: done. `planning_definitions`, `planning_row`
   (`create::match_planning_row` on `inventory`), `planning_text_plan`,
   `send_planning_text`; `LiveBackend::with_change_schema` injects the change
   schema in tests.
-- **fsv-completion**: new commands.
+- **fsv-completion** (done): new commands.
 - Python tests: `tests/test_planning_text.py` (all four; keys
   `acme_plan` for changes "Rollout Plan", `problem_cause` for "Root Cause").
 
@@ -437,7 +449,7 @@ Missing:
   `::test_readonly_property_picker_never_prepares`,
   `tests/test_tui_views.py` (`e` on a ticket opens the property picker).
 
-### `f7bf04a` feat(problems): add reviewed known-error mark and TUI action — partial
+### `f7bf04a` feat(problems): add reviewed known-error mark and TUI action — ported
 
 **fsv-api ported:** `problem_known_error.rs`.
 
@@ -455,11 +467,12 @@ Missing:
   then None → cancelled; hash/tenant → `"problem or review changed; review
   again"`; already true → `{"status": "already_in_requested_state",
   "verified": true}`; verify re-reads the flag.
-- **fsv-cli**: `fsv problems mark-known-error ID [--dry-run] [--yes]
+- **fsv-cli** (done; `cmd/reviewed.rs`, goldens `mark_known_error_*` in
+  `tests/upstream_cmds.rs`): `fsv problems mark-known-error ID [--dry-run] [--yes]
   [--expect-plan]` ("Review marking a problem as a known error; no reversal
   wire is proven.").
 - **fsv-app**: done. `known_error_plan`, `send_known_error`.
-- **fsv-completion**: new command.
+- **fsv-completion** (done): new command.
 - Python tests: `tests/test_problem_known_error.py` (all four).
 
 ### `1dc7ab6` test(writes): exercise ticket property and mail transport guards — partial
@@ -485,7 +498,7 @@ reviewed bytes.
   `tests/test_ticket_properties_http.py` (all; the property side is already
   implemented, so these are test ports only).
 
-### `c0210a7` feat(tickets): add reviewed explicit-ID bulk priority — partial
+### `c0210a7` feat(tickets): add reviewed explicit-ID bulk priority — ported
 
 **fsv-api ported:** `bulk_priority.rs` (`BulkPriorityPlan`, `build_plan`, `send`).
 
@@ -504,10 +517,11 @@ Depends on `reviewed_write` and on `f761a01` (property answers).
   notify people; partial per-ticket outcomes are possible."`. Verify reads
   each ticket with `properties::record` and reports per-id
   matched/mismatched/unavailable.
-- **fsv-cli**: `fsv tickets bulk-priority ID... --priority P [--dry-run]
+- **fsv-cli** (done; `cmd/reviewed.rs`, goldens `bulk_priority_*` in
+  `tests/upstream_cmds.rs`, fixture `ticket_reviewed.json`): `fsv tickets bulk-priority ID... --priority P [--dry-run]
   [--yes] [--expect-plan]`; exit 1 when the result is unverified; `ValueError`,
   `ReviewedWriteError` and `PropertyError` → exit 2.
-- **fsv-completion**: new command (`--priority` gets no completer in Python).
+- **fsv-completion** (done): new command (`--priority` gets no completer in Python).
 - Python tests: `tests/test_bulk_priority.py` (all; fixtures
   `("acme.example.com", 123, 87)`, `("globex.example.com", 742, 26)`).
 
@@ -543,7 +557,7 @@ returns False unless **both** values are strings with an explicit offset.
   naive `"2030-01-02T03:00:00"`, date-only, `None`, `False` and `"invalid"`
   are false), plus the two transport tests listed under `9622e3f`.
 
-### `b7d96a7` fix(cli): accept consistent JSON options on reviewed commands — missing
+### `b7d96a7` fix(cli): accept consistent JSON options on reviewed commands — ported
 
 `ReviewOutput` is a one-value enum (`json`). Each reviewed command added in
 this range takes `--output/-o` (`"output format (JSON only)"`, default
@@ -553,10 +567,13 @@ same. Any other `--output` value fails as a Click choice error (exit 2)
 list|set`, `tickets time list|write`, `{changes,problems} planning-text`,
 `problems mark-known-error`, `tickets bulk-priority` and `tickets forward`.
 
-- **fsv-cli**: add a `ReviewOutput` value enum (`json` only) in `types.rs`
-  and both options on each of those commands as you add them. They change
-  nothing except accepting the flags.
-- **fsv-completion**: `--output` completes to `json` only on those commands.
+- **fsv-cli** (done): `ReviewOutput` value enum (`json` only) in `types.rs`
+  and both options on each of those commands. They change nothing except
+  accepting the flags. Rust rejects other values with clap's usage error
+  (exit 2, no request), not Click's rich panel; only the exit code is pinned
+  (`json_only_output_rejects_other_formats`).
+- **fsv-completion** (done): Python's completion dump records `--output/-o`
+  as freeform with no completer on those commands, and so does Rust.
 - Python tests: `tests/test_reviewed_cli_output.py::test_review_and_send_output_aliases`
   (flag sets `[]`, `--json`, `--output json`, `-o json`, `--output=json
   --json`), `::test_unsupported_format_refused_before_client`,
@@ -604,17 +621,19 @@ fsv-tui needs no new work beyond test updates.
      lookup`; `--reviewed` on `{tickets,problems} update`; `--bcc` and
      `--sender` on `tickets reply`. Every new command also has
      `--output/-o {json}` and `--json` (`b7d96a7`).
-   - Commands: ~~`lookup --refresh` (`d18bab9`)~~ done, `update --reviewed`
-     (`f761a01`), `reply --bcc/--sender` and `forward` (`a5a8381`),
-     `watchers` (`ddd756a`), `time` (`9622e3f`), `planning-text` and
-     `mark-known-error` (`f711010`, `f7bf04a`), `bulk-priority` (`c0210a7`),
-     ~~the `changes update` help text (`7903e2a`)~~ (not observable), and the JSON-only output
-     options on every new reviewed command (`b7d96a7`).
+   - Commands: all done. ~~`lookup --refresh` (`d18bab9`)~~, ~~`update --reviewed`
+     (`f761a01`)~~, ~~`reply --bcc/--sender` and `forward` (`a5a8381`)~~,
+     ~~`watchers` (`ddd756a`)~~, ~~`time` (`9622e3f`)~~, ~~`planning-text` and
+     `mark-known-error` (`f711010`, `f7bf04a`)~~, ~~`bulk-priority` (`c0210a7`)~~,
+     ~~the `changes update` help text (`7903e2a`)~~ (not observable), ~~the JSON-only output
+     options on every new reviewed command (`b7d96a7`)~~.
    - Refresh the write goldens for `273ffde`.
-6. **fsv-completion** (after the fsv-cli tree)
+6. **fsv-completion** (after the fsv-cli tree) — done
    - Re-dump `completion_tree.json` (`crates/fsv-cli/tests/golden/dump_completion.py`)
      and the bash/zsh/fish goldens for the new commands and flags. None of
-     the new options has a Python completer.
+     the new options has a Python completer. Done from Python `dbe553c`;
+     the dumpers skip the not-yet-ported paths listed in
+     `crates/fsv-cli/tests/golden/not_ported.py`.
 7. **fsv-tui** (tests only)
    - `273ffde`: a ticket non-terminal status plan now has a risk.
 
@@ -1127,3 +1146,13 @@ contract is not pinned.
 
 No fsv-core (unless step 1 finds a gap), fsv-flows, fsv-forms, fsv-views or
 fsv-formui work in this range.
+
+## Base pin
+
+`port/UPSTREAM_BASE` holds the last Python commit whose range is fully
+triaged (`dbe553c`). Advance it only when every row up to the new SHA is
+`ported`, `partial` with a named follow-up, or `wontfix` with a PARITY
+entry. Untriaged after the base: `10c3281`, `ed6e644`, `44e3e83`,
+`820af12` (fsv-api owner), `92002d7` (planning-text create guard, fsv-api).
+`820af12` changes `str(APIError(status=0))` from `HTTP 0: ...` to
+`Error: ...`; `crates/fsv-api/src/testdata/create_oracle.json` predates it.
