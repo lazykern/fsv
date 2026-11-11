@@ -2225,13 +2225,17 @@ class FsvApp(App):
                        ("link", "Link initiating ticket"), ("unlink", "Unlink initiating ticket"),
                        ("approval-request", "Request approval"), ("approval-respond", "Respond to approval"),
                        ("approval-cancel", "Cancel approval group"), ("approval-groups", "List approval groups")] + choices
+        if item.get("_resource", TICKETS).name in {"changes", "problems"}:
+            choices.append(("planning-text", "Edit native planning/analysis text"))
         self.push_screen(ChoiceScreen(choices, "Selected record actions"),
                          lambda kind: self._prepare_action(kind, item) if kind is not None else None)
 
     def _prepare_action(self, kind: str, item: dict) -> None:
         if self.read_only:
             return
-        if kind == "task-add":
+        if kind == "planning-text":
+            self._load_planning_sections(item)
+        elif kind == "task-add":
             self._compose_change_task(item)
         elif kind == "approval-request":
             self._compose_approval_request(item)
@@ -2242,6 +2246,74 @@ class FsvApp(App):
                              lambda query: self._load_action_targets(kind, item, query) if query else None)
         else:
             self._load_action_targets(kind, item)
+
+    @work(thread=True, exclusive=True, group="planning-review")
+    def _load_planning_sections(self, item: dict) -> None:
+        if self.read_only:
+            return
+        from fsv import planning_text
+        try:
+            module = item.get("_resource", CHANGES).name
+            defs = planning_text.definitions(get_client(), module)
+            choices = [(str(d.get("name") or d["id"]), str(d.get("label") or d.get("name"))) for d in defs]
+            if not choices:
+                raise ValueError("No native planning sections in current metadata")
+            def pick():
+                self.push_screen(ChoiceScreen(choices, "Native planning/analysis section"),
+                                 lambda section: self._load_planning_editor(item, section) if section else None)
+            self.call_from_thread(pick)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
+    @work(thread=True, exclusive=True, group="planning-read")
+    def _load_planning_editor(self, item: dict, section: str) -> None:
+        if self.read_only:
+            return
+        from fsv import planning_text
+        from fsv.create import match_planning_row
+        from fsv.tui.modals import PlanningTextScreen
+        try:
+            module = item.get("_resource", CHANGES).name
+            cid = item.get("display_id") or item["id"]
+            rows = planning_text.inventory(get_client(), module, cid)
+            row = match_planning_row({"name": section}, rows)
+            if row and ("description" not in row or row.get("attachments") or "attachments" not in row):
+                raise ValueError("Planning text/attachment preservation is unavailable")
+            def compose():
+                self.push_screen(PlanningTextScreen(section, (row or {}).get("description", "")),
+                                 lambda result: self._prepare_planning_text(item, section, result[0]) if result else None)
+            self.call_from_thread(compose)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
+    @work(thread=True, exclusive=True, group="planning-review")
+    def _prepare_planning_text(self, item: dict, section: str, description: str) -> None:
+        if self.read_only:
+            return
+        from fsv import planning_text
+        try:
+            plan = planning_text.build_plan(get_client(), item.get("_resource", CHANGES).name,
+                                            item.get("display_id") or item["id"], section, description)
+            def review():
+                self.push_screen(ConfirmScreen("Review exact planning text", [json.dumps(plan.review(), indent=2)]),
+                                 lambda ok: self._send_planning_text(item, plan) if ok else None)
+            self.call_from_thread(review)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
+    @work(thread=True, group="write")
+    def _send_planning_text(self, item: dict, plan: Any) -> None:
+        if self.read_only:
+            return
+        from fsv import planning_text
+        try:
+            result = planning_text.send(plan, get_client(), reviewed_hash=plan.hash)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+            return
+        self.call_from_thread(self.push_screen, OutcomeScreen("Planning result — do not resend", json.dumps(result, indent=2)))
+        if result.get("verified"):
+            self.call_from_thread(self._after_write, item.get("_resource", CHANGES), item, "Planning text verified")
 
     def _compose_approval_request(self, item: dict) -> None:
         from fsv.change_approvals import RULES

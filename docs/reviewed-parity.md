@@ -87,6 +87,27 @@ a scrollable outcome screen, including unverified readback and returned IDs;
 there is no retry button. **Ctrl+S** keeps the simple compose/review path.
 Read-only mode blocks option preparation and sends.
 
+## Native planning text and problem analysis
+
+```sh
+fsv changes planning-text CHN-123 --section 'Rollout Plan' --description '<div>Acme plan</div>' --dry-run
+fsv problems planning-text PRB-123 --section 'Root Cause' --description '<div>Acme evidence</div>' --dry-run
+```
+
+Review, then pass `--yes --expect-plan FULL_HASH`. Change section identities
+come from fresh field metadata; problem native sections are Root Cause,
+Impact and Symptoms, with the captured semantic section keys. This is not a
+custom-field solution editor. Saves use the captured POST with `?id=SECTION`
+and a description-only body, never a guessed PUT or array position. Existing
+attachments or unavailable attachment inventories block text-only saves.
+
+In the main TUI use **a → Edit native planning/analysis text**, choose the
+section, edit the multiline text/HTML, then **Ctrl+S** to review the exact
+hash-bound save. Cancel sends nothing; results stay in the outcome screen.
+Workaround/permanent-solution/KB publishing and planning-file changes are
+not covered by this text-only workflow. Evidence is blocked wire, not an
+accepted planning-save lifecycle.
+
 Schema reads use a seven-day cache, including legacy cache envelopes. Stale
 reads are identified internally with `stale` and `source`, warn on stderr,
 and start a background refresh; JSON stdout remains parseable. Force a

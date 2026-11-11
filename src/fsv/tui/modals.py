@@ -184,6 +184,28 @@ class NoteScreen(ModalScreen["tuple[str, bool] | tuple[str, bool, dict] | None"]
 
 
 
+class PlanningTextScreen(NoteScreen):
+    """A multiline planning editor, never presented as a private/public note."""
+
+    def __init__(self, target: str, initial: str = "") -> None:
+        super().__init__(target, can_toggle=False)
+        self.initial = initial
+
+    def compose(self) -> ComposeResult:
+        with Vertical(classes="dialog"):
+            yield Static("Edit planning text: " + escape(self._target), classes="dialog-title")
+            yield TextArea(self.initial, id="note-text")
+            yield Static("Text/HTML saved verbatim; no attachment changes", id="note-visibility")
+            yield Static(id="note-preview")
+            with Horizontal(classes="dialog-buttons"):
+                yield Button("Review", variant="primary", id="submit")
+                yield Button("Cancel", id="cancel")
+            yield Static("Ctrl+S review · Esc cancel", classes="dialog-hint")
+
+    def _refresh(self) -> None:
+        pass
+
+
 class ViewPickerScreen(ModalScreen["Any | None"]):
     """Pick a saved view by name (type to filter). Dismisses with the view or None."""
 

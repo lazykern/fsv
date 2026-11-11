@@ -3900,6 +3900,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
 
         sub.add_typer(associations_app, name="associations")
 
+    if res.name in {"changes", "problems"}:
+        from fsv.planning_cli import register as register_planning
+        register_planning(sub, res, lambda: _client())
     if res.name in {"tickets", "changes"}:
         from fsv.watcher_cli import register as register_watchers
         register_watchers(sub, res, lambda: _client())
