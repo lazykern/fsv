@@ -72,7 +72,7 @@ def change_fields() -> dict[str, Any]:
         _f("rollout_tool", "Rollout Tool", "custom_dropdown", 11,
            choices=_cc((1501, 31, "Pipeline"), (1502, 32, "Script"), (1503, 33, "Manual"))),
         _f("reviewers", "Reviewers", "custom_multi_lookup", 12, data_source=5,
-           lookup_config={"data_source": 5, "link": "/lookup_choices?field_name=reviewers&module=change"}),
+           lookup_config={"data_source": 5, "link": "/lookup_choices?field_name=reviewers_900000777&module=change"}),
         _f("staging_start", "Staging Start", "custom_date", 13),
         _f("staging_end", "Staging End", "custom_date", 14),
         _f("subject", "Subject", "default_subject", 15, required=True, placeholder="Service: objective"),
@@ -214,7 +214,7 @@ def change_rules() -> dict[str, Any]:
     ]
     # An exact duplicate entry (same id, same content) as the API sometimes returns.
     rules.insert(9, copy.deepcopy(rules[8]))
-    return {"business_rules": rules, "user": {"first_name": "Test", "last_name": "Agent"}}
+    return {"business_rules": rules, "user": {"first_name": "Test", "last_name": "Agent", "time_zone": "Bangkok"}}
 
 
 def service_item() -> dict[str, Any]:
@@ -343,3 +343,95 @@ def ticket_fields() -> dict[str, Any]:
              "sections": [], "belongs_to_section": False},
         ]
     }
+
+
+# ---------------------------------------------------------------------------
+# A small "Acme ops" form exercising one rule semantic per rule.
+# Ids come from an obviously fake range (900000xxxx); the account id is
+# 900000777 (custom fields are known to the server as <name>_900000777).
+
+ACCOUNT = "900000777"
+GOLD_DID = 9000003001  # Gold's display id == Bronze's choice id (display id must win)
+
+
+def _ch(i: int, did: int, value: str) -> dict[str, Any]:
+    return {"id": i, "display_id": did, "value": value, "label": value}
+
+
+def ops_fields() -> dict[str, Any]:
+    fid = itertools.count(9000001001)
+    F = lambda *a, **k: _f(*a, id=next(fid), **k)  # noqa: E731
+    return {"change_fields": [
+        F("tier", "Tier", "custom_dropdown", 1,
+          choices=[_ch(9000002001, GOLD_DID, "Gold"), _ch(9000002002, 9000003002, "Silver"),
+                   _ch(GOLD_DID, 9000003003, "Bronze")]),
+        F("region", "Region", "custom_dropdown", 2, required=True,
+          choices=[_ch(9000002011, 9000003011, "EU"), _ch(9000002012, 9000003012, "US")]),
+        F("notes", "Notes", "custom_text", 3),
+        F("region_notes", "Region Notes", "custom_text", 4),
+        F("tags", "Tags", "custom_multi_select_dropdown", 5,
+          choices=[_ch(9000002021, 9000003021, "A"), _ch(9000002022, 9000003022, "B"),
+                   _ch(9000002023, 9000003023, "C")]),
+        F("vip", "VIP", "custom_checkbox", 6),
+        F("code", "Code", "custom_text", 7, required=True),
+        F("owner", "Owner", "custom_lookup", 8, data_source=5,
+          lookup_config={"data_source": 5, "link": f"/lookup_choices?field_name=owner_{ACCOUNT}&module=change"}),
+        F("meeting", "Review Meeting", "custom_dropdown", 9,
+          choices=[_ch(9000002031, 9000003031, "N/A"), _ch(9000002032, 9000003032, "01/12/2030"),
+                   _ch(9000002033, 9000003033, "08/12/2030")]),
+        F("when", "When", "custom_date", 10),
+        F("area", "Area", "nested_field", 11,
+          nested_fields=[{"id": 9000001901, "name": "area_team", "label": "Team", "level": 2},
+                         {"id": 9000001902, "name": "area_unit", "label": "Unit", "level": 3}],
+          choices=[{"id": 9000002041, "value": "Ops", "nested_options": [
+                       {"id": 9000002042, "value": "Infra", "nested_options": [
+                           {"id": 9000002043, "value": "Racks", "nested_options": []}]},
+                       {"id": 9000002044, "value": "Other", "nested_options": []}]},
+                   {"id": 9000002045, "value": "Dev", "nested_options": [
+                       {"id": 9000002046, "value": "Other", "nested_options": [
+                           {"id": 9000002047, "value": "Misc", "nested_options": []}]}]}]),
+        F("priority", "Priority", "default_priority", 12, required=True,
+          choices=[{"id": 1, "value": "Low"}, {"id": 4, "value": "Urgent"}]),
+        F("subject", "Subject", "default_subject", 13, required=True),
+    ]}
+
+
+def ops_rule(rid: int, name: str, cond: Any, actions: list[dict[str, Any]], **kw: Any) -> dict[str, Any]:
+    kw.setdefault("rev", False)
+    return _rule(rid, name, cond, actions, **kw)
+
+
+def ops_rules() -> dict[str, Any]:
+    rules = [
+        ops_rule(9000004001, "Gold tier", {"all": [_c(CF + "tier", "is", "Gold")]},
+                 [_a("populate", [CF + "region"], [GOLD_DID + 10]),  # display id of EU
+                  _a("show", [CF + "region_notes"])]),
+        ops_rule(9000004002, "EU region", {"all": [_c(CF + "region", "is", "EU")]}, [_a("hide", [CF + "notes"])]),
+        ops_rule(9000004003, "Always hide region notes", {"all": None}, [_a("hide", [CF + "region_notes"])]),
+        ops_rule(9000004004, "Tags A or B", {"all": [_c(CF + "tags", "includes", ["A", "B"])]},
+                 [_a("mandate", [CF + "notes"])]),
+        ops_rule(9000004005, "Tier not Silver", {"all": [_c(CF + "tier", "does_not_include", ["Silver"])]},
+                 [_a("unmandate", [CF + "code"])], rev=True),
+        ops_rule(9000004006, "VIP", {"all": [_c(CF + "vip", "selected")]},
+                 [_a("populate", [CF + "meeting"], [9000003031]), _a("disable", [CF + "meeting"])]),
+        ops_rule(9000004007, "Urgent", {"all": [_c("priority", "is", "4")]},
+                 [_a("message", ["Call the duty lead first"])], validation=True),
+        ops_rule(9000004008, "Empty lists", {"any": None},
+                 [_a("hide", []), _a("mandate", []), _a("populate", [], [123])]),
+        ops_rule(9000004009, "Edit: lock subject", {"all": None}, [_a("disable", ["subject"])], form="edit_form"),
+        ops_rule(9000004010, "Other workspace", {"all": None}, [_a("hide", ["subject"])], workspace_id=3),
+        ops_rule(9000004011, "Other item", {"all": None}, [_a("hide", ["subject"])], item_id=9000009999),
+        ops_rule(9000004012, "Portal only", {"all": None}, [_a("hide", ["subject"])], user="requester"),
+        ops_rule(9000004013, "Ops staff",
+                 {"all": [{"name": "department_ids", "value": ["9000005001"], "operator": "includes",
+                           "field_type": "multiselect_choicelist", "evaluate_on": "current_user"}]},
+                 [_a("hide", [CF + "when"])]),
+        ops_rule(9000004014, "Silver shows notes", {"all": [_c(CF + "tier", "is", "Silver")]},
+                 [_a("show", [CF + "notes"])]),
+        ops_rule(9000004015, "Infra team needs unit", {"all": [_c(CF + "area_team", "is", "Infra")]},
+                 [_a("mandate", [CF + "area_unit"])]),
+        ops_rule(9000004016, "Ghost", {"all": None}, [_a("hide", [CF + "removed_field"])]),
+    ]
+    user = {"first_name": "Robin", "last_name": "Ops", "email": "robin.ops@example.com",
+            "department_ids": [9000005002], "time_zone": "Tokyo"}
+    return {"business_rules": rules, "user": user}

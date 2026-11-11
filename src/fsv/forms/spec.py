@@ -127,6 +127,9 @@ _NAME_ALIASES: dict[str, str] = {
     "type": "ticket_type",
 }
 _PREFIXES = ("customFields.", "customField.", "custom_fields.", "custom_field.")
+CUSTOM_PREFIXES = _PREFIXES
+# ``/lookup_choices?field_name=<name>_<account id>&module=...`` in lookup configs.
+_LOOKUP_FIELD_NAME = re.compile(r"field_name=([A-Za-z0-9_]+?)_(\d+)(?:&|$)")
 
 
 def norm(value: Any) -> str:
@@ -221,6 +224,7 @@ class Field:
     lookup_link: str | None = None
     allowed_file_types: tuple[str, ...] = ()
     max_files: int | None = None
+    _display_ids: dict[str, Choice] | None = dc_field(default=None, init=False, repr=False, compare=False)
 
     @property
     def help(self) -> str:
@@ -241,6 +245,12 @@ class Field:
             if (c.id is not None and norm(c.id) == key) or (c.display_id is not None and norm(c.display_id) == key):
                 return c
         return None
+
+    def choice_by_display_id(self, display_id: Any) -> Choice | None:
+        """The choice with this ``display_id`` (what ``populate`` actions use)."""
+        if self._display_ids is None:
+            self._display_ids = {norm(c.display_id): c for c in self.choices if c.display_id is not None}
+        return self._display_ids.get(norm(display_id))
 
 
 @dataclass
@@ -277,6 +287,10 @@ class FormSpec:
     fields: list[Field]
     item: ServiceItem | None = None
     warnings: list[str] = dc_field(default_factory=list)
+    # Freshservice account id: custom fields are known to the server as
+    # ``<name>_<account id>`` (e.g. in ``br_validation_excludes``). Derived
+    # from lookup links / formserv ``account_id`` when the metadata has it.
+    account_id: str | None = None
 
     def __post_init__(self) -> None:
         self.by_name: dict[str, Field] = {f.api_name: f for f in self.fields}
@@ -403,7 +417,7 @@ class FormSpec:
         fields: list[Field] = []
         for f in raw:
             fields.extend(_fields_from_form_field(f, warnings))
-        spec = cls(module=module, fields=fields, warnings=warnings)
+        spec = cls(module=module, fields=fields, warnings=warnings, account_id=_account_from_form_fields(raw))
         _link_ticket_sections(spec, raw)
         return spec
 
@@ -447,7 +461,9 @@ class FormSpec:
             allow_quantity=bool(si.get("allow_quantity", False)),
             subject_template=str(configs.get("subject") or ""),
         )
-        return cls(module="service_request", fields=fields, item=item, warnings=warnings)
+        return cls(
+            module="service_request", fields=fields, item=item, warnings=warnings, account_id=_account_from_item(si)
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -465,6 +481,33 @@ def _unwrap_fields(data: Any) -> list[Mapping[str, Any]]:
             if isinstance(v, list) and v and isinstance(v[0], Mapping) and "field_type" in v[0]:
                 return v
     raise ValueError("unrecognised form-fields payload")
+
+
+def _account_from_form_fields(raw: Sequence[Mapping[str, Any]]) -> str | None:
+    """Account id from ``lookup_config.link`` (``field_name=<name>_<id>``)."""
+    found: set[str] = set()
+    for f in raw:
+        cfg = f.get("lookup_config") or {}
+        link = str(cfg.get("link") or "") if isinstance(cfg, Mapping) else ""
+        m = _LOOKUP_FIELD_NAME.search(link)
+        if m and m.group(1) == str(f.get("name")):
+            found.add(m.group(2))
+    return found.pop() if len(found) == 1 else None
+
+
+def _account_from_item(si: Mapping[str, Any]) -> str | None:
+    found: set[str] = set()
+
+    def walk(items: Iterable[Mapping[str, Any]]) -> None:
+        for c in items or []:
+            if c.get("account_id") not in (None, ""):
+                found.add(str(c["account_id"]))
+            walk(c.get("fields") or [])
+
+    walk(si.get("custom_fields") or [])
+    if si.get("account_id") not in (None, ""):
+        found.add(str(si["account_id"]))
+    return found.pop() if len(found) == 1 else None
 
 
 def _parse_choices(raw: Any) -> tuple[Choice, ...]:
@@ -649,11 +692,23 @@ def _field_from_sr(
                 sections.append({"fields": s.get("sectionFields") or [], "choices": s.get("sectionChoices") or []})
         except (ValueError, TypeError):
             warnings.append(f"item field {name!r}: unreadable section_info")
+    dep_sections = []
+    for x in raw_choices:
+        dep = (x.get("dependent_ids") or {}).get("field") or []
+        if dep:
+            dep_sections.append({"fields": dep, "choices": [x.get("value")]})
     if not sections:
-        for x in raw_choices:
-            dep = (x.get("dependent_ids") or {}).get("field") or []
-            if dep:
-                sections.append({"fields": dep, "choices": [x.get("value")]})
+        sections = dep_sections
+    elif dep_sections:
+        # Both sources present: formserv's choices[].dependent_ids is what
+        # reveals the child fields; section_info normally mirrors it. Merge
+        # anything section_info is missing.
+        covered = {(norm(ch), str(fid)) for s in sections for ch in s["choices"] for fid in s["fields"]}
+        extra = [s for s in dep_sections
+                 if any((norm(s["choices"][0]), str(fid)) not in covered for fid in s["fields"])]
+        if extra:
+            warnings.append(f"item field {name!r}: section_info and dependent_ids differ; using both")
+            sections = sections + extra
     file_types: tuple[str, ...] = ()
     if opts.get("allowed_file_types"):
         try:

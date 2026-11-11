@@ -9,8 +9,10 @@ from fsv.forms import (
     LookupValue,
     PayloadError,
     RulesEngine,
+    build_br_validation_excludes,
     build_change_payload,
     build_sr_payload,
+    decode_br_validation_excludes,
     build_ticket_payload,
     format_requester,
     text_to_html,
@@ -46,6 +48,8 @@ def test_change_payload_shape(change_state: FormState) -> None:
     s = _filled_change(change_state)
     assert s.missing_required() == []
     body = build_change_payload(s, "jane.doe@acme.example", "Jane Doe")
+    token = body.pop(BR_VALIDATION_EXCLUDES)
+    assert token == build_br_validation_excludes(s.evaluated, "change")
     assert body == {
         "subject": "Billing: rotate keys",
         "description": "<p>Rotate keys.</p>",
@@ -74,7 +78,7 @@ def test_change_payload_shape(change_state: FormState) -> None:
         },
         "email": "Jane Doe <jane.doe@acme.example>",
     }
-    assert "status" not in body and BR_VALIDATION_EXCLUDES not in body
+    assert "status" not in body
     assert list(body)[:4] == ["subject", "description", "priority", "change_type"]
 
 
@@ -86,10 +90,12 @@ def test_change_payload_status_only_when_explicit(change_state: FormState) -> No
         build_change_payload(s, "jane.doe@acme.example", status="Done")
 
 
-def test_change_payload_br_token_passthrough(change_state: FormState) -> None:
+def test_change_payload_never_accepts_a_user_token(change_state: FormState) -> None:
     s = _filled_change(change_state)
-    body = build_change_payload(s, "jane.doe@acme.example", br_validation_excludes="opaque-token")
-    assert body[BR_VALIDATION_EXCLUDES] == "opaque-token"
+    with pytest.raises(TypeError):
+        build_change_payload(s, "jane.doe@acme.example", br_validation_excludes="opaque-token")  # type: ignore[call-arg]
+    body = build_change_payload(s, "jane.doe@acme.example")
+    assert decode_br_validation_excludes(body[BR_VALIDATION_EXCLUDES])["kind"] == "flat"
 
 
 def test_change_payload_drops_hidden_values(change_state: FormState) -> None:
@@ -127,7 +133,11 @@ def test_change_payload_refuses_incomplete_or_blocked(change_state: FormState) -
     s.set("priority", "Urgent")
     with pytest.raises(PayloadError) as e2:
         build_change_payload(s, "jane.doe@acme.example")
-    assert e2.value.problems == ["blocked by rule: Urgent changes need the duty manager's approval"]
+    assert e2.value.problems == [
+        "blocked by rule (acknowledge to continue): Urgent changes need the duty manager's approval"
+    ]
+    s.acknowledge(13)
+    assert build_change_payload(s, "jane.doe@acme.example")["priority"] == 4
 
 
 def test_change_payload_requires_requester(change_spec: FormSpec, change_rules: RulesEngine) -> None:
@@ -150,6 +160,7 @@ def test_ticket_payload_shape(ticket_spec: FormSpec) -> None:
     st.set("due_on", "2030-02-01")
     st.set("group", 77)
     body = build_ticket_payload(st, "sam.lee@acme.example", "Sam Lee")
+    assert decode_br_validation_excludes(body.pop(BR_VALIDATION_EXCLUDES))["hidden"] == []
     assert body == {
         "subject": "VPN drops",
         "description": "<div>It drops &lt;every&gt; hour.<br>Since Monday.</div>",
@@ -174,6 +185,11 @@ def test_sr_payload_shape(sr_spec: FormSpec) -> None:
     st.set("Priority", "low - cosmetic, reports")
     body = build_sr_payload(sr_spec.item, st, "jane.doe@acme.example",
                             field_attachments={"Overview deck (.pptx)": [555]}, attachments=[556])
+    assert list(body) == ["email", "custom_fields", BR_VALIDATION_EXCLUDES, "attachments"]
+    token = body.pop(BR_VALIDATION_EXCLUDES)
+    assert decode_br_validation_excludes(token)["items"] == {
+        "4400001": {"optional": [], "disabled": [], "hidden": []}
+    }
     assert body == {
         "email": "jane.doe@acme.example",
         "custom_fields": {
@@ -187,9 +203,8 @@ def test_sr_payload_shape(sr_spec: FormSpec) -> None:
         },
         "attachments": [556],
     }
-    with_token = build_sr_payload(None, st, "jane.doe@acme.example", field_attachments={"overview_deck": [555]},
-                                  attachments=[556], br_validation_excludes="t")
-    assert with_token[BR_VALIDATION_EXCLUDES] == "t"
+    with pytest.raises(TypeError):
+        build_sr_payload(None, st, "jane.doe@acme.example", br_validation_excludes="t")  # type: ignore[call-arg]
 
 
 def test_sr_payload_hidden_child_dropped(sr_spec: FormSpec) -> None:

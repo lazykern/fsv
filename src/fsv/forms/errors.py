@@ -45,8 +45,22 @@ class FieldDisabledError(FormError):
     """The field is disabled by a business rule and cannot be edited."""
 
 
-class UnsupportedRuleError(FormError):
-    """A business rule uses an operator/action this engine does not implement."""
+class FormRuleError(FormError):
+    """The form has a business rule the engine cannot evaluate faithfully.
+
+    Raised by default (strict mode) so that fsv never silently computes the
+    wrong visible/required set; ``RulesEngine(..., strict=False)`` skips such
+    rules instead and lists them in ``engine.unsupported``.
+    """
+
+    def __init__(self, message: str, rule_id: Any = None, rule_name: str | None = None) -> None:
+        self.rule_id = rule_id
+        self.rule_name = rule_name
+        super().__init__(message)
+
+
+class UnsupportedRuleError(FormRuleError):
+    """A business rule uses an operator/action/evaluate_on this engine does not implement."""
 
 
 class PayloadError(FormError):

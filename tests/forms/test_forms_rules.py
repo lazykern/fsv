@@ -5,7 +5,7 @@ import copy
 import pytest
 
 import acme_forms
-from fsv.forms import FormSpec, RulesEngine, UnsupportedRuleError
+from fsv.forms import FormRuleError, FormSpec, RulesEngine, UnsupportedRuleError
 
 BASE = {"change_type": "Normal", "impact": "Low", "priority": "Low", "risk": "Low", "status": "Open"}
 
@@ -49,13 +49,25 @@ def test_is_with_reversible_show_and_populate(change_rules: RulesEngine) -> None
     assert not e2.is_visible("reviewers") and "stage" not in e2.populated
 
 
-def test_later_rule_overrides_earlier(change_rules: RulesEngine) -> None:
+def test_later_rule_overrides_earlier_replay_model(change_spec: FormSpec) -> None:
+    eng = RulesEngine(change_spec, acme_forms.change_rules(), module="change", model="replay")
     # rule 2 (Live: hide staging dates) runs before rule 5 (Cloud no: show)
-    e = ev(change_rules, cloud_only="No", stage="Live")
+    e = ev(eng, cloud_only="No", stage="Live")
     assert e.is_visible("staging_start") and e.is_required("staging_start")
-    e2 = ev(change_rules, cloud_only="Yes", stage="Staging")
+    e2 = ev(eng, cloud_only="Yes", stage="Staging")
     # rule 3 (Staging: show) runs before rule 4 (Cloud yes: hide)
     assert not e2.is_visible("staging_start")
+
+
+def test_event_model_last_change_wins(change_rules: RulesEngine) -> None:
+    assert change_rules.model == "event"
+    # replayed in field order: cloud_only (shows dates), then stage=Live (hides them)
+    e = ev(change_rules, cloud_only="No", stage="Live")
+    assert not e.is_visible("staging_start")
+    # the same answers in the other order: stage first, then cloud_only shows them
+    e2 = change_rules.evaluate({**BASE, "cloud_only": "No", "stage": "Live"}, order=["stage", "cloud_only"])
+    assert e2.is_visible("staging_start") and e2.values["stage"] == "Staging"
+    assert e2.overridden == {"stage": ("Live", 5)}  # populate replaced the earlier answer
 
 
 def test_populate_never_overwrites_user_value_and_tracks_provenance(change_rules: RulesEngine) -> None:
@@ -185,19 +197,32 @@ def test_unsupported_operator_is_skipped_with_warning_or_raises_in_strict(change
            "form_type": "both", "user_type": "both", "is_reversible": False,
            "condition_data": {"all": [{"name": "subject", "operator": "contains", "value": "x"}]},
            "action_data": {"action": [{"name": ["subject"], "property": "hide"}]}}
-    eng = RulesEngine(change_spec, _with_rule(bad), module="change")
+    with pytest.raises(FormRuleError, match="doesn't understand.*'contains'") as e:
+        RulesEngine(change_spec, _with_rule(bad), module="change")  # strict by default
+    assert isinstance(e.value, UnsupportedRuleError) and e.value.rule_id == 99
+    eng = RulesEngine(change_spec, _with_rule(bad), module="change", strict=False)  # lenient
     assert 99 not in [r.id for r in eng.rules]
     assert any("contains" in u for u in eng.unsupported)
-    with pytest.raises(UnsupportedRuleError):
-        RulesEngine(change_spec, _with_rule(bad), module="change", strict=True)
 
 
 def test_unsupported_action_is_skipped(change_spec: FormSpec) -> None:
     bad = {"id": 98, "name": "Odd action", "module_type": "change", "state": "active", "rule_type": "client_side",
            "form_type": "both", "user_type": "both", "is_reversible": False, "condition_data": {"all": None},
            "action_data": {"action": [{"name": ["subject"], "property": "blink"}]}}
-    eng = RulesEngine(change_spec, _with_rule(bad), module="change")
+    with pytest.raises(FormRuleError, match="blink"):
+        RulesEngine(change_spec, _with_rule(bad), module="change")
+    eng = RulesEngine(change_spec, _with_rule(bad), module="change", strict=False)
     assert any("blink" in u for u in eng.unsupported)
+
+
+def test_unknown_evaluate_on_raises(change_spec: FormSpec) -> None:
+    bad = {"id": 96, "name": "Odd source", "module_type": "change", "state": "active", "rule_type": "client_side",
+           "form_type": "both", "user_type": "both", "is_reversible": False,
+           "condition_data": {"all": [{"name": "subject", "operator": "is", "value": "x", "evaluate_on": "moon"}]},
+           "action_data": {"action": [{"name": ["subject"], "property": "hide"}]}}
+    with pytest.raises(FormRuleError, match="evaluate_on 'moon'"):
+        RulesEngine(change_spec, _with_rule(bad), module="change")
+    assert RulesEngine(change_spec, _with_rule(bad), module="change", strict=False).unsupported
 
 
 def test_populate_with_unknown_choice_warns(change_spec: FormSpec) -> None:

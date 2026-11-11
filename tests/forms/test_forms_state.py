@@ -24,8 +24,10 @@ def test_defaults_applied_on_new_only(change_spec: FormSpec, change_rules: Rules
     assert new.values == {"change_type": "Normal", "impact": "Low", "priority": "Low", "risk": "Low",
                           "status": "Open"}
     assert new.sources["status"] == "default"
-    edit = FormState(change_spec, change_rules, mode="edit", values={"subject": "Old"})
-    assert edit.values == {"subject": "Old"}
+    edit = FormState(change_spec, change_rules, mode="edit", existing={"subject": "Old"})
+    assert edit.values == {"subject": "Old"} and edit.sources["subject"] == "existing"
+    with pytest.raises(FieldDisabledError):  # an edit-form rule locks the subject
+        edit.set("subject", "New")
     with pytest.raises(ValueError):
         FormState(change_spec, change_rules, mode="draft")
 
@@ -223,7 +225,9 @@ def test_missing_required_tracks_rules(change_state: FormState) -> None:
 
 def test_errors_include_blocking_messages(change_state: FormState) -> None:
     change_state.set("priority", "Urgent")
-    assert "blocked by rule: Urgent changes need the duty manager's approval" in change_state.errors()
+    assert "blocked by rule (acknowledge to continue): Urgent changes need the duty manager's approval" in (
+        change_state.errors()
+    )
 
 
 def test_hidden_values_dropped_from_payload_values(change_state: FormState) -> None:

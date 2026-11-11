@@ -30,6 +30,22 @@ class FakeResolver:
         return [r for r in self.records.get(entity, []) if q in str(r).casefold()]
 
 
+@pytest.fixture(autouse=True)
+def _hermetic_tz(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("FSV_TZ", raising=False)
+    monkeypatch.setenv("TZ", "UTC")
+
+
+@pytest.fixture
+def ops_spec() -> FormSpec:
+    return FormSpec.from_form_fields(acme_forms.ops_fields(), module="change")
+
+
+@pytest.fixture
+def ops_engine(ops_spec: FormSpec) -> RulesEngine:
+    return RulesEngine(ops_spec, acme_forms.ops_rules(), module="change", workspace_id=2)
+
+
 @pytest.fixture
 def change_spec() -> FormSpec:
     return FormSpec.from_form_fields(acme_forms.change_fields(), module="change")

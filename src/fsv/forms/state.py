@@ -1,5 +1,13 @@
 """Form state: the user's answers, validated, with rules re-evaluated after
-every change."""
+every change.
+
+The state keeps the *load* values (defaults on a new form, the record on an
+edit form) apart from the user's answers. Every change re-runs the engine
+from scratch: in the event model the answers are replayed as change events
+(web field order by default, or the order they were given with
+``event_order="input"``), so editing an earlier answer replays the whole
+sequence with the new value.
+"""
 from __future__ import annotations
 
 import datetime as dt
@@ -7,13 +15,16 @@ import os
 import re
 from dataclasses import dataclass, field as dc_field
 from typing import Any, Mapping, Protocol, Sequence
-from zoneinfo import ZoneInfo
-
 from fsv.forms.errors import AmbiguousLookupError, FieldDisabledError, ValueParseError
-from fsv.forms.rules import EvaluatedForm, Message, RulesEngine, is_empty
+from fsv.forms.rules import Conflict, Decision, EvaluatedForm, Explanation, Message, RulesEngine, is_empty
 from fsv.forms.spec import Choice, Field, FormSpec, norm, plain_text
+from fsv.forms.tz import resolve_timezone
 
-DEFAULT_TZ = "Asia/Bangkok"
+# position: answers replayed in web field order (YAML / --set contract)
+# input:    answers replayed in the order they were first given
+# history:  every set() call replayed as a change event, repeats included
+#           (what a person clicking through the web form does)
+EVENT_ORDERS = ("position", "input", "history")
 _TRUE = {"yes", "true", "y"}
 _FALSE = {"no", "false", "n"}
 _INT = re.compile(r"^[+-]?\d+$")
@@ -115,39 +126,86 @@ class FormState:
         resolver: LookupResolver | None = None,
         tz: str | None = None,
         apply_defaults: bool = True,
+        existing: Mapping[str, Any] | None = None,
+        event_order: str = "position",
     ) -> None:
         if mode not in ("new", "edit"):
             raise ValueError("mode must be 'new' or 'edit'")
+        if event_order not in EVENT_ORDERS:
+            raise ValueError(f"event_order must be one of {EVENT_ORDERS}")
         self.spec = spec
         self.rules = rules if rules is not None else RulesEngine(spec, [])
         self.mode = mode
         self.resolver = resolver
-        self.tz = ZoneInfo(tz or os.environ.get("FSV_TZ") or DEFAULT_TZ)
+        self.event_order = event_order
+        self.tz, self.tz_source = resolve_timezone(tz, self.rules.user)
         self.values: dict[str, Any] = {}
-        self.sources: dict[str, str] = {}
+        self.sources: dict[str, str] = {}  # "default" | "existing" | "user"
+        self._seq: list[str] = []  # user answers in the order given
+        self._cleared: set[str] = set()  # load values the user cleared
+        self._events: list[tuple[str, Any]] = []  # every user change, for event_order="history"
+        self.acknowledged: set[tuple[str, str]] = set()
         if apply_defaults and mode == "new":
             for f in spec.fields:
                 if f.default is not None:
                     self.values[f.api_name] = f.default
                     self.sources[f.api_name] = "default"
-        self.evaluated: EvaluatedForm = self.rules.evaluate(self.values, mode)
-        for k, v in (values or {}).items():
+        for k, v in (existing or {}).items():
             f = spec.field(k)
-            parsed = self.parse(f, v)
+            if not is_empty(v):
+                self.values[f.api_name] = v
+                self.sources[f.api_name] = "existing"
+        # load values (defaults / the record being edited): the state the
+        # rules see on load, before any change event
+        self.base: dict[str, Any] = dict(self.values)
+        self.evaluated: EvaluatedForm = self._evaluate()
+        # parse initial answers in form order so nested/section children
+        # are validated after their parents
+        given = {spec.field(k).api_name: v for k, v in (values or {}).items()}
+        for name in self.rules.position_order(given):
+            f = spec.by_name[name]
+            parsed = self.parse(f, given[name])
             self._store(f, parsed, "user")
-        self.evaluated = self.rules.evaluate(self.values, mode)
+            self.evaluated = self._evaluate()
+        self._check_refused()
 
     # -- editing ----------------------------------------------------------
+    def _evaluate(self) -> EvaluatedForm:
+        user: dict[str, Any] = {k: v for k, v in self.values.items() if self.sources.get(k) == "user"}
+        user.update({k: None for k in self._cleared})
+        order = self._seq if self.event_order == "input" else None
+        events = self._events if self.event_order == "history" else None
+        return self.rules.evaluate(user, self.mode, base=self.base, order=order, events=events)
+
+    def _check_refused(self) -> None:
+        if self.evaluated.refused:
+            name, d = self.evaluated.refused[0]
+            label = self.spec.by_name[name].label
+            why = f" ({d.describe()})" if d else ""
+            raise FieldDisabledError(f"{label} is disabled by a business rule{why}; it cannot be set")
+
     def set(self, name: str, raw: Any) -> Diff:
         """Parse/validate ``raw`` for the field and re-evaluate the rules."""
         f = self.spec.field(name)
         if f.api_name in self.evaluated.disabled:
-            raise FieldDisabledError(f"{f.label} is disabled by a business rule")
+            d = self.evaluated.decision(f.api_name, "disabled")
+            why = f" ({d.describe()})" if d else ""
+            raise FieldDisabledError(f"{f.label} is disabled by a business rule{why}")
         parsed = self.parse(f, raw)
         before = self.evaluated
+        snapshot = (dict(self.values), dict(self.sources), list(self._seq), set(self._cleared), list(self._events))
         self._store(f, parsed, "user")
-        cleared = self._clear_invalid_levels(f)
-        self.evaluated = self.rules.evaluate(self.values, self.mode)
+        cleared = self._clear_lower_levels(f, before.values.get(f.api_name))
+        self.evaluated = self._evaluate()
+        if self.evaluated.refused:
+            self.values, self.sources, self._seq, self._cleared, self._events = snapshot
+            refused = self.evaluated
+            self.evaluated = before
+            name0, d = refused.refused[0]
+            why = f" ({d.describe()})" if d else ""
+            raise FieldDisabledError(
+                f"setting {f.label} disables {self.spec.by_name[name0].label}, which you also set{why}"
+            )
         diff = _diff(f.api_name, before, self.evaluated)
         diff.cleared = cleared
         return diff
@@ -156,30 +214,59 @@ class FormState:
         return self.set(name, None)
 
     def _store(self, f: Field, value: Any, source: str) -> None:
+        name = f.api_name
+        if source == "user":
+            self._events.append((name, None if is_empty(value) else value))
         if is_empty(value):
-            self.values.pop(f.api_name, None)
-            self.sources.pop(f.api_name, None)
+            self.values.pop(name, None)
+            self.sources.pop(name, None)
+            if source == "user" and name in getattr(self, "base", {}):
+                self._cleared.add(name)  # clearing a load value is a change event
+                if name not in self._seq:
+                    self._seq.append(name)
+            elif name in self._seq:
+                self._seq.remove(name)
         else:
-            self.values[f.api_name] = value
-            self.sources[f.api_name] = source
+            self.values[name] = value
+            self.sources[name] = source
+            self._cleared.discard(name)
+            if source == "user" and name not in self._seq:
+                self._seq.append(name)
 
-    def _clear_invalid_levels(self, f: Field) -> list[str]:
-        """After a nested parent changes, drop lower levels that no longer fit."""
+    def _clear_lower_levels(self, f: Field, old: Any) -> list[str]:
+        """A nested parent changed value: clear every lower level (web
+        behaviour), even when a same-named child would still fit."""
+        if f.kind != "nested" or _same_value(old, self.values.get(f.api_name)):
+            return []
         cleared: list[str] = []
-        chain = [n for n in self.spec.fields if n.is_nested_level]
-        changed = True
-        while changed:
-            changed = False
-            for lvl in chain:
-                if lvl.api_name not in self.values:
-                    continue
-                pool = self.spec.choices_for(lvl, self.values)
-                if lvl.choice(self.values[lvl.api_name], pool) is None:
-                    self.values.pop(lvl.api_name)
-                    self.sources.pop(lvl.api_name, None)
-                    cleared.append(lvl.api_name)
-                    changed = True
+        cur: Field | None = f
+        while cur is not None:
+            child = next((c for c in self.spec.fields if c.parent == cur.api_name and c.is_nested_level), None)
+            if child is None:
+                break
+            if child.api_name in self.values:
+                self._store(child, None, "user")
+                cleared.append(child.api_name)
+            cur = child
         return cleared
+
+    # -- acknowledgements -------------------------------------------------
+    def unacknowledged(self) -> list[Message]:
+        """Blocking (``is_validation``) messages not acknowledged yet."""
+        return [m for m in self.evaluated.blocking_messages if m.key not in self.acknowledged]
+
+    def acknowledge(self, *messages: Message | str) -> None:
+        """Acknowledge blocking messages (by Message, rule id, or message text);
+        with no arguments, acknowledge every current one."""
+        current = self.evaluated.blocking_messages
+        if not messages:
+            self.acknowledged.update(m.key for m in current)
+            return
+        for want in messages:
+            hits = [m for m in current if want == m or str(want) in (str(m.rule_id), m.text)]
+            if not hits:
+                raise ValueError(f"no blocking message matches {want!r}")
+            self.acknowledged.update(m.key for m in hits)
 
     # -- parsing ----------------------------------------------------------
     def parse(self, f: Field | str, raw: Any) -> Any:
@@ -312,10 +399,31 @@ class FormState:
         return out
 
     def errors(self) -> list[str]:
-        """Everything that would stop the web form from submitting."""
+        """Everything that would stop the web form from submitting
+        (blocking messages count until acknowledged)."""
         out = [f"{f.label} is required" for f in self.missing_required()]
-        out.extend(f"blocked by rule: {m.text}" for m in self.evaluated.messages if m.blocking)
+        out.extend(f"blocked by rule (acknowledge to continue): {m.text}" for m in self.unacknowledged())
         return out
+
+    def dropped(self) -> list[tuple[Field, Any, Decision | None]]:
+        """Fields holding a value that will NOT be sent because they are
+        hidden: (field, value, the hide decision if a rule hid it)."""
+        out = []
+        vis = set(self.evaluated.visible)
+        for f in self.spec.ordered():
+            if f.api_name in vis or f.kind == "notice":
+                continue
+            v = self.evaluated.values.get(f.api_name)
+            if not is_empty(v):
+                out.append((f, v, self.evaluated.decision(f.api_name, "visible")))
+        return out
+
+    def explain(self, names: Sequence[str] | None = None) -> list[Explanation]:
+        return self.evaluated.explain(names)
+
+    @property
+    def conflicts(self) -> list[Conflict]:
+        return list(self.evaluated.conflicts)
 
     def payload_values(self) -> dict[str, Any]:
         """Effective values of visible input fields, in form order.
@@ -344,8 +452,19 @@ class FormState:
             if name in self.evaluated.populated:
                 text += " (auto)"
             rows.append((f.label, text))
+        for name, (old, rid) in self.evaluated.overridden.items():
+            f = self.spec.by_name[name]
+            rows.append(("Replaced", f"{f.label}: your value {_display(self.spec, f, old, self.evaluated.values)!r} "
+                                     f"was replaced by rule {rid} (populate)"))
+        for f, v, d in self.dropped():
+            why = f"hidden by rule {d.rule_name!r}" if d and d.action == "hide" else "hidden"
+            rows.append(("Dropped", f"{f.label} = {_display(self.spec, f, v, self.evaluated.values)} ({why}; not sent)"))
+        acked = self.acknowledged
         for m in self.evaluated.messages:
-            rows.append(("Blocked" if m.blocking else "Message", m.text))
+            if m.blocking:
+                rows.append(("Acknowledged" if m.key in acked else "Blocked", m.text))
+            else:
+                rows.append(("Message", m.text))
         return rows
 
 
@@ -408,7 +527,13 @@ def _parse_date(f: Field, raw: Any) -> dt.date:
         raise ValueParseError(f.label, raw, f"{raw!r} is not a date (YYYY-MM-DD)") from None
 
 
-def _parse_datetime(f: Field, raw: Any, tz: ZoneInfo) -> dt.datetime:
+def _same_value(a: Any, b: Any) -> bool:
+    if is_empty(a) and is_empty(b):
+        return True
+    return a is not None and b is not None and norm(a) == norm(b)
+
+
+def _parse_datetime(f: Field, raw: Any, tz: dt.tzinfo) -> dt.datetime:
     if isinstance(raw, dt.datetime):
         value = raw
     elif isinstance(raw, dt.date):

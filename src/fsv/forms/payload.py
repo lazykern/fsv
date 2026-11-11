@@ -9,24 +9,110 @@ Only visible fields with a value are sent; hidden values are dropped. Status
 is never sent on create unless the caller passes ``status=`` explicitly.
 Files must be uploaded first (``POST /api/_/attachments``); the builders
 only take the resulting attachment ids.
+
+Every body carries ``br_validation_excludes``, built from the engine state
+(:func:`build_br_validation_excludes`). Callers cannot pass their own token:
+it tells the server which static required checks to skip, so a
+user-supplied value would be a way around required fields.
 """
 from __future__ import annotations
 
+import base64
 import datetime as dt
 import html
+import json
+import re
 from typing import Any, Mapping, Sequence
 
 from fsv.forms.errors import PayloadError
-from fsv.forms.rules import is_empty
+from fsv.forms.rules import EXCLUDE_KEYS, EvaluatedForm, is_empty
 from fsv.forms.spec import Field, FormSpec, ServiceItem
 from fsv.forms.state import FormState, LookupValue
 
-# The web form also sends ``br_validation_excludes``: a token the page builds
-# (it looks like a signed JWT). Its meaning, and whether the server requires
-# it, is unknown. We never fabricate it: callers may pass a value they
-# obtained some other way; otherwise the key is omitted.
-# TODO(forms): confirm with one real create whether the key is needed.
 BR_VALIDATION_EXCLUDES = "br_validation_excludes"
+# The token is JWT-shaped but unsigned: ``<b64(header)>.<b64(payload)>``.
+_BR_HEADER = '{"alg":"HS256","typ":"JWT"}'
+_SAFE_NAME = re.compile(r"^[A-Za-z0-9_]+$")
+FLAT_KINDS = frozenset({"change", "ticket", "problem", "release"})
+SR_KINDS = frozenset({"service_request", "sr"})
+
+
+def _b64(text: str) -> str:
+    # standard alphabet with padding, like the browser's btoa()
+    return base64.b64encode(text.encode("utf-8")).decode("ascii")
+
+
+def _name_list(names: Sequence[str]) -> str:
+    # The server-side lists are JSON text with ", " separators.
+    return json.dumps(list(names))
+
+
+def excludes_lists(evaluated: EvaluatedForm, account_id: Any = None) -> dict[str, list[str]]:
+    """``{"optional": [...], "disabled": [...], "hidden": [...]}``: the
+    fields the rules unmandated, disabled and hid, as server field names
+    (custom fields get the ``_<account id>`` suffix), in action order."""
+    acct = _account(evaluated, account_id)
+    out: dict[str, list[str]] = {}
+    for key in EXCLUDE_KEYS:
+        names = []
+        for x in evaluated.excludes.get(key, []):
+            if x.custom and not acct:
+                raise PayloadError(
+                    [f"br_validation_excludes: custom field {x.base!r} needs the Freshservice account id "
+                     "(not found in the form metadata; pass account_id=)"]
+                )
+            n = x.name(acct)
+            if not _SAFE_NAME.match(n):
+                raise PayloadError([f"br_validation_excludes: unexpected field name {n!r}"])
+            names.append(n)
+        out[key] = names
+    return out
+
+
+def _account(evaluated: EvaluatedForm, account_id: Any) -> str | None:
+    meta = evaluated.account_id
+    given = None if account_id in (None, "") else str(account_id)
+    if meta and given and meta != given:
+        raise PayloadError([f"account id {given} does not match the form metadata ({meta})"])
+    return meta or given
+
+
+def build_br_validation_excludes(
+    evaluated_form: EvaluatedForm, kind: str, account_id: Any = None, item_id: Any = None
+) -> str:
+    """The ``br_validation_excludes`` token the web sends with a create.
+
+    Change/ticket: ``{"optional": "<list>", "disabled": "<list>", "hidden": "<list>"}``;
+    service request: ``{"<item id>": {...same...}}`` keyed by the item's
+    ``id`` (not its display id). Each list is a JSON-encoded string.
+    """
+    lists = excludes_lists(evaluated_form, account_id)
+    inner = {k: _name_list(lists[k]) for k in EXCLUDE_KEYS}
+    k = str(kind)
+    if k in SR_KINDS:
+        if item_id in (None, ""):
+            raise PayloadError(["br_validation_excludes: a service request needs the item id"])
+        payload: dict[str, Any] = {str(item_id): inner}
+    elif k in FLAT_KINDS:
+        payload = inner
+    else:
+        raise ValueError(f"unknown form kind {kind!r}")
+    return _b64(_BR_HEADER) + "." + _b64(json.dumps(payload, separators=(",", ":"), ensure_ascii=False))
+
+
+def decode_br_validation_excludes(token: str) -> dict[str, Any]:
+    """Inspect a token (debugging/tests only; builders never accept one)."""
+    head, _, body = str(token).partition(".")
+    pad = lambda t: t + "=" * (-len(t) % 4)  # noqa: E731
+    header = json.loads(base64.b64decode(pad(head), altchars=b"-_"))
+    payload = json.loads(base64.b64decode(pad(body), altchars=b"-_"))
+
+    def lists(d: Mapping[str, Any]) -> dict[str, Any]:
+        return {k: json.loads(v) if isinstance(v, str) else v for k, v in d.items()}
+
+    if set(payload) <= set(EXCLUDE_KEYS):
+        return {"header": header, "kind": "flat", **lists(payload)}
+    return {"header": header, "kind": "item", "items": {k: lists(v) for k, v in payload.items()}}
 
 # Default (non-custom) fields whose API key differs from the field name.
 CHANGE_KEYS: dict[str, str] = {
@@ -121,7 +207,7 @@ def _lookup_id(f: Field, v: Any) -> Any:
 
 def _problems(state: FormState, skip: Sequence[str] = ()) -> list[str]:
     out = [f"{f.label} is required" for f in state.missing_required() if f.api_name not in skip]
-    out.extend(f"blocked by rule: {m.text}" for m in state.messages if m.blocking)
+    out.extend(f"blocked by rule (acknowledge to continue): {m.text}" for m in state.unacknowledged())
     return out
 
 
@@ -184,7 +270,7 @@ def build_change_payload(
     requester_name: str | None = None,
     *,
     status: Any = None,
-    br_validation_excludes: str | None = None,
+    account_id: Any = None,
     allow_incomplete: bool = False,
 ) -> dict[str, Any]:
     """Body for ``POST /api/_/changes``."""
@@ -193,8 +279,7 @@ def build_change_payload(
     body = dict(top)
     body["custom_fields"] = custom
     body["email"] = _requester(state, requester_email, requester_name)
-    if br_validation_excludes is not None:
-        body[BR_VALIDATION_EXCLUDES] = br_validation_excludes
+    body[BR_VALIDATION_EXCLUDES] = build_br_validation_excludes(state.evaluated, "change", account_id)
     return body
 
 
@@ -204,7 +289,7 @@ def build_ticket_payload(
     requester_name: str | None = None,
     *,
     status: Any = None,
-    br_validation_excludes: str | None = None,
+    account_id: Any = None,
     allow_incomplete: bool = False,
 ) -> dict[str, Any]:
     """Body for ``POST /api/_/tickets``."""
@@ -213,8 +298,7 @@ def build_ticket_payload(
     body = dict(top)
     body["custom_fields"] = custom
     body["email"] = _requester(state, requester_email, requester_name)
-    if br_validation_excludes is not None:
-        body[BR_VALIDATION_EXCLUDES] = br_validation_excludes
+    body[BR_VALIDATION_EXCLUDES] = build_br_validation_excludes(state.evaluated, "ticket", account_id)
     return body
 
 
@@ -225,7 +309,7 @@ def build_sr_payload(
     *,
     field_attachments: Mapping[str, Sequence[Any]] | None = None,
     attachments: Sequence[Any] | None = None,
-    br_validation_excludes: str | None = None,
+    account_id: Any = None,
     allow_incomplete: bool = False,
 ) -> dict[str, Any]:
     """Body for ``POST /api/_/catalog/service-items/<display_id>/place-request``.
@@ -251,7 +335,8 @@ def build_sr_payload(
     if not allow_incomplete:
         satisfied = [f.api_name for f in file_fields if field_attachments.get(f.api_name)]
         problems.extend(_problems(state, satisfied))
-        if item.attachment_mandatory and not attachments:
+        need = state.evaluated.attachments_required
+        if (item.attachment_mandatory if need is None else need) and not attachments:
             problems.append("this item requires at least one attachment")
     if attachments and not item.allow_attachments:
         problems.append("this item does not accept attachments")
@@ -272,7 +357,6 @@ def build_sr_payload(
         elif f.api_name in visible and not is_empty(state.values.get(f.api_name)) and not allow_incomplete:
             raise PayloadError([f"{f.label}: upload the file(s) first and pass their attachment ids"])
     body: dict[str, Any] = {"email": format_requester(requester_email), "custom_fields": custom}
-    if br_validation_excludes is not None:
-        body[BR_VALIDATION_EXCLUDES] = br_validation_excludes
+    body[BR_VALIDATION_EXCLUDES] = build_br_validation_excludes(state.evaluated, "service_request", account_id, item.id)
     body["attachments"] = attachments
     return body
