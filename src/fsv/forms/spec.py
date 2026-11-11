@@ -83,6 +83,7 @@ _DEFAULT_KINDS: dict[str, str] = {
     "default_urgency": "dropdown",
     "default_source": "dropdown",
     "default_ticket_type": "dropdown",
+    "default_requested_for": "lookup_user",
     # Planning fields (not on the create form; position is null).
     "default_change_reason": "richtext",
     "default_change_impact": "richtext",
@@ -117,6 +118,18 @@ FIRST_CHOICE_DEFAULT_TYPES = frozenset(
         "default_source",
     }
 )
+# "Request for" (the user the record is for, distinct from the requester).
+# The web change form always renders it (DOM name ``requestedForId``) even
+# though the change form-fields metadata does not list it; fsv adds it as a
+# known default field. The create/update key the web sends for it is not
+# verified yet, so it is display-only (``Field.sent`` False): answered,
+# reviewed as "not sent", never put on the wire.
+REQUESTED_FOR = "requested_for"
+REQUESTED_FOR_TYPE = "default_requested_for"
+REQUESTED_FOR_LABEL = "Request for"
+REQUESTED_FOR_MODULES = frozenset({"change"})
+# field types whose request key is unknown: never sent
+UNSENT_TYPES = frozenset({REQUESTED_FOR_TYPE})
 # lookup_config.data_source value used for user lookups.
 _USER_LOOKUP_SOURCE = 5
 
@@ -239,6 +252,8 @@ class Field:
     lookup_link: str | None = None
     allowed_file_types: tuple[str, ...] = ()
     max_files: int | None = None
+    sent: bool = True  # False: shown and answerable, but its request key is unknown (never sent)
+    synthetic: bool = False  # added by fsv (the web renders it; the metadata does not list it)
     _display_ids: dict[str, Choice] | None = dc_field(default=None, init=False, repr=False, compare=False)
 
     @property
@@ -443,6 +458,8 @@ class FormSpec:
         fields: list[Field] = []
         for f in raw:
             fields.extend(_fields_from_form_field(f, warnings))
+        if module in REQUESTED_FOR_MODULES:
+            _add_requested_for(fields)
         spec = cls(module=module, fields=fields, warnings=warnings, account_id=_account_from_form_fields(raw))
         _link_ticket_sections(spec, raw)
         return spec
@@ -653,8 +670,9 @@ def _fields_from_form_field(f: Mapping[str, Any], warnings: list[str]) -> list[F
         content=html.unescape(str(_content_of(f) if kind == "notice" else (f.get("content") or ""))),
         levels=tuple(str(n.get("name")) for n in nested_levels),
         date_only=kind == "date",
-        lookup_entity=lookup_entity,
+        lookup_entity=lookup_entity if ftype != REQUESTED_FOR_TYPE else "user",
         lookup_link=lookup_cfg.get("link"),
+        sent=ftype not in UNSENT_TYPES,
     )
     out = [top]
     prev = name
@@ -679,6 +697,23 @@ def _fields_from_form_field(f: Mapping[str, Any], warnings: list[str]) -> list[F
         )
         prev = lvl_name
     return out
+
+
+def _add_requested_for(fields: list[Field]) -> None:
+    """Add the web's "Request for" user field right after the requester
+    unless the metadata already has it."""
+    if any(f.field_type == REQUESTED_FOR_TYPE or f.api_name == REQUESTED_FOR for f in fields):
+        return
+    req = next((f for f in fields if f.field_type == "default_requester"), None)
+    if req is None:
+        return  # no requester on this form: nothing to be "for" someone else
+    pos = req.position + 0.5 if isinstance(req.position, (int, float)) else None
+    fields.append(Field(
+        api_name=REQUESTED_FOR, label=REQUESTED_FOR_LABEL, kind="lookup_user", position=pos,
+        helptext="The user this change is for, if not the requester (shown in fsv only: not sent yet).",
+        field_type=REQUESTED_FOR_TYPE, visible_base=req.visible_base, on_form=req.on_form and pos is not None,
+        lookup_entity="user", sent=False, synthetic=True,
+    ))
 
 
 def _content_of(f: Mapping[str, Any]) -> str:

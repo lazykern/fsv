@@ -49,7 +49,7 @@ def test_planning_fields_are_off_the_create_form(change_spec: FormSpec) -> None:
 
 def test_order_follows_position_with_nested_levels_after_parent(change_spec: FormSpec) -> None:
     names = [f.api_name for f in change_spec.ordered()]
-    assert names[:4] == ["guide", "requester", "department", "team"]
+    assert names[:5] == ["guide", "requester", "requested_for", "department", "team"]
     i = names.index("category")
     assert names[i : i + 3] == ["category", "sub_category", "item_category"]
     assert names.index("impact") < names.index("priority") < names.index("risk")

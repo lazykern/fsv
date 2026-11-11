@@ -895,7 +895,10 @@ def load_properties(c: Any, res: Resource, record: Mapping[str, Any], schema: Ma
     for f in spec.ordered():
         if f.api_name not in visible or f.api_name in _SKIP_PROPS or f.kind in ("notice", "attachment"):
             continue
-        out.append(Prop(f.api_name, f.label, _prop_value(state, f, tz), f.api_name in required))
+        value = _prop_value(state, f, tz)
+        if getattr(f, "synthetic", False) and not value:
+            continue  # fsv-added field (e.g. Request for) the record does not use
+        out.append(Prop(f.api_name, f.label, value, f.api_name in required))
     return out, note
 
 

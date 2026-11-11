@@ -231,6 +231,8 @@ def _module_body(
         if name in _NEVER_FROM_STATE:
             continue
         f = spec.by_name[name]
+        if not f.sent:
+            continue  # display-only: its request key is not known
         if f.kind == "attachment":
             raise PayloadError([f"{f.label}: file fields are not supported on this form"])
         enc = encode_value(spec, f, v, values)
@@ -348,7 +350,7 @@ def build_sr_payload(
     values = state.evaluated.values
     for name, v in state.payload_values().items():
         f = spec.by_name[name]
-        if f.kind == "attachment":
+        if f.kind == "attachment" or not f.sent:
             continue
         custom[name] = encode_value(spec, f, v, values)
     for f in file_fields:

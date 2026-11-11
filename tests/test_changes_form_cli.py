@@ -493,7 +493,7 @@ def test_form_explain_names_the_rule(fake):
 def test_form_fields_and_choices(fake):
     r = run("form", "fields", "changes", "-o", "json")
     rows = json.loads(r.raw)
-    assert [x["label"] for x in rows][:3] == ["Requester", "Subject", "Change Type"]
+    assert [x["label"] for x in rows][:4] == ["Requester", "Request for", "Subject", "Change Type"]
     r = run("form", "fields", "changes", "--choices", "Priority", "-o", "json")
     choices = {c["label"]: c["description"] for c in json.loads(r.raw)["choices"]}
     assert choices["Urgent"] == "Outage"

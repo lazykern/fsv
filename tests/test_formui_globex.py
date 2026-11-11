@@ -47,7 +47,7 @@ def fill(s):
 def test_change_form_without_workspaces_or_rules(globex):
     t, c = globex
     s = change_session(c)
-    assert [it.label for it in s.items][:4] == ["Antragsteller", "Betreff", "Änderungstyp", "Umgebung"]
+    assert [it.label for it in s.items][:5] == ["Antragsteller", "Request for", "Betreff", "Änderungstyp", "Umgebung"]
     assert any("business rules could not be loaded" in n and "HTTP 404" in n for n in s.load_notes)
     assert not any("/ws/" in p for p in t.paths())
     # the agent profile's time zone is used when the rules carry no user

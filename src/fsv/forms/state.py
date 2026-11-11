@@ -499,6 +499,8 @@ class FormState:
             text = _display(self.spec, f, v, self.evaluated.values)
             if name in self.evaluated.populated:
                 text += " (auto)"
+            if not f.sent:
+                text += " (not sent)"
             rows.append((f.label, text))
         for name, (old, rid) in self.evaluated.overridden.items():
             f = self.spec.by_name[name]

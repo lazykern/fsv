@@ -143,6 +143,24 @@ one-line count of the blocks instead). The interactive form shows them
 read-only at their position, like the web. Their HTML comes from
 `content`, else `field_options.content`, else the description.
 
+### Request for
+
+The web change form always renders a **Request for** user field (DOM name
+`requestedForId`, distinct from the requester) that the change form-fields
+metadata does not list. `FormSpec.from_form_fields(..., module="change")`
+adds it as a known default field right after the requester
+(`api_name="requested_for"`, `field_type="default_requested_for"`, kind
+`lookup_user`, `Field.synthetic=True`) unless the metadata already has a
+`default_requested_for` field, which is then used as is. It is answered like
+the requester (name or email via the user lookup), shown in the field order,
+drafts and the interactive form, and read from a record's
+`requested_for_id`.
+
+It is **display-only**: `Field.sent` is False, payload builders leave it
+out, and reviews show `(not sent)`. TODO: capture a web create/update that
+fills Request for and send it with the key the web uses (likely
+`requested_for_id`, unverified); until then fsv never guesses it on the wire.
+
 ### Details
 
 * **Order**: by `position`; section children and nested levels follow the
@@ -519,6 +537,8 @@ behaviour (pass the old values to keep it):
 
 * ticket `responder_id`, `type` (ticket type sent as its label) and change
   `change_window_id` keys;
+* the request key for the change form's "Request for" field (fsv shows it
+  but does not send it; see above);
 * "request for someone else" and quantity on service requests (not built);
 * what the web does with a value that a later populate no longer offers
   (fsv keeps it and reports it as an error until changed);

@@ -268,6 +268,10 @@ def _auto_suffix(state: FormState, name: str) -> str:
     return ""
 
 
+def _unsent_suffix(f: Any) -> str:
+    return "" if getattr(f, "sent", True) else " (not sent: fsv does not know its request key yet)"
+
+
 def _notes(state: FormState) -> list[str]:
     ev = state.evaluated
     spec = state.spec
@@ -401,7 +405,7 @@ def build_create_plan(
         f = spec.by_name[name]
         if is_requester(f) or is_status(f):
             continue
-        review.rows.append((f.label, state.display(name) + _auto_suffix(state, name)))
+        review.rows.append((f.label, state.display(name) + _auto_suffix(state, name) + _unsent_suffix(f)))
     if status_field is not None:
         st = status_field.choice(status_value)
         review.rows.append((f"{status_field.label} on create",
@@ -514,6 +518,10 @@ def build_update_plan(
         old_v = existing.get(name)
         new_e, old_e = _encode(state, f, new_v), _encode(state, f, old_v)
         if _normcmp(f, new_e) == _normcmp(f, old_e):
+            continue
+        if not f.sent:
+            changes.append((f.label, state.display(name, old_v) if old_v is not None else "",
+                            state.display(name) + _unsent_suffix(f)))
             continue
         if f.is_custom:
             custom[name] = new_e
