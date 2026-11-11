@@ -1573,6 +1573,30 @@ mod tests {
     }
 
     #[test]
+    fn remember_keeps_user_answers_only() {
+        let (_a, mut s) = acme::acme();
+        let answers = |s: &FormSession| s.draft.answers.clone().into_iter().collect::<Vec<_>>();
+        s.state.set("subject", "Patch").expect("set");
+        s.remember("subject");
+        assert_eq!(answers(&s), [("subject".into(), Value::from("Patch"))]);
+        s.state.sources.insert("subject".into(), "rule".into());
+        s.remember("subject");
+        assert_eq!(answers(&s), []);
+        s.state.sources.insert("subject".into(), "user".into());
+        s.remember("subject");
+        assert_eq!(answers(&s), [("subject".into(), Value::from("Patch"))]);
+        s.state.values.shift_remove("subject");
+        s.remember("subject");
+        assert_eq!(answers(&s), []);
+        s.mode = FormMode::Edit;
+        s.remember("subject");
+        assert_eq!(answers(&s), [("subject".into(), Value::Null)]);
+        s.state.values.insert("subject".into(), Value::from("Again"));
+        s.remember("subject");
+        assert_eq!(answers(&s), [("subject".into(), Value::from("Again"))]);
+    }
+
+    #[test]
     fn structure_of_a_new_change() {
         let (_a, s) = acme::acme();
         assert_eq!(

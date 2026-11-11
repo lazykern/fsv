@@ -531,6 +531,63 @@ mod tests {
         assert_eq!(c.note, "no choice matches");
     }
 
+    /// `ComboBox._query`: the text of the picked value lists everything on
+    /// a single box; a multi-select always filters by what is typed.
+    #[test]
+    fn query_ignores_the_picked_text() {
+        let h = TestCx::new();
+        let mut c = combo(&h, "change_type");
+        assert_eq!(c.query(), "");
+        c.input.set_value("em");
+        assert_eq!(c.query(), "em");
+        c.shown_text = "Emergency".into();
+        c.input.set_value("Emergency");
+        assert_eq!(c.query(), "");
+        c.input.set_value("Emergenc");
+        assert_eq!(c.query(), "Emergenc");
+
+        let mut m = combo(&h, "services");
+        assert!(m.multi);
+        m.shown_text = "Email".into();
+        m.input.set_value("Email");
+        assert_eq!(m.query(), "Email");
+    }
+
+    /// `ComboBox.pick`: a single box stores the value, shows its text and
+    /// closes; a multi-select toggles the value and clears the input.
+    #[test]
+    fn pick_stores_or_toggles() {
+        let mut h = TestCx::new();
+        let mut c = combo(&h, "change_type");
+        h.cx(|cx| c.open(cx));
+        h.take();
+        let i = labels(&c).iter().position(|l| *l == "Emergency").expect("Emergency");
+        let want = c.options[i].value.clone();
+        h.cx(|cx| c.pick(i, cx));
+        assert_eq!(h.take(), [EdMsg::Edited("change_type".into(), want)]);
+        assert_eq!(c.shown_text, "Emergency");
+        assert_eq!(c.input.value(), "Emergency");
+        assert!(!c.is_open);
+        h.cx(|cx| c.pick(99, cx));
+        assert!(h.take().is_empty());
+
+        let mut m = combo(&h, "services");
+        h.cx(|cx| m.open(cx));
+        h.take();
+        let first = m.options[0].value.clone();
+        m.input.set_value("x");
+        h.cx(|cx| m.pick(0, cx));
+        assert_eq!(
+            h.take(),
+            [EdMsg::Edited("services".into(), Value::List(vec![first.clone()]))]
+        );
+        assert_eq!(m.input.value(), "");
+        assert!(m.is_open);
+        h.s.set("services", Value::List(vec![first]));
+        h.cx(|cx| m.pick(0, cx));
+        assert_eq!(h.take(), [EdMsg::Edited("services".into(), Value::Null)]);
+    }
+
     /// `ComboBox.action_cursor` and `_highlighted`: a closed list opens
     /// first; then the highlight moves (clamped) and the note follows it.
     #[test]

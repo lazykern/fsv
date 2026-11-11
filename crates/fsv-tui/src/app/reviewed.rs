@@ -389,6 +389,7 @@ impl App {
     }
 
     /// `_send_known_error`.
+    /// Port of fsv.tui.app.FsvApp._send_known_error.
     fn send_known_error(&mut self, item: Item, plan: ReviewPlan) {
         if self.read_only {
             return;
@@ -474,6 +475,7 @@ impl App {
     }
 
     /// `_send_planning_text`.
+    /// Port of fsv.tui.app.FsvApp._send_planning_text.
     fn send_planning_text(&mut self, item: Item, plan: ReviewPlan) {
         if self.read_only {
             return;
@@ -602,6 +604,7 @@ mod tests {
         calls: Mutex<Vec<String>>,
         row: Option<Value>,
         private: Option<bool>,
+        deny_send: bool,
     }
 
     fn plan(review: Value, raw: Value) -> ReviewPlan {
@@ -653,6 +656,17 @@ mod tests {
             self.log(format!("conv-send {} public={public}", p.hash));
             Ok(json!({"verified": false}))
         }
+        fn send_known_error(&self, p: &ReviewPlan) -> BResult<Value> {
+            self.log(format!("known-error {}", p.hash));
+            Ok(json!({"verified": true, "id": 7}))
+        }
+        fn send_planning_text(&self, p: &ReviewPlan) -> BResult<Value> {
+            self.log(format!("planning {}", p.hash));
+            if self.deny_send {
+                return Err(Failure::value("planning denied"));
+            }
+            Ok(json!({"verified": false}))
+        }
     }
 
     fn app(w: Writes, read_only: bool) -> (App, Arc<Writes>) {
@@ -696,6 +710,74 @@ mod tests {
         );
         let (mut a, w) = app(Writes::default(), true);
         a.send_ticket_property(ticket(), plan(json!({}), Value::Null));
+        a.settle();
+        assert!(calls(&w).is_empty() && a.modals.is_empty());
+    }
+
+    /// `_send_known_error`: one send, `OutcomeScreen("Known-error result —
+    /// do not resend", json.dumps(result, indent=2))`, then `_after_write`
+    /// on a verified result; read-only sends nothing.
+    #[test]
+    fn send_known_error_shows_outcome_and_reloads() {
+        let problem = Item::new(&PROBLEMS, json!({"id": 7, "display_id": 7}));
+        let (mut a, w) = app(Writes::default(), false);
+        a.send_known_error(problem.clone(), plan(json!({}), Value::Null));
+        a.settle();
+        assert_eq!(calls(&w), ["known-error h"]);
+        match top(&a) {
+            Modal::Outcome(o) => {
+                assert_eq!(o.title, "Known-error result — do not resend");
+                assert_eq!(o.message, "{\n  \"verified\": true,\n  \"id\": 7\n}");
+            }
+            m => panic!("not an outcome: {m:?}"),
+        }
+        assert_eq!(
+            a.toasts.last().map(|t| t.message.as_str()),
+            Some("Known-error state verified")
+        );
+        let (mut a, w) = app(Writes::default(), true);
+        a.send_known_error(problem, plan(json!({}), Value::Null));
+        a.settle();
+        assert!(calls(&w).is_empty() && a.modals.is_empty());
+    }
+
+    /// `_send_planning_text`: an unverified result shows the outcome only;
+    /// a failed send shows `failure_detail`; read-only sends nothing.
+    #[test]
+    fn send_planning_text_shows_outcome_or_failure() {
+        let change = Item::new(&CHANGES, json!({"id": 11, "display_id": 11}));
+        let (mut a, w) = app(Writes::default(), false);
+        a.send_planning_text(change.clone(), plan(json!({}), Value::Null));
+        a.settle();
+        assert_eq!(calls(&w), ["planning h"]);
+        match top(&a) {
+            Modal::Outcome(o) => {
+                assert_eq!(o.title, "Planning result — do not resend");
+                assert_eq!(o.message, "{\n  \"verified\": false\n}");
+            }
+            m => panic!("not an outcome: {m:?}"),
+        }
+        assert!(a.toasts.is_empty());
+
+        let (mut a, _) = app(
+            Writes {
+                deny_send: true,
+                ..Default::default()
+            },
+            false,
+        );
+        a.send_planning_text(change.clone(), plan(json!({}), Value::Null));
+        a.settle();
+        match top(&a) {
+            Modal::Failure(f) => assert_eq!(
+                f.message,
+                "planning denied\nNo automatic retry. Check the exact record and journal before another send; outcome may be unknown."
+            ),
+            m => panic!("not a failure: {m:?}"),
+        }
+
+        let (mut a, w) = app(Writes::default(), true);
+        a.send_planning_text(change, plan(json!({}), Value::Null));
         a.settle();
         assert!(calls(&w).is_empty() && a.modals.is_empty());
     }

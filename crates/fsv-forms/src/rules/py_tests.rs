@@ -937,3 +937,29 @@ fn state_touch_matches_python() {
         check(&format!("touch {row}"), &state_json(&st)["reg"], &row[2]);
     }
 }
+
+#[test]
+fn target_matches_python() {
+    let e = bare_engine(EngineOptions::default());
+    let t = |api: Option<&str>, raw: &str, base: &str, custom: bool| Target {
+        api: api.map(str::to_string),
+        raw: raw.to_string(),
+        base: base.to_string(),
+        custom,
+    };
+    for want in [
+        t(Some("priority"), "priority", "priority", false),
+        t(Some("priority"), "Priority", "Priority", false),
+        t(Some("priority"), "custom_fields.priority", "priority", false),
+        t(Some("stage"), "stage", "stage", true),
+        t(Some("stage"), "Stage", "stage", true),
+        t(Some("stage"), "custom_fields.stage", "stage", true),
+        t(Some("stage"), "customFields.stage", "stage", true),
+        t(None, "cf_risk_notes", "cf_risk_notes", false),
+        t(None, "custom_fields.cf_risk_notes", "cf_risk_notes", true),
+        t(None, "nope", "nope", false),
+        t(None, "custom_fields.nope", "nope", true),
+    ] {
+        assert_eq!(e.target(&want.raw), want);
+    }
+}

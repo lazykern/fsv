@@ -1538,6 +1538,68 @@ mod tests {
     }
 
     #[test]
+    fn diff_matches_python() {
+        use crate::rules::{ChoiceRestriction, Message};
+        let s = state();
+        let base = s.evaluate().expect("evaluate");
+        let msg = |text: &str, id: i64| Message {
+            text: text.into(),
+            rule_id: serde_json::json!(id),
+            rule_name: format!("r{id}"),
+            blocking: false,
+        };
+        let restriction = |allowed: &[&str]| ChoiceRestriction {
+            allowed: allowed.iter().map(|k| (k.to_string(), None)).collect(),
+            rule_id: Json::Null,
+            rule_name: String::new(),
+        };
+        let strs = |v: &[&str]| v.iter().map(|n| n.to_string()).collect::<Vec<_>>();
+        let mut before = base.clone();
+        before.visible = strs(&["subject", "priority", "count"]);
+        before.required = ["subject", "count"].map(String::from).into();
+        before.messages = vec![msg("one", 1), msg("two", 2)];
+        before.populated = [("subject".to_string(), serde_json::json!(7))].into_iter().collect();
+        before.values = [("subject".to_string(), Value::from("a"))].into_iter().collect();
+        before.restricted = [("count".to_string(), restriction(&[]))].into_iter().collect();
+        let mut after = base;
+        after.visible = strs(&["priority", "count", "ok"]);
+        after.required = ["ok", "count", "priority"].map(String::from).into();
+        after.messages = vec![msg("two", 2), msg("three", 3)];
+        after.populated = [
+            ("subject".to_string(), serde_json::json!(7)),
+            ("count".to_string(), serde_json::json!(9)),
+        ]
+        .into_iter()
+        .collect();
+        after.values = [
+            ("subject".to_string(), Value::from("a")),
+            ("count".to_string(), Value::from(5)),
+        ]
+        .into_iter()
+        .collect();
+        after.restricted = [("priority".to_string(), restriction(&["low"]))].into_iter().collect();
+
+        let d = diff("priority", &before, &after).expect("diff");
+        assert_eq!(d.field, "priority");
+        assert_eq!(d.appeared, strs(&["ok"]));
+        assert_eq!(d.disappeared, strs(&["subject"]));
+        assert_eq!(d.became_required, strs(&["priority", "ok"]));
+        assert_eq!(d.no_longer_required, strs(&["subject"]));
+        assert_eq!(d.messages_added, vec![msg("three", 3)]);
+        assert_eq!(d.messages_removed, vec![msg("one", 1)]);
+        assert_eq!(
+            d.populated.into_iter().collect::<Vec<_>>(),
+            vec![("count".to_string(), Value::from(5))]
+        );
+        assert!(d.cleared.is_empty());
+        assert_eq!(
+            d.restricted.into_iter().collect::<Vec<_>>(),
+            vec![("priority".to_string(), strs(&["Low"]))]
+        );
+        assert_eq!(d.unrestricted, strs(&["count"]));
+    }
+
+    #[test]
     fn parse_values() {
         let s = state();
         assert_eq!(

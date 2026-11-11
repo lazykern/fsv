@@ -783,6 +783,34 @@ mod tests {
         assert_eq!(text_to_html("  "), "<div></div>");
     }
 
+    #[test]
+    fn status_id_matches_python() {
+        let spec = crate::py_golden::change_spec();
+        for raw in [Value::from("Open"), Value::from("open"), Value::from(1)] {
+            assert_eq!(status_id(&spec, &raw).expect("status"), json!(1));
+        }
+        assert_eq!(
+            status_id(&spec, &Value::from("nope"))
+                .unwrap_err()
+                .to_string(),
+            "status 'nope' is not a valid choice"
+        );
+        let mut status = Field::new("status", "Status", Kind::Dropdown);
+        status.choices = vec![Choice::new("Open", "Open")];
+        let no_ids = FormSpec::new("change", vec![status], None, vec![], None);
+        assert_eq!(
+            status_id(&no_ids, &Value::from("Open")).expect("status"),
+            json!("Open")
+        );
+        let bare = FormSpec::new("change", vec![], None, vec![], None);
+        assert_eq!(
+            status_id(&bare, &Value::from("Open"))
+                .unwrap_err()
+                .to_string(),
+            "status schema is unavailable; no raw status permitted"
+        );
+    }
+
     fn change_state() -> FormState {
         let mut prio = Field::new("priority", "Priority", Kind::Dropdown);
         let mut low = Choice::new("Low", "Low");

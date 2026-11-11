@@ -107,3 +107,142 @@ impl App {
         });
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::sync::{Arc, Mutex};
+
+    use fsv_core::resource::{CHANGES, TICKETS};
+    use serde_json::Map;
+
+    use super::*;
+    use crate::backend::{BResult, Backend, BasicPages, Failure};
+
+    /// `asset_picker.candidates` answers: `rows`, or a failure.
+    #[derive(Default)]
+    struct Assets {
+        calls: Mutex<Vec<String>>,
+        rows: Vec<Value>,
+        fail: bool,
+    }
+
+    impl Backend for Assets {
+        fn asset_candidates(&self, req: &AssetCandidatesRequest) -> BResult<AssetCandidates> {
+            self.calls
+                .lock()
+                .unwrap()
+                .push(format!("{} {:?} {}", req.change, req.query, req.page));
+            if self.fail {
+                return Err(Failure::value("asset candidate response is unavailable"));
+            }
+            Ok(AssetCandidates {
+                change_id: 11,
+                page: req.page,
+                scope: "single search page; not a complete inventory".into(),
+                assets: self
+                    .rows
+                    .iter()
+                    .map(|r| r.as_object().cloned().unwrap_or_else(Map::new))
+                    .collect(),
+                mutation: "none".into(),
+                warning: String::new(),
+            })
+        }
+    }
+
+    fn app(b: Assets) -> (App, Arc<Assets>) {
+        let b = Arc::new(b);
+        (App::new_inline(b.clone(), Arc::new(BasicPages), true), b)
+    }
+
+    fn calls(b: &Assets) -> Vec<String> {
+        b.calls.lock().unwrap().clone()
+    }
+
+    fn top(a: &App) -> &Modal {
+        &a.modals.last().expect("a modal").0
+    }
+
+    fn change() -> Item {
+        Item::new(&CHANGES, json!({"id": 11, "display_id": 11}))
+    }
+
+    /// `_asset_inventory_prompt`: a change opens the read-only search
+    /// prompt; anything else (or nothing) is a warning toast.
+    #[test]
+    fn asset_inventory_prompt_needs_a_change() {
+        let (mut a, b) = app(Assets::default());
+        a.asset_inventory_prompt();
+        assert!(a.modals.is_empty());
+        assert_eq!(
+            a.toasts.last().map(|t| (t.message.as_str(), t.severity)),
+            Some(("Select a change to browse asset candidates", Severity::Warning))
+        );
+        a.selected = Some(Item::new(&TICKETS, json!({"id": 5})));
+        a.asset_inventory_prompt();
+        assert!(a.modals.is_empty());
+        assert_eq!(a.toasts.len(), 2);
+
+        a.selected = Some(change());
+        a.asset_inventory_prompt();
+        match a.modals.last() {
+            Some((Modal::Value(v), Cont::Assets(Step::Search { item }))) => {
+                assert_eq!(v.title, SEARCH_PROMPT);
+                assert_eq!(item.ref_id(), json!(11));
+            }
+            m => panic!("not the search prompt: {m:?}"),
+        }
+        assert!(calls(&b).is_empty());
+    }
+
+    /// `_load_asset_inventory`: one page-1 search for the change's display
+    /// ID; the choices, an empty-page outcome, or the failure screen.
+    #[test]
+    fn load_asset_inventory_shows_choices_empty_or_failure() {
+        let (mut a, b) = app(Assets {
+            rows: vec![
+                json!({"id": 9000007001_i64, "display_id": 701, "name": "Globex laptop", "ci_type_name": "Computer"}),
+                json!({"id": 9000007002_i64, "display_id": 702, "name": null}),
+            ],
+            ..Default::default()
+        });
+        a.load_asset_inventory(change(), "Globex".into());
+        a.settle();
+        assert_eq!(calls(&b), [r#"11 "Globex" 1"#]);
+        match a.modals.last() {
+            Some((Modal::Picker(p), Cont::Assets(Step::Pick { result }))) => {
+                assert_eq!(p.title, PICKER_TITLE);
+                assert_eq!(
+                    p.options.iter().map(|o| o.1.as_str()).collect::<Vec<_>>(),
+                    ["[701] Globex laptop — Computer", "[702] - — -"]
+                );
+                assert_eq!(result.assets.len(), 2);
+            }
+            m => panic!("not the picker: {m:?}"),
+        }
+
+        let (mut a, _) = app(Assets::default());
+        a.load_asset_inventory(change(), "none".into());
+        a.settle();
+        match top(&a) {
+            Modal::Outcome(o) => {
+                assert_eq!((o.title.as_str(), o.message.as_str()), (EMPTY_TITLE, EMPTY_MESSAGE));
+            }
+            m => panic!("not an outcome: {m:?}"),
+        }
+
+        let (mut a, _) = app(Assets {
+            fail: true,
+            ..Default::default()
+        });
+        a.load_asset_inventory(change(), "x".into());
+        a.settle();
+        match top(&a) {
+            Modal::Failure(f) => assert_eq!(
+                f.message,
+                "Asset search unavailable: asset candidate response is unavailable"
+            ),
+            m => panic!("not a failure: {m:?}"),
+        }
+    }
+}

@@ -235,6 +235,23 @@ mod tests {
     use super::*;
 
     #[test]
+    fn count_matches_python() {
+        for (data, n) in [
+            (json!([1, 2, 3]), 3),
+            (json!([]), 0),
+            (json!({"a": 1, "b": [1, 2]}), 2),
+            (json!({"a": 1}), 1),
+            (json!({}), 1),
+            (json!({"a": [], "b": [1]}), 0),
+            (Json::Null, 0),
+            (json!("x"), 0),
+            (json!(5), 0),
+        ] {
+            assert_eq!(count(&data), n, "{data}");
+        }
+    }
+
+    #[test]
     fn plan_hash_matches_python() {
         let payload = json!({"b": [1, 2.5, null, true], "a": "é", "c": {"z": 1, "y": "ü\n"}});
         assert_eq!(

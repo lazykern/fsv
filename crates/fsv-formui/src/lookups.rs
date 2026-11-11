@@ -584,6 +584,41 @@ mod tests {
     }
 
     #[test]
+    fn agents_skip_deactivated_and_prefer_user_id() {
+        let api = Arc::new(Api {
+            boot: Some(Ok(json!({"agents": [
+                {"id": 1, "user_id": 71, "value": "Alex Kim", "email": "alex@example.com"},
+                {"id": 2, "value": "Old One (Deactivated)"},
+                {"id": 3, "name": "Bo Lin (Deactivated)", "value": ""},
+                {"id": 4, "user_id": null, "name": "Cy Ray", "email": "cy@example.com"},
+                {"value": "No Id"},
+                "junk",
+                {"id": 5, "value": "Di Fox", "name": "Ignored (Deactivated)"},
+            ]}))),
+            ..Default::default()
+        });
+        let got: Vec<_> = AgentsGroups::new(api)
+            .agents()
+            .expect("agents")
+            .into_iter()
+            .map(|p| (p.id, p.display, p.email))
+            .collect();
+        assert_eq!(
+            got,
+            vec![
+                (json!(71), "Alex Kim".into(), Some("alex@example.com".into())),
+                (json!(4), "Cy Ray".into(), Some("cy@example.com".into())),
+                (json!(5), "Di Fox".into(), None),
+            ]
+        );
+        let empty = AgentsGroups::new(Arc::new(Api {
+            boot: Some(Ok(json!({"groups": []}))),
+            ..Default::default()
+        }));
+        assert!(empty.agents().expect("agents").is_empty());
+    }
+
+    #[test]
     fn denied_bootstrap_falls_back_for_agents_only() {
         let api = Arc::new(Api {
             boot: Some(Err(ApiFailure::new(Some(403), "forbidden"))),

@@ -478,6 +478,18 @@ mod tests {
     }
 
     #[test]
+    fn date_text_matches_python() {
+        for ((y, m, d), want) in [
+            ((2026, 11, 26), "Thu 26 Nov 2026"),
+            ((2024, 2, 29), "Thu 29 Feb 2024"),
+            ((2000, 1, 1), "Sat 1 Jan 2000"),
+            ((2026, 6, 7), "Sun 7 Jun 2026"),
+        ] {
+            assert_eq!(date_text(Date::new(y, m, d).expect("date")), want);
+        }
+    }
+
+    #[test]
     fn docstring_examples_match_python() {
         let cases = [
             (
