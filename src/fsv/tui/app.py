@@ -2286,13 +2286,17 @@ class FsvApp(App):
                        ("approval-cancel", "Cancel approval group"), ("approval-groups", "List approval groups")] + choices
         if item.get("_resource", TICKETS).name in {"changes", "problems"}:
             choices.append(("planning-text", "Edit native planning/analysis text"))
+        if item.get("_resource", TICKETS) == PROBLEMS:
+            choices.append(("known-error", "Mark as known error"))
         self.push_screen(ChoiceScreen(choices, "Selected record actions"),
                          lambda kind: self._prepare_action(kind, item) if kind is not None else None)
 
     def _prepare_action(self, kind: str, item: dict) -> None:
         if self.read_only:
             return
-        if kind == "planning-text":
+        if kind == "known-error":
+            self._prepare_known_error(item)
+        elif kind == "planning-text":
             self._load_planning_sections(item)
         elif kind == "task-add":
             self._compose_change_task(item)
@@ -2305,6 +2309,35 @@ class FsvApp(App):
                              lambda query: self._load_action_targets(kind, item, query) if query else None)
         else:
             self._load_action_targets(kind, item)
+
+    @work(thread=True, exclusive=True, group="known-error-review")
+    def _prepare_known_error(self, item: dict) -> None:
+        if self.read_only:
+            return
+        from fsv import problem_known_error
+        try:
+            plan = problem_known_error.build_plan(get_client(), item.get("display_id") or item["id"])
+            def review():
+                self.push_screen(ConfirmScreen("Review known-error mark", [json.dumps(plan.review(), indent=2),
+                    "This does not resolve/close the problem or publish a knowledge article. Reversal is not implemented."]),
+                    lambda ok: self._send_known_error(item, plan) if ok else None)
+            self.call_from_thread(review)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
+    @work(thread=True, group="write")
+    def _send_known_error(self, item: dict, plan: Any) -> None:
+        if self.read_only:
+            return
+        from fsv import problem_known_error
+        try:
+            result = problem_known_error.send(plan, get_client(), reviewed_hash=plan.hash)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+            return
+        self.call_from_thread(self.push_screen, OutcomeScreen("Known-error result — do not resend", json.dumps(result, indent=2)))
+        if result.get("verified"):
+            self.call_from_thread(self._after_write, PROBLEMS, item, "Known-error state verified")
 
     @work(thread=True, exclusive=True, group="planning-review")
     def _load_planning_sections(self, item: dict) -> None:

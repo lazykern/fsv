@@ -97,6 +97,21 @@ a scrollable outcome screen, including unverified readback and returned IDs;
 there is no retry button. **Ctrl+S** keeps the simple compose/review path.
 Read-only mode blocks option preparation and sends.
 
+## Problem known-error mark
+
+```sh
+fsv problems mark-known-error PRB-123 --dry-run
+fsv problems mark-known-error PRB-123 --yes --expect-plan REVIEWED_HASH
+```
+
+The main TUI's selected-problem action menu also offers this exact reviewed
+mark. This implements only captured `PUT problems/ID {known_error:true}`:
+no reversal, resolution/closure, or knowledge publishing is inferred. Exact
+problem identity and the boolean field must be readable; an already-marked
+problem is a no-op. The fresh record binds the review, independent readback
+checks the flag, and ambiguous sends retain a journal guard. Evidence is a
+blocked request plus offline tests, not an accepted live lifecycle.
+
 ## Native planning text and problem analysis
 
 ```sh

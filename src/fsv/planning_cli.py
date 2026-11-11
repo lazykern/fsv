@@ -12,6 +12,26 @@ from fsv.reviewed_write import ReviewedWriteError
 
 
 def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], Any]) -> None:
+    if resource.name == "problems":
+        @app.command("mark-known-error", help="Review marking a problem as a known error; no reversal wire is proven.")
+        def mark_known_error(id_: str = typer.Argument(..., metavar="ID"),
+                             dry_run: bool = typer.Option(False, "--dry-run"),
+                             yes: bool = typer.Option(False, "--yes"),
+                             expect_plan: Optional[str] = typer.Option(None, "--expect-plan")) -> None:
+            from fsv import problem_known_error
+            try:
+                c = client_factory()
+                plan = problem_known_error.build_plan(c, id_)
+                if dry_run:
+                    typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                    return
+                if not yes or expect_plan != plan.hash:
+                    raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
+                typer.echo(json.dumps(problem_known_error.send(plan, c, reviewed_hash=expect_plan), indent=2))
+            except (ValueError, ReviewedWriteError) as exc:
+                typer.echo(str(exc), err=True)
+                raise typer.Exit(2) from None
+
     @app.command("planning-text", help="Review a native planning/analysis text section; no files.")
     def planning(id_: str = typer.Argument(..., metavar="ID"),
                  section: str = typer.Option(..., "--section", help="exact metadata label/name; problems: Root Cause, Impact, Symptoms"),
