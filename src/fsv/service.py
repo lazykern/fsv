@@ -12,6 +12,52 @@ from fsv.render import strip_html
 from fsv.resources import CHANGES, PROBLEMS, TICKETS, Resource, format_id
 
 
+def list_page(
+    resource: Resource,
+    client: Client | None = None,
+    page: int = 1,
+    per_page: int = 30,
+    filter_name: str | None = None,
+    order_by: str | None = None,
+    order_type: str = "desc",
+    query_hash: str | None = None,
+    or_grouping: bool = False,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """One list page as the web requests it: (items, raw response)."""
+    c = client or get_client()
+    params = _list_params(resource, page, per_page, filter_name, order_by, order_type, query_hash, or_grouping)
+    data = c.int_get(resource.api_path, params=params)
+    data = data if isinstance(data, dict) else {}
+    items = data.get(resource.list_key, []) or []
+    for item in items:
+        item["_resource"] = resource
+    return items, data
+
+
+def _list_params(resource: Resource, page: int, per_page: int, filter_name: str | None, order_by: str | None,
+                 order_type: str | None, query_hash: str | None, or_grouping: bool) -> dict[str, Any]:
+    params: dict[str, Any] = {
+        "per_page": per_page,
+        "page": page,
+        "include": resource.list_include,
+        "cache": "true",
+    }
+    if filter_name:
+        params["filter"] = filter_name
+    if order_by:
+        params["order_by"] = order_by
+        params["order_type"] = order_type or "desc"
+    if query_hash:
+        if or_grouping:
+            params["advanced_query_hash"] = query_hash
+            params["query_hash"] = ""
+        else:
+            params["query_hash"] = query_hash
+            if resource.name in ("changes", "tickets"):
+                params["advanced_query_hash"] = ""
+    return params
+
+
 def list_items(
     resource: Resource,
     client: Client | None = None,

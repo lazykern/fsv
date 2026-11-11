@@ -34,7 +34,7 @@ CHANGES = Resource(
     filters_path="change-filters",
     display_prefixes=("CHN",),
     sub_resources=("notes", "tasks", "activities", "approvals", "time_entries"),
-    list_include="change_status,agent,requester,group",
+    list_include="change_status,agent,requester,group,department",
 )
 
 TICKETS = Resource(
@@ -47,7 +47,7 @@ TICKETS = Resource(
     filters_path="ticket_filters",
     display_prefixes=("INC", "SR"),
     sub_resources=("conversations", "tasks", "activities", "time_entries"),
-    list_include="ticket_status,responder,requester,group",
+    list_include="stats,responder,requester,ticket_states,ticket_status,group",
     has_notes=False,
 )
 
