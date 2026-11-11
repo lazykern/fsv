@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+import html
 import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 from fsv.client import APIError, Client, get_client
-from fsv.forms.spec import is_content_type
+from fsv.forms.spec import is_content_type, is_planning_type
 from fsv.resources import Resource, CHANGES
 from fsv.schema import load as load_schema
 
@@ -585,33 +586,89 @@ def _singular_key(value: Any) -> str:
     return "".join(words)
 
 
-def _is_planning_field(f: dict[str, Any]) -> bool:
-    ftype = str(f.get("field_type") or "")
-    return ftype in {"planning_field", "default_change_reason", "default_change_impact", "default_change_plan", "default_backout_plan"}
+def _is_planning_field(f: Mapping[str, Any]) -> bool:
+    return is_planning_type(f.get("field_type"))
 
 
-def resolve_planning_field(value: str, schema_fields: list[dict[str, Any]]) -> str:
-    raw = value.strip()
-    common_aliases = {"reason_for_change": "change_reason", "rollout_plan": "change_plan"}
-    raw = common_aliases.get(raw.casefold(), raw)
-    planning_fields = [f for f in schema_fields if _is_planning_field(f)]
+def _norm_label(value: Any) -> str:
+    return " ".join(html.unescape(str(value or "")).split()).casefold()
+
+
+def planning_definitions(schema_fields: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The account's planning-field definitions, in metadata order."""
+    return [f for f in schema_fields or [] if isinstance(f, Mapping) and _is_planning_field(f)]
+
+
+def planning_server_key(defn: Mapping[str, Any]) -> str:
+    """The key ``/changes/<id>/planning-fields/<key>`` takes for this field
+    on this account (its name from the metadata, else its id)."""
+    return str(defn.get("name") or defn.get("id"))
+
+
+def resolve_planning_definition(value: str, schema_fields: list[dict[str, Any]]) -> dict[str, Any]:
+    """A planning field by its label (what drafts and presets use: labels are
+    the same on every account while internal names are not), else by this
+    account's name or id, else by a looser match (``planning-field-`` /
+    ``cf_`` prefixes, export label, help text, singular/plural)."""
+    raw = str(value or "").strip()
+    defs = planning_definitions(schema_fields)
+    key = _norm_label(raw)
+    by_label = [f for f in defs if _norm_label(f.get("label")) == key]
+    if len(by_label) == 1:
+        return by_label[0]
+    for f in defs:
+        if raw in (str(f.get("name") or ""), str(f.get("id") or "")):
+            return f
     aliases = [raw]
     if raw.startswith("planning-field-"):
         aliases.append(raw.removeprefix("planning-field-"))
     aliases.extend(a.removeprefix("cf_") for a in list(aliases) if a.startswith("cf_"))
     keys = {_planning_key(a) for a in aliases} | {_singular_key(a) for a in aliases}
-
-    for f in planning_fields:
+    keys.discard("")
+    for f in defs:
         candidates = [
             f.get("name"), f.get("id"), f.get("label"), f.get("export_label"),
             f.get("helptext"), f.get("description"), f"planning-field-{f.get('name')}",
             f"planning-field-cf_{f.get('name')}", f"cf_{f.get('name')}",
         ]
-        cand_keys = {_planning_key(c) for c in candidates} | {_singular_key(c) for c in candidates}
+        cand_keys = {_planning_key(c) for c in candidates if c} | {_singular_key(c) for c in candidates if c}
         if keys & cand_keys:
-            return str(f["name"])
-    known = ", ".join(str(f.get("label") or f.get("name")) for f in planning_fields[:12])
+            return f
+    known = ", ".join(str(f.get("label") or f.get("name")) for f in defs[:12])
     raise APIError(0, f"planning field not found: {value!r}; choices: {known}")
+
+
+def resolve_planning_field(value: str, schema_fields: list[dict[str, Any]]) -> str:
+    """The server key of the planning field ``value`` names (label first)."""
+    return planning_server_key(resolve_planning_definition(value, schema_fields))
+
+
+def match_planning_row(defn: Mapping[str, Any], rows: list[dict[str, Any]],
+                       defs: list[dict[str, Any]] | None = None) -> dict[str, Any] | None:
+    """The ``change_planning_fields`` row for a definition: by name, then id,
+    then label, then (when the row list mirrors the definitions one to one)
+    by position. Never assumes a fixed internal name."""
+    rows = [r for r in rows or [] if isinstance(r, Mapping)]
+    name, fid, label = defn.get("name"), defn.get("id"), _norm_label(defn.get("label"))
+    if name:
+        hit = next((r for r in rows if str(r.get("name") or "") == str(name)), None)
+        if hit is not None:
+            return hit
+    if fid is not None:
+        for k in ("field_id", "planning_field_id", "id"):
+            hit = next((r for r in rows if r.get(k) is not None and str(r.get(k)) == str(fid)), None)
+            if hit is not None:
+                return hit
+    if label:
+        hits = [r for r in rows if _norm_label(r.get("label")) == label]
+        if len(hits) == 1:
+            return hits[0]
+    if defs is not None and len(rows) == len(defs) and all(not r.get("label") and not r.get("name") for r in rows):
+        try:
+            return rows[[id(d) for d in defs].index(id(defn))]
+        except ValueError:
+            return None
+    return None
 
 
 def _planning_description(field: dict[str, Any] | None) -> str:
@@ -701,8 +758,12 @@ def update_planning_field(
     duplicate: str = "prompt",
     backup_replaced: bool | None = None,
     backup_name: str | None = None,
+    label: str | None = None,
 ) -> dict[str, Any]:
     """Update a planning field, merging new files with existing ones.
+
+    ``label``: the field's label, used to find its row when the row's
+    internal name differs from ``field_id``.
 
     If description is None, preserves existing description. When uploading files to
     an empty planning field, uses the filename as default description because
@@ -717,8 +778,14 @@ def update_planning_field(
 
     # Fetch existing field content
     data = c.int_get(f"changes/{change_id}/planning-fields")
-    fields = {f["name"]: f for f in data.get("change_planning_fields", []) if f.get("name")}
+    rows = [f for f in data.get("change_planning_fields", []) or [] if isinstance(f, dict)]
+    fields = {f["name"]: f for f in rows if f.get("name")}
     existing = fields.get(field_id)
+    if existing is None and label:
+        # the row may carry another internal name on this account: match by label
+        existing = match_planning_row({"label": label}, rows)
+        if existing is not None and existing.get("name"):
+            field_id = str(existing["name"])
 
     attachments = list((existing or {}).get("attachments", []) or [])
     all_att_ids = [att_id for att_id in (_attachment_id(a) for a in attachments) if att_id is not None]

@@ -38,6 +38,7 @@ from fsv.formmeta import (
     rules_warnings,
 )
 from fsv.forms import Field, FormError, FormState, LookupValue, plain_text
+from fsv.forms.spec import is_planning_type
 from fsv.forms.tz import zone
 
 from . import lookups, when
@@ -271,8 +272,8 @@ class FormSession:
             out.append(FormItem(ATTACHMENTS, "Attachments", "file",
                                 help="Files for the change's Attachments section; uploaded only after you "
                                      "confirm. Separate several with ';'."))
-            for f in self.spec.fields:
-                if f.field_type == "planning_field":
+            for f in self.spec.fields:  # every planning type, keyed by label (names differ per account)
+                if is_planning_type(f.field_type):
                     out.append(FormItem(PLANNING + f.label, f"{f.label} (planning files)", "file",
                                         help=(_plain(f.help) + " " if f.help else "")
                                         + "Planning field files, attached after the change is saved."))

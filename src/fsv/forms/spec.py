@@ -130,6 +130,20 @@ REQUESTED_FOR_LABEL = "Request for"
 REQUESTED_FOR_MODULES = frozenset({"change"})
 # field types whose request key is unknown: never sent
 UNSENT_TYPES = frozenset({REQUESTED_FOR_TYPE})
+# Change planning fields (reason, impact, rollout, backout and custom
+# ones): not on the create form, edited through ``/changes/<id>/planning-fields``.
+# Their internal names differ between accounts for the same label, so fsv
+# resolves them by label (then position), never by a hardcoded name.
+PLANNING_TYPES = frozenset({
+    "planning_field", "default_change_reason", "default_change_impact", "default_change_plan",
+    "default_backout_plan",
+})
+
+
+def is_planning_type(field_type: Any) -> bool:
+    return str(field_type or "") in PLANNING_TYPES
+
+
 # lookup_config.data_source value used for user lookups.
 _USER_LOOKUP_SOURCE = 5
 
@@ -666,7 +680,7 @@ def _fields_from_form_field(f: Mapping[str, Any], warnings: list[str]) -> list[F
         id=f.get("id"),
         multi=ftype in ("custom_multi_select_dropdown", "custom_multi_lookup"),
         visible_base=f.get("displayed_to_agents", True) is not False,
-        on_form=position is not None and ftype != "planning_field",
+        on_form=position is not None and not is_planning_type(ftype),
         content=html.unescape(str(_content_of(f) if kind == "notice" else (f.get("content") or ""))),
         levels=tuple(str(n.get("name")) for n in nested_levels),
         date_only=kind == "date",

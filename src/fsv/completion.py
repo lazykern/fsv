@@ -187,8 +187,9 @@ def complete_planning_field_names(res: Resource):
             name = _field_name(f)
             label = _field_label(f)
             ftype = str(f.get("field_type") or "")
-            planning_types = {"planning_field", "default_change_reason", "default_change_impact", "default_change_plan", "default_backout_plan"}
-            if ftype not in planning_types:
+            from fsv.forms.spec import is_planning_type
+
+            if not is_planning_type(ftype):
                 continue
             if name and (_match(name, incomplete) or _match(label, incomplete)):
                 yield (label or name, name)

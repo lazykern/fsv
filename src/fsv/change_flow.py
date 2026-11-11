@@ -200,17 +200,18 @@ def _acknowledge(state: FormState, acks: list[str], ack_all: bool) -> list[str]:
 
 
 def _resolve_planning(meta: FormMeta, draft: Draft) -> tuple[list[dict[str, Any]], list[str]]:
-    from fsv.create import resolve_planning_field
+    from fsv.create import planning_server_key, resolve_planning_definition
 
     out, errors = [], []
     for label, entry in draft.planning.items():
-        try:
-            fid = resolve_planning_field(label, meta.raw_fields)
+        try:  # by label first: internal names differ between accounts
+            defn = resolve_planning_definition(label, meta.raw_fields)
         except Exception as e:  # APIError(0, "planning field not found ...")
             errors.append(str(getattr(e, "body", e)))
             continue
         files = list(entry.get("files") or [])
-        out.append({"label": label, "field_id": fid, "files": files,
+        out.append({"label": label, "field_id": planning_server_key(defn),
+                    "field_label": str(defn.get("label") or label), "files": files,
                     "description_html": entry.get("description_html")})
     return out, errors
 
@@ -658,7 +659,7 @@ def execute(plan: Plan, client: Any, *, duplicate: str = "append", attach_flow: 
             steps.append({"step": "attachments", "ok": True, "files": [os.path.basename(p) for p in paths]})
         for p in plan.planning:
             update_planning_field(cid, p["field_id"], description=p["description_html"], file_paths=p["files"],
-                                  c=client, duplicate=duplicate)
+                                  c=client, duplicate=duplicate, label=p.get("field_label") or p["label"])
             steps.append({"step": f"planning:{p['field_id']}", "ok": True})
     except BaseException as e:
         steps.append({"step": "after", "ok": False, "error": str(e)[:200]})

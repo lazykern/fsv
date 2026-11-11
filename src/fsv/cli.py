@@ -3933,7 +3933,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
             clone_tasks,
             download_attachment,
             get_change_for_edit,
-            resolve_planning_field,
+            match_planning_row,
+            planning_server_key,
+            resolve_planning_definition,
             set_due_by,
             submit_change,
             update_change,
@@ -4021,7 +4023,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     return
 
                 if planning is not None:
-                    planning_id = resolve_planning_field(planning, _api(lambda: schema_mod.load(res, _client())).get("fields", []))
+                    planning_def = resolve_planning_definition(  # by label first: names differ per account
+                        planning, _api(lambda: schema_mod.load(res, _client())).get("fields", []))
+                    planning_id = planning_server_key(planning_def)
                     desc = sys.stdin.read() if description == "-" else description
                     if dry_run:
                         _emit_dry_run(res, cid, {"planning_field": planning_id, "description": desc, "files": list(files or []), "duplicate": duplicate}, "update_planning_field")
@@ -4034,6 +4038,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                         duplicate=duplicate,
                         backup_replaced=backup_replaced,
                         backup_name=backup_name,
+                        label=str(planning_def.get("label") or planning),
                     )
                     if json_out:
                         emit_json(updated)
@@ -4170,8 +4175,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     if all_planning:
                         selected.extend(str(f.get("name")) for f in fields if f.get("name") and f.get("attachments"))
                     for value in planning or []:
-                        field_id = resolve_planning_field(value, _api(lambda: schema_mod.load(res, c)).get("fields", []))
-                        selected.append(field_id)
+                        defn = resolve_planning_definition(value, _api(lambda: schema_mod.load(res, c)).get("fields", []))
+                        row = match_planning_row(defn, fields)
+                        selected.append(str((row or {}).get("name") or planning_server_key(defn)))
                     for field_id in dict.fromkeys(selected):
                         field = by_name.get(field_id)
                         attachments = (field or {}).get("attachments") or []

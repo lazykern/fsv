@@ -161,6 +161,24 @@ out, and reviews show `(not sent)`. TODO: capture a web create/update that
 fills Request for and send it with the key the web uses (likely
 `requested_for_id`, unverified); until then fsv never guesses it on the wire.
 
+### Planning fields
+
+Planning fields (`default_change_reason`, `default_change_impact`,
+`default_change_plan`, `default_backout_plan` and custom `planning_field`s;
+`fsv.forms.spec.PLANNING_TYPES`) are not on the create form: fsv writes them
+after the change exists, through `/api/_/changes/<id>/planning-fields`.
+Their internal names differ between accounts for the same label, so fsv
+never relies on a fixed name:
+
+* drafts and presets key them by **label** (`planning: {Rollout Plan: [...]}`);
+* `create.resolve_planning_definition()` matches the label first, then this
+  account's name or id, then a looser match (prefixes, export label, help
+  text); `planning_server_key()` gives the key this account's endpoint takes;
+* `create.match_planning_row()` pairs a definition with a
+  `change_planning_fields` row by name, then id, then label, then position
+  (detail pages, downloads, updates);
+* the interactive form offers every planning type by label.
+
 ### Details
 
 * **Order**: by `position`; section children and nested levels follow the

@@ -32,6 +32,7 @@ from typing import Any, Callable, Mapping, Sequence
 
 from fsv import schema as schema_mod
 from fsv.errors import APIError, SessionError
+from fsv.forms.spec import PLANNING_TYPES  # resolved by label/position: names differ per account
 from fsv.resources import Resource, format_id
 
 MODULE_OF = {"changes": "change", "tickets": "ticket", "problems": "problem"}
@@ -722,8 +723,7 @@ class PlanningEntry:
                 "files": self.files, "empty": self.empty}
 
 
-PLANNING_TYPES = {"planning_field", "default_change_reason", "default_change_impact", "default_change_plan",
-                  "default_backout_plan"}
+
 
 
 def _file_names(rows: Any) -> list[str]:
@@ -745,12 +745,14 @@ def load_planning(c: Any, record: Mapping[str, Any], schema: Mapping[str, Any] |
                               None, "planning")
     if miss:
         return None, miss
+    from fsv.create import match_planning_row
+
     rows = data.get("change_planning_fields") if isinstance(data, Mapping) else data
-    by_name = {str(r.get("name")): r for r in rows or [] if isinstance(r, Mapping)}
+    rows = [r for r in rows or [] if isinstance(r, Mapping)]
     out = []
     for d in defs:
         name = str(d.get("name") or "")
-        v = by_name.get(name) or {}
+        v = match_planning_row(d, rows, defs) or {}
         text = html_to_text(v.get("description") or v.get("description_html") or "") or str(v.get("description_text") or "").strip()
         out.append(PlanningEntry(name, html.unescape(str(d.get("label") or name)),
                                  one_line(d.get("helptext") or d.get("description") or ""), text,
