@@ -87,11 +87,11 @@ def test_view_name_resolves_to_filter_id(monkeypatch):
     monkeypatch.setattr(cli, "_build_query_hash", lambda c, res, raw, where, or_grouping: (None, [], []))
     monkeypatch.setattr(cli, "_emit_items", lambda *args, **kwargs: None)
 
-    def fake_list_items(res, **kwargs):
+    def fake_list_page(res, **kwargs):
         seen.update(kwargs)
-        return [], 0
+        return [], {}
 
-    monkeypatch.setattr(service, "list_items", fake_list_items)
+    monkeypatch.setattr(service, "list_page", fake_list_page)
 
     cli.list_resource(
         CHANGES,

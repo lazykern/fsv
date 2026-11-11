@@ -914,19 +914,71 @@ def _query_item(condition: str, operator: str, value: Any, type_: str, explain: 
     return {"value": value, "condition": condition, "operator": operator, "type": type_}
 
 
+# Filter-panel wording accepted by --where (besides field names and labels).
+_WHERE_DATE_ALIASES = {
+    "created": "created_at", "created date": "created_at", "created on": "created_at", "created at": "created_at",
+    "updated": "updated_at", "last modified": "updated_at", "modified": "updated_at", "updated at": "updated_at",
+    "due": "due_by", "due by": "due_by", "due date": "due_by",
+}
+_WHERE_FIELD_ALIASES = {"assigned to": "agent", "agents": "agent", "groups": "group", "requesters": "requester",
+                        "departments": "department", "responder": "agent"}
+# Filter-panel time periods ("Created: Last 6 months") -> the web's tokens.
+_WHERE_PERIODS = {
+    "today": "today", "yesterday": "yesterday", "this week": "week", "last week": "last_week",
+    "this month": "month", "last month": "last_month", "last 2 months": "two_months",
+    "last 6 months": "six_months", "last 24 hours": "twenty_four_hours", "last 7 days": "last_week",
+}
+_PERIOD_TOKENS = frozenset(_WHERE_PERIODS.values()) | {"five_minutes", "fifteen_minutes", "thirty_minutes",
+                                                     "one_hour", "four_hours", "twelve_hours"}
+# Filter-panel special values. The web sends "0" for "Me" and "-1" for
+# "Unassigned"/"(empty)" on the people/group fields of a saved view.
+_WHERE_ME = {"me", "(me)", "myself"}
+_WHERE_EMPTY = {"(empty)", "empty", "unassigned", "(none)", "none", "-"}
+
+
+def _date_condition(field_name: str, op: str, raw: str, explain: list[dict[str, Any]], shown: str) -> dict[str, Any]:
+    token = _WHERE_PERIODS.get(raw.strip().casefold(), raw.strip() if raw.strip() in _PERIOD_TOKENS else None)
+    if token and op in ("=", ">", ">="):
+        return _query_item(field_name, "is_greater_than", token, "default", explain, shown, raw)
+    if op in (">", ">="):
+        value: Any = {"from": raw}
+    elif op in ("<", "<="):
+        value = {"to": raw}
+    elif op in ("=", "!="):
+        value = {"from": raw, "to": raw}
+    else:
+        _err(f"unsupported date operator {op!r}; use = != >= <= > <")
+    return _query_item(field_name, "custom_date", value, "default", explain, shown, raw)
+
+
+def _where_schema_field(res: Resource, sch: dict[str, Any], field_text: str) -> dict[str, Any] | None:
+    f = _find_schema_field(sch, field_text)
+    if f:
+        return f
+    folded = " ".join(field_text.split()).casefold()
+    alias = _WHERE_FIELD_ALIASES.get(folded)
+    if alias:
+        f = _find_schema_field(sch, alias)
+        if f:
+            return f
+    for cut in ("s", "es"):
+        if folded.endswith(cut) and len(folded) > len(cut) + 1:
+            f = _find_schema_field(sch, field_text[: -len(cut)])
+            if f:
+                return f
+    return None
+
+
 def _resolve_where(c: Any, res: Resource, sch: dict[str, Any], expr: str, explain: list[dict[str, Any]]) -> dict[str, Any]:
+    """One --where FIELD<op>VALUE: FIELD is an internal name or a label as the
+    web's filter panel shows it ("Agents", "Created", "Planned Start Date",
+    a custom dropdown's label); VALUE a choice label, a person/group name,
+    "Me", "Unassigned"/"(empty)", a date, or a period ("Last 6 months")."""
     field_text, op, raw = _parse_where(expr)
     pseudo_dates = {"created_at", "updated_at", "due_by", "planned_start_date", "planned_end_date"}
-    if field_text in pseudo_dates:
-        if op in (">", ">="):
-            value = {"from": raw}
-        elif op in ("<", "<="):
-            value = {"to": raw}
-        elif op in ("=", "!="):
-            value = {"from": raw, "to": raw}
-        else:
-            _err(f"unsupported date operator {op!r}; use = != >= <= > <")
-        return _query_item(field_text, "custom_date", value, "default", explain, field_text, raw)
+    date_name = field_text if field_text in pseudo_dates else _WHERE_DATE_ALIASES.get(" ".join(field_text.split()).casefold())
+    if date_name:
+        return _date_condition(date_name, op, raw, explain, field_text)
     if field_text.endswith("_id"):
         if op in (">", "<", ">=", "<=", "~="):
             _err(f"operator {op!r} not supported on ID fields; use = or !=")
@@ -934,28 +986,53 @@ def _resolve_where(c: Any, res: Resource, sch: dict[str, Any], expr: str, explai
         val: Any = int(raw) if raw.isdigit() else raw
         return _query_item(field_text, operator, [val], "default", explain, field_text, raw)
 
-    f = _find_schema_field(sch, field_text)
+    f = _where_schema_field(res, sch, field_text)
     if not f:
-        _err(f"field not found: {field_text}; run `fsv {res.name} fields`")
+        labels = ", ".join(sorted({str(x.get("label")) for x in sch.get("fields") or [] if x.get("label")})[:25])
+        _err(f"field not found: {field_text}; filter by a label shown on the form ({labels}) "
+             f"or see `fsv {res.name} fields`")
     name = f.get("name") or field_text
+    if name in pseudo_dates:
+        return _date_condition(str(name), op, raw, explain, field_text)
     type_ = _field_api_type(f)
     ftype = str(f.get("field_type") or "")
     operator = _where_operator(op)
+    folded = raw.strip().casefold()
 
     if name == "requester":
+        if folded in _WHERE_ME:
+            from fsv import views as _views
+            me = _views.current_user(c)
+            if not me.get("id"):
+                _err("cannot tell who you are (agents/me is not readable); use your email instead of 'me'")
+            return _query_item("requester_id", operator, [{"id": me["id"], "name": me.get("name") or "Me"}],
+                               "default", explain, name, f"Me ({me['id']})")
         req = _resolve_requester(c, raw)
         return _query_item("requester_id", operator, [{"id": req["id"], "name": req["name"]}], "default", explain, name, f"{req['name']} ({req['id']})")
     if name == "agent":
-        agent_id = _resolve_agent(c, raw)
         condition = "responder_id" if res.name == "tickets" else "agent_id"
+        if folded in _WHERE_ME:
+            return _query_item(condition, operator, ["0"], "default", explain, name, "Me")
+        if folded in _WHERE_EMPTY:
+            return _query_item(condition, operator, ["-1"], "default", explain, name, "Unassigned")
+        agent_id = _resolve_agent(c, raw)
         return _query_item(condition, operator, [agent_id], "default", explain, name, agent_id)
     if name == "group":
-        val = _choice_value(f, raw, "default")
+        if folded in _WHERE_EMPTY:
+            return _query_item("group_id", operator, ["-1"], "default", explain, name, "(empty)")
+        val = _choice_value(f, raw, "default") if f.get("choices") else _resolve_group(c, raw)
         return _query_item("group_id", operator, [str(val)], "default", explain, name, str(val))
+    if folded in _WHERE_EMPTY and (f.get("choices") or "dropdown" in ftype or name == "department"):
+        has_choice = any(str(ch.get("value") or ch.get("name") or "").strip().casefold() == folded
+                         for ch in f.get("choices") or [])
+        if not has_choice:
+            cond = "department_id" if name == "department" else name
+            return _query_item(cond, operator, ["-1"], type_, explain, name, "(empty)")
 
     if f.get("choices") or "dropdown" in ftype or ftype in ("default_status", "default_priority"):
         val = _choice_value(f, raw, type_)
-        return _query_item(name, operator, [val], type_, explain, name, str(val))
+        cond = "department_id" if name == "department" and type_ == "default" else name
+        return _query_item(cond, operator, [val], type_, explain, name, str(val))
     val = int(raw) if raw.isdigit() and ftype.endswith("number") else raw
     return _query_item(name, operator, [val], type_, explain, name, raw)
 
@@ -1039,6 +1116,41 @@ def _build_query_hash(
     return json.dumps(query, separators=(",", ":")), query, explain
 
 
+def _saved_views(c: Any, res: Resource) -> list[Any]:
+    """The web's saved views as :class:`fsv.views.SavedView` (``[]`` when the
+    account will not list them)."""
+    from fsv import views as V
+    try:
+        raw = _load_views(c, res)
+    except SessionError:
+        raise
+    except Exception:  # noqa: BLE001 - views are optional (role/plan)
+        return []
+    out = []
+    for v in raw or []:
+        if not isinstance(v, dict) or v.get("id") in (None, ""):
+            continue
+        marked = bool(v.get("default"))
+        out.append(V.SavedView(str(v["id"]), str(v.get("name") or v["id"]),
+                               system=marked and v.get("user_id") is None, marked_default=marked, raw=v))
+    return out
+
+
+def _pick_view(c: Any, res: Resource, view: str | None, use_default: bool) -> Any:
+    from fsv import views as V
+    saved = _saved_views(c, res)
+    if view:
+        try:
+            return V.find_view(saved, view)
+        except ValueError as e:
+            if not saved:  # cannot list views here: pass the id through as given
+                return V.SavedView(view, view)
+            _err(str(e))
+    if use_default:
+        return V.default_view(saved)
+    return None
+
+
 def list_resource(
     res: Resource,
     filter_name: Optional[str],
@@ -1056,64 +1168,110 @@ def list_resource(
     order_type: SortOrder | str | None = None,
     n_pages: int | None = None,
 ) -> None:
+    """A list page like the web's: a saved view (by name; the server's
+    default when neither --view nor filters are given), the site's columns
+    and a ``<view> · 1-30 of N · Sort by: ...`` header."""
     from fsv import schema as schema_mod
     from fsv import service
+    from fsv import views as V
+    from fsv import pages
     c = _client()
-    filter_name = _api(lambda: _resolve_view_name(c, res, filter_name))
     qh, query, explanation = _api(lambda: _build_query_hash(c, res, raw_query_hash, where, or_grouping))
     if debug:
         _show_query_explain(explanation, query, or_grouping)
         return
     if or_grouping and res != CHANGES:
         _err(f"OR grouping not supported for {res.name}; use AND filters")
+    view = _api(lambda: _pick_view(c, res, filter_name, use_default=not where and not raw_query_hash))
     ot = order_type.value if isinstance(order_type, SortOrder) else order_type
+    ob = order_by
+    if view is not None and not ob and view.raw:
+        settings = _api(lambda: V.view_settings(c, res, view))
+        ob = settings.get("order_by") or None
+        if ob:
+            ot = settings.get("order_type") or ot
+    ob = ob or "created_at"
+    ot = ot or "desc"
+    headers = _api(lambda: V.ticket_headers(c)) if res == TICKETS else []
+    fmt = format_.value if isinstance(format_, OutputFormat) else format_
+    view_id = view.id if view is not None else None
 
-    def load_items() -> tuple[list[dict], dict[str, Any]]:
+    def load_items() -> tuple[list[dict], dict[str, Any], int | None, bool]:
+        size = 100 if (all_pages or n_pages is not None) else per_page
         if all_pages or n_pages is not None:
             acc: list[dict] = []
             limit = n_pages if n_pages is not None else None
+            total, more = None, False
             for p in range(page, page + (limit or 100)):
-                batch, _ = service.list_items(
-                    res, client=c, page=p, per_page=100,
-                    filter_name=filter_name, order_by=order_by, order_type=ot,
+                batch, data = service.list_page(
+                    res, client=c, page=p, per_page=size,
+                    filter_name=view_id, order_by=ob, order_type=ot,
                     query_hash=qh, or_grouping=or_grouping,
                 )
                 acc.extend(batch)
+                total, more = V.list_meta(data, batch, p, size)
                 err.print(f"  fetched {len(acc)} so far...", highlight=False)
-                if len(batch) < 100:
+                if len(batch) < size or not more:
                     break
-            return acc, schema_mod.load(res, c)
-        items, _ = service.list_items(
-            res, client=c, page=page, per_page=per_page,
-            filter_name=filter_name, order_by=order_by, order_type=ot,
+            return acc, schema_mod.load(res, c), total, more
+        items, data = service.list_page(
+            res, client=c, page=page, per_page=size,
+            filter_name=view_id, order_by=ob, order_type=ot,
             query_hash=qh, or_grouping=or_grouping,
         )
-        return items, schema_mod.load(res, c)
+        total, more = V.list_meta(data, items, page, size)
+        return items, schema_mod.load(res, c), total, more
 
-    items, sch = _api(load_items)
-    fmt = format_.value if isinstance(format_, OutputFormat) else format_
-    if not json_out and fmt == "table" and _should_page(len(items), pager):
+    items, sch, total, more = _api(load_items)
+    me = V.current_user(c) if fmt != "json" and not json_out else {}
+    tz = V.user_tz(me)
+    columns = V.list_columns(res, sch, headers)
+    rows = [V.list_row(x, res, columns, sch, me.get("id"), tz) for x in items]
+    if json_out or fmt == "json":
+        emit_json(items)
+        return
+    if fmt in ("csv", "tsv"):
+        render.emit_delimited(rows, "," if fmt == "csv" else "\t")
+        return
+    if fmt != "table":
+        _err("--output must be table, json, csv, or tsv")
+    eff_page = page if not (all_pages or n_pages is not None) else 1
+    lp = V.ListPage(res, items, columns, rows, view, eff_page, per_page if eff_page == page and not all_pages and n_pages is None else max(len(items), 1),
+                    total, more, ob, ot, V.sort_label(ob, sch))
+    head = pages.list_header(lp)
+    if where or raw_query_hash:
+        head += f"[dim] · filtered: {escape(' '.join(where) or 'query hash')}[/]"
+    if _should_page(len(items) * 2 + 2, pager):
         with console.capture() as capture:
-            console.print(render.list_table(items, res, sch))
+            console.print(head, highlight=False)
+            console.print(pages.list_table(lp))
         if not _page_text(capture.get()):
-            console.print(render.list_table(items, res, sch))
+            console.print(head, highlight=False)
+            console.print(pages.list_table(lp))
     else:
-        _emit_items(items, res, sch, format_, json_out)
-    if not json_out and fmt == "table":
-        err.print(f"{len(items)} rows")
+        console.print(head, highlight=False)
+        console.print(pages.list_table(lp))
+    err.print(f"{len(items)} rows")
 
 
-def get_resource(res: Resource, id_: str, stats: bool, json_out: bool, format_: OutputFormat | str = "table") -> None:
+def get_resource(res: Resource, id_: str, stats: bool, json_out: bool, format_: OutputFormat | str = "table",
+                 tab: str | None = None, all_tabs: bool = False, all_conversations: bool = False) -> None:
+    """The record laid out like its web page (header, lifecycle, reporter,
+    Details with the Properties panel, and any tab). JSON keeps the record's
+    own keys and adds ``view`` with the same sections."""
     from fsv import schema as schema_mod
     from fsv import service
+    from fsv import views as V
+    from fsv import pages
     cid = _cid(id_, res)
     c = _client()
+    fmt = format_.value if isinstance(format_, OutputFormat) else format_
 
-    def load_item() -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
-        sch = schema_mod.load(res, c)
-        if stats and res == CHANGES:
+    if stats and res == CHANGES and (json_out or fmt == "json"):
+        def load_evidence() -> dict[str, Any]:
+            sch = schema_mod.load(res, c)
             evidence = service.get_change_evidence(cid, client=c)
-            item = {
+            return {
                 **evidence["change"],
                 "planning_fields": evidence["planning_fields_by_name"],
                 "change_planning_fields": evidence["planning_fields"],
@@ -1121,19 +1279,43 @@ def get_resource(res: Resource, id_: str, stats: bool, json_out: bool, format_: 
                 "main_attachments": evidence["main_attachments"],
                 "description_attachment_urls": evidence["description_attachment_urls"],
             }
-        else:
-            item = service.get_item(res, cid, client=c)
-        requested_items = service.get_requested_items(cid, client=c) if res == TICKETS else []
-        return item, sch, requested_items
-
-    item, sch, requested_items = _api(load_item)
-    if requested_items:
-        item = {**item, "requested_items": requested_items}
-    if _emit_fmt(item, [item], format_, json_out):
+        emit_json(_api(load_evidence))
         return
-    render.detail_panel(item, res, sch)
-    if requested_items:
-        render.requested_items_panel(requested_items)
+
+    def load() -> Any:
+        sch = schema_mod.load(res, c)
+        item = service.get_item(res, cid, client=c,
+                                includes="requester,stats,phone,feedback,ticket_status,responder"
+                                if res == TICKETS else None)
+        d = V.load_detail(c, res, cid, record=item, schema=sch, all_conversations=all_conversations)
+        wanted: list[str] = []
+        if all_tabs:
+            wanted = [t.name for t in d.tabs if t.name != "details"]
+        elif tab:
+            try:
+                wanted = [V.resolve_tab(d, tab)]
+            except ValueError as e:
+                _err(str(e))
+        for name in wanted:
+            if name != "details":
+                d.tab_data[name] = V.load_tab(c, res, d.record, name)
+        return d
+
+    d = _api(load)
+    if json_out or fmt == "json":
+        doc = dict(d.record)
+        if d.requested_items is not None:
+            doc["requested_items"] = d.requested_items
+        doc["view"] = d.to_json()
+        emit_json(doc)
+        return
+    if fmt in ("csv", "tsv"):
+        rows = [{"section": "summary", "label": k, "value": v} for k, v in d.summary()]
+        rows += [{"section": "properties", "label": p.label, "value": p.value} for p in d.properties]
+        render.emit_delimited(rows, "," if fmt == "csv" else "\t")
+        return
+    active = None if all_tabs else (V.resolve_tab(d, tab) if tab else None)
+    pages.print_detail(console, d, tab=active, all_tabs=all_tabs)
 
 
 def _local_dt(value: str | None) -> datetime | None:
@@ -2248,17 +2430,28 @@ def _resolve_view_name(c: Any, res: Resource, view: str | None) -> str | None:
 
 
 def views_resource(res: Resource, format_: OutputFormat | str = "table", json_out: bool = False) -> None:
+    """The web's saved views by name; ``▸`` marks the one `ls` opens with."""
+    from fsv import views as V
     c = _client()
-    views = _api(lambda: _load_views(c, res))
-    flat = [{"id": str(f.get("id") or "-"), "name": str(f.get("name") or "-")} for f in views]
-    if _emit_fmt(views, flat, format_, json_out):
+    saved = _api(lambda: _saved_views(c, res))
+    default = V.default_view(saved)
+    rows = [{**v.to_json(), "opens_by_default": v == default} for v in saved]
+    flat = [{"name": r["name"], "id": r["id"], "type": "system" if r["system"] else "custom",
+             "default": "yes" if r["opens_by_default"] else ""} for r in rows]
+    if _emit_fmt(rows, flat, format_, json_out):
+        return
+    if not saved:
+        err.print(f"no saved views for {res.name} (the account does not list them)")
         return
     t = Table()
-    t.add_column("id", style="cyan")
-    t.add_column("name")
-    for f in views:
-        t.add_row(str(f.get("id") or "-"), str(f.get("name") or "-"))
+    t.add_column("", width=1)
+    t.add_column("View")
+    t.add_column("Type", style="dim")
+    t.add_column("id", style="dim")
+    for v in saved:
+        t.add_row("▸" if v == default else "", escape(v.name), "system" if v.system else "custom", escape(v.id))
     console.print(t)
+    err.print(f"fsv {res.name} ls --view NAME  (exact name or a unique prefix)")
 
 
 def _fulltext_search(res: Resource, query: str, page: int, json_out: bool, sort: SearchSort, all_pages: bool = False, n_pages: int | None = None, format_: OutputFormat | str = "table") -> None:
@@ -3094,6 +3287,23 @@ def journal_path_cmd() -> None:
 app.add_typer(journal_app, name="journal")
 
 
+_SITE_TABS = {
+    "changes": ("notes", "tasks", "approvals", "assets", "impacted", "associations", "activity", "risk", "devops"),
+    "tickets": ("related", "tasks", "assets", "associations", "approvals", "activity", "resolution"),
+    "problems": ("notes", "tasks", "assets", "associations", "activity"),
+}
+
+
+def _tab_help(res: Resource) -> str:
+    return "show one tab of the page: " + "|".join(_SITE_TABS.get(res.name, ())) + " (only tabs the server shows)"
+
+
+def _complete_tab(res: Resource) -> Callable[[str], list[str]]:
+    def complete(incomplete: str) -> list[str]:
+        return [t for t in _SITE_TABS.get(res.name, ()) if t.startswith(incomplete or "")]
+    return complete
+
+
 def _make_subapp(res: Resource) -> typer.Typer:
     _pfx = res.display_prefixes[0]
     sub = typer.Typer(
@@ -3119,8 +3329,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
         f"fsv {res.name} ls --all --output json"
     ))
     def ls(
-        filter_name: Optional[str] = typer.Option(None, "--view", help="saved view name, e.g. new_and_my_open", autocompletion=completion.complete_filter_name(res)),
-        where: Optional[list[str]] = typer.Option(None, "--where", "-w", help="field=value filters, e.g. requester=me@example.com or status=Open", autocompletion=completion.complete_where(res)),
+        filter_name: Optional[str] = typer.Option(None, "--view", help="saved view by name as the web shows it (exact or unique prefix; see `views`); default: the view the server marks default", autocompletion=completion.complete_filter_name(res)),
+        where: Optional[list[str]] = typer.Option(None, "--where", "-w", help="filter like the web's filter panel: LABEL=VALUE, e.g. Status=Open, Agents=Me, Created='Last 6 months', 'Environment=(empty)'; internal names work too", autocompletion=completion.complete_where(res)),
         query_hash: Optional[str] = typer.Option(None, "--query-hash", help="raw or URL-encoded Freshservice query_hash JSON array"),
         or_grouping: bool = typer.Option(False, "--or", help="combine --where conditions with OR instead of AND"),
         debug: bool = typer.Option(False, "--debug", help="show resolved query_hash and exit"),
@@ -3162,16 +3372,21 @@ def _make_subapp(res: Resource) -> typer.Typer:
     @sub.command("get", help=f"Show one {singular}.", epilog=(
         f"[bold]Examples:[/bold]  "
         f"fsv {res.name} get {_pfx}-1234  |  "
+        f"fsv {res.name} get {_pfx}-1234 --tab activity  |  "
+        f"fsv {res.name} get {_pfx}-1234 --all-tabs  |  "
         f"fsv {res.name} get {_pfx}-1234 --json"
     ))
     def get(
         id_: str = typer.Argument(..., metavar="ID"),
-        stats: bool = typer.Option(False, "--stats", help="include stats + planning_fields"),
+        tab: Optional[str] = typer.Option(None, "--tab", "-t", help=_tab_help(res), autocompletion=_complete_tab(res)),
+        all_tabs: bool = typer.Option(False, "--all-tabs", help="print the Details tab and every other tab the server shows"),
+        all_conversations: bool = typer.Option(False, "--all-conversations", help="every conversation, not only the latest (tickets)"),
+        stats: bool = typer.Option(False, "--stats", help="with --json: the record plus planning fields and attachment evidence"),
         format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     ) -> None:
         f"""Show one {res.name[:-1]} by id."""
-        get_resource(res, id_, stats, json_out, format_)
+        get_resource(res, id_, stats, json_out, format_, tab=tab, all_tabs=all_tabs, all_conversations=all_conversations)
 
     @sub.command("activity", help=f"List {singular} activity.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} activity {_pfx}-1234  |  fsv {res.name} activity {_pfx}-1234 -l 50 --json"
