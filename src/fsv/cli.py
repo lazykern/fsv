@@ -2615,8 +2615,16 @@ def update_resource(
         if "=" not in expr:
             _err(f"--set requires FIELD=VALUE format, got: {expr!r}")
         field_text, _, raw_value = expr.partition("=")
+        field = _find_schema_field(sch, field_text.strip())
         k, v = _resolve_set_field(c, sch, field_text.strip(), raw_value)
-        body[k] = v
+        # The ticket form metadata distinguishes custom fields from default
+        # fields; ticket create uses the same custom_fields envelope.
+        ftype = str((field or {}).get("field_type") or "")
+        is_default = bool((field or {}).get("default_field", ftype.startswith("default_")))
+        if res.name == "tickets" and not is_default:
+            body.setdefault("custom_fields", {})[k] = v
+        else:
+            body[k] = v
     if not body:
         _err("nothing to update; pass at least one field (--status, --priority, --agent, --group, --set FIELD=VALUE)")
     risks = _risks_for_item_write(res, cid, body, sch, c)
