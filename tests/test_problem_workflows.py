@@ -1,0 +1,160 @@
+"""Problem form and child workflows: synthetic two-tenant HTTP contracts."""
+import copy
+import json
+
+import httpx
+import pytest
+from typer.testing import CliRunner
+
+from fsv import cli, config, formmeta, journal, problem_workflows as flow
+from fsv.client import Client
+from fsv.reviewed_write import ReviewedWriteError
+
+
+@pytest.fixture(params=[("acme.example.com", 41), ("globex.example.com", 73)])
+def wire(request, monkeypatch, tmp_path):
+    domain, base = request.param
+    monkeypatch.setattr(config, "DOMAIN", domain)
+    monkeypatch.setattr(config, "CACHE_DIR", tmp_path / "cache")
+    monkeypatch.setattr(journal, "journal_path", lambda: tmp_path / "journal")
+    monkeypatch.setattr(formmeta, "configured_workspace", lambda: 17)
+    fields = [{"id": 501, "name": "subject", "label": "Subject", "field_type": "default_subject", "required": True},
+              {"id": 502, "name": "description", "label": "Description", "field_type": "default_description", "required": True},
+              {"id": 503, "name": "requester", "label": "Requester", "field_type": "default_requester", "required": True}]
+    for i, name in enumerate(["status", "priority", "impact"]):
+        fields.append({"id": 510 + i, "name": name, "label": name.title(), "field_type": "default_" + name,
+                       "required": True, "choices": [{"id": base + i, "value": "Open" if name == "status" else "Low"}]})
+    for index, field in enumerate(fields):
+        field["position"] = index + 1
+    state = {"fields": fields, "requests": [], "writes": [], "rows": {123: {"id": 123, "subject": "Acme"}},
+             "notes": [], "tasks": [], "failure": None, "rules_denied": False, "readback": "ok", "omit_id": False,
+             "task_fields": [{"name": "status", "choices": [{"id": base + 10, "value": "Open"}]},
+                             {"name": "notify_before", "choices": [{"id": base + 11, "value": "Never"}]}]}
+
+    def handle(req):
+        path = req.url.path.removeprefix("/api/_/")
+        state["requests"].append(path)
+        if req.method == "GET":
+            if path == "problem_form_fields":
+                return httpx.Response(200, json={"problem_fields": state["fields"]})
+            if path == "problem_task_fields":
+                return httpx.Response(200, json={"problem_task_fields": state["task_fields"]})
+            if path.endswith("business_rules"):
+                return httpx.Response(403, json={"error": "denied"}) if state["rules_denied"] else httpx.Response(200, json={"business_rules": []})
+            if "/search/autocomplete/" in path:
+                return httpx.Response(200, json={"results": [{"id": 901, "value": "Acme Operator", "email": "person@example.com"}]})
+            if path in {"problems/123/tasks", "problems/123/notes"}:
+                key = path.rsplit("/", 1)[1]
+                rows = copy.deepcopy(state[key])
+                if rows and state["readback"] == "wrong":
+                    rows[0]["id"] = 999
+                if rows and state["readback"] == "missing":
+                    rows[0].pop("body" if key == "notes" else "title")
+                return httpx.Response(200, json={key: rows, "has_more": False})
+            if path.startswith("problems/"):
+                row = copy.deepcopy(state["rows"][int(path.split("/")[1])])
+                if state["writes"] and state["readback"] == "missing":
+                    row.pop("email", None)
+                return httpx.Response(200, json={"problem": row})
+            raise AssertionError(path)
+        body = json.loads(req.content)
+        state["writes"].append((path, body))
+        if state["failure"] == "disconnect":
+            raise httpx.ReadError("synthetic disconnect", request=req)
+        if state["failure"]:
+            return httpx.Response(state["failure"], json={"error": "synthetic"})
+        if path == "problems":
+            state["rows"][456] = {"id": 456, **body}
+            key = "problem"
+        else:
+            key = "note" if path.endswith("/notes") else "task"
+            state[key + "s"].append({"id": 456, **body})
+        return httpx.Response(201, json={} if state["omit_id"] else {key: {"id": 456}})
+
+    clients = []
+    def make():
+        c = Client(cookies={})
+        c._client.close()
+        c._client = httpx.Client(transport=httpx.MockTransport(handle))
+        monkeypatch.setattr(c, "_get_csrf", lambda: "synthetic")
+        monkeypatch.setattr(c, "me", lambda: {"id": 901})
+        clients.append(c)
+        return c
+    state.update(client=make(), make=make, base=base)
+    yield state
+    for c in clients:
+        c.close()
+
+
+def create(w):
+    return flow.create_plan(w["client"], {"Subject": "Acme problem", "Description": "Acme details", "Status": "Open", "Priority": "Low", "Impact": "Low"}, "person@example.com")
+
+
+def test_form_engine_create_and_exact_readback(wire):
+    p = create(wire)
+    assert p.payload == {"subject": "Acme problem", "description": "<div>Acme details</div>", "status": wire["base"],
+                         "priority": wire["base"] + 1, "impact": wire["base"] + 2,
+                         "custom_fields": {}, "email": "person@example.com"}
+    result = flow.send(p, wire["client"], reviewed_hash=p.hash)
+    assert result["verified"] and result["problem_id"] == 456
+    assert wire["writes"] == [("problems", p.payload)]
+
+
+@pytest.mark.parametrize("kind", ["note", "task"])
+def test_captured_child_wire_exact_identity_and_metadata(wire, kind):
+    p = flow.child_plan(wire["client"], "PRB-123", kind=kind, text="Acme")
+    expected = {"body": "Acme"} if kind == "note" else {"title": "Acme", "owner_id": 901,
+                "status": wire["base"] + 10, "notify_before": wire["base"] + 11, "planned_effort": "1m"}
+    assert p.payload == expected
+    assert flow.send(p, wire["client"], reviewed_hash=p.hash)["verified"]
+    assert wire["writes"][0][1] == expected
+
+
+@pytest.mark.parametrize("kind", ["create", "note", "task"])
+@pytest.mark.parametrize("failure", [403, 429, 500, "disconnect"])
+def test_ambiguity_guard_and_replacement_client(wire, kind, failure):
+    p = create(wire) if kind == "create" else flow.child_plan(wire["client"], 123, kind=kind, text="Acme")
+    wire["failure"] = failure
+    with pytest.raises(ReviewedWriteError, match="unknown"):
+        flow.send(p, wire["client"], reviewed_hash=p.hash)
+    with pytest.raises(ReviewedWriteError, match="was sent"):
+        flow.send(p, wire["make"](), reviewed_hash=p.hash)
+    assert len(wire["writes"]) == 1
+
+
+@pytest.mark.parametrize("kind", ["create", "note", "task"])
+@pytest.mark.parametrize("readback", ["missing", "no-id"])
+def test_missing_fields_or_response_id_never_guesses(wire, kind, readback):
+    p = create(wire) if kind == "create" else flow.child_plan(wire["client"], 123, kind=kind, text="Acme")
+    wire["readback"], wire["omit_id"] = readback, readback == "no-id"
+    assert not flow.send(p, wire["client"], reviewed_hash=p.hash)["verified"]
+    assert len(wire["writes"]) == 1
+
+
+def test_rules_unavailable_not_empty_and_metadata_drift_block(wire):
+    p = create(wire)
+    wire["fields"][0]["label"] = "Changed subject"
+    with pytest.raises(ReviewedWriteError):
+        flow.send(p, wire["client"], reviewed_hash=p.hash)
+    wire["rules_denied"] = True
+    with pytest.raises(ReviewedWriteError, match="rules are unavailable"):
+        create(wire)
+    assert not wire["writes"]
+
+
+def test_problem_form_dump_and_create_cli(wire, monkeypatch):
+    monkeypatch.setattr(cli, "_client", lambda: wire["client"])
+    runner = CliRunner()
+    dump = runner.invoke(cli.app, ["form", "dump", "problems"])
+    assert dump.exit_code == 0, dump.output
+    assert json.loads(dump.output)["module"] == "problem"
+    args = ["problems", "create", "--requester", "person@example.com", "--json"]
+    for key, value in [("Subject", "Acme"), ("Description", "Acme details"), ("Status", "Open"), ("Priority", "Low"), ("Impact", "Low")]:
+        args += ["--set", key + "=" + value]
+    review = runner.invoke(cli.app, args + ["--dry-run"])
+    assert review.exit_code == 0, review.output
+    digest = json.loads(review.output)["plan_hash"]
+    assert runner.invoke(cli.app, args + ["--yes"]).exit_code == 2 and not wire["writes"]
+    sent = runner.invoke(cli.app, args + ["--yes", "--expect-plan", digest])
+    assert sent.exit_code == 0, sent.output
+    assert json.loads(sent.output)["verified"]

@@ -97,11 +97,12 @@ def explain(
     c = _client()
     record = None
     if id_:
-        from fsv.resources import CHANGES, parse_id
+        from fsv.resources import REGISTRY, parse_id
 
-        cid = parse_id(id_, CHANGES) if not id_.isdigit() else int(id_)
-        data = _guard(lambda: c.int_get(f"changes/{cid}"))
-        record = data.get("change", data)
+        resource = REGISTRY[mod + "s"]
+        cid = parse_id(id_, resource)
+        data = _guard(lambda: c.int_get(f"{resource.api_path}/{cid}"))
+        record = data.get(resource.item_key, data)
     meta = _guard(lambda: load_meta(c, mod, "edit" if record else "new",
                                     module_id=(record.get("display_id") or record.get("id")) if record else None))
     _note_rules(meta)

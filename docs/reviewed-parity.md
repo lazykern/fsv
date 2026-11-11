@@ -127,6 +127,33 @@ HTML/empty responses) and absence from a complete inventory. Ambiguous write
 outcomes keep the durable single-attempt guard. The captured private lifecycle
 was accepted, but these adapters were exercised offline only.
 
+## Problem workflows
+
+```sh
+fsv form dump problems
+fsv form explain problems --set 'Status=Open'
+fsv problems create --requester person@example.com --set 'Subject=Acme investigation' --set 'Description=Acme details' --set 'Status=Open' --set 'Priority=Low' --set 'Impact=Low' --dry-run --json
+fsv problems write-child PRB-123 note '<div>Acme evidence</div>' --dry-run --json
+fsv problems write-child PRB-123 task 'Acme follow-up' --dry-run --json
+```
+
+Creation uses the shared form/rule engine, fresh metadata, resolved requester,
+required-field/choice validation and dependency gates. Unavailable rules are not
+an empty ruleset; incomplete dependencies and rule messages block sending.
+Enums come from runtime choices. Only the captured top-level create keys are
+sent; there are no files or inferred validation-token keys. Unsupported required
+fields must be handled in the web form. Each send requires the full reviewed
+hash and uses a durable single-attempt journal plus exact returned-ID readback.
+Missing readback fields remain unavailable, not matched.
+
+Notes use the captured **body-only** wire: privacy and notification effects are
+not established, so this command does not promise a private note. Task creation
+is the captured narrow self-owned one-minute subset, with Open/Never resolved
+from **problem** task metadata, never change metadata or literal enum IDs. Extra
+required task fields block it. Task edit/complete/delete and broader scheduling
+are not inferred from create. No accepted live problem write is claimed; all
+adapter tests run offline with two synthetic tenants.
+
 ## Self watchers
 
 ```sh
