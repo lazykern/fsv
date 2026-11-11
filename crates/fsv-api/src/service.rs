@@ -63,6 +63,16 @@ pub trait Api: Sync {
     fn workspace_cookies(&self) -> Vec<String> {
         Vec::new()
     }
+    /// Port of fsv.client.Client.me: the signed-in agent (`agents/me`,
+    /// unwrapped). Self-only writes must call this, never a cached identity.
+    fn me(&self) -> Result<Value> {
+        Err(Error::other("signed-in agent identity is unavailable"))
+    }
+    /// Port of fsv.client.Client.v2_get: a public v2 API read.
+    fn v2_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
+        let _ = params;
+        Err(Error::other(format!("v2 API is unavailable: {path}")))
+    }
 }
 
 impl Api for fsv_core::Client {
@@ -118,20 +128,29 @@ impl Api for fsv_core::Client {
         csrf: &str,
     ) -> Result<Value> {
         let url = format!("{}/{}", self.tenant().api_int, path.trim_start_matches('/'));
-        let opts = RequestOpts {
+        let has_body = !matches!(body, Body::None);
+        let mut opts = RequestOpts {
             params,
             body,
             ..Default::default()
+        };
+        // reviewed_write sends a bodiless DELETE without a Content-Type.
+        if has_body {
+            opts = opts.header("Content-Type", "application/json");
         }
-        .header("Content-Type", "application/json")
-        .header("X-CSRF-Token", csrf);
-        self.request(method, &url, opts)
+        self.request(method, &url, opts.header("X-CSRF-Token", csrf))
     }
     fn fetch(&self, url: &str) -> Result<Response> {
         self.fetch_raw(url, true)
     }
     fn domain(&self) -> String {
         self.tenant().domain.clone()
+    }
+    fn me(&self) -> Result<Value> {
+        fsv_core::Client::me(self)
+    }
+    fn v2_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
+        fsv_core::Client::v2_get(self, path, params)
     }
 }
 
@@ -1455,6 +1474,154 @@ pub(crate) mod testing {
         fn workspace_cookies(&self) -> Vec<String> {
             self.cookies.clone()
         }
+        fn me(&self) -> Result<Value> {
+            self.call("GET", "agents/me", None, None, None)
+        }
+        fn v2_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
+            self.call("V2", path, params, None, None)
+        }
+    }
+
+    /// A client whose every call goes to one stateful handler, for flows
+    /// whose reads depend on earlier writes. `me()` is method `ME`.
+    pub struct FnApi {
+        pub calls: Mutex<Vec<Call>>,
+        #[allow(clippy::type_complexity)]
+        handler: Mutex<Box<dyn FnMut(&Call) -> Result<Value> + Send>>,
+        pub domain: String,
+    }
+
+    impl FnApi {
+        pub fn new(handler: impl FnMut(&Call) -> Result<Value> + Send + 'static) -> Self {
+            FnApi {
+                calls: Mutex::new(Vec::new()),
+                handler: Mutex::new(Box::new(handler)),
+                domain: "acme.freshservice.com".into(),
+            }
+        }
+
+        pub fn writes(&self) -> Vec<Call> {
+            self.calls
+                .lock()
+                .unwrap()
+                .iter()
+                .filter(|c| !matches!(c.method.as_str(), "GET" | "ME"))
+                .cloned()
+                .collect()
+        }
+
+        fn call(
+            &self,
+            method: &str,
+            path: &str,
+            params: Option<Map<String, Value>>,
+            body: Option<Value>,
+            raw: Option<Vec<u8>>,
+        ) -> Result<Value> {
+            let call = Call {
+                method: method.into(),
+                path: path.into(),
+                params,
+                body,
+                raw,
+            };
+            self.calls.lock().unwrap().push(call.clone());
+            (self.handler.lock().unwrap())(&call)
+        }
+    }
+
+    impl Api for FnApi {
+        fn int_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
+            self.call("GET", path, params, None, None)
+        }
+        fn int_post(&self, path: &str, body: &Value) -> Result<Value> {
+            self.call("POST", path, None, Some(body.clone()), None)
+        }
+        fn int_put(&self, path: &str, body: &Value) -> Result<Value> {
+            self.call("PUT", path, None, Some(body.clone()), None)
+        }
+        fn int_patch(&self, path: &str, body: &Value) -> Result<Value> {
+            self.call("PATCH", path, None, Some(body.clone()), None)
+        }
+        fn int_delete(
+            &self,
+            path: &str,
+            body: Option<&Value>,
+            params: Option<Map<String, Value>>,
+        ) -> Result<Value> {
+            self.call("DELETE", path, params, body.cloned(), None)
+        }
+        fn autocomplete(
+            &self,
+            kind: &str,
+            query: &str,
+            _params: Option<Map<String, Value>>,
+        ) -> Result<Vec<Value>> {
+            let v = self.call(
+                "GET",
+                &format!("autocomplete/{kind}"),
+                Some(obj(json!({"q": query}))),
+                None,
+                None,
+            )?;
+            Ok(v.as_array().cloned().unwrap_or_default())
+        }
+        fn lookup_choices(&self, link: &str, query: &str) -> Result<Vec<Value>> {
+            let v = self.call("GET", link, Some(obj(json!({"q": query}))), None, None)?;
+            Ok(v.as_array().cloned().unwrap_or_default())
+        }
+        fn fulltext_search(
+            &self,
+            entity: &str,
+            _term: &str,
+            _page: i64,
+            _sort: Option<&str>,
+        ) -> Result<Value> {
+            self.call("GET", &format!("search/{entity}"), None, None, None)
+        }
+        fn get_csrf(&self) -> Result<String> {
+            Ok("synthetic".into())
+        }
+        fn send_once(
+            &self,
+            method: &str,
+            path: &str,
+            body: Body,
+            params: Option<Map<String, Value>>,
+            _csrf: &str,
+        ) -> Result<Value> {
+            match body {
+                Body::Raw(b) => self.call(
+                    method,
+                    path,
+                    params,
+                    serde_json::from_slice(&b).ok(),
+                    Some(b),
+                ),
+                Body::Json(v) => self.call(method, path, params, Some(v), None),
+                _ => self.call(method, path, params, None, None),
+            }
+        }
+        fn fetch(&self, _url: &str) -> Result<Response> {
+            Ok(Response::new(404))
+        }
+        fn domain(&self) -> String {
+            self.domain.clone()
+        }
+        fn me(&self) -> Result<Value> {
+            self.call("ME", "agents/me", None, None, None)
+        }
+    }
+
+    /// A journal that never persists (`record_plan` is a no-op).
+    #[derive(Default)]
+    pub struct DeafJournal;
+
+    impl Journal for DeafJournal {
+        fn read(&self) -> Vec<Value> {
+            Vec::new()
+        }
+        fn record_plan(&self, _: &str, _: &str, _: &str, _: Option<&Value>, _: Option<&Value>) {}
     }
 
     /// In-memory journal.

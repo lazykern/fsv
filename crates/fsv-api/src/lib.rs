@@ -9,21 +9,28 @@
 
 pub mod approvals;
 pub mod associations;
+pub mod bulk_priority;
 pub mod catalog;
 pub mod conversations;
 pub mod create;
 pub mod downloads;
 pub mod formmeta;
 pub mod notes;
+pub mod planning_text;
+pub mod problem_known_error;
 pub mod properties;
 mod query;
+pub mod readback;
+pub mod reviewed_write;
 pub mod schema;
 pub mod service;
 pub mod site;
 pub mod state_flow;
 mod task_status;
 pub mod tasks;
+pub mod ticket_time;
 pub mod views;
+pub mod watchers;
 
 pub use schema::{
     CACHE_TTL_SECS, IMPACT, PRIORITY, RISK, choice_label, doc_fields, field, merge_v2_choices,
@@ -32,6 +39,7 @@ pub use schema::{
 
 pub use query::{
     Directory, Explain, build_query_hash, build_query_hash_from_schema, load_query_hash,
+    merge_same_conditions,
 };
 pub use task_status::{active_choices, display, fields_from_payload, resolve};
 

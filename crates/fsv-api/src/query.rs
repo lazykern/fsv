@@ -270,6 +270,52 @@ pub fn resolve_where(
     ))
 }
 
+/// Port of fsv.cli._merge_same_conditions: one `is_in` / `is_not_in`
+/// item per (condition, operator, type), values concatenated in order.
+pub fn merge_same_conditions(query: Vec<Value>) -> Vec<Value> {
+    let mut seen: Vec<([Value; 3], usize)> = Vec::new();
+    let mut out: Vec<Value> = Vec::new();
+    for item in query {
+        let field = |k: &str| item.get(k).cloned().unwrap_or(Value::Null);
+        let op = field("operator");
+        if op != "is_in" && op != "is_not_in" {
+            out.push(item);
+            continue;
+        }
+        let key = [field("condition"), op, field("type")];
+        let values = py_list(item.get("value"));
+        match seen.iter().find(|(k, _)| *k == key) {
+            Some(&(_, at)) => {
+                if let Some(Value::Array(merged)) = out[at].get_mut("value") {
+                    merged.extend(values);
+                }
+            }
+            None => {
+                let mut merged = item;
+                if let Value::Object(m) = &mut merged {
+                    m.insert("value".into(), Value::Array(values));
+                }
+                seen.push((key, out.len()));
+                out.push(merged);
+            }
+        }
+    }
+    out
+}
+
+/// `list(value or [])`: strings split into code points, objects into keys;
+/// a truthy scalar (a `TypeError` in Python) becomes a one-item list.
+fn py_list(value: Option<&Value>) -> Vec<Value> {
+    match value {
+        None => Vec::new(),
+        Some(v) if !fsv_py::truthy(v) => Vec::new(),
+        Some(Value::Array(a)) => a.clone(),
+        Some(Value::String(s)) => s.chars().map(|c| Value::String(c.into())).collect(),
+        Some(Value::Object(m)) => m.keys().map(|k| Value::String(k.clone())).collect(),
+        Some(other) => vec![other.clone()],
+    }
+}
+
 pub fn load_query_hash(raw: &str) -> Result<Vec<Value>, QueryError> {
     let text = if raw.trim_start().starts_with(['[', '{']) {
         raw.to_string()
@@ -985,5 +1031,15 @@ mod tests {
             }
         }
         out
+    }
+
+    /// `cli._merge_same_conditions` on lists, strings, objects and missing keys.
+    #[test]
+    fn merge_same_conditions_matches_python() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/reviewed_oracle.json")).unwrap();
+        let case = &oracle["merge_same_conditions"];
+        let input = case["input"].as_array().unwrap().clone();
+        assert_eq!(Value::Array(merge_same_conditions(input)), case["output"]);
     }
 }

@@ -12,6 +12,8 @@ use fsv_core::error::ApiError;
 use fsv_core::resource::Resource;
 use fsv_core::{Client, Error, Result, cache};
 
+use crate::service::Api;
+
 /// Field definitions rarely change. `schema.CACHE_TTL`.
 pub const CACHE_TTL_SECS: u64 = 7 * 86_400;
 
@@ -167,7 +169,7 @@ pub fn cache_path(paths: &Paths, domain_key: &str, name: &str) -> PathBuf {
 ///
 /// Never empty: when neither API yields fields the session error wins, then
 /// any API error, then the first error, else an `APIError(200)`.
-pub fn fetch(c: &Client, res: &Resource) -> Result<Vec<Value>> {
+pub fn fetch(c: &dyn Api, res: &Resource) -> Result<Vec<Value>> {
     let mut errors: Vec<Error> = Vec::new();
     let mut int_fields: Vec<Value> = Vec::new();
     match c.int_get(res.form_fields_path, None) {
@@ -355,11 +357,21 @@ fn load_at(
         let _ = cache::refresh_async(
             primary,
             "schema",
-            move || fetch(&c, res).map(Value::Array),
+            move || fetch(c.as_ref(), res).map(Value::Array),
             None,
         );
         return Ok((with_provenance(&doc, true), Some(stale_warning(res))));
     }
+    fetch_and_save(res, client.as_ref(), primary, paths).map(|doc| (doc, None))
+}
+
+/// The miss/`force` half of [`load_at`]: fetch, refuse an empty schema, save.
+fn fetch_and_save(
+    res: &Resource,
+    client: &dyn Api,
+    primary: &Path,
+    paths: &Paths,
+) -> Result<Value> {
     let t0 = Instant::now();
     let fields = fetch(client, res)?;
     let latency = t0.elapsed().as_millis() as u64;
@@ -375,10 +387,29 @@ fn load_at(
         "",
         latency,
     )?;
-    Ok((
-        json!({"saved_at": now(), "fields": fields, "stale": false, "source": "server"}),
-        None,
-    ))
+    Ok(json!({"saved_at": now(), "fields": fields, "stale": false, "source": "server"}))
+}
+
+/// Port of fsv.schema.load with `force=True` over any [`Api`]: always
+/// fetches and saves to the process cache. Writes that bind to current
+/// definitions use this.
+pub fn load_forced(res: &Resource, client: &dyn Api) -> Result<Value> {
+    load_forced_in(
+        res,
+        client,
+        &config::paths(),
+        &config::cache_domain_key(None),
+    )
+}
+
+/// [`load_forced`] with the cache under `paths` for tenant `domain_key`.
+pub fn load_forced_in(
+    res: &Resource,
+    client: &dyn Api,
+    paths: &Paths,
+    domain_key: &str,
+) -> Result<Value> {
+    fetch_and_save(res, client, &cache_path(paths, domain_key, res.name), paths)
 }
 
 #[cfg(test)]
@@ -511,7 +542,7 @@ mod load_tests {
         };
         for (name, case) in oracle["schema_fetch"].as_object().unwrap() {
             let w = World::new(reply(&case["int"]), reply(&case["v2"]));
-            match fetch(&w.client, &CHANGES) {
+            match fetch(w.client.as_ref(), &CHANGES) {
                 Ok(fields) => assert_eq!(json!(fields), case["ok"], "{name}"),
                 Err(Error::Api(e)) => assert_eq!(json!(e.status), case["status"], "{name}"),
                 Err(e) => panic!("{name}: {e}"),

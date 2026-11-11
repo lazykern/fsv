@@ -1100,7 +1100,8 @@ fn indent2(v: &Value) -> String {
 }
 
 /// `_run`: the CLI review/confirm/send sequence of an approval action.
-/// `confirm` answers the final prompt (`typer.confirm`).
+/// `confirm` answers the final prompt (`typer.confirm`). On error the
+/// lines already echoed are dropped; use [`run_action_detailed`] to keep them.
 pub fn run_action(
     plan: &ActionPlan,
     c: &dyn Api,
@@ -1108,7 +1109,54 @@ pub fn run_action(
     opts: RunOpts<'_>,
     confirm: &dyn Fn(&str) -> bool,
 ) -> Result<Echo> {
+    run_action_detailed(plan, c, journal, opts, confirm).map_err(|e| e.error)
+}
+
+/// Port of fsv.change_approvals._run failing after it already echoed:
+/// `echo` holds the lines Python printed before raising `error`.
+#[derive(Debug)]
+pub struct RunActionError {
+    pub echo: Echo,
+    pub error: Error,
+}
+
+impl std::fmt::Display for RunActionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.error.fmt(f)
+    }
+}
+
+impl std::error::Error for RunActionError {}
+
+impl From<RunActionError> for Error {
+    fn from(e: RunActionError) -> Error {
+        e.error
+    }
+}
+
+/// Port of fsv.change_approvals._run keeping the echoed review on error.
+pub fn run_action_detailed(
+    plan: &ActionPlan,
+    c: &dyn Api,
+    journal: &dyn Journal,
+    opts: RunOpts<'_>,
+    confirm: &dyn Fn(&str) -> bool,
+) -> std::result::Result<Echo, RunActionError> {
     let mut echo = Echo::new();
+    match run_into(&mut echo, plan, c, journal, opts, confirm) {
+        Ok(()) => Ok(echo),
+        Err(error) => Err(RunActionError { echo, error }),
+    }
+}
+
+fn run_into(
+    echo: &mut Echo,
+    plan: &ActionPlan,
+    c: &dyn Api,
+    journal: &dyn Journal,
+    opts: RunOpts<'_>,
+    confirm: &dyn Fn(&str) -> bool,
+) -> Result<()> {
     if opts.read_only && !opts.dry_run {
         return Err(refused("read-only mode: no approval action was sent"));
     }
@@ -1123,7 +1171,7 @@ pub fn run_action(
             },
         )?;
         echo.push((false, indent2(&out)));
-        return Ok(echo);
+        return Ok(());
     }
     let hash = plan.hash();
     if opts.expected.is_some_and(|e| e != hash) {
@@ -1153,7 +1201,7 @@ pub fn run_action(
         )
     {
         echo.push((false, "Cancelled; no approval action was sent.".into()));
-        return Ok(echo);
+        return Ok(());
     }
     let result = send_action(
         plan,
@@ -1183,7 +1231,7 @@ pub fn run_action(
             echo.push((true, fsv_py::py_str(w)));
         }
     }
-    Ok(echo)
+    Ok(())
 }
 
 #[cfg(test)]
@@ -2156,5 +2204,38 @@ mod tests {
                 (false, RUN_CANCEL_RESULT.to_string())
             ]
         );
+    }
+
+    /// `_run` echoes the review to stderr before `send` raises.
+    #[test]
+    fn run_action_detailed_keeps_review_echo_on_error() {
+        let api = || {
+            FakeApi::new()
+                .ok("GET changes/12/approvals", json!([row(101, 7)]))
+                .on("PUT changes/12/approvals/101", Reply::Status(500))
+        };
+        let opts = RunOpts {
+            yes: true,
+            expected: Some(RJ_HASH),
+            ..Default::default()
+        };
+        let no = |_: &str| false;
+        let e = run_action_detailed(&rj(), &api(), &MemJournal::default(), opts, &no).unwrap_err();
+        assert_eq!(e.echo, [(true, RUN_DECLINE_REVIEW.to_string())]);
+        let flat = run_action(&rj(), &api(), &MemJournal::default(), opts, &no).unwrap_err();
+        assert_eq!(e.to_string(), flat.to_string());
+        assert_eq!(Error::from(e).exit_code(), flat.exit_code());
+        let early = run_action_detailed(
+            &ap(),
+            &FakeApi::new(),
+            &MemJournal::default(),
+            RunOpts {
+                read_only: true,
+                ..Default::default()
+            },
+            &no,
+        )
+        .unwrap_err();
+        assert!(early.echo.is_empty());
     }
 }

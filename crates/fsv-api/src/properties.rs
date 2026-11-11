@@ -1,18 +1,41 @@
 //! Reviewed ticket property changes from a blocked UI request
 //! (`ticket_properties.py`).
 
+use std::sync::Arc;
+
 use serde_json::{Map, Value, json};
 
 use fsv_core::client::Body;
 use fsv_core::error::{Error, Result};
 use fsv_core::resource::{TICKETS, parse_id};
-use fsv_forms::build_br_validation_excludes;
+use fsv_forms::payload::{TICKET_KEYS, encode_value};
+use fsv_forms::{FormState, Kind, LookupResolver, StateOptions, build_br_validation_excludes};
 use fsv_py::py_str;
 
-use crate::formmeta::{MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, load_meta};
+use crate::formmeta::{
+    MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, form_err, is_status, load_meta,
+};
+use crate::readback::same_instant;
 use crate::service::{Api, Journal, definite_rejection, last_event, obj, plan_hash};
 
 const ACTION: &str = "ticket_properties";
+
+/// Core keys whose update wire is proven.
+const ALLOWED: [&str; 13] = [
+    "subject",
+    "description",
+    "requester_id",
+    "requested_for_id",
+    "group_id",
+    "responder_id",
+    "status",
+    "priority",
+    "urgency",
+    "impact",
+    "source",
+    "category",
+    "type",
+];
 
 /// `PropertyError`: a safe user-facing failure.
 pub(crate) fn refused(msg: impl Into<String>) -> Error {
@@ -69,33 +92,110 @@ impl PropertyPlan {
         serde_json::from_str(&self.before_json).unwrap_or(Value::Null)
     }
 
+    /// The tag/date hash (no answers, so no `metadata_hash`).
     pub fn hash(&self) -> String {
-        plan_hash(
-            &json!({"tenant": self.tenant, "ticket_id": self.ticket_id, "payload": self.payload(),
-                          "before": self.before(), "record_hash": self.record_hash}),
-        )
+        self.hash_with("")
+    }
+
+    fn hash_with(&self, metadata_hash: &str) -> String {
+        let mut intent = json!({"tenant": self.tenant, "ticket_id": self.ticket_id, "payload": self.payload(),
+                                "before": self.before(), "record_hash": self.record_hash});
+        if !metadata_hash.is_empty() {
+            intent["metadata_hash"] = json!(metadata_hash);
+        }
+        plan_hash(&intent)
     }
 
     pub fn review(&self) -> Map<String, Value> {
+        self.review_with(self.hash())
+    }
+
+    fn review_with(&self, hash: String) -> Map<String, Value> {
         let mut after = self.payload().as_object().cloned().unwrap_or_default();
         after.remove("br_validation_excludes");
         obj(
             json!({"action": ACTION, "method": "PUT", "path": format!("/api/_/tickets/{}", self.ticket_id),
                    "before": self.before(), "after": after, "payload": self.payload(),
-                   "plan_hash": self.hash(), "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."}),
+                   "plan_hash": hash, "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."}),
         )
     }
 }
 
-/// The fields' business-rule token, evaluated on the fresh edit form with
-/// `body` applied.
-fn rules_token(
+/// Port of fsv.ticket_properties.PropertyPlan including its
+/// `answers_json` and `metadata_hash` fields; [`PropertyPlan`] is the
+/// answer-less (tag/date) shape, whose hash is unchanged.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AnsweredPropertyPlan {
+    pub plan: PropertyPlan,
+    /// The answers the plan was built from (`"{}"` for tag/date-only plans).
+    pub answers_json: String,
+    /// The edit form's fingerprint when answers were given, else empty.
+    pub metadata_hash: String,
+}
+
+impl From<PropertyPlan> for AnsweredPropertyPlan {
+    fn from(plan: PropertyPlan) -> Self {
+        AnsweredPropertyPlan {
+            plan,
+            answers_json: "{}".into(),
+            metadata_hash: String::new(),
+        }
+    }
+}
+
+impl AnsweredPropertyPlan {
+    pub fn payload(&self) -> Value {
+        self.plan.payload()
+    }
+
+    /// The stored answers (`json.loads(answers_json)`).
+    pub fn answers(&self) -> Map<String, Value> {
+        serde_json::from_str(&self.answers_json).unwrap_or_default()
+    }
+
+    /// `metadata_hash` joins the intent only when answers were given.
+    pub fn hash(&self) -> String {
+        self.plan.hash_with(&self.metadata_hash)
+    }
+
+    pub fn review(&self) -> Map<String, Value> {
+        self.plan.review_with(self.hash())
+    }
+}
+
+fn missing_keys(body: &Map<String, Value>, row: &Map<String, Value>) -> Result<()> {
+    let missing: Vec<&str> = body
+        .keys()
+        .filter(|k| !row.contains_key(*k))
+        .map(String::as_str)
+        .collect();
+    if missing.is_empty() {
+        Ok(())
+    } else {
+        Err(refused(format!(
+            "ticket read did not include: {}",
+            missing.join(", ")
+        )))
+    }
+}
+
+fn values_of(body: &Map<String, Value>, row: &Map<String, Value>) -> Map<String, Value> {
+    body.keys().map(|k| (k.clone(), row[k].clone())).collect()
+}
+
+/// The fresh edit form with the answers encoded into `body` and `body`
+/// applied: `(business-rule token, metadata hash or "")`.
+#[allow(clippy::too_many_arguments)]
+fn evaluate(
     c: &dyn Api,
     store: &dyn MetaStore,
     cid: i64,
     row: &Map<String, Value>,
-    body: &Map<String, Value>,
-) -> Result<String> {
+    body: &mut Map<String, Value>,
+    answers: &Map<String, Value>,
+    resolver: Option<Arc<dyn LookupResolver>>,
+) -> Result<(String, String)> {
+    let other = |e: fsv_forms::FormError| Error::other(e.to_string());
     let meta = load_meta(c, store, "ticket", "edit", true, &json!(cid))?;
     if meta
         .rules
@@ -107,12 +207,106 @@ fn rules_token(
         ));
     }
     let spec = meta.spec();
-    let mut state = meta.state("edit", None, Some(existing_from_record(&spec, row)))?;
-    for (key, value) in body {
+    let mut engine = meta.engine()?;
+    let mut beneficiary_answer = false;
+    for name in answers.keys() {
+        beneficiary_answer |= spec.field(name).map_err(other)?.api_name == "requested_for";
+    }
+    if beneficiary_answer {
+        // Cached rule attributes describe the old beneficiary, not the newly
+        // selected person. Missing exact context must block rules.
+        engine.context.requested_for = None;
+    }
+    let mut state = FormState::new(
+        spec.clone(),
+        Some(engine),
+        "edit",
+        None,
+        StateOptions {
+            resolver,
+            existing: Some(existing_from_record(&spec, row)),
+            ..StateOptions::default()
+        },
+    )
+    .map_err(form_err)?;
+    let mut answered: Vec<String> = Vec::new();
+    for (name, value) in answers {
+        let field = spec.field(name).map_err(other)?;
+        if answered.contains(&field.api_name) {
+            return Err(refused(format!(
+                "{}: duplicate property answer",
+                field.label
+            )));
+        }
+        answered.push(field.api_name.clone());
+        let beneficiary =
+            field.api_name == "requested_for" && field.field_type == "default_requested_for";
+        if (!field.sent && !beneficiary) || field.synthetic || field.kind == Kind::Notice {
+            return Err(refused(format!("{}: field is not writable", field.label)));
+        }
+        state
+            .set(&field.api_name, fsv_forms::Value::from_json(value))
+            .map_err(other)?;
+    }
+    for name in answers.keys() {
+        let field = spec.field(name).map_err(other)?;
+        let value = state
+            .get(&field.api_name)
+            .map_err(other)?
+            .cloned()
+            .unwrap_or(fsv_forms::Value::Null);
+        if !state.evaluated.visible.contains(&field.api_name) {
+            return Err(refused(format!(
+                "{}: answered field is hidden",
+                field.label
+            )));
+        }
+        let encoded = encode_value(&spec, field, &value, &state.evaluated.values).map_err(other)?;
+        if is_status(field) {
+            let closing = match field.choice(&value).map_err(other)? {
+                None => true,
+                Some(ch) => {
+                    let label = fsv_core::pystr::casefold(&ch.label);
+                    label == "resolved" || label == "closed"
+                }
+            };
+            if closing {
+                return Err(refused(
+                    "combined resolution/closure requirements are not proven; use the web form",
+                ));
+            }
+        }
+        if field.is_custom {
+            let custom = body
+                .entry("custom_fields")
+                .or_insert_with(|| Value::Object(Map::new()));
+            if let Value::Object(m) = custom {
+                m.insert(field.api_name.clone(), encoded);
+            }
+        } else {
+            let key = if matches!(field.api_name.as_str(), "requester" | "requested_for") {
+                format!("{}_id", field.api_name)
+            } else {
+                TICKET_KEYS
+                    .iter()
+                    .find(|(k, _)| *k == field.api_name)
+                    .map_or(field.api_name.clone(), |(_, v)| v.to_string())
+            };
+            if !ALLOWED.contains(&key.as_str()) {
+                return Err(refused(format!(
+                    "{}: update wire is not proven",
+                    field.label
+                )));
+            }
+            body.insert(key, encoded);
+        }
+    }
+    missing_keys(body, row)?;
+    for (key, value) in body.iter() {
         if let Some(field) = spec.find(key) {
             state
                 .set(&field.api_name, fsv_forms::Value::from_json(value))
-                .map_err(|e| Error::other(e.to_string()))?;
+                .map_err(other)?;
         }
     }
     if !state.rules.unavailable_dependencies("edit").is_empty()
@@ -126,19 +320,36 @@ fn rules_token(
             "ticket business rules need unavailable fields or context; use the web form",
         ));
     }
-    let problems = state.errors().map_err(|e| Error::other(e.to_string()))?;
+    let problems = state.errors().map_err(other)?;
     if !problems.is_empty() {
         return Err(refused(format!(
             "ticket form validation failed: {}",
             problems.join("; ")
         )));
     }
-    build_br_validation_excludes(&state.evaluated, "ticket", &Value::Null, &Value::Null)
-        .map_err(|e| Error::other(e.to_string()))
+    let token =
+        build_br_validation_excludes(&state.evaluated, "ticket", &Value::Null, &Value::Null)
+            .map_err(other)?;
+    let metadata_hash = if answers.is_empty() {
+        String::new()
+    } else {
+        meta.fingerprint().hash
+    };
+    Ok((token, metadata_hash))
 }
 
-/// `build_plan`: validated tags/planned dates, the exact `before` values and
-/// the business-rule token from fresh form metadata.
+/// Keyword arguments of [`build_plan_with`] (Python `build_plan` keywords).
+#[derive(Debug, Clone, Copy, Default)]
+pub struct PropertyArgs<'a> {
+    pub tags: Option<&'a [String]>,
+    pub planned_start: Option<&'a str>,
+    pub planned_end: Option<&'a str>,
+    /// Field name or label -> value, evaluated on the fresh edit form.
+    pub answers: Option<&'a Map<String, Value>>,
+}
+
+/// `build_plan` without answers: validated tags/planned dates, the exact
+/// `before` values and the business-rule token from fresh form metadata.
 pub fn build_plan(
     c: &dyn Api,
     store: &dyn MetaStore,
@@ -147,11 +358,31 @@ pub fn build_plan(
     planned_start: Option<&str>,
     planned_end: Option<&str>,
 ) -> Result<PropertyPlan> {
+    let args = PropertyArgs {
+        tags,
+        planned_start,
+        planned_end,
+        answers: None,
+    };
+    Ok(build_plan_with(c, store, ticket_id, &args, None)?.plan)
+}
+
+/// Port of fsv.ticket_properties.build_plan: tags, planned dates and
+/// metadata-backed answers (`--set` / core flags / TUI edits). `resolver`
+/// resolves lookup answers (agent, group, requester, beneficiary); pass a
+/// `formmeta::ClientResolver`.
+pub fn build_plan_with(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    ticket_id: &str,
+    args: &PropertyArgs<'_>,
+    resolver: Option<Arc<dyn LookupResolver>>,
+) -> Result<AnsweredPropertyPlan> {
     let cid = parse_id(ticket_id, &TICKETS)?;
     if cid <= 0 {
         return Err(Error::value("ticket ID must be positive"));
     }
-    if let Some(tags) = tags
+    if let Some(tags) = args.tags
         && (tags.is_empty()
             || tags.iter().any(|t| {
                 fsv_core::pystr::strip(t).is_empty()
@@ -164,12 +395,12 @@ pub fn build_plan(
         ));
     }
     let mut body = Map::new();
-    if let Some(tags) = tags {
+    if let Some(tags) = args.tags {
         body.insert("tags".into(), json!(tags));
     }
     for (key, raw) in [
-        ("planned_start_date", planned_start),
-        ("planned_end_date", planned_end),
+        ("planned_start_date", args.planned_start),
+        ("planned_end_date", args.planned_end),
     ] {
         if let Some(raw) = raw {
             let Some(parsed) = crate::tasks::date(Some(raw))? else {
@@ -178,25 +409,16 @@ pub fn build_plan(
             body.insert(key.into(), json!(parsed));
         }
     }
-    if body.is_empty() {
+    let empty = Map::new();
+    let answers = args.answers.unwrap_or(&empty);
+    if body.is_empty() && answers.is_empty() {
         return Err(Error::value(
-            "specify --tag, --planned-start or --planned-end",
+            "specify --set, --tag, --planned-start or --planned-end",
         ));
     }
     let row = record(c, cid)?;
-    let missing: Vec<&str> = body
-        .keys()
-        .filter(|k| !row.contains_key(*k))
-        .map(String::as_str)
-        .collect();
-    if !missing.is_empty() {
-        return Err(refused(format!(
-            "ticket read did not include: {}",
-            missing.join(", ")
-        )));
-    }
-    let before: Map<String, Value> = body.keys().map(|k| (k.clone(), row[k].clone())).collect();
-    let token = match rules_token(c, store, cid, &row, &body) {
+    missing_keys(&body, &row)?;
+    let (token, metadata_hash) = match evaluate(c, store, cid, &row, &mut body, answers, resolver) {
         Ok(t) => t,
         Err(e @ Error::Exit { .. }) => return Err(e),
         Err(_) => {
@@ -205,13 +427,18 @@ pub fn build_plan(
             ));
         }
     };
+    let before = values_of(&body, &row);
     body.insert("br_validation_excludes".into(), json!(token));
-    Ok(PropertyPlan {
-        ticket_id: cid,
-        tenant: c.domain(),
-        body_json: dumps_sorted(&Value::Object(body)),
-        before_json: dumps_sorted(&Value::Object(before)),
-        record_hash: plan_hash(&Value::Object(row)),
+    Ok(AnsweredPropertyPlan {
+        plan: PropertyPlan {
+            ticket_id: cid,
+            tenant: c.domain(),
+            body_json: dumps_sorted(&Value::Object(body)),
+            before_json: dumps_sorted(&Value::Object(before)),
+            record_hash: plan_hash(&Value::Object(row)),
+        },
+        answers_json: dumps_sorted(&Value::Object(answers.clone())),
+        metadata_hash,
     })
 }
 
@@ -219,7 +446,7 @@ fn strings(v: Option<&Value>) -> Option<Vec<String>> {
     v?.as_array().map(|a| a.iter().map(py_str).collect())
 }
 
-/// `send`: one PUT after the plan is rebuilt unchanged, then a read-back.
+/// `send` without a lookup resolver (enough for tag/date plans).
 pub fn send(
     plan: &PropertyPlan,
     c: &dyn Api,
@@ -227,10 +454,24 @@ pub fn send(
     store: &dyn MetaStore,
     reviewed_hash: Option<&str>,
 ) -> Result<Value> {
+    send_with(&plan.clone().into(), c, journal, store, reviewed_hash, None)
+}
+
+/// Port of fsv.ticket_properties.send: one PUT after the plan (with its
+/// stored answers) is rebuilt unchanged, then a read-back.
+pub fn send_with(
+    answered: &AnsweredPropertyPlan,
+    c: &dyn Api,
+    journal: &dyn Journal,
+    store: &dyn MetaStore,
+    reviewed_hash: Option<&str>,
+    resolver: Option<Arc<dyn LookupResolver>>,
+) -> Result<Value> {
     let Some(reviewed) = reviewed_hash else {
         return Ok(json!({"status": "cancelled"}));
     };
-    let hash = plan.hash();
+    let plan = &answered.plan;
+    let hash = answered.hash();
     if plan.tenant.is_empty() || plan.tenant != c.domain() || reviewed != hash {
         return Err(refused("tenant or review hash changed; review again"));
     }
@@ -244,14 +485,14 @@ pub fn send(
     }
     let payload = plan.payload();
     let tags = strings(payload.get("tags"));
-    let fresh = build_plan(
-        c,
-        store,
-        &plan.ticket_id.to_string(),
-        tags.as_deref(),
-        payload.get("planned_start_date").and_then(Value::as_str),
-        payload.get("planned_end_date").and_then(Value::as_str),
-    )?;
+    let answers = answered.answers();
+    let args = PropertyArgs {
+        tags: tags.as_deref(),
+        planned_start: payload.get("planned_start_date").and_then(Value::as_str),
+        planned_end: payload.get("planned_end_date").and_then(Value::as_str),
+        answers: Some(&answers),
+    };
+    let fresh = build_plan_with(c, store, &plan.ticket_id.to_string(), &args, resolver)?;
     if fresh.hash() != hash {
         return Err(refused("ticket or form changed since review; review again"));
     }
@@ -290,22 +531,25 @@ pub fn send(
             if key == "br_validation_excludes" {
                 continue;
             }
-            let state = match row.get(key) {
-                None => "unavailable",
-                Some(actual) if key == "planned_start_date" || key == "planned_end_date" => {
-                    let same = expected.as_str().and_then(|e| {
-                        crate::tasks::same_datetime(&py_str(actual).replace('Z', "+00:00"), e)
-                    });
-                    if same == Some(true) {
-                        "matched"
-                    } else {
-                        "mismatched"
-                    }
+            let matched = match row.get(key) {
+                None => {
+                    fields.insert(key.clone(), json!("unavailable"));
+                    continue;
                 }
-                Some(actual) if actual == expected => "matched",
-                Some(_) => "mismatched",
+                Some(actual) if key == "planned_start_date" || key == "planned_end_date" => {
+                    same_instant(actual, expected)
+                }
+                Some(Value::Object(actual)) if key == "custom_fields" => expected
+                    .as_object()
+                    .into_iter()
+                    .flatten()
+                    .all(|(k, v)| actual.get(k) == Some(v)),
+                Some(actual) => actual == expected,
             };
-            fields.insert(key.clone(), json!(state));
+            fields.insert(
+                key.clone(),
+                json!(if matched { "matched" } else { "mismatched" }),
+            );
         }
         let verified = fields.values().all(|v| v == "matched");
         result.insert("fields".into(), Value::Object(fields));
@@ -441,7 +685,7 @@ mod tests {
         );
         assert_eq!(
             err(build_plan(&c, &store, "123", None, None, None)),
-            "specify --tag, --planned-start or --planned-end"
+            "specify --set, --tag, --planned-start or --planned-end"
         );
         assert_eq!(
             err(build_plan(
@@ -561,5 +805,230 @@ mod tests {
             "update rejected (HTTP 409); no retry"
         );
         assert_eq!(j.events(), ["started", "failed"]);
+    }
+
+    fn rich_form(extra: &[Value]) -> Value {
+        let mut form = ticket_form(3);
+        let fields = form["ticket_fields"].as_array_mut().unwrap();
+        fields.extend([
+            form_field(
+                5,
+                "priority",
+                "Priority",
+                "default_priority",
+                5,
+                json!({"choices": [{"id": 73, "value": "High"}]}),
+            ),
+            form_field(
+                6,
+                "cost_code",
+                "Cost Code",
+                "custom_text",
+                6,
+                json!({"workspace_id": 1}),
+            ),
+            form_field(
+                7,
+                "requested_for",
+                "Requested For",
+                "default_requested_for",
+                7,
+                json!({}),
+            ),
+        ]);
+        fields.extend(extra.iter().cloned());
+        form
+    }
+
+    fn rich_row() -> Value {
+        json!({"id": 123, "subject": "Test", "status": 2, "priority": 1, "tags": ["old"],
+               "planned_start_date": null, "planned_end_date": null,
+               "custom_fields": {"cost_code": "old", "other": "retained"}})
+    }
+
+    fn rich_api(form: Value, rules: Value, row: Value) -> FnApi {
+        let row = std::sync::Mutex::new(row);
+        FnApi::new(move |call| {
+            let mut row = row.lock().unwrap();
+            match (call.method.as_str(), call.path.as_str()) {
+                ("GET", "ticket_form_fields") => Ok(form.clone()),
+                ("GET", p) if p.ends_with("business_rules") => Ok(rules.clone()),
+                ("GET", "tickets/123") => Ok(json!({"ticket": *row})),
+                ("PUT", "tickets/123") => {
+                    for (k, v) in call.body.clone().unwrap().as_object().unwrap() {
+                        if k != "br_validation_excludes" {
+                            row[k] = v.clone();
+                        }
+                    }
+                    Ok(json!({"ticket": *row}))
+                }
+                other => panic!("unexpected {other:?}"),
+            }
+        })
+    }
+
+    fn answers(pairs: &[(&str, &str)]) -> Map<String, Value> {
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), json!(v)))
+            .collect()
+    }
+
+    fn answer_plan(c: &FnApi, id: &str, a: &Map<String, Value>) -> Result<AnsweredPropertyPlan> {
+        let args = PropertyArgs {
+            answers: Some(a),
+            ..Default::default()
+        };
+        build_plan_with(c, &MemStore::default(), id, &args, Some(Arc::new(People)))
+    }
+
+    struct People;
+
+    impl LookupResolver for People {
+        fn lookup(
+            &self,
+            _entity: &str,
+            _query: &str,
+            _field: &fsv_forms::Field,
+        ) -> std::result::Result<Vec<fsv_forms::LookupValue>, fsv_forms::state::ResolverError>
+        {
+            Ok(vec![fsv_forms::LookupValue::new(
+                902,
+                "Acme User",
+                Some("person@example.com"),
+            )])
+        }
+    }
+
+    /// `test_ticket_properties.py::test_full_properties_runtime_enums_and_custom_readback`.
+    #[test]
+    fn full_properties_runtime_enums_and_custom_readback() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/reviewed_oracle.json")).unwrap();
+        let want = &oracle["properties"]["full"];
+        let c = rich_api(rich_form(&[]), json!({"business_rules": []}), rich_row());
+        let a = answers(&[
+            ("Subject", "Globex"),
+            ("Priority", "High"),
+            ("Cost Code", "new"),
+        ]);
+        let p = answer_plan(&c, "SR-123", &a).unwrap();
+        let payload = p.payload();
+        assert_eq!(payload["priority"], 73);
+        assert_eq!(payload["subject"], "Globex");
+        assert_eq!(payload["custom_fields"], json!({"cost_code": "new"}));
+        assert_eq!(p.plan.body_json, want["body_json"]);
+        assert_eq!(p.answers_json, want["answers_json"]);
+        assert_eq!(p.metadata_hash, want["metadata_hash"]);
+        assert_eq!(p.hash(), want["hash"]);
+        let j = MemJournal::default();
+        let out = send_with(
+            &p,
+            &c,
+            &j,
+            &MemStore::default(),
+            Some(&p.hash()),
+            Some(Arc::new(People)),
+        )
+        .unwrap();
+        assert_eq!(out["verified"], true, "{out}");
+        assert_eq!(c.writes().len(), 1);
+    }
+
+    /// `test_reviewed_cli_uses_full_hash_and_refuses_unproven_closure` (closure half).
+    #[test]
+    fn closed_status_answer_refused() {
+        let closed = form_field(
+            2,
+            "status",
+            "Status",
+            "default_status",
+            2,
+            json!({"choices": [{"id": 2, "value": "Open"}, {"id": 5, "value": "Closed"}]}),
+        );
+        let mut form = rich_form(&[]);
+        form["ticket_fields"][1] = closed;
+        let c = rich_api(form, json!({"business_rules": []}), rich_row());
+        assert!(err(answer_plan(&c, "123", &answers(&[("Status", "Closed")]))).contains("closure"));
+        assert!(c.writes().is_empty());
+    }
+
+    /// `test_legacy_property_hash_identity_is_unchanged`.
+    #[test]
+    fn legacy_hash_identity_unchanged() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/reviewed_oracle.json")).unwrap();
+        let c = rich_api(rich_form(&[]), json!({"business_rules": []}), rich_row());
+        let t = vec!["Acme".to_string()];
+        let p = build_plan(&c, &MemStore::default(), "123", Some(&t), None, None).unwrap();
+        let args = PropertyArgs {
+            tags: Some(&t),
+            ..Default::default()
+        };
+        let full = build_plan_with(&c, &MemStore::default(), "123", &args, None).unwrap();
+        assert_eq!(
+            full.metadata_hash,
+            oracle["properties"]["legacy"]["metadata_hash"]
+        );
+        assert_eq!(full.hash(), p.hash());
+        assert_eq!(p.hash(), oracle["properties"]["legacy"]["hash"]);
+        assert_eq!(
+            p.hash(),
+            plan_hash(
+                &json!({"tenant": p.tenant, "ticket_id": p.ticket_id, "payload": p.payload(),
+                              "before": serde_json::from_str::<Value>(&p.before_json).unwrap(),
+                              "record_hash": p.record_hash})
+            )
+        );
+    }
+
+    /// `test_tui_ticket_properties.py::test_requested_for_update_is_property_only_and_resolves_current_user`.
+    #[test]
+    fn requested_for_answer_resolves_beneficiary() {
+        let mut row = rich_row();
+        row["requested_for_id"] = json!(901);
+        let c = rich_api(rich_form(&[]), json!({"business_rules": []}), row);
+        let p = answer_plan(
+            &c,
+            "SR-123",
+            &answers(&[("Requested For", "person@example.com")]),
+        )
+        .unwrap();
+        assert_eq!(p.payload()["requested_for_id"], 902);
+        let out = send_with(
+            &p,
+            &c,
+            &MemJournal::default(),
+            &MemStore::default(),
+            Some(&p.hash()),
+            Some(Arc::new(People)),
+        )
+        .unwrap();
+        assert_eq!(out["verified"], true, "{out}");
+    }
+
+    /// `test_beneficiary_edit_never_reuses_previous_person_rule_context`.
+    #[test]
+    fn beneficiary_edit_never_reuses_previous_rule_context() {
+        let rule = json!({"id": 9_000_000_006_i64, "name": "Acme rule", "module_type": "ticket",
+            "state": "active", "user_type": "both", "form_type": "both", "rule_type": "client_side",
+            "condition_data": {"all": [{"name": "department_id", "operator": "is", "value": ["9"], "evaluate_on": "requested_for"}]},
+            "action_data": {"action": [{"name": ["subject"], "property": "hide"}]}});
+        let mut row = rich_row();
+        row["requested_for_id"] = json!(901);
+        let c = rich_api(
+            rich_form(&[]),
+            json!({"business_rules": [rule], "requested_for": {"department_id": "9"}}),
+            row,
+        );
+        assert_eq!(
+            err(answer_plan(
+                &c,
+                "SR-123",
+                &answers(&[("Requested For", "person@example.com")])
+            )),
+            "ticket business rules need unavailable fields or context; use the web form"
+        );
+        assert!(c.writes().is_empty());
     }
 }

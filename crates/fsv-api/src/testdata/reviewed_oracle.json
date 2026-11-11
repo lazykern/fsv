@@ -1,0 +1,285 @@
+{
+ "bulk_priority": {
+  "acme.example.com": {
+   "hash": "d5886043a8b468d5eaaddaf17cf64e34ae734582e90f4d356a393121dd98dc39",
+   "review": {
+    "action": "ticket_bulk_priority",
+    "before": [
+     {
+      "priority": 1,
+      "ticket_id": 123
+     },
+     {
+      "priority": 1,
+      "ticket_id": 124
+     }
+    ],
+    "method": "PUT",
+    "path": "/api/_/bulk_ticket_actions/update_multiple",
+    "payload": {
+     "ids": [
+      123,
+      124
+     ],
+     "priority": 87,
+     "reply": {}
+    },
+    "plan_hash": "d5886043a8b468d5eaaddaf17cf64e34ae734582e90f4d356a393121dd98dc39",
+    "priority_label": "High",
+    "warning": "Explicit tickets only. Bulk actions may notify people; partial per-ticket outcomes are possible."
+   }
+  },
+  "globex.example.com": {
+   "hash": "44a3f455207e56db445422ba39a5527654725a761baf27194e67ffd45068fcc5",
+   "review": {
+    "action": "ticket_bulk_priority",
+    "before": [
+     {
+      "priority": 1,
+      "ticket_id": 742
+     },
+     {
+      "priority": 1,
+      "ticket_id": 743
+     }
+    ],
+    "method": "PUT",
+    "path": "/api/_/bulk_ticket_actions/update_multiple",
+    "payload": {
+     "ids": [
+      742,
+      743
+     ],
+     "priority": 26,
+     "reply": {}
+    },
+    "plan_hash": "44a3f455207e56db445422ba39a5527654725a761baf27194e67ffd45068fcc5",
+    "priority_label": "High",
+    "warning": "Explicit tickets only. Bulk actions may notify people; partial per-ticket outcomes are possible."
+   }
+  }
+ },
+ "conversation": {
+  "forward": {
+   "hash": "d2983e98219542637220ad0740f265b1526a214126210ddcae1493bcabff1d0c",
+   "payload_json": "{\"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"from_email\": \"support@example.com\", \"notify_emails\": [\"person@example.com\"], \"private\": true}"
+  },
+  "reply": {
+   "hash": "1761014d19e6ffcb0976111d0ab31d12aa5a7a17707903d516f7d5ed9b157b6e",
+   "payload_json": "{\"bcc_emails\": [\"person@example.com\"], \"body\": \"<div>Acme update</div>\", \"conversation_from_summary\": false, \"freddy_message_id\": null, \"from_email\": \"support@example.com\", \"full_text\": \"<div>Acme update</div>\", \"translate_reply\": false}"
+  }
+ },
+ "known_error": {
+  "hash": "c403de15e67d0c563c545467339b6d457dc7defa893ae75844ec0d50472c0faf"
+ },
+ "merge_same_conditions": {
+  "input": [
+   {
+    "condition": "status",
+    "operator": "is_in",
+    "type": "default",
+    "value": [
+     2
+    ]
+   },
+   {
+    "condition": "priority",
+    "operator": "is",
+    "type": "default",
+    "value": 3
+   },
+   {
+    "condition": "status",
+    "operator": "is_in",
+    "type": "default",
+    "value": [
+     3,
+     4
+    ]
+   },
+   {
+    "condition": "status",
+    "operator": "is_in",
+    "type": "custom",
+    "value": [
+     5
+    ]
+   },
+   {
+    "condition": "status",
+    "operator": "is_not_in",
+    "type": "default",
+    "value": null
+   },
+   {
+    "condition": "status",
+    "operator": "is_not_in",
+    "type": "default",
+    "value": "ab"
+   },
+   {
+    "operator": "is_in",
+    "value": {
+     "k": 1
+    }
+   },
+   {
+    "operator": "is_in"
+   },
+   {
+    "condition": "status",
+    "operator": "is_in",
+    "type": "default",
+    "value": []
+   }
+  ],
+  "output": [
+   {
+    "condition": "status",
+    "operator": "is_in",
+    "type": "default",
+    "value": [
+     2,
+     3,
+     4
+    ]
+   },
+   {
+    "condition": "priority",
+    "operator": "is",
+    "type": "default",
+    "value": 3
+   },
+   {
+    "condition": "status",
+    "operator": "is_in",
+    "type": "custom",
+    "value": [
+     5
+    ]
+   },
+   {
+    "condition": "status",
+    "operator": "is_not_in",
+    "type": "default",
+    "value": [
+     "a",
+     "b"
+    ]
+   },
+   {
+    "operator": "is_in",
+    "value": [
+     "k"
+    ]
+   }
+  ]
+ },
+ "planning": {
+  "acme_plan": {
+   "hash": "01b90ffacfa32ffcadfbcde93639f378569df8e9ee4a01f2944a673b34da2454"
+  },
+  "problem_cause": {
+   "hash": "cfa011824430d8fd57b86ff289d2e418a02e20aad91d3a6c53feed396993fec7"
+  },
+  "problem_impact": {
+   "hash": "3f12ee0b93f9854549c07459e158da7575a6608733f278a7cd29b5dde434df0d"
+  },
+  "problem_symptom": {
+   "hash": "15b3f80f114e74b168458b3e805ed511978e3e54c6d0b40f8d61591f69e30f8c"
+  }
+ },
+ "properties": {
+  "full": {
+   "answers_json": "{\"Cost Code\": \"new\", \"Priority\": \"High\", \"Subject\": \"Globex\"}",
+   "body_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"cost_code\": \"new\"}, \"priority\": 73, \"subject\": \"Globex\"}",
+   "hash": "047fa51124e3cc3c98634321a227b0514543dce71f3cd0b14c640a7f277a81da",
+   "metadata_hash": "8a588b86354e0e0693fb3087b9f0fc1911cdbf53447c76f2db812fb0752993db"
+  },
+  "legacy": {
+   "hash": "6f1074230e4277479916ee2d853400ce988caaa5557daa11c78ed457cd254e0e",
+   "metadata_hash": ""
+  }
+ },
+ "send_failure": [
+  {
+   "code": 1,
+   "display": "upload failed: boom. Uploaded attachment ids: none",
+   "message": "upload failed: RuntimeError; nothing was placed",
+   "note": null
+  },
+  {
+   "code": 2,
+   "display": "upload failed: bad. Uploaded attachment ids: 9 (a.txt)",
+   "message": "upload failed: ValueError; nothing was placed",
+   "note": "uploaded attachment ids (not attached to any request): 9 (a.txt)"
+  },
+  {
+   "code": 5,
+   "display": "place-request failed: HTTP 422: no. Uploaded attachment ids: 9 (a.txt)",
+   "message": "place-request failed: HTTP 422; the server refused it; nothing was placed",
+   "note": "uploaded attachment ids (not attached to any request): 9 (a.txt)"
+  },
+  {
+   "code": 4,
+   "display": "place-request failed: HTTP 409: dup. Uploaded attachment ids: none",
+   "message": "place-request failed: HTTP 409; the server refused it; nothing was placed",
+   "note": null
+  },
+  {
+   "code": 5,
+   "display": "place-request failed: HTTP 403: denied. Uploaded attachment ids: none",
+   "message": "place-request failed: HTTP 403; the outcome is unknown: check `fsv journal tail` and the requester's requests before retrying",
+   "note": null
+  },
+  {
+   "code": 5,
+   "display": "place-request failed: HTTP 500: x. Uploaded attachment ids: none",
+   "message": "place-request failed: HTTP 500; the outcome is unknown: check `fsv journal tail` and the requester's requests before retrying",
+   "note": null
+  },
+  {
+   "code": 3,
+   "display": "place-request failed: expired. Uploaded attachment ids: none",
+   "message": "place-request failed: SessionError; the outcome is unknown: check `fsv journal tail` and the requester's requests before retrying",
+   "note": null
+  },
+  {
+   "code": 1,
+   "display": "place-request failed: response has no exact request ID; outcome unknown. Uploaded attachment ids: none",
+   "message": "place-request failed: RuntimeError; the outcome is unknown: check `fsv journal tail` and the requester's requests before retrying",
+   "note": null
+  }
+ ],
+ "ticket_time": {
+  "create_hash": "8279c317a1ff3b34b48fd2c589ea399f03231ba5a622c70e958b1d9303f57a28",
+  "create_payload_json": "{\"agent_id\": 901, \"billable\": false, \"executed_at\": \"2030-01-02T10:00:00-05:00\", \"note\": \"Acme\", \"time_spent\": \"00:01\", \"timer_running\": false}",
+  "delete_hash": "8883d72c1f6178300008d92bd7bd32a57d7c76ff0ec7f12c2273f8af449b2637",
+  "update_hash": "ecc4377eca1c007c376adef500f4d5e49aa17cbb5ec1142a2c3ff219d4589968"
+ },
+ "watchers": {
+  "changes": {
+   "unwatch_hash": "175aa73a67a7e5c5bb6fb97058d8ce8b18aaeb65849becfd65c828f2aefa60a2",
+   "unwatch_payload_json": "null",
+   "watch_hash": "a975b61caefbe0a6b548c05ef975a9d199d467406b087b477638f9034d3702da"
+  },
+  "tickets": {
+   "unwatch_hash": "3e6ec0008847f777b0c141482b475f7ab676d76af01ab8073c7001784f5cd028",
+   "unwatch_payload_json": "{\"user_id\": 901}",
+   "watch_hash": "ab43ef011d8a95c930601a9e25d77592c0435d04479d778d44b2b341edc0191c"
+  }
+ },
+ "write_plan": {
+  "hash": "71d5102617ddfd59c14201c800651d2bd1c82dd3b8abb9b940835377607f694b",
+  "review": {
+   "action": "tickets_self_watch",
+   "method": "POST",
+   "path": "/api/_/tickets/123/watch",
+   "payload": {
+    "user_id": 901
+   },
+   "plan_hash": "71d5102617ddfd59c14201c800651d2bd1c82dd3b8abb9b940835377607f694b",
+   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  }
+ }
+}

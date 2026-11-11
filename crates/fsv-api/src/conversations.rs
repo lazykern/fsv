@@ -121,6 +121,15 @@ fn status_inner(
     Ok((id, token, plan_hash(&Value::Object(row))))
 }
 
+/// `email.utils.parseaddr(value)[1]` for `Name <addr>` / bare addresses.
+fn parseaddr(value: &str) -> String {
+    let v = value.trim();
+    match (v.rfind('<'), v.ends_with('>')) {
+        (Some(at), true) => v[at + 1..v.len() - 1].trim().to_string(),
+        _ => v.to_string(),
+    }
+}
+
 /// `status_context`: the Pending status id, its business-rule token and the
 /// record hash, from fresh edit-form metadata. Only Pending was captured.
 pub fn status_context(
@@ -140,7 +149,7 @@ pub fn status_context(
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConversationPlan {
-    /// `reply` | `note`.
+    /// `reply` | `note` | `forward`.
     pub kind: String,
     pub ticket_id: i64,
     pub tenant: String,
@@ -155,15 +164,12 @@ impl ConversationPlan {
     }
 
     pub fn path(&self) -> String {
-        format!(
-            "tickets/{}/{}",
-            self.ticket_id,
-            if self.kind == "reply" {
-                "reply"
-            } else {
-                "notes"
-            }
-        )
+        let tail = match self.kind.as_str() {
+            "reply" => "reply",
+            "forward" => "forward",
+            _ => "notes",
+        };
+        format!("tickets/{}/{tail}", self.ticket_id)
     }
 
     pub fn hash(&self) -> String {
@@ -176,7 +182,7 @@ impl ConversationPlan {
         obj(
             json!({"action": format!("ticket_{}", self.kind), "method": "POST", "path": format!("/api/_/{}", self.path()),
                    "payload": self.payload(), "status_label": self.status_label, "plan_hash": self.hash(),
-                   "warning": "A reply is public and may notify recipients; notes may also trigger tenant workflows."}),
+                   "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."}),
         )
     }
 }
@@ -184,13 +190,25 @@ impl ConversationPlan {
 /// Options of [`build_plan`] (Python keyword arguments).
 #[derive(Debug, Clone)]
 pub struct ConversationArgs<'a> {
-    /// `reply` | `note`.
+    /// `reply` | `note` | `forward`.
     pub kind: &'a str,
     pub cc: &'a [String],
     pub public: bool,
+    /// Note recipients; for `forward`, the bare `To` addresses.
     pub notify: &'a [String],
     pub format: BodyFormat,
     pub set_status: Option<&'a str>,
+}
+
+/// The `bcc` / `sender` keywords of fsv.ticket_conversation.build_plan
+/// (see [`build_plan_mail`]).
+#[derive(Debug, Clone, Copy, Default)]
+pub struct MailArgs<'a> {
+    /// Bare emails; reply only, requires `sender`.
+    pub bcc: &'a [String],
+    /// A bare support email sent as `from_email` (user-asserted); required
+    /// for `forward`.
+    pub sender: Option<&'a str>,
 }
 
 impl Default for ConversationArgs<'_> {
@@ -207,7 +225,8 @@ impl Default for ConversationArgs<'_> {
 }
 
 /// `build_plan`: the exact reply/note payload, with the status change and
-/// its rules token when `set_status` is given.
+/// its rules token when `set_status` is given. No BCC or sender, so a
+/// `forward` is refused; use [`build_plan_mail`].
 pub fn build_plan(
     c: &dyn Api,
     store: &dyn MetaStore,
@@ -215,7 +234,20 @@ pub fn build_plan(
     body: &str,
     args: &ConversationArgs<'_>,
 ) -> Result<ConversationPlan> {
-    if args.kind != "reply" && args.kind != "note" {
+    build_plan_mail(c, store, ticket_id, body, args, &MailArgs::default())
+}
+
+/// Port of fsv.ticket_conversation.build_plan: reply (optionally with BCC
+/// and an explicit sender), note, or whole-ticket forward.
+pub fn build_plan_mail(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    ticket_id: &str,
+    body: &str,
+    args: &ConversationArgs<'_>,
+    mail: &MailArgs<'_>,
+) -> Result<ConversationPlan> {
+    if !matches!(args.kind, "reply" | "note" | "forward") {
         return Err(Error::value("invalid conversation kind"));
     }
     let tenant = c.domain();
@@ -227,14 +259,62 @@ pub fn build_plan(
         args.format,
         &tenant,
     )?;
-    let mut payload = if args.kind == "reply" {
-        if args.cc.iter().any(|v| !valid_recipient(v)) {
-            return Err(Error::value("invalid CC recipient"));
+    let bare = |v: &String| EMAIL.is_match(v);
+    if mail.sender.is_some_and(|s| !EMAIL.is_match(s)) {
+        return Err(Error::value(
+            "sender must be a plain configured support email address",
+        ));
+    }
+    let (has_cc, has_bcc) = (!args.cc.is_empty(), !mail.bcc.is_empty());
+    if args.kind == "forward"
+        && (mail.sender.is_none_or(str::is_empty)
+            || args.notify.is_empty()
+            || args.set_status.is_some()
+            || has_cc
+            || has_bcc)
+    {
+        return Err(Error::value(
+            "whole-ticket forward requires explicit sender and recipients; no combined status/CC/BCC wire is proven",
+        ));
+    }
+    if args.kind == "note" && (has_bcc || mail.sender.is_some_and(|s| !s.is_empty())) {
+        return Err(Error::value("note sender/BCC wire is not proven"));
+    }
+    if has_bcc && (has_cc || args.set_status.is_some()) {
+        return Err(Error::value("combined BCC/CC/status wire is not proven"));
+    }
+    if has_bcc && (mail.sender.is_none_or(str::is_empty) || !mail.bcc.iter().all(bare)) {
+        return Err(Error::value(
+            "BCC requires a configured --sender and bare recipient emails",
+        ));
+    }
+    let sender = mail.sender.filter(|s| !s.is_empty());
+    let mut payload = match args.kind {
+        "reply" => {
+            if args.cc.iter().any(|v| !valid_recipient(v)) {
+                return Err(Error::value("invalid CC recipient"));
+            }
+            let mut p = json!({"body": note.body_html, "conversation_from_summary": false, "cc_emails": args.cc,
+                               "full_text": note.body_html, "translate_reply": false, "freddy_message_id": null});
+            if has_bcc {
+                p["bcc_emails"] = json!(mail.bcc);
+                if !has_cc && let Some(m) = p.as_object_mut() {
+                    m.remove("cc_emails");
+                }
+            }
+            if let Some(s) = sender {
+                p["from_email"] = json!(s);
+            }
+            p
         }
-        json!({"body": note.body_html, "conversation_from_summary": false, "cc_emails": args.cc,
-               "full_text": note.body_html, "translate_reply": false, "freddy_message_id": null})
-    } else {
-        note.payload()
+        "forward" => {
+            if !args.notify.iter().all(bare) {
+                return Err(Error::value("forward requires bare recipient emails"));
+            }
+            json!({"body": note.body_html, "from_email": sender, "notify_emails": args.notify,
+                   "conversation_from_summary": false, "private": true})
+        }
+        _ => note.payload(),
     };
     let mut record_hash = None;
     if let Some(label) = args.set_status {
@@ -271,7 +351,7 @@ pub fn send(
     }
     let payload = plan.payload();
     let private = payload.get("private").is_none_or(truthy);
-    if (plan.kind == "reply" || !private) && !public_confirmed {
+    if (plan.kind == "reply" || plan.kind == "forward" || !private) && !public_confirmed {
         return Err(refused(
             "public conversation requires explicit confirmation",
         ));
@@ -293,6 +373,30 @@ pub fn send(
         {
             return Err(refused("ticket or status metadata changed; review again"));
         }
+    }
+    // Reconfirm formatted CC recipients without silently changing reviewed bytes.
+    let strings = |key: &str| -> Vec<String> {
+        payload
+            .get(key)
+            .and_then(Value::as_array)
+            .map(|a| a.iter().map(py_str).collect())
+            .unwrap_or_default()
+    };
+    let cc = strings("cc_emails");
+    if !cc.is_empty() {
+        let emails: Vec<String> = cc.iter().map(|v| parseaddr(v)).collect();
+        if recipients(c, &emails)? != cc {
+            return Err(refused("CC recipient identity changed; review again"));
+        }
+    }
+    // New recipient variants are looked up again before any send. No opaque
+    // user ids or guessed sender identities are substituted into the payload.
+    let mut lookups = strings("bcc_emails");
+    if plan.kind == "forward" {
+        lookups.extend(strings("notify_emails"));
+    }
+    for address in lookups {
+        recipients(c, std::slice::from_ref(&address))?;
     }
     let Ok(csrf) = c.get_csrf() else {
         return Err(refused("could not prepare session; no send attempted"));
@@ -339,10 +443,17 @@ pub fn send(
             .find(|r| py_str(r.get("id").unwrap_or(&Value::Null)) == want);
         let mut expected = vec![("body", payload["body"].clone())];
         if plan.kind == "reply" {
-            expected.push(("cc_emails", payload["cc_emails"].clone()));
+            for key in ["cc_emails", "bcc_emails"] {
+                if let Some(v) = payload.get(key) {
+                    expected.push((key, v.clone()));
+                }
+            }
         } else {
             expected.push(("private", payload["private"].clone()));
             expected.push(("notify_emails", payload["notify_emails"].clone()));
+        }
+        if let Some(v) = payload.get("from_email") {
+            expected.push(("from_email", v.clone()));
         }
         let mut fields = Map::new();
         for (k, v) in expected {
@@ -408,6 +519,7 @@ mod tests {
     const NOTE_HASH: &str = "b968aa46849b709e7f57dcf98d4fe54d0529917405a43d49448bd410639a525a";
     const CC: &str = "Acme User <person@example.com>";
     const STATUS_ERR: &str = "could not resolve Pending and evaluate ticket rules from fresh metadata; no send attempted";
+    const WARNING: &str = "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.";
     const UNVERIFIED: &str =
         "Conversation or ticket fields were not fully verified on read-back; do not resend.";
 
@@ -526,7 +638,7 @@ mod tests {
         assert_eq!(
             Value::Object(p.review()),
             json!({"action": "ticket_reply", "method": "POST", "path": "/api/_/tickets/123/reply", "payload": payload,
-            "status_label": "Pending", "plan_hash": REPLY_HASH, "warning": "A reply is public and may notify recipients; notes may also trigger tenant workflows."})
+            "status_label": "Pending", "plan_hash": REPLY_HASH, "warning": WARNING})
         );
         let n = note_plan(&c);
         assert_eq!(
@@ -546,6 +658,19 @@ mod tests {
                 "x",
                 &ConversationArgs {
                     kind: "forward",
+                    ..Default::default()
+                }
+            )),
+            "whole-ticket forward requires explicit sender and recipients; no combined status/CC/BCC wire is proven"
+        );
+        assert_eq!(
+            err(build_plan(
+                &c,
+                &store,
+                "123",
+                "x",
+                &ConversationArgs {
+                    kind: "call",
                     ..Default::default()
                 }
             )),
@@ -570,7 +695,7 @@ mod tests {
     #[test]
     fn send_reply_verifies_conversation_and_status() {
         let p = reply_plan(&api());
-        let c = ticket_api(json!({"ticket": row()}))
+        let c = api()
             .ok("GET tickets/123", json!({"ticket": {"id": 123, "subject": "Test", "status": 3}}))
             .ok("POST tickets/123/reply", json!({"conversation": {"id": 456}}))
             .ok("GET tickets/123/conversations", json!({"conversations": [{"id": 456, "body": "<div>Hello &lt;team&gt;</div>", "cc_emails": [CC]}]}));
@@ -661,5 +786,301 @@ mod tests {
             json!({"status": "submitted", "conversation_id": 7, "ticket_id": 123, "plan_hash": NOTE_HASH, "verified": false,
                    "fields": {"body": "unavailable", "private": "unavailable", "notify_emails": "unavailable"}, "warning": UNVERIFIED})
         );
+    }
+
+    fn mail_plan(c: &FakeApi, kind: &str, sender: &str, to: &[String]) -> Result<ConversationPlan> {
+        let (bcc, notify): (&[String], &[String]) = if kind == "reply" {
+            (to, &[])
+        } else {
+            (&[], to)
+        };
+        build_plan_mail(
+            c,
+            &MemStore::default(),
+            "123",
+            "Acme update",
+            &ConversationArgs {
+                kind,
+                notify,
+                ..Default::default()
+            },
+            &MailArgs {
+                bcc,
+                sender: Some(sender),
+            },
+        )
+    }
+
+    /// `test_ticket_conversation.py::test_bcc_and_whole_ticket_forward_exact_wire_hash_and_readback`.
+    #[test]
+    fn bcc_and_forward_exact_wire_hash_and_readback() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/reviewed_oracle.json")).unwrap();
+        let to = vec!["person@example.com".to_string()];
+        for kind in ["reply", "forward"] {
+            let p = mail_plan(&api(), kind, "support@example.com", &to).unwrap();
+            let payload = p.payload();
+            assert_eq!(payload["from_email"], "support@example.com");
+            let key = if kind == "reply" {
+                "bcc_emails"
+            } else {
+                "notify_emails"
+            };
+            assert_eq!(payload[key], json!(["person@example.com"]));
+            assert_eq!(
+                p.payload_json, oracle["conversation"][kind]["payload_json"],
+                "{kind}"
+            );
+            assert_eq!(p.hash(), oracle["conversation"][kind]["hash"], "{kind}");
+            if kind == "forward" {
+                assert!(p.path().ends_with("/forward"));
+                assert_eq!(
+                    payload,
+                    json!({"body": "<div>Acme update</div>", "from_email": "support@example.com",
+                    "notify_emails": ["person@example.com"], "conversation_from_summary": false, "private": true})
+                );
+            } else {
+                assert!(payload.get("cc_emails").is_none());
+            }
+            let changed = mail_plan(&api(), kind, "other@example.com", &to).unwrap();
+            assert_ne!(p.hash(), changed.hash());
+            let mut row = json!({"id": 456});
+            row.as_object_mut()
+                .unwrap()
+                .extend(payload.as_object().unwrap().clone());
+            let c = api()
+                .ok(
+                    &format!("POST {}", p.path()),
+                    json!({"conversation": {"id": 456}}),
+                )
+                .ok(
+                    "GET tickets/123/conversations",
+                    json!({"conversations": [row]}),
+                );
+            let j = MemJournal::default();
+            assert_eq!(
+                err(send(
+                    &p,
+                    &c,
+                    &j,
+                    &MemStore::default(),
+                    Some(&p.hash()),
+                    false
+                )),
+                "public conversation requires explicit confirmation"
+            );
+            let out = send(&p, &c, &j, &MemStore::default(), Some(&p.hash()), true).unwrap();
+            assert_eq!(out["verified"], true, "{out}");
+            assert_eq!(c.writes().len(), 1);
+            assert!(c.gets().contains(&"autocomplete/requesters".to_string()));
+        }
+    }
+
+    /// `test_bcc_missing_readback_is_unavailable_not_verified`.
+    #[test]
+    fn bcc_missing_readback_is_unavailable() {
+        let to = vec!["person@example.com".to_string()];
+        let p = mail_plan(&api(), "reply", "support@example.com", &to).unwrap();
+        let c = api()
+            .ok("POST tickets/123/reply", json!({"conversation": {"id": 456}}))
+            .ok("GET tickets/123/conversations", json!({"conversations": [{"id": 456, "body": "<div>Acme update</div>", "cc_emails": []}]}));
+        let (j, store) = (MemJournal::default(), MemStore::default());
+        let out = send(&p, &c, &j, &store, Some(&p.hash()), true).unwrap();
+        assert_eq!(out["verified"], false);
+        assert_eq!(out["fields"]["bcc_emails"], "unavailable");
+        assert_eq!(out["fields"]["from_email"], "unavailable");
+        assert!(err(send(&p, &c, &j, &store, Some(&p.hash()), true)).contains("was sent"));
+        assert_eq!(c.writes().len(), 1);
+    }
+
+    /// `test_forward_uncaptured_variants_refused` plus the other refusals.
+    #[test]
+    fn mail_variants_refused() {
+        let c = api();
+        let store = MemStore::default();
+        let to = vec!["person@example.com".to_string()];
+        let named = vec![CC.to_string()];
+        let support = Some("support@example.com");
+        let plan = |args: ConversationArgs<'_>, mail: MailArgs<'_>| {
+            build_plan_mail(&c, &store, "123", "Hello", &args, &mail)
+        };
+        let reply = ConversationArgs::default;
+        let cases = [
+            (
+                reply(),
+                MailArgs {
+                    bcc: &to,
+                    sender: None,
+                },
+                "BCC requires a configured --sender and bare recipient emails",
+            ),
+            (
+                ConversationArgs {
+                    kind: "forward",
+                    notify: &to,
+                    set_status: Some("Pending"),
+                    ..reply()
+                },
+                MailArgs {
+                    sender: support,
+                    ..Default::default()
+                },
+                "whole-ticket forward requires explicit sender and recipients; no combined status/CC/BCC wire is proven",
+            ),
+            (
+                reply(),
+                MailArgs {
+                    sender: Some("Support <support@example.com>"),
+                    ..Default::default()
+                },
+                "sender must be a plain configured support email address",
+            ),
+            (
+                ConversationArgs {
+                    kind: "note",
+                    ..reply()
+                },
+                MailArgs {
+                    sender: support,
+                    ..Default::default()
+                },
+                "note sender/BCC wire is not proven",
+            ),
+            (
+                ConversationArgs {
+                    cc: &named,
+                    ..reply()
+                },
+                MailArgs {
+                    bcc: &to,
+                    sender: support,
+                },
+                "combined BCC/CC/status wire is not proven",
+            ),
+            (
+                reply(),
+                MailArgs {
+                    bcc: &named,
+                    sender: support,
+                },
+                "BCC requires a configured --sender and bare recipient emails",
+            ),
+        ];
+        for (args, mail, want) in cases {
+            assert_eq!(err(plan(args, mail)), want);
+        }
+        let sender_only = plan(
+            reply(),
+            MailArgs {
+                sender: support,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert_eq!(sender_only.payload()["cc_emails"], json!([]));
+        assert_eq!(sender_only.payload()["from_email"], "support@example.com");
+    }
+
+    /// `test_ticket_conversation_http.py::test_changed_cc_identity_refuses_instead_of_changing_reviewed_payload`.
+    #[test]
+    fn changed_cc_identity_refuses() {
+        let cc = vec![CC.to_string()];
+        let p = build_plan(
+            &api(),
+            &MemStore::default(),
+            "123",
+            "Acme update",
+            &ConversationArgs {
+                cc: &cc,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        let c = ticket_api(json!({"ticket": row()}))
+            .ok(
+                "GET autocomplete/requesters",
+                json!([{"id": 11, "value": "Different Operator", "email": "person@example.com"}]),
+            )
+            .ok(
+                "POST tickets/123/reply",
+                json!({"conversation": {"id": 456}}),
+            );
+        assert_eq!(
+            err(send(
+                &p,
+                &c,
+                &MemJournal::default(),
+                &MemStore::default(),
+                Some(&p.hash()),
+                true
+            )),
+            "CC recipient identity changed; review again"
+        );
+        assert!(c.writes().is_empty());
+        assert_eq!(
+            parseaddr("Acme User <person@example.com>"),
+            "person@example.com"
+        );
+        assert_eq!(parseaddr("person@example.com"), "person@example.com");
+    }
+
+    /// `test_ticket_conversation_http.py::test_missing_or_wrong_conversation_readback_never_resends`
+    /// and `::test_each_conversation_write_caller_leaves_ambiguity_guard`.
+    #[test]
+    fn readback_gaps_and_ambiguous_failures_never_resend() {
+        let cc = vec![CC.to_string()];
+        let p = build_plan(
+            &api(),
+            &MemStore::default(),
+            "123",
+            "Acme update",
+            &ConversationArgs {
+                cc: &cc,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        let body = "<div>Acme update</div>";
+        for conv in [
+            json!({"id": 456, "cc_emails": [CC]}),
+            json!({"id": 456, "body": body}),
+            json!({"id": 999, "body": body, "cc_emails": [CC]}),
+            json!({"id": 456, "body": "<div>Other</div>", "cc_emails": [CC]}),
+        ] {
+            let c = api()
+                .ok(
+                    "POST tickets/123/reply",
+                    json!({"conversation": {"id": 456}}),
+                )
+                .ok(
+                    "GET tickets/123/conversations",
+                    json!({"conversations": [conv]}),
+                );
+            let (j, store) = (MemJournal::default(), MemStore::default());
+            let out = send(&p, &c, &j, &store, Some(&p.hash()), true).unwrap();
+            assert_eq!(out["verified"], false);
+            assert!(out["warning"].as_str().unwrap().contains("do not resend"));
+            assert!(err(send(&p, &c, &j, &store, Some(&p.hash()), true)).contains("was sent"));
+            assert_eq!(c.writes().len(), 1);
+        }
+        let n = note_plan(&api());
+        for status in [403, 429, 500] {
+            let c = FakeApi::new().on("POST tickets/123/notes", Reply::Status(status));
+            let j = MemJournal::default();
+            for _ in 0..2 {
+                assert!(
+                    err(send(
+                        &n,
+                        &c,
+                        &j,
+                        &MemStore::default(),
+                        Some(&n.hash()),
+                        false
+                    ))
+                    .contains("unknown")
+                );
+            }
+            assert_eq!(c.writes().len(), 1);
+        }
     }
 }

@@ -1391,18 +1391,84 @@ pub fn build_sr_plan(
 /// `SendFailure.__init__`: uploads or the place-request failed; lists every
 /// attachment id already on the server.
 pub fn send_failure(step: &str, uploaded: &[Json], error: &dyn std::fmt::Display) -> Error {
-    let ids: Vec<String> = uploaded
+    Error::other(failure_text(step, uploaded, error))
+}
+
+fn uploaded_ids(uploaded: &[Json]) -> String {
+    uploaded
         .iter()
         .map(|u| format!("{} ({})", py_str(&u["id"]), py_str(&u["name"])))
-        .collect();
-    let ids = if ids.is_empty() {
-        "none".to_string()
-    } else {
-        ids.join(", ")
-    };
-    Error::other(format!(
-        "{step} failed: {error}. Uploaded attachment ids: {ids}"
-    ))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+fn failure_text(step: &str, uploaded: &[Json], error: &dyn std::fmt::Display) -> String {
+    let ids = uploaded_ids(uploaded);
+    let ids = if ids.is_empty() { "none" } else { ids.as_str() };
+    format!("{step} failed: {error}. Uploaded attachment ids: {ids}")
+}
+
+/// Port of fsv.catalog.SendFailure: the failed step, the attachments
+/// already on the server and the underlying error.
+#[derive(Debug)]
+pub struct SendFailure {
+    pub step: String,
+    pub uploaded: Vec<Json>,
+    pub cause: Error,
+}
+
+impl std::fmt::Display for SendFailure {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&failure_text(&self.step, &self.uploaded, &self.cause))
+    }
+}
+
+impl std::error::Error for SendFailure {}
+
+impl SendFailure {
+    /// Port of fsv.cli_sr.place's `except cat.SendFailure` note: printed
+    /// before the error when attachments were uploaded, else `None`.
+    pub fn uploaded_note(&self) -> Option<String> {
+        (!self.uploaded.is_empty()).then(|| {
+            format!(
+                "uploaded attachment ids (not attached to any request): {}",
+                uploaded_ids(&self.uploaded)
+            )
+        })
+    }
+
+    /// Port of fsv.cli_sr.place's `except cat.SendFailure` conversion:
+    /// `FlowExit(exit_code_for(cause), "{step} failed: {detail}; {what}")`.
+    pub fn into_error(self) -> Error {
+        let what = if self.step == "upload" {
+            "nothing was placed"
+        } else if definite_rejection(&self.cause).is_some() {
+            "the server refused it; nothing was placed"
+        } else {
+            "the outcome is unknown: check `fsv journal tail` and the requester's requests before retrying"
+        };
+        let detail = match &self.cause {
+            Error::Api(e) => format!("HTTP {}", e.status),
+            Error::Http { kind, .. } => kind.clone(),
+            Error::Session(_) => "SessionError".into(),
+            Error::Value(_) => "ValueError".into(),
+            Error::Exit { .. } => "FlowExit".into(),
+            Error::EditorAbort(_) => "EditorAbort".into(),
+            Error::Io(_) => "OSError".into(),
+            Error::Aborted => "Abort".into(),
+            Error::Other(_) | Error::Context { .. } => "RuntimeError".into(),
+        };
+        Error::exit(
+            self.cause.exit_code(),
+            format!("{} failed: {detail}; {what}", self.step),
+        )
+    }
+}
+
+impl From<SendFailure> for Error {
+    fn from(f: SendFailure) -> Error {
+        Error::other(f.to_string())
+    }
 }
 
 /// `_substitute`: placeholders -> attachment ids, recursively.
@@ -1420,7 +1486,9 @@ pub fn substitute(value: &Json, ids: &Map<String, Json>) -> Json {
 }
 
 /// `execute`: upload the files, then place the request (journaled under
-/// the plan hash). Call only after the review was confirmed.
+/// the plan hash). Call only after the review was confirmed. A
+/// [`SendFailure`] is flattened to its `Display` text; use
+/// [`execute_detailed`] to keep the step, uploads and cause.
 pub fn execute(
     plan: &SRPlan,
     c: &dyn Api,
@@ -1428,6 +1496,55 @@ pub fn execute(
     upload_fn: &dyn Fn(&dyn Api, &str) -> Result<i64>,
     allow_duplicate: bool,
 ) -> Result<Json> {
+    execute_detailed(plan, c, journal, upload_fn, allow_duplicate).map_err(|e| match e {
+        Executed::Failed(f) => f.into(),
+        Executed::Refused(e) => e,
+    })
+}
+
+/// Port of the two outcomes of fsv.catalog.execute raising: a refusal
+/// before anything was sent, or a [`SendFailure`] once a step was tried.
+#[derive(Debug)]
+pub enum Executed {
+    Refused(Error),
+    Failed(SendFailure),
+}
+
+impl From<Error> for Executed {
+    fn from(e: Error) -> Executed {
+        Executed::Refused(e)
+    }
+}
+
+impl From<Executed> for Error {
+    /// Port of fsv.cli_sr.place's conversion: a send failure becomes the
+    /// structured `FlowExit`; refusals pass through.
+    fn from(e: Executed) -> Error {
+        match e {
+            Executed::Refused(e) => e,
+            Executed::Failed(f) => f.into_error(),
+        }
+    }
+}
+
+/// Port of fsv.catalog.execute keeping [`SendFailure`] structured.
+pub fn execute_detailed(
+    plan: &SRPlan,
+    c: &dyn Api,
+    journal: &dyn Journal,
+    upload_fn: &dyn Fn(&dyn Api, &str) -> Result<i64>,
+    allow_duplicate: bool,
+) -> std::result::Result<Json, Executed> {
+    fn flow_exit(code: i32, msg: impl Into<String>) -> Executed {
+        Executed::Refused(Error::exit(code, msg))
+    }
+    let failed = |step: &str, uploaded: &[Json], cause: Error| {
+        Executed::Failed(SendFailure {
+            step: step.into(),
+            uploaded: uploaded.to_vec(),
+            cause,
+        })
+    };
     let Some(payload) = plan
         .payload
         .as_ref()
@@ -1517,7 +1634,7 @@ pub fn execute(
                     &[],
                     true,
                 );
-                return Err(send_failure("upload", &uploaded, &e));
+                return Err(failed("upload", &uploaded, e));
             }
         }
     }
@@ -1536,15 +1653,15 @@ pub fn execute(
                     true,
                 );
             }
-            return Err(send_failure("place-request", &uploaded, &e));
+            return Err(failed("place-request", &uploaded, e));
         }
     };
     let created = created_ref(&result);
     if created["id"].is_null() {
-        return Err(send_failure(
+        return Err(failed(
             "place-request",
             &uploaded,
-            &"response has no exact request ID; outcome unknown",
+            Error::other("response has no exact request ID; outcome unknown"),
         ));
     }
     let steps = json!([
@@ -2737,5 +2854,48 @@ mod tests {
             json!(domain_url("/a/b", "acme.freshservice.com")),
             want("domain_url")
         );
+    }
+
+    /// `catalog.SendFailure` and `cli_sr.place`'s structured conversion.
+    #[test]
+    fn send_failure_structured_conversion() {
+        let oracle: Json =
+            serde_json::from_str(include_str!("testdata/reviewed_oracle.json")).unwrap();
+        let file = || vec![json!({"id": 9, "name": "a.txt"})];
+        let api = |s: u16, b: &str| Error::from(fsv_core::ApiError::new(s, json!(b)));
+        let cases = [
+            ("upload", vec![], Error::other("boom")),
+            ("upload", file(), Error::value("bad")),
+            ("place-request", file(), api(422, "no")),
+            ("place-request", vec![], api(409, "dup")),
+            ("place-request", vec![], api(403, "denied")),
+            ("place-request", vec![], api(500, "x")),
+            ("place-request", vec![], Error::session("expired")),
+            (
+                "place-request",
+                vec![],
+                Error::other("response has no exact request ID; outcome unknown"),
+            ),
+        ];
+        for ((step, uploaded, cause), want) in cases
+            .into_iter()
+            .zip(oracle["send_failure"].as_array().unwrap())
+        {
+            let f = SendFailure {
+                step: step.into(),
+                uploaded,
+                cause,
+            };
+            assert_eq!(f.to_string(), want["display"]);
+            assert_eq!(json!(f.uploaded_note()), want["note"]);
+            let e = f.into_error();
+            assert_eq!(
+                (json!(e.exit_code()), e.to_string()),
+                (
+                    want["code"].clone(),
+                    want["message"].as_str().unwrap().to_string()
+                )
+            );
+        }
     }
 }

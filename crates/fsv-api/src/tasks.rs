@@ -175,16 +175,6 @@ fn instant(text: &str) -> Option<(jiff::civil::DateTime, Option<jiff::Timestamp>
     Some((dt, off.and_then(|o| o.to_timestamp(dt).ok())))
 }
 
-/// `datetime.fromisoformat(a) == datetime.fromisoformat(b)`; `None` on a parse error.
-pub(crate) fn same_datetime(a: &str, b: &str) -> Option<bool> {
-    let (x, y) = (instant(a)?, instant(b)?);
-    Some(match (x.1, y.1) {
-        (Some(p), Some(q)) => p == q,
-        (None, None) => x.0 == y.0,
-        _ => false,
-    })
-}
-
 /// `_effort`: `1h30m` or `01:30`, sent as `1h 30m`.
 pub fn effort(value: Option<&str>) -> Result<Option<String>> {
     static CLOCK: LazyLock<Regex> =
@@ -435,12 +425,7 @@ pub fn compare_fields(
                 positive_id(observed).map(|i| json!(i)).as_ref() == Some(&expected)
             }
             "planned_start_date" | "planned_end_date" => {
-                match (observed.as_str(), expected.as_str()) {
-                    (Some(o), Some(e)) => {
-                        same_datetime(&o.replace('Z', "+00:00"), e).unwrap_or(false)
-                    }
-                    _ => false,
-                }
+                crate::readback::same_instant(observed, &expected)
             }
             _ => *observed == expected,
         };
