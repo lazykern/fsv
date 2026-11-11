@@ -3,9 +3,9 @@
 Python commits that landed while the port ran, and what the Rust port still
 needs for each.
 
-- **Last triaged Python commit: `6797301`** (2026-11-12 05:04 +0700,
-  `feat(problems): add form-backed create and reviewed note and task workflows`;
-  see "Ledger: `b7d96a7..6797301`" at the end).
+- **Last triaged Python commit: `dbe553c`** (2026-11-12 05:23 +0700,
+  `test(legacy): cover mutation callers through offline HTTP transports`;
+  see "Ledger: `b7d96a7..6797301`" and "Ledger: `6797301..dbe553c`" at the end).
   Range: `273ffde~1..b7d96a7`, 32 commits.
 - Rust state graded: `rust-port` at `8790060` **plus the uncommitted/staged
   working tree** at triage time (other workers had edits in `fsv-api`,
@@ -14,7 +14,7 @@ needs for each.
 - Python had uncommitted work after `b7d96a7`, not graded here:
   `src/fsv/canned.py`, `canned_cli.py`, `scenarios.py`,
   `tests/test_canned.py`, and edits to `cli.py` / `ticket_conversation.py`.
-- Next triage: `git -C /Users/phusit.somb/lab/work/fsv log --reverse 6797301..HEAD`.
+- Next triage: `git -C /Users/phusit.somb/lab/work/fsv log --reverse dbe553c..HEAD`.
 
 Statuses: `ported` (Rust has the behavior), `partial` (some is missing),
 `missing` (nothing in Rust).
@@ -834,3 +834,251 @@ Rust has no `problems create`.
 4. **fsv-completion**: re-dump after the tree.
 
 No fsv-tui, fsv-app, fsv-flows, fsv-views or fsv-formui work in this range.
+
+## Ledger: `6797301..dbe553c`
+
+Range `6797301..dbe553c`, 3 commits. Rust graded at `rust-port` `1abd9b7`
+plus the working tree at triage time. That tree has uncommitted `fsv-api`
+work in progress from another agent: `reviewed_write.rs`, `watchers.rs`
+(`positive_id`, `self_id`) and `Api::me()`. The new writers below build on
+`reviewed_write::{WritePlan, execute}` and the picker on
+`watchers::positive_id`. Python had no uncommitted source changes at
+triage time.
+
+Counts: **0 ported, 1 partial, 2 missing.**
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `6b7073a` | 11-12 05:11 | feat(lists): add reviewed native columns and scoped export requests | missing | fsv-api (new `list_preferences.rs`), fsv-cli, fsv-completion |
+| `53c678e` | 11-12 05:17 | feat(assets): add read-only CLI and TUI candidate pickers | missing | fsv-api (new `asset_picker.rs`; search helper exists), fsv-cli, fsv-tui, fsv-app, fsv-completion |
+| `dbe553c` | 11-12 05:23 | test(legacy): cover mutation callers through offline HTTP transports | partial | fsv-api tests only (helpers ported) |
+
+New Python modules with no Rust counterpart: `list_preferences.py`,
+`list_preferences_cli.py`, `asset_picker.py`, `asset_picker_cli.py`.
+
+### `6b7073a` feat(lists): add reviewed native columns and scoped export requests — missing
+
+Rust reads `tickets/headers` only for display (`crates/fsv-views/src/source.rs:61`).
+It has no `{module}/headers` POST and no `{module}/export`. The pieces it can
+reuse exist: `fsv_api::views::load_views` (`crates/fsv-api/src/views.rs:76`),
+`fsv_api::site::list::find_view` (`site/list.rs:305`), `SavedView::to_json`,
+and `Resource::{filters_path, item_key}` (`crates/fsv-core/src/resource.rs`;
+`change-filters`, `ticket_filters`, `problem-filters`).
+
+- **fsv-api** new `list_preferences.rs` on `reviewed_write`. `ListPlan` =
+  `WritePlan` + `inputs_json` (not hashed).
+  - `headers(module)`: a module not in the registry →
+    `"unsupported list module"`. GET `{module}/headers`, list `headers`. An
+    empty list, a non-object row or a row without `name` → `"runtime
+    list-header metadata is unavailable"`; duplicate names → `"ambiguous
+    runtime list-header keys"`.
+  - `columns_plan(module, columns, frozen)`: empty, duplicate, unknown, or
+    containing `display_id` → `"choose unique exact runtime column names;
+    display_id is anchored automatically"`. No `ticket_subject` →
+    `"captured preference contract requires ticket_subject"`. Frozen
+    duplicates or a frozen column that isn't selected → `"frozen columns
+    must be unique selected columns"`. Any frozen column unless module is
+    `changes` and frozen == `["requester"]` → `"only change requester
+    freezing plus the automatic display_id anchor is captured"`. Payload
+    `{"columns": {name: 1-based position…, "display_id": <ticket_subject's
+    position>}, "frozen_columns": [*frozen, "display_id"]}` (sorted). It
+    POSTs `{module}/headers` with action `list_columns`, target 0, and
+    context `plan_hash(rows)`. `inputs_json = {"module","columns","frozen"}`
+    is **unsorted**.
+  - `_EXPORT_KEYS` = `subject→ticket_subject, priority_name→priority,
+    status_name→status, group_name→group, responder_name→assigned_to,
+    owner→assigned_to, display_id→display_id, requester_name→requester,
+    requester_info→requester, department_name→department_name`. Tickets
+    can't use `owner` or `department_name`; changes and problems can't use
+    `responder_name` or `requester_name`.
+  - `export_source(module, view)`: `load_views`, where any missing view →
+    `"saved-view inventory is unavailable"`. Then `find_view`, then GET
+    `{filters_path}/{id}`, unwrapping `{item_key}_filter`. An id mismatch →
+    `"exact saved-view settings are unavailable"`. A non-list `query_hash`
+    or non-null `advanced_query_hash` → `"only ordinary saved-view queries
+    have a captured export contract"`.
+  - `export_plan(module, view, fields)`: empty, duplicate or disallowed
+    fields → `"select unique captured export field keys"`. Each key needs a
+    non-blank header label for its mapped name, else `"runtime export-field
+    label is unavailable for {key}"`. Payload `{"format": "csv",
+    "date_filter": 30, "export_fields": {key: label}, "custom_fields": {},
+    "data_hash": query_hash}`, then:
+    - tickets add `ticket_state_filter: "created_at"`,
+      `advanced_data_hash: null`, and `selected_filter_view: {id, name,
+      is_additional_filters_applied: false}`;
+    - changes and problems add `state_filter: "created_at"`;
+    - changes also add `advanced_data_hash: null`.
+
+    It POSTs `{module}/export` with action `list_export`, target 0, and
+    context `plan_hash({"headers","view": row,"selection":
+    selected.to_json()})`. `inputs_json = {"module","view": id,"fields"}`.
+  - `send`: rebuild from inputs.
+    - Export verify re-reads `export_source` and returns `{"verified":
+      false, "source_readback": str(row.id) == view, "job": "unavailable",
+      "download": "unavailable", "warning": "Export requested once;
+      delivery/job/download effects are unverified. Do not resend."}`.
+    - Columns verify re-reads `headers`. Each payload column is
+      `unavailable` unless the row has `selected`, `position` and `frozen`,
+      and is `matched` only for `selected is true`, an equal position, and
+      `frozen is (key in frozen_columns)`. `unverified_omissions` lists the
+      rows outside the payload whose `selected` is not `false`. `verified`
+      needs no omissions and every field matched.
+- **fsv-cli** (every resource: tickets, changes, problems):
+  - `fsv {res} columns list` prints the headers.
+  - `fsv {res} columns set --column C… [--freeze C…] [--dry-run] [--yes]
+    [--expect-plan]`.
+  - `fsv {res} export --view V --field K… [--dry-run] [--yes]
+    [--expect-plan]` ("Review a native CSV/30-day export request; may email
+    data, job/download contract is unknown.").
+
+  All take the JSON-only `--output/-o`/`--json` (`b7d96a7`) and the usual
+  `"review with --dry-run, then pass --yes and the full --expect-plan
+  hash"` gate (exit 2). Group help: "Inspect/set native list columns
+  (shared account preferences may be affected)." Check for name clashes
+  with existing `ls --output csv` and column options in `generated.rs`.
+- **fsv-completion**: a `columns` group and the `export` command on all
+  three resources.
+- Python tests: `tests/test_list_preferences.py` (all, parametrized over
+  modules).
+  - The columns payload is `{"columns": {"ticket_subject": 1, "requester":
+    2, "status": 3, "display_id": 1}, "frozen_columns": ["display_id"]}`.
+  - Export labels are `"Acme subject"`, `"Acme state"`, `"Acme ID"`, with
+    view `{"id": "701", "name": "Acme queue"}`.
+  - On 403/429/500/disconnect there is exactly one write, and a resend says
+    "was sent".
+  - Header drift blocks the write. When the preference fields are missing,
+    `ticket_subject` is `"unavailable"`.
+
+### `53c678e` feat(assets): add read-only CLI and TUI candidate pickers — missing
+
+`fsv_api::create::search_assets_for_change` exists
+(`crates/fsv-api/src/create.rs:1594`, GET `assets-to-associate`) and is used
+by `links` (`crates/fsv-cli/src/cmd/links.rs:257`). Nothing wraps it as a
+read-only picker. In the Rust TUI, `i` is unbound
+(`crates/fsv-tui/src/app.rs:2474` dispatches `v`), and the Backend has no
+asset search.
+
+- **fsv-api** new `asset_picker.rs`:
+  - `candidates(target, query, page)`: `positive_id(parse_id(target,
+    CHANGES))`. A page that isn't a positive int → `"page must be
+    positive"`. Calls `search_assets_for_change(.., per_page=30)` and takes
+    `assets`. A non-list, or a non-object row → `"asset candidate response
+    is unavailable"`. Duplicate `positive_id(display_id)` → `"duplicate
+    asset display identities; selection is ambiguous"`. Returns
+    `{"change_id", "page", "scope": "single search page; not a complete
+    inventory", "assets", "mutation": "none", "warning": "Selection only.
+    Asset/CI add-remove variants remain unsupported by this picker."}`.
+  - `select(result, display_id)`: needs exactly one row by display id, else
+    `"exact asset display ID is not unique on this search page"`.
+- **fsv-cli**: `fsv changes asset-picker CHANGE [--search S] [--page N]
+  [--select DISPLAY_ID]` (JSON-only output options; help "Search/select a
+  change asset candidate without associating it (read-only)."). With
+  `--select` it adds `"selected"`. Errors → exit 2. GET only.
+- **fsv-tui**:
+  - Help line `i  browse change asset candidates (read-only, no
+    association)`, after the `v` line (`crates/fsv-tui/src/modals.rs:36`).
+  - Key `i`: off a change → warning `"Select a change to browse asset
+    candidates"`. Otherwise open a value prompt `"Read-only asset search —
+    selection does not associate"`, where cancel sends no request.
+  - Then run a background search: page 1 only, using `display_id` or `id`.
+    With no rows, show the outcome `"Asset candidates — read-only"` / `"No
+    candidates on search page 1. No association was attempted."`. Otherwise
+    show a choice picker `"Asset candidates — page 1 only; read-only"` with
+    labels `"[{display_id}] {name or -} — {ci_type_name or -}"`.
+  - Picking shows the outcome `"Selected asset — no association"` with JSON
+    `{"selected", "scope", "mutation": "none"}` (indent 2). Cancelling shows
+    nothing. An error shows the failure `"Asset search unavailable: {exc}"`.
+  - Add a Backend hook `asset_candidates(change, query)` that defaults to
+    unavailable.
+  - The `i` key works in read-only mode: it is not under the `a` action
+    menu.
+- **fsv-app** `tui.rs`: `LiveBackend::asset_candidates` over
+  `asset_picker::candidates`.
+- **fsv-completion**: new `changes asset-picker`.
+- Python tests: `tests/test_asset_picker.py`.
+  - `::test_cli_exact_display_id_and_search_params`: the GET params are
+    exactly `{"entity": "change", "entity_id": "123", "include_meta":
+    "true", "page": "2", "per_page": "30", "search_term": "Globex"}`, with
+    `selected.id == 9000007001`.
+  - `::test_ambiguous_identity_blocks_selection`.
+  - `::test_pilot_readonly_search_selection_and_cancel`: modes `select`,
+    `cancel-search`, `cancel-picker` and `empty`. The picker copy must not
+    say "saved view", and every request is a GET.
+
+### `dbe553c` test(legacy): cover mutation callers through offline HTTP transports — partial
+
+No source change. The legacy helpers are already ported:
+
+- `fsv_api::service::add_note` (`service.rs:1200`) and `update_item`
+  (`:1192`);
+- `fsv_api::create::associate_assets` (`create.rs:1611`) and
+  `dissociate_assets` (`:1620`, reads `changes/{id}/assets` first);
+- `update_task` (`:1747`) and `delete_task` (`:1737`), both over
+  `task_put` / `send_once`;
+- `clone_tasks` (`:396`).
+
+The existing Rust tests use `FakeApi`, not a real `Client`, so the transport
+contract is not pinned.
+
+- **fsv-api** new integration test, e.g.
+  `crates/fsv-api/tests/legacy_write_guards.rs`. Drive a real
+  `fsv_core::Client` over `fsv_core::client::mock::MockTransport`, built as
+  in `crates/fsv-api/src/downloads.rs:163-200`, against a temp `Ctx` and
+  journal. Use these cases (method, path, body):
+  - note: POST `changes/123/notes` `{"body": "Acme evidence", "private":
+    true}`
+  - status: PUT `changes/123` `{"status": 47}`
+  - asset-add: PUT `changes/123/assets/associate` `{"item_ids": [701]}`
+  - asset-remove: PUT `changes/123/assets/detach` `{"cmdb_request_id":
+    801}`, after a GET of `changes/123/assets` returning
+    `{"associated_assets": [{"id": 801, "config_item": {"display_id":
+    701}}]}`
+  - task-update: PUT `changes/123/tasks/701` `{"title": "Acme revised"}`.
+    Python reads nothing for this one, and the GET handler fails on any
+    other read.
+  - task-delete: PUT `changes/123/tasks/update` `{"id": "701", "action":
+    "delete"}`
+  - clone-task: GET `changes/123/tasks` (two tasks), then POST
+    `changes/456/tasks` twice. The first body has `change_task.title ==
+    "Acme task"`.
+
+  Port the three tests over those cases:
+  - `test_each_legacy_caller_never_automatically_replays`: 403, 429, 500
+    and disconnect each give an error and exactly **one** mutation. That
+    mutation has the exact method, path and body and an `X-CSRF-Token`
+    header. The journal gets a write audit row with `ok: false` for that
+    method and no `plan:*` rows. Disable retry sleeps with `.sleeper(|_| {})`
+    so 429 doesn't wait.
+  - `test_csrf_preparation_failure_prevents_each_legacy_mutation`: a failing
+    CSRF fetch gives an error and zero mutations.
+  - `test_legacy_success_contracts_are_not_confused_with_independent_readback`:
+    on success there is one mutation (two for clone) with the exact
+    method, path and body, and no `plan:*` journal rows.
+
+  Check whether `task_put`'s `send_once` path writes the transport audit
+  row as Python does. If it doesn't, that is a real gap and lives in
+  **fsv-core** `client/mod.rs`. The same applies to whether the 429 retry
+  policy in `Client::int_request` (`client/mod.rs:675`) could resend a
+  legacy PUT or POST.
+- Overlaps `crates/fsv-core/src/client/tests.rs` (`:388`, `:416`, `:972`,
+  `:1028`, `:1091`), which pin CSRF and no-replay at the client level, not
+  per legacy caller.
+- Python tests: `tests/test_legacy_write_guards.py` (all three, ×7 cases).
+
+## Ordering for `6797301..dbe553c`
+
+1. **fsv-api tests** (independent, can start now): `legacy_write_guards.rs`
+   (`dbe553c`). Fix any fsv-core audit or replay gap it exposes.
+2. **fsv-api** (after the `reviewed_write` / `watchers` work in progress
+   lands): `asset_picker.rs` (`53c678e`, read-only, small), then
+   `list_preferences.rs` (`6b7073a`).
+3. **fsv-tui**: the `i` key, help line, prompt, picker and outcome screens,
+   plus the `asset_candidates` Backend hook (`53c678e`). Then **fsv-app**
+   `LiveBackend::asset_candidates`.
+4. **fsv-cli**: `changes asset-picker`; `{tickets,changes,problems} columns
+   list|set` and `export`, all with the JSON-only output options. Re-dump
+   `cli_tree.json` from Python at `dbe553c`.
+5. **fsv-completion**: re-dump after the tree.
+
+No fsv-core (unless step 1 finds a gap), fsv-flows, fsv-forms, fsv-views or
+fsv-formui work in this range.
