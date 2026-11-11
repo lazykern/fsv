@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from fsv.client import APIError, Client, get_client
+from fsv.errors import UsageError
 from fsv.forms.spec import is_content_type, is_planning_type
 from fsv.resources import Resource, CHANGES
 from fsv.schema import load as load_schema
@@ -458,7 +459,7 @@ def attach_files_to_change(
 
     mode = duplicate.casefold()
     if mode not in {"prompt", "skip", "replace", "append"}:
-        raise APIError(0, "--duplicate must be one of: prompt, skip, replace, append")
+        raise UsageError("--duplicate must be one of: prompt, skip, replace, append")
 
     changed = False
     skipped: list[str] = []
@@ -613,7 +614,7 @@ def resolve_planning_definition(value: str, schema_fields: list[dict[str, Any]])
     labels = [f for f in defs if raw and _norm_label(f.get("label")) == _norm_label(raw)]
     matches = identities or labels
     if len(matches) > 1:
-        raise APIError(0, f"ambiguous planning field: {value!r}; select an exact identity")
+        raise UsageError(f"ambiguous planning field: {value!r}; select an exact identity")
     if matches:
         return matches[0]
     aliases = [raw]
@@ -631,11 +632,11 @@ def resolve_planning_definition(value: str, schema_fields: list[dict[str, Any]])
         if keys & candidate_keys:
             matches.append(f)
     if len(matches) > 1:
-        raise APIError(0, f"ambiguous planning field: {value!r}; select an exact identity")
+        raise UsageError(f"ambiguous planning field: {value!r}; select an exact identity")
     if matches:
         return matches[0]
-    known = ", ".join(str(f.get("label") or f.get("name")) for f in defs[:12])
-    raise APIError(0, f"planning field not found: {value!r}; choices: {known}")
+    known = ", ".join(str(f.get("label") or f.get("name")) for f in defs)
+    raise UsageError(f"planning field not found: {value!r}; choices: {known}")
 
 
 def resolve_planning_field(value: str, schema_fields: list[dict[str, Any]]) -> str:
@@ -792,7 +793,7 @@ def update_planning_field(
 
     mode = duplicate.casefold()
     if mode not in {"prompt", "skip", "replace", "append"}:
-        raise APIError(0, "--duplicate must be one of: prompt, skip, replace, append")
+        raise UsageError("--duplicate must be one of: prompt, skip, replace, append")
 
     changed_attachments = False
     skipped_files: list[str] = []

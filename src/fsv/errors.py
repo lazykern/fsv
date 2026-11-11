@@ -61,13 +61,23 @@ class APIError(Exception):
         self.target = target
         what = _describe_request(method, target)
         msg = server_message(body)
-        head = f"HTTP {status}" + (f" {what}" if what else "")
+        # Zero is a local guard failure, never a real HTTP response.
+        head = (f"HTTP {status}" if status else "Error") + (f" {what}" if what else "")
         super().__init__(f"{head}: {msg}" if msg else head)
 
     def detail(self) -> str:
         where = f"{(self.method or '').upper()} {self.target}".strip()
         body = self.body if isinstance(self.body, str) else repr(self.body)
         return f"{where}\n{body}" if where else body
+
+
+class UsageError(APIError, ValueError):
+    """Local validation; retain APIError compatibility for library callers."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(0, message)
+        # Local choices/help must not use the server-body truncation policy.
+        self.args = (message,)
 
 
 class SessionError(Exception):
@@ -93,6 +103,8 @@ def exit_code_for(exc: BaseException) -> int:
         _DUPLICATE_RE = re.compile(r"already (exists|been taken|associated)|duplicate", re.I)
     if isinstance(exc, SessionError):
         return EXIT_SESSION
+    if isinstance(exc, UsageError):
+        return EXIT_USAGE
     if isinstance(exc, APIError):
         if exc.status == 409 or (exc.status in (400, 422) and _DUPLICATE_RE.search(str(exc.body))):
             return EXIT_CONFLICT

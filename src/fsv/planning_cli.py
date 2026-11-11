@@ -8,9 +8,21 @@ import typer
 
 from fsv.reviewed_cli import ReviewOutput
 
-from fsv import planning_text
+from fsv import completion, planning_text
+from fsv.errors import APIError, SessionError, exit_code_for
 from fsv.resources import Resource
 from fsv.reviewed_write import ReviewedWriteError
+
+
+def complete_section(resource: Resource):
+    if resource.name == "changes":
+        return completion.complete_planning_field_names(resource)
+
+    def complete(incomplete: str):
+        for label, key in planning_text.PROBLEM_SECTIONS.items():
+            if label.startswith(incomplete.casefold()) or key.startswith(incomplete.casefold()):
+                yield (label.title(), key)
+    return complete
 
 
 def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], Any]) -> None:
@@ -38,7 +50,7 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
 
     @app.command("planning-text", help="Review a native planning/analysis text section; no files.")
     def planning(id_: str = typer.Argument(..., metavar="ID"),
-                 section: str = typer.Option(..., "--section", help="exact metadata label/name; problems: Root Cause, Impact, Symptoms"),
+                 section: str = typer.Option(..., "--section", help="exact metadata label/name; problems: Root Cause, Impact, Symptoms", autocompletion=complete_section(resource)),
                  description: str = typer.Option(..., "--description", help="text/HTML; reviewed verbatim"),
                  dry_run: bool = typer.Option(False, "--dry-run"),
                  yes: bool = typer.Option(False, "--yes"),
@@ -57,3 +69,6 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
         except (ValueError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None
+        except (APIError, SessionError) as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(exit_code_for(exc)) from None
