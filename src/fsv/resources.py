@@ -77,7 +77,7 @@ def parse_id(s: str, resource: Resource) -> int:
     if prefix:
         prefix = prefix.upper()
         if prefix not in resource.display_prefixes:
-            raise ValueError(f"prefix {prefix} not valid for {resource.name} (expect {resource.display_prefixes})")
+            raise ValueError(f"prefix {prefix} not valid for {resource.name} (expect {' or '.join(resource.display_prefixes)})")
     return int(num)
 
 

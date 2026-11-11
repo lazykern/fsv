@@ -230,3 +230,15 @@ def test_bad_choice_is_not_also_reported_required(fake, tmp_path):
     out = json.loads(run("changes", "create", "--from", str(p), "--dry-run", "-o", "json").output)
     errs = [e for e in out["errors"] if "Cloud Only" in e]
     assert len(errs) == 1 and "required" not in errs[0]
+
+
+def test_wrong_prefix_message_has_no_tuple_repr(fake):
+    r = run("changes", "get", "INC-5")
+    assert r.exit_code == 2 and "(expect CHN)" in " ".join(r.output.split())
+
+
+def test_incomplete_payload_is_labelled(fake, tmp_path):
+    p = tmp_path / "c.yaml"
+    p.write_text(f"requester: {JANE}\nanswers:\n  Subject: s\n")
+    r = run("changes", "create", "--from", str(p), "--dry-run")
+    assert "incomplete" in " ".join(r.output.split()) or "No payload" in r.output

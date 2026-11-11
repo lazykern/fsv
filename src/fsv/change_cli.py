@@ -32,7 +32,9 @@ def _print_plan(plan: Plan, *, as_json: bool, to_stdout: bool = True) -> None:
             out.print("[dim]No payload yet: fix the problems above first.[/dim]", highlight=False)
         else:
             out.print("[bold]Payload[/bold]" + (f" (PUT changes/{plan.target})" if plan.action == "update"
-                                                 else " (POST /api/_/changes)"), highlight=False)
+                                                 else " (POST /api/_/changes)")
+                      + ("" if plan.ok else " [yellow]— incomplete, will not be sent until the problems are fixed[/yellow]"),
+                      highlight=False)
             print(json.dumps(plan.payload, indent=2, default=str, ensure_ascii=False))
         if plan.hash:
             out.print(f"plan_hash: {plan.hash}", highlight=False)
