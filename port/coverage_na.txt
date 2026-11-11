@@ -1,0 +1,29 @@
+# Python defs with no Rust counterpart by design. Read by the coverage audit.
+# Format: fsv.<module>.<qual>: reason
+fsv.formui.widgets.EditorMixin.focus_editor: Textual focus plumbing; Rust uses FormScreen::focus_key plus Editor::focus
+fsv.formui.widgets.DescriptionEditor.focus_editor: Textual focus plumbing; Rust uses FormScreen::focus_key plus Editor::focus
+fsv.formui.widgets.ComboBox.focus_editor: Textual focus plumbing; Rust uses FormScreen::focus_key plus Editor::focus
+fsv.formui.widgets.DateEditor.focus_editor: Textual focus plumbing; Rust uses FormScreen::focus_key plus Editor::focus
+fsv.formui.widgets.FileEditor.focus_editor: Textual focus plumbing; Rust uses FormScreen::focus_key plus Editor::focus
+fsv.formui.widgets.FieldRow.focus_editor: Textual focus plumbing; Rust uses FormScreen::focus_key plus Editor::focus
+fsv.formui.widgets.ComboBox.input: Python property; public field in Rust
+fsv.formui.widgets.ComboBox.is_open: Python property; public field in Rust
+fsv.formui.widgets.DateEditor.input: Python property; public field in Rust
+fsv.formui.widgets.FileEditor.input: Python property; public field in Rust
+fsv.formui.widgets.DescriptionEditor.area: Python property; public field in Rust
+fsv.formui.widgets.ComboBox._clicked: form is keyboard-only (mouse not captured); see PARITY.md fsv-formui
+fsv.formui.widgets.CalendarGrid.on_click: form is keyboard-only (mouse not captured); see PARITY.md fsv-formui
+fsv.formui.when._no_dst_doubt: inlined in fsv_forms::when::to_text; pinned by the DateEditor::set_value DST test
+fsv.completion._schema_path: dead code in Python (no caller)
+fsv.completion_gen._bash_escape: dead code in Python (no caller)
+fsv.completion_gen._completer_name: reads Python closures; fsv-cli's hint table carries the same data
+fsv.completion_gen._resource_from_closure: reads Python closures; fsv-cli's hint table carries the same data
+fsv.completion_gen._Command.__init__: plain struct construction (fsv_completion::model::Node)
+fsv._complete._MockCtx.__init__: Click context shim; Rust passes --kind directly
+fsv.client.Client.close: connection pool closes when the last Arc<Client> drops
+fsv.session._ws_read_exact: websocket framing is done by tungstenite; covered by the browser DevTools fake test
+fsv.session._ws_send_text: websocket framing is done by tungstenite; covered by the browser DevTools fake test
+fsv.session._ws_recv_text: websocket framing is done by tungstenite; covered by the browser DevTools fake test
+fsv.forms.errors.FormRuleError.__init__: enum variant stores the message as given
+fsv.tui.app.FsvApp._maybe: Textual widget-lookup helper
+fsv.tui.app.FsvApp._set_filter_error: no caller in Python
