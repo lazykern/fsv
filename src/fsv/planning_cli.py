@@ -6,6 +6,8 @@ from typing import Any, Callable, Optional
 
 import typer
 
+from fsv.reviewed_cli import ReviewOutput
+
 from fsv import planning_text
 from fsv.resources import Resource
 from fsv.reviewed_write import ReviewedWriteError
@@ -17,6 +19,8 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
         def mark_known_error(id_: str = typer.Argument(..., metavar="ID"),
                              dry_run: bool = typer.Option(False, "--dry-run"),
                              yes: bool = typer.Option(False, "--yes"),
+                             output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o", help="output format (JSON only)"),
+                             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
                              expect_plan: Optional[str] = typer.Option(None, "--expect-plan")) -> None:
             from fsv import problem_known_error
             try:
@@ -38,6 +42,8 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
                  description: str = typer.Option(..., "--description", help="text/HTML; reviewed verbatim"),
                  dry_run: bool = typer.Option(False, "--dry-run"),
                  yes: bool = typer.Option(False, "--yes"),
+                 output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o", help="output format (JSON only)"),
+                 json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
                  expect_plan: Optional[str] = typer.Option(None, "--expect-plan")) -> None:
         try:
             c = client_factory()

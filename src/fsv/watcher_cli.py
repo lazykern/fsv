@@ -6,6 +6,8 @@ from typing import Any, Callable, Optional
 
 import typer
 
+from fsv.reviewed_cli import ReviewOutput
+
 from fsv import watchers
 from fsv.resources import Resource, parse_id
 from fsv.reviewed_write import ReviewedWriteError
@@ -15,7 +17,9 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
     group = typer.Typer(help="Read watcher membership and review self-only watch changes.")
 
     @group.command("list")
-    def list_(id_: str = typer.Argument(..., metavar="ID")) -> None:
+    def list_(id_: str = typer.Argument(..., metavar="ID"),
+              output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o", help="output format (JSON only)"),
+              json_out: bool = typer.Option(False, "--json", help="alias for --output json")) -> None:
         try:
             typer.echo(json.dumps({"watcher_ids": watchers.inventory(client_factory(), resource.name,
                                  watchers.positive_id(parse_id(id_, resource)))}))
@@ -27,6 +31,8 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
              watch: bool = typer.Option(..., "--watch/--unwatch"),
              dry_run: bool = typer.Option(False, "--dry-run"),
              yes: bool = typer.Option(False, "--yes"),
+             output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o", help="output format (JSON only)"),
+             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
              expect_plan: Optional[str] = typer.Option(None, "--expect-plan")) -> None:
         try:
             c = client_factory()

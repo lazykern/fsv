@@ -15,6 +15,7 @@ import typer.main as _typer_main
 from typer.core import TyperCommand, TyperGroup, TyperOption
 
 from fsv import completion, config, render
+from fsv.reviewed_cli import ReviewOutput
 from fsv.errors import APIError, SessionError
 from fsv.render import console, emit_json, err, strip_html
 from fsv.resources import CHANGES, PROBLEMS, TICKETS, REGISTRY, Resource, format_id, parse_id
@@ -4779,6 +4780,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
             body: str = typer.Argument(...),
             to: List[str] = typer.Option(..., "--to", help="plain recipient email (repeatable)"),
             sender: str = typer.Option(..., "--sender", help="configured support mailbox; not inferred"),
+            output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o", help="output format (JSON only)"),
+            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
             dry_run: bool = typer.Option(False, "--dry-run"),
             yes: bool = typer.Option(False, "--yes"),
             expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),

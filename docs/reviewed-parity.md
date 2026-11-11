@@ -61,6 +61,15 @@ missing/contradictory fields, stale metadata and 403/429/500/disconnect guards.
 CC display/email resolution is rechecked before send without changing the
 reviewed payload. These are offline transport proofs, not accepted live sends.
 
+## Structured output
+
+Watchers (`list`/`set`), time (`list`/`write`), `planning-text`,
+`mark-known-error`, `bulk-priority`, and ticket `forward` accept `--json`
+and `--output json` (also `-o json`). Their existing JSON default and
+review/result schemas are unchanged. Other formats are rejected before a client
+is opened; these commands do not flatten structured reviews into tables or CSV.
+Output options never bypass `--dry-run` or the full-hash send gate.
+
 ## Self watchers
 
 ```sh

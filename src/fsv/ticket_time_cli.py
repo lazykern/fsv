@@ -6,6 +6,8 @@ from typing import Any, Callable, Optional
 
 import typer
 
+from fsv.reviewed_cli import ReviewOutput
+
 from fsv import ticket_time
 from fsv.resources import TICKETS, parse_id
 from fsv.reviewed_write import ReviewedWriteError
@@ -15,7 +17,9 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
     group = typer.Typer(help="Reviewed self-owned, nonbillable manual time entries.")
 
     @group.command("list")
-    def list_(id_: str = typer.Argument(..., metavar="ID")) -> None:
+    def list_(id_: str = typer.Argument(..., metavar="ID"),
+              output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o", help="output format (JSON only)"),
+              json_out: bool = typer.Option(False, "--json", help="alias for --output json")) -> None:
         typer.echo(json.dumps(ticket_time.inventory(client_factory(), parse_id(id_, TICKETS)), indent=2))
 
     @group.command("write")
@@ -27,6 +31,8 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
               note: Optional[str] = typer.Option(None, "--note"),
               dry_run: bool = typer.Option(False, "--dry-run"),
               yes: bool = typer.Option(False, "--yes"),
+              output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o", help="output format (JSON only)"),
+              json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
               expect_plan: Optional[str] = typer.Option(None, "--expect-plan")) -> None:
         try:
             c = client_factory()

@@ -6,6 +6,8 @@ from typing import Callable, Optional
 
 import typer
 
+from fsv.reviewed_cli import ReviewOutput
+
 from fsv import bulk_priority
 from fsv.reviewed_write import ReviewedWriteError
 from fsv.ticket_properties import PropertyError
@@ -17,6 +19,8 @@ def register(app: typer.Typer, client_factory: Callable) -> None:
                               priority: str = typer.Option(..., "--priority"),
                               dry_run: bool = typer.Option(False, "--dry-run"),
                               yes: bool = typer.Option(False, "--yes"),
+                              output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o", help="output format (JSON only)"),
+                              json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
                               expect_plan: Optional[str] = typer.Option(None, "--expect-plan")) -> None:
         try:
             c = client_factory()
