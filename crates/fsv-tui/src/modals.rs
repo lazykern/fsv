@@ -34,6 +34,7 @@ pub const HELP_TEXT: &str = "[bold cyan]fsv[/] help
   [cyan]gt/gp/gc[/]     jump to tickets/problems/changes
   [cyan]1-9[/]          switch detail tab (the tabs the web shows for the item)
   [cyan]v[/]            pick a saved view by name (the list opens with the default view)
+  [cyan]i[/]            browse change asset candidates (read-only, no association)
   [cyan]\\[][/cyan]         resize list/detail pane
 
 [bold]Search[/]

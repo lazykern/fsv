@@ -351,6 +351,8 @@ pub enum Cont {
     },
     /// Ticket property, known-error, planning text and ticket conversation flows.
     Reviewed(reviewed::Step),
+    /// Read-only asset candidate search (`i`).
+    Assets(assets::Step),
     CreateChoice,
     CatalogCategory {
         items: Vec<Value>,
@@ -2451,6 +2453,7 @@ impl App {
                 }
             }
             "o" => self.open_browser(),
+            "i" => self.asset_inventory_prompt(),
             "a" => self.action_menu(),
             "exclamation_mark" => {
                 if let Some(m) = self.write_failure.clone() {
@@ -2984,6 +2987,7 @@ impl App {
             }
             (Cont::CatalogItem, R::Choice(row)) => self.launch_create("sr", Some(row)),
             (Cont::Reviewed(step), result) => self.resume_reviewed(step, result),
+            (Cont::Assets(step), result) => self.resume_assets(step, result),
             _ => {}
         }
     }
@@ -4108,6 +4112,7 @@ fn execute_action_job(
     }
 }
 
+mod assets;
 mod reviewed;
 
 #[cfg(test)]

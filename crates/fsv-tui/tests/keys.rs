@@ -8,8 +8,9 @@ use crossterm::event::{KeyCode, KeyEvent};
 use fsv_core::resource::Resource;
 use fsv_tui::app::{App, Focus};
 use fsv_tui::backend::{
-    BResult, ConversationRequest, DetailPage, Failure, FormExit, FormRequest, FormSend, FormView,
-    Item, ListRequest, PropertyField, ReviewPlan, SearchResult, TabData, TabInfo, View,
+    AssetCandidates, AssetCandidatesRequest, BResult, ConversationRequest, DetailPage, Failure,
+    FormExit, FormRequest, FormSend, FormView, Item, ListRequest, PropertyField, ReviewPlan,
+    SearchResult, TabData, TabInfo, View,
 };
 use fsv_tui::modals::Modal;
 use fsv_tui::{Backend, BasicPages, view};
@@ -37,6 +38,8 @@ struct Mock {
     planning_attachments: bool,
     no_planning: bool,
     unverified: bool,
+    no_assets: bool,
+    assets_fail: bool,
 }
 
 /// A stand-in `FormScreen`: `s` submits, `d` saves a draft, `escape`
@@ -149,6 +152,36 @@ fn plan(review: Value, public: bool) -> ReviewPlan {
 }
 
 impl Backend for Mock {
+    fn asset_candidates(&self, req: &AssetCandidatesRequest) -> BResult<AssetCandidates> {
+        self.log(format!(
+            "assets {} {:?} {}",
+            req.change, req.query, req.page
+        ));
+        if self.assets_fail {
+            return Err(Failure::value("asset candidate response is unavailable"));
+        }
+        let rows = if self.no_assets {
+            vec![]
+        } else {
+            vec![
+                json!({"id": 9000007001_i64, "display_id": 701, "name": "Globex laptop", "ci_type_name": "Computer"}),
+                json!({"id": 9000007002_i64, "display_id": 702, "name": null}),
+            ]
+        };
+        Ok(AssetCandidates {
+            change_id: 1,
+            page: req.page,
+            scope: "single search page; not a complete inventory".into(),
+            assets: rows
+                .into_iter()
+                .map(|r| r.as_object().unwrap().clone())
+                .collect(),
+            mutation: "none".into(),
+            warning:
+                "Selection only. Asset/CI add-remove variants remain unsupported by this picker."
+                    .into(),
+        })
+    }
     fn forms_available(&self) -> bool {
         self.forms
     }
@@ -1903,4 +1936,172 @@ fn ctrl_o_needs_text_and_a_ticket() {
     b.press("ctrl+o");
     assert!(matches!(top(&b), Some(Modal::Note(n)) if !n.ticket_options));
     assert!(m.calls("conversation-plan").is_empty());
+}
+
+// ── Read-only asset candidate picker (`i`) ──────────────────
+
+/// `test_asset_picker.py::test_pilot_readonly_search_selection_and_cancel`,
+/// all four modes, in read-only mode.
+#[test]
+fn i_on_a_change_searches_page_1_and_picks_without_associating() {
+    for mode in ["select", "cancel-search", "cancel-picker", "empty"] {
+        let mock = Mock {
+            no_assets: mode == "empty",
+            ..Mock::new(3)
+        };
+        let (mut a, m) = start(mock, true);
+        to_changes(&mut a);
+        a.press("i");
+        assert_eq!(
+            value_title(&a),
+            "Read-only asset search — selection does not associate",
+            "{mode}"
+        );
+        if mode == "cancel-search" {
+            a.press("escape");
+            a.settle();
+            assert!(a.modals.is_empty());
+            assert!(m.calls("assets").is_empty());
+            continue;
+        }
+        pick(&mut a, "Globex");
+        assert_eq!(m.calls("assets"), [r#"assets 1 "Globex" 1"#], "{mode}");
+        if mode == "empty" {
+            assert_eq!(
+                outcome(&a),
+                (
+                    "Asset candidates — read-only".into(),
+                    "No candidates on search page 1. No association was attempted.".into()
+                )
+            );
+            continue;
+        }
+        assert_eq!(
+            picker(&a),
+            (
+                "Asset candidates — page 1 only; read-only".into(),
+                vec![
+                    "  [701] Globex laptop — Computer".into(),
+                    "  [702] - — -".into()
+                ]
+            )
+        );
+        let s = screen(&a);
+        assert!(
+            s.contains("Asset candidates") && s.contains("page 1") && s.contains("read-only"),
+            "{s}"
+        );
+        assert!(!s.to_lowercase().contains("saved view"), "{s}");
+        a.press(if mode == "cancel-picker" {
+            "escape"
+        } else {
+            "enter"
+        });
+        a.settle();
+        if mode == "cancel-picker" {
+            assert!(a.modals.is_empty());
+            continue;
+        }
+        let (title, message) = outcome(&a);
+        assert_eq!(title, "Selected asset — no association");
+        assert_eq!(
+            message,
+            r#"{
+  "selected": {
+    "id": 9000007001,
+    "display_id": 701,
+    "name": "Globex laptop",
+    "ci_type_name": "Computer"
+  },
+  "scope": "single search page; not a complete inventory",
+  "mutation": "none"
+}"#
+        );
+        assert_eq!(m.calls("assets").len(), 1);
+    }
+}
+
+#[test]
+fn i_needs_a_change_and_a_search_term() {
+    let (mut a, m) = start(Mock::new(3), true);
+    a.press("i");
+    assert!(a.modals.is_empty());
+    assert!(toasts(&a).contains(&"Select a change to browse asset candidates".to_string()));
+    to_changes(&mut a);
+    a.press("i");
+    a.press("enter");
+    a.settle();
+    assert_eq!(
+        value_title(&a),
+        "Read-only asset search — selection does not associate"
+    );
+    assert!(m.calls("assets").is_empty());
+}
+
+#[test]
+fn i_search_failure_opens_the_failure_screen() {
+    let mock = Mock {
+        assets_fail: true,
+        ..Mock::new(3)
+    };
+    let (mut a, m) = start(mock, false);
+    to_changes(&mut a);
+    a.press("i");
+    pick(&mut a, "Globex");
+    assert_eq!(m.calls("assets").len(), 1);
+    match top(&a) {
+        Some(Modal::Failure(f)) => assert_eq!(
+            f.message,
+            "Asset search unavailable: asset candidate response is unavailable"
+        ),
+        m => panic!("not a failure: {m:?}"),
+    }
+}
+
+#[test]
+fn help_lists_the_asset_picker_key() {
+    assert!(fsv_tui::modals::HELP_TEXT.contains(
+        "  [cyan]i[/]            browse change asset candidates (read-only, no association)\n"
+    ));
+}
+
+/// `asset_picker.select`: an exact, unique positive display ID.
+#[test]
+fn asset_select_needs_an_exact_unique_display_id() {
+    let row = |id: Value| {
+        json!({"id": 9000007001_i64, "display_id": id})
+            .as_object()
+            .unwrap()
+            .clone()
+    };
+    let mut result = AssetCandidates {
+        change_id: 123,
+        page: 1,
+        scope: String::new(),
+        assets: vec![row(json!(701)), row(json!("702"))],
+        mutation: "none".into(),
+        warning: String::new(),
+    };
+    assert_eq!(result.select(&json!(701)).unwrap()["display_id"], 701);
+    assert_eq!(result.select(&json!("702")).unwrap()["display_id"], "702");
+    let not_unique = "exact asset display ID is not unique on this search page";
+    assert_eq!(
+        result
+            .select(&json!(9000007001_i64))
+            .unwrap_err()
+            .to_string(),
+        not_unique
+    );
+    for bad in [json!(true), json!(0), json!(-1), json!("x"), json!(701.0)] {
+        assert_eq!(
+            result.select(&bad).unwrap_err().to_string(),
+            "expected a positive numeric identity",
+            "{bad}"
+        );
+    }
+    result.assets.push(row(json!(701)));
+    assert_eq!(
+        result.select(&json!(701)).unwrap_err().to_string(),
+        not_unique
+    );
 }

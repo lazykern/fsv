@@ -429,7 +429,9 @@ fn help_is_clipped_on_a_36_row_terminal() {
     assert_eq!(col(lines[2], 97), '┓', "{s}");
     assert!(s.contains("fsv help"), "{s}");
     assert!(s.contains("default view)"), "{s}");
-    assert!(s.contains("empty input clears active filter"), "{s}");
+    assert!(s.contains("association)"), "{s}");
+    assert!(s.contains("cancel filter input"), "{s}");
+    assert!(!s.contains("apply filter and reload"), "{s}");
     assert!(!s.contains("Press any key to close."), "{s}");
     a.press("j");
     assert!(a.modals.is_empty());

@@ -251,6 +251,58 @@ pub struct ConversationRequest {
     pub set_status: Option<String>,
 }
 
+/// `asset_picker.candidates(client, target, query, page=page)`'s arguments.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AssetCandidatesRequest {
+    /// The change's `display_id or id`, unparsed (`candidates` runs
+    /// `positive_id(parse_id(str(target), CHANGES))`).
+    pub change: Value,
+    pub query: String,
+    /// The TUI always asks for page 1.
+    pub page: i64,
+}
+
+/// `asset_picker.candidates`' result dict, one search page.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AssetCandidates {
+    pub change_id: i64,
+    pub page: i64,
+    /// `"single search page; not a complete inventory"`.
+    pub scope: String,
+    /// The `assets` rows as returned, each with a unique positive `display_id`.
+    pub assets: Vec<Map<String, Value>>,
+    /// `"none"`.
+    pub mutation: String,
+    pub warning: String,
+}
+
+impl AssetCandidates {
+    /// Port of fsv.asset_picker.select.
+    pub fn select(&self, display_id: &Value) -> BResult<&Map<String, Value>> {
+        let display_id = positive_id(display_id)?;
+        let mut rows = self.assets.iter().filter(|row| {
+            row.get("display_id").and_then(|v| positive_id(v).ok()) == Some(display_id)
+        });
+        match (rows.next(), rows.next()) {
+            (Some(row), None) => Ok(row),
+            _ => Err(Failure::value(
+                "exact asset display ID is not unique on this search page",
+            )),
+        }
+    }
+}
+
+/// Port of fsv.watchers.positive_id.
+pub fn positive_id(value: &Value) -> BResult<i64> {
+    let s = fsv_py::py_str(value);
+    match value {
+        Value::Bool(_) => None,
+        _ if s.is_empty() || !s.bytes().all(|b| b.is_ascii_digit()) => None,
+        _ => s.parse::<i64>().ok().filter(|&n| n > 0),
+    }
+    .ok_or_else(|| Failure::value("expected a positive numeric identity"))
+}
+
 /// The form `N` / `e` open (`_build_form(mode, item, ...)`).
 #[derive(Clone, Debug)]
 pub struct FormRequest {
@@ -544,6 +596,13 @@ pub trait Backend: Send + Sync {
         public_confirmed: bool,
     ) -> BResult<Value> {
         Err(Failure::unavailable("ticket conversations"))
+    }
+
+    // ── read-only pickers ───────────────────────────────────
+    /// `asset_picker.candidates(c, req.change, req.query, page=req.page)`:
+    /// one GET of `assets-to-associate`; never associates.
+    fn asset_candidates(&self, req: &AssetCandidatesRequest) -> BResult<AssetCandidates> {
+        Err(Failure::unavailable("asset candidates"))
     }
 
     // ── create forms ────────────────────────────────────────
