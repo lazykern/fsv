@@ -42,8 +42,8 @@ Counts: **18 ported, 13 partial, 1 missing.** (fsv-api half of `f761a01`…`4d77
 | `fd060d7` | 11-12 02:20 | fix(tickets): show actual identity in update previews | ported | fsv-cli `resource.rs:1486-1501` |
 | `42b561f` | 11-12 02:27 | fix(sr): accept requested-for in catalog drafts | ported | fsv-flows `sr.rs:27-120`, `:314`; fsv-cli `sr.rs:406` |
 | `ccc3a64` | 11-12 02:58 | fix(forms): resolve metadata-backed custom lookup selections | ported | fsv-forms `state.rs:840`; fsv-api `formmeta.rs:787-943`; fsv-formui `lookups.rs` |
-| `7903e2a` | 11-12 03:06 | fix(changes): route legacy updates through reviewed form plans | partial | fsv-cli (help text, `Reviewed::Form` JSON fallback); fsv-flows done |
-| `d18bab9` | 11-12 03:11 | fix(schema): expose stale metadata and synchronous refresh | partial | fsv-cli (`lookup --refresh`), fsv-completion |
+| `7903e2a` | 11-12 03:06 | fix(changes): route legacy updates through reviewed form plans | ported | fsv-flows and fsv-cli done |
+| `d18bab9` | 11-12 03:11 | fix(schema): expose stale metadata and synchronous refresh | partial | fsv-completion (fsv-cli done) |
 | `f761a01` | 11-12 03:20 | feat(tickets): review metadata-backed property updates | partial | fsv-api ported (`properties.rs:128`, `:189`, `:374`, `:462`); fsv-cli, fsv-completion |
 | `a5a8381` | 11-12 03:25 | feat(tickets): add reviewed BCC replies and whole-ticket forwards | partial | fsv-api ported (`conversations.rs:169`, `:206`, `:242`, `:394`); fsv-cli, fsv-completion |
 | `ddd756a` | 11-12 03:30 | feat(watchers): add reviewed ticket and change self-watch workflows | partial | fsv-api ported (`service.rs:68`, `reviewed_write.rs:23`, `:64`, `watchers.rs:21`, `:70`, `:119`); other `Api` impls keep the default `me()`; fsv-cli, fsv-completion |
@@ -108,7 +108,7 @@ terminal-only rule (`crates/fsv-core/src/safety.rs:140-144`).
   (already covered by `crates/fsv-core/src/client/tests.rs:972`; add a
   403/disconnect × POST/PUT/PATCH/DELETE single-request case if absent).
 
-### `7903e2a` fix(changes): route legacy updates through reviewed form plans — partial
+### `7903e2a` fix(changes): route legacy updates through reviewed form plans — ported
 
 Ported: `--status/--priority/--agent/--group` on `changes update` go through
 the form plan (`crates/fsv-cli/src/cmd/changes.rs:1452-1471`).
@@ -122,16 +122,15 @@ plans gained the keys; nothing else moved). The change and ticket golden
 tests now also check top-level key order. No fsv-cli fixture holds a change
 form plan JSON, so no fsv-cli golden moved.
 
-Missing:
+Ported (fsv-cli): the `Reviewed::to_json` fallback for a form plan without
+a carried `change::Plan` (`crates/fsv-cli/src/cmd/formflow.rs`) emits
+`"risks": []` and `"requires_confirmation": false` in the same place (a
+formui plan has no risks). The docstring change is not observable: the
+command passes `help="Update change fields."`, which Typer shows instead of
+the docstring, and the docstring's first line (the completion hint table's
+text) did not change.
 
-- **fsv-cli** `Reviewed::to_json` (`crates/fsv-cli/src/cmd/formflow.rs:206`)
-  has a fallback for a form plan without a carried `change::Plan`. It builds
-  the JSON by hand without `risks`/`requires_confirmation`. Add both keys
-  (from `s.plan.review.risks`) or drop the fallback.
-- **fsv-cli**: update the `changes update` help text: "Legacy
-  --status/--priority/--agent/--group flags use the same reviewed, hash-bound
-  form path." (it comes with the tree regeneration, below).
-- Python tests: `tests/test_create_flags.py::test_update_resolves_labels`,
+Not ported, Python tests: `tests/test_create_flags.py::test_update_resolves_labels`,
   `::test_legacy_status_hash_matches_set_and_refuses_mismatch` (legacy hash ==
   `--set` hash; mismatched `--expect-plan` exits 4 with no writes; send is
   `("PUT", "changes/501", {"status": 2})`),
@@ -146,12 +145,15 @@ Ported: `schema::load` returns `stale`/`source`, warns on stale cache,
 `force` bypasses cache (`crates/fsv-api/src/schema.rs:261-379`);
 `fields --refresh` exists (`crates/fsv-cli/src/cmd/resource.rs:738`).
 
-Missing: `fsv {changes,tickets,problems} lookup --refresh` ("fetch current
-schema choices synchronously") → `schema.load(res, c, force=True)`.
+Ported (fsv-cli): `fsv {changes,tickets,problems} lookup --refresh` ("fetch
+current schema choices synchronously") → `schema::load(res, c, true)`.
+`ResLookupArgs.refresh` in `generated.rs`; the three `lookup` nodes of
+`tests/fixtures/cli_tree.json` were re-dumped from Python (only `--refresh`
+added); goldens `lookup_refresh_refetches_schema` and
+`lookup_uses_cached_schema` in `read_cmds.rs`.
 
-- **fsv-cli**: add `refresh: bool` to `ResLookupArgs`
-  (`crates/fsv-cli/src/generated.rs:830`) and pass it to `schema::load` in
-  `lookup` (`crates/fsv-cli/src/cmd/resource.rs:837`).
+Missing:
+
 - **fsv-completion**: the new flag shows up in the completion tree/goldens.
 - Python tests: `tests/test_schema_cache.py` (all four new tests; mostly
   covered by `schema.rs:538-620`).
@@ -608,11 +610,11 @@ fsv-tui needs no new work beyond test updates.
      lookup`; `--reviewed` on `{tickets,problems} update`; `--bcc` and
      `--sender` on `tickets reply`. Every new command also has
      `--output/-o {json}` and `--json` (`b7d96a7`).
-   - Commands: `lookup --refresh` (`d18bab9`), `update --reviewed`
+   - Commands: ~~`lookup --refresh` (`d18bab9`)~~ done, `update --reviewed`
      (`f761a01`), `reply --bcc/--sender` and `forward` (`a5a8381`),
      `watchers` (`ddd756a`), `time` (`9622e3f`), `planning-text` and
      `mark-known-error` (`f711010`, `f7bf04a`), `bulk-priority` (`c0210a7`),
-     the `changes update` help text (`7903e2a`), and the JSON-only output
+     ~~the `changes update` help text (`7903e2a`)~~ (not observable), and the JSON-only output
      options on every new reviewed command (`b7d96a7`).
    - Refresh the write goldens for `273ffde`.
 6. **fsv-completion** (after the fsv-cli tree)
@@ -830,11 +832,13 @@ Rust has no `problems create`.
     `problem|note|task` for `id` (`positive_id`). Create reads `record`;
     children re-read `inventory`. Each payload key needs strict type+value
     equality. Result `{"{key}_id", "fields", "verified"}`.
-- **fsv-cli** `form.rs`: `explain ID` uses the module's resource
-  (`REGISTRY[mod+"s"]`, its `api_path` and `item_key`), not CHANGES. The
-  `isdigit` shortcut is gone (`parse_id` handles digits). Update the
-  `form_explain_unsupported` golden (`crates/fsv-cli/tests/read_cmds.rs:3620`,
-  which uses `problems`) and the message at `form.rs:30`.
+- ~~**fsv-cli** `form.rs`: `explain ID` uses the module's resource
+  (`REGISTRY[mod+"s"]`, its `api_path` and `item_key`), not CHANGES; the
+  `isdigit` shortcut is gone.~~ Done for change and ticket
+  (`form_explain_ticket_record`, `form_explain_change_display_id`).
+  Still to do with problems: the `form_explain_unsupported` golden
+  (`crates/fsv-cli/tests/read_cmds.rs:3620`, which uses `problems`) and the
+  message at `form.rs:30`.
 - **fsv-cli**: `fsv problems create --requester R [--from YAML] [--set
   LABEL=VALUE…] [--dry-run] [--yes] [--expect-plan]` ("Create a problem
   through fresh form fields and business rules; no files."). It uses
