@@ -105,4 +105,12 @@ CLI divergences:
 
 | Python | Rust | status |
 |---|---|---|
-| `tui/app.py`, `actions.py`, `modals.py` | `fsv_tui` | partial. List, detail, filter, search, and write modals run against a `Backend` trait. `cargo test -p fsv-tui` was 22 passed (16 unit, 6 `TestBackend`). No live HTTP backend yet, so `fsv tui` still needs a `Backend` passed to `launch`. Opening a form toasts that the form UI is not available until `fsv-formui` is connected. Page text goes through a local `Pages` trait (`BasicPages`), not `fsv-views`, which already has the real renderers. |
+| `tui/app.py`, `actions.py`, `modals.py` | `fsv_tui` | partial. `cargo test -p fsv-tui --offline` was 85 passed (33 unit, 46 in `tests/keys.rs`, 6 in `tests/tui.rs`). Key bindings, modals, status/note/reply/approval/download flows and the `a` menu are covered against a recording `Backend`. Gaps below. |
+
+- No `Backend` implementation exists. `fsv tui` cannot reach a server until the binary supplies one to `launch`.
+- `N` and `e` (create and edit forms) show "form UI not available". `fsv-formui` is not wired, so `form_result` is tested but unused.
+- Page text goes through a local `Pages` trait (`BasicPages`), not `fsv-views`, which already has the real renderers.
+- Task add/update/delete and link/unlink from the `a` menu have helper tests but no end-to-end `TestBackend` test.
+- The key-hint row advertises `gw`, which does nothing. Copied from Python; Python does the same.
+- Help dialog is clipped on 36-row terminals and does not scroll.
+- Approvals go through four `Backend` methods that default to "unavailable". `fsv_api::approvals` supplies the rules.
