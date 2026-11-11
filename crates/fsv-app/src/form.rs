@@ -216,6 +216,17 @@ pub enum SendError {
     Failed(Error),
     /// The change was written, then a later step failed (`PartialFailure`).
     Partial(Box<change::PartialFailure>),
+    /// A service request's upload or place-request failed (`SendFailure`).
+    Sr(Box<catalog::SendFailure>),
+}
+
+impl From<catalog::Executed> for SendError {
+    fn from(e: catalog::Executed) -> Self {
+        match e {
+            catalog::Executed::Refused(e) => SendError::Failed(e),
+            catalog::Executed::Failed(f) => SendError::Sr(Box::new(f)),
+        }
+    }
 }
 
 impl From<Error> for SendError {
@@ -238,6 +249,7 @@ impl std::fmt::Display for SendError {
         match self {
             SendError::Failed(e) => e.fmt(f),
             SendError::Partial(p) => p.fmt(f),
+            SendError::Sr(e) => e.fmt(f),
         }
     }
 }
@@ -247,6 +259,7 @@ impl SendError {
         match self {
             SendError::Failed(e) => e.exit_code(),
             SendError::Partial(p) => p.exit_code(),
+            SendError::Sr(e) => e.cause.exit_code(),
         }
     }
 
@@ -256,14 +269,22 @@ impl SendError {
         match self {
             SendError::Failed(e) => e,
             SendError::Partial(p) => Error::exit(p.exit_code(), p.to_string()),
+            SendError::Sr(e) => Error::exit(e.cause.exit_code(), e.to_string()),
         }
     }
 
     /// The attributes `tui.actions.failure_detail` lists (`created_id`,
-    /// `steps`, `uploaded`, `error`); empty unless partial.
+    /// `steps`, `uploaded`, `error`); empty for a plain failure.
     pub fn outcome(&self) -> Vec<(String, String)> {
         match self {
             SendError::Failed(_) => Vec::new(),
+            SendError::Sr(e) => vec![
+                (
+                    "uploaded".into(),
+                    fsv_py::py_str(&Json::Array(e.uploaded.clone())),
+                ),
+                ("error".into(), e.cause.to_string()),
+            ],
             SendError::Partial(p) => vec![
                 ("created_id".into(), fsv_py::py_str(&p.created_id)),
                 (
@@ -280,11 +301,19 @@ impl SendError {
     }
 
     /// `change_cli._report_partial(e, what)`: a partial failure prints its
-    /// lines to stderr and exits 5; any other failure is returned as is.
+    /// lines to stderr and exits 5. `cli_sr._send`'s `except SendFailure`:
+    /// the uploaded ids go to stderr, then `{step} failed: ...` exits with
+    /// the cause's code. Any other failure is returned as is.
     pub fn report(self, what: &str) -> Error {
         match self {
             SendError::Failed(e) => e,
             SendError::Partial(p) => report_partial(&p, what),
+            SendError::Sr(e) => {
+                if let Some(note) = e.uploaded_note() {
+                    fsv_core::term::err().print(&note);
+                }
+                e.into_error()
+            }
         }
     }
 }
@@ -711,16 +740,20 @@ impl LiveForm {
         Ok(SendOutcome::Sent(self.execute_item(&new, ctl)?))
     }
 
-    fn execute_item(&self, plan: &SRPlan, ctl: &SendCtl<'_>) -> Result<Json> {
+    fn execute_item(
+        &self,
+        plan: &SRPlan,
+        ctl: &SendCtl<'_>,
+    ) -> std::result::Result<Json, SendError> {
         let d = &self.deps;
         expect_sr(plan, ctl.expect)?;
-        catalog::execute(
+        Ok(catalog::execute_detailed(
             plan,
             d.api.as_ref(),
             d.journal.as_ref(),
             &catalog::upload,
             ctl.allow,
-        )
+        )?)
     }
 
     /// Send a [`Changed::plan`] the user confirmed: duplicate check, then
@@ -737,7 +770,7 @@ impl LiveForm {
         }
         let p = carried::<SRPlan>(&changed.plan).ok_or_else(not_reviewed)?;
         catalog::duplicate_check(p, ctl.allow, d.journal.as_ref())?;
-        Ok(self.execute_item(p, ctl)?)
+        self.execute_item(p, ctl)
     }
 }
 

@@ -31,7 +31,9 @@ with open(os.path.join(os.environ["FSV_CONFIG_DIR"], "config.json"), "w") as f:
 
 import httpx  # noqa: E402
 
-from fsv import config, ticket_conversation as conversations, ticket_properties  # noqa: E402
+from fsv import asset_picker, config, planning_text, problem_known_error  # noqa: E402
+from fsv import ticket_conversation as conversations, ticket_properties  # noqa: E402
+from fsv.create import match_planning_row  # noqa: E402
 from fsv import client as client_mod  # noqa: E402
 from fsv.formmeta import load_meta  # noqa: E402
 
@@ -67,8 +69,20 @@ FIELDS = [
     field(10, "region", "Region", "custom_dropdown",
           {"choices": [{"id": 31, "value": "North"}, {"id": 32, "value": "South"}]}),
 ]
+CHANGE_FIELDS = [
+    {"id": 41, "name": "change_reason", "label": "Reason for Change", "field_type": "default_change_reason"},
+    {"id": 42, "name": "subject", "label": "Subject", "field_type": "default_subject"},
+    {"id": 43, "name": "rollout_plan", "label": "Rollout Plan", "field_type": "default_change_plan"},
+]
+PROBLEM = {"id": 77, "subject": "Disk", "known_error": False}
+PLANNING = {
+    "problems/77": [{"name": "problem_cause", "label": "Root Cause", "description": "<p>old</p>", "attachments": []}],
+    "changes/5": [{"name": "rollout_plan", "label": "Rollout Plan", "description": "<p>v1</p>", "attachments": []}],
+}
+ASSETS = [{"display_id": 7, "name": "Acme DB"}, {"display_id": 8, "name": "Globex"}]
 ROW = {"id": 123, "subject": "Test", "status": 2, "priority": 1, "tags": ["old"],
-       "planned_start_date": None, "planned_end_date": None}
+       "planned_start_date": None, "planned_end_date": None, "requested_for_id": None,
+       "custom_fields": {"cost_code": None, "region": None}}
 
 
 class Tenant:
@@ -76,6 +90,8 @@ class Tenant:
         self.requests: list[httpx.Request] = []
         self.row = json.loads(json.dumps(ROW))
         self.convs: list[dict] = []
+        self.problem = dict(PROBLEM)
+        self.planning = json.loads(json.dumps(PLANNING))
 
     def __call__(self, req: httpx.Request) -> httpx.Response:
         self.requests.append(req)
@@ -96,7 +112,8 @@ class Tenant:
         if req.method == "GET" and p == "tickets/123/conversations":
             return httpx.Response(200, json={"conversations": self.convs, "meta": {"count": len(self.convs)}})
         if req.method == "POST" and p == "tickets/123/reply":
-            self.convs.append({"id": 456, "body": body["body"], "cc_emails": body["cc_emails"]})
+            self.convs.append({"id": 456, "body": body["body"], "cc_emails": body.get("cc_emails", []),
+                               "bcc_emails": body.get("bcc_emails", [])})
             if "helpdesk_ticket" in body:
                 self.row["status"] = body["helpdesk_ticket"]["status"]
             return httpx.Response(200, json={"conversation": {"id": 456}})
@@ -105,8 +122,25 @@ class Tenant:
                                "notify_emails": body["notify_emails"]})
             return httpx.Response(200, json={"note": {"id": 457}})
         if req.method == "PUT" and p == "tickets/123":
-            self.row.update({k: v for k, v in body.items() if k != "br_validation_excludes"})
+            self.row.update({k: v for k, v in body.items() if k not in ("br_validation_excludes", "custom_fields")})
+            self.row["custom_fields"].update(body.get("custom_fields", {}))
             return httpx.Response(200, json={"ticket": self.row})
+        if p == "problems/77":
+            if req.method == "PUT":
+                self.problem.update(body)
+            return httpx.Response(200, json={"problem": self.problem})
+        if p.endswith("/planning-fields"):
+            rec = p.removesuffix("/planning-fields")
+            if rec in self.planning:
+                if req.method == "GET":
+                    key = "change_planning_fields" if rec.startswith("changes") else "problem_planning_fields"
+                    return httpx.Response(200, json={key: self.planning[rec]})
+                for row in self.planning[rec]:
+                    if row["name"] == req.url.params["id"]:
+                        row["description"] = body["description"]
+                return httpx.Response(200, json={"planning_field": {"id": 1}})
+        if req.method == "GET" and p == "assets-to-associate":
+            return httpx.Response(200, json={"assets": ASSETS})
         return httpx.Response(404, json={"description": "not found"})
 
     def client(self):
@@ -161,6 +195,8 @@ def conversation(name, body, public, reply, options, public_confirmed):
 out = {"fields": FIELDS, "row": ROW}
 out["reply"] = conversation("reply", "Acme update", False, True,
                             {"cc": "person@example.com", "pending": True}, True)
+out["reply_bcc"] = conversation("reply_bcc", "Acme bcc", False, True,
+                                {"bcc": "x@example.com", "sender": "help@acme.example.com"}, True)
 out["note"] = conversation("note", "Acme note", False, False, {"notify": "b@example.com"}, False)
 
 refusals = []
@@ -183,7 +219,8 @@ for reply, options in [
         payload = plan.payload
     except Exception as e:  # noqa: BLE001
         error, payload = str(e), None
-    refusals.append({"reply": reply, "options": options, "error": error, "payload": payload, "lines": t.lines()})
+    refusals.append({"reply": reply, "options": options, "error": error, "payload": payload, "lines": t.lines(),
+                     "hash": None if error else plan.hash, "review": None if error else plan.review()})
 out["refusals"] = refusals
 
 # `_load_ticket_property_fields`
@@ -225,6 +262,76 @@ for name, value in [("planned_start_date", "2030-01-02T09:00:00-05:00"), ("tags"
     except Exception as e:  # noqa: BLE001
         answers[name] = {"error": str(e)}
 out["answers_for_flag_fields"] = answers
+
+
+
+def reviewed(name, build, send):
+    """A `WritePlan` hook pair: build, review, send with the reviewed hash."""
+    reset()
+    t = Tenant()
+    c = t.client()
+    try:
+        plan = build(c)
+    except Exception as e:  # noqa: BLE001
+        return {"error": str(e), "lines": t.lines()}
+    n = len(t.requests)
+    try:
+        result, error = send(plan, c), None
+    except Exception as e:  # noqa: BLE001
+        result, error = None, str(e)
+    fields = {k: getattr(plan, k) for k in ("action", "target", "method", "path", "payload_json", "context_hash")
+              if hasattr(plan, k)}
+    return {"plan_lines": t.lines(0)[:len(t.lines(0)) - len(t.lines(n))], "hash": plan.hash,
+            "review": plan.review(), **fields,
+            "send_lines": t.lines(n), "send_bodies": t.bodies(n), "result": result, "send_error": error}
+
+
+# `_prepare_ticket_property` / `_send_ticket_property` with the form's answers.
+choice = {f["name"]: dict((label, value) for value, label in f["choices"] or [])
+          for f in out["property_fields"]["fields"]}
+property_answers = {}
+for name, value in [("subject", "Globex"), ("priority", choice["priority"]["High"]), ("cost_code", "CC-9"),
+                    ("region", choice["region"]["South"]), ("requested_for", "person@example.com"),
+                    ("status", choice["status"]["Closed"]), ("planned_start_date", "2030-01-02T09:00:00-05:00")]:
+    property_answers[name] = reviewed(
+        name, lambda c, name=name, value=value: ticket_properties.build_plan(c, 123, answers={name: value}),
+        lambda plan, c: ticket_properties.send(plan, c, reviewed_hash=plan.hash))
+    property_answers[name]["value"] = value
+out["property_answers"] = property_answers
+
+# `_prepare_known_error` / `_send_known_error`.
+out["known_error"] = reviewed("known_error", lambda c: problem_known_error.build_plan(c, 77),
+                              lambda plan, c: problem_known_error.send(plan, c, reviewed_hash=plan.hash))
+
+# `_load_planning_sections` / `_load_planning_editor` / `_prepare_planning_text` / `_send_planning_text`.
+schema_load = planning_text.schema.load
+planning_text.schema.load = lambda res, client=None, force=False: {"fields": CHANGE_FIELDS}
+planning = {}
+for module, target, section, description in [("problems", 77, "problem_cause", "<p>new cause</p>"),
+                                             ("changes", 5, "rollout_plan", "<p>v2</p>")]:
+    reset()
+    t = Tenant()
+    c = t.client()
+    defs = planning_text.definitions(c, module)
+    rows = planning_text.inventory(c, module, target)
+    entry = {"definitions": defs, "row": match_planning_row({"name": section}, rows),
+             "missing_row": match_planning_row({"name": "nope"}, rows), "read_lines": t.lines()}
+    entry.update(reviewed(module, lambda c, m=module, i=target, s_=section, d=description:
+                          planning_text.build_plan(c, m, i, s_, d),
+                          lambda plan, c: planning_text.send(plan, c, reviewed_hash=plan.hash)))
+    planning[module] = entry
+try:
+    planning_text.definitions(Tenant().client(), "tickets")
+except Exception as e:  # noqa: BLE001
+    planning["tickets_error"] = str(e)
+planning_text.schema.load = schema_load
+out["planning"] = planning
+out["change_fields"] = CHANGE_FIELDS
+
+# `_load_asset_candidates`.
+reset()
+t = Tenant()
+out["assets"] = {"result": asset_picker.candidates(t.client(), 5, "acme"), "lines": t.lines()}
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n")

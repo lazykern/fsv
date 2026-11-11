@@ -1,5 +1,6 @@
-//! The reviewed ticket hooks (`r` / `n` replies and notes, `e` on a ticket)
-//! over a recording client. Expected requests, plans, results and error
+//! The reviewed hooks (ticket replies, notes and property edits, problem
+//! known-error marks, planning text, asset candidates) over a recording
+//! client. Expected requests, plans, results and error
 //! texts are from running the Python TUI helpers over the same tenant
 //! (`port/golden/gen_fsv_app_tui_reviewed.py`).
 
@@ -21,10 +22,18 @@ fn backend(t: &Tenant) -> LiveBackend {
 }
 
 /// The generator's tenant: ticket 123, its edit form, and conversations
-/// that the reply/note POSTs add.
+/// that the reply/note POSTs add; problem 77; planning rows of problem 77
+/// and change 5; one asset search page.
 fn ticket_tenant() -> Tenant {
     let row = Arc::new(Mutex::new(PY["row"].clone()));
     let convs = Arc::new(Mutex::new(Vec::<Value>::new()));
+    let problem = Arc::new(Mutex::new(
+        json!({"id": 77, "subject": "Disk", "known_error": false}),
+    ));
+    let planning = Arc::new(Mutex::new(json!({
+        "problems/77": [{"name": "problem_cause", "label": "Root Cause", "description": "<p>old</p>", "attachments": []}],
+        "changes/5": [{"name": "rollout_plan", "label": "Rollout Plan", "description": "<p>v1</p>", "attachments": []}],
+    })));
     tenant(move |c: &Call| {
         let p = c.path.strip_prefix("/api/_/").unwrap_or(&c.path);
         let body = c.json();
@@ -42,8 +51,10 @@ fn ticket_tenant() -> Tenant {
             }
             ("POST", "tickets/123/reply") => {
                 let b = body?;
+                let list = |k: &str| b.get(k).cloned().unwrap_or(json!([]));
                 convs.lock().unwrap().push(
-                    json!({"id": 456, "body": b["body"], "cc_emails": b["cc_emails"]}),
+                    json!({"id": 456, "body": b["body"], "cc_emails": list("cc_emails"),
+                                                  "bcc_emails": list("bcc_emails")}),
                 );
                 if let Some(h) = b.get("helpdesk_ticket") {
                     row.lock().unwrap()["status"] = h["status"].clone();
@@ -52,19 +63,56 @@ fn ticket_tenant() -> Tenant {
             }
             ("POST", "tickets/123/notes") => {
                 let b = body?;
-                convs.lock().unwrap().push(json!({"id": 457, "body": b["body"], "private": b["private"],
-                                                  "notify_emails": b["notify_emails"]}));
+                convs.lock().unwrap().push(
+                    json!({"id": 457, "body": b["body"], "private": b["private"],
+                                                  "notify_emails": b["notify_emails"]}),
+                );
                 ok(json!({"note": {"id": 457}}))
             }
             ("PUT", "tickets/123") => {
                 let b = body?;
                 let mut r = row.lock().unwrap();
                 for (k, v) in b.as_object()? {
-                    if k != "br_validation_excludes" {
+                    if k == "custom_fields" {
+                        for (ck, cv) in v.as_object()? {
+                            r["custom_fields"][ck] = cv.clone();
+                        }
+                    } else if k != "br_validation_excludes" {
                         r[k] = v.clone();
                     }
                 }
                 ok(json!({"ticket": *r}))
+            }
+            ("GET", "problems/77") => ok(json!({"problem": *problem.lock().unwrap()})),
+            ("PUT", "problems/77") => {
+                let mut pr = problem.lock().unwrap();
+                for (k, v) in body?.as_object()? {
+                    pr[k] = v.clone();
+                }
+                ok(json!({"problem": *pr}))
+            }
+            (m, p) if p.ends_with("/planning-fields") => {
+                let rec = p.trim_end_matches("/planning-fields");
+                let mut all = planning.lock().unwrap();
+                let rows = all.get_mut(rec)?;
+                if m == "GET" {
+                    let key = if rec.starts_with("changes") {
+                        "change_planning_fields"
+                    } else {
+                        "problem_planning_fields"
+                    };
+                    return ok(json!({ key: *rows }));
+                }
+                let id = &c.query.iter().find(|(k, _)| k == "id")?.1;
+                for r in rows.as_array_mut()? {
+                    if r["name"] == json!(id) {
+                        r["description"] = body.as_ref()?["description"].clone();
+                    }
+                }
+                ok(json!({"planning_field": {"id": 1}}))
+            }
+            ("GET", "assets-to-associate") => {
+                ok(json!({"assets": PY["assets"]["result"]["assets"]}))
             }
             _ => None,
         }
@@ -118,14 +166,6 @@ fn request(reply: bool, options: &Value) -> ConversationRequest {
     }
 }
 
-/// The review without its `warning`: fsv-api still has the warning text
-/// from before Python added sender/forward wording (see PARITY.md).
-fn review_sans_warning(v: &Value) -> Value {
-    let mut m = v.as_object().unwrap().clone();
-    m.remove("warning");
-    Value::Object(m)
-}
-
 fn conversation_case(
     name: &str,
     body: &str,
@@ -140,14 +180,15 @@ fn conversation_case(
     let plan = b
         .ticket_conversation_plan(&json!(123), body, &request(reply, &options))
         .unwrap();
-    assert_eq!(t.lines(), strings(&py["plan_lines"]), "{name} plan requests");
+    assert_eq!(
+        t.lines(),
+        strings(&py["plan_lines"]),
+        "{name} plan requests"
+    );
     assert_eq!(plan.hash, py["hash"].as_str().unwrap(), "{name} hash");
     let payload: Value = serde_json::from_str(py["payload_json"].as_str().unwrap()).unwrap();
     assert_eq!(plan.raw, payload, "{name} raw is the payload");
-    assert_eq!(
-        review_sans_warning(&plan.review),
-        review_sans_warning(&py["review"])
-    );
+    assert_eq!(plan.review, py["review"], "{name} review");
     assert_eq!(plan.target_id, json!(123));
     assert_eq!(plan.public, reply);
 
@@ -167,10 +208,7 @@ fn conversation_case(
 
 #[test]
 fn plain_reply_with_cc_and_pending_plans_and_sends_once() {
-    // Python's send also re-resolves the CC before the POST; fsv-api's
-    // `conversations::send` does not (see PARITY.md).
-    let mut send = strings(&PY["reply"]["send_lines"]);
-    send.retain(|l| !l.starts_with("GET /search/autocomplete/requesters"));
+    let send = strings(&PY["reply"]["send_lines"]);
     conversation_case(
         "reply",
         "Acme update",
@@ -210,19 +248,39 @@ fn public_reply_needs_consent() {
 }
 
 #[test]
-fn sender_and_bcc_use_python_refusals_and_never_write() {
-    const NOT_BUILT: &str =
-        "replies with a sender or BCC are not available in this build; clear Sender and BCC to send";
+fn bcc_and_sender_reply_plans_and_sends_once() {
+    conversation_case(
+        "reply_bcc",
+        "Acme bcc",
+        true,
+        json!({"bcc": "x@example.com", "sender": "help@acme.example.com"}),
+        true,
+        strings(&PY["reply_bcc"]["send_lines"]),
+    );
+}
+
+#[test]
+fn sender_and_bcc_plans_and_refusals_match_python() {
     for case in PY["refusals"].as_array().unwrap() {
         let t = ticket_tenant();
         let req = request(case["reply"] == json!(true), &case["options"]);
-        let err = backend(&t)
-            .ticket_conversation_plan(&json!(123), "Acme", &req)
-            .unwrap_err()
-            .to_string();
-        let want = case["error"].as_str().unwrap_or(NOT_BUILT);
-        assert_eq!(err, want, "{}", case["options"]);
+        let got = backend(&t).ticket_conversation_plan(&json!(123), "Acme", &req);
+        match case["error"].as_str() {
+            Some(want) => assert_eq!(got.unwrap_err().to_string(), want, "{}", case["options"]),
+            None => {
+                let plan = got.unwrap();
+                assert_eq!(plan.raw, case["payload"], "{}", case["options"]);
+                assert_eq!(
+                    plan.hash,
+                    case["hash"].as_str().unwrap(),
+                    "{}",
+                    case["options"]
+                );
+                assert_eq!(plan.review, case["review"], "{}", case["options"]);
+            }
+        }
         assert_eq!(t.lines(), strings(&case["lines"]), "{}", case["options"]);
+        assert!(writes(&t, 0).is_empty());
     }
 }
 
@@ -262,19 +320,41 @@ fn property_fields_follow_the_tui_filter_on_the_fresh_edit_form() {
 }
 
 #[test]
-fn property_plans_wait_on_answers_in_fsv_api() {
-    for (name, why) in PY["answers_for_flag_fields"].as_object().unwrap() {
-        assert!(why.get("error").is_some(), "Python refuses {name} too");
+fn property_answers_plan_and_send_like_python() {
+    for (name, py) in PY["property_answers"].as_object().unwrap() {
+        let t = ticket_tenant();
+        let b = backend(&t);
+        let got = b.ticket_property_plan(&json!(123), name, &py["value"]);
+        if let Some(want) = py["error"].as_str() {
+            assert_eq!(got.unwrap_err().to_string(), want, "{name}");
+            assert_eq!(t.lines(), strings(&py["lines"]), "{name}");
+            continue;
+        }
+        let plan = got.unwrap();
+        assert_eq!(
+            t.lines(),
+            strings(&py["plan_lines"]),
+            "{name} plan requests"
+        );
+        assert_eq!(plan.hash, py["hash"].as_str().unwrap(), "{name} hash");
+        assert_eq!(plan.review, py["review"], "{name} review");
+        let n = t.calls().len();
+        assert_eq!(
+            b.send_ticket_property(&plan).unwrap(),
+            py["result"],
+            "{name} result"
+        );
+        assert_eq!(
+            t.lines()[n..],
+            strings(&py["send_lines"])[..],
+            "{name} send requests"
+        );
+        assert_eq!(
+            writes(&t, n),
+            strings(&py["send_bodies"]),
+            "{name} send bodies"
+        );
     }
-    let t = ticket_tenant();
-    assert_eq!(
-        backend(&t)
-            .ticket_property_plan(&json!(123), "subject", &json!("Globex"))
-            .unwrap_err()
-            .to_string(),
-        "reviewed ticket property edits from the form are not available in this build; use the web form"
-    );
-    assert!(t.calls().is_empty());
 }
 
 #[test]
@@ -283,15 +363,8 @@ fn property_send_rebuilds_puts_once_and_reads_back() {
     let t = ticket_tenant();
     let b = backend(&t);
     let tags = vec!["Acme".to_string(), "one".to_string()];
-    let p = properties::build_plan(
-        b.api(),
-        b.store.as_ref(),
-        "123",
-        Some(&tags),
-        None,
-        None,
-    )
-    .unwrap();
+    let p =
+        properties::build_plan(b.api(), b.store.as_ref(), "123", Some(&tags), None, None).unwrap();
     assert_eq!(t.lines(), strings(&py["plan_lines"]));
     assert_eq!(
         (&p.body_json, &p.before_json, &p.record_hash),
@@ -301,7 +374,7 @@ fn property_send_rebuilds_puts_once_and_reads_back() {
             &py["record_hash"].as_str().unwrap().to_string()
         )
     );
-    let plan = property_review(&p);
+    let plan = property_review(&p.into());
     assert_eq!(plan.hash, py["hash"].as_str().unwrap());
     assert_eq!(plan.review, py["review"]);
 
@@ -321,4 +394,134 @@ fn property_send_rebuilds_puts_once_and_reads_back() {
         b.send_ticket_property(&other).unwrap_err().to_string(),
         "not a ticket property plan"
     );
+}
+
+/// A `WritePlan` hook pair: the plan, then the send with its reviewed hash.
+fn write_case(
+    name: &str,
+    py: &Value,
+    t: &Tenant,
+    plan: ReviewPlan,
+    send: impl Fn(&ReviewPlan) -> BResult<Value>,
+) {
+    assert_eq!(
+        t.lines(),
+        strings(&py["plan_lines"]),
+        "{name} plan requests"
+    );
+    assert_eq!(plan.hash, py["hash"].as_str().unwrap(), "{name} hash");
+    assert_eq!(plan.review, py["review"], "{name} review");
+    assert_eq!(plan.target_id, py["target"]);
+    for k in [
+        "action",
+        "target",
+        "method",
+        "path",
+        "payload_json",
+        "context_hash",
+    ] {
+        assert_eq!(plan.raw[k], py[k], "{name} {k}");
+    }
+    let n = t.calls().len();
+    assert_eq!(send(&plan).unwrap(), py["result"], "{name} result");
+    assert_eq!(
+        t.lines()[n..],
+        strings(&py["send_lines"])[..],
+        "{name} send requests"
+    );
+    assert_eq!(
+        writes(t, n),
+        strings(&py["send_bodies"]),
+        "{name} send bodies"
+    );
+    let foreign = ReviewPlan {
+        raw: json!({"kind": "ticket_property"}),
+        ..plan
+    };
+    assert_eq!(
+        send(&foreign).unwrap_err().to_string(),
+        "not a plan for this action"
+    );
+}
+
+#[test]
+fn known_error_marks_once_and_reads_back() {
+    let t = ticket_tenant();
+    let b = backend(&t);
+    let plan = b.known_error_plan(&json!(77)).unwrap();
+    write_case("known_error", &PY["known_error"], &t, plan, |p| {
+        b.send_known_error(p)
+    });
+    let again = b.known_error_plan(&json!(77)).unwrap();
+    assert_ne!(again.hash, PY["known_error"]["hash"].as_str().unwrap());
+}
+
+fn planning_backend(t: &Tenant) -> LiveBackend {
+    backend(t).with_change_schema(|_| Ok(json!({"fields": PY["change_fields"]})))
+}
+
+#[test]
+fn planning_text_reads_plans_and_sends_like_python() {
+    for (module, id, section) in [
+        ("problems", 77, "problem_cause"),
+        ("changes", 5, "rollout_plan"),
+    ] {
+        let py = &PY["planning"][module];
+        let t = ticket_tenant();
+        let b = planning_backend(&t);
+        assert_eq!(
+            Value::Array(b.planning_definitions(module).unwrap()),
+            py["definitions"]
+        );
+        assert_eq!(
+            b.planning_row(module, &json!(id), section).unwrap(),
+            Some(py["row"].clone())
+        );
+        assert_eq!(b.planning_row(module, &json!(id), "nope").unwrap(), None);
+        assert_eq!(
+            t.lines(),
+            [strings(&py["read_lines"]), strings(&py["read_lines"])].concat(),
+            "{module} reads"
+        );
+
+        let t = ticket_tenant();
+        let b = planning_backend(&t);
+        let payload: Value = serde_json::from_str(py["payload_json"].as_str().unwrap()).unwrap();
+        let plan = b
+            .planning_text_plan(
+                module,
+                &json!(id),
+                section,
+                payload["description"].as_str().unwrap(),
+            )
+            .unwrap();
+        write_case(module, py, &t, plan, |p| b.send_planning_text(p));
+    }
+    let t = ticket_tenant();
+    assert_eq!(
+        planning_backend(&t)
+            .planning_definitions("tickets")
+            .unwrap_err()
+            .to_string(),
+        PY["planning"]["tickets_error"].as_str().unwrap()
+    );
+}
+
+#[test]
+fn asset_candidates_read_one_search_page() {
+    let t = ticket_tenant();
+    let got = backend(&t)
+        .asset_candidates(&AssetCandidatesRequest {
+            change: json!(5),
+            query: "acme".into(),
+            page: 1,
+        })
+        .unwrap();
+    assert_eq!(
+        json!({"change_id": got.change_id, "page": got.page, "scope": got.scope, "assets": got.assets,
+               "mutation": got.mutation, "warning": got.warning}),
+        PY["assets"]["result"]
+    );
+    assert_eq!(t.lines(), strings(&PY["assets"]["lines"]));
+    assert!(writes(&t, 0).is_empty());
 }

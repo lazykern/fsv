@@ -58,14 +58,14 @@ fn change_fields(p: Phase) -> Json {
     json!({ "change_fields": f })
 }
 
-fn item(p: Phase) -> Json {
+fn item(p: Phase, files: bool) -> Json {
     let mut cf = vec![
         json!({"id": 21, "name": "reason", "label": "Reason", "type": 1001, "required": false, "account_id": 1}),
     ];
     if p == Phase::Item {
         cf.push(json!({"id": 22, "name": "urgency", "label": "Urgency", "type": 1001, "required": false, "account_id": 1}));
     }
-    json!({"id": 11, "display_id": 5, "name": "Laptop", "allow_attachments": false,
+    json!({"id": 11, "display_id": 5, "name": "Laptop", "allow_attachments": files,
            "configs": {"attachment_mandatory": false}, "custom_fields": cf})
 }
 
@@ -79,6 +79,20 @@ fn sr_rule() -> Json {
            "is_reversible": true, "is_validation": false})
 }
 
+/// Failure switches of the tenant (`Tenant.place_status` etc. in the generator).
+#[derive(Clone, Copy)]
+struct Fail {
+    place: u16,
+    upload: u16,
+    files: bool,
+}
+
+const NO_FAIL: Fail = Fail {
+    place: 200,
+    upload: 200,
+    files: false,
+};
+
 struct Fixture {
     t: Tenant,
     j: Arc<MemJournal>,
@@ -87,9 +101,13 @@ struct Fixture {
 
 impl Fixture {
     fn new() -> Fixture {
+        Fixture::failing(NO_FAIL)
+    }
+
+    fn failing(fail: Fail) -> Fixture {
         let phase = Arc::new(Mutex::new(Phase::Review));
         let ph = phase.clone();
-        let t = tenant(move |c: &Call| route(*ph.lock().unwrap(), c));
+        let t = tenant(move |c: &Call| route(*ph.lock().unwrap(), fail, c));
         Fixture {
             t,
             j: Arc::new(MemJournal::default()),
@@ -153,7 +171,7 @@ impl Fixture {
     }
 }
 
-fn route(p: Phase, c: &Call) -> Option<Response> {
+fn route(p: Phase, fail: Fail, c: &Call) -> Option<Response> {
     let path = c.path.strip_prefix("/api/_/").unwrap_or(&c.path);
     match (c.method.as_str(), path) {
         ("GET", "change_form_fields") => ok(change_fields(p)),
@@ -165,10 +183,13 @@ fn route(p: Phase, c: &Call) -> Option<Response> {
             };
             ok(json!({"business_rules": rules, "user": {"time_zone": "Tokyo"}}))
         }
-        ("GET", "catalog/service-items/5") => ok(json!({ "service_item": item(p) })),
+        ("GET", "catalog/service-items/5") => ok(json!({ "service_item": item(p, fail.files) })),
         ("GET", "bootstrap/agents_groups") => ok(json!({"groups": [{"id": 4, "name": "Ops"}]})),
         ("GET", _) => ok(json!({})),
         ("POST", "changes") => ok(json!({"change": {"id": 78, "display_id": 78}})),
+        ("POST", "attachments") if fail.upload != 200 => {
+            status(fail.upload, json!({"description": "upload boom"}))
+        }
         ("POST", "attachments") => {
             let body = c.json().unwrap_or(Json::Null);
             ok(
@@ -176,6 +197,9 @@ fn route(p: Phase, c: &Call) -> Option<Response> {
             )
         }
         ("PUT", "changes/78") => status(500, json!({"description": "boom"})),
+        ("POST", "catalog/service-items/5/place-request") if fail.place != 200 => {
+            status(fail.place, json!({"description": "place boom"}))
+        }
         ("POST", "catalog/service-items/5/place-request") => {
             ok(json!({"service_request": {"id": 91, "display_id": 91}}))
         }
@@ -503,4 +527,107 @@ fn dry_run_and_foreign_plans_send_nothing() {
         )
     );
     assert!(f.writes().is_empty());
+}
+
+const SR_FILES_HASH: &str = "91d529fae5ca8385206aac0703e70ece7457a0138eb9acaf4055a817250ce4a3";
+const UNKNOWN_OUTCOME: &str =
+    "the outcome is unknown: check `fsv journal tail` and the requester's requests before retrying";
+
+impl Fixture {
+    /// The reviewed SR, optionally with `a.txt` attached.
+    fn sr_with(&self, files: bool) -> Submitted {
+        let mut s = sr_session(&self.deps(), "5", None, Some(jane()), false).unwrap();
+        s.set("reason", Value::str("broken é"));
+        if files {
+            s.draft.attachments = vec![attachment(self)];
+        }
+        let plan = s.build_plan(None).unwrap();
+        assert_eq!(plan.hash, if files { SR_FILES_HASH } else { SR_HASH });
+        Submitted { plan, session: s }
+    }
+
+    fn write_paths(&self) -> Vec<String> {
+        self.writes().into_iter().map(|(_, p, _)| p).collect()
+    }
+}
+
+const PLACE: &str = "/api/_/catalog/service-items/5/place-request";
+const UPLOAD: &str = "/api/_/attachments";
+
+#[test]
+fn sr_cli_place_request_failure_exits_with_the_cause() {
+    let f = Fixture::failing(Fail {
+        place: 500,
+        ..NO_FAIL
+    });
+    let s = f.sr_with(false);
+    let (r, text, _) = cli(&s, &SendOptions::default(), true);
+    assert_eq!(
+        exit_of(&r.unwrap_err()),
+        (
+            5,
+            format!("place-request failed: HTTP 500; {UNKNOWN_OUTCOME}")
+        )
+    );
+    assert_eq!(text, "");
+    assert_eq!(f.write_paths(), [PLACE]);
+}
+
+#[test]
+fn sr_cli_refused_place_request_lists_the_uploaded_ids() {
+    let f = Fixture::failing(Fail {
+        place: 422,
+        files: true,
+        ..NO_FAIL
+    });
+    let s = f.sr_with(true);
+    let (r, text, _) = cli(&s, &SendOptions::default(), true);
+    assert_eq!(
+        exit_of(&r.unwrap_err()),
+        (
+            5,
+            "place-request failed: HTTP 422; the server refused it; nothing was placed".into()
+        )
+    );
+    // Python's `  uploading a.txt... ok (5 B)` goes straight to stderr.
+    assert_eq!(
+        text,
+        "uploaded attachment ids (not attached to any request): 9000005001 (a.txt)\n"
+    );
+    assert_eq!(f.write_paths(), [UPLOAD, PLACE]);
+}
+
+#[test]
+fn sr_cli_upload_failure_places_nothing() {
+    let f = Fixture::failing(Fail {
+        upload: 500,
+        files: true,
+        ..NO_FAIL
+    });
+    let s = f.sr_with(true);
+    let (r, text, _) = cli(&s, &SendOptions::default(), true);
+    assert_eq!(
+        exit_of(&r.unwrap_err()),
+        (5, "upload failed: HTTP 500; nothing was placed".into())
+    );
+    assert_eq!(text, "");
+    assert_eq!(f.write_paths(), [UPLOAD]);
+}
+
+#[test]
+fn a_tui_sr_send_failure_lists_uploaded_and_error() {
+    let f = Fixture::failing(Fail {
+        place: 500,
+        files: true,
+        ..NO_FAIL
+    });
+    let s = f.sr_with(true);
+    let (r, _) = fsv_core::term::capture(|| crate::tui::forms::send_submitted(s));
+    let failure = r.unwrap_err();
+    assert_eq!(
+        fsv_tui::actions::failure_detail(&failure),
+        "place-request failed: HTTP 500 creating place-request: place boom. Uploaded attachment ids: 9000005001 (a.txt)\nuploaded: [{'id': 9000005001, 'name': 'a.txt', 'target': 'Other attachments'}]\nerror: HTTP 500 creating place-request: place boom\nNo automatic retry. Check the exact record and journal before another send; outcome may be unknown."
+    );
+    assert_eq!(failure.error.exit_code(), 5);
+    assert_eq!(f.write_paths(), [UPLOAD, PLACE]);
 }

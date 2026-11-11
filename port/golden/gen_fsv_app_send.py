@@ -50,12 +50,12 @@ def field(i, name, label, ft, required, default):
             "default_field": default, "choices": [], "nested_fields": [], "workspace_id": 2}
 
 
-def item(extra=False):
+def item(extra=False, files=False):
     cf = [{"id": 21, "name": "reason", "label": "Reason", "type": 1001, "required": False, "account_id": 1}]
     if extra:
         cf.append({"id": 22, "name": "urgency", "label": "Urgency", "type": 1001, "required": False,
                    "account_id": 1})
-    return {"id": 11, "display_id": 5, "name": "Laptop", "allow_attachments": False,
+    return {"id": 11, "display_id": 5, "name": "Laptop", "allow_attachments": files,
             "configs": {"attachment_mandatory": False}, "custom_fields": cf}
 
 
@@ -76,6 +76,9 @@ class Tenant:
         self.phase = "review"
         self.requests: list[httpx.Request] = []
         self.fail_put = False
+        self.place_status = 200
+        self.upload_status = 200
+        self.files = False
 
     def change_fields(self):
         f = [field(1, "subject", "Subject", "default_subject", True, True),
@@ -100,7 +103,7 @@ class Tenant:
                 rules = [SR_RULE] if self.phase == "item" else []
                 return httpx.Response(200, json={"business_rules": rules, "user": {"time_zone": "Tokyo"}})
             if p == "catalog/service-items/5":
-                return httpx.Response(200, json={"service_item": item(self.phase == "item")})
+                return httpx.Response(200, json={"service_item": item(self.phase == "item", self.files)})
             if p == "bootstrap/agents_groups":
                 return httpx.Response(200, json={"groups": [{"id": 4, "name": "Ops"}]})
             return httpx.Response(200, json={})
@@ -108,12 +111,16 @@ class Tenant:
         if req.method == "POST" and p == "changes":
             return httpx.Response(200, json={"change": {"id": 78, "display_id": 78}})
         if req.method == "POST" and p == "attachments":
+            if self.upload_status != 200:
+                return httpx.Response(self.upload_status, json={"description": "upload boom"})
             body = json.loads(req.content or b"{}")
             return httpx.Response(200, json={"id": 9000005001, "content_file_name": body.get("content_file_name"),
                                              "content_file_size": body.get("content_file_size")})
         if req.method == "PUT" and p == "changes/78":
             return httpx.Response(500, json={"description": "boom"})
         if req.method == "POST" and p == "catalog/service-items/5/place-request":
+            if self.place_status != 200:
+                return httpx.Response(self.place_status, json={"description": "place boom"})
             return httpx.Response(200, json={"service_request": {"id": 91, "display_id": 91}})
         return httpx.Response(404, json={"description": "not found"})
 
@@ -249,6 +256,30 @@ def sr_send(c, s, plan, tty):
 sr_scenario("sr_session_send", lambda c, s, p: session_send(s, p))
 sr_scenario("sr_cli_no_tty", lambda c, s, p: sr_send(c, s, p, tty=False))
 sr_scenario("sr_cli_confirm_yes", lambda c, s, p: sr_send(c, s, p, tty=True), answer=True)
+
+
+def sr_failure(name, place, upload=200, files=False, session=False):
+    """An unchanged SR plan whose upload or place-request fails."""
+    reset_journal()
+    t = Tenant()
+    t.place_status, t.upload_status, t.files = place, upload, files
+    c = t.client()
+    s = sr_session(c, "5", requester=JANE)
+    s.set("reason", "broken é")
+    if files:
+        s.draft.attachments = [attach]
+    plan = s.build_plan()
+    n = len(t.writes())
+    r = run(session_send(s, plan) if session else sr_send(c, s, plan, tty=False))
+    r["writes"] = [w[:2] for w in t.writes()[n:]]
+    r["hash"] = plan.hash
+    out[name] = r
+
+
+sr_failure("sr_place_500_cli", 500)
+sr_failure("sr_place_422_files_cli", 422, files=True)
+sr_failure("sr_upload_500_cli", 200, upload=500, files=True)
+sr_failure("sr_place_500_files_session", 500, files=True, session=True)
 
 json.dump(out, sys.stdout, indent=1, ensure_ascii=False, default=str)
 print()

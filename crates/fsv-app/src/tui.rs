@@ -15,19 +15,23 @@ use serde_json::{Map, Value, json};
 use fsv_api::Directory;
 use fsv_api::approvals::{self, ActionPlan, ApprovalPlan};
 use fsv_api::associations::{self, AssociationPlan, SendOpts};
-use fsv_api::conversations::{self, ConversationArgs, ConversationPlan};
-use fsv_api::formmeta::{DiskStore, MetaStore};
+use fsv_api::conversations::{self, ConversationArgs, ConversationPlan, MailArgs};
+use fsv_api::formmeta::{ClientResolver, DiskStore, MetaStore};
 use fsv_api::notes::{self, BodyFormat, NotePlan};
-use fsv_api::properties::{self, PropertyPlan};
+use fsv_api::planning_text;
+use fsv_api::problem_known_error;
+use fsv_api::properties::{self, AnsweredPropertyPlan, PropertyArgs, PropertyPlan};
+use fsv_api::reviewed_write::WritePlan;
 use fsv_api::service::{self as svc, Api, Journal, ListArgs};
 use fsv_api::tasks::{self, TaskArgs, TaskPlan};
-use fsv_api::{QueryError, site};
+use fsv_api::{QueryError, asset_picker, site};
 use fsv_core::{Client, Error, Result};
 use fsv_forms::Kind;
 use fsv_forms::spec::REQUESTED_FOR_TYPE;
 use fsv_tui::backend::{
-    BResult, ConversationRequest, DetailPage, Failure, FormRequest, FormView, Item, ListRequest,
-    Missing, PropertyField, Res, ReviewPlan, SearchResult, TabData, TabInfo, View,
+    AssetCandidates, AssetCandidatesRequest, BResult, ConversationRequest, DetailPage, Failure,
+    FormRequest, FormView, Item, ListRequest, Missing, PropertyField, Res, ReviewPlan,
+    SearchResult, TabData, TabInfo, View,
 };
 use fsv_tui::{Backend, BasicPages, Pages};
 use fsv_views::{Detail, DetailInput, SessionError};
@@ -144,7 +148,11 @@ pub struct LiveBackend {
     /// Reviewed conversation plans by hash (the most recent
     /// [`PLAN_CACHE_SIZE`]): their [`ReviewPlan::raw`] is only the payload.
     conversations: Mutex<IndexMap<String, ConversationPlan>>,
+    /// `schema.load(CHANGES, force=True)` for planning definitions.
+    change_schema: Arc<ChangeSchemaFn>,
 }
+
+type ChangeSchemaFn = dyn Fn(&dyn Api) -> Result<Value> + Send + Sync;
 
 const PLAN_CACHE_SIZE: usize = 16;
 
@@ -291,11 +299,21 @@ impl LiveBackend {
             me: Mutex::new(None),
             form_deps: None,
             conversations: Mutex::new(IndexMap::new()),
+            change_schema: Arc::new(planning_text::live_change_schema),
         }
     }
 
     pub fn with_form_deps(mut self, deps: forms::DepsFactory) -> LiveBackend {
         self.form_deps = Some(deps);
+        self
+    }
+
+    /// Planning definitions read the change schema through `schema`.
+    pub fn with_change_schema(
+        mut self,
+        schema: impl Fn(&dyn Api) -> Result<Value> + Send + Sync + 'static,
+    ) -> LiveBackend {
+        self.change_schema = Arc::new(schema);
         self
     }
 
@@ -333,6 +351,11 @@ impl LiveBackend {
 
     fn api(&self) -> &dyn Api {
         self.client.as_ref()
+    }
+
+    /// `ClientResolver(c)` for lookup answers.
+    fn resolver(&self) -> Arc<dyn fsv_forms::LookupResolver> {
+        Arc::new(ClientResolver::new(self.client.clone()))
     }
 
     fn src(&self) -> ClientSource {
@@ -401,10 +424,7 @@ impl LiveBackend {
     }
 
     fn keep_conversation(&self, p: ConversationPlan) {
-        let mut g = self
-            .conversations
-            .lock()
-            .unwrap_or_else(|p| p.into_inner());
+        let mut g = self.conversations.lock().unwrap_or_else(|p| p.into_inner());
         g.insert(p.hash(), p);
         while g.len() > PLAN_CACHE_SIZE {
             g.shift_remove_index(0);
@@ -420,65 +440,65 @@ impl LiveBackend {
     }
 }
 
-/// `ticket_conversation.build_plan`'s sender and BCC checks, after the note
-/// body checks as in Python. A request that passes them still needs the
-/// `from_email` / `bcc_emails` payload, which `fsv_api::conversations` does
-/// not build, so it is refused too.
-fn refuse_mail_options(
-    ticket_id: &str,
-    body: &str,
-    req: &ConversationRequest,
-    cc: &[String],
-    notify: &[String],
-    sender: Option<&str>,
-    tenant: &str,
-) -> Failure {
-    if let Err(e) = notes::build_plan(
-        ticket_id,
-        body,
-        req.public,
-        notify,
-        BodyFormat::Plain,
-        tenant,
-    ) {
-        return e.into();
+/// A property plan as the TUI reviews it; [`ReviewPlan::raw`] carries its
+/// fields, answers included, for the send.
+pub fn property_review(a: &AnsweredPropertyPlan) -> ReviewPlan {
+    let p = &a.plan;
+    ReviewPlan {
+        review: Value::Object(a.review()),
+        hash: a.hash(),
+        public: false,
+        target_id: json!(p.ticket_id),
+        raw: json!({"kind": "ticket_property", "ticket_id": p.ticket_id, "tenant": p.tenant, "body_json": p.body_json,
+                    "before_json": p.before_json, "record_hash": p.record_hash, "answers_json": a.answers_json,
+                    "metadata_hash": a.metadata_hash}),
     }
-    let bare = |v: &str| notes::EMAIL.is_match(v);
-    let bcc = !req.bcc.is_empty();
-    Failure::value(if sender.is_some_and(|s| !bare(s)) {
-        "sender must be a plain configured support email address"
-    } else if !req.reply {
-        "note sender/BCC wire is not proven"
-    } else if bcc && (!cc.is_empty() || req.set_status.is_some()) {
-        "combined BCC/CC/status wire is not proven"
-    } else if bcc && (sender.is_none() || req.bcc.iter().any(|v| !bare(v))) {
-        "BCC requires a configured --sender and bare recipient emails"
-    } else {
-        "replies with a sender or BCC are not available in this build; clear Sender and BCC to send"
-    })
 }
 
-/// A [`PropertyPlan`] as the TUI reviews it; [`ReviewPlan::raw`] carries
-/// its fields for the send.
-pub fn property_review(p: &PropertyPlan) -> ReviewPlan {
+fn property_plan(raw: &Value) -> AnsweredPropertyPlan {
+    AnsweredPropertyPlan {
+        plan: PropertyPlan {
+            ticket_id: i64_at(raw, "ticket_id"),
+            tenant: str_at(raw, "tenant"),
+            body_json: str_at(raw, "body_json"),
+            before_json: str_at(raw, "before_json"),
+            record_hash: str_at(raw, "record_hash"),
+        },
+        answers_json: opt_str(raw, "answers_json").unwrap_or_else(|| "{}".into()),
+        metadata_hash: str_at(raw, "metadata_hash"),
+    }
+}
+
+/// A `reviewed_write.WritePlan` as the TUI reviews it; [`ReviewPlan::raw`]
+/// carries its fields for the send.
+pub fn write_review(p: &WritePlan) -> ReviewPlan {
     ReviewPlan {
         review: Value::Object(p.review()),
         hash: p.hash(),
         public: false,
-        target_id: json!(p.ticket_id),
-        raw: json!({"kind": "ticket_property", "ticket_id": p.ticket_id, "tenant": p.tenant, "body_json": p.body_json,
-                    "before_json": p.before_json, "record_hash": p.record_hash}),
+        target_id: json!(p.target),
+        raw: json!({"kind": "reviewed_write", "action": p.action, "target": p.target, "tenant": p.tenant,
+                    "method": p.method, "path": p.path, "payload_json": p.payload_json,
+                    "context_hash": p.context_hash}),
     }
 }
 
-fn property_plan(raw: &Value) -> PropertyPlan {
-    PropertyPlan {
-        ticket_id: i64_at(raw, "ticket_id"),
-        tenant: str_at(raw, "tenant"),
-        body_json: str_at(raw, "body_json"),
-        before_json: str_at(raw, "before_json"),
-        record_hash: str_at(raw, "record_hash"),
+/// The [`WritePlan`] behind [`write_review`] when its action is `action`.
+fn write_plan(raw: &Value, action: impl Fn(&str) -> bool) -> BResult<WritePlan> {
+    if raw.get("kind").and_then(Value::as_str) != Some("reviewed_write")
+        || !action(&str_at(raw, "action"))
+    {
+        return Err(Failure::value("not a plan for this action"));
     }
+    Ok(WritePlan {
+        action: str_at(raw, "action"),
+        target: i64_at(raw, "target"),
+        tenant: str_at(raw, "tenant"),
+        method: str_at(raw, "method"),
+        path: str_at(raw, "path"),
+        payload_json: str_at(raw, "payload_json"),
+        context_hash: str_at(raw, "context_hash"),
+    })
 }
 
 /// `TaskPlan` fields as [`ReviewPlan::raw`] carries them.
@@ -821,18 +841,6 @@ impl Backend for LiveBackend {
         let notify = conversations::recipients(self.api(), &req.notify)?;
         conversations::recipients(self.api(), &req.bcc)?;
         let tid = s(ticket_id);
-        let sender = req.sender.as_deref().filter(|v| !v.is_empty());
-        if sender.is_some() || !req.bcc.is_empty() {
-            return Err(refuse_mail_options(
-                &tid,
-                body,
-                req,
-                &cc,
-                &notify,
-                sender,
-                &self.domain(),
-            ));
-        }
         let args = ConversationArgs {
             kind: if req.reply { "reply" } else { "note" },
             cc: &cc,
@@ -841,7 +849,18 @@ impl Backend for LiveBackend {
             format: BodyFormat::Plain,
             set_status: req.set_status.as_deref(),
         };
-        let p = conversations::build_plan(self.api(), self.store.as_ref(), &tid, body, &args)?;
+        let mail = MailArgs {
+            bcc: &req.bcc,
+            sender: req.sender.as_deref().filter(|v| !v.is_empty()),
+        };
+        let p = conversations::build_plan_mail(
+            self.api(),
+            self.store.as_ref(),
+            &tid,
+            body,
+            &args,
+            &mail,
+        )?;
         let payload = p.payload();
         let plan = ReviewPlan {
             review: Value::Object(p.review()),
@@ -912,18 +931,26 @@ impl Backend for LiveBackend {
     }
 
     /// `ticket_properties.build_plan(ticket_id, answers={name: value})`.
-    /// `fsv_api::properties::build_plan` has no `answers` yet, and every
-    /// field the picker offers needs them: Python's answers path also
-    /// refuses the tag and planned-date fields the older flags cover.
     fn ticket_property_plan(
         &self,
-        _ticket_id: &Value,
-        _name: &str,
-        _value: &Value,
+        ticket_id: &Value,
+        name: &str,
+        value: &Value,
     ) -> BResult<ReviewPlan> {
-        Err(Failure::from(Error::other(
-            "reviewed ticket property edits from the form are not available in this build; use the web form",
-        )))
+        let mut answers = Map::new();
+        answers.insert(name.to_string(), value.clone());
+        let args = PropertyArgs {
+            answers: Some(&answers),
+            ..PropertyArgs::default()
+        };
+        let p = properties::build_plan_with(
+            self.api(),
+            self.store.as_ref(),
+            &s(ticket_id),
+            &args,
+            Some(self.resolver()),
+        )?;
+        Ok(property_review(&p))
     }
 
     /// `ticket_properties.send(plan, reviewed_hash=plan.hash)`.
@@ -931,13 +958,93 @@ impl Backend for LiveBackend {
         if plan.raw.get("kind").and_then(Value::as_str) != Some("ticket_property") {
             return Err(Failure::value("not a ticket property plan"));
         }
-        Ok(properties::send(
+        Ok(properties::send_with(
             &property_plan(&plan.raw),
             self.api(),
             self.journal.as_ref(),
             self.store.as_ref(),
             Some(&plan.hash),
+            Some(self.resolver()),
         )?)
+    }
+
+    /// `problem_known_error.build_plan(problem_id)`.
+    fn known_error_plan(&self, problem_id: &Value) -> BResult<ReviewPlan> {
+        let p = problem_known_error::build_plan(self.api(), &s(problem_id))?;
+        Ok(write_review(&p))
+    }
+
+    /// `problem_known_error.send(plan, reviewed_hash=plan.hash)`.
+    fn send_known_error(&self, plan: &ReviewPlan) -> BResult<Value> {
+        let p = write_plan(&plan.raw, |a| a == "problem_known_error_mark")?;
+        Ok(problem_known_error::send(
+            &p,
+            self.api(),
+            self.journal.as_ref(),
+            Some(&plan.hash),
+        )?)
+    }
+
+    /// `planning_text.definitions(module)`.
+    fn planning_definitions(&self, module: &str) -> BResult<Vec<Value>> {
+        Ok(planning_text::definitions(
+            self.api(),
+            module,
+            self.change_schema.as_ref(),
+        )?)
+    }
+
+    /// `match_planning_row({"name": section}, planning_text.inventory(module, id))`.
+    fn planning_row(&self, module: &str, id: &Value, section: &str) -> BResult<Option<Value>> {
+        let rows = planning_text::inventory(self.api(), module, id_of(id)?)?;
+        Ok(fsv_api::create::match_planning_row(
+            &json!({"name": section}),
+            &rows,
+        )?)
+    }
+
+    /// `planning_text.build_plan(module, id, section, description)`.
+    fn planning_text_plan(
+        &self,
+        module: &str,
+        id: &Value,
+        section: &str,
+        description: &str,
+    ) -> BResult<ReviewPlan> {
+        let p = planning_text::build_plan(
+            self.api(),
+            module,
+            &s(id),
+            section,
+            description,
+            self.change_schema.as_ref(),
+        )?;
+        Ok(write_review(&p))
+    }
+
+    /// `planning_text.send(plan, reviewed_hash=plan.hash)`.
+    fn send_planning_text(&self, plan: &ReviewPlan) -> BResult<Value> {
+        let p = write_plan(&plan.raw, |a| a.ends_with("_planning_text"))?;
+        Ok(planning_text::send(
+            &p,
+            self.api(),
+            self.journal.as_ref(),
+            Some(&plan.hash),
+            self.change_schema.as_ref(),
+        )?)
+    }
+
+    /// `asset_picker.candidates(c, change, query, page=page)`.
+    fn asset_candidates(&self, req: &AssetCandidatesRequest) -> BResult<AssetCandidates> {
+        let got = asset_picker::candidates(self.api(), &req.change, &req.query, req.page)?;
+        Ok(AssetCandidates {
+            change_id: got.change_id,
+            page: got.page,
+            scope: got.scope,
+            assets: got.assets,
+            mutation: got.mutation,
+            warning: got.warning,
+        })
     }
 
     /// `app._prepare_change_task`: validate locally first, then resolve the

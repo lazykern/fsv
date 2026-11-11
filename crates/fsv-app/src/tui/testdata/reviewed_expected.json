@@ -261,7 +261,12 @@
       "old"
     ],
     "planned_start_date": null,
-    "planned_end_date": null
+    "planned_end_date": null,
+    "requested_for_id": null,
+    "custom_fields": {
+      "cost_code": null,
+      "region": null
+    }
   },
   "reply": {
     "plan_lines": [
@@ -271,7 +276,7 @@
       "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields."
     ],
     "payload_json": "{\"body\": \"<div>Acme update</div>\", \"cc_emails\": [\"Acme User <person@example.com>\"], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Acme update</div>\", \"helpdesk_ticket\": {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"status\": 3}, \"translate_reply\": false}",
-    "hash": "2ef8059dd98a3d7275aa81398a003ce7ecc08359405992984957d155cb011440",
+    "hash": "79fb5b1e246b5aa0526cead52737b1dc498ef0444635ef0bef3a21d0acf9b57a",
     "review": {
       "action": "ticket_reply",
       "method": "POST",
@@ -291,7 +296,7 @@
         "translate_reply": false
       },
       "status_label": "Pending",
-      "plan_hash": "2ef8059dd98a3d7275aa81398a003ce7ecc08359405992984957d155cb011440",
+      "plan_hash": "79fb5b1e246b5aa0526cead52737b1dc498ef0444635ef0bef3a21d0acf9b57a",
       "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
     },
     "send_lines": [
@@ -310,13 +315,60 @@
       "status": "submitted",
       "conversation_id": 456,
       "ticket_id": 123,
-      "plan_hash": "2ef8059dd98a3d7275aa81398a003ce7ecc08359405992984957d155cb011440",
+      "plan_hash": "79fb5b1e246b5aa0526cead52737b1dc498ef0444635ef0bef3a21d0acf9b57a",
       "verified": true,
       "fields": {
         "body": "matched",
         "cc_emails": "matched",
         "ticket_status": "matched"
       }
+    }
+  },
+  "reply_bcc": {
+    "plan_lines": [
+      "GET /search/autocomplete/requesters?q=x@example.com&qf=value&all_users=true"
+    ],
+    "payload_json": "{\"bcc_emails\": [\"x@example.com\"], \"body\": \"<div>Acme bcc</div>\", \"conversation_from_summary\": false, \"freddy_message_id\": null, \"from_email\": \"help@acme.example.com\", \"full_text\": \"<div>Acme bcc</div>\", \"translate_reply\": false}",
+    "hash": "1da9322b2e22da5bef2ac89c38924cac0b04d83dde410c1b8dc06c0874197a54",
+    "review": {
+      "action": "ticket_reply",
+      "method": "POST",
+      "path": "/api/_/tickets/123/reply",
+      "payload": {
+        "bcc_emails": [
+          "x@example.com"
+        ],
+        "body": "<div>Acme bcc</div>",
+        "conversation_from_summary": false,
+        "freddy_message_id": null,
+        "from_email": "help@acme.example.com",
+        "full_text": "<div>Acme bcc</div>",
+        "translate_reply": false
+      },
+      "status_label": null,
+      "plan_hash": "1da9322b2e22da5bef2ac89c38924cac0b04d83dde410c1b8dc06c0874197a54",
+      "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+    },
+    "send_lines": [
+      "GET /search/autocomplete/requesters?q=x@example.com&qf=value&all_users=true",
+      "POST /api/_/tickets/123/reply",
+      "GET /api/_/tickets/123/conversations?include=user,phone,feedback&per_page=30&page=1"
+    ],
+    "send_bodies": [
+      "{\"bcc_emails\": [\"x@example.com\"], \"body\": \"<div>Acme bcc</div>\", \"conversation_from_summary\": false, \"freddy_message_id\": null, \"from_email\": \"help@acme.example.com\", \"full_text\": \"<div>Acme bcc</div>\", \"translate_reply\": false}"
+    ],
+    "result": {
+      "status": "submitted",
+      "conversation_id": 456,
+      "ticket_id": 123,
+      "plan_hash": "1da9322b2e22da5bef2ac89c38924cac0b04d83dde410c1b8dc06c0874197a54",
+      "verified": false,
+      "fields": {
+        "body": "matched",
+        "bcc_emails": "matched",
+        "from_email": "unavailable"
+      },
+      "warning": "Conversation or ticket fields were not fully verified on read-back; do not resend."
     }
   },
   "note": {
@@ -369,7 +421,9 @@
       },
       "error": "note sender/BCC wire is not proven",
       "payload": null,
-      "lines": []
+      "lines": [],
+      "hash": null,
+      "review": null
     },
     {
       "reply": false,
@@ -380,7 +434,9 @@
       "payload": null,
       "lines": [
         "GET /search/autocomplete/requesters?q=x@example.com&qf=value&all_users=true"
-      ]
+      ],
+      "hash": null,
+      "review": null
     },
     {
       "reply": true,
@@ -389,7 +445,9 @@
       },
       "error": "sender must be a plain configured support email address",
       "payload": null,
-      "lines": []
+      "lines": [],
+      "hash": null,
+      "review": null
     },
     {
       "reply": true,
@@ -402,7 +460,9 @@
       "lines": [
         "GET /search/autocomplete/requesters?q=person@example.com&qf=value&all_users=true",
         "GET /search/autocomplete/requesters?q=x@example.com&qf=value&all_users=true"
-      ]
+      ],
+      "hash": null,
+      "review": null
     },
     {
       "reply": true,
@@ -414,7 +474,9 @@
       "payload": null,
       "lines": [
         "GET /search/autocomplete/requesters?q=x@example.com&qf=value&all_users=true"
-      ]
+      ],
+      "hash": null,
+      "review": null
     },
     {
       "reply": true,
@@ -425,7 +487,9 @@
       "payload": null,
       "lines": [
         "GET /search/autocomplete/requesters?q=x@example.com&qf=value&all_users=true"
-      ]
+      ],
+      "hash": null,
+      "review": null
     },
     {
       "reply": true,
@@ -435,7 +499,9 @@
       },
       "error": "CC must be a plain email address",
       "payload": null,
-      "lines": []
+      "lines": [],
+      "hash": null,
+      "review": null
     },
     {
       "reply": true,
@@ -457,7 +523,27 @@
       },
       "lines": [
         "GET /search/autocomplete/requesters?q=x@example.com&qf=value&all_users=true"
-      ]
+      ],
+      "hash": "6c37f744e65d66d72eb966e50eaca25ba3d456f15ec1f0a5a13b3492e49b5253",
+      "review": {
+        "action": "ticket_reply",
+        "method": "POST",
+        "path": "/api/_/tickets/123/reply",
+        "payload": {
+          "bcc_emails": [
+            "x@example.com"
+          ],
+          "body": "<div>Acme</div>",
+          "conversation_from_summary": false,
+          "freddy_message_id": null,
+          "from_email": "help@acme.example.com",
+          "full_text": "<div>Acme</div>",
+          "translate_reply": false
+        },
+        "status_label": null,
+        "plan_hash": "6c37f744e65d66d72eb966e50eaca25ba3d456f15ec1f0a5a13b3492e49b5253",
+        "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+      }
     },
     {
       "reply": true,
@@ -474,7 +560,25 @@
         "full_text": "<div>Acme</div>",
         "translate_reply": false
       },
-      "lines": []
+      "lines": [],
+      "hash": "de5916a346ec0e50bef44d1ff09a34de62cd212faec90753600f0bb159923970",
+      "review": {
+        "action": "ticket_reply",
+        "method": "POST",
+        "path": "/api/_/tickets/123/reply",
+        "payload": {
+          "body": "<div>Acme</div>",
+          "cc_emails": [],
+          "conversation_from_summary": false,
+          "freddy_message_id": null,
+          "from_email": "help@acme.example.com",
+          "full_text": "<div>Acme</div>",
+          "translate_reply": false
+        },
+        "status_label": null,
+        "plan_hash": "de5916a346ec0e50bef44d1ff09a34de62cd212faec90753600f0bb159923970",
+        "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+      }
     }
   ],
   "property_fields": {
@@ -557,7 +661,7 @@
       "GET /api/_/ticket_form_fields",
       "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields."
     ],
-    "hash": "e20e59603bf4bbd699890c32989591e68544dbeb88ccd1967501241a83703cb4",
+    "hash": "40f92416409c8062ec97e4d45ae01c5e300770b0078655e2e877fd052764113e",
     "review": {
       "action": "ticket_properties",
       "method": "PUT",
@@ -580,12 +684,12 @@
           "one"
         ]
       },
-      "plan_hash": "e20e59603bf4bbd699890c32989591e68544dbeb88ccd1967501241a83703cb4",
+      "plan_hash": "40f92416409c8062ec97e4d45ae01c5e300770b0078655e2e877fd052764113e",
       "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
     },
     "body_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"tags\": [\"Acme\", \"one\"]}",
     "before_json": "{\"tags\": [\"old\"]}",
-    "record_hash": "60e758f884ee3ef9a8deadc3f28925745b6320bbb388b98ee9a5242ca64777eb",
+    "record_hash": "3ba6bdf05f77b385ad11e03ec21367b42db4bfafe176a892fede0f4ab0642f22",
     "send_lines": [
       "GET /api/_/tickets/123",
       "GET /api/_/ticket_form_fields",
@@ -599,7 +703,7 @@
     "result": {
       "status": "submitted",
       "ticket_id": 123,
-      "plan_hash": "e20e59603bf4bbd699890c32989591e68544dbeb88ccd1967501241a83703cb4",
+      "plan_hash": "40f92416409c8062ec97e4d45ae01c5e300770b0078655e2e877fd052764113e",
       "verified": true,
       "fields": {
         "tags": "matched"
@@ -613,5 +717,479 @@
     "tags": {
       "error": "could not evaluate ticket edit form and rules; no update attempted"
     }
+  },
+  "property_answers": {
+    "subject": {
+      "plan_lines": [
+        "GET /api/_/tickets/123",
+        "GET /api/_/ticket_form_fields",
+        "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields."
+      ],
+      "hash": "a328f2b385fefed469bca8e86b15cc5b88582b996f2291f147e45baf1c6a00aa",
+      "review": {
+        "action": "ticket_properties",
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "before": {
+          "subject": "Test"
+        },
+        "after": {
+          "subject": "Globex"
+        },
+        "payload": {
+          "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+          "subject": "Globex"
+        },
+        "plan_hash": "a328f2b385fefed469bca8e86b15cc5b88582b996f2291f147e45baf1c6a00aa",
+        "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+      },
+      "send_lines": [
+        "GET /api/_/tickets/123",
+        "GET /api/_/ticket_form_fields",
+        "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields.",
+        "PUT /api/_/tickets/123",
+        "GET /api/_/tickets/123"
+      ],
+      "send_bodies": [
+        "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"subject\": \"Globex\"}"
+      ],
+      "result": {
+        "status": "submitted",
+        "ticket_id": 123,
+        "plan_hash": "a328f2b385fefed469bca8e86b15cc5b88582b996f2291f147e45baf1c6a00aa",
+        "verified": true,
+        "fields": {
+          "subject": "matched"
+        }
+      },
+      "send_error": null,
+      "value": "Globex"
+    },
+    "priority": {
+      "plan_lines": [
+        "GET /api/_/tickets/123",
+        "GET /api/_/ticket_form_fields",
+        "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields."
+      ],
+      "hash": "26096a5ed4ac8eb31b2aedbd73198fc4d6a9e5f3e4a5f35b8cb373a3ad73ef64",
+      "review": {
+        "action": "ticket_properties",
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "before": {
+          "priority": 1
+        },
+        "after": {
+          "priority": 3
+        },
+        "payload": {
+          "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+          "priority": 3
+        },
+        "plan_hash": "26096a5ed4ac8eb31b2aedbd73198fc4d6a9e5f3e4a5f35b8cb373a3ad73ef64",
+        "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+      },
+      "send_lines": [
+        "GET /api/_/tickets/123",
+        "GET /api/_/ticket_form_fields",
+        "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields.",
+        "PUT /api/_/tickets/123",
+        "GET /api/_/tickets/123"
+      ],
+      "send_bodies": [
+        "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"priority\": 3}"
+      ],
+      "result": {
+        "status": "submitted",
+        "ticket_id": 123,
+        "plan_hash": "26096a5ed4ac8eb31b2aedbd73198fc4d6a9e5f3e4a5f35b8cb373a3ad73ef64",
+        "verified": true,
+        "fields": {
+          "priority": "matched"
+        }
+      },
+      "send_error": null,
+      "value": "High"
+    },
+    "cost_code": {
+      "plan_lines": [
+        "GET /api/_/tickets/123",
+        "GET /api/_/ticket_form_fields",
+        "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields."
+      ],
+      "hash": "866e92259a546f068fada4e01773d5baee21fe1ada9ffd6c662443d98bb6f841",
+      "review": {
+        "action": "ticket_properties",
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "before": {
+          "custom_fields": {
+            "cost_code": null,
+            "region": null
+          }
+        },
+        "after": {
+          "custom_fields": {
+            "cost_code": "CC-9"
+          }
+        },
+        "payload": {
+          "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+          "custom_fields": {
+            "cost_code": "CC-9"
+          }
+        },
+        "plan_hash": "866e92259a546f068fada4e01773d5baee21fe1ada9ffd6c662443d98bb6f841",
+        "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+      },
+      "send_lines": [
+        "GET /api/_/tickets/123",
+        "GET /api/_/ticket_form_fields",
+        "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields.",
+        "PUT /api/_/tickets/123",
+        "GET /api/_/tickets/123"
+      ],
+      "send_bodies": [
+        "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"cost_code\": \"CC-9\"}}"
+      ],
+      "result": {
+        "status": "submitted",
+        "ticket_id": 123,
+        "plan_hash": "866e92259a546f068fada4e01773d5baee21fe1ada9ffd6c662443d98bb6f841",
+        "verified": true,
+        "fields": {
+          "custom_fields": "matched"
+        }
+      },
+      "send_error": null,
+      "value": "CC-9"
+    },
+    "region": {
+      "plan_lines": [
+        "GET /api/_/tickets/123",
+        "GET /api/_/ticket_form_fields",
+        "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields."
+      ],
+      "hash": "691a8693fb49a06410f9851be1aad297af56881b84194176ce28c6a5d1acbac8",
+      "review": {
+        "action": "ticket_properties",
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "before": {
+          "custom_fields": {
+            "cost_code": null,
+            "region": null
+          }
+        },
+        "after": {
+          "custom_fields": {
+            "region": "South"
+          }
+        },
+        "payload": {
+          "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+          "custom_fields": {
+            "region": "South"
+          }
+        },
+        "plan_hash": "691a8693fb49a06410f9851be1aad297af56881b84194176ce28c6a5d1acbac8",
+        "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+      },
+      "send_lines": [
+        "GET /api/_/tickets/123",
+        "GET /api/_/ticket_form_fields",
+        "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields.",
+        "PUT /api/_/tickets/123",
+        "GET /api/_/tickets/123"
+      ],
+      "send_bodies": [
+        "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"region\": \"South\"}}"
+      ],
+      "result": {
+        "status": "submitted",
+        "ticket_id": 123,
+        "plan_hash": "691a8693fb49a06410f9851be1aad297af56881b84194176ce28c6a5d1acbac8",
+        "verified": true,
+        "fields": {
+          "custom_fields": "matched"
+        }
+      },
+      "send_error": null,
+      "value": "South"
+    },
+    "requested_for": {
+      "plan_lines": [
+        "GET /api/_/tickets/123",
+        "GET /api/_/ticket_form_fields",
+        "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields.",
+        "GET /search/autocomplete/requesters?q=person@example.com&qf=value&all_users=true"
+      ],
+      "hash": "fdf26abca6462bae23e56e88f07801d1fdc5821ce3ce92976e076f3dae69514a",
+      "review": {
+        "action": "ticket_properties",
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "before": {
+          "requested_for_id": null
+        },
+        "after": {
+          "requested_for_id": 11
+        },
+        "payload": {
+          "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+          "requested_for_id": 11
+        },
+        "plan_hash": "fdf26abca6462bae23e56e88f07801d1fdc5821ce3ce92976e076f3dae69514a",
+        "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."
+      },
+      "send_lines": [
+        "GET /api/_/tickets/123",
+        "GET /api/_/ticket_form_fields",
+        "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields.",
+        "GET /search/autocomplete/requesters?q=person@example.com&qf=value&all_users=true",
+        "PUT /api/_/tickets/123",
+        "GET /api/_/tickets/123"
+      ],
+      "send_bodies": [
+        "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"requested_for_id\": 11}"
+      ],
+      "result": {
+        "status": "submitted",
+        "ticket_id": 123,
+        "plan_hash": "fdf26abca6462bae23e56e88f07801d1fdc5821ce3ce92976e076f3dae69514a",
+        "verified": true,
+        "fields": {
+          "requested_for_id": "matched"
+        }
+      },
+      "send_error": null,
+      "value": "person@example.com"
+    },
+    "status": {
+      "error": "combined resolution/closure requirements are not proven; use the web form",
+      "lines": [
+        "GET /api/_/tickets/123",
+        "GET /api/_/ticket_form_fields",
+        "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields."
+      ],
+      "value": "Closed"
+    },
+    "planned_start_date": {
+      "error": "Start: update wire is not proven",
+      "lines": [
+        "GET /api/_/tickets/123",
+        "GET /api/_/ticket_form_fields",
+        "GET /api/_/ws/2/business_rules?ember_api=true&module_type=ticket&item_id=null&requester=&requested_for=&include_workspace=false&filter_by_default_form_action=true&form_type=edit_form&user_type=null&module_id=123&cf_name_prefix=customFields."
+      ],
+      "value": "2030-01-02T09:00:00-05:00"
+    }
+  },
+  "known_error": {
+    "plan_lines": [
+      "GET /api/_/problems/77"
+    ],
+    "hash": "f3a7dea6994ce3544ea1c6ffe123e57940c101e482ffdb44765a6ca38637ea6f",
+    "review": {
+      "action": "problem_known_error_mark",
+      "method": "PUT",
+      "path": "/api/_/problems/77",
+      "payload": {
+        "known_error": true
+      },
+      "plan_hash": "f3a7dea6994ce3544ea1c6ffe123e57940c101e482ffdb44765a6ca38637ea6f",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "action": "problem_known_error_mark",
+    "target": 77,
+    "method": "PUT",
+    "path": "problems/77",
+    "payload_json": "{\"known_error\": true}",
+    "context_hash": "36c620a1b1c49be71a6f63b29a62ca9e3899649acb821798b06511d16f0626c2",
+    "send_lines": [
+      "GET /api/_/problems/77",
+      "GET /api/_/problems/77",
+      "GET /api/_/problems/77",
+      "PUT /api/_/problems/77",
+      "GET /api/_/problems/77"
+    ],
+    "send_bodies": [
+      "{\"known_error\": true}"
+    ],
+    "result": {
+      "status": "submitted",
+      "plan_hash": "f3a7dea6994ce3544ea1c6ffe123e57940c101e482ffdb44765a6ca38637ea6f",
+      "verified": true,
+      "problem_id": 77
+    },
+    "send_error": null
+  },
+  "planning": {
+    "problems": {
+      "definitions": [
+        {
+          "name": "problem_cause",
+          "label": "Root Cause"
+        },
+        {
+          "name": "problem_impact",
+          "label": "Impact"
+        },
+        {
+          "name": "problem_symptom",
+          "label": "Symptoms"
+        }
+      ],
+      "row": {
+        "name": "problem_cause",
+        "label": "Root Cause",
+        "description": "<p>old</p>",
+        "attachments": []
+      },
+      "missing_row": null,
+      "read_lines": [
+        "GET /api/_/problems/77/planning-fields"
+      ],
+      "plan_lines": [
+        "GET /api/_/problems/77/planning-fields"
+      ],
+      "hash": "7dd0209ac02d3e522769a4d922dc9b801a60491f5b0347977986cc0170560b1e",
+      "review": {
+        "action": "problems_planning_text",
+        "method": "POST",
+        "path": "/api/_/problems/77/planning-fields?id=problem_cause",
+        "payload": {
+          "description": "<p>new cause</p>"
+        },
+        "plan_hash": "7dd0209ac02d3e522769a4d922dc9b801a60491f5b0347977986cc0170560b1e",
+        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "problems_planning_text",
+      "target": 77,
+      "method": "POST",
+      "path": "problems/77/planning-fields?id=problem_cause",
+      "payload_json": "{\"description\": \"<p>new cause</p>\"}",
+      "context_hash": "00945572427bf6e877a73f259f19ba95348dd89e3523dc31e4284308961de20e",
+      "send_lines": [
+        "GET /api/_/problems/77/planning-fields",
+        "POST /api/_/problems/77/planning-fields?id=problem_cause",
+        "GET /api/_/problems/77/planning-fields"
+      ],
+      "send_bodies": [
+        "{\"description\": \"<p>new cause</p>\"}"
+      ],
+      "result": {
+        "status": "submitted",
+        "plan_hash": "7dd0209ac02d3e522769a4d922dc9b801a60491f5b0347977986cc0170560b1e",
+        "verified": true,
+        "section": "problem_cause",
+        "description": "matched"
+      },
+      "send_error": null
+    },
+    "changes": {
+      "definitions": [
+        {
+          "id": 41,
+          "name": "change_reason",
+          "label": "Reason for Change",
+          "field_type": "default_change_reason"
+        },
+        {
+          "id": 43,
+          "name": "rollout_plan",
+          "label": "Rollout Plan",
+          "field_type": "default_change_plan"
+        }
+      ],
+      "row": {
+        "name": "rollout_plan",
+        "label": "Rollout Plan",
+        "description": "<p>v1</p>",
+        "attachments": []
+      },
+      "missing_row": null,
+      "read_lines": [
+        "GET /api/_/changes/5/planning-fields"
+      ],
+      "plan_lines": [
+        "GET /api/_/changes/5/planning-fields"
+      ],
+      "hash": "8ae60112930f4150cd9d09545ecf2b25ce85b8ed1afcdec03068f83576b92aa5",
+      "review": {
+        "action": "changes_planning_text",
+        "method": "POST",
+        "path": "/api/_/changes/5/planning-fields?id=rollout_plan",
+        "payload": {
+          "description": "<p>v2</p>"
+        },
+        "plan_hash": "8ae60112930f4150cd9d09545ecf2b25ce85b8ed1afcdec03068f83576b92aa5",
+        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "changes_planning_text",
+      "target": 5,
+      "method": "POST",
+      "path": "changes/5/planning-fields?id=rollout_plan",
+      "payload_json": "{\"description\": \"<p>v2</p>\"}",
+      "context_hash": "c5eee0eeed35c8ed469f68b4eb3d7a9582aff5da72cac163431f83ad97e96151",
+      "send_lines": [
+        "GET /api/_/changes/5/planning-fields",
+        "POST /api/_/changes/5/planning-fields?id=rollout_plan",
+        "GET /api/_/changes/5/planning-fields"
+      ],
+      "send_bodies": [
+        "{\"description\": \"<p>v2</p>\"}"
+      ],
+      "result": {
+        "status": "submitted",
+        "plan_hash": "8ae60112930f4150cd9d09545ecf2b25ce85b8ed1afcdec03068f83576b92aa5",
+        "verified": true,
+        "section": "rollout_plan",
+        "description": "matched"
+      },
+      "send_error": null
+    },
+    "tickets_error": "planning wire is proven only for changes and the three native problem analysis sections"
+  },
+  "change_fields": [
+    {
+      "id": 41,
+      "name": "change_reason",
+      "label": "Reason for Change",
+      "field_type": "default_change_reason"
+    },
+    {
+      "id": 42,
+      "name": "subject",
+      "label": "Subject",
+      "field_type": "default_subject"
+    },
+    {
+      "id": 43,
+      "name": "rollout_plan",
+      "label": "Rollout Plan",
+      "field_type": "default_change_plan"
+    }
+  ],
+  "assets": {
+    "result": {
+      "change_id": 5,
+      "page": 1,
+      "scope": "single search page; not a complete inventory",
+      "assets": [
+        {
+          "display_id": 7,
+          "name": "Acme DB"
+        },
+        {
+          "display_id": 8,
+          "name": "Globex"
+        }
+      ],
+      "mutation": "none",
+      "warning": "Selection only. Asset/CI add-remove variants remain unsupported by this picker."
+    },
+    "lines": [
+      "GET /api/_/assets-to-associate?entity=change&entity_id=5&include_meta=true&page=1&per_page=30&search_term=acme"
+    ]
   }
 }

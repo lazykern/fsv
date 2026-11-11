@@ -8,6 +8,7 @@
 #![allow(clippy::result_large_err)]
 
 pub mod approvals;
+pub mod asset_picker;
 pub mod associations;
 pub mod bulk_priority;
 pub mod catalog;
