@@ -319,3 +319,6 @@ mod tests {
         assert_eq!(metadata_fingerprint(None, None, None).updated_at, None);
     }
 }
+
+#[cfg(test)]
+mod py_tests;

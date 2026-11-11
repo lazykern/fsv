@@ -177,3 +177,6 @@ impl FormError {
 }
 
 pub type Result<T, E = FormError> = std::result::Result<T, E>;
+
+#[cfg(test)]
+mod py_tests;

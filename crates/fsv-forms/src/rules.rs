@@ -27,7 +27,7 @@ use serde_json::{Map, Value as Json};
 
 use crate::errors::{FormError, Result};
 use crate::pytext::{jrepr, jstr, repr_str_list, strip, truthy};
-use crate::spec::{CHOICE_KINDS, CUSTOM_PREFIXES, Choice, Field, FormSpec, Kind};
+use crate::spec::{CUSTOM_PREFIXES, Choice, Field, FormSpec, Kind};
 use crate::value::{PyObj, Value, Values, norm};
 
 pub const SUPPORTED_OPERATORS: [&str; 6] = [
@@ -2324,3 +2324,6 @@ impl State {
         });
     }
 }
+
+#[cfg(test)]
+mod py_tests;

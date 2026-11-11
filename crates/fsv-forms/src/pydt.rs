@@ -93,7 +93,7 @@ fn offset_iso(off: Offset) -> String {
     let sign = if secs < 0 { '-' } else { '+' };
     let a = secs.unsigned_abs();
     let mut s = format!("{sign}{:02}:{:02}", a / 3600, (a % 3600) / 60);
-    if a % 60 != 0 {
+    if !a.is_multiple_of(60) {
         let _ = write!(s, ":{:02}", a % 60);
     }
     s

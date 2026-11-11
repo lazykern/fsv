@@ -318,8 +318,8 @@ fn type_name(v: &Value) -> &'static str {
         Value::Str(_) => "str",
         Value::List(_) => "list",
         Value::Lookup(_) => "LookupValue",
-        Value::Date(_) => "date",
-        Value::DateTime(_) => "datetime",
+        Value::Date(_) => "datetime.date",
+        Value::DateTime(_) => "datetime.datetime",
         Value::Json(Json::Null) => "NoneType",
         Value::Json(Json::Bool(_)) => "bool",
         Value::Json(Json::Number(n)) if n.is_f64() => "float",
@@ -331,7 +331,7 @@ fn type_name(v: &Value) -> &'static str {
 }
 
 /// `list(raw)` for a non-string raw answer.
-fn py_list(v: &Value) -> Result<Vec<Value>> {
+pub(crate) fn py_list(v: &Value) -> Result<Vec<Value>> {
     match v {
         Value::List(items) => Ok(items.clone()),
         Value::Json(Json::Array(items)) => Ok(items.iter().map(Value::from_json).collect()),
@@ -831,26 +831,43 @@ impl FormState {
     }
 
     fn lookup_one(&self, f: &Field, raw: &Value) -> Result<LookupValue> {
-        match raw {
-            Value::Lookup(lv) => return Ok(lv.clone()),
-            Value::Bool(_) | Value::Json(Json::Bool(_)) => {
-                return Err(FormError::parse(
-                    &f.label,
-                    raw,
-                    "expects a name, email or id",
-                ));
+        // Custom record ids must be verified against their metadata endpoint;
+        // a numeric draft answer is not a trusted selection receipt.
+        let verify = matches!(
+            f.field_type.as_str(),
+            "custom_lookup" | "custom_multi_lookup"
+        ) && f.lookup_link.as_deref().is_some_and(|l| !l.is_empty());
+        let id_value;
+        let raw = match raw {
+            Value::Lookup(lv) if !verify => return Ok(lv.clone()),
+            Value::Lookup(lv) => {
+                id_value = Value::from_json(&lv.id);
+                &id_value
             }
-            Value::Int(i) => return Ok(LookupValue::id(*i)),
-            Value::Json(Json::Number(n)) if n.is_i64() || n.is_u64() => {
-                return Ok(LookupValue::id(Json::Number(n.clone())));
-            }
-            _ => {}
+            other => other,
+        };
+        if let Value::Bool(_) | Value::Json(Json::Bool(_)) = raw {
+            return Err(FormError::parse(
+                &f.label,
+                raw,
+                "expects a name, email or id",
+            ));
         }
-        if let Some(s) = raw.as_str()
-            && is_digits(strip(s))
-            && let Some(i) = parse_int(strip(s))
+        let numeric: Option<Json> = match raw {
+            Value::Int(i) => Some(json!(*i)),
+            Value::Json(Json::Number(n)) if n.is_i64() || n.is_u64() => {
+                Some(Json::Number(n.clone()))
+            }
+            _ => raw
+                .as_str()
+                .filter(|s| is_digits(strip(s)))
+                .and_then(|s| parse_int(strip(s)))
+                .map(Json::from),
+        };
+        if let Some(id) = &numeric
+            && !verify
         {
-            return Ok(LookupValue::id(i));
+            return Ok(LookupValue::id(id.clone()));
         }
         let query = strip(&raw_str(raw)).to_string();
         let Some(resolver) = &self.resolver else {
@@ -873,6 +890,10 @@ impl FormState {
         let mut found = resolver
             .lookup(entity, &query, f)
             .map_err(FormError::Lookup)?;
+        if verify && let Some(id) = &numeric {
+            let id = fsv_py::py_str(id);
+            found.retain(|c| fsv_py::py_str(&c.id) == id);
+        }
         if found.len() == 1 {
             return Ok(found.remove(0));
         }
@@ -1360,7 +1381,11 @@ fn parse_datetime(f: &Field, raw: &Value, tz: &Zone) -> Result<Value> {
 
 fn parse_attachments(f: &Field, raw: &Value) -> Result<Value> {
     let items = match raw {
-        Value::Str(_) | Value::Int(_) | Value::Json(Json::String(_)) => vec![raw.clone()],
+        Value::Str(_)
+        | Value::Int(_)
+        | Value::Bool(_)
+        | Value::Json(Json::String(_) | Json::Bool(_)) => vec![raw.clone()],
+        Value::Json(Json::Number(n)) if !n.is_f64() => vec![raw.clone()],
         other => py_list(other)?,
     };
     if let Some(max) = f.max_files
@@ -1624,3 +1649,6 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod py_tests;

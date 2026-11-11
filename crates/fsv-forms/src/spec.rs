@@ -1283,7 +1283,11 @@ pub fn fields_from_form_field(f: &Json, warnings: &mut Vec<String>) -> Result<Ve
         if is_user {
             lookup_entity = Some("user".to_string());
         } else {
-            kind = Kind::Unsupported;
+            kind = if get_truthy(lookup_cfg, "link").is_some() {
+                Kind::Lookup
+            } else {
+                Kind::Unsupported
+            };
             lookup_entity = Some(jstr(src));
         }
     } else if ftype == "default_change_window" {
@@ -1762,3 +1766,6 @@ pub fn field_from_sr(
     f.max_files = max_files;
     Ok((f, sections))
 }
+
+#[cfg(test)]
+mod py_tests;

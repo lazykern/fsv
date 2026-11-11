@@ -672,3 +672,6 @@ mod tests {
         assert_eq!(date_iso(add_months(d, -2).expect("m")), "2025-11-30");
     }
 }
+
+#[cfg(test)]
+mod py_tests;

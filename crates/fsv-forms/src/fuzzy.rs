@@ -111,3 +111,6 @@ mod tests {
         assert_eq!(fold("ﬁle"), "file");
     }
 }
+
+#[cfg(test)]
+mod py_tests;

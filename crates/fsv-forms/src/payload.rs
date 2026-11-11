@@ -326,14 +326,11 @@ pub fn text_to_html(text: &str) -> String {
     }
 }
 
-fn items_of(value: &Value) -> Vec<Value> {
-    match value {
-        Value::List(items) => items.clone(),
-        Value::Json(Json::Array(a)) => a.iter().map(Value::from_json).collect(),
-        other => match other.as_str() {
-            Some(s) => s.chars().map(|c| Value::Str(c.to_string())).collect(),
-            None => vec![other.clone()],
-        },
+/// `list(value)`: a string iterates its characters.
+fn items_of(value: &Value) -> Result<Vec<Value>> {
+    match value.as_str() {
+        Some(s) => Ok(s.chars().map(|c| Value::Str(c.to_string())).collect()),
+        None => crate::state::py_list(value),
     }
 }
 
@@ -365,7 +362,7 @@ pub fn encode_value(spec: &FormSpec, f: &Field, value: &Value, values: &Values) 
             }
         }
         Kind::MultiSelect => Ok(Json::Array(
-            items_of(value)
+            items_of(value)?
                 .iter()
                 .map(|v| Json::String(v.py_str()))
                 .collect(),
@@ -389,8 +386,25 @@ pub fn encode_value(spec: &FormSpec, f: &Field, value: &Value, values: &Values) 
             other => lookup_id(f, other),
         },
         Kind::Richtext => Ok(Json::String(text_to_html(&value.py_str()))),
-        _ => value.to_json(),
+        _ => {
+            unsent_type(value)?;
+            value.to_json()
+        }
     }
+}
+
+/// Python passes other values through untouched; dates then fail in
+/// `json.dumps` when the body is sent.
+fn unsent_type(value: &Value) -> Result<()> {
+    let name = match value {
+        Value::Date(_) => "date",
+        Value::DateTime(_) => "datetime",
+        Value::List(items) => return items.iter().try_for_each(unsent_type),
+        _ => return Ok(()),
+    };
+    Err(FormError::Type(format!(
+        "Object of type {name} is not JSON serializable"
+    )))
 }
 
 fn lookup_id(f: &Field, v: &Value) -> Result<Json> {
@@ -828,3 +842,6 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod py_tests;

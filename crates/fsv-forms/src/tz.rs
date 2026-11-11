@@ -379,3 +379,6 @@ pub fn fold0_offset(local: DateTime, tz: &Zone) -> Offset {
         AmbiguousOffset::Gap { before, .. } | AmbiguousOffset::Fold { before, .. } => before,
     }
 }
+
+#[cfg(test)]
+mod py_tests;

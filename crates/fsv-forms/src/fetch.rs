@@ -450,3 +450,6 @@ mod tests {
         ));
     }
 }
+
+#[cfg(test)]
+mod py_tests;
