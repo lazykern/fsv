@@ -1040,6 +1040,10 @@ def _get_change_schema_fields() -> list[dict[str, Any]]:
 
 def submit_change(body: dict[str, Any], c: Client | None = None) -> dict[str, Any]:
     """POST a new change via internal API (cookie + CSRF auth)."""
+    if "br_validation_excludes" in body:
+        # The token tells the server which required checks to skip; only the
+        # form engine may compute it (fsv changes create builds it).
+        raise ValueError("br_validation_excludes is computed by fsv from the form rules; remove it from the body")
     if c is None:
         c = get_client()
 
@@ -1051,7 +1055,6 @@ def submit_change(body: dict[str, Any], c: Client | None = None) -> dict[str, An
         "priority", "impact", "risk", "status", "category",
         "subject", "description", "planned_start_date", "planned_end_date",
         "planned_effort", "department_id", "change_window_id",
-        "br_validation_excludes",
     }
     core: dict[str, Any] = {}
     custom_fields: dict[str, Any] = {}
@@ -1082,3 +1085,38 @@ def submit_change(body: dict[str, Any], c: Client | None = None) -> dict[str, An
             desc = err_body.get("description", str(err_body))
             raise RuntimeError(f"create failed: {desc}") from e
         raise
+
+
+def _api_failure(action: str, e: APIError) -> RuntimeError | APIError:
+    err_body = e.body
+    if isinstance(err_body, dict):
+        errors = err_body.get("errors")
+        if isinstance(errors, list):
+            msgs = [f"{err.get('field', '?')}: {err.get('message', '?')}" for err in errors]
+            out = RuntimeError(f"{action} failed:\n  " + "\n  ".join(msgs))
+        else:
+            out = RuntimeError(f"{action} failed: {err_body.get('description', str(err_body))}")
+        out.__cause__ = e
+        return out
+    return e
+
+
+def post_change_body(body: dict[str, Any], c: Client | None = None) -> dict[str, Any]:
+    """POST an engine-built change body (already nested: top-level default
+    fields, ``custom_fields``, ``email``, ``br_validation_excludes``)."""
+    c = c or get_client()
+    try:
+        data = c.int_post("changes", body)
+    except APIError as e:
+        raise _api_failure("create", e) from e
+    return data.get("change", data) if isinstance(data, dict) else data
+
+
+def put_change_body(change_id: int, body: dict[str, Any], c: Client | None = None) -> dict[str, Any]:
+    """PUT an engine-built partial change body (changed fields only)."""
+    c = c or get_client()
+    try:
+        data = c.int_put(f"changes/{change_id}", body)
+    except APIError as e:
+        raise _api_failure("update", e) from e
+    return data.get("change", data) if isinstance(data, dict) else data

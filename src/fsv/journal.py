@@ -121,3 +121,74 @@ def read(limit: int | None = None) -> list[dict[str, Any]]:
         except ValueError:
             continue
     return rows[-limit:] if limit else rows
+
+
+# ---------------------------------------------------------------------------
+# reviewed plans (form-engine creates/updates)
+#
+# A plan entry ties the reviewed plan hash (``fsv.forms.plan_hash``: body +
+# files) to what happened: ``started`` before the first request, then
+# ``done`` (with the created id and per-step results) or ``failed``. A
+# ``started`` without an outcome means the outcome is unknown (crash,
+# timeout) and counts as a possible duplicate.
+
+PLAN_EVENTS = ("started", "done", "failed")
+
+
+def _append(entry: dict[str, Any]) -> None:
+    p = journal_path()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(p, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
+    try:
+        os.write(fd, (json.dumps(entry, ensure_ascii=False, default=str) + "\n").encode("utf-8"))
+    finally:
+        os.close(fd)
+
+
+def record_plan(event: str, plan: str, *, action: str, target: Any = None, created_id: Any = None,
+                steps: list[dict[str, Any]] | None = None, error: str | None = None) -> None:
+    """Append a plan event. Never raises."""
+    try:
+        entry: dict[str, Any] = {
+            "ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+            "epoch": int(time.time()),
+            "command": _command(),
+            "kind": f"plan:{action}",
+            "event": event,
+            "plan": plan,
+            "target": target,
+            "created_id": created_id,
+        }
+        if steps is not None:
+            entry["steps"] = steps
+        if error:
+            entry["error"] = error[:200]
+        _append(entry)
+    except Exception:
+        pass
+
+
+def recent_plan(plan: str, *, action: str, hours: float = 24.0) -> dict[str, Any] | None:
+    """The latest entry showing this plan was (or may have been) sent within
+    ``hours``: a ``done`` entry, or a ``started`` one with no outcome.
+    ``failed`` plans (rejected by the server) can be retried."""
+    cutoff = time.time() - hours * 3600
+    outcome: dict[str, dict[str, Any]] = {}
+    started: list[dict[str, Any]] = []
+    for row in read():
+        if row.get("plan") != plan or row.get("kind") != f"plan:{action}":
+            continue
+        if (row.get("epoch") or 0) < cutoff:
+            continue
+        if row.get("event") == "started":
+            started.append(row)
+        else:
+            outcome[str(row.get("epoch"))] = row
+    done = [r for r in outcome.values() if r.get("event") == "done"]
+    if done:
+        return max(done, key=lambda r: r.get("epoch") or 0)
+    for s in reversed(started):
+        later = [r for r in outcome.values() if (r.get("epoch") or 0) >= (s.get("epoch") or 0)]
+        if not later:
+            return s
+    return None
