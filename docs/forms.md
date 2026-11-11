@@ -19,7 +19,7 @@ spec = FormSpec.from_form_fields(form_fields_json, module="change")
 rules = RulesEngine(spec, business_rules_json, module="change")
 state = FormState(spec, rules, mode="new", resolver=resolver)
 
-diff = state.set("Environment", "Staging")   # label or API name
+diff = state.set("Stage", "Staging")         # label or API name
 print(diff.describe(spec))                    # ["added: Staging Start, ... (required: ...)"]
 state.missing_required()                      # [Field, ...]
 state.explain(["Staging Start"])              # why it is visible/required, by rule
@@ -32,9 +32,46 @@ plan = plan_hash(body)                        # for --dry-run / --expect-plan
 
 | Form | Fields | Rules |
 |---|---|---|
-| Change | `GET /api/_/change_form_fields` (or `/api/v2/change_form_fields`) | `GET /api/_/ws/2/business_rules` (module `change`) |
-| Ticket | `GET /api/_/ticket_form_fields` (or `/api/v2/ticket_form_fields`) | business rules, module `ticket` |
-| Service request | `GET /api/_/catalog/service-items/<id>` | item sections (below); business rules if the tenant has any for the item |
+| Change | `GET /api/_/change_form_fields` (or `/api/v2/change_form_fields`) | `business_rules_query("change", ...)` |
+| Ticket | `GET /api/_/ticket_form_fields` (or `/api/v2/ticket_form_fields`) | `business_rules_query("ticket", ...)` |
+| Service request | `GET /api/_/catalog/service-items/<id>` | item sections (below); `business_rules_query("service_request", item_id=...)` |
+
+### Fetching the business rules (`fsv.forms.fetch`)
+
+The server filters the rules for the form context, so fetch them the way the
+web does when it opens the form. `business_rules_query()` builds that request
+(no HTTP happens here):
+
+```python
+q = business_rules_query("ticket", workspace_id=2)            # new ticket, agent UI
+q.url("https://acme.freshservice.com")
+# https://acme.freshservice.com/api/_/ws/2/business_rules?ember_api=true&module_type=ticket
+#   &item_id=null&requester=&requested_for=&include_workspace=false
+#   &filter_by_default_form_action=true&form_type=new_form&user_type=null&module_id=
+#   &cf_name_prefix=customFields.
+business_rules_query("service_request", workspace_id=2, item_id=9000009001)   # catalog item
+business_rules_query("change", workspace_id=2, form_type="edit", module_id=4242)  # edit form
+```
+
+Parameters: `module_type`, `workspace_id` (path), `item_id` (catalog item
+`id`; `null` otherwise), `form_type` (`new`/`edit`), `requester` and
+`requested_for` (user ids, empty when unknown), `module_id` (the record's
+display id on an edit form), `user_type` (`null`, as the agent UI sends),
+`include_workspace`, `filter_by_default_form_action` (sent except for service
+requests) and `cf_name_prefix` (`customField.` for service requests,
+`customFields.` otherwise). `q.path`, `q.params` and `q.query_string()` give
+the parts.
+
+`parse_business_rules(data)` reads both response shapes and returns a
+`RulesResponse(rules, user, shape, evaluable, raw)`:
+
+* `{"business_rules": [...], "user": {...}}` (`shape="form"`): the
+  `ember_api=true` response; pass `raw` (or the original data) to
+  `RulesEngine` and `user` to the `RuleContext`.
+* `{"business_rule": [...]}` (`shape="listing"`): the plain
+  `GET .../business_rules` admin listing, every rule of the workspace with
+  `position` but **no** conditions or actions. `evaluable` is False and
+  `RulesEngine` raises `FormRuleError` for it.
 
 ## FormSpec
 
@@ -105,17 +142,20 @@ Unknown types become `text` and add a line to `spec.warnings`.
 RulesEngine(spec, rules, *, module=None, user_type="agent", item_id=None,
             workspace_id=None, user=None, context=None, dedupe="exact",
             strict=True, model="event", same_value_fires=False,
-            event_reverse="transition")
+            event_reverse="always", populate="restrict", system=None,
+            event_scope="all")
 engine.evaluate(values, mode="new"|"edit", *, base=None, order=None, events=None)
 ```
 
 returns an `EvaluatedForm`: `visible` (ordered), `required` (visible and
 required), `disabled`, `values` (effective), `populated` (field → rule id),
 `messages`, `blocking_messages`, `excludes`, `decisions`, `conflicts`,
-`refused`, `overridden`, `attachments_required`, and `explain()`.
+`refused`, `overridden`, `attachments_required`, `restricted` /
+`restricted_by` / `unavailable` (populate restrictions, below),
+`choices(name)`, `restriction_for(name)` and `explain()`.
 
 **Context and filters.** `RuleContext(module, form, user_type, workspace_id,
-item_id, user, requester, requested_for)` (or the matching keyword
+item_id, user, requester, requested_for, system)` (or the matching keyword
 arguments) decides which rules apply:
 
 * Loaded: `state == "active"`, `rule_type == "client_side"`, not deleted,
@@ -127,8 +167,10 @@ arguments) decides which rules apply:
   `edit_form` (mode `edit`); `user_type` `both` or the context's user type.
 * `user` defaults to the `user` object of the business_rules response.
   Conditions with `evaluate_on: "current_user"` read it;
-  `"requester"`/`"requested_for"` read the matching context records. A
-  missing record makes those conditions see empty values (with a warning).
+  `"requester"`/`"requested_for"` read the matching context records;
+  `"system"` reads `RuleContext.system` (e.g. `{"portal": <portal id>}`,
+  the portal the form is opened in). A missing record makes those
+  conditions see empty values (with a warning).
 * Duplicate rule ids: the endpoint returns a reversible and a
   non-reversible entry for many ids, with different action lists. The
   default `dedupe="exact"` drops only identical copies; both entries are
@@ -162,11 +204,39 @@ match change type Emergency.
 | `show` / `hide` | show / hide | hide / show |
 | `mandate` / `unmandate` | required / not required | not required / required |
 | `disable` | read-only | editable again |
-| `populate` | set the value (choice **display id**) | nothing |
+| `populate` | **restrict the dropdown's choices** to the listed ones (choice **display ids**); the value is not set | full choice list again |
 | `message` | add message; blocking if the rule `is_validation` | message removed |
 
-Empty `name` lists are no-ops. `populate` values are choice `display_id`s
-(looked up through `Field.choice_by_display_id`, then id/value).
+Empty `name` lists are no-ops. Action targets are mapped like conditions
+(`description_html` is the description field).
+
+### `populate`: restricted choices
+
+On the web, `populate` does **not** fill a field: it limits the dropdown to
+the listed choices plus the empty `--` choice, and the field keeps its value
+(empty on a new form; a single remaining choice is not auto-selected).
+`values` are choice `display_id`s (then id, value or label); for nested
+fields they are a tree, `[{"display_id": 1, "nested_options":
+[{"display_id": 2, "nested_options": null}]}]`, where `null` (or an empty
+list) leaves every option below that choice on offer. A reversible rule that
+stops matching restores the full list.
+
+* `evaluated.restricted[field]` is a `ChoiceRestriction` (`offers(value)`,
+  `below(value)`); `evaluated.restricted_by[field]` the populate (or restore)
+  decision; `evaluated.choices(name)` / `state.choices(name)` the choices on
+  offer now (nested levels included).
+* `FormState.set` refuses a choice outside the restriction:
+  `'Live' is not offered now: the choices are limited by rule 'X' (id N) to: Staging`
+  (`ValueParseError.options` lists the allowed labels).
+* A value given before a rule limited the choices is kept but reported:
+  `evaluated.unavailable`, `state.unavailable_errors()` (part of
+  `errors()`), a "Not offered" review row; payload builders refuse it.
+* `Diff.restricted` / `Diff.unrestricted` and `describe()` show the change
+  ("choices limited: Stage -> Staging").
+
+`populate="set"` keeps the earlier behaviour (fill in the first value; in the
+replay model it never overwrites a user value and feeds back until it
+settles).
 
 ### Evaluation models
 
@@ -175,14 +245,22 @@ Empty `name` lists are no-ops. `populate` values are choice `display_id`s
 1. On load, every rule is evaluated in array order against the load values
    (defaults on a new form, the record on an edit form). A reversible rule
    that does not match applies its reverse.
-2. Each change of field F is a change event: only rules whose conditions
-   reference F run, in array order. A matching rule applies its actions; a
-   reversible rule is reversed only when it goes from matching to not
-   matching (`event_reverse="always"` reverses on every non-match).
-3. `populate` does not cascade: filling a field fires no change event, so
-   rules on that field do not run.
-4. Selecting the value a field already has is not a change event
+2. Each change of a field is a change event that runs **every** rule again,
+   in array order, on the current form state (`event_scope="all"`). A
+   matching rule applies its actions; a reversible rule that does not match
+   applies its reverse every time (`event_reverse="always"`), so it can
+   re-show a field an earlier rule in the array just hid. A non-reversible
+   rule that stops matching leaves its effects in place.
+3. The `br_validation_excludes` bookkeeping persists across events (the
+   order is the first time any action touched a field).
+4. `populate` changes no value, so it fires no change event.
+5. Selecting the value a field already has is not a change event
    (`same_value_fires=True` changes that).
+
+The earlier event semantics stay available: `event_scope="referenced"` runs
+only the rules whose conditions read the changed field, and
+`event_reverse="transition"` reverses a rule only when it goes from matching
+to not matching.
 
 Answers without an inherent order (YAML, `--set`) are replayed as change
 events in web field order (`position`): a person filling the form top to
@@ -191,19 +269,40 @@ order; `explain()` and the conflict report show where order matters.
 
 **`replay`: a pure function of the values.** Every evaluation starts from
 the metadata and applies every rule in order; a later rule overrides an
-earlier one. `populate` never overwrites a user value and feeds back until
-it settles.
+earlier one. Its visible/required results match the web in most captures,
+but the `br_validation_excludes` order does not (the bookkeeping restarts
+with every evaluation).
 
-**Choosing the model.** Both models were scored against captured web forms
-of a live tenant (the initial change form, the form after answering a
-populate-driving question, a service item before/after a section choice)
-and against the `br_validation_excludes` token of a real change created in
-the web UI. All agree on the form captures; only the event model, with
-transition-only reversal and no same-value events, reproduces the real
-token byte for byte (the replay model gets the right fields in the wrong
-order; reversing on every non-match re-shows fields the web keeps hidden).
-`DEFAULT_MODEL` is therefore `event`. Rerun the comparison whenever new
-scenario captures arrive.
+**Choosing the model.** Every combination was scored against captures of a
+live web form (kept outside this repository): 11 recorded click scenarios on
+a change form (load; a yes/no question whose rules restrict another
+dropdown, answered once and toggled yes/no/yes; picking a choice the
+restricted dropdown does not offer; answering the restricted dropdown before
+the question; switching change type, which hides and mandates fields; a
+priority that triggers a message), 4 earlier form captures (initial change
+form, a service item before and after a section choice), and the
+`br_validation_excludes` token of a real change created in the web UI.
+Each scenario checks every field's visibility and required flag, the
+selection values after every step, and, for steps the web refused, the
+options it offered.
+
+| variant | score |
+|---|---|
+| event, populate=set, referenced, transition (previous default) | 8/16 |
+| event, populate=restrict, referenced, transition | 11/16 |
+| event, restrict, referenced, always reverse | 11/16 |
+| event, restrict, all rules, transition | 11/16 |
+| replay, populate=set | 8/16 |
+| replay, populate=restrict | 15/16 (token order wrong) |
+| event, populate=set, all rules, always reverse | 9/16 |
+| **event, restrict, all rules, always reverse (default)** | **16/16** |
+
+`populate="set"` fails every scenario where a rule restricts a dropdown (the
+web leaves the value empty and refuses the other choices); running only the
+rules that read the changed field misses the web re-showing fields through
+non-matching reversible rules later in the array. The same default also
+rebuilds a blocked ticket submit's token byte for byte from engine state
+(below). Rerun the comparison whenever new scenario captures arrive.
 
 ### Explain and conflicts
 
@@ -251,7 +350,10 @@ FormState(spec, rules, mode="new"|"edit", values=None, *, resolver=None,
   and payload builders refuse.
 * `dropped()`: fields with a value that will not be sent because they are
   hidden, with the hiding rule. `to_review()` lists them as "Dropped".
-* `explain()` / `conflicts` delegate to the evaluated form.
+* `explain()` / `conflicts` delegate to the evaluated form; `explain()`
+  adds a `choices restricted` line naming the populate rule.
+* `choices(name)`: the choices the field offers now (nested levels and
+  populate restrictions applied).
 
 | kind | accepted input |
 |---|---|
@@ -317,15 +419,20 @@ Each `L` is a JSON list *encoded as a string*, with `", "` separators:
 * Order: the first time a rule action (or its reverse) touched that
   property of the field, in evaluation order. Fields not on the form are
   never listed.
+* A custom nested field a rule hid takes its lower levels along: they are
+  appended after the rule-driven entries to `hidden` and, when not
+  required, to `optional` (default `category` levels are not; observed once
+  each).
 
 `build_br_validation_excludes(evaluated, kind, account_id=None,
 item_id=None)` builds it; `excludes_lists()` returns the three lists;
 `decode_br_validation_excludes()` is for inspection only.
 
-This reproduces captured tokens byte for byte (a change created in the web
-UI and a blocked service-request submit, end to end from metadata; a
-ticket token given its lists, since that tenant's ticket rules were not
-captured).
+This reproduces captured tokens byte for byte, end to end from metadata and
+engine state: a change created in the web UI, a blocked service-request
+submit, and a blocked new-ticket submit (rules fetched with
+`business_rules_query`, a `system` portal condition, a nested-field
+restriction and the nested-level cascade above).
 
 ## Plan hash and metadata freshness (`fsv.forms.plan`)
 
@@ -343,13 +450,46 @@ captured).
   again before submit, compare with `.changed()`, and re-run the engine if
   anything moved.
 
+## API changes
+
+All additive; existing calls keep working, but three defaults changed
+behaviour (pass the old values to keep it):
+
+* `RulesEngine(populate=...)`: new, default `"restrict"` (was effectively
+  `"set"`). With `"restrict"`, `evaluated.populated` stays empty and
+  `overridden` never fills; read `restricted` / `choices()` instead.
+* `RulesEngine(event_scope=...)`: new, default `"all"` (was effectively
+  `"referenced"`).
+* `RulesEngine(event_reverse=...)`: default `"always"` (was
+  `"transition"`). `event_reverse` and `event_scope` accept `None` for the
+  default.
+* `RulesEngine(system=...)`, `RuleContext.system`, `evaluate_on: "system"`.
+* `EvaluatedForm.restricted`, `.restricted_by`, `.unavailable`,
+  `.populate_mode`, `.choices()`, `.restriction_for()`; `ChoiceRestriction`;
+  `offered_choices()`.
+* `FormState.choices()`, `.unavailable_errors()`; `errors()` and the payload
+  builders include unavailable values; review rows "Not offered".
+* `Diff.restricted`, `Diff.unrestricted`.
+* `business_rules_query()`, `BusinessRulesQuery`, `parse_business_rules()`,
+  `RulesResponse`; `RulesEngine` accepts `{"business_rule": [...]}` only to
+  refuse it with `FormRuleError` (the listing has no conditions).
+* Ticket metadata: a field with `belongs_to_section: true` that no section
+  lists starts hidden (with a warning). `description_html` resolves to
+  `description`.
+* Constants: `DEFAULT_POPULATE`, `POPULATE_MODES`, `DEFAULT_EVENT_SCOPE`,
+  `EVENT_SCOPES`, `DEFAULT_EVENT_REVERSE`.
+
 ## Not yet verified against a live create
 
 * ticket `responder_id`, `type` (ticket type sent as its label) and change
   `change_window_id` keys;
 * "request for someone else" and quantity on service requests (not built);
-* whether `populate` keeps its value after its rule stops matching (the
-  engine keeps it in the event model);
+* what the web does with a value that a later populate no longer offers
+  (fsv keeps it and reports it as an error until changed);
+* whether an empty `nested_options` list in a populate tree means "no
+  options below" (fsv: no limit, like `null`);
+* whether the web hides the ticket `Type` field when the form metadata's
+  `meta.visible_type_field` is null (fsv shows it);
 * whether the token's base64 is standard or URL-safe (captured tokens
   contain neither `+`/`/` nor `-`/`_`; fsv uses standard, like `btoa`), and
   how service-request field names appear in it (the captured lists were
