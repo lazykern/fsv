@@ -78,6 +78,7 @@ pub type ResolverError = Box<dyn std::error::Error + Send + Sync>;
 /// (e.g. `change_window`). Return every candidate; the engine picks a
 /// single or exact match, or fails with `AmbiguousLookup`.
 pub trait LookupResolver: Send + Sync {
+    /// Port of fsv.forms.state.LookupResolver.lookup.
     fn lookup(
         &self,
         entity: &str,

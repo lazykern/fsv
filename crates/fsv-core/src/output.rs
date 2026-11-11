@@ -29,7 +29,8 @@ pub fn strip_internal(obj: &Value) -> Value {
     }
 }
 
-/// Tags replaced by spaces, entities unescaped, trimmed.
+/// Port of fsv.render.strip_html: tags replaced by spaces, entities
+/// unescaped, trimmed.
 pub fn strip_html(s: Option<&str>) -> String {
     static TAGS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"<[^>]+>").expect("regex"));
     let Some(s) = s.filter(|s| !s.is_empty()) else {
@@ -282,6 +283,20 @@ pub fn emit_delimited(rows: &[Map<String, Value>], delimiter: char) -> Result<()
 mod tests {
     use super::*;
     use serde_json::json;
+
+    /// `render.strip_html` outputs from `gen_fsv_views_extra.py`.
+    #[test]
+    fn strip_html_matches_python() {
+        let rows: Value =
+            serde_json::from_str(include_str!("../tests/fixtures/strip_html.json")).unwrap();
+        for row in rows.as_array().unwrap() {
+            assert_eq!(
+                strip_html(row[0].as_str()),
+                row[1].as_str().unwrap(),
+                "{row}"
+            );
+        }
+    }
 
     #[test]
     fn values_and_dates() {

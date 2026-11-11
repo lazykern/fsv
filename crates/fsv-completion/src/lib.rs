@@ -12,11 +12,13 @@ mod emit;
 #[cfg(test)]
 mod gen_tests;
 mod model;
+mod network;
 mod quote;
 
-pub use dynamic::{complete, run};
+pub use dynamic::{complete, complete_help_topic, complete_update_choice, run};
 pub use emit::{emit_bash, emit_fish, emit_zsh};
 pub use model::{Kind, Node, OptionHint, Param, STATIC_COMPLETERS, tree_from_clap};
+pub use network::{completion_network, config_load};
 pub use quote::shlex_quote;
 
 /// Environment variable the generated scripts set when calling `_complete`.

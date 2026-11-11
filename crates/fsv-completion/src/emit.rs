@@ -137,6 +137,9 @@ struct Case<'a> {
     node: &'a Node,
 }
 
+/// Port of fsv.completion_gen._collect_bash and fsv.completion_gen._collect_zsh,
+/// which are the same walk; the subcommand and flag lists come from
+/// `completions` when emitting.
 fn collect<'a>(cmd: &'a Node, cases: &mut Vec<Case<'a>>) {
     cases.push(Case {
         key: cmd.path[1..].join(" "),

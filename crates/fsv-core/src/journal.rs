@@ -248,6 +248,7 @@ fn epoch() -> i64 {
         .unwrap_or(0)
 }
 
+/// Port of fsv.journal._command.
 fn command() -> Value {
     crate::runtime::command_path().map_or(Value::Null, Value::String)
 }
@@ -495,6 +496,18 @@ mod tests {
         assert!(map.remove("ts").is_some_and(|t| t.is_string()));
         map.remove("epoch");
         row
+    }
+
+    /// `_command()` is click's `ctx.command_path`, `None` outside a command.
+    #[test]
+    fn command_is_the_running_command_path() {
+        let _env = testenv::isolated();
+        let saved = crate::runtime::command_path();
+        crate::runtime::set_command_path(Some("fsv changes create"));
+        assert_eq!(command(), json!("fsv changes create"));
+        crate::runtime::set_command_path(None);
+        assert_eq!(command(), Value::Null);
+        crate::runtime::set_command_path(saved.as_deref());
     }
 
     #[test]

@@ -277,13 +277,85 @@ fn derive_key(passphrase: &str, salt: &[u8], p: KdfParams) -> Result<Key> {
     Ok(key)
 }
 
-fn ask_passphrase(confirm: bool) -> Result<String> {
-    let p1 = rpassword::prompt_password("Passphrase: ").map_err(|_| Error::Aborted)?;
+/// Port of fsv.session._b64e.
+fn b64e(b: &[u8]) -> String {
+    B64.encode(b)
+}
+
+/// Port of fsv.session._b64d: CPython's non-strict `a2b_base64`. Characters
+/// outside the alphabet are skipped, and decoding stops at the padding that
+/// completes a quad, so files Python reads also read here.
+fn b64d(s: &str) -> std::result::Result<Vec<u8>, String> {
+    if !s.is_ascii() {
+        return Err("'ascii' codec can't encode the input".into());
+    }
+    let mut out = Vec::with_capacity(s.len() / 4 * 3);
+    let (mut quad_pos, mut pads, mut left, mut data_chars) = (0u8, 0u8, 0u8, 0usize);
+    for c in s.bytes() {
+        if c == b'=' {
+            if quad_pos >= 2 {
+                pads += 1;
+                if quad_pos + pads >= 4 {
+                    return Ok(out);
+                }
+            }
+            continue;
+        }
+        let v = match c {
+            b'A'..=b'Z' => c - b'A',
+            b'a'..=b'z' => c - b'a' + 26,
+            b'0'..=b'9' => c - b'0' + 52,
+            b'+' => 62,
+            b'/' => 63,
+            _ => continue,
+        };
+        pads = 0;
+        data_chars += 1;
+        match quad_pos {
+            0 => {
+                left = v;
+                quad_pos = 1;
+            }
+            1 => {
+                out.push((left << 2) | (v >> 4));
+                left = v & 0x0f;
+                quad_pos = 2;
+            }
+            2 => {
+                out.push((left << 4) | (v >> 2));
+                left = v & 0x03;
+                quad_pos = 3;
+            }
+            _ => {
+                out.push((left << 6) | v);
+                quad_pos = 0;
+            }
+        }
+    }
+    match quad_pos {
+        0 => Ok(out),
+        1 => Err(format!(
+            "Invalid base64-encoded string: number of data characters ({data_chars}) cannot be 1 more than a multiple of 4"
+        )),
+        _ => Err("Incorrect padding".into()),
+    }
+}
+
+/// Hidden-input prompt: `getpass.getpass` in Python.
+type SecretPrompt<'a> = &'a mut dyn FnMut(&str) -> Result<String>;
+
+fn tty_prompt(prompt: &str) -> Result<String> {
+    rpassword::prompt_password(prompt).map_err(|_| Error::Aborted)
+}
+
+/// Port of fsv.session._passphrase.
+fn passphrase(confirm: bool, ask: SecretPrompt<'_>) -> Result<String> {
+    let p1 = ask("Passphrase: ")?;
     if p1.is_empty() {
         return Err(Error::session("empty passphrase"));
     }
     if confirm {
-        let p2 = rpassword::prompt_password("Confirm passphrase: ").map_err(|_| Error::Aborted)?;
+        let p2 = ask("Confirm passphrase: ")?;
         if p1 != p2 {
             return Err(Error::session("passphrases do not match"));
         }
@@ -315,9 +387,9 @@ pub fn argon_encrypt_with(raw: &str, passphrase: &str, domain: &str) -> Result<S
         "kdf": "argon2id",
         "cipher": "aes-256-gcm",
         "params": {"time_cost": params.time_cost, "memory_cost": params.memory_cost, "parallelism": params.parallelism},
-        "salt": B64.encode(salt),
-        "nonce": B64.encode(nonce),
-        "data": B64.encode(ct),
+        "salt": b64e(&salt),
+        "nonce": b64e(&nonce),
+        "data": b64e(&ct),
     });
     Ok(fsv_py::Dumps::default().dump(&doc))
 }
@@ -369,8 +441,7 @@ pub fn argon_decrypt_with(raw: &str, passphrase: &str, domain: &str) -> Result<S
             .get(k)
             .and_then(Value::as_str)
             .ok_or_else(|| Error::session("invalid encrypted session file"))?;
-        B64.decode(s.as_bytes())
-            .map_err(|_| Error::session("invalid encrypted session file"))
+        b64d(s).map_err(|_| Error::session("invalid encrypted session file"))
     };
     let (salt, nonce, ct) = (field("salt")?, field("nonce")?, field("data")?);
     let key = derive_key(passphrase, &salt, params)?;
@@ -390,13 +461,15 @@ pub fn argon_decrypt_with(raw: &str, passphrase: &str, domain: &str) -> Result<S
     String::from_utf8(pt).map_err(|e| Error::value(e.to_string()))
 }
 
-fn argon_encrypt(raw: &str) -> Result<String> {
-    argon_encrypt_with(raw, &ask_passphrase(true)?, &config::domain())
+/// Port of fsv.session._argon_encrypt: asks for the passphrase twice; the
+/// configured domain is the AAD.
+fn argon_encrypt(raw: &str, ask: SecretPrompt<'_>) -> Result<String> {
+    argon_encrypt_with(raw, &passphrase(true, ask)?, &config::domain())
 }
 
 fn argon_decrypt(raw: &str) -> Result<String> {
     argon_params(raw)?;
-    argon_decrypt_with(raw, &ask_passphrase(false)?, &config::domain())
+    argon_decrypt_with(raw, &passphrase(false, &mut tty_prompt)?, &config::domain())
 }
 
 // ---------- unified read/write ----------
@@ -503,7 +576,7 @@ pub fn save_cookies(cookies: &Cookies, backend: Option<Backend>) -> Result<Backe
     } else {
         ensure_dirs()?;
         let data = if backend == Backend::Argon {
-            argon_encrypt(&payload)?
+            argon_encrypt(&payload, &mut tty_prompt)?
         } else {
             payload.clone()
         };

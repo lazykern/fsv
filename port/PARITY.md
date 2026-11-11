@@ -107,10 +107,73 @@ those stay identical.
 
 | Python | Rust | status |
 |---|---|---|
-| `pages.py`, `render.py` | `fsv_views::pages`, `fsv_views::render` | ported. `cargo test -p fsv-views --offline` was 87 passed. Expected strings came from running the Python functions. |
+| `pages.py`, `render.py` | `fsv_views::pages`, `fsv_views::render` | ported. `cargo test -p fsv-views --offline` was 99 passed. Expected strings came from running the Python functions. |
 | `views.py` loaders (`load_tab`, `load_detail`, conversations, requested items) | `fsv_views::detail`, `fsv_views::source` | ported, covered from `coverage`. |
+| `views.ticket_headers` | `fsv_views::source::ticket_headers` | ported. `fsv-app` (`tui.rs` `ticket_headers`) still has its own inline copy. |
+| `render._requested_item_field_defs` | `render::field_defs` | ported. |
+| `render.strip_html` | `fsv_core::output::strip_html` | ported in fsv-core. |
+
+Golden values for the last three come from `port/golden/gen_fsv_views_extra.py`.
 
 Known test limits, not behavior changes: relative times use the real clock, so tests check placement rather than a pinned "2 days ago". `_LazyModule` and `_NullConsole` are import-time shims with no Rust counterpart. `print_blocks` and `print_detail` write to the terminal; tests cover `blocks_text` and `detail_blocks`.
+
+## fsv-completion
+
+| Python | Rust | status |
+|---|---|---|
+| `_complete._completions`, `main` | `dynamic::complete`, `run` | ported. `cargo test -p fsv-completion --offline` was 38 passed. |
+| `completion` completers, including `complete_format`, `complete_store`, `complete_shell`, `complete_sort_order`, `complete_config_key`, `complete_config_value`, `complete_cache_target`, `complete_search_sort`, `complete_duplicate_mode` | one Rust fn each in `dynamic` | ported. |
+| `completion.complete_update_choice`, `complete_help_topic` | `fsv_completion::{complete_update_choice, complete_help_topic}` | ported. Neither has an arm in `_complete`, in Python or Rust, so the generated scripts print nothing for `--status`/`--priority`. |
+| `completion._config_load`, `_completion_network` | `fsv_completion::{config_load, completion_network}` | ported with the directory and env value passed in. `fsv-cli` (`cmd::completion::network_enabled`) and `fsv-app` still keep their own copies; theirs treat `network: 1.0` as off, Python treats it as on. |
+| `completion_gen` walk and emitters | `model`, `emit` | ported. `_extract_params`, `_filter_params_by_flags`, `_is_bool_annotation` (clap action plus `value_flag`), `_collect_bash`/`_collect_zsh` (one `collect`) have their own fns. |
+
+Not ported, with reasons:
+- `completion._schema_path` and `completion_gen._bash_escape` are dead code; nothing calls them.
+- `completion_gen._completer_name` and `_resource_from_closure` read Python closures. The `OptionHint` table in `fsv-cli` records the completer and resource.
+- `_complete._MockCtx` only carries `--kind`. Rust passes the value to `complete_lookup_query`.
+- `completion_gen._Command.__init__` is the `Node` struct literal.
+- `cli._field_matches` and `query._field_matches` are substring matches, not this crate's prefix match. They live in `fsv-cli` (`lookup::field_matches`) and `fsv-api`.
+
+Divergences:
+- `completion_network` returns off when `completion` is not an object (null, a string) or `config.json` is not an object. Python raises `AttributeError`. `_complete` swallows it, but `completion doctor` and the TUI crash.
+- `complete_update_choice` skips choices that are not objects. Python raises `AttributeError`.
+
+Golden values: `port/golden/gen_fsv_completion_extra.py` writes `tests/fixtures/extra_expected.json`.
+
+## fsv-core
+
+| Python | Rust | status |
+|---|---|---|
+| `session._b64e`, `_b64d` | `session::{b64e, b64d}` | ported. `b64d` follows CPython's non-strict decoder: it skips non-alphabet characters, stops at completing padding, and gives the same error text. |
+| `session._passphrase`, `_argon_encrypt` | `session::{passphrase, argon_encrypt}` | ported. The prompt is injected; the binary passes `rpassword`. |
+| `session._read_secret` | `paste::read_secret` (`collect_secret`, `read_piped`) | ported. Key-loop expectations come from Python reading a pty. |
+| `session._http_json`, `_page_ws_url`, `_cdp_call`, `_direct_browser_cookies` | `browser` | ported. Tested against a local `TcpListener` DevTools fake running the same scenarios Python ran: ping, event and foreign-id frames, error fallback to `getAllCookies`, a non-object result, and close. |
+| `journal._command`, `errors.APIError.__init__` | `journal::command`, `ApiError::{new, with_request}` | ported. |
+| `cargo test -p fsv-core --offline` | | was 169 passed. |
+
+Not ported, with reasons:
+- `session._ws_read_exact`, `_ws_send_text`, `_ws_recv_text`: `tungstenite` does the websocket framing. Their behavior is covered through `cdp_call`.
+- `client.Client.close`: the reqwest pool closes when the last `Arc<Client>` drops. Python calls `close()` in `finally` blocks, and Rust scopes do the same job.
+- `session.login_interactive` is a one-line wrapper that reads the real stdin. `login_interactive_with` is tested.
+
+Divergences:
+- A bad base64 field in an argon session file is a session error, `invalid encrypted session file` (exit 3). Python raises `binascii.Error`, a `ValueError` (exit 2).
+- Ctrl-C at the hidden cookie prompt is read as a byte and gives `Error::Aborted`. Python leaves ISIG on and gets `KeyboardInterrupt`.
+- The CDP client answers server pings with a pong and checks `Sec-WebSocket-Accept`. Python ignores pings and only checks for `101` in the status line.
+
+Golden values: `port/golden/gen_fsv_core_session.py` writes `tests/fixtures/session_expected.json`. `strip_html.json` comes from `gen_fsv_views_extra.py`.
+
+## fsv-forms
+
+| Python | Rust | status |
+|---|---|---|
+| `forms/*` | `fsv_forms` | ported. `cargo test -p fsv-forms --offline` was 107 passed. |
+| `errors.*Error.__init__` | `FormError` variants; message fns `unknown_field_message`, `ambiguous_message`, `payload_message`; `FormError::parse_opts` | ported. Messages are pinned by `errors/py_tests.rs`. `FormRuleError` has no fn of its own because the variant stores the message as given. |
+| `rules.RulesEngine._match` | `RulesEngine::match_condition` | ported (`match_group_and_match_condition_match_python`). |
+| `state._offset`, `tz._off` | `DateTimeValue::offset_text`, `pydt::offset_text` | ported (`off_and_offset_match_python`). |
+| `state.LookupResolver.lookup` | `LookupResolver::lookup` | trait. `lookup_resolver_calls_match_python` pins the entity, query and field passed for each lookup kind, plus the outcome (`port/golden/gen_fsv_forms_resolver.py`). |
+
+No divergences from this pass.
 
 ## fsv-cli
 

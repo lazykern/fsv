@@ -61,7 +61,7 @@ impl DateTimeValue {
         s
     }
 
-    /// `±HH:MM` (minutes floored), as fsv prints offsets.
+    /// Port of fsv.forms.state._offset: `±HH:MM` (minutes floored).
     pub fn offset_text(&self) -> String {
         offset_text(self.offset)
     }
@@ -79,7 +79,8 @@ impl PartialOrd for DateTimeValue {
     }
 }
 
-/// `±HH:MM` with minutes floored (`int(off.total_seconds() // 60)`).
+/// Port of fsv.forms.tz._off: `±HH:MM` with minutes floored
+/// (`int(off.total_seconds() // 60)`).
 pub fn offset_text(off: Offset) -> String {
     let total = (off.seconds() as i64).div_euclid(60);
     let sign = if total >= 0 { '+' } else { '-' };

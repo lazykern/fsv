@@ -1,0 +1,46 @@
+[
+ [
+  null,
+  ""
+ ],
+ [
+  "",
+  ""
+ ],
+ [
+  "plain",
+  "plain"
+ ],
+ [
+  "<p>Hi&nbsp;there</p>",
+  "Hi there"
+ ],
+ [
+  "  <b>a</b><i>b</i>  ",
+  "a  b"
+ ],
+ [
+  "a &lt;b&gt; &amp; c",
+  "a <b> & c"
+ ],
+ [
+  "<br/>line<br>two",
+  "line two"
+ ],
+ [
+  "x < y > z",
+  "x   z"
+ ],
+ [
+  "&#39;q&#39; &copy; &bogus;",
+  "'q' © &bogus;"
+ ],
+ [
+  "<p>\n multi\nline </p>",
+  "multi\nline"
+ ],
+ [
+  "<a href='x'>link</a>&amp;amp;",
+  "link &amp;"
+ ]
+]

@@ -145,6 +145,7 @@ pub struct ApiError {
 }
 
 impl ApiError {
+    /// Port of fsv.errors.APIError.__init__ without method and target.
     pub fn new(status: u16, body: impl Into<Value>) -> Self {
         Self {
             status,
@@ -154,6 +155,7 @@ impl ApiError {
         }
     }
 
+    /// Port of fsv.errors.APIError.__init__.
     pub fn with_request(
         status: u16,
         body: Value,

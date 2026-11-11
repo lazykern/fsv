@@ -149,11 +149,73 @@ fn keychain_decode_base64_or_legacy_json() {
     );
 }
 
+fn expected() -> Value {
+    serde_json::from_str(include_str!("../../tests/fixtures/session_expected.json")).unwrap()
+}
+
+fn bytes(v: &Value) -> Vec<u8> {
+    v.as_array()
+        .unwrap()
+        .iter()
+        .map(|b| b.as_u64().unwrap() as u8)
+        .collect()
+}
+
+/// `_b64e` / `_b64d` outputs and error texts from `gen_fsv_core_session.py`.
 #[test]
 fn b64_matches_python() {
-    // `_b64e` / `_b64d` are the standard base64 engine.
-    assert_eq!(B64.encode(b"\x00\xffhi"), "AP9oaQ==");
-    assert_eq!(B64.decode("AP9oaQ==").unwrap(), b"\x00\xffhi");
+    let x = expected();
+    for row in x["b64e"].as_array().unwrap() {
+        assert_eq!(b64e(&bytes(&row[0])), row[1].as_str().unwrap(), "{row}");
+    }
+    for row in x["b64d"].as_array().unwrap() {
+        let input = row[0].as_str().unwrap();
+        match &row[1] {
+            Value::String(err) => {
+                assert_eq!(
+                    format!("Error: {}", b64d(input).unwrap_err()),
+                    *err,
+                    "{row}"
+                );
+            }
+            want => assert_eq!(b64d(input).unwrap(), bytes(want), "{row}"),
+        }
+    }
+}
+
+#[test]
+fn passphrase_matches_python() {
+    for row in expected()["passphrase"].as_array().unwrap() {
+        let mut answers = row["answers"].as_array().unwrap().iter();
+        let mut prompts: Vec<String> = Vec::new();
+        let got = passphrase(row["confirm"].as_bool().unwrap(), &mut |p: &str| {
+            prompts.push(p.to_string());
+            Ok(answers.next().unwrap().as_str().unwrap().to_string())
+        });
+        assert_eq!(json!(prompts), row["prompts"], "{row}");
+        match &row["out"] {
+            Value::String(want) => assert_eq!(&got.unwrap(), want, "{row}"),
+            want => assert_eq!(got.unwrap_err().to_string(), want["error"], "{row}"),
+        }
+    }
+    let aborted = passphrase(false, &mut |_: &str| Err(Error::Aborted));
+    assert!(matches!(aborted, Err(Error::Aborted)));
+}
+
+#[test]
+fn argon_encrypt_prompts_twice_and_binds_domain() {
+    let _env = isolated().with_domain(ACME);
+    let mut prompts = Vec::new();
+    let raw = argon_encrypt("hello", &mut |p: &str| {
+        prompts.push(p.to_string());
+        Ok("pw".into())
+    })
+    .unwrap();
+    assert_eq!(prompts, ["Passphrase: ", "Confirm passphrase: "]);
+    assert_eq!(argon_decrypt_with(&raw, "pw", ACME).unwrap(), "hello");
+    let mut answers = ["pw", "other"].into_iter();
+    let err = argon_encrypt("hello", &mut |_: &str| Ok(answers.next().unwrap().into()));
+    assert_eq!(err.unwrap_err().to_string(), "passphrases do not match");
 }
 
 #[test]

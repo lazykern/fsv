@@ -122,17 +122,58 @@ pub fn extract_cookie_from_input(raw: &str) -> String {
 /// arrives it is a paste and reading continues, otherwise the user hit
 /// Enter. Remaining terminal input is flushed so nothing leaks to the shell.
 /// Without a terminal, all of stdin is read.
+///
+/// Port of fsv.session._read_secret.
 pub fn read_secret(prompt: &str) -> Result<String> {
     eprint!("{prompt}");
     let _ = std::io::stderr().flush();
     if !std::io::stdin().is_terminal() {
-        let mut s = String::new();
-        std::io::stdin().read_to_string(&mut s)?;
-        return Ok(s.trim_end_matches('\n').to_string());
+        return read_piped(&mut std::io::stdin());
     }
     let result = read_secret_tty();
     eprintln!();
     result
+}
+
+/// Piped stdin as Python's text-mode `sys.stdin.read().rstrip("\n")`:
+/// universal newlines turn `\r\n` and `\r` into `\n` first.
+fn read_piped(r: &mut dyn Read) -> Result<String> {
+    let mut s = String::new();
+    r.read_to_string(&mut s)?;
+    let s = s.replace("\r\n", "\n").replace('\r', "\n");
+    Ok(s.trim_end_matches('\n').to_string())
+}
+
+/// The key loop of the terminal reader. `next` yields input bytes (`None`
+/// at end of input); `more_pending` reports whether more input arrives
+/// within 80 ms of a newline, which marks a multi-line paste.
+fn collect_secret(
+    next: &mut dyn FnMut() -> Option<u8>,
+    more_pending: &mut dyn FnMut() -> bool,
+) -> Result<String> {
+    let mut lines: Vec<String> = Vec::new();
+    let mut chars: Vec<char> = Vec::new();
+    while let Some(b) = next() {
+        let ch = if b < 0x80 { b as char } else { '\u{FFFD}' };
+        match ch {
+            '\x03' => return Err(Error::Aborted),
+            '\x04' => break,
+            '\x7f' | '\x08' => {
+                chars.pop();
+            }
+            '\r' | '\n' => {
+                lines.push(chars.drain(..).collect());
+                if !more_pending() {
+                    break;
+                }
+            }
+            c => chars.push(c),
+        }
+    }
+    if !chars.is_empty() {
+        lines.push(chars.into_iter().collect());
+    }
+    Ok(lines.join("\n"))
 }
 
 #[cfg(unix)]
@@ -149,52 +190,26 @@ fn read_secret_tty() -> Result<String> {
     raw.c_cc[libc::VMIN] = 1;
     raw.c_cc[libc::VTIME] = 0;
     unsafe { libc::tcsetattr(fd, libc::TCSAFLUSH, &raw) };
-    let mut lines: Vec<String> = Vec::new();
-    let mut chars: Vec<char> = Vec::new();
-    let mut outcome: Result<()> = Ok(());
-    loop {
-        let mut b = [0u8; 1];
-        let n = unsafe { libc::read(fd, b.as_mut_ptr().cast(), 1) };
-        if n <= 0 {
-            break;
-        }
-        let ch = if b[0] < 0x80 {
-            b[0] as char
-        } else {
-            '\u{FFFD}'
-        };
-        match ch {
-            '\x03' => {
-                outcome = Err(Error::Aborted);
-                break;
-            }
-            '\x04' => break,
-            '\x7f' | '\x08' => {
-                chars.pop();
-            }
-            '\r' | '\n' => {
-                lines.push(chars.drain(..).collect());
-                let mut pfd = libc::pollfd {
-                    fd,
-                    events: libc::POLLIN,
-                    revents: 0,
-                };
-                let ready = unsafe { libc::poll(&mut pfd, 1, 80) };
-                if ready <= 0 {
-                    break;
-                }
-            }
-            c => chars.push(c),
-        }
-    }
-    if !chars.is_empty() {
-        lines.push(chars.into_iter().collect());
-    }
+    let result = collect_secret(
+        &mut || {
+            let mut b = [0u8; 1];
+            let n = unsafe { libc::read(fd, b.as_mut_ptr().cast(), 1) };
+            (n > 0).then_some(b[0])
+        },
+        &mut || {
+            let mut pfd = libc::pollfd {
+                fd,
+                events: libc::POLLIN,
+                revents: 0,
+            };
+            unsafe { libc::poll(&mut pfd, 1, 80) > 0 }
+        },
+    );
     unsafe {
         libc::tcflush(fd, libc::TCIFLUSH);
         libc::tcsetattr(fd, libc::TCSADRAIN, &old);
     }
-    outcome.map(|()| lines.join("\n"))
+    result
 }
 
 #[cfg(not(unix))]
@@ -256,7 +271,8 @@ fn read_secret_tty() -> Result<String> {
     outcome.map(|()| lines.join("\n"))
 }
 
-/// Interactive cookie paste login (instructions on stderr, hidden input).
+/// Port of fsv.session.login_interactive: cookie paste login (instructions
+/// on stderr, hidden input).
 pub fn login_interactive() -> Result<Cookies> {
     login_interactive_with(&mut read_secret)
 }
@@ -288,4 +304,63 @@ pub fn login_interactive_with(
     let cookies = parse_cookie_header(&line);
     validate(&cookies)?;
     Ok(cookies)
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::Value;
+
+    use super::*;
+
+    fn expected() -> Value {
+        serde_json::from_str(include_str!("../../tests/fixtures/session_expected.json"))
+            .expect("session fixture")
+    }
+
+    /// Bytes written to a pty under Python's `_read_secret`
+    /// (`gen_fsv_core_session.py`); a newline counts as a paste when more
+    /// bytes are already queued.
+    #[test]
+    fn collect_secret_matches_python_tty() {
+        for row in expected()["read_secret_tty"].as_array().expect("rows") {
+            let bytes: Vec<u8> = row[0]
+                .as_str()
+                .expect("input")
+                .chars()
+                .map(|c| u8::try_from(u32::from(c)).expect("latin-1"))
+                .collect();
+            let pos = std::cell::Cell::new(0);
+            let got = collect_secret(
+                &mut || {
+                    let b = bytes.get(pos.get()).copied();
+                    pos.set(pos.get() + 1);
+                    b
+                },
+                &mut || pos.get() < bytes.len(),
+            )
+            .expect("secret");
+            assert_eq!(got, row[1].as_str().expect("output"), "{row}");
+        }
+    }
+
+    /// Python raises `KeyboardInterrupt` on `\x03`.
+    #[test]
+    fn collect_secret_ctrl_c_aborts() {
+        let bytes = b"ab\x03cd\n";
+        let mut it = bytes.iter().copied();
+        let got = collect_secret(&mut || it.next(), &mut || true);
+        assert!(matches!(got, Err(Error::Aborted)));
+    }
+
+    #[test]
+    fn read_piped_matches_python() {
+        for row in expected()["read_secret_pipe"].as_array().expect("rows") {
+            let mut input = row[0].as_str().expect("input").as_bytes();
+            assert_eq!(
+                read_piped(&mut input).expect("read"),
+                row[1].as_str().expect("output"),
+                "{row}"
+            );
+        }
+    }
 }

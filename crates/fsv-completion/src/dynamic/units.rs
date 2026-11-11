@@ -211,38 +211,78 @@ fn strings(v: &Value) -> Vec<String> {
         .collect()
 }
 
-/// The fixed-list completers (`complete_format`, `complete_store`, ...) live
-/// in `STATIC_COMPLETERS` plus the `complete_config_key`/`complete_config_value`
-/// arms of `static_pairs`/`complete_in`.
+/// The fixed-list completers, each called by its own Rust function.
 #[test]
 fn static_completers_match_python() {
     let expected: Value = serde_json::from_str(DYNAMIC).expect("dynamic fixture");
-    let names = [
-        "complete_format",
-        "complete_store",
-        "complete_shell",
-        "complete_sort_order",
-        "complete_config_key",
-        "complete_config_value",
-        "complete_cache_target",
-        "complete_search_sort",
-        "complete_duplicate_mode",
+    let fns: [(&str, Plain); 9] = [
+        ("complete_format", complete_format),
+        ("complete_store", complete_store),
+        ("complete_shell", complete_shell),
+        ("complete_sort_order", complete_sort_order),
+        ("complete_config_key", complete_config_key),
+        ("complete_config_value", complete_config_value),
+        ("complete_cache_target", complete_cache_target),
+        ("complete_search_sort", complete_search_sort),
+        ("complete_duplicate_mode", complete_duplicate_mode),
     ];
     let mut seen = std::collections::BTreeSet::new();
     for case in expected["offline"]["cases"].as_array().expect("cases") {
         let completer = s(&case["case"][0]);
-        if !names.contains(&completer) {
+        let Some((_, f)) = fns.iter().find(|(n, _)| *n == completer) else {
             continue;
-        }
+        };
         seen.insert(completer);
         let token = s(&case["case"][2]);
-        let got = match static_pairs(completer) {
-            Some(table) => complete_pairs(token, table),
-            None => complete(completer, "-", token, &[], false),
-        };
-        assert_eq!(pairs_json(got), case["pairs"], "{}", case["case"]);
+        assert_eq!(pairs_json(f(token)), case["pairs"], "{}", case["case"]);
+        assert!(plain(completer).is_some());
     }
-    assert_eq!(seen.len(), names.len());
+    assert_eq!(seen.len(), fns.len());
+    assert!(plain("complete_where").is_none());
+}
+
+fn extra() -> Value {
+    serde_json::from_str(include_str!("../../tests/fixtures/extra_expected.json"))
+        .expect("extra fixture")
+}
+
+#[test]
+fn complete_update_choice_matches_python() {
+    fixture_cache();
+    let x = extra();
+    for name in ["changes", "tickets", "problems"] {
+        let r = res(name);
+        for row in x["update_choice"][name].as_array().expect("rows") {
+            let got = complete_update_choice(r, s(&row[0]), s(&row[1]));
+            assert_eq!(pairs_json(got), row[2], "{name} {row}");
+        }
+    }
+}
+
+#[test]
+fn complete_help_topic_matches_python() {
+    let topics = ["auth", "workflow", "fields", "scripting", "comments"];
+    for row in extra()["help_topic"].as_array().expect("rows") {
+        assert_eq!(
+            pairs_json(complete_help_topic(&topics, s(&row[0]))),
+            row[1],
+            "{row}"
+        );
+    }
+}
+
+#[test]
+fn field_matches_matches_python() {
+    let x = extra();
+    let fields = objs(&x["field_matches"]["fields"]);
+    for row in x["field_matches"]["rows"].as_array().expect("rows") {
+        let i = row[0].as_u64().expect("index") as usize;
+        assert_eq!(
+            field_matches(&fields[i], s(&row[1])),
+            row[2] == true,
+            "{row}"
+        );
+    }
 }
 
 /// `complete_update_choice` and `complete_help_topic` have no arm in

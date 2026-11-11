@@ -2039,6 +2039,7 @@ impl RulesEngine {
         person
     }
 
+    /// Port of fsv.forms.rules.RulesEngine._match.
     fn match_condition(&self, c: &Condition, eff: &Values) -> Result<bool> {
         let (f, v): (Option<&Field>, Option<Value>) = if c.source != "form" {
             let v = self

@@ -146,6 +146,7 @@ impl BrowserOps for SystemBrowser {
     }
 }
 
+/// Port of fsv.session._http_json.
 fn http_json(url: &str) -> Result<Value> {
     let client = reqwest::blocking::Client::builder()
         .no_proxy()
@@ -160,6 +161,7 @@ fn http_json(url: &str) -> Result<Value> {
     Ok(serde_json::from_str(&text)?)
 }
 
+/// Port of fsv.session._page_ws_url.
 fn page_ws_url(port: u16, domain: &str) -> Result<String> {
     page_target(
         &http_json(&format!("http://127.0.0.1:{port}/json/list"))?,
@@ -190,6 +192,8 @@ fn page_target(targets: &Value, domain: &str) -> Result<String> {
     Ok(fsv_py::py_str(&target["webSocketDebuggerUrl"]))
 }
 
+/// Port of fsv.session._cdp_call. tungstenite does the framing that
+/// Python hand-rolls in `_ws_read_exact`, `_ws_send_text` and `_ws_recv_text`.
 fn cdp_call(ws_url: &str, method: &str, params: Value) -> Result<Value> {
     let url = url::Url::parse(ws_url).map_err(|e| Error::session(e.to_string()))?;
     let host = url.host_str().unwrap_or("127.0.0.1").to_string();
@@ -232,7 +236,8 @@ fn cdp_call(ws_url: &str, method: &str, params: Value) -> Result<Value> {
     }
 }
 
-/// Cookies of the page target via `Network.getCookies` (fallback `Network.getAllCookies`).
+/// Port of fsv.session._direct_browser_cookies: cookies of the page target
+/// via `Network.getCookies` (fallback `Network.getAllCookies`).
 pub fn direct_browser_cookies(port: u16, domain: &str) -> Result<Cookies> {
     let ws_url = page_ws_url(port, domain)?;
     let data = match cdp_call(
@@ -334,6 +339,112 @@ pub fn login_browser_with(ops: &mut dyn BrowserOps, exe: &Path) -> Result<Cookie
 mod tests {
     use super::*;
     use crate::testenv::{self, isolated};
+
+    use std::io::{Read as _, Write as _};
+    use std::net::TcpListener;
+    use std::sync::{Arc, Mutex};
+
+    type Received = Arc<Mutex<Vec<Value>>>;
+
+    /// One local endpoint serving `/json/list` over HTTP and the page
+    /// websocket, replying to each websocket connection with the next
+    /// scripted frame list (`["text", json] | ["ping"] | ["close"]`).
+    fn fake_devtools(scenario: Vec<Value>) -> (u16, Received, std::thread::JoinHandle<()>) {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let received: Received = Arc::default();
+        let rec = received.clone();
+        let handle = std::thread::spawn(move || {
+            let targets = json!([
+                {"type": "background_page", "url": "https://acme.freshservice.com/", "webSocketDebuggerUrl": format!("ws://127.0.0.1:{port}/bg")},
+                {"type": "page", "url": "https://other.example/", "webSocketDebuggerUrl": format!("ws://127.0.0.1:{port}/other")},
+                {"type": "page", "url": "https://acme.freshservice.com/a/tickets", "webSocketDebuggerUrl": format!("ws://127.0.0.1:{port}/devtools/page/ACME")},
+            ]);
+            let mut replies = scenario.into_iter();
+            while let Ok((mut stream, _)) = listener.accept() {
+                let mut head = [0u8; 16];
+                let n = stream.peek(&mut head).unwrap();
+                if head[..n].starts_with(b"GET /json") {
+                    let mut req = Vec::new();
+                    let mut buf = [0u8; 1024];
+                    while !req.windows(4).any(|w| w == b"\r\n\r\n") {
+                        let n = stream.read(&mut buf).unwrap();
+                        req.extend_from_slice(&buf[..n]);
+                    }
+                    let body = targets.to_string();
+                    write!(
+                        stream,
+                        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                        body.len()
+                    )
+                    .unwrap();
+                    continue;
+                }
+                let Some(frames) = replies.next() else { return };
+                let mut path = String::new();
+                let mut ws = tungstenite::accept_hdr(
+                    stream,
+                    |req: &tungstenite::handshake::server::Request, resp| {
+                        path = req.uri().path().to_string();
+                        Ok(resp)
+                    },
+                )
+                .unwrap();
+                let text = ws.read().unwrap().into_text().unwrap().to_string();
+                rec.lock()
+                    .unwrap()
+                    .push(json!({"path": path, "text": text}));
+                for f in frames.as_array().unwrap() {
+                    let msg = match f[0].as_str().unwrap() {
+                        "text" => tungstenite::Message::text(f[1].to_string()),
+                        "ping" => tungstenite::Message::Ping(b"hi".to_vec().into()),
+                        _ => tungstenite::Message::Close(None),
+                    };
+                    ws.send(msg).unwrap();
+                }
+                while ws.read().is_ok() {}
+                if replies.as_slice().is_empty() {
+                    return;
+                }
+            }
+        });
+        (port, received, handle)
+    }
+
+    /// `_http_json`, `_page_ws_url`, `_cdp_call` and `_direct_browser_cookies`
+    /// against the scenarios Python ran in `gen_fsv_core_session.py`: the
+    /// cookies or error, and the CDP requests the endpoint received.
+    #[test]
+    fn direct_browser_cookies_matches_python_against_fake_devtools() {
+        let all: Value =
+            serde_json::from_str(include_str!("../../tests/fixtures/session_expected.json"))
+                .unwrap();
+        for (name, case) in all["cdp"].as_object().unwrap() {
+            let (port, received, handle) =
+                fake_devtools(case["scenario"].as_array().unwrap().clone());
+            let got = match direct_browser_cookies(port, "acme.freshservice.com") {
+                Ok(c) => json!(c),
+                Err(e) => json!({"error": e.to_string()}),
+            };
+            handle.join().unwrap();
+            assert_eq!(got, case["out"], "{name}");
+            assert_eq!(
+                Value::Array(received.lock().unwrap().clone()),
+                case["received"],
+                "{name}"
+            );
+        }
+    }
+
+    #[test]
+    fn page_ws_url_and_http_json_read_the_target_list() {
+        let (port, _, handle) = fake_devtools(vec![]);
+        let url = page_ws_url(port, "acme.freshservice.com").unwrap();
+        assert_eq!(url, format!("ws://127.0.0.1:{port}/devtools/page/ACME"));
+        let list = http_json(&format!("http://127.0.0.1:{port}/json/list")).unwrap();
+        assert_eq!(list.as_array().map(Vec::len), Some(3));
+        drop(handle);
+    }
 
     #[test]
     fn browser_executable_prefers_existing_fsv_browser() {

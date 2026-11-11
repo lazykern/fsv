@@ -43,6 +43,8 @@ pub enum FormError {
     FieldDisabled(String),
 
     /// `FormRuleError` (`unsupported`: the `UnsupportedRuleError` subclass).
+    /// Port of fsv.forms.errors.FormRuleError.__init__: the variant holds
+    /// the message as given.
     #[error("{message}")]
     FormRule {
         message: String,
@@ -69,6 +71,7 @@ pub enum FormError {
     Type(String),
 }
 
+/// Port of fsv.forms.errors.UnknownFieldError.__init__ (the message).
 fn unknown_field_message(name: &str, suggestions: &[String]) -> String {
     let mut msg = format!("unknown field: {}", fsv_py::py_repr_str(name));
     if !suggestions.is_empty() {
@@ -77,6 +80,7 @@ fn unknown_field_message(name: &str, suggestions: &[String]) -> String {
     msg
 }
 
+/// Port of fsv.forms.errors.AmbiguousLookupError.__init__ (the message).
 fn ambiguous_message(field: &str, query: &str, candidates: &[LookupValue]) -> String {
     let shown: Vec<String> = candidates
         .iter()
@@ -97,6 +101,7 @@ fn ambiguous_message(field: &str, query: &str, candidates: &[LookupValue]) -> St
     )
 }
 
+/// Port of fsv.forms.errors.PayloadError.__init__ (the message).
 fn payload_message(problems: &[String]) -> String {
     if problems.is_empty() {
         "invalid payload".to_string()
@@ -115,6 +120,7 @@ impl FormError {
         }
     }
 
+    /// Port of fsv.forms.errors.ValueParseError.__init__.
     pub(crate) fn parse_opts(
         field: &str,
         raw: &Value,

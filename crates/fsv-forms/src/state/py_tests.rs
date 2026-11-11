@@ -317,3 +317,82 @@ fn free_parsers_match_python() {
         check(&format!("_parse_attachments {row}"), &got, &row[2]);
     }
 }
+
+/// Records every `lookup(entity, query, field)` and answers from fixed records
+/// the way the generator's resolver does.
+struct Recorder {
+    records: Vec<LookupValue>,
+    calls: std::sync::Mutex<Vec<Json>>,
+}
+
+impl LookupResolver for Recorder {
+    fn lookup(
+        &self,
+        entity: &str,
+        query: &str,
+        field: &Field,
+    ) -> std::result::Result<Vec<LookupValue>, ResolverError> {
+        self.calls
+            .lock()
+            .expect("calls")
+            .push(json!([entity, query, field.api_name]));
+        let q = fold(query);
+        Ok(self
+            .records
+            .iter()
+            .filter(|c| {
+                fold(&c.display).contains(&q)
+                    || c.email.as_deref().unwrap_or("").contains(&q)
+                    || fsv_py::py_str(&c.id) == query
+            })
+            .cloned()
+            .collect())
+    }
+}
+
+/// ASCII-only fixture text, so lowercasing equals `str.casefold`.
+fn fold(s: &str) -> String {
+    s.to_lowercase()
+}
+
+/// The entity, query and field `FormState` passes to
+/// `LookupResolver.lookup` per lookup kind, and how it reads the answer
+/// (`testdata/resolver_expected.json` from `gen_fsv_forms_resolver.py`).
+#[test]
+fn lookup_resolver_calls_match_python() {
+    let golden: Json =
+        serde_json::from_str(include_str!("../../testdata/resolver_expected.json")).unwrap();
+    let spec = Arc::new(FormSpec::from_form_fields(&golden["fields"], "change").unwrap());
+    let records: Vec<LookupValue> = golden["records"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| LookupValue::new(r[0].clone(), r[1].as_str().unwrap(), r[2].as_str()))
+        .collect();
+    for row in golden["rows"].as_array().unwrap() {
+        let rec = Arc::new(Recorder {
+            records: records.clone(),
+            calls: Default::default(),
+        });
+        let opts = StateOptions {
+            resolver: Some(rec.clone()),
+            tz_env: Some(TzEnv::empty()),
+            ..Default::default()
+        };
+        let st = FormState::new(spec.clone(), None, "new", None, opts).unwrap();
+        let got = match st.parse(
+            row["field"].as_str().unwrap(),
+            &Value::from_json(&row["raw"]),
+        ) {
+            Ok(Value::Lookup(l)) => json!({"id": l.id, "display": l.display, "email": l.email}),
+            Ok(other) => panic!("not a lookup: {other:?}"),
+            Err(e) => json!({"error": e.to_string()}),
+        };
+        assert_eq!(got, row["out"], "{row}");
+        assert_eq!(
+            Json::Array(rec.calls.lock().unwrap().clone()),
+            row["calls"],
+            "{row}"
+        );
+    }
+}

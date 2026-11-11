@@ -1,0 +1,491 @@
+{
+ "b64d": [
+  [
+   "",
+   []
+  ],
+  [
+   "YWJj",
+   [
+    97,
+    98,
+    99
+   ]
+  ],
+  [
+   "YW Jj",
+   [
+    97,
+    98,
+    99
+   ]
+  ],
+  [
+   "YWJj\n",
+   [
+    97,
+    98,
+    99
+   ]
+  ],
+  [
+   "YWI=",
+   [
+    97,
+    98
+   ]
+  ],
+  [
+   "YWI",
+   "Error: Incorrect padding"
+  ],
+  [
+   "YWJj=YWJj",
+   [
+    97,
+    98,
+    99,
+    97,
+    98,
+    99
+   ]
+  ],
+  [
+   "YQ==YQ==",
+   [
+    97
+   ]
+  ],
+  [
+   "Y",
+   "Error: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4"
+  ],
+  [
+   "****",
+   []
+  ],
+  [
+   "YW*Jj",
+   [
+    97,
+    98,
+    99
+   ]
+  ],
+  [
+   "YWI==",
+   [
+    97,
+    98
+   ]
+  ],
+  [
+   "YQ",
+   "Error: Incorrect padding"
+  ],
+  [
+   "=YWJj",
+   [
+    97,
+    98,
+    99
+   ]
+  ],
+  [
+   "YW=Jj",
+   [
+    97,
+    98,
+    99
+   ]
+  ],
+  [
+   "AP9oaQ==",
+   [
+    0,
+    255,
+    104,
+    105
+   ]
+  ],
+  [
+   "Y\nW\nJ\nj",
+   [
+    97,
+    98,
+    99
+   ]
+  ],
+  [
+   "YWJjZA",
+   "Error: Incorrect padding"
+  ],
+  [
+   "YWJjZ",
+   "Error: Invalid base64-encoded string: number of data characters (5) cannot be 1 more than a multiple of 4"
+  ]
+ ],
+ "b64e": [
+  [
+   [],
+   ""
+  ],
+  [
+   [
+    0,
+    255,
+    104,
+    105
+   ],
+   "AP9oaQ=="
+  ],
+  [
+   [
+    0,
+    17,
+    34,
+    51,
+    68,
+    85,
+    102,
+    119,
+    136,
+    153,
+    170,
+    187,
+    204,
+    221,
+    238,
+    255
+   ],
+   "ABEiM0RVZneImaq7zN3u/w=="
+  ],
+  [
+   [
+    255,
+    254
+   ],
+   "//4="
+  ]
+ ],
+ "passphrase": [
+  {
+   "confirm": false,
+   "answers": [
+    "pw"
+   ],
+   "prompts": [
+    "Passphrase: "
+   ],
+   "out": "pw"
+  },
+  {
+   "confirm": false,
+   "answers": [
+    ""
+   ],
+   "prompts": [
+    "Passphrase: "
+   ],
+   "out": {
+    "error": "empty passphrase"
+   }
+  },
+  {
+   "confirm": true,
+   "answers": [
+    "pw",
+    "pw"
+   ],
+   "prompts": [
+    "Passphrase: ",
+    "Confirm passphrase: "
+   ],
+   "out": "pw"
+  },
+  {
+   "confirm": true,
+   "answers": [
+    "pw",
+    "px"
+   ],
+   "prompts": [
+    "Passphrase: ",
+    "Confirm passphrase: "
+   ],
+   "out": {
+    "error": "passphrases do not match"
+   }
+  },
+  {
+   "confirm": true,
+   "answers": [
+    "",
+    "pw"
+   ],
+   "prompts": [
+    "Passphrase: "
+   ],
+   "out": {
+    "error": "empty passphrase"
+   }
+  }
+ ],
+ "read_secret_tty": [
+  [
+   "abc\n",
+   "abc"
+  ],
+  [
+   "ab\n",
+   "b"
+  ],
+  [
+   "x\n",
+   "x"
+  ],
+  [
+   "l1\nl2\n",
+   "l1\nl2"
+  ],
+  [
+   "l1\nl2\u0004",
+   "l1\nl2"
+  ],
+  [
+   "ab\u0004cd\n",
+   "ab"
+  ],
+  [
+   "cafÃ©\n",
+   "caf��"
+  ],
+  [
+   "\n",
+   ""
+  ],
+  [
+   "a\tb\n",
+   "a\tb"
+  ],
+  [
+   "a\rb\r",
+   "a\nb"
+  ]
+ ],
+ "read_secret_pipe": [
+  [
+   "abc\n",
+   "abc"
+  ],
+  [
+   "abc\n\n",
+   "abc"
+  ],
+  [
+   "a\r\n",
+   "a"
+  ],
+  [
+   "l1\nl2\n",
+   "l1\nl2"
+  ],
+  [
+   "",
+   ""
+  ]
+ ],
+ "cdp": {
+  "get_cookies": {
+   "scenario": [
+    [
+     [
+      "ping",
+      null
+     ],
+     [
+      "text",
+      {
+       "method": "Network.event"
+      }
+     ],
+     [
+      "text",
+      {
+       "id": 2,
+       "result": {}
+      }
+     ],
+     [
+      "text",
+      {
+       "id": 1,
+       "result": {
+        "cookies": [
+         {
+          "name": "_x_m",
+          "value": "m"
+         },
+         {
+          "name": "",
+          "value": "e"
+         },
+         {
+          "name": "n",
+          "value": 3
+         },
+         "x"
+        ]
+       }
+      }
+     ]
+    ]
+   ],
+   "out": {
+    "_x_m": "m"
+   },
+   "received": [
+    {
+     "path": "/devtools/page/ACME",
+     "text": "{\"id\": 1, \"method\": \"Network.getCookies\", \"params\": {\"urls\": [\"https://acme.freshservice.com/\"]}}"
+    }
+   ]
+  },
+  "fallback_all_cookies": {
+   "scenario": [
+    [
+     [
+      "text",
+      {
+       "id": 1,
+       "error": {
+        "code": -32601,
+        "message": "nope"
+       }
+      }
+     ]
+    ],
+    [
+     [
+      "text",
+      {
+       "id": 1,
+       "result": {
+        "cookies": [
+         {
+          "name": "a",
+          "value": "1"
+         }
+        ]
+       }
+      }
+     ]
+    ]
+   ],
+   "out": {
+    "a": "1"
+   },
+   "received": [
+    {
+     "path": "/devtools/page/ACME",
+     "text": "{\"id\": 1, \"method\": \"Network.getCookies\", \"params\": {\"urls\": [\"https://acme.freshservice.com/\"]}}"
+    },
+    {
+     "path": "/devtools/page/ACME",
+     "text": "{\"id\": 1, \"method\": \"Network.getAllCookies\", \"params\": {}}"
+    }
+   ]
+  },
+  "both_error": {
+   "scenario": [
+    [
+     [
+      "text",
+      {
+       "id": 1,
+       "error": {
+        "code": -32601,
+        "message": "nope"
+       }
+      }
+     ]
+    ],
+    [
+     [
+      "text",
+      {
+       "id": 1,
+       "error": "bad"
+      }
+     ]
+    ]
+   ],
+   "out": {
+    "error": "bad"
+   },
+   "received": [
+    {
+     "path": "/devtools/page/ACME",
+     "text": "{\"id\": 1, \"method\": \"Network.getCookies\", \"params\": {\"urls\": [\"https://acme.freshservice.com/\"]}}"
+    },
+    {
+     "path": "/devtools/page/ACME",
+     "text": "{\"id\": 1, \"method\": \"Network.getAllCookies\", \"params\": {}}"
+    }
+   ]
+  },
+  "result_not_object": {
+   "scenario": [
+    [
+     [
+      "text",
+      {
+       "id": 1,
+       "result": [
+        1
+       ]
+      }
+     ]
+    ]
+   ],
+   "out": {
+    "error": "browser cookie output did not contain a cookie list"
+   },
+   "received": [
+    {
+     "path": "/devtools/page/ACME",
+     "text": "{\"id\": 1, \"method\": \"Network.getCookies\", \"params\": {\"urls\": [\"https://acme.freshservice.com/\"]}}"
+    }
+   ]
+  },
+  "closed": {
+   "scenario": [
+    [
+     [
+      "close",
+      null
+     ]
+    ],
+    [
+     [
+      "close",
+      null
+     ]
+    ]
+   ],
+   "out": {
+    "error": "browser DevTools websocket closed"
+   },
+   "received": [
+    {
+     "path": "/devtools/page/ACME",
+     "text": "{\"id\": 1, \"method\": \"Network.getCookies\", \"params\": {\"urls\": [\"https://acme.freshservice.com/\"]}}"
+    },
+    {
+     "path": "/devtools/page/ACME",
+     "text": "{\"id\": 1, \"method\": \"Network.getAllCookies\", \"params\": {}}"
+    }
+   ]
+  }
+ }
+}

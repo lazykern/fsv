@@ -123,7 +123,8 @@ impl Param {
     }
 }
 
-/// One command: `path` starts with the program name.
+/// Port of fsv.completion_gen._Command. One command: `path` starts with the
+/// program name.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Node {
     pub path: Vec<String>,
@@ -134,16 +135,24 @@ pub struct Node {
 
 type Hints = [(&'static str, &'static str, &'static [OptionHint])];
 
+/// Port of fsv.completion_gen._is_bool_annotation. clap's action stands in
+/// for the Python annotation; `value_flag` marks the `Optional[bool]`
+/// string annotations Python reads as non-boolean.
+fn is_boolean(cmd: &Command, hint: &OptionHint) -> bool {
+    !hint.value_flag
+        && cmd
+            .get_arguments()
+            .find(|a| a.get_id() == hint.id)
+            .is_none_or(|a| {
+                matches!(
+                    a.get_action(),
+                    ArgAction::SetTrue | ArgAction::SetFalse | ArgAction::Count
+                )
+            })
+}
+
 fn param_for(cmd: &Command, hint: &OptionHint) -> Param {
-    let flag = cmd.get_arguments().find(|a| a.get_id() == hint.id);
-    let boolean = !hint.value_flag
-        && flag.is_none_or(|a| {
-            matches!(
-                a.get_action(),
-                ArgAction::SetTrue | ArgAction::SetFalse | ArgAction::Count
-            )
-        });
-    let kind = if boolean {
+    let kind = if is_boolean(cmd, hint) {
         Kind::Boolean
     } else if let Some(values) = hint.completer.and_then(static_values) {
         Kind::Static(values)
@@ -184,6 +193,24 @@ fn hint_for<'h>(hints: &'h Hints, key: &str) -> (&'h str, &'h [OptionHint]) {
         .map_or(("", &[]), |(_, doc, opts)| (*doc, *opts))
 }
 
+/// Port of fsv.completion_gen._extract_params: the hints record each
+/// option's flags and completer, which Python reads from the signature.
+fn extract_params(cmd: &Command, opts: &[OptionHint]) -> Vec<Param> {
+    opts.iter().map(|h| param_for(cmd, h)).collect()
+}
+
+/// Port of fsv.completion_gen._filter_params_by_flags: an empty `allowed`
+/// keeps every param.
+fn filter_params_by_flags(params: Vec<Param>, allowed: &[&str]) -> Vec<Param> {
+    if allowed.is_empty() {
+        return params;
+    }
+    params
+        .into_iter()
+        .filter(|p| p.flags.iter().any(|f| allowed.contains(&f.as_str())))
+        .collect()
+}
+
 fn walk(
     cmd: &Command,
     key: &[String],
@@ -194,7 +221,7 @@ fn walk(
     group: bool,
 ) -> Node {
     let (doc, opts) = hint_for(hints, &key.join(" "));
-    let local: Vec<Param> = opts.iter().map(|h| param_for(cmd, h)).collect();
+    let local = extract_params(cmd, opts);
     let mut params = inherited.clone();
     params.extend(local.iter().cloned());
     if !group {
@@ -206,11 +233,7 @@ fn walk(
         };
     }
     let mut next = inherited;
-    next.extend(
-        local.into_iter().filter(|p| {
-            inherit.is_empty() || p.flags.iter().any(|f| inherit.contains(&f.as_str()))
-        }),
-    );
+    next.extend(filter_params_by_flags(local, inherit));
     let subcommands = cmd
         .get_subcommands()
         .map(|sub| {
@@ -242,9 +265,7 @@ mod tests {
     use super::*;
     use crate::gen_tests::{HINTS, PROG, app, dump, expected_tree};
 
-    /// `_walk(app, [prog], inherited_flags=...)`; the clap side has no
-    /// `_extract_params`/`_filter_params_by_flags`/`_is_bool_annotation`
-    /// split, so those run here through `param_for` and the inherit filter.
+    /// `_walk(app, [prog], inherited_flags=...)`.
     #[test]
     fn walk_matches_python() {
         for (inherit, key) in [
@@ -292,11 +313,73 @@ mod tests {
                 Kind::Freeform,
             ]
         );
+        assert_eq!(
+            extract_params(list, opts)
+                .into_iter()
+                .map(|p| p.kind)
+                .collect::<Vec<_>>(),
+            kinds
+        );
         let root_opts = HINTS[0].2;
         assert_eq!(param_for(&cmd, &root_opts[0]).kind, Kind::Boolean);
         assert_eq!(
             param_for(&cmd, &root_opts[1]).kind,
             Kind::Static(static_values("complete_format").expect("format"))
         );
+    }
+
+    /// `_is_bool_annotation`: `bool` and `Optional[bool]` are boolean, the
+    /// string `"Optional[bool]"` is not (`value_flag`), `str`/`int` are not.
+    #[test]
+    fn is_boolean_follows_action_and_value_flag() {
+        let cmd = app();
+        let list = cmd
+            .find_subcommand("changes")
+            .and_then(|c| c.find_subcommand("list"))
+            .expect("list");
+        let opts = HINTS
+            .iter()
+            .find(|(k, _, _)| *k == "fsv changes list")
+            .map(|(_, _, o)| *o)
+            .expect("hints");
+        let yes = opts.iter().find(|h| h.id == "yes").expect("yes");
+        assert!(!is_boolean(list, yes));
+        assert!(is_boolean(
+            list,
+            &OptionHint {
+                value_flag: false,
+                ..*yes
+            }
+        ));
+        let limit = opts.iter().find(|h| h.id == "limit").expect("limit");
+        assert!(!is_boolean(list, limit));
+        assert!(is_boolean(&cmd, &HINTS[0].2[0]));
+    }
+
+    /// Expected lists from `_filter_params_by_flags` on the same params.
+    #[test]
+    fn filter_params_by_flags_matches_python() {
+        let p = |flags: &[&str]| Param {
+            flags: flags.iter().map(|f| f.to_string()).collect(),
+            kind: Kind::Boolean,
+        };
+        let params = vec![
+            p(&["--verbose", "-v"]),
+            p(&["--format", "-f"]),
+            p(&["--debug"]),
+        ];
+        let flags = |allowed: &[&str]| -> Vec<Vec<String>> {
+            filter_params_by_flags(params.clone(), allowed)
+                .into_iter()
+                .map(|p| p.flags)
+                .collect()
+        };
+        assert_eq!(flags(&[]).len(), 3);
+        assert_eq!(flags(&["-v"]), [["--verbose", "-v"]]);
+        assert_eq!(
+            flags(&["--verbose", "--debug"]),
+            vec![vec!["--verbose", "-v"], vec!["--debug"]]
+        );
+        assert!(flags(&["-x"]).is_empty());
     }
 }

@@ -609,6 +609,8 @@ fn field_value_text(value: &Value) -> String {
     }
 }
 
+/// Port of fsv.render._requested_item_field_defs: the field, then its
+/// `nested_fields` depth-first.
 fn field_defs(field: &Value) -> Vec<&Value> {
     let mut defs = vec![field];
     for nested in field
@@ -784,6 +786,22 @@ pub fn requested_items_panel(items: &[Value]) -> Vec<Block> {
 mod tests {
     use super::*;
     use fsv_core::resource::{CHANGES, TICKETS};
+
+    fn extra() -> Value {
+        serde_json::from_str(include_str!("../tests/fixtures/views_extra.json")).expect("fixture")
+    }
+
+    /// Names in `_requested_item_field_defs` order (`gen_fsv_views_extra.py`).
+    #[test]
+    fn field_defs_matches_python() {
+        for row in extra()["field_defs"].as_array().expect("rows") {
+            let names: Vec<&Value> = field_defs(&row[0])
+                .into_iter()
+                .map(|d| &d["name"])
+                .collect();
+            assert_eq!(json!(names), row[1], "{row}");
+        }
+    }
 
     #[test]
     fn requested_item_answers_follow_form_then_extras() {

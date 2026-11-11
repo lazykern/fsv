@@ -55,6 +55,7 @@ fn first_text(d: &Obj, keys: &[&str]) -> String {
         .unwrap_or_default()
 }
 
+/// Port of fsv.completion._match: casefolded prefix test.
 fn matches(text: &str, incomplete: &str) -> bool {
     casefold(text).starts_with(&casefold(incomplete))
 }
@@ -124,6 +125,9 @@ fn fields_or_fallback(res: &Resource) -> Vec<Obj> {
         .collect()
 }
 
+/// Port of fsv.completion._field_matches: prefix match on name or label.
+/// `cli._field_matches` and `query._field_matches` are substring matches and
+/// live in fsv-cli (`lookup::field_matches`) and fsv-api.
 fn field_matches(f: &Obj, incomplete: &str) -> bool {
     matches(&field_name(f), incomplete) || matches(&field_label(f), incomplete)
 }
@@ -405,6 +409,7 @@ fn group_names(incomplete: &str) -> Pairs {
         .collect()
 }
 
+/// `kind` is the `--kind` value Python hands over in a `_MockCtx`.
 fn complete_lookup_query(env: &Env, res: &Resource, kind: &str, incomplete: &str) -> Pairs {
     let mut out = match kind {
         "requester" | "requesters" => env.remote_user_values("requesters", incomplete),
@@ -667,22 +672,139 @@ fn complete_update_group_id(incomplete: &str) -> Pairs {
     out
 }
 
-fn static_pairs(name: &str) -> Option<&'static [(&'static str, &'static str)]> {
-    match name {
-        "complete_config_key" => Some(&[
+/// Port of fsv.completion.complete_update_choice: labels and ids of one
+/// field's choices, then the fallback labels for status/priority/impact/risk.
+/// `_complete` has no arm for it, so the generated scripts print nothing.
+pub fn complete_update_choice(res: &Resource, field_name: &str, incomplete: &str) -> Pairs {
+    let mut out = Pairs::new();
+    let mut emitted: Vec<String> = Vec::new();
+    if let Some(f) = fields_or_fallback(res)
+        .into_iter()
+        .find(|f| self::field_name(f) == field_name)
+    {
+        for c in choice_list(&f).iter().filter_map(Value::as_object) {
+            let cid = text(c, "id");
+            let label = {
+                let l = first_text(c, &["value", "name", "label"]);
+                if l.is_empty() { cid.clone() } else { l }
+            };
+            let id_help = if cid.is_empty() {
+                String::new()
+            } else {
+                format!("id={cid}")
+            };
+            for (value, help) in [(label.clone(), id_help), (cid.clone(), label.clone())] {
+                if !value.is_empty() && !emitted.contains(&value) && matches(&value, incomplete) {
+                    emitted.push(value.clone());
+                    out.push((value, help));
+                }
+            }
+        }
+    }
+    if FALLBACK_CHOICES.iter().any(|(k, _)| *k == field_name) {
+        for label in fallback_choices(field_name) {
+            if !emitted.contains(&label) && matches(&label, incomplete) {
+                emitted.push(label.clone());
+                out.push((label, field_name.to_string()));
+            }
+        }
+    }
+    out.push(pair(incomplete, ""));
+    out
+}
+
+/// Port of fsv.completion.complete_help_topic.
+pub fn complete_help_topic(topics: &[&str], incomplete: &str) -> Pairs {
+    let pairs: Vec<(&str, &str)> = topics.iter().map(|t| (*t, "help topic")).collect();
+    complete_pairs(incomplete, &pairs)
+}
+
+fn static_table(name: &str) -> &'static [(&'static str, &'static str)] {
+    crate::model::STATIC_COMPLETERS
+        .iter()
+        .find(|(n, _)| *n == name)
+        .map_or(&[], |(_, v)| *v)
+}
+
+/// Port of fsv.completion.complete_format.
+fn complete_format(incomplete: &str) -> Pairs {
+    complete_pairs(incomplete, static_table("complete_format"))
+}
+
+/// Port of fsv.completion.complete_store.
+fn complete_store(incomplete: &str) -> Pairs {
+    complete_pairs(incomplete, static_table("complete_store"))
+}
+
+/// Port of fsv.completion.complete_shell.
+fn complete_shell(incomplete: &str) -> Pairs {
+    complete_pairs(incomplete, static_table("complete_shell"))
+}
+
+/// Port of fsv.completion.complete_sort_order.
+fn complete_sort_order(incomplete: &str) -> Pairs {
+    complete_pairs(incomplete, static_table("complete_sort_order"))
+}
+
+/// Port of fsv.completion.complete_cache_target.
+fn complete_cache_target(incomplete: &str) -> Pairs {
+    complete_pairs(incomplete, static_table("complete_cache_target"))
+}
+
+/// Port of fsv.completion.complete_search_sort.
+fn complete_search_sort(incomplete: &str) -> Pairs {
+    complete_pairs(incomplete, static_table("complete_search_sort"))
+}
+
+/// Port of fsv.completion.complete_duplicate_mode.
+fn complete_duplicate_mode(incomplete: &str) -> Pairs {
+    complete_pairs(incomplete, static_table("complete_duplicate_mode"))
+}
+
+/// Port of fsv.completion.complete_config_key. The script generator's table
+/// (`STATIC_COMPLETERS`) lists only `completion.network`; this one has three.
+fn complete_config_key(incomplete: &str) -> Pairs {
+    complete_pairs(
+        incomplete,
+        &[
             (
                 "completion.network",
                 "enable remote requester/agent completion [on|off]",
             ),
             ("defaults.requester", "requester email for changes create"),
             ("forms.workspace_id", "workspace whose business rules apply"),
-        ]),
-        "complete_config_value" => None,
-        _ => crate::model::STATIC_COMPLETERS
-            .iter()
-            .find(|(n, _)| *n == name)
-            .map(|(_, v)| *v),
-    }
+        ],
+    )
+}
+
+/// Port of fsv.completion.complete_config_value.
+fn complete_config_value(incomplete: &str) -> Pairs {
+    let mut out: Pairs = ["on", "off", "true", "false", "1", "0"]
+        .iter()
+        .filter(|v| matches(v, incomplete))
+        .map(|v| pair(*v, ""))
+        .collect();
+    out.push(pair(incomplete, ""));
+    out
+}
+
+type Plain = fn(&str) -> Pairs;
+
+/// The `PLAIN` table of `_complete._completions`, minus the three completers
+/// that read caches or the network.
+fn plain(name: &str) -> Option<Plain> {
+    Some(match name {
+        "complete_format" => complete_format,
+        "complete_store" => complete_store,
+        "complete_shell" => complete_shell,
+        "complete_sort_order" => complete_sort_order,
+        "complete_config_key" => complete_config_key,
+        "complete_config_value" => complete_config_value,
+        "complete_cache_target" => complete_cache_target,
+        "complete_search_sort" => complete_search_sort,
+        "complete_duplicate_mode" => complete_duplicate_mode,
+        _ => return None,
+    })
 }
 
 fn extract_flag(tokens: &[String], flags: &[&str]) -> String {
@@ -725,19 +847,10 @@ fn complete_in(
         "complete_update_agent_id" => return complete_update_agent_id(env, token),
         "complete_update_group_id" => return complete_update_group_id(token),
         "complete_group_query" => return complete_group_query(token),
-        "complete_config_value" => {
-            let mut out: Pairs = ["on", "off", "true", "false", "1", "0"]
-                .iter()
-                .filter(|v| matches(v, token))
-                .map(|v| pair(*v, ""))
-                .collect();
-            out.push(pair(token, ""));
-            return out;
-        }
         _ => {}
     }
-    if let Some(pairs) = static_pairs(completer) {
-        return complete_pairs(token, pairs);
+    if let Some(f) = plain(completer) {
+        return f(token);
     }
     let Some(res) = resource::lookup(resource_name) else {
         return Vec::new();
@@ -757,7 +870,7 @@ fn complete_in(
     }
 }
 
-/// `fsv._complete.main`: `args` are `<shell> <completer> <resource|-> <token> [-- tokens...]`;
+/// Port of fsv._complete.main: `args` are `<shell> <completer> <resource|-> <token> [-- tokens...]`;
 /// returns the lines to print.
 pub fn run(args: &[String], network: bool) -> String {
     let env = Env {

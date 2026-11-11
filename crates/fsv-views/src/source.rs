@@ -58,6 +58,18 @@ pub fn optional_get(
     }
 }
 
+/// Port of fsv.views.ticket_headers: the object rows of `tickets/headers`,
+/// empty when the read fails or the payload has no header list.
+pub fn ticket_headers(src: &mut dyn Source) -> Result<Vec<Value>, SessionError> {
+    let Ok(data) = optional_get(src, "tickets/headers", None, "list headers")? else {
+        return Ok(Vec::new());
+    };
+    Ok(match data.get("headers") {
+        Some(Value::Array(rows)) => rows.iter().filter(|h| h.is_object()).cloned().collect(),
+        _ => Vec::new(),
+    })
+}
+
 /// `workspace_get`: `ws/<workspace>/<path>` first, the plain path when that 404s.
 pub fn workspace_get(
     src: &mut dyn Source,
@@ -478,6 +490,39 @@ mod tests {
         );
         let miss = optional_get(&mut src, "y", None, "").unwrap().unwrap_err();
         assert_eq!(miss.note(), "y: not available on this account (404)");
+    }
+
+    /// Each payload or failure Python's `ticket_headers` saw in
+    /// `gen_fsv_views_extra.py`.
+    #[test]
+    fn ticket_headers_matches_python() {
+        let golden: Value =
+            serde_json::from_str(include_str!("../tests/fixtures/views_extra.json")).unwrap();
+        for (name, case) in golden["ticket_headers"].as_object().unwrap() {
+            let result = match name.as_str() {
+                "rows" => Ok(
+                    json!({"headers": [{"name": "subject"}, "x", 3, {"name": "status", "label": "Status"}]}),
+                ),
+                "not_list" => Ok(json!({"headers": "x"})),
+                "no_key" => Ok(json!({"other": []})),
+                "top_list" => Ok(json!([{"name": "subject"}])),
+                "null" => Ok(Value::Null),
+                "forbidden" => Err(FetchError::Status(Some(403))),
+                "other_error" => Err(FetchError::Status(None)),
+                "session" => Err(FetchError::Session("expired".into())),
+                other => panic!("unknown case {other}"),
+            };
+            let mut src = Canned {
+                int: vec![("tickets/headers".into(), result)],
+                ..Default::default()
+            };
+            let got = match ticket_headers(&mut src) {
+                Ok(rows) => Value::Array(rows),
+                Err(e) => json!({"session_error": e.0}),
+            };
+            assert_eq!(got, case["out"], "{name}");
+            assert_eq!(json!(src.calls), case["calls"], "{name}");
+        }
     }
 
     #[test]

@@ -1,0 +1,171 @@
+{
+ "strip_html": [
+  [
+   null,
+   ""
+  ],
+  [
+   "",
+   ""
+  ],
+  [
+   "plain",
+   "plain"
+  ],
+  [
+   "<p>Hi&nbsp;there</p>",
+   "Hi there"
+  ],
+  [
+   "  <b>a</b><i>b</i>  ",
+   "a  b"
+  ],
+  [
+   "a &lt;b&gt; &amp; c",
+   "a <b> & c"
+  ],
+  [
+   "<br/>line<br>two",
+   "line two"
+  ],
+  [
+   "x < y > z",
+   "x   z"
+  ],
+  [
+   "&#39;q&#39; &copy; &bogus;",
+   "'q' © &bogus;"
+  ],
+  [
+   "<p>\n multi\nline </p>",
+   "multi\nline"
+  ],
+  [
+   "<a href='x'>link</a>&amp;amp;",
+   "link &amp;"
+  ]
+ ],
+ "field_defs": [
+  [
+   {
+    "name": "a",
+    "label": "A",
+    "nested_fields": [
+     {
+      "name": "b",
+      "label": "B",
+      "nested_fields": [
+       {
+        "name": "c",
+        "label": "C"
+       }
+      ]
+     },
+     {
+      "name": "d",
+      "label": "D",
+      "nested_fields": []
+     },
+     {
+      "name": "e",
+      "label": "E",
+      "nested_fields": null
+     }
+    ]
+   },
+   [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e"
+   ]
+  ],
+  [
+   {
+    "name": "solo"
+   },
+   [
+    "solo"
+   ]
+  ],
+  [
+   {
+    "name": "x",
+    "nested_fields": [
+     {
+      "name": "y"
+     },
+     {
+      "name": "z"
+     }
+    ]
+   },
+   [
+    "x",
+    "y",
+    "z"
+   ]
+  ]
+ ],
+ "ticket_headers": {
+  "rows": {
+   "calls": [
+    "tickets/headers"
+   ],
+   "out": [
+    {
+     "name": "subject"
+    },
+    {
+     "name": "status",
+     "label": "Status"
+    }
+   ]
+  },
+  "not_list": {
+   "calls": [
+    "tickets/headers"
+   ],
+   "out": []
+  },
+  "no_key": {
+   "calls": [
+    "tickets/headers"
+   ],
+   "out": []
+  },
+  "top_list": {
+   "calls": [
+    "tickets/headers"
+   ],
+   "out": []
+  },
+  "null": {
+   "calls": [
+    "tickets/headers"
+   ],
+   "out": []
+  },
+  "forbidden": {
+   "calls": [
+    "tickets/headers"
+   ],
+   "out": []
+  },
+  "other_error": {
+   "calls": [
+    "tickets/headers"
+   ],
+   "out": []
+  },
+  "session": {
+   "calls": [
+    "tickets/headers"
+   ],
+   "out": {
+    "session_error": "expired"
+   }
+  }
+ }
+}
