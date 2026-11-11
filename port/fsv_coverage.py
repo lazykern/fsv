@@ -608,10 +608,29 @@ def main() -> int:
     def stem_of(p: Path) -> str:
         return p.parent.name if p.name == "mod.rs" else p.stem
 
+    deps: dict[str, set[str]] = {}
+    for cdir in CRATES.iterdir():
+        toml = cdir / "Cargo.toml"
+        if toml.exists():
+            deps[cdir.name] = set(re.findall(r"^(fsv-[\w-]+)\s*=", toml.read_text(), re.M))
+
+    def can_call(user: str, owner: str, seen=None) -> bool:
+        if user == owner:
+            return True
+        seen = seen or set()
+        for d in deps.get(user, ()):
+            if d not in seen:
+                seen.add(d)
+                if can_call(d, owner, seen):
+                    return True
+        return False
+
     def tested(f: RsFn) -> str | None:
         rx = ref_regex(f.name)
         modkey = f.file.parent if f.file.name in ("mod.rs", "lib.rs", "main.rs") else f.file.parent / f.file.stem
         for crate, path, text in segs:
+            if not can_call(crate, f.crate):
+                continue
             if not rx.search(text):
                 continue
             if common(f.name):
