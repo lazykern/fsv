@@ -281,3 +281,50 @@ fn lookup_id_and_name_list_match_python() {
         );
     }
 }
+
+/// `problem_workflows.create_plan`'s calls: `_check(state, False, skip=(requester,))`
+/// and `_module_body(state, {}, PROBLEM_ORDER, evaluated status)`, from the
+/// public API (`testdata/problem_expected.json`, `gen_problem_body.py`).
+#[test]
+fn check_and_module_body_as_problem_create_calls_them() {
+    const PROBLEM_ORDER: [&str; 5] = ["subject", "description", "status", "priority", "impact"];
+    let want: Json = serde_json::from_str(include_str!("../../testdata/problem_expected.json"))
+        .expect("problem_expected.json");
+    let mut checks = 0;
+    for (name, row) in want.as_object().unwrap() {
+        let st = payload_state(name);
+        for c in row["check"].as_array().unwrap() {
+            let skip: Vec<String> = serde_json::from_value(c[1].clone()).unwrap();
+            let got = run(super::check(&st, c[0].as_bool().unwrap(), &skip), |()| {
+                Json::Null
+            });
+            let want = if c[2].get("ok").is_some() {
+                json!({"ok": null})
+            } else {
+                c[2].clone()
+            };
+            check_exact(&format!("{name} _check {} {}", c[0], c[1]), &got, &want);
+            checks += 1;
+        }
+        let status = st.evaluated.values.get("status").cloned();
+        let got = run(
+            super::module_body(&st, &[], &PROBLEM_ORDER, status.as_ref()),
+            |(top, custom)| {
+                let tk: Vec<String> = top.keys().cloned().collect();
+                let ck: Vec<String> = custom.keys().cloned().collect();
+                json!([top, custom, tk, ck])
+            },
+        );
+        let want = &row["module_body"];
+        let want = match want.get("ok") {
+            Some(ok) => {
+                let tk: Vec<String> = ok[0].as_object().unwrap().keys().cloned().collect();
+                let ck: Vec<String> = ok[1].as_object().unwrap().keys().cloned().collect();
+                json!({"ok": [ok[0], ok[1], tk, ck]})
+            }
+            None => want.clone(),
+        };
+        check_exact(&format!("{name} _module_body problem"), &got, &want);
+    }
+    assert_eq!(checks, 120);
+}

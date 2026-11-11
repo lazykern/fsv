@@ -433,7 +433,13 @@ fn problems(state: &FormState, skip: &[String]) -> Result<Vec<String>> {
     Ok(out)
 }
 
-fn check(state: &FormState, allow_incomplete: bool, skip: &[String]) -> Result<()> {
+/// Refuse a form that cannot be sent as it stands: rules this engine cannot
+/// evaluate faithfully always (`FormError::Payload` with those lines); with
+/// `allow_incomplete` nothing else, otherwise also missing required fields
+/// (except the API names in `skip`), unavailable choices and blocked lines.
+///
+/// Port of fsv.forms.payload._check.
+pub fn check(state: &FormState, allow_incomplete: bool, skip: &[String]) -> Result<()> {
     let unsupported = state.unsupported_errors();
     if !unsupported.is_empty() {
         return Err(FormError::Payload {
@@ -450,7 +456,13 @@ fn check(state: &FormState, allow_incomplete: bool, skip: &[String]) -> Result<(
     Ok(())
 }
 
-fn module_body(
+/// The sent fields of a flat module form as `(top, custom_fields)`. `keys`
+/// renames API names to request keys (`&[]`: none), `order` lists the
+/// leading top-level keys (the rest follow in field order) and `status`
+/// (label, value or id; `None`/null: not sent) is resolved to its choice id.
+///
+/// Port of fsv.forms.payload._module_body.
+pub fn module_body(
     state: &FormState,
     keys: &[(&str, &str)],
     order: &[&str],
