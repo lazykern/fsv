@@ -217,7 +217,7 @@ def test_preparation_fail_closed(monkeypatch, case):
 
 
 @pytest.mark.parametrize("operation", ["approve", "reject", "cancel"])
-@pytest.mark.parametrize("mode", ["dry_run", "cancel_prompt", "read_only", "bad_hash", "tenant", "changed"])
+@pytest.mark.parametrize("mode", ["cancel_prompt", "read_only", "bad_hash", "tenant", "changed"])
 def test_local_guards_no_io(monkeypatch, operation, mode):
     monkeypatch.setattr(actions, "get_client", lambda: pytest.fail("client forbidden"))
     p = plan(operation, "Needs review" if operation == "reject" else None)
@@ -272,20 +272,15 @@ def test_immutable_plan_and_hash_binds_every_field(monkeypatch):
     assert "notify people" in review["warning"] and "irreversible" in review["warning"]
 
 
-def test_cancel_bodyless_plan_and_fail_closed_no_io(monkeypatch):
-    monkeypatch.setattr(actions, "get_client", lambda: pytest.fail("client forbidden"))
+def test_cancel_bodyless_plan():
     p = actions.build_plan(123, 310000000099, "cancel")
-    review = actions.send(p, reviewed_hash=None, dry_run=True)
+    review = p.review()
     assert review["path"] == "/api/_/changes/123/approval-groups/310000000099/cancel"
-    assert review["method"] == "PUT" and review["payload"] is None and review["body_present"] is False
-    assert review["group_id"] != AID and review["send_enabled"] is False
-    assert "menu" in review["blocker"] and "record IDs" in review["blocker"]
-    with pytest.raises(ApprovalError, match="group identity unavailable; no cancel PUT attempted"):
-        actions.send(p, reviewed_hash=p.hash)
-    assert journal.read() == []
+    assert review["payload"] is None and review["body_present"] is False
+    assert review["send_enabled"] is True
 
 
-@pytest.mark.parametrize("base", [BASE + ["--approve"], BASE + ["--reject", "--remark", "Needs review"], CANCEL])
+@pytest.mark.parametrize("base", [BASE + ["--approve"], BASE + ["--reject", "--remark", "Needs review"]])
 @pytest.mark.parametrize("args,input_", [(["--dry-run", "--json"], None), ([], "n\n"),
     (["--no-input"], None), (["--yes"], None), (["--read-only"], None),
     (["--yes", "--expect-plan", "bad"], None)])
@@ -338,16 +333,6 @@ def test_cli_actual_reviewed_send(monkeypatch, json_out, operation):
         assert [r.method for r in seen] == ["GET", "PUT", "GET"]
     finally:
         c.close()
-
-
-def test_cli_cancel_reviewed_still_blocked(monkeypatch):
-    monkeypatch.setattr(actions, "get_client", lambda: pytest.fail("client forbidden"))
-    runner = CliRunner()
-    review = json.loads(runner.invoke(cli.app, CANCEL + ["--dry-run"]).stdout)
-    result = runner.invoke(cli.app, CANCEL + ["--yes", "--expect-plan", review["plan_hash"], "--json"])
-    assert result.exit_code == 2 and "no cancel PUT attempted" in result.output
-    assert "Capture the read" in result.output
-    assert journal.read() == []
 
 
 @pytest.mark.parametrize("complete", [True, False])

@@ -108,7 +108,7 @@ class ApprovalPlan:
                 "recipients": list(self.approver_ids), "approval_rule": "Everyone",
                 "message_text": self.message, "plan_hash": self.hash, "warning": _WARNING,
                 "verification": "Complete before/after approval record IDs, exact new recipients, requested status and Everyone rule. Group name cannot be read back.",
-                "contract": "Per-member approvals read-back observed; POST response not trusted; cancel wire captured but group identity read unobserved."}
+                "contract": "Per-member approvals read-back observed; POST response not trusted; approval-chain group identities are available separately."}
 
 
 def build_plan(change_id: int | str, name: str, message: str, *, approver_ids: Sequence[int]) -> ApprovalPlan:
@@ -175,6 +175,101 @@ def _inventory(client: Any, plan: _InventoryPlan) -> list[dict[str, Any]]:
     if totals and totals != {len(ids)}:
         raise ApprovalError("approval inventory does not match the declared total")
     return tab.data
+
+
+def get_change_approval_groups(change_id: int, c: Any = None) -> list[dict[str, Any]]:
+    """Read complete approval chains, returning raw groups with their record identities.
+
+    Never turn permission, malformed response or pagination failures into an empty
+    inventory. Unknown pagination contracts fail closed instead of guessing URLs.
+    """
+    if _id(change_id) is None:
+        raise ValueError("change ID must be positive")
+    c = c if c is not None else get_client()
+    groups: list[dict[str, Any]] = []
+    seen_chains: set[int] = set()
+    seen_groups: set[int] = set()
+    seen_records: set[int] = set()
+    totals: set[int] = set()
+    for page in range(1, 101):
+        data = c.int_get(f"changes/{change_id}/approval-chains",
+                         params={"page": page, "per_page": 100})
+        if not isinstance(data, dict) or not isinstance(data.get("approval_chains"), list):
+            raise ApprovalError("approval chains inventory is unreadable")
+        more = False
+        for source in (data, data.get("meta", {})):
+            if not isinstance(source, dict) or source.get("partial") or source.get("complete") is False:
+                raise ApprovalError("approval chains inventory is partial")
+            for key in ("total_count", "count"):
+                if key in source:
+                    value = source[key]
+                    if type(value) is not int or value < 0:
+                        raise ApprovalError("approval chains inventory has an invalid total")
+                    totals.add(value)
+            for key in ("has_next", "has_more"):
+                if key in source:
+                    if type(source[key]) is not bool:
+                        raise ApprovalError("approval chains pagination is unreadable")
+                    more = more or source[key]
+            if "next_page" in source and source["next_page"] is not None:
+                if type(source["next_page"]) is not int or source["next_page"] != page + 1:
+                    raise ApprovalError("approval chains pagination is unreadable")
+                more = True
+            if "total_pages" in source:
+                value = source["total_pages"]
+                if type(value) is not int or value < page:
+                    raise ApprovalError("approval chains pagination is unreadable")
+                more = more or page < value
+            if source.get("next") or source.get("links"):
+                raise ApprovalError("unsupported approval chains pagination")
+        chains = data["approval_chains"]
+        if more and not chains:
+            raise ApprovalError("approval chains inventory is incomplete")
+        def require_complete(node: dict[str, Any], meta_key: str, count: int) -> None:
+            for source in (node, node.get(meta_key, {})):
+                if (not isinstance(source, dict) or source.get("partial") or source.get("complete") is False
+                        or source.get("has_more") or source.get("has_next") or source.get("next_page")
+                        or source.get("next") or source.get("links")):
+                    raise ApprovalError("nested approval chains inventory is incomplete")
+                for key in ("count", "total_count"):
+                    if key in source and (type(source[key]) is not int or source[key] != count):
+                        raise ApprovalError("nested approval chains inventory total mismatch")
+
+        for chain in chains:
+            cid = _id(chain.get("id")) if isinstance(chain, dict) else None
+            if cid is None or cid in seen_chains or not isinstance(chain.get("approval_groups"), list):
+                raise ApprovalError("approval chains contain invalid or duplicate chain identities")
+            seen_chains.add(cid)
+            require_complete(chain, "approval_chain_meta", len(chain["approval_groups"]))
+            for group in chain["approval_groups"]:
+                gid = _id(group.get("id")) if isinstance(group, dict) else None
+                if gid is None or gid in seen_groups or not isinstance(group.get("approvals"), list):
+                    raise ApprovalError("approval chains contain invalid or duplicate group identities")
+                seen_groups.add(gid)
+                require_complete(group, "approval_group_meta", len(group["approvals"]))
+                if type(group.get("approval_status")) is not int or group["approval_status"] < 0:
+                    raise ApprovalError("approval group status unreadable")
+                for row in group["approvals"]:
+                    rid = _id(row.get("id")) if isinstance(row, dict) else None
+                    mid = _id(row.get("member_id")) if isinstance(row, dict) else None
+                    if rid is None or rid in seen_records or mid is None:
+                        raise ApprovalError("approval group record identity unreadable or duplicate")
+                    seen_records.add(rid)
+                    if "member" in row and (not isinstance(row["member"], dict) or _id(row["member"].get("id")) != mid):
+                        raise ApprovalError("approval group member identity conflicting")
+                    if "change_id" in row and _id(row["change_id"]) != int(change_id):
+                        raise ApprovalError("approval group change identity conflicting")
+                    status = row.get("status")
+                    if not (type(status) is int and status >= 0 or isinstance(status, dict)
+                            and type(status.get("id")) is int and status["id"] >= 0
+                            and ("name" not in status or isinstance(status["name"], str) and status["name"].strip())):
+                        raise ApprovalError("approval group record status unreadable")
+                groups.append(group)
+        if not more:
+            if totals and totals != {len(seen_chains)}:
+                raise ApprovalError("approval chains inventory does not match the declared total")
+            return groups
+    raise ApprovalError("approval chains inventory page limit exceeded")
 
 
 def _verify_new(rows: list[dict[str, Any]], plan: ApprovalPlan) -> None:

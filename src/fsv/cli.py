@@ -3420,6 +3420,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             delete_task,
             dissociate_ticket,
             get_change_approvals,
+            get_change_approval_groups,
             get_change_associations,
             get_task_for_edit,
             search_change_tickets,
@@ -3687,12 +3688,25 @@ def _make_subapp(res: Resource) -> typer.Typer:
         ))
         def approvals(
             id_: str = typer.Argument(...),
+            groups: bool = typer.Option(False, "--groups", help="read approval-chain groups (IDs, raw statuses, members), instead of legacy records"),
             format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         ) -> None:
             """List approvals for a change (read-only)."""
+            from fsv.change_approvals import ApprovalError
             try:
                 cid = _cid(id_, res)
+                if groups:
+                    items = get_change_approval_groups(cid)
+                    flat = [{"group_id": g["id"], "status": g["approval_status"],
+                             "member_ids": ", ".join(str(r["member_id"]) for r in g["approvals"])} for g in items]
+                    if _emit_fmt(items, flat, format_, json_out):
+                        return
+                    t = Table("Group ID", "Raw status", "Member IDs")
+                    for g in flat:
+                        t.add_row(str(g["group_id"]), str(g["status"]), g["member_ids"])
+                    console.print(t)
+                    return
                 items = get_change_approvals(cid)
                 def _flat(a: dict) -> dict:
                     remark = (a.get("remark") or [{}])[0]
@@ -3722,7 +3736,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     message = remark.get("data") or ""
                     t.add_row(str(a.get("level_id", "-")), member, status_name, decided[:10] if decided != "-" else "-", message)
                 console.print(t)
-            except (SessionError, APIError) as e:
+            except (SessionError, APIError, ApprovalError) as e:
                 _err_exc(e)
 
         @sub.command("state", help="Approval lifecycle state flow.", epilog=(

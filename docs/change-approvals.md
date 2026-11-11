@@ -4,12 +4,12 @@
 agents. It does not approve a change, change its status, or trigger its state-flow
 transition. The only supported rule is **Everyone** (`approval_type: 1`).
 
-**Approval emails are irreversible. No verified cancel/revoke recovery is available.** Review
+**Approval emails are irreversible; cancelling does not recall sent emails.** Review
 the exact recipients, tenant, change, group name and escaped message before
 sending. Tenant workflows may also notify people. No implicit self, default
 recipients, requester substitution, fuzzy names, recipient groups, HTML input,
 attachments or revoke operations are supported by `approval-request`. Reviewed
-individual decisions are described below; group cancellation currently fails closed.
+individual decisions and reviewed group cancellation are described below.
 
 ## Review and send
 
@@ -65,8 +65,8 @@ An isolated UI **Request for approval > Add approvers > Users > Done > Send**
 request was first captured with traffic aborted. A subsequent accepted trial
 request exposed the populated per-member approvals list described below. The POST
 response is not used as evidence; notification delivery and cancel/revoke success remain
-unverified. A bodyless cancel request has since been captured, but its group identity
-read contract remains unavailable. The synthetic illustration preserves its method, path and fields:
+unverified by a live write in this implementation. A bodyless cancel request and
+its approval-chains identity read are now captured. The synthetic illustration preserves its method, path and fields:
 
 ```http
 POST /api/_/changes/1234/approval-groups
@@ -212,18 +212,42 @@ rejections are `failed`; timeouts, 408/429, server and session uncertainty are n
 replayed. Errors exit 2. Inspect the change and journal; never vary a remark to
 evade a duplicate guard.
 
-## Cancel an approval group: review available, send blocked
+## Read approval groups and cancel a reviewed group
 
 ```bash
+fsv changes approvals CHN-1234 --groups
+fsv changes approvals CHN-1234 --groups --json
 fsv changes approval-cancel CHN-1234 310000000099 --dry-run --json
+# Copy the full plan_hash from that review, then:
 fsv changes approval-cancel CHN-1234 310000000099 \
   --yes --expect-plan "$PLAN_HASH" --no-input --json
 ```
 
-The second command currently exits 2 **without any network or journal I/O**.
-The review includes `send_enabled: false` and the blocker. The group identifier
-is distinct from an approval record identifier. Never substitute `level_id`,
-`user_id`, the approval record ID or a guessed POST response ID.
+`approvals --groups` reads `GET /api/_/changes/<display-id>/approval-chains`.
+Table/CSV shows group ID, raw group status and member IDs. JSON is a bare list
+of raw group objects, including nested approval record IDs, members and statuses.
+Without `--groups`, the existing approvals command and its bare-list JSON output
+are unchanged. Group IDs are not approval record IDs, chain IDs, `level_id`, or
+`user_id`. All examples here are synthetic.
+
+The observed read envelope is `{"approval_chains":[{"id":310000000098,
+"approval_groups":[{"id":310000000099,"approval_status":0,"approvals":[
+{"id":310000000001,"member_id":9000003001,"status":{"id":0,"name":"requested"},
+"member":{"id":9000003001}}]}]}],"meta":{"triggerable_level":1}}`.
+The nested **group id** is exactly the ID required by cancellation. The reader
+validates all chains, groups, records, member/change identities and raw statuses;
+it refuses malformed rows, duplicates, partial pages, inconsistent declared chain
+totals, unsupported pagination, page-limit exhaustion and read errors rather
+than returning an empty inventory. Recognized page/has-next metadata is followed.
+
+Cancel dry runs are **read-only network reviews**, not local-only: the exact
+group must exist in a complete chains inventory and have requested records.
+The review includes the raw group, all approval record IDs, members and statuses,
+the bodyless path, tenant, warning and full plan hash. `--read-only --dry-run`
+is allowed; `--read-only` refuses a send. Bad hashes and missing noninteractive
+confirmation are refused before reading. Without `--yes`, confirmation defaults
+to No. Cancellation is irreversible and notifies people; it does not recall
+emails or promise a particular workflow transition.
 
 The captured Approvals > approval group More > Cancel approval group action
 opens a confirmation with no input fields and emits:
@@ -233,16 +257,24 @@ PUT /api/_/changes/1234/approval-groups/310000000099/cancel
 ```
 
 There is **no body**: not `{}`, not JSON `null`. The plan represents this as
-`payload: null` with `body_present: false`; no cancel request is issued yet.
+`payload: null` with `body_present: false`. Immediately before sending, the group
+is re-read and validated; a missing group refuses the write. CSRF and a persisted
+`started` journal entry are required. Exactly one lower-level PUT is attempted,
+with no automatic HTTP 403 replay; its response body is not verification.
 
-**Missing read:** capture the authenticated read that populates the UI's
-approval-group menu, including its actual endpoint, group-ID field and associated
-approval record IDs. The available capture starts with that menu already loaded;
-it establishes the write path only. The observed approvals list has neither a
-group ID nor group membership. No endpoint or field can be named from this
-evidence without guessing. Until that read contract is available, the CLI cannot
-validate group identity or verify the affected records in the approvals list and
-therefore fails closed. Future cancellation verification must check all records
-belonging to the exact group are no longer requested/cancelled, exposing raw
-changed statuses rather than inventing numeric mappings. No cancellation success
-is claimed by this implementation.
+Verification re-reads the complete chains. It succeeds only if the exact group
+is gone (`verification_basis: "group_gone"`) or all of its original approval
+record IDs and member identities remain and every status is no longer requested,
+with an observed status change (`"changed_raw_statuses_only"`). A changed group
+status alone, missing/replaced record, conflicting identity, still-requested
+record or unreadable/partial inventory is ambiguous. Results expose raw
+`before_status`, `observed_status` and `readback`; no numeric cancellation mapping
+or name is invented. `verified: true` describes only that observed disappearance
+or transition, not email delivery or a named cancellation status.
+
+Ambiguity, timeout, rate limiting, server or session uncertainty leaves the journal
+`started` and blocks an identical retry. Verified observations mark `done` and
+also block resubmission. Definite client rejections mark `failed`; no write is
+replayed automatically. Inspect the change and journal before manual recovery.
+Approval-request verification remains based on complete per-record inventories;
+this change does not alter that fallback or claim group-name verification.

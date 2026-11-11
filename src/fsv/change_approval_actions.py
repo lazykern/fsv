@@ -1,4 +1,4 @@
-"""Reviewed approval decisions; group cancellation fails closed without identity evidence.
+"""Reviewed approval decisions and cancellation using complete chain identity evidence.
 
 Captured writes were aborted. Decision status IDs are not inferred from request
 values; only the observed read-back is reported. No live calls are needed here.
@@ -12,19 +12,13 @@ from typing import Any
 import typer
 
 from fsv import config, journal
-from fsv.change_approvals import ApprovalError, _id, _inventory
+from fsv.change_approvals import ApprovalError, _id, _inventory, get_change_approval_groups
 from fsv.client import get_client
 from fsv.errors import APIError
 from fsv.resources import CHANGES, parse_id
 
 _WARNING = ("Approval actions notify people; approval/rejection may move the change workflow. "
             "Cancellation is irreversible. Review the exact tenant and identifiers.")
-_CANCEL_BLOCKED = (
-    "approval group identity unavailable; no cancel PUT attempted. The observed approvals list "
-    "has no group ID or group membership. Capture the read that populates the UI approval-group "
-    "menu, including its group ID field and associated approval record IDs, before enabling cancel. "
-    "Do not substitute an approval record ID, level_id or user_id."
-)
 _UNKNOWN = "approval action outcome unknown; inspect the change and journal before any retry; do not resubmit"
 
 
@@ -69,8 +63,9 @@ class ActionPlan:
                   "verification": "Complete approvals list; exact record ID and changed raw status. Named decision checked if exposed; no numeric mapping inferred."}
         result["group_id" if self.operation == "cancel" else "approval_id"] = self.target_id
         if self.operation == "cancel":
-            result.update(send_enabled=False, blocker=_CANCEL_BLOCKED,
-                          verification="Blocked: no observed group-to-approval-record identity read.")
+            result.update(send_enabled=True,
+                          contract="Observed approval-chains group identity and aborted bodyless cancel write; numeric cancellation status mapping unobserved.",
+                          verification="Complete approval chains: exact group disappears or all original approvals change away from requested; report raw statuses.")
         return result
 
 
@@ -107,12 +102,57 @@ def _status(row: dict[str, Any]) -> Any:
     raise ApprovalError("approval status unreadable")
 
 
+def _requested(status: Any) -> bool:
+    return status == 0 or isinstance(status, dict) and (status["id"] == 0 or status.get("name") == "requested")
+
+
+def _cancel_group(client: Any, plan: ActionPlan) -> dict[str, Any]:
+    try:
+        groups = get_change_approval_groups(plan.change_id, client)
+    except Exception:
+        raise ApprovalError("could not read complete approval chains; no cancel PUT attempted") from None
+    group = next((g for g in groups if _id(g["id"]) == plan.target_id), None)
+    if group is None:
+        raise ApprovalError("approval group missing from complete chains inventory; no cancel PUT attempted")
+    if not group["approvals"] or not any(_requested(_status(r)) for r in group["approvals"]):
+        raise ApprovalError("approval group has no requested approval records; no cancel PUT attempted")
+    return group
+
+
+def _verify_cancel(client: Any, plan: ActionPlan, before: dict[str, Any]) -> dict[str, Any]:
+    groups = get_change_approval_groups(plan.change_id, client)
+    after = next((g for g in groups if _id(g["id"]) == plan.target_id), None)
+    statuses = None
+    if after is not None:
+        baseline = {_id(r["id"]): r for r in before["approvals"]}
+        current = {_id(r["id"]): r for r in after["approvals"]}
+        if baseline.keys() != current.keys():
+            raise ApprovalError(_UNKNOWN)
+        for rid, row in current.items():
+            if _id(row["member_id"]) != _id(baseline[rid]["member_id"]) or _requested(_status(row)):
+                raise ApprovalError(_UNKNOWN)
+        if not any(_status(current[rid]) != _status(row) for rid, row in baseline.items()):
+            raise ApprovalError(_UNKNOWN)
+        statuses = [{"approval_id": r["id"], "member_id": r["member_id"], "status": _status(r)}
+                    for r in after["approvals"]]
+    return {"status": "submitted", "operation": "cancel", "change_id": plan.change_id,
+            "group_id": plan.target_id, "verified": True,
+            "verification_basis": "group_gone" if after is None else "changed_raw_statuses_only",
+            "before_status": [{"approval_id": r["id"], "member_id": r["member_id"], "status": _status(r)}
+                              for r in before["approvals"]],
+            "observed_status": statuses, "readback": after, "plan_hash": plan.hash,
+            "warning": "Observed group disappearance/status transition only; cancellation status names and notification delivery are not inferred."}
+
+
 def send(plan: ActionPlan, client: Any = None, *, reviewed_hash: str | None,
          read_only: bool = False, dry_run: bool = False) -> dict[str, Any]:
     if build_plan(plan.change_id, plan.target_id, plan.operation, plan.remark) != plan:
         raise ApprovalError("approval action plan or tenant changed; review a new plan")
     if dry_run:
-        return {"status": "dry_run", **plan.review()}
+        review = plan.review()
+        if plan.operation == "cancel":
+            review["group"] = _cancel_group(client if client is not None else get_client(), plan)
+        return {"status": "dry_run", **review}
     if read_only:
         raise ApprovalError("read-only mode: no approval action was sent")
     if reviewed_hash is None:
@@ -121,11 +161,6 @@ def send(plan: ActionPlan, client: Any = None, *, reviewed_hash: str | None,
         raise ApprovalError("approval action review hash does not match; review the exact action again")
     if not plan.tenant:
         raise ApprovalError("configure a tenant before an approval action")
-    if plan.operation == "cancel":
-        # The captured write path does not establish the read/membership contract.
-        # In particular, neither the per-member record ID nor level_id is a group.
-        raise ApprovalError(_CANCEL_BLOCKED)
-
     def events() -> list[dict[str, Any]]:
         return [r for r in journal.read() if r.get("kind") == f"plan:{plan.action}" and r.get("plan") == plan.hash]
 
@@ -134,20 +169,29 @@ def send(plan: ActionPlan, client: Any = None, *, reviewed_hash: str | None,
         raise ApprovalError("this approval action was sent or its outcome is unknown; inspect the change and journal; do not resubmit")
     try:
         c = client if client is not None else get_client()
-        before_rows = _inventory(c, plan)
-        before = next(r for r in before_rows if _id(r["id"]) == plan.target_id)
-        before_status = _status(before)
-        if before_status != {"id": 0, "name": "requested"}:
-            raise ApprovalError("target approval is not requested")
-        member_id = _id(before.get("member_id"))
-        if member_id is None:
-            raise ApprovalError("approval member identity unavailable")
-        member = before.get("member")
-        if member is not None and (not isinstance(member, dict) or _id(member.get("id")) != member_id):
-            raise ApprovalError("approval member identity conflicting")
-        if "change_id" in before and _id(before["change_id"]) != plan.change_id:
-            raise ApprovalError("approval change identity conflicting")
+        if plan.operation == "cancel":
+            before = _cancel_group(c, plan)
+            before_rows = before["approvals"]
+        else:
+            before_rows = _inventory(c, plan)
+        if plan.operation != "cancel":
+            before = next(r for r in before_rows if _id(r["id"]) == plan.target_id)
+            before_status = _status(before)
+            if before_status != {"id": 0, "name": "requested"}:
+                raise ApprovalError("target approval is not requested")
+            member_id = _id(before.get("member_id"))
+            if member_id is None:
+                raise ApprovalError("approval member identity unavailable")
+            member = before.get("member")
+            if member is not None and (not isinstance(member, dict) or _id(member.get("id")) != member_id):
+                raise ApprovalError("approval member identity conflicting")
+            if "change_id" in before and _id(before["change_id"]) != plan.change_id:
+                raise ApprovalError("approval change identity conflicting")
         csrf = c._get_csrf()
+    except ApprovalError:
+        if plan.operation == "cancel":
+            raise
+        raise ApprovalError("could not prepare complete approvals inventory/session with the exact requested record; no approval PUT attempted") from None
     except Exception:
         raise ApprovalError("could not prepare complete approvals inventory/session with the exact requested record; no approval PUT attempted") from None
     journal.record_plan("started", plan.hash, action=plan.action, target=plan.change_id)
@@ -157,8 +201,9 @@ def send(plan: ActionPlan, client: Any = None, *, reviewed_hash: str | None,
     try:
         # Never int_put: it can replay on 403. The response body is not evidence.
         c._request("PUT", f"{config.API_INT}/{plan.path}",
-                   content=json.dumps(plan.payload, ensure_ascii=False).encode("utf-8"),
-                   headers={"Content-Type": "application/json", "X-CSRF-Token": csrf})
+                   **({"content": json.dumps(plan.payload, ensure_ascii=False).encode("utf-8"),
+                       "headers": {"Content-Type": "application/json", "X-CSRF-Token": csrf}}
+                      if plan.payload is not None else {"headers": {"X-CSRF-Token": csrf}}))
     except APIError as exc:
         if 400 <= exc.status < 500 and exc.status not in (408, 429):
             journal.record_plan("failed", plan.hash, action=plan.action, target=plan.change_id)
@@ -166,6 +211,13 @@ def send(plan: ActionPlan, client: Any = None, *, reviewed_hash: str | None,
         raise ApprovalError(_UNKNOWN) from None
     except Exception:
         raise ApprovalError(_UNKNOWN) from None
+    if plan.operation == "cancel":
+        try:
+            result = _verify_cancel(c, plan, before)
+        except Exception:
+            raise ApprovalError(_UNKNOWN) from None
+        journal.record_plan("done", plan.hash, action=plan.action, target=plan.change_id)
+        return result
     try:
         after_rows = _inventory(c, plan)
         exact = next(r for r in after_rows if _id(r["id"]) == plan.target_id)
@@ -208,7 +260,6 @@ def _run(plan: ActionPlan, *, dry_run: bool, read_only: bool, yes: bool,
     if dry_run:
         typer.echo(json.dumps(send(plan, reviewed_hash=None, dry_run=True), indent=2))
         return
-    typer.echo(json.dumps(plan.review(), indent=2), err=True)
     if expected is not None and expected != plan.hash:
         raise ApprovalError("approval action review hash does not match; review the exact action again")
     if yes:
@@ -216,14 +267,18 @@ def _run(plan: ActionPlan, *, dry_run: bool, read_only: bool, yes: bool,
             raise ApprovalError("--yes requires the full --expect-plan from a prior approval action review")
     elif no_input:
         raise ApprovalError("sending requires --yes and --expect-plan in no-input mode")
-    elif not typer.confirm("Send this exact approval action (notifies people; may move workflow; cancel irreversible)?", default=False):
+    review = plan.review()
+    if plan.operation == "cancel":
+        review["group"] = _cancel_group(get_client(), plan)
+    typer.echo(json.dumps(review, indent=2), err=True)
+    if not yes and not typer.confirm("Send this exact approval action (notifies people; may move workflow; cancel irreversible)?", default=False):
         typer.echo("Cancelled; no approval action was sent.")
         return
     result = send(plan, reviewed_hash=plan.hash, read_only=read_only)
     if json_out:
         typer.echo(json.dumps(result, indent=2))
     else:
-        typer.echo(f"Approval record {plan.target_id} submitted on change {plan.change_id}; "
+        typer.echo(f"Approval {'group' if plan.operation == 'cancel' else 'record'} {plan.target_id} submitted on change {plan.change_id}; "
                    f"observed raw status: {json.dumps(result['observed_status'])}; "
                    f"verification: {result['verification_basis']}")
         if result.get("warning"):
@@ -255,7 +310,7 @@ def register(app: typer.Typer) -> None:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None
 
-    @app.command("approval-cancel", help="Review irreversible group cancellation; sending blocked until group identity read is captured.")
+    @app.command("approval-cancel", help="Review and cancel an exact approval group (irreversible; notifies people).")
     def approval_cancel(
         change: str = typer.Argument(..., metavar="CHANGE_ID"),
         group_id: str = typer.Argument(..., metavar="GROUP_ID"),

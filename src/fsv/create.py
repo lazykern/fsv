@@ -848,6 +848,12 @@ def get_change_approvals(change_id: int, c: Client | None = None) -> list[dict[s
     return data if isinstance(data, list) else data.get("approvals", [])
 
 
+def get_change_approval_groups(change_id: int, c: Client | None = None) -> list[dict[str, Any]]:
+    """Fetch strictly validated complete approval-chain groups (errors propagate)."""
+    from fsv.change_approvals import get_change_approval_groups as read_groups
+    return read_groups(change_id, c if c is not None else get_client())
+
+
 def get_change_assets(change_id: int, c: Client | None = None) -> list[dict[str, Any]]:
     if c is None:
         c = get_client()

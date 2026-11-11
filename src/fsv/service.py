@@ -497,6 +497,7 @@ from fsv.create import (  # noqa: E402
     attach_files_to_change,
     download_attachment,
     get_change_approvals,
+    get_change_approval_groups,
     get_change_associations,
     get_change_assets,
     search_assets_for_change,
@@ -522,7 +523,7 @@ __all__ = [
     "update_planning_field", "set_due_by",
     "clone_tasks", "clone_assets", "clone_planning_fields",
     "attach_files_to_change", "download_attachment",
-    "get_change_approvals", "get_change_associations", "get_change_assets",
+    "get_change_approvals", "get_change_approval_groups", "get_change_associations", "get_change_assets",
     "search_assets_for_change", "search_change_tickets",
     "get_change_activities", "get_change_for_edit", "get_task_for_edit",
 ]
