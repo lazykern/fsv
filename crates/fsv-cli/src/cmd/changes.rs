@@ -951,7 +951,15 @@ fn change_create(a: &ChangesCreateArgs, c: Arc<fsv_core::Client>, m: CreateModes
     let mut plan = match plan {
         Reviewed::Form(s) => {
             formflow::expect_hash(&s.plan.hash, &s.plan.errors, expect)?;
-            let result = s.session.send(&s.plan, a.allow_duplicate)?;
+            let o = fsv_app::SendOptions {
+                tty,
+                yes: a.yes,
+                expect,
+                allow_duplicate: a.allow_duplicate,
+                ack: a.ack,
+                duplicate: "append",
+            };
+            let result = s.send_cli(&o, &mut send_confirm)?;
             return report_created(&result, as_json);
         }
         Reviewed::Flow(p) => *p,
@@ -1104,7 +1112,15 @@ fn change_update(
     let result = match plan {
         Reviewed::Form(s) => {
             formflow::expect_hash(&s.plan.hash, &s.plan.errors, expect)?;
-            s.session.send(&s.plan, true)?
+            let o = fsv_app::SendOptions {
+                tty,
+                yes: a.yes,
+                expect,
+                allow_duplicate: true,
+                ack: a.ack,
+                duplicate: &a.duplicate,
+            };
+            s.send_cli(&o, &mut send_confirm)?
         }
         Reviewed::Flow(p) => {
             let mut plan = *p;
@@ -1374,35 +1390,13 @@ fn send_plan(
     ) {
         Ok(v) => Ok(v),
         Err(change::ExecError::Failed(e)) => Err(e),
-        Err(change::ExecError::Partial(p)) => Err(report_partial(&p, what)),
+        Err(change::ExecError::Partial(p)) => Err(fsv_app::report_partial(&p, what)),
     }
 }
 
-/// `change_cli._report_partial`.
-fn report_partial(e: &change::PartialFailure, what: &str) -> Error {
-    let id = fsv_py::py_str(&e.created_id);
-    err().print(&format!(
-        "[red]error[/red]: {what} {id} was written, but a later step failed: {}",
-        e.error
-    ));
-    if !e.uploaded.is_empty() {
-        let ids: Vec<String> = e
-            .uploaded
-            .iter()
-            .map(|u| {
-                format!(
-                    "{} ({})",
-                    fsv_py::py_str(u.get("id").unwrap_or(&Value::Null)),
-                    fsv_py::py_str(u.get("name").unwrap_or(&Value::Null))
-                )
-            })
-            .collect();
-        err().print(&format!("uploaded attachment ids: {}", ids.join(", ")));
-    }
-    for s in &e.steps {
-        err().print(&format!("  {}", fsv_py::py_repr(s)));
-    }
-    flow_exit(5, format!("partial failure; {what} id {id}"))
+/// `typer.confirm(question, default=False)` for [`fsv_app::Submitted::send_cli`].
+pub(crate) fn send_confirm(q: &str) -> Result<bool, Error> {
+    term::confirm(q, Some(false), false)
 }
 
 /// `change_cli._report_created`.

@@ -672,7 +672,17 @@ fn ticket_create(
     }
     plan.expect(a.expect_plan.as_deref())?;
     let result = match plan {
-        Reviewed::Form(s) => s.session.send(&s.plan, a.allow_duplicate)?,
+        Reviewed::Form(s) => {
+            let o = fsv_app::SendOptions {
+                tty,
+                yes: a.yes,
+                expect: a.expect_plan.as_deref(),
+                allow_duplicate: a.allow_duplicate,
+                ack: a.ack,
+                duplicate: "append",
+            };
+            s.send_cli(&o, &mut crate::cmd::changes::send_confirm)?
+        }
         Reviewed::Flow(p) => {
             let ack_now = a.ack || !p.state.acknowledged.is_empty();
             let d = p.draft.clone();

@@ -514,7 +514,15 @@ fn sr_create(a: &SrCreateArgs, c: std::sync::Arc<fsv_core::Client>, m: SrModes) 
     let result = match plan {
         SrReviewed::Form(s) => {
             formflow::expect_hash(&s.plan.hash, &s.plan.errors, expect)?;
-            s.session.send(&s.plan, a.allow_duplicate)?
+            let o = fsv_app::SendOptions {
+                tty,
+                yes: a.yes,
+                expect,
+                allow_duplicate: a.allow_duplicate,
+                ack: a.ack,
+                duplicate: "append",
+            };
+            s.send_cli(&o, &mut crate::cmd::changes::send_confirm)?
         }
         SrReviewed::Flow(p) => {
             let mut plan = *p;

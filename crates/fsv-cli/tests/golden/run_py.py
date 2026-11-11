@@ -18,6 +18,7 @@ if os.environ.get("FSV_TEST_TTY"):
 routes_path, log_path = sys.argv[1], sys.argv[2]
 args = sys.argv[sys.argv.index("--") + 1:]
 routes = json.load(open(routes_path))
+used = set()
 
 
 def matches(route, req):
@@ -41,8 +42,10 @@ def handler(req):
         parsed = body.decode("utf-8", "replace")
     with open(log_path, "a") as f:
         f.write(json.dumps({"method": req.method, "url": str(req.url), "body": parsed}) + "\n")
-    for r in routes:
-        if matches(r, req):
+    for i, r in enumerate(routes):
+        if i not in used and matches(r, req):
+            if r.get("once"):
+                used.add(i)
             status = r.get("status", 200)
             headers = dict(r.get("headers") or {})
             if "text" in r:

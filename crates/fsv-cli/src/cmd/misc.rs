@@ -370,7 +370,7 @@ fn setup_auth() -> CmdResult {
     out().print(&format!("saved {} cookies to {target}", cookies.len()));
     session::clear_cache();
     fsv_core::client::reset_client();
-    match fsv_core::get_client().and_then(|c| c.check_session()) {
+    match crate::util::shared_client().and_then(|c| c.check_session()) {
         Ok(agent) => {
             let s = |k: &str| agent.get(k).map(fsv_py::py_str).unwrap_or_default();
             let name = format!("{} {}", s("first_name"), s("last_name"))

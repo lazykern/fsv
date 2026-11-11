@@ -6,7 +6,6 @@ use clap::ArgMatches;
 use serde_json::{Map, Value, json};
 
 use fsv_api::formmeta;
-use fsv_core::resource::CHANGES;
 use fsv_core::term::{Column, Overflow, Table, err, escape, out};
 use fsv_core::{Error, Result};
 
@@ -196,14 +195,13 @@ fn explain(a: FormExplainArgs) -> CmdResult {
     let c = client()?;
     let mut record: Option<Map<String, Value>> = None;
     if let Some(id) = a.id_.as_deref().filter(|s| !s.is_empty()) {
-        let cid = if id.chars().all(|ch| ch.is_ascii_digit()) {
-            id.parse::<i64>()
-                .map_err(|e| uncaught(Error::other(e.to_string())))?
-        } else {
-            fsv_core::resource::parse_id(id, &CHANGES).map_err(uncaught)?
-        };
-        let data = c.int_get(&format!("changes/{cid}"), None).map_err(guard)?;
-        let rec = match data.get("change") {
+        let res = fsv_core::resource::lookup(&format!("{module}s"))
+            .ok_or_else(|| Error::other(format!("unknown form resource: {module}")))?;
+        let cid = fsv_core::resource::parse_id(id, res).map_err(uncaught)?;
+        let data = c
+            .int_get(&format!("{}/{cid}", res.api_path), None)
+            .map_err(guard)?;
+        let rec = match data.get(res.item_key) {
             Some(v) => v.clone(),
             None => data.clone(),
         };

@@ -3352,6 +3352,25 @@
        "envvar": null
       },
       {
+       "name": "refresh",
+       "kind": "option",
+       "opts": [
+        "--refresh"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "fetch current schema choices synchronously",
+       "metavar": null,
+       "envvar": null
+      },
+      {
        "name": "format_",
        "kind": "option",
        "opts": [
@@ -7874,6 +7893,25 @@
        "envvar": null
       },
       {
+       "name": "refresh",
+       "kind": "option",
+       "opts": [
+        "--refresh"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "fetch current schema choices synchronously",
+       "metavar": null,
+       "envvar": null
+      },
+      {
        "name": "format_",
        "kind": "option",
        "opts": [
@@ -10456,6 +10494,25 @@
        "default": "",
        "hidden": false,
        "help": "name/email/text to search",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "refresh",
+       "kind": "option",
+       "opts": [
+        "--refresh"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "fetch current schema choices synchronously",
        "metavar": null,
        "envvar": null
       },

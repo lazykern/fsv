@@ -2,7 +2,7 @@
 //! the Python fsv run on the same routes (`tests/golden/cmp.py --emit`).
 
 mod common;
-use common::run_fixture;
+use common::{run_fixture, run_steps};
 
 #[test]
 fn fields_table() {
@@ -3797,4 +3797,134 @@ fn form_diff_missing() {
         r#"error: cannot read snapshot missing.json: [Errno 2] No such file or directory: 'missing.json'
 "#
     );
+}
+
+#[test]
+fn lookup_refresh_refetches_schema() {
+    let r = run_steps(
+        "change_fields",
+        &[&["changes", "lookup", "env", "pr"]],
+        &["changes", "lookup", "env", "pr", "--refresh"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"┏━━━━┳━━━━━━━┳━━━━━━━━┓
+┃ id ┃ value ┃ detail ┃
+┡━━━━╇━━━━━━━╇━━━━━━━━┩
+│ 11 │ Prod  │        │
+└────┴───────┴────────┘
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert!(
+        r.calls()
+            .iter()
+            .any(|(_, p)| p == "/api/_/change_form_fields")
+    );
+}
+
+#[test]
+fn lookup_uses_cached_schema() {
+    let r = run_steps(
+        "change_fields",
+        &[&["changes", "lookup", "env", "pr"]],
+        &["changes", "lookup", "env", "pr"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"┏━━━━┳━━━━━━━┳━━━━━━━━┓
+┃ id ┃ value ┃ detail ┃
+┡━━━━╇━━━━━━━╇━━━━━━━━┩
+│ 11 │ Prod  │        │
+└────┴───────┴────────┘
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert!(!r.calls().iter().any(|(_, p)| p.contains("form_fields")));
+}
+
+#[test]
+fn form_explain_ticket_record() {
+    let r = run_fixture(
+        "ticket_update",
+        &["form", "explain", "tickets", "--id", "5"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"      ticket form (edit)       
+┏━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━┓
+┃ Field ┃ State ┃ Value ┃ Why ┃
+┡━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━┩
+└───────┴───────┴───────┴─────┘
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"note: business rules not loaded (no workspace found in the form metadata or the account, and /api/_/business_rules answered HTTP 404); checking static required/visible flags only (override the 
+workspace with `fsv config set forms.workspace_id N`)
+"#
+    );
+    assert!(
+        r.calls()
+            .iter()
+            .any(|(m, p)| m == "GET" && p == "/api/_/tickets/5")
+    );
+}
+
+#[test]
+fn form_explain_change_display_id() {
+    let r = run_fixture("form", &["form", "explain", "--id", "CHN-12"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"                                                                                           change form (edit)                                                                                           
+┏━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Field                 ┃ State                        ┃ Value     ┃ Why                                                                                                                               ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Requester             │ visible, required            │           │ form metadata                                                                                                                     │
+│ Request for           │ visible                      │           │ form metadata                                                                                                                     │
+│ Department            │ visible, read-only           │           │ disabled (disable by rule 'Labs team' (id 14))                                                                                    │
+│ Team                  │ visible, required            │ Labs      │ form metadata                                                                                                                     │
+│ Group                 │ visible, required            │           │ form metadata                                                                                                                     │
+│ Agent                 │ visible, required            │           │ form metadata                                                                                                                     │
+│ Change Type           │ visible, required            │ Emergency │ form metadata                                                                                                                     │
+│ Services              │ visible, required            │           │ form metadata                                                                                                                     │
+│ Cloud Only            │ visible, required            │           │ required (mandate by rule 'Not labs: optional extras' (id 1) (reversed: rule does not match))                                     │
+│ Stage                 │ visible, required            │ Live      │ required (mandate by rule 'Not labs: optional extras' (id 1) (reversed: rule does not match)); not choices restricted (restore by │
+│                       │                              │           │ rule 'Cloud only no' (id 5) (reversed: rule does not match))                                                                      │
+│ Rollout Tool          │ hidden                       │           │ not visible (hide by rule 'Cloud only no' (id 5) (reversed: rule does not match))                                                 │
+│ Reviewers             │ hidden                       │           │ not visible (hide by rule 'Cloud only no' (id 5) (reversed: rule does not match))                                                 │
+│ Staging Start         │ hidden                       │           │ not visible (hide by rule 'Cloud only no' (id 5) (reversed: rule does not match))                                                 │
+│ Staging End           │ hidden                       │           │ not visible (hide by rule 'Cloud only no' (id 5) (reversed: rule does not match))                                                 │
+│ Subject               │ visible, required, read-only │ Patch     │ disabled (disable by rule 'Edit: lock subject' (id 19))                                                                           │
+│ Description           │ visible, required            │           │ form metadata                                                                                                                     │
+│ Emergency Reason      │ visible, required            │           │ visible (show by rule 'Normal needs sign-off' (id 9) (reversed: rule does not match)); required (mandate by rule 'Emergency' (id  │
+│                       │                              │           │ 10))                                                                                                                              │
+│ Needs Security Review │ visible, required            │           │ required (mandate by rule 'Not labs: optional extras' (id 1) (reversed: rule does not match))                                     │
+│ Review Scope          │ hidden                       │           │ not visible (hide by rule 'No review: hide scope' (id 11))                                                                        │
+│ Planned Start Date    │ visible, required            │           │ form metadata                                                                                                                     │
+│ Planned End Date      │ visible, required            │           │ form metadata                                                                                                                     │
+│ Downtime              │ hidden                       │           │ not visible (hide by rule 'Labs team' (id 14))                                                                                    │
+│ Downtime Window       │ visible                      │           │ form metadata                                                                                                                     │
+│ Sign-off Date         │ visible                      │           │ not required (unmandate by rule 'Normal needs sign-off' (id 9) (reversed: rule does not match)); choices restricted (populate by  │
+│                       │                              │           │ rule 'Emergency' (id 10))                                                                                                         │
+│ Estimated Hours       │ visible                      │           │ form metadata                                                                                                                     │
+│ Impact                │ visible, required            │           │ form metadata                                                                                                                     │
+│ Priority              │ visible, required            │           │ form metadata                                                                                                                     │
+│ Risk                  │ visible, required            │           │ form metadata                                                                                                                     │
+│ Category              │ visible                      │           │ visible (show by rule 'Normal needs sign-off' (id 9) (reversed: rule does not match))                                             │
+│ Status                │ visible, required            │           │ form metadata                                                                                                                     │
+│ Legacy Flag           │ hidden                       │           │ not visible (hide by rule 'Hide legacy flag' (id 8))                                                                              │
+│ Maintenance Window    │ visible                      │           │ form metadata                                                                                                                     │
+└───────────────────────┴──────────────────────────────┴───────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+message Tell the payments on-call before you start (rule Payments heads-up)
+"#
+    );
+    assert_eq!(r.err, r#""#);
 }

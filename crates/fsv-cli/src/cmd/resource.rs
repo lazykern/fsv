@@ -882,7 +882,7 @@ pub fn lookup(res: &'static Resource, a: ResLookupArgs) -> CmdResult {
                 .unwrap_or_default()
         }
         _ => {
-            let sch = schema::load(res, &c, false).map_err(fail_exc)?;
+            let sch = schema::load(res, &c, a.refresh).map_err(fail_exc)?;
             let Some(f) = lookup::find_schema_field(&sch, &a.kind)? else {
                 return Err(usage(&format!("unknown lookup kind or field: {}", a.kind)));
             };

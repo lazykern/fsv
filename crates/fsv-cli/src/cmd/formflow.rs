@@ -205,7 +205,7 @@ impl Reviewed {
     }
 
     /// `Plan.to_json()`; a form plan without its built plan carries no
-    /// files or target.
+    /// files, target or risks.
     pub fn to_json(&self, action: &str) -> Json {
         match self {
             Reviewed::Flow(p) => p.to_json(),
@@ -222,6 +222,8 @@ impl Reviewed {
                     "after": {"attachments": [], "planning": []},
                     "review": p.review.to_dict(),
                     "warnings": p.review.warnings,
+                    "risks": [],
+                    "requires_confirmation": false,
                     "errors": p.errors,
                 })
             }

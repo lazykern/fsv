@@ -839,6 +839,8 @@ pub struct ResLookupArgs {
         default_value = ""
     )]
     pub query: String,
+    #[arg(help = "fetch current schema choices synchronously", long = "refresh")]
+    pub refresh: bool,
     #[arg(
         help = "output format",
         long = "output",

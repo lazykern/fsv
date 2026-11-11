@@ -3,7 +3,8 @@
 //!
 //! The file is a JSON list of `{"method", "path", "query"?, "status"?,
 //! "json"? | "text"?, "headers"?}`. A request matches the first route with
-//! the same method and URL path whose `query` pairs all appear in the URL.
+//! the same method and URL path whose `query` pairs all appear in the URL;
+//! a route with `"once": true` answers one request, later ones fall through.
 //! Unmatched requests get a 404. With `FSV_TEST_LOG=<file>` every request is
 //! appended there as one JSON line `{"method", "url", "body"}`.
 
@@ -61,6 +62,7 @@ pub fn transport() -> Option<Arc<MockTransport>> {
     let text = std::fs::read_to_string(&path).ok()?;
     let routes: Vec<Value> = serde_json::from_str(&text).ok()?;
     let log = std::env::var_os("FSV_TEST_LOG").filter(|v| !v.is_empty());
+    let used = std::sync::Mutex::new(vec![false; routes.len()]);
     Some(MockTransport::new(move |req| {
         if let Some(log) = &log
             && let Ok(mut f) = std::fs::OpenOptions::new()
@@ -77,9 +79,19 @@ pub fn transport() -> Option<Arc<MockTransport>> {
             let line = json!({"method": req.method, "url": req.url, "body": body});
             let _ = writeln!(f, "{line}");
         }
-        let resp = routes.iter().find(|r| matches(r, req)).map_or_else(
+        let found = {
+            let mut used = used.lock().unwrap_or_else(|e| e.into_inner());
+            let at = (0..routes.len()).find(|&i| !used[i] && matches(&routes[i], req));
+            if let Some(i) = at
+                && routes[i].get("once").is_some_and(|v| v == &json!(true))
+            {
+                used[i] = true;
+            }
+            at
+        };
+        let resp = found.map_or_else(
             || Response::json(404, &json!({"errors": "no route"})),
-            respond,
+            |i| respond(&routes[i]),
         );
         Ok(Response {
             url: req.url.clone(),
