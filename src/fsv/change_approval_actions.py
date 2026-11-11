@@ -1,7 +1,7 @@
 """Reviewed approval decisions and cancellation using complete chain identity evidence.
 
-Captured writes were aborted. Decision status IDs are not inferred from request
-values; only the observed read-back is reported. No live calls are needed here.
+Approval and cancellation were accepted live; rejection was captured aborted.
+Read-back reports raw status evidence, never mappings inferred from write values.
 """
 from __future__ import annotations
 
@@ -59,12 +59,12 @@ class ActionPlan:
                   "change_id": self.change_id, "method": "PUT", "path": f"/api/_/{self.path}",
                   "payload": self.payload, "body_present": self.payload is not None,
                   "plan_hash": self.hash, "warning": _WARNING,
-                  "contract": "Aborted UI request; accepted response and numeric decision status mapping unobserved.",
+                  "contract": "Approve accepted live (requested=0, approved=1); reject captured aborted (read-back mapping unobserved).",
                   "verification": "Complete approvals list; exact record ID and changed raw status. Named decision checked if exposed; no numeric mapping inferred."}
         result["group_id" if self.operation == "cancel" else "approval_id"] = self.target_id
         if self.operation == "cancel":
             result.update(send_enabled=True,
-                          contract="Observed approval-chains group identity and aborted bodyless cancel write; numeric cancellation status mapping unobserved.",
+                          contract="Bodyless JSON-media-type cancel accepted live; chains exposed cancelled status {id:3,name:cancelled}.",
                           verification="Complete approval chains: exact group disappears or all original approvals change away from requested; report raw statuses.")
         return result
 
@@ -203,7 +203,9 @@ def send(plan: ActionPlan, client: Any = None, *, reviewed_hash: str | None,
         c._request("PUT", f"{config.API_INT}/{plan.path}",
                    **({"content": json.dumps(plan.payload, ensure_ascii=False).encode("utf-8"),
                        "headers": {"Content-Type": "application/json", "X-CSRF-Token": csrf}}
-                      if plan.payload is not None else {"headers": {"X-CSRF-Token": csrf}}))
+                      if plan.payload is not None else
+                      {"content": b"", "headers": {"Content-Type": "application/json",
+                                                   "X-CSRF-Token": csrf}}))
     except APIError as exc:
         if 400 <= exc.status < 500 and exc.status not in (408, 429):
             journal.record_plan("failed", plan.hash, action=plan.action, target=plan.change_id)
@@ -235,7 +237,8 @@ def send(plan: ActionPlan, client: Any = None, *, reviewed_hash: str | None,
         raw_id = raw.get("id") if isinstance(raw, dict) else raw
         name = raw.get("name") if isinstance(raw, dict) else None
         expected = "approved" if plan.operation == "approve" else "rejected"
-        # requested=0 is observed. Decision/cancellation numeric mappings are not.
+        # Observed requested=0, approved=1, cancelled=3. Verify names rather
+        # than inferring any mapping (especially rejection) from write values.
         if raw == before_status or raw_id == 0 or name == "requested":
             raise ApprovalError(_UNKNOWN)
         if name in ("approved", "rejected", "cancelled", "canceled") and name != expected:

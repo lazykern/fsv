@@ -1,7 +1,7 @@
 """Reviewed manual approval REQUEST, verified by new per-member approval IDs.
 
 Only Everyone is supported. Never trust the POST response as proof of creation
-or replay a POST to recover an identifier. Group names cannot be read back.
+or replay a POST to recover an identifier. Chains can additionally verify group names.
 """
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from fsv.resources import CHANGES, parse_id
 
 _ACTION = "change_approval_request"
 _UNKNOWN = "approval request outcome unknown; inspect the change and journal before any retry; do not resubmit"
-_WARNING = ("Approval emails are irreversible. No verified cancel/revoke recovery is available. "
+_WARNING = ("Approval emails are irreversible; cancel/revoke cannot recall them. "
             "This requests approval; it does not approve the change. Tenant workflows may also notify people.")
 _EMAIL = re.compile(r"[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+\Z")
 
@@ -107,8 +107,8 @@ class ApprovalPlan:
                 "method": "POST", "path": f"/api/_/{self.path}", "payload": self.payload,
                 "recipients": list(self.approver_ids), "approval_rule": "Everyone",
                 "message_text": self.message, "plan_hash": self.hash, "warning": _WARNING,
-                "verification": "Complete before/after approval record IDs, exact new recipients, requested status and Everyone rule. Group name cannot be read back.",
-                "contract": "Per-member approvals read-back observed; POST response not trusted; approval-chain group identities are available separately."}
+                "verification": "Complete before/after approval record IDs, exact new recipients, requested status and Everyone rule. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
+                "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted."}
 
 
 def build_plan(change_id: int | str, name: str, message: str, *, approver_ids: Sequence[int]) -> ApprovalPlan:
@@ -321,6 +321,12 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
         csrf = c._get_csrf()
     except Exception:
         raise ApprovalError("could not prepare a complete approval inventory/session; no approval POST was attempted") from None
+    # Optional enrichment: unsupported/unreadable chains must not disable the
+    # established complete per-record verification path.
+    try:
+        before_groups = get_change_approval_groups(plan.change_id, c)
+    except Exception:
+        before_groups = None
     journal.record_plan("started", plan.hash, action=_ACTION, target=plan.change_id)
     recorded = events()
     if not recorded or recorded[-1].get("event") != "started":
@@ -348,10 +354,30 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
         _verify_new(exact, plan)
     except Exception:
         raise ApprovalError(_UNKNOWN) from None
+    result = {"status": "submitted", "change_id": plan.change_id,
+              "approval_ids": [_id(r["id"]) for r in exact], "group_name_verified": False,
+              "verified": True, "readback": exact, "plan_hash": plan.hash}
+    if before_groups is not None:
+        try:
+            after_groups = get_change_approval_groups(plan.change_id, c)
+            baseline = {_id(g["id"]) for g in before_groups}
+            current = {_id(g["id"]) for g in after_groups}
+            fresh = [g for g in after_groups if _id(g["id"]) not in baseline]
+            if baseline <= current and len(fresh) == 1:
+                group = fresh[0]
+                members = [_id(r["member_id"]) for r in group["approvals"]]
+                records = {_id(r["id"]): r for r in group["approvals"]}
+                if (group.get("name") == plan.name
+                        and len(members) == len(plan.approver_ids)
+                        and set(members) == set(plan.approver_ids)
+                        and records.keys() == {_id(r["id"]) for r in exact}
+                        and all(_id(records[_id(r["id"])]["member_id"]) == _id(r["member_id"])
+                                and records[_id(r["id"])]["status"] == r["status"] for r in exact)):
+                    result.update(group_id=_id(group["id"]), group_name_verified=True)
+        except Exception:
+            pass  # Complete record-ID verification above remains authoritative.
     journal.record_plan("done", plan.hash, action=_ACTION, target=plan.change_id)
-    return {"status": "submitted", "change_id": plan.change_id,
-            "approval_ids": [_id(r["id"]) for r in exact], "group_name_verified": False,
-            "verified": True, "readback": exact, "plan_hash": plan.hash}
+    return result
 
 
 def register(app: typer.Typer) -> None:
@@ -392,7 +418,7 @@ def register(app: typer.Typer) -> None:
             if json_out:
                 typer.echo(json.dumps(result, indent=2))
             else:
-                typer.echo(f"Approval requested on change {plan.change_id}; approval record IDs: {result['approval_ids']}; complete inventory verification: {result['verified']}; group name cannot be read back")
+                typer.echo(f"Approval requested on change {plan.change_id}; approval record IDs: {result['approval_ids']}; complete inventory verification: {result['verified']}; group name verified: {result['group_name_verified']}")
         except (ValueError, ApprovalError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

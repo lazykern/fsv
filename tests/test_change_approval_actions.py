@@ -28,6 +28,7 @@ def events():
 
 @pytest.mark.parametrize("tenant", ["acme.example.com", "globex.example.com"])
 @pytest.mark.parametrize("operation,remark,status", [
+    ("approve", None, {"id": 1, "name": "approved"}),
     ("approve", None, {"id": 7, "name": "approved"}),
     ("approve", "", {"id": 7, "name": "approved"}),
     ("approve", "Acme <review> & confirm\nDone", {"id": 7, "name": "approved"}),
@@ -41,6 +42,10 @@ def test_exact_single_put_and_named_decision(monkeypatch, tenant, operation, rem
     before = rows()
     after = copy.deepcopy(before)
     after[0]["status"] = status
+    if operation == "approve":
+        after[0]["remark"] = [{"delegate_id": None, "status": 1,
+                               "updated_at": "2026-01-01T01:00:00Z",
+                               "data": remark or ""}]
     def handler(req):
         seen.append(req)
         if req.method == "PUT":
@@ -270,6 +275,48 @@ def test_immutable_plan_and_hash_binds_every_field(monkeypatch):
         assert changed.hash != p.hash
     review = p.review()
     assert "notify people" in review["warning"] and "irreversible" in review["warning"]
+
+
+@pytest.mark.parametrize("gone", [False, True])
+def test_cancel_json_media_type_with_empty_body_and_chains_readback(monkeypatch, gone):
+    """The server requires JSON media type even though cancel has zero bytes."""
+    from test_change_approval_groups import GID, chains
+
+    seen = []
+    def handler(req):
+        seen.append(req)
+        if req.method == "PUT":
+            assert req.url.path == f"/api/_/changes/123/approval-groups/{GID}/cancel"
+            assert req.headers["content-type"] == "application/json"
+            assert req.headers["x-csrf-token"] == "synthetic-token"
+            assert req.content == b""  # Neither JSON null nor {}.
+            return httpx.Response(200, json={"not": "verification evidence"})
+        assert req.url.path == "/api/_/changes/123/approval-chains"
+        data = chains()
+        if len(seen) > 1:
+            if gone:
+                data["approval_chains"] = []
+            else:
+                for row in data["approval_chains"][0]["approval_groups"][0]["approvals"]:
+                    row["status"] = {"id": 3, "name": "cancelled"}
+        return httpx.Response(200, json=data)
+
+    c = mock_client(monkeypatch, handler)
+    try:
+        p = actions.build_plan(123, GID, "cancel")
+        result = actions.send(p, c, reviewed_hash=p.hash)
+        assert [r.method for r in seen] == ["GET", "PUT", "GET"]
+        assert result["verified"] is True and result["group_id"] == GID
+        assert result["verification_basis"] == ("group_gone" if gone else "changed_raw_statuses_only")
+        if gone:
+            assert result["readback"] is None and result["observed_status"] is None
+        else:
+            assert [r["status"] for r in result["readback"]["approvals"]] == [
+                {"id": 3, "name": "cancelled"}] * 2
+        assert [r["event"] for r in journal.read()
+                if r.get("kind") == "plan:change_approval_cancel"] == ["started", "done"]
+    finally:
+        c.close()
 
 
 def test_cancel_bodyless_plan():

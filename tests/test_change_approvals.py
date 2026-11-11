@@ -1,4 +1,5 @@
 """Offline synthetic approval REQUEST safety using per-member read-back shape."""
+import copy
 import json
 from dataclasses import replace
 from types import SimpleNamespace
@@ -53,6 +54,8 @@ def test_exact_post_verified_only_by_inventory(monkeypatch, tenant, response, en
         row["status"] = {"id": 1, "name": "approved"}
     exact = rows()
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):
+            return httpx.Response(403, json={})
         seen.append(req)
         if req.method == "POST":
             return httpx.Response(200, json=response)
@@ -80,6 +83,99 @@ def test_exact_post_verified_only_by_inventory(monkeypatch, tenant, response, en
         with pytest.raises(approvals.ApprovalError, match="do not resubmit"):
             approvals.send(p, c, reviewed_hash=p.hash)
         assert len(seen) == 3
+    finally:
+        c.close()
+
+
+@pytest.mark.parametrize("case", ["match", "paginated", "reverse-members", "wrong-name", "missing-name", "wrong-members",
+    "duplicate-member", "wrong-records", "swapped-record-members", "changed-status", "existing-group",
+    "missing-baseline", "extra-group", "duplicate-group", "partial", "malformed", "denied",
+    "baseline-denied", "baseline-partial", "flat-concurrent", "flat-missing-baseline"])
+def test_request_named_group_enrichment_keeps_record_guards(monkeypatch, tenant, case):
+    old = rows(start=310000000011)
+    fresh = rows()
+    def group(gid, name, records):
+        return {"id": gid, "name": name, "approval_status": 0, "approvals": records}
+    baseline = [group(310000000090, "Acme earlier review", old)]
+    named = group(310000000099, "Acme review", copy.deepcopy(fresh))
+    after_groups = copy.deepcopy(baseline) + [named]
+    if case == "reverse-members":
+        named["approvals"].reverse()
+    elif case == "wrong-name":
+        named["name"] = "acme review"  # Exact, not case-insensitive.
+    elif case == "missing-name":
+        named.pop("name")
+    elif case == "wrong-members":
+        named["approvals"] = rows(agents=(9000003003, 9000003004))
+    elif case == "duplicate-member":
+        named["approvals"] = rows(agents=(9000003001, 9000003001))
+    elif case == "wrong-records":
+        named["approvals"] = rows(start=310000000021)
+    elif case == "swapped-record-members":
+        named["approvals"][0]["id"], named["approvals"][1]["id"] = (
+            named["approvals"][1]["id"], named["approvals"][0]["id"])
+    elif case == "changed-status":
+        named["approvals"][0]["status"] = {"id": 1, "name": "approved"}
+    elif case == "existing-group":
+        baseline = copy.deepcopy(after_groups)
+    elif case == "missing-baseline":
+        after_groups = [named]
+    elif case == "extra-group":
+        after_groups.append(group(310000000097, "Globex review", rows(start=310000000021)))
+    elif case == "duplicate-group":
+        after_groups.append(copy.deepcopy(named))
+    posted, seen = False, []
+    def handler(req):
+        nonlocal posted
+        seen.append(req)
+        if req.method == "POST":
+            posted = True
+            return httpx.Response(200, json={"id": 1, "name": "untrusted"})
+        if req.url.path.endswith("/approval-chains"):
+            if case == ("denied" if posted else "baseline-denied"):
+                return httpx.Response(403, json={})
+            if posted and case == "malformed":
+                return httpx.Response(200, json={"approval_chains": None})
+            data: Any = {"approval_chains": [{"id": 310000000098,
+                    "approval_groups": after_groups if posted else baseline}]}
+            if case == ("partial" if posted else "baseline-partial"):
+                data["meta"] = {"partial": True}
+            if case == "paginated":
+                page = int(req.url.params["page"])
+                data = {"approval_chains": [{"id": 310000000098 + page,
+                        "approval_groups": (after_groups if posted else baseline)[page - 1:page]}],
+                        "meta": {"has_next": page == 1, "total_count": 2}}
+            return httpx.Response(200, json=data)
+        assert req.url.path.endswith("/approvals")
+        data = old + fresh if posted else old
+        if posted and case == "flat-concurrent":
+            data += rows(start=310000000031, agents=(9000003003,))
+        elif posted and case == "flat-missing-baseline":
+            data = fresh
+        return httpx.Response(200, json=data)
+    c = mock_client(monkeypatch, handler)
+    try:
+        p = plan()
+        if case.startswith("flat-"):
+            with pytest.raises(approvals.ApprovalError, match="outcome unknown"):
+                approvals.send(p, c, reviewed_hash=p.hash)
+            assert events() == ["started"]
+            with pytest.raises(approvals.ApprovalError, match="do not resubmit"):
+                approvals.send(p, c, reviewed_hash=p.hash)
+        else:
+            result = approvals.send(p, c, reviewed_hash=p.hash)
+            assert result["verified"] is True and result["readback"] == fresh
+            assert result["approval_ids"] == [r["id"] for r in fresh]
+            assert result["group_name_verified"] is (case in ("match", "paginated", "reverse-members"))
+            if result["group_name_verified"]:
+                assert result["group_id"] == named["id"]
+            else:
+                assert "group_id" not in result
+            assert events() == ["started", "done"]
+            assert [r.method for r in seen] == (
+                ["GET", "GET", "GET", "POST", "GET", "GET", "GET"] if case == "paginated" else
+                ["GET", "GET", "POST", "GET"] + ([] if case.startswith("baseline-") else ["GET"]))
+        assert sum(r.method == "POST" for r in seen) == 1
     finally:
         c.close()
 
@@ -131,6 +227,8 @@ def test_ambiguous_stays_unknown_and_blocks_retry(monkeypatch, case):
         del fresh[0]["type"]
     after = ([] if case == "missing-baseline" else old[1:] if case == "reused-id" else old) + fresh
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):
+            return httpx.Response(403, json={})
         seen.append(req)
         if req.method == "POST":
             # A plausible returned ID is explicitly NOT trusted.
@@ -160,6 +258,8 @@ def test_ambiguous_stays_unknown_and_blocks_retry(monkeypatch, case):
 def test_single_attempt_no_403_replay(monkeypatch, failure):
     seen = []
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):
+            return httpx.Response(403, json={})
         seen.append(req)
         if req.method == "GET":
             return httpx.Response(200, json={"approvals": []})
@@ -207,6 +307,8 @@ def test_guards_no_io(monkeypatch, mode):
 @pytest.mark.parametrize("case", ["partial", "malformed", "bad-id", "duplicate", "csrf", "journal"])
 def test_preparation_failure_no_post(monkeypatch, case):
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):
+            return httpx.Response(403, json={})
         assert req.method == "GET"
         data = rows()
         if case == "duplicate":
@@ -239,7 +341,7 @@ def test_escape_immutable_and_review():
     assert "irreversible" in p.review()["warning"] and "cancel/revoke" in p.review()["warning"]
     assert p.review()["recipients"] == [9000003001]
     assert p.review()["approval_rule"] == "Everyone"
-    assert "Group name cannot be read back" in p.review()["verification"]
+    assert "exactly one new matching group" in p.review()["verification"]
 
 
 @pytest.mark.parametrize("cid,name,message,ids", [(True, "Acme", "review", [1]), (0, "Acme", "review", [1]),
@@ -325,6 +427,8 @@ def test_cli_reviewed_send_repeatable(monkeypatch):
 def test_raw_inventory_failures_cannot_be_hidden(monkeypatch, case, after_post):
     seen = []
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):
+            return httpx.Response(403, json={})
         seen.append(req)
         if req.method == "POST":
             return httpx.Response(200, json={})
@@ -371,6 +475,8 @@ def test_complete_paginated_before_after(monkeypatch, complete):
     seen, posted = [], False
     old = rows(start=310000000011)
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):
+            return httpx.Response(403, json={})
         nonlocal posted
         seen.append(req)
         if req.method == "POST":
@@ -405,6 +511,8 @@ def test_cli_approvals_list_populated_shape(monkeypatch, envelope, empty, format
     data = [] if empty else rows()
     seen = []
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):
+            return httpx.Response(403, json={})
         seen.append(req)
         assert req.method == "GET" and req.url.path == "/api/_/changes/123/approvals"
         return httpx.Response(200, json={"approvals": data} if envelope else data)
@@ -428,6 +536,8 @@ def test_cli_approvals_list_populated_shape(monkeypatch, envelope, empty, format
 def test_cli_actual_send_readback(monkeypatch, format_, exact):
     seen = []
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):
+            return httpx.Response(403, json={})
         seen.append(req)
         if req.method == "POST":
             return httpx.Response(200, json={"id": 99})
@@ -452,7 +562,7 @@ def test_cli_actual_send_readback(monkeypatch, format_, exact):
             assert json.loads(result.stdout)["group_name_verified"] is False
         else:
             assert "310000000001" in result.stdout
-            assert "group name cannot be read back" in result.stdout
+            assert "group name verified: False" in result.stdout
         assert [req.method for req in seen] == ["GET", "POST", "GET"]
     finally:
         c.close()

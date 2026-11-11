@@ -18,7 +18,7 @@ BASE = ["changes", "approval-cancel", "CHN-123", str(GID)]
 def chains():
     return {"approval_chains": [{"id": 310000000098, "approval_status": 0,
             "approval_type": 1, "approval_groups": [{"id": GID, "approval_status": 0,
-            "approval_type": 1, "approvals": rows()}]}], "meta": {"triggerable_level": 1}}
+            "approval_type": 1, "name": "Acme review", "approvals": rows()}]}], "meta": {"triggerable_level": 1}}
 
 
 def events():
@@ -33,7 +33,7 @@ def test_cancel_exact_bodyless_put_and_verification(monkeypatch, gone, status):
         seen.append(req)
         if req.method == "PUT":
             assert req.url.path == f"/api/_/changes/123/approval-groups/{GID}/cancel"
-            assert req.content == b"" and "content-type" not in req.headers
+            assert req.content == b"" and req.headers["content-type"] == "application/json"
             assert req.headers["x-csrf-token"] == "synthetic-token"
             return httpx.Response(200, json={"not": "evidence"})
         assert req.url.path == "/api/_/changes/123/approval-chains"

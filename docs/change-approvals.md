@@ -63,10 +63,12 @@ hash for a future TUI integration.
 
 An isolated UI **Request for approval > Add approvers > Users > Done > Send**
 request was first captured with traffic aborted. A subsequent accepted trial
-request exposed the populated per-member approvals list described below. The POST
-response is not used as evidence; notification delivery and cancel/revoke success remain
-unverified by a live write in this implementation. A bodyless cancel request and
-its approval-chains identity read are now captured. The synthetic illustration preserves its method, path and fields:
+request exposed populated per-member approvals and a new group in approval chains,
+including its readable `name`, group ID and approval record IDs. Approve and cancel
+were subsequently accepted and checked by read-back; reject remains an aborted
+capture. Write responses are never verification evidence. Notification delivery
+and email recall are not claimed. The synthetic illustration preserves the request's
+method, path and fields:
 
 ```http
 POST /api/_/changes/1234/approval-groups
@@ -90,7 +92,7 @@ lower-level POST, never the helper that replays writes on HTTP 403.
 
 **No POST response ID or success-shaped body is trusted.** Verification compares
 complete before/after inventories of individual approval **record IDs**, not
-groups. All baseline IDs must remain present. The entire set of new records must
+groups alone. All baseline IDs must remain present. The entire set of new records must
 contain exactly one row per requested approver: their positive `member_id` values
 must equal the requested approver set, with no duplicates or unrelated new rows.
 Each new row must have `status: {id: 0, name: "requested"}` and
@@ -107,15 +109,23 @@ A synthetic illustration (other observed fields omitted for clarity):
 [{"id":310000000001,"member_id":9000003001,"level_id":1,"remark":[],"status":{"id":0,"name":"requested"},"type":{"id":1,"name":"everyone"},"member":{"id":9000003001,"name":"Example Agent","email":"agent@example.com"}}]
 ```
 
-**Group name and group ID cannot be read back from this list.** The review states
-this limitation: the requested group name remains bound in the plan hash but is
-not claimed verified. Neither `level_id`, timestamps, list order, `user_id`, nor a
-POST response ID is treated as a group identity or substituted for `member_id`.
-A supplied nested `member.id` must agree with `member_id`. Baseline records may
-already have other statuses; only new records must match the request.
+**The flat list does not expose group name or group ID; approval chains do.**
+The sender additionally attempts complete chains reads before and after sending.
+After complete record-ID verification succeeds, exactly one new group, with all
+baseline group IDs preserved, can establish `group_id` and
+`group_name_verified: true`. Its `name` must equal the requested name exactly,
+its members must equal the requested approvers without duplicates, and its record
+IDs, per-record member identities and statuses must agree with the newly verified
+flat records. Existing same-name groups, timestamps, levels, list order and write
+response IDs are never identity evidence. A supplied nested `member.id` must
+agree with `member_id`. Baseline records may already have other statuses; only
+new records must match the request.
 
-Only this complete inventory evidence marks the plan `done` and returns
-`verified: true`, `approval_ids`, `group_name_verified: false`, `readback` and
+Unsupported, unreadable, partial, ambiguous or nonmatching chains fall back to
+complete record-ID verification: `group_name_verified: false` and no `group_id`.
+Chains never bypass missing baseline records, unrelated concurrent new records,
+or any other flat-inventory ambiguity. Successful results mark the plan `done`
+and return `verified: true`, `approval_ids`, `group_name_verified`, `readback` and
 `plan_hash`. No `approval_group_id` is fabricated. Malformed rows, conflicting
 member identities, duplicate record IDs, inconsistent totals and incomplete pages
 fail closed before generic collection can hide them. An unreadable baseline
@@ -140,9 +150,10 @@ calls are required or performed by them.
 ## Reviewed approve / reject
 
 **These approval actions notify people. Approval/rejection may move the change
-workflow. Cancellation is irreversible.** The following contracts were captured
-with all traffic aborted, not accepted live writes. The CLI does not claim email
-delivery or a particular workflow transition.
+workflow. Cancellation is irreversible.** Both decision contracts were initially
+captured with traffic aborted; approve was later accepted and verified live.
+Rejection has not been observed as an accepted write. The CLI does not claim
+email delivery or a particular workflow transition.
 
 ```bash
 fsv changes approval-respond CHN-1234 310000000001 --approve --dry-run --json
@@ -185,6 +196,12 @@ Content-Type: application/json
 Reject uses `{"approval_status":2,"remark":"Rollback evidence is incomplete."}`
 on the same path. An omitted optional approve remark omits that property.
 These request values do **not** establish a numeric read-back status mapping.
+Observed read statuses are `{id: 0, name: "requested"}`,
+`{id: 1, name: "approved"}`, and `{id: 3, name: "cancelled"}`. Status 2 is
+presumably rejected but has **not** been observed; it is not treated as verified.
+After approving, the record's `remark` list contains entries with `delegate_id`,
+`status`, `updated_at` and `data`. Those raw fields are preserved in read-back,
+not used as substitutes for record identity or decision status.
 
 Before sending, the sender requires the complete approvals inventory, the exact
 requested record (`status: {id: 0, name: "requested"}`), consistent member/change
@@ -231,7 +248,7 @@ are unchanged. Group IDs are not approval record IDs, chain IDs, `level_id`, or
 `user_id`. All examples here are synthetic.
 
 The observed read envelope is `{"approval_chains":[{"id":310000000098,
-"approval_groups":[{"id":310000000099,"approval_status":0,"approvals":[
+"approval_groups":[{"id":310000000099,"name":"Acme review","approval_status":0,"approvals":[
 {"id":310000000001,"member_id":9000003001,"status":{"id":0,"name":"requested"},
 "member":{"id":9000003001}}]}]}],"meta":{"triggerable_level":1}}`.
 The nested **group id** is exactly the ID required by cancellation. The reader
@@ -254,9 +271,15 @@ opens a confirmation with no input fields and emits:
 
 ```http
 PUT /api/_/changes/1234/approval-groups/310000000099/cancel
+Content-Type: application/json
+X-CSRF-Token: <session token>
 ```
 
-There is **no body**: not `{}`, not JSON `null`. The plan represents this as
+There is **no body**: not `{}`, not JSON `null`. The transport explicitly sends
+zero bytes (`content=b""`) with `Content-Type: application/json` and CSRF.
+Without the JSON media type, the live server returned HTTP 415; with it, the
+cancel was accepted and chains read-back showed cancelled records
+(`{id: 3, name: "cancelled"}`). The plan represents the absent body as
 `payload: null` with `body_present: false`. Immediately before sending, the group
 is re-read and validated; a missing group refuses the write. CSRF and a persisted
 `started` journal entry are required. Exactly one lower-level PUT is attempted,
@@ -276,5 +299,6 @@ Ambiguity, timeout, rate limiting, server or session uncertainty leaves the jour
 `started` and blocks an identical retry. Verified observations mark `done` and
 also block resubmission. Definite client rejections mark `failed`; no write is
 replayed automatically. Inspect the change and journal before manual recovery.
-Approval-request verification remains based on complete per-record inventories;
-this change does not alter that fallback or claim group-name verification.
+Approval-request verification always retains complete per-record inventories as
+the required foundation; a unique matching new chains group additionally verifies
+the exact requested name and group ID as described above.
