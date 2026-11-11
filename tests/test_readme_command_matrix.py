@@ -2,47 +2,27 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from typer.testing import CliRunner
+
 
 README = Path(__file__).resolve().parents[1] / "README.md"
 
 
-def _readme_command_matrix() -> dict[str, list[str]]:
-    text = README.read_text()
-    block = text.split("## Commands", 1)[1].split("```", 2)[1]
-    rows: dict[str, list[str]] = {}
-    for line in block.splitlines():
-        line = line.strip()
-        if not line.startswith("fsv "):
-            continue
-        line = line.split("#", 1)[0].rstrip()
-        if "|" not in line:
-            continue
-        parts = line.split()
-        rows[parts[1]] = [part.strip() for part in " ".join(parts[2:]).split("|") if part.strip()]
-    return rows
-
-
-def _registered_group_commands(group_name: str) -> list[str]:
+def _documented_group_help(group_name: str) -> str:
+    """The README points to module help instead of duplicating a command matrix."""
     import fsv.cli as cli
 
-    for group in cli.app.registered_groups:
-        if group.name == group_name and group.typer_instance:
-            return [cmd.name for cmd in group.typer_instance.registered_commands]
-    raise AssertionError(f"group not found: {group_name}")
+    assert f"fsv {group_name} --help" in README.read_text()
+    result = CliRunner().invoke(cli.app, [group_name, "--help"], color=False)
+    assert result.exit_code == 0, result.output
+    return result.output
 
 
-def test_readme_lists_ticket_commands_added_to_matrix():
-    readme = set(_readme_command_matrix()["tickets"])
-    actual = set(_registered_group_commands("tickets"))
-
+def test_readme_ticket_help_exposes_detail_commands():
+    help_text = _documented_group_help("tickets")
     for name in ("approvals", "associations", "download", "conversations"):
-        assert name in actual
-        assert name in readme
+        assert name in help_text
 
 
-def test_readme_lists_problem_download_command():
-    readme = set(_readme_command_matrix()["problems"])
-    actual = set(_registered_group_commands("problems"))
-
-    assert "download" in actual
-    assert "download" in readme
+def test_readme_problem_help_exposes_download():
+    assert "download" in _documented_group_help("problems")
