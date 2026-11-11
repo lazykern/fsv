@@ -3,8 +3,9 @@
 Python commits that landed while the port ran, and what the Rust port still
 needs for each.
 
-- **Last triaged Python commit: `b7d96a7`** (2026-11-12 04:43 +0700,
-  `fix(cli): accept consistent JSON options on reviewed commands`).
+- **Last triaged Python commit: `6797301`** (2026-11-12 05:04 +0700,
+  `feat(problems): add form-backed create and reviewed note and task workflows`;
+  see "Ledger: `b7d96a7..6797301`" at the end).
   Range: `273ffde~1..b7d96a7`, 32 commits.
 - Rust state graded: `rust-port` at `8790060` **plus the uncommitted/staged
   working tree** at triage time (other workers had edits in `fsv-api`,
@@ -13,7 +14,7 @@ needs for each.
 - Python had uncommitted work after `b7d96a7`, not graded here:
   `src/fsv/canned.py`, `canned_cli.py`, `scenarios.py`,
   `tests/test_canned.py`, and edits to `cli.py` / `ticket_conversation.py`.
-- Next triage: `git -C /Users/phusit.somb/lab/work/fsv log --reverse b7d96a7..HEAD`.
+- Next triage: `git -C /Users/phusit.somb/lab/work/fsv log --reverse 6797301..HEAD`.
 
 Statuses: `ported` (Rust has the behavior), `partial` (some is missing),
 `missing` (nothing in Rust).
@@ -586,3 +587,250 @@ fsv-tui needs no new work beyond test updates.
    - `273ffde`: a ticket non-terminal status plan now has a risk.
 
 No work for **fsv-forms**, **fsv-views** or **fsv-formui** in this range.
+
+## Ledger: `b7d96a7..6797301`
+
+Range `b7d96a7..6797301`, 3 commits. Rust graded at `rust-port` `6c5124e`
+plus the working tree at triage time. That tree already has untracked
+`fsv-api` `reviewed_write.rs`, `watchers.rs` (`positive_id`, `self_id`),
+`readback.rs`, `ticket_time.rs`, `problem_known_error.rs`,
+`planning_text.rs`, and `Api::me()` (`service.rs:68`). Every new
+command below builds on `reviewed_write::{WritePlan, execute}`.
+
+Counts: **0 ported, 0 partial, 3 missing.**
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `07c85d0` | 11-12 04:50 | feat(tickets): add source-bound canned replies and reviewed scenarios | missing | fsv-api (new `canned.rs`, `scenarios.rs`; `conversations.rs` canned identity + sender from `a5a8381`), fsv-cli, fsv-completion |
+| `2a03036` | 11-12 04:57 | feat(views): add guarded private ticket-view lifecycle | missing | fsv-api (new `private_views.rs`), fsv-cli, fsv-completion |
+| `6797301` | 11-12 05:04 | feat(problems): add form-backed create and reviewed note and task workflows | missing | fsv-api (`formmeta.rs` problem module, new `problem_workflows.rs`), fsv-forms (`check`/`module_body` pub), fsv-cli (`form explain` any module, `problems create`, `write-child`), fsv-completion |
+
+Python uncommitted after `6797301` (**untriaged, uncommitted**):
+`src/fsv/list_preferences.py`, `src/fsv/list_preferences_cli.py`,
+`tests/test_list_preferences.py`, plus edits to `src/fsv/cli.py` (registers
+on every resource) and `docs/reviewed-parity.md`. They add
+`{tickets,changes,problems} columns list|set` and `{…} export`. These are
+native list-column preferences and a CSV export request, both on
+`reviewed_write`. Rust has nothing for them. Grade them once they are
+committed.
+
+New Python modules with no Rust counterpart: `canned.py`, `canned_cli.py`,
+`scenarios.py`, `private_views.py`, `private_view_cli.py`,
+`problem_workflows.py`, `problem_cli.py` (and the uncommitted
+`list_preferences.py`, `list_preferences_cli.py`).
+
+### `07c85d0` feat(tickets): add source-bound canned replies and reviewed scenarios — missing
+
+Rust has no `canned_response*` or `scenario_automations` route, and
+`ConversationPlan` (`crates/fsv-api/src/conversations.rs:142`) has no canned
+fields. Canned replies always pass `sender`, so they need the sender half of
+`a5a8381` first.
+
+- **fsv-api** new `canned.rs`:
+  - Reads: `folders` GET `canned_response_folders`; `responses(folder)` GET
+    `canned_response_folders/{positive_id}/canned_responses`; `show(id)` GET
+    `canned_responses/{positive_id}`. Raw JSON, no pagination claim.
+  - `content(raw, pointer)` (RFC 6901, objects only): no leading `/` →
+    `"content pointer must start with /; inspect canned show first"`; a `~`
+    not followed by `0`/`1` → `"invalid JSON pointer escape"`; unescape `~1`
+    → `/` then `~0` → `~`; non-object or missing key → `"content pointer does
+    not identify a source field"`; non-string or blank → `"selected canned
+    content must be nonempty text/HTML"`; regex `\{\{|\{%|\$\{|\[\[` →
+    `"unresolved canned placeholders require the web editor"`.
+  - `reply_plan(api, store, target, response_id, pointer, sender)`:
+    `conversations::build_plan(content, format=Html, sender)` then set
+    `canned_id`, `canned_pointer`, `canned_hash = plan_hash(raw)`.
+  - `freshen(plan, api)`: re-`show`; hash differs or `content` ≠
+    `payload.body` → `"canned source changed; review again"`.
+  - `scenarios` GET `scenario_automations`; `scenario(id)`: rows are
+    `raw["scenario_automations"]` or the raw list, else `"scenario inventory
+    is not a list; inspect scenarios list"`; exactly one row with
+    `str(id)` equal, else `"scenario identity is missing or ambiguous in this
+    inventory"`. No detail endpoint.
+- **fsv-api** `conversations.rs`: `ConversationPlan` gains
+  `canned_id: Option<i64>`, `canned_pointer`, `canned_hash`. `hash()` adds
+  `"canned": {"id","pointer","hash"}` **only when `canned_id` is set**, so
+  legacy hashes stay the same. In `send`, after the journal started/done
+  check and before the status-context check, call `canned::freshen`. The
+  wire body has no canned key.
+- **fsv-api** new `scenarios.rs` on `reviewed_write`: `build_plan(target,
+  scenario_id)`: `positive_id(parse_id(target, TICKETS))`, payload
+  `{"ids": [target], "scenario_id": id}` (sorted keys), PUT
+  `tickets/execute_scenario`, action `ticket_scenario`, context
+  `plan_hash({"scenario": canned::scenario(..), "ticket":
+  properties::record(..)})` (`properties.rs:54`). `send` → `execute` with
+  rebuild, and verify returns `{"ticket_id", "identity_verified": str(row.id)
+  == str(target), "verified": false, "warning": "Exact ticket was read back;
+  scenario side effects (including mail/workflows) are unverified. Do not
+  resend."}`.
+- **fsv-cli**: `fsv tickets canned folders|list --folder N|show ID|reply
+  TICKET --response N --content-pointer P --sender S [--dry-run] [--yes]
+  [--expect-plan]` and `fsv tickets scenarios list|show ID|apply TICKET
+  --scenario N [--dry-run] [--yes] [--expect-plan]`. Every command has
+  `--output/-o {json}` and `--json` (`b7d96a7`). `canned reply --dry-run` =
+  `{"status":"dry_run", **review, "source": {"id","hash"}, "insertion":
+  "Literal selected HTML only; no attachments, signatures or placeholder
+  expansion."}`. `scenarios apply --dry-run` = `{"status":"dry_run",
+  **review, "definition": scenario, "warning": "Native automation may send
+  mail or change records. No complete side-effect verification contract is
+  captured."}` (overrides the review warning). The gate is `"review with
+  --dry-run, then pass --yes and the full --expect-plan hash"` (exit 2). Canned
+  reply sends with `public_confirmed=true`. `scenarios show` errors are a
+  BadParameter. Group help: "Read canned responses and insert selected
+  literal HTML into a reviewed reply." / "Read/review native scenarios.
+  Execution side effects remain unverified."
+- **fsv-completion**: two new groups, seven commands.
+- Python tests: `tests/test_canned.py` (all). Pinned reply body:
+  `{"body": "<div>Acme response</div>", "full_text": same,
+  "conversation_from_summary": false, "cc_emails": [], "translate_reply":
+  false, "freddy_message_id": null, "from_email": "support@example.com"}`.
+  The scenario write is `{"scenario_id": 703, "ids": [123]}`.
+  `::test_legacy_conversation_hash_is_unchanged` pins the old hash.
+
+### `2a03036` feat(views): add guarded private ticket-view lifecycle — missing
+
+Nothing in Rust (`ticket_filters` appears only as `filters_path` in
+`crates/fsv-core/src/resource.rs:63`).
+
+- **fsv-api** new `private_views.rs` on `reviewed_write`:
+  - `detail(view_id)`: GET `ticket_filters/{id}`, unwrap `ticket_filter`;
+    id mismatch → `"exact saved-view identity is unavailable"`.
+  - `private_visibility(row, user)`: `user_id` ≠ self, `default` not
+    exactly `false`, or `system` (default false) not exactly `false` →
+    `"only self-owned, explicitly non-default private views are supported"`.
+    The label comes from `visibility.label` (id from `visibility.id`) when
+    `visibility` is an object, else from `visibility_name`. A casefolded,
+    trimmed label outside `{me, only me, private}` → `"named private
+    visibility metadata is unavailable; numeric visibility alone is not
+    proof"`. Returns `positive_id(value)`.
+  - `build_plan(source_id, action, name)`: action not create/edit/delete →
+    `"unsupported saved-view action"`. Delete with a name → `"delete does
+    not accept a name"`; DELETE `ticket_filters/{id}`, payload `null`.
+    For create/edit, a blank name → `"create/edit requires a nonempty --name"`;
+    non-null `advanced_query_hash` or non-list `query_hash` → `"only the
+    captured ordinary query-hash subset is supported"`; `order_by` ≠
+    `created_at` or `order_type` ≠ `desc` → `"only captured created-at
+    descending views are supported"`. Payload `{name, workspace_id,
+    visibility, query_hash, advanced_query_hash: null, order_by,
+    order_type}` (sorted, `ensure_ascii=False`). Create POSTs
+    `ticket_filters` and edit PUTs `ticket_filters/{id}`. The action is
+    `private_view_{action}`, target = source id, context
+    `plan_hash({"self","source": row,"source_id"})`. The plan also stores
+    `source_id` (not part of the hash).
+  - `send`: create verify takes `ticket_filter.id` from the response
+    (missing → error, which `execute` turns into "Independent readback
+    failed"); same as the source → `"create returned the source identity"`.
+    Delete verify: `detail` must fail with HTTP **404** (an HTML 404 body
+    too; other errors propagate). If it still reads, `verified: false`.
+    Otherwise `collect_pages("ticket_filters", "ticket_filters",
+    {page:1, per_page:30})` (`service.rs:375`) must be complete and lack the
+    id. Create/edit verify re-reads `detail` and compares each payload key
+    (visibility via `private_visibility` again) as
+    matched/mismatched/unavailable.
+- **fsv-cli**: `fsv tickets private-views show ID` and `private-views write
+  SOURCE_VIEW create|edit|delete [--name] [--dry-run] [--yes]
+  [--expect-plan]`, with the JSON-only output options and the usual hash
+  gate. Group help: "Private ticket views: clone, rename or delete an exact
+  self-owned non-default view."
+- **fsv-completion**: new group, two commands.
+- Python tests: `tests/test_private_views.py` (all). Writes are
+  `["POST","PUT","DELETE"]`, the clone is id 702, and the payload has no
+  `user_id`/`default`.
+
+### `6797301` feat(problems): add form-backed create and reviewed note and task workflows — missing
+
+Rust formmeta knows only change/ticket (`crates/fsv-api/src/formmeta.rs:28`,
+message `:87`). `form explain ID` hardcodes changes
+(`crates/fsv-cli/src/cmd/form.rs:199-201`). `fsv-forms` `check` and
+`module_body` are private (`crates/fsv-forms/src/payload.rs:436`, `:453`).
+Rust has no `problems create`.
+
+- **fsv-api** `formmeta.rs`: `MODULES` gains `("problem",
+  "problem_form_fields", "problem_fields")`. The message becomes
+  `"unsupported form {text!r}; supported: changes, tickets, problems"`.
+  Update the test at `:1357`, which currently expects problems to fail.
+- **fsv-forms** `payload.rs`: expose `check(state, allow_incomplete, skip)`
+  and `module_body(state, keys, order, status)` (at least `pub(crate)` plus a
+  pub wrapper) for problem create.
+- **fsv-api** new `problem_workflows.rs` on `reviewed_write`:
+  - `record` (GET `problems/{id}`, unwrap `problem`, `"exact problem
+    identity is unavailable"`). `inventory(target, notes|tasks)` uses
+    `collect_pages(.., {page:1,per_page:30}, what="problem {kind}")`.
+    Incomplete → `"complete problem {kind} inventory is unavailable"`,
+    duplicates → `"duplicate problem child identities"`, sorted by id.
+  - `create_plan(answers, requester)`: `load_meta("problem","new",
+    fresh=true)`. `RULES_UNAVAILABLE_KEY` → `"problem rules are unavailable;
+    no static-form write"`. Requester without email → `"resolved requester
+    needs an email"`. Not exactly one requester field → `"unique problem
+    requester field is unavailable"`. A requester among the answers →
+    `"requester answers are not allowed; use --requester"`. Then
+    `state.set(requester)`, `apply_answers` (errors joined `"; "`),
+    `unavailable_dependencies("new")` → `"problem rules reference
+    unavailable fields or context"`, rule messages → `"problem form has rule
+    messages; use the web form"`, and `check(skip=[requester])`.
+    `module_body(order=(subject, description, status, priority, impact))`
+    drops `requester`. Extra top keys → `"problem form needs uncaptured
+    top-level create fields"`; a missing one → `"subject, description,
+    status, priority and impact must be selected from the form"`. Payload
+    `{**top, custom_fields, email}`, POST `problems`, action
+    `problem_create`, target 0, context `plan_hash({"fields":
+    meta.form_fields, "rules", "requester": str(person)})`, and
+    `inputs_json = {"answers","requester"}` sorted.
+  - `child_plan(target, note|task, text)`: `"unsupported problem child
+    kind"` / `"nonempty text is required"`. A note is `{"body": text}`. A task
+    is `{"title", "owner_id": self_id, "status": _choice("status","Open"),
+    "notify_before": _choice("notify_before","Never"), "planned_effort":
+    "1m"}`, with metadata GET `problem_task_fields` (list under
+    `problem_task_fields|task_fields|fields`, else `"problem task metadata
+    is unavailable"`). `_choice` takes the unique field by `name` (`"unique
+    runtime {name} metadata is unavailable"`) and a non-deleted choice whose
+    `value|label|name` casefold-matches with an int id ≥ 0 (`"active runtime
+    {name} choice is unavailable or ambiguous"`). Any other required field
+    → `"problem task has an uncaptured required field"`. POST
+    `problems/{id}/notes|tasks`, context `plan_hash({"parent","before",
+    [fields, self]})`, `inputs_json = {"text","kind"}` (**unsorted**, Python
+    order).
+  - `send`: rebuild from `inputs_json`. Verify reads the response key
+    `problem|note|task` for `id` (`positive_id`). Create reads `record`;
+    children re-read `inventory`. Each payload key needs strict type+value
+    equality. Result `{"{key}_id", "fields", "verified"}`.
+- **fsv-cli** `form.rs`: `explain ID` uses the module's resource
+  (`REGISTRY[mod+"s"]`, its `api_path` and `item_key`), not CHANGES. The
+  `isdigit` shortcut is gone (`parse_id` handles digits). Update the
+  `form_explain_unsupported` golden (`crates/fsv-cli/tests/read_cmds.rs:3620`,
+  which uses `problems`) and the message at `form.rs:30`.
+- **fsv-cli**: `fsv problems create --requester R [--from YAML] [--set
+  LABEL=VALUE…] [--dry-run] [--yes] [--expect-plan]` ("Create a problem
+  through fresh form fields and business rules; no files."). It uses
+  `fsv_flows::drafts::resolve_draft` (`drafts.rs:536`); attachments, planning
+  or a draft requester → `"use answers plus --requester; files, planning and
+  special draft keys are unsupported"`. Also `fsv problems write-child
+  PROBLEM note|task TEXT …` ("Review a body-only note or basic self-owned
+  one-minute task; note visibility is not proven."). Both take the
+  JSON-only output options and the usual hash gate, and FormError → exit 2.
+- **fsv-completion**: two new commands. `form dump|explain` module choices
+  now include problems if completed.
+- Python tests: `tests/test_problem_workflows.py` (all). The create payload
+  is `{"subject": "Acme problem", "description": "<div>Acme details</div>",
+  "status": base, "priority": base+1, "impact": base+2, "custom_fields":
+  {}, "email": "person@example.com"}` with `problem_id == 456`. The task is
+  `{"title": "Acme", "owner_id": 901, "status": base+10, "notify_before":
+  base+11, "planned_effort": "1m"}`. `form dump problems` →
+  `"module": "problem"`.
+
+## Ordering for `b7d96a7..6797301`
+
+1. **fsv-forms**: make `check` / `module_body` reachable (`6797301`).
+2. **fsv-api** (after the `reviewed_write` / `watchers` base above lands):
+   1. `formmeta` problem module, then `problem_workflows.rs` (`6797301`).
+   2. `private_views.rs` (`2a03036`). It needs the 404 status from the
+      fsv-core error (`error.rs:107`).
+   3. `conversations.rs` sender (`a5a8381`), then the canned identity and
+      `freshen`, `canned.rs`, `scenarios.rs` (`07c85d0`).
+3. **fsv-cli**: `form explain` per module plus the golden; `problems create`
+   and `write-child`; `tickets private-views`; `tickets canned` and
+   `tickets scenarios`. All of them need the `ReviewOutput` options. Re-dump
+   `cli_tree.json` from Python at `6797301`.
+4. **fsv-completion**: re-dump after the tree.
+
+No fsv-tui, fsv-app, fsv-flows, fsv-views or fsv-formui work in this range.
