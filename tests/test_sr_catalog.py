@@ -85,7 +85,7 @@ def test_fields_json_has_dependents_choices_and_file_rules(fake):
     r = run("fields", "Feature Request", "-o", "json")
     doc = json.loads(r.output)
     assert doc["item"]["display_id"] == 77
-    assert doc["item"]["attachments"] == {"allowed": True, "mandatory": True,
+    assert doc["item"]["attachments"] == {"allowed": True, "mandatory": True, "effective_mandatory": True,
                                           "rule": "required: at least one general file"}
     by = {f["name"]: f for f in doc["fields"]}
     assert [f["name"] for f in doc["fields"]][:6] == ["notice", "title_100", "paragraph_101", "paragraph_102",

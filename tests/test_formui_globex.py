@@ -154,8 +154,9 @@ def test_service_request_without_sections_rules_or_attachments(globex, tmp_path)
     assert "allowed file types are .pdf" in s.set("angebot", str(tmp_path / "angebot.docx")).error
     s.set("angebot", str(tmp_path / "angebot.pdf"))
     plan = s.build_plan()
-    assert plan.ok, plan.errors
-    out = s.send(plan)
-    assert out["created"]["display"] == "SR-777"
-    assert [w[1] for w in t.writes()] == ["/api/_/attachments", "/api/_/catalog/service-items/501/place-request"]
+    assert not plan.ok
+    assert any("business rules are unavailable" in e for e in plan.errors)
+    with pytest.raises(flow.FlowExit):
+        s.send(plan)
+    assert not t.writes()
     assert not any("/ws/" in p for p in t.paths())

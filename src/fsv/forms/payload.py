@@ -318,7 +318,8 @@ def build_sr_payload(
     """Body for ``POST /api/_/catalog/service-items/<display_id>/place-request``.
 
     ``field_attachments`` maps a file field's API name to uploaded attachment
-    ids; ``attachments`` are the general request attachments.
+    ids; ``attachments`` are the general request attachments. IDs are trusted
+    upload receipts: their file types cannot be verified from opaque IDs.
     """
     item = item or state.spec.item
     if item is None:
@@ -334,7 +335,14 @@ def build_sr_payload(
         if target is None or target.kind != "attachment":
             problems.append(f"{name!r} is not a file field of this item")
         elif target.api_name != name:
-            field_attachments[target.api_name] = field_attachments.pop(name)
+            if target.api_name in field_attachments:
+                problems.append(f"{target.label}: file receipts supplied more than once")
+            else:
+                field_attachments[target.api_name] = field_attachments.pop(name)
+    for f in file_fields:
+        ids = field_attachments.get(f.api_name)
+        if ids is not None and f.max_files is not None and len(ids) > f.max_files:
+            problems.append(f"{f.label}: at most {f.max_files} file(s) are allowed")
     if not allow_incomplete:
         satisfied = [f.api_name for f in file_fields if field_attachments.get(f.api_name)]
         problems.extend(_problems(state, satisfied))

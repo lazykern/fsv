@@ -159,6 +159,15 @@ def fields_doc(meta: cat.ItemMeta) -> dict[str, Any]:
     assert item is not None
     state = FormState(spec, meta.engine(), mode="new")
     ev = state.evaluated
+    diagnostics, blockers = cat.rule_diagnostics(meta, state)
+    uncertain = bool(blockers or cat.rules_warnings(meta.rules))
+    effective = None if uncertain else (item.attachment_mandatory if ev.attachments_required is None
+                                         else ev.attachments_required)
+    rule = _attachment_rule(item)
+    if item.allow_attachments and uncertain:
+        rule += " (base; effective requirement unknown)"
+    elif item.allow_attachments and ev.attachments_required is not None:
+        rule += "; effective at load: " + ("required" if effective else "optional") + " (business rule)"
     rows = []
     for f in spec.ordered():
         sp = spec.section_parent(f.api_name)
@@ -192,11 +201,12 @@ def fields_doc(meta: cat.ItemMeta) -> dict[str, Any]:
                  "short_description": item.short_description, "category": item.category_name,
                  "description": cat.plain_text(item.description_html),
                  "attachments": {"allowed": item.allow_attachments, "mandatory": item.attachment_mandatory,
-                                 "rule": _attachment_rule(item)},
+                                 "effective_mandatory": effective if item.allow_attachments else False,
+                                 "rule": rule},
                  "subject_template": item.subject_template or None},
         "fields": rows,
         "rules": len(getattr(meta.engine(), "rules", []) or []),
-        "warnings": list(spec.warnings),
+        "warnings": list(spec.warnings) + diagnostics + blockers + [cat.REQUESTED_FOR_NOTE],
         "metadata": meta.as_of(),
     }
 
@@ -297,6 +307,7 @@ def render_sr_template(plan: cat.SRPlan, *, errors: list[str] | None = None, req
         f"# Full item form: fsv sr fields {ref}",
         "# Save and close to continue; close without changes to abort.",
         f"# {cat.SAFETY}",
+        f"# {cat.REQUESTED_FOR_NOTE}",
         "",
         "# REQUIRED · email or exact name of the requester (approvals route via their manager)",
     ]

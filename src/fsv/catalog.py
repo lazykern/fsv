@@ -30,7 +30,7 @@ from fsv.change_flow import FlowExit, check_duplicate, review_diff, sha256_file
 from fsv.change_flow import _acknowledge, _dropped, _messages, _notes  # shared review helpers
 from fsv.drafts import Draft
 from fsv.errors import APIError, SessionError
-from fsv.formmeta import RULES_WORKSPACE_KEY, apply_answers, configured_workspace, find_field, load_rules, rules_warnings
+from fsv.formmeta import RULES_UNAVAILABLE_KEY, RULES_WORKSPACE_KEY, apply_answers, configured_workspace, find_field, load_rules, rules_warnings
 from fsv.forms import (
     Field,
     FormError,
@@ -47,6 +47,7 @@ from fsv.forms import (
     plan_hash,
 )
 from fsv.forms.spec import is_content_type
+from fsv.forms.rules import is_empty
 from fsv.review import Review
 
 PER_PAGE = 30
@@ -54,6 +55,7 @@ MAX_PAGES = 50
 SAFETY = "This sends a real service request to the catalog item's fulfilment team."
 REQUESTER_MISSING = ("requester is not set: pass --requester EMAIL, add `requester:` to the draft, "
                      "or set defaults.sr_requester in the fsv config")
+REQUESTED_FOR_NOTE = "Selecting a separate requested-for person is not supported for service requests."
 
 
 def norm(value: Any) -> str:
@@ -343,6 +345,59 @@ def file_answers(spec: FormSpec, answers: Mapping[str, Any], base: str | os.Path
 # plans
 
 
+def rule_diagnostics(meta: ItemMeta, state: FormState) -> tuple[list[str], list[str]]:
+    """Safe-to-display diagnostics and blockers, without rule operands or user data.
+
+    The shared context check inspects all branches, even ones not evaluated due
+    to boolean short circuiting. Warnings from the engine are not all fatal.
+    """
+    engine = state.rules
+    warnings = rules_warnings(meta.rules)
+    errors: list[str] = []
+    if meta.rules.get(RULES_UNAVAILABLE_KEY) and meta.source != "static":
+        errors.append("business rules are unavailable; use the web form")
+    dependencies = engine.unavailable_dependencies("new")
+    raw = list(engine.warnings)
+    if dependencies or any("unknown field" in w or "none was given" in w for w in raw):
+        errors.append("business rules reference unavailable fields or context; use the web form")
+    if any("populate" in w and ("ignored" in w or "not a choice" in w or "unstable" in w) for w in raw):
+        errors.append("business rule choice validation is incomplete; use the web form")
+    if engine.unsupported:
+        errors.append("business rules contain unsupported validation; use the web form")
+    if any("unknown condition field" in w for w in dependencies) or any("condition on unknown field" in w for w in raw):
+        warnings.append("A business rule condition references an unknown field.")
+    if any("unknown action field" in w for w in dependencies) or any(
+            "unknown field" in w and "condition on unknown field" not in w for w in raw):
+        warnings.append("A business rule action references an unknown target.")
+    if any(" context field" in w for w in dependencies) or any("none was given" in w for w in raw):
+        warnings.append("Business rule source context is missing or incomplete.")
+    if any(not ("unknown field" in w or "none was given" in w) for w in raw):
+        warnings.append("A business rule diagnostic was reported; details are withheld to protect context data.")
+    if any("unknown type" in w or "no section choice reveals" in w or
+           "no choice reveals" in w for w in meta.spec.warnings):
+        errors.append("catalog field validation is incomplete; use the web form")
+    return warnings, errors
+
+
+def unsupported_lookup_errors(state: FormState, draft: Draft) -> list[str]:
+    """Never silently discard an answered lookup, even if now hidden."""
+    answered = {f.api_name for f in state.spec.fields
+                if f.kind == "lookup" and not f.sent and
+                (not is_empty(state.values.get(f.api_name)) or
+                 not is_empty(state.evaluated.values.get(f.api_name)))}
+    for key, value in draft.answers.items():
+        if is_empty(value):
+            continue
+        try:
+            f = find_field(state.spec, key)
+        except FormError:
+            continue
+        if f.kind == "lookup" and not f.sent:
+            answered.add(f.api_name)
+    return [f"{f.label}: catalog lookup submission is unverified; use the web form"
+            for f in state.spec.ordered() if f.api_name in answered]
+
+
 @dataclass
 class Upload:
     placeholder: str
@@ -415,7 +470,7 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
     assert item is not None
     state = FormState(spec, meta.engine(), mode="new", resolver=resolver)
     errors: list[str] = []
-    warnings: list[str] = list(spec.warnings) + rules_warnings(meta.rules)
+    warnings: list[str] = list(spec.warnings) + [REQUESTED_FOR_NOTE]
     if draft.description_html is not None:
         errors.append("description_md/description_html: catalog items have no description field; "
                       "answer the item's own fields")
@@ -451,6 +506,10 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
 
     skip = {f"{spec.by_name[n].label} is required" for n in failed}  # one report per field
     problems = list(errors) + [p for p in state.errors() if p not in skip]
+    rule_warnings, rule_errors = rule_diagnostics(meta, state)
+    warnings += rule_warnings
+    problems += rule_errors
+    problems += unsupported_lookup_errors(state, draft)
     need = ev.attachments_required
     if (item.attachment_mandatory if need is None else need) and not draft.attachments:
         problems.append("this item requires at least one general attachment: add `attachments: [FILE]` "
@@ -534,8 +593,28 @@ def _substitute(value: Any, ids: Mapping[str, Any]) -> Any:
 def execute(plan: SRPlan, client: Any, *, upload_fn: Callable[[Any, str], int] = upload) -> dict[str, Any]:
     """Upload the files, then place the request (journaled under the plan
     hash). Call only after the review was confirmed."""
-    if not plan.ok or plan.payload is None:
+    if not plan.ok or plan.payload is None or not plan.hash:
         raise FlowExit(2, "plan has problems: " + "; ".join(plan.errors))
+    _, preflight = rule_diagnostics(plan.meta, plan.state)
+    preflight += unsupported_lookup_errors(plan.state, plan.draft)
+    preflight += plan.state.errors()
+    item = plan.meta.spec.item
+    if item is None:
+        preflight.append("not a service-item form")
+    else:
+        need = plan.state.evaluated.attachments_required
+        if (item.attachment_mandatory if need is None else need) and not plan.draft.attachments:
+            preflight.append("this item requires at least one general attachment")
+        if plan.draft.attachments and not item.allow_attachments:
+            preflight.append("this item does not accept general attachments")
+    if preflight:
+        raise FlowExit(2, "plan has problems: " + "; ".join(preflight))
+    try:
+        current_hash = plan_hash({"request": plan.payload, "target": plan.target}, plan.files)
+    except OSError as e:
+        raise FlowExit(2, f"cannot verify reviewed files: {e}") from None
+    if current_hash != plan.hash:
+        raise FlowExit(2, "the reviewed payload or files changed; review again")
     journal.record_plan("started", plan.hash, action=plan.action, target=plan.target)
     uploaded: list[dict[str, Any]] = []
     ids: dict[str, Any] = {}
