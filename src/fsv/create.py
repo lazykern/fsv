@@ -985,16 +985,34 @@ def get_task_for_edit(change_id: int, task_id: int, c: Client | None = None) -> 
 TASK_READONLY_CF = {"team_name"}
 
 
+def _task_put(c: Client, path: str, body: dict[str, Any]) -> Any:
+    """Send one task write; never replay it after an error.
+
+    Client.int_put refreshes CSRF and resends on 403. Task writes use the
+    journaled single-request path instead, including on ambiguous failures.
+    Alternate clients supplied by callers must also avoid write retries.
+    """
+    if isinstance(c, Client):
+        from fsv import config
+
+        return c._request(
+            "PUT", f"{config.API_INT}/{path}", json=body, params=None,
+            headers={"Content-Type": "application/json", "X-CSRF-Token": c._get_csrf()},
+        )
+    return c.int_put(path, body)
+
+
 def delete_task(change_id: int, task_id: int, c: Client | None = None) -> None:
-    """Delete a task from a change."""
+    """Delete via the observed internal contract; compatibility varies by tenant."""
     if c is None:
         c = get_client()
-    c.int_delete(f"changes/{change_id}/tasks/{task_id}")
+    _task_put(c, f"changes/{change_id}/tasks/update", {"id": str(task_id), "action": "delete"})
 
 
 def update_task(change_id: int, task_id: int, body: dict[str, Any], c: Client | None = None) -> dict[str, Any]:
     """PUT update a task on a change.
 
+    Uses the observed bare-fields contract; compatibility varies by tenant.
     Sends only the fields explicitly provided in `body`. Does NOT merge all
     existing fields back — avoids 400 validation errors when stale/removed
     choice values exist on the task server-side.
@@ -1008,7 +1026,7 @@ def update_task(change_id: int, task_id: int, body: dict[str, Any], c: Client | 
             k: v for k, v in body_cf.items()
             if k not in TASK_READONLY_CF and v is not None
         }
-    data = c.int_put(f"changes/{change_id}/tasks/{task_id}", {"change_task": payload})
+    data = _task_put(c, f"changes/{change_id}/tasks/{task_id}", payload)
     return data.get("task", data)
 
 

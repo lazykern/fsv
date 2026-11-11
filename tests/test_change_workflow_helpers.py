@@ -91,9 +91,9 @@ def test_get_change_assets_falls_back_to_associated_cis_when_assets_404():
 def test_delete_task():
     c = WorkflowClient()
 
-    create.delete_task(1, 172149, c=c)
+    create.delete_task(1, 73, c=c)
 
-    assert c.puts == [("DELETE", "changes/1/tasks/172149", {})]
+    assert c.puts == [("PUT", "changes/1/tasks/update", {"id": "73", "action": "delete"})]
 
 
 def test_dissociate_assets():
@@ -149,7 +149,7 @@ class TaskUpdateClient:
 
     def int_put(self, path, body=None):
         self.puts.append((path, body))
-        return {"task": body["change_task"]}
+        return {"task": body}
 
 
 def test_update_task_sends_only_requested_fields():
@@ -158,7 +158,7 @@ def test_update_task_sends_only_requested_fields():
     task = create.update_task(1, 1, {"status": 2}, c=c)
 
     assert task["status"] == 2
-    assert c.puts == [("changes/1/tasks/1", {"change_task": {"status": 2}})]
+    assert c.puts == [("changes/1/tasks/1", {"status": 2})]
 
 
 def test_update_task_filters_readonly_or_empty_custom_fields():
@@ -172,4 +172,4 @@ def test_update_task_filters_readonly_or_empty_custom_fields():
     )
 
     assert task == {"custom_fields": {"system": 100}}
-    assert c.puts == [("changes/1/tasks/1", {"change_task": {"custom_fields": {"system": 100}}})]
+    assert c.puts == [("changes/1/tasks/1", {"custom_fields": {"system": 100}})]
