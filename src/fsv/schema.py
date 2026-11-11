@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import math
+import sys
 import time
 from typing import Any
 
@@ -38,6 +40,9 @@ def _cached_path(res: Resource) -> tuple[Path, dict[str, Any] | None, bool]:
     for path in schema_cache_candidates(res.name):
         doc, stale = _cache_load(path)
         if doc is not None and _doc_fields(doc):
+            saved = doc.get("saved_at", path.stat().st_mtime)
+            valid = isinstance(saved, (int, float)) and not isinstance(saved, bool) and math.isfinite(saved)
+            stale = not valid or not 0 <= time.time() - saved <= CACHE_TTL
             return path, doc, stale
     primary = _path(res)
     return primary, None, True
@@ -110,10 +115,12 @@ def load(res: Resource, client: Client | None = None, force: bool = False) -> di
 
     if doc is not None and not force and not stale:
         update_meta(cache_path, checked_at=True, fetch_inc=True)
-        return _unwrap(doc)
+        return {**_unwrap(doc), "stale": False, "source": "cache"}
 
     if doc is not None and not force:
         # stale — return old data, refresh in background
+        print(f"Warning: stale {res.name} schema; refreshing in background. "
+              f"Run `fsv {res.name} fields --refresh` for current definitions.", file=sys.stderr)
         own = client is None
         c = client or Client()
 
@@ -126,7 +133,7 @@ def load(res: Resource, client: Client | None = None, force: bool = False) -> di
                     c.close()
 
         refresh_async(p, "schema", _fetch)
-        return _unwrap(doc)
+        return {**_unwrap(doc), "stale": True, "source": "cache"}
 
     # miss or force — block and fetch
     own = client is None
@@ -142,7 +149,7 @@ def load(res: Resource, client: Client | None = None, force: bool = False) -> di
         raise APIError(200, f"empty schema for {res.name}", "GET", res.form_fields_path)
     ensure_dirs()
     save(p, "schema", fields, latency_ms=latency)
-    return {"saved_at": time.time(), "fields": fields}
+    return {"saved_at": time.time(), "fields": fields, "stale": False, "source": "server"}
 
 
 def field(name: str, schema: dict[str, Any]) -> dict[str, Any] | None:

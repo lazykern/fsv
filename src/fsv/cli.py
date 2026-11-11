@@ -535,7 +535,7 @@ def fields_resource(
     _show_fields_table(fields)
 
 
-def lookup_resource(res: Resource, kind: str, query: str, json_out: bool, format_: OutputFormat | str = "table") -> None:
+def lookup_resource(res: Resource, kind: str, query: str, json_out: bool, format_: OutputFormat | str = "table", *, refresh: bool = False) -> None:
     from fsv import schema as schema_mod
     c = _client()
     key = kind.casefold()
@@ -547,7 +547,7 @@ def lookup_resource(res: Resource, kind: str, query: str, json_out: bool, format
         data = _api(lambda: c.int_get("bootstrap/agents_groups"))
         items = [g for g in data.get("groups", []) if query.casefold() in str(g.get("name") or "").casefold()]
     else:
-        sch = _api(lambda: schema_mod.load(res, c))
+        sch = _api(lambda: schema_mod.load(res, c, force=True) if refresh else schema_mod.load(res, c))
         f = _find_schema_field(sch, kind)
         if not f:
             _err(f"unknown lookup kind or field: {kind}")
@@ -3929,12 +3929,13 @@ def _make_subapp(res: Resource) -> typer.Typer:
     def lookup(
         kind: str = typer.Argument(..., help="requester | agent | group | field name/label", autocompletion=completion.complete_lookup_kind(res)),
         query: str = typer.Argument("", help="name/email/text to search", autocompletion=completion.complete_lookup_query(res)),
+        refresh: bool = typer.Option(False, "--refresh", help="fetch current schema choices synchronously"),
         format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     ) -> None:
         f"""Autocomplete users, groups, or field choices."""
         try:
-            lookup_resource(res, kind, query, json_out, format_)
+            lookup_resource(res, kind, query, json_out, format_, refresh=refresh)
         except (SessionError, APIError) as e:
             _err_exc(e)
         except typer.Exit:

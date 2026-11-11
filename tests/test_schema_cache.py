@@ -83,3 +83,45 @@ def test_unwrap_keeps_fields_key_for_empty_list():
     out = schema._unwrap({"saved_at": 5, "data": []})
     assert out == {"saved_at": 5, "fields": []}
     assert schema._unwrap({"fields": FIELDS})["fields"] == FIELDS
+
+
+@pytest.mark.parametrize("saved", [1, True, "unknown", float("nan"), float("inf"), 999999999999])
+def test_stale_cache_is_marked_and_warns_without_blocking(monkeypatch, capsys, saved):
+    config.ensure_dirs()
+    save(_cache_file(), "schema", FIELDS)
+    doc = json.loads(_cache_file().read_text())
+    doc["saved_at"] = saved
+    _cache_file().write_text(json.dumps(doc))
+    refreshes = []
+    monkeypatch.setattr(schema, "refresh_async", lambda *a: refreshes.append(a))
+    out = schema.load(CHANGES, FakeClient())
+    assert out["fields"] == FIELDS and out["stale"] and out["source"] == "cache"
+    assert refreshes and "fields --refresh" in capsys.readouterr().err
+
+
+def test_force_refresh_bypasses_even_fresh_cache_and_returns_provenance():
+    config.ensure_dirs()
+    save(_cache_file(), "schema", [{"name": "old"}])
+    c = FakeClient(internal={CHANGES.form_fields_key: FIELDS}, v2={CHANGES.form_fields_key: []})
+    out = schema.load(CHANGES, c, force=True)
+    assert out["fields"] == FIELDS and out["source"] == "server" and not out["stale"]
+    assert c.calls == 2
+    assert json.loads(_cache_file().read_text())["data"] == FIELDS
+
+
+def test_failed_force_refresh_does_not_fall_back_to_stale_cache():
+    config.ensure_dirs()
+    save(_cache_file(), "schema", FIELDS)
+    with pytest.raises(SessionError):
+        schema.load(CHANGES, FakeClient(internal=SessionError("expired"), v2=SessionError("expired")), force=True)
+    assert json.loads(_cache_file().read_text())["data"] == FIELDS
+
+
+def test_legacy_cache_uses_schema_ttl_not_generic_ttl(monkeypatch):
+    config.ensure_dirs()
+    monkeypatch.setattr(schema.time, "time", lambda: 1000000)
+    _cache_file().write_text(json.dumps({"fields": FIELDS, "saved_at": 1000000 - 7200}))
+    c = FakeClient(internal=SessionError("must not fetch"))
+    out = schema.load(CHANGES, c)
+    assert out["source"] == "cache" and not out["stale"] and c.calls == 0
+
