@@ -278,6 +278,11 @@ too (`saved_at` etc.) so both versions read each other's files.
   tests. For pure functions, generate golden fixtures by running the
   Python implementation (`uv run python`) and assert the Rust output
   matches; commit the fixture generator script under `port/golden/`.
+  Early oracles that tests cite as `/tmp/fsv_oracle/*`, `/tmp/fsv_port/*`
+  and `/tmp/fsv_api_views/*` live in `port/golden/oracles/<same dir>/`.
+  Run them from the Python repo with that directory on `PYTHONPATH`
+  (`fsv_oracle` scripts import `common`). They still write scratch files
+  under `/tmp`, so the paths baked into the fixtures stay stable.
 
 ## Building while other agents work
 
