@@ -66,12 +66,14 @@ class Draft:
     ack: list[str] = dc_field(default_factory=list)
     preset: str | None = None
     base_dir: Path | None = None  # relative file paths resolve against this
+    requested_for: str | None = None  # SR-only; other draft readers reject this key
 
     def merged(self, other: "Draft") -> "Draft":
         """``other`` wins key by key (answers are merged, not replaced)."""
         return Draft(
             answers={**self.answers, **other.answers},
             requester=other.requester or self.requester,
+            requested_for=other.requested_for if other.requested_for is not None else self.requested_for,
             description_html=other.description_html if other.description_html is not None else self.description_html,
             attachments=other.attachments or self.attachments,
             planning={**self.planning, **other.planning},
@@ -98,17 +100,22 @@ def _str_list(v: Any, what: str) -> list[str]:
     raise ValueError(f"{what}: expected a list of strings")
 
 
-def draft_from_data(data: Any, base_dir: Path | None = None, where: str = "draft") -> Draft:
+def draft_from_data(data: Any, base_dir: Path | None = None, where: str = "draft", *,
+                    allow_requested_for: bool = False) -> Draft:
     from fsv.mdlite import to_html
 
     if data is None:
         return Draft(base_dir=base_dir)
     if not isinstance(data, Mapping):
         raise ValueError(f"{where}: top level must be a mapping (preset/answers/description_md/...)")
-    unknown = [k for k in data if k not in DRAFT_KEYS]
+    keys = DRAFT_KEYS | ({"requested_for"} if allow_requested_for else set())
+    unknown = [k for k in data if k not in keys]
     if unknown:
         raise ValueError(f"{where}: unknown key(s) {', '.join(map(str, unknown))}; "
-                         f"expected: {', '.join(sorted(DRAFT_KEYS))}")
+                         f"expected: {', '.join(sorted(keys))}")
+    requested_for = data.get("requested_for")
+    if requested_for is not None and not isinstance(requested_for, str):
+        raise ValueError(f"{where}: requested_for must be an email or exact name")
     answers = data.get("answers") or {}
     if not isinstance(answers, Mapping):
         raise ValueError(f"{where}: answers must be a mapping of field label -> value")
@@ -143,6 +150,7 @@ def draft_from_data(data: Any, base_dir: Path | None = None, where: str = "draft
     return Draft(
         answers={str(k): v for k, v in answers.items()},
         requester=None if data.get("requester") in (None, "") else str(data["requester"]),
+        requested_for=requested_for.strip() if requested_for and requested_for.strip() else None,
         description_html=desc,
         attachments=[_path(p, base_dir) for p in _str_list(data.get("attachments"), "attachments")],
         planning=planning,
@@ -152,13 +160,13 @@ def draft_from_data(data: Any, base_dir: Path | None = None, where: str = "draft
     )
 
 
-def load_draft_file(path: str) -> Draft:
+def load_draft_file(path: str, *, allow_requested_for: bool = False) -> Draft:
     p = Path(os.path.expanduser(path))
     try:
         data = yamlio.load_file(str(p))
     except OSError as e:
         raise ValueError(f"cannot read {path}: {e.strerror}") from None
-    return draft_from_data(data, p.parent, where=str(path))
+    return draft_from_data(data, p.parent, where=str(path), allow_requested_for=allow_requested_for)
 
 
 def preset_path(name: str) -> Path:
@@ -177,8 +185,8 @@ def preset_path(name: str) -> Path:
     raise ValueError(f"preset {name!r} not found{hint}")
 
 
-def load_preset(name: str) -> Draft:
-    d = load_draft_file(str(preset_path(name)))
+def load_preset(name: str, *, allow_requested_for: bool = False) -> Draft:
+    d = load_draft_file(str(preset_path(name)), allow_requested_for=allow_requested_for)
     if d.preset:
         raise ValueError(f"preset {name!r}: presets cannot reference other presets")
     return d

@@ -32,7 +32,7 @@ from fsv.drafts import (
     load_draft_file,
     load_preset,
     parse_sets,
-    parse_template,
+    draft_from_data,
 )
 from fsv.forms import Field, FormError, FormState, LookupValue
 from fsv.render import console, err
@@ -313,6 +313,8 @@ def render_sr_template(plan: cat.SRPlan, *, errors: list[str] | None = None, req
     ]
     who = requester or (plan.requester.email if plan.requester is not None else None) or draft.requester
     lines.append(f"requester: {yamlio.scalar(who)}" if who else "requester:")
+    lines.append("# Optional · exact email or name of the person receiving this request")
+    lines.append(f"requested_for: {yamlio.scalar(draft.requested_for)}" if draft.requested_for else "requested_for:")
     lines.append("answers:")
     shown = False
     for name in ev.visible:
@@ -393,9 +395,9 @@ def resolve_sr_draft(spec: Any, file: str | None, preset: str | None, sets: list
     """preset < file < --set < --attach. File-field paths resolve against
     the draft (or preset) file's folder, ``--set`` paths against the
     current directory."""
-    d = load_draft_file(file) if file else Draft()
+    d = load_draft_file(file, allow_requested_for=True) if file else Draft()
     name = preset or d.preset
-    base = load_preset(name) if name else Draft()
+    base = load_preset(name, allow_requested_for=True) if name else Draft()
     base.answers = cat.file_answers(spec, base.answers, base.base_dir)
     d.answers = cat.file_answers(spec, d.answers, d.base_dir)
     sets_d = Draft(answers=cat.file_answers(spec, parse_sets(sets), os.getcwd()))
@@ -412,6 +414,10 @@ def _yaml_norm(v: Any) -> Any:
     return None if v in (None, "") else cat.norm(v)
 
 
+def parse_sr_template(text: str, base_dir: Path | None = None) -> Draft:
+    return draft_from_data(yamlio.loads(text), base_dir or Path.cwd(), where="draft", allow_requested_for=True)
+
+
 def edit_loop(build: Callable[[Draft], cat.SRPlan], draft: Draft, *,
               edit_text: Callable[..., Any] | None = None, max_rounds: int = 20) -> tuple[Draft, cat.SRPlan]:
     """Open the annotated draft; reopen it with the errors on top until the
@@ -423,12 +429,13 @@ def edit_loop(build: Callable[[Draft], cat.SRPlan], draft: Draft, *,
     errors: list[str] = []
     for _ in range(max_rounds):
         text = render_sr_template(plan, errors=errors)
-        baseline = parse_template(text).answers
-        new = edit(text, parse_template, suffix=".yaml", comment_prefix="#")
+        baseline = parse_sr_template(text).answers
+        new = edit(text, parse_sr_template, suffix=".yaml", comment_prefix="#")
         keep = set(draft.answers)
         answers = {k: v for k, v in new.answers.items() if k in keep or _yaml_norm(v) != _yaml_norm(baseline.get(k))}
         answers = cat.file_answers(plan.state.spec, answers, new.base_dir)
-        draft = Draft(answers=answers, requester=new.requester, description_html=new.description_html,
+        draft = Draft(answers=answers, requester=new.requester, requested_for=new.requested_for,
+                      description_html=new.description_html,
                       attachments=new.attachments, planning=new.planning, ack=new.ack, preset=draft.preset,
                       base_dir=new.base_dir)
         plan = build(draft)
@@ -643,9 +650,10 @@ def create_command(
         from fsv.formmeta import resolve_requester
         from fsv.ticket_notes import _EMAIL, _valid_recipient
         target = None
-        if requested_for is not None:
+        beneficiary = requested_for if requested_for is not None else d.requested_for
+        if beneficiary is not None:
             try:
-                target = resolve_requester(client, requested_for)
+                target = resolve_requester(client, beneficiary)
             except ValueError as e:
                 raise FlowExit(2, f"requested-for: {e}") from None
         resolved_cc = []
