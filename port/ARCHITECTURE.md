@@ -102,8 +102,8 @@ use `foo.workspace = true`. Preferred choices:
   updates on every hop, and Freshservice cookies go only to the tenant host.
   `Client::fetch_raw(url, follow)` is what the download call sites use
   (no retry, no journal, no status mapping). TUI workers do not cancel
-  in-flight HTTP; they capture a generation (`AtomicU64`) and the UI drops
-  stale `(gen, Result)` pairs. `keepalive()` has no Python caller; port it
+  in-flight HTTP; staleness uses Python's own guards (`pending_detail_key`,
+  `list_epoch`, the search sequence). `keepalive()` has no Python caller; port it
   but do not build the TUI around it. The transport is a trait so tests
   inject a mock that records `gets`, `writes` and `paths` (the Acme and
   Globex tenants). The real transport is reqwest.

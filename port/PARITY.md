@@ -34,14 +34,39 @@ those stay identical.
   Textual, hiding the focused editor moves focus away and F3 stops working.
 - The status bar is a row above the key hints. Textual draws the hints on
   top of the status bar.
-- TUI workers do not drop stale generations, and there is no change-emit
-  lock. Python's other staleness checks are kept. A slow reply can still
-  land after a newer load.
+- TUI workers keep Python's own staleness guards (`pending_detail_key`,
+  `list_epoch`, the search sequence) but have no `(generation, result)`
+  drop and no change-emit lock. The user-visible risk equals Python's
+  `exclusive=True` workers.
 - `detail_panel` does not wrap a long planning line at 60 columns. Rich
   wraps it. The Rust block leaves wrapping to the console.
-- An unquoted YAML key `true:` loads as `"true"`. Python gives `"True"`.
-  The loader in `fsv-core` cannot tell a bool key from a quoted one after
-  parse. `fsv-flows` golden draft cases remap that one key.
+- A plain YAML bool or null key (`true:`, `FALSE:`, `null:`, `~:`) loads
+  as Python's `str(k)` (`"True"`, `"False"`, `"None"`); a quoted `"true":`
+  stays `"true"`. Every Python caller (`draft_from_data` answers, planning
+  labels and unknown-key errors, `matching_hints`) applies `str()`, so draft
+  keys and errors match (`fsv_core::yaml` `typed_keys_read_as_python_str`,
+  `fsv_flows::drafts` `plain_bool_and_null_keys_are_python_str`). Left:
+  a hints `when` key that is no field reports `hints: unknown field 'True'`;
+  Python's `{k!r}` prints `True`. Nested mappings are string-keyed too
+  (Python keeps `False` inside a value dict); no Python caller dumps them.
+- Change create/update (`fsv_flows::change::execute`) journals `failed`
+  only when the server definitely refused the change body: HTTP 4xx other
+  than 403, 408 and 429, the rule incident create, SR place-request and the
+  reviewed writes use. 5xx, 403, 408, 429, session and transport errors
+  leave `started`, so `check_duplicate` refuses a resend (exit 4, "no
+  recorded outcome") until `--allow-duplicate`. A failed upload before
+  create still journals `failed`: no change was posted. Python has the bug
+  (`change_flow.py:637-640` marks every `APIError` / `RuntimeError` /
+  `SessionError` failed), so a 502/504 after the server created the change
+  lets the next run create a duplicate. `fsv_flows::change::definite_rejection`
+  mirrors the crate-private `fsv_api::service::definite_rejection`; dedupe
+  once fsv-api exports it.
+- Change execute refuses with exit 5, "could not persist the change journal;
+  nothing was sent", when the `started` event fails to write or does not
+  read back as the newest row. Python sends anyway. `PlanJournal` gained
+  `try_record_plan` (default: `record_plan` then `Ok`), and `DiskJournal`
+  returns the append error from `fsv_core::journal::try_record_plan`. The
+  journal bytes do not change.
 - Read-only notes in a change plan follow the form's visible-field order.
   Python iterates a set, so the order is not stable.
 - `create.clone_planning_fields` treats a planning row with
@@ -91,10 +116,8 @@ those stay identical.
 | `change_cli._send`, `cli_sr._send`, `ticket_flow.send`, `_report_partial` for a form-reviewed plan; `tui.actions.failure_detail` attributes | `Submitted::send_cli`, `send_checked`, `send_confirmed`, `SendError::{report, outcome}`, `tui::forms::send_submitted` | ported. Golden: `port/golden/gen_fsv_app_send.py` (metadata changed after review: diff lines, exit 4 without a terminal, re-review and confirm in one, exit 2 when the new form needs answers; partial failure lines and exit 5; SR equivalents). |
 
 - Form review rows can show lookup ids where Python shows names. `fsv_flows` drafts hold JSON answers.
-- TUI details load without form properties: `views.load_properties` / `load_edit_rules` are not ported anywhere, so Python's "form rules could not be applied" note is absent.
 - Service-request drafts save through `fsv_flows::sr::save_sr_draft` from the reviewed plan, with no separate requested-for. The file bytes match Python's `render_sr_template` for the same plan.
 - `run_tui` takes a schema loader argument because `schema::load` and saved-view loading live in `fsv-cli`, which `fsv-app` cannot depend on.
-- Not yet wired in `LiveBackend` (trait defaults say unavailable): change tasks and task edit/delete, associations, downloads, catalog, completion, clipboard and open-URL, filter history.
 - Directory lookups that hit an expired session surface as a query error, because `fsv_api::QueryError` does not carry the session flag.
 - `FormSession.send` (TUI, `FormBackend::send`) still refuses a changed plan with exit 4, as Python does. The CLI re-confirm lives in `Submitted::send_cli`, which fsv-cli's form paths (`changes create/update`, `sr create`, `tickets create`) call.
 - A service-request form send goes through `catalog::execute_detailed`. A failure is `SendError::Sr(SendFailure)`: the CLI prints `uploaded attachment ids (not attached to any request): ...` when files went up, then exits with the cause's code and `{step} failed: ...`; the TUI failure detail has Python's `uploaded` / `error` lines (golden: `gen_fsv_app_send.py` `sr_*` failure scenarios). `fsv-cli`'s flow-path `sr_send` does not use it yet.
@@ -132,7 +155,6 @@ those stay identical.
 Fixed to match Python while adding those tests: `_parse_where` needs a one-character field (`>=x` is field `>`, op `=`) and rejects an embedded newline. Field, choice and lookup matching use `casefold` and Python `or` truthiness (an id `0` or a `null` label no longer matches `"0"` / `"None"`). `_resolve_requester` falls back to the id for a blank `value`. `active_choices` takes the first truthy `value`/`label`/`name` and casefolds labels. `_file_names` gives `str(id)` when every name is falsy (`{"id": 0}` → `"0"`).
 
 Gaps:
-- `fsv_core::Client` has no way to list its cookie jar, so `Api::workspace_cookies` returns nothing for the live client and `_cookie_workspace` only works through test fakes. This needs a jar accessor in fsv-core.
 - `Api::me` / `Api::v2_get` have erroring defaults. fsv-cli `LazyApi`, fsv-flows' testing `Api` and the fsv-views golden fake should forward them; until then watchers / ticket time through those impls fail with "signed-in agent identity is unavailable".
 - `07c85d0` (canned replies: `canned_id` and friends on `ConversationPlan`, `canned.py`, `scenarios.py`) is not ported.
 - `cli._resolve_where` (labels, aliases, `Me`) is an fsv-cli function; `query.resolve_where`'s "field not found: 'x'" already matches `query.py`.
@@ -143,8 +165,6 @@ Divergences:
 - `conversations::parseaddr` is a simplified `email.utils.parseaddr`: the address inside the last `<…>`, else the trimmed value. Quoted local parts and comments are not parsed.
 - `merge_same_conditions` turns a truthy non-iterable `value` (a number or `true`) into a one-item list; Python raises `TypeError` there.
 - `SendFailure::into_error` names the Python type of the cause from the `fsv_core::Error` variant (`Other`/`Context` → `RuntimeError`, `Io` → `OSError`, `Exit` → `FlowExit`), and takes the exit code from `Error::exit_code`, which for an `Exit` cause is its own code (Python's `exit_code_for` gives 1).
-- `Client::send_once` no longer sends `Content-Type` on a bodiless request (a `DELETE` with no payload), matching `reviewed_write.execute`, which passes headers without a body.
-
 ## fsv-views
 
 | Python | Rust | status |
@@ -229,7 +249,9 @@ No divergences from this pass.
 
 | Python | Rust | status |
 |---|---|---|
-| `cli.py` command tree (111 nodes: root, 13 groups, 97 leaves) | `fsv_cli::generated`, `app` | ported. `tests/tree.rs` checks every node's name, hidden flag, options, positionals and help text against a Python dump. |
+| `cli.py` command tree at Python `dbe553c` (125 nodes: root, 16 groups, 108 leaves) | `fsv_cli::generated`, `app` | ported. `tests/tree.rs` checks every node's name, hidden flag, options, positionals and help text against a Python dump. The dumpers (`tests/golden/dump_cli_tree.py`, `dump_completion.py`) skip the not-yet-ported paths in `tests/golden/not_ported.py` (canned, scenarios, private-views, problems create/write-child, columns, export, asset-picker). |
+| `watchers_cli`, `ticket_time_cli`, `planning_cli` (`planning-text`, `mark-known-error`), `bulk_priority_cli`, `tickets forward`, `tickets reply --bcc/--sender`, `<res> update --reviewed` with `--set` answers, `ReviewOutput` (`--output/-o json`, `--json`) | `cmd::reviewed`, `cmd::tickets::forward`/`reply_reviewed`, `cmd::resource::ticket_properties`, `types::ReviewOutput` | ported. `tests/upstream_cmds.rs` (69 goldens emitted from Python `dbe553c` via `FSV_PY_SRC=<dbe553c>/src tests/golden/cmp.py --emit`, fixtures `watchers`, `ticket_time`, `planning`, `ticket_mail`, `ticket_reviewed`). |
+| `cli_sr._send` failure report (`{step} failed: …`, `uploaded attachment ids (not attached to any request): …`) | `cmd::sr::sr_send` over `fsv_api::catalog::execute_detailed` | ported; `upstream_cmds.rs` `sr_send_failure_lists_uploads` (place-request 500 after two uploads, exit 5). |
 | `cli.py` `help`, `search`, `auth`, `cache`, `journal`, `config`, `completion`, `views`, `url`, `<res> lookup` | `fsv_cli::cmd::*` | ported. |
 | `cli.py` `tickets add-note` (reviewed, no `--set-status`), `changes tasks-delete --dry-run`, `changes update --due-by --dry-run` | `cmd::tickets`, `cmd::changes` | ported. |
 | `<res> ls/get/activity/tasks/notes/fields`, `update`, `download`, `tickets reply/create/conversations/approvals/associations`, `changes create/update`, `changes tasks-*/approvals/state/clone/assets/associations`, `sr *`, `form *`, `tui`, `setup` | `fsv_cli::cmd::*` | ported. Golden tests in `tests/{read,write,local,where}_cmds.rs` were emitted from Python runs on the same routes (`tests/golden/cmp.py --emit`). |
@@ -241,9 +263,11 @@ No divergences from this pass.
 | `gen_tree.py` (generator for `generated.rs`) | none | missing from disk. `generated.rs` was hand-edited after generation: module renamed to `generated` (`gen` is reserved in edition 2024), struct doc comments removed, hint fields fixed. Regenerating needs the script rewritten. |
 
 CLI divergences:
-- Usage errors use clap's text. Exit code 2 matches Click.
+- Usage errors use clap's text. Exit code 2 matches Click. This includes a non-`json` `--output` on the reviewed commands (Click's rich choice panel; both exit 2 before any request).
+- Typer `BadParameter` raised by a command body (`watchers list` errors) is reproduced as Rich's error panel (`cmd::reviewed::bad_parameter`), sized from the terminal width.
+- `update --reviewed` with several answered fields: the review's `after` object lists keys out of order, because fsv-api `properties.rs:115` removes `br_validation_excludes` with a swap-remove. Hash and wire payload are unaffected. Pinned by the ignored `upstream_cmds.rs` `update_reviewed_multi_field_dry_run`.
+- Python commits after `dbe553c` (`10c3281`…`92002d7`) change `planning_cli`/`planning_text`/`readback` (APIError handling, `--section` completers). They are not ported; at `dbe553c` an unknown planning section is an uncaught traceback (exit 1), and Rust exits 1 with the message.
 - Completion scripts call `FSV_THIN_COMPLETE=1 fsv _complete` in place of `python -m fsv._complete`.
-- `FSV_COMPLETION_NETWORK=1` gates live completers. It is a new env switch, read only in `cmd/completion.rs`.
 - `--backup-replaced` carries a `value_flag` override so completion treats it as taking a value, as Python's generator does.
 - `--query-hash` with bad JSON prints `error: invalid --query-hash JSON: ` as Python does, then serde_json's message (`[{` gives `EOF while parsing an object at line 1 column 2`) where Python prints `json.JSONDecodeError`'s (`Expecting property name enclosed in double quotes: line 1 column 3 (char 2)`). Exit 2 in both.
 - `fsv tui` with no terminal exits 1 with an error. Python hangs waiting for Textual's driver.
@@ -276,11 +300,11 @@ CLI divergences:
 
 | Python | Rust | status |
 |---|---|---|
-| `drafts.py`, `change_flow.py`, `ticket_flow.py` | `fsv_flows` | ported. `cargo test -p fsv-flows --offline` was 82 passed. Create (10), update (5), incident (4) and draft parses match `tests/golden/flows.json` from `gen_flows.py`. Plan JSON carries `risks` and `requires_confirmation` (Python `7903e2a`); the golden tests also check its key order. |
+| `drafts.py`, `change_flow.py`, `ticket_flow.py` | `fsv_flows` | ported. `cargo test -p fsv-flows --offline` was 88 passed. Create (10), update (5), incident (4) and draft parses match `tests/golden/flows.json` from `gen_flows.py`. Plan JSON carries `risks` and `requires_confirmation` (Python `7903e2a`); the golden tests also check its key order. |
 | `formmeta.py` cache and workspace discovery | `fsv_flows::meta` | partial. Only the pure helpers the flows call. Callers pass metadata through `MetaSource`. |
-| change execute HTTP | `change::ChangeWriter` | partial. Upload, POST, PUT, attach and planning sit behind the trait. Tests use a recording fake. No live client yet. |
+| change execute HTTP | `change::ChangeWriter` | partial. Upload, POST, PUT, attach and planning sit behind the trait. Tests use a recording fake; the live client is `fsv_app::writer::LiveWriter`. |
 
-`interactive()` and `editor_edit` are smoke-only. The `~/a.pdf` draft case is skipped unless home is `/Users/phusit.somb`, because the golden file stores the expanded path. `DiskJournal` wraps `fsv_core::journal`; tests use an in-memory journal.
+`interactive()` and `editor_edit` are smoke-only. The `~/a.pdf` draft case is skipped unless home is `/Users/phusit.somb`, because the golden file stores the expanded path. `DiskJournal` wraps `fsv_core::journal`; tests use an in-memory journal. Change execute journal safety (see Divergences) is pinned by `execute_unknown_outcome_leaves_started` (500/502/503/504/429/408/403 on POST and PUT), `execute_definite_rejection_records_failed` (400/404/409/422), `execute_failed_upload_before_create_records_failed` and `execute_refuses_when_started_is_not_persisted` (a journal whose write errors and one that drops writes).
 
 ## fsv-py
 
