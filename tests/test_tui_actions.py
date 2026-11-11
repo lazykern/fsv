@@ -77,9 +77,9 @@ def test_status_confirm_one_call_with_safety_text(calls):
     assert calls == [("update", "changes", 42, {"status": 2})]
 
 
-def test_ticket_nonterminal_status_has_no_warning(calls):
+def test_ticket_every_status_transition_warns(calls):
     plan = actions.status_plan(TICKETS, _item(TICKETS), STATUS_SCHEMA, 2, "Review")
-    assert plan.risks == []
+    assert plan.risks and "Review" in plan.risks[0]
     closed = actions.status_plan(TICKETS, _item(TICKETS), STATUS_SCHEMA, 3, "Closed")
     assert closed.risks and "Closed" in closed.risks[0]
 

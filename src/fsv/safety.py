@@ -85,11 +85,7 @@ def write_risks(
             risks.append(f"change status -> {label}")
         else:
             what = resource[:-1] if resource.endswith("s") else resource
-            closes = status_closes(resource, _plain(body["status"]), label)
-            if closes:
-                risks.append(f"{what} status -> {label}")
-            elif closes is None:
-                risks.append(f"{what} status -> {label} (fsv cannot tell whether this status closes it)")
+            risks.append(f"{what} status -> {label} (status semantics and workflows require confirmation)")
 
     for key in ASSIGNEE_KEYS:
         if key in body and not (current is not None and key in cur and _same(body[key], cur[key])):

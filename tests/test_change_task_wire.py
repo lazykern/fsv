@@ -31,6 +31,27 @@ def task_client(monkeypatch, tenant, handler):
     return c
 
 
+@pytest.mark.parametrize("method", ["POST", "PUT", "PATCH", "DELETE"])
+@pytest.mark.parametrize("outcome", ["403", "disconnect"])
+def test_internal_mutation_never_replayed_after_ambiguous_failure(monkeypatch, tenant, method, outcome):
+    seen = []
+
+    def handler(request):
+        seen.append(request)
+        if outcome == "disconnect":
+            raise httpx.ReadError("synthetic disconnect", request=request)
+        return httpx.Response(403, json={"error": "denied"})
+
+    c = task_client(monkeypatch, tenant, handler)
+    try:
+        with pytest.raises((APIError, httpx.ReadError)):
+            c._int_request(method, "changes/41/tasks", body={"title": "Synthetic"})
+        assert len(seen) == 1
+        assert seen[0].headers["X-CSRF-Token"] == "fake-token"
+    finally:
+        c._client.close()
+
+
 @pytest.mark.parametrize("operation", ["update", "delete"])
 def test_task_exact_wire_contract(monkeypatch, tenant, operation):
     seen = []

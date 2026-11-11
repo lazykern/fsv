@@ -42,10 +42,12 @@ def test_localized_terminal_status_needs_confirmation():
     lab = lambda v: german.get(v, str(v))  # noqa: E731
     assert safety.write_risks("tickets", {"status": 5}, current={"status": 2}, status_label=lab)
     unknown = safety.write_risks("tickets", {"status": 12}, current={"status": 2}, status_label=lab)
-    assert unknown and "cannot tell" in unknown[0]
+    assert unknown and "confirmation" in unknown[0]
     assert safety.write_risks("problems", {"status": 3}, current={"status": 1}, status_label=lambda v: "Cerrado")
     english = {2: "Open", 3: "Pending", 4: "Resolved"}
-    assert not safety.write_risks("tickets", {"status": 3}, current={"status": 2}, status_label=english.get)
+    assert safety.write_risks("tickets", {"status": 3}, current={"status": 2}, status_label=english.get)
+    assert safety.write_risks("tickets", {"status": 99}, current={"status": 2},
+                              status_label=lambda _: "Pending final closure")
     assert safety.write_risks("tickets", {"status": 4}, current={"status": 2}, status_label=english.get)
 
 

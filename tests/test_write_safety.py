@@ -74,9 +74,10 @@ def test_change_any_status_transition_is_risky_same_status_is_not():
     assert safety.write_risks("changes", {"status": 2}, status_label=lab)  # unknown current
 
 
-def test_ticket_only_terminal_status_is_risky():
+def test_ticket_every_status_transition_is_risky():
     assert safety.write_risks("tickets", {"status": 4}, current={"status": 1}, status_label=lab)
-    assert not safety.write_risks("tickets", {"status": 2}, current={"status": 1}, status_label=lab)
+    assert safety.write_risks("tickets", {"status": 2}, current={"status": 1}, status_label=lab)
+    assert not safety.write_risks("tickets", {"status": 2}, current={"status": 2}, status_label=lab)
 
 
 def test_reassignment_detected_only_when_changed():

@@ -431,18 +431,11 @@ class Client:
                      params: dict[str, Any] | None = None) -> Any:
         url = f"{config.API_INT}/{path.lstrip('/')}"
 
-        def _do() -> Any:
-            return self._request(method, url, json=body, params=params,
-                                 headers={"Content-Type": "application/json",
-                                          "X-CSRF-Token": self._get_csrf()})
-
-        try:
-            return _do()
-        except APIError as e:
-            if e.status == 403:
-                self._csrf = None
-                return _do()
-            raise
+        # Resolve CSRF before the mutation; a 403 after sending does not prove
+        # that the server performed no side effect, so never replay the write.
+        token = self._get_csrf()
+        return self._request(method, url, json=body, params=params,
+                             headers={"Content-Type": "application/json", "X-CSRF-Token": token})
 
     def int_post(self, path: str, body: dict[str, Any]) -> Any:
         return self._int_request("POST", path, body=body)
