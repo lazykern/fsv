@@ -879,6 +879,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "fsv-app"
+version = "2026.5.29"
+dependencies = [
+ "fsv-api",
+ "fsv-core",
+ "fsv-flows",
+ "fsv-forms",
+ "fsv-formui",
+ "fsv-py",
+ "fsv-tui",
+ "fsv-views",
+ "serde_json",
+]
+
+[[package]]
 name = "fsv-cli"
 version = "2026.5.29"
 dependencies = [
