@@ -83,6 +83,20 @@ CLI divergences:
 - `FSV_COMPLETION_NETWORK=1` gates live completers. It is a new env switch, read only in `cmd/completion.rs`.
 - `--backup-replaced` carries a `value_flag` override so completion treats it as taking a value, as Python's generator does.
 
+## fsv-formui
+
+| Python | Rust | status |
+|---|---|---|
+| `formui/session.py`, `lookups.py`, `files.py`, `when.py`, `fuzzy.py`, `widgets.py`, `screens.py`, `app.py` | `fsv_formui` (`session`, `lookups`, `files`, `kit`, `widgets`, `screen`, `app`) | ported. `cargo test -p fsv-formui --offline` was 62 passed (25 unit, 21 session, 16 UI). Session expectations come from running Python on the Acme fixture. |
+
+- Plan building, draft saving, sending, `render_sr_template` and requester resolution sit behind `FormBackend` and `SessionInit`. `fsv-flows` supplies them. Until then the form cannot submit.
+- Callers must set `SessionInit.paths` (`HOME`, cwd). The library no longer reads env or process state.
+- Review tables are plain text. The cyan label column is not reproduced.
+- F3 description preview shows the Markdown as typed, not rendered.
+- Mouse support and Textual's command palette are not ported.
+- The SR `SAFETY` banner line is a constant in `screen/review.rs`. No Rust crate held that text.
+- Copy depends on OSC 52 in the terminal.
+
 ## fsv-flows
 
 | Python | Rust | status |
