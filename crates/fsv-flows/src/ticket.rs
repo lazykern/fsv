@@ -510,6 +510,8 @@ mod tests {
                 fsv_py::canonical(&g["json"]),
                 "{case}"
             );
+            let keys = |j: &Json| j.as_object().unwrap().keys().cloned().collect::<Vec<_>>();
+            assert_eq!(keys(&p.to_json()), keys(&g["json"]), "{case} key order");
         }
     }
 

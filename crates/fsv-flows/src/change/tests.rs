@@ -95,6 +95,12 @@ fn check(p: &Plan, g: &Json, title: &str, case: &str) {
         fsv_py::canonical(&g["json"]),
         "{case} json"
     );
+    let keys = |j: &Json| j.as_object().unwrap().keys().cloned().collect::<Vec<_>>();
+    assert_eq!(
+        keys(&p.to_json()),
+        keys(&g["json"]),
+        "{case} json key order"
+    );
     let t = template_for(p, &p.draft, title, &p.errors, None, Some(BASE)).unwrap();
     assert_eq!(t, g["template"].as_str().unwrap(), "{case} template");
     assert_eq!(plan_text(p), g["plan_text"].as_str().unwrap(), "{case}");

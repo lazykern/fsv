@@ -205,6 +205,8 @@ impl Plan {
             "after": {"attachments": attachments, "planning": planning},
             "review": self.review.to_dict(),
             "warnings": self.review.warnings,
+            "risks": self.risks,
+            "requires_confirmation": !self.risks.is_empty(),
             "errors": self.errors,
         })
     }

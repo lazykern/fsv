@@ -41,7 +41,7 @@ Counts: **16 ported, 9 partial, 7 missing.**
 | `fd060d7` | 11-12 02:20 | fix(tickets): show actual identity in update previews | ported | fsv-cli `resource.rs:1486-1501` |
 | `42b561f` | 11-12 02:27 | fix(sr): accept requested-for in catalog drafts | ported | fsv-flows `sr.rs:27-120`, `:314`; fsv-cli `sr.rs:406` |
 | `ccc3a64` | 11-12 02:58 | fix(forms): resolve metadata-backed custom lookup selections | ported | fsv-forms `state.rs:840`; fsv-api `formmeta.rs:787-943`; fsv-formui `lookups.rs` |
-| `7903e2a` | 11-12 03:06 | fix(changes): route legacy updates through reviewed form plans | partial | fsv-flows (plan JSON keys) |
+| `7903e2a` | 11-12 03:06 | fix(changes): route legacy updates through reviewed form plans | partial | fsv-cli (help text, `Reviewed::Form` JSON fallback); fsv-flows done |
 | `d18bab9` | 11-12 03:11 | fix(schema): expose stale metadata and synchronous refresh | partial | fsv-cli (`lookup --refresh`), fsv-completion |
 | `f761a01` | 11-12 03:20 | feat(tickets): review metadata-backed property updates | missing | fsv-api, fsv-cli, fsv-completion |
 | `a5a8381` | 11-12 03:25 | feat(tickets): add reviewed BCC replies and whole-ticket forwards | missing | fsv-api, fsv-cli, fsv-completion |
@@ -115,15 +115,21 @@ terminal-only rule (`crates/fsv-core/src/safety.rs:140-144`).
 Ported: `--status/--priority/--agent/--group` on `changes update` go through
 the form plan (`crates/fsv-cli/src/cmd/changes.rs:1452-1471`).
 
-Missing: `change_flow.Plan.to_dict()` gained `"risks": self.risks` and
-`"requires_confirmation": bool(self.risks)` between `warnings` and `errors`.
-`fsv_flows::change::Plan::to_json` (`crates/fsv-flows/src/change.rs:200-209`)
-has neither key.
+Ported (fsv-flows): `fsv_flows::change::Plan::to_json`
+(`crates/fsv-flows/src/change.rs:200-211`) emits `"risks"` and
+`"requires_confirmation"` (`!risks.is_empty()`) between `warnings` and
+`errors`, on every change and ticket plan, as Python's `to_dict`.
+`flows.json` regenerated with `gen_flows.py` (11 create, 5 update, 4 ticket
+plans gained the keys; nothing else moved). The change and ticket golden
+tests now also check top-level key order. No fsv-cli fixture holds a change
+form plan JSON, so no fsv-cli golden moved.
 
-- **fsv-flows** `change.rs`: add both keys in Python order (`review`,
-  `warnings`, `risks`, `requires_confirmation`, `errors`). Update the
-  change-plan JSON goldens in `crates/fsv-flows/src/change/tests.rs` and
-  `fsv-cli` `changes update --dry-run` fixtures.
+Missing:
+
+- **fsv-cli** `Reviewed::to_json` (`crates/fsv-cli/src/cmd/formflow.rs:206`)
+  has a fallback for a form plan without a carried `change::Plan`. It builds
+  the JSON by hand without `risks`/`requires_confirmation`. Add both keys
+  (from `s.plan.review.risks`) or drop the fallback.
 - **fsv-cli**: update the `changes update` help text: "Legacy
   --status/--priority/--agent/--group flags use the same reviewed, hash-bound
   form path." (it comes with the tree regeneration, below).
@@ -537,8 +543,8 @@ fsv-tui needs no new work beyond test updates.
 1. **fsv-core** (independent, small)
    - `273ffde`: ticket/problem status risk text in `safety.rs` and its tests.
 2. **fsv-flows** (independent, small)
-   - `7903e2a`: `risks` and `requires_confirmation` in `Plan::to_json` and
-     the goldens.
+   - ~~`7903e2a`: `risks` and `requires_confirmation` in `Plan::to_json` and
+     the goldens.~~ Done.
 3. **fsv-api** (critical path; land in this order)
    1. `Api::me()` and its impls (fsv-cli `lazy.rs`, mocks).
    2. `readback.rs` (`4d778c3`), switching properties and tasks to it.
