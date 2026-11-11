@@ -1,0 +1,30 @@
+[package]
+name = "fsv-cli"
+description = "The fsv command line"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "fsv_cli"
+path = "src/lib.rs"
+
+[[bin]]
+name = "fsv"
+path = "src/main.rs"
+
+[dependencies]
+fsv-py.workspace = true
+fsv-core.workspace = true
+fsv-api.workspace = true
+fsv-completion.workspace = true
+clap.workspace = true
+serde_json.workspace = true
+regex.workspace = true
+which.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

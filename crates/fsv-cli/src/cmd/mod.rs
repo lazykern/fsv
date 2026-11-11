@@ -1,0 +1,89 @@
+//! Command handlers, dispatched by command path.
+
+pub mod auth;
+pub mod cache;
+pub mod changes;
+pub mod completion;
+pub mod config;
+pub mod form;
+pub mod journal;
+pub mod misc;
+pub mod resource;
+pub mod sr;
+pub mod tickets;
+
+use clap::{ArgMatches, FromArgMatches};
+
+use fsv_core::Error;
+use fsv_core::resource::{CHANGES, PROBLEMS, Resource, TICKETS};
+
+use crate::generated::*;
+use crate::util::CmdResult;
+
+fn parse<T: FromArgMatches>(m: &ArgMatches) -> fsv_core::Result<T> {
+    T::from_arg_matches(m).map_err(|e| Error::other(e.to_string()))
+}
+
+fn res_of(path: &str) -> &'static Resource {
+    match path.split(' ').next() {
+        Some("tickets") => &TICKETS,
+        Some("problems") => &PROBLEMS,
+        _ => &CHANGES,
+    }
+}
+
+/// Run the leaf command at `path` (without the program name).
+pub fn dispatch(path: &str, m: &ArgMatches, prog: &str) -> CmdResult {
+    let res = res_of(path);
+    let sub = path.split_once(' ').map_or("", |(_, s)| s);
+    match path {
+        "help" => misc::help(parse(m)?),
+        "search" => misc::search(parse(m)?),
+        "setup" => misc::setup(),
+        "tui" => misc::tui(parse(m)?),
+        "auth login" => auth::login(parse(m)?),
+        "auth logout" => auth::logout(parse(m)?),
+        "auth status" => auth::status(),
+        "completion show" => completion::show(parse::<CompletionShowArgs>(m)?.shell, prog),
+        "completion install" => completion::install(parse::<CompletionInstallArgs>(m)?.shell, prog),
+        "completion refresh" | "cache refresh" => cache::refresh(),
+        "completion doctor" => completion::doctor(prog),
+        "config list" => config::list(),
+        "config get" => config::get(parse(m)?),
+        "config set" => config::set(parse(m)?),
+        "config defaults show" => config::defaults_show(parse(m)?),
+        "config defaults set" => config::defaults_set(parse(m)?),
+        "config defaults clear" => config::defaults_clear(parse(m)?),
+        "cache status" => cache::status(),
+        "cache clear" => cache::clear(parse(m)?),
+        "journal ls" => journal::ls(parse(m)?),
+        "journal tail" => journal::tail(parse(m)?),
+        "journal path" => journal::path(),
+        _ if path.starts_with("form ") => form::dispatch(sub, m),
+        _ if path.starts_with("sr ") => sr::dispatch(sub, m),
+        _ => resource_dispatch(res, sub, m),
+    }
+}
+
+fn resource_dispatch(res: &'static Resource, sub: &str, m: &ArgMatches) -> CmdResult {
+    match sub {
+        "ls" => resource::ls(res, parse(m)?),
+        "get" => resource::get(res, parse(m)?),
+        "activity" => resource::activity(res, parse(m)?),
+        "tasks" => resource::tasks(res, parse(m)?),
+        "fields" => resource::fields(res, parse(m)?),
+        "lookup" => resource::lookup(res, parse(m)?),
+        "views" => resource::views(res, parse(m)?),
+        "search" => resource::search(res, parse(m)?),
+        "url" => resource::url(res, parse(m)?),
+        "notes" => resource::notes(res, parse(m)?),
+        "add-note" if res.name == "tickets" => tickets::add_note(parse(m)?),
+        "add-note" => resource::add_note(res, parse(m)?),
+        "update" if res.name == "changes" => changes::update(parse(m)?),
+        "update" => resource::update(res, parse(m)?),
+        "download" if res.name == "changes" => changes::download(parse(m)?),
+        "download" => resource::download(res, parse(m)?),
+        _ if res.name == "changes" => changes::dispatch(sub, m),
+        _ => tickets::dispatch(sub, m),
+    }
+}

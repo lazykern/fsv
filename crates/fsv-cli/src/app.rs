@@ -1,0 +1,252 @@
+//! Process edge: argv rewriting, clap parsing, dispatch, exit codes.
+
+use clap::error::ErrorKind;
+use clap::{Arg, ArgAction, ArgMatches, Command};
+
+use fsv_core::resource::{self, CHANGES};
+use fsv_core::term::err;
+
+use crate::cmd;
+use crate::util::report;
+
+/// `_ROOT_FLAGS_ANYWHERE`.
+pub const ROOT_FLAGS_ANYWHERE: &[&str] = &["-v", "--verbose"];
+
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+fn global_verbose() -> Arg {
+    Arg::new("fsv_verbose")
+        .long("verbose")
+        .short('v')
+        .action(ArgAction::SetTrue)
+        .help("print debug info to stderr")
+        .help_heading("Global options")
+}
+
+fn finish(mut cmd: Command, depth: usize) -> Command {
+    let names: Vec<String> = cmd
+        .get_subcommands()
+        .map(|s| s.get_name().to_string())
+        .collect();
+    for name in &names {
+        cmd = cmd.mut_subcommand(name, |s| finish(s, depth + 1));
+    }
+    cmd = cmd.disable_help_subcommand(true);
+    if !names.is_empty() {
+        cmd = cmd.arg_required_else_help(true);
+        if depth > 0 {
+            cmd = cmd.subcommand_required(true).arg(global_verbose());
+        }
+    }
+    cmd
+}
+
+/// The clap tree with fsv's process-wide settings.
+pub fn command() -> Command {
+    let root = crate::generated::build()
+        .disable_version_flag(true)
+        .bin_name("fsv");
+    finish(root, 0)
+}
+
+fn takes_value(arg: &Arg) -> bool {
+    !matches!(
+        arg.get_action(),
+        ArgAction::SetTrue
+            | ArgAction::SetFalse
+            | ArgAction::Count
+            | ArgAction::Help
+            | ArgAction::HelpShort
+            | ArgAction::HelpLong
+            | ArgAction::Version
+    )
+}
+
+/// `_option_arity`.
+fn option_arity(cmd: &Command, token: &str) -> usize {
+    if token.contains('=') {
+        return 0;
+    }
+    let found = cmd.get_arguments().find(|a| {
+        if let Some(long) = token.strip_prefix("--") {
+            a.get_long() == Some(long) || a.get_all_aliases().is_some_and(|al| al.contains(&long))
+        } else if let Some(short) = token.strip_prefix('-').filter(|s| s.chars().count() == 1) {
+            let c = short.chars().next();
+            a.get_short() == c
+                || a.get_all_short_aliases()
+                    .is_some_and(|al| c.is_some_and(|c| al.contains(&c)))
+        } else {
+            false
+        }
+    });
+    found.map_or(0, |a| usize::from(takes_value(a)))
+}
+
+/// `_reorder_root_flags` plus `ChangeLegacyGroup` routing. Returns the new
+/// argv (without the program name) and the deprecation notice to print.
+pub fn rewrite(root: &Command, args: &[String]) -> (Vec<String>, Option<&'static str>) {
+    let mut moved = Vec::new();
+    let mut kept: Vec<String> = Vec::new();
+    let mut current = root;
+    let mut path: Vec<&str> = Vec::new();
+    let mut started = false;
+    let mut skip = 0usize;
+    let mut passthrough = false;
+    let mut notice = None;
+    let mut legacy_check = false;
+    for token in args {
+        if legacy_check {
+            legacy_check = false;
+            if !token.starts_with('-')
+                && current.find_subcommand(token).is_none()
+                && resource::parse_id(token, &CHANGES).is_ok()
+            {
+                notice = Some(if path.last() == Some(&"assets") {
+                    "[yellow]deprecated[/]: use `fsv changes assets <ls|search|add|remove|pick|categories> ...`"
+                } else {
+                    "[yellow]deprecated[/]: use `fsv changes associations <ls|search|add|remove|pick> ...`"
+                });
+                kept.push("legacy".into());
+                current = current.find_subcommand("legacy").unwrap_or(current);
+            }
+        }
+        if passthrough {
+            kept.push(token.clone());
+            continue;
+        }
+        if skip > 0 {
+            kept.push(token.clone());
+            skip -= 1;
+            continue;
+        }
+        if token == "--" {
+            passthrough = true;
+            kept.push(token.clone());
+            continue;
+        }
+        if started && ROOT_FLAGS_ANYWHERE.contains(&token.as_str()) {
+            moved.push(token.clone());
+            continue;
+        }
+        if token.starts_with('-') {
+            skip = option_arity(current, token);
+            kept.push(token.clone());
+            continue;
+        }
+        if current.has_subcommands()
+            && let Some(sub) = current.find_subcommand(token)
+        {
+            started = true;
+            current = sub;
+            path.push(sub.get_name());
+            legacy_check = path == ["changes", "assets"] || path == ["changes", "associations"];
+        }
+        kept.push(token.clone());
+    }
+    moved.extend(kept);
+    (moved, notice)
+}
+
+/// What the root's eager options ask for before any subcommand runs.
+enum Eager {
+    Version,
+    ShowCompletion,
+    InstallCompletion,
+}
+
+fn eager(root: &Command, args: &[String]) -> Option<Eager> {
+    let mut found = None;
+    for token in args {
+        if token == "--" {
+            break;
+        }
+        if !token.starts_with('-') {
+            if root.find_subcommand(token).is_none() && matches!(found, Some(Eager::Version)) {
+                return None;
+            }
+            break;
+        }
+        match token.as_str() {
+            "-V" | "--version" => found = found.or(Some(Eager::Version)),
+            "--show-completion" => return Some(Eager::ShowCompletion),
+            "--install-completion" => return Some(Eager::InstallCompletion),
+            _ => {}
+        }
+    }
+    found
+}
+
+/// The leaf command path and its matches.
+fn leaf(m: &ArgMatches) -> (Vec<String>, &ArgMatches) {
+    let mut path = Vec::new();
+    let mut cur = m;
+    while let Some((name, sub)) = cur.subcommand() {
+        path.push(name.to_string());
+        cur = sub;
+    }
+    (path, cur)
+}
+
+/// Run fsv with `argv` (program name first); returns the exit code.
+pub fn run(argv: Vec<String>) -> i32 {
+    let args: Vec<String> = argv.iter().skip(1).cloned().collect();
+    if args.first().map(String::as_str) == Some("_complete")
+        && std::env::var(fsv_completion::THIN_COMPLETE_ENV).is_ok_and(|v| !v.is_empty())
+    {
+        print!(
+            "{}",
+            fsv_completion::run(&args[1..], cmd::completion::network_enabled())
+        );
+        return 0;
+    }
+    let mut root = command();
+    let prog = argv
+        .first()
+        .and_then(|a| std::path::Path::new(a).file_name())
+        .map_or("fsv".to_string(), |n| n.to_string_lossy().into_owned());
+    match eager(&root, &args) {
+        Some(Eager::Version) => {
+            fsv_core::term::out().print(&format!("fsv {VERSION}"));
+            return 0;
+        }
+        Some(Eager::ShowCompletion) => return report(cmd::completion::show_eager(&prog)),
+        Some(Eager::InstallCompletion) => return report(cmd::completion::install_eager(&prog)),
+        None => {}
+    }
+    let (args, notice) = rewrite(&root, &args);
+    let mut full = vec![prog.clone()];
+    full.extend(args);
+    let matches = match root.try_get_matches_from_mut(full) {
+        Ok(m) => m,
+        Err(e) => return clap_error(e),
+    };
+    if let Some(n) = notice {
+        err().print(n);
+    }
+    fsv_core::runtime::set_no_input(matches.get_flag("no_input"));
+    fsv_core::runtime::set_verbose(matches.get_flag("verbose"));
+    let (path, m) = leaf(&matches);
+    if path.is_empty() {
+        let _ = root.print_help();
+        return 0;
+    }
+    fsv_core::runtime::set_command_path(Some(&format!("{prog} {}", path.join(" "))));
+    report(cmd::dispatch(&path.join(" "), m, &prog))
+}
+
+fn clap_error(e: clap::Error) -> i32 {
+    match e.kind() {
+        ErrorKind::DisplayHelp => {
+            let _ = e.print();
+            0
+        }
+        ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand => {
+            print!("{}", e.render());
+            2
+        }
+        _ => {
+            let _ = e.print();
+            2
+        }
+    }
+}
