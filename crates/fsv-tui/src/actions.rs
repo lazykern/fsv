@@ -305,9 +305,17 @@ pub fn apply_status(b: &dyn Backend, res: Res, item_id: &Value, new_id: &Value) 
     b.update_item(res, item_id, &body)
 }
 
-pub fn apply_note(b: &dyn Backend, res: Res, item_id: &Value, body: &str, public: bool) -> BResult<Value> {
+pub fn apply_note(
+    b: &dyn Backend,
+    res: Res,
+    item_id: &Value,
+    body: &str,
+    public: bool,
+) -> BResult<Value> {
     if res.name == "tickets" {
-        return Err(Failure::value("Ticket notes require the reviewed ticket-note sender"));
+        return Err(Failure::value(
+            "Ticket notes require the reviewed ticket-note sender",
+        ));
     }
     b.add_note(res, item_id, body, public)
 }
@@ -334,7 +342,9 @@ pub fn apply_change_action(
             let fresh = b.association_plan(change_id, std::slice::from_ref(&tid), kind == "unlink");
             match (reviewed, fresh) {
                 (Some(p), Ok(f)) if *p == f => b.send_association(p).map(Some),
-                _ => Err(Failure::value("association requires the exact reviewed plan")),
+                _ => Err(Failure::value(
+                    "association requires the exact reviewed plan",
+                )),
             }
         }
         _ => Err(Failure::value("Unsupported change action")),
@@ -346,7 +356,8 @@ pub fn download_choices(b: &dyn Backend, item: &Item) -> BResult<(Vec<Value>, Ve
     let (mut rows, warnings) = b.download_choices(item)?;
     for row in &mut rows {
         if let Value::Object(o) = row {
-            o.entry("source").or_insert_with(|| Value::String("request".into()));
+            o.entry("source")
+                .or_insert_with(|| Value::String("request".into()));
         }
     }
     Ok((rows, warnings))
@@ -412,7 +423,10 @@ pub fn safe_target(directory: &str, name: &str) -> Result<PathBuf, String> {
     let root = resolve(&expanduser(directory));
     let target = resolve(&root.join(n));
     if target.parent() != Some(root.as_path()) {
-        return Err(format!("unsafe file name {r}: resolves outside {}", root.display()));
+        return Err(format!(
+            "unsafe file name {r}: resolves outside {}",
+            root.display()
+        ));
     }
     Ok(target)
 }
@@ -524,14 +538,24 @@ mod tests {
             task_patch(&cur, "nope", "1", &[]).unwrap_err(),
             "Unsupported task field"
         );
-        assert_eq!(task_patch(&cur, "owner_id", "1.5", &[]).unwrap_err(), "Enter a positive numeric ID");
+        assert_eq!(
+            task_patch(&cur, "owner_id", "1.5", &[]).unwrap_err(),
+            "Enter a positive numeric ID"
+        );
     }
 
     #[test]
     fn capability_rules() {
-        assert!(can_change_status(&TICKETS) && can_change_status(&CHANGES) && !can_change_status(&PROBLEMS));
+        assert!(
+            can_change_status(&TICKETS)
+                && can_change_status(&CHANGES)
+                && !can_change_status(&PROBLEMS)
+        );
         assert!(can_note(&TICKETS) && can_note(&CHANGES) && can_note(&PROBLEMS));
-        let no_notes = Resource { has_notes: false, ..PROBLEMS };
+        let no_notes = Resource {
+            has_notes: false,
+            ..PROBLEMS
+        };
         let leaked: Res = Box::leak(Box::new(no_notes));
         assert!(!can_note(leaked));
         assert!(!can_reply(&PROBLEMS));
@@ -541,7 +565,10 @@ mod tests {
     fn note_plan_titles_and_risks() {
         let private = note_plan(false, false);
         assert_eq!(private.title, "Confirm private note");
-        assert_eq!(private.lines, vec!["Add a private note to this record.".to_string()]);
+        assert_eq!(
+            private.lines,
+            vec!["Add a private note to this record.".to_string()]
+        );
         assert!(private.risks.is_empty());
         let public = note_plan(true, false);
         assert_eq!(public.title, "Confirm public note");
@@ -575,19 +602,36 @@ mod tests {
 
     #[test]
     fn target_inventory_rules() {
-        let mut tab = TabData { data: json!([{"id": 1}]), ..Default::default() };
+        let mut tab = TabData {
+            data: json!([{"id": 1}]),
+            ..Default::default()
+        };
         tab.meta.insert("complete".into(), json!(true));
         let (rows, warnings, complete) = target_inventory(&tab, true).unwrap();
         assert_eq!((rows.len(), warnings.len(), complete), (1, 0, true));
         tab.meta.insert("has_more".into(), json!(true));
         let (_, warnings, complete) = target_inventory(&tab, true).unwrap();
         assert!(!complete && warnings[0].contains("partial"));
-        assert_eq!(target_inventory(&tab, false).unwrap_err(), "Initiating-ticket list unavailable; not an empty list");
-        let denied = TabData { missing: Some(Missing { what: "Associations".into(), status: Some(403) }), ..Default::default() };
-        assert_eq!(target_inventory(&denied, false).unwrap_err(), "Associations: not permitted for your role (403)");
+        assert_eq!(
+            target_inventory(&tab, false).unwrap_err(),
+            "Initiating-ticket list unavailable; not an empty list"
+        );
+        let denied = TabData {
+            missing: Some(Missing {
+                what: "Associations".into(),
+                status: Some(403),
+            }),
+            ..Default::default()
+        };
+        assert_eq!(
+            target_inventory(&denied, false).unwrap_err(),
+            "Associations: not permitted for your role (403)"
+        );
         let mut assoc = TabData::default();
         assoc.parts.insert("Tickets".into(), json!([{"id": 9}]));
-        assoc.parts_meta.insert("Tickets".into(), json!({"complete": true}));
+        assoc
+            .parts_meta
+            .insert("Tickets".into(), json!({"complete": true}));
         assert!(target_inventory(&assoc, false).unwrap().2);
     }
 
@@ -608,7 +652,11 @@ mod tests {
 
     impl Backend for Rec {
         fn update_item(&self, res: Res, id: &Value, body: &Map<String, Value>) -> BResult<Value> {
-            self.log(format!("update {} {id} {}", res.name, Value::Object(body.clone())));
+            self.log(format!(
+                "update {} {id} {}",
+                res.name,
+                Value::Object(body.clone())
+            ));
             Ok(json!({}))
         }
         fn add_note(&self, res: Res, id: &Value, body: &str, public: bool) -> BResult<Value> {
@@ -620,14 +668,22 @@ mod tests {
             Ok(json!({}))
         }
         fn update_task(&self, c: &Value, t: &Value, body: &Map<String, Value>) -> BResult<()> {
-            self.log(format!("task-update {c} {t} {}", Value::Object(body.clone())));
+            self.log(format!(
+                "task-update {c} {t} {}",
+                Value::Object(body.clone())
+            ));
             Ok(())
         }
         fn delete_task(&self, c: &Value, t: &Value) -> BResult<()> {
             self.log(format!("task-delete {c} {t}"));
             Ok(())
         }
-        fn association_plan(&self, _c: &Value, _ids: &[Value], _unlink: bool) -> BResult<ReviewPlan> {
+        fn association_plan(
+            &self,
+            _c: &Value,
+            _ids: &[Value],
+            _unlink: bool,
+        ) -> BResult<ReviewPlan> {
             self.plan.clone().ok_or_else(|| Failure::value("no plan"))
         }
         fn send_association(&self, plan: &ReviewPlan) -> BResult<Value> {
@@ -635,7 +691,10 @@ mod tests {
             Ok(json!({"verified": true}))
         }
         fn download_choices(&self, _item: &Item) -> BResult<(Vec<Value>, Vec<String>)> {
-            Ok((vec![json!({"id": 1}), json!({"id": 2, "source": "cloud file"})], vec!["partial".into()]))
+            Ok((
+                vec![json!({"id": 1}), json!({"id": 2, "source": "cloud file"})],
+                vec!["partial".into()],
+            ))
         }
         fn download(&self, attachment: &Value, destination: &str) -> BResult<Value> {
             self.log(format!("download {} {destination}", attachment["id"]));
@@ -644,7 +703,13 @@ mod tests {
     }
 
     fn plan(hash: &str) -> ReviewPlan {
-        ReviewPlan { review: json!({}), hash: hash.into(), public: false, target_id: json!(1), raw: Value::Null }
+        ReviewPlan {
+            review: json!({}),
+            hash: hash.into(),
+            public: false,
+            target_id: json!(1),
+            raw: Value::Null,
+        }
     }
 
     #[test]
@@ -655,24 +720,64 @@ mod tests {
         apply_reply(&b, &TICKETS, &json!(3), "yo").unwrap();
         let err = apply_note(&b, &TICKETS, &json!(3), "x", false).unwrap_err();
         assert!(err.to_string().contains("reviewed ticket-note sender"));
-        assert_eq!(b.calls(), vec!["update changes 7 {\"status\":4}", "note changes 7 hi true", "reply tickets 3 yo"]);
+        assert_eq!(
+            b.calls(),
+            vec![
+                "update changes 7 {\"status\":4}",
+                "note changes 7 hi true",
+                "reply tickets 3 yo"
+            ]
+        );
     }
 
     #[test]
     fn apply_change_action_kinds() {
-        let b = Rec { plan: Some(plan("h1")), ..Default::default() };
+        let b = Rec {
+            plan: Some(plan("h1")),
+            ..Default::default()
+        };
         let body: Map<String, Value> = [("title".to_string(), json!("t"))].into_iter().collect();
         let target = json!({"id": 5});
-        assert_eq!(apply_change_action(&b, "task-update", &json!(1), &target, &body, None).unwrap(), None);
-        assert_eq!(apply_change_action(&b, "task-delete", &json!(1), &target, &Map::new(), None).unwrap(), None);
-        let sent = apply_change_action(&b, "link", &json!(1), &target, &Map::new(), Some(&plan("h1"))).unwrap();
+        assert_eq!(
+            apply_change_action(&b, "task-update", &json!(1), &target, &body, None).unwrap(),
+            None
+        );
+        assert_eq!(
+            apply_change_action(&b, "task-delete", &json!(1), &target, &Map::new(), None).unwrap(),
+            None
+        );
+        let sent = apply_change_action(
+            &b,
+            "link",
+            &json!(1),
+            &target,
+            &Map::new(),
+            Some(&plan("h1")),
+        )
+        .unwrap();
         assert_eq!(sent, Some(json!({"verified": true})));
-        let stale = apply_change_action(&b, "unlink", &json!(1), &target, &Map::new(), Some(&plan("old"))).unwrap_err();
+        let stale = apply_change_action(
+            &b,
+            "unlink",
+            &json!(1),
+            &target,
+            &Map::new(),
+            Some(&plan("old")),
+        )
+        .unwrap_err();
         assert!(stale.to_string().contains("exact reviewed plan"));
         assert!(apply_change_action(&b, "link", &json!(1), &target, &Map::new(), None).is_err());
-        let bad = apply_change_action(&b, "nope", &json!(1), &target, &Map::new(), None).unwrap_err();
+        let bad =
+            apply_change_action(&b, "nope", &json!(1), &target, &Map::new(), None).unwrap_err();
         assert_eq!(bad.to_string(), "Unsupported change action");
-        assert_eq!(b.calls(), vec!["task-update 1 5 {\"title\":\"t\"}", "task-delete 1 5", "assoc h1"]);
+        assert_eq!(
+            b.calls(),
+            vec![
+                "task-update 1 5 {\"title\":\"t\"}",
+                "task-delete 1 5",
+                "assoc h1"
+            ]
+        );
     }
 
     #[test]
@@ -695,13 +800,40 @@ mod tests {
         let ok = safe_target(&d, "report.pdf").unwrap();
         assert_eq!(ok, dir.canonicalize().unwrap().join("report.pdf"));
         assert_eq!(safe_target(&d, "  ").unwrap_err(), "empty file name");
-        assert!(safe_target(&d, "a..b").unwrap_err().ends_with("contains '..'"));
-        assert!(safe_target(&d, "a/b").unwrap_err().ends_with("contains a path separator"));
-        assert!(safe_target(&d, "a\\b").unwrap_err().ends_with("contains a path separator"));
-        assert!(safe_target(&d, "C:evil").unwrap_err().ends_with("absolute path"));
-        assert!(safe_target(&d, "a\u{7}b").unwrap_err().ends_with("control characters"));
-        assert!(safe_target(&d, ".").unwrap_err().contains("resolves outside"));
-        assert_eq!(safe_target(&d, "bad/x").unwrap_err(), "unsafe file name 'bad/x': contains a path separator");
+        assert!(
+            safe_target(&d, "a..b")
+                .unwrap_err()
+                .ends_with("contains '..'")
+        );
+        assert!(
+            safe_target(&d, "a/b")
+                .unwrap_err()
+                .ends_with("contains a path separator")
+        );
+        assert!(
+            safe_target(&d, "a\\b")
+                .unwrap_err()
+                .ends_with("contains a path separator")
+        );
+        assert!(
+            safe_target(&d, "C:evil")
+                .unwrap_err()
+                .ends_with("absolute path")
+        );
+        assert!(
+            safe_target(&d, "a\u{7}b")
+                .unwrap_err()
+                .ends_with("control characters")
+        );
+        assert!(
+            safe_target(&d, ".")
+                .unwrap_err()
+                .contains("resolves outside")
+        );
+        assert_eq!(
+            safe_target(&d, "bad/x").unwrap_err(),
+            "unsafe file name 'bad/x': contains a path separator"
+        );
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

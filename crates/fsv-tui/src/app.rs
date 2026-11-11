@@ -897,19 +897,16 @@ impl App {
                 current,
                 fields,
             } => self.edit_task_field(item, target, current, fields),
-            Ui::ApprovalReview { item, plan, before } => {
-                self.review_approval(item, plan, before)
-            }
-            Ui::ApprovalTargets { kind, item, rows } => {
-                self.pick_approval_target(kind, item, rows)
-            }
+            Ui::ApprovalReview { item, plan, before } => self.review_approval(item, plan, before),
+            Ui::ApprovalTargets { kind, item, rows } => self.pick_approval_target(kind, item, rows),
             Ui::ApprovalResult { item, result } => {
-                self.after_write(&CHANGES, item, "Approval submitted; inspect verification details");
+                self.after_write(
+                    &CHANGES,
+                    item,
+                    "Approval submitted; inspect verification details",
+                );
                 self.push(
-                    Modal::outcome(
-                        "Approval result — do not resend",
-                        &json_pretty(&result),
-                    ),
+                    Modal::outcome("Approval result — do not resend", &json_pretty(&result)),
                     Cont::None,
                 );
             }
@@ -2843,17 +2840,20 @@ impl App {
                     recipients,
                 },
                 R::Choice(rule),
-            ) => self.prepare_approval_request(item, name, message, recipients, fsv_py::py_str(&rule)),
+            ) => self.prepare_approval_request(
+                item,
+                name,
+                message,
+                recipients,
+                fsv_py::py_str(&rule),
+            ),
             (Cont::ApprovalTarget { kind, item }, R::Choice(row)) => {
                 if self.read_only {
                     return;
                 }
                 match kind.as_str() {
                     "approval-groups" => self.push(
-                        Modal::outcome(
-                            "Approval group details (read only)",
-                            &json_pretty(&row),
-                        ),
+                        Modal::outcome("Approval group details (read only)", &json_pretty(&row)),
                         Cont::None,
                     ),
                     "approval-cancel" => self.prepare_approval_action(item, row, "cancel", None),
@@ -3184,8 +3184,17 @@ impl App {
             return;
         }
         self.spawn(move |b| {
-            let values: Vec<String> = recipients.split(',').map(|v| v.trim().to_string()).collect();
-            Msg::Ui(vec![match b.approval_request_plan(&item.ref_id(), &name, &message, &values, &rule) {
+            let values: Vec<String> = recipients
+                .split(',')
+                .map(|v| v.trim().to_string())
+                .collect();
+            Msg::Ui(vec![match b.approval_request_plan(
+                &item.ref_id(),
+                &name,
+                &message,
+                &values,
+                &rule,
+            ) {
                 Ok(plan) => Ui::ApprovalReview {
                     item,
                     plan,
@@ -3228,7 +3237,10 @@ impl App {
         } else {
             "Approval groups"
         };
-        self.push(Modal::choices(title, choices), Cont::ApprovalTarget { kind, item });
+        self.push(
+            Modal::choices(title, choices),
+            Cont::ApprovalTarget { kind, item },
+        );
     }
 
     fn prepare_approval_action(&mut self, item: Item, row: Value, op: &str, remark: Option<&str>) {
@@ -3236,7 +3248,10 @@ impl App {
             return;
         }
         let rid = row.get("id").cloned().unwrap_or(Value::Null);
-        match self.backend.approval_action_plan(&item.ref_id(), &rid, op, remark) {
+        match self
+            .backend
+            .approval_action_plan(&item.ref_id(), &rid, op, remark)
+        {
             Ok(plan) => self.review_approval(item, plan, Some(row)),
             Err(e) => self.show_failure(actions::failure_detail(&e)),
         }
@@ -3275,7 +3290,13 @@ impl App {
     }
 
     /// Resolve collisions before review; never overwrite an existing file.
-    fn prepare_download(&mut self, item: Item, target: Value, directory: String, name: Option<String>) {
+    fn prepare_download(
+        &mut self,
+        item: Item,
+        target: Value,
+        directory: String,
+        name: Option<String>,
+    ) {
         if self.read_only {
             return;
         }
@@ -3296,7 +3317,10 @@ impl App {
                 (json!("rename"), "Choose another filename".to_string()),
             ];
             self.push(
-                Modal::choices(&format!("File exists: {} — no overwrite", path.display()), choices),
+                Modal::choices(
+                    &format!("File exists: {} — no overwrite", path.display()),
+                    choices,
+                ),
                 Cont::DownloadCollision {
                     item,
                     target,
@@ -3390,9 +3414,7 @@ impl App {
         self.spawn(move |b| {
             let outcome = (|| -> Result<(Vec<Value>, Vec<String>), String> {
                 match kind.as_str() {
-                    "download" => {
-                        actions::download_choices(b, &item).map_err(|e| e.to_string())
-                    }
+                    "download" => actions::download_choices(b, &item).map_err(|e| e.to_string()),
                     "link" => b
                         .search_change_tickets(&query)
                         .map(|r| (r, Vec::new()))
@@ -3719,7 +3741,9 @@ fn execute_action_job(
                     Some("error" | "rejected")
                 ) =>
             {
-                Ui::Failure(actions::failure_detail(&Failure::value(Dumps::default().dump(&r))))
+                Ui::Failure(actions::failure_detail(&Failure::value(
+                    Dumps::default().dump(&r),
+                )))
             }
             Ok(r) => Ui::Toast {
                 message: Dumps::default().dump(&r),

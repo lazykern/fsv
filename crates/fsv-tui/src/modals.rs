@@ -562,7 +562,7 @@ impl Modal {
                 let body = plain_text(&c.lines.join("\n"));
                 let body_h =
                     (body.lines.len() as u16).clamp(1, area.height.saturating_sub(14).max(3));
-                let rect = dialog_rect(area, 64, body_h + 10);
+                let rect = dialog_rect(area, 64, body_h + 11);
                 frame(f, rect);
                 let inner = dialog_block().inner(rect);
                 f.render_widget(dialog_block(), rect);
@@ -681,7 +681,7 @@ impl Modal {
             }
             Modal::Picker(p) => {
                 let list_h = (p.shown.len() as u16).clamp(1, 18);
-                let rect = dialog_rect(area, 64, list_h + 9);
+                let rect = dialog_rect(area, 64, list_h + 10);
                 frame(f, rect);
                 let inner = dialog_block().inner(rect);
                 f.render_widget(dialog_block(), rect);
@@ -757,10 +757,7 @@ impl Modal {
                     Constraint::Length(3),
                 ])
                 .areas(inner);
-                f.render_widget(
-                    Paragraph::new(Line::from(fm.title.clone())),
-                    t,
-                );
+                f.render_widget(Paragraph::new(Line::from(fm.title.clone())), t);
                 f.render_widget(
                     Paragraph::new(body)
                         .wrap(Wrap { trim: false })
@@ -924,19 +921,29 @@ mod tests {
 
     #[test]
     fn status_screen_highlights_current_and_selects() {
-        let choices = vec![(json!(1), "Open".to_string()), (json!(2), "Pending".to_string()), (json!(3), "Resolved".to_string())];
+        let choices = vec![
+            (json!(1), "Open".to_string()),
+            (json!(2), "Pending".to_string()),
+            (json!(3), "Resolved".to_string()),
+        ];
         let mut m = Modal::Status(StatusModal::new(choices.clone(), "Pending"));
         if let Modal::Status(s) = &m {
             assert_eq!(s.cursor.highlighted, Some(1));
         }
         press(&mut m, "down");
         press(&mut m, "down");
-        assert_eq!(press(&mut m, "enter"), Outcome::Close(ModalResult::Status(json!(3), "Resolved".into())));
+        assert_eq!(
+            press(&mut m, "enter"),
+            Outcome::Close(ModalResult::Status(json!(3), "Resolved".into()))
+        );
         let mut unknown = Modal::Status(StatusModal::new(choices, "Gone"));
         if let Modal::Status(s) = &unknown {
             assert_eq!(s.cursor.highlighted, Some(0));
         }
-        assert_eq!(press(&mut unknown, "escape"), Outcome::Close(ModalResult::Cancelled));
+        assert_eq!(
+            press(&mut unknown, "escape"),
+            Outcome::Close(ModalResult::Cancelled)
+        );
         let mut empty = Modal::Status(StatusModal::new(Vec::new(), "Open"));
         assert_eq!(press(&mut empty, "enter"), Outcome::Stay);
     }
@@ -944,10 +951,16 @@ mod tests {
     #[test]
     fn confirm_escape_cancels_and_buttons_toggle() {
         let mut m = Modal::confirm("Confirm", vec!["a".into()]);
-        assert_eq!(press(&mut m, "escape"), Outcome::Close(ModalResult::Bool(false)));
+        assert_eq!(
+            press(&mut m, "escape"),
+            Outcome::Close(ModalResult::Bool(false))
+        );
         let mut m = Modal::confirm("Confirm", vec!["a".into()]);
         press(&mut m, "tab");
-        assert_eq!(press(&mut m, "enter"), Outcome::Close(ModalResult::Bool(true)));
+        assert_eq!(
+            press(&mut m, "enter"),
+            Outcome::Close(ModalResult::Bool(true))
+        );
         let mut m = Modal::confirm("Confirm", vec!["a".into()]);
         assert_eq!(press(&mut m, "n"), Outcome::Stay);
     }
@@ -955,62 +968,105 @@ mod tests {
     #[test]
     fn note_cancel_buttons_and_visibility_text() {
         let mut m = Modal::Note(NoteModal::new("CHN-1", false, true));
-        assert_eq!(press(&mut m, "escape"), Outcome::Close(ModalResult::Cancelled));
+        assert_eq!(
+            press(&mut m, "escape"),
+            Outcome::Close(ModalResult::Cancelled)
+        );
         let fixed = NoteModal::new("CHN-1", false, false);
         assert!(fixed.visibility().contains("use r for a public reply"));
-        assert!(NoteModal::new("INC-1", true, true).visibility().contains("PUBLIC reply"));
+        assert!(
+            NoteModal::new("INC-1", true, true)
+                .visibility()
+                .contains("PUBLIC reply")
+        );
         let mut m = Modal::Note(NoteModal::new("CHN-1", false, true));
         press(&mut m, "x");
         press(&mut m, "tab");
-        assert_eq!(press(&mut m, "enter"), Outcome::Close(ModalResult::Note("x".into(), false)));
+        assert_eq!(
+            press(&mut m, "enter"),
+            Outcome::Close(ModalResult::Note("x".into(), false))
+        );
         let mut m = Modal::Note(NoteModal::new("CHN-1", false, true));
         press(&mut m, "shift+tab");
-        assert_eq!(press(&mut m, "enter"), Outcome::Close(ModalResult::Cancelled));
+        assert_eq!(
+            press(&mut m, "enter"),
+            Outcome::Close(ModalResult::Cancelled)
+        );
         let mut m = Modal::Note(NoteModal::new("CHN-1", false, true));
         for k in ["a", "enter", "b"] {
             press(&mut m, k);
         }
-        assert_eq!(press(&mut m, "ctrl+s"), Outcome::Close(ModalResult::Note("a\nb".into(), false)));
+        assert_eq!(
+            press(&mut m, "ctrl+s"),
+            Outcome::Close(ModalResult::Note("a\nb".into(), false))
+        );
     }
 
     #[test]
     fn view_picker_arrows_clamp_and_empty_filter_stays() {
         let mut m = Modal::Picker(PickerModal::views(
             "Views",
-            vec![(json!(0), "All".into(), false, true), (json!(1), "Mine".into(), false, true)],
+            vec![
+                (json!(0), "All".into(), false, true),
+                (json!(1), "Mine".into(), false, true),
+            ],
         ));
         press(&mut m, "up");
         press(&mut m, "down");
         press(&mut m, "down");
-        assert_eq!(press(&mut m, "enter"), Outcome::Close(ModalResult::Choice(json!(1))));
+        assert_eq!(
+            press(&mut m, "enter"),
+            Outcome::Close(ModalResult::Choice(json!(1)))
+        );
         for c in ["z", "z"] {
             press(&mut m, c);
         }
         assert_eq!(press(&mut m, "enter"), Outcome::Stay);
-        assert_eq!(press(&mut m, "escape"), Outcome::Close(ModalResult::Cancelled));
+        assert_eq!(
+            press(&mut m, "escape"),
+            Outcome::Close(ModalResult::Cancelled)
+        );
     }
 
     #[test]
     fn choice_screen_returns_value_not_label() {
-        let mut m = Modal::choices("Pick", vec![(json!({"id": 9}), "Row nine".into()), (json!("skip"), "Skip".into())]);
+        let mut m = Modal::choices(
+            "Pick",
+            vec![
+                (json!({"id": 9}), "Row nine".into()),
+                (json!("skip"), "Skip".into()),
+            ],
+        );
         if let Modal::Picker(p) = &m {
             assert_eq!(p.labels(), vec!["  Row nine", "  Skip"]);
         }
         for c in ["s", "k"] {
             press(&mut m, c);
         }
-        assert_eq!(press(&mut m, "enter"), Outcome::Close(ModalResult::Choice(json!("skip"))));
+        assert_eq!(
+            press(&mut m, "enter"),
+            Outcome::Close(ModalResult::Choice(json!("skip")))
+        );
     }
 
     #[test]
     fn value_screen_trims_and_blocks_empty() {
         let mut m = Modal::value("Title", "  x  ");
-        assert_eq!(press(&mut m, "enter"), Outcome::Close(ModalResult::Text("x".into())));
+        assert_eq!(
+            press(&mut m, "enter"),
+            Outcome::Close(ModalResult::Text("x".into()))
+        );
         let mut m = Modal::value("Title", "   ");
         assert_eq!(press(&mut m, "enter"), Outcome::Stay);
-        assert_eq!(press(&mut m, "escape"), Outcome::Close(ModalResult::Cancelled));
+        assert_eq!(
+            press(&mut m, "escape"),
+            Outcome::Close(ModalResult::Cancelled)
+        );
         let mut m = Modal::value_with("Remark", "", true);
-        assert_eq!(press(&mut m, "enter"), Outcome::Close(ModalResult::Text(String::new())));
+        assert_eq!(
+            press(&mut m, "enter"),
+            Outcome::Close(ModalResult::Text(String::new()))
+        );
     }
 
     #[test]
@@ -1021,18 +1077,27 @@ mod tests {
             assert_eq!((f.title.as_str(), f.scroll), (FAILURE_TITLE, 1));
         }
         assert_eq!(press(&mut m, "x"), Outcome::Stay);
-        assert_eq!(press(&mut m, "escape"), Outcome::Close(ModalResult::Cancelled));
+        assert_eq!(
+            press(&mut m, "escape"),
+            Outcome::Close(ModalResult::Cancelled)
+        );
         let mut o = Modal::outcome("Approval result — do not resend", "{}");
         if let Modal::Outcome(f) = &o {
             assert_eq!(f.title, "Approval result — do not resend");
         }
-        assert_eq!(press(&mut o, "enter"), Outcome::Close(ModalResult::Cancelled));
+        assert_eq!(
+            press(&mut o, "enter"),
+            Outcome::Close(ModalResult::Cancelled)
+        );
     }
 
     #[test]
     fn help_screen_any_key_closes() {
         for k in ["x", "escape", "question_mark", "q"] {
-            assert_eq!(press(&mut Modal::Help, k), Outcome::Close(ModalResult::Cancelled));
+            assert_eq!(
+                press(&mut Modal::Help, k),
+                Outcome::Close(ModalResult::Cancelled)
+            );
         }
     }
 }

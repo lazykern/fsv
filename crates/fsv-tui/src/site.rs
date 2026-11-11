@@ -33,12 +33,20 @@ pub fn tab_label(name: &str) -> String {
 /// `change_approvals.RULES` as `(key, label)` in definition order.
 #[cfg(feature = "site")]
 pub fn approval_rules() -> Vec<(&'static str, &'static str)> {
-    fsv_api::approvals::RULES.iter().map(|(k, _, l)| (*k, *l)).collect()
+    fsv_api::approvals::RULES
+        .iter()
+        .map(|(k, _, l)| (*k, *l))
+        .collect()
 }
 
 #[cfg(not(feature = "site"))]
 pub fn approval_rules() -> Vec<(&'static str, &'static str)> {
-    vec![("everyone", "Everyone"), ("anyone", "Anyone"), ("majority", "Majority"), ("first-responder", "First responder")]
+    vec![
+        ("everyone", "Everyone"),
+        ("anyone", "Anyone"),
+        ("majority", "Majority"),
+        ("first-responder", "First responder"),
+    ]
 }
 
 #[cfg(feature = "site")]
