@@ -1,0 +1,3647 @@
+{
+ "base_dir": "/work/drafts",
+ "fields": {
+  "change_fields": [
+   {
+    "id": 9000006001,
+    "name": "requester",
+    "label": "Requester",
+    "description": "",
+    "field_type": "default_requester",
+    "required": true,
+    "required_for_closure": false,
+    "position": 1,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006002,
+    "name": "subject",
+    "label": "Subject",
+    "description": "",
+    "field_type": "default_subject",
+    "required": true,
+    "required_for_closure": false,
+    "position": 2,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "Service: objective",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006003,
+    "name": "change_type",
+    "label": "Change Type",
+    "description": "",
+    "field_type": "default_change_type",
+    "required": true,
+    "required_for_closure": false,
+    "position": 3,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Normal"
+     },
+     {
+      "id": 2,
+      "value": "Standard"
+     },
+     {
+      "id": 4,
+      "value": "Emergency"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006004,
+    "name": "cloud_only",
+    "label": "Cloud Only",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": true,
+    "required_for_closure": false,
+    "position": 4,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002101,
+      "display_id": 9000003101,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002102,
+      "display_id": 9000003102,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Only the cloud team performs this change",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006005,
+    "name": "stage",
+    "label": "Stage",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 5,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002111,
+      "display_id": 9000003111,
+      "value": "Live",
+      "label": "Live"
+     },
+     {
+      "id": 9000002112,
+      "display_id": 9000003112,
+      "value": "Staging",
+      "label": "Staging"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006006,
+    "name": "staging_start",
+    "label": "Staging Start",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 6,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006007,
+    "name": "staging_end",
+    "label": "Staging End",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 7,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006008,
+    "name": "services",
+    "label": "Services",
+    "description": "",
+    "field_type": "custom_multi_select_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 8,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002200,
+      "display_id": 9000003200,
+      "value": "Billing",
+      "label": "Billing"
+     },
+     {
+      "id": 9000002201,
+      "display_id": 9000003201,
+      "value": "Search",
+      "label": "Search"
+     },
+     {
+      "id": 9000002202,
+      "display_id": 9000003202,
+      "value": "Reports",
+      "label": "Reports"
+     },
+     {
+      "id": 9000002203,
+      "display_id": 9000003203,
+      "value": "Ledger",
+      "label": "Ledger"
+     },
+     {
+      "id": 9000002204,
+      "display_id": 9000003204,
+      "value": "Mail",
+      "label": "Mail"
+     },
+     {
+      "id": 9000002205,
+      "display_id": 9000003205,
+      "value": "Chat",
+      "label": "Chat"
+     },
+     {
+      "id": 9000002206,
+      "display_id": 9000003206,
+      "value": "Docs",
+      "label": "Docs"
+     },
+     {
+      "id": 9000002207,
+      "display_id": 9000003207,
+      "value": "Wiki",
+      "label": "Wiki"
+     },
+     {
+      "id": 9000002208,
+      "display_id": 9000003208,
+      "value": "Pager",
+      "label": "Pager"
+     },
+     {
+      "id": 9000002209,
+      "display_id": 9000003209,
+      "value": "Auth",
+      "label": "Auth"
+     },
+     {
+      "id": 9000002210,
+      "display_id": 9000003210,
+      "value": "Queue",
+      "label": "Queue"
+     },
+     {
+      "id": 9000002211,
+      "display_id": 9000003211,
+      "value": "Cache",
+      "label": "Cache"
+     },
+     {
+      "id": 9000002212,
+      "display_id": 9000003212,
+      "value": "Storage",
+      "label": "Storage"
+     },
+     {
+      "id": 9000002213,
+      "display_id": 9000003213,
+      "value": "Metrics",
+      "label": "Metrics"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006009,
+    "name": "notify_ops",
+    "label": "Notify Ops Team",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 9,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002301,
+      "display_id": 9000003301,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002302,
+      "display_id": 9000003302,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006010,
+    "name": "reviewer",
+    "label": "Reviewer",
+    "description": "",
+    "field_type": "custom_lookup",
+    "required": false,
+    "required_for_closure": false,
+    "position": 10,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 5,
+    "lookup_config": {
+     "data_source": 5,
+     "link": "/lookup_choices?field_name=reviewer_900000777&module=change"
+    },
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006011,
+    "name": "downtime_window",
+    "label": "Downtime Window",
+    "description": "",
+    "field_type": "custom_text",
+    "required": false,
+    "required_for_closure": false,
+    "position": 11,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "22:00 - 22:30",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006012,
+    "name": "legacy_flag",
+    "label": "Legacy Flag",
+    "description": "",
+    "field_type": "custom_checkbox",
+    "required": false,
+    "required_for_closure": false,
+    "position": 12,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006013,
+    "name": "description",
+    "label": "Description",
+    "description": "",
+    "field_type": "default_description",
+    "required": true,
+    "required_for_closure": false,
+    "position": 13,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "What and why",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006014,
+    "name": "priority",
+    "label": "Priority",
+    "description": "",
+    "field_type": "default_priority",
+    "required": true,
+    "required_for_closure": false,
+    "position": 14,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     },
+     {
+      "id": 4,
+      "value": "Urgent"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Low - Can wait || Medium - Planned work || High - Revenue at risk || Urgent - Outage",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006015,
+    "name": "impact",
+    "label": "Impact",
+    "description": "",
+    "field_type": "default_impact",
+    "required": true,
+    "required_for_closure": false,
+    "position": 15,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006016,
+    "name": "risk",
+    "label": "Risk",
+    "description": "",
+    "field_type": "default_risk",
+    "required": true,
+    "required_for_closure": false,
+    "position": 16,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006017,
+    "name": "group",
+    "label": "Group",
+    "description": "",
+    "field_type": "default_group",
+    "required": false,
+    "required_for_closure": false,
+    "position": 17,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006018,
+    "name": "agent",
+    "label": "Agent",
+    "description": "",
+    "field_type": "default_agent",
+    "required": false,
+    "required_for_closure": false,
+    "position": 18,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006019,
+    "name": "planned_start_date",
+    "label": "Planned Start Date",
+    "description": "",
+    "field_type": "default_planned_start_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 19,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006020,
+    "name": "planned_end_date",
+    "label": "Planned End Date",
+    "description": "",
+    "field_type": "default_planned_end_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 20,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006021,
+    "name": "status",
+    "label": "Status",
+    "description": "",
+    "field_type": "default_status",
+    "required": true,
+    "required_for_closure": false,
+    "position": 21,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006022,
+    "name": "go_live_checklist",
+    "label": "Go-Live Checklist",
+    "description": "",
+    "field_type": "planning_field",
+    "required": false,
+    "required_for_closure": false,
+    "position": null,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   }
+  ]
+ },
+ "rules": {
+  "business_rules": [
+   {
+    "id": 9000004101,
+    "name": "Cloud only: no",
+    "workspace_id": 2,
+    "module_type": "change",
+    "item_id": null,
+    "deleted": false,
+    "user_type": "both",
+    "form_type": "both",
+    "state": "active",
+    "rule_type": "client_side",
+    "description": "",
+    "condition_data": {
+     "all": [
+      {
+       "name": "customFields.cloud_only",
+       "operator": "is",
+       "evaluate_on": "change",
+       "value": "No"
+      }
+     ]
+    },
+    "action_data": {
+     "action": [
+      {
+       "name": [
+        "customFields.stage"
+       ],
+       "property": "populate",
+       "values": [
+        9000003112
+       ]
+      },
+      {
+       "name": [
+        "customFields.staging_start",
+        "customFields.staging_end"
+       ],
+       "property": "show"
+      },
+      {
+       "name": [
+        "customFields.staging_start",
+        "customFields.staging_end"
+       ],
+       "property": "mandate"
+      }
+     ]
+    },
+    "is_reversible": false,
+    "is_validation": false,
+    "updated_at": "2030-01-03T00:00:00Z"
+   },
+   {
+    "id": 9000004102,
+    "name": "Cloud only: yes",
+    "workspace_id": 2,
+    "module_type": "change",
+    "item_id": null,
+    "deleted": false,
+    "user_type": "both",
+    "form_type": "both",
+    "state": "active",
+    "rule_type": "client_side",
+    "description": "",
+    "condition_data": {
+     "all": [
+      {
+       "name": "customFields.cloud_only",
+       "operator": "is",
+       "evaluate_on": "change",
+       "value": "Yes"
+      }
+     ]
+    },
+    "action_data": {
+     "action": [
+      {
+       "name": [
+        "customFields.stage"
+       ],
+       "property": "populate",
+       "values": [
+        9000003111
+       ]
+      },
+      {
+       "name": [
+        "customFields.staging_start",
+        "customFields.staging_end"
+       ],
+       "property": "hide"
+      }
+     ]
+    },
+    "is_reversible": false,
+    "is_validation": false,
+    "updated_at": "2030-01-03T00:00:00Z"
+   },
+   {
+    "id": 9000004103,
+    "name": "Hide legacy flag",
+    "workspace_id": 2,
+    "module_type": "change",
+    "item_id": null,
+    "deleted": false,
+    "user_type": "both",
+    "form_type": "both",
+    "state": "active",
+    "rule_type": "client_side",
+    "description": "",
+    "condition_data": {
+     "all": null
+    },
+    "action_data": {
+     "action": [
+      {
+       "name": [
+        "customFields.legacy_flag"
+       ],
+       "property": "hide"
+      }
+     ]
+    },
+    "is_reversible": false,
+    "is_validation": false,
+    "updated_at": "2030-01-03T00:00:00Z"
+   },
+   {
+    "id": 9000004104,
+    "name": "Urgent priority",
+    "workspace_id": 2,
+    "module_type": "change",
+    "item_id": null,
+    "deleted": false,
+    "user_type": "both",
+    "form_type": "both",
+    "state": "active",
+    "rule_type": "client_side",
+    "description": "",
+    "condition_data": {
+     "all": [
+      {
+       "name": "priority",
+       "operator": "is",
+       "evaluate_on": "change",
+       "value": "4"
+      }
+     ]
+    },
+    "action_data": {
+     "action": [
+      {
+       "name": [
+        "Urgent changes need the duty lead's approval"
+       ],
+       "property": "message"
+      }
+     ]
+    },
+    "is_reversible": false,
+    "is_validation": true,
+    "updated_at": "2030-01-03T00:00:00Z"
+   },
+   {
+    "id": 9000004105,
+    "name": "Edit: live needs a window",
+    "workspace_id": 2,
+    "module_type": "change",
+    "item_id": null,
+    "deleted": false,
+    "user_type": "both",
+    "form_type": "edit_form",
+    "state": "active",
+    "rule_type": "client_side",
+    "description": "",
+    "condition_data": {
+     "all": [
+      {
+       "name": "customFields.stage",
+       "operator": "is",
+       "evaluate_on": "change",
+       "value": "Live"
+      }
+     ]
+    },
+    "action_data": {
+     "action": [
+      {
+       "name": [
+        "customFields.downtime_window"
+       ],
+       "property": "mandate"
+      }
+     ]
+    },
+    "is_reversible": false,
+    "is_validation": false,
+    "updated_at": "2030-01-03T00:00:00Z"
+   }
+  ],
+  "user": {
+   "first_name": "Robin",
+   "last_name": "Agent",
+   "email": "robin.agent@example.com",
+   "time_zone": "Tokyo"
+  }
+ },
+ "hints_yaml": "changes:\n  - when: {\"Cloud Only\": \"No\"}\n    warn: staging runs first\n  - when: {\"Services\": [Search, Mail]}\n    warn: the search team is paged\n  - when: {\"Notify Ops Team\": \"*\"}\n    warn: ops is notified\n  - when: {\"Nope Field\": \"x\"}\n    warn: never\n",
+ "create": {
+  "full": {
+   "draft": "requester: jane.doe@example.com\nanswers:\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Stage: Staging\n  Staging Start: 2030-11-18 09:00\n  Staging End: 2030-11-18 12:00\n  Services: [Billing, Search]\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate the **billing** keys.\n\n  - step one\n  - step two\n",
+   "ok": true,
+   "hash": "c9c5226931eb5bcd3c2b2c296006574247e2c45856211962d9e0010d19fefc12",
+   "payload": {
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
+    "status": 1,
+    "priority": 1,
+    "change_type": 1,
+    "risk": 1,
+    "impact": 1,
+    "planned_start_date": "2030-11-26T19:00:00+09:00",
+    "planned_end_date": "2030-11-26T22:00:00+09:00",
+    "custom_fields": {
+     "cloud_only": "No",
+     "stage": "Staging",
+     "staging_start": "2030-11-18T09:00:00+09:00",
+     "staging_end": "2030-11-18T12:00:00+09:00",
+     "services": [
+      "Billing",
+      "Search"
+     ]
+    },
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiXSJ9"
+   },
+   "errors": [],
+   "risks": [],
+   "json": {
+    "plan_hash": "c9c5226931eb5bcd3c2b2c296006574247e2c45856211962d9e0010d19fefc12",
+    "action": "create",
+    "target": null,
+    "payload": {
+     "subject": "Billing: rotate keys",
+     "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
+     "status": 1,
+     "priority": 1,
+     "change_type": 1,
+     "risk": 1,
+     "impact": 1,
+     "planned_start_date": "2030-11-26T19:00:00+09:00",
+     "planned_end_date": "2030-11-26T22:00:00+09:00",
+     "custom_fields": {
+      "cloud_only": "No",
+      "stage": "Staging",
+      "staging_start": "2030-11-18T09:00:00+09:00",
+      "staging_end": "2030-11-18T12:00:00+09:00",
+      "services": [
+       "Billing",
+       "Search"
+      ]
+     },
+     "email": "Jane Doe <jane.doe@example.com>",
+     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiXSJ9"
+    },
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Change: Billing: rotate keys",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "Subject",
+       "value": "Billing: rotate keys"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Cloud Only",
+       "value": "No"
+      },
+      {
+       "label": "Stage",
+       "value": "Staging (only option allowed by rule Cloud only: no)"
+      },
+      {
+       "label": "Staging Start",
+       "value": "18 Nov 2030 09:00 (+09:00)"
+      },
+      {
+       "label": "Staging End",
+       "value": "18 Nov 2030 12:00 (+09:00)"
+      },
+      {
+       "label": "Services",
+       "value": "Billing, Search"
+      },
+      {
+       "label": "Description",
+       "value": "Rotate the billing keys. step one step two"
+      },
+      {
+       "label": "Priority",
+       "value": "Low"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Planned Start Date",
+       "value": "26 Nov 2030 19:00 (+09:00)"
+      },
+      {
+       "label": "Planned End Date",
+       "value": "26 Nov 2030 22:00 (+09:00)"
+      },
+      {
+       "label": "Status on create",
+       "value": "Open (form default)"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Requester: Jane Doe <jane.doe@example.com> (requester notifications)",
+      "staging runs first",
+      "the search team is paged"
+     ],
+     "messages": [],
+     "dropped": [],
+     "notes": [
+      "Stage: choices limited to Staging by rule 'Cloud only: no'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": "c9c5226931eb5bcd3c2b2c296006574247e2c45856211962d9e0010d19fefc12"
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": []
+   },
+   "template": "# New change\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: No\n  # optional · dropdown · only option allowed by rule Cloud only: no\n  # choices: Staging\n  Stage: Staging\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start: 2030-11-18T09:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End: 2030-11-18T12:00+09:00\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing, Search]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team:\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "create plan c9c5226931eb5bcd"
+  },
+  "empty": {
+   "draft": "",
+   "ok": false,
+   "hash": "",
+   "payload": null,
+   "errors": [
+    "requester is not set: pass --requester EMAIL, add `requester:` to the draft, or `fsv config set defaults.requester EMAIL`",
+    "Subject is required",
+    "Cloud Only is required",
+    "Description is required",
+    "Planned Start Date is required",
+    "Planned End Date is required"
+   ],
+   "risks": [],
+   "json": {
+    "plan_hash": null,
+    "action": "create",
+    "target": null,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Change",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "(not set)"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Priority",
+       "value": "Low"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Status on create",
+       "value": "Open (form default)"
+      }
+     ],
+     "changes": [],
+     "notify": [],
+     "messages": [],
+     "dropped": [],
+     "notes": [],
+     "attachments": [],
+     "risks": [],
+     "errors": [
+      "requester is not set: pass --requester EMAIL, add `requester:` to the draft, or `fsv config set defaults.requester EMAIL`",
+      "Subject is required",
+      "Cloud Only is required",
+      "Description is required",
+      "Planned Start Date is required",
+      "Planned End Date is required"
+     ],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": [
+     "requester is not set: pass --requester EMAIL, add `requester:` to the draft, or `fsv config set defaults.requester EMAIL`",
+     "Subject is required",
+     "Cloud Only is required",
+     "Description is required",
+     "Planned Start Date is required",
+     "Planned End Date is required"
+    ]
+   },
+   "template": "# New change\n# ERROR: requester is not set: pass --requester EMAIL, add `requester:` to the draft, or `fsv config set defaults.requester EMAIL`\n# ERROR: Subject is required\n# ERROR: Cloud Only is required\n# ERROR: Description is required\n# ERROR: Planned Start Date is required\n# ERROR: Planned End Date is required\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject:\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only:\n  # optional · dropdown\n  # choices: Live | Staging\n  Stage:\n  # optional · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start:\n  # optional · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End:\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services:\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team:\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date:\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_md: |\n  \n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "create plan (incomplete)"
+  },
+  "round2": {
+   "draft": "requester: jane.doe@example.com\nanswers:\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate keys.\n",
+   "ok": false,
+   "hash": "",
+   "payload": {
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "status": 1,
+    "priority": 1,
+    "change_type": 1,
+    "risk": 1,
+    "impact": 1,
+    "planned_start_date": "2030-11-26T19:00:00+09:00",
+    "planned_end_date": "2030-11-26T22:00:00+09:00",
+    "custom_fields": {
+     "cloud_only": "No"
+    },
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiXSJ9"
+   },
+   "errors": [
+    "Staging Start is required",
+    "Staging End is required"
+   ],
+   "risks": [],
+   "json": {
+    "plan_hash": null,
+    "action": "create",
+    "target": null,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Change: Billing: rotate keys",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "Subject",
+       "value": "Billing: rotate keys"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Cloud Only",
+       "value": "No"
+      },
+      {
+       "label": "Description",
+       "value": "Rotate keys."
+      },
+      {
+       "label": "Priority",
+       "value": "Low"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Planned Start Date",
+       "value": "26 Nov 2030 19:00 (+09:00)"
+      },
+      {
+       "label": "Planned End Date",
+       "value": "26 Nov 2030 22:00 (+09:00)"
+      },
+      {
+       "label": "Status on create",
+       "value": "Open (form default)"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Requester: Jane Doe <jane.doe@example.com> (requester notifications)",
+      "staging runs first"
+     ],
+     "messages": [],
+     "dropped": [],
+     "notes": [
+      "Stage: choices limited to Staging by rule 'Cloud only: no'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [
+      "Staging Start is required",
+      "Staging End is required"
+     ],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": [
+     "Staging Start is required",
+     "Staging End is required"
+    ]
+   },
+   "template": "# New change\n# ERROR: Staging Start is required\n# ERROR: Staging End is required\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: No\n  # optional · dropdown · only option allowed by rule Cloud only: no\n  # choices: Staging\n  Stage: Staging\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End:\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services:\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team:\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "create plan (incomplete)"
+  },
+  "urgent": {
+   "draft": "requester: jane.doe@example.com\nanswers:\n  Priority: Urgent\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Stage: Staging\n  Staging Start: 2030-11-18 09:00\n  Staging End: 2030-11-18 12:00\n  Services: [Billing, Search]\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate the **billing** keys.\n\n  - step one\n  - step two\n",
+   "ok": false,
+   "hash": "",
+   "payload": {
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
+    "status": 1,
+    "priority": 4,
+    "change_type": 1,
+    "risk": 1,
+    "impact": 1,
+    "planned_start_date": "2030-11-26T19:00:00+09:00",
+    "planned_end_date": "2030-11-26T22:00:00+09:00",
+    "custom_fields": {
+     "cloud_only": "No",
+     "stage": "Staging",
+     "staging_start": "2030-11-18T09:00:00+09:00",
+     "staging_end": "2030-11-18T12:00:00+09:00",
+     "services": [
+      "Billing",
+      "Search"
+     ]
+    },
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiXSJ9"
+   },
+   "errors": [
+    "blocked by rule (acknowledge to continue): Urgent changes need the duty lead's approval"
+   ],
+   "risks": [],
+   "json": {
+    "plan_hash": null,
+    "action": "create",
+    "target": null,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Change: Billing: rotate keys",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "Subject",
+       "value": "Billing: rotate keys"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Cloud Only",
+       "value": "No"
+      },
+      {
+       "label": "Stage",
+       "value": "Staging (only option allowed by rule Cloud only: no)"
+      },
+      {
+       "label": "Staging Start",
+       "value": "18 Nov 2030 09:00 (+09:00)"
+      },
+      {
+       "label": "Staging End",
+       "value": "18 Nov 2030 12:00 (+09:00)"
+      },
+      {
+       "label": "Services",
+       "value": "Billing, Search"
+      },
+      {
+       "label": "Description",
+       "value": "Rotate the billing keys. step one step two"
+      },
+      {
+       "label": "Priority",
+       "value": "Urgent"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Planned Start Date",
+       "value": "26 Nov 2030 19:00 (+09:00)"
+      },
+      {
+       "label": "Planned End Date",
+       "value": "26 Nov 2030 22:00 (+09:00)"
+      },
+      {
+       "label": "Status on create",
+       "value": "Open (form default)"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Requester: Jane Doe <jane.doe@example.com> (requester notifications)",
+      "staging runs first",
+      "the search team is paged"
+     ],
+     "messages": [
+      {
+       "text": "Urgent changes need the duty lead's approval",
+       "blocking": true,
+       "acknowledged": false,
+       "rule": "Urgent priority"
+      }
+     ],
+     "dropped": [],
+     "notes": [
+      "Stage: choices limited to Staging by rule 'Cloud only: no'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [
+      "blocked by rule (acknowledge to continue): Urgent changes need the duty lead's approval"
+     ],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": [
+     "blocked by rule (acknowledge to continue): Urgent changes need the duty lead's approval"
+    ]
+   },
+   "template": "# New change\n# ERROR: blocked by rule (acknowledge to continue): Urgent changes need the duty lead's approval\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: No\n  # optional · dropdown · only option allowed by rule Cloud only: no\n  # choices: Staging\n  Stage: Staging\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start: 2030-11-18T09:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End: 2030-11-18T12:00+09:00\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing, Search]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team:\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Urgent\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n\n# BLOCKING MESSAGE: Urgent changes need the duty lead's approval\n# Acknowledge with: ack: [all]\nack: []\n",
+   "plan_text": "create plan (incomplete)"
+  },
+  "urgent_ack": {
+   "draft": "requester: jane.doe@example.com\nanswers:\n  Priority: Urgent\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Stage: Staging\n  Staging Start: 2030-11-18 09:00\n  Staging End: 2030-11-18 12:00\n  Services: [Billing, Search]\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate the **billing** keys.\n\n  - step one\n  - step two\nack: [all]\n",
+   "ok": true,
+   "hash": "eef2f2130f70f495dafde48b3d1ca694edd84c7159f88ef7abd26ec3635bd72f",
+   "payload": {
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
+    "status": 1,
+    "priority": 4,
+    "change_type": 1,
+    "risk": 1,
+    "impact": 1,
+    "planned_start_date": "2030-11-26T19:00:00+09:00",
+    "planned_end_date": "2030-11-26T22:00:00+09:00",
+    "custom_fields": {
+     "cloud_only": "No",
+     "stage": "Staging",
+     "staging_start": "2030-11-18T09:00:00+09:00",
+     "staging_end": "2030-11-18T12:00:00+09:00",
+     "services": [
+      "Billing",
+      "Search"
+     ]
+    },
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiXSJ9"
+   },
+   "errors": [],
+   "risks": [],
+   "json": {
+    "plan_hash": "eef2f2130f70f495dafde48b3d1ca694edd84c7159f88ef7abd26ec3635bd72f",
+    "action": "create",
+    "target": null,
+    "payload": {
+     "subject": "Billing: rotate keys",
+     "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
+     "status": 1,
+     "priority": 4,
+     "change_type": 1,
+     "risk": 1,
+     "impact": 1,
+     "planned_start_date": "2030-11-26T19:00:00+09:00",
+     "planned_end_date": "2030-11-26T22:00:00+09:00",
+     "custom_fields": {
+      "cloud_only": "No",
+      "stage": "Staging",
+      "staging_start": "2030-11-18T09:00:00+09:00",
+      "staging_end": "2030-11-18T12:00:00+09:00",
+      "services": [
+       "Billing",
+       "Search"
+      ]
+     },
+     "email": "Jane Doe <jane.doe@example.com>",
+     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiXSJ9"
+    },
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Change: Billing: rotate keys",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "Subject",
+       "value": "Billing: rotate keys"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Cloud Only",
+       "value": "No"
+      },
+      {
+       "label": "Stage",
+       "value": "Staging (only option allowed by rule Cloud only: no)"
+      },
+      {
+       "label": "Staging Start",
+       "value": "18 Nov 2030 09:00 (+09:00)"
+      },
+      {
+       "label": "Staging End",
+       "value": "18 Nov 2030 12:00 (+09:00)"
+      },
+      {
+       "label": "Services",
+       "value": "Billing, Search"
+      },
+      {
+       "label": "Description",
+       "value": "Rotate the billing keys. step one step two"
+      },
+      {
+       "label": "Priority",
+       "value": "Urgent"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Planned Start Date",
+       "value": "26 Nov 2030 19:00 (+09:00)"
+      },
+      {
+       "label": "Planned End Date",
+       "value": "26 Nov 2030 22:00 (+09:00)"
+      },
+      {
+       "label": "Status on create",
+       "value": "Open (form default)"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Requester: Jane Doe <jane.doe@example.com> (requester notifications)",
+      "staging runs first",
+      "the search team is paged"
+     ],
+     "messages": [
+      {
+       "text": "Urgent changes need the duty lead's approval",
+       "blocking": true,
+       "acknowledged": true,
+       "rule": "Urgent priority"
+      }
+     ],
+     "dropped": [],
+     "notes": [
+      "Stage: choices limited to Staging by rule 'Cloud only: no'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": "eef2f2130f70f495dafde48b3d1ca694edd84c7159f88ef7abd26ec3635bd72f"
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": []
+   },
+   "template": "# New change\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: No\n  # optional · dropdown · only option allowed by rule Cloud only: no\n  # choices: Staging\n  Stage: Staging\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start: 2030-11-18T09:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End: 2030-11-18T12:00+09:00\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing, Search]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team:\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Urgent\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n\n# BLOCKING MESSAGE: Urgent changes need the duty lead's approval\n# Acknowledge with: ack: [all]\nack: [all]\n",
+   "plan_text": "create plan eef2f2130f70f495"
+  },
+  "status": {
+   "draft": "requester: jane.doe@example.com\nanswers:\n  Status: Planning\n  Notify Ops Team: Yes\n  Services: [Search, Mail, Docs]\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Stage: Staging\n  Staging Start: 2030-11-18 09:00\n  Staging End: 2030-11-18 12:00\n  Services: [Billing, Search]\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate the **billing** keys.\n\n  - step one\n  - step two\n",
+   "ok": true,
+   "hash": "af53fcebd84dbc650f1d102235b94e2ebf8abad496d702fd9e8c8af44099aff8",
+   "payload": {
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
+    "status": 2,
+    "priority": 1,
+    "change_type": 1,
+    "risk": 1,
+    "impact": 1,
+    "planned_start_date": "2030-11-26T19:00:00+09:00",
+    "planned_end_date": "2030-11-26T22:00:00+09:00",
+    "custom_fields": {
+     "cloud_only": "No",
+     "stage": "Staging",
+     "staging_start": "2030-11-18T09:00:00+09:00",
+     "staging_end": "2030-11-18T12:00:00+09:00",
+     "services": [
+      "Billing",
+      "Search"
+     ],
+     "notify_ops": "Yes"
+    },
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiXSJ9"
+   },
+   "errors": [],
+   "risks": [
+    "status on create -> Planning (not the form default; may start approvals/workflows)"
+   ],
+   "json": {
+    "plan_hash": "af53fcebd84dbc650f1d102235b94e2ebf8abad496d702fd9e8c8af44099aff8",
+    "action": "create",
+    "target": null,
+    "payload": {
+     "subject": "Billing: rotate keys",
+     "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
+     "status": 2,
+     "priority": 1,
+     "change_type": 1,
+     "risk": 1,
+     "impact": 1,
+     "planned_start_date": "2030-11-26T19:00:00+09:00",
+     "planned_end_date": "2030-11-26T22:00:00+09:00",
+     "custom_fields": {
+      "cloud_only": "No",
+      "stage": "Staging",
+      "staging_start": "2030-11-18T09:00:00+09:00",
+      "staging_end": "2030-11-18T12:00:00+09:00",
+      "services": [
+       "Billing",
+       "Search"
+      ],
+      "notify_ops": "Yes"
+     },
+     "email": "Jane Doe <jane.doe@example.com>",
+     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiXSJ9"
+    },
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Change: Billing: rotate keys",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "Subject",
+       "value": "Billing: rotate keys"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Cloud Only",
+       "value": "No"
+      },
+      {
+       "label": "Stage",
+       "value": "Staging (only option allowed by rule Cloud only: no)"
+      },
+      {
+       "label": "Staging Start",
+       "value": "18 Nov 2030 09:00 (+09:00)"
+      },
+      {
+       "label": "Staging End",
+       "value": "18 Nov 2030 12:00 (+09:00)"
+      },
+      {
+       "label": "Services",
+       "value": "Billing, Search"
+      },
+      {
+       "label": "Notify Ops Team",
+       "value": "Yes"
+      },
+      {
+       "label": "Description",
+       "value": "Rotate the billing keys. step one step two"
+      },
+      {
+       "label": "Priority",
+       "value": "Low"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Planned Start Date",
+       "value": "26 Nov 2030 19:00 (+09:00)"
+      },
+      {
+       "label": "Planned End Date",
+       "value": "26 Nov 2030 22:00 (+09:00)"
+      },
+      {
+       "label": "Status on create",
+       "value": "Planning"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Requester: Jane Doe <jane.doe@example.com> (requester notifications)",
+      "staging runs first",
+      "the search team is paged",
+      "ops is notified"
+     ],
+     "messages": [],
+     "dropped": [],
+     "notes": [
+      "Stage: choices limited to Staging by rule 'Cloud only: no'"
+     ],
+     "attachments": [],
+     "risks": [
+      "status on create -> Planning (not the form default; may start approvals/workflows)"
+     ],
+     "errors": [],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": "af53fcebd84dbc650f1d102235b94e2ebf8abad496d702fd9e8c8af44099aff8"
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": []
+   },
+   "template": "# New change\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: No\n  # optional · dropdown · only option allowed by rule Cloud only: no\n  # choices: Staging\n  Stage: Staging\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start: 2030-11-18T09:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End: 2030-11-18T12:00+09:00\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing, Search]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: Yes\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "create plan af53fcebd84dbc65"
+  },
+  "unknown": {
+   "draft": "requester: jane.doe@example.com\nanswers:\n  Colour: red\n  Legacy Flag: true\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Stage: Staging\n  Staging Start: 2030-11-18 09:00\n  Staging End: 2030-11-18 12:00\n  Services: [Billing, Search]\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate the **billing** keys.\n\n  - step one\n  - step two\n",
+   "ok": false,
+   "hash": "",
+   "payload": {
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
+    "status": 1,
+    "priority": 1,
+    "change_type": 1,
+    "risk": 1,
+    "impact": 1,
+    "planned_start_date": "2030-11-26T19:00:00+09:00",
+    "planned_end_date": "2030-11-26T22:00:00+09:00",
+    "custom_fields": {
+     "cloud_only": "No",
+     "stage": "Staging",
+     "staging_start": "2030-11-18T09:00:00+09:00",
+     "staging_end": "2030-11-18T12:00:00+09:00",
+     "services": [
+      "Billing",
+      "Search"
+     ]
+    },
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiXSJ9"
+   },
+   "errors": [
+    "unknown field: 'Colour'"
+   ],
+   "risks": [],
+   "json": {
+    "plan_hash": null,
+    "action": "create",
+    "target": null,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Change: Billing: rotate keys",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "Subject",
+       "value": "Billing: rotate keys"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Cloud Only",
+       "value": "No"
+      },
+      {
+       "label": "Stage",
+       "value": "Staging (only option allowed by rule Cloud only: no)"
+      },
+      {
+       "label": "Staging Start",
+       "value": "18 Nov 2030 09:00 (+09:00)"
+      },
+      {
+       "label": "Staging End",
+       "value": "18 Nov 2030 12:00 (+09:00)"
+      },
+      {
+       "label": "Services",
+       "value": "Billing, Search"
+      },
+      {
+       "label": "Description",
+       "value": "Rotate the billing keys. step one step two"
+      },
+      {
+       "label": "Priority",
+       "value": "Low"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Planned Start Date",
+       "value": "26 Nov 2030 19:00 (+09:00)"
+      },
+      {
+       "label": "Planned End Date",
+       "value": "26 Nov 2030 22:00 (+09:00)"
+      },
+      {
+       "label": "Status on create",
+       "value": "Open (form default)"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Requester: Jane Doe <jane.doe@example.com> (requester notifications)",
+      "staging runs first",
+      "the search team is paged"
+     ],
+     "messages": [],
+     "dropped": [
+      "Legacy Flag = Yes (hidden by rule 'Hide legacy flag')"
+     ],
+     "notes": [
+      "Stage: choices limited to Staging by rule 'Cloud only: no'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [
+      "unknown field: 'Colour'"
+     ],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": [
+     "unknown field: 'Colour'"
+    ]
+   },
+   "template": "# New change\n# ERROR: unknown field: 'Colour'\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: No\n  # optional · dropdown · only option allowed by rule Cloud only: no\n  # choices: Staging\n  Stage: Staging\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start: 2030-11-18T09:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End: 2030-11-18T12:00+09:00\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing, Search]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team:\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n  # hidden by a rule now: not sent; kept in case it reappears\n  Legacy Flag: true\n  # not a field on this form: fix the label or delete the line\n  Colour: red\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "create plan (incomplete)"
+  },
+  "yes_cloud": {
+   "draft": "requester: jane.doe@example.com\nanswers:\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: Yes\n  Stage: Staging\n  Staging Start: 2030-11-18 09:00\n  Staging End: 2030-11-18 12:00\n  Services: [Billing, Search]\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate the **billing** keys.\n\n  - step one\n  - step two\n",
+   "ok": false,
+   "hash": "",
+   "payload": {
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
+    "status": 1,
+    "priority": 1,
+    "change_type": 1,
+    "risk": 1,
+    "impact": 1,
+    "planned_start_date": "2030-11-26T19:00:00+09:00",
+    "planned_end_date": "2030-11-26T22:00:00+09:00",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "services": [
+      "Billing",
+      "Search"
+     ]
+    },
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiLCBcInN0YWdpbmdfc3RhcnRfOTAwMDAwNzc3XCIsIFwic3RhZ2luZ19lbmRfOTAwMDAwNzc3XCJdIn0="
+   },
+   "errors": [
+    "Stage: 'Staging' is not offered now: the choices are limited by rule 'Cloud only: yes' (id 9000004102) to: Live"
+   ],
+   "risks": [],
+   "json": {
+    "plan_hash": null,
+    "action": "create",
+    "target": null,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Change: Billing: rotate keys",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "Subject",
+       "value": "Billing: rotate keys"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Cloud Only",
+       "value": "Yes"
+      },
+      {
+       "label": "Services",
+       "value": "Billing, Search"
+      },
+      {
+       "label": "Description",
+       "value": "Rotate the billing keys. step one step two"
+      },
+      {
+       "label": "Priority",
+       "value": "Low"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Planned Start Date",
+       "value": "26 Nov 2030 19:00 (+09:00)"
+      },
+      {
+       "label": "Planned End Date",
+       "value": "26 Nov 2030 22:00 (+09:00)"
+      },
+      {
+       "label": "Status on create",
+       "value": "Open (form default)"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Requester: Jane Doe <jane.doe@example.com> (requester notifications)",
+      "the search team is paged"
+     ],
+     "messages": [],
+     "dropped": [
+      "Staging Start = 18 Nov 2030 09:00 (+09:00) (hidden by rule 'Cloud only: yes')",
+      "Staging End = 18 Nov 2030 12:00 (+09:00) (hidden by rule 'Cloud only: yes')"
+     ],
+     "notes": [
+      "Stage: choices limited to Live by rule 'Cloud only: yes'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [
+      "Stage: 'Staging' is not offered now: the choices are limited by rule 'Cloud only: yes' (id 9000004102) to: Live"
+     ],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": [
+     "Stage: 'Staging' is not offered now: the choices are limited by rule 'Cloud only: yes' (id 9000004102) to: Live"
+    ]
+   },
+   "template": "# New change\n# ERROR: Stage: 'Staging' is not offered now: the choices are limited by rule 'Cloud only: yes' (id 9000004102) to: Live\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing, Search]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team:\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n  # hidden by a rule now: not sent; kept in case it reappears\n  Staging Start: 2030-11-18 09:00\n  # hidden by a rule now: not sent; kept in case it reappears\n  Staging End: 2030-11-18 12:00\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "create plan (incomplete)"
+  },
+  "no_validate": {
+   "draft": "requester: jane.doe@example.com\nanswers:\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate keys.\n",
+   "ok": true,
+   "hash": "051e73f57011884326d7444f0c073de8e37c15ad0c388bd3ebfe0728a9ca5e1c",
+   "payload": {
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "status": 1,
+    "priority": 1,
+    "change_type": 1,
+    "risk": 1,
+    "impact": 1,
+    "planned_start_date": "2030-11-26T19:00:00+09:00",
+    "planned_end_date": "2030-11-26T22:00:00+09:00",
+    "custom_fields": {
+     "cloud_only": "No"
+    },
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiXSJ9"
+   },
+   "errors": [],
+   "risks": [],
+   "json": {
+    "plan_hash": "051e73f57011884326d7444f0c073de8e37c15ad0c388bd3ebfe0728a9ca5e1c",
+    "action": "create",
+    "target": null,
+    "payload": {
+     "subject": "Billing: rotate keys",
+     "description": "<p>Rotate keys.</p>",
+     "status": 1,
+     "priority": 1,
+     "change_type": 1,
+     "risk": 1,
+     "impact": 1,
+     "planned_start_date": "2030-11-26T19:00:00+09:00",
+     "planned_end_date": "2030-11-26T22:00:00+09:00",
+     "custom_fields": {
+      "cloud_only": "No"
+     },
+     "email": "Jane Doe <jane.doe@example.com>",
+     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiXSJ9"
+    },
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Change: Billing: rotate keys",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "Subject",
+       "value": "Billing: rotate keys"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Cloud Only",
+       "value": "No"
+      },
+      {
+       "label": "Description",
+       "value": "Rotate keys."
+      },
+      {
+       "label": "Priority",
+       "value": "Low"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Planned Start Date",
+       "value": "26 Nov 2030 19:00 (+09:00)"
+      },
+      {
+       "label": "Planned End Date",
+       "value": "26 Nov 2030 22:00 (+09:00)"
+      },
+      {
+       "label": "Status on create",
+       "value": "Open (form default)"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Requester: Jane Doe <jane.doe@example.com> (requester notifications)",
+      "staging runs first"
+     ],
+     "messages": [],
+     "dropped": [],
+     "notes": [
+      "Stage: choices limited to Staging by rule 'Cloud only: no'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [],
+     "warnings": [
+      "--no-validate: sending without the client-side required check: Staging Start is required; Staging End is required",
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": "051e73f57011884326d7444f0c073de8e37c15ad0c388bd3ebfe0728a9ca5e1c"
+    },
+    "warnings": [
+     "--no-validate: sending without the client-side required check: Staging Start is required; Staging End is required",
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": []
+   },
+   "template": "# New change\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: No\n  # optional · dropdown · only option allowed by rule Cloud only: no\n  # choices: Staging\n  Stage: Staging\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End:\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services:\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team:\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "create plan 051e73f570118843"
+  },
+  "planning": {
+   "draft": "requester: jane.doe@example.com\nanswers:\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Stage: Staging\n  Staging Start: 2030-11-18 09:00\n  Staging End: 2030-11-18 12:00\n  Services: [Billing, Search]\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate the **billing** keys.\n\n  - step one\n  - step two\nplanning:\n  Go-Live Checklist:\n    description_md: see *plan*\n  Nope Plan: [x.txt]\n",
+   "ok": false,
+   "hash": "",
+   "payload": {
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
+    "status": 1,
+    "priority": 1,
+    "change_type": 1,
+    "risk": 1,
+    "impact": 1,
+    "planned_start_date": "2030-11-26T19:00:00+09:00",
+    "planned_end_date": "2030-11-26T22:00:00+09:00",
+    "custom_fields": {
+     "cloud_only": "No",
+     "stage": "Staging",
+     "staging_start": "2030-11-18T09:00:00+09:00",
+     "staging_end": "2030-11-18T12:00:00+09:00",
+     "services": [
+      "Billing",
+      "Search"
+     ]
+    },
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiXSJ9"
+   },
+   "errors": [
+    "planning field not found: 'Nope Plan'; choices: Go-Live Checklist"
+   ],
+   "risks": [],
+   "json": {
+    "plan_hash": null,
+    "action": "create",
+    "target": null,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": [
+      {
+       "label": "Go-Live Checklist",
+       "field": "go_live_checklist",
+       "description_html": "<p>see <em>plan</em></p>",
+       "files": []
+      }
+     ]
+    },
+    "review": {
+     "title": "New Change: Billing: rotate keys",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "Subject",
+       "value": "Billing: rotate keys"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Cloud Only",
+       "value": "No"
+      },
+      {
+       "label": "Stage",
+       "value": "Staging (only option allowed by rule Cloud only: no)"
+      },
+      {
+       "label": "Staging Start",
+       "value": "18 Nov 2030 09:00 (+09:00)"
+      },
+      {
+       "label": "Staging End",
+       "value": "18 Nov 2030 12:00 (+09:00)"
+      },
+      {
+       "label": "Services",
+       "value": "Billing, Search"
+      },
+      {
+       "label": "Description",
+       "value": "Rotate the billing keys. step one step two"
+      },
+      {
+       "label": "Priority",
+       "value": "Low"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Planned Start Date",
+       "value": "26 Nov 2030 19:00 (+09:00)"
+      },
+      {
+       "label": "Planned End Date",
+       "value": "26 Nov 2030 22:00 (+09:00)"
+      },
+      {
+       "label": "Status on create",
+       "value": "Open (form default)"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Requester: Jane Doe <jane.doe@example.com> (requester notifications)",
+      "staging runs first",
+      "the search team is paged"
+     ],
+     "messages": [],
+     "dropped": [],
+     "notes": [
+      "Stage: choices limited to Staging by rule 'Cloud only: no'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [
+      "planning field not found: 'Nope Plan'; choices: Go-Live Checklist"
+     ],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": [
+     "planning field not found: 'Nope Plan'; choices: Go-Live Checklist"
+    ]
+   },
+   "template": "# New change\n# ERROR: planning field not found: 'Nope Plan'; choices: Go-Live Checklist\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: No\n  # optional · dropdown · only option allowed by rule Cloud only: no\n  # choices: Staging\n  Stage: Staging\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start: 2030-11-18T09:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End: 2030-11-18T12:00+09:00\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing, Search]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team:\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\nplanning:\n  Go-Live Checklist:\n    files: []\n    description_html: |-\n      <p>see <em>plan</em></p>\n  Nope Plan:\n    files: [x.txt]\n",
+   "plan_text": "create plan (incomplete)"
+  },
+  "missing_file": {
+   "draft": "requester: jane.doe@example.com\nanswers:\n  Subject: \"Billing: rotate keys\"\n  Cloud Only: No\n  Stage: Staging\n  Staging Start: 2030-11-18 09:00\n  Staging End: 2030-11-18 12:00\n  Services: [Billing, Search]\n  Planned Start Date: 2030-11-26 19:00\n  Planned End Date: 2030-11-26 22:00\ndescription_md: |\n  Rotate the **billing** keys.\n\n  - step one\n  - step two\nattachments: [missing.pdf]\n",
+   "ok": false,
+   "hash": "",
+   "payload": {
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>",
+    "status": 1,
+    "priority": 1,
+    "change_type": 1,
+    "risk": 1,
+    "impact": 1,
+    "planned_start_date": "2030-11-26T19:00:00+09:00",
+    "planned_end_date": "2030-11-26T22:00:00+09:00",
+    "custom_fields": {
+     "cloud_only": "No",
+     "stage": "Staging",
+     "staging_start": "2030-11-18T09:00:00+09:00",
+     "staging_end": "2030-11-18T12:00:00+09:00",
+     "services": [
+      "Billing",
+      "Search"
+     ]
+    },
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcImxlZ2FjeV9mbGFnXzkwMDAwMDc3N1wiXSJ9"
+   },
+   "errors": [
+    "file not found: /work/drafts/missing.pdf"
+   ],
+   "risks": [],
+   "json": {
+    "plan_hash": null,
+    "action": "create",
+    "target": null,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Change: Billing: rotate keys",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "Subject",
+       "value": "Billing: rotate keys"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Cloud Only",
+       "value": "No"
+      },
+      {
+       "label": "Stage",
+       "value": "Staging (only option allowed by rule Cloud only: no)"
+      },
+      {
+       "label": "Staging Start",
+       "value": "18 Nov 2030 09:00 (+09:00)"
+      },
+      {
+       "label": "Staging End",
+       "value": "18 Nov 2030 12:00 (+09:00)"
+      },
+      {
+       "label": "Services",
+       "value": "Billing, Search"
+      },
+      {
+       "label": "Description",
+       "value": "Rotate the billing keys. step one step two"
+      },
+      {
+       "label": "Priority",
+       "value": "Low"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Planned Start Date",
+       "value": "26 Nov 2030 19:00 (+09:00)"
+      },
+      {
+       "label": "Planned End Date",
+       "value": "26 Nov 2030 22:00 (+09:00)"
+      },
+      {
+       "label": "Status on create",
+       "value": "Open (form default)"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Requester: Jane Doe <jane.doe@example.com> (requester notifications)",
+      "staging runs first",
+      "the search team is paged"
+     ],
+     "messages": [],
+     "dropped": [],
+     "notes": [
+      "Stage: choices limited to Staging by rule 'Cloud only: no'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [
+      "file not found: /work/drafts/missing.pdf"
+     ],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": [
+     "file not found: /work/drafts/missing.pdf"
+    ]
+   },
+   "template": "# New change\n# ERROR: file not found: /work/drafts/missing.pdf\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane.doe@example.com\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: No\n  # optional · dropdown · only option allowed by rule Cloud only: no\n  # choices: Staging\n  Stage: Staging\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start: 2030-11-18T09:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging End: 2030-11-18T12:00+09:00\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing, Search]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team:\n  # optional · lookup (name or email)\n  Reviewer:\n  # optional · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group:\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T19:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T22:00+09:00\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate the <strong>billing</strong> keys.</p><ul><li>step one</li><li>step two</li></ul>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: [missing.pdf]\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "create plan (incomplete)"
+  }
+ },
+ "update": {
+  "subject": {
+   "answers": {
+    "Subject": "Billing: rotate all keys",
+    "Services": "Billing"
+   },
+   "record": {
+    "id": 900000501,
+    "human_display_id": "CHN-501",
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "requester_id": 9000007001,
+    "change_type": 1,
+    "priority": 2,
+    "impact": 1,
+    "risk": 1,
+    "status": 1,
+    "group_id": 9000009001,
+    "agent_id": null,
+    "planned_start_date": "2030-11-26T12:00:00Z",
+    "planned_end_date": "2030-11-26T15:00:00Z",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live",
+     "services": [
+      "Billing"
+     ],
+     "notify_ops": "No",
+     "downtime_window": "22:00 - 22:30",
+     "reviewer": null,
+     "legacy_flag": false,
+     "staging_start": null,
+     "staging_end": null
+    }
+   },
+   "ok": true,
+   "hash": "dda1fdb6810f908c87896d49eb3c1d39b71cf9521b9bc51599b101c6a3d20c86",
+   "payload": {
+    "subject": "Billing: rotate all keys"
+   },
+   "errors": [],
+   "risks": [],
+   "json": {
+    "plan_hash": "dda1fdb6810f908c87896d49eb3c1d39b71cf9521b9bc51599b101c6a3d20c86",
+    "action": "update",
+    "target": 501,
+    "payload": {
+     "subject": "Billing: rotate all keys"
+    },
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "Update change 501",
+     "rows": [],
+     "changes": [
+      {
+       "label": "Subject",
+       "old": "Billing: rotate keys",
+       "new": "Billing: rotate all keys"
+      }
+     ],
+     "notify": [
+      "ops is notified"
+     ],
+     "messages": [],
+     "dropped": [
+      "Legacy Flag = No (hidden by rule 'Hide legacy flag')"
+     ],
+     "notes": [
+      "Stage: choices limited to Live by rule 'Cloud only: yes'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": "dda1fdb6810f908c87896d49eb3c1d39b71cf9521b9bc51599b101c6a3d20c86"
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": []
+   },
+   "template": "# Update change 501\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate all keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "update plan dda1fdb6810f908c"
+  },
+  "status": {
+   "answers": {
+    "Status": "Planning",
+    "Notify Ops Team": "Yes"
+   },
+   "record": {
+    "id": 900000501,
+    "human_display_id": "CHN-501",
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "requester_id": 9000007001,
+    "change_type": 1,
+    "priority": 2,
+    "impact": 1,
+    "risk": 1,
+    "status": 1,
+    "group_id": 9000009001,
+    "agent_id": null,
+    "planned_start_date": "2030-11-26T12:00:00Z",
+    "planned_end_date": "2030-11-26T15:00:00Z",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live",
+     "services": [
+      "Billing"
+     ],
+     "notify_ops": "No",
+     "downtime_window": "22:00 - 22:30",
+     "reviewer": null,
+     "legacy_flag": false,
+     "staging_start": null,
+     "staging_end": null
+    }
+   },
+   "ok": true,
+   "hash": "da3453da77923a23255d78e5f013e0db1376cb0186ad95c6e9125b8c5b400430",
+   "payload": {
+    "status": 2,
+    "custom_fields": {
+     "notify_ops": "Yes"
+    }
+   },
+   "errors": [],
+   "risks": [
+    "change status -> Planning"
+   ],
+   "json": {
+    "plan_hash": "da3453da77923a23255d78e5f013e0db1376cb0186ad95c6e9125b8c5b400430",
+    "action": "update",
+    "target": 501,
+    "payload": {
+     "status": 2,
+     "custom_fields": {
+      "notify_ops": "Yes"
+     }
+    },
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "Update change 501",
+     "rows": [],
+     "changes": [
+      {
+       "label": "Notify Ops Team",
+       "old": "No",
+       "new": "Yes"
+      },
+      {
+       "label": "Status",
+       "old": "Open",
+       "new": "Planning"
+      }
+     ],
+     "notify": [
+      "ops is notified"
+     ],
+     "messages": [],
+     "dropped": [
+      "Legacy Flag = No (hidden by rule 'Hide legacy flag')"
+     ],
+     "notes": [
+      "Stage: choices limited to Live by rule 'Cloud only: yes'"
+     ],
+     "attachments": [],
+     "risks": [
+      "change status -> Planning"
+     ],
+     "errors": [],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": "da3453da77923a23255d78e5f013e0db1376cb0186ad95c6e9125b8c5b400430"
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": []
+   },
+   "template": "# Update change 501\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: Yes\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "update plan da3453da77923a23"
+  },
+  "downtime": {
+   "answers": {
+    "Downtime Window": ""
+   },
+   "record": {
+    "id": 900000501,
+    "human_display_id": "CHN-501",
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "requester_id": 9000007001,
+    "change_type": 1,
+    "priority": 2,
+    "impact": 1,
+    "risk": 1,
+    "status": 1,
+    "group_id": 9000009001,
+    "agent_id": null,
+    "planned_start_date": "2030-11-26T12:00:00Z",
+    "planned_end_date": "2030-11-26T15:00:00Z",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live",
+     "services": [
+      "Billing"
+     ],
+     "notify_ops": "No",
+     "downtime_window": "22:00 - 22:30",
+     "reviewer": null,
+     "legacy_flag": false,
+     "staging_start": null,
+     "staging_end": null
+    }
+   },
+   "ok": false,
+   "hash": "",
+   "payload": {
+    "custom_fields": {
+     "downtime_window": null
+    }
+   },
+   "errors": [
+    "Downtime Window is required"
+   ],
+   "risks": [],
+   "json": {
+    "plan_hash": null,
+    "action": "update",
+    "target": 501,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "Update change 501",
+     "rows": [],
+     "changes": [
+      {
+       "label": "Downtime Window",
+       "old": "22:00 - 22:30",
+       "new": ""
+      }
+     ],
+     "notify": [
+      "ops is notified"
+     ],
+     "messages": [],
+     "dropped": [
+      "Legacy Flag = No (hidden by rule 'Hide legacy flag')"
+     ],
+     "notes": [
+      "Stage: choices limited to Live by rule 'Cloud only: yes'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [
+      "Downtime Window is required"
+     ],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": [
+     "Downtime Window is required"
+    ]
+   },
+   "template": "# Update change 501\n# ERROR: Downtime Window is required\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window:\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "update plan (incomplete)"
+  },
+  "nothing": {
+   "answers": {
+    "Subject": "Billing: rotate keys"
+   },
+   "record": {
+    "id": 900000501,
+    "human_display_id": "CHN-501",
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "requester_id": 9000007001,
+    "change_type": 1,
+    "priority": 2,
+    "impact": 1,
+    "risk": 1,
+    "status": 1,
+    "group_id": 9000009001,
+    "agent_id": null,
+    "planned_start_date": "2030-11-26T12:00:00Z",
+    "planned_end_date": "2030-11-26T15:00:00Z",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live",
+     "services": [
+      "Billing"
+     ],
+     "notify_ops": "No",
+     "downtime_window": "22:00 - 22:30",
+     "reviewer": null,
+     "legacy_flag": false,
+     "staging_start": null,
+     "staging_end": null
+    }
+   },
+   "ok": true,
+   "hash": "",
+   "payload": {},
+   "errors": [],
+   "risks": [],
+   "json": {
+    "plan_hash": null,
+    "action": "update",
+    "target": 501,
+    "payload": {},
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "Update change 501",
+     "rows": [],
+     "changes": [],
+     "notify": [
+      "ops is notified"
+     ],
+     "messages": [],
+     "dropped": [
+      "Legacy Flag = No (hidden by rule 'Hide legacy flag')"
+     ],
+     "notes": [
+      "Stage: choices limited to Live by rule 'Cloud only: yes'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": []
+   },
+   "template": "# Update change 501\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "update plan (incomplete)"
+  },
+  "dates": {
+   "answers": {
+    "Planned Start Date": "2030-11-26 21:00",
+    "Agent": "Alex Kim",
+    "Group": "Platform Ops"
+   },
+   "record": {
+    "id": 900000501,
+    "human_display_id": "CHN-501",
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "requester_id": 9000007001,
+    "change_type": 1,
+    "priority": 2,
+    "impact": 1,
+    "risk": 1,
+    "status": 1,
+    "group_id": 9000009001,
+    "agent_id": null,
+    "planned_start_date": "2030-11-26T12:00:00Z",
+    "planned_end_date": "2030-11-26T15:00:00Z",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live",
+     "services": [
+      "Billing"
+     ],
+     "notify_ops": "No",
+     "downtime_window": "22:00 - 22:30",
+     "reviewer": null,
+     "legacy_flag": false,
+     "staging_start": null,
+     "staging_end": null
+    }
+   },
+   "ok": true,
+   "hash": "41a2ec5959759d6e364c312efc62407ee4f0046f5b76c55d045aa1395cc3ae32",
+   "payload": {
+    "agent_id": 9000007101
+   },
+   "errors": [],
+   "risks": [
+    "reassign agent (agent_id=9000007101)"
+   ],
+   "json": {
+    "plan_hash": "41a2ec5959759d6e364c312efc62407ee4f0046f5b76c55d045aa1395cc3ae32",
+    "action": "update",
+    "target": 501,
+    "payload": {
+     "agent_id": 9000007101
+    },
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "Update change 501",
+     "rows": [],
+     "changes": [
+      {
+       "label": "Agent",
+       "old": "",
+       "new": "Alex Kim <alex.kim@example.com>"
+      }
+     ],
+     "notify": [
+      "ops is notified"
+     ],
+     "messages": [],
+     "dropped": [
+      "Legacy Flag = No (hidden by rule 'Hide legacy flag')"
+     ],
+     "notes": [
+      "Stage: choices limited to Live by rule 'Cloud only: yes'"
+     ],
+     "attachments": [],
+     "risks": [
+      "reassign agent (agent_id=9000007101)"
+     ],
+     "errors": [],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": "41a2ec5959759d6e364c312efc62407ee4f0046f5b76c55d045aa1395cc3ae32"
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "errors": []
+   },
+   "template": "# Update change 501\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent: alex.kim@example.com\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T21:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "update plan 41a2ec5959759d6e"
+  }
+ },
+ "ticket": {
+  "basic": {
+   "answers": {
+    "Subject": "Example",
+    "Description": "Help",
+    "Cloud Only": "Yes",
+    "Stage": "Live",
+    "Change Type": "Normal",
+    "Planned Start Date": "2030-11-26 19:00",
+    "Planned End Date": "2030-11-26 22:00"
+   },
+   "cc": [],
+   "extra": {},
+   "ok": true,
+   "hash": "6aaccaca56d94c8ebad8b61a64619e5f0777cb5521c002760461746f1bf706e0",
+   "payload": {
+    "subject": "Example",
+    "description": "<div>Help</div>",
+    "status": 1,
+    "priority": 1,
+    "impact": 1,
+    "change_type": 1,
+    "risk": 1,
+    "planned_start_date": "2030-11-26T19:00:00+09:00",
+    "planned_end_date": "2030-11-26T22:00:00+09:00",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live"
+    },
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+   },
+   "errors": [],
+   "json": {
+    "plan_hash": "6aaccaca56d94c8ebad8b61a64619e5f0777cb5521c002760461746f1bf706e0",
+    "action": "create",
+    "target": null,
+    "payload": {
+     "subject": "Example",
+     "description": "<div>Help</div>",
+     "status": 1,
+     "priority": 1,
+     "impact": 1,
+     "change_type": 1,
+     "risk": 1,
+     "planned_start_date": "2030-11-26T19:00:00+09:00",
+     "planned_end_date": "2030-11-26T22:00:00+09:00",
+     "custom_fields": {
+      "cloud_only": "Yes",
+      "stage": "Live"
+     },
+     "email": "Jane Doe <jane.doe@example.com>",
+     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+    },
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Incident",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "Subject",
+       "value": "Example"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Cloud Only",
+       "value": "Yes"
+      },
+      {
+       "label": "Stage",
+       "value": "Live"
+      },
+      {
+       "label": "Description",
+       "value": "Help"
+      },
+      {
+       "label": "Priority",
+       "value": "Low"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Planned Start Date",
+       "value": "26 Nov 2030 19:00 (+09:00)"
+      },
+      {
+       "label": "Planned End Date",
+       "value": "26 Nov 2030 22:00 (+09:00)"
+      },
+      {
+       "label": "Status on create",
+       "value": "Open"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Creating an incident may notify its requester and assignees and start workflows."
+     ],
+     "messages": [],
+     "dropped": [],
+     "notes": [],
+     "attachments": [],
+     "risks": [],
+     "errors": [],
+     "warnings": [],
+     "plan_hash": "6aaccaca56d94c8ebad8b61a64619e5f0777cb5521c002760461746f1bf706e0"
+    },
+    "warnings": [],
+    "errors": []
+   }
+  },
+  "cc": {
+   "answers": {
+    "Subject": "Example",
+    "Description": "Help",
+    "Cloud Only": "Yes",
+    "Stage": "Live",
+    "Change Type": "Normal",
+    "Planned Start Date": "2030-11-26 19:00",
+    "Planned End Date": "2030-11-26 22:00"
+   },
+   "cc": [
+    "a@example.com",
+    "b@example.com"
+   ],
+   "extra": {},
+   "ok": true,
+   "hash": "024c057b045ab8998cf22d418a618d4dd2911aece4ce0bf3097afb256576355f",
+   "payload": {
+    "subject": "Example",
+    "description": "<div>Help</div>",
+    "status": 1,
+    "priority": 1,
+    "impact": 1,
+    "change_type": 1,
+    "risk": 1,
+    "planned_start_date": "2030-11-26T19:00:00+09:00",
+    "planned_end_date": "2030-11-26T22:00:00+09:00",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live"
+    },
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+    "cc_emails": [
+     "a@example.com",
+     "b@example.com"
+    ]
+   },
+   "errors": [],
+   "json": {
+    "plan_hash": "024c057b045ab8998cf22d418a618d4dd2911aece4ce0bf3097afb256576355f",
+    "action": "create",
+    "target": null,
+    "payload": {
+     "subject": "Example",
+     "description": "<div>Help</div>",
+     "status": 1,
+     "priority": 1,
+     "impact": 1,
+     "change_type": 1,
+     "risk": 1,
+     "planned_start_date": "2030-11-26T19:00:00+09:00",
+     "planned_end_date": "2030-11-26T22:00:00+09:00",
+     "custom_fields": {
+      "cloud_only": "Yes",
+      "stage": "Live"
+     },
+     "email": "Jane Doe <jane.doe@example.com>",
+     "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+     "cc_emails": [
+      "a@example.com",
+      "b@example.com"
+     ]
+    },
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Incident",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "CC",
+       "value": "a@example.com, b@example.com"
+      },
+      {
+       "label": "Subject",
+       "value": "Example"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Cloud Only",
+       "value": "Yes"
+      },
+      {
+       "label": "Stage",
+       "value": "Live"
+      },
+      {
+       "label": "Description",
+       "value": "Help"
+      },
+      {
+       "label": "Priority",
+       "value": "Low"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Planned Start Date",
+       "value": "26 Nov 2030 19:00 (+09:00)"
+      },
+      {
+       "label": "Planned End Date",
+       "value": "26 Nov 2030 22:00 (+09:00)"
+      },
+      {
+       "label": "Status on create",
+       "value": "Open"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Creating an incident may notify its requester and assignees and start workflows."
+     ],
+     "messages": [],
+     "dropped": [],
+     "notes": [],
+     "attachments": [],
+     "risks": [],
+     "errors": [],
+     "warnings": [],
+     "plan_hash": "024c057b045ab8998cf22d418a618d4dd2911aece4ce0bf3097afb256576355f"
+    },
+    "warnings": [],
+    "errors": []
+   }
+  },
+  "bad_cc": {
+   "answers": {
+    "Subject": "Example"
+   },
+   "cc": [
+    "Name <a@example.com>"
+   ],
+   "extra": {},
+   "ok": false,
+   "hash": "",
+   "payload": {
+    "subject": "Example",
+    "status": 1,
+    "priority": 1,
+    "impact": 1,
+    "change_type": 1,
+    "risk": 1,
+    "custom_fields": {},
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+    "cc_emails": [
+     "Name <a@example.com>"
+    ]
+   },
+   "errors": [
+    "Cloud Only is required",
+    "Description is required",
+    "Planned Start Date is required",
+    "Planned End Date is required",
+    "CC recipients must be plain email addresses"
+   ],
+   "json": {
+    "plan_hash": null,
+    "action": "create",
+    "target": null,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Incident",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "CC",
+       "value": "Name <a@example.com>"
+      },
+      {
+       "label": "Subject",
+       "value": "Example"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Priority",
+       "value": "Low"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Status on create",
+       "value": "Open"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Creating an incident may notify its requester and assignees and start workflows."
+     ],
+     "messages": [],
+     "dropped": [],
+     "notes": [],
+     "attachments": [],
+     "risks": [],
+     "errors": [
+      "Cloud Only is required",
+      "Description is required",
+      "Planned Start Date is required",
+      "Planned End Date is required",
+      "CC recipients must be plain email addresses"
+     ],
+     "warnings": [],
+     "plan_hash": ""
+    },
+    "warnings": [],
+    "errors": [
+     "Cloud Only is required",
+     "Description is required",
+     "Planned Start Date is required",
+     "Planned End Date is required",
+     "CC recipients must be plain email addresses"
+    ]
+   }
+  },
+  "status_attach": {
+   "answers": {
+    "Subject": "Example",
+    "Status": "Closed",
+    "Requester": "x"
+   },
+   "cc": [],
+   "extra": {
+    "attachments": [
+     "a.txt"
+    ]
+   },
+   "ok": false,
+   "hash": "",
+   "payload": {
+    "subject": "Example",
+    "status": 3,
+    "priority": 1,
+    "impact": 1,
+    "change_type": 1,
+    "risk": 1,
+    "custom_fields": {},
+    "email": "Jane Doe <jane.doe@example.com>",
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+   },
+   "errors": [
+    "requester must be specified with --requester or the draft requester key, not answers",
+    "ticket attachments and planning fields are not supported",
+    "Cloud Only is required",
+    "Description is required",
+    "Planned Start Date is required",
+    "Planned End Date is required"
+   ],
+   "json": {
+    "plan_hash": null,
+    "action": "create",
+    "target": null,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "New Incident",
+     "rows": [
+      {
+       "label": "Requester",
+       "value": "Jane Doe <jane.doe@example.com>"
+      },
+      {
+       "label": "Subject",
+       "value": "Example"
+      },
+      {
+       "label": "Change Type",
+       "value": "Normal"
+      },
+      {
+       "label": "Priority",
+       "value": "Low"
+      },
+      {
+       "label": "Impact",
+       "value": "Low"
+      },
+      {
+       "label": "Risk",
+       "value": "Low"
+      },
+      {
+       "label": "Status on create",
+       "value": "Closed"
+      }
+     ],
+     "changes": [],
+     "notify": [
+      "Creating an incident may notify its requester and assignees and start workflows."
+     ],
+     "messages": [],
+     "dropped": [],
+     "notes": [],
+     "attachments": [],
+     "risks": [
+      "Non-default status may trigger workflows or notifications"
+     ],
+     "errors": [
+      "requester must be specified with --requester or the draft requester key, not answers",
+      "ticket attachments and planning fields are not supported",
+      "Cloud Only is required",
+      "Description is required",
+      "Planned Start Date is required",
+      "Planned End Date is required"
+     ],
+     "warnings": [],
+     "plan_hash": ""
+    },
+    "warnings": [],
+    "errors": [
+     "requester must be specified with --requester or the draft requester key, not answers",
+     "ticket attachments and planning fields are not supported",
+     "Cloud Only is required",
+     "Description is required",
+     "Planned Start Date is required",
+     "Planned End Date is required"
+    ]
+   }
+  }
+ },
+ "drafts": [
+  {
+   "text": "",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null
+   }
+  },
+  {
+   "text": "answers: {}\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null
+   }
+  },
+  {
+   "text": "preset: acme\nrequester: ''\nanswers:\n  true: x\n  1: 2\n  Services: [a, 3]\n",
+   "draft": {
+    "answers": {
+     "True": "x",
+     "1": "2",
+     "Services": [
+      "a",
+      "3"
+     ]
+    },
+    "requester": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": "acme"
+   }
+  },
+  {
+   "text": "description_md: '   '\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null
+   }
+  },
+  {
+   "text": "description_html: '<p>x</p>'\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "description_html": "<p>x</p>",
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null
+   }
+  },
+  {
+   "text": "description_md: a\ndescription_html: b\n",
+   "error": "draft: use description_md or description_html, not both"
+  },
+  {
+   "text": "colour: red\nanswers: {}\n",
+   "error": "draft: unknown key(s) colour; expected: ack, answers, attachments, description_html, description_md, planning, preset, requester"
+  },
+  {
+   "text": "- a\n- b\n",
+   "error": "draft: top level must be a mapping (preset/answers/description_md/...)"
+  },
+  {
+   "text": "answers: [1]\n",
+   "error": "draft: answers must be a mapping of field label -> value"
+  },
+  {
+   "text": "attachments: ~/a.pdf\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "description_html": null,
+    "attachments": [
+     "/Users/phusit.somb/a.pdf"
+    ],
+    "planning": {},
+    "ack": [],
+    "preset": null
+   }
+  },
+  {
+   "text": "attachments: [./a/../b.pdf, /abs/c.pdf, 7, true]\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "description_html": null,
+    "attachments": [
+     "/work/drafts/a/../b.pdf",
+     "/abs/c.pdf",
+     "/work/drafts/7",
+     "/work/drafts/True"
+    ],
+    "planning": {},
+    "ack": [],
+    "preset": null
+   }
+  },
+  {
+   "text": "attachments: [1.5]\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "description_html": null,
+    "attachments": [
+     "/work/drafts/1.5"
+    ],
+    "planning": {},
+    "ack": [],
+    "preset": null
+   }
+  },
+  {
+   "text": "planning:\n  Rollout Plan: [r.xlsx]\n  Backout: b.txt\n  Notes:\n    description_md: '**x**'\n    files: [n.txt]\n  Html:\n    description_html: <b>x</b>\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {
+     "Rollout Plan": {
+      "files": [
+       "/work/drafts/r.xlsx"
+      ],
+      "description_html": null
+     },
+     "Backout": {
+      "files": [
+       "/work/drafts/b.txt"
+      ],
+      "description_html": null
+     },
+     "Notes": {
+      "files": [
+       "/work/drafts/n.txt"
+      ],
+      "description_html": "<p><strong>x</strong></p>"
+     },
+     "Html": {
+      "files": [],
+      "description_html": "<b>x</b>"
+     }
+    },
+    "ack": [],
+    "preset": null
+   }
+  },
+  {
+   "text": "planning:\n  X: \"a\\nb\"\n",
+   "error": "draft: planning.X: expected files or a mapping"
+  },
+  {
+   "text": "planning:\n  X: {files: [a], colour: red}\n",
+   "error": "draft: planning.X: unknown key(s) colour"
+  },
+  {
+   "text": "planning:\n  X: 5\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {
+     "X": {
+      "files": [
+       "/work/drafts/5"
+      ],
+      "description_html": null
+     }
+    },
+    "ack": [],
+    "preset": null
+   }
+  },
+  {
+   "text": "planning: [a]\n",
+   "error": "draft: planning must map a planning field label to files or text"
+  },
+  {
+   "text": "ack: all\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [
+     "all"
+    ],
+    "preset": null
+   }
+  },
+  {
+   "text": "ack: [1, x]\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [
+     "1",
+     "x"
+    ],
+    "preset": null
+   }
+  },
+  {
+   "text": "requester: 0\npreset: 0\n",
+   "draft": {
+    "answers": {},
+    "requester": "0",
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": "0"
+   }
+  },
+  {
+   "text": "requester: false\n",
+   "draft": {
+    "answers": {},
+    "requester": "False",
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null
+   }
+  }
+ ],
+ "relpath": [
+  [
+   "/a/b/c.txt",
+   "/a",
+   "b/c.txt"
+  ],
+  [
+   "/a/b/c.txt",
+   "/a/d",
+   "../b/c.txt"
+  ],
+  [
+   "/a/b",
+   "/a/b",
+   "."
+  ],
+  [
+   "/x/y",
+   "/a/b/c",
+   "../../../x/y"
+  ],
+  [
+   "/a//b/./c",
+   "/a/",
+   "b/c"
+  ]
+ ],
+ "yaml_kv": [
+  [
+   "Subject",
+   "Billing: rotate keys",
+   "  Subject: \"Billing: rotate keys\""
+  ],
+  [
+   "A",
+   null,
+   "  A:"
+  ],
+  [
+   "B",
+   true,
+   "  B: true"
+  ],
+  [
+   "C",
+   [
+    "x",
+    "y: z"
+   ],
+   "  C: [x, \"y: z\"]"
+  ],
+  [
+   "D",
+   "line1\nline2",
+   "  D: |-\n    line1\n    line2"
+  ],
+  [
+   "E: f",
+   3,
+   "  \"E: f\": 3"
+  ],
+  [
+   "G",
+   "No",
+   "  G: No"
+  ],
+  [
+   "H",
+   "#tag",
+   "  H: \"#tag\""
+  ]
+ ],
+ "scalar": [
+  [
+   "Services",
+   "Services"
+  ],
+  [
+   "a b",
+   "a b"
+  ],
+  [
+   "x: y",
+   "\"x: y\""
+  ],
+  [
+   "",
+   "\"\""
+  ]
+ ]
+}

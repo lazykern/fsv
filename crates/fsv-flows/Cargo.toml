@@ -1,0 +1,20 @@
+[package]
+name = "fsv-flows"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+fsv-py.workspace = true
+fsv-core.workspace = true
+fsv-forms.workspace = true
+fsv-api.workspace = true
+serde_json.workspace = true
+indexmap.workspace = true
+jiff.workspace = true
+regex.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

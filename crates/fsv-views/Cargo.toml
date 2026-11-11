@@ -1,0 +1,14 @@
+[package]
+name = "fsv-views"
+description = "Site list and detail pages rendered as Rich-style markup"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+fsv-py.workspace = true
+fsv-core.workspace = true
+fsv-forms.workspace = true
+fsv-api.workspace = true
+serde_json.workspace = true
+jiff.workspace = true
