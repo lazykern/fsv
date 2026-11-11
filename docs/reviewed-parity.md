@@ -102,6 +102,31 @@ responses without claiming to exhaust any undocumented pagination.
 All tests use synthetic sources and offline transports. Blocked browser wires
 establish shape only, not accepted live sends or portable template schemas.
 
+## Private ticket views
+
+```sh
+fsv tickets private-views show 701 --json
+fsv tickets private-views write 701 create --name 'Acme personal queue' --dry-run --json
+fsv tickets private-views write 702 edit --name 'Acme renamed queue' --dry-run --json
+fsv tickets private-views write 702 delete --dry-run --json
+```
+
+`create` clones the source's ordinary query and workspace unchanged; `edit`
+renames an exact view. Every action requires fresh self ownership, an explicitly
+false default flag, and named private visibility metadata (`Me`, `Only me`, or
+`Private`). The numeric visibility enum is taken from that runtime metadata,
+never hardcoded. If an account exposes only a number, mutation is **blocked**;
+this adapter does not infer privacy from ownership. Synthetic metadata tests do
+not prove that every account exposes those labels. Shared/default views,
+advanced queries, arbitrary filter edits and other sort modes remain unsupported.
+
+Use `--yes --expect-plan FULL_HASH` after each review. Source/target drift blocks
+sending. Creation requires the exact returned view ID and reads that object,
+never a same-name or latest match. Deletion requires both exact-target 404 (also
+HTML/empty responses) and absence from a complete inventory. Ambiguous write
+outcomes keep the durable single-attempt guard. The captured private lifecycle
+was accepted, but these adapters were exercised offline only.
+
 ## Self watchers
 
 ```sh
