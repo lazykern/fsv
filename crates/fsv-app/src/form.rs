@@ -94,6 +94,7 @@ pub enum Meta {
 
 /// [`FormBackend`] over fsv-flows (changes, incidents) and fsv-api's
 /// catalog (service requests).
+#[derive(Clone)]
 pub struct LiveForm {
     pub deps: FormDeps,
     pub meta: Meta,
@@ -209,20 +210,293 @@ fn block_on(errors: &mut Vec<String>, review: &mut Review, hash: &mut String, pe
     review.plan_hash.clear();
 }
 
-fn exec_error(e: ExecError) -> Error {
-    match e {
-        ExecError::Failed(e) => e,
-        ExecError::Partial(p) => Error::exit(p.exit_code(), p.to_string()),
+/// A form send that failed.
+#[derive(Debug)]
+pub enum SendError {
+    Failed(Error),
+    /// The change was written, then a later step failed (`PartialFailure`).
+    Partial(Box<change::PartialFailure>),
+}
+
+impl From<Error> for SendError {
+    fn from(e: Error) -> Self {
+        SendError::Failed(e)
     }
+}
+
+impl From<ExecError> for SendError {
+    fn from(e: ExecError) -> Self {
+        match e {
+            ExecError::Failed(e) => SendError::Failed(e),
+            ExecError::Partial(p) => SendError::Partial(p),
+        }
+    }
+}
+
+impl std::fmt::Display for SendError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SendError::Failed(e) => e.fmt(f),
+            SendError::Partial(p) => p.fmt(f),
+        }
+    }
+}
+
+impl SendError {
+    pub fn exit_code(&self) -> i32 {
+        match self {
+            SendError::Failed(e) => e.exit_code(),
+            SendError::Partial(p) => p.exit_code(),
+        }
+    }
+
+    /// The exception `FormSession.send` raises: a partial failure keeps its
+    /// message and exit code.
+    pub fn into_error(self) -> Error {
+        match self {
+            SendError::Failed(e) => e,
+            SendError::Partial(p) => Error::exit(p.exit_code(), p.to_string()),
+        }
+    }
+
+    /// The attributes `tui.actions.failure_detail` lists (`created_id`,
+    /// `steps`, `uploaded`, `error`); empty unless partial.
+    pub fn outcome(&self) -> Vec<(String, String)> {
+        match self {
+            SendError::Failed(_) => Vec::new(),
+            SendError::Partial(p) => vec![
+                ("created_id".into(), fsv_py::py_str(&p.created_id)),
+                (
+                    "steps".into(),
+                    fsv_py::py_str(&Json::Array(p.steps.clone())),
+                ),
+                (
+                    "uploaded".into(),
+                    fsv_py::py_str(&Json::Array(p.uploaded.clone())),
+                ),
+                ("error".into(), p.error.to_string()),
+            ],
+        }
+    }
+
+    /// `change_cli._report_partial(e, what)`: a partial failure prints its
+    /// lines to stderr and exits 5; any other failure is returned as is.
+    pub fn report(self, what: &str) -> Error {
+        match self {
+            SendError::Failed(e) => e,
+            SendError::Partial(p) => report_partial(&p, what),
+        }
+    }
+}
+
+/// The stderr lines (markup) of `change_cli._report_partial`.
+pub fn partial_lines(e: &change::PartialFailure, what: &str) -> Vec<String> {
+    let id = fsv_py::py_str(&e.created_id);
+    let mut lines = vec![format!(
+        "[red]error[/red]: {what} {id} was written, but a later step failed: {}",
+        e.error
+    )];
+    if !e.uploaded.is_empty() {
+        let ids: Vec<String> = e
+            .uploaded
+            .iter()
+            .map(|u| {
+                format!(
+                    "{} ({})",
+                    fsv_py::py_str(u.get("id").unwrap_or(&Json::Null)),
+                    fsv_py::py_str(u.get("name").unwrap_or(&Json::Null))
+                )
+            })
+            .collect();
+        lines.push(format!("uploaded attachment ids: {}", ids.join(", ")));
+    }
+    lines.extend(e.steps.iter().map(|s| format!("  {}", fsv_py::py_repr(s))));
+    lines
+}
+
+/// `change_cli._report_partial`: print [`partial_lines`] to stderr; the
+/// `FlowExit(5, "partial failure; {what} id {id}")` to raise.
+pub fn report_partial(e: &change::PartialFailure, what: &str) -> Error {
+    let err = fsv_core::term::err();
+    for line in partial_lines(e, what) {
+        err.print(&line);
+    }
+    flow_exit(
+        5,
+        format!(
+            "partial failure; {what} id {}",
+            fsv_py::py_str(&e.created_id)
+        ),
+    )
+}
+
+/// The form metadata changed since the review and the rebuilt plan differs.
+/// Nothing was written.
+pub struct Changed {
+    pub kind: FormKind,
+    /// `review_diff` lines.
+    pub diff: Vec<String>,
+    /// The rebuilt plan; [`Submitted::send_confirmed`] sends it.
+    pub plan: fsv_formui::Plan,
+}
+
+impl Changed {
+    pub fn ok(&self) -> bool {
+        self.plan.errors.is_empty()
+    }
+
+    /// `FormSession.send`'s refusal (exit 4 with the diff).
+    pub fn refusal(&self) -> Error {
+        let what = match self.kind {
+            FormKind::Sr => "the item form changed since the review",
+            _ => "form metadata changed since the review",
+        };
+        flow_exit(4, format!("{what}: {}", self.diff.join("; ")))
+    }
+
+    /// The stderr lines (markup) the CLI prints before showing the new plan.
+    pub fn lines(&self) -> Vec<String> {
+        let (head, esc) = match self.kind {
+            FormKind::Sr => (
+                "the catalog item or its rules changed since the review; the plan is now different:",
+                true,
+            ),
+            _ => (
+                "form metadata changed since the review; the plan is now different:",
+                false,
+            ),
+        };
+        let mut lines = vec![format!("[yellow]{head}[/yellow]")];
+        lines.extend(self.diff.iter().map(|l| {
+            if esc {
+                format!("  {}", fsv_core::term::escape(l))
+            } else {
+                format!("  {l}")
+            }
+        }));
+        lines
+    }
+
+    /// The confirm question for the updated plan.
+    pub fn question(&self) -> &'static str {
+        match self.kind {
+            FormKind::Sr => "Place the updated request?",
+            _ => "Send the updated plan?",
+        }
+    }
+
+    /// The exit when the updated plan is refused at the prompt.
+    pub fn cancelled(&self) -> Error {
+        match self.kind {
+            FormKind::Sr => flow_exit(1, "cancelled; nothing was uploaded or sent"),
+            _ => flow_exit(1, "cancelled; nothing was sent"),
+        }
+    }
+}
+
+/// What [`Submitted::send_checked`] ended with.
+pub enum SendOutcome {
+    /// The writes ran; the send result.
+    Sent(Json),
+    /// Nothing was sent: show [`Changed::lines`] and the new review, then
+    /// [`Submitted::send_confirmed`] or [`Changed::refusal`].
+    Changed(Box<Changed>),
+}
+
+/// The CLI options of `change_cli._send` / `cli_sr._send` /
+/// `ticket_flow.send` for a plan reviewed in the form.
+#[derive(Clone, Copy, Debug)]
+pub struct SendOptions<'a> {
+    /// `flow.interactive() and not no_input`.
+    pub tty: bool,
+    pub yes: bool,
+    pub expect: Option<&'a str>,
+    pub allow_duplicate: bool,
+    /// `--ack`.
+    pub ack: bool,
+    /// `changes update --duplicate`.
+    pub duplicate: &'a str,
+}
+
+impl Default for SendOptions<'_> {
+    fn default() -> Self {
+        SendOptions {
+            tty: false,
+            yes: false,
+            expect: None,
+            allow_duplicate: false,
+            ack: false,
+            duplicate: "append",
+        }
+    }
+}
+
+struct SendCtl<'a> {
+    allow: bool,
+    expect: Option<&'a str>,
+    duplicate: &'a str,
+    /// `cli_sr._send`'s recipient-identity re-check before the freshen.
+    identity_check: bool,
+}
+
+const SESSION_CTL: SendCtl<'static> = SendCtl {
+    allow: false,
+    expect: None,
+    duplicate: "append",
+    identity_check: false,
+};
+
+/// The builder's plan and the form that built it, in
+/// [`fsv_formui::Plan::detail`].
+struct Carried<P> {
+    plan: P,
+    form: LiveForm,
 }
 
 /// The builder's plan a reviewed [`fsv_formui::Plan`] carries.
 fn carried<T: Any + Send + Sync>(plan: &fsv_formui::Plan) -> Option<&T> {
-    plan.detail.as_deref().and_then(|d| d.downcast_ref::<T>())
+    plan.detail
+        .as_deref()
+        .and_then(|d| d.downcast_ref::<Carried<T>>())
+        .map(|c| &c.plan)
+}
+
+/// The form that built a reviewed plan.
+fn carrier(plan: &fsv_formui::Plan) -> Option<&LiveForm> {
+    let d = plan.detail.as_deref()?;
+    d.downcast_ref::<Carried<change::Plan>>()
+        .map(|c| &c.form)
+        .or_else(|| d.downcast_ref::<Carried<SRPlan>>().map(|c| &c.form))
 }
 
 fn not_reviewed() -> Error {
     Error::value("the plan was not built by this form; review it again")
+}
+
+/// `flow.expect` on a service-request plan.
+fn expect_sr(plan: &SRPlan, expected: Option<&str>) -> Result<()> {
+    let Some(expected) = expected.filter(|e| !e.is_empty()) else {
+        return Ok(());
+    };
+    if plan.hash.is_empty() {
+        return Err(flow_exit(
+            2,
+            format!(
+                "--expect-plan given but the plan is incomplete: {}",
+                plan.errors.join("; ")
+            ),
+        ));
+    }
+    if !fsv_forms::plan::plan_matches(expected, &plan.hash) {
+        return Err(flow_exit(
+            4,
+            format!(
+                "plan changed: expected {expected}, computed {}. Review again with --dry-run.",
+                plan.hash
+            ),
+        ));
+    }
+    Ok(())
 }
 
 impl LiveForm {
@@ -313,79 +587,157 @@ impl LiveForm {
         Ok(plan)
     }
 
+    fn wrap_change(&self, p: change::Plan) -> fsv_formui::Plan {
+        fsv_formui::Plan {
+            errors: p.errors.clone(),
+            hash: p.hash.clone(),
+            review: p.review.clone(),
+            payload: p.payload.clone().map(Json::Object),
+            detail: Some(Arc::new(Carried {
+                plan: p,
+                form: self.clone(),
+            })),
+        }
+    }
+
+    fn wrap_item(&self, p: SRPlan) -> fsv_formui::Plan {
+        fsv_formui::Plan {
+            errors: p.errors.clone(),
+            hash: p.hash.clone(),
+            review: p.review.clone(),
+            payload: p.payload.clone().map(Json::Object),
+            detail: Some(Arc::new(Carried {
+                plan: p,
+                form: self.clone(),
+            })),
+        }
+    }
+
+    /// Duplicate check, freshness re-check, then the writes; a changed plan
+    /// comes back unsent.
+    fn send_with(
+        &self,
+        req: &PlanRequest<'_>,
+        reviewed: &fsv_formui::Plan,
+        ctl: &SendCtl<'_>,
+    ) -> std::result::Result<SendOutcome, SendError> {
+        match &self.meta {
+            Meta::Form(_) => self.send_change(req, reviewed, ctl),
+            Meta::Item(_) => self.send_item(req, reviewed, ctl),
+        }
+    }
+
     fn send_change(
         &self,
         req: &PlanRequest<'_>,
         reviewed: &fsv_formui::Plan,
-        allow: bool,
-    ) -> Result<Json> {
+        ctl: &SendCtl<'_>,
+    ) -> std::result::Result<SendOutcome, SendError> {
         let plan = carried::<change::Plan>(reviewed)
             .cloned()
             .ok_or_else(not_reviewed)?;
         let mut rebuild = |m: Arc<FormMeta>| self.form_plan(req, m);
         let d = &self.deps;
         if req.kind == FormKind::Ticket {
-            return ticket::send(
+            return Ok(SendOutcome::Sent(ticket::send(
                 plan,
                 d.api.as_ref(),
                 d.meta.as_ref(),
                 &mut rebuild,
                 d.plan_journal.as_ref(),
-                None,
-                allow,
-            );
+                ctl.expect,
+                ctl.allow,
+            )?));
         }
-        change::check_duplicate(&plan, allow, d.plan_journal.as_ref())?;
+        change::check_duplicate(&plan, ctl.allow, d.plan_journal.as_ref())?;
         let (new, diff) = change::freshen(plan, d.meta.as_ref(), &mut rebuild)?;
         if let Some(diff) = diff {
-            return Err(flow_exit(
-                4,
-                format!(
-                    "form metadata changed since the review: {}",
-                    diff.join("; ")
-                ),
-            ));
+            return Ok(SendOutcome::Changed(Box::new(Changed {
+                kind: req.kind,
+                diff,
+                plan: self.wrap_change(new),
+            })));
         }
-        change::execute(
-            &new,
+        Ok(SendOutcome::Sent(self.execute_change(&new, ctl)?))
+    }
+
+    fn execute_change(
+        &self,
+        plan: &change::Plan,
+        ctl: &SendCtl<'_>,
+    ) -> std::result::Result<Json, SendError> {
+        let d = &self.deps;
+        change::expect(plan, ctl.expect)?;
+        Ok(change::execute(
+            plan,
             d.writer.as_ref(),
             d.plan_journal.as_ref(),
-            "append",
+            ctl.duplicate,
             d.attach_flow.as_deref(),
-        )
-        .map_err(exec_error)
+        )?)
     }
 
     fn send_item(
         &self,
         req: &PlanRequest<'_>,
         reviewed: &fsv_formui::Plan,
-        allow: bool,
-    ) -> Result<Json> {
+        ctl: &SendCtl<'_>,
+    ) -> std::result::Result<SendOutcome, SendError> {
         let plan = carried::<SRPlan>(reviewed)
             .cloned()
             .ok_or_else(not_reviewed)?;
         let d = &self.deps;
-        catalog::duplicate_check(&plan, allow, d.journal.as_ref())?;
+        catalog::duplicate_check(&plan, ctl.allow, d.journal.as_ref())?;
+        if ctl.identity_check && !plan.identity.is_empty() {
+            let checked = self.item_plan(req, &plan.meta)?;
+            if !checked.ok() || checked.hash != plan.hash {
+                return Err(flow_exit(
+                    4,
+                    "recipient identities changed since review; review again",
+                )
+                .into());
+            }
+        }
         let (new, diff) = catalog::freshen(plan, d.api.as_ref(), d.store.as_ref(), &mut |m| {
             self.item_plan(req, &m)
         })?;
         if let Some(diff) = diff {
-            return Err(flow_exit(
-                4,
-                format!(
-                    "the item form changed since the review: {}",
-                    diff.join("; ")
-                ),
-            ));
+            return Ok(SendOutcome::Changed(Box::new(Changed {
+                kind: req.kind,
+                diff,
+                plan: self.wrap_item(new),
+            })));
         }
+        Ok(SendOutcome::Sent(self.execute_item(&new, ctl)?))
+    }
+
+    fn execute_item(&self, plan: &SRPlan, ctl: &SendCtl<'_>) -> Result<Json> {
+        let d = &self.deps;
+        expect_sr(plan, ctl.expect)?;
         catalog::execute(
-            &new,
+            plan,
             d.api.as_ref(),
             d.journal.as_ref(),
             &catalog::upload,
-            allow,
+            ctl.allow,
         )
+    }
+
+    /// Send a [`Changed::plan`] the user confirmed: duplicate check, then
+    /// the writes, with no second freshness check.
+    fn send_changed(
+        &self,
+        changed: &Changed,
+        ctl: &SendCtl<'_>,
+    ) -> std::result::Result<Json, SendError> {
+        let d = &self.deps;
+        if let Some(p) = carried::<change::Plan>(&changed.plan) {
+            change::check_duplicate(p, ctl.allow, d.plan_journal.as_ref())?;
+            return self.execute_change(p, ctl);
+        }
+        let p = carried::<SRPlan>(&changed.plan).ok_or_else(not_reviewed)?;
+        catalog::duplicate_check(p, ctl.allow, d.journal.as_ref())?;
+        Ok(self.execute_item(p, ctl)?)
     }
 }
 
@@ -394,23 +746,11 @@ impl FormBackend for LiveForm {
         match &self.meta {
             Meta::Form(m) => {
                 let p = self.form_plan(req, m.clone()).map_err(|e| e.to_string())?;
-                Ok(fsv_formui::Plan {
-                    errors: p.errors.clone(),
-                    hash: p.hash.clone(),
-                    review: p.review.clone(),
-                    payload: p.payload.clone().map(Json::Object),
-                    detail: Some(Arc::new(p)),
-                })
+                Ok(self.wrap_change(p))
             }
             Meta::Item(m) => {
                 let p = self.item_plan(req, m).map_err(|e| e.to_string())?;
-                Ok(fsv_formui::Plan {
-                    errors: p.errors.clone(),
-                    hash: p.hash.clone(),
-                    review: p.review.clone(),
-                    payload: p.payload.clone().map(Json::Object),
-                    detail: Some(Arc::new(p)),
-                })
+                Ok(self.wrap_item(p))
             }
         }
     }
@@ -462,9 +802,14 @@ impl FormBackend for LiveForm {
         plan: &fsv_formui::Plan,
         allow_duplicate: bool,
     ) -> Result<Json> {
-        match &self.meta {
-            Meta::Form(_) => self.send_change(req, plan, allow_duplicate),
-            Meta::Item(_) => self.send_item(req, plan, allow_duplicate),
+        let ctl = SendCtl {
+            allow: allow_duplicate,
+            ..SESSION_CTL
+        };
+        match self.send_with(req, plan, &ctl) {
+            Ok(SendOutcome::Sent(v)) => Ok(v),
+            Ok(SendOutcome::Changed(c)) => Err(c.refusal()),
+            Err(e) => Err(e.into_error()),
         }
     }
 }
@@ -708,6 +1053,128 @@ pub struct Submitted {
     pub session: FormSession,
 }
 
+impl Submitted {
+    fn request<'a>(&'a self, ack: bool, pending: &'a [String]) -> PlanRequest<'a> {
+        let s = &self.session;
+        PlanRequest {
+            kind: s.kind,
+            mode: s.mode,
+            draft: &s.draft,
+            record: &s.record,
+            target: s.target.as_ref(),
+            requester: s.requester.as_ref(),
+            ack_all: ack,
+            pending_errors: pending,
+        }
+    }
+
+    fn form(&self) -> Result<&LiveForm> {
+        if self.session.dry_run {
+            return Err(Error::exit(2, "dry run: nothing is sent"));
+        }
+        carrier(&self.plan).ok_or_else(not_reviewed)
+    }
+
+    /// An edit is never a duplicate of an earlier send.
+    fn allow(&self, allow_duplicate: bool) -> bool {
+        let s = &self.session;
+        allow_duplicate || s.mode == FormMode::Edit && s.kind == FormKind::Change
+    }
+
+    /// `session.send(plan)` that hands back a changed plan instead of
+    /// refusing it, and a partial failure as data.
+    pub fn send_checked(
+        &self,
+        allow_duplicate: bool,
+    ) -> std::result::Result<SendOutcome, SendError> {
+        let form = self.form()?;
+        let pending = self.session.input_errors();
+        let ctl = SendCtl {
+            allow: self.allow(allow_duplicate),
+            ..SESSION_CTL
+        };
+        form.send_with(&self.request(self.session.ack, &pending), &self.plan, &ctl)
+    }
+
+    /// Send the [`Changed::plan`] the user confirmed.
+    pub fn send_confirmed(
+        &self,
+        changed: &Changed,
+        allow_duplicate: bool,
+    ) -> std::result::Result<Json, SendError> {
+        let ctl = SendCtl {
+            allow: self.allow(allow_duplicate),
+            ..SESSION_CTL
+        };
+        self.form()?.send_changed(changed, &ctl)
+    }
+
+    /// The CLI's send of a form-reviewed plan: `change_cli._send` (changes;
+    /// partial failures print `_report_partial` and exit 5),
+    /// `cli_sr._send` (service requests) or `ticket_flow.send` (incidents).
+    /// When the metadata changed, prints the diff to stderr; a terminal
+    /// without `--yes`/`--expect-plan` shows the new review and asks
+    /// `confirm(question)`, anything else exits 4.
+    pub fn send_cli(
+        &self,
+        o: &SendOptions<'_>,
+        confirm: &mut dyn FnMut(&str) -> Result<bool>,
+    ) -> Result<Json> {
+        let form = self.form()?;
+        let s = &self.session;
+        let ack = match s.kind {
+            FormKind::Ticket => {
+                o.ack
+                    || carried::<change::Plan>(&self.plan)
+                        .is_some_and(|p| !p.state.acknowledged.is_empty())
+            }
+            _ => o.ack || s.ack,
+        };
+        let pending = s.input_errors();
+        let ctl = SendCtl {
+            allow: self.allow(o.allow_duplicate),
+            expect: o.expect,
+            duplicate: o.duplicate,
+            identity_check: true,
+        };
+        let changed = match form.send_with(&self.request(ack, &pending), &self.plan, &ctl) {
+            Ok(SendOutcome::Sent(v)) => return Ok(v),
+            Ok(SendOutcome::Changed(c)) => c,
+            Err(e) => return Err(e.report("change")),
+        };
+        let err = fsv_core::term::err();
+        for line in changed.lines() {
+            err.print(&line);
+        }
+        if !changed.ok() {
+            changed.plan.review.render(err);
+            return Err(flow_exit(
+                2,
+                format!(
+                    "the updated form needs more answers: {}",
+                    changed.plan.errors.join("; ")
+                ),
+            ));
+        }
+        if o.expect.is_some_and(|e| !e.is_empty()) || o.yes || !o.tty {
+            let h = match changed.plan.hash.as_str() {
+                "" => "(incomplete)",
+                h => h,
+            };
+            return Err(flow_exit(
+                4,
+                format!("plan changed to {h}; review it again with --dry-run"),
+            ));
+        }
+        changed.plan.review.render(err);
+        if !confirm(changed.question())? {
+            return Err(changed.cancelled());
+        }
+        form.send_changed(&changed, &ctl)
+            .map_err(|e| e.report("change"))
+    }
+}
+
 /// `_run_form`'s exits: a saved draft stops with exit 0, anything but a
 /// submit with exit 1.
 pub fn finish(result: FormResult) -> Result<Submitted> {
@@ -736,5 +1203,7 @@ pub fn run_form(session: FormSession, theme: Theme) -> Result<Submitted> {
     finish(fsv_formui::run_form(session, theme)?)
 }
 
+#[cfg(test)]
+mod send_tests;
 #[cfg(test)]
 mod tests;

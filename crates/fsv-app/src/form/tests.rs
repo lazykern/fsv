@@ -663,7 +663,7 @@ fn partial_failures_keep_their_message_and_exit_code() {
         vec![],
         Error::other("boom"),
     );
-    let (code, msg) = exit_of(&exec_error(ExecError::Partial(Box::new(p))));
+    let (code, msg) = exit_of(&SendError::from(ExecError::Partial(Box::new(p))).into_error());
     assert_eq!(
         (code, msg.as_str()),
         (
@@ -672,7 +672,7 @@ fn partial_failures_keep_their_message_and_exit_code() {
         )
     );
     assert_eq!(
-        exit_of(&exec_error(ExecError::Failed(Error::exit(5, "x")))),
+        exit_of(&SendError::from(ExecError::Failed(Error::exit(5, "x"))).into_error()),
         (5, "x".into())
     );
 }

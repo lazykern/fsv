@@ -81,7 +81,8 @@ those stay identical.
 
 | Python | Rust | status |
 |---|---|---|
-| live wiring behind `views` reads, `formmeta.load_meta`, `create` writes, form session plan/save/send, TUI backend and pages | `fsv_app::{source, meta, writer, form, tui}` | partial. `cargo test -p fsv-app --offline` was 74 passed. Request paths, bodies and plan hashes captured from Python. `run_tui` and `run_form` need a terminal and have no tests. |
+| live wiring behind `views` reads, `formmeta.load_meta`, `create` writes, form session plan/save/send, TUI backend and pages | `fsv_app::{source, meta, writer, form, tui}` | partial. `cargo test -p fsv-app --offline` was 86 passed. Request paths, bodies and plan hashes captured from Python. `run_tui` and `run_form` need a terminal and have no tests. |
+| `change_cli._send`, `cli_sr._send`, `ticket_flow.send`, `_report_partial` for a form-reviewed plan; `tui.actions.failure_detail` attributes | `Submitted::send_cli`, `send_checked`, `send_confirmed`, `SendError::{report, outcome}`, `tui::forms::send_submitted` | ported. Golden: `port/golden/gen_fsv_app_send.py` (metadata changed after review: diff lines, exit 4 without a terminal, re-review and confirm in one, exit 2 when the new form needs answers; partial failure lines and exit 5; SR equivalents). |
 
 - Form review rows can show lookup ids where Python shows names. `fsv_flows` drafts hold JSON answers.
 - TUI details load without form properties: `views.load_properties` / `load_edit_rules` are not ported anywhere, so Python's "form rules could not be applied" note is absent.
@@ -89,6 +90,9 @@ those stay identical.
 - `run_tui` takes a schema loader argument because `schema::load` and saved-view loading live in `fsv-cli`, which `fsv-app` cannot depend on.
 - Not yet wired in `LiveBackend` (trait defaults say unavailable): change tasks and task edit/delete, associations, downloads, catalog, completion, clipboard and open-URL, filter history.
 - Directory lookups that hit an expired session surface as a query error, because `fsv_api::QueryError` does not carry the session flag.
+- `FormSession.send` (TUI, `FormBackend::send`) still refuses a changed plan with exit 4, as Python does. The CLI re-confirm lives in `Submitted::send_cli`. Until fsv-cli calls it in place of `session.send`, the form paths of `changes create/update` and `sr create` exit 4 where Python shows the diff and asks again, and a partial change failure exits 1 with the one-line message where Python prints `_report_partial` and exits 5.
+- A service-request form send that fails after upload or at place-request does not print `cli_sr._send`'s `uploaded attachment ids (not attached to any request): ...` line or its `{step} failed: HTTP N; ...` exit, and the TUI failure detail has no `uploaded`/`error` lines. `fsv_api::catalog::execute` flattens `SendFailure` into `Error::other`, so the step, uploads and cause are gone, and the exit code is 1 instead of the cause's. The fix belongs in fsv-api (a structured `SendFailure`). `fsv-cli`'s flow-path `sr_send` has the same gap.
+- In tests, the upload progress line (`  uploading a.txt... ok (5 B)`) skips `term::capture` because it goes straight to stderr. Its text matches Python.
 
 ## fsv-api (started)
 

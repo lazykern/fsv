@@ -12,8 +12,8 @@ pub mod writer;
 pub(crate) mod testkit;
 
 pub use form::{
-    ChangeForm, FormDeps, FormResolver, LiveForm, Submitted, change_session, run_form, sr_session,
-    ticket_session,
+    ChangeForm, Changed, FormDeps, FormResolver, LiveForm, SendError, SendOptions, SendOutcome,
+    Submitted, change_session, partial_lines, report_partial, run_form, sr_session, ticket_session,
 };
 pub use meta::LiveMeta;
 pub use source::ClientSource;

@@ -19,10 +19,25 @@ use fsv_tui::backend::{
     BResult, Buffer, Failure, FormExit, FormRequest, FormSend, FormView, KeyEvent, Position, Rect,
 };
 
-use crate::form::{ChangeForm, FormDeps, change_session, sr_session, ticket_session};
+use crate::form::{
+    ChangeForm, FormDeps, SendOutcome, Submitted, change_session, sr_session, ticket_session,
+};
 
 /// Makes the [`FormDeps`] a form talks to, on the form's thread.
 pub type DepsFactory = Arc<dyn Fn() -> Result<FormDeps> + Send + Sync>;
+
+/// `_send_form`'s `session.send(result.plan)`; a partial failure carries
+/// the attributes `failure_detail` lists.
+pub fn send_submitted(s: Submitted) -> BResult<Value> {
+    match s.send_checked(false) {
+        Ok(SendOutcome::Sent(v)) => Ok(v),
+        Ok(SendOutcome::Changed(c)) => Err(Failure::from(c.refusal())),
+        Err(e) => Err(Failure {
+            outcome: e.outcome(),
+            error: Box::new(e.into_error()),
+        }),
+    }
+}
 
 /// `_build_form`'s session: `ticket_session` (incident), `sr_session` for
 /// the picked catalog item (sr), else `_form_session` (a new change, or an
@@ -144,7 +159,7 @@ fn serve(screen: FormScreen, rx: &Receiver<Cmd>) {
             }
             (Cmd::Send(reply), _) => {
                 let out = match submitted.take() {
-                    Some((session, plan)) => session.send(&plan, false).map_err(Failure::from),
+                    Some((session, plan)) => send_submitted(Submitted { plan, session }),
                     None => Err(Failure::from(Error::other("nothing to send"))),
                 };
                 let _ = reply.send(out);
