@@ -45,6 +45,20 @@ KINDS = frozenset(
 )
 
 CHOICE_KINDS = frozenset({"dropdown", "multi_select", "department", "nested"})
+# Content-only blocks (static notes, guides): shown on the form, never an
+# input. Field types seen or documented for them; any other ``field_type``
+# naming content/static/rich-text blocks is treated the same way.
+CONTENT_FIELD_TYPES = frozenset({
+    "custom_content", "content", "nested_content", "default_content", "custom_static_rich_text",
+    "static_rich_text", "custom_static_text", "static_content",
+})
+_CONTENT_TYPE = re.compile(r"(^|_)(content|static)(_|$)")
+
+
+def is_content_type(field_type: str) -> bool:
+    """A form-field type that is a static content block, not an input."""
+    ft = str(field_type or "").lower()
+    return ft in CONTENT_FIELD_TYPES or bool(_CONTENT_TYPE.search(ft))
 LOOKUP_KINDS = frozenset({"lookup_user", "lookup_group", "lookup_agent", "lookup"})
 INPUTLESS_KINDS = frozenset({"notice"})
 
@@ -232,6 +246,12 @@ class Field:
         return self.helptext
 
     @property
+    def is_input(self) -> bool:
+        """False for content-only blocks (notes, guides): never answered,
+        listed, required or sent."""
+        return self.kind not in INPUTLESS_KINDS
+
+    @property
     def is_nested_level(self) -> bool:
         return self.kind == "nested" and self.level > 1
 
@@ -372,6 +392,11 @@ class FormSpec:
         for f in top:
             emit(f)
         return out
+
+    def inputs(self) -> list[Field]:
+        """:meth:`ordered` without content-only blocks: the fields a person
+        can answer."""
+        return [f for f in self.ordered() if f.is_input]
 
     def section_parent(self, name: str) -> tuple[Field, tuple[str, ...]] | None:
         """(controlling field, normalised choices) if ``name`` sits in a section."""
@@ -577,6 +602,8 @@ def _fields_from_form_field(f: Mapping[str, Any], warnings: list[str]) -> list[F
     name = str(f.get("name") or "")
     is_default = bool(f.get("default_field", ftype.startswith("default_")))
     kind = _DEFAULT_KINDS.get(ftype) or _CUSTOM_KINDS.get(ftype)
+    if kind is None and is_content_type(ftype):
+        kind = "notice"
     if kind is None:
         kind = "text"
         warnings.append(f"field {name!r}: unknown field_type {ftype!r}, treated as text")
@@ -623,7 +650,7 @@ def _fields_from_form_field(f: Mapping[str, Any], warnings: list[str]) -> list[F
         multi=ftype in ("custom_multi_select_dropdown", "custom_multi_lookup"),
         visible_base=f.get("displayed_to_agents", True) is not False,
         on_form=position is not None and ftype != "planning_field",
-        content=html.unescape(str(f.get("content") or "")),
+        content=html.unescape(str(_content_of(f) if kind == "notice" else (f.get("content") or ""))),
         levels=tuple(str(n.get("name")) for n in nested_levels),
         date_only=kind == "date",
         lookup_entity=lookup_entity,
@@ -652,6 +679,16 @@ def _fields_from_form_field(f: Mapping[str, Any], warnings: list[str]) -> list[F
         )
         prev = lvl_name
     return out
+
+
+def _content_of(f: Mapping[str, Any]) -> str:
+    """A content block's HTML: ``content``, else ``field_options.content``,
+    else its description/help text."""
+    opts = f.get("field_options") if isinstance(f.get("field_options"), Mapping) else {}
+    for v in (f.get("content"), opts.get("content"), opts.get("content_html"), f.get("description"), f.get("helptext")):
+        if isinstance(v, str) and v.strip():
+            return v
+    return ""
 
 
 def _link_ticket_sections(spec: FormSpec, raw: Sequence[Mapping[str, Any]]) -> None:

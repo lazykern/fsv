@@ -46,6 +46,7 @@ from fsv.forms import (
     plain_text,
     plan_hash,
 )
+from fsv.forms.spec import is_content_type
 from fsv.review import Review
 
 PER_PAGE = 30
@@ -599,7 +600,8 @@ def label_map(defs: Iterable[Mapping[str, Any]]) -> dict[str, str]:
             if not isinstance(r, Mapping):
                 continue
             name, label = r.get("name"), r.get("label")
-            if name and label and str(r.get("type")) not in ("1024",) and r.get("field_type") != "custom_content":
+            if name and label and str(r.get("type")) not in ("1024",) \
+                    and not is_content_type(str(r.get("field_type") or "")):
                 out.setdefault(str(name), html.unescape(str(label)))
             walk(r.get("fields") or [])
             walk(r.get("nested_fields") or [])

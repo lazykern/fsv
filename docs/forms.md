@@ -130,9 +130,18 @@ level info, sections, and file limits.
 | `default_department` | `department` |
 | `default_category`, `nested_field` | `nested` (one `Field` per level) |
 | formserv `1014` | `attachment` |
-| `custom_content`, formserv `1024` | `notice` (HTML in `content`, not an input) |
+| `custom_content`, `custom_static_rich_text`, `nested_content`, any other `*content*`/`*static*` type, formserv `1024` | `notice` (HTML in `content`, not an input) |
 
 Unknown types become `text` and add a line to `spec.warnings`.
+
+**Content-only blocks** (`notice`: static notes and guides) are part of the
+form's layout, not inputs: `Field.is_input` is False and `spec.inputs()`
+is `spec.ordered()` without them. Rules may show or hide them, but they are
+never required, cannot be answered (`set()` raises), and are never sent,
+reviewed, or listed by `fsv form fields` / `form explain` (which print a
+one-line count of the blocks instead). The interactive form shows them
+read-only at their position, like the web. Their HTML comes from
+`content`, else `field_options.content`, else the description.
 
 ### Details
 

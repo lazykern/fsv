@@ -118,7 +118,7 @@ def explain(
     by_field: dict[str, list[Any]] = {}
     for x in state.explain():
         by_field.setdefault(x.field, []).append(x)
-    for f in spec.ordered():
+    for f in spec.inputs():  # content-only blocks are not answerable fields
         xs = by_field.get(f.api_name, [])
         vis = f.api_name in ev.visible
         if not vis and not all_ and not any(x.source == "rule" for x in xs):
@@ -192,7 +192,7 @@ def fields(
             console.print(f"[dim]{escape(_one_line(f.help, 400))}[/dim]", highlight=False)
         return
     rows = []
-    for f in spec.ordered():
+    for f in spec.inputs():  # content-only blocks (notes, guides) are not inputs
         rows.append({
             "label": f.label, "name": f.api_name, "kind": f.kind, "custom": f.is_custom,
             "required_static": f.required_base, "visible_on_load": f.api_name in ev.visible,
@@ -217,6 +217,11 @@ def fields(
             help_cell = "\n".join(([help_cell] if help_cell else []) + extra)
         t.add_row(escape(r["label"]), escape(r["name"]), kind, load, escape(help_cell))
     console.print(t)
+    notes = [f for f in spec.ordered() if not f.is_input and f.api_name in ev.visible]
+    if notes:
+        shown = "; ".join(_one_line(f.content or f.label, 60) for f in notes[:5])
+        console.print(f"[dim]{len(notes)} information block(s) on the form, not inputs: {escape(shown)}[/dim]",
+                      highlight=False)
     console.print("[dim]choices: fsv form fields changes --choices LABEL[/dim]", highlight=False)
 
 

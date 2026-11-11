@@ -171,8 +171,10 @@ def fields_doc(meta: cat.ItemMeta) -> dict[str, Any]:
             "hidden_by_rule": (d.rule_name or d.rule_id) if d is not None and not visible and d.action == "hide" else None,
             "placeholder": f.placeholder or None, "help": f.help or None,
         }
-        if f.kind == "notice":
+        if f.kind == "notice":  # read-only information block, never an input
             row["content"] = " ".join(cat.plain_text(f.content).split())
+            row["required"] = False
+            row["input"] = False
         if sp is not None:
             parent, choices = sp
             labels = [c.label for c in parent.choices if cat.norm(c.value) in {cat.norm(x) for x in choices}]

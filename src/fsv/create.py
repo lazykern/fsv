@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from fsv.client import APIError, Client, get_client
+from fsv.forms.spec import is_content_type
 from fsv.resources import Resource, CHANGES
 from fsv.schema import load as load_schema
 
@@ -80,7 +81,7 @@ def _build_template(schema_fields: list[dict[str, Any]], level: str) -> dict[str
         if not name:
             continue
         ftype = str(f.get("field_type") or "")
-        if ftype in SKIP_TYPES:
+        if ftype in SKIP_TYPES or is_content_type(ftype):
             continue
         required = f.get("required", False)
         if name in _TEMPLATE_FK_PLACEHOLDERS:
