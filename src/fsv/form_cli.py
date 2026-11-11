@@ -189,6 +189,8 @@ def fields(
             "required_static": f.required_base, "visible_on_load": f.api_name in ev.visible,
             "required_on_load": f.api_name in ev.required, "help": _one_line(f.help, 300),
             "choices": len(f.choices),
+            "choice_descriptions": [{"label": c.label, "description": c.description}
+                                    for c in f.choices if c.visible and c.description],
         })
     if output == "json":
         print(json.dumps(rows, indent=2, default=str, ensure_ascii=False))
@@ -200,7 +202,11 @@ def fields(
         load = ("visible" if r["visible_on_load"] else "[dim]hidden[/dim]") + (
             ", [bold]required[/bold]" if r["required_on_load"] else "")
         kind = r["kind"] + (f" ({r['choices']})" if r["choices"] else "")
-        t.add_row(escape(r["label"]), escape(r["name"]), kind, load, escape(_one_line(r["help"], 80)))
+        help_cell = _one_line(r["help"], 80)
+        extra = [f"• {d['label']} — {_one_line(d['description'], 80)}" for d in r["choice_descriptions"][:8]]
+        if extra:
+            help_cell = "\n".join(([help_cell] if help_cell else []) + extra)
+        t.add_row(escape(r["label"]), escape(r["name"]), kind, load, escape(help_cell))
     console.print(t)
     console.print("[dim]choices: fsv form fields changes --choices LABEL[/dim]", highlight=False)
 

@@ -15,6 +15,7 @@ from fsv.drafts import Draft, render_template, resolve_draft
 from fsv.formmeta import ClientResolver, is_status, load_meta, resolve_requester
 from fsv.forms import FormError, LookupValue
 from fsv.render import console, err
+from fsv.review import NO_PAYLOAD
 
 
 def _emit(obj: Any) -> None:
@@ -28,12 +29,12 @@ def _print_plan(plan: Plan, *, as_json: bool, to_stdout: bool = True) -> None:
     out = console if to_stdout else err
     plan.review.render(out)
     if to_stdout:
-        if plan.payload is None:
-            out.print("[dim]No payload yet: fix the problems above first.[/dim]", highlight=False)
+        if plan.payload is None or not plan.ok:
+            out.print(f"[dim]{NO_PAYLOAD}[/dim]", highlight=False)
         else:
             out.print("[bold]Payload[/bold]" + (f" (PUT changes/{plan.target})" if plan.action == "update"
                                                  else " (POST /api/_/changes)")
-                      + ("" if plan.ok else " [yellow]— incomplete, will not be sent until the problems are fixed[/yellow]"),
+                      + "",
                       highlight=False)
             print(json.dumps(plan.payload, indent=2, default=str, ensure_ascii=False))
         if plan.hash:

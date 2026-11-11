@@ -16,7 +16,7 @@ from __future__ import annotations
 import html
 import json
 import re
-from dataclasses import dataclass, field as dc_field
+from dataclasses import dataclass, field as dc_field, replace
 from typing import Any, Iterable, Mapping, Sequence
 
 from fsv.forms.errors import UnknownFieldError
@@ -523,6 +523,7 @@ def _parse_choices(raw: Any) -> tuple[Choice, ...]:
                     label=html.unescape(str(label if label is not None else value)),
                     id=c.get("id"),
                     display_id=c.get("display_id"),
+                    description=" ".join(str(c.get("description") or "").split()),
                     visible=c.get("visible", True) is not False,
                     children=_parse_choices(c.get("nested_options")),
                 )
@@ -534,22 +535,41 @@ def _parse_choices(raw: Any) -> tuple[Choice, ...]:
     return tuple(out)
 
 
-def attach_choice_descriptions(choices: Sequence[Choice], helptext: str) -> tuple[Choice, ...]:
-    """Parse ``"High - meaning || Medium - meaning"`` help text into choice
-    descriptions. Choices whose label is not listed keep an empty description."""
+def split_choice_help(choices: Sequence[Choice], helptext: str) -> tuple[tuple[Choice, ...], str]:
+    """Parse ``"Very High - meaning || Low - meaning"`` help text.
+
+    Each ``||`` segment goes to the longest choice label it starts with
+    (case-insensitive) followed by optional spaces and ``-``; that becomes the
+    choice's description. Returns the choices and the unmatched segments
+    (general help text). Choices keep any description they already have."""
     if not helptext or "||" not in helptext:
-        return tuple(choices)
+        return tuple(choices), helptext.strip()
+    segs = [" ".join(x.split()) for x in helptext.split("||")]
+    names = sorted({" ".join((c.label or c.value).split()): (c.label or c.value) for c in choices
+                    if (c.label or c.value)}.items(), key=lambda kv: len(kv[0]), reverse=True)
     found: dict[str, str] = {}
-    for seg in helptext.split("||"):
-        seg = " ".join(seg.split())
-        m = re.match(r"^(.+?)\s*-\s*(.+)$", seg)
-        if m:
-            found[norm(m.group(1))] = m.group(2).strip()
+    rest: list[str] = []
+    for seg in segs:
+        if not seg:
+            continue
+        low = seg.lower()
+        for flat, name in names:
+            if low.startswith(flat.lower()):
+                m = re.match(r"\s*-\s*(.+)$", seg[len(flat):])
+                if m:
+                    found.setdefault(norm(name), m.group(1).strip())
+                    break
+        else:
+            rest.append(seg)
     out = []
     for c in choices:
         d = found.get(norm(c.label)) or found.get(norm(c.value))
-        out.append(Choice(c.value, c.label, c.id, c.display_id, d or c.description, c.visible, c.children) if d else c)
-    return tuple(out)
+        out.append(replace(c, description=d) if d else c)
+    return tuple(out), " ".join(rest)
+
+
+def attach_choice_descriptions(choices: Sequence[Choice], helptext: str) -> tuple[Choice, ...]:
+    return split_choice_help(choices, helptext)[0]
 
 
 def _fields_from_form_field(f: Mapping[str, Any], warnings: list[str]) -> list[Field]:
@@ -573,8 +593,9 @@ def _fields_from_form_field(f: Mapping[str, Any], warnings: list[str]) -> list[F
         lookup_entity = "change_window"
     if kind == "datetime" and (f.get("date_only") is True or str(f.get("date_only")).lower() == "true"):
         kind = "date"
-    helptext = str(f.get("helptext") or "")
-    choices = attach_choice_descriptions(_parse_choices(f.get("choices")), helptext)
+    ht = f.get("helptext")
+    helptext = ht if isinstance(ht, str) else ""  # `hint` is a boolean show/hide flag; never text
+    choices, helptext = split_choice_help(_parse_choices(f.get("choices")), helptext)
     position = f.get("position")
     required = f.get("required")
     if required is None:
@@ -696,9 +717,13 @@ def _field_from_sr(
         label = str(opts.get("content_name") or "Notice")
     raw_choices = sorted(c.get("choices") or [], key=lambda x: x.get("position") or 0)
     choices = tuple(
-        Choice(value=str(x.get("value")), label=str(x.get("label", x.get("value"))), id=x.get("id"))
+        Choice(value=str(x.get("value")), label=str(x.get("label", x.get("value"))), id=x.get("id"),
+               description=" ".join(str(x.get("description") or "").split()))
         for x in raw_choices
     )
+    ht = c.get("helptext")
+    helptext = ht if isinstance(ht, str) else ""  # a boolean `hint` is a show/hide flag, never text
+    choices, helptext = split_choice_help(choices, helptext)
     sections: list[dict[str, Any]] = []
     info = opts.get("section_info")
     if info:
@@ -741,6 +766,8 @@ def _field_from_sr(
         choices=choices,
         required_base=bool(c.get("required")),
         position=c.get("position"),
+        helptext=helptext,
+        hint=c.get("hint") is True,
         placeholder=plain_text(str(c.get("placeholder") or "")),
         is_custom=True,
         field_type=f"formserv:{code}",

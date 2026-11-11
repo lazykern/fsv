@@ -120,7 +120,7 @@ class Plan:
             "plan_hash": self.hash or None,
             "action": self.action,
             "target": self.target,
-            "payload": self.payload,
+            "payload": self.payload if self.ok else None,  # never a partial payload
             "after": {
                 "attachments": [sha256_file(p) for p in self.files.get("attachments", []) if os.path.isfile(p)],
                 "planning": [

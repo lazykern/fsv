@@ -36,6 +36,7 @@ from fsv.drafts import (
 )
 from fsv.forms import Field, FormError, FormState, LookupValue
 from fsv.render import console, err
+from fsv.review import NO_PAYLOAD
 
 app = typer.Typer(
     name="sr",
@@ -327,7 +328,7 @@ def render_sr_template(plan: cat.SRPlan, *, errors: list[str] | None = None, req
             lines.append(f"  # choices: {' | '.join(labels[:MAX_CHOICES_SHOWN])}{more}")
             for c in pool[:MAX_CHOICES_SHOWN]:
                 if c.description:
-                    lines.append(f"  #   {c.label}: {_one_line(c.description, 120)}")
+                    lines.append(f"  #   {c.label} — {_one_line(c.description, 120)}")
             rv = _reveals(spec, f)
             for c in pool[:MAX_CHOICES_SHOWN]:
                 if rv.get(cat.norm(c.value)):
@@ -465,8 +466,8 @@ def _print_plan(plan: cat.SRPlan, *, as_json: bool) -> None:
         return
     plan.review.render(console)
     console.print(f"[bold red]⚠ {escape(cat.SAFETY)}[/bold red]", highlight=False)
-    if plan.payload is None:
-        console.print("[dim]No payload yet: fix the problems above first.[/dim]", highlight=False)
+    if plan.payload is None or not plan.ok:
+        console.print(f"[dim]{NO_PAYLOAD}[/dim]", highlight=False)
     else:
         console.print(f"[bold]Payload[/bold] (POST /api/_/catalog/service-items/{plan.meta.display_id}/place-request; "
                       "<upload N: name> becomes the attachment id after upload)", highlight=False)
@@ -654,10 +655,10 @@ def create_command(
                "uploaded": result["uploaded"], "steps": result["steps"]})
         return
     url = cat.domain_url(f"/a/tickets/{ref['id']}") if ref.get("id") is not None else ""
-    console.print(f"[green]placed[/green] {escape(ref['display'])}  {url}", highlight=False)
     for u in result["uploaded"]:
         console.print(f"  [green]ok[/green] uploaded {escape(u['name'])} -> {u['id']} ({escape(u['target'])})",
                       highlight=False)
+    console.print(f"[green]placed[/green] {escape(ref['display'])}  {url}", highlight=False)
 
 
 @app.command("create", epilog=(
@@ -839,9 +840,11 @@ def get_cmd(
                           highlight=False)
     for d in downloads:
         style = {"downloaded": "green", "exists": "yellow"}.get(d["status"], "red")
-        extra = d.get("path") or d.get("error") or ""
-        console.print(f"  [{style}]{d['status']}[/{style}] {escape(str(d['name']))}  {escape(str(extra))}",
+        extra = d.get("error") or ""
+        console.print(f"  [{style}]{d['status']}[/{style}] {escape(str(d['name']))}  {escape(str(extra))}".rstrip(),
                       highlight=False)
+    if download is not None and any(d["status"] in ("downloaded", "exists") for d in downloads):
+        console.print(f"Saved to {escape(str(download))}", highlight=False, soft_wrap=True)
     if bad:
         raise typer.Exit(2)
 

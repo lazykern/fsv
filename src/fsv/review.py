@@ -88,3 +88,6 @@ class Review:
               highlight=False)
         if self.plan_hash:
             p(f"[bold]plan[/bold] {self.plan_hash}", highlight=False)
+
+
+NO_PAYLOAD = "No payload yet — fix the problems above"

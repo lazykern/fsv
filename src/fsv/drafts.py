@@ -339,6 +339,9 @@ def render_template(
                 more = (f" | … ({len(labels)} total; fsv form fields {module_cli} --choices "
                         f"{yamlio.scalar(f.label)})") if len(labels) > MAX_CHOICES_SHOWN else ""
                 lines.append(f"  # choices: {shown}{more}")
+                for c in pool[:MAX_CHOICES_SHOWN]:
+                    if c.description:
+                        lines.append(f"  #   {c.label} — {_one_line(c.description, 120)}")
         if f.placeholder and not f.choices:
             lines.append(f"  # e.g. {_one_line(f.placeholder, 80)}")
         value = _value_for_yaml(state, f)

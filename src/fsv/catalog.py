@@ -390,7 +390,7 @@ class SRPlan:
             "endpoint": f"POST /api/_/catalog/service-items/{self.meta.display_id}/place-request",
             "requester": None if self.requester is None else
             {"id": self.requester.id, "name": self.requester.display, "email": self.requester.email},
-            "payload": self.payload,
+            "payload": self.payload if self.ok else None,  # never a partial payload
             "uploads": [{"placeholder": u.placeholder, "target": u.label, **_digest(u.path)}
                         for u in self.uploads if os.path.isfile(u.path)],
             "safety": SAFETY,
@@ -426,7 +426,8 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
         errors.append("planning: is for changes; service requests have no planning fields")
     answers, notes = lenient_answers(spec, draft.answers)
     warnings += notes
-    errors += apply_answers(state, answers)
+    failed: set[str] = set()
+    errors += apply_answers(state, answers, failed)
     warnings += _acknowledge(state, draft.ack, ack_all)
 
     uploads: list[Upload] = []
@@ -447,11 +448,12 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
     general_ph: list[str] = []
     for p in draft.attachments:
         ph = f"<upload {len(uploads) + 1}: {os.path.basename(p)}>"
-        uploads.append(Upload(ph, p, "attachments", "attachments"))
+        uploads.append(Upload(ph, p, "attachments", "Other attachments"))
         general_ph.append(ph)
     errors += [f"file not found: {u.path}" for u in uploads if not os.path.isfile(u.path)]
 
-    problems = list(errors) + state.errors()
+    skip = {f"{spec.by_name[n].label} is required" for n in failed}  # one report per field
+    problems = list(errors) + [p for p in state.errors() if p not in skip]
     need = ev.attachments_required
     if (item.attachment_mandatory if need is None else need) and not draft.attachments:
         problems.append("this item requires at least one general attachment: add `attachments: [FILE]` "
