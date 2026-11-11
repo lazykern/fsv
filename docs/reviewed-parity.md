@@ -154,6 +154,36 @@ required task fields block it. Task edit/complete/delete and broader scheduling
 are not inferred from create. No accepted live problem write is claimed; all
 adapter tests run offline with two synthetic tenants.
 
+## Native columns and export requests
+
+```sh
+fsv tickets columns list --json
+fsv tickets columns set --column ticket_subject --column requester --column status --dry-run --json
+fsv changes columns set --column requester --column ticket_subject --column status --freeze requester --dry-run --json
+fsv problems export --view 701 --field subject --field status_name --field display_id --dry-run --json
+```
+
+All three modules expose these commands. Column names/labels come from fresh
+runtime headers. Ordered columns keep the captured display-ID anchor alongside
+the subject; only change-requester freezing beyond that anchor was captured.
+The final POST is single-attempt and hash-bound to the prior metadata. Readback
+requires selected/position/frozen evidence and checks deselected columns too;
+missing preference fields are unverified, not inferred. Account preference scope
+is not proven private: review before altering it.
+
+Native `export` is separate from `ls --output csv` (local read-only rendering).
+Only the captured CSV, 30-day, created-at dialog variant is supported. Field keys
+are the captured wire keys, labels come from runtime headers, and the full
+ordinary saved-view query is copied without inventing choice IDs. Advanced
+queries/custom export fields/other format-date variants are blocked. Use the
+full hash with `--yes --expect-plan FULL_HASH` for either write.
+
+Export requests may email data or launch a job. The source view is read back,
+but **job/delivery/download verification is unavailable**: `verified` remains
+false, and no filename, job ID, polling endpoint or successful download is
+fabricated. An unknown response never causes another export attempt. The
+contracts were browser-aborted; public tests use synthetic HTTP only.
+
 ## Self watchers
 
 ```sh

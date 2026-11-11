@@ -3901,6 +3901,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
 
         sub.add_typer(associations_app, name="associations")
 
+    from fsv.list_preferences_cli import register as register_list_preferences
+    register_list_preferences(sub, res, lambda: _client())
     if res.name == "problems":
         from fsv.problem_cli import register as register_problem
         register_problem(sub, lambda: _client())
