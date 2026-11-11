@@ -2,16 +2,60 @@ from __future__ import annotations
 
 import json
 import os
+import sys
+import tempfile
+import time
 from pathlib import Path
 from urllib.parse import urlparse
 
-CONFIG_DIR = Path(os.environ.get("FSV_CONFIG_DIR", Path.home() / ".config" / "fsv"))
-CACHE_DIR = Path(os.environ.get("FSV_CACHE_DIR", Path.home() / ".cache" / "fsv"))
+# Paths are derived from FSV_CONFIG_DIR / FSV_CACHE_DIR.  They are module
+# globals (kept for backwards compatibility) but are recomputed by
+# refresh_paths(), which tests call after pointing the env at a tmp dir.
+CONFIG_DIR: Path
+CACHE_DIR: Path
+CONFIG_FILE: Path
+SESSION_FILE: Path
+SCHEMA_DIR: Path
+FILTERS_DIR: Path
 
-CONFIG_FILE = CONFIG_DIR / "config.json"
-SESSION_FILE = CONFIG_DIR / "session.json"
-SCHEMA_DIR = CACHE_DIR / "schema"
-FILTERS_DIR = CACHE_DIR / "filters"
+
+def refresh_paths() -> None:
+    """Recompute all path globals from the current environment."""
+    global CONFIG_DIR, CACHE_DIR, CONFIG_FILE, SESSION_FILE, SCHEMA_DIR, FILTERS_DIR
+    CONFIG_DIR = Path(os.environ.get("FSV_CONFIG_DIR") or Path.home() / ".config" / "fsv")
+    CACHE_DIR = Path(os.environ.get("FSV_CACHE_DIR") or Path.home() / ".cache" / "fsv")
+    CONFIG_FILE = CONFIG_DIR / "config.json"
+    SESSION_FILE = CONFIG_DIR / "session.json"
+    SCHEMA_DIR = CACHE_DIR / "schema"
+    FILTERS_DIR = CACHE_DIR / "filters"
+
+
+refresh_paths()
+
+
+def display_path(path: Path) -> str:
+    """Human-friendly path (``~`` for home) for messages."""
+    try:
+        return "~/" + str(path.relative_to(Path.home()))
+    except ValueError:
+        return str(path)
+
+
+def atomic_write_text(path: Path, text: str, mode: int = 0o600) -> None:
+    """Write *text* to *path* atomically (tempfile + os.replace) with *mode*."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+        os.chmod(tmp, mode)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def ensure_dirs() -> None:
@@ -26,26 +70,45 @@ def load_config() -> dict:
         return {}
     try:
         data = json.loads(CONFIG_FILE.read_text())
-    except Exception:
+        if not isinstance(data, dict):
+            raise ValueError("config root is not an object")
+    except Exception as e:
+        # Never silently discard (and later overwrite) a corrupt config.
+        backup = CONFIG_FILE.with_name(f"{CONFIG_FILE.name}.corrupt-{int(time.time())}")
+        try:
+            os.replace(CONFIG_FILE, backup)
+            where = f"backed up to {backup}"
+        except OSError:
+            where = "could not be backed up"
+        print(f"warning: {CONFIG_FILE} is unreadable ({e}); {where}; starting with empty config",
+              file=sys.stderr)
         return {}
-    return data if isinstance(data, dict) else {}
+    return data
 
 
 def save_config(data: dict) -> None:
     ensure_dirs()
-    CONFIG_FILE.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n")
-    CONFIG_FILE.chmod(0o600)
+    atomic_write_text(CONFIG_FILE, json.dumps(data, indent=2, sort_keys=True) + "\n")
 
 
-def normalize_domain(value: str) -> str:
+def normalize_domain(value: str, warn: bool = False) -> str:
     raw = value.strip()
     if not raw:
         raise ValueError("empty domain")
+    if any(ch.isspace() for ch in raw):
+        raise ValueError("domain must not contain whitespace")
     parsed = urlparse(raw if "://" in raw else f"https://{raw}")
-    host = (parsed.netloc or parsed.path).split("/", 1)[0].strip().lower()
-    host = host.rstrip("/")
-    if not host or "." not in host:
+    netloc = parsed.netloc or parsed.path.split("/", 1)[0]
+    if "@" in netloc:
+        raise ValueError("domain must not contain user info ('@')")
+    host = netloc.lower().rstrip("/")
+    if ":" in host:
+        raise ValueError("domain must not contain a port")
+    if not host or "." not in host or host.startswith(".") or host.endswith("."):
         raise ValueError("domain must look like acme.freshservice.com")
+    if warn and not host.endswith(".freshservice.com"):
+        print(f"warning: {host} is not a *.freshservice.com domain; "
+              "session cookies will be sent to it", file=sys.stderr)
     return host
 
 
@@ -71,7 +134,7 @@ API_V2, API_INT, LOGIN_URL = _urls(DOMAIN)
 
 def set_domain(value: str) -> str:
     global DOMAIN, API_V2, API_INT, LOGIN_URL
-    domain = normalize_domain(value)
+    domain = normalize_domain(value, warn=True)
     cfg = load_config()
     cfg["domain"] = domain
     save_config(cfg)
@@ -134,3 +197,11 @@ def groups_cache_path(domain: str | None = None) -> Path:
 
 def groups_cache_candidates(domain: str | None = None) -> list[Path]:
     return [groups_cache_path(domain)]
+
+
+def reload() -> None:
+    """Re-read paths from env and the domain from the config file (tests/tools)."""
+    global DOMAIN, API_V2, API_INT, LOGIN_URL
+    refresh_paths()
+    DOMAIN = _configured_domain()
+    API_V2, API_INT, LOGIN_URL = _urls(DOMAIN)

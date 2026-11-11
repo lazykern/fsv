@@ -37,10 +37,10 @@ def ttl_for(kind: str) -> int:
 # ---------------------------------------------------------------------------
 
 def _atomic_write(path: Path, payload: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(path.suffix + f".{os.getpid()}.{threading.get_ident()}.tmp")
-    tmp.write_text(payload, encoding="utf-8")
-    os.replace(tmp, path)
+    """Write via a unique temp file + os.replace, mode 0600."""
+    from fsv.config import atomic_write_text
+
+    atomic_write_text(path, payload)
 
 
 # ---------------------------------------------------------------------------
@@ -62,10 +62,14 @@ def load(path: Path) -> tuple[dict[str, Any] | None, bool]:
         doc = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return None, True
+    if not isinstance(doc, dict):  # e.g. a bare JSON list from an older version
+        return None, True
     now = time.time()
-    saved = doc.get("saved_at", 0)
-    if not saved:
-        saved = path.stat().st_mtime  # backward compat: use file mtime
+    saved = doc.get("saved_at")
+    if not isinstance(saved, (int, float)) or isinstance(saved, bool):
+        saved = 0
+    if saved == 0 and "saved_at" not in doc:
+        saved = path.stat().st_mtime  # backward compat: legacy files with no saved_at
     kind = doc.get("_kind", "")
     stale = (now - saved) > ttl_for(kind)
     return doc, stale
@@ -94,6 +98,8 @@ def update_meta(path: Path, *, checked_at: bool = False, fetch_inc: bool = False
         doc = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return
+    if not isinstance(doc, dict):
+        return
     now = time.time()
     if checked_at:
         doc["checked_at"] = now
@@ -110,7 +116,11 @@ def mark_stale(path: Path) -> None:
         doc = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return
-    doc["saved_at"] = 0
+    if not isinstance(doc, dict):
+        return
+    # Must be non-missing: a missing saved_at falls back to file mtime (fresh).
+    # An explicit epoch-ish value is always older than any TTL.
+    doc["saved_at"] = 1.0
     _atomic_write(path, json.dumps(doc, indent=2, ensure_ascii=False))
 
 

@@ -43,6 +43,10 @@ class _FakeClient:
 def _patch(monkeypatch):
     monkeypatch.setattr(cli, "_client", lambda: _FakeClient())
     monkeypatch.setattr(schema_mod, "load", lambda res, c=None: SCHEMA)
+    # change_template() builds from the schema; keep it offline/hermetic
+    import fsv.create as create_mod
+    monkeypatch.setattr(create_mod, "_get_change_schema_fields", lambda: [
+        {**f, "required": True} if f["name"] == "subject" else f for f in SCHEMA["fields"]])
 
 
 def _dry(args):
