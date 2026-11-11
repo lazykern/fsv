@@ -14,7 +14,9 @@ use fsv_core::pystr;
 use fsv_forms::pydt;
 
 const WEEKDAYS: [&str; 7] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const MONTHS: [&str; 12] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS: [&str; 12] = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
 
 /// `parse_dt`: ISO text → instant. Naive values are UTC. `""`/`null` → `None`.
 pub fn parse_dt(value: &Value) -> Option<Timestamp> {
@@ -34,8 +36,11 @@ pub fn parse_dt_str(text: &str) -> Option<Timestamp> {
 }
 
 pub fn is_date_only(value: &Value) -> bool {
-    static DATE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d{4}-\d{2}-\d{2}$").expect("regex"));
-    value.as_str().is_some_and(|s| DATE.is_match(pystr::strip(s)))
+    static DATE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^\d{4}-\d{2}-\d{2}$").expect("regex"));
+    value
+        .as_str()
+        .is_some_and(|s| DATE.is_match(pystr::strip(s)))
 }
 
 /// `fmt_when`: `Fri, 27 Nov 2026 14:07` in `tz` (system zone when `None`).
@@ -55,7 +60,11 @@ pub fn fmt_when(value: &Value, tz: Option<&TimeZone>, year: bool) -> String {
         return fsv_py::py_str(value);
     };
     let zoned = to_zone(when, tz);
-    let yr = if year { format!(" {}", zoned.year()) } else { String::new() };
+    let yr = if year {
+        format!(" {}", zoned.year())
+    } else {
+        String::new()
+    };
     format!(
         "{}, {} {}{yr} {:02}:{:02}",
         weekday(zoned.date()),
@@ -114,7 +123,11 @@ pub fn relative(value: &Value, now: Option<Timestamp>) -> String {
     } else {
         format!("{} years", r(s / (365.0 * 86400.0)))
     };
-    if future { format!("in {text}") } else { format!("{text} ago") }
+    if future {
+        format!("in {text}")
+    } else {
+        format!("{text} ago")
+    }
 }
 
 /// `span`: two most significant units (`2w 1d`, `3h 20m`, `45m`).
@@ -135,7 +148,11 @@ pub fn span(seconds: Option<f64>) -> String {
                 n += 1;
                 sub = 0;
             }
-            return if sub != 0 { format!("{n}{name} {sub}{sub_name}") } else { format!("{n}{name}") };
+            return if sub != 0 {
+                format!("{n}{name} {sub}{sub_name}")
+            } else {
+                format!("{n}{name}")
+            };
         }
         return format!("{n}{name}");
     }
@@ -159,8 +176,9 @@ pub fn html_to_text_str(raw: &str) -> String {
         LazyLock::new(|| FancyRegex::new(r"(?is)<(script|style)\b.*?</\1>").expect("regex"));
     static BR: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)<br\s*/?>").expect("regex"));
     static LI: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)<li\b[^>]*>").expect("regex"));
-    static BLOCK_END: LazyLock<Regex> =
-        LazyLock::new(|| Regex::new(r"(?i)</(p|div|li|tr|h[1-6]|ul|ol|table|blockquote)>").expect("regex"));
+    static BLOCK_END: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"(?i)</(p|div|li|tr|h[1-6]|ul|ol|table|blockquote)>").expect("regex")
+    });
     static TAG: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"<[^>]+>").expect("regex"));
     static SPACES: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[ \t]+").expect("regex"));
 
@@ -194,18 +212,26 @@ pub fn py_splitlines(s: &str) -> Vec<&str> {
     while let Some((i, c)) = chars.next() {
         let boundary = matches!(
             c,
-            '\n' | '\r' | '\u{0b}' | '\u{0c}' | '\u{1c}' | '\u{1d}' | '\u{1e}' | '\u{85}' | '\u{2028}' | '\u{2029}'
+            '\n' | '\r'
+                | '\u{0b}'
+                | '\u{0c}'
+                | '\u{1c}'
+                | '\u{1d}'
+                | '\u{1e}'
+                | '\u{85}'
+                | '\u{2028}'
+                | '\u{2029}'
         );
         if !boundary {
             continue;
         }
         out.push(&s[start..i]);
         let mut end = i + c.len_utf8();
-        if c == '\r' {
-            if let Some((j, '\n')) = chars.peek().copied() {
-                chars.next();
-                end = j + 1;
-            }
+        if c == '\r'
+            && let Some((j, '\n')) = chars.peek().copied()
+        {
+            chars.next();
+            end = j + 1;
         }
         start = end;
     }
@@ -234,19 +260,40 @@ mod tests {
     #[test]
     fn relative_wording() {
         let now = parse_dt_str("2026-11-12T12:00:00Z").unwrap();
-        assert_eq!(relative(&json!("2026-11-12T11:59:30Z"), Some(now)), "a few seconds ago");
-        assert_eq!(relative(&json!("2026-11-10T12:00:00Z"), Some(now)), "2 days ago");
-        assert_eq!(relative(&json!("2026-11-12T15:00:00Z"), Some(now)), "in 3 hours");
+        assert_eq!(
+            relative(&json!("2026-11-12T11:59:30Z"), Some(now)),
+            "a few seconds ago"
+        );
+        assert_eq!(
+            relative(&json!("2026-11-10T12:00:00Z"), Some(now)),
+            "2 days ago"
+        );
+        assert_eq!(
+            relative(&json!("2026-11-12T15:00:00Z"), Some(now)),
+            "in 3 hours"
+        );
         assert_eq!(relative(&json!("nope"), Some(now)), "");
     }
 
     #[test]
     fn fmt_when_formats() {
         let utc = TimeZone::UTC;
-        assert_eq!(fmt_when(&json!("2026-11-27T14:07:00Z"), Some(&utc), true), "Fri, 27 Nov 2026 14:07");
-        assert_eq!(fmt_when(&json!("2026-11-09T14:07:00Z"), Some(&utc), false), "Mon, 9 Nov 14:07");
-        assert_eq!(fmt_when(&json!("2026-11-27"), Some(&utc), true), "Fri, 27 Nov 2026");
-        assert_eq!(fmt_when(&json!("2031-02-30"), Some(&utc), true), "2031-02-30");
+        assert_eq!(
+            fmt_when(&json!("2026-11-27T14:07:00Z"), Some(&utc), true),
+            "Fri, 27 Nov 2026 14:07"
+        );
+        assert_eq!(
+            fmt_when(&json!("2026-11-09T14:07:00Z"), Some(&utc), false),
+            "Mon, 9 Nov 14:07"
+        );
+        assert_eq!(
+            fmt_when(&json!("2026-11-27"), Some(&utc), true),
+            "Fri, 27 Nov 2026"
+        );
+        assert_eq!(
+            fmt_when(&json!("2031-02-30"), Some(&utc), true),
+            "2031-02-30"
+        );
         assert_eq!(fmt_when(&json!("soon"), Some(&utc), true), "soon");
         assert_eq!(fmt_when(&json!(null), Some(&utc), true), "");
     }
@@ -254,7 +301,9 @@ mod tests {
     #[test]
     fn html_flattening() {
         assert_eq!(
-            html_to_text_str("<p>One&nbsp;<b>two</b></p><ul><li>a</li><li>b</li></ul><script>x</script>"),
+            html_to_text_str(
+                "<p>One&nbsp;<b>two</b></p><ul><li>a</li><li>b</li></ul><script>x</script>"
+            ),
             "One two\n\n• a\n\n• b"
         );
         assert_eq!(one_line(&json!("<div>a</div>\n<div>b</div>")), "a b");

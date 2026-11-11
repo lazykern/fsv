@@ -14,22 +14,38 @@ pub type Choice = (i64, String);
 pub fn active_choices(fields: &[Value]) -> Result<Vec<Choice>, QueryError> {
     let statuses: Vec<&Value> = fields
         .iter()
-        .filter(|f| f.as_object().is_some_and(|o| o.get("name").and_then(Value::as_str) == Some("status")))
+        .filter(|f| {
+            f.as_object()
+                .is_some_and(|o| o.get("name").and_then(Value::as_str) == Some("status"))
+        })
         .collect();
     if statuses.len() != 1 {
         return Err(err("exactly one runtime task-status field is required"));
     }
     let mut result = Vec::new();
-    for choice in statuses[0].get("choices").and_then(Value::as_array).into_iter().flatten() {
+    for choice in statuses[0]
+        .get("choices")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
         let Some(choice) = choice.as_object() else {
             return Err(err("invalid task-status choice"));
         };
-        if ["deleted", "is_deleted", "deleted_at", "deactivated"].iter().any(|k| truthy(choice.get(*k))) {
+        if ["deleted", "is_deleted", "deleted_at", "deactivated"]
+            .iter()
+            .any(|k| truthy(choice.get(*k)))
+        {
             continue;
         }
         let ident = choice.get("id");
-        let label = ["value", "label", "name"].iter().find_map(|k| choice.get(*k).and_then(Value::as_str));
-        let Some((id, label)) = ident.and_then(positive_id).zip(label.map(str::trim).filter(|s| !s.is_empty())) else {
+        let label = ["value", "label", "name"]
+            .iter()
+            .find_map(|k| choice.get(*k).and_then(Value::as_str));
+        let Some((id, label)) = ident
+            .and_then(positive_id)
+            .zip(label.map(str::trim).filter(|s| !s.is_empty()))
+        else {
             return Err(err("invalid active task-status identity"));
         };
         result.push((id, label.to_string()));
@@ -54,7 +70,9 @@ pub fn resolve(value: &str, fields: &[Value]) -> Result<Choice, QueryError> {
         .filter(|(id, label)| key == id.to_string() || key == label.to_lowercase())
         .collect();
     if matches.len() != 1 {
-        return Err(err("status must match one active runtime task-status ID or label"));
+        return Err(err(
+            "status must match one active runtime task-status ID or label",
+        ));
     }
     Ok(matches[0].clone())
 }
@@ -72,7 +90,9 @@ pub fn fields_from_payload(data: &Value) -> Result<Vec<Value>, QueryError> {
 /// `display`. Unknown values render as `3 (unknown)` rather than a guessed label.
 pub fn display(value: &Value, fields: Option<&[Value]>) -> String {
     if let Some(obj) = value.as_object() {
-        let picked = ["name", "label", "value", "id"].iter().find_map(|k| obj.get(*k).filter(|v| !v.is_null()));
+        let picked = ["name", "label", "value", "id"]
+            .iter()
+            .find_map(|k| obj.get(*k).filter(|v| !v.is_null()));
         return match picked {
             Some(Value::String(s)) => s.clone(),
             Some(other) => other.to_string(),
@@ -130,15 +150,25 @@ mod tests {
     use serde_json::json;
 
     fn fields(ids: &[i64], labels: &[&str]) -> Vec<Value> {
-        let choices: Vec<Value> = ids.iter().zip(labels).map(|(i, v)| json!({"id": i, "value": v})).collect();
+        let choices: Vec<Value> = ids
+            .iter()
+            .zip(labels)
+            .map(|(i, v)| json!({"id": i, "value": v}))
+            .collect();
         vec![json!({"name": "status", "choices": choices})]
     }
 
     #[test]
     fn resolves_id_or_label_per_tenant() {
         let cases = [
-            (vec![71, 82, 93, 104], ["Open", "In Progress", "Completed", "Blocked"]),
-            (vec![11, 22, 33, 44], ["Neu", "In Arbeit", "Fertig", "Gesperrt"]),
+            (
+                vec![71, 82, 93, 104],
+                ["Open", "In Progress", "Completed", "Blocked"],
+            ),
+            (
+                vec![11, 22, 33, 44],
+                ["Neu", "In Arbeit", "Fertig", "Gesperrt"],
+            ),
         ];
         for (ids, labels) in cases {
             let defs = fields(&ids, &labels);

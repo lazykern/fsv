@@ -9,10 +9,14 @@ use fsv_forms::payload::format_requester;
 use fsv_forms::{FormState, build_br_validation_excludes};
 use fsv_py::{py_str, truthy};
 
-use crate::formmeta::{MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, is_status, load_meta, resolve_requester};
+use crate::formmeta::{
+    MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, is_status, load_meta, resolve_requester,
+};
 use crate::notes::{self, BodyFormat, EMAIL, note_id, returned_note, valid_recipient};
 use crate::properties::{dumps_sorted, record};
-use crate::service::{Api, Journal, definite_rejection, last_event, load_conversations, obj, plan_hash};
+use crate::service::{
+    Api, Journal, definite_rejection, last_event, load_conversations, obj, plan_hash,
+};
 
 /// `ConversationError`: a safe user-facing failure.
 fn refused(msg: impl Into<String>) -> Error {
@@ -35,7 +39,8 @@ pub fn recipients(c: &dyn Api, emails: &[String]) -> Result<Vec<String>> {
             if pe.is_empty() || fsv_core::pystr::casefold(&pe) != fsv_core::pystr::casefold(email) {
                 return Err(Error::value("not an exact email match"));
             }
-            let value = format_requester(&pe, Some(&person.display)).map_err(|e| Error::value(e.to_string()))?;
+            let value = format_requester(&pe, Some(&person.display))
+                .map_err(|e| Error::value(e.to_string()))?;
             if !valid_recipient(&value) {
                 return Err(Error::value("invalid formatted address"));
             }
@@ -46,7 +51,12 @@ pub fn recipients(c: &dyn Api, emails: &[String]) -> Result<Vec<String>> {
     Ok(out)
 }
 
-fn status_inner(c: &dyn Api, store: &dyn MetaStore, cid: i64, label: &str) -> Result<(i64, String, String)> {
+fn status_inner(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    cid: i64,
+    label: &str,
+) -> Result<(i64, String, String)> {
     let bad = |m: &str| Error::value(m.to_string());
     let row = record(c, cid)?;
     let meta = load_meta(c, store, "ticket", "edit", true, &json!(cid))?;
@@ -64,31 +74,65 @@ fn status_inner(c: &dyn Api, store: &dyn MetaStore, cid: i64, label: &str) -> Re
     let choices: Vec<_> = field
         .choices
         .iter()
-        .filter(|ch| ch.visible && (fsv_core::pystr::casefold(&ch.label) == want || fsv_core::pystr::casefold(&ch.value) == want))
+        .filter(|ch| {
+            ch.visible
+                && (fsv_core::pystr::casefold(&ch.label) == want
+                    || fsv_core::pystr::casefold(&ch.value) == want)
+        })
         .collect();
     let id = match choices.as_slice() {
-        [one] => one.id.as_ref().and_then(|v| if v.is_i64() || v.is_u64() { v.as_i64() } else { None }).filter(|i| *i > 0),
+        [one] => one
+            .id
+            .as_ref()
+            .and_then(|v| {
+                if v.is_i64() || v.is_u64() {
+                    v.as_i64()
+                } else {
+                    None
+                }
+            })
+            .filter(|i| *i > 0),
         _ => None,
     };
-    let Some(id) = id else { return Err(bad("status choice not unique")) };
-    state.set(&field.api_name, fsv_forms::Value::from(choices[0].value.clone())).map_err(|e| Error::other(e.to_string()))?;
+    let Some(id) = id else {
+        return Err(bad("status choice not unique"));
+    };
+    state
+        .set(
+            &field.api_name,
+            fsv_forms::Value::from(choices[0].value.clone()),
+        )
+        .map_err(|e| Error::other(e.to_string()))?;
     let errors = state.errors().map_err(|e| Error::other(e.to_string()))?;
     if !state.evaluated.visible.contains(&field.api_name)
         || !errors.is_empty()
         || !state.rules.unavailable_dependencies("edit").is_empty()
-        || state.rules.warnings().iter().any(|w| w.contains("unknown field") || w.contains("none was given"))
+        || state
+            .rules
+            .warnings()
+            .iter()
+            .any(|w| w.contains("unknown field") || w.contains("none was given"))
     {
         return Err(bad("status form rules or context unavailable"));
     }
-    let token = build_br_validation_excludes(&state.evaluated, "ticket", &Value::Null, &Value::Null).map_err(|e| Error::other(e.to_string()))?;
+    let token =
+        build_br_validation_excludes(&state.evaluated, "ticket", &Value::Null, &Value::Null)
+            .map_err(|e| Error::other(e.to_string()))?;
     Ok((id, token, plan_hash(&Value::Object(row))))
 }
 
 /// `status_context`: the Pending status id, its business-rule token and the
 /// record hash, from fresh edit-form metadata. Only Pending was captured.
-pub fn status_context(c: &dyn Api, store: &dyn MetaStore, cid: i64, label: &str) -> Result<(i64, String, String)> {
+pub fn status_context(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    cid: i64,
+    label: &str,
+) -> Result<(i64, String, String)> {
     if fsv_core::pystr::casefold(label) != "pending" {
-        return Err(Error::value("only the Pending status transition was captured; use the web form for other statuses"));
+        return Err(Error::value(
+            "only the Pending status transition was captured; use the web form for other statuses",
+        ));
     }
     status_inner(c, store, cid, label)
         .map_err(|_| refused("could not resolve Pending and evaluate ticket rules from fresh metadata; no send attempted"))
@@ -111,17 +155,29 @@ impl ConversationPlan {
     }
 
     pub fn path(&self) -> String {
-        format!("tickets/{}/{}", self.ticket_id, if self.kind == "reply" { "reply" } else { "notes" })
+        format!(
+            "tickets/{}/{}",
+            self.ticket_id,
+            if self.kind == "reply" {
+                "reply"
+            } else {
+                "notes"
+            }
+        )
     }
 
     pub fn hash(&self) -> String {
-        plan_hash(&json!({"tenant": self.tenant, "path": self.path(), "payload": self.payload(), "record_hash": self.record_hash}))
+        plan_hash(
+            &json!({"tenant": self.tenant, "path": self.path(), "payload": self.payload(), "record_hash": self.record_hash}),
+        )
     }
 
     pub fn review(&self) -> Map<String, Value> {
-        obj(json!({"action": format!("ticket_{}", self.kind), "method": "POST", "path": format!("/api/_/{}", self.path()),
+        obj(
+            json!({"action": format!("ticket_{}", self.kind), "method": "POST", "path": format!("/api/_/{}", self.path()),
                    "payload": self.payload(), "status_label": self.status_label, "plan_hash": self.hash(),
-                   "warning": "A reply is public and may notify recipients; notes may also trigger tenant workflows."}))
+                   "warning": "A reply is public and may notify recipients; notes may also trigger tenant workflows."}),
+        )
     }
 }
 
@@ -139,18 +195,38 @@ pub struct ConversationArgs<'a> {
 
 impl Default for ConversationArgs<'_> {
     fn default() -> Self {
-        ConversationArgs { kind: "reply", cc: &[], public: false, notify: &[], format: BodyFormat::Plain, set_status: None }
+        ConversationArgs {
+            kind: "reply",
+            cc: &[],
+            public: false,
+            notify: &[],
+            format: BodyFormat::Plain,
+            set_status: None,
+        }
     }
 }
 
 /// `build_plan`: the exact reply/note payload, with the status change and
 /// its rules token when `set_status` is given.
-pub fn build_plan(c: &dyn Api, store: &dyn MetaStore, ticket_id: &str, body: &str, args: &ConversationArgs<'_>) -> Result<ConversationPlan> {
+pub fn build_plan(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    ticket_id: &str,
+    body: &str,
+    args: &ConversationArgs<'_>,
+) -> Result<ConversationPlan> {
     if args.kind != "reply" && args.kind != "note" {
         return Err(Error::value("invalid conversation kind"));
     }
     let tenant = c.domain();
-    let note = notes::build_plan(ticket_id, body, args.public, args.notify, args.format, &tenant)?;
+    let note = notes::build_plan(
+        ticket_id,
+        body,
+        args.public,
+        args.notify,
+        args.format,
+        &tenant,
+    )?;
     let mut payload = if args.kind == "reply" {
         if args.cc.iter().any(|v| !valid_recipient(v)) {
             return Err(Error::value("invalid CC recipient"));
@@ -178,8 +254,17 @@ pub fn build_plan(c: &dyn Api, store: &dyn MetaStore, ticket_id: &str, body: &st
 
 /// `send`: one POST after review, public consent and a fresh status check,
 /// then a read-back by the returned conversation id.
-pub fn send(plan: &ConversationPlan, c: &dyn Api, journal: &dyn Journal, store: &dyn MetaStore, reviewed_hash: Option<&str>, public_confirmed: bool) -> Result<Value> {
-    let Some(reviewed) = reviewed_hash else { return Ok(json!({"status": "cancelled"})) };
+pub fn send(
+    plan: &ConversationPlan,
+    c: &dyn Api,
+    journal: &dyn Journal,
+    store: &dyn MetaStore,
+    reviewed_hash: Option<&str>,
+    public_confirmed: bool,
+) -> Result<Value> {
+    let Some(reviewed) = reviewed_hash else {
+        return Ok(json!({"status": "cancelled"}));
+    };
     let hash = plan.hash();
     if hash != reviewed || plan.tenant.is_empty() || plan.tenant != c.domain() {
         return Err(refused("tenant or review hash changed; review again"));
@@ -187,15 +272,25 @@ pub fn send(plan: &ConversationPlan, c: &dyn Api, journal: &dyn Journal, store: 
     let payload = plan.payload();
     let private = payload.get("private").is_none_or(truthy);
     if (plan.kind == "reply" || !private) && !public_confirmed {
-        return Err(refused("public conversation requires explicit confirmation"));
+        return Err(refused(
+            "public conversation requires explicit confirmation",
+        ));
     }
     let action = format!("ticket_{}_reviewed", plan.kind);
-    if matches!(last_event(journal, &action, &hash).as_deref(), Some("started" | "done")) {
-        return Err(refused("conversation was sent or outcome unknown; inspect ticket and journal before retry"));
+    if matches!(
+        last_event(journal, &action, &hash).as_deref(),
+        Some("started" | "done")
+    ) {
+        return Err(refused(
+            "conversation was sent or outcome unknown; inspect ticket and journal before retry",
+        ));
     }
     if let Some(label) = &plan.status_label {
         let (status_id, token, record_hash) = status_context(c, store, plan.ticket_id, label)?;
-        if Some(&record_hash) != plan.record_hash.as_ref() || payload.get("helpdesk_ticket") != Some(&json!({"status": status_id, "br_validation_excludes": token})) {
+        if Some(&record_hash) != plan.record_hash.as_ref()
+            || payload.get("helpdesk_ticket")
+                != Some(&json!({"status": status_id, "br_validation_excludes": token}))
+        {
             return Err(refused("ticket or status metadata changed; review again"));
         }
     }
@@ -207,26 +302,41 @@ pub fn send(plan: &ConversationPlan, c: &dyn Api, journal: &dyn Journal, store: 
     if last_event(journal, &action, &hash).as_deref() != Some("started") {
         return Err(refused("could not persist journal; no send attempted"));
     }
-    let response = match c.send_once("POST", &plan.path(), Body::Raw(plan.payload_json.clone().into_bytes()), None, &csrf) {
+    let response = match c.send_once(
+        "POST",
+        &plan.path(),
+        Body::Raw(plan.payload_json.clone().into_bytes()),
+        None,
+        &csrf,
+    ) {
         Ok(r) => r,
         Err(e) => {
             if let Some(status) = definite_rejection(&e) {
                 journal.record_plan("failed", &hash, &action, Some(&target), None);
-                return Err(refused(format!("conversation rejected (HTTP {status}); no retry")));
+                return Err(refused(format!(
+                    "conversation rejected (HTTP {status}); no retry"
+                )));
             }
             return Err(refused(UNKNOWN));
         }
     };
     let Some(conv_id) = note_id(returned_note(&response)) else {
-        return Err(refused("response has no exact conversation ID; outcome unknown, do not resend"));
+        return Err(refused(
+            "response has no exact conversation ID; outcome unknown, do not resend",
+        ));
     };
     journal.record_plan("done", &hash, &action, Some(&target), Some(&conv_id));
-    let mut result = obj(json!({"status": "submitted", "conversation_id": conv_id, "ticket_id": plan.ticket_id,
-                                "plan_hash": hash, "verified": false}));
+    let mut result = obj(
+        json!({"status": "submitted", "conversation_id": conv_id, "ticket_id": plan.ticket_id,
+                                "plan_hash": hash, "verified": false}),
+    );
     let readback = || -> Result<(Map<String, Value>, bool)> {
         let pages = load_conversations(c, plan.ticket_id)?;
         let want = py_str(&conv_id);
-        let exact = pages.rows.iter().find(|r| py_str(r.get("id").unwrap_or(&Value::Null)) == want);
+        let exact = pages
+            .rows
+            .iter()
+            .find(|r| py_str(r.get("id").unwrap_or(&Value::Null)) == want);
         let mut expected = vec![("body", payload["body"].clone())];
         if plan.kind == "reply" {
             expected.push(("cc_emails", payload["cc_emails"].clone()));
@@ -261,7 +371,12 @@ pub fn send(plan: &ConversationPlan, c: &dyn Api, journal: &dyn Journal, store: 
         result.insert("verified".into(), json!(verified));
     }
     if result["verified"] != Value::Bool(true) {
-        result.insert("warning".into(), json!("Conversation or ticket fields were not fully verified on read-back; do not resend."));
+        result.insert(
+            "warning".into(),
+            json!(
+                "Conversation or ticket fields were not fully verified on read-back; do not resend."
+            ),
+        );
     }
     Ok(Value::Object(result))
 }
@@ -278,7 +393,8 @@ mod tests {
     const NOTE_HASH: &str = "b968aa46849b709e7f57dcf98d4fe54d0529917405a43d49448bd410639a525a";
     const CC: &str = "Acme User <person@example.com>";
     const STATUS_ERR: &str = "could not resolve Pending and evaluate ticket rules from fresh metadata; no send attempted";
-    const UNVERIFIED: &str = "Conversation or ticket fields were not fully verified on read-back; do not resend.";
+    const UNVERIFIED: &str =
+        "Conversation or ticket fields were not fully verified on read-back; do not resend.";
 
     fn err<T: std::fmt::Debug>(r: Result<T>) -> String {
         r.unwrap_err().to_string()
@@ -289,25 +405,52 @@ mod tests {
     }
 
     fn api() -> FakeApi {
-        ticket_api(json!({"ticket": row()}))
-            .ok("GET autocomplete/requesters", json!([{"id": 11, "value": "Acme User", "email": "person@example.com"}]))
+        ticket_api(json!({"ticket": row()})).ok(
+            "GET autocomplete/requesters",
+            json!([{"id": 11, "value": "Acme User", "email": "person@example.com"}]),
+        )
     }
 
     fn reply_plan(c: &FakeApi) -> ConversationPlan {
         let cc = vec![CC.to_string()];
-        build_plan(c, &MemStore::default(), "123", "Hello <team>", &ConversationArgs { cc: &cc, set_status: Some("Pending"), ..Default::default() }).unwrap()
+        build_plan(
+            c,
+            &MemStore::default(),
+            "123",
+            "Hello <team>",
+            &ConversationArgs {
+                cc: &cc,
+                set_status: Some("Pending"),
+                ..Default::default()
+            },
+        )
+        .unwrap()
     }
 
     fn note_plan(c: &FakeApi) -> ConversationPlan {
         let notify = vec!["b@y.co".to_string()];
-        build_plan(c, &MemStore::default(), "INC-123", "Note", &ConversationArgs { kind: "note", notify: &notify, ..Default::default() }).unwrap()
+        build_plan(
+            c,
+            &MemStore::default(),
+            "INC-123",
+            "Note",
+            &ConversationArgs {
+                kind: "note",
+                notify: &notify,
+                ..Default::default()
+            },
+        )
+        .unwrap()
     }
 
     #[test]
     fn recipients_resolve_exact_users() {
         let s = |v: &str| vec![v.to_string()];
         assert_eq!(recipients(&api(), &s("person@example.com")).unwrap(), [CC]);
-        assert_eq!(err(recipients(&api(), &s("Ann <a@b.co>"))), "CC must be a plain email address");
+        assert_eq!(
+            err(recipients(&api(), &s("Ann <a@b.co>"))),
+            "CC must be a plain email address"
+        );
         let msg = "each CC email must resolve to exactly one non-deleted user with a valid name and email";
         assert_eq!(err(recipients(&api(), &s("other@example.com"))), msg);
         let down = FakeApi::new().on("GET autocomplete/requesters", Reply::Session);
@@ -317,13 +460,26 @@ mod tests {
     #[test]
     fn status_context_pending_only() {
         let store = MemStore::default();
-        assert_eq!(status_context(&api(), &store, 123, "pending").unwrap(), (3, TOKEN.to_string(), ROW_HASH.to_string()));
-        assert_eq!(err(status_context(&api(), &store, 123, "Resolved")),
-                   "only the Pending status transition was captured; use the web form for other statuses");
+        assert_eq!(
+            status_context(&api(), &store, 123, "pending").unwrap(),
+            (3, TOKEN.to_string(), ROW_HASH.to_string())
+        );
+        assert_eq!(
+            err(status_context(&api(), &store, 123, "Resolved")),
+            "only the Pending status transition was captured; use the web form for other statuses"
+        );
         let other = ticket_api(json!({"ticket": {"id": 9}}));
-        assert_eq!(err(status_context(&other, &store, 123, "Pending")), STATUS_ERR);
-        let no_rules = FakeApi::new().ok("GET ticket_form_fields", ticket_form(3)).ok("GET tickets/123", json!({"ticket": row()}));
-        assert_eq!(err(status_context(&no_rules, &store, 123, "Pending")), STATUS_ERR);
+        assert_eq!(
+            err(status_context(&other, &store, 123, "Pending")),
+            STATUS_ERR
+        );
+        let no_rules = FakeApi::new()
+            .ok("GET ticket_form_fields", ticket_form(3))
+            .ok("GET tickets/123", json!({"ticket": row()}));
+        assert_eq!(
+            err(status_context(&no_rules, &store, 123, "Pending")),
+            STATUS_ERR
+        );
     }
 
     #[test]
@@ -332,19 +488,68 @@ mod tests {
         let p = reply_plan(&c);
         let payload = json!({"body": "<div>Hello &lt;team&gt;</div>", "cc_emails": [CC], "conversation_from_summary": false, "freddy_message_id": null,
                              "full_text": "<div>Hello &lt;team&gt;</div>", "helpdesk_ticket": {"br_validation_excludes": TOKEN, "status": 3}, "translate_reply": false});
-        assert_eq!(p.payload_json, format!(
-            "{{\"body\": \"<div>Hello &lt;team&gt;</div>\", \"cc_emails\": [\"{CC}\"], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Hello &lt;team&gt;</div>\", \"helpdesk_ticket\": {{\"br_validation_excludes\": \"{TOKEN}\", \"status\": 3}}, \"translate_reply\": false}}"));
-        assert_eq!((p.path(), p.hash(), p.record_hash.as_deref(), p.status_label.as_deref()),
-                   ("tickets/123/reply".to_string(), REPLY_HASH.to_string(), Some(ROW_HASH), Some("Pending")));
-        assert_eq!(Value::Object(p.review()), json!({"action": "ticket_reply", "method": "POST", "path": "/api/_/tickets/123/reply", "payload": payload,
-            "status_label": "Pending", "plan_hash": REPLY_HASH, "warning": "A reply is public and may notify recipients; notes may also trigger tenant workflows."}));
+        assert_eq!(
+            p.payload_json,
+            format!(
+                "{{\"body\": \"<div>Hello &lt;team&gt;</div>\", \"cc_emails\": [\"{CC}\"], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Hello &lt;team&gt;</div>\", \"helpdesk_ticket\": {{\"br_validation_excludes\": \"{TOKEN}\", \"status\": 3}}, \"translate_reply\": false}}"
+            )
+        );
+        assert_eq!(
+            (
+                p.path(),
+                p.hash(),
+                p.record_hash.as_deref(),
+                p.status_label.as_deref()
+            ),
+            (
+                "tickets/123/reply".to_string(),
+                REPLY_HASH.to_string(),
+                Some(ROW_HASH),
+                Some("Pending")
+            )
+        );
+        assert_eq!(
+            Value::Object(p.review()),
+            json!({"action": "ticket_reply", "method": "POST", "path": "/api/_/tickets/123/reply", "payload": payload,
+            "status_label": "Pending", "plan_hash": REPLY_HASH, "warning": "A reply is public and may notify recipients; notes may also trigger tenant workflows."})
+        );
         let n = note_plan(&c);
-        assert_eq!(n.payload_json, r#"{"body": "<div>Note</div>", "conversation_from_summary": false, "notify_emails": ["b@y.co"], "private": true}"#);
-        assert_eq!((n.path(), n.hash(), n.record_hash), ("tickets/123/notes".to_string(), NOTE_HASH.to_string(), None));
+        assert_eq!(
+            n.payload_json,
+            r#"{"body": "<div>Note</div>", "conversation_from_summary": false, "notify_emails": ["b@y.co"], "private": true}"#
+        );
+        assert_eq!(
+            (n.path(), n.hash(), n.record_hash),
+            ("tickets/123/notes".to_string(), NOTE_HASH.to_string(), None)
+        );
         let store = MemStore::default();
-        assert_eq!(err(build_plan(&c, &store, "123", "x", &ConversationArgs { kind: "forward", ..Default::default() })), "invalid conversation kind");
+        assert_eq!(
+            err(build_plan(
+                &c,
+                &store,
+                "123",
+                "x",
+                &ConversationArgs {
+                    kind: "forward",
+                    ..Default::default()
+                }
+            )),
+            "invalid conversation kind"
+        );
         let bad = vec!["bad".to_string()];
-        assert_eq!(err(build_plan(&c, &store, "123", "x", &ConversationArgs { cc: &bad, ..Default::default() })), "invalid CC recipient");
+        assert_eq!(
+            err(build_plan(
+                &c,
+                &store,
+                "123",
+                "x",
+                &ConversationArgs {
+                    cc: &bad,
+                    ..Default::default()
+                }
+            )),
+            "invalid CC recipient"
+        );
     }
 
     #[test]
@@ -362,14 +567,49 @@ mod tests {
         );
         assert_eq!(j.events(), ["started", "done"]);
         let w = c.writes();
-        assert_eq!((w[0].method.as_str(), w[0].path.as_str()), ("POST", "tickets/123/reply"));
-        assert_eq!(String::from_utf8(w[0].raw.clone().unwrap()).unwrap(), p.payload_json);
-        assert_eq!(err(send(&p, &c, &j, &store, Some(REPLY_HASH), true)), "conversation was sent or outcome unknown; inspect ticket and journal before retry");
-        assert_eq!(send(&p, &c, &j, &store, None, false).unwrap(), json!({"status": "cancelled"}));
-        assert_eq!(err(send(&p, &c, &j, &store, Some("x"), true)), "tenant or review hash changed; review again");
-        assert_eq!(err(send(&p, &c, &MemJournal::default(), &store, Some(REPLY_HASH), false)), "public conversation requires explicit confirmation");
+        assert_eq!(
+            (w[0].method.as_str(), w[0].path.as_str()),
+            ("POST", "tickets/123/reply")
+        );
+        assert_eq!(
+            String::from_utf8(w[0].raw.clone().unwrap()).unwrap(),
+            p.payload_json
+        );
+        assert_eq!(
+            err(send(&p, &c, &j, &store, Some(REPLY_HASH), true)),
+            "conversation was sent or outcome unknown; inspect ticket and journal before retry"
+        );
+        assert_eq!(
+            send(&p, &c, &j, &store, None, false).unwrap(),
+            json!({"status": "cancelled"})
+        );
+        assert_eq!(
+            err(send(&p, &c, &j, &store, Some("x"), true)),
+            "tenant or review hash changed; review again"
+        );
+        assert_eq!(
+            err(send(
+                &p,
+                &c,
+                &MemJournal::default(),
+                &store,
+                Some(REPLY_HASH),
+                false
+            )),
+            "public conversation requires explicit confirmation"
+        );
         let changed = ticket_api(json!({"ticket": {"id": 123, "subject": "Changed", "status": 2}}));
-        assert_eq!(err(send(&p, &changed, &MemJournal::default(), &store, Some(REPLY_HASH), true)), "ticket or status metadata changed; review again");
+        assert_eq!(
+            err(send(
+                &p,
+                &changed,
+                &MemJournal::default(),
+                &store,
+                Some(REPLY_HASH),
+                true
+            )),
+            "ticket or status metadata changed; review again"
+        );
     }
 
     #[test]
@@ -378,15 +618,31 @@ mod tests {
         let store = MemStore::default();
         let j = MemJournal::default();
         let c = FakeApi::new().ok("POST tickets/123/notes", json!({"note": {"id": "x"}}));
-        assert_eq!(err(send(&n, &c, &j, &store, Some(NOTE_HASH), false)), "response has no exact conversation ID; outcome unknown, do not resend");
+        assert_eq!(
+            err(send(&n, &c, &j, &store, Some(NOTE_HASH), false)),
+            "response has no exact conversation ID; outcome unknown, do not resend"
+        );
         assert_eq!(j.events(), ["started"]);
         let j = MemJournal::default();
         let c = FakeApi::new().on("POST tickets/123/notes", Reply::Status(422));
-        assert_eq!(err(send(&n, &c, &j, &store, Some(NOTE_HASH), false)), "conversation rejected (HTTP 422); no retry");
-        assert_eq!(j.events(), ["started", "failed"]);
-        let c = FakeApi::new().ok("POST tickets/123/notes", json!({"note": {"id": 7}})).on("GET tickets/123/conversations", Reply::Status(500));
         assert_eq!(
-            send(&n, &c, &MemJournal::default(), &store, Some(NOTE_HASH), false).unwrap(),
+            err(send(&n, &c, &j, &store, Some(NOTE_HASH), false)),
+            "conversation rejected (HTTP 422); no retry"
+        );
+        assert_eq!(j.events(), ["started", "failed"]);
+        let c = FakeApi::new()
+            .ok("POST tickets/123/notes", json!({"note": {"id": 7}}))
+            .on("GET tickets/123/conversations", Reply::Status(500));
+        assert_eq!(
+            send(
+                &n,
+                &c,
+                &MemJournal::default(),
+                &store,
+                Some(NOTE_HASH),
+                false
+            )
+            .unwrap(),
             json!({"status": "submitted", "conversation_id": 7, "ticket_id": 123, "plan_hash": NOTE_HASH, "verified": false,
                    "fields": {"body": "unavailable", "private": "unavailable", "notify_emails": "unavailable"}, "warning": UNVERIFIED})
         );

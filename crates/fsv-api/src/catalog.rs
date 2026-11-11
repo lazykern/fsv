@@ -21,10 +21,16 @@ use fsv_forms::payload::{SrOptions, build_sr_payload};
 use fsv_forms::plan::PlanFiles;
 use fsv_forms::rules::{ChoiceRestriction, EngineOptions, is_empty};
 use fsv_forms::spec::is_content_type;
-use fsv_forms::{Conflict, EvaluatedForm, Field, FormSpec, FormState, Kind, LookupResolver, LookupValue, MetadataFingerprint, RulesEngine, StateOptions, metadata_fingerprint, plan_hash};
+use fsv_forms::{
+    Conflict, EvaluatedForm, Field, FormSpec, FormState, Kind, LookupResolver, LookupValue,
+    MetadataFingerprint, RulesEngine, StateOptions, metadata_fingerprint, plan_hash,
+};
 use fsv_py::{py_repr_str, py_str, truthy};
 
-use crate::formmeta::{MetaStore, RULES_UNAVAILABLE_KEY, RULES_WORKSPACE_KEY, apply_answers, find_field, form_err, load_rules, rules_warnings};
+use crate::formmeta::{
+    MetaStore, RULES_UNAVAILABLE_KEY, RULES_WORKSPACE_KEY, apply_answers, find_field, form_err,
+    load_rules, rules_warnings,
+};
 use crate::notes::{EMAIL, valid_recipient};
 use crate::service::{Api, Journal, definite_rejection, obj};
 
@@ -33,7 +39,8 @@ pub const MAX_PAGES: i64 = 50;
 pub const SAFETY: &str = "This sends a real service request to the catalog item's fulfilment team.";
 pub const REQUESTER_MISSING: &str = "requester is not set: pass --requester EMAIL, add `requester:` to the draft, \
                                      or set defaults.sr_requester in the fsv config";
-pub const REQUESTED_FOR_NOTE: &str = "Separate requested-for is available via --requested-for; requester remains unchanged.";
+pub const REQUESTED_FOR_NOTE: &str =
+    "Separate requested-for is available via --requested-for; requester remains unchanged.";
 const DUPLICATE_WINDOW_HOURS: f64 = 24.0;
 
 /// `FlowExit(code, message)`.
@@ -60,21 +67,32 @@ pub fn rows(data: &Json, key: &str) -> Vec<Json> {
         Json::Object(m) => m.get(key).and_then(Json::as_array),
         _ => None,
     };
-    list.map(|a| a.iter().filter(|r| r.is_object()).cloned().collect()).unwrap_or_default()
+    list.map(|a| a.iter().filter(|r| r.is_object()).cloned().collect())
+        .unwrap_or_default()
 }
 
 /// `list_categories`: flattened; nested sub-categories get `parent_id`.
 pub fn list_categories(c: &dyn Api) -> Result<Vec<Json>> {
-    let data = c.int_get("catalog/service-categories", Some(obj(json!({"category_hierarchy": "true"}))))?;
+    let data = c.int_get(
+        "catalog/service-categories",
+        Some(obj(json!({"category_hierarchy": "true"}))),
+    )?;
     fn walk(rows: &[Json], parent: &Json, out: &mut Vec<Json>) {
         for r in rows {
             let Some(m) = r.as_object() else { continue };
-            let mut row: Map<String, Json> = m.iter().filter(|(k, _)| *k != "sub_categories" && *k != "children").map(|(k, v)| (k.clone(), v.clone())).collect();
+            let mut row: Map<String, Json> = m
+                .iter()
+                .filter(|(k, _)| *k != "sub_categories" && *k != "children")
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect();
             if !parent.is_null() && row.get("parent_id").is_none_or(Json::is_null) {
                 row.insert("parent_id".into(), parent.clone());
             }
             out.push(Json::Object(row));
-            let kids = [m.get("sub_categories"), m.get("children")].into_iter().flatten().find(|v| truthy(v));
+            let kids = [m.get("sub_categories"), m.get("children")]
+                .into_iter()
+                .flatten()
+                .find(|v| truthy(v));
             if let Some(Json::Array(kids)) = kids {
                 let kids: Vec<Json> = kids.iter().filter(|k| k.is_object()).cloned().collect();
                 walk(&kids, m.get("id").unwrap_or(&Json::Null), out);
@@ -89,22 +107,45 @@ pub fn list_categories(c: &dyn Api) -> Result<Vec<Json>> {
 /// `list_items`: every requestable item (all pages), or the popular ones.
 pub fn list_items(c: &dyn Api, popular: bool, max_pages: i64) -> Result<Vec<Json>> {
     if popular {
-        return Ok(rows(&c.int_get("catalog/service-items", Some(obj(json!({"filter": "frequently_requested"}))))?, "service_items"));
+        return Ok(rows(
+            &c.int_get(
+                "catalog/service-items",
+                Some(obj(json!({"filter": "frequently_requested"}))),
+            )?,
+            "service_items",
+        ));
     }
     let mut out = Vec::new();
     let mut seen: Vec<Json> = Vec::new();
     for page in 1..=max_pages {
-        let data = c.int_get("catalog/service-items", Some(obj(json!({"aurora_search": "true", "page": page, "per_page": PER_PAGE}))))?;
+        let data = c.int_get(
+            "catalog/service-items",
+            Some(obj(
+                json!({"aurora_search": "true", "page": page, "per_page": PER_PAGE}),
+            )),
+        )?;
         let rs = rows(&data, "service_items");
         for r in &rs {
-            let key = r.get("id").or_else(|| r.get("display_id")).cloned().unwrap_or(Json::Null);
+            let key = r
+                .get("id")
+                .or_else(|| r.get("display_id"))
+                .cloned()
+                .unwrap_or(Json::Null);
             if !seen.contains(&key) && !r.get("deleted").is_some_and(truthy) {
                 seen.push(key);
                 out.push(r.clone());
             }
         }
-        let total = data.get("meta").filter(|m| truthy(m)).and_then(|m| m.get("total_pages")).cloned().unwrap_or(Json::Null);
-        if rs.is_empty() || total.as_i64().is_some_and(|t| page >= t) || (total.is_null() && (rs.len() as i64) < PER_PAGE) {
+        let total = data
+            .get("meta")
+            .filter(|m| truthy(m))
+            .and_then(|m| m.get("total_pages"))
+            .cloned()
+            .unwrap_or(Json::Null);
+        if rs.is_empty()
+            || total.as_i64().is_some_and(|t| page >= t)
+            || (total.is_null() && (rs.len() as i64) < PER_PAGE)
+        {
             break;
         }
     }
@@ -118,18 +159,43 @@ fn name_of(c: &Json) -> String {
 /// `resolve_category`: a category by id or name plus its sub-categories.
 pub fn resolve_category(categories: &[Json], text: &str) -> Result<Vec<Json>> {
     let q = fsv_core::pystr::strip(text);
-    let mut hits: Vec<&Json> = categories.iter().filter(|c| py_str(c.get("id").unwrap_or(&Json::Null)) == q).collect();
+    let mut hits: Vec<&Json> = categories
+        .iter()
+        .filter(|c| py_str(c.get("id").unwrap_or(&Json::Null)) == q)
+        .collect();
     if hits.is_empty() {
-        hits = categories.iter().filter(|c| norm_s(&name_of(c)) == norm_s(q)).collect();
+        hits = categories
+            .iter()
+            .filter(|c| norm_s(&name_of(c)) == norm_s(q))
+            .collect();
     }
     if hits.is_empty() {
-        hits = categories.iter().filter(|c| norm_s(&name_of(c)).contains(&norm_s(q))).collect();
+        hits = categories
+            .iter()
+            .filter(|c| norm_s(&name_of(c)).contains(&norm_s(q)))
+            .collect();
     }
     if hits.len() != 1 {
-        let pool: Vec<&Json> = if hits.is_empty() { categories.iter().collect() } else { hits.clone() };
-        let names: Vec<String> = pool.iter().take(15).map(|c| py_str(c.get("name").unwrap_or(&Json::Null))).collect();
-        let what = if hits.is_empty() { "no category matches" } else { "several categories match" };
-        return Err(Error::value(format!("{what} {}; categories: {}", py_repr_str(q), names.join(", "))));
+        let pool: Vec<&Json> = if hits.is_empty() {
+            categories.iter().collect()
+        } else {
+            hits.clone()
+        };
+        let names: Vec<String> = pool
+            .iter()
+            .take(15)
+            .map(|c| py_str(c.get("name").unwrap_or(&Json::Null)))
+            .collect();
+        let what = if hits.is_empty() {
+            "no category matches"
+        } else {
+            "several categories match"
+        };
+        return Err(Error::value(format!(
+            "{what} {}; categories: {}",
+            py_repr_str(q),
+            names.join(", ")
+        )));
     }
     let mut picked = vec![hits[0].clone()];
     let mut ids = vec![hits[0].get("id").cloned().unwrap_or(Json::Null)];
@@ -137,7 +203,10 @@ pub fn resolve_category(categories: &[Json], text: &str) -> Result<Vec<Json>> {
     while grew {
         grew = false;
         for c in categories {
-            let (pid, id) = (c.get("parent_id").cloned().unwrap_or(Json::Null), c.get("id").cloned().unwrap_or(Json::Null));
+            let (pid, id) = (
+                c.get("parent_id").cloned().unwrap_or(Json::Null),
+                c.get("id").cloned().unwrap_or(Json::Null),
+            );
             if ids.contains(&pid) && !ids.contains(&id) {
                 ids.push(id);
                 picked.push(c.clone());
@@ -154,10 +223,32 @@ fn or_empty(v: Option<&Json>) -> String {
 }
 
 /// `filter_items`: by category ids and/or every search word.
-pub fn filter_items(items: &[Json], category_ids: Option<&[Json]>, search: Option<&str>, categories: &[Json]) -> Vec<Json> {
-    let names: Vec<(Json, String)> = categories.iter().map(|c| (c.get("id").cloned().unwrap_or(Json::Null), or_empty(c.get("name")))).collect();
+pub fn filter_items(
+    items: &[Json],
+    category_ids: Option<&[Json]>,
+    search: Option<&str>,
+    categories: &[Json],
+) -> Vec<Json> {
+    let names: Vec<(Json, String)> = categories
+        .iter()
+        .map(|c| {
+            (
+                c.get("id").cloned().unwrap_or(Json::Null),
+                or_empty(c.get("name")),
+            )
+        })
+        .collect();
     let ids: Option<HashSet<String>> = category_ids.map(|ids| ids.iter().map(py_str).collect());
-    let words: Vec<String> = search.filter(|s| !s.is_empty()).map(|s| norm_s(s).split(' ').filter(|w| !w.is_empty()).map(str::to_string).collect()).unwrap_or_default();
+    let words: Vec<String> = search
+        .filter(|s| !s.is_empty())
+        .map(|s| {
+            norm_s(s)
+                .split(' ')
+                .filter(|w| !w.is_empty())
+                .map(str::to_string)
+                .collect()
+        })
+        .unwrap_or_default();
     let mut out = Vec::new();
     for it in items {
         if let Some(ids) = &ids
@@ -165,11 +256,24 @@ pub fn filter_items(items: &[Json], category_ids: Option<&[Json]>, search: Optio
         {
             continue;
         }
-        let cat = it.get("category_name").filter(|v| truthy(v)).map(py_str).unwrap_or_else(|| {
-            let cid = it.get("category_id").unwrap_or(&Json::Null);
-            names.iter().find(|(k, _)| k == cid).map(|(_, n)| n.clone()).unwrap_or_default()
-        });
-        let parts = [or_empty(it.get("name")), or_empty(it.get("short_description")), cat, or_empty(it.get("display_id"))];
+        let cat = it
+            .get("category_name")
+            .filter(|v| truthy(v))
+            .map(py_str)
+            .unwrap_or_else(|| {
+                let cid = it.get("category_id").unwrap_or(&Json::Null);
+                names
+                    .iter()
+                    .find(|(k, _)| k == cid)
+                    .map(|(_, n)| n.clone())
+                    .unwrap_or_default()
+            });
+        let parts = [
+            or_empty(it.get("name")),
+            or_empty(it.get("short_description")),
+            cat,
+            or_empty(it.get("display_id")),
+        ];
         let hay = norm_s(&parts.join(" "));
         if !words.iter().all(|w| hay.contains(w.as_str())) {
             continue;
@@ -183,10 +287,28 @@ pub fn filter_items(items: &[Json], category_ids: Option<&[Json]>, search: Optio
 pub fn get_item(c: &dyn Api, display_id: &Json) -> Result<Json> {
     let path = format!("catalog/service-items/{}", py_str(display_id));
     let data = c.int_get(&path, None)?;
-    let item = data.as_object().map(|m| m.get("service_item").cloned().unwrap_or_else(|| data.clone()));
+    let item = data.as_object().map(|m| {
+        m.get("service_item")
+            .cloned()
+            .unwrap_or_else(|| data.clone())
+    });
     match item {
-        Some(i @ Json::Object(_)) if i.get("custom_fields").is_some_and(truthy) || i.get("display_id").is_some_and(|v| !v.is_null()) => Ok(i),
-        _ => Err(ApiError::with_request(200, Json::String(format!("no catalog item {} in the response", py_str(display_id))), "GET", path).into()),
+        Some(i @ Json::Object(_))
+            if i.get("custom_fields").is_some_and(truthy)
+                || i.get("display_id").is_some_and(|v| !v.is_null()) =>
+        {
+            Ok(i)
+        }
+        _ => Err(ApiError::with_request(
+            200,
+            Json::String(format!(
+                "no catalog item {} in the response",
+                py_str(display_id)
+            )),
+            "GET",
+            path,
+        )
+        .into()),
     }
 }
 
@@ -206,20 +328,48 @@ pub fn find_item(c: &dyn Api, r: &str) -> Result<Json> {
         return get_item(c, &json!(s.parse::<i64>().unwrap_or(0)));
     }
     let items = list_items(c, false, MAX_PAGES)?;
-    let exact: Vec<Json> = items.iter().filter(|i| norm_s(&name_of(i)) == norm_s(&s)).cloned().collect();
-    let hits = if exact.is_empty() { filter_items(&items, None, Some(&s), &[]) } else { exact };
+    let exact: Vec<Json> = items
+        .iter()
+        .filter(|i| norm_s(&name_of(i)) == norm_s(&s))
+        .cloned()
+        .collect();
+    let hits = if exact.is_empty() {
+        filter_items(&items, None, Some(&s), &[])
+    } else {
+        exact
+    };
     match hits.len() {
         1 => get_item(c, hits[0].get("display_id").unwrap_or(&Json::Null)),
-        0 => Err(Error::value(format!("no catalog item matches {}; list them with `fsv sr catalog --search TEXT`", py_repr_str(&s)))),
+        0 => Err(Error::value(format!(
+            "no catalog item matches {}; list them with `fsv sr catalog --search TEXT`",
+            py_repr_str(&s)
+        ))),
         n => {
-            let shown: Vec<String> = hits.iter().take(10).map(|i| format!("#{} {}", i.get("display_id").map_or("None".into(), py_str), i.get("name").map_or("None".into(), py_str))).collect();
-            Err(Error::value(format!("{n} catalog items match {}: {}. Use the item id.", py_repr_str(&s), shown.join("; "))))
+            let shown: Vec<String> = hits
+                .iter()
+                .take(10)
+                .map(|i| {
+                    format!(
+                        "#{} {}",
+                        i.get("display_id").map_or("None".into(), py_str),
+                        i.get("name").map_or("None".into(), py_str)
+                    )
+                })
+                .collect();
+            Err(Error::value(format!(
+                "{n} catalog items match {}: {}. Use the item id.",
+                py_repr_str(&s),
+                shown.join("; ")
+            )))
         }
     }
 }
 
 pub fn place_request(c: &dyn Api, display_id: &Json, body: &Json) -> Result<Json> {
-    c.int_post(&format!("catalog/service-items/{}/place-request", py_str(display_id)), body)
+    c.int_post(
+        &format!("catalog/service-items/{}/place-request", py_str(display_id)),
+        body,
+    )
 }
 
 /// `upload`: [`crate::create::upload_file`].
@@ -242,7 +392,11 @@ pub fn created_ref(result: &Json) -> Json {
                 None if has(c, "display_id") => format!("SR-{}", py_str(&c["display_id"])),
                 None => format!("SR-{}", py_str(&c["id"])),
             };
-            let id = c.get("id").or_else(|| c.get("display_id")).cloned().unwrap_or(Json::Null);
+            let id = c
+                .get("id")
+                .or_else(|| c.get("display_id"))
+                .cloned()
+                .unwrap_or(Json::Null);
             return json!({"id": id, "display": shown});
         }
     }
@@ -264,9 +418,22 @@ pub struct ItemMeta {
 }
 
 impl ItemMeta {
-    pub fn new(item: Json, rules: Json, workspace_id: Json, fetched_at: f64, source: &str) -> Result<ItemMeta> {
+    pub fn new(
+        item: Json,
+        rules: Json,
+        workspace_id: Json,
+        fetched_at: f64,
+        source: &str,
+    ) -> Result<ItemMeta> {
         let spec = FormSpec::from_service_item(&item).map_err(form_err)?;
-        Ok(ItemMeta { item, rules, workspace_id, fetched_at, source: source.into(), spec: Arc::new(spec) })
+        Ok(ItemMeta {
+            item,
+            rules,
+            workspace_id,
+            fetched_at,
+            source: source.into(),
+            spec: Arc::new(spec),
+        })
     }
 
     pub fn display_id(&self) -> Json {
@@ -298,27 +465,54 @@ impl ItemMeta {
     pub fn as_of(&self) -> Map<String, Json> {
         let fp = self.fingerprint();
         let fetched = jiff::Timestamp::from_second(self.fetched_at.trunc() as i64)
-            .map(|t| t.to_zoned(jiff::tz::TimeZone::system()).strftime("%Y-%m-%dT%H:%M:%S%:z").to_string())
+            .map(|t| {
+                t.to_zoned(jiff::tz::TimeZone::system())
+                    .strftime("%Y-%m-%dT%H:%M:%S%:z")
+                    .to_string()
+            })
             .unwrap_or_default();
-        obj(json!({"updated_at": fp.updated_at, "fetched_at": fetched, "source": self.source,
-                   "fingerprint": fp.hash.chars().take(16).collect::<String>()}))
+        obj(
+            json!({"updated_at": fp.updated_at, "fetched_at": fetched, "source": self.source,
+                   "fingerprint": fp.hash.chars().take(16).collect::<String>()}),
+        )
     }
 }
 
 fn now() -> f64 {
-    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs_f64()).unwrap_or(0.0)
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs_f64())
+        .unwrap_or(0.0)
 }
 
 /// `load_item_meta`: item form + business rules, always from the server.
-pub fn load_item_meta(c: &dyn Api, store: &dyn MetaStore, r: &str, item: Option<&Json>) -> Result<ItemMeta> {
+pub fn load_item_meta(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    r: &str,
+    item: Option<&Json>,
+) -> Result<ItemMeta> {
     let raw = match item {
         Some(i) => i.clone(),
         None => find_item(c, r)?,
     };
     let configured = store.configured_workspace();
-    let ws = if truthy(&configured) { configured } else { raw.get("workspace_id").cloned().unwrap_or(Json::Null) };
-    let query = BusinessRulesOptions { item_id: raw.get("id").cloned().unwrap_or(Json::Null), ..Default::default() };
-    let rules = load_rules(c, store, "service_request", std::slice::from_ref(&ws), &query)?;
+    let ws = if truthy(&configured) {
+        configured
+    } else {
+        raw.get("workspace_id").cloned().unwrap_or(Json::Null)
+    };
+    let query = BusinessRulesOptions {
+        item_id: raw.get("id").cloned().unwrap_or(Json::Null),
+        ..Default::default()
+    };
+    let rules = load_rules(
+        c,
+        store,
+        "service_request",
+        std::slice::from_ref(&ws),
+        &query,
+    )?;
     let ws = rules.get(RULES_WORKSPACE_KEY).cloned().unwrap_or(ws);
     ItemMeta::new(raw, rules, ws, now(), "server")
 }
@@ -328,25 +522,47 @@ pub fn load_item_meta(c: &dyn Api, store: &dyn MetaStore, r: &str, item: Option<
 
 /// `_match_choice`: exact (NFC, whitespace, case), else a unique prefix.
 pub fn match_choice(f: &Field, raw: &Json) -> (Json, Option<String>) {
-    let Some(text) = raw.as_str() else { return (raw.clone(), None) };
+    let Some(text) = raw.as_str() else {
+        return (raw.clone(), None);
+    };
     if f.choice(text).ok().flatten().is_some() {
         return (raw.clone(), None);
     }
     let key = norm_s(text);
     let pool: Vec<_> = f.choices.iter().filter(|c| c.visible).collect();
-    let exact: Vec<_> = pool.iter().filter(|c| key == norm_s(&c.label) || key == norm_s(&c.value)).collect();
+    let exact: Vec<_> = pool
+        .iter()
+        .filter(|c| key == norm_s(&c.label) || key == norm_s(&c.value))
+        .collect();
     if exact.len() == 1 {
         return (json!(exact[0].value), None);
     }
-    let pre: Vec<_> = pool.iter().filter(|c| !key.is_empty() && (norm_s(&c.label).starts_with(&key) || norm_s(&c.value).starts_with(&key))).collect();
+    let pre: Vec<_> = pool
+        .iter()
+        .filter(|c| {
+            !key.is_empty()
+                && (norm_s(&c.label).starts_with(&key) || norm_s(&c.value).starts_with(&key))
+        })
+        .collect();
     if pre.len() == 1 {
-        return (json!(pre[0].value), Some(format!("{}: {} matched the choice {}", f.label, py_repr_str(text), py_repr_str(&pre[0].label))));
+        return (
+            json!(pre[0].value),
+            Some(format!(
+                "{}: {} matched the choice {}",
+                f.label,
+                py_repr_str(text),
+                py_repr_str(&pre[0].label)
+            )),
+        );
     }
     (raw.clone(), None)
 }
 
 /// `lenient_answers`: dropdown/multi-select answers matched leniently.
-pub fn lenient_answers(spec: &FormSpec, answers: &Map<String, Json>) -> (Map<String, Json>, Vec<String>) {
+pub fn lenient_answers(
+    spec: &FormSpec,
+    answers: &Map<String, Json>,
+) -> (Map<String, Json>, Vec<String>) {
     let mut out = Map::new();
     let mut notes = Vec::new();
     for (k, v) in answers {
@@ -390,7 +606,11 @@ fn expanduser(s: &str) -> String {
 }
 
 /// `file_answers`: file-field answers as paths (`~` expanded, relative to `base`).
-pub fn file_answers(spec: &FormSpec, answers: &Map<String, Json>, base: Option<&str>) -> Map<String, Json> {
+pub fn file_answers(
+    spec: &FormSpec,
+    answers: &Map<String, Json>,
+    base: Option<&str>,
+) -> Map<String, Json> {
     let mut out = answers.clone();
     for (k, v) in answers {
         let Ok(f) = find_field(spec, k) else { continue };
@@ -406,7 +626,9 @@ pub fn file_answers(spec: &FormSpec, answers: &Map<String, Json>, base: Option<&
             .map(|p| {
                 let s = expanduser(&py_str(p));
                 match base {
-                    Some(b) if !s.starts_with('/') => json!(Path::new(b).join(&s).to_string_lossy()),
+                    Some(b) if !s.starts_with('/') => {
+                        json!(Path::new(b).join(&s).to_string_lossy())
+                    }
                     _ => json!(s),
                 }
             })
@@ -431,28 +653,50 @@ pub fn rule_diagnostics(meta: &ItemMeta, state: &FormState) -> (Vec<String>, Vec
     let deps = engine.unavailable_dependencies("new");
     let raw = engine.warnings();
     let any = |v: &[String], f: &dyn Fn(&str) -> bool| v.iter().any(|w| f(w));
-    if !deps.is_empty() || any(&raw, &|w| w.contains("unknown field") || w.contains("none was given")) {
-        errors.push("business rules reference unavailable fields or context; use the web form".into());
+    if !deps.is_empty()
+        || any(&raw, &|w| {
+            w.contains("unknown field") || w.contains("none was given")
+        })
+    {
+        errors.push(
+            "business rules reference unavailable fields or context; use the web form".into(),
+        );
     }
-    if any(&raw, &|w| w.contains("populate") && (w.contains("ignored") || w.contains("not a choice") || w.contains("unstable"))) {
+    if any(&raw, &|w| {
+        w.contains("populate")
+            && (w.contains("ignored") || w.contains("not a choice") || w.contains("unstable"))
+    }) {
         errors.push("business rule choice validation is incomplete; use the web form".into());
     }
     if !engine.unsupported.is_empty() {
         errors.push("business rules contain unsupported validation; use the web form".into());
     }
-    if any(&deps, &|w| w.contains("unknown condition field")) || any(&raw, &|w| w.contains("condition on unknown field")) {
+    if any(&deps, &|w| w.contains("unknown condition field"))
+        || any(&raw, &|w| w.contains("condition on unknown field"))
+    {
         warnings.push("A business rule condition references an unknown field.".into());
     }
-    if any(&deps, &|w| w.contains("unknown action field")) || any(&raw, &|w| w.contains("unknown field") && !w.contains("condition on unknown field")) {
+    if any(&deps, &|w| w.contains("unknown action field"))
+        || any(&raw, &|w| {
+            w.contains("unknown field") && !w.contains("condition on unknown field")
+        })
+    {
         warnings.push("A business rule action references an unknown target.".into());
     }
-    if any(&deps, &|w| w.contains(" context field")) || any(&raw, &|w| w.contains("none was given")) {
+    if any(&deps, &|w| w.contains(" context field")) || any(&raw, &|w| w.contains("none was given"))
+    {
         warnings.push("Business rule source context is missing or incomplete.".into());
     }
-    if any(&raw, &|w| !(w.contains("unknown field") || w.contains("none was given"))) {
+    if any(&raw, &|w| {
+        !(w.contains("unknown field") || w.contains("none was given"))
+    }) {
         warnings.push("A business rule diagnostic was reported; details are withheld to protect context data.".into());
     }
-    if meta.spec.warnings.iter().any(|w| w.contains("unknown type") || w.contains("no section choice reveals") || w.contains("no choice reveals")) {
+    if meta.spec.warnings.iter().any(|w| {
+        w.contains("unknown type")
+            || w.contains("no section choice reveals")
+            || w.contains("no choice reveals")
+    }) {
         errors.push("catalog field validation is incomplete; use the web form".into());
     }
     (warnings, errors)
@@ -484,7 +728,12 @@ pub fn unsupported_lookup_errors(state: &FormState, draft: &Draft) -> Vec<String
         .spec
         .fields()
         .iter()
-        .filter(|f| f.kind == Kind::Lookup && !f.sent && (!is_empty(state.values.get(&f.api_name)) || !is_empty(state.evaluated.values.get(&f.api_name))))
+        .filter(|f| {
+            f.kind == Kind::Lookup
+                && !f.sent
+                && (!is_empty(state.values.get(&f.api_name))
+                    || !is_empty(state.evaluated.values.get(&f.api_name)))
+        })
         .map(|f| f.api_name.clone())
         .collect();
     for (key, value) in &draft.answers {
@@ -498,7 +747,18 @@ pub fn unsupported_lookup_errors(state: &FormState, draft: &Draft) -> Vec<String
             answered.insert(f.api_name.clone());
         }
     }
-    state.spec.ordered().into_iter().filter(|f| answered.contains(&f.api_name)).map(|f| format!("{}: catalog lookup submission is unverified; use the web form", f.label)).collect()
+    state
+        .spec
+        .ordered()
+        .into_iter()
+        .filter(|f| answered.contains(&f.api_name))
+        .map(|f| {
+            format!(
+                "{}: catalog lookup submission is unverified; use the web form",
+                f.label
+            )
+        })
+        .collect()
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -546,13 +806,20 @@ impl SRPlan {
     pub fn files(&self) -> IndexMap<String, Vec<String>> {
         let mut out: IndexMap<String, Vec<String>> = IndexMap::new();
         for u in &self.uploads {
-            out.entry(u.target.clone()).or_default().push(u.path.clone());
+            out.entry(u.target.clone())
+                .or_default()
+                .push(u.path.clone());
         }
         out
     }
 
     fn plan_files(&self) -> PlanFiles {
-        PlanFiles::Fields(self.files().into_iter().map(|(k, v)| (k, v.into_iter().map(PathBuf::from).collect())).collect())
+        PlanFiles::Fields(
+            self.files()
+                .into_iter()
+                .map(|(k, v)| (k, v.into_iter().map(PathBuf::from).collect()))
+                .collect(),
+        )
     }
 
     pub fn to_json(&self) -> Json {
@@ -566,7 +833,10 @@ impl SRPlan {
                 Some(Json::Object(row))
             })
             .collect();
-        let requester = self.requester.as_ref().map(|r| json!({"id": r.id, "name": r.display, "email": r.email}));
+        let requester = self
+            .requester
+            .as_ref()
+            .map(|r| json!({"id": r.id, "name": r.display, "email": r.email}));
         json!({
             "plan_hash": if self.hash.is_empty() { Json::Null } else { json!(self.hash) },
             "action": "place-request",
@@ -586,7 +856,10 @@ impl SRPlan {
     fn hashed(&self) -> Json {
         let mut hashed = obj(json!({"request": self.payload, "target": self.target()}));
         if !self.identity.is_empty() {
-            hashed.insert("recipient_identity".into(), Json::Object(self.identity.clone()));
+            hashed.insert(
+                "recipient_identity".into(),
+                Json::Object(self.identity.clone()),
+            );
         }
         Json::Object(hashed)
     }
@@ -600,7 +873,9 @@ fn sha256_file(path: &str) -> std::io::Result<fsv_forms::plan::FileDigest> {
 /// `_digest`: name, size and sha256 of one file.
 pub fn digest(path: &str) -> std::io::Result<Map<String, Json>> {
     let d = sha256_file(path)?;
-    Ok(obj(json!({"name": d.name, "size": d.size, "sha256": d.sha256})))
+    Ok(obj(
+        json!({"name": d.name, "size": d.size, "sha256": d.sha256}),
+    ))
 }
 
 /// `requester_line`.
@@ -624,8 +899,14 @@ fn acknowledge(state: &mut FormState, acks: &[String], ack_all: bool) -> Vec<Str
         return warnings;
     }
     for a in acks {
-        if state.acknowledge(&[fsv_forms::Ack::Text(a.clone())]).is_err() {
-            warnings.push(format!("ack {}: no blocking message matches (ignored)", py_repr_str(a)));
+        if state
+            .acknowledge(&[fsv_forms::Ack::Text(a.clone())])
+            .is_err()
+        {
+            warnings.push(format!(
+                "ack {}: no blocking message matches (ignored)",
+                py_repr_str(a)
+            ));
         }
     }
     warnings
@@ -635,27 +916,51 @@ fn real_conflicts(ev: &EvaluatedForm) -> Vec<Conflict> {
     let current: HashSet<String> = ev.matched.iter().map(py_str).collect();
     let mut out = Vec::new();
     for c in &ev.conflicts {
-        let live: Vec<_> = c.decisions.iter().filter(|d| current.contains(&py_str(&d.rule_id))).cloned().collect();
+        let live: Vec<_> = c
+            .decisions
+            .iter()
+            .filter(|d| current.contains(&py_str(&d.rule_id)))
+            .cloned()
+            .collect();
         let ids: HashSet<String> = live.iter().map(|d| py_str(&d.rule_id)).collect();
         if ids.len() < 2 {
             continue;
         }
-        let positive: HashSet<bool> = live.iter().map(|d| ["show", "mandate", "disable"].contains(&d.action.as_str())).collect();
+        let positive: HashSet<bool> = live
+            .iter()
+            .map(|d| ["show", "mandate", "disable"].contains(&d.action.as_str()))
+            .collect();
         if positive.len() < 2 {
             continue;
         }
-        let winner = if live.contains(&c.winner) { c.winner.clone() } else { live[live.len() - 1].clone() };
-        out.push(Conflict { field: c.field.clone(), property: c.property.clone(), decisions: live, winner });
+        let winner = if live.contains(&c.winner) {
+            c.winner.clone()
+        } else {
+            live[live.len() - 1].clone()
+        };
+        out.push(Conflict {
+            field: c.field.clone(),
+            property: c.property.clone(),
+            decisions: live,
+            winner,
+        });
     }
     out
 }
 
 fn rule_of(r: &ChoiceRestriction) -> String {
-    if r.rule_name.is_empty() { py_str(&r.rule_id) } else { r.rule_name.clone() }
+    if r.rule_name.is_empty() {
+        py_str(&r.rule_id)
+    } else {
+        r.rule_name.clone()
+    }
 }
 
 fn label_of(state: &FormState, name: &str) -> String {
-    state.spec.get(name).map_or_else(|| name.to_string(), |f| f.label.clone())
+    state
+        .spec
+        .get(name)
+        .map_or_else(|| name.to_string(), |f| f.label.clone())
 }
 
 fn review_notes(state: &FormState) -> Result<Vec<String>> {
@@ -663,14 +968,33 @@ fn review_notes(state: &FormState) -> Result<Vec<String>> {
     let mut out = Vec::new();
     for (name, rid) in &ev.populated {
         if ev.is_visible(name) {
-            out.push(format!("{} = {} (filled in by rule {})", label_of(state, name), state.display(name, None).map_err(form_err)?, py_str(rid)));
+            out.push(format!(
+                "{} = {} (filled in by rule {})",
+                label_of(state, name),
+                state.display(name, None).map_err(form_err)?,
+                py_str(rid)
+            ));
         }
     }
     for (name, r) in &ev.restricted {
         if ev.is_visible(name) {
-            let offered: Vec<String> = state.choices(name).map_err(form_err)?.into_iter().filter(|c| c.visible).map(|c| c.label).collect();
-            let shown = if offered.is_empty() { "(none)".to_string() } else { offered.join(", ") };
-            out.push(format!("{}: choices limited to {shown} by rule {}", label_of(state, name), py_repr_str(&rule_of(r))));
+            let offered: Vec<String> = state
+                .choices(name)
+                .map_err(form_err)?
+                .into_iter()
+                .filter(|c| c.visible)
+                .map(|c| c.label)
+                .collect();
+            let shown = if offered.is_empty() {
+                "(none)".to_string()
+            } else {
+                offered.join(", ")
+            };
+            out.push(format!(
+                "{}: choices limited to {shown} by rule {}",
+                label_of(state, name),
+                py_repr_str(&rule_of(r))
+            ));
         }
     }
     let pos = |n: &String| ev.visible.iter().position(|v| v == n).unwrap_or(1 << 20);
@@ -678,7 +1002,12 @@ fn review_notes(state: &FormState) -> Result<Vec<String>> {
     disabled.sort_by_key(|n| pos(n));
     for name in disabled {
         let d = ev.decision(name, "disabled");
-        out.push(format!("{}: read-only{}", label_of(state, name), d.map(|d| format!(" ({})", d.describe())).unwrap_or_default()));
+        out.push(format!(
+            "{}: read-only{}",
+            label_of(state, name),
+            d.map(|d| format!(" ({})", d.describe()))
+                .unwrap_or_default()
+        ));
     }
     for (name, (old, rid)) in &ev.overridden {
         out.push(format!(
@@ -688,7 +1017,11 @@ fn review_notes(state: &FormState) -> Result<Vec<String>> {
             py_str(rid)
         ));
     }
-    out.extend(real_conflicts(ev).iter().map(|c| format!("conflict: {}", c.describe())));
+    out.extend(
+        real_conflicts(ev)
+            .iter()
+            .map(|c| format!("conflict: {}", c.describe())),
+    );
     Ok(out)
 }
 
@@ -701,7 +1034,11 @@ fn review_messages(state: &FormState) -> Vec<ReviewMessage> {
             text: m.text.clone(),
             blocking: m.blocking,
             acknowledged: m.blocking && state.acknowledged.contains(&m.key()),
-            rule: if m.rule_name.is_empty() { m.rule_id.clone() } else { json!(m.rule_name) },
+            rule: if m.rule_name.is_empty() {
+                m.rule_id.clone()
+            } else {
+                json!(m.rule_name)
+            },
         })
         .collect()
 }
@@ -710,10 +1047,16 @@ fn review_dropped(state: &FormState) -> Result<Vec<String>> {
     let mut out = Vec::new();
     for (f, v, d) in state.dropped() {
         let why = match &d {
-            Some(d) if d.action == "hide" => format!("hidden by rule {}", py_repr_str(&d.rule_name)),
+            Some(d) if d.action == "hide" => {
+                format!("hidden by rule {}", py_repr_str(&d.rule_name))
+            }
             _ => "hidden".to_string(),
         };
-        out.push(format!("{} = {} ({why})", f.label, state.display(&f.api_name, Some(&v)).map_err(form_err)?));
+        out.push(format!(
+            "{} = {} ({why})",
+            f.label,
+            state.display(&f.api_name, Some(&v)).map_err(form_err)?
+        ));
     }
     Ok(out)
 }
@@ -741,13 +1084,26 @@ pub fn build_sr_plan(
     tenant: &str,
 ) -> Result<SRPlan> {
     let spec = meta.spec();
-    let item = spec.item.clone().ok_or_else(|| Error::other("not a service-item form"))?;
+    let item = spec
+        .item
+        .clone()
+        .ok_or_else(|| Error::other("not a service-item form"))?;
     let mut engine = meta.engine()?;
     if who.requested_for.is_some() {
         // rules needing requested-for attributes fail closed until reloaded for that identity
         engine.context.requested_for = None;
     }
-    let mut state = FormState::new(spec.clone(), Some(engine), "new", None, StateOptions { resolver, ..StateOptions::default() }).map_err(form_err)?;
+    let mut state = FormState::new(
+        spec.clone(),
+        Some(engine),
+        "new",
+        None,
+        StateOptions {
+            resolver,
+            ..StateOptions::default()
+        },
+    )
+    .map_err(form_err)?;
     let mut errors: Vec<String> = Vec::new();
     let mut warnings: Vec<String> = spec.warnings.clone();
     warnings.push(REQUESTED_FOR_NOTE.into());
@@ -779,39 +1135,72 @@ pub fn build_sr_plan(
         };
         for p in items {
             let fsv_forms::Value::Str(p) = p else {
-                errors.push(format!("{}: give file paths (attachment ids are assigned after upload)", f.label));
+                errors.push(format!(
+                    "{}: give file paths (attachment ids are assigned after upload)",
+                    f.label
+                ));
                 continue;
             };
             let ph = format!("<upload {}: {}>", uploads.len() + 1, basename(&p));
-            uploads.push(Upload { placeholder: ph.clone(), path: p, target: name.clone(), label: f.label.clone() });
+            uploads.push(Upload {
+                placeholder: ph.clone(),
+                path: p,
+                target: name.clone(),
+                label: f.label.clone(),
+            });
             field_ph.entry(name.clone()).or_default().push(json!(ph));
         }
     }
     let mut general_ph: Vec<Json> = Vec::new();
     for p in &draft.attachments {
         let ph = format!("<upload {}: {}>", uploads.len() + 1, basename(p));
-        uploads.push(Upload { placeholder: ph.clone(), path: p.clone(), target: "attachments".into(), label: "Other attachments".into() });
+        uploads.push(Upload {
+            placeholder: ph.clone(),
+            path: p.clone(),
+            target: "attachments".into(),
+            label: "Other attachments".into(),
+        });
         general_ph.push(json!(ph));
     }
-    errors.extend(uploads.iter().filter(|u| !is_file(&u.path)).map(|u| format!("file not found: {}", u.path)));
+    errors.extend(
+        uploads
+            .iter()
+            .filter(|u| !is_file(&u.path))
+            .map(|u| format!("file not found: {}", u.path)),
+    );
 
-    let skip: HashSet<String> = failed.iter().filter_map(|n| spec.get(n)).map(|f| format!("{} is required", f.label)).collect();
+    let skip: HashSet<String> = failed
+        .iter()
+        .filter_map(|n| spec.get(n))
+        .map(|f| format!("{} is required", f.label))
+        .collect();
     let mut problems = errors.clone();
-    problems.extend(state.errors().map_err(form_err)?.into_iter().filter(|p| !skip.contains(p)));
+    problems.extend(
+        state
+            .errors()
+            .map_err(form_err)?
+            .into_iter()
+            .filter(|p| !skip.contains(p)),
+    );
     let (rule_warnings, rule_errors) = rule_diagnostics(meta, &state);
     warnings.extend(rule_warnings);
     problems.extend(rule_errors);
     problems.extend(unsupported_lookup_errors(&state, draft));
-    if ev.attachments_required.unwrap_or(item.attachment_mandatory) && draft.attachments.is_empty() {
+    if ev.attachments_required.unwrap_or(item.attachment_mandatory) && draft.attachments.is_empty()
+    {
         problems.push("this item requires at least one general attachment: add `attachments: [FILE]` to the draft or pass --attach FILE".into());
     }
     if !draft.attachments.is_empty() && !item.allow_attachments {
         problems.push("this item does not accept general attachments".into());
     }
-    let req_email = requester.and_then(|r| r.email.clone()).filter(|e| !e.is_empty());
+    let req_email = requester
+        .and_then(|r| r.email.clone())
+        .filter(|e| !e.is_empty());
     match requester {
         None => problems.insert(0, REQUESTER_MISSING.into()),
-        Some(r) if req_email.is_none() => problems.insert(0, format!("requester {r} has no email address")),
+        Some(r) if req_email.is_none() => {
+            problems.insert(0, format!("requester {r} has no email address"))
+        }
         _ => {}
     }
     if let Some(rf) = who.requested_for
@@ -826,17 +1215,29 @@ pub fn build_sr_plan(
 
     let mut payload = None;
     if let Some(email) = &req_email {
-        let modes: &[bool] = if problems.is_empty() { &[false, true] } else { &[true] };
+        let modes: &[bool] = if problems.is_empty() {
+            &[false, true]
+        } else {
+            &[true]
+        };
         for &incomplete in modes {
             let opts = SrOptions {
                 field_attachments: field_ph.clone(),
-                attachments: if item.allow_attachments { general_ph.clone() } else { vec![] },
+                attachments: if item.allow_attachments {
+                    general_ph.clone()
+                } else {
+                    vec![]
+                },
                 account_id: Json::Null,
                 allow_incomplete: incomplete,
             };
             match build_sr_payload(Some(&item), &state, email, &opts) {
                 Ok(mut p) => {
-                    if let Some(e) = who.requested_for.and_then(|r| r.email.clone()).filter(|e| !e.is_empty()) {
+                    if let Some(e) = who
+                        .requested_for
+                        .and_then(|r| r.email.clone())
+                        .filter(|e| !e.is_empty())
+                    {
                         p.insert("requested_for".into(), json!(e));
                     }
                     if !who.cc_emails.is_empty() && valid_cc {
@@ -861,34 +1262,70 @@ pub fn build_sr_plan(
         }
     }
 
-    let mut review = Review { title: format!("New service request: {}", item.name), ..Review::default() };
-    let category = if item.category_name.is_empty() { String::new() } else { format!(" · {}", item.category_name) };
-    review.rows.push(("Catalog item".into(), format!("{} (#{}){category}", item.name, py_str(&item.display_id))));
-    review.rows.push(("Requester".into(), requester.map_or_else(|| "(not set)".to_string(), ToString::to_string)));
+    let mut review = Review {
+        title: format!("New service request: {}", item.name),
+        ..Review::default()
+    };
+    let category = if item.category_name.is_empty() {
+        String::new()
+    } else {
+        format!(" · {}", item.category_name)
+    };
+    review.rows.push((
+        "Catalog item".into(),
+        format!("{} (#{}){category}", item.name, py_str(&item.display_id)),
+    ));
+    review.rows.push((
+        "Requester".into(),
+        requester.map_or_else(|| "(not set)".to_string(), ToString::to_string),
+    ));
     if let Some(rf) = who.requested_for {
-        review.rows.push(("Requested for".into(), format!("{rf} (user ID {})", py_str(&rf.id))));
+        review.rows.push((
+            "Requested for".into(),
+            format!("{rf} (user ID {})", py_str(&rf.id)),
+        ));
     }
     if valid_cc && !who.cc_emails.is_empty() {
         let shown = if !who.cc_ids.is_empty() && who.cc_ids.len() == who.cc_emails.len() {
-            who.cc_emails.iter().zip(who.cc_ids).map(|(e, i)| format!("{e} (user ID {})", py_str(i))).collect::<Vec<_>>().join(", ")
+            who.cc_emails
+                .iter()
+                .zip(who.cc_ids)
+                .map(|(e, i)| format!("{e} (user ID {})", py_str(i)))
+                .collect::<Vec<_>>()
+                .join(", ")
         } else {
             who.cc_emails.join(", ")
         };
         review.rows.push(("CC".into(), shown));
     }
-    let subject = if item.subject_template.is_empty() { String::new() } else { item.render_subject(&ev.values) };
+    let subject = if item.subject_template.is_empty() {
+        String::new()
+    } else {
+        item.render_subject(&ev.values)
+    };
     if !subject.is_empty() {
-        review.rows.push(("Subject (item template)".into(), subject));
+        review
+            .rows
+            .push(("Subject (item template)".into(), subject));
     }
     for name in state.payload_values().keys() {
         let Some(f) = spec.get(name) else { continue };
         let text = if f.kind == Kind::Attachment {
             match ev.values.get(name) {
-                Some(fsv_forms::Value::List(items)) => items.iter().map(|p| basename(&p.py_str()).to_string()).collect::<Vec<_>>().join(", "),
+                Some(fsv_forms::Value::List(items)) => items
+                    .iter()
+                    .map(|p| basename(&p.py_str()).to_string())
+                    .collect::<Vec<_>>()
+                    .join(", "),
                 _ => String::new(),
             }
         } else {
-            state.display(name, None).map_err(form_err)? + if ev.populated.contains_key(name) { " (auto)" } else { "" }
+            state.display(name, None).map_err(form_err)?
+                + if ev.populated.contains_key(name) {
+                    " (auto)"
+                } else {
+                    ""
+                }
         };
         review.rows.push((f.label.clone(), text));
     }
@@ -902,7 +1339,13 @@ pub fn build_sr_plan(
         .filter(|u| is_file(&u.path))
         .filter_map(|u| {
             let d = sha256_file(&u.path).ok()?;
-            Some(ReviewAttachment { target: u.label.clone(), name: d.name, size: d.size, sha256: d.sha256, path: u.path.clone() })
+            Some(ReviewAttachment {
+                target: u.label.clone(),
+                name: d.name,
+                size: d.size,
+                sha256: d.sha256,
+                path: u.path.clone(),
+            })
         })
         .collect();
     review.warnings = warnings;
@@ -947,9 +1390,18 @@ pub fn build_sr_plan(
 /// `SendFailure`: uploads or the place-request failed; lists every
 /// attachment id already on the server.
 pub fn send_failure(step: &str, uploaded: &[Json], error: &dyn std::fmt::Display) -> Error {
-    let ids: Vec<String> = uploaded.iter().map(|u| format!("{} ({})", py_str(&u["id"]), py_str(&u["name"]))).collect();
-    let ids = if ids.is_empty() { "none".to_string() } else { ids.join(", ") };
-    Error::other(format!("{step} failed: {error}. Uploaded attachment ids: {ids}"))
+    let ids: Vec<String> = uploaded
+        .iter()
+        .map(|u| format!("{} ({})", py_str(&u["id"]), py_str(&u["name"])))
+        .collect();
+    let ids = if ids.is_empty() {
+        "none".to_string()
+    } else {
+        ids.join(", ")
+    };
+    Error::other(format!(
+        "{step} failed: {error}. Uploaded attachment ids: {ids}"
+    ))
 }
 
 /// `_substitute`: placeholders -> attachment ids, recursively.
@@ -957,19 +1409,39 @@ pub fn substitute(value: &Json, ids: &Map<String, Json>) -> Json {
     match value {
         Json::String(s) if ids.contains_key(s) => ids[s].clone(),
         Json::Array(a) => Json::Array(a.iter().map(|v| substitute(v, ids)).collect()),
-        Json::Object(m) => Json::Object(m.iter().map(|(k, v)| (k.clone(), substitute(v, ids))).collect()),
+        Json::Object(m) => Json::Object(
+            m.iter()
+                .map(|(k, v)| (k.clone(), substitute(v, ids)))
+                .collect(),
+        ),
         other => other.clone(),
     }
 }
 
 /// `execute`: upload the files, then place the request (journaled under
 /// the plan hash). Call only after the review was confirmed.
-pub fn execute(plan: &SRPlan, c: &dyn Api, journal: &dyn Journal, upload_fn: &dyn Fn(&dyn Api, &str) -> Result<i64>, allow_duplicate: bool) -> Result<Json> {
-    let Some(payload) = plan.payload.as_ref().filter(|_| plan.ok() && !plan.hash.is_empty()) else {
-        return Err(flow_exit(2, format!("plan has problems: {}", plan.errors.join("; "))));
+pub fn execute(
+    plan: &SRPlan,
+    c: &dyn Api,
+    journal: &dyn Journal,
+    upload_fn: &dyn Fn(&dyn Api, &str) -> Result<i64>,
+    allow_duplicate: bool,
+) -> Result<Json> {
+    let Some(payload) = plan
+        .payload
+        .as_ref()
+        .filter(|_| plan.ok() && !plan.hash.is_empty())
+    else {
+        return Err(flow_exit(
+            2,
+            format!("plan has problems: {}", plan.errors.join("; ")),
+        ));
     };
     if !plan.identity.is_empty() && plan.identity.get("tenant") != Some(&json!(c.domain())) {
-        return Err(flow_exit(2, "tenant changed since review; nothing was sent"));
+        return Err(flow_exit(
+            2,
+            "tenant changed since review; nothing was sent",
+        ));
     }
     duplicate_check(plan, allow_duplicate, journal)?;
     let (_, mut preflight) = rule_diagnostics(&plan.meta, &plan.state);
@@ -978,7 +1450,13 @@ pub fn execute(plan: &SRPlan, c: &dyn Api, journal: &dyn Journal, upload_fn: &dy
     match &plan.meta.spec.item {
         None => preflight.push("not a service-item form".into()),
         Some(item) => {
-            if plan.state.evaluated.attachments_required.unwrap_or(item.attachment_mandatory) && plan.draft.attachments.is_empty() {
+            if plan
+                .state
+                .evaluated
+                .attachments_required
+                .unwrap_or(item.attachment_mandatory)
+                && plan.draft.attachments.is_empty()
+            {
                 preflight.push("this item requires at least one general attachment".into());
             }
             if !plan.draft.attachments.is_empty() && !item.allow_attachments {
@@ -987,24 +1465,38 @@ pub fn execute(plan: &SRPlan, c: &dyn Api, journal: &dyn Journal, upload_fn: &dy
         }
     }
     if !preflight.is_empty() {
-        return Err(flow_exit(2, format!("plan has problems: {}", preflight.join("; "))));
+        return Err(flow_exit(
+            2,
+            format!("plan has problems: {}", preflight.join("; ")),
+        ));
     }
-    let current = plan_hash(&plan.hashed(), Some(&plan.plan_files())).map_err(|e| flow_exit(2, format!("cannot verify reviewed files: {e}")))?;
+    let current = plan_hash(&plan.hashed(), Some(&plan.plan_files()))
+        .map_err(|e| flow_exit(2, format!("cannot verify reviewed files: {e}")))?;
     if current != plan.hash {
-        return Err(flow_exit(2, "the reviewed payload or files changed; review again"));
+        return Err(flow_exit(
+            2,
+            "the reviewed payload or files changed; review again",
+        ));
     }
     let target = json!(plan.target());
     let before = journal.read().len();
     journal.record_plan("started", &plan.hash, &plan.action, Some(&target), None);
     let entries = journal.read();
     let last = entries.last();
-    let field = |k: &str| last.and_then(|e| e.get(k)).and_then(Json::as_str).map(str::to_string);
+    let field = |k: &str| {
+        last.and_then(|e| e.get(k))
+            .and_then(Json::as_str)
+            .map(str::to_string)
+    };
     if entries.len() <= before
         || field("kind").as_deref() != Some(format!("plan:{}", plan.action).as_str())
         || field("plan").as_deref() != Some(plan.hash.as_str())
         || field("event").as_deref() != Some("started")
     {
-        return Err(flow_exit(5, "could not persist the request journal; nothing was uploaded or placed"));
+        return Err(flow_exit(
+            5,
+            "could not persist the request journal; nothing was uploaded or placed",
+        ));
     }
     let mut uploaded: Vec<Json> = Vec::new();
     let mut ids = Map::new();
@@ -1015,7 +1507,15 @@ pub fn execute(plan: &SRPlan, c: &dyn Api, journal: &dyn Journal, upload_fn: &dy
                 uploaded.push(json!({"id": att_id, "name": basename(&u.path), "target": u.label}));
             }
             Err(e) => {
-                journal.record_plan_steps("failed", &plan.hash, &plan.action, Some(&target), None, &[], true);
+                journal.record_plan_steps(
+                    "failed",
+                    &plan.hash,
+                    &plan.action,
+                    Some(&target),
+                    None,
+                    &[],
+                    true,
+                );
                 return Err(send_failure("upload", &uploaded, &e));
             }
         }
@@ -1025,27 +1525,62 @@ pub fn execute(plan: &SRPlan, c: &dyn Api, journal: &dyn Journal, upload_fn: &dy
         Ok(r) => r,
         Err(e) => {
             if definite_rejection(&e).is_some() {
-                journal.record_plan_steps("failed", &plan.hash, &plan.action, Some(&target), None, &[], true);
+                journal.record_plan_steps(
+                    "failed",
+                    &plan.hash,
+                    &plan.action,
+                    Some(&target),
+                    None,
+                    &[],
+                    true,
+                );
             }
             return Err(send_failure("place-request", &uploaded, &e));
         }
     };
     let created = created_ref(&result);
     if created["id"].is_null() {
-        return Err(send_failure("place-request", &uploaded, &"response has no exact request ID; outcome unknown"));
+        return Err(send_failure(
+            "place-request",
+            &uploaded,
+            &"response has no exact request ID; outcome unknown",
+        ));
     }
     let steps = json!([
         {"step": "upload", "ok": true, "ids": uploaded.iter().map(|u| u["id"].clone()).collect::<Vec<_>>()},
         {"step": "place-request", "ok": true, "id": created["id"]},
     ]);
-    let jsteps = [PlanStep { step: "upload".into(), ok: true }, PlanStep { step: "place-request".into(), ok: true }];
-    journal.record_plan_steps("done", &plan.hash, &plan.action, Some(&target), Some(&created["id"]), &jsteps, false);
+    let jsteps = [
+        PlanStep {
+            step: "upload".into(),
+            ok: true,
+        },
+        PlanStep {
+            step: "place-request".into(),
+            ok: true,
+        },
+    ];
+    journal.record_plan_steps(
+        "done",
+        &plan.hash,
+        &plan.action,
+        Some(&target),
+        Some(&created["id"]),
+        &jsteps,
+        false,
+    );
     let mut verification = json!({"verified": false, "fields": {}});
     if !plan.identity.is_empty() {
         let readback = || -> Result<Json> {
             let raw = c.int_get(&format!("tickets/{}", py_str(&created["id"])), None)?;
-            let row = if raw.is_object() { raw.get("ticket").cloned().unwrap_or_else(|| raw.clone()) } else { Json::Null };
-            if !row.is_object() || py_str(row.get("id").unwrap_or(&Json::Null)) != py_str(&created["id"]) {
+            let row = if raw.is_object() {
+                raw.get("ticket").cloned().unwrap_or_else(|| raw.clone())
+            } else {
+                Json::Null
+            };
+            if !row.is_object()
+                || py_str(row.get("id").unwrap_or(&Json::Null)) != py_str(&created["id"])
+            {
                 return Err(Error::value("identity mismatch"));
             }
             let mut fields = Map::new();
@@ -1066,38 +1601,69 @@ pub fn execute(plan: &SRPlan, c: &dyn Api, journal: &dyn Journal, upload_fn: &dy
             verification = v;
         }
         if verification["verified"] != Json::Bool(true) {
-            verification["warning"] = json!("Request recipient fields were not fully verified; do not resend.");
+            verification["warning"] =
+                json!("Request recipient fields were not fully verified; do not resend.");
         }
     }
-    Ok(json!({"created": created, "result": result, "uploaded": uploaded, "body": body, "plan_hash": plan.hash,
-              "steps": steps, "verification": verification}))
+    Ok(
+        json!({"created": created, "result": result, "uploaded": uploaded, "body": body, "plan_hash": plan.hash,
+              "steps": steps, "verification": verification}),
+    )
 }
 
 /// `review_diff`: what changed between two plans (rows, payload keys).
 fn review_diff(old: &SRPlan, new: &SRPlan) -> Vec<String> {
-    let to_map = |rows: &[(String, String)]| -> IndexMap<String, String> { rows.iter().cloned().collect() };
+    let to_map =
+        |rows: &[(String, String)]| -> IndexMap<String, String> { rows.iter().cloned().collect() };
     let (a, b) = (to_map(&old.review.rows), to_map(&new.review.rows));
     let mut keys: Vec<&String> = a.keys().collect();
     keys.extend(b.keys().filter(|k| !a.contains_key(*k)));
     let dash = "—".to_string();
-    let mut out: Vec<String> = keys.into_iter().filter(|k| a.get(*k) != b.get(*k)).map(|k| format!("{k}: {} → {}", a.get(k).unwrap_or(&dash), b.get(k).unwrap_or(&dash))).collect();
+    let mut out: Vec<String> = keys
+        .into_iter()
+        .filter(|k| a.get(*k) != b.get(*k))
+        .map(|k| {
+            format!(
+                "{k}: {} → {}",
+                a.get(k).unwrap_or(&dash),
+                b.get(k).unwrap_or(&dash)
+            )
+        })
+        .collect();
     if out.is_empty() && old.payload != new.payload {
         let empty = Map::new();
-        let (op, np) = (old.payload.as_ref().unwrap_or(&empty), new.payload.as_ref().unwrap_or(&empty));
+        let (op, np) = (
+            old.payload.as_ref().unwrap_or(&empty),
+            new.payload.as_ref().unwrap_or(&empty),
+        );
         let mut keys: Vec<&String> = op.keys().chain(np.keys()).collect();
         keys.sort();
         keys.dedup();
-        out.extend(keys.into_iter().filter(|k| op.get(*k) != np.get(*k)).map(|k| format!("payload {k} changed")));
+        out.extend(
+            keys.into_iter()
+                .filter(|k| op.get(*k) != np.get(*k))
+                .map(|k| format!("payload {k} changed")),
+        );
     }
     if old.errors != new.errors {
-        out.extend(new.errors.iter().filter(|e| !old.errors.contains(e)).map(|e| format!("problem: {e}")));
+        out.extend(
+            new.errors
+                .iter()
+                .filter(|e| !old.errors.contains(e))
+                .map(|e| format!("problem: {e}")),
+        );
     }
     out
 }
 
 /// `freshen`: re-fetch the item and its rules right before sending.
 /// -> (plan to send, diff lines when the plan changed).
-pub fn freshen(plan: SRPlan, c: &dyn Api, store: &dyn MetaStore, rebuild: &mut dyn FnMut(ItemMeta) -> Result<SRPlan>) -> Result<(SRPlan, Option<Vec<String>>)> {
+pub fn freshen(
+    plan: SRPlan,
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    rebuild: &mut dyn FnMut(ItemMeta) -> Result<SRPlan>,
+) -> Result<(SRPlan, Option<Vec<String>>)> {
     let fresh = load_item_meta(c, store, &py_str(&plan.meta.display_id()), None)?;
     if !fresh.fingerprint().changed(&plan.meta.fingerprint()) {
         return Ok((plan, None));
@@ -1117,19 +1683,32 @@ pub fn freshen(plan: SRPlan, c: &dyn Api, store: &dyn MetaStore, rebuild: &mut d
 /// duplicate window (`change_flow.check_duplicate`).
 pub fn duplicate_check(plan: &SRPlan, allow_duplicate: bool, journal: &dyn Journal) -> Result<()> {
     if crate::service::last_event(journal, "create", &plan.hash).as_deref() == Some("started") {
-        return Err(flow_exit(4, "previous request outcome is unknown; inspect the server and journal before retry"));
+        return Err(flow_exit(
+            4,
+            "previous request outcome is unknown; inspect the server and journal before retry",
+        ));
     }
     if plan.action != "create" || allow_duplicate {
         return Ok(());
     }
-    let Some(hit) = journal.recent_plan(&plan.hash, "create", DUPLICATE_WINDOW_HOURS) else { return Ok(()) };
+    let Some(hit) = journal.recent_plan(&plan.hash, "create", DUPLICATE_WINDOW_HOURS) else {
+        return Ok(());
+    };
     let ts = py_str(hit.get("ts").unwrap_or(&Json::Null));
     let what = if hit.get("event").and_then(Json::as_str) == Some("done") {
-        format!("was already sent at {ts} (created {})", py_str(hit.get("created_id").unwrap_or(&Json::Null)))
+        format!(
+            "was already sent at {ts} (created {})",
+            py_str(hit.get("created_id").unwrap_or(&Json::Null))
+        )
     } else {
         format!("was started at {ts} with no recorded outcome (it may have been created)")
     };
-    Err(flow_exit(4, format!("this exact plan {what}. Check `fsv journal tail`; pass --allow-duplicate to send it again.")))
+    Err(flow_exit(
+        4,
+        format!(
+            "this exact plan {what}. Check `fsv journal tail`; pass --allow-duplicate to send it again."
+        ),
+    ))
 }
 
 // ---------------------------------------------------------------------------
@@ -1141,18 +1720,32 @@ pub fn label_map(defs: &[Json]) -> IndexMap<String, String> {
     fn walk(rows: &[Json], out: &mut IndexMap<String, String>) {
         for r in rows {
             let Some(m) = r.as_object() else { continue };
-            let (name, label) = (m.get("name").filter(|v| truthy(v)), m.get("label").filter(|v| truthy(v)));
+            let (name, label) = (
+                m.get("name").filter(|v| truthy(v)),
+                m.get("label").filter(|v| truthy(v)),
+            );
             if let (Some(name), Some(label)) = (name, label)
                 && py_str(m.get("type").unwrap_or(&Json::Null)) != "1024"
                 && !is_content_type(&or_empty(m.get("field_type")))
             {
-                out.entry(py_str(name)).or_insert_with(|| fsv_forms::pytext::html_unescape(&py_str(label)));
+                out.entry(py_str(name))
+                    .or_insert_with(|| fsv_forms::pytext::html_unescape(&py_str(label)));
             }
-            let list = |k: &str| m.get(k).filter(|v| truthy(v)).and_then(Json::as_array).cloned().unwrap_or_default();
+            let list = |k: &str| {
+                m.get(k)
+                    .filter(|v| truthy(v))
+                    .and_then(Json::as_array)
+                    .cloned()
+                    .unwrap_or_default()
+            };
             walk(&list("fields"), out);
             walk(&list("nested_fields"), out);
             for s in list("sections") {
-                if let Some(fields) = s.get("fields").filter(|v| truthy(v)).and_then(Json::as_array) {
+                if let Some(fields) = s
+                    .get("fields")
+                    .filter(|v| truthy(v))
+                    .and_then(Json::as_array)
+                {
                     walk(fields, out);
                 }
             }
@@ -1166,10 +1759,24 @@ pub fn label_map(defs: &[Json]) -> IndexMap<String, String> {
 /// `item_labels`: labels for a requested item's values, from its embedded
 /// field definitions, else the catalog item form.
 pub fn item_labels(c: &dyn Api, requested: &Json) -> Result<IndexMap<String, String>> {
-    let meta = requested.get("item").filter(|v| truthy(v)).cloned().unwrap_or_else(|| json!({}));
-    let mut labels = label_map(meta.get("custom_fields").filter(|v| truthy(v)).and_then(Json::as_array).map_or(&[][..], Vec::as_slice));
+    let meta = requested
+        .get("item")
+        .filter(|v| truthy(v))
+        .cloned()
+        .unwrap_or_else(|| json!({}));
+    let mut labels = label_map(
+        meta.get("custom_fields")
+            .filter(|v| truthy(v))
+            .and_then(Json::as_array)
+            .map_or(&[][..], Vec::as_slice),
+    );
     let values = requested.obj_or_empty_map("custom_fields");
-    let did = meta.get("display_id").filter(|v| truthy(v)).or_else(|| requested.get("service_item_display_id")).cloned().unwrap_or(Json::Null);
+    let did = meta
+        .get("display_id")
+        .filter(|v| truthy(v))
+        .or_else(|| requested.get("service_item_display_id"))
+        .cloned()
+        .unwrap_or(Json::Null);
     if !did.is_null() && values.keys().any(|k| !labels.contains_key(k)) {
         let spec = match get_item(c, &did) {
             Ok(item) => match FormSpec::from_service_item(&item) {
@@ -1182,7 +1789,9 @@ pub fn item_labels(c: &dyn Api, requested: &Json) -> Result<IndexMap<String, Str
         };
         for f in spec.iter().flat_map(|s| s.fields()) {
             if f.kind != Kind::Notice {
-                labels.entry(f.api_name.clone()).or_insert_with(|| f.label.clone());
+                labels
+                    .entry(f.api_name.clone())
+                    .or_insert_with(|| f.label.clone());
             }
         }
     }
@@ -1195,7 +1804,11 @@ trait ObjMap {
 
 impl ObjMap for Json {
     fn obj_or_empty_map(&self, key: &str) -> Map<String, Json> {
-        self.get(key).filter(|v| truthy(v)).and_then(Json::as_object).cloned().unwrap_or_default()
+        self.get(key)
+            .filter(|v| truthy(v))
+            .and_then(Json::as_object)
+            .cloned()
+            .unwrap_or_default()
     }
 }
 
@@ -1203,9 +1816,14 @@ impl ObjMap for Json {
 pub fn value_text(value: &Json) -> String {
     match value {
         Json::Array(a) => a.iter().map(value_text).collect::<Vec<_>>().join(", "),
-        Json::Object(m) => ["name", "value", "label", "email"].iter().find_map(|k| m.get(*k).filter(|v| truthy(v)).map(py_str)).unwrap_or_else(|| py_str(value)),
+        Json::Object(m) => ["name", "value", "label", "email"]
+            .iter()
+            .find_map(|k| m.get(*k).filter(|v| truthy(v)).map(py_str))
+            .unwrap_or_else(|| py_str(value)),
         Json::Bool(b) => (if *b { "Yes" } else { "No" }).into(),
-        Json::String(s) if s.contains('<') => fsv_core::pystr::collapse_ws(&fsv_forms::spec::plain_text(s)),
+        Json::String(s) if s.contains('<') => {
+            fsv_core::pystr::collapse_ws(&fsv_forms::spec::plain_text(s))
+        }
         other => py_str(other),
     }
 }
@@ -1219,7 +1837,9 @@ pub fn is_file_value(value: &Json) -> bool {
             Json::Number(n) => n.is_i64() || n.is_u64(),
             Json::Object(m) => {
                 let t = |k: &str| m.get(k).is_some_and(truthy);
-                t("attachment_url") || t("canonical_url") || (t("name") && m.get("id").is_some_and(|v| !v.is_null()))
+                t("attachment_url")
+                    || t("canonical_url")
+                    || (t("name") && m.get("id").is_some_and(|v| !v.is_null()))
             }
             _ => false,
         })
@@ -1236,21 +1856,28 @@ pub fn safe_target(directory: &str, name: &str) -> Result<PathBuf> {
         return Err(Error::value(format!("unsafe file name {r}: contains '..'")));
     }
     if name.contains('/') || name.contains('\\') {
-        return Err(Error::value(format!("unsafe file name {r}: contains a path separator")));
+        return Err(Error::value(format!(
+            "unsafe file name {r}: contains a path separator"
+        )));
     }
     let b = name.as_bytes();
     if name.starts_with('/') || (b.len() >= 2 && b[0].is_ascii_alphabetic() && b[1] == b':') {
         return Err(Error::value(format!("unsafe file name {r}: absolute path")));
     }
     if crate::service::has_control(name, "") {
-        return Err(Error::value(format!("unsafe file name {r}: control characters")));
+        return Err(Error::value(format!(
+            "unsafe file name {r}: control characters"
+        )));
     }
     let dir = PathBuf::from(expanduser(directory));
     let root = std::fs::canonicalize(&dir).unwrap_or(dir);
     let joined = root.join(name);
     let target = std::fs::canonicalize(&joined).unwrap_or(joined);
     if target.parent() != Some(root.as_path()) {
-        return Err(Error::value(format!("unsafe file name {r}: resolves outside {}", root.display())));
+        return Err(Error::value(format!(
+            "unsafe file name {r}: resolves outside {}",
+            root.display()
+        )));
     }
     Ok(target)
 }
@@ -1268,7 +1895,9 @@ mod tests {
     use std::sync::LazyLock;
 
     /// Outputs of `/tmp/fsv_oracle/o_catalog.py` (the Python functions).
-    static ORACLE: LazyLock<Json> = LazyLock::new(|| serde_json::from_str(include_str!("testdata/catalog_oracle.json")).unwrap());
+    static ORACLE: LazyLock<Json> = LazyLock::new(|| {
+        serde_json::from_str(include_str!("testdata/catalog_oracle.json")).unwrap()
+    });
     static FILES: LazyLock<String> = LazyLock::new(|| {
         let dir = std::env::temp_dir().join("fsv_api_catalog_files");
         std::fs::create_dir_all(&dir).unwrap();
@@ -1278,7 +1907,9 @@ mod tests {
     });
 
     fn want(key: &str) -> Json {
-        let text = ORACLE[key].to_string().replace("/tmp/fsv_oracle/files", &FILES);
+        let text = ORACLE[key]
+            .to_string()
+            .replace("/tmp/fsv_oracle/files", &FILES);
         serde_json::from_str(&text).unwrap()
     }
 
@@ -1312,7 +1943,14 @@ mod tests {
     }
 
     fn meta() -> ItemMeta {
-        ItemMeta::new(item(), json!({"business_rules": []}), json!(3), 0.0, "server").unwrap()
+        ItemMeta::new(
+            item(),
+            json!({"business_rules": []}),
+            json!(3),
+            0.0,
+            "server",
+        )
+        .unwrap()
     }
 
     fn answers(v: Json) -> Map<String, Json> {
@@ -1324,7 +1962,14 @@ mod tests {
     }
 
     fn state(m: &ItemMeta) -> FormState {
-        FormState::new(m.spec(), Some(m.engine().unwrap()), "new", None, StateOptions::default()).unwrap()
+        FormState::new(
+            m.spec(),
+            Some(m.engine().unwrap()),
+            "new",
+            None,
+            StateOptions::default(),
+        )
+        .unwrap()
     }
 
     fn file(name: &str) -> String {
@@ -1332,26 +1977,73 @@ mod tests {
     }
 
     fn full_plan() -> SRPlan {
-        let draft = Draft { answers: answers(json!({"Answer": "ok", "Size": "meg", "Deck": file("deck.pptx")})), attachments: vec![file("notes.txt")], ..Draft::default() };
-        build_sr_plan(&meta(), &draft, None, Some(&ann()), false, &Recipients::default(), "acme.freshservice.com").unwrap()
+        let draft = Draft {
+            answers: answers(json!({"Answer": "ok", "Size": "meg", "Deck": file("deck.pptx")})),
+            attachments: vec![file("notes.txt")],
+            ..Draft::default()
+        };
+        build_sr_plan(
+            &meta(),
+            &draft,
+            None,
+            Some(&ann()),
+            false,
+            &Recipients::default(),
+            "acme.freshservice.com",
+        )
+        .unwrap()
     }
 
     fn recipients_plan() -> SRPlan {
         let bob = LookupValue::new(json!(55), "Bob", Some("bob@example.com"));
         let cc = ["c@example.com".to_string()];
         let ids = [json!(66)];
-        let who = Recipients { requested_for: Some(&bob), cc_emails: &cc, cc_ids: &ids };
-        build_sr_plan(&meta(), &Draft { answers: answers(json!({"Answer": "ok"})), ..Draft::default() }, None, Some(&ann()), false, &who, "acme.freshservice.com").unwrap()
+        let who = Recipients {
+            requested_for: Some(&bob),
+            cc_emails: &cc,
+            cc_ids: &ids,
+        };
+        build_sr_plan(
+            &meta(),
+            &Draft {
+                answers: answers(json!({"Answer": "ok"})),
+                ..Draft::default()
+            },
+            None,
+            Some(&ann()),
+            false,
+            &who,
+            "acme.freshservice.com",
+        )
+        .unwrap()
     }
 
     fn rows_json(p: &SRPlan) -> Json {
-        json!(p.review.rows.iter().map(|(a, b)| json!([a, b])).collect::<Vec<_>>())
+        json!(
+            p.review
+                .rows
+                .iter()
+                .map(|(a, b)| json!([a, b]))
+                .collect::<Vec<_>>()
+        )
     }
 
     #[test]
     fn norm_and_rows() {
-        assert_eq!(json!([norm(&json!("  A\u{301}b  C ")), norm(&json!(5)), norm(&Json::Null)]), want("norm"));
-        let got = json!([rows(&json!([{"a": 1}, 2]), "k"), rows(&json!({"k": [{"b": 1}, "x"]}), "k"), rows(&json!({"k": 1}), "k"), rows(&json!("x"), "k")]);
+        assert_eq!(
+            json!([
+                norm(&json!("  A\u{301}b  C ")),
+                norm(&json!(5)),
+                norm(&Json::Null)
+            ]),
+            want("norm")
+        );
+        let got = json!([
+            rows(&json!([{"a": 1}, 2]), "k"),
+            rows(&json!({"k": [{"b": 1}, "x"]}), "k"),
+            rows(&json!({"k": 1}), "k"),
+            rows(&json!("x"), "k")
+        ]);
         assert_eq!(got, want("rows"));
     }
 
@@ -1365,13 +2057,22 @@ mod tests {
     }
 
     fn summ(id: i64, did: i64, name: &str, cat: i64, extra: Json) -> Json {
-        let mut m = obj(json!({"id": id, "display_id": did, "name": name, "short_description": format!("{name} desc"), "category_id": cat}));
+        let mut m = obj(
+            json!({"id": id, "display_id": did, "name": name, "short_description": format!("{name} desc"), "category_id": cat}),
+        );
         m.extend(obj(extra));
         Json::Object(m)
     }
 
     fn params(a: &FakeApi) -> Json {
-        json!(a.calls.lock().unwrap().iter().map(|c| json!(c.params)).collect::<Vec<_>>())
+        json!(
+            a.calls
+                .lock()
+                .unwrap()
+                .iter()
+                .map(|c| json!(c.params))
+                .collect::<Vec<_>>()
+        )
     }
 
     #[test]
@@ -1382,31 +2083,78 @@ mod tests {
 
         let page1 = json!({"service_items": [summ(1, 11, "Laptop", 1, json!({})), summ(2, 12, "VPN Access", 3, json!({})), summ(1, 11, "Laptop", 1, json!({}))], "meta": {"total_pages": 2}});
         let page2 = json!({"service_items": [summ(3, 13, "Old", 1, json!({"deleted": true})), summ(4, 14, "Build Agent", 2, json!({}))], "meta": {"total_pages": 2}});
-        let a = FakeApi::new().ok("GET catalog/service-items", page1).ok("GET catalog/service-items", page2);
-        let ids: Vec<Json> = list_items(&a, false, MAX_PAGES).unwrap().iter().map(|i| i["id"].clone()).collect();
+        let a = FakeApi::new()
+            .ok("GET catalog/service-items", page1)
+            .ok("GET catalog/service-items", page2);
+        let ids: Vec<Json> = list_items(&a, false, MAX_PAGES)
+            .unwrap()
+            .iter()
+            .map(|i| i["id"].clone())
+            .collect();
         assert_eq!(json!([ids, params(&a)]), want("list_items"));
 
-        let a = FakeApi::new().ok("GET catalog/service-items", json!({"service_items": [summ(5, 15, "Pop", 1, json!({}))]}));
+        let a = FakeApi::new().ok(
+            "GET catalog/service-items",
+            json!({"service_items": [summ(5, 15, "Pop", 1, json!({}))]}),
+        );
         let got = list_items(&a, true, MAX_PAGES).unwrap();
         assert_eq!(json!([got, params(&a)[0]]), want("list_popular"));
 
-        let a = FakeApi::new().ok("GET catalog/service-items", json!({"service_items": [summ(1, 11, "A", 1, json!({}))]})).ok("GET catalog/service-items", json!({"service_items": []}));
-        let ids: Vec<Json> = list_items(&a, false, MAX_PAGES).unwrap().iter().map(|i| i["id"].clone()).collect();
-        assert_eq!(json!([ids, a.calls.lock().unwrap().len()]), want("list_short_page"));
+        let a = FakeApi::new()
+            .ok(
+                "GET catalog/service-items",
+                json!({"service_items": [summ(1, 11, "A", 1, json!({}))]}),
+            )
+            .ok("GET catalog/service-items", json!({"service_items": []}));
+        let ids: Vec<Json> = list_items(&a, false, MAX_PAGES)
+            .unwrap()
+            .iter()
+            .map(|i| i["id"].clone())
+            .collect();
+        assert_eq!(
+            json!([ids, a.calls.lock().unwrap().len()]),
+            want("list_short_page")
+        );
     }
 
     #[test]
     fn resolve_and_filter() {
         let flat = flat();
-        let ids = |q: &str| json!(resolve_category(&flat, q).unwrap().iter().map(|c| c["id"].clone()).collect::<Vec<_>>());
-        assert_eq!(json!([ids("engineering"), ids("3"), ids("vp")]), want("resolve_category"));
-        assert_eq!(err(resolve_category(&flat, "e")), want_err("resolve_category_many"));
-        assert_eq!(err(resolve_category(&flat, "zzz")), want_err("resolve_category_none"));
+        let ids = |q: &str| {
+            json!(
+                resolve_category(&flat, q)
+                    .unwrap()
+                    .iter()
+                    .map(|c| c["id"].clone())
+                    .collect::<Vec<_>>()
+            )
+        };
+        assert_eq!(
+            json!([ids("engineering"), ids("3"), ids("vp")]),
+            want("resolve_category")
+        );
+        assert_eq!(
+            err(resolve_category(&flat, "e")),
+            want_err("resolve_category_many")
+        );
+        assert_eq!(
+            err(resolve_category(&flat, "zzz")),
+            want_err("resolve_category_none")
+        );
 
-        let items = [summ(1, 11, "Laptop", 1, json!({})), summ(2, 12, "VPN Access", 3, json!({"category_name": "Access"})), summ(4, 14, "Build Agent", 2, json!({}))];
+        let items = [
+            summ(1, 11, "Laptop", 1, json!({})),
+            summ(2, 12, "VPN Access", 3, json!({"category_name": "Access"})),
+            summ(4, 14, "Build Agent", 2, json!({})),
+        ];
         let ids = |v: Vec<Json>| json!(v.iter().map(|i| i["id"].clone()).collect::<Vec<_>>());
         let got = json!([
-            ids(filter_items(&items, Some(&[json!(1), json!("2")]), None, &[])),
+            ids(filter_items(
+                &items,
+                Some(&[json!(1), json!("2")]),
+                None,
+                &[]
+            )),
             ids(filter_items(&items, None, Some("access"), &[])),
             ids(filter_items(&items, None, Some("eng tools"), &flat)),
             ids(filter_items(&items, None, Some("14"), &[])),
@@ -1416,35 +2164,81 @@ mod tests {
 
     #[test]
     fn get_find_place_and_created_ref() {
-        let a = FakeApi::new().ok("GET catalog/service-items/9000000002", json!({"service_item": item()})).ok("GET catalog/service-items/5", json!({"x": 1}));
-        assert_eq!(json!(get_item(&a, &json!(9000000002i64)).unwrap()["name"]), want("get_item"));
+        let a = FakeApi::new()
+            .ok(
+                "GET catalog/service-items/9000000002",
+                json!({"service_item": item()}),
+            )
+            .ok("GET catalog/service-items/5", json!({"x": 1}));
+        assert_eq!(
+            json!(get_item(&a, &json!(9000000002i64)).unwrap()["name"]),
+            want("get_item")
+        );
         assert_eq!(err(get_item(&a, &json!(5))), want_err("get_item_bad"));
-        assert_eq!(json!([item_ref(" #77 "), item_ref("Laptop")]), want("item_ref"));
+        assert_eq!(
+            json!([item_ref(" #77 "), item_ref("Laptop")]),
+            want("item_ref")
+        );
 
-        let items = json!([summ(1, 11, "Laptop", 1, json!({})), summ(2, 12, "VPN Access", 3, json!({"category_name": "Access"})), summ(4, 14, "Build Agent", 2, json!({}))]);
+        let items = json!([
+            summ(1, 11, "Laptop", 1, json!({})),
+            summ(2, 12, "VPN Access", 3, json!({"category_name": "Access"})),
+            summ(4, 14, "Build Agent", 2, json!({}))
+        ]);
         let a = FakeApi::new()
             .ok("GET catalog/service-items", json!({"service_items": items}))
-            .ok("GET catalog/service-items/11", json!({"service_item": {"display_id": 11, "name": "Laptop"}}))
-            .ok("GET catalog/service-items/77", json!({"service_item": {"display_id": 77}}));
-        assert_eq!(json!([find_item(&a, "#77").unwrap()["display_id"], find_item(&a, "laptop").unwrap()["display_id"]]), want("find_item"));
+            .ok(
+                "GET catalog/service-items/11",
+                json!({"service_item": {"display_id": 11, "name": "Laptop"}}),
+            )
+            .ok(
+                "GET catalog/service-items/77",
+                json!({"service_item": {"display_id": 77}}),
+            );
+        assert_eq!(
+            json!([
+                find_item(&a, "#77").unwrap()["display_id"],
+                find_item(&a, "laptop").unwrap()["display_id"]
+            ]),
+            want("find_item")
+        );
         assert_eq!(err(find_item(&a, " # ")), want_err("find_item_empty"));
         assert_eq!(err(find_item(&a, "printer")), want_err("find_item_none"));
         assert_eq!(err(find_item(&a, "a")), want_err("find_item_many"));
 
-        let a = FakeApi::new().ok("POST catalog/service-items/77/place-request", json!({"service_request": {"id": 5, "display_id": 6}}));
+        let a = FakeApi::new().ok(
+            "POST catalog/service-items/77/place-request",
+            json!({"service_request": {"id": 5, "display_id": 6}}),
+        );
         let got = place_request(&a, &json!(77), &json!({"a": 1})).unwrap();
         let w = &a.writes()[0];
-        assert_eq!(json!([got, [{"method": w.method, "path": w.path, "params": w.params, "body": w.body}]]), want("place_request"));
+        assert_eq!(
+            json!([got, [{"method": w.method, "path": w.path, "params": w.params, "body": w.body}]]),
+            want("place_request")
+        );
 
-        let cases = [json!({"id": 1}), json!({"x": {"display_id": 6}}), json!({"x": {"id": 2, "human_display_id": "SR-9"}}), json!({"x": 1}), json!("s")];
-        assert_eq!(json!(cases.iter().map(created_ref).collect::<Vec<_>>()), want("created_ref"));
+        let cases = [
+            json!({"id": 1}),
+            json!({"x": {"display_id": 6}}),
+            json!({"x": {"id": 2, "human_display_id": "SR-9"}}),
+            json!({"x": 1}),
+            json!("s"),
+        ];
+        assert_eq!(
+            json!(cases.iter().map(created_ref).collect::<Vec<_>>()),
+            want("created_ref")
+        );
     }
 
     #[test]
     fn upload_posts_the_file() {
         // `catalog.upload` is `create.upload_file`; same oracle case (`o_create.py` "upload_file").
-        let want: Json = serde_json::from_str::<Json>(include_str!("testdata/create_oracle.json")).unwrap()["upload_file"].clone();
-        let path = std::env::temp_dir().join("fsv_api_catalog_upload").join("a.txt");
+        let want: Json = serde_json::from_str::<Json>(include_str!("testdata/create_oracle.json"))
+            .unwrap()["upload_file"]
+            .clone();
+        let path = std::env::temp_dir()
+            .join("fsv_api_catalog_upload")
+            .join("a.txt");
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
         std::fs::write(&path, b"hello").unwrap();
         let a = FakeApi::new().ok("POST attachments", json!({"id": 33}));
@@ -1455,19 +2249,39 @@ mod tests {
     #[test]
     fn item_meta_and_load() {
         let m = meta();
-        let names: Vec<String> = m.spec().fields().iter().map(|f| f.api_name.clone()).collect();
+        let names: Vec<String> = m
+            .spec()
+            .fields()
+            .iter()
+            .map(|f| f.api_name.clone())
+            .collect();
         let w = want("item_meta");
         let mut as_of = m.as_of();
-        assert_eq!(as_of.remove("fetched_at").unwrap().as_str().unwrap().len(), w[4]["fetched_at"].as_str().unwrap().len());
+        assert_eq!(
+            as_of.remove("fetched_at").unwrap().as_str().unwrap().len(),
+            w[4]["fetched_at"].as_str().unwrap().len()
+        );
         let mut w_as_of = w[4].as_object().unwrap().clone();
         w_as_of.remove("fetched_at");
-        assert_eq!(json!([m.display_id(), m.name(), names, m.fingerprint().hash]), json!([w[0], w[1], w[2], w[3]]));
+        assert_eq!(
+            json!([m.display_id(), m.name(), names, m.fingerprint().hash]),
+            json!([w[0], w[1], w[2], w[3]])
+        );
         assert_eq!(as_of, w_as_of);
 
-        let a = FakeApi::new().ok("GET ws/3/business_rules", json!({"business_rules": [], "user": {"id": 1}}));
+        let a = FakeApi::new().ok(
+            "GET ws/3/business_rules",
+            json!({"business_rules": [], "user": {"id": 1}}),
+        );
         let mm = load_item_meta(&a, &MemStore::default(), "", Some(&item())).unwrap();
         let calls = a.calls.lock().unwrap();
-        let got = json!([mm.rules, mm.workspace_id, mm.source, calls.iter().map(|c| c.path.clone()).collect::<Vec<_>>(), calls[0].params.as_ref().unwrap()["item_id"]]);
+        let got = json!([
+            mm.rules,
+            mm.workspace_id,
+            mm.source,
+            calls.iter().map(|c| c.path.clone()).collect::<Vec<_>>(),
+            calls[0].params.as_ref().unwrap()["item_id"]
+        ]);
         assert_eq!(got, want("load_item_meta"));
     }
 
@@ -1475,11 +2289,38 @@ mod tests {
     fn answers_helpers() {
         let spec = meta().spec();
         let size = find_field(&spec, "size").unwrap();
-        let got: Vec<Json> = [json!("Small"), json!("medium   large"), json!("me"), json!("meg"), json!("x"), json!(5)].iter().map(|v| json!(match_choice(size, v))).collect();
+        let got: Vec<Json> = [
+            json!("Small"),
+            json!("medium   large"),
+            json!("me"),
+            json!("meg"),
+            json!("x"),
+            json!(5),
+        ]
+        .iter()
+        .map(|v| json!(match_choice(size, v)))
+        .collect();
         assert_eq!(json!(got), want("match_choice"));
-        assert_eq!(json!(lenient_answers(&spec, &answers(json!({"Size": "meg", "answer": "hi", "unknown": 1})))), want("lenient"));
-        assert_eq!(json!(file_answers(&spec, &answers(json!({"Deck": "deck.pptx", "answer": "x", "deck2": "y"})), Some("/base"))), want("file_answers"));
-        let got = file_answers(&spec, &answers(json!({"deck": ["/abs/a.pptx", "~/b.pptx"], "unknown": "z"})), None);
+        assert_eq!(
+            json!(lenient_answers(
+                &spec,
+                &answers(json!({"Size": "meg", "answer": "hi", "unknown": 1}))
+            )),
+            want("lenient")
+        );
+        assert_eq!(
+            json!(file_answers(
+                &spec,
+                &answers(json!({"Deck": "deck.pptx", "answer": "x", "deck2": "y"})),
+                Some("/base")
+            )),
+            want("file_answers")
+        );
+        let got = file_answers(
+            &spec,
+            &answers(json!({"deck": ["/abs/a.pptx", "~/b.pptx"], "unknown": "z"})),
+            None,
+        );
         assert_eq!(got["deck"][0], want("file_answers_abs"));
     }
 
@@ -1487,11 +2328,31 @@ mod tests {
     fn diagnostics_and_lookup_errors() {
         let m = meta();
         assert_eq!(json!(rule_diagnostics(&m, &state(&m))), want("rule_diag"));
-        let mu = ItemMeta::new(item(), json!({"business_rules": [], "unavailable": "why"}), json!(3), 0.0, "server").unwrap();
-        assert_eq!(json!(rule_diagnostics(&mu, &state(&mu))), want("rule_diag_unavailable"));
-        let ml = ItemMeta::new(item_with("Acme request", "2030-01-15T10:00:00+09:00", true), json!({"business_rules": []}), json!(3), 0.0, "server").unwrap();
+        let mu = ItemMeta::new(
+            item(),
+            json!({"business_rules": [], "unavailable": "why"}),
+            json!(3),
+            0.0,
+            "server",
+        )
+        .unwrap();
+        assert_eq!(
+            json!(rule_diagnostics(&mu, &state(&mu))),
+            want("rule_diag_unavailable")
+        );
+        let ml = ItemMeta::new(
+            item_with("Acme request", "2030-01-15T10:00:00+09:00", true),
+            json!({"business_rules": []}),
+            json!(3),
+            0.0,
+            "server",
+        )
+        .unwrap();
         let stl = state(&ml);
-        let d = |v: Json| Draft { answers: answers(v), ..Draft::default() };
+        let d = |v: Json| Draft {
+            answers: answers(v),
+            ..Draft::default()
+        };
         let got = json!([
             unsupported_lookup_errors(&stl, &d(json!({"Who": "Ann"}))),
             unsupported_lookup_errors(&stl, &d(json!({"who": ""}))),
@@ -1515,11 +2376,20 @@ mod tests {
     fn build_sr_plan_matches_python() {
         let p = full_plan();
         let mut j = p.to_json();
-        j["review"]["metadata"].as_object_mut().unwrap().remove("fetched_at");
-        assert_eq!(json!([p.ok(), p.target(), p.files(), p.hash, j]), want("plan"));
+        j["review"]["metadata"]
+            .as_object_mut()
+            .unwrap()
+            .remove("fetched_at");
+        assert_eq!(
+            json!([p.ok(), p.target(), p.files(), p.hash, j]),
+            want("plan")
+        );
 
         let p2 = recipients_plan();
-        assert_eq!(json!([p2.ok(), p2.payload, p2.identity, p2.hash, rows_json(&p2)]), want("plan_recipients"));
+        assert_eq!(
+            json!([p2.ok(), p2.payload, p2.identity, p2.hash, rows_json(&p2)]),
+            want("plan_recipients")
+        );
 
         let draft = Draft {
             answers: answers(json!({"Nope": 1})),
@@ -1528,12 +2398,36 @@ mod tests {
             attachments: vec!["/missing.txt".into()],
             ..Draft::default()
         };
-        let p3 = build_sr_plan(&meta(), &draft, None, None, false, &Recipients::default(), "acme.freshservice.com").unwrap();
-        assert_eq!(json!([p3.ok(), p3.errors, p3.payload, p3.hash]), want("plan_errors"));
+        let p3 = build_sr_plan(
+            &meta(),
+            &draft,
+            None,
+            None,
+            false,
+            &Recipients::default(),
+            "acme.freshservice.com",
+        )
+        .unwrap();
+        assert_eq!(
+            json!([p3.ok(), p3.errors, p3.payload, p3.hash]),
+            want("plan_errors")
+        );
 
         let cc = ["bad".to_string()];
-        let who = Recipients { cc_emails: &cc, ..Recipients::default() };
-        let p4 = build_sr_plan(&meta(), &Draft::default(), None, Some(&LookupValue::new(json!(1), "NoMail", None)), false, &who, "acme.freshservice.com").unwrap();
+        let who = Recipients {
+            cc_emails: &cc,
+            ..Recipients::default()
+        };
+        let p4 = build_sr_plan(
+            &meta(),
+            &Draft::default(),
+            None,
+            Some(&LookupValue::new(json!(1), "NoMail", None)),
+            false,
+            &who,
+            "acme.freshservice.com",
+        )
+        .unwrap();
         assert_eq!(json!([p4.errors, p4.payload]), want("plan_errors2"));
     }
 
@@ -1545,7 +2439,13 @@ mod tests {
         ];
         assert_eq!(json!(got), want("send_failure"));
         let ids = obj(json!({"<u1>": 7}));
-        assert_eq!(substitute(&json!({"a": ["<u1>", {"b": "<u1>"}], "c": "<u2>", "d": 1}), &ids), want("substitute"));
+        assert_eq!(
+            substitute(
+                &json!({"a": ["<u1>", {"b": "<u1>"}], "c": "<u2>", "d": 1}),
+                &ids
+            ),
+            want("substitute")
+        );
     }
 
     const PLACE: &str = "POST catalog/service-items/9000000002/place-request";
@@ -1554,15 +2454,25 @@ mod tests {
     fn execute_uploads_then_places() {
         let p = full_plan();
         let j = MemJournal::default();
-        let a = FakeApi::new().ok(PLACE, json!({"service_request": {"id": 500, "display_id": 600}}));
+        let a = FakeApi::new().ok(
+            PLACE,
+            json!({"service_request": {"id": 500, "display_id": 600}}),
+        );
         let next = std::sync::atomic::AtomicI64::new(101);
         let up = |_: &dyn Api, _: &str| Ok(next.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
         assert_eq!(execute(&p, &a, &j, &up, false).unwrap(), want("execute"));
         assert_eq!(json!(j.events()), want("execute_events"));
         let w = &a.writes()[0];
-        assert_eq!(json!([{"method": w.method, "path": w.path, "params": w.params, "body": w.body}]), want("execute_writes"));
+        assert_eq!(
+            json!([{"method": w.method, "path": w.path, "params": w.params, "body": w.body}]),
+            want("execute_writes")
+        );
         let msg = err(execute(&p, &a, &j, &|_: &dyn Api, _: &str| Ok(1), false));
-        assert_eq!(msg, want_err("execute_dup").replace(" at None ", &format!(" at {} ", py_str(&j.read()[1]["ts"]))));
+        assert_eq!(
+            msg,
+            want_err("execute_dup")
+                .replace(" at None ", &format!(" at {} ", py_str(&j.read()[1]["ts"])))
+        );
     }
 
     #[test]
@@ -1571,34 +2481,104 @@ mod tests {
         let seven = |_: &dyn Api, _: &str| Ok(7);
         let j = MemJournal::default();
         let a = FakeApi::new().on(PLACE, Reply::Status(422));
-        assert_eq!(err(execute(&p, &a, &j, &seven, false)), want_err("execute_422"));
+        assert_eq!(
+            err(execute(&p, &a, &j, &seven, false)),
+            want_err("execute_422")
+        );
         assert_eq!(json!(j.events()), want("execute_422_events"));
 
         let j = MemJournal::default();
-        assert_eq!(err(execute(&p, &FakeApi::new(), &j, &|_: &dyn Api, _: &str| Err(Error::other("disk")), false)), want_err("execute_upload_fail"));
+        assert_eq!(
+            err(execute(
+                &p,
+                &FakeApi::new(),
+                &j,
+                &|_: &dyn Api, _: &str| Err(Error::other("disk")),
+                false
+            )),
+            want_err("execute_upload_fail")
+        );
         assert_eq!(json!(j.events()), want("execute_upload_fail_events"));
 
-        let draft = Draft { answers: answers(json!({"Nope": 1})), description_html: Some("<p>x</p>".into()), planning: answers(json!({"a": {}})), attachments: vec!["/missing.txt".into()], ..Draft::default() };
-        let p3 = build_sr_plan(&meta(), &draft, None, None, false, &Recipients::default(), "acme.freshservice.com").unwrap();
-        assert_eq!(err(execute(&p3, &FakeApi::new(), &MemJournal::default(), &seven, false)), want_err("execute_bad_plan"));
+        let draft = Draft {
+            answers: answers(json!({"Nope": 1})),
+            description_html: Some("<p>x</p>".into()),
+            planning: answers(json!({"a": {}})),
+            attachments: vec!["/missing.txt".into()],
+            ..Draft::default()
+        };
+        let p3 = build_sr_plan(
+            &meta(),
+            &draft,
+            None,
+            None,
+            false,
+            &Recipients::default(),
+            "acme.freshservice.com",
+        )
+        .unwrap();
+        assert_eq!(
+            err(execute(
+                &p3,
+                &FakeApi::new(),
+                &MemJournal::default(),
+                &seven,
+                false
+            )),
+            want_err("execute_bad_plan")
+        );
 
         let j = MemJournal::default();
         let three = |_: &dyn Api, _: &str| Ok(3);
         let a = FakeApi::new().ok(PLACE, json!({"ok": true}));
-        assert_eq!(err(execute(&p, &a, &j, &three, false)), want_err("execute_noid"));
+        assert_eq!(
+            err(execute(&p, &a, &j, &three, false)),
+            want_err("execute_noid")
+        );
         assert_eq!(json!(j.events()), want("execute_noid_events"));
 
         let a = FakeApi::new().ok(PLACE, json!({"service_request": {"id": 500}})).ok(
             "GET tickets/500",
             json!({"ticket": {"id": 500, "email": "a@example.com", "requested_for": "bob@example.com", "cc_emails": ["x@example.com"]}}),
         );
-        assert_eq!(execute(&recipients_plan(), &a, &MemJournal::default(), &three, false).unwrap(), want("execute_identity"));
+        assert_eq!(
+            execute(
+                &recipients_plan(),
+                &a,
+                &MemJournal::default(),
+                &three,
+                false
+            )
+            .unwrap(),
+            want("execute_identity")
+        );
 
         let deck2 = file("deck2.pptx");
         std::fs::write(&deck2, b"v1").unwrap();
-        let pd = build_sr_plan(&meta(), &Draft { answers: answers(json!({"Answer": "ok", "Deck": deck2})), ..Draft::default() }, None, Some(&ann()), false, &Recipients::default(), "acme.freshservice.com").unwrap();
+        let pd = build_sr_plan(
+            &meta(),
+            &Draft {
+                answers: answers(json!({"Answer": "ok", "Deck": deck2})),
+                ..Draft::default()
+            },
+            None,
+            Some(&ann()),
+            false,
+            &Recipients::default(),
+            "acme.freshservice.com",
+        )
+        .unwrap();
         std::fs::write(&deck2, b"v2").unwrap();
-        assert_eq!(err(execute(&pd, &FakeApi::new(), &MemJournal::default(), &three, false)), want_err("execute_changed_file"));
+        assert_eq!(
+            err(execute(
+                &pd,
+                &FakeApi::new(),
+                &MemJournal::default(),
+                &three,
+                false
+            )),
+            want_err("execute_changed_file")
+        );
     }
 
     #[test]
@@ -1617,13 +2597,34 @@ mod tests {
     #[test]
     fn freshen_rebuilds_on_change() {
         let store = MemStore::default();
-        let a = FakeApi::new().ok("GET catalog/service-items/9000000002", json!({"service_item": item()})).ok("GET ws/3/business_rules", json!({"business_rules": []}));
-        let ok = || Draft { answers: answers(json!({"Answer": "ok"})), ..Draft::default() };
-        let build = |m: &ItemMeta, d: Draft| build_sr_plan(m, &d, None, Some(&ann()), false, &Recipients::default(), "acme.freshservice.com");
+        let a = FakeApi::new()
+            .ok(
+                "GET catalog/service-items/9000000002",
+                json!({"service_item": item()}),
+            )
+            .ok("GET ws/3/business_rules", json!({"business_rules": []}));
+        let ok = || Draft {
+            answers: answers(json!({"Answer": "ok"})),
+            ..Draft::default()
+        };
+        let build = |m: &ItemMeta, d: Draft| {
+            build_sr_plan(
+                m,
+                &d,
+                None,
+                Some(&ann()),
+                false,
+                &Recipients::default(),
+                "acme.freshservice.com",
+            )
+        };
         let lm = load_item_meta(&a, &store, "9000000002", None).unwrap();
         let pf = build(&lm, ok()).unwrap();
         let hash = pf.hash.clone();
-        let (same, diff) = freshen(pf, &a, &store, &mut |_| Err(Error::other("rebuild must not run"))).unwrap();
+        let (same, diff) = freshen(pf, &a, &store, &mut |_| {
+            Err(Error::other("rebuild must not run"))
+        })
+        .unwrap();
         assert_eq!(json!([same.hash == hash, diff]), want("freshen_same"));
 
         let a = FakeApi::new()
@@ -1632,7 +2633,16 @@ mod tests {
         let (new, diff) = freshen(same, &a, &store, &mut |m| build(&m, ok())).unwrap();
         assert_eq!(json!([new.hash == hash, diff]), want("freshen_same_hash"));
         let pf = build(&lm, ok()).unwrap();
-        let (new, diff) = freshen(pf, &a, &store, &mut |m| build(&m, Draft { answers: answers(json!({"Answer": "new"})), ..Draft::default() })).unwrap();
+        let (new, diff) = freshen(pf, &a, &store, &mut |m| {
+            build(
+                &m,
+                Draft {
+                    answers: answers(json!({"Answer": "new"})),
+                    ..Draft::default()
+                },
+            )
+        })
+        .unwrap();
         assert_eq!(json!([new.hash, diff]), want("freshen_changed"));
     }
 
@@ -1648,17 +2658,56 @@ mod tests {
             json!("junk"),
         ];
         assert_eq!(json!(label_map(&defs)), want("label_map"));
-        let a = FakeApi::new().ok("GET catalog/service-items/9000000002", json!({"service_item": item()}));
+        let a = FakeApi::new().ok(
+            "GET catalog/service-items/9000000002",
+            json!({"service_item": item()}),
+        );
         let req = json!({"item": {"display_id": 9000000002i64, "custom_fields": [{"name": "answer", "label": "Ans"}]}, "custom_fields": {"answer": "x", "size": "Small", "zzz": 1}});
         assert_eq!(json!(item_labels(&a, &req).unwrap()), want("item_labels"));
-        assert_eq!(json!(item_labels(&FakeApi::new(), &json!({"service_item_display_id": 5, "custom_fields": {"q": 1}})).unwrap()), want("item_labels_404"));
+        assert_eq!(
+            json!(
+                item_labels(
+                    &FakeApi::new(),
+                    &json!({"service_item_display_id": 5, "custom_fields": {"q": 1}})
+                )
+                .unwrap()
+            ),
+            want("item_labels_404")
+        );
         let req = json!({"item": {"custom_fields": [{"name": "q", "label": "Q"}]}, "custom_fields": {"q": 1}});
-        assert_eq!(json!(item_labels(&FakeApi::new(), &req).unwrap()), want("item_labels_complete"));
+        assert_eq!(
+            json!(item_labels(&FakeApi::new(), &req).unwrap()),
+            want("item_labels_complete")
+        );
 
-        let vals = [json!(["a", {"name": "N"}]), json!({"value": "V"}), json!({"x": 1}), json!(true), json!(false), json!("<p>a  <b>b</b></p>"), json!(5), Json::Null, json!("a < b")];
-        assert_eq!(json!(vals.iter().map(value_text).collect::<Vec<_>>()), want("value_text"));
-        let vals = [json!([1, 2]), json!([{"attachment_url": "u"}]), json!([{"name": "n", "id": 1}]), json!([{"name": "n"}]), json!([]), json!("x"), json!([1, "a"])];
-        assert_eq!(json!(vals.iter().map(is_file_value).collect::<Vec<_>>()), want("is_file_value"));
+        let vals = [
+            json!(["a", {"name": "N"}]),
+            json!({"value": "V"}),
+            json!({"x": 1}),
+            json!(true),
+            json!(false),
+            json!("<p>a  <b>b</b></p>"),
+            json!(5),
+            Json::Null,
+            json!("a < b"),
+        ];
+        assert_eq!(
+            json!(vals.iter().map(value_text).collect::<Vec<_>>()),
+            want("value_text")
+        );
+        let vals = [
+            json!([1, 2]),
+            json!([{"attachment_url": "u"}]),
+            json!([{"name": "n", "id": 1}]),
+            json!([{"name": "n"}]),
+            json!([]),
+            json!("x"),
+            json!([1, "a"]),
+        ];
+        assert_eq!(
+            json!(vals.iter().map(is_file_value).collect::<Vec<_>>()),
+            want("is_file_value")
+        );
     }
 
     #[test]
@@ -1669,9 +2718,23 @@ mod tests {
         let w = want("safe_target");
         assert_eq!(got.file_name(), Path::new(w.as_str().unwrap()).file_name());
         assert_eq!(got.parent().unwrap(), dir.canonicalize().unwrap());
-        for (key, bad) in [("st_empty", " "), ("st_dots", "a..b"), ("st_sep", "a/b"), ("st_bs", "a\\b"), ("st_drive", "C:x"), ("st_ctl", "a\u{1}")] {
-            assert_eq!(err(safe_target(&dir.to_string_lossy(), bad)), want_err(key), "{key}");
+        for (key, bad) in [
+            ("st_empty", " "),
+            ("st_dots", "a..b"),
+            ("st_sep", "a/b"),
+            ("st_bs", "a\\b"),
+            ("st_drive", "C:x"),
+            ("st_ctl", "a\u{1}"),
+        ] {
+            assert_eq!(
+                err(safe_target(&dir.to_string_lossy(), bad)),
+                want_err(key),
+                "{key}"
+            );
         }
-        assert_eq!(json!(domain_url("/a/b", "acme.freshservice.com")), want("domain_url"));
+        assert_eq!(
+            json!(domain_url("/a/b", "acme.freshservice.com")),
+            want("domain_url")
+        );
     }
 }

@@ -1,10 +1,16 @@
-//! Form-schema cache shape and choice labels (`schema.py`).
-//!
-//! Fetching and the on-disk cache wait on `fsv-core`. The functions here are
-//! the pure part: reading a cache document, merging the richer v2 choices
-//! into the internal field list, and resolving a choice label.
+//! Form schema of a resource (`schema.py`): the fetch with its v2 choice
+//! merge, the on-disk cache, cache documents and choice labels.
 
-use serde_json::{Map, Value};
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
+
+use serde_json::{Map, Value, json};
+
+use fsv_core::config::{self, Paths};
+use fsv_core::error::ApiError;
+use fsv_core::resource::Resource;
+use fsv_core::{Client, Error, Result, cache};
 
 /// Field definitions rarely change. `schema.CACHE_TTL`.
 pub const CACHE_TTL_SECS: u64 = 7 * 86_400;
@@ -30,7 +36,9 @@ pub fn doc_fields(doc: &Value) -> Option<&Vec<Value>> {
 /// `{saved_at, fields}` from an envelope or an old cache document.
 /// Key presence wins over truthiness, so a stored empty list stays.
 pub fn unwrap_schema(doc: &Map<String, Value>) -> Value {
-    let fields = doc_fields(&Value::Object(doc.clone())).cloned().unwrap_or_default();
+    let fields = doc_fields(&Value::Object(doc.clone()))
+        .cloned()
+        .unwrap_or_default();
     let saved_at = doc.get("saved_at").cloned().unwrap_or(Value::from(0));
     serde_json::json!({"saved_at": saved_at, "fields": fields})
 }
@@ -47,7 +55,11 @@ pub fn field<'a>(name: &str, schema: &'a Value) -> Option<&'a Map<String, Value>
 /// Python `==` (so `1 == 1.0` and `True == 1`) and falls back to `str(val)`.
 pub fn choice_label(field_name: &str, val: &Value, schema: &Value) -> String {
     let Some(f) = field(field_name, schema) else {
-        return if val.is_null() { String::new() } else { fsv_py::py_str(val) };
+        return if val.is_null() {
+            String::new()
+        } else {
+            fsv_py::py_str(val)
+        };
     };
     if val.is_null() {
         return String::new();
@@ -78,14 +90,20 @@ pub fn choice_label(field_name: &str, val: &Value, schema: &Value) -> String {
 /// key is ignored, matching `{"name" in f}`.
 pub fn merge_v2_choices(int_fields: &mut [Value], v2_fields: &[Value]) {
     for field in int_fields.iter_mut() {
-        let Some(obj) = field.as_object_mut() else { continue };
-        let Some(name) = obj.get("name").filter(|v| !v.is_null()) else { continue };
+        let Some(obj) = field.as_object_mut() else {
+            continue;
+        };
+        let Some(name) = obj.get("name").filter(|v| !v.is_null()) else {
+            continue;
+        };
         let Some(v2) = v2_fields.iter().find_map(|f| {
             let obj = f.as_object()?;
             if !obj.contains_key("name") {
                 return None;
             }
-            obj.get("name").is_some_and(|n| py_eq(n, name)).then_some(obj)
+            obj.get("name")
+                .is_some_and(|n| py_eq(n, name))
+                .then_some(obj)
         }) else {
             continue;
         };
@@ -106,14 +124,520 @@ pub(crate) fn py_eq(a: &Value, b: &Value) -> bool {
         (Value::Null, Value::Null) => true,
         (Value::String(x), Value::String(y)) => x == y,
         (Value::Bool(x), Value::Bool(y)) => x == y,
-        (Value::Bool(b), n) | (n, Value::Bool(b)) if n.is_number() => num(n) == Some(if *b { 1.0 } else { 0.0 }),
+        (Value::Bool(b), n) | (n, Value::Bool(b)) if n.is_number() => {
+            num(n) == Some(if *b { 1.0 } else { 0.0 })
+        }
         (Value::Number(_), Value::Number(_)) => num(a) == num(b),
         _ => false,
     }
 }
 
 fn num(v: &Value) -> Option<f64> {
-    v.as_f64().or_else(|| v.as_i64().map(|i| i as f64)).or_else(|| v.as_u64().map(|u| u as f64))
+    v.as_f64()
+        .or_else(|| v.as_i64().map(|i| i as f64))
+        .or_else(|| v.as_u64().map(|u| u as f64))
+}
+
+fn now() -> f64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_or(0.0, |d| d.as_secs_f64())
+}
+
+fn py_type(v: &Value) -> &'static str {
+    match v {
+        Value::Null => "NoneType",
+        Value::Bool(_) => "bool",
+        Value::Number(n) if n.is_f64() => "float",
+        Value::Number(_) => "int",
+        Value::String(_) => "str",
+        Value::Array(_) => "list",
+        Value::Object(_) => "dict",
+    }
+}
+
+/// `schema_cache_path(name)` under `paths` for the tenant `domain_key`
+/// (`config.cache_domain_key`).
+pub fn cache_path(paths: &Paths, domain_key: &str, name: &str) -> PathBuf {
+    paths.schema_dir.join(format!("{domain_key}--{name}.json"))
+}
+
+/// `_fetch_schema`: internal API first (it has choices for reference
+/// fields), v2 as the fallback, v2 choices merged in where v2 has more.
+///
+/// Never empty: when neither API yields fields the session error wins, then
+/// any API error, then the first error, else an `APIError(200)`.
+pub fn fetch(c: &Client, res: &Resource) -> Result<Vec<Value>> {
+    let mut errors: Vec<Error> = Vec::new();
+    let mut int_fields: Vec<Value> = Vec::new();
+    match c.int_get(res.form_fields_path, None) {
+        Ok(Value::Object(raw)) => {
+            if let Some(f) = raw.get(res.form_fields_key).filter(|v| fsv_py::truthy(v)) {
+                int_fields = f.as_array().cloned().unwrap_or_default();
+            }
+        }
+        Ok(other) => errors.push(Error::other(format!(
+            "'{}' object has no attribute 'get'",
+            py_type(&other)
+        ))),
+        Err(e) => errors.push(e),
+    }
+    let v2_fields = match c.v2_get(res.form_fields_path, None) {
+        Ok(Value::Object(raw)) => raw
+            .get(res.form_fields_key)
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default(),
+        Ok(other) => {
+            errors.push(Error::other(format!(
+                "'{}' object has no attribute 'get'",
+                py_type(&other)
+            )));
+            Vec::new()
+        }
+        Err(e) => {
+            errors.push(e);
+            Vec::new()
+        }
+    };
+    if int_fields.is_empty() {
+        if !v2_fields.is_empty() {
+            return Ok(v2_fields);
+        }
+        if let Some(i) = errors.iter().position(|e| matches!(e, Error::Session(_))) {
+            return Err(errors.swap_remove(i));
+        }
+        if let Some(i) = errors.iter().position(|e| matches!(e, Error::Api(_))) {
+            return Err(errors.swap_remove(i));
+        }
+        if !errors.is_empty() {
+            return Err(errors.swap_remove(0));
+        }
+        let msg = format!("no form fields returned for {}", res.name);
+        return Err(ApiError::with_request(200, json!(msg), "GET", res.form_fields_path).into());
+    }
+    if !v2_fields.is_empty() {
+        merge_v2_choices(&mut int_fields, &v2_fields);
+    }
+    Ok(int_fields)
+}
+
+/// `_cached_path`: the first candidate holding fields, and whether it is
+/// older than [`CACHE_TTL_SECS`] (a bad or future `saved_at` is stale).
+fn cached_doc(candidates: &[PathBuf]) -> Option<(PathBuf, Map<String, Value>, bool)> {
+    for path in candidates {
+        let (Some(doc), _) = cache::load(path) else {
+            continue;
+        };
+        if doc_fields(&Value::Object(doc.clone())).is_none() {
+            continue;
+        }
+        let saved = match doc.get("saved_at") {
+            Some(Value::Number(n)) => n.as_f64(),
+            Some(_) => None,
+            None => std::fs::metadata(path)
+                .and_then(|m| m.modified())
+                .ok()
+                .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
+                .map(|d| d.as_secs_f64()),
+        };
+        let stale = match saved.filter(|s| s.is_finite()) {
+            Some(s) => {
+                let age = now() - s;
+                !(0.0..=CACHE_TTL_SECS as f64).contains(&age)
+            }
+            None => true,
+        };
+        return Some((path.clone(), doc, stale));
+    }
+    None
+}
+
+fn with_provenance(doc: &Map<String, Value>, stale: bool) -> Value {
+    let mut out = match unwrap_schema(doc) {
+        Value::Object(m) => m,
+        _ => Map::new(),
+    };
+    out.insert("stale".into(), Value::Bool(stale));
+    out.insert("source".into(), json!("cache"));
+    Value::Object(out)
+}
+
+/// `config.ensure_dirs` for `paths`.
+fn ensure_dirs(paths: &Paths) -> Result<()> {
+    std::fs::create_dir_all(&paths.config_dir)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&paths.config_dir, std::fs::Permissions::from_mode(0o700))?;
+    }
+    std::fs::create_dir_all(&paths.schema_dir)?;
+    std::fs::create_dir_all(&paths.filters_dir)?;
+    Ok(())
+}
+
+/// `schema.load(res, client, force)` over the process config
+/// (`config::paths()` and the current tenant's cache key).
+///
+/// Returns `{saved_at, fields, stale, source}`. A fresh cache is served as
+/// is; a stale one is served with a warning on stderr while a background
+/// thread refreshes it; a miss or `force` fetches and saves. Empty schemas
+/// are never cached or returned; a failed fetch is an error.
+pub fn load(res: &'static Resource, client: &Arc<Client>, force: bool) -> Result<Value> {
+    load_in(
+        res,
+        client,
+        force,
+        &config::paths(),
+        &config::cache_domain_key(None),
+    )
+}
+
+/// [`load`] with the cache under `paths` for tenant `domain_key`.
+pub fn load_in(
+    res: &'static Resource,
+    client: &Arc<Client>,
+    force: bool,
+    paths: &Paths,
+    domain_key: &str,
+) -> Result<Value> {
+    let primary = cache_path(paths, domain_key, res.name);
+    load_at(
+        res,
+        client,
+        force,
+        &primary,
+        std::slice::from_ref(&primary),
+        paths,
+    )
+}
+
+fn load_at(
+    res: &'static Resource,
+    client: &Arc<Client>,
+    force: bool,
+    primary: &Path,
+    candidates: &[PathBuf],
+    paths: &Paths,
+) -> Result<Value> {
+    if let Some((path, doc, stale)) = cached_doc(candidates)
+        && !force
+    {
+        if !stale {
+            let _ = cache::update_meta(&path, true, true, None);
+            return Ok(with_provenance(&doc, false));
+        }
+        eprintln!(
+            "Warning: stale {0} schema; refreshing in background. Run `fsv {0} fields --refresh` for current definitions.",
+            res.name
+        );
+        let c = client.clone();
+        let _ = cache::refresh_async(
+            primary,
+            "schema",
+            move || fetch(&c, res).map(Value::Array),
+            None,
+        );
+        return Ok(with_provenance(&doc, true));
+    }
+    let t0 = Instant::now();
+    let fields = fetch(client, res)?;
+    let latency = t0.elapsed().as_millis() as u64;
+    if fields.is_empty() {
+        let msg = format!("empty schema for {}", res.name);
+        return Err(ApiError::with_request(200, json!(msg), "GET", res.form_fields_path).into());
+    }
+    ensure_dirs(paths)?;
+    cache::save(
+        primary,
+        "schema",
+        &Value::Array(fields.clone()),
+        "",
+        latency,
+    )?;
+    Ok(json!({"saved_at": now(), "fields": fields, "stale": false, "source": "server"}))
+}
+
+#[cfg(test)]
+mod load_tests {
+    //! `tests/test_schema_cache.py`, over a real client and a temp cache.
+
+    use std::sync::Arc;
+    use std::time::Duration;
+
+    use fsv_core::client::Response;
+    use fsv_core::client::mock::MockTransport;
+    use fsv_core::resource::CHANGES;
+    use fsv_core::{Ctx, Error};
+
+    use super::*;
+
+    const KEY: &str = "acme.freshservice.com";
+
+    fn fields() -> Value {
+        json!([{"name": "status", "label": "Status", "choices": [{"id": 1, "value": "Open"}]}])
+    }
+
+    /// A reply for one form-fields endpoint: a status alone, or 200 + JSON.
+    #[derive(Clone)]
+    enum R {
+        Status(u16),
+        Ok(Value),
+    }
+
+    struct World {
+        client: Arc<Client>,
+        mock: Arc<MockTransport>,
+        dir: tempfile::TempDir,
+    }
+
+    impl World {
+        fn new(int: R, v2: R) -> World {
+            let dir = tempfile::tempdir().unwrap();
+            let ctx = Arc::new(Ctx::new(Paths::under(dir.path())).with_tenant(KEY));
+            let mock = MockTransport::new(move |r| {
+                let rest = r.url.splitn(4, '/').nth(3).unwrap_or("");
+                let path = format!("/{}", rest.split('?').next().unwrap_or(""));
+                let reply = match path.as_str() {
+                    "/api/_/change_form_fields" => int.clone(),
+                    "/api/v2/change_form_fields" => v2.clone(),
+                    p if p.starts_with("/a/") => {
+                        return Ok(Response::html(
+                            200,
+                            r#"<html><meta name="csrf-token" content="tok"></html>"#,
+                        ));
+                    }
+                    _ => R::Status(404),
+                };
+                Ok(match reply {
+                    R::Status(s) => Response::json(s, &json!({"description": "nope"})),
+                    R::Ok(v) => Response::json(200, &v),
+                })
+            });
+            let cookies = [("_x_w", "w"), ("fw-session-id", "fw1")]
+                .into_iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect();
+            let client = Client::builder(ctx)
+                .transport(mock.clone())
+                .cookies(cookies)
+                .sleeper(|_| {})
+                .build()
+                .unwrap();
+            World {
+                client: Arc::new(client),
+                mock,
+                dir,
+            }
+        }
+
+        fn paths(&self) -> Paths {
+            Paths::under(self.dir.path())
+        }
+
+        fn file(&self) -> PathBuf {
+            cache_path(&self.paths(), KEY, "changes")
+        }
+
+        fn load(&self, force: bool) -> Result<Value> {
+            load_in(&CHANGES, &self.client, force, &self.paths(), KEY)
+        }
+
+        /// Form-field fetches made (`c.calls` in the Python fake).
+        fn calls(&self) -> usize {
+            self.mock
+                .paths()
+                .iter()
+                .filter(|p| p.ends_with("change_form_fields"))
+                .count()
+        }
+
+        fn data(&self) -> Value {
+            let text = std::fs::read_to_string(self.file()).unwrap();
+            serde_json::from_str::<Value>(&text).unwrap()["data"].clone()
+        }
+
+        fn write(&self, doc: &Value) {
+            std::fs::create_dir_all(self.file().parent().unwrap()).unwrap();
+            std::fs::write(self.file(), doc.to_string()).unwrap();
+        }
+
+        fn save(&self, data: &Value) {
+            cache::save(&self.file(), "schema", data, "", 0).unwrap();
+        }
+
+        fn set_saved_at(&self, saved: Value) {
+            let mut doc: Value =
+                serde_json::from_str(&std::fs::read_to_string(self.file()).unwrap()).unwrap();
+            doc["saved_at"] = saved;
+            self.write(&doc);
+        }
+    }
+
+    fn form(v: Value) -> R {
+        R::Ok(json!({"change_fields": v}))
+    }
+
+    #[test]
+    fn both_fetches_fail_raises_session_error_and_caches_nothing() {
+        let w = World::new(R::Status(401), R::Status(403));
+        assert!(matches!(w.load(false), Err(Error::Session(_))));
+        assert!(!w.file().exists());
+    }
+
+    #[test]
+    fn api_errors_propagate_when_no_session_error() {
+        let w = World::new(R::Status(500), R::Status(404));
+        let err = w.load(false).unwrap_err();
+        assert_eq!(err.status(), Some(500), "{err}");
+        assert!(!w.file().exists());
+    }
+
+    #[test]
+    fn both_empty_raises_and_is_not_cached() {
+        let w = World::new(form(json!([])), form(json!([])));
+        let err = w.load(false).unwrap_err();
+        assert_eq!(err.status(), Some(200));
+        assert!(
+            err.to_string()
+                .contains("no form fields returned for changes"),
+            "{err}"
+        );
+        assert!(!w.file().exists());
+    }
+
+    #[test]
+    fn v2_fallback_used_when_internal_fails() {
+        let w = World::new(R::Status(404), form(fields()));
+        let got = w.load(false).unwrap();
+        assert_eq!(got["fields"], fields());
+        assert_eq!(
+            (got["stale"].clone(), got["source"].clone()),
+            (json!(false), json!("server"))
+        );
+        assert_eq!(w.data(), fields());
+    }
+
+    #[test]
+    fn v2_choices_are_merged_when_v2_has_more() {
+        let v2 = json!([{"name": "status", "choices": [{"id": 1, "value": "Open"}, {"id": 2, "value": "Closed"}]}]);
+        let w = World::new(form(fields()), form(v2.clone()));
+        let got = w.load(false).unwrap();
+        assert_eq!(got["fields"][0]["choices"], v2[0]["choices"]);
+        assert_eq!(got["fields"][0]["label"], json!("Status"));
+    }
+
+    #[test]
+    fn poisoned_cache_entry_is_a_miss() {
+        for payload in [json!([]), Value::Null, json!({"oops": 1})] {
+            let w = World::new(form(fields()), form(json!([])));
+            w.save(&payload);
+            assert_eq!(w.load(false).unwrap()["fields"], fields());
+            assert_eq!(w.calls(), 2, "{payload}");
+            assert_eq!(w.data(), fields());
+        }
+    }
+
+    #[test]
+    fn valid_cache_is_served_without_fetch() {
+        let w = World::new(R::Status(401), R::Status(401));
+        w.save(&fields());
+        let got = w.load(false).unwrap();
+        assert_eq!(got["fields"], fields());
+        assert_eq!(
+            (got["stale"].clone(), got["source"].clone()),
+            (json!(false), json!("cache"))
+        );
+        assert_eq!(w.calls(), 0);
+        let doc: Value = serde_json::from_str(&std::fs::read_to_string(w.file()).unwrap()).unwrap();
+        assert_eq!(doc["fetch_count"], json!(2));
+    }
+
+    #[test]
+    fn stale_cache_is_marked_and_refreshed_in_the_background() {
+        let fresh = json!([{"name": "status", "label": "Status (new)"}]);
+        for saved in [
+            json!(1),
+            json!(true),
+            json!("unknown"),
+            json!(999_999_999_999_i64),
+            Value::Null,
+        ] {
+            let w = World::new(form(fresh.clone()), form(json!([])));
+            w.save(&fields());
+            w.set_saved_at(saved.clone());
+            let got = w.load(false).unwrap();
+            assert_eq!(got["fields"], fields(), "{saved}");
+            assert_eq!(
+                (got["stale"].clone(), got["source"].clone()),
+                (json!(true), json!("cache")),
+                "{saved}"
+            );
+            let mut refreshed = false;
+            for _ in 0..100 {
+                if w.data() == fresh {
+                    refreshed = true;
+                    break;
+                }
+                std::thread::sleep(Duration::from_millis(20));
+            }
+            assert!(refreshed, "{saved}");
+        }
+    }
+
+    #[test]
+    fn force_refresh_bypasses_even_fresh_cache_and_returns_provenance() {
+        let w = World::new(form(fields()), form(json!([])));
+        w.save(&json!([{"name": "old"}]));
+        let got = w.load(true).unwrap();
+        assert_eq!(got["fields"], fields());
+        assert_eq!(
+            (got["stale"].clone(), got["source"].clone()),
+            (json!(false), json!("server"))
+        );
+        assert!(got["saved_at"].as_f64().unwrap() > 0.0);
+        assert_eq!(w.calls(), 2);
+        assert_eq!(w.data(), fields());
+    }
+
+    #[test]
+    fn failed_force_refresh_does_not_fall_back_to_stale_cache() {
+        let w = World::new(R::Status(401), R::Status(401));
+        w.save(&fields());
+        assert!(matches!(w.load(true), Err(Error::Session(_))));
+        assert_eq!(w.data(), fields());
+    }
+
+    #[test]
+    fn legacy_cache_uses_schema_ttl_not_generic_ttl() {
+        let w = World::new(R::Status(401), R::Status(401));
+        w.write(&json!({"fields": fields(), "saved_at": now() - 7200.0}));
+        let got = w.load(false).unwrap();
+        assert_eq!(
+            (got["stale"].clone(), got["source"].clone()),
+            (json!(false), json!("cache"))
+        );
+        assert_eq!(got["fields"], fields());
+        assert_eq!(w.calls(), 0);
+    }
+
+    #[test]
+    fn cache_older_than_the_ttl_is_stale() {
+        let w = World::new(R::Status(401), R::Status(401));
+        w.write(&json!({"_kind": "schema", "data": fields(), "saved_at": now() - CACHE_TTL_SECS as f64 - 60.0}));
+        assert_eq!(w.load(false).unwrap()["stale"], json!(true));
+    }
+
+    #[test]
+    fn cache_path_matches_the_process_config() {
+        let p = Paths::under(Path::new("/x"));
+        assert_eq!(
+            cache_path(&p, KEY, "changes"),
+            Path::new("/x/cache/schema/acme.freshservice.com--changes.json")
+        );
+        let process = cache_path(&config::paths(), &config::cache_domain_key(None), "tickets");
+        assert_eq!(process, config::schema_cache_path("tickets", None));
+    }
 }
 
 #[cfg(test)]
@@ -125,14 +649,25 @@ mod tests {
     fn doc_fields_rejects_empty_and_reads_either_key() {
         assert!(doc_fields(&json!({"fields": []})).is_none());
         assert!(doc_fields(&json!([])).is_none());
-        assert_eq!(doc_fields(&json!({"data": [{"name": "status"}]})).unwrap().len(), 1);
+        assert_eq!(
+            doc_fields(&json!({"data": [{"name": "status"}]}))
+                .unwrap()
+                .len(),
+            1
+        );
     }
 
     #[test]
     fn unwrap_keeps_an_explicit_empty_field_list_out_of_the_miss_path() {
-        let doc = json!({"saved_at": 3, "fields": []}).as_object().unwrap().clone();
+        let doc = json!({"saved_at": 3, "fields": []})
+            .as_object()
+            .unwrap()
+            .clone();
         let got = unwrap_schema(&doc);
-        assert_eq!(got.get("fields").and_then(Value::as_array).unwrap().len(), 0);
+        assert_eq!(
+            got.get("fields").and_then(Value::as_array).unwrap().len(),
+            0
+        );
         assert_eq!(got.get("saved_at"), Some(&json!(3)));
     }
 

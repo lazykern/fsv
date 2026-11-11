@@ -1,8 +1,11 @@
 //! Freshservice operations above the HTTP client.
 //!
 //! `query` and `task_status` are pure: they take already-loaded JSON and,
-//! where a person lookup is unavoidable, a [`query::Directory`]. The client
-//! and the schema cache land here once `fsv-core` settles.
+//! where a person lookup is unavoidable, a [`query::Directory`]. `schema`
+//! owns the form-schema fetch and cache; `views` the site's read-side
+//! loaders (saved views, edit-form rules, properties).
+
+#![allow(clippy::result_large_err)]
 
 pub mod approvals;
 pub mod associations;
@@ -13,16 +16,22 @@ pub mod formmeta;
 pub mod notes;
 pub mod properties;
 mod query;
-mod schema;
+pub mod schema;
 pub mod service;
 pub mod site;
 pub mod state_flow;
 mod task_status;
 pub mod tasks;
+pub mod views;
 
-pub use schema::{CACHE_TTL_SECS, IMPACT, PRIORITY, RISK, choice_label, doc_fields, field, merge_v2_choices, unwrap_schema};
+pub use schema::{
+    CACHE_TTL_SECS, IMPACT, PRIORITY, RISK, choice_label, doc_fields, field, merge_v2_choices,
+    unwrap_schema,
+};
 
-pub use query::{Directory, Explain, build_query_hash, build_query_hash_from_schema, load_query_hash};
+pub use query::{
+    Directory, Explain, build_query_hash, build_query_hash_from_schema, load_query_hash,
+};
 pub use task_status::{active_choices, display, fields_from_payload, resolve};
 
 /// User-facing validation failure. Maps to exit code 2 (`ValueError`).
@@ -36,3 +45,77 @@ impl std::fmt::Display for QueryError {
 }
 
 impl std::error::Error for QueryError {}
+
+/// A [`QueryError`] or an expired session, kept apart so the caller can still
+/// stop on (and exit with the code of) a session failure. `QueryError` itself
+/// stays a plain message because other crates build it as `QueryError(msg)`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum QueryFailure {
+    /// `SessionError`: no session, expired session, wrong tenant.
+    Session(String),
+    Query(QueryError),
+}
+
+impl QueryFailure {
+    pub fn is_session(&self) -> bool {
+        matches!(self, QueryFailure::Session(_))
+    }
+
+    pub fn message(&self) -> &str {
+        match self {
+            QueryFailure::Session(msg) | QueryFailure::Query(QueryError(msg)) => msg,
+        }
+    }
+
+    /// The message alone, dropping the session flag.
+    pub fn into_query_error(self) -> QueryError {
+        match self {
+            QueryFailure::Session(msg) => QueryError(msg),
+            QueryFailure::Query(e) => e,
+        }
+    }
+}
+
+impl std::fmt::Display for QueryFailure {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.message())
+    }
+}
+
+impl std::error::Error for QueryFailure {}
+
+impl From<QueryError> for QueryFailure {
+    fn from(e: QueryError) -> Self {
+        QueryFailure::Query(e)
+    }
+}
+
+impl From<fsv_core::Error> for QueryFailure {
+    fn from(e: fsv_core::Error) -> Self {
+        match e {
+            fsv_core::Error::Session(msg) => QueryFailure::Session(msg),
+            other => QueryFailure::Query(QueryError(other.to_string())),
+        }
+    }
+}
+
+impl From<QueryFailure> for QueryError {
+    fn from(e: QueryFailure) -> Self {
+        e.into_query_error()
+    }
+}
+
+/// `Session` stays a session error; a query failure is a `ValueError` (exit 2).
+impl From<QueryFailure> for fsv_core::Error {
+    fn from(e: QueryFailure) -> Self {
+        match e {
+            QueryFailure::Session(msg) => fsv_core::Error::Session(msg),
+            QueryFailure::Query(QueryError(msg)) => fsv_core::Error::Value(msg),
+        }
+    }
+}
+
+/// `isinstance(e, SessionError)`.
+pub fn is_session_error(e: &fsv_core::Error) -> bool {
+    matches!(e, fsv_core::Error::Session(_))
+}

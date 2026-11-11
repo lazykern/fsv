@@ -11,7 +11,11 @@ use fsv_core::resource::{self, Resource};
 use crate::QueryError;
 use crate::site::format::{fmt_when, is_date_only, parse_dt};
 
-const TICKET_STATES: &[(&str, &str)] = &[("new", "New"), ("elapsed", "Response Due"), ("overdue", "Overdue")];
+const TICKET_STATES: &[(&str, &str)] = &[
+    ("new", "New"),
+    ("elapsed", "Response Due"),
+    ("overdue", "Overdue"),
+];
 
 const PRIORITY: &[(i64, &str)] = &[(1, "Low"), (2, "Medium"), (3, "High"), (4, "Urgent")];
 
@@ -24,9 +28,39 @@ const SORT_LABELS: &[(&str, &str)] = &[
 ];
 
 const COLUMN_KEYS: &[(&str, &[&str])] = &[
-    ("changes", &["subject", "requester", "status", "priority", "assigned_to", "department"]),
-    ("tickets", &["subject", "requester", "state", "status", "priority", "assigned_to"]),
-    ("problems", &["subject", "requester", "status", "priority", "assigned_to", "department"]),
+    (
+        "changes",
+        &[
+            "subject",
+            "requester",
+            "status",
+            "priority",
+            "assigned_to",
+            "department",
+        ],
+    ),
+    (
+        "tickets",
+        &[
+            "subject",
+            "requester",
+            "state",
+            "status",
+            "priority",
+            "assigned_to",
+        ],
+    ),
+    (
+        "problems",
+        &[
+            "subject",
+            "requester",
+            "status",
+            "priority",
+            "assigned_to",
+            "department",
+        ],
+    ),
 ];
 
 const CHROME_LABELS: &[(&str, &str)] = &[
@@ -80,7 +114,10 @@ const DETAILS_PARTS: &[&str] = &["requested_items", "details", "conversations"];
 
 const FALLBACK_TABS: &[(&str, &[&str])] = &[
     ("changes", &["notes", "tasks", "approvals", "activity"]),
-    ("tickets", &["tasks", "approvals", "activity", "resolution_notes"]),
+    (
+        "tickets",
+        &["tasks", "approvals", "activity", "resolution_notes"],
+    ),
     ("problems", &["notes", "tasks", "activity"]),
 ];
 
@@ -93,7 +130,10 @@ pub struct Missing {
 
 impl Missing {
     pub fn new(what: impl Into<String>, status: Option<i64>) -> Self {
-        Self { what: what.into(), status }
+        Self {
+            what: what.into(),
+            status,
+        }
     }
 
     /// `403`/`404` wording from `Missing.note`. Status `0` is falsy, like Python.
@@ -157,7 +197,9 @@ pub struct ListPage {
 
 impl ListPage {
     pub fn title(&self) -> String {
-        self.view_name.clone().unwrap_or_else(|| format!("All {}", self.resource_name))
+        self.view_name
+            .clone()
+            .unwrap_or_else(|| format!("All {}", self.resource_name))
     }
 
     /// `<view> · 31-33 of 33 · Sort by: Created Date`
@@ -193,7 +235,11 @@ impl Tab {
 }
 
 pub fn fallback_tabs(resource_name: &str) -> &'static [&'static str] {
-    FALLBACK_TABS.iter().find(|(n, _)| *n == resource_name).map(|(_, tabs)| *tabs).unwrap_or(&[])
+    FALLBACK_TABS
+        .iter()
+        .find(|(n, _)| *n == resource_name)
+        .map(|(_, tabs)| *tabs)
+        .unwrap_or(&[])
 }
 
 /// Rows inside a filters/views payload, server order preserved.
@@ -217,11 +263,14 @@ pub fn view_list(data: &Value) -> Vec<&Map<String, Value>> {
 pub fn parse_saved_views(data: &Value) -> Vec<SavedView> {
     let mut out = Vec::new();
     for v in view_list(data) {
-        let Some(vid) = v.get("id").filter(|id| !id.is_null() && id.as_str() != Some("")) else {
+        let Some(vid) = v
+            .get("id")
+            .filter(|id| !id.is_null() && id.as_str() != Some(""))
+        else {
             continue;
         };
-        let marked = v.get("default").is_some_and(|v| fsv_py::truthy(v));
-        let system = marked && !v.get("user_id").is_some_and(|id| !id.is_null());
+        let marked = v.get("default").is_some_and(fsv_py::truthy);
+        let system = marked && v.get("user_id").is_none_or(|id| id.is_null());
         let name = match v.get("name").filter(|v| fsv_py::truthy(v)) {
             Some(n) => fsv_py::py_str(n),
             None => fsv_py::py_str(vid),
@@ -251,7 +300,10 @@ pub fn find_view(views: &[SavedView], text: &str) -> Result<SavedView, QueryErro
         return Ok(exact[0].clone());
     }
     let mut pref: Vec<&SavedView> = if exact.is_empty() {
-        views.iter().filter(|v| fold(&v.name).starts_with(&want)).collect()
+        views
+            .iter()
+            .filter(|v| fold(&v.name).starts_with(&want))
+            .collect()
     } else {
         exact
     };
@@ -262,57 +314,109 @@ pub fn find_view(views: &[SavedView], text: &str) -> Result<SavedView, QueryErro
         pref = if want.is_empty() {
             Vec::new()
         } else {
-            views.iter().filter(|v| fold(&v.name).contains(&want)).collect()
+            views
+                .iter()
+                .filter(|v| fold(&v.name).contains(&want))
+                .collect()
         };
         if pref.len() == 1 {
             return Ok(pref[0].clone());
         }
     }
-    let shown: Vec<&SavedView> = if pref.is_empty() { views.iter().collect() } else { pref.iter().copied().collect() };
-    let names = shown.iter().take(12).map(|v| fsv_py::py_repr_str(&v.name)).collect::<Vec<_>>().join(", ");
+    let shown: Vec<&SavedView> = if pref.is_empty() {
+        views.iter().collect()
+    } else {
+        pref.to_vec()
+    };
+    let names = shown
+        .iter()
+        .take(12)
+        .map(|v| fsv_py::py_repr_str(&v.name))
+        .collect::<Vec<_>>()
+        .join(", ");
     if !pref.is_empty() {
-        return Err(QueryError(format!("view {} is ambiguous: {names}", fsv_py::py_repr_str(text))));
+        return Err(QueryError(format!(
+            "view {} is ambiguous: {names}",
+            fsv_py::py_repr_str(text)
+        )));
     }
     let msg = if views.is_empty() {
         format!("no view named {}", fsv_py::py_repr_str(text))
     } else {
-        format!("no view named {}; views: {names}", fsv_py::py_repr_str(text))
+        format!(
+            "no view named {}; views: {names}",
+            fsv_py::py_repr_str(text)
+        )
     };
     Err(QueryError(msg))
 }
 
-pub fn list_columns(res: &Resource, schema: Option<&Value>, headers: Option<&[Value]>) -> Vec<Column> {
+pub fn list_columns(
+    res: &Resource,
+    schema: Option<&Value>,
+    headers: Option<&[Value]>,
+) -> Vec<Column> {
     if let Some(headers) = headers.filter(|h| !h.is_empty()) {
         let mut picked: Vec<&Value> = headers
             .iter()
             .filter(|h| {
-                h.get("selected").is_some_and(|v| fsv_py::truthy(v)) && h.get("name").and_then(Value::as_str) != Some("display_id")
+                h.get("selected").is_some_and(fsv_py::truthy)
+                    && h.get("name").and_then(Value::as_str) != Some("display_id")
             })
             .collect();
         picked.sort_by_key(|h| position_key(h));
         let mut cols = Vec::new();
         let mut seen = BTreeSet::new();
         for h in picked {
-            let raw_name = h.get("name").map(fsv_py::py_str).unwrap_or_else(|| "None".to_string());
-            let key = HEADER_KEYS.iter().find(|(n, _)| *n == raw_name).map(|(_, k)| *k).unwrap_or(raw_name.as_str()).to_string();
+            let raw_name = h
+                .get("name")
+                .map(fsv_py::py_str)
+                .unwrap_or_else(|| "None".to_string());
+            let key = HEADER_KEYS
+                .iter()
+                .find(|(n, _)| *n == raw_name)
+                .map(|(_, k)| *k)
+                .unwrap_or(raw_name.as_str())
+                .to_string();
             if !seen.insert(key.clone()) {
                 continue;
             }
-            let label = h.get("label").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_else(|| key.clone());
-            cols.push(Column { key, label: pystr::html_unescape(&label).into_owned() });
+            let label = h
+                .get("label")
+                .filter(|v| fsv_py::truthy(v))
+                .map(fsv_py::py_str)
+                .unwrap_or_else(|| key.clone());
+            cols.push(Column {
+                key,
+                label: pystr::html_unescape(&label).into_owned(),
+            });
         }
         if !cols.is_empty() {
             if !seen.contains("subject") {
-                let label = schema_label(schema, "subject").unwrap_or_else(|| "Subject".to_string());
-                cols.insert(0, Column { key: "subject".to_string(), label });
+                let label =
+                    schema_label(schema, "subject").unwrap_or_else(|| "Subject".to_string());
+                cols.insert(
+                    0,
+                    Column {
+                        key: "subject".to_string(),
+                        label,
+                    },
+                );
             }
             return cols;
         }
     }
-    let keys = COLUMN_KEYS.iter().find(|(n, _)| *n == res.name).map(|(_, k)| *k).unwrap_or(COLUMN_KEYS[0].1);
+    let keys = COLUMN_KEYS
+        .iter()
+        .find(|(n, _)| *n == res.name)
+        .map(|(_, k)| *k)
+        .unwrap_or(COLUMN_KEYS[0].1);
     keys.iter()
         .map(|key| {
-            let label = if matches!(*key, "subject" | "requester" | "status" | "priority" | "department") {
+            let label = if matches!(
+                *key,
+                "subject" | "requester" | "status" | "priority" | "department"
+            ) {
                 schema_label(schema, key)
             } else {
                 None
@@ -356,13 +460,22 @@ pub fn choice_name(schema: Option<&Value>, field_name: &str, value: Option<&Valu
 }
 
 pub fn status_name(item: &Value, schema: Option<&Value>) -> String {
-    for key in ["change_status", "ticket_status", "problem_status", "summary_status"] {
+    for key in [
+        "change_status",
+        "ticket_status",
+        "problem_status",
+        "summary_status",
+    ] {
         let n = obj_name(item.get(key));
         if !n.is_empty() {
             return n;
         }
     }
-    let named = item.get("status_name").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_default();
+    let named = item
+        .get("status_name")
+        .filter(|v| fsv_py::truthy(v))
+        .map(fsv_py::py_str)
+        .unwrap_or_default();
     if !named.is_empty() {
         return named;
     }
@@ -378,7 +491,11 @@ pub fn status_name(item: &Value, schema: Option<&Value>) -> String {
 
 pub fn priority_name(item: &Value, schema: Option<&Value>) -> String {
     let v = item.get("priority");
-    let named = item.get("priority_name").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_default();
+    let named = item
+        .get("priority_name")
+        .filter(|v| fsv_py::truthy(v))
+        .map(fsv_py::py_str)
+        .unwrap_or_default();
     if !named.is_empty() {
         return named;
     }
@@ -402,7 +519,11 @@ pub fn department_name(item: &Value, schema: Option<&Value>) -> String {
     if !named.is_empty() {
         return named;
     }
-    let direct = item.get("department_name").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_default();
+    let direct = item
+        .get("department_name")
+        .filter(|v| fsv_py::truthy(v))
+        .map(fsv_py::py_str)
+        .unwrap_or_default();
     if !direct.is_empty() {
         return direct;
     }
@@ -414,7 +535,10 @@ pub fn requester_name(item: &Value) -> String {
     if !named.is_empty() {
         return named;
     }
-    item.get("requester_name").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_default()
+    item.get("requester_name")
+        .filter(|v| fsv_py::truthy(v))
+        .map(fsv_py::py_str)
+        .unwrap_or_default()
 }
 
 /// `(id, display name)`. `id` is `None` when the record has no agent id.
@@ -423,7 +547,7 @@ pub fn agent_of(item: &Value) -> (Option<Value>, String) {
         let Some(obj) = item.get(key).and_then(Value::as_object) else {
             continue;
         };
-        let name_ok = obj.get("name").is_some_and(|v| fsv_py::truthy(v));
+        let name_ok = obj.get("name").is_some_and(fsv_py::truthy);
         let id_set = obj.get("id").is_some_and(|v| !v.is_null());
         if !(name_ok || id_set) {
             continue;
@@ -449,7 +573,11 @@ pub fn group_name_of(item: &Value, schema: Option<&Value>) -> String {
     if !named.is_empty() {
         return named;
     }
-    let direct = item.get("group_name").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_default();
+    let direct = item
+        .get("group_name")
+        .filter(|v| fsv_py::truthy(v))
+        .map(fsv_py::py_str)
+        .unwrap_or_default();
     if !direct.is_empty() {
         return direct;
     }
@@ -467,28 +595,57 @@ pub fn assigned_to(item: &Value, me_id: Option<&Value>, schema: Option<&Value>) 
     let grp = group_name_of(item, schema);
     let grp = pystr::strip(&grp);
     if !grp.is_empty() {
-        return format!("{grp} / {}", if agent.is_empty() { "None" } else { agent.as_str() });
+        return format!(
+            "{grp} / {}",
+            if agent.is_empty() {
+                "None"
+            } else {
+                agent.as_str()
+            }
+        );
     }
-    if agent.is_empty() { "None".to_string() } else { agent }
+    if agent.is_empty() {
+        "None".to_string()
+    } else {
+        agent
+    }
 }
 
 pub fn ticket_state(item: &Value) -> String {
     let raw = item.get("state");
     let st = match raw {
-        Some(Value::Object(map)) => map.get("name").filter(|v| fsv_py::truthy(v)).or_else(|| map.get("state").filter(|v| fsv_py::truthy(v))),
+        Some(Value::Object(map)) => map
+            .get("name")
+            .filter(|v| fsv_py::truthy(v))
+            .or_else(|| map.get("state").filter(|v| fsv_py::truthy(v))),
         other => other,
     };
     let Some(st) = st.filter(|v| fsv_py::truthy(v)) else {
         return String::new();
     };
     let text = fsv_py::py_str(st);
-    TICKET_STATES.iter().find(|(k, _)| *k == text).map(|(_, v)| (*v).to_string()).unwrap_or_else(|| py_capitalize(&text.replace('_', " ")))
+    TICKET_STATES
+        .iter()
+        .find(|(k, _)| *k == text)
+        .map(|(_, v)| (*v).to_string())
+        .unwrap_or_else(|| py_capitalize(&text.replace('_', " ")))
 }
 
-pub fn cell(item: &Value, key: &str, _res: &Resource, schema: Option<&Value>, me_id: Option<&Value>, tz: Option<&jiff::tz::TimeZone>) -> String {
+pub fn cell(
+    item: &Value,
+    key: &str,
+    _res: &Resource,
+    schema: Option<&Value>,
+    me_id: Option<&Value>,
+    tz: Option<&jiff::tz::TimeZone>,
+) -> String {
     match key {
         "subject" => {
-            return item.get("subject").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_default();
+            return item
+                .get("subject")
+                .filter(|v| fsv_py::truthy(v))
+                .map(fsv_py::py_str)
+                .unwrap_or_default();
         }
         "requester" => return requester_name(item),
         "status" => return status_name(item, schema),
@@ -502,7 +659,11 @@ pub fn cell(item: &Value, key: &str, _res: &Resource, schema: Option<&Value>, me
     }
     let mut raw = item.get(key).filter(|v| !v.is_null());
     if raw.is_none() {
-        raw = item.get("custom_fields").filter(|v| fsv_py::truthy(v)).and_then(|c| c.get(key)).filter(|v| !v.is_null());
+        raw = item
+            .get("custom_fields")
+            .filter(|v| fsv_py::truthy(v))
+            .and_then(|c| c.get(key))
+            .filter(|v| !v.is_null());
     }
     let Some(raw) = raw else {
         return String::new();
@@ -521,21 +682,38 @@ pub fn cell(item: &Value, key: &str, _res: &Resource, schema: Option<&Value>, me
     }
     match raw {
         Value::Object(_) => obj_name(Some(raw)),
-        Value::Array(items) => items.iter().map(|x| {
-            let n = obj_name(Some(x));
-            if n.is_empty() { fsv_py::py_str(x) } else { n }
-        }).collect::<Vec<_>>().join(", "),
+        Value::Array(items) => items
+            .iter()
+            .map(|x| {
+                let n = obj_name(Some(x));
+                if n.is_empty() { fsv_py::py_str(x) } else { n }
+            })
+            .collect::<Vec<_>>()
+            .join(", "),
         Value::Bool(true) => "Yes".to_string(),
         Value::Bool(false) => "No".to_string(),
         other => fsv_py::py_str(other),
     }
 }
 
-pub fn list_row(item: &Value, res: &Resource, columns: &[Column], schema: Option<&Value>, me_id: Option<&Value>, tz: Option<&jiff::tz::TimeZone>) -> Map<String, Value> {
+pub fn list_row(
+    item: &Value,
+    res: &Resource,
+    columns: &[Column],
+    schema: Option<&Value>,
+    me_id: Option<&Value>,
+    tz: Option<&jiff::tz::TimeZone>,
+) -> Map<String, Value> {
     let mut row = Map::new();
-    row.insert("id".to_string(), Value::String(resource::format_id(item, res)));
+    row.insert(
+        "id".to_string(),
+        Value::String(resource::format_id(item, res)),
+    );
     for col in columns {
-        row.insert(col.key.clone(), Value::String(cell(item, &col.key, res, schema, me_id, tz)));
+        row.insert(
+            col.key.clone(),
+            Value::String(cell(item, &col.key, res, schema, me_id, tz)),
+        );
     }
     row
 }
@@ -556,22 +734,29 @@ pub fn sort_label(order_by: Option<&str>, schema: Option<&Value>) -> String {
 pub fn list_meta(data: &Value, item_count: usize, page: i64, per_page: i64) -> (Option<i64>, bool) {
     let empty = Map::new();
     let data_map = data.as_object().unwrap_or(&empty);
-    let meta = data_map.get("meta").and_then(Value::as_object).unwrap_or(&empty);
+    let meta = data_map
+        .get("meta")
+        .and_then(Value::as_object)
+        .unwrap_or(&empty);
     let mut total = meta
         .get("total_count")
         .or_else(|| meta.get("count"))
         .or_else(|| data_map.get("total"))
         .filter(|v| !v.is_null())
-        .and_then(|v| py_int(v));
+        .and_then(py_int);
     let floor = (item_count as i64) + (page - 1) * per_page;
     if total.is_some_and(|t| t < floor) {
         total = None;
     }
-    let explicit = first_present(meta, &["has_next", "has_more"]).or_else(|| first_present(data_map, &["has_next", "has_more"]));
+    let explicit = first_present(meta, &["has_next", "has_more"])
+        .or_else(|| first_present(data_map, &["has_next", "has_more"]));
     let has_next = if let Some(v) = explicit {
         fsv_py::truthy(v)
     } else if data_map.contains_key("next_page_url") || meta.contains_key("next_page_url") {
-        data_map.get("next_page_url").or_else(|| meta.get("next_page_url")).is_some_and(|v| fsv_py::truthy(v))
+        data_map
+            .get("next_page_url")
+            .or_else(|| meta.get("next_page_url"))
+            .is_some_and(fsv_py::truthy)
     } else {
         match total {
             Some(t) => (page - 1) * per_page + (item_count as i64) < t,
@@ -598,24 +783,44 @@ pub fn is_known_tab(name: &str) -> bool {
 }
 
 pub fn tab_label(name: &str) -> String {
-    TAB_LABELS.iter().find(|(k, _)| *k == name).map(|(_, v)| (*v).to_string()).unwrap_or_else(|| py_capitalize(&name.replace('_', " ")))
+    TAB_LABELS
+        .iter()
+        .find(|(k, _)| *k == name)
+        .map(|(_, v)| (*v).to_string())
+        .unwrap_or_else(|| py_capitalize(&name.replace('_', " ")))
 }
 
 pub fn parse_tabs(data: &Value) -> Vec<Tab> {
     let rows = if data.is_array() {
         data.as_array()
     } else {
-        data.as_object().and_then(|m| m.get("tabs")).and_then(Value::as_array)
+        data.as_object()
+            .and_then(|m| m.get("tabs"))
+            .and_then(Value::as_array)
     };
-    let mut tabs = vec![Tab { name: "details".to_string(), label: tab_label("details"), count: None }];
+    let mut tabs = vec![Tab {
+        name: "details".to_string(),
+        label: tab_label("details"),
+        count: None,
+    }];
     for t in rows.into_iter().flatten() {
         let Some(obj) = t.as_object() else { continue };
-        let Some(name) = obj.get("name").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str) else { continue };
+        let Some(name) = obj
+            .get("name")
+            .filter(|v| fsv_py::truthy(v))
+            .map(fsv_py::py_str)
+        else {
+            continue;
+        };
         if DETAILS_PARTS.contains(&name.as_str()) {
             continue;
         }
         let count = obj.get("count").and_then(as_py_int);
-        tabs.push(Tab { name: name.clone(), label: tab_label(&name), count });
+        tabs.push(Tab {
+            name: name.clone(),
+            label: tab_label(&name),
+            count,
+        });
     }
     tabs
 }
@@ -653,10 +858,10 @@ fn fields(schema: Option<&Value>) -> Vec<&Map<String, Value>> {
 }
 
 fn position_key(h: &Value) -> i64 {
-    match h.get("position").filter(|v| fsv_py::truthy(v)).and_then(py_int) {
-        Some(n) => n,
-        None => 0,
-    }
+    h.get("position")
+        .filter(|v| fsv_py::truthy(v))
+        .and_then(py_int)
+        .unwrap_or_default()
 }
 
 pub(crate) fn obj_name(obj: Option<&Value>) -> String {
@@ -679,21 +884,26 @@ fn py_get_str(v: Option<&Value>) -> String {
 }
 
 fn first_truthy<'a>(item: &'a Value, keys: &[&str]) -> Option<&'a Value> {
-    keys.iter().find_map(|k| item.get(*k).filter(|v| fsv_py::truthy(v)))
+    keys.iter()
+        .find_map(|k| item.get(*k).filter(|v| fsv_py::truthy(v)))
 }
 
 fn first_present<'a>(map: &'a Map<String, Value>, keys: &[&str]) -> Option<&'a Value> {
-    keys.iter().find_map(|k| map.get(*k).filter(|v| !v.is_null()))
+    keys.iter()
+        .find_map(|k| map.get(*k).filter(|v| !v.is_null()))
 }
 
 fn as_i64(v: &Value) -> Option<i64> {
-    v.as_i64().or_else(|| v.as_u64().and_then(|u| i64::try_from(u).ok()))
+    v.as_i64()
+        .or_else(|| v.as_u64().and_then(|u| i64::try_from(u).ok()))
 }
 
 fn as_py_int(v: &Value) -> Option<i64> {
     match v {
         Value::Bool(b) => Some(i64::from(*b)),
-        Value::Number(n) => n.as_i64().or_else(|| n.as_u64().and_then(|u| i64::try_from(u).ok())),
+        Value::Number(n) => n
+            .as_i64()
+            .or_else(|| n.as_u64().and_then(|u| i64::try_from(u).ok())),
         _ => None,
     }
 }
@@ -703,7 +913,10 @@ fn as_py_int(v: &Value) -> Option<i64> {
 fn py_int(v: &Value) -> Option<i64> {
     match v {
         Value::Bool(b) => Some(i64::from(*b)),
-        Value::Number(n) => n.as_i64().or_else(|| n.as_u64().and_then(|u| i64::try_from(u).ok())).or_else(|| n.as_f64().map(|f| f as i64)),
+        Value::Number(n) => n
+            .as_i64()
+            .or_else(|| n.as_u64().and_then(|u| i64::try_from(u).ok()))
+            .or_else(|| n.as_f64().map(|f| f as i64)),
         // `int(" 1")` raises; do not trim.
         Value::String(s) => s.parse().ok(),
         _ => None,
@@ -728,10 +941,22 @@ mod tests {
 
     #[test]
     fn list_meta_trusts_explicit_flags() {
-        assert_eq!(list_meta(&json!({"meta": {"has_next": true}}), 1, 1, 30), (None, true));
-        assert_eq!(list_meta(&json!({"meta": {"has_next": false}}), 30, 1, 30), (None, false));
-        assert_eq!(list_meta(&json!({"next_page_url": "?page=2"}), 1, 1, 30), (None, true));
-        assert_eq!(list_meta(&json!({"meta": {"total_count": 30}}), 30, 1, 30), (Some(30), false));
+        assert_eq!(
+            list_meta(&json!({"meta": {"has_next": true}}), 1, 1, 30),
+            (None, true)
+        );
+        assert_eq!(
+            list_meta(&json!({"meta": {"has_next": false}}), 30, 1, 30),
+            (None, false)
+        );
+        assert_eq!(
+            list_meta(&json!({"next_page_url": "?page=2"}), 1, 1, 30),
+            (None, true)
+        );
+        assert_eq!(
+            list_meta(&json!({"meta": {"total_count": 30}}), 30, 1, 30),
+            (Some(30), false)
+        );
     }
 
     #[test]
@@ -754,7 +979,11 @@ mod tests {
             }
             .header()
         };
-        assert!(page(3, false, None).contains("31-33 of 33 ·"), "{}", page(3, false, None));
+        assert!(
+            page(3, false, None).contains("31-33 of 33 ·"),
+            "{}",
+            page(3, false, None)
+        );
         assert!(page(30, true, None).contains("31-60 of 60+ ·"));
         assert!(page(30, true, Some(75)).contains("31-60 of 75 ·"));
     }
@@ -785,11 +1014,17 @@ mod tests {
             "state": "overdue",
             "priority": 4
         });
-        assert_eq!(assigned_to(&item, Some(&json!(7)), None), "Network / Ada (Me)");
+        assert_eq!(
+            assigned_to(&item, Some(&json!(7)), None),
+            "Network / Ada (Me)"
+        );
         assert_eq!(assigned_to(&item, Some(&json!(8)), None), "Network / Ada");
         assert_eq!(ticket_state(&item), "Overdue");
         assert_eq!(priority_name(&item, None), "Urgent");
-        assert_eq!(ticket_state(&json!({"state": "waiting_on_customer"})), "Waiting on customer");
+        assert_eq!(
+            ticket_state(&json!({"state": "waiting_on_customer"})),
+            "Waiting on customer"
+        );
     }
 
     #[test]

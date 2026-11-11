@@ -79,11 +79,14 @@ const SKIP_PROPS: &[&str] = &["subject", "description"];
 /// `load_lifecycle` after the flow JSON is in hand.
 /// `None` when the record has no flow, the payload has no states, or nothing is current.
 pub fn lifecycle_from(record: &Value, data: &Value) -> Option<Lifecycle> {
-    if !record.get("state_flow_id").is_some_and(|v| fsv_py::truthy(v)) {
+    if !record.get("state_flow_id").is_some_and(fsv_py::truthy) {
         return None;
     }
     let flow = flow_object(data)?;
-    let states = flow.get("state_list").filter(|v| fsv_py::truthy(v))?.as_array()?;
+    let states = flow
+        .get("state_list")
+        .filter(|v| fsv_py::truthy(v))?
+        .as_array()?;
     let cur = record.get("status");
     let visited: Vec<String> = record
         .get("state_traversal")
@@ -101,7 +104,9 @@ pub fn lifecycle_from(record: &Value, data: &Value) -> Option<Lifecycle> {
             .map(fsv_py::py_str)
             .unwrap_or_else(|| fsv_py::py_str(&sid));
         let sid_s = fsv_py::py_str(&sid);
-        let cur_s = cur.map(fsv_py::py_str).unwrap_or_else(|| "None".to_string());
+        let cur_s = cur
+            .map(fsv_py::py_str)
+            .unwrap_or_else(|| "None".to_string());
         let mark = if sid_s == cur_s {
             "current"
         } else if visited.iter().any(|v| v == &sid_s) {
@@ -109,25 +114,45 @@ pub fn lifecycle_from(record: &Value, data: &Value) -> Option<Lifecycle> {
         } else {
             "todo"
         };
-        out.push(LifecycleState { id: sid, name, mark: mark.to_string() });
+        out.push(LifecycleState {
+            id: sid,
+            name,
+            mark: mark.to_string(),
+        });
     }
     if !out.iter().any(|s| s.mark == "current") {
         return None;
     }
-    let name = flow.get("name").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_default();
+    let name = flow
+        .get("name")
+        .filter(|v| fsv_py::truthy(v))
+        .map(fsv_py::py_str)
+        .unwrap_or_default();
     Some(Lifecycle { name, states: out })
 }
 
 /// Bind one planning definition to a row. `Ok(None)` when nothing matches.
 /// Errors use the same sentences as `create.match_planning_row`.
-pub fn match_planning_row<'a>(defn: &Map<String, Value>, rows: &'a [Value]) -> Result<Option<&'a Map<String, Value>>, QueryError> {
+pub fn match_planning_row<'a>(
+    defn: &Map<String, Value>,
+    rows: &'a [Value],
+) -> Result<Option<&'a Map<String, Value>>, QueryError> {
     let rows: Vec<&Map<String, Value>> = rows.iter().filter_map(Value::as_object).collect();
     let name = defn.get("name");
     let fid = defn.get("id");
     let label = norm_label(defn.get("label"));
-    let mut hits: Vec<&Map<String, Value>> = if name.is_some_and(|v| fsv_py::truthy(v)) {
+    let mut hits: Vec<&Map<String, Value>> = if name.is_some_and(fsv_py::truthy) {
         let want = fsv_py::py_str(name.unwrap());
-        rows.iter().copied().filter(|r| r.get("name").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_default() == want).collect()
+        rows.iter()
+            .copied()
+            .filter(|r| {
+                r.get("name")
+                    .filter(|v| fsv_py::truthy(v))
+                    .map(fsv_py::py_str)
+                    .unwrap_or_default()
+                    == want
+            })
+            .collect()
     } else {
         Vec::new()
     };
@@ -136,7 +161,12 @@ pub fn match_planning_row<'a>(defn: &Map<String, Value>, rows: &'a [Value]) -> R
         hits = rows
             .iter()
             .copied()
-            .filter(|r| ["field_id", "planning_field_id", "id"].iter().any(|k| r.get(*k).is_some_and(|v| !v.is_null() && fsv_py::py_str(v) == want)))
+            .filter(|r| {
+                ["field_id", "planning_field_id", "id"].iter().any(|k| {
+                    r.get(*k)
+                        .is_some_and(|v| !v.is_null() && fsv_py::py_str(v) == want)
+                })
+            })
             .collect();
     }
     if hits.is_empty() && !label.is_empty() {
@@ -147,7 +177,11 @@ pub fn match_planning_row<'a>(defn: &Map<String, Value>, rows: &'a [Value]) -> R
                 norm_label(r.get("label")) == label
                     && !fid.is_some_and(|id| {
                         !id.is_null()
-                            && ["field_id", "planning_field_id"].iter().any(|k| r.get(*k).is_some_and(|v| !v.is_null() && fsv_py::py_str(v) != fsv_py::py_str(id)))
+                            && ["field_id", "planning_field_id"].iter().any(|k| {
+                                r.get(*k).is_some_and(|v| {
+                                    !v.is_null() && fsv_py::py_str(v) != fsv_py::py_str(id)
+                                })
+                            })
                     })
             })
             .collect();
@@ -159,10 +193,13 @@ pub fn match_planning_row<'a>(defn: &Map<String, Value>, rows: &'a [Value]) -> R
     if let Some(hit) = hits.first()
         && fid.is_some_and(|v| !v.is_null())
         && ["field_id", "planning_field_id"].iter().any(|k| {
-            hit.get(*k).is_some_and(|v| !v.is_null() && fsv_py::py_str(v) != fsv_py::py_str(fid.unwrap()))
+            hit.get(*k)
+                .is_some_and(|v| !v.is_null() && fsv_py::py_str(v) != fsv_py::py_str(fid.unwrap()))
         })
     {
-        return Err(QueryError(format!("conflicting planning row identity for {who}")));
+        return Err(QueryError(format!(
+            "conflicting planning row identity for {who}"
+        )));
     }
     Ok(hits.first().copied())
 }
@@ -184,7 +221,9 @@ pub fn planning_from(schema: Option<&Value>, data: &Value) -> PlanningOutcome {
             items
                 .iter()
                 .filter_map(Value::as_object)
-                .filter(|f| is_planning_type(&f.get("field_type").map(fsv_py::py_str).unwrap_or_default()))
+                .filter(|f| {
+                    is_planning_type(&f.get("field_type").map(fsv_py::py_str).unwrap_or_default())
+                })
                 .collect()
         })
         .unwrap_or_default();
@@ -195,7 +234,10 @@ pub fn planning_from(schema: Option<&Value>, data: &Value) -> PlanningOutcome {
         Value::Object(map) => map.get("change_planning_fields").unwrap_or(data),
         other => other,
     };
-    let rows: Vec<Value> = rows_val.as_array().map(|items| items.iter().filter(|r| r.is_object()).cloned().collect()).unwrap_or_default();
+    let rows: Vec<Value> = rows_val
+        .as_array()
+        .map(|items| items.iter().filter(|r| r.is_object()).cloned().collect())
+        .unwrap_or_default();
     let mut out = Vec::new();
     for d in defs {
         let name = d.get("name").map(fsv_py::py_str).unwrap_or_default();
@@ -203,13 +245,22 @@ pub fn planning_from(schema: Option<&Value>, data: &Value) -> PlanningOutcome {
             Ok(row) => row,
             Err(err) => return PlanningOutcome::Ambiguous(err.0),
         };
-        if matched.is_none() && rows.iter().any(|r| unidentified_row(r)) {
+        if matched.is_none() && rows.iter().any(unidentified_row) {
             return PlanningOutcome::Unidentified;
         }
-        let v = matched.cloned().unwrap_or_else(|| Map::new());
+        let v = matched.cloned().unwrap_or_else(Map::new);
         let text = planning_text(&v);
-        let label = d.get("label").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_else(|| name.clone());
-        let help_src = d.get("helptext").filter(|v| fsv_py::truthy(v)).or_else(|| d.get("description").filter(|v| fsv_py::truthy(v))).cloned().unwrap_or(Value::String(String::new()));
+        let label = d
+            .get("label")
+            .filter(|v| fsv_py::truthy(v))
+            .map(fsv_py::py_str)
+            .unwrap_or_else(|| name.clone());
+        let help_src = d
+            .get("helptext")
+            .filter(|v| fsv_py::truthy(v))
+            .or_else(|| d.get("description").filter(|v| fsv_py::truthy(v)))
+            .cloned()
+            .unwrap_or(Value::String(String::new()));
         out.push(PlanningEntry {
             name,
             label: pystr::html_unescape(&label).into_owned(),
@@ -225,19 +276,29 @@ pub fn planning_from(schema: Option<&Value>, data: &Value) -> PlanningOutcome {
 pub fn flat_properties(record: &Value, schema: Option<&Value>) -> Vec<Prop> {
     let mut out = Vec::new();
     let cf = record.get("custom_fields").filter(|v| fsv_py::truthy(v));
-    let Some(fields) = schema.and_then(|s| s.get("fields")).and_then(Value::as_array) else {
+    let Some(fields) = schema
+        .and_then(|s| s.get("fields"))
+        .and_then(Value::as_array)
+    else {
         return out;
     };
     let record_map = record.as_object();
     for f in fields.iter().filter_map(Value::as_object) {
         let name = f.get("name").map(fsv_py::py_str).unwrap_or_default();
-        if name.is_empty() || SKIP_PROPS.contains(&name.as_str()) || is_planning_type(&f.get("field_type").map(fsv_py::py_str).unwrap_or_default()) {
+        if name.is_empty()
+            || SKIP_PROPS.contains(&name.as_str())
+            || is_planning_type(&f.get("field_type").map(fsv_py::py_str).unwrap_or_default())
+        {
             continue;
         }
-        let raw = if f.get("default_field").is_some_and(|v| fsv_py::truthy(v)) {
+        let raw = if f.get("default_field").is_some_and(fsv_py::truthy) {
             record_map.and_then(|m| {
                 let id_key = format!("{name}_id");
-                if m.contains_key(&id_key) { m.get(&id_key) } else { m.get(&name) }
+                if m.contains_key(&id_key) {
+                    m.get(&id_key)
+                } else {
+                    m.get(&name)
+                }
             })
         } else {
             cf.and_then(Value::as_object).and_then(|m| m.get(&name))
@@ -262,12 +323,16 @@ pub fn flat_properties(record: &Value, schema: Option<&Value>) -> Vec<Prop> {
                 Some(other) => fsv_py::py_str(other),
             };
         }
-        let label = f.get("label").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_else(|| name.clone());
+        let label = f
+            .get("label")
+            .filter(|v| fsv_py::truthy(v))
+            .map(fsv_py::py_str)
+            .unwrap_or_else(|| name.clone());
         out.push(Prop {
             name,
             label: pystr::html_unescape(&label).into_owned(),
             value: val,
-            required: f.get("required").is_some_and(|v| fsv_py::truthy(v)),
+            required: f.get("required").is_some_and(fsv_py::truthy),
         });
     }
     out
@@ -298,23 +363,37 @@ fn planning_identity(defn: &Map<String, Value>) -> String {
     if let Some(name) = defn.get("name").filter(|v| fsv_py::truthy(v)) {
         return fsv_py::py_repr(name);
     }
-    defn.get("id").map(fsv_py::py_repr).unwrap_or_else(|| "None".to_string())
+    defn.get("id")
+        .map(fsv_py::py_repr)
+        .unwrap_or_else(|| "None".to_string())
 }
 
 fn unidentified_row(row: &Value) -> bool {
     let Some(map) = row.as_object() else {
         return false;
     };
-    !["name", "label", "field_id", "planning_field_id"].iter().any(|k| map.get(*k).is_some_and(|v| fsv_py::truthy(v)))
+    !["name", "label", "field_id", "planning_field_id"]
+        .iter()
+        .any(|k| map.get(*k).is_some_and(fsv_py::truthy))
 }
 
 fn planning_text(v: &Map<String, Value>) -> String {
-    let primary = v.get("description").filter(|v| fsv_py::truthy(v)).or_else(|| v.get("description_html").filter(|v| fsv_py::truthy(v))).cloned().unwrap_or(Value::String(String::new()));
+    let primary = v
+        .get("description")
+        .filter(|v| fsv_py::truthy(v))
+        .or_else(|| v.get("description_html").filter(|v| fsv_py::truthy(v)))
+        .cloned()
+        .unwrap_or(Value::String(String::new()));
     let text = html_to_text(&primary);
     if !text.is_empty() {
         return text;
     }
-    v.get("description_text").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_default().trim().to_string()
+    v.get("description_text")
+        .filter(|v| fsv_py::truthy(v))
+        .map(fsv_py::py_str)
+        .unwrap_or_default()
+        .trim()
+        .to_string()
 }
 
 fn file_names(rows: Option<&Value>) -> Vec<String> {
@@ -351,7 +430,13 @@ mod tests {
         ]}});
         let life = lifecycle_from(&record, &data).unwrap();
         assert_eq!(life.name, "Acme");
-        assert_eq!(life.states.iter().map(|s| s.mark.as_str()).collect::<Vec<_>>(), ["done", "current", "todo"]);
+        assert_eq!(
+            life.states
+                .iter()
+                .map(|s| s.mark.as_str())
+                .collect::<Vec<_>>(),
+            ["done", "current", "todo"]
+        );
         assert!(lifecycle_from(&json!({"state_flow_id": 9, "status": 9}), &data).is_none());
     }
 
@@ -387,7 +472,8 @@ mod tests {
             ]},
             {"name": "cf_region", "label": "Region", "default_field": false}
         ]});
-        let record = json!({"subject": "Hi", "priority": 2, "custom_fields": {"cf_region": "APAC"}});
+        let record =
+            json!({"subject": "Hi", "priority": 2, "custom_fields": {"cf_region": "APAC"}});
         let props = flat_properties(&record, Some(&schema));
         assert_eq!(props.len(), 2);
         assert_eq!(props[0].value, "Medium");
