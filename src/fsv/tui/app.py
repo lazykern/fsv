@@ -77,6 +77,11 @@ def _form_session(mode: str, item: dict | None, page: Any = None) -> Any:
     raise ImportError("fsv.formui has no change_session")
 
 
+def _clip(value: Any, width: int) -> str:
+    text = "" if value is None else str(value)
+    return text if len(text) <= width else text[: width - 1] + "…"
+
+
 def _markup(value: Any) -> str:
     return escape("" if value is None else str(value))
 
@@ -351,12 +356,15 @@ class FsvApp(App):
                     val = row.get(col.key, "")
                     if col.key == "subject":
                         t = Text(f"#{did} ", style="dim cyan")
-                        t.append((val or "")[:80])
+                        t.append(_clip(val, 60))
                         cells.append(t)
                     elif col.key == "status":
-                        cells.append(Text(val, style="green"))
+                        cells.append(Text(_clip(val, 24), style="green"))
+                    elif col.key == "assigned_to" and val.endswith(" (Me)") and len(val) > 40:
+                        cells.append(Text(_clip(val[:-5], 35) + " (Me)"))
                     else:
-                        cells.append(Text(val or "--", style="" if val else "dim"))
+                        cells.append(Text(_clip(val, 40 if col.key == "assigned_to" else 34) or "--",
+                                          style="" if val else "dim"))
                 table.add_row(sel, *cells, key=did)
                 continue
             status = service.resolve_status(item, res, schema)
