@@ -64,6 +64,12 @@ def test_cache_paths_are_tenant_scoped_with_legacy_fallback(monkeypatch, tmp_pat
 def test_login_accepts_domain_without_prior_setup(monkeypatch, tmp_path):
     fresh_config(monkeypatch, tmp_path)
     import fsv.cli as cli
+    import fsv.client as client
+
+    monkeypatch.setattr(client.Client, "check_session", lambda self: {"first_name": "Ada"})
+    monkeypatch.setattr(client, "reset_client", lambda: None)
+    monkeypatch.setattr(client, "get_client", lambda: client.Client.__new__(client.Client))
+    monkeypatch.setattr(cli, "_refresh_cache", lambda **_: None)
 
     result = CliRunner().invoke(cli.app, [
         "auth",
@@ -140,8 +146,9 @@ def test_browser_login_saves_cookies(monkeypatch, tmp_path):
 
     monkeypatch.setattr(session, "login_browser", lambda: {"_x_m": "a", "_x_d": "b", "_x_w": "c", "fw-session-id": "tok"})
     monkeypatch.setattr(client, "reset_client", lambda: None)
-    monkeypatch.setattr(client, "get_client", lambda: type("C", (), {"me": lambda self: {"first_name": "Ada", "last_name": "Lovelace", "email": "ada@example.com"}})())
+    monkeypatch.setattr(client, "get_client", lambda: type("C", (), {"check_session": lambda self: {"first_name": "Ada", "last_name": "Lovelace", "email": "ada@example.com"}})())
     monkeypatch.setattr(cli, "_refresh_cache", lambda **_: None)
+    monkeypatch.setattr(client.Client, "check_session", lambda self: {"first_name": "Ada"})
 
     result = CliRunner().invoke(cli.app, [
         "auth",

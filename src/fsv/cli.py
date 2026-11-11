@@ -16,7 +16,6 @@ from typer.core import TyperCommand, TyperGroup, TyperOption
 
 from fsv import completion, config, render
 from fsv.errors import APIError, SessionError
-from fsv.config import CONFIG_DIR, SCHEMA_DIR
 from fsv.render import console, emit_json, err, strip_html
 from fsv.resources import CHANGES, PROBLEMS, TICKETS, REGISTRY, Resource, format_id, parse_id
 
@@ -2380,6 +2379,20 @@ def _resolve_domain(no_input: bool = False) -> bool:
     return looks_like_url
 
 
+def _validate_new_cookies(cookies: dict[str, str]) -> None:
+    """Refuse to save cookies the tenant rejects (override with --force)."""
+    from fsv.client import Client
+
+    try:
+        with Client(cookies=cookies) as probe:
+            probe.check_session()
+    except SessionError:
+        _err("these cookies are expired or invalid for "
+             f"{config.DOMAIN}; nothing saved (use --force to save anyway)")
+    except Exception as e:
+        _err(f"could not verify cookies against {config.DOMAIN}: {e}; nothing saved (use --force to save anyway)")
+
+
 @auth_app.command("login", epilog="[bold]Examples:[/bold]  fsv auth login --browser  |  pbpaste | fsv auth login --header - --store keychain")
 def auth_login(
     domain: Optional[str] = typer.Option(None, "--domain", "-d", help="Freshservice domain or URL, e.g. acme.freshservice.com. Saved before login."),
@@ -2387,6 +2400,7 @@ def auth_login(
     browser: bool = typer.Option(False, "--browser", help="Open an isolated browser, let you finish SSO/MFA, then read HttpOnly cookies via CDP."),
     store: Optional[str] = typer.Option(None, "--store", help="Where to save: 'file' (plain chmod 600), 'argon' (Argon2id + AES-GCM), or 'keychain' (macOS Keychain). Interactive when omitted; default keychain on macOS.", autocompletion=completion.complete_store),
     no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
+    force: bool = typer.Option(False, "--force", help="save cookies even if they fail validation against the tenant"),
 ) -> None:
     """Save Freshservice session cookies."""
     from fsv.client import get_client, reset_client
@@ -2426,18 +2440,23 @@ def auth_login(
             cookies = login_interactive()
     except SessionError as e:
         _err(str(e))
+    if not force:
+        _validate_new_cookies(cookies)
     if store is None and sys.stdin.isatty() and not no_input:
         store = _choose_store()
     backend = save_cookies(cookies, store)  # type: ignore[arg-type]
-    target = "Keychain" if backend == "keychain" else "~/.config/fsv/session.json"
+    target = "Keychain" if backend == "keychain" else config.display_path(config.SESSION_FILE)
     console.print(f"saved {len(cookies)} cookies to {target}")
     try:
         reset_client()
         c = get_client()
-        agent = c.me()
+        agent = c.check_session()
         name = f"{agent.get('first_name', '')} {agent.get('last_name', '')}".strip()
         email = agent.get("email", "")
-        console.print(f"logged in as: [bold]{name}[/bold] <{email}>")
+        if agent:
+            console.print(f"logged in as: [bold]{name}[/bold] <{email}>")
+        else:
+            console.print("logged in (identity unavailable: agent profile is not readable)")
         err.print("warming cache in background...", highlight=False)
         _refresh_cache(verbose=False, blocking=False)
     except Exception as e:
@@ -2470,13 +2489,16 @@ def auth_status() -> None:
     if age is None:
         _err("no session; run `fsv auth login`")
     c = _client()
-    agent, (rem, tot) = _api(lambda: (c.me(), c.rate_limit_remaining()))
+    agent, (rem, tot) = _api(lambda: (c.check_session(), c.rate_limit_remaining()))
     name = f"{agent.get('first_name', '')} {agent.get('last_name', '')}".strip()
     email = agent.get("email", "")
+    if not agent:
+        name, email = "identity unavailable (403)", ""
     dept = ", ".join(agent.get("department_names") or [])
     team = (agent.get("custom_fields") or {}).get("team") or ""
     dept_display = f"{dept}  ({team})" if dept and team else dept or team
-    console.print(f"[bold]{name}[/bold]  <{email}>")
+    console.print(f"[bold]{name}[/bold]  <{email}>" if email else f"[bold]{name}[/bold]")
+    console.print("session:     valid")
     if dept_display:
         console.print(f"department:  {dept_display}")
     age_str = f"{age:.1f}h"
@@ -2876,11 +2898,11 @@ def cache_clear(
     if target is None or target not in {"schema", "views", "filters", "groups", "all"}:
         _err("choose schema|views|groups|all")
     if target in ("schema", "all"):
-        if SCHEMA_DIR.exists():
-            shutil.rmtree(SCHEMA_DIR)
+        if config.SCHEMA_DIR.exists():
+            shutil.rmtree(config.SCHEMA_DIR)
             console.print("schema cache cleared")
     if target in ("views", "filters", "all"):
-        fd = CONFIG_DIR / "filters"
+        fd = config.CONFIG_DIR / "filters"
         if fd.exists():
             shutil.rmtree(fd)
             console.print("views cache cleared")
@@ -4161,18 +4183,22 @@ def _setup_auth() -> None:
     except SessionError as e:
         _err(str(e))
 
+    _validate_new_cookies(cookies)
     store = _choose_store()
     backend = save_cookies(cookies, store)
-    target = "Keychain" if backend == "keychain" else "~/.config/fsv/session.json"
+    target = "Keychain" if backend == "keychain" else config.display_path(config.SESSION_FILE)
     console.print(f"saved {len(cookies)} cookies to {target}")
 
     try:
         reset_client()
         c = get_client()
-        agent = c.me()
+        agent = c.check_session()
         name = f"{agent.get('first_name', '')} {agent.get('last_name', '')}".strip()
         email = agent.get("email", "")
-        console.print(f"logged in as: [bold]{name}[/bold] <{email}>")
+        if agent:
+            console.print(f"logged in as: [bold]{name}[/bold] <{email}>")
+        else:
+            console.print("logged in (identity unavailable: agent profile is not readable)")
         err.print("warming cache in background...", highlight=False)
         _refresh_cache(verbose=False, blocking=False)
     except Exception as e:

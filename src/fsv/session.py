@@ -22,11 +22,10 @@ from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from fsv import config
-from fsv.config import CONFIG_DIR, SESSION_FILE, ensure_dirs
+from fsv.config import atomic_write_text, ensure_dirs
 from fsv.errors import SessionError
 
 REQUIRED_COOKIES = ("_x_m", "_x_d", "_x_w", "fw-session-id")
-STORE_PREF_FILE = CONFIG_DIR / "store"
 KEYCHAIN_SERVICE = "fsv"
 KEYCHAIN_ACCOUNT = "fsv-session"
 _SESSION_CACHE: tuple[Backend, str] | None = None
@@ -34,15 +33,23 @@ _SESSION_CACHE: tuple[Backend, str] | None = None
 Backend = Literal["file", "argon", "keychain"]
 
 
+def _store_pref_file() -> Path:
+    return config.CONFIG_DIR / "store"
+
+
+def _session_file() -> Path:
+    return config.SESSION_FILE
+
+
 # ---------- backend selection ----------
 
 
 def current_backend() -> Backend:
-    if STORE_PREF_FILE.exists():
-        v = STORE_PREF_FILE.read_text().strip()
+    if _store_pref_file().exists():
+        v = _store_pref_file().read_text().strip()
         if v in ("file", "argon", "keychain"):
             return v  # type: ignore[return-value]
-    if SESSION_FILE.exists():
+    if _session_file().exists():
         return "file"
     if _keychain_available():
         return "keychain"
@@ -51,25 +58,44 @@ def current_backend() -> Backend:
 
 def set_backend(backend: Backend) -> None:
     ensure_dirs()
-    STORE_PREF_FILE.write_text(backend)
+    atomic_write_text(_store_pref_file(), backend)
 
 
 # ---------- keychain (macOS) ----------
 
 
 def _keychain_available() -> bool:
+    if os.environ.get("FSV_NO_KEYCHAIN"):
+        return False
     return sys.platform == "darwin"
 
 
 def _keychain_write(value: str) -> None:
+    """Store *value* in the login Keychain without exposing it in argv.
+
+    ``security add-generic-password -w <value>`` would put the secret in the
+    process list.  Instead we feed the command to ``security -i`` on stdin.
+    The value is base64-encoded so it needs no shell quoting (readers decode
+    it; legacy raw-JSON entries are still understood).
+    """
     if not _keychain_available():
         raise SessionError("keychain backend is macOS only")
-    subprocess.run(
-        ["security", "add-generic-password", "-U",
-         "-a", KEYCHAIN_ACCOUNT, "-s", KEYCHAIN_SERVICE,
-         "-w", value],
-        check=True, capture_output=True,
-    )
+    encoded = base64.b64encode(value.encode("utf-8")).decode("ascii")
+    line = (f"add-generic-password -U -a {KEYCHAIN_ACCOUNT} -s {KEYCHAIN_SERVICE} "
+            f"-w {encoded}\n")
+    r = subprocess.run(["security", "-i"], input=line, capture_output=True, text=True)
+    if r.returncode != 0:
+        raise SessionError("could not write session to Keychain")
+
+
+def _keychain_decode(raw: str) -> str:
+    raw = raw.strip()
+    if raw.startswith("{"):
+        return raw  # legacy entry stored as plain JSON
+    try:
+        return base64.b64decode(raw.encode("ascii"), validate=True).decode("utf-8")
+    except Exception:
+        return raw
 
 
 def _keychain_read() -> str:
@@ -82,7 +108,7 @@ def _keychain_read() -> str:
     )
     if r.returncode != 0:
         raise SessionError("no session in Keychain; run `fsv auth login`")
-    return r.stdout.strip()
+    return _keychain_decode(r.stdout)
 
 
 def _keychain_delete() -> None:
@@ -149,6 +175,11 @@ def _argon_encrypt(raw: str) -> str:
 
 def _argon_decrypt(raw: str) -> str:
     data = json.loads(raw)
+    p = data.get("params") or {}
+    if not (isinstance(p.get("time_cost"), int) and 1 <= p["time_cost"] <= 10
+            and isinstance(p.get("memory_cost"), int) and 8 <= p["memory_cost"] <= 1 << 20
+            and isinstance(p.get("parallelism"), int) and 1 <= p["parallelism"] <= 16):
+        raise SessionError("invalid encrypted session file (unreasonable KDF parameters)")
     if data.get("backend") != "argon" or data.get("kdf") != "argon2id":
         raise SessionError("invalid encrypted session file")
     key = _derive_key(_passphrase(), _b64d(data["salt"]), data["params"])
@@ -166,9 +197,9 @@ def _read_file_session(backend: Backend) -> str:
     global _SESSION_CACHE
     if _SESSION_CACHE and _SESSION_CACHE[0] == backend:
         return _SESSION_CACHE[1]
-    if not SESSION_FILE.exists():
+    if not _session_file().exists():
         raise SessionError("no session; run `fsv auth login`")
-    raw = SESSION_FILE.read_text()
+    raw = _session_file().read_text()
     payload = _argon_decrypt(raw) if backend == "argon" else raw
     _SESSION_CACHE = (backend, payload)
     return payload
@@ -195,14 +226,11 @@ def save_cookies(cookies: dict[str, str], backend: Backend | None = None) -> Bac
     payload = json.dumps({"saved_at": time.time(), "domain": config.require_domain(), "cookies": cookies})
     if backend == "keychain":
         _keychain_write(payload)
-        SESSION_FILE.unlink(missing_ok=True)
+        _session_file().unlink(missing_ok=True)
     else:
         ensure_dirs()
         data = _argon_encrypt(payload) if backend == "argon" else payload
-        fd = os.open(SESSION_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(fd, "w") as f:
-            f.write(data)
-        SESSION_FILE.chmod(0o600)
+        atomic_write_text(_session_file(), data)
         _keychain_delete()
     _SESSION_CACHE = (backend, payload)
     set_backend(backend)
@@ -225,10 +253,7 @@ def update_cookie(name: str, value: str) -> None:
         if backend == "keychain":
             _keychain_write(payload)
         else:
-            fd = os.open(SESSION_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-            with os.fdopen(fd, "w") as f:
-                f.write(payload)
-            SESSION_FILE.chmod(0o600)
+            atomic_write_text(_session_file(), payload)
         _SESSION_CACHE = (backend, payload)
     except Exception:
         pass
@@ -237,9 +262,9 @@ def update_cookie(name: str, value: str) -> None:
 def logout() -> None:
     global _SESSION_CACHE
     _SESSION_CACHE = None
-    SESSION_FILE.unlink(missing_ok=True)
+    _session_file().unlink(missing_ok=True)
     _keychain_delete()
-    STORE_PREF_FILE.unlink(missing_ok=True)
+    _store_pref_file().unlink(missing_ok=True)
 
 
 def cookie_header() -> str:

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import atexit
+import html as _html
+import http.cookiejar
 import json
 import re
 import time
 from typing import Any, Iterator
-from urllib.parse import parse_qsl, quote, urlsplit
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit
 
 import httpx
 
@@ -19,20 +21,11 @@ UA = "fsv/0.1 (Freshservice CLI)"
 
 _instance: "Client | None" = None
 _VERBOSE = False
-_REDACT_KEYS = {
-    "access-token",
-    "api-key",
-    "apikey",
-    "authorization",
-    "cookie",
-    "csrf",
-    "password",
-    "refresh-token",
-    "secret",
-    "session-token",
-    "token",
-    "x-csrf-token",
-}
+# A key is redacted when it *contains* any of these (case-insensitive,
+# "_" and "-" ignored), so "x_csrf_token", "client_secret", "fw-session-id",
+# "passwd" and "Set-Cookie" are all covered.
+_REDACT_SUBSTRINGS = ("token", "secret", "pass", "csrf", "cookie", "session",
+                      "authorization", "apikey", "credential")
 _RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 _IDEMPOTENT_METHODS = {"GET", "HEAD", "OPTIONS"}
 _MAX_RETRIES = 2
@@ -48,12 +41,16 @@ def is_verbose() -> bool:
     return _VERBOSE
 
 
+def _is_sensitive_key(key: Any) -> bool:
+    k = str(key).strip().lower().replace("_", "").replace("-", "")
+    return any(sub in k for sub in _REDACT_SUBSTRINGS)
+
+
 def _redact(value: Any) -> Any:
     if isinstance(value, dict):
         out: dict[Any, Any] = {}
         for k, v in value.items():
-            key = str(k).strip().lower().replace("_", "-")
-            out[k] = "[redacted]" if key in _REDACT_KEYS else _redact(v)
+            out[k] = "[redacted]" if _is_sensitive_key(k) else _redact(v)
         return out
     if isinstance(value, list):
         return [_redact(v) for v in value]
@@ -87,13 +84,31 @@ def _request_target(url: str, params: dict[str, Any] | None) -> str:
     return f"{path}?{query}" if query else path
 
 
+def _redact_data(data: Any) -> str:
+    """Redacted preview of a ``data=`` payload (dict, JSON text or form-encoded)."""
+    if isinstance(data, dict):
+        return json.dumps(_redact(data), ensure_ascii=False, separators=(",", ":"), default=str)
+    text = data.decode("utf-8", errors="replace") if isinstance(data, (bytes, bytearray)) else str(data)
+    try:
+        parsed = json.loads(text)
+    except ValueError:
+        parsed = None
+    if isinstance(parsed, (dict, list)):
+        return json.dumps(_redact(parsed), ensure_ascii=False, separators=(",", ":"), default=str)
+    pairs = parse_qsl(text, keep_blank_values=True)
+    if pairs and "=" in text:
+        return urlencode([(k, "[redacted]" if _is_sensitive_key(k) else v) for k, v in pairs])
+    if _is_sensitive_key(text):
+        return "[redacted]"
+    return text
+
+
 def _body_preview(kw: dict[str, Any]) -> str:
     raw = ""
     if kw.get("json") is not None:
         raw = json.dumps(_redact(kw["json"]), ensure_ascii=False, separators=(",", ":"), default=str)
     elif kw.get("data") is not None:
-        data = kw["data"]
-        raw = data.decode("utf-8", errors="replace") if isinstance(data, bytes) else str(data)
+        raw = _redact_data(kw["data"])
     if not raw:
         return ""
     if len(raw) > 300:
@@ -114,7 +129,7 @@ def _retry_after_seconds(headers: httpx.Headers) -> float | None:
         return None
     try:
         return max(0.0, min(float(raw), 10.0))
-    except ValueError:
+    except (ValueError, OverflowError):
         return None
 
 
@@ -141,6 +156,42 @@ def _response_body(r: httpx.Response) -> object:
         return r.text[:500]
 
 
+_EXPIRED_MSG = "session expired or invalid; run `fsv auth login`"
+_PROBE_PATH = "/a/dashboard"
+_PROBE_TTL = 60.0
+_META_RE = re.compile(r"<meta\b[^>]*>", re.IGNORECASE)
+_ATTR_RE = re.compile(r"""([^\s=/>"']+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))""")
+
+
+def _csrf_from_html(html: str) -> str | None:
+    """Extract <meta name="csrf-token" content="..."> regardless of attribute
+    order, quote style or case."""
+    for tag in _META_RE.findall(html):
+        attrs = {m.group(1).lower(): _html.unescape(next(g for g in m.groups()[1:] if g is not None))
+                 for m in _ATTR_RE.finditer(tag)}
+        if attrs.get("name", "").lower() == "csrf-token" and attrs.get("content"):
+            return attrs["content"]
+    return None
+
+
+def _looks_like_login_html(html: str) -> bool:
+    """HTML with no CSRF meta that shows a password field or Freshid markers."""
+    if _csrf_from_html(html):
+        return False
+    low = html.lower()
+    return 'type="password"' in low or "type='password'" in low or "freshid" in low or "/login" in low
+
+
+def _make_cookie(name: str, value: str, domain: str) -> "http.cookiejar.Cookie":
+    """Host-scoped, Secure cookie (httpx's Cookies.set has no ``secure`` arg)."""
+    return http.cookiejar.Cookie(
+        version=0, name=name, value=value, port=None, port_specified=False,
+        domain=domain, domain_specified=True, domain_initial_dot=False,
+        path="/", path_specified=True, secure=True, expires=None, discard=True,
+        comment=None, comment_url=None, rest={}, rfc2109=False,
+    )
+
+
 def get_client() -> "Client":
     global _instance
     if _instance is None:
@@ -158,17 +209,22 @@ def reset_client() -> None:
 
 
 class Client:
-    def __init__(self) -> None:
+    def __init__(self, cookies: dict[str, str] | None = None) -> None:
+        """*cookies* overrides the stored session (used to validate fresh
+        cookies before they are saved)."""
         config.require_domain()
         self._csrf: str | None = None
         self._fw_domain: str | None = None
         self._rl_rem: int | None = None
         self._rl_tot: int | None = None
-        cookies = load_cookies()
+        self._probe_ok_until = 0.0
+        self._persist = cookies is None
+        if cookies is None:
+            cookies = load_cookies()
         self._fw_session_id: str | None = cookies.get("fw-session-id")
         jar = httpx.Cookies()
         for k, v in cookies.items():
-            jar.set(k, v, domain=config.DOMAIN)
+            jar.jar.set_cookie(_make_cookie(k, v, config.DOMAIN))
         self._client = httpx.Client(
             cookies=jar,
             timeout=30.0,
@@ -203,10 +259,13 @@ class Client:
 
             rem = r.headers.get("x-ratelimit-remaining")
             tot = r.headers.get("x-ratelimit-total")
-            if rem:
-                self._rl_rem = int(rem)
-            if tot:
-                self._rl_tot = int(tot)
+            try:
+                if rem:
+                    self._rl_rem = int(rem)
+                if tot:
+                    self._rl_tot = int(tot)
+            except ValueError:
+                pass
             rl = f" rl={rem}/{tot}" if rem and tot else ""
             elapsed = f"{(time.time() - t0) * 1000:.0f}ms"
             if attempt < _MAX_RETRIES and _should_retry(method, response=r):
@@ -218,22 +277,76 @@ class Client:
             return r
         raise last_exc or RuntimeError("request failed without response")
 
+    def _fw_cookie(self) -> str | None:
+        """Current fw-session-id, tolerant of duplicate cookies (host vs dotted
+        domain) which make ``cookies.get`` raise CookieConflict."""
+        jar = getattr(self._client.cookies, "jar", None)
+        if jar is None:  # plain mapping (tests / alternative transports)
+            return self._client.cookies.get("fw-session-id")
+        found = [c for c in jar if c.name == "fw-session-id"]
+        if not found:
+            return None
+        exact = [c for c in found if (c.domain or "").lstrip(".") == config.DOMAIN]
+        return (exact or found)[-1].value
+
+    def _probe_session(self) -> bool | None:
+        """Decide whether the session is still valid after a 403.
+
+        Heuristic: a genuine permission 403 (e.g. /agents/me for a restricted
+        agent) leaves the session usable, while an expired session gets 403
+        from API endpoints too.  So fetch the cheap HTML app shell
+        (``/a/dashboard``, reachable by any logged-in agent) without following
+        redirects: 200 with the CSRF meta tag => valid; 3xx/401/403 or login
+        markup => expired.  Returns None when the probe itself fails (network
+        error / 5xx) so callers keep the original 403.  A positive result is
+        remembered briefly to avoid probing on every 403.
+        """
+        if time.time() < self._probe_ok_until:
+            return True
+        try:
+            r = self._send("GET", f"https://{config.DOMAIN}{_PROBE_PATH}",
+                           headers={"Accept": "text/html,application/xhtml+xml"},
+                           follow_redirects=False)
+        except Exception:
+            return None
+        if 300 <= r.status_code < 400 or r.status_code in (401, 403):
+            return False
+        if r.status_code != 200:
+            return None
+        if _looks_like_login_html(r.text):
+            return False
+        self._probe_ok_until = time.time() + _PROBE_TTL
+        return True
+
+    def _check_response(self, r: httpx.Response, method: str, url: str, params: dict[str, Any] | None,
+                        expect_json: bool = True) -> None:
+        """Shared status handling for _request and pagination.
+
+        Raises SessionError for: any 3xx (except 304), 401, HTML from the
+        tenant, and a 403 when the session probe says the session is dead.
+        Raises APIError for other >= 400.
+        """
+        if 300 <= r.status_code < 400 and r.status_code != 304:
+            raise SessionError(_EXPIRED_MSG)
+        if r.status_code == 401:
+            raise SessionError(_EXPIRED_MSG)
+        ct = r.headers.get("content-type", "")
+        if r.status_code < 400 and "text/html" in ct and expect_json:
+            raise SessionError(_EXPIRED_MSG)
+        if r.status_code == 403 and self._probe_session() is False:
+            raise SessionError(_EXPIRED_MSG)
+        if r.status_code >= 400:
+            raise APIError(r.status_code, _response_body(r), method, _request_target(url, params))
+
     def _request(self, method: str, url: str, **kw: Any) -> Any:
         r = self._send(method, url, **kw)
-        location = (r.headers.get("location") or "").lower()
-        if r.status_code in (301, 302) and "freshid" in location:
-            raise SessionError("session expired; run `fsv auth login`")
-        if r.status_code == 401:
-            raise SessionError("session expired; run `fsv auth login`")
-        ct = r.headers.get("content-type", "")
-        if r.status_code == 200 and "text/html" in ct and "/api/" in url:
-            raise SessionError("session expired; run `fsv auth login`")
-        if r.status_code >= 400:
-            raise APIError(r.status_code, _response_body(r), method, _request_target(url, kw.get("params")))
-        fw = self._client.cookies.get("fw-session-id")
+        self._check_response(r, method, url, kw.get("params"))
+        fw = self._fw_cookie()
         if fw and fw != self._fw_session_id:
             self._fw_session_id = fw
-            update_cookie("fw-session-id", fw)
+            if self._persist:
+                update_cookie("fw-session-id", fw)
+        ct = r.headers.get("content-type", "")
         return r.json() if ct.startswith("application/json") else r.text
 
     def v2_get(self, path: str, params: dict[str, Any] | None = None) -> Any:
@@ -273,9 +386,7 @@ class Client:
     def lookup_choices(self, link: str, query: str) -> list[dict]:
         from hashlib import md5
         from fsv.cache import load as _cache_load, save as _cache_save
-        from fsv.config import CACHE_DIR
-
-        cache_dir = CACHE_DIR / "lookup"
+        cache_dir = config.CACHE_DIR / "lookup"
         cache_dir.mkdir(parents=True, exist_ok=True)
         key = md5(f"{config.DOMAIN}|{link}|{query}".encode()).hexdigest()[:16]
         cache_path = cache_dir / f"{key}.json"
@@ -284,9 +395,13 @@ class Client:
         if doc and not stale:
             return doc.get("data", [])
 
-        url = f"https://{config.DOMAIN}{link.split('?')[0]}"
         from urllib.parse import parse_qs, urlparse
-        qs = parse_qs(urlparse(link).query)
+        parsed_link = urlparse(link)
+        # Server-supplied links are forced relative to the tenant: never
+        # follow an absolute URL to another host with our cookies.
+        rel_path = "/" + parsed_link.path.lstrip("/")
+        url = f"https://{config.DOMAIN}{rel_path}"
+        qs = parse_qs(parsed_link.query)
         params = {k: v[0] for k, v in qs.items()}
         params["q"] = query
         results = self._request("GET", url, params=params).get("results", [])
@@ -328,23 +443,39 @@ class Client:
         if self._csrf:
             return self._csrf
         _html_headers = {"Accept": "text/html,application/xhtml+xml"}
+        last_status = 0
+        saw_login = False
         for path in ("/a/changes", "/a/tickets", "/a/dashboard"):
-            html = self._send(
+            r = self._send(
                 "GET",
                 f"https://{config.DOMAIN}{path}",
                 headers=_html_headers,
                 follow_redirects=True,
-            ).text
-            m = (re.search(r'name="csrf-token"\s+content="([^"]+)"', html)
-                 or re.search(r'<meta\s+content="([^"]+)"\s+name="csrf-token"', html))
-            if m:
-                self._csrf = m.group(1)
+            )
+            last_status = r.status_code
+            if r.status_code == 401 or 300 <= r.status_code < 400:
+                raise SessionError(_EXPIRED_MSG)
+            if r.status_code != 200:
+                saw_login = saw_login or r.status_code == 403
+                continue
+            if r.url.host and r.url.host != config.DOMAIN:
+                raise SessionError(_EXPIRED_MSG)  # redirected to the identity provider
+            html = r.text
+            token = _csrf_from_html(html)
+            if token:
+                self._csrf = token
                 if not self._fw_domain:
                     fw_m = re.search(r'https://([A-Za-z0-9-]+\.myfreshworks\.com)', html)
                     if fw_m:
                         self._fw_domain = fw_m.group(1)
                 return self._csrf
-        raise APIError(0, "csrf-token meta tag not found; session may be expired — run `fsv auth login`")
+            if _looks_like_login_html(html):
+                raise SessionError(_EXPIRED_MSG)
+        if saw_login:
+            raise SessionError(_EXPIRED_MSG)
+        if last_status >= 500:
+            raise APIError(last_status, "could not load the app page to obtain a CSRF token")
+        raise APIError(0, "csrf-token meta tag not found on app pages (Freshservice page layout may have changed)")
 
     def keepalive(self) -> bool:
         """POST session heartbeat to Freshworks. Best-effort, returns False on any failure."""
@@ -359,40 +490,53 @@ class Client:
         if not self._fw_domain:
             return False
         try:
-            self._send(
+            r = self._send(
                 "POST",
                 f"https://{self._fw_domain}/api/v2/session",
                 json={"session_token": fw_session_id, "checkSessionOnlyOnce": False},
                 headers={"Content-Type": "application/json"},
             )
-            return True
+            return r.status_code < 400
         except Exception:
             return False
 
     def me(self) -> dict:
         return self._request("GET", f"{config.API_V2}/agents/me").get("agent", {})
 
+    def check_session(self) -> dict:
+        """Validate the session and return the agent identity ({} if hidden).
+
+        Raises SessionError if the session is expired/invalid.  A 403 on
+        /agents/me for a *valid* session (restricted agent) is not an error:
+        returns {} so callers can show "identity unavailable".  Other API
+        errors propagate.
+        """
+        try:
+            return self.me()
+        except APIError as e:
+            if e.status == 403:
+                return {}
+            raise
+
     def v2_get_paginated(self, path: str, params: dict[str, Any] | None = None,
                          max_pages: int = 20) -> Iterator[Any]:
         params = dict(params or {})
         for page in range(1, max_pages + 1):
             params["page"] = page
-            r = self._send("GET", f"{config.API_V2}/{path.lstrip('/')}", params=params)
-            location = (r.headers.get("location") or "").lower()
-            if r.status_code in (301, 302) and "freshid" in location:
-                raise SessionError("session expired; run `fsv auth login`")
-            if r.status_code == 401:
-                raise SessionError("session expired; run `fsv auth login`")
-            ct = r.headers.get("content-type", "")
-            if r.status_code == 200 and "text/html" in ct:
-                raise SessionError("session expired; run `fsv auth login`")
-            if r.status_code >= 400:
-                raise APIError(r.status_code, _response_body(r), "GET", _request_target(f"{config.API_V2}/{path.lstrip('/')}", params))
+            url = f"{config.API_V2}/{path.lstrip('/')}"
+            r = self._send("GET", url, params=params)
+            self._check_response(r, "GET", url, params)
             data = r.json()
             yield data
             link = r.headers.get("link", "")
             if 'rel="next"' not in link:
                 break
+            if page == max_pages:
+                err.print(
+                    f"[yellow]warning[/yellow]: stopped after {max_pages} pages; more results exist "
+                    f"(narrow the query to see them)",
+                    highlight=False,
+                )
 
     def rate_limit_remaining(self) -> tuple[int | None, int | None]:
         if self._rl_rem is not None:
