@@ -40,6 +40,7 @@ from fsv.formmeta import (
     is_status,
     load_meta,
     name_existing,
+    rules_warnings,
 )
 from fsv.forms import (
     Field,
@@ -341,7 +342,7 @@ def build_create_plan(
     spec = meta.spec
     state = FormState(spec, meta.engine(), mode="new", resolver=resolver)
     answers, status_raw, _req, errors = _split_special(meta, draft)
-    warnings: list[str] = list(spec.warnings)
+    warnings: list[str] = list(spec.warnings) + rules_warnings(meta.rules)
     req_field = next((f for f in spec.fields if is_requester(f)), None)
     if requester is not None and req_field is not None:
         try:
@@ -493,7 +494,7 @@ def build_update_plan(
             answered.add(f.api_name)
     failed: set[str] = set()
     errors += apply_answers(state, answers, failed)
-    warnings = list(spec.warnings) + _acknowledge(state, draft.ack, ack_all)
+    warnings = list(spec.warnings) + rules_warnings(meta.rules) + _acknowledge(state, draft.ack, ack_all)
     problems = errors + [p for p in state.errors()
                          if p not in {f"{spec.by_name[n].label} is required" for n in failed}]
 
@@ -737,7 +738,7 @@ def _yaml_norm(v: Any) -> Any:
 
 
 def template_for(plan: Plan, draft: Draft, *, title: str, errors: list[str] | None = None,
-                 requester_text: str | None = None) -> str:
+                 requester_text: str | None = None, base_dir: str | None = None) -> str:
     spec = plan.state.spec
     unknown: dict[str, Any] = {}
     hidden: dict[str, Any] = {}
@@ -753,12 +754,12 @@ def template_for(plan: Plan, draft: Draft, *, title: str, errors: list[str] | No
     if req is None:
         req = draft.requester
     return render_template(plan.state, title=title, errors=errors, draft=draft, requester=req, unknown=unknown,
-                           hidden=hidden)
+                           hidden=hidden, base_dir=base_dir)
 
 
 def save_draft(plan: Plan, draft: Draft, path: str) -> str:
-    text = template_for(plan, draft, title="fsv change draft (saved)")
     p = Path(os.path.expanduser(path))
+    text = template_for(plan, draft, title="fsv change draft (saved)", base_dir=str(p.resolve().parent))
     p.write_text(text, encoding="utf-8")
     return str(p)
 

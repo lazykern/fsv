@@ -104,6 +104,48 @@ def normalize_rules(raw: Any) -> dict[str, Any]:
     return {"business_rules": list(parsed.rules), "user": parsed.user}
 
 
+RULES_UNAVAILABLE_KEY = "unavailable"
+
+
+def fetch_rules(client: Any, module: str, workspace_id: Any, **query: Any) -> dict[str, Any]:
+    """Business rules for a form, portable across tenants.
+
+    Tries ``/api/_/ws/<ws>/business_rules`` when the tenant has a workspace,
+    then the workspace-less ``/api/_/business_rules`` (single-workspace
+    accounts). A 403/404 on every path (rules not permitted for the role, or
+    not a feature of the plan) gives an empty rule set with
+    ``unavailable`` set: the form then runs on the static required/visible
+    flags only, and every review says so.
+    """
+    has_ws = workspace_id not in (None, "")
+    q = business_rules_query(module, workspace_id=workspace_id if has_ws else 0, **query)
+    params = dict(q.params)
+    paths = ([q.path.removeprefix("/api/_/")] if has_ws else []) + ["business_rules"]
+    last: APIError | None = None
+    for path in paths:
+        try:
+            raw = client.int_get(path, params)
+        except APIError as e:
+            if e.status in (403, 404):
+                last = e
+                continue
+            raise
+        if raw in (None, "", [], {}):
+            return {"business_rules": [], "user": None}
+        return normalize_rules(raw)
+    why = f"HTTP {last.status}" if last is not None else "not offered"
+    return {"business_rules": [], "user": None, RULES_UNAVAILABLE_KEY: why}
+
+
+def rules_warnings(rules: Mapping[str, Any] | None) -> list[str]:
+    """Review warning when the tenant gave no business rules."""
+    why = (rules or {}).get(RULES_UNAVAILABLE_KEY)
+    if not why:
+        return []
+    return [f"business rules are not available ({why}); only the form's static required/visible "
+            "settings were checked, the server may still ask for more"]
+
+
 def workspace_from_fields(fields: Sequence[Mapping[str, Any]]) -> Any:
     """The workspace the custom fields belong to (rules live there), else the
     most common workspace in the field list."""
@@ -182,16 +224,14 @@ def load_meta(client: Any, module: str = "change", mode: str = "new", *, fresh: 
             raise APIError(200, f"no form fields returned for {module}", "GET", path)
         fields = {key: raw[key]}
         _save(f"{module}-fields", "schema", fields)
+    # None on accounts without workspaces: the rules come from the
+    # workspace-less path (fetch_rules)
     ws = configured_workspace() or workspace_from_fields(fields[key])
-    if ws in (None, ""):
-        raise ValueError("cannot tell which workspace the form belongs to; "
-                         "set it with `fsv config set forms.workspace_id N`")
     ckey = f"{module}-rules-{form_type}-ws{ws}" + (f"-{module_id}" if module_id is not None else "")
     rules = None if fresh else _cached(ckey)
     if rules is None:
         source = "server"
-        q = business_rules_query(module, workspace_id=ws, form_type=form_type, module_id=module_id)
-        rules = normalize_rules(client.int_get(q.path.removeprefix("/api/_/"), dict(q.params)))
+        rules = fetch_rules(client, module, ws, form_type=form_type, module_id=module_id)
         _save(ckey, "form_rules", rules)
     return FormMeta(module, form_type, fields, rules, ws, time.time(), source, module_id)
 

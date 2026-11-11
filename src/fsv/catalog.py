@@ -30,7 +30,7 @@ from fsv.change_flow import FlowExit, check_duplicate, review_diff, sha256_file
 from fsv.change_flow import _acknowledge, _dropped, _messages, _notes  # shared review helpers
 from fsv.drafts import Draft
 from fsv.errors import APIError, SessionError
-from fsv.formmeta import apply_answers, configured_workspace, find_field, normalize_rules
+from fsv.formmeta import apply_answers, configured_workspace, fetch_rules, find_field, rules_warnings
 from fsv.forms import (
     Field,
     FormError,
@@ -268,12 +268,8 @@ class ItemMeta:
 def load_item_meta(client: Any, ref: Any, *, item: Mapping[str, Any] | None = None) -> ItemMeta:
     """Item form + business rules (always from the server: one GET each)."""
     raw = dict(item) if item is not None else find_item(client, ref)
-    ws = configured_workspace() or raw.get("workspace_id")
-    if ws in (None, ""):
-        raise ValueError("cannot tell which workspace the item belongs to; "
-                         "set it with `fsv config set forms.workspace_id N`")
-    q = business_rules_query("service_request", workspace_id=ws, item_id=raw.get("id"))
-    rules = normalize_rules(client.int_get(q.path.removeprefix("/api/_/"), dict(q.params)))
+    ws = configured_workspace() or raw.get("workspace_id")  # None: account without workspaces
+    rules = fetch_rules(client, "service_request", ws, item_id=raw.get("id"))
     return ItemMeta(raw, rules, ws, time.time())
 
 
@@ -418,7 +414,7 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
     assert item is not None
     state = FormState(spec, meta.engine(), mode="new", resolver=resolver)
     errors: list[str] = []
-    warnings: list[str] = list(spec.warnings)
+    warnings: list[str] = list(spec.warnings) + rules_warnings(meta.rules)
     if draft.description_html is not None:
         errors.append("description_md/description_html: catalog items have no description field; "
                       "answer the item's own fields")

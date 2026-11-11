@@ -268,11 +268,18 @@ def render_template(
     module_cli: str = "changes",
     unknown: Mapping[str, Any] | None = None,
     hidden: Mapping[str, Any] | None = None,
+    base_dir: str | None = None,
 ) -> str:
     """The editor draft: visible fields in web order, ``Label: value`` with
     ``# REQUIRED · type · help`` and ``# choices: ...`` above each.
-    Status is never listed (the server default is used on create)."""
+    Status is never listed (the server default is used on create).
+    File paths are written relative to ``base_dir`` (where the draft will
+    be saved; default: the current directory), as ``--from`` reads them."""
     draft = draft or Draft()
+
+    def rel(p: str) -> str:
+        return os.path.relpath(p, base_dir) if base_dir else os.path.relpath(p)
+
     spec = state.spec
     ev = state.evaluated
     lines = [f"# {title}"]
@@ -368,12 +375,12 @@ def render_template(
             lines.append("  ")
         lines.append("")
     lines.append("# Files to attach after the change is created (uploaded only after you confirm)")
-    lines.append("attachments: " + yamlio.flow_list([os.path.relpath(p) for p in draft.attachments]))
+    lines.append("attachments: " + yamlio.flow_list([rel(p) for p in draft.attachments]))
     if draft.planning:
         lines.append("planning:")
         for label, entry in draft.planning.items():
             lines.append(f"  {yamlio.key(label)}:")
-            lines.append("    files: " + yamlio.flow_list([os.path.relpath(p) for p in entry.get("files") or []]))
+            lines.append("    files: " + yamlio.flow_list([rel(p) for p in entry.get("files") or []]))
             if entry.get("description_html"):
                 lines.append("    description_html: " + yamlio.block(entry["description_html"], 6))
     else:

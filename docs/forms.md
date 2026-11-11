@@ -53,6 +53,13 @@ business_rules_query("service_request", workspace_id=2, item_id=9000009001)   # 
 business_rules_query("change", workspace_id=2, form_type="edit", module_id=4242)  # edit form
 ```
 
+`fsv.formmeta.fetch_rules(client, module, workspace_id, **query)` makes
+that request portably: without a workspace (accounts that have none) it
+uses `/api/_/business_rules`, it falls back to that path after a 403/404 on
+the workspace path, and when every path answers 403/404 it returns an empty
+rule set marked `unavailable` (the form then runs on the metadata's static
+required/visible flags, and reviews warn about it).
+
 Parameters: `module_type`, `workspace_id` (path), `item_id` (catalog item
 `id`; `null` otherwise), `form_type` (`new`/`edit`), `requester` and
 `requested_for` (user ids, empty when unknown), `module_id` (the record's
