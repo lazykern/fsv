@@ -416,6 +416,7 @@ class SRPlan:
     review: Review
     errors: list[str]
     requester: LookupValue | None = None
+    identity: dict[str, Any] = dc_field(default_factory=dict)
     hash: str = ""
     action: str = "create"  # journal / duplicate-check compatible with changes
 
@@ -442,6 +443,7 @@ class SRPlan:
             "endpoint": f"POST /api/_/catalog/service-items/{self.meta.display_id}/place-request",
             "requester": None if self.requester is None else
             {"id": self.requester.id, "name": self.requester.display, "email": self.requester.email},
+            "recipient_identity": self.identity,
             "payload": self.payload if self.ok else None,  # never a partial payload
             "uploads": [{"placeholder": u.placeholder, "target": u.label, **_digest(u.path)}
                         for u in self.uploads if os.path.isfile(u.path)],
@@ -465,7 +467,7 @@ def requester_line(req: LookupValue) -> str:
 
 def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: LookupValue | None,
                   ack_all: bool = False, requested_for: LookupValue | None = None,
-                  cc_emails: tuple[str, ...] = ()) -> SRPlan:
+                  cc_emails: tuple[str, ...] = (), cc_ids: tuple[Any, ...] = ()) -> SRPlan:
     spec = meta.spec
     item = spec.item
     assert item is not None
@@ -559,9 +561,10 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
                                         + (f" · {item.category_name}" if item.category_name else "")))
     review.rows.append(("Requester", str(requester) if requester is not None else "(not set)"))
     if requested_for is not None:
-        review.rows.append(("Requested for", str(requested_for)))
+        review.rows.append(("Requested for", f"{requested_for} (user ID {requested_for.id})" if isinstance(requested_for, LookupValue) else str(requested_for)))
     if valid_cc and cc_emails:
-        review.rows.append(("CC", ", ".join(cc_emails)))
+        shown_cc = ", ".join(f"{email} (user ID {id_})" for email, id_ in zip(cc_emails, cc_ids)) if cc_ids and len(cc_ids) == len(cc_emails) else ", ".join(cc_emails)
+        review.rows.append(("CC", shown_cc))
     subject = item.render_subject({k: v for k, v in ev.values.items()}) if item.subject_template else ""
     if subject:
         review.rows.append(("Subject (item template)", subject))
@@ -580,9 +583,21 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
     review.errors = problems
     review.warnings = warnings
     review.metadata = meta.as_of()
-    plan = SRPlan(meta, state, draft, payload, uploads, review, problems, requester=requester)
+    identity: dict[str, Any] = {}
+    if requested_for is not None and isinstance(requested_for, LookupValue):
+        identity["requested_for_id"] = requested_for.id
+    if cc_ids:
+        if len(cc_ids) != len(cc_emails):
+            problems.append("CC identity count differs from addresses")
+        identity["cc_ids"] = list(cc_ids)
+    if identity:
+        identity["tenant"] = config.DOMAIN
+    plan = SRPlan(meta, state, draft, payload, uploads, review, problems, requester=requester, identity=identity)
     if payload is not None and not problems:
-        plan.hash = plan_hash({"request": payload, "target": plan.target}, plan.files)
+        hashed = {"request": payload, "target": plan.target}
+        if identity:
+            hashed["recipient_identity"] = identity
+        plan.hash = plan_hash(hashed, plan.files)
         review.plan_hash = plan.hash
     return plan
 
@@ -613,11 +628,15 @@ def _substitute(value: Any, ids: Mapping[str, Any]) -> Any:
     return value
 
 
-def execute(plan: SRPlan, client: Any, *, upload_fn: Callable[[Any, str], int] = upload) -> dict[str, Any]:
+def execute(plan: SRPlan, client: Any, *, upload_fn: Callable[[Any, str], int] = upload,
+            allow_duplicate: bool = False) -> dict[str, Any]:
     """Upload the files, then place the request (journaled under the plan
     hash). Call only after the review was confirmed."""
     if not plan.ok or plan.payload is None or not plan.hash:
         raise FlowExit(2, "plan has problems: " + "; ".join(plan.errors))
+    if plan.identity and plan.identity.get("tenant") != config.DOMAIN:
+        raise FlowExit(2, "tenant changed since review; nothing was sent")
+    duplicate_check(plan, allow_duplicate)
     _, preflight = rule_diagnostics(plan.meta, plan.state)
     preflight += unsupported_lookup_errors(plan.state, plan.draft)
     preflight += plan.state.errors()
@@ -633,12 +652,19 @@ def execute(plan: SRPlan, client: Any, *, upload_fn: Callable[[Any, str], int] =
     if preflight:
         raise FlowExit(2, "plan has problems: " + "; ".join(preflight))
     try:
-        current_hash = plan_hash({"request": plan.payload, "target": plan.target}, plan.files)
+        hashed = {"request": plan.payload, "target": plan.target}
+        if plan.identity:
+            hashed["recipient_identity"] = plan.identity
+        current_hash = plan_hash(hashed, plan.files)
     except OSError as e:
         raise FlowExit(2, f"cannot verify reviewed files: {e}") from None
     if current_hash != plan.hash:
         raise FlowExit(2, "the reviewed payload or files changed; review again")
+    before = len(journal.read())
     journal.record_plan("started", plan.hash, action=plan.action, target=plan.target)
+    entries = journal.read()
+    if len(entries) <= before or entries[-1].get("kind") != f"plan:{plan.action}" or entries[-1].get("plan") != plan.hash or entries[-1].get("event") != "started":
+        raise FlowExit(5, "could not persist the request journal; nothing was uploaded or placed")
     uploaded: list[dict[str, Any]] = []
     ids: dict[str, Any] = {}
     try:
@@ -657,17 +683,36 @@ def execute(plan: SRPlan, client: Any, *, upload_fn: Callable[[Any, str], int] =
     try:
         result = place_request(client, plan.meta.display_id, body)
     except BaseException as e:
-        if isinstance(e, (APIError, SessionError)):
-            journal.record_plan("failed", plan.hash, action=plan.action, target=plan.target, error=str(e))
-        # anything else (timeout, crash): outcome unknown; the "started"
-        # entry stays and the duplicate check treats it as possibly sent
+        if isinstance(e, APIError) and 400 <= e.status < 500 and e.status not in (403, 408, 429):
+            journal.record_plan("failed", plan.hash, action=plan.action, target=plan.target, error=f"HTTP {e.status}")
+        # Ambiguous failures retain the started guard: never assume a 403,
+        # timeout, throttling or server error means the request was not placed.
         raise SendFailure("place-request", uploaded, e) from e
     ref = created_ref(result)
+    if ref["id"] is None:
+        raise SendFailure("place-request", uploaded, RuntimeError("response has no exact request ID; outcome unknown"))
     steps = [{"step": "upload", "ok": True, "ids": [u["id"] for u in uploaded]},
              {"step": "place-request", "ok": True, "id": ref["id"]}]
     journal.record_plan("done", plan.hash, action=plan.action, target=plan.target, created_id=ref["id"], steps=steps)
+    verification: dict[str, Any] = {"verified": False, "fields": {}}
+    if plan.identity:
+        try:
+            raw = client.int_get(f"tickets/{ref['id']}")
+            row = raw.get("ticket", raw) if isinstance(raw, dict) else None
+            if not isinstance(row, dict) or str(row.get("id")) != str(ref["id"]):
+                raise ValueError("identity mismatch")
+            fields = {}
+            for key in ("email", "requested_for", "cc_emails"):
+                if key in body:
+                    fields[key] = ("unavailable" if key not in row else
+                                   "matched" if row[key] == body[key] else "mismatched")
+            verification = {"verified": bool(fields) and all(v == "matched" for v in fields.values()), "fields": fields}
+        except Exception:
+            verification["warning"] = "Exact ticket read-back failed; do not resend."
+        if not verification["verified"]:
+            verification["warning"] = "Request recipient fields were not fully verified; do not resend."
     return {"created": ref, "result": result, "uploaded": uploaded, "body": body, "plan_hash": plan.hash,
-            "steps": steps}
+            "steps": steps, "verification": verification}
 
 
 def freshen(plan: SRPlan, client: Any, rebuild: Callable[[ItemMeta], SRPlan]) -> tuple[SRPlan, list[str] | None]:
@@ -683,6 +728,9 @@ def freshen(plan: SRPlan, client: Any, rebuild: Callable[[ItemMeta], SRPlan]) ->
 
 
 def duplicate_check(plan: SRPlan, allow_duplicate: bool) -> None:
+    events = [r for r in journal.read() if r.get("kind") == "plan:create" and r.get("plan") == plan.hash]
+    if events and events[-1].get("event") == "started":
+        raise FlowExit(4, "previous request outcome is unknown; inspect the server and journal before retry")
     check_duplicate(plan, allow_duplicate)  # type: ignore[arg-type]
 
 

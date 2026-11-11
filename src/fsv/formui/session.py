@@ -728,7 +728,7 @@ class FormSession:
             new, diff = cat.freshen(plan, self.client, lambda m: self.build_plan(meta=m))
             if diff is not None:
                 raise flow.FlowExit(4, "the item form changed since the review: " + "; ".join(diff))
-            return cat.execute(new, self.client)
+            return cat.execute(new, self.client, allow_duplicate=allow_duplicate)
         flow.check_duplicate(plan, allow_duplicate or self.mode == "edit")
         new, diff = flow.freshen(plan, self.client, lambda m: self.build_plan(meta=m))
         if diff is not None:

@@ -95,3 +95,58 @@ def test_submit_preserves_reviewed_recipients(fake, work):
     assert payload["email"] == "jane.doe@example.com"
     assert payload["requested_for"] == "jane.doe@example.com"
     assert payload["cc_emails"] == ["jane.doe@example.com"]
+
+
+def test_ambiguous_failure_keeps_started_guard_even_when_duplicate_allowed(fake, work):
+    from fsv import journal
+    fake.fail_place = 403
+    args = ("77", "--from", "sr.yaml", "--requested-for", "jane.doe@example.com", "--cc", "jane.doe@example.com")
+    result = run("create", *args, "--yes")
+    assert result.exit_code != 0 and "outcome is unknown" in result.flat
+    assert [r for r in journal.read() if r.get("kind") == "plan:create"][-1]["event"] == "started"
+    count = len(fake.writes())
+    result = run("create", *args, "--yes", "--allow-duplicate")
+    assert result.exit_code == 4 and "outcome is unknown" in result.flat
+    assert len(fake.writes()) == count
+
+
+def test_relookup_changed_identity_blocks_before_upload(monkeypatch, tmp_path):
+    from fsv import journal
+    monkeypatch.setattr(journal, "journal_path", lambda: tmp_path / "j")
+    c = Client()
+    monkeypatch.setattr(cli, "_client", lambda: c)
+    monkeypatch.setattr(flow, "interactive", lambda: False)
+    monkeypatch.setattr(catalog, "load_item_meta", lambda *a, **kw: meta())
+    original = c.autocomplete
+    counts = {"target": 0}
+    def shifting(kind, query, params):
+        rows = original(kind, query, params)
+        if query == "target@example.com":
+            counts["target"] += 1
+            if counts["target"] > 1:
+                rows[0]["id"] = 99
+        return rows
+    c.autocomplete = shifting
+    args = ["create", "77", "--requester", ACTOR.email, "--set", "Answer=ok", "--requested-for", "target@example.com", "--yes"]
+    result = CliRunner().invoke(cli.app, args)
+    assert result.exit_code == 4 and "identities changed" in result.output
+    assert not journal.read()
+
+
+def test_recipient_readback_requires_exact_ticket_and_fields(monkeypatch, tmp_path):
+    from fsv import journal
+    monkeypatch.setattr(journal, "journal_path", lambda: tmp_path / "j")
+    class Place:
+        def int_post(self, path, body):
+            self.body = body
+            return {"ticket": {"id": 123}}
+        def int_get(self, path):
+            return {"ticket": {"id": 123, "email": ACTOR.email,
+                               "requested_for": "target@example.com", "cc_emails": ["team@example.com"]}}
+    c = Place()
+    p = catalog.build_sr_plan(meta(), Draft(answers={"Answer": "ok"}), resolver=None, requester=ACTOR,
+                              requested_for=LookupValue(12, "Target", "target@example.com"),
+                              cc_emails=("team@example.com",), cc_ids=(13,))
+    result = catalog.execute(p, c)
+    assert result["verification"]["verified"] is True
+    assert all(v == "matched" for v in result["verification"]["fields"].values())

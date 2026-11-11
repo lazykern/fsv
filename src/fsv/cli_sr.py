@@ -544,6 +544,10 @@ def _confirm(plan: cat.SRPlan, draft: Draft, build: Callable[[Draft, bool], cat.
 def _send(plan: cat.SRPlan, client: Any, *, rebuild: Callable[[cat.ItemMeta], cat.SRPlan], tty: bool, yes: bool,
           expect_plan: str | None, allow_duplicate: bool) -> dict[str, Any]:
     cat.duplicate_check(plan, allow_duplicate)
+    if plan.identity:
+        checked = rebuild(plan.meta)
+        if not checked.ok or checked.hash != plan.hash:
+            raise FlowExit(4, "recipient identities changed since review; review again")
     new, diff = cat.freshen(plan, client, rebuild)
     if diff is not None:
         err.print("[yellow]the catalog item or its rules changed since the review; the plan is now different:[/yellow]",
@@ -561,7 +565,7 @@ def _send(plan: cat.SRPlan, client: Any, *, rebuild: Callable[[cat.ItemMeta], ca
         cat.duplicate_check(new, allow_duplicate)
     flow.expect(new, expect_plan)  # type: ignore[arg-type]
     try:
-        return cat.execute(new, client)
+        return cat.execute(new, client, allow_duplicate=allow_duplicate)
     except cat.SendFailure as e:
         from fsv.errors import exit_code_for
 
@@ -571,11 +575,12 @@ def _send(plan: cat.SRPlan, client: Any, *, rebuild: Callable[[cat.ItemMeta], ca
         code = exit_code_for(e.error)
         if e.step == "upload":
             what = "nothing was placed"
-        elif code in (3, 4, 5):
+        elif isinstance(e.error, cat.APIError) and 400 <= e.error.status < 500 and e.error.status not in (403, 408, 429):
             what = "the server refused it; nothing was placed"
         else:
             what = "the outcome is unknown: check `fsv journal tail` and the requester's requests before retrying"
-        raise FlowExit(code, f"{e.step} failed: {' '.join(str(e.error).split())}; {what}") from None
+        detail = f"HTTP {e.error.status}" if isinstance(e.error, cat.APIError) else type(e.error).__name__
+        raise FlowExit(code, f"{e.step} failed: {detail}; {what}") from None
 
 
 def create_command(
@@ -644,6 +649,7 @@ def create_command(
             except ValueError as e:
                 raise FlowExit(2, f"requested-for: {e}") from None
         resolved_cc = []
+        resolved_cc_ids = []
         for email in cc or ():
             if not _EMAIL.fullmatch(email):
                 raise FlowExit(2, "CC must be a plain email address")
@@ -652,10 +658,11 @@ def create_command(
                 if not person.email or person.email.casefold() != email.casefold():
                     raise ValueError("not an exact email match")
                 resolved_cc.append(person.email)
+                resolved_cc_ids.append(person.id)
             except ValueError:
                 raise FlowExit(2, "each CC email must resolve to exactly one non-deleted user") from None
         plan = cat.build_sr_plan(m or meta, d, resolver=resolver, requester=req, ack_all=ack_all,
-                                 requested_for=target, cc_emails=tuple(resolved_cc))
+                                 requested_for=target, cc_emails=tuple(resolved_cc), cc_ids=tuple(resolved_cc_ids))
         if problem:
             plan.errors[:] = [problem] + [e for e in plan.errors if e != cat.REQUESTER_MISSING]
             plan.review.errors = plan.errors
@@ -726,13 +733,15 @@ def create_command(
     ref = result["created"]
     if as_json:
         _json({"created": ref, "result": result["result"], "plan_hash": result["plan_hash"],
-               "uploaded": result["uploaded"], "steps": result["steps"]})
+               "uploaded": result["uploaded"], "steps": result["steps"], "verification": result["verification"]})
         return
     url = cat.domain_url(f"/a/tickets/{ref['id']}") if ref.get("id") is not None else ""
     for u in result["uploaded"]:
         console.print(f"  [green]ok[/green] uploaded {escape(u['name'])} -> {u['id']} ({escape(u['target'])})",
                       highlight=False)
     console.print(f"[green]placed[/green] {escape(ref['display'])}  {url}", highlight=False)
+    if result["verification"].get("warning"):
+        err.print(result["verification"]["warning"], highlight=False)
 
 
 @app.command("create", epilog=(
