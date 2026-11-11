@@ -46,6 +46,24 @@ those stay identical.
   Python iterates a set, so the order is not stable.
 - `create.clone_planning_fields` treats a planning row with
   `"attachments": null` as no attachments. Python raises `TypeError`.
+- Form submit rebuilds the plan from the same metadata at save and at send.
+  If the hash differs from the reviewed one, it refuses with exit 4 ("the
+  reviewed plan could not be rebuilt identically; review it again"). Python
+  keeps the plan object. Cause: `fsv_forms::LookupResolver` is not
+  `Send + Sync`, so a plan cannot ride along in `fsv_formui::Plan`.
+
+## fsv-app
+
+| Python | Rust | status |
+|---|---|---|
+| live wiring behind `views` reads, `formmeta.load_meta`, `create` writes, form session plan/save/send, TUI backend and pages | `fsv_app::{source, meta, writer, form, tui}` | partial. `cargo test -p fsv-app --offline` was 48 passed. Request paths, bodies and plan hashes captured from Python. `run_tui` and `run_form` need a terminal and have no tests. |
+
+- Form review rows can show lookup ids where Python shows names. `fsv_flows` drafts hold JSON answers.
+- TUI details load without form properties: `views.load_properties` / `load_edit_rules` are not ported anywhere, so Python's "form rules could not be applied" note is absent.
+- Service-request drafts cannot be saved: `cli_sr.render_sr_template` is not ported.
+- `run_tui` takes a schema loader argument because `schema::load` and saved-view loading live in `fsv-cli`, which `fsv-app` cannot depend on.
+- Not yet wired in `LiveBackend` (trait defaults say unavailable): change tasks and task edit/delete, associations, downloads, catalog, completion, clipboard and open-URL, filter history.
+- Directory lookups that hit an expired session surface as a query error, because `fsv_api::QueryError` does not carry the session flag.
 
 ## fsv-api (started)
 

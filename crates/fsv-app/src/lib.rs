@@ -1,4 +1,21 @@
-//! Live adapters. Each seam trait the lower crates define (`fsv_views::Source`,
-//! `fsv_flows::meta::MetaSource`, `fsv_flows::change::ChangeWriter`,
-//! `fsv_formui::FormBackend`, `fsv_tui::Backend` / `Pages`) gets one
-//! implementation here over `fsv_core::Client` and `fsv_api`.
+//! Live implementations of the seams the flows, views, form and TUI crates
+//! are written against, plus the entry points that wire them to a client.
+#![allow(clippy::result_large_err)]
+
+pub mod form;
+pub mod meta;
+pub mod source;
+pub mod tui;
+pub mod writer;
+
+#[cfg(test)]
+pub(crate) mod testkit;
+
+pub use form::{
+    ChangeForm, FormDeps, FormResolver, LiveForm, Submitted, change_session, run_form, sr_session,
+    ticket_session,
+};
+pub use meta::LiveMeta;
+pub use source::ClientSource;
+pub use tui::{LiveBackend, LivePages, SchemaLoader, run_tui};
+pub use writer::LiveWriter;

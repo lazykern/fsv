@@ -890,7 +890,11 @@ dependencies = [
  "fsv-py",
  "fsv-tui",
  "fsv-views",
+ "indexmap",
+ "jiff",
  "serde_json",
+ "tempfile",
+ "url",
 ]
 
 [[package]]
@@ -906,6 +910,7 @@ dependencies = [
  "regex",
  "serde_json",
  "tempfile",
+ "url",
  "which",
 ]
 
