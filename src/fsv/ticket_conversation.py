@@ -158,6 +158,12 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
         status_id, token, record_hash = status_context(client, plan.ticket_id, plan.status_label)
         if record_hash != plan.record_hash or payload.get("helpdesk_ticket") != {"status": status_id, "br_validation_excludes": token}:
             raise ConversationError("ticket or status metadata changed; review again")
+    # Reconfirm formatted CC recipients without silently changing reviewed bytes.
+    if payload.get("cc_emails"):
+        from email.utils import parseaddr
+        emails = [parseaddr(value)[1] for value in payload["cc_emails"]]
+        if recipients(client, emails) != tuple(payload["cc_emails"]):
+            raise ConversationError("CC recipient identity changed; review again")
     # New recipient variants are looked up again before any send. No opaque
     # user IDs or guessed sender identities are substituted into the payload.
     for address in payload.get("bcc_emails", []) + (payload.get("notify_emails", []) if plan.kind == "forward" else []):

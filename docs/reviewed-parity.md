@@ -52,6 +52,13 @@ forward is not conversation forwarding; BCC+CC/status, alternate-To, and
 reply-all remain refused or unsupported. Missing BCC/sender readback fields
 remain unavailable, and a successful send is never replayed to obtain them.
 
+The reviewed property and reply/note-Pending paths also have real
+`Client`/`httpx.MockTransport` tests with distinct Acme/Globex schemas and
+runtime status IDs. They check exact HTTP bytes/headers, readback identity,
+missing/contradictory fields, stale metadata and 403/429/500/disconnect guards.
+CC display/email resolution is rechecked before send without changing the
+reviewed payload. These are offline transport proofs, not accepted live sends.
+
 ## Self watchers
 
 ```sh
