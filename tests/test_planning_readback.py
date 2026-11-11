@@ -25,7 +25,7 @@ def test_native_content_readback(module, section, key, stored, expected):
             return result
 
     client = NativeClient(module)
-    client.rows = [{"name": key, "label": section, "content": "Old", "files": [], "empty": False}]
+    client.rows = [{"name": key, "label": section, "content": "", "files": [], "empty": True}]
     plan = planning.build_plan(client, module, 123, section, "<div>Acme &amp; Globex\n details</div>")
     result = planning.send(plan, client, reviewed_hash=plan.hash)
     assert result["description"] == expected

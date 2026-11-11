@@ -319,9 +319,20 @@ fsv problems planning-text PRB-123 --section 'Root Cause' --description '<div>Ac
 Review, then pass `--yes --expect-plan FULL_HASH`. Change section identities
 come from fresh field metadata; problem native sections are Root Cause,
 Impact and Symptoms, with the captured semantic section keys. This is not a
-custom-field solution editor. Saves use the captured POST with `?id=SECTION`
-and a description-only body, never a guessed PUT or array position. Existing
-attachments or unavailable attachment inventories block text-only saves.
+custom-field solution editor. A fresh complete planning inventory determines
+whether the section is empty before review and again before sending. Only
+known-empty sections use the captured first-write POST with `?id=SECTION`
+and a description-only body. **Editing stored text is not supported yet:**
+the native edit wire remains uncaptured, so existing content is refused with
+exit 2, not sent as a second POST or guessed PUT. Unknown text state, existing
+attachments or unavailable attachment inventories also block text-only saves.
+Whitespace/HTML is not stripped to infer emptiness; contradictory text/empty
+representations fail closed. Clearing/deleting section text is not supported.
+
+The review shows `operation`, `before` and `after` text alongside the exact
+wire and full hash. A changed inventory invalidates review; sends use one
+lower-level request without automatic write replay and independent GET
+readback. Unknown/mismatched readback is not success and must not be resent.
 
 In the main TUI use **a → Edit native planning/analysis text**, choose the
 section, edit the multiline text/HTML, then **Ctrl+S** to review the exact

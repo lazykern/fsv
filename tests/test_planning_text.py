@@ -92,8 +92,11 @@ def test_planning_cli_review_hash_then_send(monkeypatch):
 
 
 @pytest.mark.parametrize("cancel", [True, False])
-def test_tui_planning_picker_editor_review_and_outcome(offline, monkeypatch, cancel):
+@pytest.mark.parametrize("native_empty", [True, False])
+def test_tui_planning_picker_editor_review_and_outcome(offline, monkeypatch, cancel, native_empty):
     c = Client()
+    if native_empty:
+        c.rows = [{"name": "acme_plan", "content": "", "files": [], "empty": True}]
     monkeypatch.setattr("fsv.tui.app.get_client", lambda: c)
     async def go():
         app = FsvApp()
@@ -117,6 +120,9 @@ def test_tui_planning_picker_editor_review_and_outcome(offline, monkeypatch, can
             await pilot.pause()
             assert isinstance(app.screen, ConfirmScreen) and not c.writes
             assert "acme_plan" in app.screen._lines[0] and "plan_hash" in app.screen._lines[0]
+            review = json.loads(app.screen._lines[0])
+            assert review["before"] == "" and review["after"] == "Acme\nsecond line"
+            assert review["operation"] == "create"
             await pilot.press("escape" if cancel else "y")
             await app.workers.wait_for_complete()
             await pilot.pause()
@@ -124,3 +130,30 @@ def test_tui_planning_picker_editor_review_and_outcome(offline, monkeypatch, can
                 assert isinstance(app.screen, OutcomeScreen)
     asyncio.run(go())
     assert len(c.writes) == (0 if cancel else 1)
+
+
+def test_tui_native_existing_content_preloads_but_edit_is_refused(offline, monkeypatch):
+    from fsv.tui.modals import FailureScreen
+
+    c = Client()
+    c.rows = [{"name": "acme_plan", "content": "Acme original", "files": [], "empty": False}]
+    monkeypatch.setattr("fsv.tui.app.get_client", lambda: c)
+
+    async def go():
+        app = FsvApp()
+        async with app.run_test(size=(120, 40)) as pilot:
+            item = {"display_id": 123, "_resource": CHANGES}
+            app._load_planning_editor(item, "acme_plan")
+            await app.workers.wait_for_complete()
+            await pilot.pause()
+            assert isinstance(app.screen, PlanningTextScreen)
+            assert app.screen.query_one(TextArea).text == "Acme original"
+            app.screen.query_one(TextArea).text = "Acme replacement"
+            await pilot.press("ctrl+s")
+            await app.workers.wait_for_complete()
+            await pilot.pause()
+            assert isinstance(app.screen, FailureScreen)
+            assert "native edit wire is not captured" in (app._write_failure or "")
+            assert not c.writes
+
+    asyncio.run(go())

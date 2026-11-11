@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from typing import Any
 from urllib.parse import parse_qs, quote, urlsplit
 
@@ -47,7 +48,34 @@ def section_content(row: dict[str, Any] | None) -> str | None:
     return None
 
 
-def build_plan(client: Any, module: str, target: str | int, section: str, description: str) -> WritePlan:
+@dataclass(frozen=True)
+class PlanningTextPlan(WritePlan):
+    before: str
+
+    @property
+    def hash(self) -> str:
+        return journal.plan_hash({"wire_plan": super().hash, "before": self.before}) or ""
+
+    def review(self) -> dict[str, Any]:
+        return {**super().review(), "operation": "create", "before": self.before,
+                "after": self.payload["description"]}
+
+
+def editable_content(row: dict[str, Any] | None) -> str:
+    """Require a readable text baseline and an explicitly empty file inventory."""
+    if row is None:
+        return ""
+    inventories = [row[k] for k in ("attachments", "files") if k in row]
+    if not inventories or any(value != [] for value in inventories):
+        raise ReviewedWriteError("planning attachments are present or unavailable; text-only preservation is not proven")
+    content = section_content(row)
+    if content is None or any(k in row and not isinstance(row[k], str)
+                              for k in ("description", "content", "description_html", "description_text", "body")):
+        raise ReviewedWriteError("planning text state is unavailable; no write attempted")
+    return content
+
+
+def build_plan(client: Any, module: str, target: str | int, section: str, description: str) -> PlanningTextPlan:
     if not isinstance(description, str) or not description.strip():
         raise ValueError("planning description must be nonempty text/HTML")
     defs = definitions(client, module)
@@ -62,12 +90,19 @@ def build_plan(client: Any, module: str, target: str | int, section: str, descri
     key = planning_server_key(definition)
     rows = inventory(client, module, cid)
     existing = match_planning_row(definition, rows, defs)
-    if existing and (existing.get("attachments", existing.get("files")) != []):
-        raise ReviewedWriteError("planning attachments are present or unavailable; text-only preservation is not proven")
-    return WritePlan(f"{module}_planning_text", cid, config.DOMAIN, "POST",
-                     f"{module}/{cid}/planning-fields?id={quote(key, safe='')}",
-                     json.dumps({"description": description}, sort_keys=True, ensure_ascii=False),
-                     journal.plan_hash({"definitions": defs, "rows": rows}) or "")
+    before = editable_content(existing)
+    # Only the first-write POST has been captured. Never guess an edit wire,
+    # nor infer absence of stored text by stripping HTML or trusting empty alone.
+    text_values = [existing[k] for k in ("description", "content", "description_html", "description_text", "body")
+                   if existing is not None and isinstance(existing.get(k), str)]
+    if before or any(text_values) or (existing is not None and existing.get("empty") is False):
+        raise ReviewedWriteError(
+            "planning section already has content; native edit wire is not captured; "
+            "use the web editor (no write attempted)")
+    return PlanningTextPlan(f"{module}_planning_text", cid, config.DOMAIN, "POST",
+                            f"{module}/{cid}/planning-fields?id={quote(key, safe='')}",
+                            json.dumps({"description": description}, sort_keys=True, ensure_ascii=False),
+                            journal.plan_hash({"definitions": defs, "rows": rows}) or "", before)
 
 
 def send(plan: WritePlan, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:

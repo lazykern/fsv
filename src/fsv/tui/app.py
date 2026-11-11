@@ -2403,10 +2403,9 @@ class FsvApp(App):
             cid = item.get("display_id") or item["id"]
             rows = planning_text.inventory(get_client(), module, cid)
             row = match_planning_row({"name": section}, rows)
-            if row and ("description" not in row or row.get("attachments") or "attachments" not in row):
-                raise ValueError("Planning text/attachment preservation is unavailable")
+            before = planning_text.editable_content(row)
             def compose():
-                self.push_screen(PlanningTextScreen(section, (row or {}).get("description", "")),
+                self.push_screen(PlanningTextScreen(section, before),
                                  lambda result: self._prepare_planning_text(item, section, result[0]) if result else None)
             self.call_from_thread(compose)
         except Exception as exc:
