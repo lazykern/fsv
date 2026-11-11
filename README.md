@@ -38,6 +38,7 @@ Run these in a terminal to open the interactive form:
 ```bash
 fsv changes create
 fsv changes update CHN-1234
+fsv tickets create
 fsv sr create ITEM_ID
 ```
 
@@ -105,7 +106,7 @@ fsv problems --help
 fsv sr --help
 ```
 
-Incident creation isn't implemented yet. Ticket updates and replies are supported, and service requests have their own create command.
+`fsv tickets create` supports incident creation with review and dry run. It refuses to send when rules or required rule context are unavailable. Live incident creation has not yet been tested; see [the incident guide](docs/incidents.md).
 
 ## Drafts and scripts
 
@@ -173,7 +174,7 @@ On macOS, Keychain may ask for access the first time. Switching backends removes
 
 ## Account differences and limits
 
-fsv reads your account's fields, choices, planning labels and rules rather than shipping a fixed configuration. It supports accounts without workspaces or business rules, and optional endpoints that return 403 or 404. When rules can't be loaded, it warns and uses the form's static flags instead.
+fsv reads your account's fields, choices, planning labels and rules rather than shipping a fixed configuration. It supports accounts without workspaces or business rules, and optional endpoints that return 403 or 404. When rules can't be loaded, forms warn and use static flags; incident creation refuses to send.
 
 That doesn't mean every Freshservice feature or account configuration has been tested. A few limits worth knowing:
 
