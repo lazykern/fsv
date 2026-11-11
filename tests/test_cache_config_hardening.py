@@ -101,4 +101,8 @@ def test_paths_follow_env(monkeypatch, tmp_path):
     config.reload()
     assert config.SESSION_FILE == tmp_path / "c2" / "session.json"
     assert config.SCHEMA_DIR == tmp_path / "k2" / "schema"
+    # The test runner's temporary directory may itself be under the real home.
+    home = tmp_path / "home"
+    monkeypatch.setattr(config.Path, "home", classmethod(lambda cls: home))
     assert config.display_path(tmp_path / "x") == str(tmp_path / "x")
+    assert config.display_path(home / "x") == "~/x"
