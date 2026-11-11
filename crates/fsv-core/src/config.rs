@@ -27,11 +27,13 @@ pub struct Paths {
 }
 
 impl Paths {
-    /// Paths derived from the current environment.
+    /// `refresh_paths`: paths derived from the current environment.
     pub fn from_env() -> Self {
         let home = home_dir();
-        let config_dir = env_path("FSV_CONFIG_DIR").unwrap_or_else(|| home.join(".config").join("fsv"));
-        let cache_dir = env_path("FSV_CACHE_DIR").unwrap_or_else(|| home.join(".cache").join("fsv"));
+        let config_dir =
+            env_path("FSV_CONFIG_DIR").unwrap_or_else(|| home.join(".config").join("fsv"));
+        let cache_dir =
+            env_path("FSV_CACHE_DIR").unwrap_or_else(|| home.join(".cache").join("fsv"));
         Paths {
             config_file: config_dir.join("config.json"),
             session_file: config_dir.join("session.json"),
@@ -44,7 +46,9 @@ impl Paths {
 }
 
 fn env_path(name: &str) -> Option<PathBuf> {
-    std::env::var_os(name).filter(|v| !v.is_empty()).map(PathBuf::from)
+    std::env::var_os(name)
+        .filter(|v| !v.is_empty())
+        .map(PathBuf::from)
 }
 
 /// `Path.home()`.
@@ -130,7 +134,11 @@ fn urls(domain: &str) -> (String, String, String) {
     if domain.is_empty() {
         return (String::new(), String::new(), String::new());
     }
-    (format!("https://{domain}/api/v2"), format!("https://{domain}/api/_"), format!("https://{domain}/"))
+    (
+        format!("https://{domain}/api/v2"),
+        format!("https://{domain}/api/_"),
+        format!("https://{domain}/"),
+    )
 }
 
 /// Re-read paths from env and the domain from the config file.
@@ -153,7 +161,11 @@ pub fn display_path_with_home(path: &Path, home: &Path) -> String {
     match path.strip_prefix(home) {
         Ok(rel) => {
             let rel = rel.to_string_lossy();
-            if rel.is_empty() { "~/.".into() } else { format!("~/{rel}") }
+            if rel.is_empty() {
+                "~/.".into()
+            } else {
+                format!("~/{rel}")
+            }
         }
         Err(_) => path.to_string_lossy().into_owned(),
     }
@@ -166,8 +178,14 @@ pub fn atomic_write_text(path: &Path, text: &str, mode: u32) -> Result<()> {
         _ => PathBuf::from("."),
     };
     std::fs::create_dir_all(&parent)?;
-    let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
-    let mut tmp = tempfile::Builder::new().prefix(&format!(".{name}.")).suffix(".tmp").tempfile_in(&parent)?;
+    let name = path
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let mut tmp = tempfile::Builder::new()
+        .prefix(&format!(".{name}."))
+        .suffix(".tmp")
+        .tempfile_in(&parent)?;
     tmp.write_all(text.as_bytes())?;
     tmp.flush()?;
     set_mode(tmp.path(), mode)?;
@@ -200,7 +218,10 @@ pub fn ensure_dirs() -> Result<()> {
 }
 
 fn now_secs() -> f64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs_f64()).unwrap_or(0.0)
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs_f64())
+        .unwrap_or(0.0)
 }
 
 /// Read `config.json`; a corrupt file is moved aside (never silently overwritten).
@@ -223,13 +244,19 @@ fn load_config_at(file: &Path) -> Map<String, Value> {
     match parsed {
         Ok(m) => m,
         Err(e) => {
-            let name = file.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+            let name = file
+                .file_name()
+                .map(|n| n.to_string_lossy().into_owned())
+                .unwrap_or_default();
             let backup = file.with_file_name(format!("{name}.corrupt-{}", now_secs() as i64));
             let where_ = match std::fs::rename(file, &backup) {
                 Ok(()) => format!("backed up to {}", backup.display()),
                 Err(_) => "could not be backed up".to_string(),
             };
-            eprintln!("warning: {} is unreadable ({e}); {where_}; starting with empty config", file.display());
+            eprintln!(
+                "warning: {} is unreadable ({e}); {where_}; starting with empty config",
+                file.display()
+            );
             Map::new()
         }
     }
@@ -238,7 +265,10 @@ fn load_config_at(file: &Path) -> Map<String, Value> {
 /// Write `config.json` (indent=2, sorted keys, trailing newline, mode 0600).
 pub fn save_config(data: &Map<String, Value>) -> Result<()> {
     ensure_dirs()?;
-    let text = fsv_py::Dumps::default().indent(2).sort_keys(true).dump(&Value::Object(data.clone()));
+    let text = fsv_py::Dumps::default()
+        .indent(2)
+        .sort_keys(true)
+        .dump(&Value::Object(data.clone()));
     atomic_write_text(&config_file(), &format!("{text}\n"), PRIVATE_MODE)
 }
 
@@ -253,10 +283,18 @@ pub fn normalize_domain(value: &str, warn: bool) -> Result<String> {
     if raw.chars().any(pystr::is_space) {
         return Err(Error::value("domain must not contain whitespace"));
     }
-    let full = if raw.contains("://") { raw.to_string() } else { format!("https://{raw}") };
+    let full = if raw.contains("://") {
+        raw.to_string()
+    } else {
+        format!("https://{raw}")
+    };
     let parsed = pystr::urlsplit(&full).map_err(Error::Value)?;
     let netloc = if parsed.netloc.is_empty() {
-        pystr::urlparse_path(&parsed.path).split('/').next().unwrap_or("").to_string()
+        pystr::urlparse_path(&parsed.path)
+            .split('/')
+            .next()
+            .unwrap_or("")
+            .to_string()
     } else {
         parsed.netloc.clone()
     };
@@ -272,14 +310,18 @@ pub fn normalize_domain(value: &str, warn: bool) -> Result<String> {
         return Err(Error::value("domain must look like acme.freshservice.com"));
     }
     if warn && !host.ends_with(".freshservice.com") {
-        eprintln!("warning: {host} is not a *.freshservice.com domain; session cookies will be sent to it");
+        eprintln!(
+            "warning: {host} is not a *.freshservice.com domain; session cookies will be sent to it"
+        );
     }
     Ok(host.to_string())
 }
 
 fn configured_domain_at(file: &Path) -> String {
     match load_config_at(file).get("domain") {
-        Some(v) if crate::value::truthy(v) => normalize_domain(&fsv_py::py_str(v), false).unwrap_or_default(),
+        Some(v) if crate::value::truthy(v) => {
+            normalize_domain(&fsv_py::py_str(v), false).unwrap_or_default()
+        }
         _ => String::new(),
     }
 }
@@ -298,7 +340,9 @@ pub fn set_domain(value: &str) -> Result<String> {
 pub fn require_domain() -> Result<String> {
     let d = domain();
     if d.is_empty() {
-        return Err(Error::other("no Freshservice domain; run `fsv auth login --domain acme.freshservice.com`"));
+        return Err(Error::other(
+            "no Freshservice domain; run `fsv auth login --domain acme.freshservice.com`",
+        ));
     }
     Ok(d)
 }
@@ -308,7 +352,11 @@ pub fn cache_domain_key(domain: Option<&str>) -> String {
     let given = domain.filter(|d| !d.is_empty()).map(str::to_string);
     let current = self::domain();
     let raw_owned = given
-        .or_else(|| if current.is_empty() { None } else { Some(current) })
+        .or(if current.is_empty() {
+            None
+        } else {
+            Some(current)
+        })
         .unwrap_or_else(|| configured_domain_at(&config_file()));
     let raw = pystr::strip(&raw_owned);
     if raw.is_empty() {
@@ -360,17 +408,24 @@ pub fn get_default_where(res_name: &str) -> Vec<String> {
 
 pub fn set_default_where(res_name: &str, exprs: &[String]) -> Result<()> {
     let mut cfg = load_config();
-    let defaults = cfg.entry("defaults").or_insert_with(|| Value::Object(Map::new()));
+    let defaults = cfg
+        .entry("defaults")
+        .or_insert_with(|| Value::Object(Map::new()));
     if !defaults.is_object() {
         *defaults = Value::Object(Map::new());
     }
     if let Value::Object(d) = defaults {
-        let res = d.entry(res_name).or_insert_with(|| Value::Object(Map::new()));
+        let res = d
+            .entry(res_name)
+            .or_insert_with(|| Value::Object(Map::new()));
         if !res.is_object() {
             *res = Value::Object(Map::new());
         }
         if let Value::Object(r) = res {
-            r.insert("where".into(), Value::Array(exprs.iter().cloned().map(Value::String).collect()));
+            r.insert(
+                "where".into(),
+                Value::Array(exprs.iter().cloned().map(Value::String).collect()),
+            );
         }
     }
     save_config(&cfg)
@@ -387,6 +442,279 @@ pub fn clear_default_where(res_name: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::testenv::{self, isolated};
+    use serde_json::json;
+
+    fn rel(p: &Path, env: &testenv::Isolated) -> String {
+        format!("<D>/{}", p.strip_prefix(env.root()).unwrap().display())
+    }
+
+    #[test]
+    fn refresh_paths_follow_env() {
+        let env = isolated();
+        let p = Paths::from_env();
+        assert_eq!(p.config_dir, env.config_dir());
+        assert_eq!(p.session_file, env.config_dir().join("session.json"));
+        assert_eq!(p.config_file, env.config_dir().join("config.json"));
+        assert_eq!(p.schema_dir, env.cache_dir().join("schema"));
+        assert_eq!(p.filters_dir, env.cache_dir().join("filters"));
+        testenv::set("FSV_CONFIG_DIR", env.root().join("c2"));
+        assert_eq!(
+            session_file(),
+            env.config_dir().join("session.json"),
+            "globals change only on reload"
+        );
+        reload();
+        assert_eq!(session_file(), env.root().join("c2").join("session.json"));
+        assert_eq!(paths(), Paths::from_env());
+    }
+
+    #[test]
+    fn display_path_uses_tilde_for_home() {
+        assert_eq!(display_path(&home_dir().join("x")), "~/x");
+        let elsewhere = Path::new("/nonexistent-root/x");
+        assert_eq!(display_path(elsewhere), "/nonexistent-root/x");
+    }
+
+    #[test]
+    fn urls_for_domain() {
+        assert_eq!(urls(""), (String::new(), String::new(), String::new()));
+        assert_eq!(
+            urls("acme.freshservice.com"),
+            (
+                "https://acme.freshservice.com/api/v2".to_string(),
+                "https://acme.freshservice.com/api/_".to_string(),
+                "https://acme.freshservice.com/".to_string()
+            )
+        );
+    }
+
+    #[test]
+    fn atomic_write_text_sets_mode_and_leaves_no_temp_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("t").join("a.txt");
+        atomic_write_text(&p, "hi", 0o640).unwrap();
+        assert_eq!(std::fs::read_to_string(&p).unwrap(), "hi");
+        let names: Vec<_> = std::fs::read_dir(p.parent().unwrap())
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect();
+        assert_eq!(names, ["a.txt"]);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(
+                std::fs::metadata(&p).unwrap().permissions().mode() & 0o777,
+                0o640
+            );
+        }
+    }
+
+    #[test]
+    fn save_and_load_config() {
+        let env = isolated();
+        assert_eq!(load_config(), Map::new());
+        let data = json!({"z": 1, "domain": "acme.freshservice.com", "a": {"y": [1, 2], "b": "é"}});
+        save_config(data.as_object().unwrap()).unwrap();
+        assert_eq!(
+            std::fs::read_to_string(config_file()).unwrap(),
+            "{\n  \"a\": {\n    \"b\": \"\\u00e9\",\n    \"y\": [\n      1,\n      2\n    ]\n  },\n  \"domain\": \"acme.freshservice.com\",\n  \"z\": 1\n}\n"
+        );
+        assert_eq!(Value::Object(load_config()), data);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = |p: &Path| std::fs::metadata(p).unwrap().permissions().mode() & 0o777;
+            assert_eq!(mode(&env.config_dir()), 0o700);
+            assert_eq!(mode(&config_file()), 0o600);
+        }
+        let mut cache: Vec<_> = std::fs::read_dir(env.cache_dir())
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect();
+        cache.sort();
+        assert_eq!(
+            cache,
+            ["filters", "schema"],
+            "ensure_dirs creates both cache dirs"
+        );
+    }
+
+    #[test]
+    fn ensure_dirs_creates_private_config_dir() {
+        let env = isolated();
+        ensure_dirs().unwrap();
+        assert!(env.config_dir().is_dir() && schema_dir().is_dir() && filters_dir().is_dir());
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(
+                std::fs::metadata(env.config_dir())
+                    .unwrap()
+                    .permissions()
+                    .mode()
+                    & 0o777,
+                0o700
+            );
+        }
+    }
+
+    #[test]
+    fn corrupt_config_is_backed_up() {
+        let env = isolated();
+        ensure_dirs().unwrap();
+        for bad in ["{not json", "[1]"] {
+            std::fs::write(config_file(), bad).unwrap();
+            assert_eq!(load_config(), Map::new());
+            let backups: Vec<_> = std::fs::read_dir(env.config_dir())
+                .unwrap()
+                .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+                .filter(|n| n.starts_with("config.json.corrupt-"))
+                .collect();
+            assert_eq!(backups.len(), 1, "{bad}");
+            assert_eq!(
+                std::fs::read_to_string(env.config_dir().join(&backups[0])).unwrap(),
+                bad
+            );
+            assert!(!config_file().exists());
+            std::fs::remove_file(env.config_dir().join(&backups[0])).unwrap();
+        }
+    }
+
+    #[test]
+    fn domain_reload_set_and_require() {
+        let _env = isolated();
+        assert_eq!(
+            (domain(), api_v2(), api_int(), login_url()),
+            Default::default()
+        );
+        assert_eq!(
+            require_domain().unwrap_err().to_string(),
+            "no Freshservice domain; run `fsv auth login --domain acme.freshservice.com`"
+        );
+        save_config(
+            json!({"domain": "acme.freshservice.com"})
+                .as_object()
+                .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(domain(), "", "save_config does not reload");
+        reload();
+        assert_eq!(domain(), "acme.freshservice.com");
+        assert_eq!(api_v2(), "https://acme.freshservice.com/api/v2");
+        assert_eq!(api_int(), "https://acme.freshservice.com/api/_");
+        assert_eq!(login_url(), "https://acme.freshservice.com/");
+        assert_eq!(require_domain().unwrap(), "acme.freshservice.com");
+
+        assert_eq!(
+            set_domain("https://Globex.freshservice.com/a/x").unwrap(),
+            "globex.freshservice.com"
+        );
+        assert_eq!(domain(), "globex.freshservice.com");
+        assert_eq!(api_v2(), "https://globex.freshservice.com/api/v2");
+        assert_eq!(load_config()["domain"], "globex.freshservice.com");
+        assert!(set_domain("acme").is_err());
+        assert_eq!(domain(), "globex.freshservice.com");
+
+        for bad in [json!("not a domain"), json!(5)] {
+            save_config(json!({"domain": bad}).as_object().unwrap()).unwrap();
+            reload();
+            assert_eq!(
+                (domain(), api_v2()),
+                (String::new(), String::new()),
+                "{bad}"
+            );
+        }
+    }
+
+    #[test]
+    fn configured_domain_at_reads_file() {
+        let env = isolated();
+        let file = env.root().join("c.json");
+        assert_eq!(configured_domain_at(&file), "");
+        std::fs::write(&file, r#"{"domain": "ACME.freshservice.com"}"#).unwrap();
+        assert_eq!(configured_domain_at(&file), "acme.freshservice.com");
+        std::fs::write(&file, r#"{"domain": ""}"#).unwrap();
+        assert_eq!(configured_domain_at(&file), "");
+    }
+
+    #[test]
+    fn cache_keys_and_paths() {
+        let env = isolated();
+        assert_eq!(cache_domain_key(None), "default");
+        assert_eq!(
+            cache_domain_key(Some("ACME.Freshservice.com")),
+            "acme.freshservice.com"
+        );
+        assert_eq!(cache_domain_key(Some("bad host/x")), "bad host-x");
+        assert_eq!(cache_domain_key(Some("  ")), "default");
+        let env = env.with_domain("acme.freshservice.com");
+        assert_eq!(cache_domain_key(None), "acme.freshservice.com");
+        assert_eq!(
+            rel(&schema_cache_path("changes", None), &env),
+            "<D>/cache/schema/acme.freshservice.com--changes.json"
+        );
+        assert_eq!(
+            schema_cache_candidates("changes", Some("globex.freshservice.com"))
+                .iter()
+                .map(|p| rel(p, &env))
+                .collect::<Vec<_>>(),
+            ["<D>/cache/schema/globex.freshservice.com--changes.json"]
+        );
+        assert_eq!(
+            rel(&filters_cache_path("tickets", None), &env),
+            "<D>/cache/filters/acme.freshservice.com--tickets.json"
+        );
+        assert_eq!(
+            filters_cache_candidates("tickets", None)
+                .iter()
+                .map(|p| rel(p, &env))
+                .collect::<Vec<_>>(),
+            ["<D>/cache/filters/acme.freshservice.com--tickets.json"]
+        );
+        assert_eq!(
+            rel(&groups_cache_path(None), &env),
+            "<D>/cache/groups--acme.freshservice.com.json"
+        );
+        assert_eq!(
+            groups_cache_candidates(Some("x.y"))
+                .iter()
+                .map(|p| rel(p, &env))
+                .collect::<Vec<_>>(),
+            ["<D>/cache/groups--x.y.json"]
+        );
+    }
+
+    #[test]
+    fn default_where_round_trip() {
+        let _env = isolated();
+        assert!(get_default_where("changes").is_empty());
+        set_default_where("changes", &["status=open".into(), "priority>2".into()]).unwrap();
+        assert_eq!(get_default_where("changes"), ["status=open", "priority>2"]);
+        assert_eq!(
+            Value::Object(load_config())["defaults"],
+            json!({"changes": {"where": ["status=open", "priority>2"]}})
+        );
+        set_default_where("tickets", &["a=b".into()]).unwrap();
+        clear_default_where("changes").unwrap();
+        assert_eq!(
+            load_config()["defaults"],
+            json!({"tickets": {"where": ["a=b"]}})
+        );
+        clear_default_where("nope").unwrap();
+        assert!(get_default_where("nope").is_empty());
+        save_config(
+            json!({"defaults": {"problems": {"where": "ab"}}})
+                .as_object()
+                .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            get_default_where("problems"),
+            ["a", "b"],
+            "list() of a string"
+        );
+    }
 
     #[test]
     fn normalize_domain_rejects() {
@@ -400,7 +728,10 @@ mod tests {
         ] {
             assert!(normalize_domain(bad, false).is_err(), "{bad}");
         }
-        assert_eq!(normalize_domain("https://ACME.freshservice.com/a/dashboard", false).unwrap(), "acme.freshservice.com");
+        assert_eq!(
+            normalize_domain("https://ACME.freshservice.com/a/dashboard", false).unwrap(),
+            "acme.freshservice.com"
+        );
     }
 
     #[test]

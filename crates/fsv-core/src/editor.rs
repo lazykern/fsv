@@ -53,7 +53,7 @@ pub fn shlex_split(s: &str) -> Result<Vec<String>> {
                     None => return Err(Error::value("No escaped character")),
                 }
             }
-            c if matches!(c, ' ' | '\t' | '\r' | '\n') => {
+            ' ' | '\t' | '\r' | '\n' => {
                 if in_token {
                     out.push(std::mem::take(&mut cur));
                     in_token = false;
@@ -71,7 +71,7 @@ pub fn shlex_split(s: &str) -> Result<Vec<String>> {
     Ok(out)
 }
 
-/// Editor command: `$VISUAL`, else `$EDITOR`, else `vi`.
+/// `_editor`: `$VISUAL`, else `$EDITOR`, else `vi`, split like a shell.
 pub fn editor_command() -> Result<Vec<String>> {
     let editor = ["VISUAL", "EDITOR"]
         .iter()
@@ -87,7 +87,10 @@ fn digest(text: &str) -> [u8; 32] {
 /// Drop the error lines a previous round put at the top.
 fn strip_error_header(text: &str, prefix: &str) -> String {
     let marker = format!("{prefix} {ERROR_MARK}");
-    let kept: Vec<&str> = py_splitlines(text).into_iter().filter(|ln| !crate::pystr::lstrip(ln).starts_with(&marker)).collect();
+    let kept: Vec<&str> = py_splitlines(text)
+        .into_iter()
+        .filter(|ln| !crate::pystr::lstrip(ln).starts_with(&marker))
+        .collect();
     kept.join("\n") + if text.ends_with('\n') { "\n" } else { "" }
 }
 
@@ -98,16 +101,24 @@ fn py_splitlines(text: &str) -> Vec<&str> {
     while let Some((i, c)) = it.next() {
         let brk = matches!(
             c,
-            '\n' | '\r' | '\u{0b}' | '\u{0c}' | '\u{1c}' | '\u{1d}' | '\u{1e}' | '\u{85}' | '\u{2028}' | '\u{2029}'
+            '\n' | '\r'
+                | '\u{0b}'
+                | '\u{0c}'
+                | '\u{1c}'
+                | '\u{1d}'
+                | '\u{1e}'
+                | '\u{85}'
+                | '\u{2028}'
+                | '\u{2029}'
         );
         if brk {
             out.push(&text[start..i]);
             let mut end = i + c.len_utf8();
-            if c == '\r' {
-                if let Some(&(j, '\n')) = it.peek() {
-                    it.next();
-                    end = j + 1;
-                }
+            if c == '\r'
+                && let Some(&(j, '\n')) = it.peek()
+            {
+                it.next();
+                end = j + 1;
             }
             start = end;
         }
@@ -128,7 +139,11 @@ pub struct EditOptions<'a> {
 
 impl Default for EditOptions<'_> {
     fn default() -> Self {
-        Self { suffix: ".txt", comment_prefix: "#", max_rounds: 20 }
+        Self {
+            suffix: ".txt",
+            comment_prefix: "#",
+            max_rounds: 20,
+        }
     }
 }
 
@@ -137,7 +152,11 @@ fn run_editor(path: &Path) -> Result<()> {
     let Some((prog, args)) = argv.split_first() else {
         return Err(Error::exit(1, ""));
     };
-    match std::process::Command::new(prog).args(args).arg(path).status() {
+    match std::process::Command::new(prog)
+        .args(args)
+        .arg(path)
+        .status()
+    {
         Ok(_) => Ok(()),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
             eprintln!("error: editor not found: {prog}; set $VISUAL or $EDITOR");
@@ -154,7 +173,11 @@ fn run_editor(path: &Path) -> Result<()> {
 /// lost. "Unchanged" is decided by content hash, not mtime. Fails with
 /// [`Error::EditorAbort`] on unchanged/too many bad rounds and
 /// `Error::Exit { code: 1 }` (already reported) when the editor cannot start.
-pub fn edit_text<T>(initial: &str, parse: impl FnMut(&str) -> Result<T>, opts: &EditOptions<'_>) -> Result<T> {
+pub fn edit_text<T>(
+    initial: &str,
+    parse: impl FnMut(&str) -> Result<T>,
+    opts: &EditOptions<'_>,
+) -> Result<T> {
     edit_text_with(initial, parse, opts, &mut |p: &Path| run_editor(p))
 }
 
@@ -165,7 +188,10 @@ pub fn edit_text_with<T>(
     opts: &EditOptions<'_>,
     launch: &mut dyn FnMut(&Path) -> Result<()>,
 ) -> Result<T> {
-    let tmp = tempfile::Builder::new().prefix("tmp").suffix(opts.suffix).tempfile()?;
+    let tmp = tempfile::Builder::new()
+        .prefix("tmp")
+        .suffix(opts.suffix)
+        .tempfile()?;
     std::fs::write(tmp.path(), initial)?;
     let path = tmp.into_temp_path();
     let mut shown = initial.to_string();
@@ -181,7 +207,9 @@ pub fn edit_text_with<T>(
             Err(Error::Value(msg)) => {
                 let msg = crate::pystr::collapse_ws(&msg);
                 let p = opts.comment_prefix;
-                shown = format!("{p} {ERROR_MARK} {msg}\n{p} {ERROR_MARK} fix and save, or leave unchanged to abort\n{body}");
+                shown = format!(
+                    "{p} {ERROR_MARK} {msg}\n{p} {ERROR_MARK} fix and save, or leave unchanged to abort\n{body}"
+                );
                 std::fs::write(&path, &shown)?;
             }
             Err(e) => return Err(e),
@@ -199,12 +227,24 @@ pub fn edit_json(data: &Value, hint: &str) -> Result<Value> {
 }
 
 /// [`edit_json`] with an injectable editor launcher.
-pub fn edit_json_with(data: &Value, hint: &str, launch: &mut dyn FnMut(&Path) -> Result<()>) -> Result<Value> {
+pub fn edit_json_with(
+    data: &Value,
+    hint: &str,
+    launch: &mut dyn FnMut(&Path) -> Result<()>,
+) -> Result<Value> {
     let comment = format!(
         "// {hint}\n// Edit JSON below. Comment lines ignored.\n// Save + close to continue; leave unchanged to abort.\n\n"
     );
-    let raw = comment + &fsv_py::Dumps::default().indent(2).ensure_ascii(false).dump(data);
-    let opts = EditOptions { suffix: ".jsonc", comment_prefix: "//", ..EditOptions::default() };
+    let raw = comment
+        + &fsv_py::Dumps::default()
+            .indent(2)
+            .ensure_ascii(false)
+            .dump(data);
+    let opts = EditOptions {
+        suffix: ".jsonc",
+        comment_prefix: "//",
+        ..EditOptions::default()
+    };
     let edited = edit_text_with(&raw, parse_json_text, &opts, launch)?;
     if !crate::value::truthy(&edited) {
         return Err(Error::EditorAbort("aborted: empty file".into()));
@@ -237,7 +277,10 @@ mod tests {
     use super::*;
     use serde_json::json;
 
-    fn fake(edits: Vec<Box<dyn Fn(&str) -> Option<String>>>) -> (impl FnMut(&Path) -> Result<()>, std::rc::Rc<std::cell::RefCell<Vec<String>>>) {
+    type Edit = Box<dyn Fn(&str) -> Option<String>>;
+    type Seen = std::rc::Rc<std::cell::RefCell<Vec<String>>>;
+
+    fn fake(edits: Vec<Edit>) -> (impl FnMut(&Path) -> Result<()>, Seen) {
         let seen = std::rc::Rc::new(std::cell::RefCell::new(Vec::new()));
         let s2 = seen.clone();
         let launch = move |p: &Path| -> Result<()> {
@@ -269,35 +312,154 @@ mod tests {
     #[test]
     fn unchanged_by_content_not_mtime() {
         let (mut launch, _) = fake(vec![Box::new(|t| Some(t.to_string()))]);
-        assert!(matches!(edit_json_with(&json!({"a": 1}), "", &mut launch), Err(Error::EditorAbort(_))));
+        assert!(matches!(
+            edit_json_with(&json!({"a": 1}), "", &mut launch),
+            Err(Error::EditorAbort(_))
+        ));
     }
 
     #[test]
     fn changed_content_is_accepted() {
         let (mut launch, _) = fake(vec![Box::new(|t| Some(t.replace("\"a\": 1", "\"a\": 2")))]);
-        assert_eq!(edit_json_with(&json!({"a": 1}), "", &mut launch).unwrap(), json!({"a": 2}));
+        assert_eq!(
+            edit_json_with(&json!({"a": 1}), "", &mut launch).unwrap(),
+            json!({"a": 2})
+        );
     }
 
     #[test]
     fn unchanged_after_error_aborts() {
-        let (mut launch, _) = fake(vec![Box::new(|t| Some(format!("{t}{{{{"))), Box::new(|t| Some(t.to_string()))]);
-        assert!(matches!(edit_json_with(&json!({"a": 1}), "", &mut launch), Err(Error::EditorAbort(_))));
+        let (mut launch, _) = fake(vec![
+            Box::new(|t| Some(format!("{t}{{{{"))),
+            Box::new(|t| Some(t.to_string())),
+        ]);
+        assert!(matches!(
+            edit_json_with(&json!({"a": 1}), "", &mut launch),
+            Err(Error::EditorAbort(_))
+        ));
     }
 
     #[test]
     fn edit_text_generic_yaml_style_parse_error() {
-        let (mut launch, seen) = fake(vec![Box::new(|_| Some("bad\n".into())), Box::new(|_| Some("good\n".into()))]);
+        let (mut launch, seen) = fake(vec![
+            Box::new(|_| Some("bad\n".into())),
+            Box::new(|_| Some("good\n".into())),
+        ]);
         let parse = |t: &str| -> Result<String> {
-            if t.contains("bad") { Err(Error::value("line 1: bad value")) } else { Ok(t.trim().to_string()) }
+            if t.contains("bad") {
+                Err(Error::value("line 1: bad value"))
+            } else {
+                Ok(t.trim().to_string())
+            }
         };
-        let opts = EditOptions { suffix: ".yaml", ..EditOptions::default() };
-        assert_eq!(edit_text_with("start\n", parse, &opts, &mut launch).unwrap(), "good");
+        let opts = EditOptions {
+            suffix: ".yaml",
+            ..EditOptions::default()
+        };
+        assert_eq!(
+            edit_text_with("start\n", parse, &opts, &mut launch).unwrap(),
+            "good"
+        );
         assert!(seen.borrow()[1].starts_with("# ERROR: line 1: bad value"));
     }
 
     #[test]
     fn shlex() {
-        assert_eq!(shlex_split("vis-editor --wait").unwrap(), vec!["vis-editor", "--wait"]);
-        assert_eq!(shlex_split(r#"code -w "a b" 'c d' e\ f"#).unwrap(), vec!["code", "-w", "a b", "c d", "e f"]);
+        assert_eq!(
+            shlex_split("vis-editor --wait").unwrap(),
+            vec!["vis-editor", "--wait"]
+        );
+        assert_eq!(
+            shlex_split(r#"code -w "a b" 'c d' e\ f"#).unwrap(),
+            vec!["code", "-w", "a b", "c d", "e f"]
+        );
+    }
+
+    #[test]
+    fn editor_command_visual_beats_editor() {
+        let _env = crate::testenv::isolated();
+        assert_eq!(editor_command().unwrap(), ["vi"]);
+        crate::testenv::set("EDITOR", "code -w 'a b'");
+        assert_eq!(editor_command().unwrap(), ["code", "-w", "a b"]);
+        crate::testenv::set("EDITOR", "ed-editor");
+        crate::testenv::set("VISUAL", "vis-editor --wait");
+        assert_eq!(editor_command().unwrap(), ["vis-editor", "--wait"]);
+        crate::testenv::unset("VISUAL");
+        assert_eq!(editor_command().unwrap(), ["ed-editor"]);
+    }
+
+    #[test]
+    fn strip_error_header_drops_only_marker_lines() {
+        assert_eq!(
+            strip_error_header("# ERROR: x\n  # ERROR: y\nkeep\n#ERROR: z", "#"),
+            "keep\n#ERROR: z"
+        );
+        assert_eq!(strip_error_header("// ERROR: a\r\nb\n", "//"), "b\n");
+        assert_eq!(strip_error_header("", "#"), "");
+    }
+
+    #[test]
+    fn parse_json_text_skips_comments() {
+        assert_eq!(parse_json_text("").unwrap(), json!({}));
+        assert_eq!(parse_json_text("// c\n# d\n\n").unwrap(), json!({}));
+        assert_eq!(
+            parse_json_text("// h\n{\"a\": 1}\n").unwrap(),
+            json!({"a": 1})
+        );
+        assert_eq!(parse_json_text("  # x\n[1,\n2]").unwrap(), json!([1, 2]));
+        assert!(
+            matches!(parse_json_text("{bad"), Err(Error::Value(_))),
+            "JSONDecodeError is a ValueError"
+        );
+    }
+
+    #[test]
+    fn read_json_file_strips_comments() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("x.jsonc");
+        std::fs::write(&p, "// hint\n{\"a\": [1]}\n").unwrap();
+        assert_eq!(read_json_file(&p).unwrap(), json!({"a": [1]}));
+        assert!(matches!(
+            read_json_file(&dir.path().join("missing")),
+            Err(Error::Io(_))
+        ));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn edit_text_and_edit_json_with_real_editor_process() {
+        let _env = crate::testenv::isolated();
+        crate::testenv::set("VISUAL", "true");
+        let parse = |t: &str| -> Result<String> { Ok(t.to_string()) };
+        let e = edit_text("start\n", parse, &EditOptions::default()).unwrap_err();
+        assert!(
+            matches!(&e, Error::EditorAbort(m) if m == "aborted: file unchanged"),
+            "{e:?}"
+        );
+        let e = edit_json(&json!({"a": 1}), "hint").unwrap_err();
+        assert!(
+            matches!(&e, Error::EditorAbort(m) if m == "aborted: file unchanged"),
+            "{e:?}"
+        );
+        crate::testenv::set("VISUAL", "/nonexistent/fsv-editor --wait");
+        let e = edit_json(&json!({"a": 1}), "").unwrap_err();
+        assert!(
+            matches!(&e, Error::Exit { code: 1, message } if message.is_empty()),
+            "{e:?}"
+        );
+    }
+
+    #[test]
+    fn edit_json_initial_text_and_empty_result() {
+        let (mut launch, seen) = fake(vec![Box::new(|_| Some("// all gone\n".into()))]);
+        let e = edit_json_with(&json!({"a": "é"}), "HINT", &mut launch).unwrap_err();
+        assert!(
+            matches!(&e, Error::EditorAbort(m) if m == "aborted: empty file"),
+            "{e:?}"
+        );
+        assert_eq!(
+            seen.borrow()[0],
+            "// HINT\n// Edit JSON below. Comment lines ignored.\n// Save + close to continue; leave unchanged to abort.\n\n{\n  \"a\": \"é\"\n}"
+        );
     }
 }

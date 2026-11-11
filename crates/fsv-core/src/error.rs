@@ -82,11 +82,17 @@ impl Error {
     }
     /// Flow exit with an explicit code.
     pub fn exit(code: i32, msg: impl Into<String>) -> Self {
-        Error::Exit { code, message: msg.into() }
+        Error::Exit {
+            code,
+            message: msg.into(),
+        }
     }
     /// Wrap as `raise Other(message) from self`.
     pub fn context(self, message: impl Into<String>) -> Self {
-        Error::Context { message: message.into(), source: Box::new(self) }
+        Error::Context {
+            message: message.into(),
+            source: Box::new(self),
+        }
     }
 
     /// The API error, if this is one (not looking through `Context`).
@@ -102,7 +108,7 @@ impl Error {
         self.as_api().map(|e| e.status)
     }
 
-    /// `errors.exit_code_for(exc)`.
+    /// `exit_code_for`: the documented process exit code for this error.
     pub fn exit_code(&self) -> i32 {
         match self {
             Error::Session(_) => EXIT_SESSION,
@@ -114,7 +120,9 @@ impl Error {
                 inner @ (Error::Api(_) | Error::Session(_)) => inner.exit_code(),
                 _ => EXIT_OTHER,
             },
-            Error::EditorAbort(_) | Error::Http { .. } | Error::Other(_) | Error::Io(_) => EXIT_OTHER,
+            Error::EditorAbort(_) | Error::Http { .. } | Error::Other(_) | Error::Io(_) => {
+                EXIT_OTHER
+            }
         }
     }
 }
@@ -138,30 +146,61 @@ pub struct ApiError {
 
 impl ApiError {
     pub fn new(status: u16, body: impl Into<Value>) -> Self {
-        Self { status, body: body.into(), method: None, target: None }
+        Self {
+            status,
+            body: body.into(),
+            method: None,
+            target: None,
+        }
     }
 
-    pub fn with_request(status: u16, body: Value, method: impl Into<String>, target: impl Into<String>) -> Self {
-        Self { status, body, method: Some(method.into()), target: Some(target.into()) }
+    pub fn with_request(
+        status: u16,
+        body: Value,
+        method: impl Into<String>,
+        target: impl Into<String>,
+    ) -> Self {
+        Self {
+            status,
+            body,
+            method: Some(method.into()),
+            target: Some(target.into()),
+        }
     }
 
     /// Clean single-line message (Python `str(APIError)`).
     pub fn message(&self) -> String {
         let what = describe_request(self.method.as_deref(), self.target.as_deref());
         let msg = server_message(&self.body, 240);
-        let head = if what.is_empty() { format!("HTTP {}", self.status) } else { format!("HTTP {} {what}", self.status) };
-        if msg.is_empty() { head } else { format!("{head}: {msg}") }
+        let head = if what.is_empty() {
+            format!("HTTP {}", self.status)
+        } else {
+            format!("HTTP {} {what}", self.status)
+        };
+        if msg.is_empty() {
+            head
+        } else {
+            format!("{head}: {msg}")
+        }
     }
 
     /// Request line plus the raw body (`APIError.detail()`).
     pub fn detail(&self) -> String {
-        let where_ = format!("{} {}", self.method.as_deref().unwrap_or("").to_uppercase(), self.target_str());
+        let where_ = format!(
+            "{} {}",
+            self.method.as_deref().unwrap_or("").to_uppercase(),
+            self.target_str()
+        );
         let where_ = pystr::strip(&where_);
         let body = match &self.body {
             Value::String(s) => s.clone(),
             other => fsv_py::py_repr(other),
         };
-        if where_.is_empty() { body } else { format!("{where_}\n{body}") }
+        if where_.is_empty() {
+            body
+        } else {
+            format!("{where_}\n{body}")
+        }
     }
 
     fn target_str(&self) -> String {
@@ -169,9 +208,12 @@ impl ApiError {
     }
 
     fn exit_code(&self) -> i32 {
-        static DUPLICATE: LazyLock<Regex> =
-            LazyLock::new(|| Regex::new(r"(?i)already (exists|been taken|associated)|duplicate").expect("regex"));
-        if self.status == 409 || (matches!(self.status, 400 | 422) && DUPLICATE.is_match(&fsv_py::py_str(&self.body))) {
+        static DUPLICATE: LazyLock<Regex> = LazyLock::new(|| {
+            Regex::new(r"(?i)already (exists|been taken|associated)|duplicate").expect("regex")
+        });
+        if self.status == 409
+            || (matches!(self.status, 400 | 422) && DUPLICATE.is_match(&fsv_py::py_str(&self.body)))
+        {
             EXIT_CONFLICT
         } else {
             EXIT_REJECTED
@@ -217,9 +259,13 @@ fn server_one(x: &Value) -> String {
                 text
             }
         }
-        Value::Array(items) => {
-            items.iter().take(5).map(server_one).filter(|t| !t.is_empty()).collect::<Vec<_>>().join("; ")
-        }
+        Value::Array(items) => items
+            .iter()
+            .take(5)
+            .map(server_one)
+            .filter(|t| !t.is_empty())
+            .collect::<Vec<_>>()
+            .join("; "),
         Value::Null => String::new(),
         other => strip_tags(&fsv_py::py_str(other)),
     }
@@ -228,12 +274,13 @@ fn server_one(x: &Value) -> String {
 /// One-line human message extracted from an error response body.
 pub fn server_message(body: &Value, limit: usize) -> String {
     let mut text = server_one(body);
-    if let Value::Object(map) = body {
-        if truthy(map.get("errors")) && truthy(map.get("description")) {
-            let extra = server_one(&map["errors"]);
-            if !extra.is_empty() && !text.contains(&extra) {
-                text = format!("{text} ({extra})");
-            }
+    if let Value::Object(map) = body
+        && truthy(map.get("errors"))
+        && truthy(map.get("description"))
+    {
+        let extra = server_one(&map["errors"]);
+        if !extra.is_empty() && !text.contains(&extra) {
+            text = format!("{text} ({extra})");
         }
     }
     if text.chars().count() > limit {
@@ -245,19 +292,36 @@ pub fn server_message(body: &Value, limit: usize) -> String {
 
 /// Short phrase for the request (`"creating change"`, `"listing tickets"`).
 pub fn describe_request(method: Option<&str>, target: Option<&str>) -> String {
-    let (Some(method), Some(target)) = (method, target) else { return String::new() };
+    let (Some(method), Some(target)) = (method, target) else {
+        return String::new();
+    };
     if method.is_empty() || target.is_empty() {
         return String::new();
     }
     let path = target.split_once('?').map_or(target, |(p, _)| p);
-    let segs: Vec<&str> = path.split('/').filter(|s| !s.is_empty() && !matches!(*s, "api" | "_" | "v2" | "a")).collect();
-    let named: Vec<&str> = segs.iter().copied().filter(|s| !pystr::is_digit(s)).collect();
-    let noun = named.last().copied().unwrap_or("resource").replace('_', " ");
+    let segs: Vec<&str> = path
+        .split('/')
+        .filter(|s| !s.is_empty() && !matches!(*s, "api" | "_" | "v2" | "a"))
+        .collect();
+    let named: Vec<&str> = segs
+        .iter()
+        .copied()
+        .filter(|s| !pystr::is_digit(s))
+        .collect();
+    let noun = named
+        .last()
+        .copied()
+        .unwrap_or("resource")
+        .replace('_', " ");
     let is_item = segs.last().is_some_and(|s| pystr::is_digit(s));
     let m = method.to_uppercase();
     let singular = noun.trim_end_matches('s');
     if m == "GET" {
-        return if is_item { format!("fetching {singular}") } else { format!("listing {noun}") };
+        return if is_item {
+            format!("fetching {singular}")
+        } else {
+            format!("listing {noun}")
+        };
     }
     let verb = match m.as_str() {
         "POST" => Some("creating"),
@@ -266,7 +330,14 @@ pub fn describe_request(method: Option<&str>, target: Option<&str>) -> String {
         _ => None,
     };
     match verb {
-        Some(v) => format!("{v} {}", if is_item || m != "POST" { singular } else { noun.as_str() }),
+        Some(v) => format!(
+            "{v} {}",
+            if is_item || m != "POST" {
+                singular
+            } else {
+                noun.as_str()
+            }
+        ),
         None => format!("on {m} {path}"),
     }
 }
@@ -280,7 +351,14 @@ mod tests {
     fn exit_code_mapping() {
         assert_eq!(Error::session("x").exit_code(), 3);
         assert_eq!(Error::Api(ApiError::new(409, "conflict")).exit_code(), 4);
-        assert_eq!(Error::Api(ApiError::new(422, json!({"errors": "Name has already been taken"}))).exit_code(), 4);
+        assert_eq!(
+            Error::Api(ApiError::new(
+                422,
+                json!({"errors": "Name has already been taken"})
+            ))
+            .exit_code(),
+            4
+        );
         assert_eq!(Error::Api(ApiError::new(400, "bad")).exit_code(), 5);
         assert_eq!(Error::Api(ApiError::new(503, "down")).exit_code(), 5);
         assert_eq!(Error::value("bad").exit_code(), 2);
@@ -293,5 +371,124 @@ mod tests {
         assert_eq!(e.exit_code(), 5);
         assert_eq!(e.to_string(), "update failed");
         assert_eq!(Error::value("v").context("x").exit_code(), 1);
+    }
+
+    #[test]
+    fn exit_code_for_matches_python() {
+        let codes = [
+            Error::session("x").exit_code(),
+            Error::Api(ApiError::new(409, "c")).exit_code(),
+            Error::Api(ApiError::new(400, json!({"errors": "Duplicate record"}))).exit_code(),
+            Error::Api(ApiError::new(422, "Already associated")).exit_code(),
+            Error::Api(ApiError::new(404, "x")).exit_code(),
+            Error::value("v").exit_code(),
+            Error::other("r").exit_code(),
+            Error::session("s").context("outer").exit_code(),
+            Error::Api(ApiError::new(409, "c"))
+                .context("outer")
+                .exit_code(),
+            Error::value("v").context("outer").exit_code(),
+        ];
+        assert_eq!(codes, [3, 4, 4, 4, 5, 2, 1, 3, 4, 1]);
+        assert_eq!(Error::exit(7, "").exit_code(), 7);
+        assert_eq!(Error::Aborted.exit_code(), 1);
+    }
+
+    #[test]
+    fn strip_tags_removes_blocks_and_tags() {
+        assert_eq!(
+            strip_tags("<p>Hi&amp;<b>x</b></p><script>bad()</script>  <STYLE>a{}</style>end"),
+            "Hi& x end"
+        );
+    }
+
+    #[test]
+    fn server_message_shapes() {
+        assert_eq!(
+            server_message(
+                &json!({"description": "Validation failed", "errors": [
+                    {"field": "subject", "message": "is required"}, {"field": "x", "message": "bad"}
+                ]}),
+                240
+            ),
+            "Validation failed (subject: is required; x: bad)"
+        );
+        assert_eq!(
+            server_message(&json!({"message": "x".repeat(300)}), 240),
+            format!("{}…", "x".repeat(239))
+        );
+        assert_eq!(server_message(&Value::Null, 240), "");
+        assert_eq!(
+            server_message(&json!([{"msg": "a"}, {"detail": "b"}, null]), 240),
+            "a; b"
+        );
+        assert_eq!(
+            server_message(&json!({"errors": {"error": "nope"}}), 240),
+            "nope"
+        );
+        assert_eq!(
+            server_message(&json!("<h1>Not Found</h1>"), 240),
+            "Not Found"
+        );
+        assert_eq!(server_message(&json!(42), 240), "42");
+    }
+
+    #[test]
+    fn describe_request_phrases() {
+        for (m, t, want) in [
+            (Some("GET"), Some("/api/v2/changes?x=1"), "listing changes"),
+            (Some("GET"), Some("/api/v2/changes/5"), "fetching change"),
+            (Some("POST"), Some("/api/v2/changes"), "creating changes"),
+            (
+                Some("POST"),
+                Some("/api/_/changes/5/notes"),
+                "creating notes",
+            ),
+            (Some("PUT"), Some("/api/v2/changes/5"), "updating change"),
+            (
+                Some("DELETE"),
+                Some("/api/_/ticket_filters/9"),
+                "deleting ticket filter",
+            ),
+            (Some("PATCH"), Some("/api/_/changes"), "updating change"),
+            (Some("OPTIONS"), Some("/api/v2/x"), "on OPTIONS /api/v2/x"),
+            (None, Some("/x"), ""),
+            (Some("GET"), None, ""),
+            (Some("get"), Some("/"), "listing resource"),
+            (
+                Some("GET"),
+                Some("/a/service_items"),
+                "listing service items",
+            ),
+        ] {
+            assert_eq!(describe_request(m, t), want, "{m:?} {t:?}");
+        }
+    }
+
+    #[test]
+    fn api_error_init_message_and_detail() {
+        let e = ApiError::with_request(
+            422,
+            json!({"description": "Validation failed", "errors": [{"field": "subject", "message": "is required"}]}),
+            "POST",
+            "/api/v2/changes",
+        );
+        assert_eq!(
+            e.to_string(),
+            "HTTP 422 creating changes: Validation failed (subject: is required)"
+        );
+        assert_eq!(
+            e.detail(),
+            "POST /api/v2/changes\n{'description': 'Validation failed', 'errors': [{'field': 'subject', 'message': 'is required'}]}"
+        );
+        let e = ApiError::new(500, "");
+        assert_eq!(
+            (e.to_string(), e.detail()),
+            ("HTTP 500".to_string(), "None\n".to_string())
+        );
+        let e = ApiError::with_request(404, json!("<h1>gone</h1>"), "get", "/api/v2/tickets/3");
+        assert_eq!(e.message(), "HTTP 404 fetching ticket: gone");
+        assert_eq!(e.detail(), "GET /api/v2/tickets/3\n<h1>gone</h1>");
+        assert_eq!(Error::from(e).status(), Some(404));
     }
 }

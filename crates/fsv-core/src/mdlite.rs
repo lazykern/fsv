@@ -24,8 +24,10 @@ static LINK: LazyLock<Regex> = LazyLock::new(|| re(r"\[([^\]]+)\]\(([^)\s]+)\)")
 static CODE: LazyLock<Regex> = LazyLock::new(|| re(r"`([^`]+)`"));
 static BOLD: LazyLock<Regex> = LazyLock::new(|| re(r"\*\*(.+?)\*\*|__(.+?)__"));
 static ITALIC: LazyLock<fancy_regex::Regex> = LazyLock::new(|| {
-    fancy_regex::Regex::new(r"(?<![*\w])\*(?!\s)(.+?)(?<!\s)\*(?![*\w])|(?<![_\w])_(?!\s)(.+?)(?<!\s)_(?![_\w])")
-        .expect("regex")
+    fancy_regex::Regex::new(
+        r"(?<![*\w])\*(?!\s)(.+?)(?<!\s)\*(?![*\w])|(?<![_\w])_(?!\s)(.+?)(?<!\s)_(?![_\w])",
+    )
+    .expect("regex")
 });
 static SAFE_URL: LazyLock<Regex> = LazyLock::new(|| re(r"(?i)^(?:https?://|mailto:)"));
 static STASHED: LazyLock<Regex> = LazyLock::new(|| re(r"\x00(\d+)\x00"));
@@ -51,13 +53,21 @@ fn inline(text: &str) -> String {
         format!("<a href=\"{}\">{label}</a>", html_escape(&url, true))
     });
     let out = BOLD.replace_all(&out, |c: &Captures<'_>| {
-        let inner = if c.get(1).is_some() { group(c, 1) } else { group(c, 2) };
+        let inner = if c.get(1).is_some() {
+            group(c, 1)
+        } else {
+            group(c, 2)
+        };
         format!("<strong>{inner}</strong>")
     });
     let out = italic(&out);
     STASHED
         .replace_all(&out, |c: &Captures<'_>| {
-            group(c, 1).parse::<usize>().ok().and_then(|i| codes.get(i).cloned()).unwrap_or_else(|| group(c, 0).into())
+            group(c, 1)
+                .parse::<usize>()
+                .ok()
+                .and_then(|i| codes.get(i).cloned())
+                .unwrap_or_else(|| group(c, 0).into())
         })
         .into_owned()
 }
@@ -66,10 +76,15 @@ fn italic(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
     let mut last = 0;
     for caps in ITALIC.captures_iter(text) {
-        let Ok(caps) = caps else { return text.to_string() };
+        let Ok(caps) = caps else {
+            return text.to_string();
+        };
         let Some(whole) = caps.get(0) else { continue };
         out.push_str(&text[last..whole.start()]);
-        let inner = caps.get(1).or_else(|| caps.get(2)).map_or("", |m| m.as_str());
+        let inner = caps
+            .get(1)
+            .or_else(|| caps.get(2))
+            .map_or("", |m| m.as_str());
         out.push_str(&format!("<em>{inner}</em>"));
         last = whole.end();
     }
@@ -95,7 +110,10 @@ pub fn to_html(md: &str) -> String {
     }
     fn flush_list(out: &mut Vec<String>, items: &mut Vec<String>, list_tag: &mut &str) {
         if !items.is_empty() {
-            let lis: String = items.iter().map(|x| format!("<li>{}</li>", inline(x))).collect();
+            let lis: String = items
+                .iter()
+                .map(|x| format!("<li>{}</li>", inline(x)))
+                .collect();
             out.push(format!("<{0}>{lis}</{0}>", list_tag));
             items.clear();
         }
@@ -115,7 +133,10 @@ pub fn to_html(md: &str) -> String {
                 code.push(lines[i]);
                 i += 1;
             }
-            out.push(format!("<pre><code>{}</code></pre>", html_escape(&code.join("\n"), false)));
+            out.push(format!(
+                "<pre><code>{}</code></pre>",
+                html_escape(&code.join("\n"), false)
+            ));
             i += 1;
             continue;
         }
@@ -161,7 +182,11 @@ pub fn to_html(md: &str) -> String {
     flush_para(&mut out, &mut para);
     flush_list(&mut out, &mut items, &mut list_tag);
     let html = out.concat();
-    if html.is_empty() { "<p></p>".into() } else { html }
+    if html.is_empty() {
+        "<p></p>".into()
+    } else {
+        html
+    }
 }
 
 #[cfg(test)]
@@ -177,5 +202,27 @@ mod tests {
         assert!(!to_html("<script>alert(1)</script>").contains("<script>"));
         assert!(!to_html("[x](javascript:alert(1))").contains("href"));
         assert_eq!(to_html("1. a\n2. b"), "<ol><li>a</li><li>b</li></ol>");
+    }
+
+    #[test]
+    fn inline_formatting_matches_python() {
+        for (src, want) in [
+            ("a < b & c", "a &lt; b &amp; c"),
+            (
+                "**b** and *i* and _u_",
+                "<strong>b</strong> and <em>i</em> and <em>u</em>",
+            ),
+            ("`**not bold**` x", "<code>**not bold**</code> x"),
+            (
+                "[l](https://e.com/?a=1&b=\"2\") [bad](javascript:x)",
+                "<a href=\"https://e.com/?a=1&amp;b=&quot;2&quot;\">l</a> [bad](javascript:x)",
+            ),
+            ("snake_case_word and 2*3*4", "snake_case_word and 2*3*4"),
+            ("__b__ * not * x", "<strong>b</strong> * not * x"),
+            ("[m](mailto:a@b.c)", "<a href=\"mailto:a@b.c\">m</a>"),
+            ("`a`b`c`", "<code>a</code>b<code>c</code>"),
+        ] {
+            assert_eq!(inline(src), want, "{src:?}");
+        }
     }
 }

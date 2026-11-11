@@ -562,3 +562,508 @@ fn cookie_jar_rules() {
     assert_eq!(jar.get("s"), None);
     assert_eq!(jar.get("t"), None);
 }
+
+const LOGIN: &str = r#"<html><form action="/login"><input type="password" name="p"></form></html>"#;
+
+fn params(v: Value) -> Map<String, Value> {
+    v.as_object().cloned().unwrap()
+}
+
+#[test]
+fn is_sensitive_key_is_substring_based() {
+    for (k, want) in [
+        ("x_csrf_token", true),
+        ("client_secret", true),
+        ("fw-session-id", true),
+        ("passwd", true),
+        ("Set-Cookie", true),
+        ("subject", false),
+        (" Authorization ", true),
+        ("API-Key", true),
+        ("name", false),
+        ("Credentials", true),
+    ] {
+        assert_eq!(log::is_sensitive_key(k), want, "{k}");
+    }
+}
+
+#[test]
+fn redact_is_recursive() {
+    assert_eq!(
+        log::redact(
+            &json!({"a": {"token": "t", "b": [{"password": "p", "x": 1}]}, "ok": 2, "l": [1, "s"]})
+        ),
+        json!({"a": {"token": "[redacted]", "b": [{"password": "[redacted]", "x": 1}]}, "ok": 2, "l": [1, "s"]})
+    );
+}
+
+#[test]
+fn request_target_merges_params() {
+    assert_eq!(
+        log::request_target("https://acme.freshservice.com", None),
+        "/"
+    );
+    assert_eq!(
+        log::request_target(
+            "https://h/api/v2/x?a=1&e=",
+            Some(&params(json!({"b": [1, null], "c": null, "d": "x y/z"})))
+        ),
+        "/api/v2/x?a=1&e=&b=1&b=&d=x%20y/z"
+    );
+    assert_eq!(
+        log::request_target("https://h/a%20b", Some(&params(json!({"q": "é&"})))),
+        "/a%20b?q=%C3%A9%26"
+    );
+}
+
+#[test]
+fn redact_data_previews() {
+    for (data, want) in [
+        (
+            r#"{"password":"x","a":1}"#,
+            r#"{"password":"[redacted]","a":1}"#,
+        ),
+        (
+            "a=1&password=2&token=",
+            "a=1&password=%5Bredacted%5D&token=%5Bredacted%5D",
+        ),
+        ("token", "[redacted]"),
+        ("plain text", "plain text"),
+        (r#"[{"secret":1}]"#, r#"[{"secret":"[redacted]"}]"#),
+        ("a b=c d", "a+b=c+d"),
+    ] {
+        assert_eq!(log::redact_data(data.as_bytes()), want, "{data}");
+    }
+}
+
+#[test]
+fn body_preview_is_capped() {
+    let long = log::body_preview(&Body::Json(json!({"k": "x".repeat(400)})));
+    assert_eq!(long, format!(" body={{\"k\":\"{}...", "x".repeat(291)));
+    assert_eq!(long.chars().count(), " body=".len() + 300);
+    assert_eq!(
+        log::body_preview(&Body::Data(b"a=1&pass=2".to_vec())),
+        " body=a=1&pass=%5Bredacted%5D"
+    );
+    assert_eq!(log::body_preview(&Body::None), "");
+    assert_eq!(log::body_preview(&Body::Raw(b"secret".to_vec())), "");
+    assert_eq!(log::body_preview(&Body::Json(json!({}))), " body={}");
+}
+
+#[test]
+fn retry_after_seconds_clamps() {
+    for (raw, want) in [
+        (Some("2"), Some(2.0)),
+        (Some("30"), Some(10.0)),
+        (Some("-5"), Some(0.0)),
+        (Some("abc"), None),
+        (Some(""), None),
+        (None, None),
+        (Some("  1.5 "), Some(1.5)),
+        (Some("nan"), Some(0.0)),
+        (Some("inf"), Some(10.0)),
+        (Some("1_0"), Some(10.0)),
+    ] {
+        assert_eq!(log::retry_after_seconds(raw), want, "{raw:?}");
+    }
+}
+
+#[test]
+fn retry_delay_and_should_retry() {
+    assert_eq!(retry_delay(0, None), 0.5);
+    assert_eq!(retry_delay(1, None), 1.5);
+    assert_eq!(retry_delay(5, None), 1.5);
+    let r429 = Response::new(429).with_header("retry-after", "3");
+    assert_eq!(retry_delay(0, Some(&r429)), 3.0);
+    assert_eq!(retry_delay(1, Some(&Response::new(503))), 1.5);
+
+    assert!(should_retry("get", Some(&Response::new(503)), false));
+    assert!(!should_retry("GET", Some(&Response::new(404)), false));
+    assert!(!should_retry("POST", Some(&Response::new(503)), false));
+    assert!(should_retry("HEAD", None, true));
+    assert!(!should_retry("options", None, false));
+    assert!(!should_retry("DELETE", None, true));
+}
+
+#[test]
+fn response_body_json_or_text_prefix() {
+    assert_eq!(
+        response_body(&Response::json(422, &json!({"errors": [1]}))),
+        json!({"errors": [1]})
+    );
+    let long = Response::new(500).with_body("x".repeat(600).into_bytes());
+    assert_eq!(response_body(&long), json!("x".repeat(500)));
+    assert_eq!(
+        response_body(&Response::html(500, "<html>oops</html>")),
+        json!("<html>oops</html>")
+    );
+}
+
+#[test]
+fn make_cookie_is_secure_and_host_scoped() {
+    let mut jar = CookieJar::new("ACME.freshservice.com");
+    for (k, v) in session_cookies() {
+        jar.set_session(&k, &v);
+    }
+    assert_eq!(jar.cookies().len(), 4);
+    assert!(
+        jar.cookies()
+            .iter()
+            .all(|c| c.secure && c.host_only && c.path == "/" && c.domain == ACME)
+    );
+    jar.set_session("_x_m", "m2");
+    assert_eq!(jar.cookies().len(), 4, "same name replaces");
+    assert_eq!(jar.get("_x_m"), Some("m2"));
+}
+
+#[test]
+fn fw_cookie_prefers_tenant_host_over_dotted_domain() {
+    let h = harness(MockTransport::new(|r| {
+        Ok(if r.url.starts_with("https://sso.freshservice.com") {
+            Response::json(200, &json!({})).with_header(
+                "set-cookie",
+                "fw-session-id=rotated; Domain=.freshservice.com; Path=/",
+            )
+        } else {
+            Response::json(200, &json!({}))
+        })
+    }));
+    h.client
+        .send(
+            "GET",
+            "https://sso.freshservice.com/x",
+            &RequestOpts::default(),
+        )
+        .unwrap();
+    let dup = h
+        .client
+        .state()
+        .jar
+        .cookies()
+        .iter()
+        .filter(|c| c.name == "fw-session-id")
+        .count();
+    assert_eq!(dup, 2);
+    assert_eq!(
+        h.client.fw_cookie().as_deref(),
+        Some("fw1"),
+        "exact-host cookie wins"
+    );
+    assert_eq!(h.client.v2_get("x", None).unwrap(), json!({}));
+}
+
+#[test]
+fn empty_rotated_fw_session_id_is_ignored() {
+    let h = harness(MockTransport::queue(vec![Ok(Response::json(
+        200,
+        &json!({}),
+    )
+    .with_header("set-cookie", "fw-session-id=; Path=/"))]));
+    h.client.v2_get("x", None).unwrap();
+    assert_eq!(h.client.fw_cookie().as_deref(), Some(""));
+    assert_eq!(h.client.state().fw_session_id.as_deref(), Some("fw1"));
+}
+
+#[test]
+fn rotated_fw_session_id_is_persisted_for_stored_sessions() {
+    let env = crate::testenv::isolated().with_domain(ACME);
+    session::save_cookies(&session_cookies(), Some(session::Backend::File)).unwrap();
+    let mock = MockTransport::queue(vec![Ok(
+        Response::json(200, &json!({})).with_header("set-cookie", "fw-session-id=new; Path=/")
+    )]);
+    let client = Client::builder(Arc::new(Ctx::from_process()))
+        .transport(mock.clone())
+        .sleeper(|_| {})
+        .journal(|_, _, _, _| {})
+        .build()
+        .unwrap();
+    assert_eq!(client.ctx().paths.config_dir, env.config_dir());
+    client.v2_get("x", None).unwrap();
+    session::clear_cache();
+    assert_eq!(session::load_cookies().unwrap()["fw-session-id"], "new");
+}
+
+#[test]
+fn get_client_is_shared_until_reset() {
+    let _env = crate::testenv::isolated();
+    reset_client();
+    assert!(get_client().is_err(), "no domain");
+    let _env = _env.with_domain(ACME);
+    assert!(get_client().is_err(), "no session");
+    session::save_cookies(&session_cookies(), Some(session::Backend::File)).unwrap();
+    let a = get_client().unwrap();
+    let b = get_client().unwrap();
+    assert!(Arc::ptr_eq(&a, &b));
+    assert_eq!(a.tenant().domain, ACME);
+    reset_client();
+    let c = get_client().unwrap();
+    assert!(!Arc::ptr_eq(&a, &c));
+    reset_client();
+}
+
+#[test]
+fn probe_session_outcomes() {
+    for (resp, want) in [
+        (Ok(Response::html(200, CSRF_PAGE)), Some(true)),
+        (
+            Ok(Response::redirect(302, "https://auth.example/login")),
+            Some(false),
+        ),
+        (Ok(Response::new(401)), Some(false)),
+        (Ok(Response::new(403)), Some(false)),
+        (Ok(Response::html(200, LOGIN)), Some(false)),
+        (Ok(Response::new(500)), None),
+        (Err(TransportError::new("ConnectError", "down")), None),
+    ] {
+        let h = harness(MockTransport::new(move |_| resp.clone()));
+        assert_eq!(h.client.probe_session(), want);
+        let req = &h.mock.requests()[0];
+        assert_eq!(req.url, "https://acme.freshservice.com/a/dashboard");
+        assert_eq!(req.header("accept"), Some(HTML_ACCEPT));
+    }
+    let h = harness(MockTransport::queue(vec![Ok(Response::html(
+        200, CSRF_PAGE,
+    ))]));
+    assert_eq!(h.client.probe_session(), Some(true));
+    assert_eq!(h.client.probe_session(), Some(true), "cached for PROBE_TTL");
+    assert_eq!(h.mock.requests().len(), 1);
+}
+
+#[test]
+fn check_response_mapping() {
+    let h = harness(MockTransport::queue(vec![Ok(Response::html(
+        200, CSRF_PAGE,
+    ))]));
+    let check = |r: Response| {
+        h.client.check_response(
+            &r,
+            "GET",
+            "https://acme.freshservice.com/api/v2/x",
+            Some(&params(json!({"p": 1}))),
+        )
+    };
+    for status in [301, 302, 307] {
+        assert!(
+            matches!(check(Response::redirect(status, "")), Err(Error::Session(m)) if m == EXPIRED_MSG)
+        );
+    }
+    assert!(check(Response::new(304)).is_ok());
+    assert!(matches!(check(Response::new(401)), Err(Error::Session(_))));
+    assert!(matches!(
+        check(Response::html(200, "<p>")),
+        Err(Error::Session(_))
+    ));
+    assert!(check(Response::json(200, &json!({}))).is_ok());
+    let e = check(Response::json(422, &json!({"errors": "bad"}))).unwrap_err();
+    let api = e.as_api().unwrap();
+    assert_eq!(
+        (api.status, api.method.as_deref(), api.target.as_deref()),
+        (422, Some("GET"), Some("/api/v2/x?p=1"))
+    );
+    assert_eq!(api.body, json!({"errors": "bad"}));
+    let e = check(Response::json(403, &json!({"message": "no access"}))).unwrap_err();
+    assert_eq!(
+        e.status(),
+        Some(403),
+        "valid session probe keeps the API error"
+    );
+}
+
+#[test]
+fn request_and_request_inner_journal_writes_only() {
+    let h = harness(MockTransport::queue(vec![
+        ok_json(json!({"a": 1})),
+        Ok(Response::new(200)
+            .with_header("content-type", "text/plain")
+            .with_body(b"plain text".to_vec())),
+        ok_json(json!({"change": {"id": 9}})),
+        Ok(Response::json(422, &json!({"errors": "nope"}))),
+    ]));
+    let url = "https://acme.freshservice.com/api/v2/changes";
+    let (status, r) = h.client.request_inner("GET", url, &RequestOpts::default());
+    assert_eq!((status, r.unwrap()), (Some(200), json!({"a": 1})));
+    assert_eq!(
+        h.client
+            .request("GET", url, RequestOpts::default())
+            .unwrap(),
+        json!("plain text")
+    );
+    let body = RequestOpts::default().body(Body::Json(json!({"s": 1})));
+    assert_eq!(
+        h.client.request("POST", url, body.clone()).unwrap(),
+        json!({"change": {"id": 9}})
+    );
+    assert_eq!(
+        h.client.request("put", url, body).unwrap_err().status(),
+        Some(422)
+    );
+    assert_eq!(
+        *h.journal.lock().unwrap(),
+        vec![
+            ("POST".into(), url.into(), Some(200), true),
+            ("put".into(), url.into(), Some(422), false),
+        ]
+    );
+}
+
+#[test]
+fn int_get_and_me() {
+    let h = harness(MockTransport::queue(vec![
+        ok_json(json!({"x": 1})),
+        ok_json(json!({"agent": {"first_name": "Ada"}})),
+        ok_json(json!({"other": 1})),
+        ok_json(json!([1])),
+    ]));
+    assert_eq!(
+        h.client
+            .int_get("/changes/1", Some(params(json!({"q": "a"}))))
+            .unwrap(),
+        json!({"x": 1})
+    );
+    assert_eq!(
+        h.mock.requests()[0].url,
+        "https://acme.freshservice.com/api/_/changes/1?q=a"
+    );
+    assert_eq!(h.client.me().unwrap(), json!({"first_name": "Ada"}));
+    assert_eq!(
+        h.mock.requests()[1].url,
+        "https://acme.freshservice.com/api/v2/agents/me"
+    );
+    assert_eq!(h.client.me().unwrap(), json!({}));
+    assert_eq!(
+        h.client.me().unwrap_err().to_string(),
+        "'list' object has no attribute 'get'"
+    );
+}
+
+#[test]
+fn autocomplete_params_and_results() {
+    let h = harness(MockTransport::queue(vec![
+        ok_json(json!({"results": [{"id": 1}]})),
+        ok_json(json!({})),
+    ]));
+    assert_eq!(
+        h.client
+            .autocomplete(
+                "requesters",
+                "ad a",
+                Some(params(json!({"qf": "email", "x": 1})))
+            )
+            .unwrap(),
+        vec![json!({"id": 1})]
+    );
+    assert_eq!(
+        h.mock.requests()[0].url,
+        "https://acme.freshservice.com/search/autocomplete/requesters?q=ad%20a&qf=email&x=1"
+    );
+    assert!(
+        h.client
+            .autocomplete("agents", "a", None)
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(
+        h.mock.requests()[1].url,
+        "https://acme.freshservice.com/search/autocomplete/agents?q=a&qf=value"
+    );
+}
+
+#[test]
+fn int_request_sends_csrf_and_json() {
+    let h = harness(MockTransport::new(|r| {
+        Ok(if r.method == "GET" {
+            Response::html(200, CSRF_PAGE)
+        } else {
+            Response::json(200, &json!({"ok": r.method}))
+        })
+    }));
+    let out = h
+        .client
+        .int_request(
+            "DELETE",
+            "/changes/1/x",
+            None,
+            Some(params(json!({"force": "1"}))),
+        )
+        .unwrap();
+    assert_eq!(out, json!({"ok": "DELETE"}));
+    let del = h.mock.requests().last().cloned().unwrap();
+    assert_eq!(
+        del.url,
+        "https://acme.freshservice.com/api/_/changes/1/x?force=1"
+    );
+    assert_eq!(del.header("x-csrf-token"), Some("tok&1"));
+    assert_eq!(del.header("content-type"), Some("application/json"));
+    assert_eq!(del.body, None);
+    h.client
+        .int_request("PATCH", "changes/2", Some(&json!({"a": 1})), None)
+        .unwrap();
+    assert_eq!(
+        h.mock.requests().last().unwrap().body.as_deref(),
+        Some(&b"{\"a\":1}"[..])
+    );
+    assert_eq!(h.mock.gets().len(), 1, "CSRF fetched once");
+}
+
+#[test]
+fn fulltext_search_maps_sort_names() {
+    let h = harness(MockTransport::new(|_| ok_json(json!({"changes": []}))));
+    for sort in [
+        Some("created"),
+        Some("modified"),
+        Some("relevance"),
+        Some("other"),
+        None,
+    ] {
+        h.client.fulltext_search("changes", "vpn", 2, sort).unwrap();
+    }
+    let urls: Vec<String> = h.mock.requests().iter().map(|r| r.url.clone()).collect();
+    let base = "https://acme.freshservice.com/search/changes?term=vpn&page=2";
+    assert_eq!(
+        urls,
+        [
+            format!("{base}&search_sort=created_at"),
+            format!("{base}&search_sort=updated_at"),
+            format!("{base}&search_sort=relevance"),
+            base.to_string(),
+            base.to_string(),
+        ]
+    );
+}
+
+#[test]
+fn int_put_and_int_patch_send_json_with_csrf() {
+    let h = harness(MockTransport::new(|r| {
+        Ok(if r.method == "GET" {
+            Response::html(200, CSRF_PAGE)
+        } else {
+            Response::json(200, &json!({"m": r.method}))
+        })
+    }));
+    assert_eq!(
+        h.client.int_put("changes/1", &json!({"a": 1})).unwrap(),
+        json!({"m": "PUT"})
+    );
+    assert_eq!(
+        h.client.int_patch("/changes/2", &json!({"b": 2})).unwrap(),
+        json!({"m": "PATCH"})
+    );
+    let reqs = h.mock.requests();
+    let writes: Vec<_> = reqs.iter().filter(|r| r.method != "GET").collect();
+    assert_eq!(
+        writes[0].url,
+        "https://acme.freshservice.com/api/_/changes/1"
+    );
+    assert_eq!(
+        writes[1].url,
+        "https://acme.freshservice.com/api/_/changes/2"
+    );
+    for (w, body) in writes.iter().zip([json!({"a": 1}), json!({"b": 2})]) {
+        assert_eq!(w.header("x-csrf-token"), Some("tok&1"));
+        assert_eq!(w.header("content-type"), Some("application/json"));
+        assert_eq!(
+            serde_json::from_slice::<Value>(w.body.as_deref().unwrap()).unwrap(),
+            body
+        );
+    }
+}

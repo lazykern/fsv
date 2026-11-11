@@ -52,7 +52,7 @@ fn group_thousands(n: u64) -> String {
     let s = n.to_string();
     let mut out = String::new();
     for (i, c) in s.chars().enumerate() {
-        if i > 0 && (s.len() - i) % 3 == 0 {
+        if i > 0 && (s.len() - i).is_multiple_of(3) {
             out.push(',');
         }
         out.push(c);
@@ -66,7 +66,10 @@ fn strs(v: &[String]) -> Value {
 
 impl Review {
     pub fn new(title: impl Into<String>) -> Self {
-        Review { title: title.into(), ..Review::default() }
+        Review {
+            title: title.into(),
+            ..Review::default()
+        }
     }
 
     /// `dataclasses.asdict` shape with rows/changes as objects.
@@ -94,13 +97,20 @@ impl Review {
 
     /// Texts of blocking messages not yet acknowledged.
     pub fn blocking_unacked(&self) -> Vec<String> {
-        self.messages.iter().filter(|m| m.blocking && !m.acknowledged).map(|m| m.text.clone()).collect()
+        self.messages
+            .iter()
+            .filter(|m| m.blocking && !m.acknowledged)
+            .map(|m| m.text.clone())
+            .collect()
     }
 
     /// Print the review to `console`.
     pub fn render(&self, console: &Console) {
         let p = |s: &str| console.print(s);
-        p(&format!("[bold]──────── Review: {} ────────[/bold]", escape(&self.title)));
+        p(&format!(
+            "[bold]──────── Review: {} ────────[/bold]",
+            escape(&self.title)
+        ));
         if !self.rows.is_empty() {
             let mut t = Table::new().show_header(false).no_box().pad_edge(false);
             t.add_column(Column::new("").style("cyan").no_wrap());
@@ -117,7 +127,13 @@ impl Review {
             t.add_column(Column::new("").no_wrap());
             t.add_column(Column::new("New").overflow(Overflow::Fold));
             for (label, old, new) in &self.changes {
-                let dash = |s: &str| if s.is_empty() { "—".to_string() } else { escape(s) };
+                let dash = |s: &str| {
+                    if s.is_empty() {
+                        "—".to_string()
+                    } else {
+                        escape(s)
+                    }
+                };
                 t.add_row([escape(label), dash(old), "→".to_string(), dash(new)]);
             }
             console.print_table(&t);
@@ -159,18 +175,30 @@ impl Review {
                 .iter()
                 .map(|a| {
                     let short: String = a.sha256.chars().take(16).collect();
-                    format!("{}: {}  {} B  sha256:{short}", a.target, a.name, group_thousands(a.size))
+                    format!(
+                        "{}: {}  {} B  sha256:{short}",
+                        a.target,
+                        a.name,
+                        group_thousands(a.size)
+                    )
                 })
                 .collect();
             section("Attachments (uploaded after you confirm)", &items, "");
         }
         section("Requires confirmation", &self.risks, "yellow");
         section("Warnings", &self.warnings, "yellow");
-        section("Problems (must be fixed before sending)", &self.errors, "red");
+        section(
+            "Problems (must be fixed before sending)",
+            &self.errors,
+            "red",
+        );
         if !self.metadata.is_empty() {
             let md = &self.metadata;
             let s = |k: &str| fsv_py::py_str(md.get(k).unwrap_or(&Value::Null));
-            let asof = md.get("updated_at").filter(|v| crate::value::truthy(v)).map_or("unknown".to_string(), fsv_py::py_str);
+            let asof = md
+                .get("updated_at")
+                .filter(|v| crate::value::truthy(v))
+                .map_or("unknown".to_string(), fsv_py::py_str);
             p(&format!(
                 "[dim]form metadata as of {} (fetched {}, {}, fingerprint {})[/dim]",
                 escape(&asof),
@@ -182,5 +210,97 @@ impl Review {
         if !self.plan_hash.is_empty() {
             p(&format!("[bold]plan[/bold] {}", self.plan_hash));
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sample() -> Review {
+        let msg = |text: &str, blocking, acknowledged, rule: Value| ReviewMessage {
+            text: text.into(),
+            blocking,
+            acknowledged,
+            rule,
+        };
+        Review {
+            title: "Change CHN-1 [x]".into(),
+            rows: vec![("Subject".into(), "Fix [bold]it[/bold]".into()), ("Priority".into(), "High".into())],
+            changes: vec![
+                ("Status".into(), "Open".into(), String::new()),
+                ("Group".into(), String::new(), "Ops".into()),
+            ],
+            notify: vec!["Requester".into()],
+            messages: vec![
+                msg("Need CAB", true, false, Value::Null),
+                msg("FYI", true, true, json!(1)),
+                msg("hello", false, false, Value::Null),
+            ],
+            dropped: vec!["Hidden".into()],
+            notes: vec!["populated X".into()],
+            attachments: vec![ReviewAttachment {
+                target: "change".into(),
+                name: "a.txt".into(),
+                size: 1234567,
+                sha256: "0123456789abcdef0123".into(),
+                path: "/p".into(),
+            }],
+            risks: vec!["closes".into()],
+            errors: vec!["bad".into()],
+            warnings: vec!["warn".into()],
+            metadata: json!({"updated_at": "2030-01-01", "fetched_at": "now", "source": "cache", "fingerprint": "abc"})
+                .as_object()
+                .cloned()
+                .unwrap(),
+            plan_hash: "deadbeef".into(),
+        }
+    }
+
+    #[test]
+    fn to_dict_and_blocking_unacked_match_python() {
+        let r = sample();
+        assert_eq!(
+            r.to_dict(),
+            json!({"attachments": [{"name": "a.txt", "path": "/p", "sha256": "0123456789abcdef0123", "size": 1234567, "target": "change"}],
+                   "changes": [{"label": "Status", "new": "", "old": "Open"}, {"label": "Group", "new": "Ops", "old": ""}],
+                   "dropped": ["Hidden"], "errors": ["bad"],
+                   "messages": [{"acknowledged": false, "blocking": true, "rule": null, "text": "Need CAB"},
+                                {"acknowledged": true, "blocking": true, "rule": 1, "text": "FYI"},
+                                {"acknowledged": false, "blocking": false, "rule": null, "text": "hello"}],
+                   "metadata": {"fetched_at": "now", "fingerprint": "abc", "source": "cache", "updated_at": "2030-01-01"},
+                   "notes": ["populated X"], "notify": ["Requester"], "plan_hash": "deadbeef", "risks": ["closes"],
+                   "rows": [{"label": "Subject", "value": "Fix [bold]it[/bold]"}, {"label": "Priority", "value": "High"}],
+                   "title": "Change CHN-1 [x]", "warnings": ["warn"]})
+        );
+        assert_eq!(r.blocking_unacked(), ["Need CAB"]);
+        assert_eq!(
+            Review::new("t").to_dict(),
+            json!({"attachments": [], "changes": [], "dropped": [], "errors": [], "messages": [], "metadata": {},
+                   "notes": [], "notify": [], "plan_hash": "", "risks": [], "rows": [], "title": "t", "warnings": []})
+        );
+    }
+
+    #[test]
+    fn render_matches_rich_at_width_80() {
+        let _env = crate::testenv::isolated();
+        crate::testenv::unset("FORCE_COLOR");
+        let ((), text) = crate::term::capture(|| sample().render(crate::term::out()));
+        assert_eq!(
+            text,
+            "──────── Review: Change CHN-1 [x] ────────\nSubject   Fix [bold]it[/bold]\nPriority  High               \n\
+Field   Old      New\nStatus  Open  →  —  \nGroup   —     →  Ops\nWill notify / create work for\n  Requester\nMessages\n  \
+[BLOCKING (needs --ack or y)] Need CAB\n  [acknowledged] FYI\n  [message] hello\nDropped (hidden by rules, not sent)\n  Hidden\n\
+Rule notes\n  populated X\nAttachments (uploaded after you confirm)\n  change: a.txt  1,234,567 B  sha256:0123456789abcdef\n\
+Requires confirmation\n  closes\nWarnings\n  warn\nProblems (must be fixed before sending)\n  bad\n\
+form metadata as of 2030-01-01 (fetched now, cache, fingerprint abc)\nplan deadbeef\n"
+        );
+        let mut bare = Review::new("t");
+        bare.metadata.insert("x".into(), json!(1));
+        let ((), text) = crate::term::capture(|| bare.render(crate::term::out()));
+        assert_eq!(
+            text,
+            "──────── Review: t ────────\nform metadata as of unknown (fetched None, None, fingerprint None)\n"
+        );
     }
 }

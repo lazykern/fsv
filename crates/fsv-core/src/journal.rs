@@ -58,7 +58,9 @@ pub fn resolve_path(path: &Path) -> PathBuf {
     let abs = if path.is_absolute() {
         path.to_path_buf()
     } else {
-        std::env::current_dir().map(|d| d.join(path)).unwrap_or_else(|_| path.to_path_buf())
+        std::env::current_dir()
+            .map(|d| d.join(path))
+            .unwrap_or_else(|_| path.to_path_buf())
     };
     if let Ok(p) = std::fs::canonicalize(&abs) {
         return p;
@@ -112,8 +114,16 @@ pub fn journal_path() -> PathBuf {
         .unwrap_or_else(|| config::home_dir().join(".local").join("state"));
     let profile = sha256_hex(&path_bytes(&resolve_path(&config::config_dir())));
     let domain = config::domain();
-    let tenant = if domain.is_empty() { "unknown".to_string() } else { sha256_hex(domain.as_bytes()) };
-    base.join("fsv").join("journals").join(profile).join(tenant).join("journal.jsonl")
+    let tenant = if domain.is_empty() {
+        "unknown".to_string()
+    } else {
+        sha256_hex(domain.as_bytes())
+    };
+    base.join("fsv")
+        .join("journals")
+        .join(profile)
+        .join(tenant)
+        .join("journal.jsonl")
 }
 
 /// sha256 of the body as canonical JSON (sorted keys, no whitespace); `None` without a body.
@@ -125,10 +135,22 @@ pub fn plan_hash(body: Option<&Value>) -> Option<String> {
 pub fn split_path(url: &str) -> Vec<String> {
     static HOST: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^https?://[^/]+").expect("regex"));
     let stripped = HOST.replace(url, "");
-    let path = stripped.split('?').next().unwrap_or("").split('#').next().unwrap_or("");
+    let path = stripped
+        .split('?')
+        .next()
+        .unwrap_or("")
+        .split('#')
+        .next()
+        .unwrap_or("");
     path.split('/')
         .filter(|p| !p.is_empty())
-        .map(|p| if PATH_SEGMENTS.contains(&p) || is_id_full(p) { p.to_string() } else { "[redacted]".to_string() })
+        .map(|p| {
+            if PATH_SEGMENTS.contains(&p) || is_id_full(p) {
+                p.to_string()
+            } else {
+                "[redacted]".to_string()
+            }
+        })
         .collect()
 }
 
@@ -143,11 +165,19 @@ pub fn classify(method: &str, segments: &[String]) -> (String, Option<String>, S
         }
     }
     let last = segs.last().map(String::as_str).unwrap_or("");
-    let resource = segs.iter().find(|s| !is_id(s)).map(String::as_str).unwrap_or("");
+    let resource = segs
+        .iter()
+        .find(|s| !is_id(s))
+        .map(String::as_str)
+        .unwrap_or("");
     let mut target = None;
     for (i, s) in segs.iter().enumerate() {
         if is_id(s) {
-            target = Some(if i > 0 { format!("{}/{s}", segs[i - 1]) } else { s.clone() });
+            target = Some(if i > 0 {
+                format!("{}/{s}", segs[i - 1])
+            } else {
+                s.clone()
+            });
             break;
         }
     }
@@ -178,7 +208,8 @@ pub fn safe_id(value: Option<&Value>) -> Value {
 }
 
 fn safe_target(value: Option<&Value>) -> Value {
-    static CATALOG: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^catalog-item/\d+$").expect("regex"));
+    static CATALOG: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^catalog-item/\d+$").expect("regex"));
     match value {
         Some(Value::String(s)) if CATALOG.is_match(s) => Value::String(s.clone()),
         other => safe_id(other),
@@ -186,27 +217,35 @@ fn safe_target(value: Option<&Value>) -> Value {
 }
 
 fn created_id(data: Option<&Value>) -> Value {
-    let Some(Value::Object(map)) = data else { return Value::Null };
-    let usable = |v: Option<&Value>| matches!(v, Some(x) if !x.is_null() && !x.is_object() && !x.is_array());
+    let Some(Value::Object(map)) = data else {
+        return Value::Null;
+    };
+    let usable =
+        |v: Option<&Value>| matches!(v, Some(x) if !x.is_null() && !x.is_object() && !x.is_array());
     if usable(map.get("id")) {
         return safe_id(map.get("id"));
     }
     for v in map.values() {
-        if let Value::Object(inner) = v {
-            if usable(inner.get("id")) {
-                return safe_id(inner.get("id"));
-            }
+        if let Value::Object(inner) = v
+            && usable(inner.get("id"))
+        {
+            return safe_id(inner.get("id"));
         }
     }
     Value::Null
 }
 
 fn timestamp() -> String {
-    jiff::Zoned::now().strftime("%Y-%m-%dT%H:%M:%S%z").to_string()
+    jiff::Zoned::now()
+        .strftime("%Y-%m-%dT%H:%M:%S%z")
+        .to_string()
 }
 
 fn epoch() -> i64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0)
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0)
 }
 
 fn command() -> Value {
@@ -226,7 +265,10 @@ fn append(entry: &Map<String, Value>) -> Result<()> {
         opts.mode(0o600);
     }
     let mut f = opts.open(&p)?;
-    let line = fsv_py::Dumps::default().ensure_ascii(false).dump(&Value::Object(entry.clone())) + "\n";
+    let line = fsv_py::Dumps::default()
+        .ensure_ascii(false)
+        .dump(&Value::Object(entry.clone()))
+        + "\n";
     f.write_all(line.as_bytes())?;
     Ok(())
 }
@@ -252,10 +294,20 @@ pub fn record(method: &str, url: &str, body: Option<&Value>, outcome: WriteOutco
     entry.insert("target".into(), target.map_or(Value::Null, Value::String));
     entry.insert("method".into(), json!(upper));
     entry.insert("path".into(), json!(path));
-    entry.insert("plan_hash".into(), plan_hash(body).map_or(Value::Null, Value::String));
-    entry.insert("status".into(), outcome.status.map_or(Value::Null, |s| json!(s)));
+    entry.insert(
+        "plan_hash".into(),
+        plan_hash(body).map_or(Value::Null, Value::String),
+    );
+    entry.insert(
+        "status".into(),
+        outcome.status.map_or(Value::Null, |s| json!(s)),
+    );
     entry.insert("ok".into(), json!(outcome.ok));
-    let created = if outcome.ok && upper == "POST" { created_id(outcome.response) } else { Value::Null };
+    let created = if outcome.ok && upper == "POST" {
+        created_id(outcome.response)
+    } else {
+        Value::Null
+    };
     entry.insert("created_id".into(), created);
     if outcome.error {
         entry.insert("error".into(), json!("details omitted"));
@@ -265,8 +317,13 @@ pub fn record(method: &str, url: &str, body: Option<&Value>, outcome: WriteOutco
 
 /// All journal rows (the last `limit` when given and non-zero); bad lines are skipped.
 pub fn read(limit: Option<usize>) -> Vec<Value> {
-    let Ok(text) = std::fs::read_to_string(journal_path()) else { return Vec::new() };
-    let rows: Vec<Value> = text.lines().filter_map(|l| serde_json::from_str(l).ok()).collect();
+    let Ok(text) = std::fs::read_to_string(journal_path()) else {
+        return Vec::new();
+    };
+    let rows: Vec<Value> = text
+        .lines()
+        .filter_map(|l| serde_json::from_str(l).ok())
+        .collect();
     match limit {
         Some(n) if n > 0 && n < rows.len() => rows[rows.len() - n..].to_vec(),
         _ => rows,
@@ -303,11 +360,22 @@ pub fn record_plan(event: &str, plan: &str, action: &str, extra: PlanEvent<'_>) 
     entry.insert("created_id".into(), safe_id(extra.created_id));
     if let Some(steps) = extra.steps {
         // Filenames and exception messages can contain private data.
-        let known = ["create", "update", "attachments", "upload", "place-request", "after"];
+        let known = [
+            "create",
+            "update",
+            "attachments",
+            "upload",
+            "place-request",
+            "after",
+        ];
         let rows: Vec<Value> = steps
             .iter()
             .map(|s| {
-                let name = if known.contains(&s.step.as_str()) { s.step.as_str() } else { "other" };
+                let name = if known.contains(&s.step.as_str()) {
+                    s.step.as_str()
+                } else {
+                    "other"
+                };
                 json!({"step": name, "ok": s.ok})
             })
             .collect();
@@ -329,13 +397,17 @@ fn epoch_of(row: &Value) -> f64 {
 /// Latest entry showing this plan was (or may have been) sent within `hours`:
 /// a `done` entry, or a `started` one with no outcome. `failed` plans can be retried.
 pub fn recent_plan(plan: &str, action: &str, hours: f64) -> Option<Value> {
-    let now = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs_f64()).unwrap_or(0.0);
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs_f64())
+        .unwrap_or(0.0);
     let cutoff = now - hours * 3600.0;
     let kind = format!("plan:{action}");
     let mut outcome: Vec<(String, Value)> = Vec::new();
     let mut started: Vec<Value> = Vec::new();
     for row in read(None) {
-        if row.get("plan").and_then(Value::as_str) != Some(plan) || row.get("kind").and_then(Value::as_str) != Some(&kind)
+        if row.get("plan").and_then(Value::as_str) != Some(plan)
+            || row.get("kind").and_then(Value::as_str) != Some(&kind)
         {
             continue;
         }
@@ -354,7 +426,9 @@ pub fn recent_plan(plan: &str, action: &str, hours: f64) -> Option<Value> {
     }
     let mut best: Option<&Value> = None;
     for (_, r) in &outcome {
-        if r.get("event").and_then(Value::as_str) == Some("done") && best.is_none_or(|b| epoch_of(r) > epoch_of(b)) {
+        if r.get("event").and_then(Value::as_str) == Some("done")
+            && best.is_none_or(|b| epoch_of(r) > epoch_of(b))
+        {
             best = Some(r);
         }
     }
@@ -375,14 +449,22 @@ mod tests {
 
     #[test]
     fn plan_hash_is_order_independent_and_none_for_no_body() {
-        assert_eq!(plan_hash(Some(&json!({"a": 1, "b": [2]}))), plan_hash(Some(&json!({"b": [2], "a": 1}))));
-        assert_ne!(plan_hash(Some(&json!({"a": 1}))), plan_hash(Some(&json!({"a": 2}))));
+        assert_eq!(
+            plan_hash(Some(&json!({"a": 1, "b": [2]}))),
+            plan_hash(Some(&json!({"b": [2], "a": 1})))
+        );
+        assert_ne!(
+            plan_hash(Some(&json!({"a": 1}))),
+            plan_hash(Some(&json!({"a": 2})))
+        );
         assert_eq!(plan_hash(None), None);
     }
 
     #[test]
     fn classify_paths() {
-        let segs = split_path("https://acme.freshservice.com/api/_/changes/1/planning-fields/private-value?token=S");
+        let segs = split_path(
+            "https://acme.freshservice.com/api/_/changes/1/planning-fields/private-value?token=S",
+        );
         assert_eq!(segs.join("/"), "api/_/changes/1/planning-fields/[redacted]");
         let (kind, target, path) = classify("PUT", &segs);
         assert_eq!(kind, "update:changes");
@@ -390,5 +472,310 @@ mod tests {
         assert_eq!(path, "/api/_/changes/1/planning-fields/[redacted]");
         let (kind, _, _) = classify("POST", &split_path("https://x/api/_/changes/1/notes"));
         assert_eq!(kind, "note");
+    }
+
+    use crate::testenv;
+
+    fn select(env: &testenv::Isolated, profile: &str, domain: &str) -> PathBuf {
+        let dir = env.root().join(profile);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(
+            dir.join("config.json"),
+            format!("{{\"domain\": \"{domain}\"}}"),
+        )
+        .unwrap();
+        testenv::set("FSV_CONFIG_DIR", &dir);
+        crate::config::reload();
+        journal_path()
+    }
+
+    fn without_time(row: &Value) -> Value {
+        let mut row = row.clone();
+        let map = row.as_object_mut().unwrap();
+        assert!(map.remove("ts").is_some_and(|t| t.is_string()));
+        map.remove("epoch");
+        row
+    }
+
+    #[test]
+    fn journal_path_layout() {
+        let env = testenv::isolated().with_domain("acme.freshservice.com");
+        let profile = sha256_hex(&path_bytes(&resolve_path(&env.config_dir())));
+        assert_eq!(
+            journal_path(),
+            env.root()
+                .join("state/fsv/journals")
+                .join(profile)
+                .join("d0ba64d859ebafab6b3b77efc7d19e8e5784676cd027af2c9819e609dc3c5bd4")
+                .join("journal.jsonl")
+        );
+        std::fs::write(env.config_dir().join("config.json"), "{}").unwrap();
+        crate::config::reload();
+        assert_eq!(
+            journal_path().parent().unwrap().file_name().unwrap(),
+            "unknown"
+        );
+        assert!(!journal_path().exists());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn journal_default_state_root_and_resolved_profile() {
+        let env = testenv::isolated();
+        testenv::unset("XDG_STATE_HOME");
+        let real = env.root().join("profile");
+        std::fs::create_dir(&real).unwrap();
+        let alias = env.root().join("alias");
+        std::os::unix::fs::symlink(&real, &alias).unwrap();
+        let old_home = std::env::var_os("HOME");
+        testenv::set("HOME", env.root());
+        testenv::set("FSV_CONFIG_DIR", &real);
+        crate::config::reload();
+        let expected = journal_path();
+        testenv::set("FSV_CONFIG_DIR", &alias);
+        crate::config::reload();
+        let via_alias = journal_path();
+        match old_home {
+            Some(h) => testenv::set("HOME", h),
+            None => testenv::unset("HOME"),
+        }
+        assert!(
+            expected.starts_with(env.root().join(".local/state/fsv/journals")),
+            "{expected:?}"
+        );
+        assert_eq!(via_alias, expected);
+    }
+
+    #[test]
+    fn safe_ids_and_targets() {
+        for (v, want) in [
+            (json!(5), json!(5)),
+            (json!("12"), json!("12")),
+            (json!("12\n"), Value::Null),
+            (json!("abc"), Value::Null),
+            (json!(1.5), Value::Null),
+            (json!(true), Value::Null),
+            (Value::Null, Value::Null),
+            (json!(-3), json!(-3)),
+            (json!("١٢"), json!("١٢")),
+            (json!("-3"), Value::Null),
+        ] {
+            assert_eq!(safe_id(Some(&v)), want, "{v}");
+            assert_eq!(safe_target(Some(&v)), want, "{v}");
+        }
+        assert_eq!(safe_id(None), Value::Null);
+        assert_eq!(
+            safe_target(Some(&json!("catalog-item/42"))),
+            json!("catalog-item/42")
+        );
+        assert_eq!(safe_target(Some(&json!("catalog-item/x"))), Value::Null);
+        assert_eq!(safe_target(Some(&json!("catalog-item/4\n"))), Value::Null);
+    }
+
+    #[test]
+    fn created_id_shapes() {
+        assert_eq!(created_id(Some(&json!({"id": 5}))), json!(5));
+        assert_eq!(
+            created_id(Some(&json!({"change": {"id": "7"}}))),
+            json!("7")
+        );
+        assert_eq!(
+            created_id(Some(&json!({"id": null, "x": {"id": 9}}))),
+            json!(9)
+        );
+        assert_eq!(
+            created_id(Some(&json!({"id": {"a": 1}, "y": {"id": 3}}))),
+            json!(3)
+        );
+        for v in [json!([1]), json!({"id": "PRIVATE"}), json!({})] {
+            assert_eq!(created_id(Some(&v)), Value::Null, "{v}");
+        }
+        assert_eq!(created_id(None), Value::Null);
+    }
+
+    #[test]
+    fn record_plan_append_read_and_recent_plan() {
+        let _env = testenv::isolated().with_domain("acme.freshservice.com");
+        assert!(read(None).is_empty());
+        record_plan("started", "h1", "create", PlanEvent::default());
+        let steps = [
+            PlanStep {
+                step: "create".into(),
+                ok: true,
+            },
+            PlanStep {
+                step: "secret.txt".into(),
+                ok: false,
+            },
+        ];
+        record_plan(
+            "done",
+            "h1",
+            "create",
+            PlanEvent {
+                target: Some(&json!("catalog-item/3")),
+                created_id: Some(&json!(77)),
+                steps: Some(&steps),
+                error: true,
+            },
+        );
+        let rows = read(None);
+        assert_eq!(
+            rows.iter().map(without_time).collect::<Vec<_>>(),
+            [
+                json!({"command": null, "kind": "plan:create", "event": "started", "plan": "h1", "target": null, "created_id": null}),
+                json!({"command": null, "kind": "plan:create", "event": "done", "plan": "h1", "target": "catalog-item/3",
+                       "created_id": 77, "steps": [{"step": "create", "ok": true}, {"step": "other", "ok": false}],
+                       "error": "details omitted"}),
+            ]
+        );
+        assert!(rows[0]["epoch"].is_i64());
+        assert_eq!(read(Some(1))[0]["event"], "done");
+        assert_eq!(read(Some(0)).len(), 2);
+        assert_eq!(read(Some(10)).len(), 2);
+        assert_eq!(recent_plan("h1", "create", 24.0).unwrap()["event"], "done");
+        assert_eq!(recent_plan("h1", "update", 24.0), None);
+        assert_eq!(recent_plan("h2", "create", 24.0), None);
+        let text = std::fs::read_to_string(journal_path()).unwrap();
+        assert!(!text.contains("secret.txt"));
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(
+                std::fs::metadata(journal_path())
+                    .unwrap()
+                    .permissions()
+                    .mode()
+                    & 0o777,
+                0o600
+            );
+        }
+    }
+
+    #[test]
+    fn journal_isolates_profiles_tenants_and_legacy() {
+        let env = testenv::isolated();
+        let legacy = env.root().join("state/fsv/journal.jsonl");
+        std::fs::create_dir_all(legacy.parent().unwrap()).unwrap();
+        std::fs::write(&legacy, "{\"kind\":\"plan:create\",\"plan\":\"same\",\"event\":\"done\",\"epoch\":9999999999}\n").unwrap();
+
+        let acme_a = select(&env, "a", "acme.freshservice.com");
+        assert!(read(None).is_empty());
+        assert_eq!(recent_plan("same", "create", 24.0), None);
+        record_plan("started", "same", "create", PlanEvent::default());
+        record_plan(
+            "done",
+            "same",
+            "create",
+            PlanEvent {
+                created_id: Some(&json!(1)),
+                ..Default::default()
+            },
+        );
+        record(
+            "POST",
+            "https://acme.freshservice.com/api/v2/tickets",
+            Some(&json!({"private": "BODY"})),
+            WriteOutcome {
+                status: Some(422),
+                ok: false,
+                response: None,
+                error: true,
+            },
+        );
+        assert_eq!(
+            recent_plan("same", "create", 24.0).unwrap()["event"],
+            "done"
+        );
+        assert_eq!(read(None).last().unwrap()["ok"], false);
+
+        let acme_b = select(&env, "b", "acme.freshservice.com");
+        assert!(acme_b != acme_a && read(None).is_empty());
+        record_plan("started", "same", "create", PlanEvent::default());
+        record_plan(
+            "failed",
+            "same",
+            "create",
+            PlanEvent {
+                error: true,
+                ..Default::default()
+            },
+        );
+        assert_eq!(recent_plan("same", "create", 24.0), None);
+
+        let globex_a = select(&env, "a", "globex.freshservice.com");
+        assert!(globex_a != acme_a && globex_a != acme_b && read(None).is_empty());
+        record_plan("started", "same", "create", PlanEvent::default());
+        assert_eq!(
+            recent_plan("same", "create", 24.0).unwrap()["event"],
+            "started"
+        );
+        assert_eq!(select(&env, "a", "acme.freshservice.com"), acme_a);
+        assert_eq!(
+            recent_plan("same", "create", 24.0).unwrap()["event"],
+            "done"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&legacy)
+                .unwrap()
+                .matches("\"plan\":\"same\"")
+                .count(),
+            1
+        );
+        for p in [acme_a, acme_b, globex_a] {
+            let text = std::fs::read_to_string(p).unwrap();
+            assert!(!text.contains("COOKIE") && !text.contains("BODY"));
+        }
+    }
+
+    #[test]
+    fn record_write_entry() {
+        let _env = testenv::isolated().with_domain("acme.freshservice.com");
+        record(
+            "POST",
+            "https://acme.freshservice.com/api/_/changes",
+            Some(&json!({"a": 1})),
+            WriteOutcome {
+                status: Some(201),
+                ok: true,
+                response: Some(&json!({"change": {"id": 4}})),
+                error: false,
+            },
+        );
+        record(
+            "POST",
+            "https://acme.freshservice.com/api/_/changes",
+            Some(&json!({})),
+            WriteOutcome {
+                status: Some(200),
+                ok: true,
+                response: Some(&json!({"id": "PRIVATE"})),
+                error: false,
+            },
+        );
+        let rows = read(None);
+        assert_eq!(
+            without_time(&rows[0]),
+            json!({"command": null, "kind": "create:changes", "target": null, "method": "POST", "path": "/api/_/changes",
+                   "plan_hash": "015abd7f5cc57a2dd94b7590f04ad8084273905ee33ec5cebeae62276a97f862",
+                   "status": 201, "ok": true, "created_id": 4})
+        );
+        assert_eq!(rows[1]["created_id"], Value::Null);
+        assert!(
+            !std::fs::read_to_string(journal_path())
+                .unwrap()
+                .contains("PRIVATE")
+        );
+    }
+
+    #[test]
+    fn append_failure_never_breaks_the_caller() {
+        let env = testenv::isolated();
+        let blocker = env.root().join("file");
+        std::fs::write(&blocker, "x").unwrap();
+        testenv::set("XDG_STATE_HOME", &blocker);
+        assert!(append(&Map::new()).is_err());
+        record_plan("done", "x", "create", PlanEvent::default());
+        assert!(read(None).is_empty());
     }
 }

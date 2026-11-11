@@ -318,7 +318,7 @@ impl Client {
                 Ok(r) => r,
                 Err(SendErr::Transport(e)) => {
                     let outcome = format!("{}: {}", e.kind, e.message);
-                    if attempt < MAX_RETRIES && is_idempotent(method) {
+                    if attempt < MAX_RETRIES && should_retry(method, None, true) {
                         let delay = retry_delay(attempt, None);
                         self.log_line(
                             method,
@@ -350,10 +350,7 @@ impl Client {
                 String::new()
             };
             let elapsed = format!("{:.0}ms", t0.elapsed().as_secs_f64() * 1000.0);
-            if attempt < MAX_RETRIES
-                && is_idempotent(method)
-                && RETRYABLE_STATUS.contains(&r.status)
-            {
+            if attempt < MAX_RETRIES && should_retry(method, Some(&r), false) {
                 let delay = retry_delay(attempt, Some(&r));
                 self.log_line(
                     method,
@@ -383,10 +380,10 @@ impl Client {
                 Err(_) => return,
             }
         }
-        if !tot.is_empty() {
-            if let Ok(n) = pystr::strip(tot).parse() {
-                st.rl_tot = Some(n);
-            }
+        if !tot.is_empty()
+            && let Ok(n) = pystr::strip(tot).parse()
+        {
+            st.rl_tot = Some(n);
         }
     }
 
@@ -508,10 +505,16 @@ impl Client {
         (status, result)
     }
 
+    /// Current `fw-session-id`; with duplicates (host vs dotted domain) the tenant-host one wins.
+    fn fw_cookie(&self) -> Option<String> {
+        self.cookie("fw-session-id")
+    }
+
     fn track_fw_session(&self) {
+        let current = self.fw_cookie().filter(|fw| !fw.is_empty());
         let rotated = {
             let mut st = self.state();
-            match st.jar.get("fw-session-id").map(str::to_string) {
+            match current {
                 Some(fw) if st.fw_session_id.as_deref() != Some(fw.as_str()) => {
                     st.fw_session_id = Some(fw.clone());
                     Some(fw)
@@ -914,6 +917,17 @@ fn is_idempotent(method: &str) -> bool {
     IDEMPOTENT_METHODS.contains(&method.to_uppercase().as_str())
 }
 
+/// Retry idempotent requests on a transport error or a 429/5xx response.
+fn should_retry(method: &str, response: Option<&Response>, transport_error: bool) -> bool {
+    if !is_idempotent(method) {
+        return false;
+    }
+    if transport_error {
+        return true;
+    }
+    response.is_some_and(|r| RETRYABLE_STATUS.contains(&r.status))
+}
+
 fn retry_delay(attempt: usize, response: Option<&Response>) -> f64 {
     if let Some(d) = response.and_then(|r| log::retry_after_seconds(r.header("retry-after"))) {
         return d;
@@ -1016,10 +1030,10 @@ pub fn csrf_from_html(html: &str) -> Option<String> {
                 .find(|(key, _)| key == k)
                 .map(|(_, v)| v.as_str())
         };
-        if get("name").is_some_and(|n| n.to_lowercase() == "csrf-token") {
-            if let Some(content) = get("content").filter(|c| !c.is_empty()) {
-                return Some(content.to_string());
-            }
+        if get("name").is_some_and(|n| n.to_lowercase() == "csrf-token")
+            && let Some(content) = get("content").filter(|c| !c.is_empty())
+        {
+            return Some(content.to_string());
         }
     }
     None

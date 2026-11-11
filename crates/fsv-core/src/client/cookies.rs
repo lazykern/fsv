@@ -45,7 +45,7 @@ impl CookieJar {
         &self.cookies
     }
 
-    /// Host-scoped, Secure session cookie on the tenant (`_make_cookie`).
+    /// `_make_cookie`: host-scoped, Secure session cookie on the tenant.
     pub fn set_session(&mut self, name: &str, value: &str) {
         let tenant = self.tenant.clone();
         self.store(Cookie {

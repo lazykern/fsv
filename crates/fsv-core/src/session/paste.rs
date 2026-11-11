@@ -32,15 +32,25 @@ fn splitlines(text: &str) -> Vec<&str> {
     let mut start = 0;
     let mut it = text.char_indices().peekable();
     while let Some((i, c)) = it.next() {
-        if matches!(c, '\n' | '\r' | '\u{0b}' | '\u{0c}' | '\u{1c}' | '\u{1d}' | '\u{1e}' | '\u{85}' | '\u{2028}' | '\u{2029}')
-        {
+        if matches!(
+            c,
+            '\n' | '\r'
+                | '\u{0b}'
+                | '\u{0c}'
+                | '\u{1c}'
+                | '\u{1d}'
+                | '\u{1e}'
+                | '\u{85}'
+                | '\u{2028}'
+                | '\u{2029}'
+        ) {
             out.push(&text[start..i]);
             let mut end = i + c.len_utf8();
-            if c == '\r' {
-                if let Some(&(j, '\n')) = it.peek() {
-                    it.next();
-                    end = j + 1;
-                }
+            if c == '\r'
+                && let Some(&(j, '\n')) = it.peek()
+            {
+                it.next();
+                end = j + 1;
             }
             start = end;
         }
@@ -82,10 +92,11 @@ pub fn extract_cookie_from_input(raw: &str) -> String {
         Ok(Value::Array(items)) => {
             for item in &items {
                 let name = item.get("name").and_then(Value::as_str).unwrap_or("");
-                if item.is_object() && name.to_lowercase() == "cookie" {
-                    if let Some(v) = item.get("value") {
-                        return strip(&fsv_py::py_str(v)).to_string();
-                    }
+                if item.is_object()
+                    && name.to_lowercase() == "cookie"
+                    && let Some(v) = item.get("value")
+                {
+                    return strip(&fsv_py::py_str(v)).to_string();
                 }
             }
         }
@@ -147,7 +158,11 @@ fn read_secret_tty() -> Result<String> {
         if n <= 0 {
             break;
         }
-        let ch = if b[0] < 0x80 { b[0] as char } else { '\u{FFFD}' };
+        let ch = if b[0] < 0x80 {
+            b[0] as char
+        } else {
+            '\u{FFFD}'
+        };
         match ch {
             '\x03' => {
                 outcome = Err(Error::Aborted);
@@ -159,7 +174,11 @@ fn read_secret_tty() -> Result<String> {
             }
             '\r' | '\n' => {
                 lines.push(chars.drain(..).collect());
-                let mut pfd = libc::pollfd { fd, events: libc::POLLIN, revents: 0 };
+                let mut pfd = libc::pollfd {
+                    fd,
+                    events: libc::POLLIN,
+                    revents: 0,
+                };
                 let ready = unsafe { libc::poll(&mut pfd, 1, 80) };
                 if ready <= 0 {
                     break;
@@ -208,7 +227,11 @@ fn read_secret_tty() -> Result<String> {
                 outcome = Err(Error::Aborted);
                 break;
             }
-            KeyCode::Char('d') | KeyCode::Char('z') if key.modifiers.contains(KeyModifiers::CONTROL) => break,
+            KeyCode::Char('d') | KeyCode::Char('z')
+                if key.modifiers.contains(KeyModifiers::CONTROL) =>
+            {
+                break;
+            }
             KeyCode::Backspace => {
                 chars.pop();
             }
@@ -235,9 +258,21 @@ fn read_secret_tty() -> Result<String> {
 
 /// Interactive cookie paste login (instructions on stderr, hidden input).
 pub fn login_interactive() -> Result<Cookies> {
-    eprintln!("Open your Freshservice portal: https://{}/", config::domain());
+    login_interactive_with(&mut read_secret)
+}
+
+/// [`login_interactive`] with an injectable hidden-input reader.
+pub fn login_interactive_with(
+    read_secret: &mut dyn FnMut(&str) -> Result<String>,
+) -> Result<Cookies> {
+    eprintln!(
+        "Open your Freshservice portal: https://{}/",
+        config::domain()
+    );
     eprintln!("DevTools → Network tab → click any /api/_/ request → Headers tab");
-    eprintln!("RIGHT-CLICK the Cookie header → Copy value  (don't drag-select, value is truncated)");
+    eprintln!(
+        "RIGHT-CLICK the Cookie header → Copy value  (don't drag-select, value is truncated)"
+    );
     eprintln!("Also accepts: Cookie: header line, all request headers, cURL, or fetch snippet.");
     eprintln!("Input is hidden — paste and press Enter:");
     let raw = read_secret("> ")?;
@@ -246,7 +281,9 @@ pub fn login_interactive() -> Result<Cookies> {
     }
     let line = extract_cookie_from_input(&raw);
     if line.is_empty() {
-        return Err(Error::session("could not find Cookie header in pasted input"));
+        return Err(Error::session(
+            "could not find Cookie header in pasted input",
+        ));
     }
     let cookies = parse_cookie_header(&line);
     validate(&cookies)?;

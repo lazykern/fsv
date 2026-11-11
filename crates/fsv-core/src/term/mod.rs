@@ -31,7 +31,10 @@ pub struct Console {
     base: Style,
 }
 
-static OUT: Console = Console { stream: Stream::Stdout, base: NULL_STYLE };
+static OUT: Console = Console {
+    stream: Stream::Stdout,
+    base: NULL_STYLE,
+};
 static ERR: Console = Console {
     stream: Stream::Stderr,
     base: Style {
@@ -71,6 +74,48 @@ pub fn err() -> &'static Console {
     &ERR
 }
 
+thread_local! {
+    static CAPTURE: std::cell::RefCell<Option<String>> = const { std::cell::RefCell::new(None) };
+}
+
+/// Run `f` and return what it printed through [`Console`] and
+/// [`crate::output`] on this thread (stdout and stderr, in order) instead of
+/// writing it. Captured output is not a terminal: no color unless
+/// `FORCE_COLOR`, width `$COLUMNS` or 80.
+pub fn capture<R>(f: impl FnOnce() -> R) -> (R, String) {
+    let outer = CAPTURE.with(|c| c.borrow_mut().replace(String::new()));
+    let r = f();
+    let text = CAPTURE
+        .with(|c| std::mem::replace(&mut *c.borrow_mut(), outer))
+        .unwrap_or_default();
+    (r, text)
+}
+
+fn capturing() -> bool {
+    CAPTURE.with(|c| c.borrow().is_some())
+}
+
+/// Append to the active [`capture`] buffer; `false` when not capturing.
+fn captured(s: &str) -> bool {
+    CAPTURE.with(|c| match c.borrow_mut().as_mut() {
+        Some(buf) => {
+            buf.push_str(s);
+            true
+        }
+        None => false,
+    })
+}
+
+/// Write `s` to stdout (or the active [`capture`]) and flush.
+pub(crate) fn write_stdout(s: &str) -> std::io::Result<()> {
+    if captured(s) {
+        return Ok(());
+    }
+    let mut o = std::io::stdout().lock();
+    o.write_all(s.as_bytes())?;
+    o.flush()
+}
+
 fn env_set(name: &str) -> bool {
     std::env::var_os(name).is_some_and(|v| !v.is_empty())
 }
@@ -91,7 +136,9 @@ pub fn terminal_size() -> Option<(usize, usize)> {
     }
     #[cfg(not(unix))]
     {
-        crossterm::terminal::size().ok().map(|(c, r)| (c as usize, r as usize))
+        crossterm::terminal::size()
+            .ok()
+            .map(|(c, r)| (c as usize, r as usize))
     }
 }
 
@@ -102,6 +149,9 @@ impl Console {
 
     /// Whether the stream is a terminal.
     pub fn is_terminal(&self) -> bool {
+        if capturing() {
+            return false;
+        }
         match self.stream {
             Stream::Stdout => std::io::stdout().is_terminal(),
             Stream::Stderr => std::io::stderr().is_terminal(),
@@ -124,21 +174,24 @@ impl Console {
 
     /// Console width: `$COLUMNS`, else the terminal size, else 80.
     pub fn width(&self) -> usize {
-        if let Some(c) = std::env::var("COLUMNS").ok().and_then(|c| c.parse::<usize>().ok()) {
+        if let Some(c) = std::env::var("COLUMNS")
+            .ok()
+            .and_then(|c| c.parse::<usize>().ok())
+        {
             return c;
         }
-        if std::env::var("TERM").is_ok_and(|t| t.eq_ignore_ascii_case("dumb")) {
+        if capturing() || std::env::var("TERM").is_ok_and(|t| t.eq_ignore_ascii_case("dumb")) {
             return 80;
         }
         terminal_size().map_or(80, |(c, _)| c)
     }
 
     fn write_str(&self, s: &str) {
+        if captured(s) {
+            return;
+        }
         let _ = match self.stream {
-            Stream::Stdout => {
-                let mut o = std::io::stdout().lock();
-                o.write_all(s.as_bytes()).and_then(|_| o.flush())
-            }
+            Stream::Stdout => write_stdout(s),
             Stream::Stderr => {
                 let mut o = std::io::stderr().lock();
                 o.write_all(s.as_bytes()).and_then(|_| o.flush())
@@ -153,7 +206,11 @@ impl Console {
 
     fn render_text(&self, t: &Text) -> String {
         let color = self.color();
-        text::lines(t, self.base).iter().map(|l| text::to_ansi(l, color)).collect::<Vec<_>>().join("\n")
+        text::lines(t, self.base)
+            .iter()
+            .map(|l| text::to_ansi(l, color))
+            .collect::<Vec<_>>()
+            .join("\n")
     }
 
     /// `console.print(markup)`.
@@ -210,12 +267,22 @@ pub fn rule_line(title: &str, width: usize, color: bool, base: Style) -> String 
     }
     let truncate_width = width - 4;
     let line_cells = |l: &Line| -> usize { l.iter().map(|(c, _)| text::char_width(*c)).sum() };
-    let mut title_line: Line = text::lines(&title_text, base).into_iter().next().unwrap_or_default();
+    let mut title_line: Line = text::lines(&title_text, base)
+        .into_iter()
+        .next()
+        .unwrap_or_default();
     if line_cells(&title_line) > truncate_width {
-        title_line = wrap(&title_text, base, truncate_width, Justify::Left, Overflow::Ellipsis, true)
-            .into_iter()
-            .next()
-            .unwrap_or_default();
+        title_line = wrap(
+            &title_text,
+            base,
+            truncate_width,
+            Justify::Left,
+            Overflow::Ellipsis,
+            true,
+        )
+        .into_iter()
+        .next()
+        .unwrap_or_default();
     }
     let title_len = line_cells(&title_line);
     let side = width.saturating_sub(title_len) / 2;
@@ -242,7 +309,10 @@ pub fn rule_line(title: &str, width: usize, color: bool, base: Style) -> String 
 
 /// `PAGER` (default `less -R`) through the shell; `false` when it failed.
 pub fn page_text(text: &str) -> bool {
-    let pager = std::env::var("PAGER").ok().filter(|p| !p.is_empty()).unwrap_or_else(|| "less -R".into());
+    let pager = std::env::var("PAGER")
+        .ok()
+        .filter(|p| !p.is_empty())
+        .unwrap_or_else(|| "less -R".into());
     #[cfg(windows)]
     let mut cmd = {
         let mut c = std::process::Command::new("cmd");
@@ -255,7 +325,9 @@ pub fn page_text(text: &str) -> bool {
         c.arg("-c").arg(&pager);
         c
     };
-    let Ok(mut child) = cmd.stdin(std::process::Stdio::piped()).spawn() else { return false };
+    let Ok(mut child) = cmd.stdin(std::process::Stdio::piped()).spawn() else {
+        return false;
+    };
     if let Some(mut stdin) = child.stdin.take() {
         let _ = stdin.write_all(text.as_bytes());
     }
@@ -286,5 +358,40 @@ mod tests {
         assert_eq!(r, "───── CHN-1  x ─────");
         assert_eq!(cell_len(&r), 20);
         assert_eq!(rule_line("", 5, false, Style::default()), "─────");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn page_text_runs_pager_through_shell() {
+        let env = crate::testenv::isolated();
+        crate::testenv::set("PAGER", "true");
+        assert!(page_text("x"));
+        crate::testenv::set("PAGER", "false");
+        assert!(!page_text("x"));
+        let sink = env.root().join("paged");
+        crate::testenv::set("PAGER", format!("cat > '{}'", sink.display()));
+        assert!(page_text("row 1\nrow 2\n"));
+        assert_eq!(std::fs::read_to_string(&sink).unwrap(), "row 1\nrow 2\n");
+    }
+
+    #[test]
+    fn should_page_only_when_enabled_on_a_terminal() {
+        let _env = crate::testenv::isolated();
+        crate::testenv::set("LINES", "10");
+        assert!(!should_page(1000, false));
+        if !std::io::stdout().is_terminal() {
+            assert!(!should_page(1000, true));
+        }
+    }
+
+    #[test]
+    fn blank_prints_an_empty_line() {
+        let ((), text) = capture(|| {
+            let c = out();
+            c.print_plain("a");
+            c.blank();
+            c.print_plain("b");
+        });
+        assert_eq!(text, "a\n\nb\n");
     }
 }

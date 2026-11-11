@@ -17,7 +17,8 @@ use yaml_rust2::scanner::{Marker, TScalarStyle};
 use crate::error::{Error, Result};
 use crate::pystr;
 
-static NULL_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?:~|null|Null|NULL|)$").expect("regex"));
+static NULL_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^(?:~|null|Null|NULL|)$").expect("regex"));
 static BOOL_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^(?:true|True|TRUE|false|False|FALSE)$").expect("regex"));
 
@@ -36,7 +37,11 @@ struct Builder {
 
 fn tag_suffix(tag: &Option<Tag>) -> Option<&str> {
     let t = tag.as_ref()?;
-    if t.handle == "!!" || t.handle == "tag:yaml.org,2002:" { Some(t.suffix.as_str()) } else { None }
+    if t.handle == "!!" || t.handle == "tag:yaml.org,2002:" {
+        Some(t.suffix.as_str())
+    } else {
+        None
+    }
 }
 
 fn tag_text(tag: &Tag) -> String {
@@ -47,7 +52,11 @@ fn tag_text(tag: &Tag) -> String {
     }
 }
 
-fn resolve_scalar(text: String, style: TScalarStyle, tag: &Option<Tag>) -> std::result::Result<Value, String> {
+fn resolve_scalar(
+    text: String,
+    style: TScalarStyle,
+    tag: &Option<Tag>,
+) -> std::result::Result<Value, String> {
     if let Some(t) = tag {
         return match tag_suffix(tag) {
             Some("str") => Ok(Value::String(text)),
@@ -59,7 +68,10 @@ fn resolve_scalar(text: String, style: TScalarStyle, tag: &Option<Tag>) -> std::
             },
             Some("int") => {
                 let cleaned = text.replace('_', "");
-                cleaned.parse::<i64>().map(Value::from).map_err(|_| format!("invalid int value {text:?}"))
+                cleaned
+                    .parse::<i64>()
+                    .map(Value::from)
+                    .map_err(|_| format!("invalid int value {text:?}"))
             }
             Some("float") => {
                 let cleaned = text.replace('_', "").to_lowercase();
@@ -73,7 +85,10 @@ fn resolve_scalar(text: String, style: TScalarStyle, tag: &Option<Tag>) -> std::
                     .map(Value::Number)
                     .ok_or_else(|| format!("invalid float value {text:?}"))
             }
-            _ => Err(format!("could not determine a constructor for the tag '{}'", tag_text(t))),
+            _ => Err(format!(
+                "could not determine a constructor for the tag '{}'",
+                tag_text(t)
+            )),
         };
     }
     if matches!(style, TScalarStyle::Plain) {
@@ -126,7 +141,13 @@ impl MarkedEventReceiver for Builder {
         match ev {
             Event::Scalar(text, style, anchor, tag) => match resolve_scalar(text, style, &tag) {
                 Ok(v) => self.push_value(v, anchor),
-                Err(e) => self.error = Some(format!("{e} at line {} column {}", mark.line(), mark.col() + 1)),
+                Err(e) => {
+                    self.error = Some(format!(
+                        "{e} at line {} column {}",
+                        mark.line(),
+                        mark.col() + 1
+                    ))
+                }
             },
             Event::SequenceStart(anchor, _) => self.stack.push(Frame::Seq(Vec::new(), anchor)),
             Event::MappingStart(anchor, _) => self.stack.push(Frame::Map(Map::new(), None, anchor)),
@@ -155,16 +176,29 @@ pub fn loads(text: &str) -> Result<Value> {
     let mut parser = Parser::new_from_str(text);
     if let Err(e) = parser.load(&mut builder, true) {
         let m = e.marker();
-        let msg = format!("{} in \"<unicode string>\", line {}, column {}", e.info(), m.line(), m.col() + 1);
-        return Err(Error::value(format!("YAML error: {}", pystr::collapse_ws(&msg))));
+        let msg = format!(
+            "{} in \"<unicode string>\", line {}, column {}",
+            e.info(),
+            m.line(),
+            m.col() + 1
+        );
+        return Err(Error::value(format!(
+            "YAML error: {}",
+            pystr::collapse_ws(&msg)
+        )));
     }
     if let Some(e) = builder.error {
-        return Err(Error::value(format!("YAML error: {}", pystr::collapse_ws(&e))));
+        return Err(Error::value(format!(
+            "YAML error: {}",
+            pystr::collapse_ws(&e)
+        )));
     }
     match builder.docs.len() {
         0 => Ok(Value::Null),
         1 => Ok(builder.docs.pop().unwrap_or(Value::Null)),
-        _ => Err(Error::value("YAML error: expected a single document in the stream but found another document")),
+        _ => Err(Error::value(
+            "YAML error: expected a single document in the stream but found another document",
+        )),
     }
 }
 
@@ -175,12 +209,16 @@ pub fn load_file(path: &Path) -> Result<Value> {
 
 static PLAIN: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"^[^\s#:\-?\[\]{},&*!|>'"%@`][^#\n]*$"#).expect("regex"));
-static RESERVED: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^(?:~|null|Null|NULL|true|True|TRUE|false|False|FALSE)$").expect("regex"));
-static FLOW_PLAIN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[A-Za-z0-9_][A-Za-z0-9_.@/ +()-]*$").expect("regex"));
+static RESERVED: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^(?:~|null|Null|NULL|true|True|TRUE|false|False|FALSE)$").expect("regex")
+});
+static FLOW_PLAIN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[A-Za-z0-9_][A-Za-z0-9_.@/ +()-]*$").expect("regex"));
 
 fn json_str(s: &str) -> String {
-    fsv_py::Dumps::default().ensure_ascii(false).dump(&Value::String(s.to_string()))
+    fsv_py::Dumps::default()
+        .ensure_ascii(false)
+        .dump(&Value::String(s.to_string()))
 }
 
 /// One YAML scalar that reads back as the same value with [`loads`].
@@ -195,7 +233,12 @@ pub fn scalar(value: &Value) -> String {
 
 /// [`scalar`] for a string.
 pub fn scalar_str(s: &str) -> String {
-    if PLAIN.is_match(s) && !RESERVED.is_match(s) && s == pystr::strip(s) && !s.contains(": ") && !s.ends_with(':') {
+    if PLAIN.is_match(s)
+        && !RESERVED.is_match(s)
+        && s == pystr::strip(s)
+        && !s.contains(": ")
+        && !s.ends_with(':')
+    {
         s.to_string()
     } else {
         json_str(s)
@@ -212,7 +255,11 @@ pub fn flow_list(values: &[Value]) -> String {
     let items: Vec<String> = values
         .iter()
         .map(|v| match v {
-            Value::String(s) if !(FLOW_PLAIN.is_match(s) && s == pystr::strip(s) && !RESERVED.is_match(s)) => json_str(s),
+            Value::String(s)
+                if !(FLOW_PLAIN.is_match(s) && s == pystr::strip(s) && !RESERVED.is_match(s)) =>
+            {
+                json_str(s)
+            }
             other => scalar(other),
         })
         .collect();
@@ -226,7 +273,13 @@ pub fn block(text: &str, indent: usize) -> String {
     let lines: Vec<String> = normalized
         .trim_end_matches('\n')
         .split('\n')
-        .map(|ln| if ln.is_empty() { String::new() } else { format!("{pad}{ln}") })
+        .map(|ln| {
+            if ln.is_empty() {
+                String::new()
+            } else {
+                format!("{pad}{ln}")
+            }
+        })
         .collect();
     format!("|-\n{}", lines.join("\n"))
 }
@@ -242,16 +295,79 @@ mod tests {
             loads("a: No\nb: 22:30\nc: 2030-01-01\nd: true").unwrap(),
             json!({"a": "No", "b": "22:30", "c": "2030-01-01", "d": true})
         );
-        for v in ["No", "true", "a: b", "# x", "22:30", "Reports, Exports", "-5"] {
+        for v in [
+            "No",
+            "true",
+            "a: b",
+            "# x",
+            "22:30",
+            "Reports, Exports",
+            "-5",
+        ] {
             let v = json!(v);
-            assert_eq!(loads(&format!("k: {}", scalar(&v))).unwrap(), json!({"k": v}));
-            assert_eq!(loads(&format!("k: {}", flow_list(std::slice::from_ref(&v)))).unwrap(), json!({"k": [v]}));
+            assert_eq!(
+                loads(&format!("k: {}", scalar(&v))).unwrap(),
+                json!({"k": v})
+            );
+            assert_eq!(
+                loads(&format!("k: {}", flow_list(std::slice::from_ref(&v)))).unwrap(),
+                json!({"k": [v]})
+            );
         }
     }
 
     #[test]
     fn errors_are_one_line_value_errors() {
         let e = loads("a: [1\nb: 2").unwrap_err();
-        assert!(matches!(&e, Error::Value(m) if m.starts_with("YAML error: ") && !m.contains('\n')), "{e}");
+        assert!(
+            matches!(&e, Error::Value(m) if m.starts_with("YAML error: ") && !m.contains('\n')),
+            "{e}"
+        );
+    }
+
+    #[test]
+    fn key_quotes_only_when_needed() {
+        for (k, want) in [
+            ("Status", "Status"),
+            ("Type: Normal", "\"Type: Normal\""),
+            ("# hash", "\"# hash\""),
+            ("a#b", "\"a#b\""),
+            ("true", "\"true\""),
+            ("", "\"\""),
+            (" lead", "\" lead\""),
+            ("x:", "\"x:\""),
+            ("Reports, Exports", "Reports, Exports"),
+            ("-x", "\"-x\""),
+            ("1", "1"),
+            ("é ok", "é ok"),
+        ] {
+            assert_eq!(key(k), want, "{k:?}");
+        }
+    }
+
+    #[test]
+    fn block_literal_indent() {
+        assert_eq!(block("a\nb", 2), "|-\n  a\n  b");
+        assert_eq!(block("line\r\n\r\nnext\n\n", 4), "|-\n    line\n\n    next");
+        assert_eq!(block("", 2), "|-\n");
+        assert_eq!(block("one", 0), "|-\none");
+    }
+
+    #[test]
+    fn load_file_reads_and_reports_one_line_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("a.yaml");
+        std::fs::write(&p, "a: No\nb: [1, x]\nc:\n").unwrap();
+        assert_eq!(
+            load_file(&p).unwrap(),
+            json!({"a": "No", "b": ["1", "x"], "c": null})
+        );
+        std::fs::write(&p, "a: [1\n").unwrap();
+        match load_file(&p) {
+            Err(Error::Value(m)) => {
+                assert!(m.starts_with("YAML error: ") && !m.contains('\n'), "{m}")
+            }
+            other => panic!("{other:?}"),
+        }
     }
 }

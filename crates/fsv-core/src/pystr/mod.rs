@@ -43,7 +43,8 @@ pub fn is_digit_char(c: char) -> bool {
     if c.is_ascii_digit() {
         return true;
     }
-    if matches!(c, '\u{b2}' | '\u{b3}' | '\u{b9}' | '\u{2070}' | '\u{2074}'..='\u{2079}' | '\u{2080}'..='\u{2089}') {
+    if matches!(c, '\u{b2}' | '\u{b3}' | '\u{b9}' | '\u{2070}' | '\u{2074}'..='\u{2079}' | '\u{2080}'..='\u{2089}')
+    {
         return true;
     }
     !c.is_ascii() && decimal_value(c).is_some()
@@ -62,14 +63,19 @@ pub fn decimal_value(c: char) -> Option<u32> {
     // Every Nd block is a contiguous run of ten code points starting at a
     // code point whose value is 0; these are the zero digits.
     const ZEROS: &[u32] = &[
-        0x660, 0x6F0, 0x7C0, 0x966, 0x9E6, 0xA66, 0xAE6, 0xB66, 0xBE6, 0xC66, 0xCE6, 0xD66, 0xDE6, 0xE50, 0xED0, 0xF20,
-        0x1040, 0x1090, 0x17E0, 0x1810, 0x1946, 0x19D0, 0x1A80, 0x1A90, 0x1B50, 0x1BB0, 0x1C40, 0x1C50, 0xA620, 0xA8D0,
-        0xA900, 0xA9D0, 0xA9F0, 0xAA50, 0xABF0, 0xFF10, 0x104A0, 0x10D30, 0x11066, 0x110F0, 0x11136, 0x111D0, 0x112F0,
-        0x11450, 0x114D0, 0x11650, 0x116C0, 0x11730, 0x118E0, 0x11950, 0x11C50, 0x11D50, 0x11DA0, 0x11F50, 0x16A60,
-        0x16AC0, 0x16B50, 0x1D7CE, 0x1D7D8, 0x1D7E2, 0x1D7EC, 0x1D7F6, 0x1E140, 0x1E2F0, 0x1E4F0, 0x1E950, 0x1FBF0,
+        0x660, 0x6F0, 0x7C0, 0x966, 0x9E6, 0xA66, 0xAE6, 0xB66, 0xBE6, 0xC66, 0xCE6, 0xD66, 0xDE6,
+        0xE50, 0xED0, 0xF20, 0x1040, 0x1090, 0x17E0, 0x1810, 0x1946, 0x19D0, 0x1A80, 0x1A90,
+        0x1B50, 0x1BB0, 0x1C40, 0x1C50, 0xA620, 0xA8D0, 0xA900, 0xA9D0, 0xA9F0, 0xAA50, 0xABF0,
+        0xFF10, 0x104A0, 0x10D30, 0x11066, 0x110F0, 0x11136, 0x111D0, 0x112F0, 0x11450, 0x114D0,
+        0x11650, 0x116C0, 0x11730, 0x118E0, 0x11950, 0x11C50, 0x11D50, 0x11DA0, 0x11F50, 0x16A60,
+        0x16AC0, 0x16B50, 0x1D7CE, 0x1D7D8, 0x1D7E2, 0x1D7EC, 0x1D7F6, 0x1E140, 0x1E2F0, 0x1E4F0,
+        0x1E950, 0x1FBF0,
     ];
     let cp = c as u32;
-    ZEROS.iter().find(|&&z| cp >= z && cp < z + 10).map(|z| cp - z)
+    ZEROS
+        .iter()
+        .find(|&&z| cp >= z && cp < z + 10)
+        .map(|z| cp - z)
 }
 
 /// `int(s)` for a string of `\d` characters (no sign); `None` on overflow.
@@ -90,7 +96,11 @@ pub fn casefold(s: &str) -> String {
 /// Python's `round(x)` (ties to even).
 pub fn round_half_even(x: f64) -> f64 {
     let r = x.round();
-    if (x - x.trunc()).abs() == 0.5 { 2.0 * (x / 2.0).round() } else { r }
+    if (x - x.trunc()).abs() == 0.5 {
+        2.0 * (x / 2.0).round()
+    } else {
+        r
+    }
 }
 
 /// `format(x, "g")`.
@@ -102,7 +112,11 @@ pub fn format_g(x: f64) -> String {
         return if x > 0.0 { "inf".into() } else { "-inf".into() };
     }
     if x == 0.0 {
-        return if x.is_sign_negative() { "-0".into() } else { "0".into() };
+        return if x.is_sign_negative() {
+            "-0".into()
+        } else {
+            "0".into()
+        };
     }
     let sci = format!("{:.5e}", x);
     let (mant, exp) = sci.split_once('e').unwrap_or((&sci, "0"));
@@ -117,7 +131,11 @@ pub fn format_g(x: f64) -> String {
 }
 
 fn trim_fraction(s: &str) -> &str {
-    if s.contains('.') { s.trim_end_matches('0').trim_end_matches('.') } else { s }
+    if s.contains('.') {
+        s.trim_end_matches('0').trim_end_matches('.')
+    } else {
+        s
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -140,7 +158,10 @@ pub fn html_escape(s: &str, quote: bool) -> String {
 }
 
 fn html5_lookup(name: &str) -> Option<&'static str> {
-    entities::HTML5.binary_search_by(|(k, _)| (*k).cmp(name)).ok().map(|i| entities::HTML5[i].1)
+    entities::HTML5
+        .binary_search_by(|(k, _)| (*k).cmp(name))
+        .ok()
+        .map(|i| entities::HTML5[i].1)
 }
 
 /// `html.unescape(s)` (full HTML5 entity table, numeric reference fix-ups).
@@ -172,9 +193,19 @@ pub fn html_unescape(s: &str) -> Cow<'_, str> {
 fn charref_len(s: &str) -> Option<usize> {
     let b = s.as_bytes();
     if b.first() == Some(&b'#') {
-        let (start, hex) = if matches!(b.get(1), Some(b'x' | b'X')) { (2, true) } else { (1, false) };
+        let (start, hex) = if matches!(b.get(1), Some(b'x' | b'X')) {
+            (2, true)
+        } else {
+            (1, false)
+        };
         let mut i = start;
-        while i < b.len() && (if hex { b[i].is_ascii_hexdigit() } else { b[i].is_ascii_digit() }) {
+        while i < b.len()
+            && (if hex {
+                b[i].is_ascii_hexdigit()
+            } else {
+                b[i].is_ascii_digit()
+            })
+        {
             i += 1;
         }
         if i == start {
@@ -211,10 +242,10 @@ fn replace_charref(s: &str) -> String {
         };
         let digits = digits.trim_end_matches(';');
         let n = u64::from_str_radix(digits, radix).unwrap_or(u64::MAX);
-        if let Ok(n32) = u32::try_from(n) {
-            if let Ok(i) = entities::INVALID_CHARREFS.binary_search_by(|(k, _)| k.cmp(&n32)) {
-                return entities::INVALID_CHARREFS[i].1.to_string();
-            }
+        if let Ok(n32) = u32::try_from(n)
+            && let Ok(i) = entities::INVALID_CHARREFS.binary_search_by(|(k, _)| k.cmp(&n32))
+        {
+            return entities::INVALID_CHARREFS[i].1.to_string();
         }
         if (0xD800..=0xDFFF).contains(&n) || n > 0x10FFFF {
             return "\u{FFFD}".into();
@@ -223,12 +254,18 @@ fn replace_charref(s: &str) -> String {
         if entities::INVALID_CODEPOINTS.binary_search(&n32).is_ok() {
             return String::new();
         }
-        return char::from_u32(n32).map(String::from).unwrap_or_else(|| "\u{FFFD}".into());
+        return char::from_u32(n32)
+            .map(String::from)
+            .unwrap_or_else(|| "\u{FFFD}".into());
     }
     if let Some(v) = html5_lookup(s) {
         return v.to_string();
     }
-    let idx: Vec<usize> = s.char_indices().map(|(i, _)| i).chain(std::iter::once(s.len())).collect();
+    let idx: Vec<usize> = s
+        .char_indices()
+        .map(|(i, _)| i)
+        .chain(std::iter::once(s.len()))
+        .collect();
     // Longest prefix of at least two characters that is a known entity.
     for x in (2..idx.len() - 1).rev() {
         let prefix = &s[..idx[x]];
@@ -259,7 +296,11 @@ pub fn quote(s: &str, safe: &str) -> String {
 
 /// `urllib.parse.quote_plus(s)` (safe="").
 pub fn quote_plus(s: &str) -> String {
-    if s.contains(' ') { quote(s, " ").replace(' ', "+") } else { quote(s, "") }
+    if s.contains(' ') {
+        quote(s, " ").replace(' ', "+")
+    } else {
+        quote(s, "")
+    }
 }
 
 /// `urllib.parse.urlencode(pairs)`.
@@ -282,7 +323,11 @@ pub fn unquote(s: &str) -> String {
     let mut i = 0;
     let mut lit_start = 0;
     while i < b.len() {
-        if b[i] == b'%' && i + 2 < b.len() && b[i + 1].is_ascii_hexdigit() && b[i + 2].is_ascii_hexdigit() {
+        if b[i] == b'%'
+            && i + 2 < b.len()
+            && b[i + 1].is_ascii_hexdigit()
+            && b[i + 2].is_ascii_hexdigit()
+        {
             if lit_start < i {
                 out.push_str(&String::from_utf8_lossy(&pending));
                 pending.clear();
@@ -317,7 +362,10 @@ pub fn parse_qsl(qs: &str, keep_blank: bool) -> Vec<(String, String)> {
             None => continue,
         };
         if !value.is_empty() || keep_blank {
-            out.push((unquote(&name.replace('+', " ")), unquote(&value.replace('+', " "))));
+            out.push((
+                unquote(&name.replace('+', " ")),
+                unquote(&value.replace('+', " ")),
+            ));
         }
     }
     out
@@ -347,26 +395,38 @@ pub struct SplitUrl {
 impl SplitUrl {
     /// `.hostname`: netloc without userinfo/port, lowercased.
     pub fn hostname(&self) -> Option<String> {
-        let host = self.netloc.rsplit_once('@').map_or(self.netloc.as_str(), |(_, h)| h);
+        let host = self
+            .netloc
+            .rsplit_once('@')
+            .map_or(self.netloc.as_str(), |(_, h)| h);
         let host = if let Some(rest) = host.strip_prefix('[') {
             rest.split_once(']').map_or(rest, |(h, _)| h)
         } else {
             host.split_once(':').map_or(host, |(h, _)| h)
         };
-        if host.is_empty() { None } else { Some(host.to_lowercase()) }
+        if host.is_empty() {
+            None
+        } else {
+            Some(host.to_lowercase())
+        }
     }
 }
 
 /// `urllib.parse.urlsplit(url)`; `Err` carries Python's ValueError text.
 pub fn urlsplit(url: &str) -> Result<SplitUrl, String> {
-    let cleaned: String = url.chars().filter(|c| !matches!(c, '\t' | '\r' | '\n')).collect();
+    let cleaned: String = url
+        .chars()
+        .filter(|c| !matches!(c, '\t' | '\r' | '\n'))
+        .collect();
     let mut rest: &str = cleaned.trim_start_matches(|c: char| c <= ' ');
     let mut out = SplitUrl::default();
     if let Some(i) = rest.find(':') {
         let first = rest.chars().next();
         if i > 0
             && first.is_some_and(|c| c.is_ascii_alphabetic())
-            && rest[..i].chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '.'))
+            && rest[..i]
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '.'))
         {
             out.scheme = rest[..i].to_ascii_lowercase();
             rest = &rest[i + 1..];
@@ -413,7 +473,10 @@ mod tests {
     #[test]
     fn unescape_matches_python() {
         assert_eq!(html_unescape("a&#43;b&amp;c"), "a+b&c");
-        assert_eq!(html_unescape("&amp &ampx &notit; &#x80; &#0; &bogus;"), "& &x ¬it; \u{20ac} \u{fffd} &bogus;");
+        assert_eq!(
+            html_unescape("&amp &ampx &notit; &#x80; &#0; &bogus;"),
+            "& &x ¬it; \u{20ac} \u{fffd} &bogus;"
+        );
         assert_eq!(html_unescape("&#xD800;&#1114112;&#11;"), "\u{fffd}\u{fffd}");
     }
 
@@ -431,19 +494,25 @@ mod tests {
     fn quoting() {
         assert_eq!(quote("a b/é", "-._~,/:@"), "a%20b/%C3%A9");
         assert_eq!(urlencode(&[("q", "a b+c")]), "q=a+b%2Bc");
-        assert_eq!(parse_qsl("a=1&b&c=&d=%C3%A9+x", true), vec![
-            ("a".into(), "1".into()),
-            ("b".into(), "".into()),
-            ("c".into(), "".into()),
-            ("d".into(), "é x".into())
-        ]);
+        assert_eq!(
+            parse_qsl("a=1&b&c=&d=%C3%A9+x", true),
+            vec![
+                ("a".into(), "1".into()),
+                ("b".into(), "".into()),
+                ("c".into(), "".into()),
+                ("d".into(), "é x".into())
+            ]
+        );
         assert_eq!(unquote("%E2%82%ACx%zz%41"), "€x%zzA");
     }
 
     #[test]
     fn split() {
         let u = urlsplit("https://ACME.com:8/a/b?x=1#f").unwrap();
-        assert_eq!((u.scheme.as_str(), u.netloc.as_str(), u.path.as_str()), ("https", "ACME.com:8", "/a/b"));
+        assert_eq!(
+            (u.scheme.as_str(), u.netloc.as_str(), u.path.as_str()),
+            ("https", "ACME.com:8", "/a/b")
+        );
         assert_eq!((u.query.as_str(), u.fragment.as_str()), ("x=1", "f"));
         assert_eq!(urlsplit("search/y").unwrap().path, "search/y");
     }

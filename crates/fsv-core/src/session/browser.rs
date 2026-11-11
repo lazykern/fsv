@@ -19,7 +19,14 @@ pub fn browser_executable() -> Option<PathBuf> {
     if let Some(env) = std::env::var_os("FSV_BROWSER").filter(|v| !v.is_empty()) {
         candidates.push(PathBuf::from(env));
     }
-    for name in ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome", "msedge"] {
+    for name in [
+        "google-chrome",
+        "google-chrome-stable",
+        "chromium",
+        "chromium-browser",
+        "chrome",
+        "msedge",
+    ] {
         if let Ok(p) = which::which(name) {
             candidates.push(p);
         }
@@ -36,11 +43,23 @@ pub fn browser_executable() -> Option<PathBuf> {
         ("ProgramFiles", r"Google\Chrome\Application\chrome.exe"),
         ("ProgramFiles(x86)", r"Google\Chrome\Application\chrome.exe"),
         ("LOCALAPPDATA", r"Google\Chrome\Application\chrome.exe"),
-        ("ProgramFiles(x86)", r"Microsoft\Edge\Application\msedge.exe"),
+        (
+            "ProgramFiles(x86)",
+            r"Microsoft\Edge\Application\msedge.exe",
+        ),
         ("ProgramFiles", r"Microsoft\Edge\Application\msedge.exe"),
-        ("ProgramFiles", r"BraveSoftware\Brave-Browser\Application\brave.exe"),
-        ("ProgramFiles(x86)", r"BraveSoftware\Brave-Browser\Application\brave.exe"),
-        ("LOCALAPPDATA", r"BraveSoftware\Brave-Browser\Application\brave.exe"),
+        (
+            "ProgramFiles",
+            r"BraveSoftware\Brave-Browser\Application\brave.exe",
+        ),
+        (
+            "ProgramFiles(x86)",
+            r"BraveSoftware\Brave-Browser\Application\brave.exe",
+        ),
+        (
+            "LOCALAPPDATA",
+            r"BraveSoftware\Brave-Browser\Application\brave.exe",
+        ),
     ];
     for (var, rel) in windows {
         if let Some(base) = std::env::var_os(var).filter(|v| !v.is_empty()) {
@@ -78,14 +97,18 @@ impl BrowserOps for SystemBrowser {
     fn devtools_port(&mut self, profile_dir: &Path) -> Result<u16> {
         let port_file = profile_dir.join("DevToolsActivePort");
         for _ in 0..100 {
-            if let Some(child) = self.child.as_mut() {
-                if matches!(child.try_wait(), Ok(Some(_))) {
-                    return Err(Error::session("browser exited before DevTools started"));
-                }
+            if let Some(child) = self.child.as_mut()
+                && matches!(child.try_wait(), Ok(Some(_)))
+            {
+                return Err(Error::session("browser exited before DevTools started"));
             }
             if let Ok(text) = std::fs::read_to_string(&port_file) {
                 // The file can be observed half-written; retry until the first line parses.
-                if let Some(port) = text.lines().next().and_then(|l| l.trim().parse::<u16>().ok()) {
+                if let Some(port) = text
+                    .lines()
+                    .next()
+                    .and_then(|l| l.trim().parse::<u16>().ok())
+                {
                     return Ok(port);
                 }
             }
@@ -103,7 +126,9 @@ impl BrowserOps for SystemBrowser {
     }
 
     fn shutdown(&mut self) {
-        let Some(mut child) = self.child.take() else { return };
+        let Some(mut child) = self.child.take() else {
+            return;
+        };
         #[cfg(unix)]
         {
             // SAFETY: plain signal to our own child process.
@@ -127,13 +152,23 @@ fn http_json(url: &str) -> Result<Value> {
         .timeout(Duration::from_secs(2))
         .build()
         .map_err(|e| Error::other(e.to_string()))?;
-    let r = client.get(url).send().map_err(|e| Error::other(format!("<urlopen error {e}>")))?;
+    let r = client
+        .get(url)
+        .send()
+        .map_err(|e| Error::other(format!("<urlopen error {e}>")))?;
     let text = r.text().map_err(|e| Error::other(e.to_string()))?;
     Ok(serde_json::from_str(&text)?)
 }
 
 fn page_ws_url(port: u16, domain: &str) -> Result<String> {
-    let targets = http_json(&format!("http://127.0.0.1:{port}/json/list"))?;
+    page_target(
+        &http_json(&format!("http://127.0.0.1:{port}/json/list"))?,
+        domain,
+    )
+}
+
+/// The DevTools websocket URL of the first page showing `domain`, else of the first page.
+fn page_target(targets: &Value, domain: &str) -> Result<String> {
     let Value::Array(targets) = targets else {
         return Err(Error::session("browser DevTools target list was invalid"));
     };
@@ -141,12 +176,15 @@ fn page_ws_url(port: u16, domain: &str) -> Result<String> {
         .iter()
         .filter(|t| {
             t.get("type").and_then(Value::as_str) == Some("page")
-                && t.get("webSocketDebuggerUrl").is_some_and(crate::value::truthy)
+                && t.get("webSocketDebuggerUrl")
+                    .is_some_and(crate::value::truthy)
         })
         .collect();
     let target = pages
         .iter()
-        .find(|t| fsv_py::py_str(t.get("url").unwrap_or(&Value::String(String::new()))).contains(domain))
+        .find(|t| {
+            fsv_py::py_str(t.get("url").unwrap_or(&Value::String(String::new()))).contains(domain)
+        })
         .or(pages.first())
         .ok_or_else(|| Error::session("browser page target not found"))?;
     Ok(fsv_py::py_str(&target["webSocketDebuggerUrl"]))
@@ -166,12 +204,17 @@ fn cdp_call(ws_url: &str, method: &str, params: Value) -> Result<Value> {
     let (mut ws, _) = tungstenite::client(ws_url, stream)
         .map_err(|_| Error::session("browser DevTools websocket handshake failed"))?;
     let msg = fsv_py::Dumps::default().dump(&json!({"id": 1, "method": method, "params": params}));
-    ws.send(tungstenite::Message::text(msg)).map_err(|_| Error::session("browser DevTools websocket closed"))?;
+    ws.send(tungstenite::Message::text(msg))
+        .map_err(|_| Error::session("browser DevTools websocket closed"))?;
     loop {
-        let frame = ws.read().map_err(|_| Error::session("browser DevTools websocket closed"))?;
+        let frame = ws
+            .read()
+            .map_err(|_| Error::session("browser DevTools websocket closed"))?;
         let text = match frame {
             tungstenite::Message::Text(t) => t.to_string(),
-            tungstenite::Message::Close(_) => return Err(Error::session("browser DevTools websocket closed")),
+            tungstenite::Message::Close(_) => {
+                return Err(Error::session("browser DevTools websocket closed"));
+            }
             _ => continue,
         };
         let msg: Value = serde_json::from_str(&text)?;
@@ -192,20 +235,32 @@ fn cdp_call(ws_url: &str, method: &str, params: Value) -> Result<Value> {
 /// Cookies of the page target via `Network.getCookies` (fallback `Network.getAllCookies`).
 pub fn direct_browser_cookies(port: u16, domain: &str) -> Result<Cookies> {
     let ws_url = page_ws_url(port, domain)?;
-    let data = match cdp_call(&ws_url, "Network.getCookies", json!({"urls": [format!("https://{domain}/")]})) {
+    let data = match cdp_call(
+        &ws_url,
+        "Network.getCookies",
+        json!({"urls": [format!("https://{domain}/")]}),
+    ) {
         Ok(d) => d,
         Err(Error::Session(_)) => cdp_call(&ws_url, "Network.getAllCookies", json!({}))?,
         Err(e) => return Err(e),
     };
+    cookies_from_cdp(&data)
+}
+
+/// `{name: value}` of the string-valued, named entries of a CDP cookie list.
+fn cookies_from_cdp(data: &Value) -> Result<Cookies> {
     let Some(Value::Array(items)) = data.get("cookies") else {
-        return Err(Error::session("browser cookie output did not contain a cookie list"));
+        return Err(Error::session(
+            "browser cookie output did not contain a cookie list",
+        ));
     };
     let mut out = Cookies::new();
     for item in items {
-        if let (Some(Value::String(name)), Some(Value::String(value))) = (item.get("name"), item.get("value")) {
-            if !name.is_empty() {
-                out.insert(name.clone(), value.clone());
-            }
+        if let (Some(Value::String(name)), Some(Value::String(value))) =
+            (item.get("name"), item.get("value"))
+            && !name.is_empty()
+        {
+            out.insert(name.clone(), value.clone());
         }
     }
     Ok(out)
@@ -213,6 +268,7 @@ pub fn direct_browser_cookies(port: u16, domain: &str) -> Result<Cookies> {
 
 /// Open an isolated browser and poll its cookies until the session is complete.
 pub fn login_browser() -> Result<Cookies> {
+    config::require_domain()?;
     let exe = browser_executable().ok_or_else(|| {
         Error::session(
             "browser login requires Chrome, Chromium, Edge, or Brave; set FSV_BROWSER=/path/to/browser, or use `--header`",
@@ -226,15 +282,20 @@ pub fn login_browser_with(ops: &mut dyn BrowserOps, exe: &Path) -> Result<Cookie
     let domain = config::require_domain()?;
     let url = format!("https://{domain}/");
     let timeout: u64 = match std::env::var("FSV_BROWSER_LOGIN_TIMEOUT") {
-        Ok(v) => crate::pystr::strip(&v)
-            .parse()
-            .map_err(|_| Error::value(format!("invalid literal for int() with base 10: {}", fsv_py::py_repr_str(&v))))?,
+        Ok(v) => crate::pystr::strip(&v).parse().map_err(|_| {
+            Error::value(format!(
+                "invalid literal for int() with base 10: {}",
+                fsv_py::py_repr_str(&v)
+            ))
+        })?,
         Err(_) => 600,
     };
     let deadline = Instant::now() + Duration::from_secs(timeout);
     let mut last_error = String::new();
     eprintln!("Opening browser for {url}");
-    eprintln!("Complete SSO/MFA in that window. fsv will check cookies every 2s. Press Ctrl-C to cancel.");
+    eprintln!(
+        "Complete SSO/MFA in that window. fsv will check cookies every 2s. Press Ctrl-C to cancel."
+    );
     let profile = tempfile::Builder::new().prefix("fsv-browser-").tempdir()?;
     let args = vec![
         format!("--user-data-dir={}", profile.path().display()),
@@ -261,8 +322,227 @@ pub fn login_browser_with(ops: &mut dyn BrowserOps, exe: &Path) -> Result<Cookie
                 }
             }
         }
-        Err(Error::session(format!("browser login timed out after {timeout}s")))
+        Err(Error::session(format!(
+            "browser login timed out after {timeout}s"
+        )))
     })();
     ops.shutdown();
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testenv::{self, isolated};
+
+    #[test]
+    fn browser_executable_prefers_existing_fsv_browser() {
+        let env = isolated();
+        let exe = env.root().join("br");
+        std::fs::write(&exe, "").unwrap();
+        testenv::set("FSV_BROWSER", &exe);
+        assert_eq!(browser_executable(), Some(exe));
+        let missing = env.root().join("nope");
+        testenv::set("FSV_BROWSER", &missing);
+        assert_ne!(
+            browser_executable(),
+            Some(missing),
+            "a missing FSV_BROWSER is skipped"
+        );
+    }
+
+    #[test]
+    fn devtools_port_reads_first_line() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(
+            dir.path().join("DevToolsActivePort"),
+            "9222\n/devtools/browser/x\n",
+        )
+        .unwrap();
+        assert_eq!(
+            SystemBrowser::default().devtools_port(dir.path()).unwrap(),
+            9222
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn devtools_port_fails_when_browser_exits() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut b = SystemBrowser::default();
+        b.launch(Path::new("/usr/bin/true"), &[]).unwrap();
+        assert_eq!(
+            b.devtools_port(dir.path()).unwrap_err().to_string(),
+            "browser exited before DevTools started"
+        );
+        b.shutdown();
+        assert!(b.child.is_none());
+    }
+
+    #[test]
+    fn page_target_selection() {
+        let d = "acme.freshservice.com";
+        let pick = |v: Value| page_target(&v, d).map_err(|e| e.to_string());
+        assert_eq!(
+            pick(json!([
+                {"type": "page", "url": "https://other/", "webSocketDebuggerUrl": "ws://a"},
+                {"type": "page", "url": "https://acme.freshservice.com/a", "webSocketDebuggerUrl": "ws://b"},
+            ])),
+            Ok("ws://b".into())
+        );
+        assert_eq!(
+            pick(json!([
+                {"type": "background_page", "url": "https://acme.freshservice.com", "webSocketDebuggerUrl": "ws://x"},
+                {"type": "page", "url": "https://other", "webSocketDebuggerUrl": "ws://first"},
+            ])),
+            Ok("ws://first".into())
+        );
+        assert_eq!(
+            pick(
+                json!([{"type": "page", "url": "https://acme.freshservice.com", "webSocketDebuggerUrl": ""}])
+            ),
+            Err("browser page target not found".into())
+        );
+        assert_eq!(
+            pick(json!({"x": 1})),
+            Err("browser DevTools target list was invalid".into())
+        );
+        assert_eq!(pick(json!([])), Err("browser page target not found".into()));
+        assert_eq!(
+            pick(json!(["s", {"type": "page", "webSocketDebuggerUrl": 5}])),
+            Ok("5".into())
+        );
+    }
+
+    #[test]
+    fn cdp_cookie_list() {
+        let data = json!({"cookies": [
+            {"name": "a", "value": "1"}, {"name": "", "value": "2"}, {"name": "b", "value": 3}, "x", {"name": "c", "value": ""},
+        ]});
+        let got = cookies_from_cdp(&data).unwrap();
+        assert_eq!(
+            got.into_iter().collect::<Vec<_>>(),
+            [("a".into(), "1".into()), ("c".into(), String::new())]
+        );
+        assert_eq!(
+            cookies_from_cdp(&json!({"cookies": "x"}))
+                .unwrap_err()
+                .to_string(),
+            "browser cookie output did not contain a cookie list"
+        );
+    }
+
+    #[derive(Default)]
+    struct Fake {
+        launched: Vec<String>,
+        rounds: Vec<Cookies>,
+        sleeps: Vec<Duration>,
+        shutdown: bool,
+    }
+
+    impl BrowserOps for Fake {
+        fn launch(&mut self, _exe: &Path, args: &[String]) -> Result<()> {
+            self.launched = args.to_vec();
+            Ok(())
+        }
+        fn devtools_port(&mut self, _profile_dir: &Path) -> Result<u16> {
+            Ok(9)
+        }
+        fn cookies(&mut self, port: u16, domain: &str) -> Result<Cookies> {
+            assert_eq!((port, domain), (9, "acme.freshservice.com"));
+            Ok(if self.rounds.len() > 1 {
+                self.rounds.remove(0)
+            } else {
+                self.rounds[0].clone()
+            })
+        }
+        fn sleep(&mut self, d: Duration) {
+            self.sleeps.push(d);
+        }
+        fn shutdown(&mut self) {
+            self.shutdown = true;
+        }
+    }
+
+    fn cookies(pairs: &[(&str, &str)]) -> Cookies {
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
+    }
+
+    #[test]
+    fn login_browser_polls_until_session_is_complete() {
+        let _env = isolated().with_domain("acme.freshservice.com");
+        let full = cookies(&[
+            ("_x_m", "1"),
+            ("_x_d", "2"),
+            ("_x_w", "3"),
+            ("fw-session-id", "4"),
+        ]);
+        let mut fake = Fake {
+            rounds: vec![cookies(&[("_x_m", "1")]), full.clone()],
+            ..Fake::default()
+        };
+        assert_eq!(
+            login_browser_with(&mut fake, Path::new("/x/chrome")).unwrap(),
+            full
+        );
+        assert_eq!(fake.sleeps, [Duration::from_secs(2)]);
+        assert!(fake.shutdown);
+        assert!(
+            fake.launched[0].starts_with("--user-data-dir=")
+                && fake.launched[0].contains("fsv-browser-")
+        );
+        assert_eq!(
+            fake.launched[1..],
+            [
+                "--remote-debugging-port=0",
+                "--no-first-run",
+                "--no-default-browser-check",
+                "--new-window",
+                "https://acme.freshservice.com/"
+            ]
+        );
+    }
+
+    #[test]
+    fn login_browser_timeout() {
+        let _env = isolated().with_domain("acme.freshservice.com");
+        testenv::set("FSV_BROWSER_LOGIN_TIMEOUT", "0");
+        let mut fake = Fake {
+            rounds: vec![Cookies::new()],
+            ..Fake::default()
+        };
+        assert_eq!(
+            login_browser_with(&mut fake, Path::new("/x"))
+                .unwrap_err()
+                .to_string(),
+            "browser login timed out after 0s"
+        );
+        assert!(fake.shutdown);
+        testenv::set("FSV_BROWSER_LOGIN_TIMEOUT", "abc");
+        let e = login_browser_with(&mut fake, Path::new("/x")).unwrap_err();
+        assert_eq!(
+            e.to_string(),
+            "invalid literal for int() with base 10: 'abc'"
+        );
+        assert_eq!(e.exit_code(), 2);
+    }
+
+    #[test]
+    fn login_browser_without_domain() {
+        let _env = isolated();
+        crate::testenv::set("FSV_BROWSER", "/nonexistent/browser");
+        let e = login_browser().unwrap_err().to_string();
+        assert!(e.starts_with("no Freshservice domain"), "{e}");
+        let mut fake = Fake::default();
+        assert!(
+            login_browser_with(&mut fake, Path::new("/x"))
+                .unwrap_err()
+                .to_string()
+                .starts_with("no Freshservice domain")
+        );
+        assert!(fake.launched.is_empty());
+    }
 }

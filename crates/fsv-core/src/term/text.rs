@@ -46,7 +46,12 @@ pub enum Overflow {
 /// `(minimum, maximum)` widths (longest word, longest line) of plain text.
 pub fn measure(plain: &str) -> (usize, usize) {
     let max = plain.lines().map(cell_len).max().unwrap_or(0);
-    let min = plain.split(is_space).filter(|w| !w.is_empty()).map(cell_len).max().unwrap_or(max);
+    let min = plain
+        .split(is_space)
+        .filter(|w| !w.is_empty())
+        .map(cell_len)
+        .max()
+        .unwrap_or(max);
     (min, max)
 }
 
@@ -116,7 +121,10 @@ fn divide_line(chars: &[char], width: usize, fold: bool) -> Vec<usize> {
         let end = i;
         pos = end;
         let word = &chars[start..end];
-        let word_len: usize = chars[start..word_end_nonspace].iter().map(|c| char_width(*c)).sum();
+        let word_len: usize = chars[start..word_end_nonspace]
+            .iter()
+            .map(|c| char_width(*c))
+            .sum();
         let full_len: usize = word.iter().map(|c| char_width(*c)).sum();
         if width.saturating_sub(cell_offset) >= word_len && width >= cell_offset {
             cell_offset += full_len;
@@ -178,7 +186,14 @@ fn rstrip(line: &mut Line) {
 }
 
 /// Wrap styled text to `width` cells, each output line padded to `width`.
-pub fn wrap(text: &Text, base: Style, width: usize, justify: Justify, overflow: Overflow, no_wrap: bool) -> Vec<Line> {
+pub fn wrap(
+    text: &Text,
+    base: Style,
+    width: usize,
+    justify: Justify,
+    overflow: Overflow,
+    no_wrap: bool,
+) -> Vec<Line> {
     let styles = text.char_styles(base);
     let chars: Vec<char> = text.plain.chars().collect();
     let mut out = Vec::new();
@@ -192,7 +207,12 @@ pub fn wrap(text: &Text, base: Style, width: usize, justify: Justify, overflow: 
     }
     paragraphs.push((start, chars.len()));
     for (a, b) in paragraphs {
-        let para: Line = chars[a..b].iter().copied().map(expand_tab).zip(styles[a..b].iter().copied()).collect();
+        let para: Line = chars[a..b]
+            .iter()
+            .copied()
+            .map(expand_tab)
+            .zip(styles[a..b].iter().copied())
+            .collect();
         let pieces: Vec<Line> = if no_wrap {
             vec![para]
         } else {
@@ -225,7 +245,8 @@ pub fn wrap(text: &Text, base: Style, width: usize, justify: Justify, overflow: 
                     rstrip(&mut line);
                     truncate(&mut line, width, overflow, false, base);
                     let len = line_cells(&line);
-                    let mut padded: Line = std::iter::repeat_n((' ', base), width.saturating_sub(len)).collect();
+                    let mut padded: Line =
+                        std::iter::repeat_n((' ', base), width.saturating_sub(len)).collect();
                     padded.extend(line);
                     line = padded;
                 }
@@ -286,19 +307,50 @@ mod tests {
     use super::*;
 
     fn plain(lines: &[Line]) -> Vec<String> {
-        lines.iter().map(|l| l.iter().map(|(c, _)| *c).collect()).collect()
+        lines
+            .iter()
+            .map(|l| l.iter().map(|(c, _)| *c).collect())
+            .collect()
     }
 
     #[test]
     fn wraps_words_and_pads() {
         let t = Text::plain("hello brave new world");
-        let l = wrap(&t, Style::default(), 11, Justify::Left, Overflow::Ellipsis, false);
+        let l = wrap(
+            &t,
+            Style::default(),
+            11,
+            Justify::Left,
+            Overflow::Ellipsis,
+            false,
+        );
         assert_eq!(plain(&l), vec!["hello brave", "new world  "]);
-        let l = wrap(&Text::plain("abcdefghij"), Style::default(), 4, Justify::Left, Overflow::Fold, false);
+        let l = wrap(
+            &Text::plain("abcdefghij"),
+            Style::default(),
+            4,
+            Justify::Left,
+            Overflow::Fold,
+            false,
+        );
         assert_eq!(plain(&l), vec!["abcd", "efgh", "ij  "]);
-        let l = wrap(&Text::plain("abcdefghij"), Style::default(), 4, Justify::Left, Overflow::Ellipsis, false);
+        let l = wrap(
+            &Text::plain("abcdefghij"),
+            Style::default(),
+            4,
+            Justify::Left,
+            Overflow::Ellipsis,
+            false,
+        );
         assert_eq!(plain(&l), vec!["abc…"]);
-        let l = wrap(&Text::plain("ab"), Style::default(), 6, Justify::Center, Overflow::Ellipsis, false);
+        let l = wrap(
+            &Text::plain("ab"),
+            Style::default(),
+            6,
+            Justify::Center,
+            Overflow::Ellipsis,
+            false,
+        );
         assert_eq!(plain(&l), vec!["  ab  "]);
     }
 }

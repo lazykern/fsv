@@ -1,6 +1,8 @@
 //! fsv infrastructure: config, session store, HTTP client, journal, cache,
 //! YAML, terminal output.
 
+#![allow(clippy::result_large_err)]
+
 pub mod cache;
 pub mod client;
 pub mod config;
@@ -20,7 +22,10 @@ pub mod term;
 pub mod value;
 pub mod yaml;
 
+#[cfg(test)]
+mod testenv;
+
 pub use client::{Client, get_client};
+pub use config::Paths;
 pub use ctx::{Ctx, Flags, Tenant};
 pub use error::{ApiError, Error, Result};
-pub use config::Paths;

@@ -73,7 +73,10 @@ pub fn prompt_int(text: &str, default: Option<i64>, show_default: bool) -> Resul
         let cleaned = crate::pystr::strip(&value).replace('_', "");
         match cleaned.parse::<i64>() {
             Ok(n) => return Ok(n),
-            Err(_) => echo(&format!("Error: {} is not a valid integer.", fsv_py::py_repr_str(&value))),
+            Err(_) => echo(&format!(
+                "Error: {} is not a valid integer.",
+                fsv_py::py_repr_str(&value)
+            )),
         }
     }
 }

@@ -91,9 +91,12 @@ pub fn lookup(name: &str) -> Option<&'static Resource> {
 
 /// Accept `INC-123`, `SR-123`, `CHN-123`, `PRB-123`, or bare `123`.
 pub fn parse_id(s: &str, resource: &Resource) -> Result<i64> {
-    static ID: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)^(?:([A-Z]+)-)?(\d+)\n?$").expect("regex"));
+    static ID: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"(?i)^(?:([A-Z]+)-)?(\d+)\n?$").expect("regex"));
     let s = crate::pystr::strip(s);
-    let caps = ID.captures(s).ok_or_else(|| Error::value(format!("invalid id: {s}")))?;
+    let caps = ID
+        .captures(s)
+        .ok_or_else(|| Error::value(format!("invalid id: {s}")))?;
     if let Some(prefix) = caps.get(1) {
         let prefix = prefix.as_str().to_uppercase();
         if !resource.display_prefixes.contains(&prefix.as_str()) {
@@ -113,6 +116,76 @@ pub fn format_id(item: &Value, resource: &Resource) -> String {
     if let Some(hid) = get(item, "human_display_id").filter(|v| truthy(v)) {
         return fsv_py::py_str(hid);
     }
-    let did = crate::value::first_truthy(item, &["display_id"]).or_else(|| get(item, "id")).unwrap_or(&Value::Null);
+    let did = crate::value::first_truthy(item, &["display_id"])
+        .or_else(|| get(item, "id"))
+        .unwrap_or(&Value::Null);
     format!("{}-{}", resource.display_prefixes[0], fsv_py::py_str(did))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn parse_id_accepts_prefixes_and_rejects_others() {
+        assert_eq!(parse_id("CHN-12", &CHANGES).unwrap(), 12);
+        assert_eq!(parse_id("chn-12", &CHANGES).unwrap(), 12);
+        assert_eq!(parse_id(" 42 ", &TICKETS).unwrap(), 42);
+        assert_eq!(parse_id("SR-7", &TICKETS).unwrap(), 7);
+        assert_eq!(parse_id("INC-7", &TICKETS).unwrap(), 7);
+        assert_eq!(parse_id("12\n", &CHANGES).unwrap(), 12);
+        assert_eq!(parse_id("CHN-007", &CHANGES).unwrap(), 7);
+        assert_eq!(parse_id("١٢", &CHANGES).unwrap(), 12);
+        for (s, msg) in [
+            ("PRB-1", "prefix PRB not valid for changes (expect CHN)"),
+            ("abc", "invalid id: abc"),
+            ("CHN-", "invalid id: CHN-"),
+        ] {
+            assert!(
+                matches!(parse_id(s, &CHANGES), Err(Error::Value(m)) if m == msg),
+                "{s}"
+            );
+        }
+    }
+
+    #[test]
+    fn format_id_fallbacks() {
+        assert_eq!(
+            format_id(&json!({"human_display_id": "SR-9"}), &TICKETS),
+            "SR-9"
+        );
+        assert_eq!(
+            format_id(&json!({"display_id": 12, "id": 99}), &CHANGES),
+            "CHN-12"
+        );
+        assert_eq!(
+            format_id(&json!({"display_id": 0, "id": 99}), &PROBLEMS),
+            "PRB-99"
+        );
+        assert_eq!(format_id(&json!({"id": 5}), &TICKETS), "INC-5");
+        assert_eq!(format_id(&json!({}), &CHANGES), "CHN-None");
+        assert_eq!(
+            format_id(
+                &json!({"human_display_id": "", "display_id": null, "id": 3}),
+                &PROBLEMS
+            ),
+            "PRB-3"
+        );
+    }
+
+    #[test]
+    fn portal_url_uses_configured_domain() {
+        let env = crate::testenv::isolated().with_domain("acme");
+        assert_eq!(CHANGES.portal_url(), "https:///a/changes");
+        let _env = env.with_domain("acme.freshservice.com");
+        assert_eq!(
+            CHANGES.portal_url(),
+            "https://acme.freshservice.com/a/changes"
+        );
+        assert_eq!(
+            TICKETS.portal_url(),
+            "https://acme.freshservice.com/a/tickets"
+        );
+    }
 }

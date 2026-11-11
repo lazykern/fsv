@@ -60,7 +60,10 @@ pub struct Column {
 
 impl Column {
     pub fn new(header: impl Into<String>) -> Self {
-        Column { header: header.into(), ..Column::default() }
+        Column {
+            header: header.into(),
+            ..Column::default()
+        }
     }
     pub fn style(mut self, style: impl Into<String>) -> Self {
         self.style = style.into();
@@ -120,8 +123,17 @@ impl Default for Table {
     }
 }
 
-fn ratio_reduce(total: usize, ratios: &[usize], maximums: &[usize], values: &[usize]) -> Vec<usize> {
-    let ratios: Vec<usize> = ratios.iter().zip(maximums).map(|(r, m)| if *m > 0 { *r } else { 0 }).collect();
+fn ratio_reduce(
+    total: usize,
+    ratios: &[usize],
+    maximums: &[usize],
+    values: &[usize],
+) -> Vec<usize> {
+    let ratios: Vec<usize> = ratios
+        .iter()
+        .zip(maximums)
+        .map(|(r, m)| if *m > 0 { *r } else { 0 })
+        .collect();
     let mut total_ratio: usize = ratios.iter().sum();
     if total_ratio == 0 {
         return values.to_vec();
@@ -130,7 +142,8 @@ fn ratio_reduce(total: usize, ratios: &[usize], maximums: &[usize], values: &[us
     let mut out = Vec::with_capacity(values.len());
     for ((ratio, maximum), value) in ratios.iter().zip(maximums).zip(values) {
         if *ratio > 0 && total_ratio > 0 {
-            let d = crate::pystr::round_half_even(*ratio as f64 * remaining / total_ratio as f64) as usize;
+            let d = crate::pystr::round_half_even(*ratio as f64 * remaining / total_ratio as f64)
+                as usize;
             let distributed = (*maximum).min(d);
             out.push(value.saturating_sub(distributed));
             remaining -= distributed as f64;
@@ -144,7 +157,11 @@ fn ratio_reduce(total: usize, ratios: &[usize], maximums: &[usize], values: &[us
 
 fn ratio_distribute(total: usize, ratios: &[usize], minimums: Option<&[usize]>) -> Vec<usize> {
     let ratios: Vec<usize> = match minimums {
-        Some(m) => ratios.iter().zip(m).map(|(r, mn)| if *mn > 0 { *r } else { 0 }).collect(),
+        Some(m) => ratios
+            .iter()
+            .zip(m)
+            .map(|(r, mn)| if *mn > 0 { *r } else { 0 })
+            .collect(),
         None => ratios.to_vec(),
     };
     let mut total_ratio: usize = ratios.iter().sum();
@@ -249,7 +266,12 @@ impl Table {
         let (mut min, mut max) = if cells.is_empty() {
             (1, max_width)
         } else {
-            cells.iter().map(|t| measure(&t.plain)).fold((0, 0), |(a, b), (mn, mx)| (a.max(mn + pad), b.max(mx + pad)))
+            cells
+                .iter()
+                .map(|t| measure(&t.plain))
+                .fold((0, 0), |(a, b), (mn, mx)| {
+                    (a.max(mn + pad), b.max(mx + pad))
+                })
         };
         max = max.min(max_width);
         min = min.min(max);
@@ -267,8 +289,13 @@ impl Table {
         if wrapable.iter().any(|w| *w) {
             while total > 0 && total > max_width {
                 let excess = total - max_width;
-                let max_column =
-                    widths.iter().zip(wrapable).filter(|(_, w)| **w).map(|(v, _)| *v).max().unwrap_or(0);
+                let max_column = widths
+                    .iter()
+                    .zip(wrapable)
+                    .filter(|(_, w)| **w)
+                    .map(|(v, _)| *v)
+                    .max()
+                    .unwrap_or(0);
                 let second = widths
                     .iter()
                     .zip(wrapable)
@@ -276,8 +303,11 @@ impl Table {
                     .max()
                     .unwrap_or(0);
                 let diff = max_column - second;
-                let ratios: Vec<usize> =
-                    widths.iter().zip(wrapable).map(|(v, w)| usize::from(*v == max_column && *w)).collect();
+                let ratios: Vec<usize> = widths
+                    .iter()
+                    .zip(wrapable)
+                    .map(|(v, w)| usize::from(*v == max_column && *w))
+                    .collect();
                 if ratios.iter().all(|r| *r == 0) || diff == 0 {
                     break;
                 }
@@ -291,13 +321,21 @@ impl Table {
 
     fn column_widths(&self, max_width: usize) -> Vec<usize> {
         let n = self.columns.len();
-        let ranges: Vec<(usize, usize)> = (0..n).map(|i| self.measure_column(i, max_width)).collect();
-        let mut widths: Vec<usize> = ranges.iter().map(|(_, mx)| if *mx == 0 { 1 } else { *mx }).collect();
+        let ranges: Vec<(usize, usize)> =
+            (0..n).map(|i| self.measure_column(i, max_width)).collect();
+        let mut widths: Vec<usize> = ranges
+            .iter()
+            .map(|(_, mx)| if *mx == 0 { 1 } else { *mx })
+            .collect();
         if self.expand {
             let ratios: Vec<usize> = self.columns.iter().filter_map(|c| c.ratio).collect();
             if ratios.iter().any(|r| *r > 0) {
-                let fixed: Vec<usize> =
-                    self.columns.iter().zip(&ranges).map(|(c, r)| if c.ratio.is_some() { 0 } else { r.1 }).collect();
+                let fixed: Vec<usize> = self
+                    .columns
+                    .iter()
+                    .zip(&ranges)
+                    .map(|(c, r)| if c.ratio.is_some() { 0 } else { r.1 })
+                    .collect();
                 let flex_min: Vec<usize> = (0..n)
                     .filter(|i| self.columns[*i].ratio.is_some())
                     .map(|i| {
@@ -317,7 +355,11 @@ impl Table {
         }
         let mut table_width: usize = widths.iter().sum();
         if table_width > max_width {
-            let wrapable: Vec<bool> = self.columns.iter().map(|c| c.width.is_none() && !c.no_wrap).collect();
+            let wrapable: Vec<bool> = self
+                .columns
+                .iter()
+                .map(|c| c.width.is_none() && !c.no_wrap)
+                .collect();
             widths = Self::collapse_widths(&widths, &wrapable, max_width);
             table_width = widths.iter().sum();
             if table_width > max_width {
@@ -352,8 +394,18 @@ impl Table {
         let mut out = Vec::new();
 
         if let Some(title) = self.title.as_deref().filter(|t| !t.is_empty()) {
-            let italic = Style { italic: Some(true), ..Style::default() };
-            for line in wrap(&render(title), italic, table_width, Justify::Center, Overflow::Fold, false) {
+            let italic = Style {
+                italic: Some(true),
+                ..Style::default()
+            };
+            for line in wrap(
+                &render(title),
+                italic,
+                table_width,
+                Justify::Center,
+                Overflow::Fold,
+                false,
+            ) {
                 out.push(to_ansi(&line, color));
             }
         }
@@ -379,13 +431,24 @@ impl Table {
             out.push(edge(&b.top));
         }
 
-        let header_style = Style { bold: Some(true), ..Style::default() };
+        let header_style = Style {
+            bold: Some(true),
+            ..Style::default()
+        };
         let mut all_rows: Vec<(bool, Vec<Text>)> = Vec::new();
         if self.show_header {
-            all_rows.push((true, self.columns.iter().map(|c| render(&c.header)).collect()));
+            all_rows.push((
+                true,
+                self.columns.iter().map(|c| render(&c.header)).collect(),
+            ));
         }
         for row in &self.rows {
-            all_rows.push((false, (0..self.columns.len()).map(|i| render(row.get(i).map_or("", String::as_str))).collect()));
+            all_rows.push((
+                false,
+                (0..self.columns.len())
+                    .map(|i| render(row.get(i).map_or("", String::as_str)))
+                    .collect(),
+            ));
         }
         let count = all_rows.len();
         for (index, (is_header, cells)) in all_rows.iter().enumerate() {
@@ -394,7 +457,11 @@ impl Table {
             let mut rendered: Vec<Vec<Line>> = Vec::new();
             for (i, cell) in cells.iter().enumerate() {
                 let col = &self.columns[i];
-                let base = if *is_header { header_style } else { Style::parse(&col.style) };
+                let base = if *is_header {
+                    header_style
+                } else {
+                    Style::parse(&col.style)
+                };
                 let (l, r) = self.padding(i);
                 let inner = widths[i].saturating_sub(l + r);
                 let lines = wrap(cell, base, inner, col.justify, col.overflow, col.no_wrap);
@@ -411,7 +478,11 @@ impl Table {
             }
             let height = rendered.iter().map(Vec::len).max().unwrap_or(1).max(1);
             for (i, lines) in rendered.iter_mut().enumerate() {
-                let base = if *is_header { header_style } else { Style::parse(&self.columns[i].style) };
+                let base = if *is_header {
+                    header_style
+                } else {
+                    Style::parse(&self.columns[i].style)
+                };
                 let blank: Line = std::iter::repeat_n((' ', base), widths[i]).collect();
                 while lines.len() < height {
                     if *is_header {
@@ -421,17 +492,25 @@ impl Table {
                     }
                 }
             }
-            let sides = bx.map(|b| if first { b.head } else if last { b.foot } else { b.mid });
+            let sides = bx.map(|b| {
+                if first {
+                    b.head
+                } else if last {
+                    b.foot
+                } else {
+                    b.mid
+                }
+            });
             for line_no in 0..height {
                 let mut s = String::new();
                 if let Some(sd) = sides {
                     s.push(sd[0]);
                 }
                 for (i, lines) in rendered.iter().enumerate() {
-                    if i > 0 {
-                        if let Some(sd) = sides {
-                            s.push(sd[2]);
-                        }
+                    if i > 0
+                        && let Some(sd) = sides
+                    {
+                        s.push(sd[2]);
                     }
                     s.push_str(&to_ansi(&lines[line_no], color));
                 }
@@ -485,7 +564,10 @@ mod tests {
         t.add_column(Column::new("").overflow(Overflow::Fold));
         t.add_row(["Subject", "x"]);
         t.add_row(["Priority", "High"]);
-        assert_eq!(t.render_lines(80, false), vec!["Subject   x   ", "Priority  High"]);
+        assert_eq!(
+            t.render_lines(80, false),
+            vec!["Subject   x   ", "Priority  High"]
+        );
     }
 
     #[test]
@@ -495,7 +577,10 @@ mod tests {
         t.add_column(Column::new("Subject"));
         t.add_row(["1", "aaaa bbbb cccc dddd"]);
         let lines = t.render_lines(20, false);
-        assert!(lines.iter().all(|l| super::super::text::cell_len(l) <= 20), "{lines:?}");
+        assert!(
+            lines.iter().all(|l| super::super::text::cell_len(l) <= 20),
+            "{lines:?}"
+        );
         assert!(lines.len() > 5);
     }
 }

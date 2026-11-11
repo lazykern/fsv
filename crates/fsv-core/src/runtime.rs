@@ -13,6 +13,7 @@ pub fn set_verbose(value: bool) {
     VERBOSE.store(value, Ordering::Relaxed);
 }
 
+/// `is_verbose`: whether `--verbose` is on.
 pub fn verbose() -> bool {
     VERBOSE.load(Ordering::Relaxed)
 }
@@ -35,4 +36,29 @@ pub fn set_command_path(path: Option<&str>) {
 
 pub fn command_path() -> Option<String> {
     COMMAND_PATH.read().ok().and_then(|g| g.clone())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn flags_round_trip() {
+        let _env = crate::testenv::isolated();
+        let (v, n, c) = (verbose(), no_input(), command_path());
+        set_verbose(true);
+        set_no_input(true);
+        set_command_path(Some("fsv changes create"));
+        assert!(verbose() && no_input());
+        assert_eq!(command_path().as_deref(), Some("fsv changes create"));
+        let ctx = crate::Ctx::from_process();
+        assert!(ctx.flags.verbose && ctx.flags.no_input);
+        set_verbose(false);
+        assert!(!verbose());
+        set_command_path(None);
+        assert_eq!(command_path(), None);
+        set_verbose(v);
+        set_no_input(n);
+        set_command_path(c.as_deref());
+    }
 }

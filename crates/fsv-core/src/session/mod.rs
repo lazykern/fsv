@@ -25,8 +25,13 @@ use indexmap::IndexMap;
 use rand::RngCore;
 use serde_json::{Value, json};
 
-pub use browser::{BrowserOps, SystemBrowser, browser_executable, login_browser, login_browser_with};
-pub use paste::{extract_cookie_from_input, login_interactive, parse_cookie_header, read_secret};
+pub use browser::{
+    BrowserOps, SystemBrowser, browser_executable, login_browser, login_browser_with,
+};
+pub use paste::{
+    extract_cookie_from_input, login_interactive, login_interactive_with, parse_cookie_header,
+    read_secret,
+};
 
 use crate::config::{self, PRIVATE_MODE, atomic_write_text, ensure_dirs};
 use crate::error::{Error, Result};
@@ -77,7 +82,9 @@ static SESSION_CACHE: Mutex<Option<(Backend, String)>> = Mutex::new(None);
 
 fn cache_get(backend: Backend) -> Option<String> {
     let g = SESSION_CACHE.lock().ok()?;
-    g.as_ref().filter(|(b, _)| *b == backend).map(|(_, p)| p.clone())
+    g.as_ref()
+        .filter(|(b, _)| *b == backend)
+        .map(|(_, p)| p.clone())
 }
 
 fn cache_set(value: Option<(Backend, String)>) {
@@ -96,7 +103,10 @@ fn store_pref_file() -> PathBuf {
 }
 
 fn now() -> f64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs_f64()).unwrap_or(0.0)
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs_f64())
+        .unwrap_or(0.0)
 }
 
 // ---------- backend selection ----------
@@ -104,10 +114,10 @@ fn now() -> f64 {
 /// Configured backend: the `store` file, else `file` when `session.json`
 /// exists, else `keychain` on macOS, else `file`.
 pub fn current_backend() -> Backend {
-    if let Ok(v) = std::fs::read_to_string(store_pref_file()) {
-        if let Some(b) = Backend::parse(crate::pystr::strip(&v)) {
-            return b;
-        }
+    if let Ok(v) = std::fs::read_to_string(store_pref_file())
+        && let Some(b) = Backend::parse(crate::pystr::strip(&v))
+    {
+        return b;
     }
     if config::session_file().exists() {
         return Backend::File;
@@ -134,13 +144,18 @@ pub fn keychain_available() -> bool {
 }
 
 /// Runs `security` with argv and optional stdin; returns `(exit code, stdout)`.
-pub(crate) type SecurityRunner<'a> = &'a mut dyn FnMut(&[&str], Option<&str>) -> std::io::Result<(i32, String)>;
+pub(crate) type SecurityRunner<'a> =
+    &'a mut dyn FnMut(&[&str], Option<&str>) -> std::io::Result<(i32, String)>;
 
 fn run_security(args: &[&str], input: Option<&str>) -> std::io::Result<(i32, String)> {
     use std::io::Write;
     let mut child = Command::new("security")
         .args(args)
-        .stdin(if input.is_some() { Stdio::piped() } else { Stdio::null() })
+        .stdin(if input.is_some() {
+            Stdio::piped()
+        } else {
+            Stdio::null()
+        })
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()?;
@@ -148,12 +163,18 @@ fn run_security(args: &[&str], input: Option<&str>) -> std::io::Result<(i32, Str
         stdin.write_all(text.as_bytes())?;
     }
     let out = child.wait_with_output()?;
-    Ok((out.status.code().unwrap_or(-1), String::from_utf8_lossy(&out.stdout).into_owned()))
+    Ok((
+        out.status.code().unwrap_or(-1),
+        String::from_utf8_lossy(&out.stdout).into_owned(),
+    ))
 }
 
 /// The `security -i` stdin line that stores `value` (base64, so no quoting).
 pub(crate) fn keychain_write_line(value: &str) -> String {
-    format!("add-generic-password -U -a {KEYCHAIN_ACCOUNT} -s {KEYCHAIN_SERVICE} -w {}\n", B64.encode(value.as_bytes()))
+    format!(
+        "add-generic-password -U -a {KEYCHAIN_ACCOUNT} -s {KEYCHAIN_SERVICE} -w {}\n",
+        B64.encode(value.as_bytes())
+    )
 }
 
 /// Store `value` without exposing it in argv (`security -i` reads the command from stdin).
@@ -177,16 +198,31 @@ pub fn keychain_decode(raw: &str) -> String {
     if raw.starts_with('{') {
         return raw.to_string();
     }
-    B64.decode(raw.as_bytes()).ok().and_then(|b| String::from_utf8(b).ok()).unwrap_or_else(|| raw.to_string())
+    B64.decode(raw.as_bytes())
+        .ok()
+        .and_then(|b| String::from_utf8(b).ok())
+        .unwrap_or_else(|| raw.to_string())
 }
 
 pub(crate) fn keychain_read_with(run: SecurityRunner<'_>) -> Result<String> {
     if !keychain_available() {
         return Err(Error::session("keychain backend is macOS only"));
     }
-    match run(&["find-generic-password", "-a", KEYCHAIN_ACCOUNT, "-s", KEYCHAIN_SERVICE, "-w"], None) {
+    match run(
+        &[
+            "find-generic-password",
+            "-a",
+            KEYCHAIN_ACCOUNT,
+            "-s",
+            KEYCHAIN_SERVICE,
+            "-w",
+        ],
+        None,
+    ) {
         Ok((0, out)) => Ok(keychain_decode(&out)),
-        _ => Err(Error::session("no session in Keychain; run `fsv auth login`")),
+        _ => Err(Error::session(
+            "no session in Keychain; run `fsv auth login`",
+        )),
     }
 }
 
@@ -196,7 +232,16 @@ fn keychain_read() -> Result<String> {
 
 fn keychain_delete() {
     if keychain_available() {
-        let _ = run_security(&["delete-generic-password", "-a", KEYCHAIN_ACCOUNT, "-s", KEYCHAIN_SERVICE], None);
+        let _ = run_security(
+            &[
+                "delete-generic-password",
+                "-a",
+                KEYCHAIN_ACCOUNT,
+                "-s",
+                KEYCHAIN_SERVICE,
+            ],
+            None,
+        );
     }
 }
 
@@ -212,15 +257,21 @@ pub struct KdfParams {
 
 impl Default for KdfParams {
     fn default() -> Self {
-        KdfParams { time_cost: 3, memory_cost: 65536, parallelism: 4 }
+        KdfParams {
+            time_cost: 3,
+            memory_cost: 65536,
+            parallelism: 4,
+        }
     }
 }
 
-fn derive_key(passphrase: &str, salt: &[u8], p: KdfParams) -> Result<[u8; 32]> {
+type Key = [u8; 32];
+
+fn derive_key(passphrase: &str, salt: &[u8], p: KdfParams) -> Result<Key> {
     let params = argon2::Params::new(p.memory_cost, p.time_cost, p.parallelism, Some(32))
         .map_err(|e| Error::session(format!("invalid encrypted session file ({e})")))?;
     let a = argon2::Argon2::new(argon2::Algorithm::Argon2id, argon2::Version::V0x13, params);
-    let mut key = [0u8; 32];
+    let mut key: Key = [0; 32];
     a.hash_password_into(passphrase.as_bytes(), salt, &mut key)
         .map_err(|e| Error::session(format!("invalid encrypted session file ({e})")))?;
     Ok(key)
@@ -250,7 +301,13 @@ pub fn argon_encrypt_with(raw: &str, passphrase: &str, domain: &str) -> Result<S
     let key = derive_key(passphrase, &salt, params)?;
     let cipher = Aes256Gcm::new_from_slice(&key).map_err(|e| Error::other(e.to_string()))?;
     let ct = cipher
-        .encrypt(Nonce::from_slice(&nonce), Payload { msg: raw.as_bytes(), aad: domain.as_bytes() })
+        .encrypt(
+            Nonce::from_slice(&nonce),
+            Payload {
+                msg: raw.as_bytes(),
+                aad: domain.as_bytes(),
+            },
+        )
         .map_err(|_| Error::other("encryption failed"))?;
     let doc = json!({
         "version": 1,
@@ -270,7 +327,11 @@ fn int_param(p: Option<&Value>, lo: i64, hi: i64) -> Option<u32> {
         Value::Bool(b) => i64::from(*b),
         v => crate::value::as_int(v)?,
     };
-    if (lo..=hi).contains(&v) { u32::try_from(v).ok() } else { None }
+    if (lo..=hi).contains(&v) {
+        u32::try_from(v).ok()
+    } else {
+        None
+    }
 }
 
 /// Validated KDF parameters of an argon envelope.
@@ -278,16 +339,25 @@ pub fn argon_params(raw: &str) -> Result<KdfParams> {
     let data: Value = serde_json::from_str(raw)?;
     let p = data.get("params").filter(|v| crate::value::truthy(v));
     let get = |k: &str, lo: i64, hi: i64| int_param(p.and_then(|p| p.get(k)), lo, hi);
-    let (Some(t), Some(m), Some(par)) = (get("time_cost", 1, 10), get("memory_cost", 8, 1 << 20), get("parallelism", 1, 16))
-    else {
-        return Err(Error::session("invalid encrypted session file (unreasonable KDF parameters)"));
+    let (Some(t), Some(m), Some(par)) = (
+        get("time_cost", 1, 10),
+        get("memory_cost", 8, 1 << 20),
+        get("parallelism", 1, 16),
+    ) else {
+        return Err(Error::session(
+            "invalid encrypted session file (unreasonable KDF parameters)",
+        ));
     };
     if data.get("backend").and_then(Value::as_str) != Some("argon")
         || data.get("kdf").and_then(Value::as_str) != Some("argon2id")
     {
         return Err(Error::session("invalid encrypted session file"));
     }
-    Ok(KdfParams { time_cost: t, memory_cost: m, parallelism: par })
+    Ok(KdfParams {
+        time_cost: t,
+        memory_cost: m,
+        parallelism: par,
+    })
 }
 
 /// Decrypt an argon envelope.
@@ -295,8 +365,12 @@ pub fn argon_decrypt_with(raw: &str, passphrase: &str, domain: &str) -> Result<S
     let params = argon_params(raw)?;
     let data: Value = serde_json::from_str(raw)?;
     let field = |k: &str| -> Result<Vec<u8>> {
-        let s = data.get(k).and_then(Value::as_str).ok_or_else(|| Error::session("invalid encrypted session file"))?;
-        B64.decode(s.as_bytes()).map_err(|_| Error::session("invalid encrypted session file"))
+        let s = data
+            .get(k)
+            .and_then(Value::as_str)
+            .ok_or_else(|| Error::session("invalid encrypted session file"))?;
+        B64.decode(s.as_bytes())
+            .map_err(|_| Error::session("invalid encrypted session file"))
     };
     let (salt, nonce, ct) = (field("salt")?, field("nonce")?, field("data")?);
     let key = derive_key(passphrase, &salt, params)?;
@@ -305,7 +379,13 @@ pub fn argon_decrypt_with(raw: &str, passphrase: &str, domain: &str) -> Result<S
         return Err(Error::session("wrong passphrase or corrupted session"));
     }
     let pt = cipher
-        .decrypt(Nonce::from_slice(&nonce), Payload { msg: &ct, aad: domain.as_bytes() })
+        .decrypt(
+            Nonce::from_slice(&nonce),
+            Payload {
+                msg: &ct,
+                aad: domain.as_bytes(),
+            },
+        )
         .map_err(|_| Error::session("wrong passphrase or corrupted session"))?;
     String::from_utf8(pt).map_err(|e| Error::value(e.to_string()))
 }
@@ -330,26 +410,46 @@ fn read_file_session(backend: Backend) -> Result<String> {
         return Err(Error::session("no session; run `fsv auth login`"));
     }
     let raw = std::fs::read_to_string(&file)?;
-    let payload = if backend == Backend::Argon { argon_decrypt(&raw)? } else { raw };
+    let payload = if backend == Backend::Argon {
+        argon_decrypt(&raw)?
+    } else {
+        raw
+    };
     cache_set(Some((backend, payload.clone())));
     Ok(payload)
 }
 
 fn read_payload(backend: Backend) -> Result<String> {
-    if backend == Backend::Keychain { keychain_read() } else { read_file_session(backend) }
+    if backend == Backend::Keychain {
+        keychain_read()
+    } else {
+        read_file_session(backend)
+    }
 }
 
 fn missing_list(cookies: &Cookies) -> Vec<&'static str> {
-    REQUIRED_COOKIES.iter().copied().filter(|c| !cookies.contains_key(*c)).collect()
+    REQUIRED_COOKIES
+        .iter()
+        .copied()
+        .filter(|c| !cookies.contains_key(*c))
+        .collect()
 }
 
 fn py_list(items: &[&str]) -> String {
-    fsv_py::py_repr(&Value::Array(items.iter().map(|s| Value::String((*s).to_string())).collect()))
+    fsv_py::py_repr(&Value::Array(
+        items
+            .iter()
+            .map(|s| Value::String((*s).to_string()))
+            .collect(),
+    ))
 }
 
 fn cookies_of(data: &Value) -> Cookies {
     match data.get("cookies") {
-        Some(Value::Object(m)) => m.iter().map(|(k, v)| (k.clone(), fsv_py::py_str(v))).collect(),
+        Some(Value::Object(m)) => m
+            .iter()
+            .map(|(k, v)| (k.clone(), fsv_py::py_str(v)))
+            .collect(),
         _ => Cookies::new(),
     }
 }
@@ -365,18 +465,28 @@ pub fn load_cookies() -> Result<Cookies> {
     let stored = data.get("domain");
     if stored.and_then(Value::as_str) != Some(domain.as_str()) {
         let shown = fsv_py::py_str(stored.unwrap_or(&Value::Null));
-        return Err(Error::session(format!("session is for {shown}, not {domain}; run `fsv auth login`")));
+        return Err(Error::session(format!(
+            "session is for {shown}, not {domain}; run `fsv auth login`"
+        )));
     }
     let cookies = cookies_of(&data);
     let missing = missing_list(&cookies);
     if !missing.is_empty() {
-        return Err(Error::session(format!("session missing cookies {}; run `fsv auth login`", py_list(&missing))));
+        return Err(Error::session(format!(
+            "session missing cookies {}; run `fsv auth login`",
+            py_list(&missing)
+        )));
     }
     Ok(cookies)
 }
 
 fn cookies_value(cookies: &Cookies) -> Value {
-    Value::Object(cookies.iter().map(|(k, v)| (k.clone(), Value::String(v.clone()))).collect())
+    Value::Object(
+        cookies
+            .iter()
+            .map(|(k, v)| (k.clone(), Value::String(v.clone())))
+            .collect(),
+    )
 }
 
 /// Save cookies for the configured domain; `None` keeps the current backend.
@@ -392,7 +502,11 @@ pub fn save_cookies(cookies: &Cookies, backend: Option<Backend>) -> Result<Backe
         let _ = std::fs::remove_file(config::session_file());
     } else {
         ensure_dirs()?;
-        let data = if backend == Backend::Argon { argon_encrypt(&payload)? } else { payload.clone() };
+        let data = if backend == Backend::Argon {
+            argon_encrypt(&payload)?
+        } else {
+            payload.clone()
+        };
         atomic_write_text(&config::session_file(), &data, PRIVATE_MODE)?;
         keychain_delete();
     }
@@ -410,7 +524,12 @@ pub fn update_cookie(name: &str, value: &str) {
     let run = || -> Result<()> {
         let raw = read_payload(backend)?;
         let mut data: Value = serde_json::from_str(&raw)?;
-        if data.get("cookies").and_then(|c| c.get(name)).and_then(Value::as_str) == Some(value) {
+        if data
+            .get("cookies")
+            .and_then(|c| c.get(name))
+            .and_then(Value::as_str)
+            == Some(value)
+        {
             return Ok(());
         }
         let cookies = data
@@ -440,14 +559,21 @@ pub fn logout() {
 
 /// `Cookie` header value for the stored session.
 pub fn cookie_header() -> Result<String> {
-    Ok(load_cookies()?.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join("; "))
+    Ok(load_cookies()?
+        .iter()
+        .map(|(k, v)| format!("{k}={v}"))
+        .collect::<Vec<_>>()
+        .join("; "))
 }
 
 /// Hours since the session was saved (`None` when unknown/no session).
 pub fn session_age_hours() -> Option<f64> {
     let raw = read_payload(current_backend()).ok()?;
     let data: Value = serde_json::from_str(&raw).ok()?;
-    let saved = data.get("saved_at").filter(|v| crate::value::truthy(v))?.as_f64()?;
+    let saved = data
+        .get("saved_at")
+        .filter(|v| crate::value::truthy(v))?
+        .as_f64()?;
     Some((now() - saved) / 3600.0)
 }
 
@@ -457,6 +583,12 @@ pub fn validate(cookies: &Cookies) -> Result<()> {
     if missing.is_empty() {
         Ok(())
     } else {
-        Err(Error::session(format!("missing required cookies: {}", py_list(&missing))))
+        Err(Error::session(format!(
+            "missing required cookies: {}",
+            py_list(&missing)
+        )))
     }
 }
+
+#[cfg(test)]
+mod tests;
