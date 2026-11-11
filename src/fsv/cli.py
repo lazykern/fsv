@@ -4356,6 +4356,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             tag: Optional[List[str]] = typer.Option(None, "--tag", help="tickets only: replace all tags with these values (repeatable)"),
             planned_start: Optional[str] = typer.Option(None, "--planned-start", help="tickets only: ISO date/time with explicit UTC offset"),
             planned_end: Optional[str] = typer.Option(None, "--planned-end", help="tickets only: ISO date/time with explicit UTC offset"),
+            reviewed: bool = typer.Option(False, "--reviewed", help="tickets only: evaluate --set and core flags as a hash-bound property plan"),
             expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full reviewed hash for ticket property update"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm status changes, reassignment and other notifying writes"),
@@ -4363,17 +4364,26 @@ def _make_subapp(res: Resource) -> typer.Typer:
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Update basic fields."""
-            if tag or planned_start is not None or planned_end is not None:
+            if reviewed or tag or planned_start is not None or planned_end is not None:
                 import json
                 from fsv.ticket_properties import PropertyError, build_plan, send
                 try:
                     if res != TICKETS:
                         raise PropertyError("--tag and planned dates are supported only for tickets")
-                    if status is not None or priority is not None or agent_id is not None or group_id is not None or set_:
-                        raise PropertyError("do not combine ticket properties with other update flags; review separate updates")
+                    answers = {}
+                    for expr in set_ or []:
+                        name, sep, value = expr.partition("=")
+                        if not sep or not name.strip() or name.strip() in answers:
+                            raise PropertyError("--set requires unique FIELD=VALUE answers")
+                        answers[name.strip()] = value
+                    for name, value in (("status", status), ("priority", priority), ("agent", agent_id), ("group", group_id)):
+                        if value is not None:
+                            if name in answers:
+                                raise PropertyError("duplicate property answer: " + name)
+                            answers[name] = value
                     c = _client()
                     plan = build_plan(c, id_, tags=list(tag) if tag else None,
-                                      planned_start=planned_start, planned_end=planned_end)
+                                      planned_start=planned_start, planned_end=planned_end, answers=answers)
                     if dry_run:
                         typer.echo(json.dumps({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
                         return
@@ -4395,7 +4405,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     raise typer.Exit(2) from None
                 return
             if expect_plan:
-                _err("--expect-plan is only supported with --tag, --planned-start or --planned-end")
+                _err("--expect-plan requires --reviewed, --tag, --planned-start or --planned-end")
             update_resource(res, id_, status, priority, agent_id, group_id, json_out, dry_run, yes, no_input, set_)
 
         _threads_key = "conversations" if not res.has_notes else "notes"

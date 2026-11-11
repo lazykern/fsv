@@ -9,8 +9,9 @@ from typing import Any
 from fsv import config, journal
 from fsv.change_tasks import _date
 from fsv.errors import APIError
-from fsv.formmeta import RULES_UNAVAILABLE_KEY, existing_from_record, load_meta
+from fsv.formmeta import ClientResolver, RULES_UNAVAILABLE_KEY, existing_from_record, is_status, load_meta
 from fsv.forms import FormState, build_br_validation_excludes
+from fsv.forms.payload import TICKET_KEYS, encode_value
 from fsv.resources import TICKETS, parse_id
 
 _ACTION = "ticket_properties"
@@ -37,6 +38,8 @@ class PropertyPlan:
     body_json: str
     before_json: str
     record_hash: str
+    answers_json: str = "{}"
+    metadata_hash: str = ""
 
     @property
     def payload(self) -> dict[str, Any]:
@@ -48,9 +51,11 @@ class PropertyPlan:
 
     @property
     def hash(self) -> str:
-        return journal.plan_hash({"tenant": self.tenant, "ticket_id": self.ticket_id,
-                                  "payload": self.payload, "before": self.before,
-                                  "record_hash": self.record_hash}) or ""
+        intent = {"tenant": self.tenant, "ticket_id": self.ticket_id,
+                  "payload": self.payload, "before": self.before, "record_hash": self.record_hash}
+        if self.metadata_hash:
+            intent["metadata_hash"] = self.metadata_hash
+        return journal.plan_hash(intent) or ""
 
     def review(self) -> dict[str, Any]:
         after = {k: v for k, v in self.payload.items() if k != "br_validation_excludes"}
@@ -60,7 +65,8 @@ class PropertyPlan:
 
 
 def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
-               planned_start: str | None = None, planned_end: str | None = None) -> PropertyPlan:
+               planned_start: str | None = None, planned_end: str | None = None,
+               answers: dict[str, Any] | None = None) -> PropertyPlan:
     cid = parse_id(str(ticket_id), TICKETS)
     if cid <= 0:
         raise ValueError("ticket ID must be positive")
@@ -77,8 +83,8 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
             if parsed is None:
                 raise ValueError("planned dates cannot be empty")
             body[key] = parsed
-    if not body:
-        raise ValueError("specify --tag, --planned-start or --planned-end")
+    if not body and not answers:
+        raise ValueError("specify --set, --tag, --planned-start or --planned-end")
     row = _record(c, cid)
     missing = [k for k in body if k not in row]
     if missing:
@@ -88,7 +94,40 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
         meta = load_meta(c, "ticket", "edit", fresh=True, module_id=cid)
         if meta.rules.get(RULES_UNAVAILABLE_KEY):
             raise PropertyError("ticket business rules are unavailable; use the web form")
-        state = FormState(meta.spec, meta.engine(), mode="edit", existing=existing_from_record(meta.spec, row))
+        state = FormState(meta.spec, meta.engine(), mode="edit", existing=existing_from_record(meta.spec, row),
+                          resolver=ClientResolver(c))
+        answered = set()
+        for name, value in (answers or {}).items():
+            field = meta.spec.field(name)
+            if field.api_name in answered:
+                raise PropertyError(f"{field.label}: duplicate property answer")
+            answered.add(field.api_name)
+            if not field.sent or field.synthetic or field.kind == "notice":
+                raise PropertyError(f"{field.label}: field is not writable")
+            state.set(field.api_name, value)
+        allowed = {"subject", "description", "requester_id", "group_id", "responder_id",
+                   "status", "priority", "urgency", "impact", "source", "category", "type"}
+        for name in answers or {}:
+            field = meta.spec.field(name)
+            value = state.get(field.api_name)
+            if field.api_name not in state.evaluated.visible:
+                raise PropertyError(f"{field.label}: answered field is hidden")
+            encoded = encode_value(meta.spec, field, value, state.evaluated.values)
+            if is_status(field):
+                choice = field.choice(value)
+                if choice is None or choice.label.casefold() in {"resolved", "closed"}:
+                    raise PropertyError("combined resolution/closure requirements are not proven; use the web form")
+            if field.is_custom:
+                body.setdefault("custom_fields", {})[field.api_name] = encoded
+            else:
+                key = "requester_id" if field.api_name == "requester" else TICKET_KEYS.get(field.api_name, field.api_name)
+                if key not in allowed:
+                    raise PropertyError(f"{field.label}: update wire is not proven")
+                body[key] = encoded
+        missing = [k for k in body if k not in row]
+        if missing:
+            raise PropertyError("ticket read did not include: " + ", ".join(missing))
+        before = {k: row[k] for k in body}
         for key, value in body.items():
             field = meta.spec.find(key)
             if field is not None:
@@ -104,7 +143,9 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
     except Exception:
         raise PropertyError("could not evaluate ticket edit form and rules; no update attempted") from None
     return PropertyPlan(cid, config.DOMAIN, json.dumps(body, sort_keys=True, ensure_ascii=False),
-                        json.dumps(before, sort_keys=True, ensure_ascii=False), journal.plan_hash(row) or "")
+                        json.dumps(before, sort_keys=True, ensure_ascii=False), journal.plan_hash(row) or "",
+                        json.dumps(answers or {}, sort_keys=True, ensure_ascii=False),
+                        meta.fingerprint.hash if answers else "")
 
 
 def send(plan: PropertyPlan, c: Any, *, reviewed_hash: str | None) -> dict[str, Any]:
@@ -117,7 +158,8 @@ def send(plan: PropertyPlan, c: Any, *, reviewed_hash: str | None) -> dict[str, 
         raise PropertyError("update was sent or its outcome is unknown; inspect the ticket and journal before retry")
     payload = plan.payload
     fresh = build_plan(c, plan.ticket_id, tags=payload.get("tags"),
-                       planned_start=payload.get("planned_start_date"), planned_end=payload.get("planned_end_date"))
+                       planned_start=payload.get("planned_start_date"), planned_end=payload.get("planned_end_date"),
+                       answers=json.loads(plan.answers_json))
     if fresh.hash != plan.hash:
         raise PropertyError("ticket or form changed since review; review again")
     try:
@@ -156,6 +198,8 @@ def send(plan: PropertyPlan, c: Any, *, reviewed_hash: str | None) -> dict[str, 
                     fields[key] = "matched" if datetime.fromisoformat(str(actual).replace("Z", "+00:00")) == datetime.fromisoformat(expected) else "mismatched"
                 except ValueError:
                     fields[key] = "mismatched"
+            elif key == "custom_fields" and isinstance(actual, dict):
+                fields[key] = "matched" if all(k in actual and actual[k] == v for k, v in expected.items()) else "mismatched"
             else:
                 fields[key] = "matched" if actual == expected else "mismatched"
         result["fields"] = fields

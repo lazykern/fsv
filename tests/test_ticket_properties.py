@@ -104,3 +104,59 @@ def test_cli_exact_hash_and_no_mixing(monkeypatch):
     assert r.exit_code == 0, r.output
     assert len(c.writes) == 1
     assert runner.invoke(cli.app, args + ["--status", "Open", "--dry-run"]).exit_code == 2
+
+
+def rich_metadata():
+    m = metadata()
+    m.form_fields["ticket_fields"].extend([
+        a._f("priority", "Priority", "default_priority", 4, choices=[{"id": 73, "value": "High"}]),
+        a._f("status", "Status", "default_status", 5, choices=[{"id": 81, "value": "Open"}, {"id": 91, "value": "Closed"}]),
+        a._f("cost_code", "Cost Code", "custom_text", 6),
+    ])
+    for index, field in enumerate(m.form_fields["ticket_fields"], 9000008001):
+        field["id"] = index
+    return m
+
+
+def test_full_properties_runtime_enums_and_custom_readback(monkeypatch):
+    monkeypatch.setattr(props, "load_meta", lambda *args, **kwargs: rich_metadata())
+    c = Client()
+    c.row.update(priority=1, status=81, custom_fields={"cost_code": "old", "other": "retained"})
+    plan = props.build_plan(c, "SR-123", answers={"Subject": "Globex", "Priority": "High", "Cost Code": "new"})
+    assert plan.payload["priority"] == 73
+    assert plan.payload["subject"] == "Globex"
+    assert plan.payload["custom_fields"] == {"cost_code": "new"}
+    result = props.send(plan, c, reviewed_hash=plan.hash)
+    assert result["verified"] and len(c.writes) == 1
+
+
+def test_reviewed_cli_uses_full_hash_and_refuses_unproven_closure(monkeypatch):
+    monkeypatch.setattr(props, "load_meta", lambda *args, **kwargs: rich_metadata())
+    c = Client()
+    c.row.update(status=81, priority=1, custom_fields={"cost_code": "old"})
+    monkeypatch.setattr(cli, "_client", lambda: c)
+    runner = CliRunner()
+    args = ["tickets", "update", "INC-123", "--reviewed", "--set", "Subject=Acme", "--priority", "High"]
+    review = runner.invoke(cli.app, args + ["--dry-run"])
+    assert review.exit_code == 0, review.output
+    digest = json.loads(review.output)["plan_hash"]
+    assert runner.invoke(cli.app, args + ["--yes"]).exit_code == 2
+    sent = runner.invoke(cli.app, args + ["--yes", "--expect-plan", digest])
+    assert sent.exit_code == 0, sent.output
+    assert len(c.writes) == 1
+    with pytest.raises(props.PropertyError, match="closure"):
+        props.build_plan(c, 123, answers={"Status": "Closed"})
+
+
+def test_legacy_property_hash_identity_is_unchanged():
+    c = Client()
+    plan = props.build_plan(c, 123, tags=["Acme"])
+    expected = journal.plan_hash({"tenant": plan.tenant, "ticket_id": plan.ticket_id,
+                                  "payload": plan.payload, "before": plan.before,
+                                  "record_hash": plan.record_hash})
+    assert plan.hash == expected
+    journal.record_plan("started", expected, action="ticket_properties", target=123)
+    with pytest.raises(props.PropertyError, match="outcome is unknown"):
+        props.send(plan, c, reviewed_hash=plan.hash)
+    assert not c.writes
+
