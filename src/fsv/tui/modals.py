@@ -8,7 +8,7 @@ from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical
+from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, OptionList, Static, TextArea
 from textual.widgets.option_list import Option
@@ -232,4 +232,62 @@ class ViewPickerScreen(ModalScreen["Any | None"]):
         self.dismiss(self._shown[event.option_index])
 
     def action_cancel(self) -> None:
+        self.dismiss(None)
+
+
+class ChoiceScreen(ViewPickerScreen):
+    """Searchable, identity-preserving picker for action targets."""
+
+    def __init__(self, choices: list[tuple[Any, str]], title: str) -> None:
+        from types import SimpleNamespace
+        super().__init__([SimpleNamespace(value=value, name=label) for value, label in choices], title=title)
+
+    def dismiss(self, result=None):
+        return super().dismiss(result.value if result is not None else None)
+
+
+class ValueScreen(ModalScreen["str | None"]):
+    BINDINGS = [Binding("escape", "cancel", "Cancel")]
+
+    def __init__(self, title: str, value: str = "") -> None:
+        super().__init__()
+        self._title, self._value = title, value
+
+    def compose(self) -> ComposeResult:
+        with Vertical(classes="dialog"):
+            yield Static(Text(self._title), classes="dialog-title")
+            yield Input(value=self._value, id="action-value")
+            yield Static("Enter review · Esc cancel", classes="dialog-hint")
+
+    def on_mount(self) -> None:
+        self.query_one(Input).focus()
+
+    @on(Input.Submitted)
+    def submitted(self, event: Input.Submitted) -> None:
+        event.stop()
+        if event.value.strip():
+            self.dismiss(event.value.strip())
+
+    def action_cancel(self) -> None:
+        self.dismiss(None)
+
+
+class FailureScreen(ModalScreen[None]):
+    """Persistent, scrollable outcome; no send/retry control."""
+
+    BINDINGS = [Binding("escape", "close", "Close")]
+
+    def __init__(self, message: str) -> None:
+        super().__init__()
+        self.message = message
+
+    def compose(self) -> ComposeResult:
+        with Vertical(classes="dialog"):
+            yield Static("Write failed — inspect before retrying", classes="dialog-title")
+            with VerticalScroll():
+                yield Static(Text(self.message), id="failure-body")
+            yield Button("Close", id="close")
+
+    @on(Button.Pressed, "#close")
+    def action_close(self) -> None:
         self.dismiss(None)

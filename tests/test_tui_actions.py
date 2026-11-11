@@ -84,7 +84,7 @@ def test_ticket_nonterminal_status_has_no_warning(calls):
     assert closed.risks and "Closed" in closed.risks[0]
 
 
-def test_private_note_sends_without_second_confirm(calls):
+def test_private_note_requires_confirm(calls):
     async def go():
         app = _app(CHANGES)
         async with app.run_test() as pilot:
@@ -93,6 +93,9 @@ def test_private_note_sends_without_second_confirm(calls):
             app.screen.query_one(TextArea).text = "hello"
             await pilot.pause()
             await pilot.click("#submit")
+            assert isinstance(app.screen, ConfirmScreen)
+            assert calls == []
+            await pilot.click("#confirm")
             await app.workers.wait_for_complete()
             await pilot.pause()
     run(go())

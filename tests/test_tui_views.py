@@ -143,6 +143,8 @@ def test_new_and_edit_hooks_without_form_ui(monkeypatch):
             await settle(app, pilot)
             await pilot.press("N")
             await pilot.pause()
+            await pilot.press("enter")  # explicit Change choice
+            await pilot.pause()
             assert any("form UI not available" in str(n.message) for n in app._notifications)
     run(go())
 
@@ -178,6 +180,7 @@ def test_edit_hook_pushes_the_form_screen(monkeypatch):
             assert isinstance(app.screen, FakeScreen), [str(n.message) for n in app._notifications]
             app.pop_screen()
             await pilot.press("N")
+            await pilot.press("enter")  # explicit Change choice
             await settle(app, pilot, 2)
             assert isinstance(app.screen, FakeScreen)
     run(go())

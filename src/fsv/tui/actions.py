@@ -79,11 +79,10 @@ def status_plan(resource: Resource, item: dict[str, Any], schema: dict[str, Any]
 
 
 def note_plan(resource: Resource, public: bool, reply: bool) -> ConfirmPlan | None:
-    """None when no confirmation is needed (private note)."""
+    """Every write, including private notes, needs explicit review."""
     risks = safety.reply_risks() if reply else safety.note_risks(public)
-    if not risks:
-        return None
-    return ConfirmPlan("Confirm reply" if reply else "Confirm public note", list(risks), risks)
+    title = "Confirm reply" if reply else "Confirm public note" if public else "Confirm private note"
+    return ConfirmPlan(title, list(risks) or ["Add a private note to this record."], risks)
 
 
 def apply_status(resource: Resource, item_id: int, new_id: Any) -> dict[str, Any]:
@@ -109,3 +108,26 @@ def clean_error(exc: BaseException) -> str:
         text = " ".join(str(body).split())
         return f"Server rejected the request (HTTP {exc.status}): {text[:200]}"
     return " ".join(str(exc).split())[:240] or type(exc).__name__
+
+
+def failure_detail(exc: BaseException) -> str:
+    lines = [str(exc) or type(exc).__name__]
+    for attr in ("created_id", "steps", "uploaded", "error"):
+        value = getattr(exc, attr, None)
+        if value is not None:
+            lines.append(f"{attr}: {value}")
+    lines.append("No automatic retry. Check the exact record and journal before another send; outcome may be unknown.")
+    return "\n".join(lines)
+
+
+def form_result(mode: str, out: Any) -> tuple[str, str]:
+    label, prefix = {"incident": ("Incident", "INC"), "sr": ("Service Request", "SR")}.get(mode, ("Change", "CHN"))
+    root = out if isinstance(out, dict) else {}
+    result = root.get("result") or {}
+    rows = [root.get("created"), result.get("ticket") if isinstance(result, dict) else None,
+            result.get("change") if isinstance(result, dict) else None, result, root]
+    rows = [r for r in rows if isinstance(r, dict)]
+    human = next((r["human_display_id"] for r in rows if r.get("human_display_id")), None)
+    display = next((r["display_id"] for r in rows if r.get("display_id") is not None), None)
+    internal = next((r["id"] for r in rows if r.get("id") is not None), None)
+    return label, str(human or (f"{prefix}-{display}" if display is not None else f"ID {internal}" if internal is not None else "(ID unavailable; inspect journal)"))

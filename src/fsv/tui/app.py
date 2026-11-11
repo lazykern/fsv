@@ -26,7 +26,8 @@ from fsv.query import build_query_hash_from_schema
 from fsv.render import strip_html
 from fsv.resources import CHANGES, PROBLEMS, TICKETS, Resource, format_id
 from fsv.tui import actions
-from fsv.tui.modals import ConfirmScreen, NoteScreen, StatusScreen, ViewPickerScreen
+from fsv.tui.modals import (ChoiceScreen, ConfirmScreen, FailureScreen, NoteScreen,
+                            StatusScreen, ValueScreen, ViewPickerScreen)
 
 
 ALL_RESOURCES = (TICKETS, CHANGES, PROBLEMS)
@@ -185,6 +186,8 @@ class FsvApp(App):
         self._list_fr = 11
         self._detail_fr = 9
         self._page = 1
+        self._list_epoch = 0
+        self._write_failure: str | None = None
         self._per_page = 100
         self._has_more = False
         self._loading_more = False
@@ -273,6 +276,21 @@ class FsvApp(App):
 
     @work(thread=True, exclusive=True, group="list")
     def _load_list(self, append: bool = False) -> None:
+        epoch, entity = self._list_epoch, self.entity
+        requested_page = self._page + 1 if append else 1
+        try:
+            self._fetch_list(append, epoch, entity, requested_page)
+        except Exception as exc:  # noqa: BLE001 - retain loaded rows for retry
+            self.call_from_thread(self._list_failed, epoch, entity, str(exc))
+
+    def _list_failed(self, epoch: int, entity: str, message: str) -> None:
+        if (epoch, entity) != (self._list_epoch, self.entity):
+            return
+        self._loading_more = False
+        self.notify(message, title="List load failed; reload or retry", severity="error")
+        self._render_status()
+
+    def _fetch_list(self, append: bool, epoch: int, entity: str, requested_page: int) -> None:
         c = get_client()
         for res in ALL_RESOURCES:
             if res.name not in self._schemas:
@@ -286,7 +304,7 @@ class FsvApp(App):
             self._me = V.current_user(c)
             self._tz = V.user_tz(self._me)
 
-        res = _resource_for_entity(self.entity)
+        res = _resource_for_entity(entity)
         if res.name not in self._views:
             views, _miss = V.load_views(c, res)
             self._views[res.name] = views
@@ -299,7 +317,7 @@ class FsvApp(App):
                 sch = self._schemas.get(res.name, {"fields": []})
                 query_hash = build_query_hash_from_schema(c, res, sch, self._active_filters)
             except ValueError as exc:
-                self.call_from_thread(self._set_filter_error, str(exc))
+                self.call_from_thread(self._list_failed, epoch, entity, str(exc))
                 return
         view = None if self._active_filters else self._view.get(res.name)
         order_by, order_type = "created_at", "desc"
@@ -309,22 +327,39 @@ class FsvApp(App):
                 order_by, order_type = settings["order_by"], settings.get("order_type") or "desc"
         self._list_sort = order_by
         items, data = service.list_page(
-            res, client=c, page=self._page, per_page=self._per_page, query_hash=query_hash,
+            res, client=c, page=requested_page, per_page=self._per_page, query_hash=query_hash,
             filter_name=view.id if view is not None else None, order_by=order_by, order_type=order_type,
         )
-        total, _more = V.list_meta(data, items, self._page, self._per_page)
-        self._list_total = total
+        total, more = V.list_meta(data, items, requested_page, self._per_page)
+        self.call_from_thread(self._accept_list, epoch, entity, requested_page, items, total, more, append)
 
-        self.call_from_thread(self._populate_list, items, total if total is not None else len(items), append)
+    def _accept_list(self, epoch, entity, page, items, total, more, append) -> None:
+        if (epoch, entity) != (self._list_epoch, self.entity) or self._search_mode:
+            return
+        if append and page != self._page + 1:
+            return
+        self._page = page
+        self._list_total = total
+        lower_bound = len(self._items) + len(items) if append else len(items)
+        self._populate_list(items, total if total is not None else lower_bound, append, has_more=more)
 
     def _list_columns(self, res: Resource) -> list[Any]:
         return V.list_columns(res, self._schemas.get(res.name, {"fields": []}), self._headers.get(res.name))
 
-    def _populate_list(self, items: list[dict], total: int, append: bool = False) -> None:
+    def _populate_list(self, items: list[dict], total: int, append: bool = False,
+                       has_more: bool | None = None) -> None:
         self._loading_more = False
         self._total = total
 
-        self._has_more = len(items) == self._per_page
+        self._has_more = has_more if has_more is not None else len(items) == self._per_page
+        seen = {self._item_key(row, row.get("_resource", TICKETS)) for row in self._items} if append else set()
+        unique = []
+        for row in items:
+            key = self._item_key(row, row.get("_resource", TICKETS))
+            if key not in seen:
+                seen.add(key)
+                unique.append(row)
+        items = unique
 
         table = self.query_one("#list", DataTable)
         res_now = _resource_for_entity(self.entity) or TICKETS
@@ -1225,13 +1260,15 @@ class FsvApp(App):
         self._load_search()
 
     def _load_more(self) -> None:
+        if self._loading_more or not self._has_more:
+            return
         self._loading_more = True
-        self._page += 1
         self._render_filter_bar()
         self._render_status()
         self._load_list(append=True)
 
     def _reload_list(self, message: str = "[dim]reloading...[/]") -> None:
+        self._list_epoch += 1
         self._items = []
         self._total = 0
         self._page = 1
@@ -1291,7 +1328,7 @@ class FsvApp(App):
         rows = len(self._items)
         rng = f"1-{rows}" if rows else "0"
         total = self._list_total if self._list_total is not None else (self._total or rows)
-        of = f" of {total}" if total >= rows else f" of {rows}+"
+        of = f" of {total}" if self._list_total is not None else f" of {rows}{'+' if self._has_more else ''}"
         sort = V.sort_label(self._list_sort, self._schemas.get(res.name))
         return f"[bold]{escape(name)}[/][dim] · {rng}{of} · Sort by: {escape(sort)}[/]"
 
@@ -1319,6 +1356,10 @@ class FsvApp(App):
         if self.read_only:
             self.notify("Read-only mode: write actions are disabled", severity="warning")
             return
+        if mode == "new":
+            self.push_screen(ChoiceScreen([("change", "Change"), ("incident", "Incident"),
+                                          ("sr", "Service Request")], "Create"), self._create_choice)
+            return
         item = self._selected
         if mode == "edit" and (not item or item.get("_resource", TICKETS).name != "changes"):
             self.notify("Select a change to edit", severity="warning")
@@ -1332,13 +1373,64 @@ class FsvApp(App):
         self.notify("opening the form…", timeout=2)
         self._build_form(mode, item, screen_cls)
 
+    def _create_choice(self, kind: str | None) -> None:
+        if kind is None or self.read_only:
+            return
+        if kind == "sr":
+            self._load_catalog()
+        else:
+            self._launch_create(kind)
+
+    def _launch_create(self, kind: str, item: dict | None = None) -> None:
+        if self.read_only:
+            return
+        try:
+            from fsv.formui import FormScreen
+            self._build_form("new" if kind == "change" else kind, item, FormScreen)
+        except (ImportError, AttributeError):
+            self.notify("form UI not available", severity="warning")
+
+    @work(thread=True, exclusive=True, group="catalog")
+    def _load_catalog(self) -> None:
+        from fsv import catalog
+        try:
+            client = get_client()
+            items = catalog.list_items(client)
+            categories = catalog.list_categories(client)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, f"Catalog unavailable: {exc}")
+            return
+        self.call_from_thread(self._pick_catalog, items, categories)
+
+    def _pick_catalog(self, items: list[dict], categories: list[dict]) -> None:
+        from fsv import catalog
+
+        def category_picked(category) -> None:
+            if category is None or self.read_only:
+                return
+            ids = None if category == "all" else [c["id"] for c in catalog.resolve_category(categories, str(category))]
+            rows = catalog.filter_items(items, category_ids=ids, categories=categories)
+            names = {c["id"]: c.get("name", "") for c in categories}
+            choices = [(r, f"#{r.get('display_id')} {r.get('name', '')} · {names.get(r.get('category_id'), '')}")
+                       for r in rows if r.get("display_id") is not None]
+            self.push_screen(ChoiceScreen(choices, "Service catalog — search items"),
+                             lambda row: self._launch_create("sr", row) if row is not None else None)
+
+        self.push_screen(ChoiceScreen([("all", "All categories")] +
+                                      [(c["id"], c.get("name", str(c["id"]))) for c in categories],
+                                      "Service catalog — category"), category_picked)
+
     @work(thread=True, exclusive=True, group="form")
     def _build_form(self, mode: str, item: dict | None, screen_cls: Any) -> None:
         try:
-            session = _form_session(mode, item, self._page_for(item))
+            if mode in ("incident", "sr"):
+                from fsv.formui.session import sr_session, ticket_session
+                session = (ticket_session(get_client()) if mode == "incident" else
+                           sr_session(get_client(), item_ref=(item or {})["display_id"]))
+            else:
+                session = _form_session(mode, item, self._page_for(item))
         except Exception as exc:  # noqa: BLE001 - shown as a toast
-            self.call_from_thread(self.notify, f"form UI not available: {actions.clean_error(exc)}",
-                                  severity="warning")
+            self.call_from_thread(self._show_failure, f"Form unavailable: {exc}")
             return
         self.call_from_thread(self._push_form, screen_cls, session, mode, item)
 
@@ -1357,18 +1449,23 @@ class FsvApp(App):
 
     @work(thread=True, group="write")
     def _send_form(self, session: Any, result: Any, mode: str, item: dict | None) -> None:
+        if self.read_only:
+            return
         try:
             out = session.send(result.plan)
-        except Exception as exc:  # noqa: BLE001 - shown as a toast
-            self.call_from_thread(self.notify, actions.clean_error(exc), title="Write failed",
-                                  severity="error", timeout=8)
+        except Exception as exc:  # noqa: BLE001 - never truncate a partial/ambiguous outcome
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
             return
-        done = (out or {}).get("human_display_id") if isinstance(out, dict) else None
+        label, done = actions.form_result(mode, out)
         if mode == "edit" and item is not None:
             self.call_from_thread(self._after_write, item.get("_resource", CHANGES), item, "Change updated")
         else:
-            self.call_from_thread(self.notify, f"Change created {done or ''}".strip())
+            self.call_from_thread(self.notify, f"{label} created {done}".strip())
             self.call_from_thread(self._reload_list)
+
+    def _show_failure(self, message: str) -> None:
+        self._write_failure = message
+        self.push_screen(FailureScreen(message))
 
     def _render_filter_bar(self) -> None:
         sel = format_id(self._selected, self._selected["_resource"]) if self._selected else "-"
@@ -2065,6 +2162,9 @@ class FsvApp(App):
             return
         self.entity = name
         self.detail_tab_idx = 0
+        self._list_epoch += 1
+        self._has_more = False
+        self._loading_more = False
         self._active_filters = self._get_default_filters(name)
         self._filter_error = None
         self._render_header()
