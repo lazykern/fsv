@@ -485,7 +485,7 @@ mod tests {
         t.add_column(Column::new("").overflow(Overflow::Fold));
         t.add_row(["Subject", "x"]);
         t.add_row(["Priority", "High"]);
-        assert_eq!(t.render_lines(80, false), vec!["Subject  x   ", "Priority High"]);
+        assert_eq!(t.render_lines(80, false), vec!["Subject   x   ", "Priority  High"]);
     }
 
     #[test]
