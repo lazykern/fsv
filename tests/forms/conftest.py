@@ -34,7 +34,7 @@ class FakeResolver:
     def lookup(self, entity: str, query: str, field: Any) -> Sequence[LookupValue]:
         self.calls.append((entity, query))
         q = query.casefold()
-        return [r for r in self.records.get(entity, []) if q in str(r).casefold()]
+        return [r for r in self.records.get(entity, []) if q == str(r.id) or q in str(r).casefold()]
 
 
 @pytest.fixture(autouse=True)

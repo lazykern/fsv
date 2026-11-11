@@ -670,7 +670,7 @@ def _fields_from_form_field(f: Mapping[str, Any], warnings: list[str]) -> list[F
     if ftype in ("custom_lookup", "custom_multi_lookup"):
         src = lookup_cfg.get("data_source", f.get("data_source"))
         if src not in (None, _USER_LOOKUP_SOURCE):
-            kind = "unsupported"
+            kind = "lookup" if lookup_cfg.get("link") else "unsupported"
             lookup_entity = str(src)
         else:
             lookup_entity = "user"

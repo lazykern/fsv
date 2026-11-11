@@ -381,11 +381,17 @@ class FormState:
         return self._lookup_one(f, raw)
 
     def _lookup_one(self, f: Field, raw: Any) -> LookupValue:
-        if isinstance(raw, LookupValue):
+        # Custom record IDs must be verified against their metadata endpoint;
+        # a numeric draft answer is not a trusted selection receipt.
+        verify = f.field_type in ("custom_lookup", "custom_multi_lookup") and bool(f.lookup_link)
+        if isinstance(raw, LookupValue) and not verify:
             return raw
+        if isinstance(raw, LookupValue):
+            raw = raw.id
         if isinstance(raw, bool):
             raise ValueParseError(f.label, raw, "expects a name, email or id")
-        if isinstance(raw, int) or (isinstance(raw, str) and raw.strip().isdigit()):
+        numeric = isinstance(raw, int) or (isinstance(raw, str) and raw.strip().isdigit())
+        if numeric and not verify:
             return LookupValue(id=int(raw))
         query = str(raw).strip()
         if self.resolver is None:
@@ -394,6 +400,8 @@ class FormState:
             f.kind, f.lookup_entity or "lookup"
         )
         found = list(self.resolver.lookup(entity, query, f))
+        if verify and numeric:
+            found = [c for c in found if str(c.id) == str(int(query))]
         if len(found) == 1:
             return found[0]
         q = norm(query)

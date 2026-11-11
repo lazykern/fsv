@@ -397,6 +397,11 @@ def test_edit_form_runs_edit_rules_on_existing_values(ops_spec: FormSpec) -> Non
 
 def test_lookup_answer_round_trip(ops_spec: FormSpec) -> None:
     st = state(ops_spec)
+    class Resolver:
+        def lookup(self, entity, query, field):
+            assert query == "9000006001"
+            return [LookupValue(9000006001, "Robin Ops", "robin.ops@example.com")]
+    st.resolver = Resolver()
     st.set("owner", LookupValue(9000006001, "Robin Ops", "robin.ops@example.com"))
     assert build_change_payload(st, "robin.ops@example.com", allow_incomplete=True)["custom_fields"]["owner"] == (
         9000006001)

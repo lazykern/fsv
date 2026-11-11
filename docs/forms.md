@@ -125,6 +125,7 @@ level info, sections, and file limits.
 | `custom_date`, `default_planned_*_date` | `datetime` (`date` when `date_only`) |
 | formserv `1007` | `date` (`datetime` when `field_options.date_only` is `"false"`) |
 | `default_requester`, `custom_lookup`/`custom_multi_lookup` with user data source | `lookup_user` |
+| `custom_lookup`/`custom_multi_lookup` with another data source and metadata lookup link | `lookup` (each selected ID verified through that endpoint) |
 | `default_group` / `default_agent` | `lookup_group` / `lookup_agent` |
 | `default_change_window`, other lookup data sources | `lookup` |
 | `default_department` | `department` |

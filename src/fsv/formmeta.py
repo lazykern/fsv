@@ -467,6 +467,10 @@ class ClientResolver:
 
     def lookup(self, entity: str, query: str, field: Field) -> Sequence[LookupValue]:
         c = self.client
+        if field.field_type in ("custom_lookup", "custom_multi_lookup") and field.lookup_link:
+            rows = c.lookup_choices(field.lookup_link, query)
+            return [LookupValue(r["id"], str(r.get("name") or r.get("value") or r["id"]), _email(r))
+                    for r in rows if r.get("id") is not None and not r.get("deleted")]
         if entity == "user":
             rows = c.autocomplete("requesters", query, {"all_users": "true"})
             return [_person(r, r.get("id")) for r in rows if r.get("id") is not None and not r.get("deleted")]
