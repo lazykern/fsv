@@ -1,0 +1,306 @@
+"""Reviewed manual approval REQUEST from an aborted UI wire, not a live send.
+
+Only Everyone is supported. The accepted response is unobserved; never use it
+as proof of creation and never replay a POST to recover an identifier.
+"""
+from __future__ import annotations
+
+import html
+import json
+import re
+from dataclasses import dataclass
+from types import SimpleNamespace
+from typing import Any, Sequence
+
+import typer
+
+from fsv import config, journal, views
+from fsv.client import get_client
+from fsv.errors import APIError
+from fsv.resources import CHANGES, parse_id
+
+_ACTION = "change_approval_request"
+_UNKNOWN = "approval request outcome unknown; inspect the change and journal before any retry; do not resubmit"
+_WARNING = ("Approval emails are irreversible. No cancel/revoke contract is known. "
+            "This requests approval; it does not approve the change. Tenant workflows may also notify people.")
+_EMAIL = re.compile(r"[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+\Z")
+
+
+class ApprovalError(RuntimeError):
+    """Safe user-facing failure without raw session or response details."""
+
+
+def _id(value: Any) -> int | None:
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
+        return None
+    if not re.fullmatch(r"[0-9]+", str(value)) or int(value) <= 0:
+        return None
+    return int(value)
+
+
+def _recipient(value: str) -> None:
+    if not isinstance(value, str) or any(ord(c) < 32 or ord(c) == 127 for c in value):
+        raise ValueError("approver must be a positive agent ID or exact email")
+    if _id(value) is None and not _EMAIL.fullmatch(value):
+        raise ValueError("approver must be a positive agent ID or exact email (no implicit self)")
+
+
+def resolve_approvers(values: Sequence[str], client: Any = None) -> tuple[int, ...]:
+    """Explicit numeric agent IDs or unique active exact-email autocomplete hits.
+
+    Autocomplete id is the agent ID; user_id belongs to the distinct user
+    namespace and must not be substituted for the captured notified_to IDs.
+    """
+    if not isinstance(values, (list, tuple)) or not values:
+        raise ValueError("at least one explicit approver is required")
+    for value in values:
+        _recipient(value)
+    resolved = []
+    for value in values:
+        aid = _id(value)
+        if aid is None:
+            try:
+                c = client if client is not None else get_client()
+                rows = c.autocomplete("agents", value)
+                if not isinstance(rows, list):
+                    raise ValueError("unreadable lookup")
+                matches = [r for r in rows if isinstance(r, dict)
+                           and str(r.get("email", "")).casefold() == value.casefold()
+                           and not r.get("deleted") and not r.get("deactivated")
+                           and "(deactivated)" not in str(r.get("value", "")).casefold()]
+                if len(matches) != 1 or _id(matches[0].get("id")) is None:
+                    raise ValueError("ambiguous agent")
+                aid = _id(matches[0]["id"])
+            except Exception:
+                raise ApprovalError("approver email must resolve to exactly one active agent ID; no POST attempted; use an explicit agent ID if lookup is unavailable") from None
+        if aid in resolved:
+            raise ValueError("duplicate approver; specify each agent exactly once")
+        resolved.append(aid)
+    return tuple(resolved)
+
+
+@dataclass(frozen=True)
+class ApprovalPlan:
+    change_id: int
+    name: str
+    message: str
+    approver_ids: tuple[int, ...]
+    tenant: str
+
+    @property
+    def path(self) -> str:
+        return f"changes/{self.change_id}/approval-groups"
+
+    @property
+    def payload(self) -> dict[str, Any]:
+        content = html.escape(self.message.replace("\r\n", "\n").replace("\r", "\n")).replace("\n", "<br>")
+        return {"approval_groups": [{"name": self.name, "approval_type": 1,
+                "email_content": f'<p dir="ltr">{content}</p>',
+                "notified_to": list(self.approver_ids)}]}
+
+    @property
+    def hash(self) -> str:
+        return journal.plan_hash({"tenant": self.tenant, "path": self.path, "payload": self.payload}) or ""
+
+    def review(self) -> dict[str, Any]:
+        return {"action": _ACTION, "tenant": self.tenant, "change_id": self.change_id,
+                "method": "POST", "path": f"/api/_/{self.path}", "payload": self.payload,
+                "recipients": list(self.approver_ids), "approval_rule": "Everyone",
+                "message_text": self.message, "plan_hash": self.hash, "warning": _WARNING,
+                "contract": "Aborted request captured; accepted response and cancel/revoke unobserved."}
+
+
+def build_plan(change_id: int | str, name: str, message: str, *, approver_ids: Sequence[int]) -> ApprovalPlan:
+    if isinstance(change_id, bool) or not isinstance(change_id, (int, str)):
+        raise ValueError("change ID must be a positive display ID")
+    cid = parse_id(str(change_id), CHANGES)
+    if cid <= 0:
+        raise ValueError("change ID must be positive")
+    if not isinstance(name, str) or not name.strip() or any(ord(c) < 32 or ord(c) == 127 for c in name):
+        raise ValueError("approval group name must be nonempty text without control characters")
+    if not isinstance(message, str) or not message.strip() or any(
+            (ord(c) < 32 and c not in "\r\n\t") or ord(c) == 127 for c in message):
+        raise ValueError("message must be nonempty plain text without unsafe control characters")
+    if not isinstance(approver_ids, (list, tuple)) or not approver_ids or any(
+            type(a) is not int or a <= 0 for a in approver_ids):
+        raise ValueError("at least one explicit positive agent ID is required")
+    if len(set(approver_ids)) != len(approver_ids):
+        raise ValueError("duplicate approver; specify each agent exactly once")
+    return ApprovalPlan(cid, name, message, tuple(approver_ids), config.DOMAIN)
+
+
+def _inventory(client: Any, plan: ApprovalPlan) -> list[dict[str, Any]]:
+    seen: set[int] = set()
+    totals: set[int] = set()
+
+    def strict_get(path: str, params: Any = None) -> Any:
+        # The generic collector filters non-object rows and deduplicates IDs.
+        # For write verification, inspect raw pages before that information loss.
+        data = client.int_get(path, params=params)
+        if not isinstance(data, dict) or not isinstance(data.get("approvals"), list):
+            raise ApprovalError("approval inventory is unreadable")
+        for source in (data, data.get("meta", {})):
+            if not isinstance(source, dict) or source.get("partial") or source.get("complete") is False:
+                raise ApprovalError("approval inventory is partial")
+            for key in ("total_count", "count"):
+                if key in source:
+                    total = source[key]
+                    if isinstance(total, bool) or not re.fullmatch(r"[0-9]+", str(total)):
+                        raise ApprovalError("approval inventory has an invalid total")
+                    totals.add(int(total))
+        for row in data["approvals"]:
+            aid = _id(row.get("id")) if isinstance(row, dict) else None
+            if aid is None or aid in seen:
+                raise ApprovalError("approval inventory contains invalid or duplicate IDs")
+            seen.add(aid)
+        return data
+
+    tab = views.load_tab(SimpleNamespace(int_get=strict_get), CHANGES, {"display_id": plan.change_id}, "approvals")
+    if (tab.missing or tab.meta.get("complete") is not True or tab.meta.get("partial")
+            or tab.meta.get("has_more") or not isinstance(tab.data, list)):
+        raise ApprovalError("approval inventory is incomplete")
+    ids = [_id(r.get("id")) if isinstance(r, dict) else None for r in tab.data]
+    if None in ids or len(ids) != len(set(ids)):
+        raise ApprovalError("approval inventory contains invalid or duplicate IDs")
+    if totals and totals != {len(ids)}:
+        raise ApprovalError("approval inventory does not match the declared total")
+    return tab.data
+
+
+def _groups(rows: list[dict[str, Any]]) -> dict[int, tuple[str, set[int]]]:
+    """Conservative flat approval/member read-back adapter.
+
+    Existing approval reads expose individual approvals with member IDs. Require
+    explicit approval_group identity AND name; level IDs are not group IDs.
+    Unknown/group-less shapes fail closed, never inferred from 'latest' or POST.
+    The populated group shape is a supported offline adapter, not observed wire.
+    """
+    groups: dict[int, tuple[str, set[int]]] = {}
+    for row in rows:
+        group = row.get("approval_group")
+        if not isinstance(group, dict):
+            raise ApprovalError("approval group identity/name unavailable")
+        gid, name = _id(group.get("id")), group.get("name")
+        member = row.get("member")
+        aid = _id(row.get("member_id"))
+        if isinstance(member, dict):
+            nested = _id(member.get("id"))
+            if aid is not None and nested is not None and aid != nested:
+                raise ApprovalError("conflicting approval member IDs")
+            aid = aid if aid is not None else nested
+        if gid is None or not isinstance(name, str) or not name or aid is None:
+            raise ApprovalError("approval group/member identity unavailable")
+        if gid not in groups:
+            groups[gid] = (name, set())
+        if groups[gid][0] != name or aid in groups[gid][1]:
+            raise ApprovalError("ambiguous approval group inventory")
+        groups[gid][1].add(aid)
+    return groups
+
+
+def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
+         read_only: bool = False, dry_run: bool = False) -> dict[str, Any]:
+    if build_plan(plan.change_id, plan.name, plan.message, approver_ids=plan.approver_ids) != plan:
+        raise ApprovalError("approval plan or tenant changed; review a new plan")
+    if dry_run:
+        return {"status": "dry_run", **plan.review()}
+    if read_only:
+        raise ApprovalError("read-only mode: no approval request was sent")
+    if reviewed_hash is None:
+        return {"status": "cancelled", "change_id": plan.change_id}
+    if reviewed_hash != plan.hash:
+        raise ApprovalError("approval review hash does not match; review the exact request again")
+    if not plan.tenant:
+        raise ApprovalError("configure a tenant before requesting approval")
+    def events() -> list[dict[str, Any]]:
+        return [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}" and r.get("plan") == plan.hash]
+    prior = events()
+    if prior and prior[-1].get("event") in ("started", "done"):
+        raise ApprovalError("this approval request was sent or its outcome is unknown; inspect the change and journal; do not resubmit")
+    try:
+        c = client if client is not None else get_client()
+        before_rows = _inventory(c, plan)
+        before = _groups(before_rows)
+        before_ids = {_id(r["id"]) for r in before_rows}
+        csrf = c._get_csrf()
+    except Exception:
+        raise ApprovalError("could not prepare a complete approval inventory/session; no approval POST was attempted") from None
+    journal.record_plan("started", plan.hash, action=_ACTION, target=plan.change_id)
+    recorded = events()
+    if not recorded or recorded[-1].get("event") != "started":
+        raise ApprovalError("could not persist approval journal; no approval request was sent")
+    try:
+        # int_post silently replays on 403. Exactly one lower-level request.
+        c._request("POST", f"{config.API_INT}/{plan.path}",
+                   content=json.dumps(plan.payload, ensure_ascii=False).encode("utf-8"),
+                   headers={"Content-Type": "application/json", "X-CSRF-Token": csrf})
+    except APIError as exc:
+        if 400 <= exc.status < 500 and exc.status not in (408, 429):
+            journal.record_plan("failed", plan.hash, action=_ACTION, target=plan.change_id)
+            raise ApprovalError(f"approval request rejected (HTTP {exc.status}); no automatic retry") from None
+        raise ApprovalError(_UNKNOWN) from None
+    except Exception:
+        raise ApprovalError(_UNKNOWN) from None
+    try:
+        after_rows = _inventory(c, plan)
+        after = _groups(after_rows)
+        fresh = set(after) - set(before)
+        # Require exactly one new group overall, not one selected from multiple
+        # concurrent groups. Every member approval must also be newly created.
+        if len(fresh) != 1:
+            raise ApprovalError(_UNKNOWN)
+        gid = fresh.pop()
+        if after[gid] != (plan.name, set(plan.approver_ids)):
+            raise ApprovalError(_UNKNOWN)
+        exact = [r for r in after_rows if _id(r["approval_group"]["id"]) == gid]
+        if any(_id(r["id"]) in before_ids for r in exact):
+            raise ApprovalError(_UNKNOWN)
+    except Exception:
+        raise ApprovalError(_UNKNOWN) from None
+    journal.record_plan("done", plan.hash, action=_ACTION, target=plan.change_id, created_id=gid)
+    return {"status": "submitted", "change_id": plan.change_id, "approval_group_id": gid,
+            "verified": True, "readback": exact, "plan_hash": plan.hash}
+
+
+def register(app: typer.Typer) -> None:
+    @app.command("approval-request", help="Review and REQUEST manual change approval (Everyone; sends irreversible emails).")
+    def approval_request(
+        id_: str = typer.Argument(..., metavar="CHANGE_ID"),
+        name: str = typer.Option(..., "--name", help="exact approval group name"),
+        message: str = typer.Option(..., "--message", help="plain text; always HTML-escaped"),
+        approver: list[str] = typer.Option(..., "--approver", help="explicit agent ID or exact email (repeatable; no implicit recipients)"),
+        dry_run: bool = typer.Option(False, "--dry-run", help="review only; emails may require read-only lookup"),
+        read_only: bool = typer.Option(False, "--read-only", help="refuse approval requests"),
+        yes: bool = typer.Option(False, "--yes", "-y", help="confirm the full previously reviewed --expect-plan"),
+        expected: str | None = typer.Option(None, "--expect-plan", help="full hash from the exact prior review"),
+        no_input: bool = typer.Option(False, "--no-input", help="never prompt"),
+        json_out: bool = typer.Option(False, "--json", help="emit structured result"),
+    ) -> None:
+        try:
+            if read_only and not dry_run:
+                raise ApprovalError("read-only mode: no approval request was sent")
+            # Validate everything local before any email lookup.
+            build_plan(id_, name, message, approver_ids=[1])
+            plan = build_plan(id_, name, message, approver_ids=resolve_approvers(approver))
+            if dry_run:
+                typer.echo(json.dumps(send(plan, reviewed_hash=None, dry_run=True), indent=2))
+                return
+            typer.echo(json.dumps(plan.review(), indent=2), err=True)
+            if expected is not None and expected != plan.hash:
+                raise ApprovalError("approval review hash does not match; review the exact request again")
+            if yes:
+                if expected != plan.hash:
+                    raise ApprovalError("--yes requires the full --expect-plan from a prior approval review")
+            elif no_input:
+                raise ApprovalError("sending requires --yes and --expect-plan in no-input mode")
+            elif not typer.confirm("Send this exact approval request and irreversible emails (no known revoke)?", default=False):
+                typer.echo("Cancelled; no approval request was sent.")
+                return
+            result = send(plan, reviewed_hash=plan.hash)
+            if json_out:
+                typer.echo(json.dumps(result, indent=2))
+            else:
+                typer.echo(f"Approval group {result['approval_group_id']} requested on change {plan.change_id}; complete inventory verification: {result['verified']}")
+        except (ValueError, ApprovalError) as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(2) from None
