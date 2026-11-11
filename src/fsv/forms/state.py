@@ -27,7 +27,7 @@ from fsv.forms.rules import (
     offered_choices,
 )
 from fsv.forms.spec import Choice, Field, FormSpec, norm, plain_text
-from fsv.forms.tz import resolve_timezone
+from fsv.forms.tz import localize, resolve_timezone
 
 # position: answers replayed in web field order (YAML / --set contract)
 # input:    answers replayed in the order they were first given
@@ -609,7 +609,10 @@ def _parse_datetime(f: Field, raw: Any, tz: dt.tzinfo) -> dt.datetime:
                 f.label, raw, f"{raw!r} is not a date-time (YYYY-MM-DD HH:MM, optional +HH:MM offset)"
             ) from None
     if value.tzinfo is None:
-        value = value.replace(tzinfo=tz)
+        try:  # refuse daylight-saving gaps and overlaps instead of guessing
+            value = localize(value, tz)
+        except ValueError as e:
+            raise ValueParseError(f.label, raw, str(e)) from None
     return value
 
 

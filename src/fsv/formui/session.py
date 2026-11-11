@@ -335,7 +335,7 @@ class FormSession:
         if value in (None, "", (), []):
             return ""
         if it.widget in ("date", "datetime"):
-            return when.to_text(value)
+            return when.to_text(value, self.tz)
         if it.widget == "choice" and it.field is not None:
             return self.state.display(it.field.api_name, value)
         if it.widget == "multi" and it.field is not None:
@@ -543,6 +543,20 @@ class FormSession:
         notes += self._preselect(list(diff.restricted))
         return Outcome(notes)
 
+    def mark_invalid(self, key: str, error: str) -> None:
+        """An editor holds input it cannot read: keep the stored value but
+        report ``error`` until fixed (an empty error withdraws it)."""
+        if error:
+            self.touched.add(key)
+            self.errors_by_key[key] = error
+        else:
+            self.errors_by_key.pop(key, None)
+
+    def input_errors(self) -> list[str]:
+        """Unresolved input errors on visible fields (stop the submit)."""
+        return [f"{self.by_key[k].label}: {e}" for k, e in self.errors_by_key.items()
+                if k in self.by_key and self.view(k).visible]
+
     def _remember(self, name: str) -> None:
         value = self.state.values.get(name) if self.state.sources.get(name) == "user" else None
         if value is None:
@@ -657,6 +671,12 @@ class FormSession:
                                           ack_all=ack, status_label=self.status_label)
         else:
             plan = cat.build_sr_plan(m, self.draft, resolver=self.resolver, requester=self.requester, ack_all=ack)
+        pending = [e for e in self.input_errors() if e not in plan.errors]
+        if pending:  # what the person typed last was not taken: never submit the older value silently
+            plan.errors.extend(pending)
+            plan.review.errors = list(plan.review.errors) + [e for e in pending if e not in plan.review.errors]
+            plan.hash = ""
+            plan.review.plan_hash = ""
         if meta is None:
             self.plan = plan
         return plan

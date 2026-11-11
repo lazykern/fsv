@@ -20,6 +20,8 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from fsv.forms.tz import localize
+
 MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
 WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -172,7 +174,10 @@ def parse_when(text: str, *, tz: dt.tzinfo, tz_source: str = "", date_only: bool
             return Parsed(error="type a date and a time, e.g. 2026-11-26 19:00")
         if time is None:
             return Parsed(error=f"{date_text(d)}: add a time, e.g. {d.isoformat()} 19:00")
-        value = dt.datetime.combine(d, time, tzinfo=off or tz)
+        if off is not None:
+            value = dt.datetime.combine(d, time, tzinfo=off)
+        else:  # a daylight-saving gap or overlap is refused with the offsets to pick
+            value = localize(dt.datetime.combine(d, time), tz)
         return Parsed(value, preview(value, tz_source, off is not None))
     except ValueError as e:
         msg = str(e)
@@ -181,13 +186,31 @@ def parse_when(text: str, *, tz: dt.tzinfo, tz_source: str = "", date_only: bool
         return Parsed(error=msg)
 
 
-def to_text(value: Any) -> str:
-    """The input text for a stored value (round-trips through parse_when)."""
+def to_text(value: Any, tz: dt.tzinfo | None = None) -> str:
+    """The input text for a stored value (round-trips through parse_when to
+    the same instant): seconds are kept when set, and the offset is written
+    out when it is not what the form zone ``tz`` gives that wall time (or
+    when no zone is known)."""
     if isinstance(value, dt.datetime):
-        return f"{value:%Y-%m-%d %H:%M}"
+        text = f"{value:%Y-%m-%d %H:%M}" + (f":{value.second:02d}" if value.second else "")
+        if value.tzinfo is not None:
+            local = value.replace(tzinfo=None)
+            same = tz is not None and local.replace(tzinfo=tz, fold=value.fold).utcoffset() == value.utcoffset() \
+                and _no_dst_doubt(local, tz)
+            if not same:
+                text += " " + offset_text(value)
+        return text
     if isinstance(value, dt.date):
         return value.isoformat()
     return "" if value is None else str(value)
+
+
+def _no_dst_doubt(local: dt.datetime, tz: dt.tzinfo) -> bool:
+    try:
+        localize(local, tz)
+        return True
+    except ValueError:
+        return False
 
 
 def month_weeks(year: int, month: int, firstweekday: int = 0) -> list[list[dt.date]]:

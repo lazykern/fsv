@@ -52,7 +52,7 @@ Keyboard first, mouse works everywhere.
 | type | filter a dropdown or checklist (case- and accent-insensitive, label and choice description, `stg` finds Staging); search people |
 | ↑ ↓ PgUp PgDn | move in the open list |
 | Enter | pick (dropdown, person), toggle (checklist), commit (text, date, files) |
-| Esc | close the open list; on the form: cancel (asks first when something was entered) |
+| Esc | close the open list; on the form: cancel (asks first when something was entered, including text typed a moment ago that is not committed yet) |
 | F2 | calendar for a date / date-time field |
 | F3 | Markdown preview of the description |
 | F1 | hide / show the help panel |
@@ -76,13 +76,21 @@ Keyboard first, mouse works everywhere.
   `Name <email>`. The requester is never filled with the logged-in user;
   `defaults.requester` (changes) / `defaults.sr_requester` (service
   requests) preselect one when set. **Groups and agents** are filtered locally
-  from `GET /api/_/bootstrap/agents_groups`, fetched once.
+  from `GET /api/_/bootstrap/agents_groups`, fetched once. While a new
+  search is pending the old results are cleared, and Enter or a click never
+  picks a result of an earlier search.
 * **Dates** are typed (`2026-11-26 19:00`, `26 Nov 2026 7pm`, `tomorrow 9am`,
   `+2d 10:00`, `fri 22:00`, an explicit `+07:00`) with a live preview:
   `Thu 26 Nov 2026 19:00 (+07:00 from your Freshservice profile tz)`. F2
   opens a month calendar with time suggestions (09:00 … 22:00). The time
   zone is the one the engine uses (`FSV_TZ`, the Freshservice profile from the
-  rules response or `GET /api/v2/agents/me`, else the computer's).
+  rules response or `GET /api/v2/agents/me`, else the computer's). A local
+  time that a daylight-saving change skips is refused, and one that happens
+  twice asks for the offset (`2031-10-26 02:30 +01:00`). A value with another
+  offset keeps its instant: the calendar shows it in the form zone, the text
+  box keeps the offset (and seconds). Text that cannot be read stays in the
+  box with its error and blocks the review until fixed or cleared; the
+  earlier value is never sent silently.
 * **Description**: Markdown in a text box, converted to HTML when the plan is
   built; F3 previews it. On an edit form the box starts with the current
   text; leaving it unchanged sends nothing.
@@ -105,7 +113,7 @@ form metadata's age and the **plan hash**. F7 shows the exact request body.
 |---|---|
 | **Create / Update / Place request** | leave the form with the plan; the command sends it (journal duplicate check, metadata freshness re-check, the write, uploads after the write) |
 | **Back to edit** (Esc) | return to the form, focus on the first missing field |
-| **Save draft** (F4) | write the YAML draft and leave; continue with `--from FILE` |
+| **Save draft** (F4) | write the YAML draft and leave; continue with `--from FILE` (a path that cannot be written shows the error in the dialog; try another) |
 | **Copy as command** (F6) | save the draft and show `fsv changes create --from FILE --yes --expect-plan HASH` (or the `update` / `sr create` equivalent), with a Copy button |
 | **Cancel** | leave; nothing is sent |
 

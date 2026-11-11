@@ -20,7 +20,7 @@ from textual.widgets.option_list import Option
 
 from . import when
 from .session import FormResult, FormSession
-from .widgets import CalendarGrid, ComboBox, DateEditor, FieldEdited, FieldRow
+from .widgets import CalendarGrid, ComboBox, DateEditor, FieldEdited, FieldInvalid, FieldRow
 
 NOTE_SECONDS = 8.0
 
@@ -84,9 +84,11 @@ class SavePathDialog(ModalScreen["str | None"]):
     SavePathDialog .dlg-note { color: $warning; height: auto; }
     """
 
-    def __init__(self, default: str, title: str = "Save draft to") -> None:
+    def __init__(self, default: str, title: str = "Save draft to", save: Any = None) -> None:
+        """``save(path) -> saved path``: when given, the dialog writes the file
+        itself and stays open with the error on failure (try another path)."""
         super().__init__()
-        self.default, self.title_text = default, title
+        self.default, self.title_text, self.save = default, title, save
         self._confirm_overwrite: str | None = None
 
     def compose(self) -> ComposeResult:
@@ -114,15 +116,36 @@ class SavePathDialog(ModalScreen["str | None"]):
     def _cancel_btn(self) -> None:
         self.dismiss(None)
 
+    def _note(self, text: str) -> None:
+        self.query_one(".dlg-note", Static).update(escape(text))
+
     def _save(self) -> None:
-        path = os.path.abspath(os.path.expanduser(self.query_one(Input).value.strip()))
-        if not path:
+        raw = self.query_one(Input).value.strip()
+        if not raw:
+            self._note("type a file path")
+            return
+        path = os.path.abspath(os.path.expanduser(raw))
+        folder = os.path.dirname(path)
+        if os.path.isdir(path):
+            self._note(f"{path} is a folder: add a file name")
+            return
+        if not os.path.isdir(folder):
+            self._note(f"cannot save: the folder {folder} does not exist")
             return
         if os.path.exists(path) and self._confirm_overwrite != path:
             self._confirm_overwrite = path
-            self.query_one(".dlg-note", Static).update(f"{escape(path)} exists: press Save again to overwrite")
+            self._note(f"{path} exists: press Save again to overwrite")
             return
-        self.dismiss(path)
+        if self.save is None:
+            self.dismiss(path)
+            return
+        try:
+            saved = self.save(path)
+        except OSError as e:
+            self._confirm_overwrite = None
+            self._note(f"cannot save to {path}: {e.strerror or e}")
+            return
+        self.dismiss(saved or path)
 
     def action_cancel(self) -> None:
         self.dismiss(None)
@@ -188,9 +211,14 @@ class DatePickerScreen(ModalScreen[Any]):
     def __init__(self, label: str, value: Any, *, date_only: bool, tz: dt.tzinfo, tz_source: str) -> None:
         super().__init__()
         self.label, self.date_only, self.tz, self.tz_source = label, date_only, tz, tz_source
+        self._error = ""
         today = dt.datetime.now(tz).date()
         if isinstance(value, dt.datetime):
-            self.day, self.time = value.astimezone(tz).date() if value.tzinfo else value.date(), value.strftime("%H:%M")
+            # the same instant in the form zone: convert the whole date-time,
+            # not only the date (an explicit offset would shift the time)
+            local = value.astimezone(tz) if value.tzinfo else value
+            self.day = local.date()
+            self.time = local.strftime("%H:%M:%S" if local.second else "%H:%M")
         elif isinstance(value, dt.date):
             self.day, self.time = value, "09:00"
         else:
@@ -223,11 +251,13 @@ class DatePickerScreen(ModalScreen[Any]):
             return day
         p = when.parse_when(f"{day.isoformat()} {self.query_one('#dp-time', Input).value}", tz=self.tz,
                             tz_source=self.tz_source)
+        self._error = p.error
         return p.value if p.ok else None
 
     def _update(self) -> None:
+        self._error = ""
         v = self.value()
-        text = when.preview(v, self.tz_source) if v is not None else "type a time like 19:00"
+        text = when.preview(v, self.tz_source) if v is not None else (self._error or "type a time like 19:00")
         self.query_one(".dp-preview", Static).update(escape(text))
 
     def watch_cursor(self) -> None:  # pragma: no cover - not reactive here
@@ -387,10 +417,10 @@ class ReviewScreen(Screen[str]):
     def action_save(self) -> None:
         def done(path: str | None) -> None:
             if path:
-                self.session.save_draft(path, self.plan)
                 self.dismiss("save_draft")
 
-        self.app.push_screen(SavePathDialog(self.session.default_draft_path()), done)
+        self.app.push_screen(SavePathDialog(self.session.default_draft_path(),
+                                            save=lambda p: self.session.save_draft(p, self.plan)), done)
 
     @on(Button.Pressed, "#rv-command")
     def action_command(self) -> None:
@@ -398,16 +428,15 @@ class ReviewScreen(Screen[str]):
             self.app.notify("no complete plan yet", severity="warning", timeout=4)
             return
 
-        def done(path: str | None) -> None:
-            if not path:
+        def done(saved: str | None) -> None:
+            if not saved:
                 return
-            saved = self.session.save_draft(path, self.plan)
             self.app.push_screen(TextDialog(
                 "Equivalent command", self.session.command_for(os.path.relpath(saved), self.plan),
                 f"draft saved to {saved}; the command refuses to send if the plan changes"))
 
-        self.app.push_screen(SavePathDialog(self.session.default_draft_path(), "Save the draft for the command to"),
-                             done)
+        self.app.push_screen(SavePathDialog(self.session.default_draft_path(), "Save the draft for the command to",
+                                            save=lambda p: self.session.save_draft(p, self.plan)), done)
 
     def action_payload(self) -> None:
         self.toggle_class("-payload")
@@ -580,6 +609,12 @@ class FormScreen(Screen[FormResult]):
         if out.notes:
             self.show_notes(out.notes)
 
+    @on(FieldInvalid)
+    def _invalid(self, event: FieldInvalid) -> None:
+        event.stop()
+        self.session.mark_invalid(event.key, event.error)
+        self.refresh_rows()
+
     @on(ComboBox.Opened)
     def _opened(self, event: ComboBox.Opened) -> None:
         event.stop()
@@ -647,17 +682,30 @@ class FormScreen(Screen[FormResult]):
     def action_save(self) -> None:
         self._commit_focused()
 
-        def done(path: str | None) -> None:
-            if path:
-                saved = self.session.save_draft(path)
+        def done(saved: str | None) -> None:
+            if saved:
                 self.dismiss(FormResult("save_draft", self.session.state, self.session.plan, saved_path=saved,
                                         session=self.session))
 
-        self.app.push_screen(SavePathDialog(self.session.default_draft_path()), done)
+        self.app.push_screen(SavePathDialog(self.session.default_draft_path(), save=self.session.save_draft), done)
+
+    def _dirty(self) -> bool:
+        """An editor holds text not committed yet (typed within the debounce,
+        an unpicked lookup search, an invalid date)."""
+        for row in self.rows.values():
+            ed = row.editor
+            try:
+                if ed is not None and getattr(ed, "dirty", None) is not None and ed.dirty():
+                    return True
+            except Exception:  # noqa: BLE001 - a half-mounted editor: be safe, ask
+                return True
+        return False
 
     def action_cancel(self) -> None:
         s = self.session
-        if not s.touched:
+        dirty = self._dirty()
+        self._commit_focused()
+        if not s.touched and not dirty:
             self.dismiss(FormResult("cancel", s.state, None, session=s))
             return
 

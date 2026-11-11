@@ -41,6 +41,17 @@ class FieldEdited(Message):
         self.value = value
 
 
+class FieldInvalid(Message):
+    """An editor holds input it cannot read (``error``); the stored value is
+    not changed, and the form may not be submitted until it is fixed or
+    cleared. An empty ``error`` withdraws it."""
+
+    def __init__(self, key: str, error: str) -> None:
+        super().__init__()
+        self.key = key
+        self.error = error
+
+
 class EditorMixin:
     """Common bits: ``key``, ``item``, ``session`` and ``sync(view)``."""
 
@@ -56,6 +67,10 @@ class EditorMixin:
 
     def focus_editor(self) -> None:
         self.focus()  # type: ignore[attr-defined]
+
+    def dirty(self) -> bool:
+        """Typed text that is not committed to the form yet."""
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -86,6 +101,9 @@ class TextEditor(EditorMixin, Input):
         if self.value != self._committed:
             self._committed = self.value
             self.post_message(FieldEdited(self.key, self.value))
+
+    def dirty(self) -> bool:
+        return self.value != self._committed
 
     def on_blur(self) -> None:
         self.commit()
@@ -122,6 +140,9 @@ class ParagraphEditor(EditorMixin, TextArea):
         if self.text != self._committed:
             self._committed = self.text
             self.post_message(FieldEdited(self.key, self.text))
+
+    def dirty(self) -> bool:
+        return self.text != self._committed
 
     def on_blur(self) -> None:
         self.commit()
@@ -176,6 +197,9 @@ class DescriptionEditor(EditorMixin, Vertical):
         if text != self._committed:
             self._committed = text
             self.post_message(FieldEdited(self.key, text))
+
+    def dirty(self) -> bool:
+        return self.area.text != self._committed
 
     def on_descendant_blur(self) -> None:
         self.commit()
@@ -248,6 +272,7 @@ class ComboBox(EditorMixin, Vertical):
         self._shown_text = ""  # the input text that reflects the stored value
         self._timer: Any = None
         self._query_seen = ""
+        self._options_query: str | None = None  # the query the shown (remote) options answer
         self.searches = 0  # lookups started (tests)
 
     def compose(self) -> ComposeResult:
@@ -309,6 +334,7 @@ class ComboBox(EditorMixin, Vertical):
     def close(self) -> None:
         self.remove_class("-open")
         self._options = []
+        self._options_query = None
         st = self.query_one(".combo-note", Static)
         st.update("")
         st.display = False
@@ -361,9 +387,17 @@ class ComboBox(EditorMixin, Vertical):
             self.add_class("-open")
             self.post_message(self.Opened(self))
         if self.remote:
+            if self._options_query != self._query():
+                # results for an earlier search must not be picked for this one
+                self._options_query = None
+                self.show_options([], "searching…")
             self._schedule_search()
         else:
             self.refresh_options()
+
+    def dirty(self) -> bool:
+        text = self.input.value.strip()
+        return bool(text) and (self.multi or self.input.value != self._shown_text)
 
     def on_descendant_focus(self, event: events.DescendantFocus) -> None:
         if event.widget is self.input:
@@ -401,7 +435,12 @@ class ComboBox(EditorMixin, Vertical):
     def _found(self, q: str, sugg: list[Suggestion], note: str) -> None:
         if q != self._query() or not self.is_open:
             return  # stale answer
+        self._options_query = q
         self.show_options(sugg, note)
+
+    def _stale(self) -> bool:
+        """Remote options that do not answer what is typed now."""
+        return self.remote and self._options_query != self._query()
 
     @on(OptionList.OptionHighlighted)
     def _highlighted(self, event: OptionList.OptionHighlighted) -> None:
@@ -411,6 +450,9 @@ class ComboBox(EditorMixin, Vertical):
     @on(OptionList.OptionSelected)
     def _clicked(self, event: OptionList.OptionSelected) -> None:
         event.stop()
+        if self._stale():
+            self._note("still searching…")
+            return
         self.pick(event.option_index)
         self.input.focus()
 
@@ -424,6 +466,9 @@ class ComboBox(EditorMixin, Vertical):
             self._shown_text = ""
             self.post_message(FieldEdited(self.key, None))
             self.close()
+            return
+        if self._stale():
+            self._note("still searching… (Enter again when the results are shown)")
             return
         hl = self.options.highlighted
         if hl is not None and hl < len(self._options):
@@ -564,6 +609,7 @@ class DateEditor(EditorMixin, Vertical):
         super().__init__(**kw)
         self.date_only = item.widget == "date"
         self._committed = ""
+        self._invalid: str | None = None  # text that does not parse (kept, and reported)
 
     def compose(self) -> ComposeResult:
         ph = "YYYY-MM-DD, 26 Nov 2026, tomorrow" if self.date_only else "YYYY-MM-DD HH:MM, tomorrow 19:00, fri 9am"
@@ -585,10 +631,15 @@ class DateEditor(EditorMixin, Vertical):
     def sync(self, view: ItemView) -> None:
         self.input.disabled = view.disabled
         self.query_one(Button).disabled = view.disabled
+        if self._invalid is not None and self.input.value == self._invalid:
+            return  # keep what was typed (and its error) until fixed or cleared
         if not self.input.has_focus and self.input.value != view.text:
             self._committed = view.text
             self.input.value = view.text
             self._preview(view.text)
+
+    def dirty(self) -> bool:
+        return self.input.value != self._committed
 
     def _preview(self, text: str) -> when.Parsed:
         p = self.parse(text)
@@ -605,10 +656,20 @@ class DateEditor(EditorMixin, Vertical):
     def commit(self) -> None:
         text = self.input.value
         if text == self._committed:
+            if self._invalid is not None:  # reverted to the stored value by hand
+                self._invalid = None
+                self.session.mark_invalid(self.key, "")
+                self.post_message(FieldInvalid(self.key, ""))
             return
         p = self._preview(text)
         if p.error:
-            return  # shown under the field; the stored value is unchanged
+            # the stored value is unchanged, but the form must not look valid:
+            # keep the text and report it until it is fixed or cleared
+            self._invalid = text
+            self.session.mark_invalid(self.key, p.error)  # now: a review may open before the message
+            self.post_message(FieldInvalid(self.key, p.error))
+            return
+        self._invalid = None
         self._committed = text
         self.post_message(FieldEdited(self.key, p.value))
 
@@ -631,7 +692,8 @@ class DateEditor(EditorMixin, Vertical):
 
     def set_value(self, value: Any) -> None:
         """From the calendar."""
-        text = when.to_text(value)
+        text = when.to_text(value, self.session.tz)
+        self._invalid = None
         self.input.value = text
         self._preview(text)
         self._committed = text
@@ -723,6 +785,9 @@ class FileEditor(EditorMixin, Vertical):
         if self.input.value != self._committed:
             self._committed = self.input.value
             self.post_message(FieldEdited(self.key, self.input.value))
+
+    def dirty(self) -> bool:
+        return self.input.value != self._committed
 
     def on_descendant_blur(self, event: events.DescendantBlur) -> None:
         if event.widget is self.input:

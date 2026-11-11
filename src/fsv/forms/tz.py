@@ -214,3 +214,33 @@ def resolve_timezone(explicit: str | None = None, user: Mapping[str, Any] | None
         if tz is not None:
             return tz, f"Freshservice user time zone ({user.get('time_zone')})"
     return system_timezone(), "system time zone"
+
+
+def _off(v: dt.datetime) -> str:
+    off = v.utcoffset() or dt.timedelta(0)
+    total = int(off.total_seconds() // 60)
+    sign = "+" if total >= 0 else "-"
+    total = abs(total)
+    return f"{sign}{total // 60:02d}:{total % 60:02d}"
+
+
+def tz_name(tz: dt.tzinfo) -> str:
+    return str(getattr(tz, "key", None) or tz)
+
+
+def localize(naive: dt.datetime, tz: dt.tzinfo) -> dt.datetime:
+    """Attach ``tz`` to a wall-clock time, refusing times a daylight-saving
+    change makes ambiguous: a time that does not exist (the clocks skip it)
+    or that happens twice (the clocks go back) raises ``ValueError`` naming
+    the offsets to choose from. Fixed-offset zones never raise."""
+    first = naive.replace(tzinfo=tz, fold=0)
+    second = naive.replace(tzinfo=tz, fold=1)
+    back = first.astimezone(dt.timezone.utc).astimezone(tz).replace(tzinfo=None)
+    when = f"{naive:%Y-%m-%d %H:%M}"
+    if back != naive.replace(tzinfo=None):
+        raise ValueError(f"{when} does not exist in {tz_name(tz)} (the clocks skip ahead then); "
+                         f"type another time, or add an offset ({_off(first)} or {_off(second)})")
+    if first.utcoffset() != second.utcoffset():
+        raise ValueError(f"{when} happens twice in {tz_name(tz)} (the clocks go back then); "
+                         f"add the offset: {_off(first)} for the first, {_off(second)} for the second")
+    return first
