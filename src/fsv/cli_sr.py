@@ -261,18 +261,25 @@ def fields_cmd(
         err.print(f"[yellow]warning[/yellow]: {escape(w)}", highlight=False)
     md = doc["metadata"]
     console.print(f"[dim]item form as of {escape(str(md.get('updated_at')))}; {doc['rules']} business rule(s) "
-                  f"apply. Create with: fsv sr create {it['display_id']} --edit[/dim]", highlight=False)
+                  f"apply. Create with: fsv sr create {it['display_id']} (interactive form)[/dim]", highlight=False)
 
 
 # ---------------------------------------------------------------------------
 # create: drafts
 
 
-def render_sr_template(plan: cat.SRPlan, *, errors: list[str] | None = None, requester: str | None = None) -> str:
+def render_sr_template(plan: cat.SRPlan, *, errors: list[str] | None = None, requester: str | None = None,
+                       base_dir: str | None = None) -> str:
     """The annotated YAML draft for an item: visible fields in web order
     with ``# REQUIRED · type · help`` and choices above each; file fields
-    take paths; general attachments and the requester at the top level."""
+    take paths (relative to ``base_dir``, where the draft is saved; default
+    the current directory); general attachments and the requester at the
+    top level."""
     state, draft, meta = plan.state, plan.draft, plan.meta
+
+    def rel(p: str) -> str:
+        return os.path.relpath(p, base_dir) if base_dir else os.path.relpath(p)
+
     spec = state.spec
     item = spec.item
     assert item is not None
@@ -311,7 +318,7 @@ def render_sr_template(plan: cat.SRPlan, *, errors: list[str] | None = None, req
             if f.max_files:
                 meta_bits.append(f"at most {f.max_files} file(s)")
             lines.append("  # " + " · ".join(meta_bits))
-            have = [os.path.relpath(str(p)) for p in ev.values.get(name) or ()]
+            have = [rel(str(p)) for p in ev.values.get(name) or ()]
             lines.append(f"  {yamlio.key(key)}: {yamlio.flow_list(have)}")
             shown = True
             continue
@@ -355,7 +362,7 @@ def render_sr_template(plan: cat.SRPlan, *, errors: list[str] | None = None, req
         mandatory = item.attachment_mandatory if need is None else need
         lines.append(f"# {'REQUIRED' if mandatory else 'optional'} · general attachments for the request "
                      "(uploaded only after you confirm)")
-        lines.append("attachments: " + yamlio.flow_list([os.path.relpath(p) for p in draft.attachments]))
+        lines.append("attachments: " + yamlio.flow_list([rel(p) for p in draft.attachments]))
     else:
         lines.append("# This item does not accept general attachments.")
     blocking = [m for m in ev.messages if m.blocking]
@@ -513,7 +520,8 @@ def _confirm(plan: cat.SRPlan, draft: Draft, build: Callable[[Draft, bool], cat.
             path = typer.prompt("Save draft to", default="sr-draft.yaml")
             if os.path.exists(path) and not typer.confirm(f"{path} exists; overwrite?", default=False):
                 continue
-            Path(os.path.expanduser(path)).write_text(render_sr_template(plan), encoding="utf-8")
+            dest = Path(os.path.expanduser(path))
+            dest.write_text(render_sr_template(plan, base_dir=str(dest.resolve().parent)), encoding="utf-8")
             err.print(f"[green]saved[/green] {escape(path)}; continue later with --from {escape(path)}",
                       highlight=False)
             raise FlowExit(0)
@@ -578,17 +586,22 @@ def create_command(
     from fsv.editor import EditorAbort
     from fsv.formmeta import ClientResolver
 
+    from fsv.change_cli import _run_form, form_tty
+
     tty = flow.interactive() and not no_input
     has_input = bool(from_file or sets or preset or attach)
     template_only = False
+    form = False
     if not has_input and not edit:
-        if dry_run:
+        if tty and form_tty():
+            form = True  # the in-terminal item form (review inside; --dry-run sends nothing)
+        elif dry_run:
             template_only = True
         elif tty:
-            edit = True
+            edit = True  # stdout is not a terminal: fall back to the YAML draft in $EDITOR
         else:
-            raise FlowExit(2, "nothing to request: pass --from FILE or --set LABEL=VALUE (--edit needs a terminal); "
-                              "start with `fsv sr create ITEM --dry-run` to get a draft")
+            raise FlowExit(2, "nothing to request: pass --from FILE or --set LABEL=VALUE (the interactive form and "
+                              "--edit need a terminal); start with `fsv sr create ITEM --dry-run` to get a draft")
     if edit and not tty:
         raise FlowExit(2, "--edit needs a terminal (no TTY or --no-input); use --from FILE")
 
@@ -599,7 +612,7 @@ def create_command(
     except ValueError as e:
         raise FlowExit(2, str(e)) from None
     who = _Requester(client, requester, tty)
-    if tty and not edit and not template_only and not who.value(draft):
+    if tty and not form and not edit and not template_only and not who.value(draft):
         who.ask()
     resolver = ClientResolver(client)
 
@@ -617,13 +630,35 @@ def create_command(
         err.print(f"[dim]fill this in, then: fsv sr create {meta.display_id} --from FILE --dry-run[/dim]",
                   highlight=False)
         return
+    session = None
     try:
-        if edit:
+        if form:
+            from fsv.formui.session import sr_session
+
+            req = None
+            if requester:  # --requester preselects; never the logged-in user
+                req, problem = who.resolve(draft)
+                if problem:
+                    err.print(f"[yellow]--requester[/yellow]: {escape(problem)}", highlight=False)
+            session = sr_session(client, meta=meta, requester=req, dry_run=dry_run)
+            try:
+                plan = _run_form(session)
+            except FlowExit as e:
+                if e.code == 1:
+                    raise FlowExit(1, "cancelled; nothing was uploaded or sent") from None
+                raise
+            draft = plan.draft
+        elif edit:
             draft, plan = edit_loop(lambda d: build(d), draft)
         else:
             plan = build(draft)
     except EditorAbort as e:
         raise FlowExit(1, str(e)) from None
+    if session is not None:
+        _s = session
+
+        def build(d: Draft, ack_all: bool = ack, m: cat.ItemMeta | None = None) -> cat.SRPlan:  # noqa: F811
+            return _s.build_plan(ack_all or _s.ack, m)
 
     if dry_run:
         _print_plan(plan, as_json=as_json)
@@ -632,7 +667,9 @@ def create_command(
         flow.expect(plan, expect_plan)  # type: ignore[arg-type]
         return
 
-    if tty and not yes:
+    if session is not None:
+        flow.expect(plan, expect_plan)  # type: ignore[arg-type]  # reviewed and confirmed in the form
+    elif tty and not yes:
         plan, draft = _confirm(plan, draft, lambda d, a: build(d, a or ack))
     else:
         if not tty and not yes:
@@ -672,7 +709,7 @@ def create_cmd(
     from_: Optional[str] = typer.Option(None, "--from", help="draft YAML (requester, answers, attachments)"),
     set_: Optional[List[str]] = typer.Option(None, "--set", help="answer LABEL=VALUE (repeatable; file fields take a path)"),
     preset: Optional[str] = typer.Option(None, "--preset", help="preset name or path (partial answers)"),
-    edit: bool = typer.Option(False, "--edit", help="open the annotated YAML draft in $EDITOR"),
+    edit: bool = typer.Option(False, "--edit", help="advanced: the annotated YAML draft in $EDITOR (default in a terminal: the interactive form)"),
     requester: Optional[str] = typer.Option(None, "--requester", help="requester email or exact name"),
     attach: Optional[List[str]] = typer.Option(None, "--attach", help="general attachment (repeatable)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="show the review, payload and plan hash; send nothing"),

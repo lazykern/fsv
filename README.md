@@ -315,11 +315,19 @@ planning:                        # planning field label -> files (and optional t
   Go-Live Checklist: [evidence/checklist.xlsx]
 ```
 
+In a terminal, `fsv changes create` and `fsv changes update CHN-1234` with
+no other flags open an **interactive form** laid out like the web form
+(type-to-filter dropdowns, people search, date picker, live rules, review,
+then submit); see [docs/formui.md](docs/formui.md). The options below are for
+files, scripts and agents.
+
 ```bash
+fsv changes create                                       # the interactive form (review inside)
+fsv changes update CHN-1234                              # the pre-filled edit form; sends only what changed
 fsv changes create --from change.yaml --dry-run          # review + exact JSON payload + plan hash
 fsv changes create --from change.yaml --dry-run -o json  # {plan_hash, payload, review, warnings}
 fsv changes create --from change.yaml --yes --expect-plan 0cfda1921f64   # send exactly the reviewed plan
-fsv changes create --edit                                # annotated YAML draft in $VISUAL/$EDITOR
+fsv changes create --edit                                # advanced: annotated YAML draft in $VISUAL/$EDITOR
 fsv changes create --dry-run > change.yaml               # the same draft, to fill in later
 fsv changes create --preset acme-normal --set "Subject=Billing: rotate keys" --set "Cloud Only=No" --edit
 fsv changes update CHN-1234 --set "Stage=Live" --dry-run # old -> new review; sends only what changed

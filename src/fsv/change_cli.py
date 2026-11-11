@@ -145,6 +145,26 @@ def _confirm_loop(plan: Plan, draft: Draft, build: Callable[[Draft, bool], Plan]
         raise FlowExit(1, "cancelled; nothing was sent")
 
 
+def form_tty() -> bool:
+    """The in-terminal form can open (patched in tests)."""
+    from fsv.formui.app import form_available
+
+    return form_available()
+
+
+def _run_form(session: Any) -> Any:
+    """Open the form; returns the reviewed plan (submit) or exits."""
+    from fsv.formui.app import run_form
+
+    result = run_form(session)
+    if result.action == "save_draft":
+        path = result.saved_path or ""
+        raise FlowExit(0, f"saved {path}; continue later with --from {path} (nothing was sent)")
+    if result.action != "submit" or result.plan is None:
+        raise FlowExit(1, "cancelled; nothing was sent")
+    return result.plan
+
+
 def _send(plan: Plan, client: Any, *, rebuild: Callable[[Any], Plan], tty: bool, yes: bool,
           expect_plan: str | None, allow_duplicate: bool, duplicate: str = "append",
           attach_flow: str | None = None) -> dict[str, Any]:
@@ -211,14 +231,17 @@ def create_command(
     legacy = {k: v for k, v in legacy.items() if v is not None}
     has_input = bool(from_file or sets or preset or legacy or attach)
     template_only = False
+    form = False
     if not has_input and not edit:
-        if dry_run:
+        if tty and form_tty():
+            form = True  # the in-terminal form (review inside; --dry-run sends nothing)
+        elif dry_run:
             template_only = True
         elif tty:
-            edit = True  # hook: the prompt wizard will replace this default
+            edit = True  # stdout is not a terminal: fall back to the YAML draft in $EDITOR
         else:
             raise FlowExit(2, "nothing to create: pass --from FILE, --set LABEL=VALUE or --preset NAME "
-                              "(--edit needs a terminal); see `fsv changes create --help`")
+                              "(the interactive form and --edit need a terminal); see `fsv changes create --help`")
     if edit and not tty:
         raise FlowExit(2, "--edit needs a terminal (no TTY or --no-input); use --from FILE")
 
@@ -239,7 +262,7 @@ def create_command(
     except ValueError as e:
         raise FlowExit(2, str(e)) from None
     who = _Requester(client, requester, tty)
-    if tty and not edit and not dry_run and not template_only and not who.value(draft):
+    if tty and not form and not edit and not dry_run and not template_only and not who.value(draft):
         who.ask()
     resolver = ClientResolver(client)
 
@@ -257,8 +280,20 @@ def create_command(
         print(flow.template_for(plan, draft, title="fsv change draft: fill in, then "
                                                   "`fsv changes create --from FILE --dry-run`"), end="")
         return
+    session = None
     try:
-        if edit:
+        if form:
+            from fsv.formui.session import change_session
+
+            req = None
+            if requester:  # --requester preselects; never the logged-in user
+                req, problem = who.resolve(draft)
+                if problem:
+                    err.print(f"[yellow]--requester[/yellow]: {problem}", highlight=False)
+            session = change_session(client, meta=meta, requester=req, dry_run=dry_run)
+            plan = _run_form(session)
+            draft = plan.draft
+        elif edit:
             draft, plan = flow.edit_loop(lambda d: build(d), draft, title="New change")
         else:
             plan = build(draft)
@@ -270,6 +305,17 @@ def create_command(
         if not plan.ok:
             raise FlowExit(2)
         flow.expect(plan, expect_plan)
+        return
+
+    if session is not None:
+        flow.expect(plan, expect_plan)  # reviewed and confirmed in the form
+        ack_now = ack or session.ack
+        try:
+            result = _send(plan, client, rebuild=lambda m: session.build_plan(ack_now, m), tty=tty, yes=yes,
+                           expect_plan=expect_plan, allow_duplicate=allow_duplicate, attach_flow=attach_flow)
+        except PartialFailure as e:
+            raise _report_partial(e, "change") from None
+        _report_created(result, as_json=as_json, portal_url=portal_url)
         return
 
     if tty and not yes:
@@ -291,6 +337,10 @@ def create_command(
                        expect_plan=expect_plan, allow_duplicate=allow_duplicate, attach_flow=attach_flow)
     except PartialFailure as e:
         raise _report_partial(e, "change") from None
+    _report_created(result, as_json=as_json, portal_url=portal_url)
+
+
+def _report_created(result: dict[str, Any], *, as_json: bool, portal_url: str) -> None:
     cid = result["id"]
     if as_json:
         print(json.dumps({"created": result["result"], "plan_hash": result["plan_hash"], "steps": result["steps"],
@@ -323,10 +373,16 @@ def update_command(
     no_input: bool,
     status_label: Callable[[Any], str] | None,
     subject: str,
+    form: bool = False,
 ) -> None:
+    """``form``: open the in-terminal edit form (pre-filled; the edit
+    form's rules; only changed fields are sent)."""
     from fsv.editor import EditorAbort
 
     tty = flow.interactive() and not no_input
+    if form and not (tty and form_tty()):
+        raise FlowExit(2, "nothing to update: the interactive form needs a terminal; pass --set LABEL=VALUE, "
+                          "--from FILE, --status/--priority/--agent/--group or --edit")
     if edit and not tty:
         raise FlowExit(2, "--edit needs a terminal (no TTY or --no-input); use --from FILE or --set")
     client = client_factory()
@@ -353,8 +409,16 @@ def update_command(
         return flow.build_update_plan(m or meta, d, record, cid, resolver=resolver, ack_all=ack_all,
                                       status_label=status_label)
 
+    session = None
     try:
-        if edit:
+        if form:
+            from fsv.formui.session import change_session
+
+            session = change_session(client, mode="edit", target=cid, record=record, meta=meta, dry_run=dry_run,
+                                     status_label=status_label, title=f"Edit {subject}")
+            plan = _run_form(session)
+            draft = plan.draft
+        elif edit:
             draft, plan = flow.edit_loop(lambda d: build(d), draft, title=f"Edit {subject}")
         else:
             plan = build(draft)
@@ -362,6 +426,11 @@ def update_command(
         raise _abort_editor(e) from None
     except FormError as e:
         raise FlowExit(2, str(e)) from None
+    if session is not None:
+        _s = session
+
+        def build(d: Draft, ack_all: bool = ack, m: Any = None) -> Plan:  # noqa: F811 - the form's own plan
+            return _s.build_plan(ack_all or _s.ack, m)
 
     if dry_run:
         _print_plan(plan, as_json=as_json)
@@ -372,7 +441,9 @@ def update_command(
     if plan.ok and not plan.hash:
         console.print(f"[yellow]no changes[/] {subject}", highlight=False)
         return
-    if tty and not yes:
+    if session is not None:
+        flow.expect(plan, expect_plan)  # reviewed and confirmed in the form
+    elif tty and not yes:
         plan, draft = _confirm_loop(plan, draft, lambda d, a: build(d, a or ack), title=f"Edit {subject}",
                                     verb="update")
         if not plan.hash:

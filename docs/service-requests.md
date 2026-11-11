@@ -7,7 +7,7 @@ shows it, places service requests through the same form engine as
 ```
 fsv sr catalog [--category X] [--search Q] [--popular] [--categories] [-o json]
 fsv sr fields ITEM [-o json]
-fsv sr create ITEM (--from draft.yaml | --set Label=Value ... | --edit) [--attach FILE ...]
+fsv sr create ITEM [--from draft.yaml | --set Label=Value ... | --edit] [--attach FILE ...]
                [--requester EMAIL] [--dry-run] [-o json] [--yes] [--expect-plan HASH]
                [--allow-duplicate] [--ack] [--no-input] [--preset NAME]
 fsv sr get SR-ID [--items] [--attachments] [--download DIR] [--force] [-o json]
@@ -45,7 +45,10 @@ categories only.
 
 ## Creating a request
 
-The recommended flow:
+In a terminal, `fsv sr create 77` with no inputs opens the item's
+**interactive form** (requester first, choices that reveal their section's
+fields, file fields with type/count checks, review, then submit); see
+[formui.md](formui.md). For files and scripts:
 
 ```sh
 fsv sr create 77 --dry-run > sr.yaml          # annotated draft for item 77
@@ -84,7 +87,7 @@ ack: []                          # acknowledge blocking rule messages
   directory. `--attach FILE` adds a general attachment.
 * `description_md`/`description_html` and `planning:` are refused: catalog
   items have no description or planning fields.
-* `--edit` opens the annotated draft in `$EDITOR` and reopens it, with the
+* `--edit` (advanced) opens the annotated draft in `$EDITOR` and reopens it, with the
   errors on top, until every required field is answered (new required
   fields appear as your answers reveal them).
 * With no input at all, `--dry-run` prints the empty annotated draft.

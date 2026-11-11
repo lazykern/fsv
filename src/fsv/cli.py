@@ -3981,7 +3981,14 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 cid = _cid(id_, res)
                 no_input = _no_input(no_input)
-                if (edit or set_ or from_ or preset) and due_by is None and planning is None:
+                # no flags at all in a terminal: the pre-filled interactive edit form
+                open_form = not no_input and not any((status, priority, agent_id, group_id, edit, set_, planning,
+                                                      description, files, attach, due_by, from_, preset))
+                if open_form:
+                    from fsv.change_cli import form_tty
+                    from fsv.change_flow import interactive
+                    open_form = interactive() and form_tty()
+                if (edit or set_ or from_ or preset or open_form) and due_by is None and planning is None:
                     from fsv.change_cli import FlowExit, update_command
                     from fsv.forms import FormError
                     try:
@@ -3991,7 +3998,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                             legacy={"status": status, "priority": priority, "agent": agent_id, "group": group_id},
                             duplicate=duplicate, dry_run=dry_run, as_json=json_out, yes=yes,
                             expect_plan=expect_plan, ack=ack, no_input=no_input, status_label=None,
-                            subject=format_id({"id": cid}, res),
+                            subject=format_id({"id": cid}, res), form=open_form,
                         )
                     except FlowExit as e:
                         _flow_exit(e)
@@ -4116,7 +4123,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
                         console.print(f"[green]updated[/] {format_id({'id': cid}, res)}")
                         return
 
-                _err("nothing to update; use --edit, --attach, --planning, --set, or pass --status/--priority/--agent/--group")
+                _err("nothing to update; use --set, --from, --attach, --planning, --edit, or pass "
+                     "--status/--priority/--agent/--group (in a terminal, no flags opens the edit form)")
             except (SessionError, APIError) as e:
                 _err_exc(e)
             except (SystemExit, typer.Exit):
@@ -4446,7 +4454,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             from_: Optional[str] = typer.Option(None, "--from", help="draft YAML (answers by label, description_md, attachments, planning)"),
             set_: Optional[List[str]] = typer.Option(None, "--set", help="answer LABEL=VALUE (label or internal name; repeatable)", autocompletion=completion.complete_set(res)),
             preset: Optional[str] = typer.Option(None, "--preset", help="preset name (config presets/NAME.yaml) or path"),
-            edit: bool = typer.Option(False, "--edit", "-e", help="edit an annotated YAML draft in $EDITOR"),
+            edit: bool = typer.Option(False, "--edit", "-e", help="advanced: edit an annotated YAML draft in $EDITOR (default in a terminal: the interactive form)"),
             requester: Optional[str] = typer.Option(None, "--requester", help="requester email or exact name (default: config defaults.requester)"),
             attach: Optional[List[str]] = typer.Option(None, "--attach", "-a", help="file to attach (uploaded only after you confirm; repeatable)"),
             attach_flow: Optional[str] = typer.Option(None, "--attach-flow", help="after-create (default: create, upload, PUT ids) | before-create (upload, send ids in the create body); config changes.attach_flow"),
