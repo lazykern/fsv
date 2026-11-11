@@ -4607,6 +4607,15 @@ from fsv.form_cli import form_app  # noqa: E402
 
 app.add_typer(form_app, name="form")
 
+# --- sr sub-app (cli_sr) ---
+try:
+    from fsv.cli_sr import app as sr_app  # noqa: E402
+except ImportError:  # service-request commands not installed yet
+    sr_app = None
+if sr_app is not None:
+    app.add_typer(sr_app, name="sr")
+# --- end sr sub-app ---
+
 
 if __name__ == "__main__":
     app()
