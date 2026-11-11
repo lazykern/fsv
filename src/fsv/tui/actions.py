@@ -131,3 +131,84 @@ def form_result(mode: str, out: Any) -> tuple[str, str]:
     display = next((r["display_id"] for r in rows if r.get("display_id") is not None), None)
     internal = next((r["id"] for r in rows if r.get("id") is not None), None)
     return label, str(human or (f"{prefix}-{display}" if display is not None else f"ID {internal}" if internal is not None else "(ID unavailable; inspect journal)"))
+
+
+def task_patch(current: dict, field: str, value: Any) -> dict:
+    if field not in ("title", "status", "group_id", "owner_id"):
+        raise ValueError("Unsupported task field")
+    if field != "title":
+        if not value.isdecimal() or int(value) < 1:
+            raise ValueError("Enter a positive numeric ID")
+        value = int(value)
+    if field == "status" and value not in (1, 2, 3):
+        raise ValueError("Task status must be 1 Open, 2 In Progress, or 3 Completed")
+    return {} if current.get(field) == value else {field: value}
+
+
+def apply_change_action(kind: str, change_id: int, target: dict, body: dict, client: Any) -> None:
+    """One helper invocation, with no fallback or write retry here."""
+    from fsv import create
+    if kind == "task-update":
+        create.update_task(change_id, target["id"], body, c=client)
+    elif kind == "task-delete":
+        create.delete_task(change_id, target["id"], c=client)
+    elif kind == "link":
+        create.associate_ticket(change_id, [target["id"]], c=client)
+    elif kind == "unlink":
+        create.dissociate_ticket(change_id, target["id"], c=client)
+    else:
+        raise ValueError("Unsupported change action")
+
+
+def download_choices(client: Any, resource: Resource, item: dict) -> tuple[list[dict], list[str]]:
+    """Fresh source inventory; partial/denied sources remain visible."""
+    from fsv import views
+    from fsv.cli_sr import _attachment_rows
+    record_id = item.get("display_id") or item["id"]
+    page = views.load_detail(client, resource, record_id)
+    warnings = page.notes()
+    items = page.requested_items or []
+    rows = _attachment_rows(page.record, items, [{} for _ in items])
+    for row in rows:
+        row.setdefault("source", "request")
+    if resource.name == "changes":
+        try:
+            planning = client.int_get(f"changes/{record_id}/planning-fields").get("change_planning_fields", [])
+            for entry in planning:
+                rows.extend({**a, "source": f"planning: {entry.get('label') or entry.get('name')}"}
+                            for a in entry.get("attachments") or [])
+        except Exception as exc:
+            warnings.append(f"Planning attachment inventory unavailable: {exc}")
+    if resource.name == "tickets":
+        conversations, meta, missing = views.load_conversations(client, record_id, all_pages=True)
+        if missing:
+            warnings.append(missing.note)
+        if meta.get("complete") is False or meta.get("has_more"):
+            warnings.append("Conversation attachment inventory is partial")
+        for cv in conversations:
+            rows.extend({**a, "source": f"conversation {cv.get('id')}"} for a in cv.get("attachments") or [])
+    return rows, warnings
+
+
+def download_selected(client: Any, attachment: dict, destination: str) -> dict:
+    from pathlib import Path
+    from fsv.cli_sr import _download
+    # Existing helper validates names, skips existing files, and writes exclusively.
+    return _download(client, attachment, Path(destination).expanduser(), False)
+
+
+def target_inventory(tab: Any, tasks: bool) -> tuple[list[dict], list[str], bool]:
+    if tab.missing:
+        raise ValueError(tab.missing.note)
+    if tasks:
+        rows, meta = tab.data or [], tab.meta
+    else:
+        # Only the initiating Tickets part, never caused/archived relationships.
+        if "Tickets" not in tab.parts:
+            raise ValueError("Initiating-ticket list unavailable; not an empty list")
+        rows, meta = tab.parts["Tickets"], tab.parts_meta.get("Tickets", {})
+    complete = meta.get("complete") is True and not meta.get("has_more") and not meta.get("partial")
+    warnings = list(tab.notes)
+    if not complete:
+        warnings.append("Target inventory is partial or completeness is unknown")
+    return rows, warnings, complete

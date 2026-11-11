@@ -135,14 +135,16 @@ class HelpScreen(ModalScreen[None]):
   [cyan]y[/]            copy selected display id
   [cyan]o[/]            open selected item in browser
 
-[bold]Forms[/] (changes; off with --read-only)
-  [cyan]N[/]            new change (full-screen form)
+[bold]Forms[/] (off with --read-only)
+  [cyan]N[/]            choose Change / Incident / Service Request
   [cyan]e[/]            edit the selected change
 
 [bold]Write actions[/] (changes/tickets; off with --read-only)
   [cyan]s[/]            change status: pick, then confirm
   [cyan]n[/]            add note (private by default; Ctrl+T toggles public)
   [cyan]r[/]            reply to ticket (detail pane; public, confirmed)
+  [cyan]a[/]            selected task / initiating-ticket / attachment actions
+  [cyan]![/]            reopen the last persistent failure
 
 [bold]App[/]
   [cyan]r[/]            reload list and clear caches (list pane)
@@ -1269,6 +1271,7 @@ class FsvApp(App):
 
     def _reload_list(self, message: str = "[dim]reloading...[/]") -> None:
         self._list_epoch += 1
+        self._list_total = None
         self._items = []
         self._total = 0
         self._page = 1
@@ -1621,7 +1624,7 @@ class FsvApp(App):
         bar.update(text)
 
     def _render_key_hints(self) -> None:
-        write = "" if self.read_only else "[bold]s[/] status  [bold]n[/] note  [bold]N[/]/[bold]e[/] new/edit  "
+        write = "" if self.read_only else "[bold]s[/] status  [bold]n[/] note  [bold]N[/]/[bold]e[/] create/edit  [bold]a[/] actions  [bold]![/] failure  "
         rkey = "[bold]r[/] reload  " if self.read_only else "[bold]r[/] reload/reply  "
         hints = (
             "[bold]Tab[/] pane  "
@@ -2066,6 +2069,15 @@ class FsvApp(App):
             self._open_browser()
             event.stop()
             event.prevent_default()
+        elif key == "a":
+            self._action_menu()
+            event.stop()
+            event.prevent_default()
+        elif key == "!" or key == "exclamation_mark":
+            if self._write_failure:
+                self.push_screen(FailureScreen(self._write_failure))
+            event.stop()
+            event.prevent_default()
         elif key in ("s", "n") or (key == "r" and pane == "detail" and self._reply_possible()):
             self._write_key(key)
             event.stop()
@@ -2198,6 +2210,154 @@ class FsvApp(App):
 
     # ── Write actions ───────────────────────────────────────
 
+    def _action_menu(self) -> None:
+        if self.read_only:
+            self.notify("Read-only mode: actions are disabled", severity="warning")
+            return
+        if not self._selected:
+            self.notify("No row selected", severity="warning")
+            return
+        item = dict(self._selected)
+        choices = [("download", "Download selected attachment")]
+        if item.get("_resource", TICKETS) == CHANGES:
+            choices = [("task-update", "Update selected task"), ("task-delete", "Delete selected task"),
+                       ("link", "Link initiating ticket"), ("unlink", "Unlink initiating ticket")] + choices
+        self.push_screen(ChoiceScreen(choices, "Selected record actions"),
+                         lambda kind: self._prepare_action(kind, item) if kind is not None else None)
+
+    def _prepare_action(self, kind: str, item: dict) -> None:
+        if self.read_only:
+            return
+        if kind == "link":
+            self.push_screen(ValueScreen("Search initiating tickets (ID or subject)"),
+                             lambda query: self._load_action_targets(kind, item, query) if query else None)
+        else:
+            self._load_action_targets(kind, item)
+
+    @work(thread=True, exclusive=True, group="action-read")
+    def _load_action_targets(self, kind: str, item: dict, query: str = "") -> None:
+        from fsv import create
+        res = item.get("_resource", TICKETS)
+        warnings = []
+        try:
+            client = get_client()
+            if kind == "download":
+                rows, warnings = actions.download_choices(client, res, item)
+            elif kind == "link":
+                rows = create.search_change_tickets(query, c=client)
+            else:
+                tab = V.load_tab(client, CHANGES, item, "tasks" if kind.startswith("task-") else "associations")
+                rows, warnings, _ = actions.target_inventory(tab, kind.startswith("task-"))
+            self.call_from_thread(self._pick_action_target, kind, item, rows, warnings)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, f"Could not load action targets: {exc}")
+
+    def _pick_action_target(self, kind: str, item: dict, rows: list[dict], warnings: list[str]) -> None:
+        if self.read_only:
+            return
+        if not rows:
+            self._show_failure("No available targets.\n" + "\n".join(map(str, warnings)))
+            return
+        choices = []
+        for row in rows:
+            identity = row.get("human_display_id") or row.get("display_id") or row.get("id")
+            label = row.get("title") or row.get("subject") or row.get("name") or row.get("filename") or "attachment"
+            choices.append((row, f"{identity}: {label} {row.get('source', '')}"))
+
+        def picked(target):
+            if target is None or self.read_only:
+                return
+            if kind == "task-update":
+                self._load_task_editor(item, target)
+            elif kind == "download":
+                self.push_screen(ValueScreen("Download destination directory", "."),
+                                 lambda path: self._confirm_action(kind, item, target, {"destination": path}) if path else None)
+            else:
+                self._confirm_action(kind, item, target, {})
+
+        title = kind + (" — partial inventory; inspect warnings" if warnings else "")
+        if warnings:
+            self.notify("\n".join(map(str, warnings)), severity="warning", timeout=15)
+        self.push_screen(ChoiceScreen(choices, title), picked)
+
+    @work(thread=True, exclusive=True, group="task-read")
+    def _load_task_editor(self, item: dict, target: dict) -> None:
+        from fsv import create
+        try:
+            current = create.get_task_for_edit(item.get("display_id") or item["id"], target["id"], c=get_client())
+            self.call_from_thread(self._edit_task_field, item, target, current)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, f"Task unavailable: {exc}")
+
+    def _edit_task_field(self, item: dict, target: dict, current: dict) -> None:
+        def field_picked(field):
+            if field is None:
+                return
+            def value_picked(value):
+                if value is None:
+                    return
+                try:
+                    body = actions.task_patch(current, field, value)
+                except ValueError as exc:
+                    self._show_failure(str(exc))
+                    return
+                if body:
+                    self._confirm_action("task-update", item, {**target, "_before": {k: current.get(k) for k in body}}, body)
+                else:
+                    self.notify("No change; nothing sent")
+            title = f"Task {target['id']}: {field}" + (" (1 Open, 2 In Progress, 3 Completed)" if field == "status" else "")
+            self.push_screen(ValueScreen(title, str(current.get(field) or "")), value_picked)
+        self.push_screen(ChoiceScreen([("title", "Title"), ("status", "Status"),
+                                      ("group_id", "Group ID"), ("owner_id", "Agent ID")],
+                                      f"Update task {target['id']} — choose one changed field"), field_picked)
+
+    def _confirm_action(self, kind: str, item: dict, target: dict, body: dict) -> None:
+        if self.read_only:
+            return
+        res = item.get("_resource", TICKETS)
+        lines = [f"Record: {format_id(item, res)} (ID {item['id']})",
+                 f"Target: {target.get('human_display_id') or target.get('id')} — {target.get('title') or target.get('subject') or target.get('name', '')}",
+                 f"Action: {kind}", json.dumps(body, ensure_ascii=False),
+                 "Assignment/status changes may notify people. Deletion cannot be undone." if kind.startswith("task-") else
+                 "Initiating-ticket relationship only." if kind in ("link", "unlink") else
+                 f"Source: {target.get('source', 'request')}. Existing files are skipped; no overwrite."]
+        if "_before" in target:
+            lines.insert(3, "Before: " + json.dumps(target["_before"], ensure_ascii=False))
+        self.push_screen(ConfirmScreen(f"Confirm {kind}", lines),
+                         lambda ok: self._execute_action(kind, item, target, body) if ok else None)
+
+    @work(thread=True, group="write")
+    def _execute_action(self, kind: str, item: dict, target: dict, body: dict) -> None:
+        if self.read_only:
+            return
+        res = item.get("_resource", TICKETS)
+        try:
+            client = get_client()
+            if kind == "download":
+                result = actions.download_selected(client, target, body["destination"])
+                if result.get("status") in ("error", "rejected"):
+                    raise ValueError(json.dumps(result))
+                self.call_from_thread(self.notify, json.dumps(result), title="Download result", timeout=15)
+                return
+            actions.apply_change_action(kind, item.get("display_id") or item["id"], target, body, client)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+            return
+        # Readback failure is not write failure: never repeat the send to recover it.
+        try:
+            tab = V.load_tab(client, CHANGES, item, "tasks" if kind.startswith("task-") else "associations")
+            rows, _, complete = actions.target_inventory(tab, kind.startswith("task-"))
+            found = next((r for r in rows if str(r.get("id")) == str(target["id"])), None)
+            removing = kind in ("task-delete", "unlink")
+            if removing and (found or not complete):
+                raise ValueError("Removal is not verified in a complete list")
+            if not removing and (not found or any(found.get(k) != v for k, v in body.items())):
+                raise ValueError("Exact target state was not verified")
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, f"Write sent once; readback unverified: {exc}. Do not resend; inspect the record.")
+            return
+        self.call_from_thread(self._after_write, res, item, f"{kind} verified")
+
     def _reply_possible(self) -> bool:
         return bool(self._selected) and not self.read_only and actions.can_reply(
             self._selected.get("_resource", TICKETS))
@@ -2268,13 +2428,15 @@ class FsvApp(App):
                 if ok2:
                     self._do_write("reply" if reply else "note", res, item, body, public)
 
-            preview = ["", "> " + body[:300]]
+            preview = ["", "> " + body]
             self.push_screen(ConfirmScreen(plan.title, plan.lines + preview), confirmed)
 
         self.push_screen(screen, composed)
 
     @work(thread=True, group="write")
     def _do_write(self, kind: str, res: Resource, item: dict, arg: Any, extra: Any) -> None:
+        if self.read_only:
+            return
         item_id = item.get("id")
         try:
             if kind == "status":
@@ -2286,9 +2448,8 @@ class FsvApp(App):
             else:
                 actions.apply_note(res, item_id, arg, bool(extra))
                 msg = "Public note added" if extra else "Private note added"
-        except Exception as exc:  # noqa: BLE001 - shown as a toast
-            self.call_from_thread(self.notify, actions.clean_error(exc), title="Write failed",
-                                  severity="error", timeout=8)
+        except Exception as exc:  # noqa: BLE001 - preserve ambiguous failures
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
             return
         self.call_from_thread(self._after_write, res, item, msg)
 

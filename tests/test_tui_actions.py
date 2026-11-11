@@ -176,7 +176,7 @@ def test_read_only_from_config(monkeypatch):
     assert actions.resolve_read_only(True) is True
 
 
-def test_error_becomes_toast_not_crash(calls, monkeypatch):
+def test_error_becomes_persistent_not_crash(calls, monkeypatch):
     def boom(*a, **k):
         raise SessionError("Session expired. Run: fsv login")
     monkeypatch.setattr(service, "update_item", boom)
@@ -192,8 +192,8 @@ def test_error_becomes_toast_not_crash(calls, monkeypatch):
             await app.workers.wait_for_complete()
             await pilot.pause()
             assert app.is_running
+            assert "Session expired. Run: fsv login" in app._write_failure
     run(go())
-    assert ("Session expired. Run: fsv login", "error") in toasts
 
 
 def test_status_choices_from_schema():

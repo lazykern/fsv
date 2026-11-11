@@ -69,6 +69,31 @@ def test_create_dispatch_cancel(offline, monkeypatch, kind, keys):
     assert seen == [(kind, {"item_ref": 77} if kind == "sr" else {})]
 
 
+@pytest.mark.parametrize("per_page", [1, 100])
+def test_real_list_loader_preserves_short_and_terminal_metadata(offline, monkeypatch, per_page):
+    from fsv import service
+    calls = []
+    def listing(res, **kw):
+        page = kw["page"]
+        calls.append(page)
+        return [{"id": page, "display_id": page, "_resource": TICKETS}], {"meta": {"has_next": page == 1}}
+    monkeypatch.setattr(service, "list_page", listing)
+    async def go():
+        app = FsvApp()
+        app._schemas = {name: {"fields": []} for name in ("tickets", "changes", "problems")}
+        app._views = {"tickets": []}
+        app._headers = {"tickets": []}
+        app._me = {}
+        app._per_page = per_page
+        async with app.run_test() as pilot:
+            await asyncio.to_thread(app._fetch_list, False, 0, "tickets", 1)
+            assert app._has_more
+            await asyncio.to_thread(app._fetch_list, True, 0, "tickets", 2)
+            assert not app._has_more and app._page == 2
+    asyncio.run(go())
+    assert calls == [1, 2]
+
+
 def test_read_only_and_chooser_cancel(offline, monkeypatch):
     monkeypatch.setattr(form_sessions, "ticket_session", lambda c: pytest.fail("no session"))
     async def go():
