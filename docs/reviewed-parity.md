@@ -58,6 +58,23 @@ including all other subscribers. Already-satisfied requests send nothing.
 These exact self-watch lifecycles have accepted-contract evidence; no live
 calls are made by the offline tests.
 
+## Manual ticket time
+
+```sh
+fsv tickets time list INC-123
+fsv tickets time write INC-123 create --spent 00:01 --executed-at 2030-01-02T10:00:00Z --note Acme --dry-run
+fsv tickets time write INC-123 update --entry 456 --note Globex --dry-run
+fsv tickets time write INC-123 delete --entry 456 --dry-run
+```
+
+Use `--yes --expect-plan FULL_HASH` after reviewing each operation. Only
+self-owned, nonbillable, stopped manual entries are supported. Durations use
+HH:MM and start timestamps require an explicit offset. Updates preserve the
+unmodified time/note and do not change start time. Timers, billing, task-linked
+time, and change/problem time mutations are not implemented. Reads must be
+complete; create verification needs the exact returned entry ID. An absent
+response ID or failed readback never triggers a resend or latest-entry guess.
+
 Schema reads use a seven-day cache, including legacy cache envelopes. Stale
 reads are identified internally with `stale` and `source`, warn on stderr,
 and start a background refresh; JSON stdout remains parseable. Force a
