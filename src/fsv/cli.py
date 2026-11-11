@@ -3900,6 +3900,10 @@ def _make_subapp(res: Resource) -> typer.Typer:
 
         sub.add_typer(associations_app, name="associations")
 
+    if res.name in {"tickets", "changes"}:
+        from fsv.watcher_cli import register as register_watchers
+        register_watchers(sub, res, lambda: _client())
+
     @sub.command("fields", help=f"List discoverable {singular} fields.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} fields  |  fsv {res.name} fields --required  |  fsv {res.name} fields --choices status  |  fsv {res.name} fields --custom"
     ))

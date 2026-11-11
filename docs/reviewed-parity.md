@@ -42,6 +42,22 @@ forward is not conversation forwarding; BCC+CC/status, alternate-To, and
 reply-all remain refused or unsupported. Missing BCC/sender readback fields
 remain unavailable, and a successful send is never replayed to obtain them.
 
+## Self watchers
+
+```sh
+fsv tickets watchers list INC-123
+fsv tickets watchers set INC-123 --watch --dry-run
+fsv changes watchers set CHN-123 --unwatch --dry-run
+```
+
+Send with `--yes --expect-plan FULL_HASH`. Identity comes from a fresh
+signed-in-agent read; arbitrary subscriber changes are not supported. Ticket
+and change methods differ and are kept separate. Complete membership is
+required before review, and readback compares the full expected membership
+including all other subscribers. Already-satisfied requests send nothing.
+These exact self-watch lifecycles have accepted-contract evidence; no live
+calls are made by the offline tests.
+
 Schema reads use a seven-day cache, including legacy cache envelopes. Stale
 reads are identified internally with `stale` and `source`, warn on stderr,
 and start a background refresh; JSON stdout remains parseable. Force a
