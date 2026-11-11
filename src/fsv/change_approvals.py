@@ -342,7 +342,7 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
                    content=json.dumps(plan.payload, ensure_ascii=False).encode("utf-8"),
                    headers={"Content-Type": "application/json", "X-CSRF-Token": csrf})
     except APIError as exc:
-        if 400 <= exc.status < 500 and exc.status not in (408, 429):
+        if 400 <= exc.status < 500 and exc.status not in (403, 408, 429):
             journal.record_plan("failed", plan.hash, action=_ACTION, target=plan.change_id)
             raise ApprovalError(f"approval request rejected (HTTP {exc.status}); no automatic retry") from None
         raise ApprovalError(_UNKNOWN) from None

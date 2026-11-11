@@ -174,8 +174,8 @@ def test_no_replay_on_write_failure(monkeypatch, failure):
         with pytest.raises(ApprovalError, match="rejected|unknown"):
             actions.send(p, c, reviewed_hash=p.hash)
         assert [r.method for r in seen] == ["GET", "PUT"]
-        assert events() == (["started", "failed"] if failure in (400, 403) else ["started"])
-        if failure not in (400, 403):
+        assert events() == (["started", "failed"] if failure == 400 else ["started"])
+        if failure != 400:
             with pytest.raises(ApprovalError, match="do not resubmit"):
                 actions.send(p, c, reviewed_hash=p.hash)
             assert len(seen) == 2

@@ -117,7 +117,10 @@ def test_cancel_write_no_replay(monkeypatch, failure):
         with pytest.raises(ApprovalError, match="rejected|unknown"):
             actions.send(p, c, reviewed_hash=p.hash)
         assert [r.method for r in seen] == ["GET", "PUT"]
-        assert events() == (["started", "failed"] if failure == 403 else ["started"])
+        assert events() == ["started"]
+        with pytest.raises(ApprovalError, match="do not resubmit"):
+            actions.send(p, c, reviewed_hash=p.hash)
+        assert [r.method for r in seen] == ["GET", "PUT"]
     finally:
         c.close()
 

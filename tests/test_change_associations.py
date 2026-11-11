@@ -80,11 +80,10 @@ def test_failure_no_replay_or_false_success(monkeypatch, unlink, failure):
             assoc.send(plan, c, reviewed_hash=plan.hash)
         assert len([r for r in calls if r.method != "GET"]) == 1
         events = [r["event"] for r in journal.read() if r["kind"] == "plan:change_ticket_association"]
-        assert events == (["started", "failed"] if failure == 403 else ["started"])
-        if failure != 403:
-            with pytest.raises(assoc.AssociationError, match="do not resubmit"):
-                assoc.send(plan, c, reviewed_hash=plan.hash)
-            assert len([r for r in calls if r.method != "GET"]) == 1
+        assert events == ["started"]
+        with pytest.raises(assoc.AssociationError, match="do not resubmit"):
+            assoc.send(plan, c, reviewed_hash=plan.hash)
+        assert len([r for r in calls if r.method != "GET"]) == 1
     finally:
         c.close()
 

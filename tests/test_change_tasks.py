@@ -107,8 +107,8 @@ def test_post_failure_single_attempt(monkeypatch, failure):
             tasks.send(plan, c, reviewed_hash=plan.hash)
         assert len([r for r in calls if r.method == "POST"]) == 1
         events = [r["event"] for r in journal.read() if r["kind"] == "plan:change_task_create"]
-        assert events == (["started", "failed"] if failure in (400, 403) else ["started"])
-        if failure not in (400, 403):
+        assert events == (["started", "failed"] if failure == 400 else ["started"])
+        if failure != 400:
             with pytest.raises(tasks.TaskError, match="do not resubmit"):
                 tasks.send(plan, c, reviewed_hash=plan.hash)
             assert len([r for r in calls if r.method == "POST"]) == 1

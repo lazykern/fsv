@@ -272,8 +272,8 @@ def test_single_attempt_no_403_replay(monkeypatch, failure):
         with pytest.raises(approvals.ApprovalError, match="rejected|unknown"):
             approvals.send(p, c, reviewed_hash=p.hash)
         assert len([r for r in seen if r.method == "POST"]) == 1
-        assert events() == (["started", "failed"] if failure in (400, 403) else ["started"])
-        if failure not in (400, 403):
+        assert events() == (["started", "failed"] if failure == 400 else ["started"])
+        if failure != 400:
             with pytest.raises(approvals.ApprovalError, match="do not resubmit"):
                 approvals.send(p, c, reviewed_hash=p.hash)
             assert len([r for r in seen if r.method == "POST"]) == 1

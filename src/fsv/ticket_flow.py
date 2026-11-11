@@ -103,7 +103,7 @@ def execute(plan: flow.Plan, client: Any, *, allow_duplicate: bool = False) -> d
     if not plan.ok or not plan.hash or plan.payload is None:
         raise flow.FlowExit(2, "cannot create an incomplete incident plan")
     check_duplicate(plan, allow_duplicate)
-    # _int_request retries 403; use the lower-level request once instead.
+    # Use the lower-level request to submit the exact reviewed bytes once.
     # Resolve CSRF before marking the operation started, as it performs only reads.
     csrf = client._get_csrf()
     before = len(journal.read())
@@ -118,7 +118,7 @@ def execute(plan: flow.Plan, client: Any, *, allow_duplicate: bool = False) -> d
                                  content=json.dumps(plan.payload, ensure_ascii=False, default=str).encode("utf-8"),
                                  headers={"Content-Type": "application/json", "X-CSRF-Token": csrf})
     except APIError as e:
-        if 400 <= e.status < 500 and e.status not in (408, 429):
+        if 400 <= e.status < 500 and e.status not in (403, 408, 429):
             journal.record_plan("failed", plan.hash, action="ticket_create")
             raise flow.FlowExit(5, f"incident create rejected (HTTP {e.status}); no automatic retry") from None
         raise flow.FlowExit(5, "incident create outcome unknown; check the server before any retry") from None

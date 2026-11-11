@@ -121,11 +121,15 @@ def test_single_write_success_duplicate_and_unknown(monkeypatch):
 def test_403_never_retries_and_failure_is_safe():
     c = Client()
     c.failure = APIError(403, "do not print response body")
-    with pytest.raises(change_flow.FlowExit, match="HTTP 403") as exc:
-        ticket_flow.execute(plan(), c)
+    p = plan()
+    with pytest.raises(change_flow.FlowExit, match="outcome unknown") as exc:
+        ticket_flow.execute(p, c)
     assert "response body" not in str(exc.value)
     assert len(c.writes) == 1
-    assert journal.read()[-1]["event"] == "failed"
+    assert journal.read()[-1]["event"] == "started"
+    with pytest.raises(change_flow.FlowExit, match="outcome is unknown"):
+        ticket_flow.execute(p, c, allow_duplicate=True)
+    assert len(c.writes) == 1
 
 
 def test_cli_dry_run_and_review_hash(monkeypatch):
