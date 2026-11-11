@@ -5,7 +5,7 @@ import pytest
 
 from fsv.cli import _resolve_set_field
 
-# Minimal schema mimicking a tenant's change fields
+# Minimal schema of change fields
 SCHEMA = {
     "fields": [
         {
@@ -37,19 +37,19 @@ SCHEMA = {
             "field_type": "custom_dropdown",
             "default_field": False,
             "choices": [
-                {"id": 9000100001, "value": "Production"},
-                {"id": 9000100002, "value": "UAT"},
+                {"id": 9000000101, "value": "Production"},
+                {"id": 9000000102, "value": "UAT"},
             ],
         },
         {
-            "name": "application_code",
+            "name": "app_code",
             "label": "Application Code",
             "field_type": "custom_multi_select_dropdown",
             "default_field": False,
             "choices": [
-                {"id": 9000200001, "value": "APP1"},
-                {"id": 9000200002, "value": "APP2"},
-                {"id": 9000200003, "value": "APP3"},
+                {"id": 9000000105, "value": "APP1"},
+                {"id": 9000000106, "value": "APP2"},
+                {"id": 9000000107, "value": "APP3"},
             ],
         },
         {
@@ -93,8 +93,8 @@ SCHEMA = {
             "field_type": "default_department",
             "default_field": True,
             "choices": [
-                {"id": 9000182336, "value": "Information Technology"},
-                {"id": 9000182337, "value": "Finance"},
+                {"id": 9000000103, "value": "Information Technology"},
+                {"id": 9000000104, "value": "Finance"},
             ],
         },
         {
@@ -110,13 +110,13 @@ SCHEMA = {
 
 class _FakeClient:
     def autocomplete(self, kind, query, params=None):
-        if kind == "agents" and "pong" in query.casefold():
-            return [{"value": "Pong Potcharapol", "user_id": 16003029099, "email": "pong@example.com"}]
+        if kind == "agents" and "pat" in query.casefold():
+            return [{"value": "Pat Example", "user_id": 9000000118, "email": "pat@example.com"}]
         return []
 
     def int_get(self, path):
         if "bootstrap/agents_groups" in path:
-            return {"groups": [{"id": 9000309867, "name": "Acme Platform Team"}]}
+            return {"groups": [{"id": 9000000108, "name": "Acme Platform Team"}]}
         return {}
 
 
@@ -154,12 +154,12 @@ def test_custom_dropdown_by_label():
 # ── multi-select: comma-split → list of strings ─────────────────────────────
 def test_multi_select_single():
     key, val = _resolve_set_field(C, SCHEMA, "Application Code", "APP1")
-    assert key == "application_code" and val == ["APP1"]
+    assert key == "app_code" and val == ["APP1"]
 
 
 def test_multi_select_multiple():
     key, val = _resolve_set_field(C, SCHEMA, "Application Code", "APP1,APP2")
-    assert key == "application_code" and val == ["APP1", "APP2"]
+    assert key == "app_code" and val == ["APP1", "APP2"]
 
 
 # ── checkbox ─────────────────────────────────────────────────────────────────
@@ -189,30 +189,30 @@ def test_date_passthrough():
 
 # ── FK remap: agent → agent_id ────────────────────────────────────────────────
 def test_agent_id_passthrough():
-    key, val = _resolve_set_field(C, SCHEMA, "agent", "16003029057")
-    assert key == "agent_id" and val == 16003029057
+    key, val = _resolve_set_field(C, SCHEMA, "agent", "9000000117")
+    assert key == "agent_id" and val == 9000000117
 
 
 def test_agent_name_resolved():
-    key, val = _resolve_set_field(C, SCHEMA, "agent", "Pong")
-    assert key == "agent_id" and val == 16003029099
+    key, val = _resolve_set_field(C, SCHEMA, "agent", "Pat Example")
+    assert key == "agent_id" and val == 9000000118
 
 
 # ── FK remap: group → group_id ────────────────────────────────────────────────
 def test_group_name_resolved():
     key, val = _resolve_set_field(C, SCHEMA, "group", "Acme Platform Team")
-    assert key == "group_id" and val == 9000309867
+    assert key == "group_id" and val == 9000000108
 
 
 def test_group_id_passthrough():
-    key, val = _resolve_set_field(C, SCHEMA, "group", "9000309867")
-    assert key == "group_id" and val == 9000309867
+    key, val = _resolve_set_field(C, SCHEMA, "group", "9000000108")
+    assert key == "group_id" and val == 9000000108
 
 
 # ── FK remap: department → department_id ─────────────────────────────────────
 def test_department_label_to_id():
     key, val = _resolve_set_field(C, SCHEMA, "department", "Information Technology")
-    assert key == "department_id" and val == 9000182336
+    assert key == "department_id" and val == 9000000103
 
 
 # ── subject (text core field) ─────────────────────────────────────────────────

@@ -15,7 +15,7 @@ class WorkflowClient:
                     "id": 9,
                     "config_item": {
                         "display_id": 123,
-                        "name": "APP1",
+                        "name": "AcmeApp",
                         "ci_type_name": "Application Portfolio",
                     },
                 }
@@ -27,7 +27,7 @@ class WorkflowClient:
                     "id": 9,
                     "config_item": {
                         "display_id": 123,
-                        "name": "APP1",
+                        "name": "AcmeApp",
                         "ci_type_name": "Application Portfolio",
                     },
                 }
@@ -44,7 +44,7 @@ class WorkflowClient:
         if path == "changes/1/associated-cis":
             return {"data": self.asset_response_fallback[params["association_type"]]}
         if path == "assets-to-associate":
-            return {"assets": [{"display_id": 123, "name": "APP1"}], "meta": {"total_count": 1}, "params": params}
+            return {"assets": [{"display_id": 123, "name": "AcmeApp"}], "meta": {"total_count": 1}, "params": params}
         if path == "changes/tickets/search":
             return {"tickets": [{"id": 565163, "human_display_id": "SR-565163"}], "params": params}
         if path == "changes/1/activities":
@@ -72,7 +72,7 @@ def test_change_assets_list_search_and_associate():
 
     assert create.get_change_assets(1, c=c) == c.asset_response_direct["associated_assets"]
     search = create.search_assets_for_change(1, "acmeapp", c=c)
-    assert search["assets"] == [{"display_id": 123, "name": "APP1"}]
+    assert search["assets"] == [{"display_id": 123, "name": "AcmeApp"}]
     assert search["params"]["search_term"] == "acmeapp"
     assert search["params"]["entity"] == "change"
     assert search["params"]["entity_id"] == 1
@@ -100,14 +100,14 @@ def test_dissociate_assets():
     c = WorkflowClient()
     c.asset_response_direct = {
         "associated_assets": [
-            {"id": 16001574706, "config_item": {"display_id": 38679, "name": "OOS", "ci_type_name": "Application Portfolio"}},
-            {"id": 16001572545, "config_item": {"display_id": 27914, "name": "APP1", "ci_type_name": "Application Portfolio"}},
+            {"id": 9000000116, "config_item": {"display_id": 38679, "name": "Billing", "ci_type_name": "Application Portfolio"}},
+            {"id": 9000000115, "config_item": {"display_id": 27914, "name": "AcmeApp", "ci_type_name": "Application Portfolio"}},
         ]
     }
 
     create.dissociate_assets(1, [38679], c=c)
 
-    assert c.puts == [("PUT", "changes/1/assets/detach", {"cmdb_request_id": 16001574706})]
+    assert c.puts == [("PUT", "changes/1/assets/detach", {"cmdb_request_id": 9000000116})]
 
 
 def test_ticket_search_and_activities():

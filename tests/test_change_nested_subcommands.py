@@ -29,13 +29,13 @@ def test_assets_legacy_syntax_routes_to_hidden_legacy_command(monkeypatch):
     calls = []
     monkeypatch.setattr(cli, "assets_resource", lambda *args, **kwargs: calls.append((args, kwargs)))
 
-    result = runner.invoke(cli.app, ["changes", "assets", "CHN-1", "--search", "APP1", "--json"])
+    result = runner.invoke(cli.app, ["changes", "assets", "CHN-1", "--search", "AcmeApp", "--json"])
 
     assert result.exit_code == 0
     assert "deprecated" in result.output
     assert calls == [
         (
-            ("CHN-1", "APP1", [], [], 1, 30, False, False, True, cli.OutputFormat.table),
+            ("CHN-1", "AcmeApp", [], [], 1, 30, False, False, True, cli.OutputFormat.table),
             {"pick": False, "category_name": None, "list_categories": False},
         )
     ]

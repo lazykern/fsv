@@ -25,7 +25,7 @@ SCHEMA = {
         {"name": "priority", "label": "Priority", "field_type": "default_priority", "default_field": True,
          "choices": [{"id": 1, "value": "Low"}, {"id": 2, "value": "Medium"}, {"id": 3, "value": "High"}]},
         {"name": "environment", "label": "Environment", "field_type": "custom_dropdown", "default_field": False,
-         "choices": [{"id": 9000100001, "value": "Production"}, {"id": 9000100002, "value": "UAT"}]},
+         "choices": [{"id": 9000000101, "value": "Production"}, {"id": 9000000102, "value": "UAT"}]},
         {"name": "subject", "label": "Subject", "field_type": "default_subject", "default_field": True, "choices": []},
     ]
 }

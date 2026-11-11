@@ -52,9 +52,9 @@ def test_search_resource_passes_sort_to_fulltext_search(monkeypatch):
     monkeypatch.setattr(cli, "_client", lambda: FakeClient())
     monkeypatch.setattr(cli, "emit_json", lambda data: emitted.append(data))
 
-    cli.search_resource(CHANGES, "APP1", 2, True, cli.SearchSort.modified)
+    cli.search_resource(CHANGES, "AcmeApp", 2, True, cli.SearchSort.modified)
 
-    assert calls == [("changes", "APP1", 2, "modified")]
+    assert calls == [("changes", "AcmeApp", 2, "modified")]
     assert emitted == [[{"id": 1, "display_id": "CHN-1", "subject": "demo"}]]
 
 
@@ -82,7 +82,7 @@ def test_global_search_passes_sort_to_fulltext_search(monkeypatch):
     monkeypatch.setattr(cli, "_client", lambda: FakeClient())
     monkeypatch.setattr(cli, "emit_json", lambda data: emitted.append(data))
 
-    cli.global_search("APP1", 3, "json", True, cli.SearchSort.created)
+    cli.global_search("AcmeApp", 3, "json", True, cli.SearchSort.created)
 
-    assert calls == [("all", "APP1", 3, "created")]
+    assert calls == [("all", "AcmeApp", 3, "created")]
     assert emitted[0][0]["itil_module_display_id"] == "CHN-1"

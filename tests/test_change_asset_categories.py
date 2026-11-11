@@ -31,9 +31,9 @@ def test_fetch_asset_categories_parses_cmdb_select(monkeypatch):
         <html><body>
           <select name="ci_type_id" id="ci_type_id">
             <option value="">  All assets  </option>
-            <option value="9000791980">Application Portfolio</option>
-            <option value="9000510422"><span>Batch</span></option>
-            <option value="9000791980">Application Portfolio</option>
+            <option value="9000000114">Application Portfolio</option>
+            <option value="9000000111"><span>Batch</span></option>
+            <option value="9000000114">Application Portfolio</option>
           </select>
         </body></html>
         """
@@ -43,8 +43,8 @@ def test_fetch_asset_categories_parses_cmdb_select(monkeypatch):
 
     assert items == [
         {"name": "All assets", "filter": "all_assets", "ci_type_id": ""},
-        {"name": "Application Portfolio", "filter": "9000791980", "ci_type_id": "9000791980"},
-        {"name": "Batch", "filter": "9000510422", "ci_type_id": "9000510422"},
+        {"name": "Application Portfolio", "filter": "9000000114", "ci_type_id": "9000000114"},
+        {"name": "Batch", "filter": "9000000111", "ci_type_id": "9000000111"},
     ]
     assert client.calls == [
         (
@@ -61,16 +61,16 @@ def test_resolve_asset_category_supports_all_alias_and_unique_partial(monkeypatc
         "_fetch_asset_categories",
         lambda c=None: [
             {"name": "All assets", "filter": "all_assets", "ci_type_id": ""},
-            {"name": "Application Portfolio", "filter": "9000791980", "ci_type_id": "9000791980"},
-            {"name": "Batch", "filter": "9000510422", "ci_type_id": "9000510422"},
+            {"name": "Application Portfolio", "filter": "9000000114", "ci_type_id": "9000000114"},
+            {"name": "Batch", "filter": "9000000111", "ci_type_id": "9000000111"},
         ],
     )
 
     assert cli._resolve_asset_category("all") == {"name": "All assets", "filter": "all_assets", "ci_type_id": ""}
     assert cli._resolve_asset_category("application port") == {
         "name": "Application Portfolio",
-        "filter": "9000791980",
-        "ci_type_id": "9000791980",
+        "filter": "9000000114",
+        "ci_type_id": "9000000114",
     }
 
 
@@ -80,13 +80,13 @@ def test_assets_resource_search_filters_json_payload_by_category(monkeypatch):
     monkeypatch.setattr(
         cli,
         "_resolve_asset_category",
-        lambda value, c=None: {"name": "Batch", "filter": "9000510422", "ci_type_id": "9000510422"},
+        lambda value, c=None: {"name": "Batch", "filter": "9000000111", "ci_type_id": "9000000111"},
     )
     monkeypatch.setattr(
         "fsv.create.search_assets_for_change",
         lambda change_id, search, page=1, per_page=30, c=None: {
             "assets": [
-                {"display_id": 37451, "name": "EDP_TO_CBO_GROUP2", "ci_type_name": "Batch", "location_name": "--"},
+                {"display_id": 37451, "name": "ACME_SYNC_JOB", "ci_type_name": "Batch", "location_name": "--"},
                 {"display_id": 38679, "name": "OOS (Object OS)", "ci_type_name": "Application Portfolio", "location_name": "--"},
             ],
             "meta": {"total_count": 2},
@@ -94,12 +94,12 @@ def test_assets_resource_search_filters_json_payload_by_category(monkeypatch):
     )
     monkeypatch.setattr(cli, "emit_json", emitted.append)
 
-    cli.assets_resource("CHN-1", "APP1", [], [], 1, 30, False, False, True, "json", category_name="Batch")
+    cli.assets_resource("CHN-1", "AcmeApp", [], [], 1, 30, False, False, True, "json", category_name="Batch")
 
     assert emitted == [
         {
             "assets": [
-                {"display_id": 37451, "name": "EDP_TO_CBO_GROUP2", "ci_type_name": "Batch", "location_name": "--"}
+                {"display_id": 37451, "name": "ACME_SYNC_JOB", "ci_type_name": "Batch", "location_name": "--"}
             ],
             "meta": {"total_count": 2, "filtered_count": 1, "category": "Batch"},
         }
@@ -121,7 +121,7 @@ def test_assets_resource_pick_prompts_category_before_search(monkeypatch):
         "_fetch_asset_categories",
         lambda c=None: [
             {"name": "All assets", "filter": "all_assets", "ci_type_id": ""},
-            {"name": "Application Portfolio", "filter": "9000791980", "ci_type_id": "9000791980"},
+            {"name": "Application Portfolio", "filter": "9000000114", "ci_type_id": "9000000114"},
         ],
     )
     monkeypatch.setattr(
@@ -139,7 +139,7 @@ def test_assets_resource_pick_prompts_category_before_search(monkeypatch):
         lambda change_id, search, page=1, per_page=50, c=None: {
             "assets": [
                 {"display_id": 38679, "name": "OOS (Object OS)", "ci_type_name": "Application Portfolio", "location_name": "--"},
-                {"display_id": 37451, "name": "EDP_TO_CBO_GROUP2", "ci_type_name": "Batch", "location_name": "--"},
+                {"display_id": 37451, "name": "ACME_SYNC_JOB", "ci_type_name": "Batch", "location_name": "--"},
             ]
         },
     )
