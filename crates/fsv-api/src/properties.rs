@@ -330,6 +330,20 @@ mod tests {
     const HASH: &str = "8d4a9b0683a1e5313139a37cb19d4b6f4e9fc917ee7891bd836574a744b03ffc";
     const UNVERIFIED: &str = "Ticket fields not fully verified on read-back; do not resend.";
 
+    #[test]
+    fn payload_parses_the_reviewed_body() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/coverage_oracle.json")).unwrap();
+        let plan = PropertyPlan {
+            ticket_id: 5,
+            tenant: "acme".into(),
+            body_json: r#"{"status": 2, "custom_fields": {"a": null}}"#.into(),
+            before_json: "{}".into(),
+            record_hash: "h".into(),
+        };
+        assert_eq!(plan.payload(), oracle["misc"]["property_payload"]);
+    }
+
     fn err<T: std::fmt::Debug>(r: Result<T>) -> String {
         r.unwrap_err().to_string()
     }

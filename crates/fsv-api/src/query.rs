@@ -7,6 +7,7 @@
 use serde_json::{Map, Value, json};
 
 use crate::QueryError;
+use fsv_core::pystr;
 use fsv_py::py_repr_str;
 
 const DATE_FIELDS: &[&str] = &[
@@ -129,7 +130,7 @@ pub fn resolve_where(
             }
         };
         return Ok((
-            item(
+            query_item(
                 &field_text,
                 "custom_date",
                 value,
@@ -156,7 +157,7 @@ pub fn resolve_where(
             Value::String(raw.clone())
         };
         return Ok((
-            item(
+            query_item(
                 &field_text,
                 operator,
                 json!([val]),
@@ -169,18 +170,14 @@ pub fn resolve_where(
         ));
     }
 
-    let field = find_field(schema, &field_text)?
+    let field = find_schema_field(schema, &field_text)?
         .ok_or_else(|| QueryError(format!("field not found: {}", py_repr_str(&field_text))))?;
     let name = field
         .get("name")
         .and_then(Value::as_str)
         .unwrap_or(&field_text)
         .to_string();
-    let type_ = if truthy(field.get("default_field")) {
-        "default"
-    } else {
-        "custom_field"
-    };
+    let type_ = field_api_type(&field);
     let ftype = field
         .get("field_type")
         .and_then(Value::as_str)
@@ -191,7 +188,7 @@ pub fn resolve_where(
         let req = resolve_requester(dir, &raw)?;
         let shown = format!("{} ({})", req.1, req.0);
         return Ok((
-            item(
+            query_item(
                 "requester_id",
                 &operator,
                 json!([{"id": req.0, "name": req.1}]),
@@ -211,7 +208,7 @@ pub fn resolve_where(
             "agent_id"
         };
         return Ok((
-            item(
+            query_item(
                 condition,
                 &operator,
                 json!([agent_id.clone()]),
@@ -227,7 +224,7 @@ pub fn resolve_where(
         let val = choice_value(&field, &raw, "default")?;
         let shown = scalar(&val);
         return Ok((
-            item(
+            query_item(
                 "group_id",
                 &operator,
                 json!([shown.clone()]),
@@ -250,7 +247,7 @@ pub fn resolve_where(
         let val = choice_value(&field, &raw, type_)?;
         let shown = scalar(&val);
         return Ok((
-            item(
+            query_item(
                 &name,
                 &operator,
                 json!([val]),
@@ -268,7 +265,7 @@ pub fn resolve_where(
         Value::String(raw.clone())
     };
     Ok((
-        item(&name, &operator, json!([val]), type_, explain, &name, &raw),
+        query_item(&name, &operator, json!([val]), type_, explain, &name, &raw),
         (),
     ))
 }
@@ -287,7 +284,7 @@ pub fn load_query_hash(raw: &str) -> Result<Vec<Value>, QueryError> {
         .ok_or_else(|| QueryError("query-hash must be a JSON array".into()))
 }
 
-fn item(
+fn query_item(
     condition: &str,
     operator: &str,
     value: Value,
@@ -306,14 +303,18 @@ fn item(
     json!({"value": value, "condition": condition, "operator": operator, "type": type_})
 }
 
+/// `^(.+?)(>=|<=|!=|~=|=|>|<)(.*)$`: the field is at least one character, so
+/// `>=x` is field `>`, operator `=`. `.` does not match a newline, so an
+/// embedded `\n` makes the filter invalid.
 fn parse_where(expr: &str) -> Result<(String, String, String), QueryError> {
-    let expr = expr.trim();
+    let expr = pystr::strip(expr);
     let ops = [">=", "<=", "!=", "~=", "=", ">", "<"];
-    let Some(start) = ops
+    let skip = expr.chars().next().map_or(0, char::len_utf8);
+    let found = ops
         .iter()
-        .filter_map(|op| expr.find(op).map(|i| (i, *op)))
-        .min_by_key(|(i, _)| *i)
-    else {
+        .filter_map(|op| expr[skip..].find(op).map(|i| (skip + i, *op)))
+        .min_by_key(|(i, _)| *i);
+    let Some(start) = found.filter(|_| !expr.contains('\n')) else {
         return Err(QueryError(format!(
             "invalid filter {}; expected FIELD=VALUE",
             py_repr_str(expr)
@@ -321,12 +322,6 @@ fn parse_where(expr: &str) -> Result<(String, String, String), QueryError> {
     };
     let (field, rest) = expr.split_at(start.0);
     let value = strip_quotes(rest[start.1.len()..].trim());
-    if field.trim().is_empty() {
-        return Err(QueryError(format!(
-            "invalid filter {}; expected FIELD=VALUE",
-            py_repr_str(expr)
-        )));
-    }
     Ok((field.trim().to_string(), start.1.to_string(), value))
 }
 
@@ -355,46 +350,55 @@ fn where_operator(op: &str) -> Result<String, QueryError> {
     }
 }
 
-fn find_field(schema: &Value, text: &str) -> Result<Option<Value>, QueryError> {
-    let (scope, raw) = match text.split_once(':') {
-        Some((maybe, rest)) if maybe == "default" || maybe == "custom" => (Some(maybe), rest),
-        _ => (None, text),
-    };
-    let folded = raw.to_lowercase();
-    let fields = schema
+/// `_field_api_type`.
+fn field_api_type(field: &Value) -> &'static str {
+    if truthy(field.get("default_field")) {
+        "default"
+    } else {
+        "custom_field"
+    }
+}
+
+/// `_schema_field_matches`: fields whose name or label contains `text`
+/// (casefolded), limited to `scope` `default` / `custom`.
+fn schema_field_matches(schema: &Value, text: &str, scope: Option<&str>) -> Vec<Value> {
+    let needle = pystr::casefold(text);
+    schema
         .get("fields")
         .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default();
-    let matches: Vec<Value> = fields
         .into_iter()
+        .flatten()
         .filter(|f| match scope {
             Some("default") => truthy(f.get("default_field")),
             Some("custom") => !truthy(f.get("default_field")),
             _ => true,
         })
         .filter(|f| {
-            field_name(f, "name").to_lowercase().contains(&folded)
-                || field_name(f, "label").to_lowercase().contains(&folded)
+            pystr::casefold(&py_or_empty(f.get("name"))).contains(&needle)
+                || pystr::casefold(&py_or_empty(f.get("label"))).contains(&needle)
         })
-        .collect();
+        .cloned()
+        .collect()
+}
+
+fn find_schema_field(schema: &Value, text: &str) -> Result<Option<Value>, QueryError> {
+    let (scope, raw) = match text.split_once(':') {
+        Some((maybe, rest)) if maybe == "default" || maybe == "custom" => (Some(maybe), rest),
+        _ => (None, text),
+    };
+    let folded = pystr::casefold(raw);
+    let name_is = |f: &Value| pystr::casefold(&py_or_empty(f.get("name"))) == folded;
+    let matches = schema_field_matches(schema, raw, scope);
     let exact: Vec<Value> = matches
         .iter()
-        .filter(|f| {
-            field_name(f, "name").to_lowercase() == folded
-                || field_name(f, "label").to_lowercase() == folded
-        })
+        .filter(|f| name_is(f) || pystr::casefold(&py_or_empty(f.get("label"))) == folded)
         .cloned()
         .collect();
     if exact.len() == 1 {
         return Ok(Some(exact[0].clone()));
     }
     if exact.len() > 1 {
-        let by_name: Vec<Value> = exact
-            .iter()
-            .filter(|f| field_name(f, "name").to_lowercase() == folded)
-            .cloned()
-            .collect();
+        let by_name: Vec<Value> = exact.iter().filter(|f| name_is(f)).cloned().collect();
         if by_name.len() == 1 {
             return Ok(Some(by_name[0].clone()));
         }
@@ -410,10 +414,10 @@ fn find_field(schema: &Value, text: &str) -> Result<Option<Value>, QueryError> {
 }
 
 fn ambiguous(text: &str, fields: &[Value]) -> QueryError {
-    let names: Vec<&str> = fields
+    let names: Vec<String> = fields
         .iter()
         .take(5)
-        .map(|f| f.get("name").and_then(Value::as_str).unwrap_or(""))
+        .map(|f| scalar(f.get("name").unwrap_or(&Value::Null)))
         .collect();
     QueryError(format!(
         "ambiguous field {}: {}",
@@ -435,37 +439,33 @@ fn choice_value(field: &Value, raw: &str, type_: &str) -> Result<Value, QueryErr
             Value::String(raw.to_string())
         });
     }
-    let folded = raw.to_lowercase();
+    let folded = pystr::casefold(raw);
+    let custom_value = |c: &Value| {
+        c.get("value")
+            .or_else(|| c.get("id"))
+            .cloned()
+            .unwrap_or(Value::Null)
+    };
     for choice in &choices {
-        if choice.get("id").map(scalar).as_deref().unwrap_or("") == raw {
+        if py_or_empty(choice.get("id")) == raw {
             return Ok(if type_ == "custom_field" {
-                choice
-                    .get("value")
-                    .cloned()
-                    .unwrap_or_else(|| choice.get("id").cloned().unwrap_or(Value::Null))
+                custom_value(choice)
             } else {
                 choice.get("id").cloned().unwrap_or(Value::Null)
             });
         }
         let labels = ["value", "name", "label", "requester_display_value"];
-        if labels.iter().any(|k| {
-            choice
-                .get(*k)
-                .map(scalar)
-                .unwrap_or_default()
-                .to_lowercase()
-                == folded
-        }) {
+        if labels
+            .iter()
+            .any(|k| pystr::casefold(&py_or_empty(choice.get(*k))) == folded)
+        {
             return Ok(if type_ == "custom_field" {
-                choice
-                    .get("value")
-                    .cloned()
-                    .unwrap_or_else(|| choice.get("id").cloned().unwrap_or(Value::Null))
+                custom_value(choice)
             } else {
                 choice
                     .get("id")
+                    .or_else(|| choice.get("value"))
                     .cloned()
-                    .or_else(|| choice.get("value").cloned())
                     .unwrap_or_else(|| Value::String(raw.to_string()))
             });
         }
@@ -473,22 +473,12 @@ fn choice_value(field: &Value, raw: &str, type_: &str) -> Result<Value, QueryErr
     let shown: Vec<String> = choices
         .iter()
         .take(12)
-        .map(|c| {
-            c.get("value")
-                .or_else(|| c.get("name"))
-                .or_else(|| c.get("id"))
-                .map(scalar)
-                .unwrap_or_default()
-        })
+        .map(|c| py_or(c, &["value", "name", "id"]))
         .collect();
-    let label = field
-        .get("label")
-        .or_else(|| field.get("name"))
-        .map(scalar)
-        .unwrap_or_default();
     Err(QueryError(format!(
-        "no choice {} for {label}; options: {}",
+        "no choice {} for {}; options: {}",
         py_repr_str(raw),
+        py_or(field, &["label", "name"]),
         shown.join(", ")
     )))
 }
@@ -502,13 +492,14 @@ fn resolve_requester(
     }
     let dir = dir.ok_or_else(|| QueryError("no directory for requester lookup".into()))?;
     let results = dir.autocomplete("requesters", value, &[("all_users", "true")])?;
-    let item = pick("requester", value, &results, &["value", "email", "details"])?;
+    let item = pick_lookup("requester", value, &results, &["value", "email", "details"])?;
     let id = item
         .get("id")
         .and_then(Value::as_i64)
         .ok_or_else(|| QueryError(format!("requester match has no id: {value}")))?;
     let name = item
         .get("value")
+        .filter(|v| fsv_py::truthy(v))
         .map(scalar)
         .unwrap_or_else(|| id.to_string());
     Ok((id, name))
@@ -520,7 +511,7 @@ fn resolve_agent(dir: Option<&dyn Directory>, value: &str) -> Result<String, Que
     }
     let dir = dir.ok_or_else(|| QueryError("no directory for agent lookup".into()))?;
     let results = dir.autocomplete("agents", value, &[])?;
-    let item = pick(
+    let item = pick_lookup(
         "agent",
         value,
         &results,
@@ -532,7 +523,7 @@ fn resolve_agent(dir: Option<&dyn Directory>, value: &str) -> Result<String, Que
     }
 }
 
-fn pick<'a>(
+fn pick_lookup<'a>(
     kind: &str,
     value: &str,
     results: &'a [Value],
@@ -541,11 +532,11 @@ fn pick<'a>(
     if results.is_empty() {
         return Err(QueryError(format!("no {kind} match: {value}")));
     }
-    let folded = value.to_lowercase();
+    let folded = pystr::casefold(value);
     for item in results {
         if keys
             .iter()
-            .any(|k| item.get(*k).map(scalar).unwrap_or_default().to_lowercase() == folded)
+            .any(|k| pystr::casefold(&py_or_empty(item.get(*k))) == folded)
         {
             return Ok(item);
         }
@@ -556,13 +547,7 @@ fn pick<'a>(
     let choices: Vec<String> = results
         .iter()
         .take(5)
-        .map(|x| {
-            x.get("details")
-                .or_else(|| x.get("value"))
-                .or_else(|| x.get("id"))
-                .map(scalar)
-                .unwrap_or_default()
-        })
+        .map(|x| py_or(x, &["details", "value", "id"]))
         .collect();
     Err(QueryError(format!(
         "multiple {kind} matches for {}: {}",
@@ -627,23 +612,32 @@ fn dump(value: &Value) -> String {
     fsv_py::Dumps::default().separators(",", ":").dump(value)
 }
 
+/// `_isdigit`: ASCII-only digits (`str.isdigit` also accepts superscripts
+/// and other scripts' digits).
 fn ascii_digits(text: &str) -> bool {
     !text.is_empty() && text.bytes().all(|b| b.is_ascii_digit())
 }
 
 fn truthy(value: Option<&Value>) -> bool {
-    match value {
-        Some(Value::Bool(b)) => *b,
-        Some(Value::Number(n)) => n.as_i64().unwrap_or(1) != 0,
-        Some(Value::String(s)) => !s.is_empty(),
-        Some(Value::Array(a)) => !a.is_empty(),
-        Some(Value::Object(o)) => !o.is_empty(),
-        _ => false,
-    }
+    value.is_some_and(fsv_py::truthy)
 }
 
-fn field_name<'a>(field: &'a Value, key: &str) -> &'a str {
-    field.get(key).and_then(Value::as_str).unwrap_or("")
+/// `str(v or "")`.
+fn py_or_empty(value: Option<&Value>) -> String {
+    value
+        .filter(|v| fsv_py::truthy(v))
+        .map(scalar)
+        .unwrap_or_default()
+}
+
+/// `str(o.get(a) or o.get(b) or ... or o.get(last))`.
+fn py_or(obj: &Value, keys: &[&str]) -> String {
+    keys.iter()
+        .map(|k| obj.get(*k))
+        .find(|v| truthy(*v))
+        .flatten()
+        .or_else(|| keys.last().and_then(|k| obj.get(*k)))
+        .map_or_else(|| "None".to_string(), scalar)
 }
 
 fn scalar(value: &Value) -> String {
@@ -779,6 +773,206 @@ mod tests {
         );
         let _ = encoded;
         assert!(load_query_hash("not json").is_err());
+    }
+
+    fn oracle() -> Value {
+        serde_json::from_str(include_str!("testdata/coverage_oracle.json")).unwrap()
+    }
+
+    fn outcome<T: Into<Value>>(r: Result<T, QueryError>) -> Value {
+        match r {
+            Ok(v) => json!({"ok": v.into()}),
+            Err(e) => json!({"err": e.0}),
+        }
+    }
+
+    fn strs(v: &Value) -> Vec<&str> {
+        v.as_array()
+            .unwrap()
+            .iter()
+            .map(|s| s.as_str().unwrap())
+            .collect()
+    }
+
+    #[test]
+    fn small_helpers_match_python() {
+        let o = oracle();
+        let q = &o["query"];
+        for (text, want) in q["isdigit"].as_object().unwrap() {
+            assert_eq!(json!(ascii_digits(text)), *want, "{text:?}");
+        }
+        for (text, want) in q["strip_quotes"].as_object().unwrap() {
+            assert_eq!(strip_quotes(text), want.as_str().unwrap(), "{text:?}");
+        }
+        for (expr, want) in q["parse_where"].as_object().unwrap() {
+            let got = outcome(parse_where(expr).map(|(f, op, v)| json!([f, op, v])));
+            assert_eq!(got, *want, "{expr:?}");
+        }
+        for case in q["field_api_type"].as_array().unwrap() {
+            assert_eq!(field_api_type(&case[0]), case[1], "{case}");
+        }
+        for (op, want) in q["where_operator"].as_object().unwrap() {
+            assert_eq!(outcome(where_operator(op)), *want, "{op:?}");
+        }
+        let mut explain = Vec::new();
+        let item = query_item(
+            "status",
+            "is_in",
+            json!([2]),
+            "default",
+            &mut explain,
+            "status",
+            "Planning",
+        );
+        assert_eq!(item, q["query_item"]["item"]);
+        let e = &explain[0];
+        assert_eq!(
+            json!({"field": e.field, "condition": e.condition, "operator": e.operator, "type": e.type_name, "value": e.value}),
+            q["query_item"]["explain"][0]
+        );
+    }
+
+    #[test]
+    fn schema_field_lookup_matches_python() {
+        let o = oracle();
+        let schema = &o["schema"];
+        let q = &o["query"];
+        for (key, want) in q["schema_field_matches"].as_object().unwrap() {
+            let (text, scope) = key.split_once('|').unwrap();
+            let scope = (scope != "None").then_some(scope);
+            let got: Vec<String> = schema_field_matches(schema, text, scope)
+                .iter()
+                .map(|f| f["name"].as_str().unwrap().to_string())
+                .collect();
+            assert_eq!(got, strs(want), "{key:?}");
+        }
+        for (text, want) in q["find_schema_field"].as_object().unwrap() {
+            let got = outcome(
+                find_schema_field(schema, text)
+                    .map(|f| f.map_or(Value::Null, |f| f["name"].clone())),
+            );
+            assert_eq!(got, *want, "{text:?}");
+        }
+    }
+
+    #[test]
+    fn choices_and_lookups_match_python() {
+        let o = oracle();
+        let q = &o["query"];
+        for case in q["pick_lookup"].as_array().unwrap() {
+            let rows = case[1].as_array().unwrap();
+            let keys = strs(&case[2]);
+            let got =
+                outcome(pick_lookup("agent", case[0].as_str().unwrap(), rows, &keys).cloned());
+            assert_eq!(got, case[3], "{case}");
+        }
+        for case in q["choice_value"].as_array().unwrap() {
+            let got = outcome(choice_value(
+                &case[0],
+                case[1].as_str().unwrap(),
+                case[2].as_str().unwrap(),
+            ));
+            assert_eq!(got, case[3], "{case}");
+        }
+    }
+
+    struct Dir {
+        rows: Vec<Value>,
+        calls: std::cell::RefCell<Vec<Value>>,
+    }
+
+    impl Directory for Dir {
+        fn autocomplete(
+            &self,
+            kind: &str,
+            query: &str,
+            extra: &[(&str, &str)],
+        ) -> Result<Vec<Value>, QueryError> {
+            let extra: Map<String, Value> = extra
+                .iter()
+                .map(|(k, v)| ((*k).to_string(), json!(v)))
+                .collect();
+            self.calls.borrow_mut().push(json!([kind, query, extra]));
+            Ok(self.rows.clone())
+        }
+        fn agent_groups(&self) -> Result<Value, QueryError> {
+            Ok(json!({}))
+        }
+    }
+
+    #[test]
+    fn resolve_agent_and_requester_match_python() {
+        let o = oracle();
+        for (name, case) in o["query"]["resolve_agent"].as_object().unwrap() {
+            let dir = Dir {
+                rows: case["rows"].as_array().unwrap().clone(),
+                calls: Default::default(),
+            };
+            let got = outcome(resolve_agent(Some(&dir), case["value"].as_str().unwrap()));
+            assert_eq!(got, case["result"], "{name}");
+            assert_eq!(Value::Array(dir.calls.take()), case["calls"], "{name}");
+        }
+        for (name, case) in o["query"]["resolve_requester"].as_object().unwrap() {
+            let dir = Dir {
+                rows: case["rows"].as_array().unwrap().clone(),
+                calls: Default::default(),
+            };
+            let got = outcome(
+                resolve_requester(Some(&dir), case["value"].as_str().unwrap())
+                    .map(|(id, name)| json!({"id": id, "name": name})),
+            );
+            assert_eq!(got, case["result"], "{name}");
+            assert_eq!(Value::Array(dir.calls.take()), case["calls"], "{name}");
+        }
+    }
+
+    #[test]
+    fn merge_and_build_query_hash_match_python() {
+        let o = oracle();
+        let q = &o["query"];
+        let input = json!([
+            {"condition": "created_at", "type": "default", "operator": "custom_date", "value": {"from": "a"}},
+            {"condition": "status", "type": "default", "operator": "is_in", "value": [1]},
+            {"condition": "created_at", "type": "default", "operator": "custom_date", "value": {"to": "b"}},
+            {"condition": "created_at", "type": "custom_field", "operator": "custom_date", "value": {"to": "c"}},
+            {"condition": "created_at", "type": "default", "operator": "custom_date", "value": {"from": "z"}},
+        ]);
+        let merged = merge_date_ranges(input.as_array().unwrap().clone());
+        assert_eq!(Value::Array(merged), q["merge_date_ranges"]);
+
+        let schema = &o["schema"];
+        let raw = r#"[{"condition":"x","operator":"is_in","value":[1],"type":"default"}]"#;
+        let cases: [(&str, &[&str], Option<&str>, bool); 5] = [
+            ("empty", &[], None, false),
+            ("where", &["status=Open", "cf_env!=Test"], None, false),
+            (
+                "or",
+                &[
+                    "status=Open",
+                    "created_at>=2026-01-01",
+                    "created_at<2026-02-01",
+                ],
+                None,
+                true,
+            ),
+            ("raw", &["status=2"], Some(raw), false),
+            ("bad", &["nope=1"], None, false),
+        ];
+        for (name, filters, raw, or_grouping) in cases {
+            let filters: Vec<String> = filters.iter().map(|s| s.to_string()).collect();
+            let got = outcome(
+                build_query_hash(None, "changes", Some(schema), &filters, raw, or_grouping).map(
+                    |(hash, query, explain)| {
+                        let explain: Vec<Value> = explain
+                            .iter()
+                            .map(|e| json!({"field": e.field, "condition": e.condition, "operator": e.operator, "type": e.type_name, "value": e.value}))
+                            .collect();
+                        json!([hash, query, explain])
+                    },
+                ),
+            );
+            assert_eq!(got, q["build_query_hash"][name], "{name}");
+        }
     }
 
     fn percent_encode_py(text: &str) -> String {

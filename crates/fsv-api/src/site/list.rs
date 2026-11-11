@@ -137,6 +137,8 @@ impl Missing {
     }
 
     /// `403`/`404` wording from `Missing.note`. Status `0` is falsy, like Python.
+    ///
+    /// Port of `views.Missing.note`.
     pub fn note(&self) -> String {
         match self.status {
             Some(403) => format!("{}: not permitted for your role (403)", self.what),
@@ -146,6 +148,7 @@ impl Missing {
         }
     }
 
+    /// Port of `views.Missing.to_json`.
     pub fn to_json(&self) -> Value {
         json!({"unavailable": true, "status": self.status, "note": self.note()})
     }
@@ -162,6 +165,7 @@ pub struct SavedView {
 }
 
 impl SavedView {
+    /// Port of `views.SavedView.to_json`.
     pub fn to_json(&self) -> Value {
         json!({
             "id": self.id,
@@ -196,6 +200,7 @@ pub struct ListPage {
 }
 
 impl ListPage {
+    /// Port of `views.ListPage.title`.
     pub fn title(&self) -> String {
         self.view_name
             .clone()
@@ -203,6 +208,8 @@ impl ListPage {
     }
 
     /// `<view> · 31-33 of 33 · Sort by: Created Date`
+    ///
+    /// Port of `views.ListPage.header`.
     pub fn header(&self) -> String {
         let n = self.items.len() as i64;
         let end = (self.page - 1) * self.per_page + n;
@@ -229,6 +236,7 @@ pub struct Tab {
 }
 
 impl Tab {
+    /// Port of `views.Tab.to_json`.
     pub fn to_json(&self) -> Value {
         json!({"name": self.name, "label": self.label, "count": self.count})
     }
@@ -243,6 +251,8 @@ pub fn fallback_tabs(resource_name: &str) -> &'static [&'static str] {
 }
 
 /// Rows inside a filters/views payload, server order preserved.
+///
+/// Port of `views._view_list`.
 pub fn view_list(data: &Value) -> Vec<&Map<String, Value>> {
     if let Some(items) = data.as_array() {
         return items.iter().filter_map(Value::as_object).collect();
@@ -286,10 +296,12 @@ pub fn parse_saved_views(data: &Value) -> Vec<SavedView> {
     out
 }
 
+/// Port of `views.default_view`.
 pub fn default_view(views: &[SavedView]) -> Option<&SavedView> {
     views.iter().find(|v| v.marked_default).or(views.first())
 }
 
+/// Port of `views.find_view`.
 pub fn find_view(views: &[SavedView], text: &str) -> Result<SavedView, QueryError> {
     let want = fold(text);
     if let Some(v) = views.iter().find(|v| fold(&v.id) == want) {
@@ -351,6 +363,7 @@ pub fn find_view(views: &[SavedView], text: &str) -> Result<SavedView, QueryErro
     Err(QueryError(msg))
 }
 
+/// Port of `views.list_columns`.
 pub fn list_columns(
     res: &Resource,
     schema: Option<&Value>,
@@ -429,6 +442,7 @@ pub fn list_columns(
         .collect()
 }
 
+/// Port of `views.choice_name`.
 pub fn choice_name(schema: Option<&Value>, field_name: &str, value: Option<&Value>) -> String {
     let Some(value) = value.filter(|v| !v.is_null() && v.as_str() != Some("")) else {
         return String::new();
@@ -459,6 +473,7 @@ pub fn choice_name(schema: Option<&Value>, field_name: &str, value: Option<&Valu
     String::new()
 }
 
+/// Port of `views.status_name`.
 pub fn status_name(item: &Value, schema: Option<&Value>) -> String {
     for key in [
         "change_status",
@@ -489,6 +504,7 @@ pub fn status_name(item: &Value, schema: Option<&Value>) -> String {
     }
 }
 
+/// Port of `views.priority_name`.
 pub fn priority_name(item: &Value, schema: Option<&Value>) -> String {
     let v = item.get("priority");
     let named = item
@@ -514,6 +530,7 @@ pub fn priority_name(item: &Value, schema: Option<&Value>) -> String {
     }
 }
 
+/// Port of `views.department_name`.
 pub fn department_name(item: &Value, schema: Option<&Value>) -> String {
     let named = obj_name(item.get("department"));
     if !named.is_empty() {
@@ -530,6 +547,7 @@ pub fn department_name(item: &Value, schema: Option<&Value>) -> String {
     choice_name(schema, "department", item.get("department_id"))
 }
 
+/// Port of `views.requester_name`.
 pub fn requester_name(item: &Value) -> String {
     let named = obj_name(item.get("requester"));
     if !named.is_empty() {
@@ -542,6 +560,8 @@ pub fn requester_name(item: &Value) -> String {
 }
 
 /// `(id, display name)`. `id` is `None` when the record has no agent id.
+///
+/// Port of `views.agent_of`.
 pub fn agent_of(item: &Value) -> (Option<Value>, String) {
     for key in ["agent", "responder", "owner"] {
         let Some(obj) = item.get(key).and_then(Value::as_object) else {
@@ -568,6 +588,7 @@ pub fn agent_of(item: &Value) -> (Option<Value>, String) {
     (id, nm)
 }
 
+/// Port of `views.group_name_of`.
 pub fn group_name_of(item: &Value, schema: Option<&Value>) -> String {
     let named = obj_name(item.get("group"));
     if !named.is_empty() {
@@ -584,6 +605,7 @@ pub fn group_name_of(item: &Value, schema: Option<&Value>) -> String {
     choice_name(schema, "group", item.get("group_id"))
 }
 
+/// Port of `views.assigned_to`.
 pub fn assigned_to(item: &Value, me_id: Option<&Value>, schema: Option<&Value>) -> String {
     let (aid, mut agent) = agent_of(item);
     if !agent.is_empty()
@@ -611,6 +633,7 @@ pub fn assigned_to(item: &Value, me_id: Option<&Value>, schema: Option<&Value>) 
     }
 }
 
+/// Port of `views.ticket_state`.
 pub fn ticket_state(item: &Value) -> String {
     let raw = item.get("state");
     let st = match raw {
@@ -631,6 +654,7 @@ pub fn ticket_state(item: &Value) -> String {
         .unwrap_or_else(|| py_capitalize(&text.replace('_', " ")))
 }
 
+/// Port of `views.cell`.
 pub fn cell(
     item: &Value,
     key: &str,
@@ -696,6 +720,7 @@ pub fn cell(
     }
 }
 
+/// Port of `views.list_row`.
 pub fn list_row(
     item: &Value,
     res: &Resource,
@@ -718,6 +743,7 @@ pub fn list_row(
     row
 }
 
+/// Port of `views.sort_label`.
 pub fn sort_label(order_by: Option<&str>, schema: Option<&Value>) -> String {
     let Some(order_by) = order_by.filter(|s| !s.is_empty()) else {
         return "Created Date".to_string();
@@ -731,6 +757,7 @@ pub fn sort_label(order_by: Option<&str>, schema: Option<&Value>) -> String {
         .unwrap_or_else(|| py_capitalize(&base.replace('_', " ")))
 }
 
+/// Port of `views.list_meta`.
 pub fn list_meta(data: &Value, item_count: usize, page: i64, per_page: i64) -> (Option<i64>, bool) {
     let empty = Map::new();
     let data_map = data.as_object().unwrap_or(&empty);
@@ -766,6 +793,7 @@ pub fn list_meta(data: &Value, item_count: usize, page: i64, per_page: i64) -> (
     (total, has_next)
 }
 
+/// Port of `views.canonical_tab`.
 pub fn canonical_tab(name: &str) -> String {
     let n = name.trim().to_lowercase().replace(' ', "_");
     if let Some((_, v)) = TAB_ALIASES.iter().find(|(k, _)| *k == n) {
@@ -782,6 +810,7 @@ pub fn is_known_tab(name: &str) -> bool {
     TAB_LABELS.iter().any(|(k, _)| *k == name)
 }
 
+/// Port of `views.tab_label`.
 pub fn tab_label(name: &str) -> String {
     TAB_LABELS
         .iter()
@@ -790,6 +819,7 @@ pub fn tab_label(name: &str) -> String {
         .unwrap_or_else(|| py_capitalize(&name.replace('_', " ")))
 }
 
+/// Port of `views.parse_tabs`.
 pub fn parse_tabs(data: &Value) -> Vec<Tab> {
     let rows = if data.is_array() {
         data.as_array()
@@ -825,6 +855,7 @@ pub fn parse_tabs(data: &Value) -> Vec<Tab> {
     tabs
 }
 
+/// Port of `views._fold`.
 fn fold(s: &str) -> String {
     pystr::casefold(&pystr::collapse_ws(s))
 }
@@ -837,6 +868,7 @@ fn chrome_label(key: &str) -> String {
         .unwrap_or_else(|| key.to_string())
 }
 
+/// Port of `views._schema_label`.
 pub(crate) fn schema_label(schema: Option<&Value>, name: &str) -> Option<String> {
     for f in fields(schema) {
         if f.get("name").and_then(Value::as_str) == Some(name)
@@ -939,6 +971,178 @@ mod tests {
     use fsv_core::resource::CHANGES;
     use serde_json::json;
 
+    fn oracle() -> Value {
+        serde_json::from_str(include_str!("../testdata/coverage_oracle.json")).unwrap()
+    }
+
+    fn rows(v: &Value) -> &Vec<Value> {
+        v.as_array().unwrap()
+    }
+
+    fn cols(c: &[Column]) -> Value {
+        json!(c.iter().map(|c| [&c.key, &c.label]).collect::<Vec<_>>())
+    }
+
+    #[test]
+    fn small_types_to_json_match_python() {
+        let o = oracle();
+        let v = &o["views"];
+        for case in rows(&v["missing"]) {
+            let m = Missing::new("tasks", case["status"].as_i64());
+            assert_eq!(m.note(), case["note"].as_str().unwrap(), "{case}");
+            assert_eq!(m.to_json(), case["json"], "{case}");
+        }
+        let sv = SavedView {
+            id: "7".into(),
+            name: "Mine".into(),
+            system: false,
+            marked_default: true,
+            raw: json!({}),
+        };
+        assert_eq!(sv.to_json(), v["saved_view"]);
+        let tabs = [
+            Tab {
+                name: "notes".into(),
+                label: "Notes".into(),
+                count: Some(3),
+            },
+            Tab {
+                name: "tasks".into(),
+                label: "Tasks".into(),
+                count: None,
+            },
+        ];
+        assert_eq!(
+            json!(tabs.iter().map(Tab::to_json).collect::<Vec<_>>()),
+            v["tab"]
+        );
+    }
+
+    #[test]
+    fn view_list_fold_and_labels_match_python() {
+        let o = oracle();
+        let v = &o["views"];
+        let schema = Some(&o["schema"]);
+        for case in rows(&v["view_list"]) {
+            let got: Vec<Value> = view_list(&case[0])
+                .into_iter()
+                .map(|m| Value::Object(m.clone()))
+                .collect();
+            assert_eq!(json!(got), case[1], "{}", case[0]);
+        }
+        for case in rows(&v["fold"]) {
+            assert_eq!(fold(case[0].as_str().unwrap()), case[1], "{}", case[0]);
+        }
+        for case in rows(&v["schema_label"]) {
+            assert_eq!(
+                json!(schema_label(schema, case[0].as_str().unwrap())),
+                case[1],
+                "{}",
+                case[0]
+            );
+        }
+        assert_eq!(json!(schema_label(None, "status")), v["schema_label_none"]);
+        for case in rows(&v["sort_label"]) {
+            assert_eq!(
+                sort_label(case[0].as_str(), schema),
+                case[1].as_str().unwrap(),
+                "{}",
+                case[0]
+            );
+        }
+    }
+
+    #[test]
+    fn list_columns_match_python() {
+        let o = oracle();
+        let schema = Some(&o["schema"]);
+        let want = &o["views"]["list_columns"];
+        let headers = json!([
+            {"name": "display_id", "label": "ID", "selected": true, "position": 0},
+            {"name": "requester", "label": "Req &amp; X", "selected": true, "position": 3},
+            {"name": "status", "label": "Status", "selected": true, "position": 2},
+            {"name": "priority", "label": "Prio", "selected": false, "position": 1},
+            {"name": "status", "label": "Again", "selected": true, "position": 4},
+            {"name": "cf_x", "selected": true},
+        ]);
+        let mut with_subject = rows(&headers).clone();
+        with_subject.push(
+            json!({"name": "ticket_subject", "label": "Title", "selected": true, "position": 1}),
+        );
+        let unselected = [json!({"name": "x", "selected": false})];
+        let tickets = &fsv_core::resource::TICKETS;
+        type Case<'a> = (
+            &'a str,
+            &'a Resource,
+            Option<&'a Value>,
+            Option<&'a [Value]>,
+        );
+        let cases: [Case; 6] = [
+            ("changes_default", &CHANGES, None, None),
+            ("changes_schema", &CHANGES, schema, None),
+            ("tickets_default", tickets, None, None),
+            ("tickets_headers", tickets, schema, Some(rows(&headers))),
+            (
+                "tickets_headers_subject",
+                tickets,
+                schema,
+                Some(&with_subject),
+            ),
+            ("tickets_unselected", tickets, None, Some(&unselected)),
+        ];
+        for (name, res, schema, headers) in cases {
+            assert_eq!(
+                cols(&list_columns(res, schema, headers)),
+                want[name],
+                "{name}"
+            );
+        }
+    }
+
+    #[test]
+    fn record_names_match_python() {
+        let o = oracle();
+        let v = &o["views"];
+        let schema = Some(&o["schema"]);
+        for case in rows(&v["choice_name"]) {
+            let value = (!case[1].is_null()).then_some(&case[1]);
+            assert_eq!(
+                choice_name(schema, case[0].as_str().unwrap(), value),
+                case[2].as_str().unwrap(),
+                "{case}"
+            );
+        }
+        for case in rows(&v["status_name"]) {
+            assert_eq!(status_name(&case[0], schema), case[1], "{}", case[0]);
+        }
+        for case in rows(&v["department_name"]) {
+            assert_eq!(department_name(&case[0], schema), case[1], "{}", case[0]);
+        }
+        for case in rows(&v["requester_name"]) {
+            assert_eq!(requester_name(&case[0]), case[1], "{}", case[0]);
+        }
+        for case in rows(&v["agent_of"]) {
+            let (id, name) = agent_of(&case[0]);
+            assert_eq!(json!([id, name]), case[1], "{}", case[0]);
+        }
+        for case in rows(&v["group_name_of"]) {
+            assert_eq!(group_name_of(&case[0], schema), case[1], "{}", case[0]);
+        }
+    }
+
+    #[test]
+    fn list_row_matches_python() {
+        let o = oracle();
+        let v = &o["views"];
+        let schema = Some(&o["schema"]);
+        let columns = list_columns(&CHANGES, schema, None);
+        assert_eq!(cols(&columns), v["list_row_columns"]);
+        for case in rows(&v["list_row"]) {
+            let row = list_row(&case[0], &CHANGES, &columns, schema, Some(&json!(21)), None);
+            assert_eq!(Value::Object(row), case[1], "{}", case[0]);
+        }
+    }
+
     #[test]
     fn list_meta_trusts_explicit_flags() {
         assert_eq!(
@@ -986,6 +1190,29 @@ mod tests {
         );
         assert!(page(30, true, None).contains("31-60 of 60+ ·"));
         assert!(page(30, true, Some(75)).contains("31-60 of 75 ·"));
+    }
+
+    /// `ListPage.title`: the view name, else `All <resource>`.
+    #[test]
+    fn list_page_title_is_view_or_all() {
+        let mut page = ListPage {
+            resource_name: CHANGES.name.to_string(),
+            items: vec![],
+            columns: vec![],
+            rows: vec![],
+            view_name: None,
+            page: 1,
+            per_page: 30,
+            total: None,
+            has_next: false,
+            order_by: "created_at".into(),
+            order_type: "desc".into(),
+            sort: "Created Date".into(),
+            notes: vec![],
+        };
+        assert_eq!(page.title(), "All changes");
+        page.view_name = Some("Mine".into());
+        assert_eq!(page.title(), "Mine");
     }
 
     #[test]

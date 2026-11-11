@@ -403,12 +403,11 @@ fn file_names(rows: Option<&Value>) -> Vec<String> {
                 .iter()
                 .filter_map(Value::as_object)
                 .map(|a| {
-                    for key in ["name", "content_file_name", "file_name", "id"] {
-                        if let Some(v) = a.get(key).filter(|v| fsv_py::truthy(v)) {
-                            return fsv_py::py_str(v);
-                        }
-                    }
-                    "None".to_string()
+                    ["name", "content_file_name", "file_name"]
+                        .iter()
+                        .find_map(|k| a.get(*k).filter(|v| fsv_py::truthy(v)))
+                        .or_else(|| a.get("id"))
+                        .map_or_else(|| "None".to_string(), fsv_py::py_str)
                 })
                 .collect()
         })
@@ -419,6 +418,45 @@ fn file_names(rows: Option<&Value>) -> Vec<String> {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn lifecycle_and_planning_to_json_match_python() {
+        let o: Value =
+            serde_json::from_str(include_str!("../testdata/coverage_oracle.json")).unwrap();
+        let life = Lifecycle {
+            name: "Acme".into(),
+            states: vec![
+                LifecycleState {
+                    id: json!(1),
+                    name: "Open".into(),
+                    mark: "done".into(),
+                },
+                LifecycleState {
+                    id: json!("2"),
+                    name: "Rev".into(),
+                    mark: "current".into(),
+                },
+            ],
+        };
+        assert_eq!(life.to_json(), o["views"]["lifecycle"]);
+        let entry =
+            |name: &str, label: &str, help: &str, text: &str, files: &[&str]| PlanningEntry {
+                name: name.into(),
+                label: label.into(),
+                help: help.into(),
+                text: text.into(),
+                files: files.iter().map(|f| f.to_string()).collect(),
+            };
+        let got: Vec<Value> = [
+            entry("reason", "Reason", "Why", "text", &[]),
+            entry("plan", "Plan", "", "", &["a.pdf"]),
+            entry("x", "X", "", "", &[]),
+        ]
+        .iter()
+        .map(PlanningEntry::to_json)
+        .collect();
+        assert_eq!(json!(got), o["views"]["planning"]);
+    }
 
     #[test]
     fn lifecycle_marks_current_and_visited() {

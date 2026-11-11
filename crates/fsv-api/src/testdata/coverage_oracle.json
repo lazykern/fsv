@@ -1,0 +1,2873 @@
+{
+ "misc": {
+  "ids": [
+   [
+    5,
+    5,
+    5,
+    5
+   ],
+   [
+    "5",
+    5,
+    5,
+    5
+   ],
+   [
+    "007",
+    7,
+    7,
+    7
+   ],
+   [
+    0,
+    null,
+    null,
+    null
+   ],
+   [
+    "0",
+    null,
+    null,
+    null
+   ],
+   [
+    -3,
+    null,
+    null,
+    null
+   ],
+   [
+    "-3",
+    null,
+    null,
+    null
+   ],
+   [
+    true,
+    null,
+    null,
+    null
+   ],
+   [
+    false,
+    null,
+    null,
+    null
+   ],
+   [
+    3.0,
+    null,
+    null,
+    null
+   ],
+   [
+    "3.0",
+    null,
+    null,
+    null
+   ],
+   [
+    "",
+    null,
+    null,
+    null
+   ],
+   [
+    " 4",
+    null,
+    null,
+    null
+   ],
+   [
+    "١",
+    null,
+    null,
+    null
+   ],
+   [
+    null,
+    null,
+    null,
+    null
+   ],
+   [
+    [],
+    null,
+    null,
+    null
+   ],
+   [
+    1099511627776,
+    1099511627776,
+    1099511627776,
+    1099511627776
+   ],
+   [
+    "x",
+    null,
+    null,
+    null
+   ]
+  ],
+  "active_choices": {
+   "cases": {
+    "plain": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 7,
+        "value": " Open "
+       },
+       {
+        "id": "8",
+        "label": "Done"
+       }
+      ]
+     }
+    ],
+    "falsy_value": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 7,
+        "value": "",
+        "label": "Done"
+       }
+      ]
+     }
+    ],
+    "int_value": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 7,
+        "value": 5,
+        "label": "Done"
+       }
+      ]
+     }
+    ],
+    "skip_deleted": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 7,
+        "value": "Old",
+        "deleted_at": "2026"
+       },
+       {
+        "id": 8,
+        "value": "New"
+       },
+       {
+        "id": 9,
+        "value": "Gone",
+        "deactivated": true
+       }
+      ]
+     }
+    ],
+    "casefold_dup": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 1,
+        "value": "Straße"
+       },
+       {
+        "id": 2,
+        "value": "STRASSE"
+       }
+      ]
+     }
+    ],
+    "id_dup": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 1,
+        "value": "A"
+       },
+       {
+        "id": "1",
+        "value": "B"
+       }
+      ]
+     }
+    ],
+    "bad_id": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": true,
+        "value": "A"
+       }
+      ]
+     }
+    ],
+    "zero_id": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 0,
+        "value": "A"
+       }
+      ]
+     }
+    ],
+    "unicode_id": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": "١٢",
+        "value": "A"
+       }
+      ]
+     }
+    ],
+    "blank_label": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 1,
+        "value": "  "
+       }
+      ]
+     }
+    ],
+    "not_dict": [
+     {
+      "name": "status",
+      "choices": [
+       "x"
+      ]
+     }
+    ],
+    "two_fields": [
+     {
+      "name": "status",
+      "choices": []
+     },
+     {
+      "name": "status",
+      "choices": []
+     }
+    ],
+    "none": [
+     {
+      "name": "other"
+     }
+    ],
+    "empty": [
+     {
+      "name": "status",
+      "choices": []
+     }
+    ],
+    "non_dict_field": [
+     "status",
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 3,
+        "name": "Named"
+       }
+      ]
+     }
+    ]
+   },
+   "want": {
+    "plain": {
+     "ok": [
+      [
+       7,
+       "Open"
+      ],
+      [
+       8,
+       "Done"
+      ]
+     ]
+    },
+    "falsy_value": {
+     "ok": [
+      [
+       7,
+       "Done"
+      ]
+     ]
+    },
+    "int_value": {
+     "err": "invalid active task-status identity"
+    },
+    "skip_deleted": {
+     "ok": [
+      [
+       8,
+       "New"
+      ]
+     ]
+    },
+    "casefold_dup": {
+     "err": "ambiguous task-status choices"
+    },
+    "id_dup": {
+     "err": "ambiguous task-status choices"
+    },
+    "bad_id": {
+     "err": "invalid active task-status identity"
+    },
+    "zero_id": {
+     "err": "invalid active task-status identity"
+    },
+    "unicode_id": {
+     "ok": [
+      [
+       12,
+       "A"
+      ]
+     ]
+    },
+    "blank_label": {
+     "err": "invalid active task-status identity"
+    },
+    "not_dict": {
+     "err": "invalid task-status choice"
+    },
+    "two_fields": {
+     "err": "exactly one runtime task-status field is required"
+    },
+    "none": {
+     "err": "exactly one runtime task-status field is required"
+    },
+    "empty": {
+     "ok": []
+    },
+    "non_dict_field": {
+     "ok": [
+      [
+       3,
+       "Named"
+      ]
+     ]
+    }
+   }
+  },
+  "conversation_payload": {
+   "body": "<p>x</p>",
+   "private": true
+  },
+  "property_payload": {
+   "status": 2,
+   "custom_fields": {
+    "a": null
+   }
+  }
+ },
+ "schema": {
+  "fields": [
+   {
+    "name": "subject",
+    "label": "Subject",
+    "default_field": true
+   },
+   {
+    "name": "status",
+    "label": "Status",
+    "default_field": true,
+    "field_type": "default_status",
+    "choices": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Caf&eacute;"
+     }
+    ]
+   },
+   {
+    "name": "priority",
+    "label": "Priority",
+    "default_field": true,
+    "choices": [
+     {
+      "id": 4,
+      "value": "Urgent"
+     }
+    ]
+   },
+   {
+    "name": "department",
+    "label": "Department",
+    "default_field": true,
+    "choices": [
+     {
+      "id": 7,
+      "value": "IT"
+     },
+     {
+      "id": 8,
+      "name": "HR"
+     }
+    ]
+   },
+   {
+    "name": "group",
+    "label": "Group",
+    "default_field": true,
+    "choices": [
+     {
+      "id": 5,
+      "value": "Ops"
+     }
+    ]
+   },
+   {
+    "name": "cf_env",
+    "label": "Environment",
+    "default_field": false,
+    "field_type": "custom_dropdown",
+    "choices": [
+     {
+      "id": 11,
+      "value": "Prod"
+     },
+     {
+      "id": 12,
+      "value": "Test"
+     }
+    ]
+   },
+   {
+    "name": "cf_note",
+    "label": "Dup",
+    "default_field": false
+   },
+   {
+    "name": "cf_other",
+    "label": "Dup",
+    "default_field": false
+   },
+   {
+    "name": "cf_strasse",
+    "label": "Straße",
+    "default_field": false
+   },
+   {
+    "name": "requester",
+    "label": "Requester &amp; Co",
+    "default_field": true
+   },
+   {
+    "name": "planned_start",
+    "label": "",
+    "default_field": true
+   }
+  ]
+ },
+ "query": {
+  "isdigit": {
+   "123": true,
+   "": false,
+   "١٢": false,
+   "²": false,
+   "12a": false,
+   "007": true
+  },
+  "strip_quotes": {
+   "\"a b\"": "a b",
+   "'x'": "x",
+   "'": "'",
+   "\"a'": "\"a'",
+   "  'p'  ": "p",
+   "\"\"": "",
+   "plain": "plain"
+  },
+  "parse_where": {
+   "status=Open": {
+    "ok": [
+     "status",
+     "=",
+     "Open"
+    ]
+   },
+   " status != 'Closed' ": {
+    "ok": [
+     "status",
+     "!=",
+     "Closed"
+    ]
+   },
+   "a>=1": {
+    "ok": [
+     "a",
+     ">=",
+     "1"
+    ]
+   },
+   "a<=b=c": {
+    "ok": [
+     "a",
+     "<=",
+     "b=c"
+    ]
+   },
+   "x~=y": {
+    "ok": [
+     "x",
+     "~=",
+     "y"
+    ]
+   },
+   "=x": {
+    "err": "invalid filter '=x'; expected FIELD=VALUE"
+   },
+   "==x": {
+    "ok": [
+     "=",
+     "=",
+     "x"
+    ]
+   },
+   "noop": {
+    "err": "invalid filter 'noop'; expected FIELD=VALUE"
+   },
+   "f= \"q\" ": {
+    "ok": [
+     "f",
+     "=",
+     "q"
+    ]
+   },
+   "a<b": {
+    "ok": [
+     "a",
+     "<",
+     "b"
+    ]
+   },
+   ">=x": {
+    "ok": [
+     ">",
+     "=",
+     "x"
+    ]
+   },
+   "a\n=b": {
+    "err": "invalid filter 'a\\n=b'; expected FIELD=VALUE"
+   },
+   "a=b\nc": {
+    "err": "invalid filter 'a=b\\nc'; expected FIELD=VALUE"
+   },
+   "sub=x\n": {
+    "ok": [
+     "sub",
+     "=",
+     "x"
+    ]
+   },
+   "é=1": {
+    "ok": [
+     "é",
+     "=",
+     "1"
+    ]
+   }
+  },
+  "field_api_type": [
+   [
+    {
+     "default_field": true
+    },
+    "default"
+   ],
+   [
+    {
+     "default_field": false
+    },
+    "custom_field"
+   ],
+   [
+    {},
+    "custom_field"
+   ],
+   [
+    {
+     "default_field": 1
+    },
+    "default"
+   ],
+   [
+    {
+     "default_field": ""
+    },
+    "custom_field"
+   ]
+  ],
+  "schema_field_matches": {
+   "dup|None": [
+    "cf_note",
+    "cf_other"
+   ],
+   "DUP|custom": [
+    "cf_note",
+    "cf_other"
+   ],
+   "stat|None": [
+    "status"
+   ],
+   "stat|custom": [],
+   "cf_|default": [],
+   "STRASSE|None": [
+    "cf_strasse"
+   ],
+   "zzz|None": []
+  },
+  "find_schema_field": {
+   "status": {
+    "ok": "status"
+   },
+   "Status": {
+    "ok": "status"
+   },
+   "dup": {
+    "err": "ambiguous field 'dup': cf_note, cf_other"
+   },
+   "cf_note": {
+    "ok": "cf_note"
+   },
+   "env": {
+    "ok": "cf_env"
+   },
+   "custom:env": {
+    "ok": "cf_env"
+   },
+   "default:env": {
+    "ok": null
+   },
+   "default:status": {
+    "ok": "status"
+   },
+   "stat": {
+    "ok": "status"
+   },
+   "cf_": {
+    "err": "ambiguous field 'cf_': cf_env, cf_note, cf_other, cf_strasse"
+   },
+   "nope": {
+    "ok": null
+   },
+   "STRASSE": {
+    "ok": "cf_strasse"
+   },
+   "other:status": {
+    "ok": null
+   }
+  },
+  "pick_lookup": [
+   [
+    "ANN",
+    [
+     {
+      "id": 1,
+      "value": "Ann",
+      "email": "ann@x.io"
+     },
+     {
+      "id": 2,
+      "value": "Annie",
+      "details": "annie@x.io"
+     }
+    ],
+    [
+     "value"
+    ],
+    {
+     "ok": {
+      "id": 1,
+      "value": "Ann",
+      "email": "ann@x.io"
+     }
+    }
+   ],
+   [
+    "annie@x.io",
+    [
+     {
+      "id": 1,
+      "value": "Ann",
+      "email": "ann@x.io"
+     },
+     {
+      "id": 2,
+      "value": "Annie",
+      "details": "annie@x.io"
+     }
+    ],
+    [
+     "value",
+     "details"
+    ],
+    {
+     "ok": {
+      "id": 2,
+      "value": "Annie",
+      "details": "annie@x.io"
+     }
+    }
+   ],
+   [
+    "zz",
+    [
+     {
+      "id": 1,
+      "value": "Ann",
+      "email": "ann@x.io"
+     }
+    ],
+    [
+     "value"
+    ],
+    {
+     "ok": {
+      "id": 1,
+      "value": "Ann",
+      "email": "ann@x.io"
+     }
+    }
+   ],
+   [
+    "zz",
+    [],
+    [
+     "value"
+    ],
+    {
+     "err": "no agent match: zz"
+    }
+   ],
+   [
+    "an",
+    [
+     {
+      "id": 1,
+      "value": "Ann",
+      "email": "ann@x.io"
+     },
+     {
+      "id": 2,
+      "value": "Annie",
+      "details": "annie@x.io"
+     }
+    ],
+    [
+     "value"
+    ],
+    {
+     "err": "multiple agent matches for 'an': Ann, annie@x.io"
+    }
+   ],
+   [
+    "STRASSE",
+    [
+     {
+      "id": 3,
+      "value": "straße"
+     },
+     {
+      "id": 4
+     }
+    ],
+    [
+     "value"
+    ],
+    {
+     "ok": {
+      "id": 3,
+      "value": "straße"
+     }
+    }
+   ],
+   [
+    "0",
+    [
+     {
+      "id": 0,
+      "value": null
+     },
+     {
+      "id": 5,
+      "details": ""
+     }
+    ],
+    [
+     "value",
+     "id"
+    ],
+    {
+     "err": "multiple agent matches for '0': 0, 5"
+    }
+   ],
+   [
+    "x",
+    [
+     {
+      "id": 0
+     },
+     {
+      "value": "",
+      "id": null
+     }
+    ],
+    [
+     "value"
+    ],
+    {
+     "err": "multiple agent matches for 'x': 0, None"
+    }
+   ]
+  ],
+  "resolve_agent": {
+   "digits": {
+    "value": "42",
+    "rows": [],
+    "result": {
+     "ok": "42"
+    },
+    "calls": []
+   },
+   "match": {
+    "value": "bob",
+    "rows": [
+     {
+      "id": 9,
+      "user_id": 21,
+      "value": "Ann"
+     },
+     {
+      "id": 10,
+      "user_id": 22,
+      "value": "Bob"
+     }
+    ],
+    "result": {
+     "ok": "22"
+    },
+    "calls": [
+     [
+      "agents",
+      "bob",
+      {}
+     ]
+    ]
+   },
+   "no_user_id": {
+    "value": "Ann",
+    "rows": [
+     {
+      "id": 9,
+      "value": "Ann"
+     }
+    ],
+    "result": {
+     "err": "agent match has no user_id: Ann"
+    },
+    "calls": [
+     [
+      "agents",
+      "Ann",
+      {}
+     ]
+    ]
+   },
+   "none": {
+    "value": "Ann",
+    "rows": [],
+    "result": {
+     "err": "no agent match: Ann"
+    },
+    "calls": [
+     [
+      "agents",
+      "Ann",
+      {}
+     ]
+    ]
+   }
+  },
+  "resolve_requester": {
+   "digits": {
+    "value": "42",
+    "rows": [],
+    "result": {
+     "ok": {
+      "id": 42,
+      "name": "42"
+     }
+    },
+    "calls": []
+   },
+   "match": {
+    "value": "ANN@x.io",
+    "rows": [
+     {
+      "id": 9,
+      "value": "Ann",
+      "email": "ann@x.io"
+     },
+     {
+      "id": 10,
+      "value": "Bob"
+     }
+    ],
+    "result": {
+     "ok": {
+      "id": 9,
+      "name": "Ann"
+     }
+    },
+    "calls": [
+     [
+      "requesters",
+      "ANN@x.io",
+      {
+       "all_users": "true"
+      }
+     ]
+    ]
+   },
+   "blank_value": {
+    "value": "zz",
+    "rows": [
+     {
+      "id": 9,
+      "value": ""
+     }
+    ],
+    "result": {
+     "ok": {
+      "id": 9,
+      "name": "9"
+     }
+    },
+    "calls": [
+     [
+      "requesters",
+      "zz",
+      {
+       "all_users": "true"
+      }
+     ]
+    ]
+   },
+   "none": {
+    "value": "Ann",
+    "rows": [],
+    "result": {
+     "err": "no requester match: Ann"
+    },
+    "calls": [
+     [
+      "requesters",
+      "Ann",
+      {
+       "all_users": "true"
+      }
+     ]
+    ]
+   }
+  },
+  "choice_value": [
+   [
+    {
+     "name": "status",
+     "label": "Status",
+     "default_field": true,
+     "field_type": "default_status",
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "Planning"
+      },
+      {
+       "id": 3,
+       "value": "Caf&eacute;"
+      }
+     ]
+    },
+    "planning",
+    "default",
+    {
+     "ok": 2
+    }
+   ],
+   [
+    {
+     "name": "status",
+     "label": "Status",
+     "default_field": true,
+     "field_type": "default_status",
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "Planning"
+      },
+      {
+       "id": 3,
+       "value": "Caf&eacute;"
+      }
+     ]
+    },
+    "2",
+    "default",
+    {
+     "ok": 2
+    }
+   ],
+   [
+    {
+     "name": "cf_env",
+     "label": "Environment",
+     "default_field": false,
+     "field_type": "custom_dropdown",
+     "choices": [
+      {
+       "id": 11,
+       "value": "Prod"
+      },
+      {
+       "id": 12,
+       "value": "Test"
+      }
+     ]
+    },
+    "prod",
+    "custom_field",
+    {
+     "ok": "Prod"
+    }
+   ],
+   [
+    {
+     "name": "cf_env",
+     "label": "Environment",
+     "default_field": false,
+     "field_type": "custom_dropdown",
+     "choices": [
+      {
+       "id": 11,
+       "value": "Prod"
+      },
+      {
+       "id": 12,
+       "value": "Test"
+      }
+     ]
+    },
+    "12",
+    "custom_field",
+    {
+     "ok": "Test"
+    }
+   ],
+   [
+    {
+     "name": "x"
+    },
+    "17",
+    "default",
+    {
+     "ok": 17
+    }
+   ],
+   [
+    {
+     "name": "x"
+    },
+    "abc",
+    "default",
+    {
+     "ok": "abc"
+    }
+   ],
+   [
+    {
+     "name": "status",
+     "label": "Status",
+     "default_field": true,
+     "field_type": "default_status",
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "Planning"
+      },
+      {
+       "id": 3,
+       "value": "Caf&eacute;"
+      }
+     ]
+    },
+    "Gone",
+    "default",
+    {
+     "err": "no choice 'Gone' for Status; options: Open, Planning, Caf&eacute;"
+    }
+   ],
+   [
+    {
+     "name": "x",
+     "choices": [
+      {
+       "id": 5,
+       "name": "Five"
+      }
+     ]
+    },
+    "five",
+    "custom_field",
+    {
+     "ok": 5
+    }
+   ],
+   [
+    {
+     "name": "z",
+     "label": "",
+     "choices": [
+      {
+       "id": 0,
+       "value": null,
+       "name": "Zero"
+      },
+      {
+       "id": 1,
+       "value": ""
+      }
+     ]
+    },
+    "0",
+    "default",
+    {
+     "err": "no choice '0' for z; options: Zero, 1"
+    }
+   ],
+   [
+    {
+     "name": "z",
+     "label": "",
+     "choices": [
+      {
+       "id": 0,
+       "value": null,
+       "name": "Zero"
+      },
+      {
+       "id": 1,
+       "value": ""
+      }
+     ]
+    },
+    "zero",
+    "custom_field",
+    {
+     "ok": null
+    }
+   ],
+   [
+    {
+     "name": "z",
+     "label": "",
+     "choices": [
+      {
+       "id": 0,
+       "value": null,
+       "name": "Zero"
+      },
+      {
+       "id": 1,
+       "value": ""
+      }
+     ]
+    },
+    "none",
+    "default",
+    {
+     "err": "no choice 'none' for z; options: Zero, 1"
+    }
+   ],
+   [
+    {
+     "name": "status",
+     "label": "Status",
+     "default_field": true,
+     "field_type": "default_status",
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "Planning"
+      },
+      {
+       "id": 3,
+       "value": "Caf&eacute;"
+      }
+     ]
+    },
+    "CAF&EACUTE;",
+    "default",
+    {
+     "ok": 3
+    }
+   ]
+  ],
+  "where_operator": {
+   "=": {
+    "ok": "is_in"
+   },
+   "!=": {
+    "ok": "is_not_in"
+   },
+   ">": {
+    "err": "operator '>' not supported for this field; use = or !="
+   },
+   ">=": {
+    "err": "operator '>=' not supported for this field; use = or !="
+   },
+   "<": {
+    "err": "operator '<' not supported for this field; use = or !="
+   },
+   "<=": {
+    "err": "operator '<=' not supported for this field; use = or !="
+   },
+   "~=": {
+    "err": "operator ~= (contains) not supported; use = or !="
+   },
+   "?": {
+    "ok": "is_in"
+   }
+  },
+  "query_item": {
+   "item": {
+    "value": [
+     2
+    ],
+    "condition": "status",
+    "operator": "is_in",
+    "type": "default"
+   },
+   "explain": [
+    {
+     "field": "status",
+     "condition": "status",
+     "operator": "is_in",
+     "type": "default",
+     "value": "Planning"
+    }
+   ]
+  },
+  "merge_date_ranges": [
+   {
+    "condition": "created_at",
+    "type": "default",
+    "operator": "custom_date",
+    "value": {
+     "from": "z",
+     "to": "b"
+    }
+   },
+   {
+    "condition": "status",
+    "type": "default",
+    "operator": "is_in",
+    "value": [
+     1
+    ]
+   },
+   {
+    "condition": "created_at",
+    "type": "custom_field",
+    "operator": "custom_date",
+    "value": {
+     "to": "c"
+    }
+   }
+  ],
+  "build_query_hash": {
+   "empty": {
+    "ok": [
+     null,
+     [],
+     []
+    ]
+   },
+   "where": {
+    "ok": [
+     "[{\"value\":[1],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"},{\"value\":[\"Test\"],\"condition\":\"cf_env\",\"operator\":\"is_not_in\",\"type\":\"custom_field\"}]",
+     [
+      {
+       "value": [
+        1
+       ],
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default"
+      },
+      {
+       "value": [
+        "Test"
+       ],
+       "condition": "cf_env",
+       "operator": "is_not_in",
+       "type": "custom_field"
+      }
+     ],
+     [
+      {
+       "field": "status",
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": "1"
+      },
+      {
+       "field": "cf_env",
+       "condition": "cf_env",
+       "operator": "is_not_in",
+       "type": "custom_field",
+       "value": "Test"
+      }
+     ]
+    ]
+   },
+   "or": {
+    "ok": [
+     "{\"any\":[{\"value\":[1],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"},{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-02-01\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"}]}",
+     [
+      {
+       "value": [
+        1
+       ],
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default"
+      },
+      {
+       "value": {
+        "from": "2026-01-01",
+        "to": "2026-02-01"
+       },
+       "condition": "created_at",
+       "operator": "custom_date",
+       "type": "default"
+      }
+     ],
+     [
+      {
+       "field": "status",
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": "1"
+      },
+      {
+       "field": "created_at",
+       "condition": "created_at",
+       "operator": "custom_date",
+       "type": "default",
+       "value": "2026-01-01"
+      },
+      {
+       "field": "created_at",
+       "condition": "created_at",
+       "operator": "custom_date",
+       "type": "default",
+       "value": "2026-02-01"
+      }
+     ]
+    ]
+   },
+   "raw": {
+    "ok": [
+     "[{\"condition\":\"x\",\"operator\":\"is_in\",\"value\":[1],\"type\":\"default\"},{\"value\":[2],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]",
+     [
+      {
+       "condition": "x",
+       "operator": "is_in",
+       "value": [
+        1
+       ],
+       "type": "default"
+      },
+      {
+       "value": [
+        2
+       ],
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default"
+      }
+     ],
+     [
+      {
+       "field": "query_hash",
+       "condition": "raw",
+       "operator": "raw",
+       "type": "raw",
+       "value": "[{\"condition\":\"x\",\"operator\":\"is_in\",\"value\":[1],\"type\":\"default\"}]"
+      },
+      {
+       "field": "status",
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": "2"
+      }
+     ]
+    ]
+   },
+   "bad": {
+    "err": "field not found: 'nope'"
+   }
+  }
+ },
+ "views": {
+  "missing": [
+   {
+    "status": null,
+    "note": "tasks: unavailable",
+    "json": {
+     "unavailable": true,
+     "status": null,
+     "note": "tasks: unavailable"
+    }
+   },
+   {
+    "status": 0,
+    "note": "tasks: unavailable",
+    "json": {
+     "unavailable": true,
+     "status": 0,
+     "note": "tasks: unavailable"
+    }
+   },
+   {
+    "status": 403,
+    "note": "tasks: not permitted for your role (403)",
+    "json": {
+     "unavailable": true,
+     "status": 403,
+     "note": "tasks: not permitted for your role (403)"
+    }
+   },
+   {
+    "status": 404,
+    "note": "tasks: not available on this account (404)",
+    "json": {
+     "unavailable": true,
+     "status": 404,
+     "note": "tasks: not available on this account (404)"
+    }
+   },
+   {
+    "status": 500,
+    "note": "tasks: unavailable (500)",
+    "json": {
+     "unavailable": true,
+     "status": 500,
+     "note": "tasks: unavailable (500)"
+    }
+   }
+  ],
+  "parse_dt": [
+   [
+    null,
+    null
+   ],
+   [
+    "",
+    null
+   ],
+   [
+    "2026-01-02T03:04:05Z",
+    1767323045.0
+   ],
+   [
+    "2026-01-02T03:04:05+07:00",
+    1767297845.0
+   ],
+   [
+    "2026-01-02",
+    1767312000.0
+   ],
+   [
+    "2026-01-02 03:04",
+    1767323040.0
+   ],
+   [
+    "nope",
+    null
+   ],
+   [
+    5,
+    null
+   ],
+   [
+    "2026-01-02T03:04:05.250Z",
+    1767323045.25
+   ],
+   [
+    "20260102T030405",
+    1767323045.0
+   ]
+  ],
+  "is_date_only": [
+   [
+    "2026-01-02",
+    true
+   ],
+   [
+    " 2026-01-02\n",
+    true
+   ],
+   [
+    "2026-1-2",
+    false
+   ],
+   [
+    20260102,
+    false
+   ],
+   [
+    "2026-01-02T00:00",
+    false
+   ],
+   [
+    null,
+    false
+   ],
+   [
+    "2026-01-02x",
+    false
+   ]
+  ],
+  "html_to_text": [
+   [
+    null,
+    ""
+   ],
+   [
+    "",
+    ""
+   ],
+   [
+    "<p>Hello&nbsp;<b>world</b></p><p></p><p>Two</p>",
+    "Hello world\n\nTwo"
+   ],
+   [
+    "<script>x()</script><style>.a{}</style>Line<br/>next<BR>end",
+    "Line\nnext\nend"
+   ],
+   [
+    "<ul><li>a</li><li>b</li></ul>",
+    "• a\n\n• b"
+   ],
+   [
+    "a &amp; b &lt;c&gt;",
+    "a & b <c>"
+   ],
+   [
+    "  spaced\t\tout  ",
+    "spaced out"
+   ],
+   [
+    42,
+    "42"
+   ]
+  ],
+  "saved_view": {
+   "id": "7",
+   "name": "Mine",
+   "system": false,
+   "default": true
+  },
+  "view_list": [
+   [
+    [
+     {
+      "id": 1
+     },
+     2,
+     "x",
+     {
+      "id": 3
+     }
+    ],
+    [
+     {
+      "id": 1
+     },
+     {
+      "id": 3
+     }
+    ]
+   ],
+   [
+    {
+     "ticket_filters": [
+      {
+       "id": 1
+      },
+      5
+     ]
+    },
+    [
+     {
+      "id": 1
+     }
+    ]
+   ],
+   [
+    {
+     "meta": {},
+     "x": [
+      {
+       "id": 9
+      }
+     ],
+     "my_views": [
+      {
+       "id": 2
+      }
+     ]
+    },
+    [
+     {
+      "id": 2
+     }
+    ]
+   ],
+   [
+    {
+     "a": 1
+    },
+    []
+   ],
+   [
+    "str",
+    []
+   ]
+  ],
+  "fold": [
+   [
+    "  Hello   World ",
+    "hello world"
+   ],
+   [
+    "Straße",
+    "strasse"
+   ],
+   [
+    "",
+    ""
+   ],
+   [
+    "A\tB\nC",
+    "a b c"
+   ]
+  ],
+  "schema_label": [
+   [
+    "requester",
+    "Requester & Co"
+   ],
+   [
+    "status",
+    "Status"
+   ],
+   [
+    "planned_start",
+    null
+   ],
+   [
+    "zzz",
+    null
+   ]
+  ],
+  "schema_label_none": null,
+  "list_columns": {
+   "changes_default": [
+    [
+     "subject",
+     "Subject"
+    ],
+    [
+     "requester",
+     "Requester"
+    ],
+    [
+     "status",
+     "Status"
+    ],
+    [
+     "priority",
+     "Priority"
+    ],
+    [
+     "assigned_to",
+     "Assigned to"
+    ],
+    [
+     "department",
+     "Department"
+    ]
+   ],
+   "changes_schema": [
+    [
+     "subject",
+     "Subject"
+    ],
+    [
+     "requester",
+     "Requester & Co"
+    ],
+    [
+     "status",
+     "Status"
+    ],
+    [
+     "priority",
+     "Priority"
+    ],
+    [
+     "assigned_to",
+     "Assigned to"
+    ],
+    [
+     "department",
+     "Department"
+    ]
+   ],
+   "tickets_default": [
+    [
+     "subject",
+     "Subject"
+    ],
+    [
+     "requester",
+     "Requester"
+    ],
+    [
+     "state",
+     "State"
+    ],
+    [
+     "status",
+     "Status"
+    ],
+    [
+     "priority",
+     "Priority"
+    ],
+    [
+     "assigned_to",
+     "Assigned to"
+    ]
+   ],
+   "tickets_headers": [
+    [
+     "subject",
+     "Subject"
+    ],
+    [
+     "cf_x",
+     "cf_x"
+    ],
+    [
+     "status",
+     "Status"
+    ],
+    [
+     "requester",
+     "Req & X"
+    ]
+   ],
+   "tickets_headers_subject": [
+    [
+     "cf_x",
+     "cf_x"
+    ],
+    [
+     "subject",
+     "Title"
+    ],
+    [
+     "status",
+     "Status"
+    ],
+    [
+     "requester",
+     "Req & X"
+    ]
+   ],
+   "tickets_unselected": [
+    [
+     "subject",
+     "Subject"
+    ],
+    [
+     "requester",
+     "Requester"
+    ],
+    [
+     "state",
+     "State"
+    ],
+    [
+     "status",
+     "Status"
+    ],
+    [
+     "priority",
+     "Priority"
+    ],
+    [
+     "assigned_to",
+     "Assigned to"
+    ]
+   ]
+  },
+  "choice_name": [
+   [
+    "status",
+    2,
+    "Planning"
+   ],
+   [
+    "status",
+    "2",
+    "Planning"
+   ],
+   [
+    "status",
+    "Open",
+    "Open"
+   ],
+   [
+    "status",
+    3,
+    "Café"
+   ],
+   [
+    "status",
+    9,
+    ""
+   ],
+   [
+    "status",
+    null,
+    ""
+   ],
+   [
+    "status",
+    "",
+    ""
+   ],
+   [
+    "department",
+    8,
+    "HR"
+   ],
+   [
+    "nope",
+    1,
+    ""
+   ]
+  ],
+  "status_name": [
+   [
+    {
+     "change_status": {
+      "name": "Awaiting"
+     },
+     "status": 1
+    },
+    "Awaiting"
+   ],
+   [
+    {
+     "status_name": "Named",
+     "status": 1
+    },
+    "Named"
+   ],
+   [
+    {
+     "status": 2
+    },
+    "Planning"
+   ],
+   [
+    {
+     "status": 99
+    },
+    "99"
+   ],
+   [
+    {
+     "status": null
+    },
+    ""
+   ],
+   [
+    {},
+    ""
+   ],
+   [
+    {
+     "ticket_status": {
+      "value": "Pending"
+     }
+    },
+    "Pending"
+   ],
+   [
+    {
+     "summary_status": {
+      "email": "e@x"
+     }
+    },
+    "e@x"
+   ]
+  ],
+  "department_name": [
+   [
+    {
+     "department": {
+      "name": "Eng"
+     }
+    },
+    "Eng"
+   ],
+   [
+    {
+     "department_name": "Ops"
+    },
+    "Ops"
+   ],
+   [
+    {
+     "department_id": 7
+    },
+    "IT"
+   ],
+   [
+    {
+     "department_id": 8
+    },
+    "HR"
+   ],
+   [
+    {
+     "department": {},
+     "department_id": 99
+    },
+    ""
+   ],
+   [
+    {},
+    ""
+   ]
+  ],
+  "requester_name": [
+   [
+    {
+     "requester": {
+      "name": " Ann "
+     }
+    },
+    "Ann"
+   ],
+   [
+    {
+     "requester": {
+      "email": "a@x"
+     }
+    },
+    "a@x"
+   ],
+   [
+    {
+     "requester_name": "Bob"
+    },
+    "Bob"
+   ],
+   [
+    {
+     "requester": "str",
+     "requester_name": ""
+    },
+    ""
+   ],
+   [
+    {},
+    ""
+   ]
+  ],
+  "agent_of": [
+   [
+    {
+     "agent": {
+      "id": 5,
+      "name": "Ann"
+     }
+    },
+    [
+     5,
+     "Ann"
+    ]
+   ],
+   [
+    {
+     "agent": {
+      "name": "Ann"
+     },
+     "agent_id": 6
+    },
+    [
+     6,
+     "Ann"
+    ]
+   ],
+   [
+    {
+     "agent": {
+      "id": null,
+      "name": "Ann"
+     },
+     "agent_id": 6
+    },
+    [
+     null,
+     "Ann"
+    ]
+   ],
+   [
+    {
+     "responder": {
+      "id": 0
+     },
+     "responder_id": 3
+    },
+    [
+     0,
+     ""
+    ]
+   ],
+   [
+    {
+     "owner": {
+      "value": "x"
+     },
+     "agent_id": 0,
+     "responder_id": 8,
+     "owner_name": "Own"
+    },
+    [
+     8,
+     "Own"
+    ]
+   ],
+   [
+    {
+     "agent_id": 4,
+     "agent_name": "Agent"
+    },
+    [
+     4,
+     "Agent"
+    ]
+   ],
+   [
+    {},
+    [
+     null,
+     ""
+    ]
+   ]
+  ],
+  "group_name_of": [
+   [
+    {
+     "group": {
+      "name": "Ops"
+     }
+    },
+    "Ops"
+   ],
+   [
+    {
+     "group_name": "Desk"
+    },
+    "Desk"
+   ],
+   [
+    {
+     "group_id": 5
+    },
+    "Ops"
+   ],
+   [
+    {
+     "group_id": 6
+    },
+    ""
+   ],
+   [
+    {},
+    ""
+   ]
+  ],
+  "list_row": [
+   [
+    {
+     "id": 12,
+     "display_id": 12,
+     "subject": "Patch",
+     "requester": {
+      "name": "Ann"
+     },
+     "status": 2,
+     "priority": 4,
+     "agent": {
+      "id": 21,
+      "name": "Bob"
+     },
+     "group": {
+      "name": "Ops"
+     },
+     "department_id": 7
+    },
+    {
+     "id": "CHN-12",
+     "subject": "Patch",
+     "requester": "Ann",
+     "status": "Planning",
+     "priority": "Urgent",
+     "assigned_to": "Ops / Bob (Me)",
+     "department": "IT"
+    }
+   ],
+   [
+    {
+     "id": 13,
+     "subject": null,
+     "status": null
+    },
+    {
+     "id": "CHN-13",
+     "subject": "",
+     "requester": "",
+     "status": "",
+     "priority": "",
+     "assigned_to": "None",
+     "department": ""
+    }
+   ]
+  ],
+  "list_row_columns": [
+   [
+    "subject",
+    "Subject"
+   ],
+   [
+    "requester",
+    "Requester & Co"
+   ],
+   [
+    "status",
+    "Status"
+   ],
+   [
+    "priority",
+    "Priority"
+   ],
+   [
+    "assigned_to",
+    "Assigned to"
+   ],
+   [
+    "department",
+    "Department"
+   ]
+  ],
+  "sort_label": [
+   [
+    null,
+    "Created Date"
+   ],
+   [
+    "",
+    "Created Date"
+   ],
+   [
+    "created_at",
+    "Created Date"
+   ],
+   [
+    "updated_at",
+    "Last Modified"
+   ],
+   [
+    "status",
+    "Status"
+   ],
+   [
+    "department_id",
+    "Department"
+   ],
+   [
+    "requester",
+    "Requester & Co"
+   ],
+   [
+    "cf_env",
+    "Environment"
+   ],
+   [
+    "cf_some_thing_id",
+    "Cf some thing"
+   ]
+  ],
+  "tab": [
+   {
+    "name": "notes",
+    "label": "Notes",
+    "count": 3
+   },
+   {
+    "name": "tasks",
+    "label": "Tasks",
+    "count": null
+   }
+  ],
+  "lifecycle": {
+   "name": "Acme",
+   "states": [
+    {
+     "id": 1,
+     "name": "Open",
+     "mark": "done"
+    },
+    {
+     "id": "2",
+     "name": "Rev",
+     "mark": "current"
+    }
+   ]
+  },
+  "planning": [
+   {
+    "name": "reason",
+    "label": "Reason",
+    "help": "Why",
+    "content": "text",
+    "files": [],
+    "empty": false
+   },
+   {
+    "name": "plan",
+    "label": "Plan",
+    "help": "",
+    "content": "",
+    "files": [
+     "a.pdf"
+    ],
+    "empty": false
+   },
+   {
+    "name": "x",
+    "label": "X",
+    "help": "",
+    "content": "",
+    "files": [],
+    "empty": true
+   }
+  ],
+  "file_names": [
+   [
+    null,
+    []
+   ],
+   [
+    [],
+    []
+   ],
+   [
+    [
+     {
+      "name": "a.pdf"
+     },
+     {
+      "content_file_name": "b.txt"
+     },
+     {
+      "file_name": "c"
+     },
+     {
+      "id": 9
+     },
+     {},
+     "s",
+     {
+      "name": "",
+      "id": 0
+     }
+    ],
+    [
+     "a.pdf",
+     "b.txt",
+     "c",
+     "9",
+     "None",
+     "0"
+    ]
+   ]
+  ],
+  "conversation_json": [
+   [
+    {
+     "id": 1,
+     "user": {
+      "name": "Ann"
+     },
+     "private": true,
+     "body": "<p>Hi <b>there</b></p>",
+     "attachments": [
+      {
+       "name": "a.png"
+      }
+     ],
+     "source": 2
+    },
+    {
+     "id": 1,
+     "author": "Ann",
+     "kind": "private note",
+     "private": true,
+     "created_at": null,
+     "relative": "",
+     "body": "Hi there",
+     "attachments": [
+      "a.png"
+     ]
+    }
+   ],
+   [
+    {
+     "id": 2,
+     "user_id": 33,
+     "body": "",
+     "body_text": "plain"
+    },
+    {
+     "id": 2,
+     "author": "33",
+     "kind": "replied",
+     "private": false,
+     "created_at": null,
+     "relative": "",
+     "body": "plain",
+     "attachments": []
+    }
+   ],
+   [
+    {
+     "id": 3,
+     "incoming": true,
+     "user": {},
+     "user_id": 0,
+     "body": null
+    },
+    {
+     "id": 3,
+     "author": "",
+     "kind": "replied",
+     "private": false,
+     "created_at": null,
+     "relative": "",
+     "body": "",
+     "attachments": []
+    }
+   ]
+  ]
+ },
+ "formmeta": {
+  "add": [
+   {
+    "values": [
+     "12",
+     12,
+     " 7 ",
+     true,
+     "x",
+     null,
+     3.5,
+     "١٣",
+     "",
+     "-1",
+     0
+    ],
+    "steps": [
+     [
+      12
+     ],
+     [
+      12
+     ],
+     [
+      12,
+      7
+     ],
+     [
+      12,
+      7
+     ],
+     [
+      12,
+      7
+     ],
+     [
+      12,
+      7
+     ],
+     [
+      12,
+      7
+     ],
+     [
+      12,
+      7,
+      13
+     ],
+     [
+      12,
+      7,
+      13
+     ],
+     [
+      12,
+      7,
+      13
+     ],
+     [
+      12,
+      7,
+      13,
+      0
+     ]
+    ]
+   }
+  ],
+  "cookie_cookies": [
+   [
+    "fs_workspace",
+    "12"
+   ],
+   [
+    "WorkspaceId",
+    " 4 "
+   ],
+   [
+    "other",
+    "9"
+   ],
+   [
+    "ws_workspace",
+    "x"
+   ],
+   [
+    "last_workspace",
+    "12"
+   ]
+  ],
+  "cookie_workspace": [
+   12,
+   4
+  ],
+  "cookie_none": [],
+  "bootstrap": {
+   "doc": {
+    "reply": {
+     "groups": [
+      {
+       "id": 4,
+       "name": "Ops"
+      }
+     ]
+    },
+    "first": {
+     "groups": [
+      {
+       "id": 4,
+       "name": "Ops"
+      }
+     ]
+    },
+    "second": {
+     "groups": [
+      {
+       "id": 4,
+       "name": "Ops"
+      }
+     ]
+    },
+    "calls": 1
+   },
+   "empty": {
+    "reply": null,
+    "first": {},
+    "second": {},
+    "calls": 1
+   },
+   "falsy": {
+    "reply": {},
+    "first": {},
+    "second": {},
+    "calls": 1
+   }
+  }
+ },
+ "schema_cache": {
+  "fresh": {
+   "docs": [
+    {
+     "saved_at": "NOW-60",
+     "data": [
+      {
+       "name": "a"
+      }
+     ]
+    }
+   ],
+   "index": 0,
+   "found": true,
+   "stale": false
+  },
+  "old": {
+   "docs": [
+    {
+     "saved_at": "NOW-691200",
+     "data": [
+      {
+       "name": "a"
+      }
+     ]
+    }
+   ],
+   "index": 0,
+   "found": true,
+   "stale": true
+  },
+  "future": {
+   "docs": [
+    {
+     "saved_at": "NOW3600",
+     "data": [
+      {
+       "name": "a"
+      }
+     ]
+    }
+   ],
+   "index": 0,
+   "found": true,
+   "stale": true
+  },
+  "bool": {
+   "docs": [
+    {
+     "saved_at": true,
+     "data": [
+      {
+       "name": "a"
+      }
+     ]
+    }
+   ],
+   "index": 0,
+   "found": true,
+   "stale": true
+  },
+  "string": {
+   "docs": [
+    {
+     "saved_at": "1",
+     "data": [
+      {
+       "name": "a"
+      }
+     ]
+    }
+   ],
+   "index": 0,
+   "found": true,
+   "stale": true
+  },
+  "mtime": {
+   "docs": [
+    {
+     "data": [
+      {
+       "name": "a"
+      }
+     ]
+    }
+   ],
+   "index": 0,
+   "found": true,
+   "stale": false
+  },
+  "skip_empty": {
+   "docs": [
+    {
+     "saved_at": "NOW0",
+     "data": []
+    },
+    {
+     "saved_at": "NOW-60",
+     "fields": [
+      {
+       "name": "b"
+      }
+     ]
+    }
+   ],
+   "index": 1,
+   "found": true,
+   "stale": false
+  },
+  "none": {
+   "docs": [
+    {
+     "saved_at": "NOW0",
+     "data": []
+    }
+   ],
+   "index": null,
+   "found": false,
+   "stale": true
+  }
+ },
+ "schema_fetch": {
+  "merge": {
+   "int": {
+    "change_fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 1,
+        "value": "Open"
+       }
+      ]
+     },
+     {
+      "name": "subject"
+     }
+    ]
+   },
+   "v2": {
+    "change_fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 1,
+        "value": "Open"
+       },
+       {
+        "id": 2,
+        "value": "Done"
+       }
+      ]
+     },
+     {
+      "label": "no name"
+     }
+    ]
+   },
+   "ok": [
+    {
+     "name": "status",
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "Done"
+      }
+     ]
+    },
+    {
+     "name": "subject"
+    }
+   ]
+  },
+  "keep_int": {
+   "int": {
+    "change_fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 1,
+        "value": "Open"
+       },
+       {
+        "id": 2,
+        "value": "Done"
+       }
+      ]
+     }
+    ]
+   },
+   "v2": {
+    "change_fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 1,
+        "value": "Open"
+       }
+      ]
+     }
+    ]
+   },
+   "ok": [
+    {
+     "name": "status",
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "Done"
+      }
+     ]
+    }
+   ]
+  },
+  "v2_only": {
+   "int": {
+    "change_fields": []
+   },
+   "v2": {
+    "change_fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 1,
+        "value": "Open"
+       }
+      ]
+     }
+    ]
+   },
+   "ok": [
+    {
+     "name": "status",
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      }
+     ]
+    }
+   ]
+  },
+  "int_404": {
+   "int": 404,
+   "v2": {
+    "change_fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 1,
+        "value": "Open"
+       },
+       {
+        "id": 2,
+        "value": "Done"
+       }
+      ]
+     }
+    ]
+   },
+   "ok": [
+    {
+     "name": "status",
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "Done"
+      }
+     ]
+    }
+   ]
+  },
+  "both_404": {
+   "int": 404,
+   "v2": 500,
+   "status": 404
+  },
+  "both_empty": {
+   "int": {},
+   "v2": {},
+   "status": 200
+  }
+ }
+}

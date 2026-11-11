@@ -230,7 +230,7 @@ pub fn relpath(path: &str, start: Option<&str>) -> String {
     }
 }
 
-/// A draft file path: `~` expanded, relative paths joined to `base`.
+/// `_path`: a draft file path, `~` expanded, relative paths joined to `base`.
 fn draft_path(p: &str, base: Option<&Path>) -> String {
     let s = expanduser(p);
     match base {

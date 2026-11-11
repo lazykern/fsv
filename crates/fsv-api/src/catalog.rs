@@ -1388,7 +1388,7 @@ pub fn build_sr_plan(
 // ---------------------------------------------------------------------------
 // sending
 
-/// `SendFailure`: uploads or the place-request failed; lists every
+/// `SendFailure.__init__`: uploads or the place-request failed; lists every
 /// attachment id already on the server.
 pub fn send_failure(step: &str, uploaded: &[Json], error: &dyn std::fmt::Display) -> Error {
     let ids: Vec<String> = uploaded

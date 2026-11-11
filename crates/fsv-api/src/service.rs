@@ -1538,6 +1538,20 @@ mod tests {
     use super::testing::*;
     use super::*;
 
+    /// `change_approvals._id`, `change_associations._id` and `change_tasks._id`
+    /// agree on every sample.
+    #[test]
+    fn positive_id_matches_python_id() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/coverage_oracle.json")).unwrap();
+        for row in oracle["misc"]["ids"].as_array().unwrap() {
+            let got = json!(positive_id(&row[0]));
+            for want in &row.as_array().unwrap()[1..] {
+                assert_eq!(got, *want, "{}", row[0]);
+            }
+        }
+    }
+
     #[test]
     fn list_params_match_python() {
         let a = ListArgs {

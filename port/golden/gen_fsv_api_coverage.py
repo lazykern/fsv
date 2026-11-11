@@ -51,7 +51,7 @@ def gen_query():
     q["isdigit"] = {t: query._isdigit(t) for t in ["123", "", "\u0661\u0662", "\u00b2", "12a", "007"]}
     q["strip_quotes"] = {t: query._strip_quotes(t) for t in ['"a b"', "'x'", "'", '"a\'', "  'p'  ", '""', "plain"]}
     q["parse_where"] = {t: err(query._parse_where, t) for t in [
-        "status=Open", " status != 'Closed' ", "a>=1", "a<=b=c", "x~=y", "=x", "==x", "noop", "f= \"q\" ", "a<b", ">=x"]}
+        "status=Open", " status != 'Closed' ", "a>=1", "a<=b=c", "x~=y", "=x", "==x", "noop", "f= \"q\" ", "a<b", ">=x", "a\n=b", "a=b\nc", "sub=x\n", "\u00e9=1"]}
     q["field_api_type"] = [[f, query._field_api_type(f)] for f in [
         {"default_field": True}, {"default_field": False}, {}, {"default_field": 1}, {"default_field": ""}]]
     q["schema_field_matches"] = {
@@ -337,6 +337,46 @@ def gen_schema():
     return cases
 
 
+def gen_fetch():
+    from fsv.errors import APIError
+
+    class C:
+        def __init__(self, int_reply, v2_reply):
+            self.r = {"int": int_reply, "v2": v2_reply}
+
+        def _get(self, k):
+            r = self.r[k]
+            if isinstance(r, int):
+                raise APIError(r, "nope", "GET", "change_form_fields")
+            return r
+
+        def int_get(self, path, params=None):
+            return self._get("int")
+
+        def v2_get(self, path, params=None):
+            return self._get("v2")
+
+    st1 = {"name": "status", "choices": [{"id": 1, "value": "Open"}]}
+    st2 = {"name": "status", "choices": [{"id": 1, "value": "Open"}, {"id": 2, "value": "Done"}]}
+    cases = {
+        "merge": [{"change_fields": [st1, {"name": "subject"}]}, {"change_fields": [st2, {"label": "no name"}]}],
+        "keep_int": [{"change_fields": [st2]}, {"change_fields": [st1]}],
+        "v2_only": [{"change_fields": []}, {"change_fields": [st1]}],
+        "int_404": [404, {"change_fields": [st2]}],
+        "both_404": [404, 500],
+        "both_empty": [{}, {}],
+    }
+    out = {}
+    for name, (i, v) in cases.items():
+        i, v = json.loads(json.dumps(i)), json.loads(json.dumps(v))
+        try:
+            got = schema._fetch_schema(C(json.loads(json.dumps(i)), json.loads(json.dumps(v))), CHANGES)
+            out[name] = {"int": i, "v2": v, "ok": got}
+        except APIError as e:
+            out[name] = {"int": i, "v2": v, "status": e.status}
+    return out
+
+
 def gen_misc():
     from fsv import change_approvals, change_associations, change_tasks, task_status
     from fsv.ticket_conversation import ConversationPlan
@@ -373,7 +413,7 @@ def gen_misc():
             "conversation_payload": conv.payload, "property_payload": prop.payload}
 
 
-json.dump({"misc": gen_misc(), "schema": SCHEMA, "query": gen_query(), "views": gen_views(), "formmeta": gen_formmeta(), "schema_cache": gen_schema()},
+json.dump({"misc": gen_misc(), "schema": SCHEMA, "query": gen_query(), "views": gen_views(), "formmeta": gen_formmeta(), "schema_cache": gen_schema(), "schema_fetch": gen_fetch()},
           sys.stdout, indent=1, ensure_ascii=False, default=str)
 sys.stdout.write("\n")
 os.environ.pop("_", None)

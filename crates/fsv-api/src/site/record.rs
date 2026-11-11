@@ -225,11 +225,11 @@ fn file_names(rows: Option<&Value>) -> Vec<String> {
                 .iter()
                 .filter_map(Value::as_object)
                 .map(|a| {
-                    ["name", "content_file_name", "file_name", "id"]
+                    ["name", "content_file_name", "file_name"]
                         .iter()
                         .find_map(|k| a.get(*k).filter(|v| fsv_py::truthy(v)))
-                        .map(fsv_py::py_str)
-                        .unwrap_or_else(|| "None".to_string())
+                        .or_else(|| a.get("id"))
+                        .map_or_else(|| "None".to_string(), fsv_py::py_str)
                 })
                 .collect()
         })
@@ -389,6 +389,19 @@ mod tests {
     use super::*;
     use fsv_core::resource::{CHANGES, TICKETS};
     use serde_json::json;
+
+    #[test]
+    fn file_names_and_conversation_json_match_python() {
+        let o: Value =
+            serde_json::from_str(include_str!("../testdata/coverage_oracle.json")).unwrap();
+        for case in o["views"]["file_names"].as_array().unwrap() {
+            let rows = (!case[0].is_null()).then_some(&case[0]);
+            assert_eq!(json!(file_names(rows)), case[1], "{}", case[0]);
+        }
+        for case in o["views"]["conversation_json"].as_array().unwrap() {
+            assert_eq!(conversation_json(&case[0], None), case[1], "{}", case[0]);
+        }
+    }
 
     #[test]
     fn conversations_dedup_and_kind() {

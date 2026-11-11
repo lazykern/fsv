@@ -390,6 +390,21 @@ mod tests {
     const TOKEN: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=";
     const ROW_HASH: &str = "1fdf7e536748426619ff7f88ffd5fb0a1b5940b5c4352579c3a462978c2f6a79";
     const REPLY_HASH: &str = "a6558f93a3456b1bf04f15b2e3711aa8d995ae7483bb767c1a7bcd8b5553a2ca";
+
+    #[test]
+    fn payload_parses_the_reviewed_json() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/coverage_oracle.json")).unwrap();
+        let plan = ConversationPlan {
+            kind: "note".into(),
+            ticket_id: 5,
+            tenant: "acme".into(),
+            payload_json: r#"{"body": "<p>x</p>", "private": true}"#.into(),
+            status_label: None,
+            record_hash: None,
+        };
+        assert_eq!(plan.payload(), oracle["misc"]["conversation_payload"]);
+    }
     const NOTE_HASH: &str = "b968aa46849b709e7f57dcf98d4fe54d0529917405a43d49448bd410639a525a";
     const CC: &str = "Acme User <person@example.com>";
     const STATUS_ERR: &str = "could not resolve Pending and evaluate ticket rules from fresh metadata; no send attempted";

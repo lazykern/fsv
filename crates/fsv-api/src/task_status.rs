@@ -4,6 +4,8 @@
 
 use serde_json::Value;
 
+use fsv_core::pystr;
+
 use crate::QueryError;
 
 /// One active choice: numeric id and the label Freshservice shows.
@@ -41,17 +43,18 @@ pub fn active_choices(fields: &[Value]) -> Result<Vec<Choice>, QueryError> {
         let ident = choice.get("id");
         let label = ["value", "label", "name"]
             .iter()
-            .find_map(|k| choice.get(*k).and_then(Value::as_str));
+            .find_map(|k| choice.get(*k).filter(|v| truthy(Some(v))))
+            .and_then(Value::as_str);
         let Some((id, label)) = ident
             .and_then(positive_id)
-            .zip(label.map(str::trim).filter(|s| !s.is_empty()))
+            .zip(label.map(pystr::strip).filter(|s| !s.is_empty()))
         else {
             return Err(err("invalid active task-status identity"));
         };
         result.push((id, label.to_string()));
     }
     let mut ids: Vec<i64> = result.iter().map(|(i, _)| *i).collect();
-    let mut labels: Vec<String> = result.iter().map(|(_, l)| l.to_lowercase()).collect();
+    let mut labels: Vec<String> = result.iter().map(|(_, l)| pystr::casefold(l)).collect();
     ids.sort_unstable();
     ids.dedup();
     labels.sort();
@@ -64,10 +67,10 @@ pub fn active_choices(fields: &[Value]) -> Result<Vec<Choice>, QueryError> {
 
 /// `resolve`: the text must be one active id or one label (case-insensitive).
 pub fn resolve(value: &str, fields: &[Value]) -> Result<Choice, QueryError> {
-    let key = value.trim().to_lowercase();
+    let key = pystr::casefold(pystr::strip(value));
     let matches: Vec<Choice> = active_choices(fields)?
         .into_iter()
-        .filter(|(id, label)| key == id.to_string() || key == label.to_lowercase())
+        .filter(|(id, label)| key == id.to_string() || key == pystr::casefold(label))
         .collect();
     if matches.len() != 1 {
         return Err(err(
@@ -114,11 +117,10 @@ fn positive_id(value: &Value) -> Option<i64> {
         Value::String(s) => s.clone(),
         _ => return None,
     };
-    if text.is_empty() || !text.bytes().all(|b| b.is_ascii_digit()) {
+    if !pystr::is_digit(&text) {
         return None;
     }
-    let id: i64 = text.parse().ok()?;
-    (id > 0).then_some(id)
+    pystr::parse_decimal(&text).filter(|id| *id > 0)
 }
 
 fn truthy(value: Option<&Value>) -> bool {
@@ -193,6 +195,20 @@ mod tests {
         for choices in samples {
             let defs = vec![json!({"name": "status", "choices": choices})];
             assert!(resolve("Open", &defs).is_err(), "{defs:?}");
+        }
+    }
+
+    #[test]
+    fn active_choices_match_python() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/coverage_oracle.json")).unwrap();
+        let ac = &oracle["misc"]["active_choices"];
+        for (name, fields) in ac["cases"].as_object().unwrap() {
+            let got = match active_choices(fields.as_array().unwrap()) {
+                Ok(rows) => json!({"ok": rows}),
+                Err(e) => json!({"err": e.0}),
+            };
+            assert_eq!(got, ac["want"][name], "{name}");
         }
     }
 

@@ -502,6 +502,24 @@ mod load_tests {
     }
 
     #[test]
+    fn fetch_matches_python_fetch_schema() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/coverage_oracle.json")).unwrap();
+        let reply = |v: &Value| match v.as_u64() {
+            Some(s) => R::Status(s as u16),
+            None => R::Ok(v.clone()),
+        };
+        for (name, case) in oracle["schema_fetch"].as_object().unwrap() {
+            let w = World::new(reply(&case["int"]), reply(&case["v2"]));
+            match fetch(&w.client, &CHANGES) {
+                Ok(fields) => assert_eq!(json!(fields), case["ok"], "{name}"),
+                Err(Error::Api(e)) => assert_eq!(json!(e.status), case["status"], "{name}"),
+                Err(e) => panic!("{name}: {e}"),
+            }
+        }
+    }
+
+    #[test]
     fn both_fetches_fail_raises_session_error_and_caches_nothing() {
         let w = World::new(R::Status(401), R::Status(403));
         assert!(matches!(w.load(false), Err(Error::Session(_))));
@@ -685,6 +703,33 @@ mod load_tests {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    /// `saved_at` strings `NOW<offset>` in the oracle stand for `time.time() + offset`.
+    #[test]
+    fn cached_doc_matches_python_cached_path() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/coverage_oracle.json")).unwrap();
+        let dir = tempfile::tempdir().unwrap();
+        for (name, case) in oracle["schema_cache"].as_object().unwrap() {
+            let mut paths = Vec::new();
+            for (i, doc) in case["docs"].as_array().unwrap().iter().enumerate() {
+                let mut doc = doc.clone();
+                if let Some(off) = doc["saved_at"].as_str().and_then(|s| s.strip_prefix("NOW")) {
+                    doc["saved_at"] = json!(now() + off.parse::<f64>().unwrap());
+                }
+                let p = dir.path().join(format!("{name}{i}.json"));
+                std::fs::write(&p, doc.to_string()).unwrap();
+                paths.push(p);
+            }
+            let got = cached_doc(&paths);
+            assert_eq!(got.is_some(), case["found"] == json!(true), "{name}");
+            if let Some((path, _, stale)) = got {
+                let index = paths.iter().position(|p| *p == path);
+                assert_eq!(json!(index), case["index"], "{name}");
+                assert_eq!(json!(stale), case["stale"], "{name}");
+            }
+        }
+    }
 
     #[test]
     fn doc_fields_rejects_empty_and_reads_either_key() {

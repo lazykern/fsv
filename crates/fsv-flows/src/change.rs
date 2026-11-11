@@ -39,7 +39,8 @@ use crate::meta::{
 
 pub const DUPLICATE_WINDOW_HOURS: f64 = 24.0;
 
-/// `FlowExit(code, message)`: stop with a message and a documented exit code.
+/// `FlowExit.__init__`: stop with a message and a documented exit code
+/// (`FlowExit(code, message)`).
 pub fn flow_exit(code: i32, message: impl Into<String>) -> Error {
     Error::exit(code, message)
 }

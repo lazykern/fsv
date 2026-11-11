@@ -76,6 +76,11 @@ those stay identical.
   `lookup_choices(link, query)` first, before the user, agent or group
   autocomplete, and skips rows with no id or a truthy `deleted`. Outputs and
   error texts match a Python run. No divergence.
+- A digit that `str.isdigit` accepts but `int()` rejects (`²`): Python's
+  `formmeta._ws_id` and `task_status.active_choices` raise
+  `invalid literal for int()`. Rust skips that workspace id, and
+  `active_choices` fails with `invalid active task-status identity`. Other
+  Unicode decimal digits (`١٣`) parse as in Python.
 
 ## fsv-app
 
@@ -106,6 +111,15 @@ those stay identical.
 | `views.py` lifecycle, planning bind, flat properties | `fsv_api::site` detail | ported as pure JSON in, struct out. `match_planning_row` keeps the Python error sentences. |
 | `views.py` record bits (source, approval, conversations, late badge) | `fsv_api::site::record` | ported. |
 | `views.collect_pages` | `fsv_api::site::collect_pages` | ported as a walker the caller feeds. Page-limit, short-page `count`, and foreign `next_page_url` match `test_read_completeness.py`. Incomplete meta inserts `continuation` before `partial`, matching Python's update-then-assign order. |
+| coverage-audit helpers: `query` private helpers, `formmeta._add` / `_cookie_workspace` / `ClientResolver._bootstrap`, `schema._cached_path` / `_fetch_schema`, `task_status.active_choices`, the three `_id`s, plan `payload`s, `views` list/format/detail/record helpers | same modules | ported. `cargo test -p fsv-api --offline` was 222 passed. Golden: `port/golden/gen_fsv_api_coverage.py` → `src/testdata/coverage_oracle.json`. |
+
+Fixed to match Python while adding those tests: `_parse_where` needs a one-character field (`>=x` is field `>`, op `=`) and rejects an embedded newline. Field, choice and lookup matching use `casefold` and Python `or` truthiness (an id `0` or a `null` label no longer matches `"0"` / `"None"`). `_resolve_requester` falls back to the id for a blank `value`. `active_choices` takes the first truthy `value`/`label`/`name` and casefolds labels. `_file_names` gives `str(id)` when every name is falsy (`{"id": 0}` → `"0"`).
+
+Gaps:
+- `fsv_core::Client` has no way to list its cookie jar, so `Api::workspace_cookies` returns nothing for the live client and `_cookie_workspace` only works through test fakes. This needs a jar accessor in fsv-core.
+- `ticket_conversation.build_plan` `forward`, `bcc` and `sender` are not ported. `conversations::build_plan` rejects `forward`, and `ConversationPlan::path` maps every non-reply kind to `notes`.
+- `SendFailure` is still flattened into `Error::other` (see fsv-app). A structured error needs an `fsv_core::Error` variant or a new `catalog::execute` error type that the callers adopt.
+- Python modules added on 2026-11-12 are not ported: `bulk_priority`, `reviewed_write`, `watchers`, `planning_text.definitions`, `readback`, `ticket_time._duration`.
 
 ## fsv-views
 
@@ -218,7 +232,7 @@ CLI divergences:
 
 | Python | Rust | status |
 |---|---|---|
-| `drafts.py`, `change_flow.py`, `ticket_flow.py` | `fsv_flows` | ported. `cargo test -p fsv-flows --offline` was 70 passed. Create (10), update (5), incident (4) and draft parses match `tests/golden/flows.json` from `gen_flows.py`. |
+| `drafts.py`, `change_flow.py`, `ticket_flow.py` | `fsv_flows` | ported. `cargo test -p fsv-flows --offline` was 82 passed. Create (10), update (5), incident (4) and draft parses match `tests/golden/flows.json` from `gen_flows.py`. |
 | `formmeta.py` cache and workspace discovery | `fsv_flows::meta` | partial. Only the pure helpers the flows call. Callers pass metadata through `MetaSource`. |
 | change execute HTTP | `change::ChangeWriter` | partial. Upload, POST, PUT, attach and planning sit behind the trait. Tests use a recording fake. No live client yet. |
 

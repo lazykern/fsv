@@ -246,6 +246,31 @@ mod tests {
     use super::*;
     use serde_json::json;
 
+    fn oracle() -> Value {
+        serde_json::from_str(include_str!("../testdata/coverage_oracle.json")).unwrap()
+    }
+
+    #[test]
+    fn parse_dt_date_only_and_html_match_python() {
+        let o = oracle();
+        let v = &o["views"];
+        for case in v["parse_dt"].as_array().unwrap() {
+            let got = parse_dt(&case[0]).map(|t| t.as_millisecond() as f64 / 1000.0);
+            assert_eq!(got, case[1].as_f64(), "{}", case[0]);
+        }
+        for case in v["is_date_only"].as_array().unwrap() {
+            assert_eq!(json!(is_date_only(&case[0])), case[1], "{}", case[0]);
+        }
+        for case in v["html_to_text"].as_array().unwrap() {
+            assert_eq!(
+                html_to_text(&case[0]),
+                case[1].as_str().unwrap(),
+                "{}",
+                case[0]
+            );
+        }
+    }
+
     #[test]
     fn span_rounds_into_bigger_unit() {
         assert_eq!(span(None), "");

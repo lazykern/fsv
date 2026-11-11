@@ -240,14 +240,15 @@ pub fn ws_id(v: &Json) -> Option<i64> {
         Json::Number(n) => n.as_i64(),
         Json::String(s) => {
             let t = fsv_core::pystr::strip(s);
-            (!t.is_empty() && t.bytes().all(|b| b.is_ascii_digit()))
-                .then(|| t.parse().ok())
+            (!t.is_empty())
+                .then(|| fsv_core::pystr::parse_decimal(t))
                 .flatten()
         }
         _ => None,
     }
 }
 
+/// `_add`: append a workspace id once.
 fn add(out: &mut Vec<i64>, v: Option<&Json>) {
     if let Some(w) = v.and_then(ws_id)
         && !out.contains(&w)
@@ -319,13 +320,20 @@ pub fn workspaces_in(doc: &Json) -> Vec<i64> {
     out
 }
 
-/// `account_workspaces`: the session's workspace cookie, `bootstrap/me`,
-/// then `workspaces`. Optional endpoints; a session error still raises.
-pub fn account_workspaces(c: &dyn Api) -> Result<Vec<i64>> {
+/// `_cookie_workspace`: numeric ids from the session's `*workspace*`
+/// cookies (the web remembers the agent's last workspace).
+fn cookie_workspace(c: &dyn Api) -> Vec<i64> {
     let mut out = Vec::new();
     for v in c.workspace_cookies() {
         add(&mut out, Some(&Json::String(v)));
     }
+    out
+}
+
+/// `account_workspaces`: the session's workspace cookie, `bootstrap/me`,
+/// then `workspaces`. Optional endpoints; a session error still raises.
+pub fn account_workspaces(c: &dyn Api) -> Result<Vec<i64>> {
+    let mut out = cookie_workspace(c);
     for path in ACCOUNT_WORKSPACE_PATHS {
         let doc = match c.int_get(path, None) {
             Ok(d) => d,
@@ -1447,6 +1455,55 @@ mod tests {
         assert_eq!(workspaces_in(&doc), [3, 9, 4, 5, 6]);
         assert!(workspaces_in(&json!([1])).is_empty());
         assert!(workspaces_in(&json!({"a": {"b": {"c": {"d": {"workspace_id": 1}}}}})).is_empty());
+    }
+
+    fn coverage_oracle() -> Json {
+        serde_json::from_str(include_str!("testdata/coverage_oracle.json")).unwrap()
+    }
+
+    #[test]
+    fn add_and_cookie_workspace_match_python() {
+        let o = coverage_oracle();
+        let fm = &o["formmeta"];
+        for case in fm["add"].as_array().unwrap() {
+            let mut out = Vec::new();
+            for (v, want) in case["values"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .zip(case["steps"].as_array().unwrap())
+            {
+                add(&mut out, Some(v));
+                assert_eq!(json!(out), *want, "{v}");
+            }
+        }
+        let mut api = FakeApi::new();
+        api.cookies = fm["cookie_cookies"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|c| c[0].as_str().unwrap().to_lowercase().contains("workspace"))
+            .map(|c| c[1].as_str().unwrap().to_string())
+            .collect();
+        assert_eq!(json!(cookie_workspace(&api)), fm["cookie_workspace"]);
+        assert_eq!(json!(cookie_workspace(&FakeApi::new())), fm["cookie_none"]);
+    }
+
+    #[test]
+    fn client_resolver_bootstrap_fetches_once() {
+        let o = coverage_oracle();
+        for (name, case) in o["formmeta"]["bootstrap"].as_object().unwrap() {
+            let api =
+                Arc::new(FakeApi::new().ok("GET bootstrap/agents_groups", case["reply"].clone()));
+            let r = ClientResolver::new(api.clone());
+            assert_eq!(r.bootstrap().unwrap(), case["first"], "{name}");
+            assert_eq!(r.bootstrap().unwrap(), case["second"], "{name}");
+            assert_eq!(
+                json!(api.calls.lock().unwrap().len()),
+                case["calls"],
+                "{name}"
+            );
+        }
     }
 
     #[test]
