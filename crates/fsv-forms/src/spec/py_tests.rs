@@ -339,17 +339,87 @@ fn link_sections_match_python() {
         flds.extend(fields_from_form_field(f, &mut w).expect("fields"));
     }
     let mut s1 = FormSpec::new("ticket", flds.clone(), None, w.clone(), None);
-    link_sections(&mut s1, raw);
+    link_sections(&mut s1, raw).expect("sections");
     check(
         "link_sections",
         &pg::spec(&s1),
         g(&["spec", "link_sections"]),
     );
     let mut s2 = FormSpec::new("ticket", flds, None, w, None);
-    link_ticket_sections(&mut s2, raw);
+    link_ticket_sections(&mut s2, raw).expect("sections");
     check(
         "link_ticket_sections",
         &pg::spec(&s2),
         g(&["spec", "link_ticket_sections"]),
     );
+}
+
+/// Python `AttributeError` has no Rust class of its own: it surfaces as a
+/// `TypeError` carrying Python's message.
+fn rust_class(want: &Json) -> Json {
+    match want["err"][0].as_str() {
+        Some("AttributeError" | "KeyError") => json!({"err": ["TypeError", want["err"][1]]}),
+        _ => want.clone(),
+    }
+}
+
+/// What differs by design between Python's spec and `FormSpec`:
+/// * `position` is a number: bools count as ints, other falsy values as 0;
+/// * `lookup_link` is text: a falsy non-string is "no link", others `str()`.
+fn typed(spec: &Json) -> Json {
+    let mut spec = spec.clone();
+    for f in spec["fields"].as_array_mut().unwrap() {
+        let pos = match &f["position"] {
+            Json::Bool(b) => json!(i64::from(*b)),
+            p @ (Json::String(_) | Json::Array(_) | Json::Object(_)) if !fsv_py::truthy(p) => {
+                json!(0)
+            }
+            p => p.clone(),
+        };
+        f["position"] = pos;
+        let link = match &f["lookup_link"] {
+            Json::String(_) | Json::Null => f["lookup_link"].clone(),
+            l if !fsv_py::truthy(l) => Json::Null,
+            l => json!(fsv_py::py_str(l)),
+        };
+        f["lookup_link"] = link;
+    }
+    spec
+}
+
+#[test]
+fn malformed_form_fields_match_python() {
+    let cases = g(&["spec", "malformed"]).as_array().unwrap();
+    assert!(cases.len() > 150);
+    let mut errors = 0;
+    for c in cases {
+        let label = format!("{} [{}] {}", c["name"], c["module"], c["data"]);
+        let got = run(
+            FormSpec::from_form_fields(&c["data"], c["module"].as_str().unwrap()),
+            |s| crate::py_golden::spec(&s),
+        );
+        let want = match c["out"].get("ok") {
+            // Python builds the spec, then every use of it fails on the
+            // position: Rust refuses at construction with that error.
+            Some(_) if c["engine"].get("err").is_some() => {
+                let e = &c["engine"]["err"];
+                assert!(
+                    got["err"][0] == "TypeError",
+                    "{label}: rust {got}, python engine {e}"
+                );
+                if e[1].as_str().unwrap().starts_with("unsupported operand") {
+                    assert_eq!(got["err"][1], e[1], "{label}");
+                }
+                errors += 1;
+                continue;
+            }
+            Some(ok) => json!({"ok": typed(ok)}),
+            None => rust_class(&c["out"]),
+        };
+        if want.get("err").is_some() {
+            errors += 1;
+        }
+        check(&label, &got, &want);
+    }
+    assert!(errors > 60, "{errors} error cases");
 }

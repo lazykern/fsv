@@ -77,7 +77,7 @@ pub type ResolverError = Box<dyn std::error::Error + Send + Sync>;
 /// `entity` is `user`, `group`, `agent` or the field's `lookup_entity`
 /// (e.g. `change_window`). Return every candidate; the engine picks a
 /// single or exact match, or fails with `AmbiguousLookup`.
-pub trait LookupResolver {
+pub trait LookupResolver: Send + Sync {
     fn lookup(
         &self,
         entity: &str,

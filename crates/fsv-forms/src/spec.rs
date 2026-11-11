@@ -888,7 +888,8 @@ impl FormSpec {
         }
         let account = account_from_form_fields(raw);
         let mut spec = FormSpec::new(module, fields, None, warnings, account);
-        link_ticket_sections(&mut spec, raw);
+        link_ticket_sections(&mut spec, raw)?;
+        reject_odd_positions(raw)?;
         Ok(spec)
     }
 
@@ -1104,15 +1105,20 @@ fn account_from_item(si: &Json) -> Option<String> {
 }
 
 /// `_parse_choices`: module form-field choices (mappings, `[value, id]`
-/// pairs or bare values), recursively with `nested_options`.
+/// pairs or bare values), recursively with `nested_options`. Malformed
+/// input (a non-iterable `choices`) yields no choices; the form-field
+/// constructors use [`parse_choices_checked`] and fail like Python.
 pub fn parse_choices(raw: Option<&Json>) -> Vec<Choice> {
+    parse_choices_checked(raw).unwrap_or_default()
+}
+
+/// `_parse_choices` with Python's failure on a non-iterable value
+/// (`TypeError: 'int' object is not iterable`); strings and mappings
+/// iterate their characters and keys, like Python.
+pub fn parse_choices_checked(raw: Option<&Json>) -> Result<Vec<Choice>> {
     let mut out = Vec::new();
-    for c in raw
-        .filter(|r| truthy(r))
-        .and_then(Json::as_array)
-        .into_iter()
-        .flatten()
-    {
+    for c in py_iter_or_empty(raw)? {
+        let c = &c;
         match c {
             Json::Object(m) => {
                 let value = m.get("value").filter(|v| !v.is_null());
@@ -1130,7 +1136,7 @@ pub fn parse_choices(raw: Option<&Json>) -> Vec<Choice> {
                     display_id: m.get("display_id").filter(|v| !v.is_null()).cloned(),
                     description: squash_ws(&get_str(c, "description")),
                     visible: m.get("visible") != Some(&Json::Bool(false)),
-                    children: parse_choices(m.get("nested_options")),
+                    children: parse_choices_checked(m.get("nested_options"))?,
                 });
             }
             Json::Array(a) if !a.is_empty() => {
@@ -1141,7 +1147,152 @@ pub fn parse_choices(raw: Option<&Json>) -> Vec<Choice> {
             other => out.push(Choice::new(jstr(other), jstr(other))),
         }
     }
-    out
+    Ok(out)
+}
+
+// ---------------------------------------------------------------------------
+// Python semantics for malformed metadata
+
+/// `type(v).__name__` of a JSON value.
+fn py_type_name(v: &Json) -> &'static str {
+    match v {
+        Json::Null => "NoneType",
+        Json::Bool(_) => "bool",
+        Json::Number(n) if n.is_f64() => "float",
+        Json::Number(_) => "int",
+        Json::String(_) => "str",
+        Json::Array(_) => "list",
+        Json::Object(_) => "dict",
+    }
+}
+
+/// `list(v)`: a list's items, a string's characters, a mapping's keys.
+fn py_iter(v: &Json) -> Result<Vec<Json>> {
+    match v {
+        Json::Array(a) => Ok(a.clone()),
+        Json::String(s) => Ok(s.chars().map(|c| Json::String(c.to_string())).collect()),
+        Json::Object(m) => Ok(m.keys().cloned().map(Json::String).collect()),
+        other => Err(FormError::Type(format!(
+            "'{}' object is not iterable",
+            py_type_name(other)
+        ))),
+    }
+}
+
+/// `list(v or [])`.
+fn py_iter_or_empty(v: Option<&Json>) -> Result<Vec<Json>> {
+    match v.filter(|v| truthy(v)) {
+        Some(v) => py_iter(v),
+        None => Ok(Vec::new()),
+    }
+}
+
+/// `entry.get(...)` on something that must be a mapping.
+fn py_mapping(v: &Json) -> Result<&Json> {
+    if v.is_object() {
+        Ok(v)
+    } else {
+        Err(FormError::Type(format!(
+            "'{}' object has no attribute 'get'",
+            py_type_name(v)
+        )))
+    }
+}
+
+fn py_num(v: &Json) -> Option<f64> {
+    match v {
+        Json::Bool(b) => Some(f64::from(u8::from(*b))),
+        Json::Number(n) => n.as_f64(),
+        _ => None,
+    }
+}
+
+fn py_eq(a: &Json, b: &Json) -> bool {
+    match (py_num(a), py_num(b)) {
+        (Some(x), Some(y)) => x == y,
+        _ => match (a, b) {
+            (Json::Array(x), Json::Array(y)) => {
+                x.len() == y.len() && x.iter().zip(y).all(|(p, q)| py_eq(p, q))
+            }
+            _ => a == b,
+        },
+    }
+}
+
+/// `a < b` for JSON values, failing like Python for unorderable operands.
+fn py_lt(a: &Json, b: &Json) -> Result<bool> {
+    if let (Some(x), Some(y)) = (py_num(a), py_num(b)) {
+        return Ok(x < y);
+    }
+    match (a, b) {
+        (Json::String(x), Json::String(y)) => Ok(x < y),
+        (Json::Array(x), Json::Array(y)) => {
+            for (p, q) in x.iter().zip(y) {
+                if !py_eq(p, q) {
+                    return py_lt(p, q);
+                }
+            }
+            Ok(x.len() < y.len())
+        }
+        _ => Err(FormError::Type(format!(
+            "'<' not supported between instances of '{}' and '{}'",
+            py_type_name(a),
+            py_type_name(b)
+        ))),
+    }
+}
+
+/// `sorted(items, key=...)` with CPython 3.12's comparison order (run
+/// detection, then binary insertion), so an unorderable pair is reported
+/// the way Python reports it.
+fn py_sort_by_key<T: Clone>(items: Vec<(Json, T)>) -> Result<Vec<T>> {
+    let n = items.len();
+    let mut a = items;
+    if n >= 2 {
+        let mut run = 2;
+        if py_lt(&a[1].0, &a[0].0)? {
+            while run < n && py_lt(&a[run].0, &a[run - 1].0)? {
+                run += 1;
+            }
+            a[..run].reverse();
+        } else {
+            while run < n && !py_lt(&a[run].0, &a[run - 1].0)? {
+                run += 1;
+            }
+        }
+        for start in run..n {
+            let pivot = a[start].clone();
+            let (mut l, mut r) = (0, start);
+            while l < r {
+                let p = l + ((r - l) >> 1);
+                if py_lt(&pivot.0, &a[p].0)? {
+                    r = p;
+                } else {
+                    l = p + 1;
+                }
+            }
+            a.remove(start);
+            a.insert(l, pivot);
+        }
+    }
+    Ok(a.into_iter().map(|(_, t)| t).collect())
+}
+
+/// `int(v)` of a JSON value.
+fn py_int(v: &Json) -> Result<i64> {
+    match v {
+        Json::Number(_) | Json::Bool(_) => Ok(json_int(v).unwrap_or(0)),
+        Json::String(s) => crate::pytext::parse_int(strip(s)).ok_or_else(|| {
+            FormError::Value(format!(
+                "invalid literal for int() with base 10: {}",
+                fsv_py::py_repr_str(s)
+            ))
+        }),
+        other => Err(FormError::Type(format!(
+            "int() argument must be a string, a bytes-like object or a real number, not '{}'",
+            py_type_name(other)
+        ))),
+    }
 }
 
 /// Parse `"Very High - meaning || Low - meaning"` help text.
@@ -1226,12 +1377,38 @@ pub fn attach_choice_descriptions(choices: &[Choice], helptext: &str) -> Vec<Cho
     split_choice_help(choices, helptext).0
 }
 
+/// A `position`: numbers (and bools, which Python counts as ints); a
+/// falsy non-number sorts like 0. Truthy non-numbers are rejected by
+/// [`reject_odd_positions`].
 fn json_f64(v: Option<&Json>) -> Option<f64> {
-    v.and_then(Json::as_f64)
+    match v? {
+        Json::Null => None,
+        other => Some(py_num(other).unwrap_or(0.0)),
+    }
 }
 
-fn level_key(n: &Json) -> f64 {
-    get_truthy(n, "level").and_then(Json::as_f64).unwrap_or(0.0)
+/// `n.get("level") or 0`.
+fn level_key(n: &Json) -> Json {
+    get_truthy(n, "level")
+        .cloned()
+        .unwrap_or_else(|| Json::from(0))
+}
+
+/// Python keeps a non-numeric `position` as is, and every engine/state
+/// use of the spec then fails on `n + position`; [`Field::position`] is a
+/// number, so the spec is refused up front with that error.
+fn reject_odd_positions(raw: &[Json]) -> Result<()> {
+    for f in raw {
+        if let Some(p) = get_truthy(f, "position")
+            && py_num(p).is_none()
+        {
+            return Err(FormError::Type(format!(
+                "unsupported operand type(s) for +: 'int' and '{}'",
+                py_type_name(p)
+            )));
+        }
+    }
+    Ok(())
 }
 
 /// `int(x)` of a JSON number or numeric string.
@@ -1246,6 +1423,7 @@ fn json_int(v: &Json) -> Option<i64> {
 
 /// `_fields_from_form_field`: one module form field (plus its nested levels).
 pub fn fields_from_form_field(f: &Json, warnings: &mut Vec<String>) -> Result<Vec<Field>> {
+    py_mapping(f)?;
     let ftype = get_str(f, "field_type");
     let name = get_str(f, "name");
     let is_default = match f.get("default_field") {
@@ -1268,11 +1446,15 @@ pub fn fields_from_form_field(f: &Json, warnings: &mut Vec<String>) -> Result<Ve
         }
     };
     let empty = Json::Object(Map::new());
+    // A truthy non-mapping `lookup_config` fails on its first `.get`.
+    let bad_cfg = get_truthy(f, "lookup_config").filter(|c| !c.is_object());
+    let cfg_get = || bad_cfg.map_or(Ok(()), |c| py_mapping(c).map(|_| ()));
     let lookup_cfg = get_truthy(f, "lookup_config")
         .filter(|c| c.is_object())
         .unwrap_or(&empty);
     let mut lookup_entity = None;
     if ftype == "custom_lookup" || ftype == "custom_multi_lookup" {
+        cfg_get()?;
         let src = if has(lookup_cfg, "data_source") {
             &lookup_cfg["data_source"]
         } else {
@@ -1304,7 +1486,8 @@ pub fn fields_from_form_field(f: &Json, warnings: &mut Vec<String>) -> Result<Ve
         .and_then(Json::as_str)
         .unwrap_or("")
         .to_string();
-    let (choices, helptext) = split_choice_help(&parse_choices(f.get("choices")), &helptext);
+    let (choices, helptext) =
+        split_choice_help(&parse_choices_checked(f.get("choices"))?, &helptext);
     let position = json_f64(f.get("position"));
     let required = match get(f, "required") {
         Some(v) => truthy(v),
@@ -1341,16 +1524,13 @@ pub fn fields_from_form_field(f: &Json, warnings: &mut Vec<String>) -> Result<Ve
             default = Some(Value::from_json(explicit));
         }
     }
-    let mut nested: Vec<&Json> = get_truthy(f, "nested_fields")
-        .and_then(Json::as_array)
-        .into_iter()
-        .flatten()
-        .collect();
-    nested.sort_by(|a, b| {
-        level_key(a)
-            .partial_cmp(&level_key(b))
-            .unwrap_or(std::cmp::Ordering::Equal)
-    });
+    let mut keyed = Vec::new();
+    for n in py_iter_or_empty(get_truthy(f, "nested_fields"))? {
+        let key = level_key(py_mapping(&n)?);
+        keyed.push((key, n));
+    }
+    let nested: Vec<Json> = py_sort_by_key(keyed)?;
+    cfg_get()?;
     let content = if kind == Kind::Notice {
         content_of(f)
     } else {
@@ -1388,11 +1568,14 @@ pub fn fields_from_form_field(f: &Json, warnings: &mut Vec<String>) -> Result<Ve
     } else {
         Some("user".to_string())
     };
-    top.lookup_link = get(lookup_cfg, "link").map(jstr);
+    // Python keeps the raw value; a falsy non-string link is "no link".
+    top.lookup_link = get(lookup_cfg, "link")
+        .filter(|l| l.is_string() || truthy(l))
+        .map(jstr);
     top.sent = kind != Kind::Unsupported && !UNSENT_TYPES.contains(&ftype.as_str());
     let mut out = vec![top];
     let mut prev = name;
-    for n in nested {
+    for n in &nested {
         let lvl_name = jstr(n.get("name").unwrap_or(&Json::Null));
         let mut lf = Field::new(
             lvl_name.clone(),
@@ -1408,7 +1591,10 @@ pub fn fields_from_form_field(f: &Json, warnings: &mut Vec<String>) -> Result<Ve
         lf.visible_base = out[0].visible_base;
         lf.on_form = out[0].on_form;
         lf.parent = Some(prev.clone());
-        lf.level = get_truthy(n, "level").and_then(json_int).unwrap_or(2);
+        lf.level = match get_truthy(n, "level") {
+            Some(l) => py_int(l)?,
+            None => 2,
+        };
         lf.placeholder = plain_text(&get_str(n, "placeholder"));
         lf.description = get_str(n, "description");
         prev = lvl_name;
@@ -1469,8 +1655,8 @@ fn content_of(f: &Json) -> String {
 /// Dynamic sections (`sections: [{choice_ids, ticket_field_ids}]`). A field
 /// flagged `belongs_to_section` that no section lists is never revealed by
 /// a choice: it starts hidden (a rule may still show it).
-fn link_ticket_sections(spec: &mut FormSpec, raw: &[Json]) {
-    link_sections(spec, raw);
+fn link_ticket_sections(spec: &mut FormSpec, raw: &[Json]) -> Result<()> {
+    link_sections(spec, raw)?;
     for f in raw {
         if get_truthy(f, "belongs_to_section").is_none() {
             continue;
@@ -1488,11 +1674,12 @@ fn link_ticket_sections(spec: &mut FormSpec, raw: &[Json]) {
             ));
         }
     }
+    Ok(())
 }
 
-fn link_sections(spec: &mut FormSpec, raw: &[Json]) {
+fn link_sections(spec: &mut FormSpec, raw: &[Json]) -> Result<()> {
     for f in raw {
-        let Some(sections) = get_truthy(f, "sections").and_then(Json::as_array) else {
+        let Some(sections) = get_truthy(f, "sections") else {
             continue;
         };
         let name = jstr(f.get("name").unwrap_or(&Json::Null));
@@ -1510,21 +1697,19 @@ fn link_sections(spec: &mut FormSpec, raw: &[Json]) {
             );
         }
         let mut out = Vec::new();
-        for s in sections {
-            let ids = get_truthy(s, "ticket_field_ids")
-                .or_else(|| get_truthy(s, "field_ids"))
-                .or_else(|| get_truthy(s, "change_field_ids"))
-                .and_then(Json::as_array)
-                .cloned()
-                .unwrap_or_default();
+        for s in &py_iter(sections)? {
+            let s = py_mapping(s)?;
+            let ids = py_iter_or_empty(
+                get_truthy(s, "ticket_field_ids")
+                    .or_else(|| get_truthy(s, "field_ids"))
+                    .or_else(|| get_truthy(s, "change_field_ids")),
+            )?;
             let names: Vec<String> = ids
                 .iter()
                 .filter_map(|i| spec.get_by_id(&jstr(i)).map(|x| x.api_name.clone()))
                 .collect();
-            let vals: Vec<String> = get_truthy(s, "choice_ids")
-                .and_then(Json::as_array)
-                .into_iter()
-                .flatten()
+            let vals: Vec<String> = py_iter_or_empty(get_truthy(s, "choice_ids"))?
+                .iter()
                 .filter_map(|i| by_choice_id.get(&jstr(i)).map(|v| norm(v)))
                 .collect();
             for n in &names {
@@ -1541,6 +1726,7 @@ fn link_sections(spec: &mut FormSpec, raw: &[Json]) {
             ctrl.sections = out;
         }
     }
+    Ok(())
 }
 
 /// A catalog section before child ids are resolved to names.

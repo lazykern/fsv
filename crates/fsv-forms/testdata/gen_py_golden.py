@@ -258,7 +258,7 @@ def ENGINE(e: RulesEngine):
 
 ERR_NAMES = {
     "UnknownFieldError", "ValueParseError", "AmbiguousLookupError", "FieldDisabledError", "FormRuleError",
-    "UnsupportedRuleError", "PayloadError", "ValueError", "TypeError", "FormError",
+    "UnsupportedRuleError", "PayloadError", "ValueError", "TypeError", "FormError", "AttributeError", "KeyError",
 }
 
 
@@ -449,6 +449,187 @@ def gen_fuzzy():
     return {f"{a}|{b}": fuzzy._subsequence(a, b) for a, b in cases}
 
 
+def malformed_cases():
+    base = {"name": "f", "field_type": "custom_text", "label": "F", "position": 1}
+    dd = {"name": "d", "field_type": "custom_dropdown", "label": "D", "position": 2,
+          "choices": [{"id": 1, "value": "A"}, {"id": 2, "value": "B"}]}
+    nest = {"name": "n", "field_type": "nested_field", "label": "N", "position": 3}
+
+    def with_(f, **kw):
+        return {**f, **kw}
+
+    cases = [
+        ("data_none", None), ("data_int", 5), ("data_str", "fields"), ("data_empty_list", []),
+        ("data_empty_dict", {}), ("data_fields_str", {"fields": "abc"}), ("data_fields_dict", {"fields": {"a": 1}}),
+        ("data_guess_nonmap_first", {"x": [5]}), ("data_guess_empty", {"x": []}),
+        ("data_guess_str_first", {"x": ["field_type"]}),
+        ("entry_int", [5]), ("entry_str", ["abc"]), ("entry_none", [None]), ("entry_list", [[1]]),
+        ("entry_empty_list", [[]]), ("entry_bool", [True]), ("entry_float", [1.5]),
+        ("entry_after_ok", [base, 7]), ("entry_empty_dict", [{}]),
+        ("ftype_int", [with_(base, field_type=5)]), ("ftype_none", [with_(base, field_type=None)]),
+        ("ftype_list", [with_(base, field_type=["custom_text"])]),
+        ("name_int", [with_(base, name=7)]), ("name_none", [with_(base, name=None)]),
+        ("name_list", [with_(base, name=[1])]), ("name_dict_empty", [with_(base, name={})]),
+        ("label_int", [with_(base, label=5)]), ("label_none", [with_(base, label=None)]),
+        ("label_list", [with_(base, label=[1, 2])]),
+        ("default_field_str", [with_(base, default_field="no")]),
+        ("lookup_cfg_str", [with_(base, lookup_config="abc")]),
+        ("lookup_cfg_empty_str", [with_(base, lookup_config="")]),
+        ("lookup_cfg_list", [with_(base, lookup_config=[1])]),
+        ("lookup_cfg_empty_list", [with_(base, lookup_config=[])]),
+        ("lookup_cfg_int", [with_(base, lookup_config=5)]), ("lookup_cfg_zero", [with_(base, lookup_config=0)]),
+        ("lookup_cfg_true", [with_(base, lookup_config=True)]),
+        ("lookup_cfg_link_int", [with_(base, lookup_config={"link": 5})]),
+        ("lookup_cfg_link_list", [with_(base, lookup_config={"link": ["x"]})]),
+        ("lookup_cfg_link_empty", [with_(base, lookup_config={"link": ""})]),
+        ("lookup_cfg_link_zero", [with_(base, lookup_config={"link": 0})]),
+        ("lookup_src_other_cfg_str", [with_(base, field_type="custom_lookup", lookup_config="abc")]),
+        ("lookup_src_list", [with_(base, field_type="custom_lookup", lookup_config={"data_source": [1], "link": "x"})]),
+        ("lookup_src_str", [with_(base, field_type="custom_lookup", data_source="9", lookup_config={"link": "x"})]),
+        ("lookup_src_float", [with_(base, field_type="custom_lookup", data_source=1.5)]),
+        ("lookup_src_user_float", [with_(base, field_type="custom_lookup", data_source=1.0)]),
+        ("lookup_src_bool", [with_(base, field_type="custom_lookup", data_source=True)]),
+        ("choices_str", [with_(dd, choices="abc")]), ("choices_int", [with_(dd, choices=5)]),
+        ("choices_true", [with_(dd, choices=True)]), ("choices_dict", [with_(dd, choices={"a": 1, "b": 2})]),
+        ("choices_zero", [with_(dd, choices=0)]), ("choices_float", [with_(dd, choices=1.5)]),
+        ("choices_empty_str", [with_(dd, choices="")]), ("choices_none", [with_(dd, choices=None)]),
+        ("choices_nested_options_int", [with_(dd, choices=[{"value": "A", "nested_options": 5}])]),
+        ("choices_nested_options_str", [with_(dd, choices=[{"value": "A", "nested_options": "xy"}])]),
+        ("choices_nested_options_dict", [with_(dd, choices=[{"value": "A", "nested_options": {"k": 1}}])]),
+        ("choices_nested_options_true", [with_(dd, choices=[{"value": "A", "nested_options": True}])]),
+        ("choices_entry_none", [with_(dd, choices=[None])]),
+        ("choices_entry_empty_list", [with_(dd, choices=[[]])]),
+        ("choices_entry_list_id", [with_(dd, choices=[["A", 3], ["B"]])]),
+        ("choices_entry_bool", [with_(dd, choices=[True, 1.5])]),
+        ("choices_entry_nested_list", [with_(dd, choices=[[["x"]]])]),
+        ("choice_value_list", [with_(dd, choices=[{"value": ["a"], "label": {"x": 1}}])]),
+        ("choice_desc_int", [with_(dd, choices=[{"value": "A", "description": 5}])]),
+        ("choice_desc_list", [with_(dd, choices=[{"value": "A", "description": [1]}])]),
+        ("choice_visible_str", [with_(dd, choices=[{"value": "A", "visible": "no"}])]),
+        ("helptext_int", [with_(dd, helptext=5)]), ("helptext_list", [with_(dd, helptext=["A - x"])]),
+        ("helptext_bars", [with_(dd, helptext="A - first || B - second")]),
+        ("position_str", [with_(base, position="3")]), ("position_str_mixed", [base, with_(dd, position="3")]),
+        ("position_list", [with_(base, position=[1])]), ("position_bool", [with_(base, position=True)]),
+        ("position_float", [with_(base, position=1.5)]), ("position_none", [with_(base, position=None)]),
+        ("position_dict", [with_(base, position={})]),
+        ("required_str", [with_(base, required="no")]), ("required_list", [with_(base, required=[])]),
+        ("hint_str", [with_(base, hint="yes")]),
+        ("placeholder_int", [with_(base, placeholder=5)]), ("placeholder_list", [with_(base, placeholder=[1])]),
+        ("description_int", [with_(base, description=5)]), ("description_none", [with_(base, description=None)]),
+        ("default_value_int", [with_(dd, default_value=1)]), ("default_value_no_match", [with_(dd, default_value="Z")]),
+        ("default_value_list", [with_(dd, default_value=["A"])]),
+        ("default_value_dict", [with_(dd, default_value={"a": 1})]),
+        ("default_value_text_list", [with_(base, default_value=[1, 2])]),
+        ("default_value_text_float", [with_(base, default_value=1.5)]),
+        ("default_value_text_bool", [with_(base, default_value=True)]),
+        ("default_str", [with_(dd, default="a")]),
+        ("id_str", [with_(base, id="7")]), ("id_list", [with_(base, id=[1])]),
+        ("displayed_str", [with_(base, displayed_to_agents="false")]),
+        ("displayed_none", [with_(base, displayed_to_agents=None)]),
+        ("date_only_str", [with_(base, field_type="custom_date_time", date_only="TRUE")]),
+        ("date_only_int", [with_(base, field_type="custom_date_time", date_only=1)]),
+        ("content_int", [with_(base, field_type="custom_content", content=5)]),
+        ("content_field_options_list", [with_(base, field_type="custom_content", field_options=[1])]),
+        ("content_field_options_str", [with_(base, field_type="custom_content", field_options="x")]),
+        ("content_field_options_content_int", [with_(base, field_type="custom_content", field_options={"content": 5})]),
+        ("content_html", [with_(base, field_type="custom_content", field_options={"content_html": "<p>x</p>"})]),
+        ("nested_str", [with_(nest, nested_fields="abc")]), ("nested_int", [with_(nest, nested_fields=5)]),
+        ("nested_true", [with_(nest, nested_fields=True)]), ("nested_float", [with_(nest, nested_fields=1.5)]),
+        ("nested_zero", [with_(nest, nested_fields=0)]), ("nested_empty_str", [with_(nest, nested_fields="")]),
+        ("nested_none", [with_(nest, nested_fields=None)]), ("nested_empty_dict", [with_(nest, nested_fields={})]),
+        ("nested_dict", [with_(nest, nested_fields={"a": {"name": "x"}})]),
+        ("nested_dict_empty_key", [with_(nest, nested_fields={"": 1})]),
+        ("nested_entry_int", [with_(nest, nested_fields=[5])]),
+        ("nested_entry_str", [with_(nest, nested_fields=["x"])]),
+        ("nested_entry_none", [with_(nest, nested_fields=[None])]),
+        ("nested_entry_list", [with_(nest, nested_fields=[[1]])]),
+        ("nested_entry_single_int", [with_(nest, nested_fields=[7])]),
+        ("nested_entry_second_bad", [with_(nest, nested_fields=[{"name": "a", "level": 2}, 5])]),
+        ("nested_ok", [with_(nest, nested_fields=[{"name": "b", "level": 3, "label": "B"}, {"name": "a", "level": 2}])]),
+        ("nested_level_str", [with_(nest, nested_fields=[{"name": "a", "level": "3"}])]),
+        ("nested_level_str_two", [with_(nest, nested_fields=[{"name": "a", "level": "3"}, {"name": "b", "level": "2"}])]),
+        ("nested_level_str_mixed", [with_(nest, nested_fields=[{"name": "a", "level": "3"}, {"name": "b", "level": 2}])]),
+        ("nested_level_bad_str", [with_(nest, nested_fields=[{"name": "a", "level": "x"}])]),
+        ("nested_level_bad_str_two", [with_(nest, nested_fields=[{"name": "a", "level": "x"}, {"name": "b", "level": "y"}])]),
+        ("nested_level_float", [with_(nest, nested_fields=[{"name": "a", "level": 2.7}])]),
+        ("nested_level_float_sort", [with_(nest, nested_fields=[{"name": "a", "level": 3.5}, {"name": "b", "level": 2.5}])]),
+        ("nested_level_list", [with_(nest, nested_fields=[{"name": "a", "level": [1]}])]),
+        ("nested_level_list_two", [with_(nest, nested_fields=[{"name": "a", "level": [1]}, {"name": "b", "level": [0]}])]),
+        ("nested_level_empty_list", [with_(nest, nested_fields=[{"name": "a", "level": []}])]),
+        ("nested_level_none", [with_(nest, nested_fields=[{"name": "a", "level": None}])]),
+        ("nested_level_zero", [with_(nest, nested_fields=[{"name": "a", "level": 0}])]),
+        ("nested_level_bool", [with_(nest, nested_fields=[{"name": "a", "level": True}])]),
+        ("nested_level_dict", [with_(nest, nested_fields=[{"name": "a", "level": {"a": 1}}])]),
+        ("nested_level_missing", [with_(nest, nested_fields=[{"name": "a"}, {"name": "b"}])]),
+        ("nested_level_neg_str", [with_(nest, nested_fields=[{"name": "a", "level": " 4 "}])]),
+        ("nested_name_none", [with_(nest, nested_fields=[{"level": 2}])]),
+        ("nested_name_int", [with_(nest, nested_fields=[{"name": 5, "level": 2}])]),
+        ("nested_name_list", [with_(nest, nested_fields=[{"name": [1], "level": 2}])]),
+        ("nested_label_int", [with_(nest, nested_fields=[{"name": "a", "label": 5}])]),
+        ("nested_id_str", [with_(nest, nested_fields=[{"name": "a", "id": "9"}])]),
+        ("nested_placeholder_int", [with_(nest, nested_fields=[{"name": "a", "placeholder": 5}])]),
+        ("nested_description_list", [with_(nest, nested_fields=[{"name": "a", "description": [1]}])]),
+        ("sections_str", [with_(dd, sections="abc")]), ("sections_int", [with_(dd, sections=5)]),
+        ("sections_true", [with_(dd, sections=True)]), ("sections_dict", [with_(dd, sections={"a": 1})]),
+        ("sections_empty_dict", [with_(dd, sections={})]), ("sections_zero", [with_(dd, sections=0)]),
+        ("sections_entry_int", [with_(dd, sections=[5])]), ("sections_entry_str", [with_(dd, sections=["x"])]),
+        ("sections_entry_none", [with_(dd, sections=[None])]), ("sections_entry_list", [with_(dd, sections=[[1]])]),
+        ("sections_ok", [with_(dd, sections=[{"choice_ids": [1], "ticket_field_ids": [10]}]),
+                         with_(base, id=10)]),
+        ("sections_ids_int", [with_(dd, sections=[{"choice_ids": [1], "ticket_field_ids": 5}])]),
+        ("sections_ids_str", [with_(dd, sections=[{"choice_ids": [1], "ticket_field_ids": "10"}]), with_(base, id=1)]),
+        ("sections_ids_dict", [with_(dd, sections=[{"choice_ids": [1], "ticket_field_ids": {"10": 1}}]), with_(base, id=10)]),
+        ("sections_ids_true", [with_(dd, sections=[{"choice_ids": [1], "ticket_field_ids": True}])]),
+        ("sections_ids_zero", [with_(dd, sections=[{"choice_ids": [1], "ticket_field_ids": 0, "field_ids": [10]}]),
+                               with_(base, id=10)]),
+        ("sections_field_ids", [with_(dd, sections=[{"choice_ids": [1], "field_ids": [10]}]), with_(base, id=10)]),
+        ("sections_change_field_ids", [with_(dd, sections=[{"choice_ids": [2], "change_field_ids": [10]}]),
+                                       with_(base, id=10)]),
+        ("sections_choice_ids_int", [with_(dd, sections=[{"choice_ids": 1, "ticket_field_ids": []}])]),
+        ("sections_choice_ids_str", [with_(dd, sections=[{"choice_ids": "12", "ticket_field_ids": []}])]),
+        ("sections_choice_ids_true", [with_(dd, sections=[{"choice_ids": True}])]),
+        ("sections_choice_ids_dict", [with_(dd, sections=[{"choice_ids": {"1": 1}}])]),
+        ("sections_choice_ids_none", [with_(dd, sections=[{"choice_ids": None}])]),
+        ("sections_id_types", [with_(dd, sections=[{"choice_ids": ["1", 2.0, None], "ticket_field_ids": ["10", 11.0]}]),
+                               with_(base, id=10), with_(nest, id=11)]),
+        ("sections_unknown_ctrl_bad", [with_(dd, name=None, sections=[5])]),
+        ("sections_missing_ctrl_str", [{"name": "", "field_type": "custom_dropdown", "sections": "abc"}]),
+        ("belongs_str", [with_(base, belongs_to_section="no")]),
+        ("belongs_ok", [with_(base, belongs_to_section=True)]),
+        ("belongs_list", [with_(base, belongs_to_section=[1])]),
+        ("belongs_dup_name", [with_(base, belongs_to_section=True), with_(base, belongs_to_section=True)]),
+        ("dup_names", [base, base]),
+        ("dup_names_diff_kind", [base, with_(dd, name="f")]),
+        ("dup_ids", [with_(base, id=1), with_(dd, id=1)]),
+        ("id_list_dup", [with_(base, id=[1]), with_(dd, id=[1])]),
+        ("account_link_int", [with_(base, lookup_config={"link": 5})]),
+        ("account_link_ok", [with_(base, lookup_config={"link": "field_name=f_77"})]),
+        ("account_name_int", [with_(base, name=5, lookup_config={"link": "field_name=5_77"})]),
+        ("account_cfg_list", [with_(base, lookup_config=["field_name=f_77"])]),
+        ("requester_pos_str", [{"name": "requester", "field_type": "default_requester", "position": "1"}]),
+        ("requester_pos_float", [{"name": "requester", "field_type": "default_requester", "position": 1.5}]),
+        ("requester_pos_none", [{"name": "requester", "field_type": "default_requester"}]),
+        ("requester_pos_bool", [{"name": "requester", "field_type": "default_requester", "position": True}]),
+        ("requester_pos_list", [{"name": "requester", "field_type": "default_requester", "position": [1]}]),
+    ]
+    return cases
+
+
+def gen_malformed():
+    out = []
+    for name, data in malformed_cases():
+        for module in ("change",) if not name.startswith("requester") else ("change", "ticket"):
+            r = run(lambda: SPEC(FormSpec.from_form_fields(data, module=module)))
+            row = {"name": name, "module": module, "data": data, "out": r}
+            if "ok" in r:
+                # what any engine/state use of the spec does (Python builds
+                # the spec first and fails here)
+                sp = FormSpec.from_form_fields(data, module=module)
+                row["engine"] = run(lambda: RulesEngine(sp, {"business_rules": []}, module=module) and None)
+            out.append(row)
+    return out
+
+
 def gen_spec():
     out: dict = {}
     out["is_content_type"] = {t: spec.is_content_type(t) for t in (
@@ -515,6 +696,7 @@ def gen_spec():
                     ("scalar", 5)):
         unwrap[name] = {"in": d, "out": run(lambda: spec._unwrap_fields(d))}
     out["unwrap_fields"] = unwrap
+    out["malformed"] = gen_malformed()
     acc = {}
     for name, raw in (
         ("one", [{"name": "owner", "lookup_config": {"link": "/lookup_choices?field_name=owner_900000777&module=change"}}]),

@@ -52,9 +52,11 @@ those stay identical.
 - `resolve_view_name` skips non-object view rows. Python raises
   `AttributeError`. `schema::fetch` treats a non-list, non-empty fields
   payload as empty.
-- `fsv_forms::FormSpec::from_form_fields` accepts a non-object field or a
-  non-list `nested_fields`. Python reports "form metadata unreadable" or
-  crashes. Open gap, to fix in `fsv-forms`.
+- `fsv_forms::FormSpec::from_form_fields` returns Python's exception text
+  for malformed fields. A string, list or dict `position` fails at
+  construction with Python's later `unsupported operand type(s) for +`
+  text. Python builds the spec and fails on first use. A numeric
+  `lookup_link` becomes a string; a falsy non-string becomes no link.
 - The stale-schema warning goes to stderr with `eprintln!`, as in Python.
   Python's TUI captures stderr; the Rust TUI does not yet, so the line can
   draw over the screen. Open gap, to fix in `fsv-app`.
@@ -63,8 +65,8 @@ those stay identical.
 - Form submit rebuilds the plan from the same metadata at save and at send.
   If the hash differs from the reviewed one, it refuses with exit 4 ("the
   reviewed plan could not be rebuilt identically; review it again"). Python
-  keeps the plan object. Cause: `fsv_forms::LookupResolver` is not
-  `Send + Sync`, so a plan cannot ride along in `fsv_formui::Plan`.
+  keeps the plan object. `fsv_forms::LookupResolver` is now `Send + Sync`,
+  so `fsv-app` can carry the plan and drop this check. Open.
 
 ## fsv-app
 
