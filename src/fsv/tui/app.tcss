@@ -133,3 +133,87 @@ DataTable > .datatable--even-row {
     color: $text;
     text-style: bold;
 }
+
+/* ── Modals (theme variables so they work on light and dark) ── */
+
+StatusScreen, ConfirmScreen, NoteScreen {
+    align: center middle;
+    background: $background 60%;
+}
+
+.dialog {
+    width: 64;
+    max-width: 90%;
+    height: auto;
+    max-height: 90%;
+    padding: 1 2;
+    border: heavy $accent;
+    background: $surface;
+    color: $text;
+}
+
+.dialog Static {
+    background: transparent;
+}
+
+.dialog-title {
+    margin-bottom: 1;
+}
+
+.dialog-hint {
+    margin-top: 1;
+    color: $text-muted;
+}
+
+.dialog-buttons {
+    height: auto;
+    margin-top: 1;
+}
+
+.dialog-buttons Button {
+    margin-right: 2;
+}
+
+#status-options {
+    height: auto;
+    max-height: 16;
+    border: none;
+    background: $panel;
+}
+
+#note-text {
+    height: 8;
+    border: tall $primary;
+}
+
+#note-visibility, #note-preview {
+    margin-top: 1;
+    height: auto;
+    max-height: 6;
+}
+
+#confirm-body {
+    height: auto;
+}
+
+.dialog Button {
+    min-width: 14;
+    background: $panel;
+    color: $text;
+    border: tall $primary;
+    text-style: bold;
+}
+
+.dialog Button:focus {
+    background: $primary;
+    color: $background;
+}
+
+.dialog Button.-warning {
+    border: tall $warning;
+}
+
+.dialog Button.-warning:focus {
+    background: $warning;
+    color: $background;
+}

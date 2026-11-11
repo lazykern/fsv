@@ -23,6 +23,8 @@ from fsv.client import APIError, get_client
 from fsv.query import build_query_hash_from_schema
 from fsv.render import strip_html
 from fsv.resources import CHANGES, PROBLEMS, TICKETS, Resource, format_id
+from fsv.tui import actions
+from fsv.tui.modals import ConfirmScreen, NoteScreen, StatusScreen
 
 
 ALL_RESOURCES = (TICKETS, CHANGES, PROBLEMS)
@@ -103,8 +105,13 @@ class HelpScreen(ModalScreen[None]):
   [cyan]y[/]            copy selected display id
   [cyan]o[/]            open selected item in browser
 
+[bold]Write actions[/] (changes/tickets; off with --read-only)
+  [cyan]s[/]            change status: pick, then confirm
+  [cyan]n[/]            add note (private by default; Ctrl+T toggles public)
+  [cyan]r[/]            reply to ticket (detail pane; public, confirmed)
+
 [bold]App[/]
-  [cyan]r[/]            reload list and clear caches
+  [cyan]r[/]            reload list and clear caches (list pane)
   [cyan]q[/]/[cyan]ctrl+c[/]     quit
   [cyan]?[/]            close/open this help
 
@@ -127,8 +134,9 @@ class FsvApp(App):
     entity = var("tickets")
     detail_tab_idx = var(0)
 
-    def __init__(self) -> None:
+    def __init__(self, read_only: bool = False) -> None:
         super().__init__(ansi_color=True)
+        self.read_only = actions.resolve_read_only(read_only)
         self._items: list[dict[str, Any]] = []
         self._total = 0
         self._schemas: dict[str, dict] = {}
@@ -1316,6 +1324,8 @@ class FsvApp(App):
         bar.update(text)
 
     def _render_key_hints(self) -> None:
+        write = "" if self.read_only else "[bold]s[/] status  [bold]n[/] note  "
+        rkey = "[bold]r[/] reload  " if self.read_only else "[bold]r[/] reload/reply  "
         hints = (
             "[bold]Tab[/] pane  "
             "[bold]j/k[/] move or scroll  "
@@ -1328,7 +1338,7 @@ class FsvApp(App):
             "[bold]f[/] search  "
             "[bold]/[/] filter  "
             "[bold]o[/] browser  "
-            "[bold]r[/] reload  "
+            f"{write}{rkey}"
             "[bold]y[/] yank  "
             "[bold]q[/]/[bold]Ctrl+C[/] quit  "
             "[bold]?[/] help"
@@ -1596,6 +1606,9 @@ class FsvApp(App):
     def on_key(self, event) -> None:
         key = event.key
 
+        if isinstance(self.screen, ModalScreen):
+            return
+
         search_inp = self.query_one("#search-input", Input)
         if search_inp.display and search_inp.has_focus:
             if key == "escape":
@@ -1755,6 +1768,10 @@ class FsvApp(App):
             self._open_browser()
             event.stop()
             event.prevent_default()
+        elif key in ("s", "n") or (key == "r" and pane == "detail" and self._reply_possible()):
+            self._write_key(key)
+            event.stop()
+            event.prevent_default()
         elif key == "r":
             if self._search_mode:
                 self._apply_search(self._search_term)
@@ -1865,6 +1882,113 @@ class FsvApp(App):
         self._render_detail_content(self._selected, res)
         self._render_filter_bar()
         self._render_status()
+
+    # ── Write actions ───────────────────────────────────────
+
+    def _reply_possible(self) -> bool:
+        return bool(self._selected) and not self.read_only and actions.can_reply(
+            self._selected.get("_resource", TICKETS))
+
+    def _write_key(self, key: str) -> None:
+        if self.read_only:
+            self.notify("Read-only mode: write actions are disabled", severity="warning")
+            return
+        if not self._selected:
+            self.notify("No row selected", severity="warning")
+            return
+        res: Resource = self._selected.get("_resource", TICKETS)
+        if key == "s":
+            self._start_status(res)
+        elif key == "n":
+            self._start_note(res, reply=False)
+        elif key == "r":
+            self._start_note(res, reply=True)
+
+    def _target_label(self, res: Resource) -> str:
+        return format_id(self._selected, res)
+
+    def _start_status(self, res: Resource) -> None:
+        if not actions.can_change_status(res):
+            self.notify(f"Status change is not available for {res.name}", severity="warning")
+            return
+        sch = self._schemas.get(res.name, {"fields": []})
+        choices = actions.status_choices(sch)
+        if not choices:
+            self.notify("No status choices in schema", severity="warning")
+            return
+        item = self._selected
+        current = service.resolve_status(item, res, sch)
+
+        def picked(choice) -> None:
+            if not choice:
+                return
+            new_id, label = choice
+            plan = actions.status_plan(res, item, sch, new_id, label)
+
+            def confirmed(ok: bool | None) -> None:
+                if ok:
+                    self._do_write("status", res, item, new_id, label)
+
+            self.push_screen(ConfirmScreen(plan.title, plan.lines), confirmed)
+
+        self.push_screen(StatusScreen(choices, current), picked)
+
+    def _start_note(self, res: Resource, reply: bool) -> None:
+        ok = actions.can_reply(res) if reply else actions.can_note(res)
+        if not ok:
+            self.notify("Not available for this item type", severity="warning")
+            return
+        item = self._selected
+        # ticket notes go through the default visibility; public replies use `r`
+        screen = NoteScreen(self._target_label(res), reply=reply, can_toggle=res.name != "tickets")
+
+        def composed(result) -> None:
+            if not result:
+                return
+            body, public = result
+            plan = actions.note_plan(res, public, reply)
+            if plan is None:
+                self._do_write("reply" if reply else "note", res, item, body, public)
+                return
+
+            def confirmed(ok2: bool | None) -> None:
+                if ok2:
+                    self._do_write("reply" if reply else "note", res, item, body, public)
+
+            preview = ["", "> " + body[:300]]
+            self.push_screen(ConfirmScreen(plan.title, plan.lines + preview), confirmed)
+
+        self.push_screen(screen, composed)
+
+    @work(thread=True, group="write")
+    def _do_write(self, kind: str, res: Resource, item: dict, arg: Any, extra: Any) -> None:
+        item_id = item.get("id")
+        try:
+            if kind == "status":
+                actions.apply_status(res, item_id, arg)
+                msg = f"Status set to {extra}"
+            elif kind == "reply":
+                actions.apply_reply(res, item_id, arg)
+                msg = "Reply sent"
+            else:
+                actions.apply_note(res, item_id, arg, bool(extra))
+                msg = "Public note added" if extra else "Private note added"
+        except Exception as exc:  # noqa: BLE001 - shown as a toast
+            self.call_from_thread(self.notify, actions.clean_error(exc), title="Write failed",
+                                  severity="error", timeout=8)
+            return
+        self.call_from_thread(self._after_write, res, item, msg)
+
+    def _after_write(self, res: Resource, item: dict, msg: str) -> None:
+        self.notify(msg)
+        prefix = f"{res.name}:{item.get('id')}"
+        self._detail_cache.pop(prefix, None)
+        for k in [k for k in self._sub_cache if k.startswith(prefix + ":")]:
+            self._sub_cache.pop(k, None)
+        if self._selected and self._selected.get("id") == item.get("id"):
+            key = self._item_key(item, res)
+            self._pending_detail_key = key
+            self._load_detail(item, key)
 
     def _open_browser(self) -> None:
         if not self._selected:
