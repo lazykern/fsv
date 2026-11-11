@@ -34,3 +34,31 @@ fsv.session._read_secret: reads the real stdin/terminal; its loops collect_secre
 fsv.forms.plan._default: canonical_json takes serde_json::Value, so datetimes/sets/tuples are converted (isoformat, sorted lists) before serialisation
 fsv.forms.state.LookupResolver.lookup: Protocol method; the Rust trait method has no body, implemented by the test resolvers in state.rs and py_golden.rs
 fsv.views._now: inlined as jiff::Timestamp::now() (UTC instant) in fsv_views::detail; tests inject `now`
+fsv.change_cli._emit: dead code (port/specs/cli.md section 5)
+fsv.cli._emit_items: dead code (port/specs/cli.md section 5)
+fsv.cli._is_terminal_status: dead code (port/specs/cli.md section 5)
+fsv.cli._confirm_terminal_status: dead code (port/specs/cli.md section 5)
+fsv.cli._missing_required_change_fields: dead code (port/specs/cli.md section 5)
+fsv.cli._check_required: dead code (port/specs/cli.md section 5)
+fsv.cli._network_completion_enabled: dead code (port/specs/cli.md section 5)
+fsv.cli._ticket_id: dead code (port/specs/cli.md section 5)
+fsv.cli._resolve: dead code (port/specs/cli.md section 5)
+fsv.cli._global_help_params: Typer help plumbing; command tree and help text pinned by fsv-cli tests/tree.rs
+fsv.cli._FSVHelpMixin.get_params: Typer help plumbing; pinned by fsv-cli tests/tree.rs
+fsv.cli._FSVHelpMixin.format_help: Typer help plumbing; pinned by fsv-cli tests/tree.rs
+fsv.cli._make_subapp: Typer sub-app factory; clap tree pinned by fsv-cli tests/tree.rs
+fsv.cli._tab_help: Typer help plumbing; pinned by fsv-cli tests/tree.rs
+fsv.cli._ctx_change_id: helper of unreachable cli completers (fsv._complete only dispatches fsv.completion names)
+fsv.cli._complete_task_id: unreachable completer; Python prints nothing (pinned in fsv-cli local_cmds)
+fsv.cli._asset_candidates: helper of unreachable cli completers
+fsv.cli._complete_asset_category: unreachable completer; Python prints nothing
+fsv.cli._complete_asset_search_for_change: unreachable completer; Python prints nothing
+fsv.cli._complete_asset_id_for_change: unreachable completer; Python prints nothing
+fsv.cli._complete_associated_asset_for_change: unreachable completer; Python prints nothing
+fsv.cli._complete_task_status: unreachable completer; Python prints nothing
+fsv.cli._task_field_name_matches: helper of unreachable cli completers
+fsv.cli._task_field_choice_pairs: helper of unreachable cli completers
+fsv.cli._task_observed_value_pairs: helper of unreachable cli completers
+fsv.cli._complete_task_custom_field: unreachable completer; Python prints nothing
+fsv.cli._complete_ticket_for_change: unreachable completer; Python prints nothing
+fsv.cli._complete_tab: unreachable completer; Python prints nothing
