@@ -40,6 +40,7 @@ impl TextEditor {
         }
     }
 
+    /// `TextEditor._changed`: commit after the pause.
     fn changed(&mut self, cx: &mut EdCx<'_>) {
         cx.timer(TimerId::Commit(self.key.clone()), DEBOUNCE_TEXT);
     }
@@ -138,16 +139,19 @@ impl ParagraphEditor {
             committed: String::new(),
         }
     }
+
+    /// `ParagraphEditor._changed`: commit after the pause.
+    fn changed(&mut self, cx: &mut EdCx<'_>) {
+        cx.timer(TimerId::Commit(self.key.clone()), DEBOUNCE_TEXT);
+    }
 }
 
-fn area_key(area: &mut TextArea, key: &str, k: &KeyEvent, cx: &mut EdCx<'_>) -> bool {
+/// A key for a text area: `(used, text changed)`.
+fn area_key(area: &mut TextArea, k: &KeyEvent) -> (bool, bool) {
     match area.handle_key(k) {
-        InputEvent::Changed => {
-            cx.timer(TimerId::Commit(key.to_string()), DEBOUNCE_TEXT);
-            true
-        }
-        InputEvent::Handled | InputEvent::Submitted => true,
-        InputEvent::Ignored => false,
+        InputEvent::Changed => (true, true),
+        InputEvent::Handled | InputEvent::Submitted => (true, false),
+        InputEvent::Ignored => (false, false),
     }
 }
 
@@ -166,13 +170,17 @@ impl Editor for ParagraphEditor {
     }
 
     fn handle_key(&mut self, k: &KeyEvent, _slot: usize, cx: &mut EdCx<'_>) -> bool {
-        area_key(&mut self.area, &self.key, k, cx)
+        let (used, changed) = area_key(&mut self.area, k);
+        if changed {
+            self.changed(cx);
+        }
+        used
     }
 
     fn paste(&mut self, text: &str, _slot: usize, cx: &mut EdCx<'_>) {
         if !self.area.disabled {
             self.area.insert(text);
-            cx.timer(TimerId::Commit(self.key.clone()), DEBOUNCE_TEXT);
+            self.changed(cx);
         }
     }
 
@@ -224,6 +232,7 @@ pub const DESCRIPTION_BAR: &str =
 /// Markdown text area with a preview (F3); sent as HTML.
 pub struct DescriptionEditor {
     key: String,
+    /// Port of fsv.formui.widgets.DescriptionEditor.area
     pub area: TextArea,
     pub preview: bool,
     committed: String,
@@ -248,6 +257,11 @@ impl DescriptionEditor {
     pub fn action_toggle_preview(&mut self) {
         self.preview = !self.preview;
     }
+
+    /// `DescriptionEditor._changed`: commit after the pause.
+    fn changed(&mut self, cx: &mut EdCx<'_>) {
+        cx.timer(TimerId::Commit(self.key.clone()), DEBOUNCE_TEXT);
+    }
 }
 
 impl Editor for DescriptionEditor {
@@ -264,13 +278,17 @@ impl Editor for DescriptionEditor {
         if self.preview {
             return false;
         }
-        area_key(&mut self.area, &self.key, k, cx)
+        let (used, changed) = area_key(&mut self.area, k);
+        if changed {
+            self.changed(cx);
+        }
+        used
     }
 
     fn paste(&mut self, text: &str, _slot: usize, cx: &mut EdCx<'_>) {
         if !self.preview && !self.area.disabled {
             self.area.insert(text);
-            cx.timer(TimerId::Commit(self.key.clone()), DEBOUNCE_TEXT);
+            self.changed(cx);
         }
     }
 
@@ -365,6 +383,13 @@ impl CheckEditor {
             disabled: false,
         }
     }
+
+    /// `CheckEditor._changed`: a toggle by the person is a committed value.
+    /// [`Editor::sync`] sets the box without reporting it.
+    fn changed(&mut self, value: bool, cx: &mut EdCx<'_>) {
+        self.value = value;
+        cx.emit(EdMsg::Edited(self.key.clone(), Value::Bool(value)));
+    }
 }
 
 impl Editor for CheckEditor {
@@ -376,8 +401,7 @@ impl Editor for CheckEditor {
         if self.disabled || !matches!(k.code, KeyCode::Enter | KeyCode::Char(' ')) {
             return false;
         }
-        self.value = !self.value;
-        cx.emit(EdMsg::Edited(self.key.clone(), Value::Bool(self.value)));
+        self.changed(!self.value, cx);
         true
     }
 
@@ -419,6 +443,7 @@ impl Editor for CheckEditor {
 /// Paths separated by `;`, with file-system completion (→ accepts).
 pub struct FileEditor {
     key: String,
+    /// Port of fsv.formui.widgets.FileEditor.input
     pub input: LineInput,
     committed: String,
     files: Vec<String>,
@@ -448,6 +473,11 @@ impl FileEditor {
     /// `PathSuggester.get_suggestion`: the completion → accepts.
     fn suggest(&mut self, cx: &EdCx<'_>) {
         self.input.suggestion = complete_path(&self.input.value(), &cx.session.paths);
+    }
+
+    /// `FileEditor._enter`: Enter commits the paths.
+    fn enter(&mut self, cx: &mut EdCx<'_>) {
+        self.commit(cx);
     }
 
     fn list_lines(&self) -> Vec<String> {
@@ -480,7 +510,7 @@ impl Editor for FileEditor {
     fn handle_key(&mut self, k: &KeyEvent, _slot: usize, cx: &mut EdCx<'_>) -> bool {
         match self.input.handle_key(k) {
             InputEvent::Submitted => {
-                self.commit(cx);
+                self.enter(cx);
                 true
             }
             InputEvent::Changed => {
@@ -569,5 +599,90 @@ impl Editor for FileEditor {
             );
         }
         cursor
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::session::ATTACHMENTS;
+    use crate::widgets::TestCx;
+
+    fn commit_timer(key: &str) -> TimerId {
+        TimerId::Commit(key.into())
+    }
+
+    /// `TextEditor._changed`, `ParagraphEditor._changed`,
+    /// `DescriptionEditor._changed`: a change (re)starts the 0.3 s commit
+    /// timer and reports nothing yet.
+    #[test]
+    fn changed_restarts_the_commit_timer() {
+        let mut h = TestCx::new();
+        let mut t = TextEditor::new(&h.item("subject"), false);
+        h.cx(|cx| t.changed(cx));
+        let mut p = ParagraphEditor::new(&h.item("downtime_window"));
+        h.cx(|cx| p.changed(cx));
+        let mut d = DescriptionEditor::new(&h.item("description"));
+        h.cx(|cx| d.changed(cx));
+        for key in ["subject", "downtime_window", "description"] {
+            assert!(h.timers.is_set(&commit_timer(key)), "{key}");
+        }
+        assert_eq!(
+            h.timers
+                .due(DEBOUNCE_TEXT - std::time::Duration::from_millis(1)),
+            vec![]
+        );
+        assert_eq!(h.timers.due(DEBOUNCE_TEXT).len(), 3);
+        assert!(h.take().is_empty());
+    }
+
+    /// `CheckEditor._changed`: a toggle is reported; a sync from the form
+    /// (Python's `_syncing`) is not.
+    #[test]
+    fn check_changed_reports_toggles_not_syncs() {
+        let mut h = TestCx::new();
+        let mut c = CheckEditor::new(&h.item("legacy_flag"));
+        h.cx(|cx| c.changed(true, cx));
+        assert!(c.value);
+        assert_eq!(
+            h.take(),
+            [EdMsg::Edited("legacy_flag".into(), Value::Bool(true))]
+        );
+        let mut v = h.s.view("legacy_flag");
+        v.value = Value::Bool(false);
+        h.cx(|cx| c.sync(&v, false, cx));
+        assert!(!c.value);
+        assert!(h.take().is_empty());
+    }
+
+    /// `PathSuggester.get_suggestion` (`complete_path`) and
+    /// `FileEditor._enter`.
+    #[test]
+    fn file_suggest_and_enter() {
+        let dir = tempfile::tempdir().expect("tmp");
+        std::fs::write(dir.path().join("report.pdf"), "abc").expect("write");
+        std::fs::create_dir(dir.path().join("sub")).expect("mkdir");
+        let d = dir.path().display().to_string();
+        let mut h = TestCx::new();
+        let mut f = FileEditor::new(&h.item(ATTACHMENTS));
+        for (typed, want) in [
+            (format!("{d}/rep"), Some(format!("{d}/report.pdf"))),
+            (format!("a.pdf; {d}/su"), Some(format!("a.pdf; {d}/sub/"))),
+            (format!("{d}/report.pdf"), None),
+            (format!("{d}/zz"), None),
+            ("a.pdf; ".to_string(), None),
+        ] {
+            f.input.set_value(&typed);
+            h.cx(|cx| f.suggest(cx));
+            assert_eq!(f.input.suggestion, want, "{typed}");
+        }
+        f.input.set_value("x.pdf");
+        h.cx(|cx| f.enter(cx));
+        assert_eq!(
+            h.take(),
+            [EdMsg::Edited(ATTACHMENTS.into(), Value::str("x.pdf"))]
+        );
+        h.cx(|cx| f.enter(cx));
+        assert!(h.take().is_empty());
     }
 }

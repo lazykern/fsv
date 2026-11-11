@@ -24,7 +24,9 @@ pub struct ComboBox {
     item: FormItem,
     pub multi: bool,
     pub remote: bool,
+    /// Port of fsv.formui.widgets.ComboBox.input
     pub input: LineInput,
+    /// Port of fsv.formui.widgets.ComboBox.is_open
     pub is_open: bool,
     pub options: Vec<Suggestion>,
     pub highlighted: Option<usize>,
@@ -280,6 +282,11 @@ impl ComboBox {
         let cur = self.highlighted.map_or(-1, |h| h as isize);
         let next = (cur + n).clamp(0, self.options.len() as isize - 1) as usize;
         self.highlighted = Some(next);
+        self.on_highlight();
+    }
+
+    /// `ComboBox._highlighted`: the note follows the highlighted choice.
+    fn on_highlight(&mut self) {
         self.set_note("");
     }
 
@@ -483,5 +490,152 @@ impl Editor for ComboBox {
 
     fn as_combo(&mut self) -> Option<&mut ComboBox> {
         Some(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::widgets::TestCx;
+
+    fn combo(h: &TestCx, key: &str) -> ComboBox {
+        ComboBox::new(&h.item(key))
+    }
+
+    fn labels(c: &ComboBox) -> Vec<&str> {
+        c.options.iter().map(|s| s.label.as_str()).collect()
+    }
+
+    /// `ComboBox.refresh_options` and `_note`: the filtered choices, the
+    /// first highlighted, its description first in the note.
+    #[test]
+    fn refresh_options_and_note() {
+        let mut h = TestCx::new();
+        let mut c = combo(&h, "priority");
+        h.cx(|cx| c.refresh_options(cx));
+        assert_eq!(labels(&c), ["Low", "Medium", "High", "Urgent"]);
+        assert_eq!(c.highlighted, Some(0));
+        assert_eq!(c.note, "Can wait");
+        c.set_note("x");
+        assert_eq!(c.note, "Can wait · x");
+
+        let mut c = combo(&h, "change_type");
+        c.input.set_value("em");
+        h.cx(|cx| c.refresh_options(cx));
+        assert_eq!(labels(&c), ["Emergency"]);
+        assert_eq!(c.note, "");
+        c.input.set_value("zzz");
+        h.cx(|cx| c.refresh_options(cx));
+        assert!(c.options.is_empty());
+        assert_eq!(c.highlighted, None);
+        assert_eq!(c.note, "no choice matches");
+    }
+
+    /// `ComboBox.action_cursor` and `_highlighted`: a closed list opens
+    /// first; then the highlight moves (clamped) and the note follows it.
+    #[test]
+    fn action_cursor_opens_then_moves() {
+        let mut h = TestCx::new();
+        let mut c = combo(&h, "priority");
+        h.cx(|cx| c.action_cursor(1, cx));
+        assert!(c.is_open);
+        assert_eq!(h.take(), [EdMsg::Opened("priority".into())]);
+        assert_eq!(c.highlighted, Some(0));
+        h.cx(|cx| c.action_cursor(1, cx));
+        assert_eq!((c.highlighted, c.note.as_str()), (Some(1), "Planned work"));
+        h.cx(|cx| c.action_cursor(8, cx));
+        assert_eq!((c.highlighted, c.note.as_str()), (Some(3), "Outage"));
+        h.cx(|cx| c.action_cursor(-8, cx));
+        assert_eq!(c.highlighted, Some(0));
+        c.highlighted = Some(2);
+        c.on_highlight();
+        assert_eq!(c.note, "Revenue at risk");
+    }
+
+    /// `ComboBox._maybe_close`: closes only once the input lost focus, and
+    /// puts back the text of the stored value.
+    #[test]
+    fn maybe_close_after_blur() {
+        let mut h = TestCx::new();
+        let mut c = combo(&h, "change_type");
+        h.cx(|cx| c.open(cx));
+        c.input.set_value("Sta");
+        c.maybe_close(true);
+        assert!(c.is_open);
+        c.maybe_close(false);
+        assert!(!c.is_open);
+        assert!(c.options.is_empty());
+        assert_eq!(c.input.value(), "");
+    }
+
+    /// `ComboBox._schedule_search` / `_search`: a pause before a people
+    /// search, at once for groups and agents; each search is a new
+    /// generation and says "searching…".
+    #[test]
+    fn schedule_search_and_search() {
+        let mut h = TestCx::new();
+        let mut c = combo(&h, "requester");
+        assert!(c.remote);
+        c.input.set_value("jan");
+        h.cx(|cx| c.schedule_search(false, cx));
+        assert!(h.timers.is_set(&TimerId::Search("requester".into())));
+        assert_eq!(c.searches, 0);
+        h.cx(|cx| c.schedule_search(true, cx));
+        assert!(!h.timers.is_set(&TimerId::Search("requester".into())));
+        assert_eq!(c.searches, 1);
+        assert_eq!(c.note, "searching…");
+        h.cx(|cx| c.search(cx));
+        assert_eq!(
+            h.take(),
+            [
+                EdMsg::Search {
+                    key: "requester".into(),
+                    query: "jan".into(),
+                    generation: 1
+                },
+                EdMsg::Search {
+                    key: "requester".into(),
+                    query: "jan".into(),
+                    generation: 2
+                },
+            ]
+        );
+        // a group lookup searches as soon as it opens
+        let mut g = combo(&h, "group");
+        h.cx(|cx| g.open(cx));
+        assert_eq!(g.searches, 1);
+    }
+
+    /// `ComboBox._enter`: opens a closed list; on an emptied single box
+    /// clears the value; refuses stale remote results; else picks the
+    /// highlighted option.
+    #[test]
+    fn enter_opens_clears_refuses_stale_and_picks() {
+        let mut h = TestCx::new();
+        let mut c = combo(&h, "change_type");
+        h.cx(|cx| c.enter(cx));
+        assert!(c.is_open);
+        h.take();
+        c.input.set_value("em");
+        h.cx(|cx| c.refresh_options(cx));
+        h.cx(|cx| c.enter(cx));
+        assert!(matches!(&h.take()[..], [EdMsg::Edited(k, _)] if k == "change_type"));
+        assert_eq!(c.input.value(), "Emergency");
+        assert!(!c.is_open);
+        h.cx(|cx| c.enter(cx));
+        h.take();
+        c.input.set_value(" ");
+        h.cx(|cx| c.enter(cx));
+        assert_eq!(h.take(), [EdMsg::Edited("change_type".into(), Value::Null)]);
+        assert!(!c.is_open);
+
+        let mut r = combo(&h, "requester");
+        h.cx(|cx| r.open(cx));
+        r.input.set_value("jan");
+        h.cx(|cx| r.enter(cx));
+        assert_eq!(
+            r.note,
+            "still searching… (Enter again when the results are shown)"
+        );
     }
 }

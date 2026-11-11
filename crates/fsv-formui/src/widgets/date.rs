@@ -24,6 +24,7 @@ const BUTTON_W: u16 = 12;
 pub struct DateEditor {
     key: String,
     pub date_only: bool,
+    /// Port of fsv.formui.widgets.DateEditor.input
     pub input: LineInput,
     committed: String,
     /// Text that does not parse (kept, and reported).
@@ -107,6 +108,20 @@ impl DateEditor {
         cx.emit(EdMsg::OpenCalendar(self.key.clone()));
     }
 
+    /// `DateEditor._enter`: Enter in the box commits the typed date.
+    fn enter(&mut self, cx: &mut EdCx<'_>) {
+        self.commit_text(cx);
+    }
+
+    /// `DateEditor._button`: the Calendar button (disabled with the field).
+    fn button(&self, cx: &mut EdCx<'_>) -> bool {
+        if self.input.disabled {
+            return false;
+        }
+        self.action_calendar(cx);
+        true
+    }
+
     fn preview_lines(&self, width: u16, theme: &Theme) -> Vec<Line<'static>> {
         let (text, color) = if self.preview.error.is_empty() {
             (&self.preview.preview, theme.success)
@@ -138,11 +153,7 @@ impl Editor for DateEditor {
             return true;
         }
         if slot == 1 {
-            if matches!(k.code, KeyCode::Enter | KeyCode::Char(' ')) && !self.input.disabled {
-                self.action_calendar(cx);
-                return true;
-            }
-            return false;
+            return matches!(k.code, KeyCode::Enter | KeyCode::Char(' ')) && self.button(cx);
         }
         match self.input.handle_key(k) {
             InputEvent::Changed => {
@@ -151,7 +162,7 @@ impl Editor for DateEditor {
                 true
             }
             InputEvent::Submitted => {
-                self.commit_text(cx);
+                self.enter(cx);
                 true
             }
             InputEvent::Handled => true,
@@ -263,5 +274,52 @@ impl Editor for DateEditor {
 
     fn as_date(&mut self) -> Option<&mut DateEditor> {
         Some(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::widgets::TestCx;
+
+    /// `DateEditor._enter`: Enter commits a readable date, and reports an
+    /// unreadable one (kept in the box) without changing the value.
+    #[test]
+    fn enter_commits_or_reports_the_typed_date() {
+        let mut h = TestCx::new();
+        let mut d = DateEditor::new(&h.item("planned_start_date"), &h.s);
+        d.input.set_value("2030-11-26 19:00");
+        h.cx(|cx| d.enter(cx));
+        match &h.take()[..] {
+            [EdMsg::Edited(k, Value::DateTime(v))] => {
+                assert_eq!(k, "planned_start_date");
+                assert_eq!(v.local, jiff::civil::date(2030, 11, 26).at(19, 0, 0, 0));
+                assert_eq!(v.offset, jiff::tz::Offset::constant(9));
+            }
+            other => panic!("{other:?}"),
+        }
+        d.input.set_value("25:00");
+        h.cx(|cx| d.enter(cx));
+        assert_eq!(
+            h.take(),
+            [EdMsg::Invalid(
+                "planned_start_date".into(),
+                "'25:00' is not a time of day".into()
+            )]
+        );
+        assert_eq!(d.invalid.as_deref(), Some("25:00"));
+    }
+
+    /// `DateEditor._button`: the Calendar button asks for the calendar,
+    /// except on a read-only field.
+    #[test]
+    fn button_opens_the_calendar_unless_disabled() {
+        let mut h = TestCx::new();
+        let mut d = DateEditor::new(&h.item("planned_start_date"), &h.s);
+        assert!(h.cx(|cx| d.button(cx)));
+        assert_eq!(h.take(), [EdMsg::OpenCalendar("planned_start_date".into())]);
+        d.input.disabled = true;
+        assert!(!h.cx(|cx| d.button(cx)));
+        assert!(h.take().is_empty());
     }
 }

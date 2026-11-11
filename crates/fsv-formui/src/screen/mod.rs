@@ -526,8 +526,7 @@ impl FormScreen {
                 self.focus = next;
                 if let Some(Focus::Field(j, s)) = next {
                     self.with_editor(j, |e, cx| e.focus(s, cx));
-                    let key = self.rows[j].key().to_string();
-                    self.show_help(&key, false);
+                    self.on_descendant_focus(j);
                 }
             }
             _ => {}
@@ -641,14 +640,24 @@ impl FormScreen {
         self.focus = to;
         if let Some(Focus::Field(i, s)) = to {
             self.with_editor(i, |e, cx| e.focus(s, cx));
-            let key = self.rows[i].key().to_string();
-            self.show_help(&key, false);
+            self.on_descendant_focus(i);
         }
         self.scroll_to_focus = true;
         self.process();
     }
 
-    /// Focus the editor of `key` (its input).
+    /// `FormScreen.on_descendant_focus`: the help panel follows the
+    /// focused row.
+    fn on_descendant_focus(&mut self, row: usize) {
+        let key = self.rows[row].key().to_string();
+        self.show_help(&key, false);
+    }
+
+    /// Focus the editor of `key` (slot 0, its input), then [`Editor::focus`].
+    ///
+    /// Port of fsv.formui.widgets.FieldRow.focus_editor, and of the
+    /// `focus_editor` of EditorMixin, ComboBox, DescriptionEditor,
+    /// DateEditor and FileEditor.
     pub fn focus_key(&mut self, key: &str) {
         if let Some(i) = self.row_index(key)
             && self.rows[i].focusable()
@@ -657,6 +666,7 @@ impl FormScreen {
         }
     }
 
+    /// `FormScreen._focus_first`: the first visible, enabled field.
     fn focus_first(&mut self) {
         for key in self.session.visible_keys() {
             if let Some(i) = self.row_index(&key)
@@ -856,7 +866,7 @@ impl FormScreen {
         }
     }
 
-    /// `TextDialog._copy`.
+    /// `TextDialog._copy`: the text goes to the clipboard, with a toast.
     fn copy(&mut self, text: String) {
         self.clipboard = Some(text);
         self.notify(
@@ -871,10 +881,25 @@ impl FormScreen {
     /// The Review & submit / Save draft / Cancel buttons under the fields.
     fn press_button(&mut self, b: FormButton) {
         match b {
-            FormButton::Review => self.action_review(),
-            FormButton::Save => self.action_save(),
-            FormButton::Cancel => self.action_cancel(),
+            FormButton::Review => self.review_btn(),
+            FormButton::Save => self.save_btn(),
+            FormButton::Cancel => self.cancel_btn(),
         }
+    }
+
+    /// `FormScreen._review_btn` (Review & submit).
+    fn review_btn(&mut self) {
+        self.action_review();
+    }
+
+    /// `FormScreen._save_btn` (Save draft).
+    fn save_btn(&mut self) {
+        self.action_save();
+    }
+
+    /// `FormScreen._cancel_btn` (Cancel).
+    fn cancel_btn(&mut self) {
+        self.action_cancel();
     }
 
     /// Show or hide the help panel (F1).
@@ -882,6 +907,7 @@ impl FormScreen {
         self.hide_help = !self.hide_help;
     }
 
+    /// `FormScreen._commit_focused`: the focused editor commits its text.
     fn commit_focused(&mut self) {
         if let Some(Focus::Field(i, _)) = self.focus {
             self.with_editor(i, |e, cx| e.commit(cx));
@@ -889,6 +915,8 @@ impl FormScreen {
         self.process();
     }
 
+    /// `FormScreen._dirty`: an editor holds text not committed yet (typed
+    /// within the debounce, an unpicked lookup search, an invalid date).
     fn dirty(&self) -> bool {
         self.rows
             .iter()
@@ -935,6 +963,7 @@ impl FormScreen {
         )));
     }
 
+    /// `FormScreen._calendar`: the date picker for `key`, at its value.
     fn open_calendar(&mut self, key: &str) {
         let Some(it) = self.session.item(key) else {
             return;
@@ -1367,5 +1396,149 @@ impl FormScreen {
             let py = p.y.checked_sub(top)?;
             (py < view_h).then(|| Position::new(area.x + p.x, area.y + py))
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::kit::parse_key;
+
+    fn screen() -> FormScreen {
+        let (_acme, session) = crate::acme::acme();
+        FormScreen::with_workers(session, Theme::textual_dark(), WorkersMode::Inline)
+    }
+
+    fn typ(s: &mut FormScreen, text: &str) {
+        for ch in text.chars() {
+            s.handle_key(KeyEvent::from(KeyCode::Char(ch)));
+        }
+    }
+
+    /// `FormScreen._focus_first` and `on_descendant_focus`: the first
+    /// enabled visible field has focus, and the help panel follows focus.
+    #[test]
+    fn focus_first_and_the_help_follows_focus() {
+        let mut s = screen();
+        assert_eq!(s.focused_key(), Some("requester"));
+        s.focus_key("subject");
+        assert!(s.help_text().starts_with("Subject * required"));
+        s.focus = None;
+        s.focus_first();
+        assert_eq!(s.focused_key(), Some("requester"));
+        let i = s.row_index("planned_start_date").expect("row");
+        s.on_descendant_focus(i);
+        assert!(
+            s.help_text().starts_with("Planned Start Date"),
+            "{}",
+            s.help_text()
+        );
+        assert!(
+            s.help_text()
+                .ends_with("Type a date and time or press F2 for the calendar")
+        );
+    }
+
+    /// `FormScreen._opened`: an opened list is scrolled into view.
+    #[test]
+    fn opened_scrolls_to_the_focus() {
+        let mut s = screen();
+        s.scroll_to_focus = false;
+        s.opened();
+        assert!(s.scroll_to_focus);
+    }
+
+    /// `FormScreen._calendar`: the picker for the field (date-time, its
+    /// label); Esc is back on the field's input with nothing changed.
+    #[test]
+    fn calendar_opens_the_picker_for_the_field() {
+        let mut s = screen();
+        s.open_calendar("planned_start_date");
+        assert_eq!(s.layer(), Some("calendar"));
+        let p = s.date_picker().expect("picker");
+        assert_eq!(p.label, "Planned Start Date");
+        assert!(!p.date_only);
+        s.handle_key(parse_key("escape"));
+        assert_eq!(s.layer(), None);
+        assert_eq!(s.focused_key(), Some("planned_start_date"));
+        assert_eq!(s.session.view("planned_start_date").value, Value::Null);
+        s.open_calendar("no_such_field");
+        assert_eq!(s.layer(), None);
+    }
+
+    /// `FormScreen._review_btn` / `_save_btn` / `_cancel_btn`.
+    #[test]
+    fn form_buttons() {
+        let mut s = screen();
+        s.review_btn();
+        assert_eq!(s.layer(), Some("review"));
+        s.handle_key(parse_key("escape"));
+        s.save_btn();
+        assert_eq!(s.layer(), Some("save"));
+        assert_eq!(
+            s.save_dialog().map(|d| d.title.clone()).as_deref(),
+            Some("Save draft to")
+        );
+        s.handle_key(parse_key("escape"));
+        assert_eq!(s.layer(), None);
+        s.cancel_btn();
+        assert_eq!(s.done(), Some(Action::Cancel));
+    }
+
+    /// `FormScreen._commit_focused` and `_dirty`: text typed within the
+    /// debounce is dirty until the focused editor commits it.
+    #[test]
+    fn commit_focused_takes_pending_text() {
+        let mut s = screen();
+        assert!(!s.dirty());
+        s.focus_key("subject");
+        typ(&mut s, "Mail");
+        assert!(s.dirty());
+        assert_eq!(s.session.view("subject").value, Value::Null);
+        s.commit_focused();
+        assert!(!s.dirty());
+        assert_eq!(s.session.view("subject").value, Value::str("Mail"));
+    }
+
+    /// `FormScreen._open_review`: every error shows, then the review opens.
+    #[test]
+    fn open_review_shows_all_errors() {
+        let mut s = screen();
+        assert!(!s.session.show_all_errors);
+        s.open_review();
+        assert!(s.session.show_all_errors);
+        assert_eq!(s.layer(), Some("review"));
+        assert_eq!(s.session.view("subject").error, "required");
+    }
+
+    /// `FormScreen._after_review`: Back focuses the first missing field;
+    /// Submit and Cancel finish.
+    #[test]
+    fn after_review_back_submit_cancel() {
+        let mut s = screen();
+        s.focus_key("subject");
+        s.open_review();
+        s.after_review(ReviewAction::Back);
+        assert_eq!(s.layer(), None);
+        assert_eq!(s.focused_key(), Some("requester"));
+        s.open_review();
+        s.after_review(ReviewAction::Submit);
+        assert_eq!(s.done(), Some(Action::Submit));
+        let mut s = screen();
+        s.open_review();
+        s.after_review(ReviewAction::Cancel);
+        assert_eq!(s.done(), Some(Action::Cancel));
+        assert!(s.into_result().plan.is_none());
+    }
+
+    /// `TextDialog._copy`: the text for the clipboard and the toast.
+    #[test]
+    fn copy_sets_the_clipboard_and_says_so() {
+        let mut s = screen();
+        s.copy("fsv x".into());
+        assert_eq!(s.take_clipboard().as_deref(), Some("fsv x"));
+        assert!(s.toast_texts().contains(
+            &"copied to the clipboard (terminal clipboard support permitting)".to_string()
+        ));
     }
 }

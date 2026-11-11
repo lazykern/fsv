@@ -132,13 +132,18 @@ CLI divergences:
 
 | Python | Rust | status |
 |---|---|---|
-| `formui/session.py`, `lookups.py`, `files.py`, `when.py`, `fuzzy.py`, `widgets.py`, `screens.py`, `app.py` | `fsv_formui` (`session`, `lookups`, `files`, `kit`, `widgets`, `screen`, `app`) | ported. `cargo test -p fsv-formui --offline` was 62 passed (25 unit, 21 session, 16 UI). Session expectations come from running Python on the Acme fixture. |
+| `formui/session.py`, `lookups.py`, `files.py`, `when.py`, `fuzzy.py`, `widgets.py`, `screens.py`, `app.py` | `fsv_formui` (`session`, `lookups`, `files`, `kit`, `widgets`, `screen`, `app`) | ported. `cargo test -p fsv-formui --offline` was 140 passed (76 unit, 21 session, 31 UI, 12 widgets). Session expectations come from running Python on the Acme fixture; dialog results from a Textual pilot of the Python screens. |
+
+- Textual button handlers (`_save_btn`, `_cancel_btn`, `_review_btn`, `_close_btn`, `ConfirmDialog._pressed`, …) are methods of the same name that Enter/Space on the focused button calls.
+- `run_form` itself needs a real terminal (raw mode, alternate screen) and has no test. The loop it runs is tested on a `TestBackend` with scripted events.
+- `when._no_dst_doubt` is inlined in `fsv_forms::when::to_text` (the `localize(..).is_ok_and(..)` check). fsv-formui pins it through `DateEditor::set_value` for ambiguous, skipped and plain Berlin wall times.
+- Textual focus and property plumbing has no separate fn: `focus_editor` of each editor and of `FieldRow` is `FormScreen::focus_key`. `ComboBox.input` / `is_open`, `DateEditor.input`, `FileEditor.input` and `DescriptionEditor.area` are public fields.
 
 - Plan building, draft saving, sending, `render_sr_template` and requester resolution sit behind `FormBackend` and `SessionInit`. `fsv-flows` supplies them. Until then the form cannot submit.
 - Callers must set `SessionInit.paths` (`HOME`, cwd). The library no longer reads env or process state.
 - Review tables are plain text. The cyan label column is not reproduced.
 - F3 description preview shows the Markdown as typed, not rendered.
-- Mouse support and Textual's command palette are not ported.
+- Mouse support and Textual's command palette are not ported. The form is keyboard-only. No mouse capture means no click on buttons, fields or the review's acknowledgement box. `CalendarGrid.on_click` (header arrows change the month, a day cell picks it) and `ComboBox._clicked` (pick a list row, refused while a remote search is stale) have no Rust counterpart. Every one of these has a key path: Tab/arrows plus Enter/Space on buttons, PgUp/PgDn and Enter in the calendar, ↑↓ and Enter in the list. Enter has the same stale-search refusal.
 - The SR `SAFETY` banner line is a constant in `screen/review.rs`. No Rust crate held that text.
 - Copy depends on OSC 52 in the terminal.
 

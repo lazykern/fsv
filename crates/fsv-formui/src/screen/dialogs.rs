@@ -89,15 +89,30 @@ impl ConfirmDialog {
             return Dlg::Open;
         }
         match k.code {
-            KeyCode::Esc => Dlg::Done(false),
-            KeyCode::Char('y') => Dlg::Done(true),
+            KeyCode::Esc => self.action_no(),
+            KeyCode::Char('y') => self.action_yes(),
             KeyCode::Left | KeyCode::Right => {
                 self.focus = 1 - self.focus;
                 Dlg::Open
             }
-            _ if press(k) => Dlg::Done(self.focus == 0),
+            _ if press(k) => self.pressed(),
             _ => Dlg::Open,
         }
+    }
+
+    /// `ConfirmDialog._pressed`: the focused button answers.
+    pub fn pressed(&self) -> Dlg<bool> {
+        Dlg::Done(self.focus == 0)
+    }
+
+    /// `ConfirmDialog.action_yes` (`y`).
+    pub fn action_yes(&self) -> Dlg<bool> {
+        Dlg::Done(true)
+    }
+
+    /// `ConfirmDialog.action_no` (Esc).
+    pub fn action_no(&self) -> Dlg<bool> {
+        Dlg::Done(false)
     }
 
     pub fn render(&self, area: Rect, buf: &mut Buffer, theme: &Theme) {
@@ -160,17 +175,37 @@ impl SavePathDialog {
             return Dlg::Open;
         }
         if k.code == KeyCode::Esc {
-            return Dlg::Done(None);
+            return self.cancel_btn();
         }
         match self.focus {
             0 => match self.input.handle_key(k) {
-                InputEvent::Submitted => self.check(paths),
+                InputEvent::Submitted => self.enter(paths),
                 _ => Dlg::Open,
             },
-            1 if press(k) => self.check(paths),
-            2 if press(k) => Dlg::Done(None),
+            1 if press(k) => self.save_btn(paths),
+            2 if press(k) => self.cancel_btn(),
             _ => Dlg::Open,
         }
+    }
+
+    /// `SavePathDialog._enter`: Enter in the path box saves.
+    pub fn enter(&mut self, paths: &Paths) -> Dlg<Option<PathBuf>> {
+        self.save(paths)
+    }
+
+    /// `SavePathDialog._save_btn`.
+    pub fn save_btn(&mut self, paths: &Paths) -> Dlg<Option<PathBuf>> {
+        self.save(paths)
+    }
+
+    /// `SavePathDialog._cancel_btn` (and `action_cancel`, Esc).
+    pub fn cancel_btn(&self) -> Dlg<Option<PathBuf>> {
+        Dlg::Done(None)
+    }
+
+    /// `SavePathDialog._note`: the line under the path box.
+    pub fn set_note(&mut self, text: &str) {
+        self.note = text.to_string();
     }
 
     pub fn paste(&mut self, text: &str) {
@@ -179,29 +214,33 @@ impl SavePathDialog {
         }
     }
 
-    /// The path checks before a write.
-    pub fn check(&mut self, paths: &Paths) -> Dlg<Option<PathBuf>> {
+    /// `SavePathDialog._save`: the path checks before a write. The screen
+    /// writes and reports a failure with [`SavePathDialog::failed`].
+    pub fn save(&mut self, paths: &Paths) -> Dlg<Option<PathBuf>> {
         let value = self.input.value();
         let raw = value.trim();
         if raw.is_empty() {
-            self.note = "type a file path".into();
+            self.set_note("type a file path");
             return Dlg::Open;
         }
         let path = paths.abspath(raw);
         let folder = path.parent().map(Path::to_path_buf).unwrap_or_default();
         if path.is_dir() {
-            self.note = format!("{} is a folder: add a file name", path.display());
+            self.set_note(&format!("{} is a folder: add a file name", path.display()));
             return Dlg::Open;
         }
         if !folder.is_dir() {
-            self.note = format!(
+            self.set_note(&format!(
                 "cannot save: the folder {} does not exist",
                 folder.display()
-            );
+            ));
             return Dlg::Open;
         }
         if path.exists() && self.confirm_overwrite.as_ref() != Some(&path) {
-            self.note = format!("{} exists: press Save again to overwrite", path.display());
+            self.set_note(&format!(
+                "{} exists: press Save again to overwrite",
+                path.display()
+            ));
             self.confirm_overwrite = Some(path);
             return Dlg::Open;
         }
@@ -210,7 +249,11 @@ impl SavePathDialog {
 
     pub fn failed(&mut self, path: &Path, e: &std::io::Error) {
         self.confirm_overwrite = None;
-        self.note = format!("cannot save to {}: {}", path.display(), strerror(e));
+        self.set_note(&format!(
+            "cannot save to {}: {}",
+            path.display(),
+            strerror(e)
+        ));
     }
 
     pub fn render(&mut self, area: Rect, buf: &mut Buffer, theme: &Theme) -> Option<Position> {
@@ -283,15 +326,26 @@ impl TextDialog {
             return Dlg::Open;
         }
         match k.code {
-            KeyCode::Esc => Dlg::Done(TextOut::Close),
+            KeyCode::Esc => self.close_btn(),
             KeyCode::Left | KeyCode::Right => {
                 self.focus = 1 - self.focus;
                 Dlg::Open
             }
-            _ if press(k) && self.focus == 0 => Dlg::Done(TextOut::Copy),
-            _ if press(k) => Dlg::Done(TextOut::Close),
+            _ if press(k) && self.focus == 0 => self.copy(),
+            _ if press(k) => self.close_btn(),
             _ => Dlg::Open,
         }
+    }
+
+    /// `TextDialog._copy`: the screen puts [`TextDialog::text`] on the
+    /// clipboard and says so; the dialog stays open.
+    pub fn copy(&self) -> Dlg<TextOut> {
+        Dlg::Done(TextOut::Copy)
+    }
+
+    /// `TextDialog._close_btn` (and `action_close`, Esc).
+    pub fn close_btn(&self) -> Dlg<TextOut> {
+        Dlg::Done(TextOut::Close)
     }
 
     pub fn render(&self, area: Rect, buf: &mut Buffer, theme: &Theme) {
@@ -499,9 +553,19 @@ impl DatePicker {
         out
     }
 
+    /// `DatePickerScreen._time_enter`: Enter in the time box is OK.
+    fn time_enter(&mut self) -> Dlg<Option<Value>> {
+        self.ok()
+    }
+
+    /// `DatePickerScreen._cancel` (and `action_cancel`, Esc).
+    fn cancel(&self) -> Dlg<Option<Value>> {
+        Dlg::Done(None)
+    }
+
     fn key(&mut self, k: &KeyEvent) -> Dlg<Option<Value>> {
         if k.code == KeyCode::Esc {
-            return Dlg::Done(None);
+            return self.cancel();
         }
         if let Some(by) = is_tab(k) {
             let ring = self.ring();
@@ -518,7 +582,7 @@ impl DatePicker {
                 _ => Dlg::Open,
             },
             PickerFocus::Time => match self.time.handle_key(k) {
-                InputEvent::Submitted => self.ok(),
+                InputEvent::Submitted => self.time_enter(),
                 _ => Dlg::Open,
             },
             PickerFocus::Suggest => {
@@ -534,7 +598,7 @@ impl DatePicker {
                 Dlg::Open
             }
             PickerFocus::Ok if press(k) => self.ok(),
-            PickerFocus::Cancel if press(k) => Dlg::Done(None),
+            PickerFocus::Cancel if press(k) => self.cancel(),
             _ => Dlg::Open,
         }
     }
@@ -732,8 +796,117 @@ mod tests {
         assert_eq!(d.focus, 0);
         assert!(d.input.selection().is_some());
         d.input.set_value(" ");
-        assert_eq!(d.check(&paths), Dlg::Open);
+        assert_eq!(d.save(&paths), Dlg::Open);
         assert_eq!(d.note, "type a file path");
+    }
+
+    /// `SavePathDialog._save` / `_enter` / `_save_btn` / `_note`, as a
+    /// Textual pilot of the Python dialog shows them: each check's note,
+    /// Save twice to overwrite, a failed write keeps the dialog open.
+    #[test]
+    fn save_path_enter_and_save_button_check_the_path() {
+        let dir = tempfile::tempdir().expect("tmp");
+        let root = dir.path().to_path_buf();
+        let existing = root.join("a.yaml");
+        std::fs::write(&existing, "").expect("write");
+        let paths = Paths::new(None, root.clone());
+        let mut d = SavePathDialog::new(&existing, "Save draft to");
+        let try_ = |d: &mut SavePathDialog, v: &str, btn: bool| {
+            d.input.set_value(v);
+            let r = if btn {
+                d.save_btn(&paths)
+            } else {
+                d.enter(&paths)
+            };
+            (r, d.note.clone())
+        };
+        assert_eq!(
+            try_(&mut d, " ", false),
+            (Dlg::Open, "type a file path".into())
+        );
+        let root_s = root.display().to_string();
+        assert_eq!(
+            try_(&mut d, &root_s, false),
+            (Dlg::Open, format!("{root_s} is a folder: add a file name"))
+        );
+        let nope = root.join("nope").join("x.yaml");
+        assert_eq!(
+            try_(&mut d, &nope.display().to_string(), false),
+            (
+                Dlg::Open,
+                format!(
+                    "cannot save: the folder {} does not exist",
+                    root.join("nope").display()
+                )
+            )
+        );
+        let ex = existing.display().to_string();
+        assert_eq!(
+            try_(&mut d, &ex, false),
+            (
+                Dlg::Open,
+                format!("{ex} exists: press Save again to overwrite")
+            )
+        );
+        assert_eq!(try_(&mut d, &ex, true).0, Dlg::Done(Some(existing.clone())));
+
+        let b = root.join("b.yaml");
+        let mut d = SavePathDialog::new(&b, "Save draft to");
+        assert_eq!(d.enter(&paths), Dlg::Done(Some(b.clone())));
+        d.failed(&b, &std::io::Error::from_raw_os_error(13));
+        assert_eq!(
+            d.note,
+            format!("cannot save to {}: Permission denied", b.display())
+        );
+        d.set_note("x");
+        assert_eq!(d.note, "x");
+        assert_eq!(d.cancel_btn(), Dlg::Done(None));
+        assert_eq!(d.handle_key(&parse_key("escape"), &paths), Dlg::Done(None));
+    }
+
+    /// `ConfirmDialog._pressed` / `action_yes` / `action_no`: a click on
+    /// Discard is `True`, on Keep editing `False`; `y` yes, Esc no; Enter
+    /// on the first focus (No) is `False`.
+    #[test]
+    fn confirm_buttons_and_actions() {
+        let mut c = ConfirmDialog::new("Discard?", "Discard", "Keep editing");
+        assert_eq!(c.pressed(), Dlg::Done(false));
+        c.focus = 0;
+        assert_eq!(c.pressed(), Dlg::Done(true));
+        assert_eq!(c.action_yes(), Dlg::Done(true));
+        assert_eq!(c.action_no(), Dlg::Done(false));
+    }
+
+    /// `TextDialog._copy` keeps the dialog open (the screen copies);
+    /// `_close_btn` closes it.
+    #[test]
+    fn text_dialog_copy_and_close_buttons() {
+        let t = TextDialog::new("Equivalent command", "fsv x", "");
+        assert!(matches!(t.copy(), Dlg::Done(TextOut::Copy)));
+        assert!(matches!(t.close_btn(), Dlg::Done(TextOut::Close)));
+    }
+
+    /// `DatePickerScreen._time_enter`: Enter in the time box is OK (19:00
+    /// Tokyo), and an unreadable time keeps the picker open with its
+    /// error. `_cancel` is `None`.
+    #[test]
+    fn picker_time_enter_and_cancel() {
+        let mut p = picker(false);
+        p.time.set_value("19:00");
+        match p.time_enter() {
+            Dlg::Done(Some(Value::DateTime(d))) => {
+                assert_eq!(d.local, jiff::civil::date(2030, 11, 26).at(19, 0, 0, 0));
+                assert_eq!(d.offset, jiff::tz::Offset::constant(9));
+            }
+            other => panic!("{other:?}"),
+        }
+        p.focus = PickerFocus::Time;
+        p.time.set_value("25:00");
+        assert_eq!(p.handle_key(&parse_key("enter")), Dlg::Open);
+        assert_eq!(p.preview, "'25:00' is not a time of day");
+        assert_eq!(p.cancel(), Dlg::Done(None));
+        p.focus = PickerFocus::Cancel;
+        assert_eq!(p.handle_key(&parse_key("enter")), Dlg::Done(None));
     }
 
     /// `ConfirmDialog`: `y` is Discard, Esc keeps editing, arrows move.

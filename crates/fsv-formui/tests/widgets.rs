@@ -418,7 +418,9 @@ fn date_editor_previews_keeps_errors_and_opens_the_calendar() {
 }
 
 /// `DateEditor.set_value` from the calendar: the text, then the value.
-/// An ambiguous wall time keeps its offset (`when._no_dst_doubt`).
+/// A wall time the zone cannot place alone (ambiguous at either offset,
+/// or skipped) keeps its offset (`when._no_dst_doubt` is `False` for all
+/// three in Python); a placeable one only when the offset differs.
 #[test]
 fn date_editor_set_value_writes_the_calendar_pick() {
     let api = Arc::new(FakeApi::default());
@@ -438,9 +440,24 @@ fn date_editor_set_value_writes_the_calendar_pick() {
             "2031-10-26 02:30 +01:00",
         ),
         (
+            jiff::civil::date(2031, 10, 26).at(2, 30, 0, 0),
+            2,
+            "2031-10-26 02:30 +02:00",
+        ),
+        (
+            jiff::civil::date(2031, 3, 30).at(2, 30, 0, 0),
+            1,
+            "2031-03-30 02:30 +01:00",
+        ),
+        (
             jiff::civil::date(2031, 7, 1).at(9, 15, 0, 0),
             2,
             "2031-07-01 09:15",
+        ),
+        (
+            jiff::civil::date(2031, 7, 1).at(9, 15, 0, 0),
+            9,
+            "2031-07-01 09:15 +09:00",
         ),
     ] {
         let v = Value::DateTime(DateTimeValue::new(

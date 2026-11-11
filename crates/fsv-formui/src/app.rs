@@ -11,7 +11,7 @@ use crossterm::terminal::{
     EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
 };
 use ratatui::Terminal;
-use ratatui::backend::CrosstermBackend;
+use ratatui::backend::{Backend, CrosstermBackend};
 
 use crate::kit::Theme;
 use crate::kit::draw::Severity;
@@ -81,42 +81,76 @@ pub fn run_form(session: FormSession, theme: Theme) -> io::Result<FormResult> {
         restore();
         prev(info);
     }));
-    let result = event_loop(session, theme);
+    let result = Terminal::new(CrosstermBackend::new(io::stdout())).and_then(|mut terminal| {
+        let screen = FormScreen::new(session, theme);
+        let start = Instant::now();
+        event_loop(
+            &mut terminal,
+            screen,
+            || start.elapsed(),
+            |wait| {
+                if event::poll(wait)? {
+                    event::read().map(Some)
+                } else {
+                    Ok(None)
+                }
+            },
+            copy_to_clipboard,
+        )
+    });
     restore();
     let _ = std::panic::take_hook();
     result
 }
 
-fn event_loop(session: FormSession, theme: Theme) -> io::Result<FormResult> {
-    let mut terminal = Terminal::new(CrosstermBackend::new(io::stdout()))?;
-    let mut screen = FormScreen::new(session, theme);
-    let start = Instant::now();
+fn to_io<E: std::error::Error + Send + Sync + 'static>(e: E) -> io::Error {
+    let b: Box<dyn std::error::Error + Send + Sync> = Box::new(e);
+    match b.downcast::<io::Error>() {
+        Ok(e) => *e,
+        Err(b) => io::Error::other(b),
+    }
+}
+
+/// The loop behind [`run_form`]: `next_event(wait)` is `None` when `wait`
+/// passed without input.
+fn event_loop<B: Backend>(
+    terminal: &mut Terminal<B>,
+    mut screen: FormScreen,
+    elapsed: impl Fn() -> Duration,
+    mut next_event: impl FnMut(Duration) -> io::Result<Option<Event>>,
+    mut clipboard: impl FnMut(&str),
+) -> io::Result<FormResult>
+where
+    B::Error: Send + Sync + 'static,
+{
     loop {
-        screen.tick(start.elapsed());
+        screen.tick(elapsed());
         if let Some(text) = screen.take_clipboard() {
-            copy_to_clipboard(&text);
+            clipboard(&text);
         }
         if screen.done().is_some() {
             break;
         }
-        terminal.draw(|f| {
-            let area = f.area();
-            if let Some(p) = screen.render(area, f.buffer_mut()) {
-                f.set_cursor_position(p);
-            }
-        })?;
-        let now = start.elapsed();
+        terminal
+            .draw(|f| {
+                let area = f.area();
+                if let Some(p) = screen.render(area, f.buffer_mut()) {
+                    f.set_cursor_position(p);
+                }
+            })
+            .map_err(to_io)?;
+        let now = elapsed();
         let mut wait = screen
             .next_deadline()
             .map_or(Duration::from_millis(250), |d| d.saturating_sub(now));
         if screen.busy() {
             wait = wait.min(Duration::from_millis(30));
         }
-        if !event::poll(wait.max(Duration::from_millis(1)))? {
+        let Some(ev) = next_event(wait.max(Duration::from_millis(1)))? else {
             continue;
-        }
-        screen.tick(start.elapsed());
-        match event::read()? {
+        };
+        screen.tick(elapsed());
+        match ev {
             Event::Key(k) if k.kind != KeyEventKind::Release => {
                 let ctrl = k.modifiers.contains(KeyModifiers::CONTROL);
                 match k.code {
@@ -140,6 +174,87 @@ fn event_loop(session: FormSession, theme: Theme) -> io::Result<FormResult> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// `form_available`: the environment and both streams being terminals.
+    #[test]
+    fn form_available_reads_env_and_ttys() {
+        let no_form = std::env::var_os("FSV_NO_FORM").is_some_and(|v| !v.is_empty());
+        let term = std::env::var("TERM").ok();
+        let tty = io::stdin().is_terminal() && io::stdout().is_terminal();
+        assert_eq!(
+            form_available(),
+            form_available_in(no_form, term.as_deref(), tty)
+        );
+    }
+
+    /// The `run_form` loop on a test terminal: the result and the last frame.
+    fn run(events: Vec<Event>) -> (io::Result<FormResult>, String) {
+        let (_acme, session) = crate::acme::acme();
+        let screen = FormScreen::with_workers(
+            session,
+            Theme::textual_dark(),
+            crate::kit::WorkersMode::Inline,
+        );
+        let mut terminal =
+            Terminal::new(ratatui::backend::TestBackend::new(120, 40)).expect("terminal");
+        let mut events = std::collections::VecDeque::from(events);
+        let r = event_loop(
+            &mut terminal,
+            screen,
+            || Duration::ZERO,
+            |_| {
+                events
+                    .pop_front()
+                    .map(Some)
+                    .ok_or_else(|| io::Error::other("no more events"))
+            },
+            |_| {},
+        );
+        let text = crate::kit::draw::buffer_text(terminal.backend().buffer());
+        (r, text)
+    }
+
+    fn key(name: &str) -> Event {
+        Event::Key(crate::kit::parse_key(name))
+    }
+
+    /// `run_form`: the first Esc closes the requester list, the second
+    /// cancels the untouched form, without a plan.
+    #[test]
+    fn run_form_loop_cancels_an_untouched_form() {
+        let (r, text) = run(vec![key("escape"), key("escape")]);
+        let r = r.expect("result");
+        assert_eq!(r.action, crate::screen::Action::Cancel);
+        assert!(r.plan.is_none());
+        assert!(text.contains("New Change"));
+    }
+
+    /// Ctrl+C only tells how to quit; Ctrl+Q quits; key releases and paste
+    /// reach the screen as in Textual (releases ignored).
+    #[test]
+    fn run_form_loop_ctrl_c_hints_and_ctrl_q_quits() {
+        let mut release = crate::kit::parse_key("escape");
+        release.kind = KeyEventKind::Release;
+        let (r, text) = run(vec![
+            Event::Key(release),
+            key("ctrl+c"),
+            Event::Paste("Ma".into()),
+            key("ctrl+q"),
+        ]);
+        assert_eq!(r.expect("result").action, crate::screen::Action::Cancel);
+        assert!(text.contains("Press ctrl+q to quit the app"), "{text}");
+        assert!(matches!(
+            run(vec![]).0,
+            Err(e) if e.to_string() == "no more events"
+        ));
+    }
+
+    #[test]
+    fn to_io_keeps_an_io_error() {
+        let e = to_io(io::Error::new(io::ErrorKind::BrokenPipe, "gone"));
+        assert_eq!(e.kind(), io::ErrorKind::BrokenPipe);
+        assert_eq!(to_io(std::fmt::Error).kind(), io::ErrorKind::Other);
+    }
 
     #[test]
     fn availability() {

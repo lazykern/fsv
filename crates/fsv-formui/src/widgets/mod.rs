@@ -305,6 +305,43 @@ impl FieldRow {
     }
 }
 
+/// An editor context over the Acme session (unit tests).
+#[cfg(test)]
+pub(crate) struct TestCx {
+    pub s: FormSession,
+    pub timers: Timers<TimerId>,
+    pub out: Vec<EdMsg>,
+}
+
+#[cfg(test)]
+impl TestCx {
+    pub fn new() -> Self {
+        TestCx {
+            s: crate::acme::acme().1,
+            timers: Timers::default(),
+            out: vec![],
+        }
+    }
+
+    pub fn item(&self, key: &str) -> FormItem {
+        self.s.item(key).expect("item").clone()
+    }
+
+    pub fn cx<R>(&mut self, f: impl FnOnce(&mut EdCx<'_>) -> R) -> R {
+        let mut cx = EdCx {
+            session: &self.s,
+            now: Duration::ZERO,
+            timers: &mut self.timers,
+            out: &mut self.out,
+        };
+        f(&mut cx)
+    }
+
+    pub fn take(&mut self) -> Vec<EdMsg> {
+        std::mem::take(&mut self.out)
+    }
+}
+
 /// `#row-<key>` id (non `[A-Za-z0-9_-]` → `_`).
 pub fn safe_id(key: &str) -> String {
     key.chars()

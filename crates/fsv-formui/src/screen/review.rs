@@ -295,11 +295,21 @@ impl ReviewState {
         self.show_payload = !self.show_payload;
     }
 
+    /// `ReviewScreen.action_back` (Esc, Back to edit).
+    pub fn action_back(&self) -> ReviewAction {
+        ReviewAction::Back
+    }
+
+    /// `ReviewScreen._cancel` (the Cancel button).
+    pub fn cancel(&self) -> ReviewAction {
+        ReviewAction::Cancel
+    }
+
     pub fn handle_key(&mut self, k: &KeyEvent) -> Option<ReviewAction> {
         let ctrl = k.modifiers.contains(KeyModifiers::CONTROL);
         match k.code {
             KeyCode::Char('s') if ctrl => return Some(self.action_submit()),
-            KeyCode::Esc => return Some(ReviewAction::Back),
+            KeyCode::Esc => return Some(self.action_back()),
             KeyCode::F(4) => return Some(ReviewAction::Save),
             KeyCode::F(6) => return Some(self.action_command()),
             KeyCode::F(7) => self.action_payload(),
@@ -330,10 +340,10 @@ impl ReviewState {
                 return Some(match self.focus {
                     ReviewFocus::Ack => ReviewAction::ToggleAck,
                     ReviewFocus::Submit => self.action_submit(),
-                    ReviewFocus::Back => ReviewAction::Back,
+                    ReviewFocus::Back => self.action_back(),
                     ReviewFocus::Save => ReviewAction::Save,
                     ReviewFocus::Command => self.action_command(),
-                    ReviewFocus::Cancel => ReviewAction::Cancel,
+                    ReviewFocus::Cancel => self.cancel(),
                 });
             }
             _ => {}
@@ -567,5 +577,57 @@ mod tests {
         r.refocus();
         assert_eq!(r.focus, ReviewFocus::Back);
         assert_eq!(ReviewState::submit_label(&session), "Create");
+        assert_eq!(r.action_back(), ReviewAction::Back);
+        assert_eq!(r.cancel(), ReviewAction::Cancel);
+        r.focus = ReviewFocus::Cancel;
+        assert_eq!(
+            r.handle_key(&crate::kit::parse_key("enter")),
+            Some(ReviewAction::Cancel)
+        );
+        assert_eq!(
+            r.handle_key(&crate::kit::parse_key("escape")),
+            Some(ReviewAction::Back)
+        );
+    }
+
+    fn plain(lines: &[Line<'_>]) -> Vec<String> {
+        lines
+            .iter()
+            .map(|l| cells(l).into_iter().map(|c| c.0).collect())
+            .collect()
+    }
+
+    /// `ReviewScreen._refresh_review`: the review, and under it (F7) the
+    /// payload as `json.dumps(indent=2, ensure_ascii=False)`, or the
+    /// no-payload line while the plan has problems.
+    #[test]
+    fn refresh_review_body_shows_the_payload_when_asked() {
+        let theme = Theme::textual_dark();
+        let plan = Plan {
+            review: Review::new("New Change"),
+            payload: Some(serde_json::json!({"subject": "Mail ✓", "tags": [], "n": 1})),
+            ..Plan::default()
+        };
+        let (_acme, session) = crate::acme::acme();
+        let mut r = ReviewState::new(plan, &session);
+        let review = plain(&review_lines(&r.plan.review, 60));
+        assert_eq!(plain(&r.body(60, &theme)), review);
+        r.action_payload();
+        let body = plain(&r.body(60, &theme));
+        assert_eq!(body[..review.len()], review[..]);
+        assert_eq!(
+            body[review.len()..],
+            [
+                "Payload",
+                "{",
+                "  \"subject\": \"Mail ✓\",",
+                "  \"tags\": [],",
+                "  \"n\": 1",
+                "}"
+            ]
+        );
+        r.plan.errors.push("Subject is required".into());
+        let body = plain(&r.body(60, &theme));
+        assert_eq!(body.last().map(String::as_str), Some(NO_PAYLOAD));
     }
 }
