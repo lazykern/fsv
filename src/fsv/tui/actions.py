@@ -38,7 +38,8 @@ def can_change_status(resource: Resource) -> bool:
 
 
 def can_note(resource: Resource) -> bool:
-    return resource.name in ("tickets", "changes", "problems") and resource.has_notes
+    # Ticket notes have a reviewed sender; do not alter conversation resource flags.
+    return resource.name == "tickets" or resource.name in ("changes", "problems") and resource.has_notes
 
 
 def can_reply(resource: Resource) -> bool:
@@ -78,7 +79,7 @@ def status_plan(resource: Resource, item: dict[str, Any], schema: dict[str, Any]
     return ConfirmPlan("Confirm status change", lines, risks)
 
 
-def note_plan(resource: Resource, public: bool, reply: bool) -> ConfirmPlan | None:
+def note_plan(resource: Resource, public: bool, reply: bool) -> ConfirmPlan:
     """Every write, including private notes, needs explicit review."""
     risks = safety.reply_risks() if reply else safety.note_risks(public)
     title = "Confirm reply" if reply else "Confirm public note" if public else "Confirm private note"
@@ -90,6 +91,8 @@ def apply_status(resource: Resource, item_id: int, new_id: Any) -> dict[str, Any
 
 
 def apply_note(resource: Resource, item_id: int, body: str, public: bool) -> dict[str, Any]:
+    if resource.name == "tickets":
+        raise ValueError("Ticket notes require the reviewed ticket-note sender")
     return service.add_note(resource, item_id, body, public=public)
 
 
@@ -169,6 +172,7 @@ def download_choices(client: Any, resource: Resource, item: dict) -> tuple[list[
     warnings = page.notes()
     items = page.requested_items or []
     rows = _attachment_rows(page.record, items, [{} for _ in items])
+    rows.extend({**a, "source": "cloud file"} for a in page.record.get("cloud_files") or [] if isinstance(a, dict))
     for row in rows:
         row.setdefault("source", "request")
     if resource.name == "changes":

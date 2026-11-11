@@ -2260,6 +2260,8 @@ class FsvApp(App):
             return
         choices = []
         for row in rows:
+            if warnings:
+                row = {**row, "_inventory_warnings": list(map(str, warnings))}
             identity = row.get("human_display_id") or row.get("display_id") or row.get("id")
             label = row.get("title") or row.get("subject") or row.get("name") or row.get("filename") or "attachment"
             choices.append((row, f"{identity}: {label} {row.get('source', '')}"))
@@ -2323,6 +2325,7 @@ class FsvApp(App):
                  f"Source: {target.get('source', 'request')}. Existing files are skipped; no overwrite."]
         if "_before" in target:
             lines.insert(3, "Before: " + json.dumps(target["_before"], ensure_ascii=False))
+        lines.extend(target.get("_inventory_warnings", []))
         self.push_screen(ConfirmScreen(f"Confirm {kind}", lines),
                          lambda ok: self._execute_action(kind, item, target, body) if ok else None)
 
@@ -2411,18 +2414,18 @@ class FsvApp(App):
         if not ok:
             self.notify("Not available for this item type", severity="warning")
             return
-        item = self._selected
-        # ticket notes go through the default visibility; public replies use `r`
-        screen = NoteScreen(self._target_label(res), reply=reply, can_toggle=res.name != "tickets")
+        item = dict(self._selected or {})
+        # Ticket notes use the reviewed sender; public replies remain separate.
+        screen = NoteScreen(self._target_label(res), reply=reply, can_toggle=True)
 
         def composed(result) -> None:
             if not result:
                 return
             body, public = result
-            plan = actions.note_plan(res, public, reply)
-            if plan is None:
-                self._do_write("reply" if reply else "note", res, item, body, public)
+            if res == TICKETS and not reply:
+                self._review_ticket_note(item, body, public)
                 return
+            plan = actions.note_plan(res, public, reply)
 
             def confirmed(ok2: bool | None) -> None:
                 if ok2:
@@ -2432,6 +2435,51 @@ class FsvApp(App):
             self.push_screen(ConfirmScreen(plan.title, plan.lines + preview), confirmed)
 
         self.push_screen(screen, composed)
+
+    def _review_ticket_note(self, item: dict, body: str, public: bool) -> None:
+        from fsv import ticket_notes
+        if self.read_only:
+            return
+        try:
+            plan = ticket_notes.build_plan(item.get("display_id") or item["id"], body, public=public,
+                                           notify_emails=[], body_format="plain")
+            review = json.dumps(plan.review(), ensure_ascii=False, indent=2)
+        except Exception as exc:
+            self._show_failure(str(exc))
+            return
+
+        def reviewed(ok):
+            if not ok:
+                return
+            if plan.public:
+                self.push_screen(ConfirmScreen("Confirm PUBLIC visibility", [
+                    "This is a public note visible to the customer, not a reply.",
+                    "No explicit notification recipients. Tenant workflows may still notify people."]),
+                    lambda confirmed: self._send_ticket_note(plan, True) if confirmed else None)
+            else:
+                self._send_ticket_note(plan, False)
+        self.push_screen(ConfirmScreen("Review exact ticket note", [review]), reviewed)
+
+    @work(thread=True, group="write")
+    def _send_ticket_note(self, plan: Any, public_confirmed: bool) -> None:
+        from fsv import ticket_notes
+        if self.read_only:
+            return
+        try:
+            result = ticket_notes.send(plan, get_client(), reviewed_hash=plan.hash,
+                                       public_confirmed=public_confirmed, read_only=self.read_only)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+            return
+        if not result.get("verified"):
+            self.call_from_thread(self._show_failure,
+                                  f"Note ID {result.get('note_id')} submitted; readback unverified.\n{result.get('warning', '')}\nDo not resend.")
+            return
+        item = {"id": plan.ticket_id, "display_id": plan.ticket_id, "_resource": TICKETS}
+        selected = self._selected
+        if selected and selected.get("_resource", TICKETS) == TICKETS and (selected.get("display_id") or selected.get("id")) == plan.ticket_id:
+            item = selected
+        self.call_from_thread(self._after_write, TICKETS, item, f"Note {result.get('note_id')} verified")
 
     @work(thread=True, group="write")
     def _do_write(self, kind: str, res: Resource, item: dict, arg: Any, extra: Any) -> None:
@@ -2459,7 +2507,7 @@ class FsvApp(App):
         self._detail_cache.pop(prefix, None)
         for k in [k for k in self._sub_cache if k.startswith(prefix + ":")]:
             self._sub_cache.pop(k, None)
-        if self._selected and self._selected.get("id") == item.get("id"):
+        if self._selected and self._selected.get("id") == item.get("id") and self._selected.get("_resource", TICKETS) == res:
             key = self._item_key(item, res)
             self._pending_detail_key = key
             self._load_detail(item, key)
