@@ -20,11 +20,14 @@ from fsv.forms import (
 )
 
 CF = acme_forms.CF
+LEGACY_ENGINE = {"populate": "set", "event_scope": "referenced", "event_reverse": "transition"}
 
 
 def engine(spec: FormSpec, rules=None, **kw) -> RulesEngine:
     kw.setdefault("module", "change")
     kw.setdefault("workspace_id", 2)
+    for k, v in LEGACY_ENGINE.items():  # earlier semantics; defaults are covered in test_forms_restrict.py
+        kw.setdefault(k, v)
     return RulesEngine(spec, rules if rules is not None else acme_forms.ops_rules(), **kw)
 
 

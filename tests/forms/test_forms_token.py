@@ -27,7 +27,8 @@ CF = acme_forms.CF
 
 
 def ops_state(spec: FormSpec, rules=None, **values) -> FormState:
-    eng = RulesEngine(spec, rules if rules is not None else acme_forms.ops_rules(), module="change", workspace_id=2)
+    eng = RulesEngine(spec, rules if rules is not None else acme_forms.ops_rules(), module="change", workspace_id=2,
+                      populate="set", event_scope="referenced", event_reverse="transition")
     return FormState(spec, eng, values=values)
 
 

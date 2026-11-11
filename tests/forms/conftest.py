@@ -8,6 +8,13 @@ import acme_forms
 from fsv.forms import FormSpec, FormState, LookupValue, RulesEngine
 
 
+# The suites built on these fixtures predate the current defaults
+# (populate="restrict", every rule re-run on every change, reverse always);
+# they pin the earlier event semantics, which stay supported as options. The
+# defaults are covered in test_forms_restrict.py.
+LEGACY_ENGINE = {"populate": "set", "event_scope": "referenced", "event_reverse": "transition"}
+
+
 class FakeResolver:
     """In-memory LookupResolver: substring search over a fixed directory."""
 
@@ -43,7 +50,7 @@ def ops_spec() -> FormSpec:
 
 @pytest.fixture
 def ops_engine(ops_spec: FormSpec) -> RulesEngine:
-    return RulesEngine(ops_spec, acme_forms.ops_rules(), module="change", workspace_id=2)
+    return RulesEngine(ops_spec, acme_forms.ops_rules(), module="change", workspace_id=2, **LEGACY_ENGINE)
 
 
 @pytest.fixture
@@ -53,7 +60,7 @@ def change_spec() -> FormSpec:
 
 @pytest.fixture
 def change_rules(change_spec: FormSpec) -> RulesEngine:
-    return RulesEngine(change_spec, acme_forms.change_rules(), module="change")
+    return RulesEngine(change_spec, acme_forms.change_rules(), module="change", **LEGACY_ENGINE)
 
 
 @pytest.fixture

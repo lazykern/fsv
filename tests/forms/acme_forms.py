@@ -435,3 +435,104 @@ def ops_rules() -> dict[str, Any]:
     user = {"first_name": "Robin", "last_name": "Ops", "email": "robin.ops@example.com",
             "department_ids": [9000005002], "time_zone": "Tokyo"}
     return {"business_rules": rules, "user": user}
+
+
+# ---------------------------------------------------------------------------
+# populate = restrict the choices (the web's behaviour), and ticket rules.
+
+
+def restrict_rules() -> dict[str, Any]:
+    """Change-form rules whose populate actions limit the Stage choices.
+
+    "Cloud only yes" (reversible) offers only Live; "Cloud only no"
+    (non-reversible) only Staging; "Hide review scope always" (reversible,
+    never matches) re-shows Review Scope on every change in the default model.
+    """
+    rules = [
+        _rule(31, "Staging stage", {"all": [_c(CF + "stage", "is", "Staging")]},
+              [_a("hide", [CF + "review_scope"])], rev=False),
+        _rule(32, "Cloud only yes", {"all": [_c(CF + "cloud_only", "is", "Yes")]},
+              [_a("populate", [CF + "stage"], [801])]),
+        _rule(33, "Cloud only no", {"all": [_c(CF + "cloud_only", "is", "No")]},
+              [_a("populate", [CF + "stage"], [802])], rev=False),
+        _rule(34, "Labs hides review scope", {"all": [_c(CF + "team", "is", "Labs")]},
+              [_a("hide", [CF + "review_scope"])]),
+        _rule(35, "Hardware only", {"all": [_c(CF + "team", "is", "Platform")]},
+              [_a("populate", ["category"], [{"display_id": 1, "nested_options": [
+                  {"display_id": 2, "nested_options": None}]}])], rev=False),
+    ]
+    return {"business_rules": rules, "user": {"first_name": "Test", "last_name": "Agent"}}
+
+
+TICKET_ACCOUNT = "900000888"
+PORTAL = "9000006001"
+
+
+def ticket_internal_fields() -> dict[str, Any]:
+    """``/api/_/ticket_form_fields``-shaped: display ids, nested custom field
+    with one lower level, a section, an orphan section child, and a lookup
+    link carrying the account id."""
+    def tf(i: int, name: str, label: str, ftype: str, pos: int, **kw: Any) -> dict[str, Any]:
+        out = {"id": i, "name": name, "label": label, "field_type": ftype, "position": pos,
+               "default_field": ftype.startswith("default_"), "required_for_agents": kw.pop("required", False),
+               "displayed_to_agents": True, "choices": kw.pop("choices", []), "nested_fields": kw.pop("nested", []),
+               "sections": kw.pop("sections", []), "belongs_to_section": kw.pop("in_section", False),
+               "lookup_config": kw.pop("lookup_config", None)}
+        out.update(kw)
+        return out
+
+    ch = lambda i, did, v, kids=None: {"id": i, "display_id": did, "value": v, "label": v,  # noqa: E731
+                                       **({"nested_options": kids} if kids is not None else {})}
+    return {"ticket_fields": [
+        tf(9000007001, "requester", "Requester", "default_requester", 1, required=True),
+        tf(9000007002, "subject", "Subject", "default_subject", 2),
+        tf(9000007003, "symptom", "Symptom", "nested_field", 3,
+           choices=[ch(9000007101, 1, "Cannot log in", [ch(9000007102, 2, "VPN", []), ch(9000007103, 3, "Mail", [])]),
+                    ch(9000007104, 4, "Slow", [ch(9000007105, 5, "Laptop", [])]),
+                    ch(9000007106, 6, "Other", [])],
+           nested=[{"name": "symptom_system", "id": 9000007201, "label": "System", "level": 2}]),
+        tf(9000007004, "priority", "Priority", "default_priority", 4,
+           choices=[{"id": 1, "value": "Low"}, {"id": 2, "value": "Medium"}]),
+        tf(9000007005, "request_item", "Request Item", "custom_dropdown", 5,
+           choices=[ch(9000007301, 31, "Access"), ch(9000007302, 32, "Delivery")],
+           sections=[{"id": 9000007401, "label": "Delivery", "choice_ids": [9000007302],
+                      "ticket_field_ids": [9000007006]}]),
+        tf(9000007006, "delivery_team", "Delivery Team", "nested_field", 6, in_section=True, required=True,
+           choices=[ch(9000007501, 51, "Apps", [ch(9000007502, 52, "Web", [])])],
+           nested=[{"name": "delivery_squad", "id": 9000007202, "label": "Squad", "level": 2}]),
+        tf(9000007007, "orphan_note", "Orphan Note", "custom_text", 7, in_section=True),
+        tf(9000007008, "attachment_check", "Attachment Check", "custom_dropdown", 8,
+           choices=[ch(9000007601, 61, "Yes"), ch(9000007602, 62, "No")]),
+        tf(9000007009, "owner", "Owner", "custom_lookup", 9,
+           lookup_config={"data_source": 5,
+                          "link": f"/lookup_choices?field_name=owner_{TICKET_ACCOUNT}&module=ticket"}),
+        tf(9000007010, "description", "Description", "default_description", 10),
+    ], "meta": {}}
+
+
+def ticket_rules() -> dict[str, Any]:
+    """Ticket rules as ``ember_api=true`` returns them (already filtered by
+    the server for the context)."""
+    portal = {"name": "portal", "value": PORTAL, "operator": "is", "evaluate_on": "system"}
+    rules = [
+        _rule(9000008001, "Agent portal: hide planning", {"all": [portal]},
+              [_a("hide", ["priority", CF + "delivery_team"]),
+               _a("populate", [CF + "symptom"], [{"display_id": 1, "nested_options": [
+                   {"display_id": 2, "nested_options": None}]}, {"display_id": 6, "nested_options": None}])],
+              rev=False, module_type="ticket", form="new_form", user="agent"),
+        _rule(9000008002, "Agent portal: lock check", {"all": [portal]},
+              [_a("disable", [CF + "attachment_check"])], module_type="ticket", user="agent"),
+        _rule(9000008003, "Slow: show priority", {"all": [_c(CF + "symptom", "is", "Slow")]},
+              [_a("show", ["priority"]), _a("mandate", ["priority"]), _a("hide", ["description_html"])],
+              rev=False, module_type="ticket"),
+    ]
+    return {"business_rules": rules, "user": {"first_name": "Robin", "last_name": "Desk",
+                                              "email": "robin.desk@example.com", "time_zone": "UTC"}}
+
+
+def business_rules_listing() -> dict[str, Any]:
+    """The plain ``GET .../business_rules`` listing: no conditions or actions."""
+    return {"business_rule": [{"id": 9000008001, "name": "Agent portal: hide planning", "workspace_id": 2,
+                               "module_type": "ticket", "item_id": None, "deleted": False, "user_type": "agent",
+                               "form_type": "new_form", "state": "active", "rule_type": "client_side",
+                               "position": 1, "is_clonable": True}]}

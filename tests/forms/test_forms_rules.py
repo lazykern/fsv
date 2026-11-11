@@ -50,7 +50,7 @@ def test_is_with_reversible_show_and_populate(change_rules: RulesEngine) -> None
 
 
 def test_later_rule_overrides_earlier_replay_model(change_spec: FormSpec) -> None:
-    eng = RulesEngine(change_spec, acme_forms.change_rules(), module="change", model="replay")
+    eng = RulesEngine(change_spec, acme_forms.change_rules(), module="change", model="replay", populate="set")
     # rule 2 (Live: hide staging dates) runs before rule 5 (Cloud no: show)
     e = ev(eng, cloud_only="No", stage="Live")
     assert e.is_visible("staging_start") and e.is_required("staging_start")
