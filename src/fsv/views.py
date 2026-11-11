@@ -604,19 +604,25 @@ class ListPage:
 
 
 def list_meta(data: Mapping[str, Any], items: Sequence[Any], page: int, per_page: int) -> tuple[int | None, bool]:
-    meta = data.get("meta") if isinstance(data.get("meta"), Mapping) else {}
+    raw_meta = data.get("meta")
+    meta = raw_meta if isinstance(raw_meta, Mapping) else {}
     total = meta.get("total_count", meta.get("count", data.get("total")))
     has_next = meta.get("has_next")
     if has_next is None:
         has_next = meta.get("has_more")
     if has_next is None:
-        has_next = len(items) >= per_page
+        has_next = data.get("has_next", data.get("has_more"))
+    if has_next is None and ("next_page_url" in data or "next_page_url" in meta):
+        has_next = bool(data.get("next_page_url", meta.get("next_page_url")))
     try:
         total = int(total) if total is not None else None
     except (TypeError, ValueError):
         total = None
     if total is not None and total < len(items) + (page - 1) * per_page:
         total = None
+    if has_next is None:
+        has_next = ((page - 1) * per_page + len(items) < total if total is not None
+                    else len(items) >= per_page)
     return total, bool(has_next)
 
 
@@ -912,6 +918,110 @@ def load_properties(c: Any, res: Resource, record: Mapping[str, Any], schema: Ma
 # ticket parts
 
 
+MAX_DETAIL_PAGES = 50
+
+
+def collect_pages(c: Any, path: str, key: str, params: Mapping[str, Any] | None = None,
+                  *, what: str = "", max_pages: int = MAX_DETAIL_PAGES
+                  ) -> tuple[list[dict[str, Any]], dict[str, Any], Missing | None]:
+    """Bounded internal reads; retain rows and continuation on interrupted history.
+
+    Explicit server pagination wins over page length. Continuation URLs supply
+    query parameters only: never follow another endpoint or API family.
+    """
+    from urllib.parse import parse_qsl, urlsplit
+
+    request = dict(params or {})
+    rows: list[dict[str, Any]] = []
+    meta: dict[str, Any] = {}
+    seen_requests: set[str] = set()
+    seen_ids: set[str] = set()
+    failure: Missing | None = None
+    reason = ""
+    complete = False
+    pages = 0
+    for _ in range(max_pages):
+        signature = repr(sorted((k, str(v)) for k, v in request.items()))
+        if signature in seen_requests:
+            reason = "continuation cycle"
+            break
+        seen_requests.add(signature)
+        data, miss = optional_get(c, path, request or None, what or key)
+        if miss:
+            failure = miss
+            reason = miss.note
+            break
+        if not isinstance(data, (Mapping, list)) or (isinstance(data, Mapping) and not isinstance(data.get(key), list)):
+            reason = "unreadable page response"
+            failure = Missing(what or key)
+            break
+        batch = _rows(data, key)
+        pages += 1
+        for row in batch:
+            identity = str(row["id"]) if row.get("id") is not None else None
+            if identity is None or identity not in seen_ids:
+                rows.append(row)
+                if identity is not None:
+                    seen_ids.add(identity)
+        raw = data if isinstance(data, Mapping) else {}
+        raw_meta = raw.get("meta")
+        page_meta = raw_meta if isinstance(raw_meta, Mapping) else {}
+        meta.update(page_meta)
+        flag = next((source[k] for source in (page_meta, raw) for k in ("has_next", "has_more")
+                     if source.get(k) is not None), None)
+        link_present = "next_page_url" in raw or "next_page_url" in page_meta
+        link = raw.get("next_page_url", page_meta.get("next_page_url"))
+        cursor = raw.get("next_start_token", page_meta.get("next_start_token"))
+        cursor = cursor or raw.get("next_cursor", page_meta.get("next_cursor"))
+        if flag is None and not link_present and not cursor:
+            try:
+                total = int(page_meta.get("total_count", page_meta.get("count")))
+            except (TypeError, ValueError):
+                total = None
+            if total is not None:
+                offset = (int((params or {}).get("page", 1)) - 1) * int((params or {}).get("per_page", 0))
+                flag = offset + len(rows) < total
+                if flag and not batch:
+                    reason = "empty page before reported total"
+                    break
+        if flag is False or (link_present and not link and not cursor):
+            complete = True
+            break
+        if link:
+            parsed = urlsplit(str(link))
+            if parsed.path and parsed.path.rstrip("/") not in (path.rstrip("/"), f"/api/_/{path.strip('/')}"):
+                reason = "unsupported continuation endpoint"
+                break
+            following = dict(parse_qsl(parsed.query, keep_blank_values=True))
+            if not following:
+                reason = "unreadable continuation"
+                break
+            # A cursor replaces any earlier cursor/page, while filters survive.
+            request = {k: v for k, v in request.items() if k not in ("page", "start_token", "cursor")}
+            request.update(following)
+        elif cursor:
+            cursor_key = "start_token" if raw.get("next_start_token", page_meta.get("next_start_token")) else "cursor"
+            request.pop("page", None)
+            request[cursor_key] = cursor
+        elif flag is True or (request.get("per_page") and len(batch) >= int(request["per_page"])):
+            if "start_token" in request or "cursor" in request:
+                reason = "missing continuation cursor"
+                break
+            request["page"] = int(request.get("page", 1)) + 1
+        else:
+            complete = True
+            break
+    else:
+        reason = f"page limit ({max_pages})"
+    meta.update(loaded_count=len(rows), pages=pages, complete=complete, has_more=not complete, has_next=not complete,
+                continuation=None if complete else dict(request))
+    if not complete:
+        meta["partial"] = f"{what or key}: incomplete ({len(rows)} loaded; {reason})"
+    else:
+        meta.pop("partial", None)
+    return rows, meta, failure
+
+
 def load_conversations(c: Any, ticket_id: Any, *, all_pages: bool = False, per_page: int = 3
                        ) -> tuple[list[dict[str, Any]], dict[str, Any], Missing | None]:
     """Conversations oldest first; by default only the latest few, like the
@@ -924,32 +1034,19 @@ def load_conversations(c: Any, ticket_id: Any, *, all_pages: bool = False, per_p
         rows = list((data or {}).get("conversations") or [])
         meta = dict((data or {}).get("meta") or {})
     else:
-        rows, meta, page = [], {}, 1
-        partial: Missing | None = None
-        complete = False
-        while page <= MAX_CONVERSATION_PAGES:
-            data, miss = optional_get(c, f"tickets/{ticket_id}/conversations",
-                                      {**params, "per_page": 30, "page": page}, "conversations")
-            if miss:
-                if page == 1:
-                    return [], {}, miss
-                # keep what arrived, but never claim it is everything
-                partial = Missing(f"conversations after the first {len(rows)} (page {page})", miss.status)
-                break
-            batch = list((data or {}).get("conversations") or [])
-            rows.extend(batch)
-            meta = dict((data or {}).get("meta") or {})
-            if not batch or len(batch) < 30 or meta.get("has_more") is False:
-                complete = True
-                break
-            page += 1
-        if not complete and partial is None:
-            partial = Missing(f"conversations after page {MAX_CONVERSATION_PAGES} ({len(rows)} shown)")
-        meta["count"] = max(int(meta.get("count") or 0), len(rows))
-        meta["has_more"] = not complete
-        if partial is not None:
-            meta["partial"] = partial.note
-            return _oldest_first(rows), meta, partial
+        rows, meta, partial = collect_pages(c, f"tickets/{ticket_id}/conversations", "conversations",
+                                            {**params, "per_page": 30, "page": 1},
+                                            what="conversations", max_pages=MAX_CONVERSATION_PAGES)
+        try:
+            meta["count"] = max(int(meta.get("count") or 0), len(rows))
+        except (TypeError, ValueError):
+            meta["count"] = len(rows)
+        if not meta["complete"]:
+            if partial is not None and meta["pages"]:
+                partial = Missing(f"conversations after the first {len(rows)} (page {meta['pages'] + 1})", partial.status)
+            elif partial is None:
+                partial = Missing(f"conversations after page {meta['pages']} ({meta['partial']})")
+        return _oldest_first(rows), meta, partial
     return _oldest_first(rows), meta, None
 
 
@@ -1018,9 +1115,15 @@ class TabData:
     missing: Missing | None = None
     parts: dict[str, Any] = field(default_factory=dict)  # sub-lists (associations, devops)
     notes: list[str] = field(default_factory=list)
+    meta: dict[str, Any] = field(default_factory=dict)
+    parts_meta: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     def to_json(self) -> dict[str, Any]:
         out: dict[str, Any] = {"name": self.name, "label": self.label}
+        if self.meta:
+            out["meta"] = self.meta
+        if self.parts_meta:
+            out["parts_meta"] = self.parts_meta
         if self.missing:
             out.update(self.missing.to_json())
         if self.data is not None:
@@ -1040,21 +1143,25 @@ def _rows(data: Any, key: str) -> list[dict[str, Any]]:
 
 
 def _parts(c: Any, specs: Sequence[tuple[str, str, Mapping[str, Any] | None, str]], what: str
-           ) -> tuple[dict[str, Any], list[str], Missing | None]:
+           ) -> tuple[dict[str, Any], list[str], Missing | None, dict[str, dict[str, Any]]]:
     parts: dict[str, Any] = {}
+    metadata: dict[str, dict[str, Any]] = {}
     notes: list[str] = []
     failures: list[Missing] = []
     for label, path, params, key in specs:
-        data, miss = optional_get(c, path, params, label)
-        if miss:
+        rows, meta, miss = collect_pages(c, path, key, params, what=label)
+        metadata[label] = meta
+        if meta.get("partial"):
+            notes.append(meta["partial"])
+        if miss and not meta["pages"]:
             failures.append(miss)
             if miss.status not in (404,):
                 notes.append(miss.note)
             continue
-        parts[label] = _rows(data, key)
+        parts[label] = rows
     if not parts and failures:
-        return {}, [], Missing(what, failures[0].status)
-    return parts, notes, None
+        return {}, notes, Missing(what, failures[0].status), metadata
+    return parts, notes, None, metadata
 
 
 def load_tab(c: Any, res: Resource, record: Mapping[str, Any], name: str) -> TabData:
@@ -1066,10 +1173,11 @@ def load_tab(c: Any, res: Resource, record: Mapping[str, Any], name: str) -> Tab
     ws = record.get("workspace_id")
 
     def simple(path: str, params: Mapping[str, Any] | None, key: str) -> TabData:
-        data, miss = optional_get(c, path, params, td.label)
-        td.missing = miss
-        if not miss:
-            td.data = _rows(data, key)
+        rows, td.meta, miss = collect_pages(c, path, key, params, what=td.label)
+        td.missing = miss if not td.meta["pages"] else None
+        td.data = rows if not td.missing else None
+        if td.meta.get("partial"):
+            td.notes.append(td.meta["partial"])
         return td
 
     if name == "notes":
@@ -1079,7 +1187,7 @@ def load_tab(c: Any, res: Resource, record: Mapping[str, Any], name: str) -> Tab
     if name == "approvals":
         return simple(f"{base}/approvals", None, "approvals")
     if name == "activity":
-        return simple(f"{base}/activities", None, "activities")
+        return simple(f"{base}/activities", {"page": 1, "per_page": 30}, "activities")
     if name == "assets":
         if res.name == "tickets":
             return simple(f"{base}/associated_assets", None, "associated_assets")
@@ -1092,7 +1200,7 @@ def load_tab(c: Any, res: Resource, record: Mapping[str, Any], name: str) -> Tab
         data, miss = optional_get(c, f"{base}/assets", {"filter": "impacted_services"}, td.label)
         td.missing = miss
         if not miss:
-            td.data = _rows(data, "associated_assets") or _rows(data, "assets")
+            td.data = _rows(data, "associated_impacted_services") or _rows(data, "associated_assets") or _rows(data, "assets")
         return td
     if name == "associations":
         if res.name == "changes":
@@ -1109,13 +1217,13 @@ def load_tab(c: Any, res: Resource, record: Mapping[str, Any], name: str) -> Tab
         else:
             specs = [("Changes", f"{base}/changes", None, "changes"),
                      ("Tickets", f"{base}/tickets", None, "tickets")]
-        td.parts, td.notes, td.missing = _parts(c, specs, td.label)
+        td.parts, td.notes, td.missing, td.parts_meta = _parts(c, specs, td.label)
         return td
     if name == "devops":
         specs = [("Work items", f"{base}/work-items", {"page": 1, "per_page": 5}, "work_items"),
                  ("Pull requests", f"{base}/pull-requests", {"page": 1, "per_page": 5}, "pull_requests"),
                  ("Pipeline runs", f"{base}/pipeline-runs", {"page": 1, "per_page": 5}, "pipeline_runs")]
-        td.parts, td.notes, td.missing = _parts(c, specs, td.label)
+        td.parts, td.notes, td.missing, td.parts_meta = _parts(c, specs, td.label)
         return td
     if name == "risk":
         data, miss = optional_get(c, f"{base}/risk-analysis", None, td.label)
@@ -1142,11 +1250,33 @@ def load_tab(c: Any, res: Resource, record: Mapping[str, Any], name: str) -> Tab
         info = {k: stats.get(k) for k in ("resolved_at", "closed_at") if stats.get(k)}
         text = html_to_text(record.get("resolution_notes") or record.get("resolution_notes_html") or "")
         if not text:
-            data, miss = optional_get(c, f"{base}/resolution_notes", None, td.label)
-            if not miss and isinstance(data, Mapping):
-                note = data.get("resolution_note") or data.get("resolution_notes") or data
+            try:
+                data = c.v2_get(f"{base}/resolution_note")
+            except SessionError:
+                raise
+            except APIError as exc:
+                if exc.status == 404:
+                    td.meta["absent"] = True
+                else:
+                    td.missing = Missing(td.label, exc.status)
+                data = None
+            except Exception:
+                td.missing = Missing(td.label)
+                data = None
+            if isinstance(data, Mapping):
+                note = data.get("resolution_note", data)
                 if isinstance(note, Mapping):
-                    text = html_to_text(note.get("body") or note.get("description") or "")
+                    text = html_to_text(note.get("body") or note.get("description") or note.get("body_text") or "")
+                    if not any(k in note for k in ("body", "description", "body_text")):
+                        td.missing = Missing(td.label)
+                elif isinstance(note, str):
+                    text = html_to_text(note)
+                elif note is None and "resolution_note" in data:
+                    td.meta["absent"] = True
+                else:
+                    td.missing = Missing(td.label)
+            elif data is not None:
+                td.missing = Missing(td.label)
         if text:
             info["note"] = text
         td.data = info

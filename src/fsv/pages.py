@@ -255,10 +255,12 @@ TASK_STATUS = {1: "Open", 2: "In Progress", 3: "Completed"}
 
 
 def tab_lines(td: V.TabData, tz: dt.tzinfo | None = None, schema: Mapping[str, Any] | None = None) -> list[str]:
-    if td.missing:
+    if td.missing and td.data is None and not td.parts:
         return [f"[dim]{_e(td.missing.note)}[/]"]
     fn = _TAB_RENDERERS.get(td.name, _generic_tab)
     out = fn(td, tz, schema)
+    if td.missing:
+        out.append(f"[dim]{_e(td.missing.note)}[/]")
     out += [f"[dim]· {_e(n)}[/]" for n in td.notes]
     return out
 
@@ -411,7 +413,9 @@ def _resolution_tab(td: V.TabData, tz: Any, schema: Any) -> list[str]:
         out.append("")
         out.append(section("Resolution note"))
         out += _indent(data["note"])
-    return out or ["[dim]no resolution yet[/]"]
+    if td.meta.get("absent"):
+        out.append("[dim]no resolution note (404)[/]")
+    return out or ([] if td.missing else ["[dim]no resolution yet[/]"])
 
 
 def _generic_tab(td: V.TabData, tz: Any, schema: Any) -> list[str]:

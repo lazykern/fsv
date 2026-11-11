@@ -1345,11 +1345,12 @@ def _activity_text(value: str | None) -> str:
 
 
 def activity_resource(res: Resource, id_: str, limit: int, json_out: bool, format_: OutputFormat | str = "table") -> None:
-    from fsv import service
-    from fsv.create import get_change_activities
+    from fsv import views
     cid = _cid(id_, res)
     c = _client()
-    acts = _api(lambda: get_change_activities(cid, c) if res == CHANGES else service.get_activities(res, cid, client=c))[:limit]
+    td = _api(lambda: views.load_tab(c, res, {"id": cid}, "activity"))
+    _read_warnings(td)
+    acts = (td.data or [])[:limit]
     flat = [{"day": _activity_day(_local_dt(a.get("created_at"))), "time": (lambda dt: dt.strftime("%H:%M") if dt else "--:--")(_local_dt(a.get("created_at"))), "actor": (a.get("actor") or {}).get("name", "?"), "content": _activity_text(a.get("content"))} for a in acts]
     if _emit_fmt(acts, flat, format_, json_out):
         return
@@ -1368,10 +1369,12 @@ def activity_resource(res: Resource, id_: str, limit: int, json_out: bool, forma
 
 
 def tasks_resource(res: Resource, id_: str, format_: OutputFormat | str = "table", json_out: bool = False) -> None:
-    from fsv import service
+    from fsv import views
     cid = _cid(id_, res)
     c = _client()
-    items = _api(lambda: service.get_tasks(res, cid, client=c))
+    td = _api(lambda: views.load_tab(c, res, {"id": cid}, "tasks"))
+    _read_warnings(td)
+    items = td.data or []
     def _flat(x: dict) -> dict:
         cf = x.get("custom_fields") or {}
         row: dict = {
@@ -2230,22 +2233,36 @@ def _print_tickets(items: list[dict[str, Any]], title: str = "Tickets") -> None:
     console.print(t)
 
 
+def _read_warnings(td: Any) -> None:
+    if td.missing:
+        err.print(escape(td.missing.note))
+        if td.data is None and not td.parts:
+            raise typer.Exit(1)
+    for note in td.notes:
+        err.print(escape(note))
+
+
+def _history_rows(c: Any, res: Resource, cid: int, page: int, per_page: int,
+                  all_pages: bool, n_pages: int | None) -> list[dict[str, Any]]:
+    from fsv import views
+    key = "conversations" if res == TICKETS else "notes"
+    rows, meta, miss = views.collect_pages(
+        c, f"{res.api_path}/{cid}/{key}", key,
+        {"page": page, "per_page": per_page, "include": "user,phone,feedback" if res == TICKETS else "user"},
+        max_pages=min(n_pages or (50 if all_pages else 1), 50), what=key,
+    )
+    if miss and not meta["pages"]:
+        err.print(escape(miss.note))
+        raise typer.Exit(1)
+    if meta.get("partial"):
+        err.print(escape(meta["partial"]))
+    return rows
+
+
 def notes_resource(res: Resource, id_: str, page: int, per_page: int, json_out: bool, all_pages: bool = False, n_pages: int | None = None, format_: OutputFormat | str = "table") -> None:
-    from fsv import service
     cid = _cid(id_, res)
     c = _client()
-    if all_pages or n_pages is not None:
-        limit = n_pages if n_pages is not None else None
-        acc: list[dict] = []
-        for p in range(page, page + (limit or 100)):
-            batch = _api(lambda _p=p: service.get_notes(res, cid, client=c, page=_p, per_page=per_page))
-            acc.extend(batch)
-            err.print(f"  fetched {len(acc)}...", highlight=False)
-            if len(batch) < per_page or (limit is not None and p - page + 1 >= limit):
-                break
-        items = acc
-    else:
-        items = _api(lambda: service.get_notes(res, cid, client=c, page=page, per_page=per_page))
+    items = _api(lambda: _history_rows(c, res, cid, page, per_page, all_pages, n_pages))
     flat = [{"id": str(x.get("id", "-")), "created_at": (x.get("created_at") or "-")[:19], "author": ((x.get("user") or {}).get("name") or str(x.get("user_id", "-"))), "visibility": "private" if x.get("private") else "public", "body": x.get("body_text") or strip_html(x.get("body")) or ""} for x in items]
     if _emit_fmt(items, flat, format_, json_out):
         return
@@ -2269,21 +2286,9 @@ def notes_resource(res: Resource, id_: str, page: int, per_page: int, json_out: 
 
 
 def conversations_resource(id_: str, page: int, per_page: int, json_out: bool, all_pages: bool = False, n_pages: int | None = None, format_: OutputFormat | str = "table") -> None:
-    from fsv import service
     cid = _cid(id_, TICKETS)
     c = _client()
-    if all_pages or n_pages is not None:
-        limit = n_pages if n_pages is not None else None
-        acc: list[dict] = []
-        for p in range(page, page + (limit or 100)):
-            batch = _api(lambda _p=p: service.get_notes(TICKETS, cid, client=c, page=_p, per_page=per_page))
-            acc.extend(batch)
-            err.print(f"  fetched {len(acc)}...", highlight=False)
-            if len(batch) < per_page or (limit is not None and p - page + 1 >= limit):
-                break
-        items = acc
-    else:
-        items = _api(lambda: service.get_notes(TICKETS, cid, client=c, page=page, per_page=per_page))
+    items = _api(lambda: _history_rows(c, TICKETS, cid, page, per_page, all_pages, n_pages))
     flat = [{"id": str(x.get("id", "-")), "created_at": (x.get("created_at") or "-")[:19], "author": ((x.get("user") or {}).get("name") or str(x.get("user_id", "-"))), "kind": "private note" if x.get("private") else ("incoming" if x.get("incoming") else "public reply"), "body": x.get("body_text") or strip_html(x.get("body")) or ""} for x in items]
     if _emit_fmt(items, flat, format_, json_out):
         return
@@ -2360,9 +2365,19 @@ def ticket_associations_resource(id_: str, format_: OutputFormat | str = "table"
     for tab in tabs if isinstance(tabs, list) else []:
         if tab.get("name") == "associations":
             associated_modules.update(tab.get("associated_modules") or [])
-    changes = _api(lambda: c.int_get(f"tickets/{cid}/changes", {"change_type": "change"})).get("changes", []) if (not associated_modules or "change" in associated_modules) else []
-    change_causes = _api(lambda: c.int_get(f"tickets/{cid}/changes", {"change_type": "change_cause"})).get("changes", []) if (not associated_modules or "change_cause" in associated_modules) else []
-    problems = _api(lambda: c.int_get(f"tickets/{cid}/problems")).get("problems", []) if (not associated_modules or "problem" in associated_modules) else []
+    from fsv.views import collect_pages
+
+    def associated(key: str, params: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+        rows, meta, miss = _api(lambda: collect_pages(c, f"tickets/{cid}/{key}", key, params, what=key))
+        if meta.get("partial"):
+            err.print(escape(meta["partial"]))
+        if miss and not meta["pages"]:
+            raise typer.Exit(1)
+        return rows
+
+    changes = associated("changes", {"change_type": "change"}) if (not associated_modules or "change" in associated_modules) else []
+    change_causes = associated("changes", {"change_type": "change_cause"}) if (not associated_modules or "change_cause" in associated_modules) else []
+    problems = associated("problems") if (not associated_modules or "problem" in associated_modules) else []
     payload = {"changes": changes, "change_causes": change_causes, "problems": problems}
     def _flat(kind: str, item: dict) -> dict:
         res_ref = PROBLEMS if kind == "problems" else CHANGES
@@ -2821,7 +2836,7 @@ HELP_TOPICS = {
     "workflow": "Daily flow: fsv changes ls --where status=Open; fsv changes get CHN-1234 --internal; fsv changes update CHN-1234 --set 'field=value'; fsv changes download CHN-1234 --all.",
     "fields": "Discover fields with fsv changes fields, fsv changes fields --choices status, and fsv changes lookup requester alice@example.com. Prefer dedicated flags for default fields; use --set for custom fields.",
     "scripting": "Use --json for create/update/clone/download. Use --output json/csv/tsv for list/search commands. Use --no-input in CI. Use --dry-run before updates. Do not parse rich table output.",
-    "comments": "Tickets use reply. Changes/problems use add-note. Use --public only when notes should be visible outside private workflow.",
+    "comments": "Tickets support reply and reviewed add-note (see docs/ticket-notes.md). Changes/problems use add-note. Use --public only when notes should be visible outside private workflow.",
 }
 
 
@@ -4226,6 +4241,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 _err_exc(e)
     else:
         if res == TICKETS:
+            from fsv.ticket_notes import register as register_ticket_notes
+            register_ticket_notes(sub)
+
             @sub.command("create", help="Create an incident using the ticket form and business rules.")
             def ticket_create(
                 from_: Optional[str] = typer.Option(None, "--from", help="YAML draft"),
@@ -4342,8 +4360,16 @@ def _make_subapp(res: Resource) -> typer.Typer:
                         results.append(r)
 
                 if threads:
-                    sub_data = c.int_get(f"{res.api_path}/{cid}/{_threads_key}")
-                    for thread in sub_data.get(_threads_key, []):
+                    from fsv.views import collect_pages
+                    thread_rows, thread_meta, _ = collect_pages(
+                        c, f"{res.api_path}/{cid}/{_threads_key}", _threads_key,
+                        {"page": 1, "per_page": 30}, what=_threads_key,
+                    )
+                    if not thread_meta["complete"]:
+                        results.append({"source": _threads_key, "status": "incomplete", "complete": False,
+                                        "note": thread_meta["partial"], "meta": thread_meta})
+                        err.print(escape(thread_meta["partial"]))
+                    for thread in thread_rows:
                         for att in thread.get("attachments") or []:
                             r = download_attachment(att, out_dir, force=force, c=c)
                             r["source"] = _threads_key
@@ -4565,7 +4591,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             notes_resource(res, id_, page, per_page, json_out, all_pages, n_pages, format_)
 
         @sub.command("add-note", help=f"Add {singular} note.", epilog=(
-            f"[bold]Note:[/bold] Changes/problems use add-note; tickets use reply.  "
+            f"[bold]Note:[/bold] Changes/problems use add-note; ticket notes have a separate reviewed flow (docs/ticket-notes.md).  "
             f"[bold]Examples:[/bold]  "
             f"fsv {res.name} add-note {_pfx}-1234 'Checked deployment evidence'  |  "
             f"fsv {res.name} add-note {_pfx}-1234 'Visible update' --public"
@@ -4597,7 +4623,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             conversations_resource(id_, page, per_page, json_out, all_pages, n_pages, format_)
 
         @sub.command("reply", help="Add a ticket reply.", epilog=(
-            f"[bold]Note:[/bold] Tickets use reply; changes/problems use add-note.  "
+            f"[bold]Note:[/bold] Reply sends a public response; for reviewed ticket notes use add-note (docs/ticket-notes.md).  "
             f"[bold]Examples:[/bold]  "
             f"fsv {res.name} reply {_pfx}-1234 'Working on this'"
         ))
