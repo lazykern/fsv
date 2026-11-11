@@ -860,6 +860,24 @@ impl LookupResolver for ClientResolver {
         let c = &self.client;
         let boxed = |e: Error| -> ResolverError { Box::new(e) };
         let has = |r: &Json, k: &str| r.get(k).is_some_and(|v| !v.is_null());
+        if matches!(
+            field.field_type.as_str(),
+            "custom_lookup" | "custom_multi_lookup"
+        ) && let Some(link) = field.lookup_link.as_deref().filter(|l| !l.is_empty())
+        {
+            let rows = c.lookup_choices(link, query).map_err(boxed)?;
+            return Ok(rows
+                .iter()
+                .filter(|r| has(r, "id") && !r.get("deleted").is_some_and(truthy))
+                .map(|r| {
+                    LookupValue::new(
+                        r["id"].clone(),
+                        py_str(first_truthy(&[r.get("name"), r.get("value")]).unwrap_or(&r["id"])),
+                        email_of(r).as_deref(),
+                    )
+                })
+                .collect());
+        }
         match entity {
             "user" => {
                 let params = crate::service::obj(json!({"all_users": "true"}));
@@ -1788,6 +1806,153 @@ mod tests {
             json!([{"lookup": [5, "Ops East", null]}])
         );
         assert_eq!(look("other", "x", "subject"), json!([]));
+    }
+
+    const CUSTOM_LINK: &str = "/lookup_choices?field_name=reference&module=change";
+
+    /// Sets `reference` on a custom (multi) lookup backed by `rows`; returns
+    /// the kind, the stored values and encoded payload (or the error), and
+    /// the `(link, q)` calls made.
+    fn custom_lookup(rows: Json, answer: Value, multi: bool, source: i64) -> Json {
+        let spec = FormSpec::from_form_fields(
+            &json!([{"name": "reference", "label": "Reference", "position": 1,
+                     "field_type": if multi { "custom_multi_lookup" } else { "custom_lookup" },
+                     "lookup_config": {"data_source": source, "link": CUSTOM_LINK}}]),
+            "change",
+        )
+        .unwrap();
+        let api = Arc::new(FakeApi::new().ok(&format!("GET {CUSTOM_LINK}"), rows));
+        let opts = fsv_forms::state::StateOptions {
+            resolver: Some(Arc::new(ClientResolver::new(api.clone()))),
+            tz: Some("UTC".into()),
+            tz_env: Some(fsv_forms::tz::TzEnv::empty()),
+            ..Default::default()
+        };
+        let mut s =
+            fsv_forms::state::FormState::new(Arc::new(spec), None, "new", None, opts).unwrap();
+        let f = s.spec.find("reference").unwrap().clone();
+        let mut out = json!({"kind": f.kind.as_str()});
+        match s.set("reference", answer) {
+            Ok(_) => {
+                let v = s.get("reference").unwrap().unwrap().clone();
+                out["values"] = match ser(&v) {
+                    Json::Array(a) => Json::Array(a),
+                    one => json!([one]),
+                };
+                out["encoded"] =
+                    fsv_forms::payload::encode_value(&s.spec, &f, &v, &Values::new()).unwrap();
+            }
+            Err(e) => out["error"] = json!(e.to_string()),
+        }
+        out["calls"] = api
+            .calls
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|c| json!([c.path, c.params.as_ref().unwrap()["q"]]))
+            .collect();
+        out
+    }
+
+    #[test]
+    fn custom_lookups_resolve_through_their_link() {
+        let call = |q: &str| json!([CUSTOM_LINK, q]);
+        let acme = || json!([{"id": 901, "value": "Acme"}]);
+        let found = |q: &str| {
+            json!({"kind": "lookup", "values": [{"lookup": [901, "Acme", null]}], "encoded": 901,
+                   "calls": [call(q)]})
+        };
+        assert_eq!(custom_lookup(acme(), 901.into(), false, 99), found("901"));
+        assert_eq!(custom_lookup(acme(), "901".into(), false, 99), found("901"));
+        assert_eq!(
+            custom_lookup(acme(), "Acme".into(), false, 99),
+            found("Acme")
+        );
+        let untrusted = LookupValue::new(901, "untrusted", None);
+        assert_eq!(
+            custom_lookup(acme(), untrusted.into(), false, 99),
+            found("901")
+        );
+        let globex = || json!([{"id": 902, "name": "Globex"}]);
+        let no_901 = json!({"kind": "lookup", "error": "Reference: no match for '901'",
+                            "calls": [call("901")]});
+        assert_eq!(custom_lookup(globex(), 901.into(), false, 99), no_901);
+        assert_eq!(
+            custom_lookup(globex(), LookupValue::id(901).into(), false, 99),
+            no_901
+        );
+        assert_eq!(
+            custom_lookup(
+                json!([{"id": 901, "name": "Acme"}, {"id": 902, "name": "Acme"}]),
+                "Acme".into(),
+                false,
+                99
+            ),
+            json!({"kind": "lookup", "error": "Reference: 'Acme' matches 2 records: Acme, Acme",
+                   "calls": [call("Acme")]})
+        );
+        assert_eq!(
+            custom_lookup(
+                json!([{"id": 901, "name": "Acme", "deleted": true}]),
+                "Acme".into(),
+                false,
+                99
+            ),
+            json!({"kind": "lookup", "error": "Reference: no match for 'Acme'",
+                   "calls": [call("Acme")]})
+        );
+        assert_eq!(
+            custom_lookup(
+                json!([{"id": 901, "name": "Acme"}, {"id": 902, "name": "Globex"}]),
+                Value::list([901.into(), 902.into()]),
+                true,
+                99
+            ),
+            json!({"kind": "lookup",
+                   "values": [{"lookup": [901, "Acme", null]}, {"lookup": [902, "Globex", null]}],
+                   "encoded": [901, 902], "calls": [call("901"), call("902")]})
+        );
+        assert_eq!(
+            custom_lookup(
+                json!([{"id": 901, "name": "Acme", "email": "a@x.io"}]),
+                901.into(),
+                false,
+                5
+            ),
+            json!({"kind": "lookup_user", "values": [{"lookup": [901, "Acme", "a@x.io"]}],
+                   "encoded": 901, "calls": [call("901")]})
+        );
+    }
+
+    #[test]
+    fn custom_lookup_rows_skip_missing_ids_and_deleted() {
+        let spec = FormSpec::from_form_fields(
+            &json!([{"name": "reference", "label": "Reference", "position": 1,
+                     "field_type": "custom_lookup",
+                     "lookup_config": {"data_source": 5, "link": CUSTOM_LINK}}]),
+            "change",
+        )
+        .unwrap();
+        let api = Arc::new(FakeApi::new().ok(
+            &format!("GET {CUSTOM_LINK}"),
+            json!([{"id": 1, "name": "A"}, {"id": null, "name": "N"},
+                   {"id": 3, "value": "C", "deleted": true}, {"id": 4, "email": "d@x.io"}]),
+        ));
+        let r = ClientResolver::new(api.clone());
+        let got: Vec<Json> = r
+            .lookup("user", "q", spec.find("reference").unwrap())
+            .unwrap()
+            .iter()
+            .map(lv)
+            .collect();
+        assert_eq!(
+            got,
+            [
+                json!({"lookup": [1, "A", null]}),
+                json!({"lookup": [4, "4", "d@x.io"]})
+            ]
+        );
+        assert_eq!(api.gets(), [CUSTOM_LINK]);
     }
 
     #[test]

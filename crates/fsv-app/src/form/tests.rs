@@ -372,18 +372,20 @@ fn save_draft_writes_the_change_template() {
     assert_eq!(text, want);
 }
 
+/// `FormSession.save_draft` for a service request (`render_sr_template`
+/// with paths relative to the file's folder), captured from Python.
 #[test]
-fn sr_drafts_cannot_be_saved_yet() {
+fn save_draft_writes_the_sr_template() {
     let (t, j) = (tenant(route), Arc::new(MemJournal::default()));
     let mut s = sr_session(&deps(&t, &j), "5", None, Some(jane()), false).unwrap();
-    let e = s.save_draft("sr-draft.yaml", None).unwrap_err();
-    assert_eq!(
-        (e.kind(), e.to_string()),
-        (
-            std::io::ErrorKind::Unsupported,
-            SR_DRAFT_UNAVAILABLE.to_string()
-        )
-    );
+    set(&mut s, "reason", "broken é");
+    let plan = s.build_plan(None).unwrap();
+    assert_eq!(plan.hash, SR_HASH);
+    std::fs::create_dir(t.dir.path().join("drafts")).unwrap();
+    let path = t.dir.path().join("drafts/sr-draft.yaml");
+    let saved = s.save_draft(&path.to_string_lossy(), Some(&plan)).unwrap();
+    let want = "# New service request: Laptop (catalog item 5)\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear with your answers, like the web form; after saving, new\n# required fields are added and the file reopens if needed.\n# Full item form: fsv sr fields 5\n# Save and close to continue; close without changes to abort.\n# This sends a real service request to the catalog item's fulfilment team.\n# Separate requested-for is available via --requested-for; requester remains unchanged.\n\n# REQUIRED · email or exact name of the requester (approvals route via their manager)\nrequester: jane@example.com\n# Optional · exact email or name of the person receiving this request\nrequested_for:\nanswers:\n  # optional · text\n  Reason: broken é\n\n# This item does not accept general attachments.\n";
+    assert_eq!(std::fs::read_to_string(saved).unwrap(), want);
 }
 
 #[test]
@@ -400,20 +402,39 @@ fn pending_input_errors_block_the_plan_and_the_send() {
     assert!(t.calls()[n..].iter().all(|c| c.method == "GET"));
 }
 
+/// `FormSession.send(plan)` sends the reviewed plan object: an answer
+/// changed after the review is not sent until the plan is rebuilt.
 #[test]
-fn a_plan_that_does_not_rebuild_identically_is_refused() {
+fn send_uses_the_reviewed_plan() {
     let (t, j) = (tenant(route), Arc::new(MemJournal::default()));
     let mut s = new_change(&t, &j);
-    let mut plan = s.build_plan(None).unwrap();
-    plan.hash = "0".repeat(64);
+    let plan = s.build_plan(None).unwrap();
+    assert_eq!(plan.hash, NEW_HASH);
+    set(&mut s, "subject", "Changed later");
     let n = t.calls().len();
-    let (code, msg) = exit_of(&s.send(&plan, false).unwrap_err());
+    let out = s.send(&plan, false).unwrap();
+    let post = t
+        .calls()
+        .split_off(n)
+        .into_iter()
+        .find(|c| c.method == "POST")
+        .unwrap();
+    let payload = json!({"subject": "Deploy é", "custom_fields": {"cf_note": "hi"}, "email": "Jane Doe <jane@example.com>", "br_validation_excludes": BR});
+    assert_eq!(
+        post.body.as_deref(),
+        Some(fsv_py::compact(&payload).as_str())
+    );
+    assert_eq!(out["plan_hash"], json!(NEW_HASH));
+
+    let foreign = fsv_formui::Plan {
+        detail: None,
+        ..plan
+    };
+    let n = t.calls().len();
+    let (code, msg) = exit_of(&s.send(&foreign, false).unwrap_err());
     assert_eq!(
         (code, msg.as_str()),
-        (
-            4,
-            "the reviewed plan could not be rebuilt identically; review it again"
-        )
+        (2, "the plan was not built by this form; review it again")
     );
     assert_eq!(t.calls().len(), n);
 }

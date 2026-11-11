@@ -3,11 +3,11 @@
 //! (`change_session`, `ticket_session`, `sr_session`) and the CLI's
 //! `_run_form`.
 //!
-//! The flows' plans hold a `FormState` that is not `Send`, so they cannot
-//! ride in [`fsv_formui::Plan::detail`]: [`LiveForm`] rebuilds the plan from
-//! the same request and metadata when it saves or sends, and refuses when
-//! the rebuilt hash differs from the reviewed one.
+//! The builder's own plan (`change::Plan`, `catalog::SRPlan`) rides in
+//! [`fsv_formui::Plan::detail`], so save and send use the reviewed plan, as
+//! Python's session keeps the plan object.
 
+use std::any::Any;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -40,10 +40,6 @@ use crate::writer::{LiveWriter, change_id};
 
 /// `status_label` of `change_session` (status id -> shown name).
 pub type StatusLabel = Arc<dyn Fn(&Json) -> String + Send + Sync>;
-
-/// `render_sr_template` (`cli_sr`) has no Rust port yet.
-pub const SR_DRAFT_UNAVAILABLE: &str =
-    "saving a service-request draft is not available in this build";
 
 /// What the form sessions talk to. [`FormDeps::live`] is the signed-in
 /// profile; tests swap in memory journals and stores.
@@ -220,11 +216,13 @@ fn exec_error(e: ExecError) -> Error {
     }
 }
 
-fn not_rebuilt() -> Error {
-    flow_exit(
-        4,
-        "the reviewed plan could not be rebuilt identically; review it again",
-    )
+/// The builder's plan a reviewed [`fsv_formui::Plan`] carries.
+fn carried<T: Any + Send + Sync>(plan: &fsv_formui::Plan) -> Option<&T> {
+    plan.detail.as_deref().and_then(|d| d.downcast_ref::<T>())
+}
+
+fn not_reviewed() -> Error {
+    Error::value("the plan was not built by this form; review it again")
 }
 
 impl LiveForm {
@@ -318,14 +316,12 @@ impl LiveForm {
     fn send_change(
         &self,
         req: &PlanRequest<'_>,
-        meta: &Arc<FormMeta>,
         reviewed: &fsv_formui::Plan,
         allow: bool,
     ) -> Result<Json> {
-        let plan = self.form_plan(req, meta.clone())?;
-        if plan.hash != reviewed.hash {
-            return Err(not_rebuilt());
-        }
+        let plan = carried::<change::Plan>(reviewed)
+            .cloned()
+            .ok_or_else(not_reviewed)?;
         let mut rebuild = |m: Arc<FormMeta>| self.form_plan(req, m);
         let d = &self.deps;
         if req.kind == FormKind::Ticket {
@@ -363,14 +359,12 @@ impl LiveForm {
     fn send_item(
         &self,
         req: &PlanRequest<'_>,
-        meta: &ItemMeta,
         reviewed: &fsv_formui::Plan,
         allow: bool,
     ) -> Result<Json> {
-        let plan = self.item_plan(req, meta)?;
-        if plan.hash != reviewed.hash {
-            return Err(not_rebuilt());
-        }
+        let plan = carried::<SRPlan>(reviewed)
+            .cloned()
+            .ok_or_else(not_reviewed)?;
         let d = &self.deps;
         catalog::duplicate_check(&plan, allow, d.journal.as_ref())?;
         let (new, diff) = catalog::freshen(plan, d.api.as_ref(), d.store.as_ref(), &mut |m| {
@@ -397,42 +391,68 @@ impl LiveForm {
 
 impl FormBackend for LiveForm {
     fn build_plan(&self, req: &PlanRequest<'_>) -> std::result::Result<fsv_formui::Plan, String> {
-        let (errors, hash, review, payload) = match &self.meta {
+        match &self.meta {
             Meta::Form(m) => {
                 let p = self.form_plan(req, m.clone()).map_err(|e| e.to_string())?;
-                (p.errors, p.hash, p.review, p.payload)
+                Ok(fsv_formui::Plan {
+                    errors: p.errors.clone(),
+                    hash: p.hash.clone(),
+                    review: p.review.clone(),
+                    payload: p.payload.clone().map(Json::Object),
+                    detail: Some(Arc::new(p)),
+                })
             }
             Meta::Item(m) => {
                 let p = self.item_plan(req, m).map_err(|e| e.to_string())?;
-                (p.errors, p.hash, p.review, p.payload)
+                Ok(fsv_formui::Plan {
+                    errors: p.errors.clone(),
+                    hash: p.hash.clone(),
+                    review: p.review.clone(),
+                    payload: p.payload.clone().map(Json::Object),
+                    detail: Some(Arc::new(p)),
+                })
             }
-        };
-        Ok(fsv_formui::Plan {
-            errors,
-            hash,
-            review,
-            payload: payload.map(Json::Object),
-            detail: None,
-        })
+        }
     }
 
     fn save_draft(
         &self,
         req: &PlanRequest<'_>,
-        _plan: &fsv_formui::Plan,
+        plan: &fsv_formui::Plan,
         path: &Path,
     ) -> std::io::Result<()> {
-        let Meta::Form(m) = &self.meta else {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::Unsupported,
-                SR_DRAFT_UNAVAILABLE,
-            ));
-        };
-        let plan = self
-            .form_plan(req, m.clone())
-            .map_err(std::io::Error::other)?;
-        change::save_draft(&plan, &flows_draft(req.draft), &path.to_string_lossy())
-            .map_err(std::io::Error::other)?;
+        let path = path.to_string_lossy();
+        match &self.meta {
+            Meta::Form(m) => {
+                let built;
+                let plan = match carried::<change::Plan>(plan) {
+                    Some(p) => p,
+                    None => {
+                        built = self
+                            .form_plan(req, m.clone())
+                            .map_err(std::io::Error::other)?;
+                        &built
+                    }
+                };
+                change::save_draft(plan, &flows_draft(req.draft), &path)
+            }
+            Meta::Item(m) => {
+                let built;
+                let plan = match carried::<SRPlan>(plan) {
+                    Some(p) => p,
+                    None => {
+                        built = self.item_plan(req, m).map_err(std::io::Error::other)?;
+                        &built
+                    }
+                };
+                let d = fsv_flows::sr::SrDraft {
+                    draft: flows_draft(req.draft),
+                    requested_for: None,
+                };
+                fsv_flows::sr::save_sr_draft(plan, &d, &path)
+            }
+        }
+        .map_err(std::io::Error::other)?;
         Ok(())
     }
 
@@ -443,8 +463,8 @@ impl FormBackend for LiveForm {
         allow_duplicate: bool,
     ) -> Result<Json> {
         match &self.meta {
-            Meta::Form(m) => self.send_change(req, m, plan, allow_duplicate),
-            Meta::Item(m) => self.send_item(req, m, plan, allow_duplicate),
+            Meta::Form(_) => self.send_change(req, plan, allow_duplicate),
+            Meta::Item(_) => self.send_item(req, plan, allow_duplicate),
         }
     }
 }

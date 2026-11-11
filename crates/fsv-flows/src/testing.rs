@@ -88,6 +88,10 @@ pub struct FakeApi {
     pub calls: Mutex<Vec<(String, String, Json)>>,
     pub failure: Mutex<Option<Fail>>,
     pub ticket_read: Mutex<Option<Json>>,
+    /// Rows every `lookup_choices` returns (`None`: Acme people by name).
+    pub link_rows: Mutex<Option<Vec<Json>>>,
+    /// `(link, query)` of each `lookup_choices` call.
+    pub link_calls: Mutex<Vec<(String, String)>>,
 }
 
 impl FakeApi {
@@ -164,7 +168,14 @@ impl Api for FakeApi {
             })
             .collect())
     }
-    fn lookup_choices(&self, _link: &str, query: &str) -> Result<Vec<Json>> {
+    fn lookup_choices(&self, link: &str, query: &str) -> Result<Vec<Json>> {
+        self.link_calls
+            .lock()
+            .unwrap()
+            .push((link.into(), query.into()));
+        if let Some(rows) = self.link_rows.lock().unwrap().clone() {
+            return Ok(rows);
+        }
         let q = fsv_core::pystr::casefold(query);
         Ok(people()
             .into_iter()

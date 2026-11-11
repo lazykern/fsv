@@ -57,26 +57,35 @@ those stay identical.
   construction with Python's later `unsupported operand type(s) for +`
   text. Python builds the spec and fails on first use. A numeric
   `lookup_link` becomes a string; a falsy non-string becomes no link.
-- The stale-schema warning goes to stderr with `eprintln!`, as in Python.
-  Python's TUI captures stderr; the Rust TUI does not yet, so the line can
-  draw over the screen. Open gap, to fix in `fsv-app`.
+- The stale-schema warning goes to stderr with `eprintln!` on the CLI, as in
+  Python. The TUI loads with `fsv_api::schema::load_in_quiet`, so the line
+  never draws over the screen (Python's TUI captures stderr instead).
 - The form's F3 description preview shows only the top rows of long text.
   Textual's 14-row preview scrolls.
-- Form submit rebuilds the plan from the same metadata at save and at send.
-  If the hash differs from the reviewed one, it refuses with exit 4 ("the
-  reviewed plan could not be rebuilt identically; review it again"). Python
-  keeps the plan object. `fsv_forms::LookupResolver` is now `Send + Sync`,
-  so `fsv-app` can carry the plan and drop this check. Open.
+- Form submit sends the reviewed plan, as Python's `FormSession` does. The
+  builder's plan (`change::Plan` or `catalog::SRPlan`) rides in
+  `fsv_formui::Plan::detail`; save and send downcast it. Send then runs the
+  duplicate check and the metadata freshen, as in Python: an unchanged
+  fingerprint keeps the plan, a changed one rebuilds and refuses on a diff.
+  A plan without that detail (not built by this form) is refused with exit
+  2, "the plan was not built by this form; review it again". Python cannot
+  reach that case.
+- `ClientResolver.lookup` custom lookups (Python ccc3a64) are ported to both
+  `fsv_api::formmeta::ClientResolver` and `fsv_flows::meta::ClientResolver`.
+  A `custom_lookup` / `custom_multi_lookup` field with a link always asks
+  `lookup_choices(link, query)` first, before the user, agent or group
+  autocomplete, and skips rows with no id or a truthy `deleted`. Outputs and
+  error texts match a Python run. No divergence.
 
 ## fsv-app
 
 | Python | Rust | status |
 |---|---|---|
-| live wiring behind `views` reads, `formmeta.load_meta`, `create` writes, form session plan/save/send, TUI backend and pages | `fsv_app::{source, meta, writer, form, tui}` | partial. `cargo test -p fsv-app --offline` was 48 passed. Request paths, bodies and plan hashes captured from Python. `run_tui` and `run_form` need a terminal and have no tests. |
+| live wiring behind `views` reads, `formmeta.load_meta`, `create` writes, form session plan/save/send, TUI backend and pages | `fsv_app::{source, meta, writer, form, tui}` | partial. `cargo test -p fsv-app --offline` was 74 passed. Request paths, bodies and plan hashes captured from Python. `run_tui` and `run_form` need a terminal and have no tests. |
 
 - Form review rows can show lookup ids where Python shows names. `fsv_flows` drafts hold JSON answers.
 - TUI details load without form properties: `views.load_properties` / `load_edit_rules` are not ported anywhere, so Python's "form rules could not be applied" note is absent.
-- Service-request drafts cannot be saved: `cli_sr.render_sr_template` is not ported.
+- Service-request drafts save through `fsv_flows::sr::save_sr_draft` from the reviewed plan, with no separate requested-for. The file bytes match Python's `render_sr_template` for the same plan.
 - `run_tui` takes a schema loader argument because `schema::load` and saved-view loading live in `fsv-cli`, which `fsv-app` cannot depend on.
 - Not yet wired in `LiveBackend` (trait defaults say unavailable): change tasks and task edit/delete, associations, downloads, catalog, completion, clipboard and open-URL, filter history.
 - Directory lookups that hit an expired session surface as a query error, because `fsv_api::QueryError` does not carry the session flag.

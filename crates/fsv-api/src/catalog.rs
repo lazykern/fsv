@@ -770,6 +770,7 @@ pub struct Upload {
     pub label: String,
 }
 
+#[derive(Clone)]
 pub struct SRPlan {
     pub meta: ItemMeta,
     pub state: FormState,
