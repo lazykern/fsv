@@ -19,6 +19,11 @@ from fsv import config
 
 _ID_SEGMENT = re.compile(r"^\d+$")
 _VERBS = {"POST": "create", "PUT": "update", "PATCH": "update", "DELETE": "delete"}
+_PATH_SEGMENTS = frozenset({
+    "api", "_", "v2", "itil", "changes", "tickets", "problems", "releases",
+    "notes", "reply", "attachments", "tasks", "assets", "associate", "detach",
+    "planning-fields", "catalog", "service-items", "place-request",
+})
 
 
 def journal_path() -> Path:
@@ -39,7 +44,8 @@ def plan_hash(body: Any) -> str | None:
 
 def _split_path(url: str) -> list[str]:
     path = re.sub(r"^https?://[^/]+", "", url).split("?", 1)[0].split("#", 1)[0]
-    return [p for p in path.split("/") if p]
+    return [p if p in _PATH_SEGMENTS or _ID_SEGMENT.fullmatch(p) else "[redacted]"
+            for p in path.split("/") if p]
 
 
 def _classify(method: str, segments: list[str]) -> tuple[str, str | None, str]:

@@ -6,6 +6,7 @@ import json
 import os
 import stat
 import sys
+from pathlib import Path
 
 import httpx
 import pytest
@@ -33,6 +34,22 @@ def test_journal_path_respects_xdg_state_home(tmp_path, monkeypatch):
     assert path.relative_to(tmp_path / "st" / "fsv" / "journals")
     assert path.name == "journal.jsonl"
     assert "acme" not in str(path)
+
+
+def test_journal_default_state_root_and_resolved_profile(tmp_path, monkeypatch):
+    monkeypatch.delenv("XDG_STATE_HOME", raising=False)
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+    real = tmp_path / "profile"
+    real.mkdir()
+    alias = tmp_path / "alias"
+    alias.symlink_to(real, target_is_directory=True)
+    monkeypatch.setenv("FSV_CONFIG_DIR", str(real))
+    config.reload()
+    expected = journal.journal_path()
+    assert expected.relative_to(tmp_path / ".local" / "state" / "fsv" / "journals")
+    monkeypatch.setenv("FSV_CONFIG_DIR", str(alias))
+    config.reload()
+    assert journal.journal_path() == expected
 
 
 def test_journal_isolates_profiles_tenants_and_legacy(tmp_path, monkeypatch):
@@ -96,6 +113,15 @@ def test_journal_plan_does_not_store_error_or_filenames():
     assert row["steps"] == [{"step": "attachments", "ok": False}]
     assert "SECRET BODY" not in journal.journal_path().read_text()
     assert "PRIVATE FILE" not in journal.journal_path().read_text()
+
+
+def test_journal_redacts_dynamic_path_segments():
+    journal.record("PUT", "https://acme.freshservice.com/api/_/changes/1/planning-fields/private-value?token=SECRET",
+                   {"body": "SECRET"}, status=422, ok=False, error="SECRET")
+    row = journal.read()[0]
+    assert row["path"] == "/api/_/changes/1/planning-fields/[redacted]"
+    assert "SECRET" not in journal.journal_path().read_text()
+    assert "private-value" not in journal.journal_path().read_text()
 
 
 def test_plan_hash_is_order_independent_and_none_for_no_body():
