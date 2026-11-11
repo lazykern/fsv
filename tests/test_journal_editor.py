@@ -124,6 +124,16 @@ def test_journal_redacts_dynamic_path_segments():
     assert "private-value" not in journal.journal_path().read_text()
 
 
+def test_journal_rejects_arbitrary_text_in_server_ids():
+    journal.record("POST", "https://acme.freshservice.com/api/_/changes", {},
+                   status=200, ok=True, response={"id": "PRIVATE"})
+    journal.record_plan("done", "same", action="create", target="PRIVATE", created_id="PRIVATE")
+    rows = journal.read()
+    assert rows[0]["created_id"] is None
+    assert rows[1]["target"] is None and rows[1]["created_id"] is None
+    assert "PRIVATE" not in journal.journal_path().read_text()
+
+
 def test_plan_hash_is_order_independent_and_none_for_no_body():
     assert journal.plan_hash({"a": 1, "b": [2]}) == journal.plan_hash({"b": [2], "a": 1})
     assert journal.plan_hash({"a": 1}) != journal.plan_hash({"a": 2})

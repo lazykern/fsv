@@ -72,11 +72,26 @@ def _created_id(data: Any) -> Any:
     if not isinstance(data, dict):
         return None
     if data.get("id") is not None and not isinstance(data["id"], (dict, list)):
-        return data["id"]
+        return _safe_id(data["id"])
     for v in data.values():
         if isinstance(v, dict) and v.get("id") is not None and not isinstance(v["id"], (dict, list)):
-            return v["id"]
+            return _safe_id(v["id"])
     return None
+
+
+def _safe_id(value: Any) -> Any:
+    """Keep numeric service IDs, never arbitrary server-provided text."""
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value
+    if isinstance(value, str) and _ID_SEGMENT.fullmatch(value):
+        return value
+    return None
+
+
+def _safe_target(value: Any) -> Any:
+    if isinstance(value, str) and re.fullmatch(r"catalog-item/\d+", value):
+        return value
+    return _safe_id(value)
 
 
 def _command() -> str | None:
@@ -167,8 +182,8 @@ def record_plan(event: str, plan: str, *, action: str, target: Any = None, creat
             "kind": f"plan:{action}",
             "event": event,
             "plan": plan,
-            "target": target,
-            "created_id": created_id,
+            "target": _safe_target(target),
+            "created_id": _safe_id(created_id),
         }
         if steps is not None:
             # Filenames and exception messages can contain private data.
