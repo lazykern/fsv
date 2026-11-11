@@ -278,6 +278,14 @@ def _err_exc(exc: BaseException) -> None:
     _err(str(exc), exit_code_for(exc))
 
 
+def _flow_exit(e: Any) -> None:
+    """Print a change_flow.FlowExit and exit with its code."""
+    from rich.markup import escape
+    if e.message:
+        err.print(f"[red]error[/red]: {escape(e.message)}" if e.code else escape(e.message), highlight=False)
+    raise typer.Exit(e.code)
+
+
 def _api(fn: Callable[[], T]) -> T:
     try:
         return fn()
@@ -2826,6 +2834,8 @@ config_app = typer.Typer(
 
 _CONFIG_KEYS: dict[str, str] = {
     "completion.network": "enable remote requester/agent completion [on|off]",
+    "defaults.requester": "requester email for `changes create` when --requester is not given",
+    "forms.workspace_id": "workspace whose business rules apply (default: taken from the form metadata)",
 }
 
 
@@ -3732,11 +3742,36 @@ def _make_subapp(res: Resource) -> typer.Typer:
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm status changes, reassignment and other notifying writes"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
+            from_: Optional[str] = typer.Option(None, "--from", help="YAML draft with answers to change (labels or internal names)"),
+            preset: Optional[str] = typer.Option(None, "--preset", help="preset name or path (partial answers)"),
+            expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="refuse unless the computed plan hash matches"),
+            ack: bool = typer.Option(False, "--ack", help="acknowledge blocking rule messages"),
         ) -> None:
-            """Update fields on a change."""
+            """Update fields on a change.
+
+            --set, --from, --preset and --edit run the edit form's business
+            rules and send only the fields that change (review shows old ->
+            new). --status/--priority/--agent/--group alone use the quick path."""
             try:
                 cid = _cid(id_, res)
                 no_input = _no_input(no_input)
+                if (edit or set_ or from_ or preset) and due_by is None and planning is None:
+                    from fsv.change_cli import FlowExit, update_command
+                    from fsv.forms import FormError
+                    try:
+                        update_command(
+                            _client, cid, from_file=from_, sets=list(set_ or []), preset=preset, edit=edit,
+                            attach=list(attach or []),
+                            legacy={"status": status, "priority": priority, "agent": agent_id, "group": group_id},
+                            duplicate=duplicate, dry_run=dry_run, as_json=json_out, yes=yes,
+                            expect_plan=expect_plan, ack=ack, no_input=no_input, status_label=None,
+                            subject=format_id({"id": cid}, res),
+                        )
+                    except FlowExit as e:
+                        _flow_exit(e)
+                    except FormError as e:
+                        _err(str(e), 2)
+                    return
                 quick_flags = bool(attach or set_ or any(v is not None for v in [status, priority, agent_id, group_id]))
                 modes = sum(1 for active in (due_by is not None, planning is not None, edit, quick_flags) if active)
                 if modes > 1:
@@ -4173,81 +4208,63 @@ def _make_subapp(res: Resource) -> typer.Typer:
             except Exception as e:
                 _err_exc(e)
 
-        @sub.command("create", help="Create a change.", epilog=(
+        @sub.command("create", help="Create a change through the web form's own fields and rules.", epilog=(
             "[bold]Examples:[/bold]  "
-            "fsv changes create  |  "
-            "fsv changes create --subject 'Patch DB' --status Open --priority High  |  "
-            "fsv changes create --subject 'Patch DB' --set 'Change Category=Infrastructure' --no-input  |  "
-            "fsv changes create --optional  |  "
-            "fsv changes create --dry-run"
+            "fsv changes create --from change.yaml --dry-run  |  "
+            "fsv changes create --from change.yaml --yes --expect-plan 3f2a9c1e0b7d  |  "
+            "fsv changes create --preset acme-normal --set 'Subject=Rotate keys' --edit  |  "
+            "fsv changes create --dry-run > draft.yaml  |  "
+            "fsv changes create --subject 'Patch DB' --set 'Change Type=Normal' --requester jane@example.com --dry-run"
         ))
         def create(
-            subject: Optional[str] = typer.Option(None, "--subject", help="change subject/title"),
-            description: Optional[str] = typer.Option(None, "--description", "--desc", help="description HTML/text; use '-' for stdin"),
-            status: Optional[str] = typer.Option(None, "--status", "-s", help="status label or ID", autocompletion=completion.complete_update_choice(res, "status")),
-            priority: Optional[str] = typer.Option(None, "--priority", "-p", help="priority label or ID", autocompletion=completion.complete_update_choice(res, "priority")),
-            agent_id: Optional[str] = typer.Option(None, "--agent", "--agent-id", help="agent name/email/user ID", autocompletion=completion.complete_update_agent_id),
+            from_: Optional[str] = typer.Option(None, "--from", help="draft YAML (answers by label, description_md, attachments, planning)"),
+            set_: Optional[List[str]] = typer.Option(None, "--set", help="answer LABEL=VALUE (label or internal name; repeatable)", autocompletion=completion.complete_set(res)),
+            preset: Optional[str] = typer.Option(None, "--preset", help="preset name (config presets/NAME.yaml) or path"),
+            edit: bool = typer.Option(False, "--edit", "-e", help="edit an annotated YAML draft in $EDITOR"),
+            requester: Optional[str] = typer.Option(None, "--requester", help="requester email or exact name (default: config defaults.requester)"),
+            attach: Optional[List[str]] = typer.Option(None, "--attach", "-a", help="file to attach after the change is created (repeatable)"),
+            dry: bool = typer.Option(False, "--dry-run", help="print the review, exact payload and plan hash; send nothing"),
+            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="table|json (json: {plan_hash, payload, review, warnings})", autocompletion=completion.complete_format),
+            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="send without the interactive review (required without a terminal)"),
+            expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="refuse unless the computed plan hash matches (prefix >= 12 chars)"),
+            allow_duplicate: bool = typer.Option(False, "--allow-duplicate", help="send even if the journal shows this exact plan in the last 24h"),
+            ack: bool = typer.Option(False, "--ack", help="acknowledge blocking rule messages"),
+            no_input: bool = typer.Option(False, "--no-input", help="never prompt or open an editor"),
+            subject: Optional[str] = typer.Option(None, "--subject", help="subject (same as --set Subject=...)"),
+            description: Optional[str] = typer.Option(None, "--description", "--desc", help="description HTML/text; '-' for stdin"),
+            status: Optional[str] = typer.Option(None, "--status", "-s", help="status on create (default: the form default; others need confirmation)", autocompletion=completion.complete_update_choice(res, "status")),
+            priority: Optional[str] = typer.Option(None, "--priority", "-p", help="priority label", autocompletion=completion.complete_update_choice(res, "priority")),
+            agent_id: Optional[str] = typer.Option(None, "--agent", "--agent-id", help="agent name/email/ID", autocompletion=completion.complete_update_agent_id),
             group_id: Optional[str] = typer.Option(None, "--group", "--group-id", help="group name or ID", autocompletion=completion.complete_update_group_id),
-            set_: Optional[List[str]] = typer.Option(None, "--set", help="set FIELD=VALUE (repeatable)", autocompletion=completion.complete_set(res)),
-            optional: bool = typer.Option(False, "--optional", "-O", help="include optional fields in editor template"),
-            all_fields: bool = typer.Option(False, "--all", help="include all fields in editor template"),
-            dry: bool = typer.Option(False, "--dry-run", help="print resolved payload/template, do not create"),
-            no_validate: bool = typer.Option(False, "--no-validate", help="skip client-side required-field check"),
-            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
-            no_input: bool = typer.Option(False, "--no-input", help="fail instead of opening editor"),
+            no_validate: bool = typer.Option(False, "--no-validate", help="skip the client-side required-field check (the server still checks)"),
+            optional: bool = typer.Option(False, "--optional", "-O", hidden=True, help="(ignored; the draft lists every visible field)"),
+            all_fields: bool = typer.Option(False, "--all", hidden=True, help="(ignored; the draft lists every visible field)"),
         ) -> None:
             """Create a new change.
 
-            Pass field flags (--subject/--status/--set/...) for a scriptable,
-            label-resolving create. With no field flags, opens $EDITOR with a
-            JSON template; edit, save, and close to submit."""
+            Every input (YAML draft, --set, preset, the flags) is replayed
+            through the form's own fields and business rules, then shown on a
+            review screen. Status is never asked: the form default is sent.
+            Attachments upload only after you confirm."""
+            from fsv.change_cli import FlowExit, create_command
+            from fsv.forms import FormError
             try:
-                field_flags = bool(set_ or subject is not None or description is not None
-                                   or any(v is not None for v in [status, priority, agent_id, group_id]))
-                if field_flags:
-                    c = _client()
-                    sch = _api(lambda: schema_mod.load(res, c))
-                    body: dict[str, Any] = {}
-                    if subject is not None:
-                        body["subject"] = subject
-                    if description is not None:
-                        body["description"] = sys.stdin.read() if description == "-" else description
-                    if status is not None:
-                        body["status"] = _resolve_update_choice(sch, "status", status)
-                    if priority is not None:
-                        body["priority"] = _resolve_update_choice(sch, "priority", priority)
-                    if agent_id is not None:
-                        body["agent_id"] = int(_resolve_agent(c, agent_id))
-                    if group_id is not None:
-                        body["group_id"] = int(_resolve_group(c, group_id))
-                    for expr in set_ or []:
-                        if "=" not in expr:
-                            _err(f"--set requires FIELD=VALUE format, got: {expr!r}")
-                        field_text, _, raw_value = expr.partition("=")
-                        k, v = _resolve_set_field(c, sch, field_text.strip(), raw_value)
-                        body[k] = v
-                    if dry:
-                        emit_json({"dry_run": True, "action": "create", "body": body})
-                        return
-                    if not no_validate:
-                        _check_required(sch, body)
-                    created = submit_change(body, c)
-                else:
-                    level = "all" if all_fields else ("optional" if optional else "required")
-                    template = change_template(level)
-                    if dry:
-                        emit_json(template)
-                        return
-                    body = _edit_body(template, "Creating new change", no_input)
-                    c = _client()
-                    if not no_validate:
-                        _check_required(_api(lambda: schema_mod.load(res, c)), body)
-                    created = submit_change(body, c)
-                cid = created.get("id", "?")
-                if json_out:
-                    emit_json(created)
-                else:
-                    console.print(f"[green]created[/] {format_id(created, res)}  {res.portal_url}/{cid}")
+                desc = sys.stdin.read() if description == "-" else description
+                create_command(
+                    _client,
+                    from_file=from_, sets=list(set_ or []), preset=preset, edit=edit, requester=requester,
+                    attach=list(attach or []),
+                    legacy={"subject": subject, "description": desc, "status": status, "priority": priority,
+                            "agent": agent_id, "group": group_id},
+                    dry_run=dry, as_json=json_out or format_ == OutputFormat.json, yes=yes,
+                    expect_plan=expect_plan, allow_duplicate=allow_duplicate, ack=ack,
+                    no_input=_no_input(no_input), no_validate=no_validate, portal_url=res.portal_url,
+                )
+            except FlowExit as e:
+                _flow_exit(e)
+            except FormError as e:
+                _err(str(e), 2)
             except (SessionError, APIError) as e:
                 _err_exc(e)
             except (SystemExit, typer.Exit):
@@ -4585,6 +4602,10 @@ def tui() -> None:
 
 for r in REGISTRY.values():
     app.add_typer(_make_subapp(r), name=r.name)
+
+from fsv.form_cli import form_app  # noqa: E402
+
+app.add_typer(form_app, name="form")
 
 
 if __name__ == "__main__":

@@ -55,22 +55,40 @@ def _dry(args):
     return json.loads(result.output)
 
 
-def test_create_flags_resolve_labels():
-    body = _dry(["changes", "create", "--subject", "Patch DB",
-                 "--status", "Open", "--priority", "High",
-                 "--set", "environment=Production", "--dry-run"])["body"]
-    assert body == {"subject": "Patch DB", "status": 1, "priority": 3, "environment": "Production"}
+def _acme(monkeypatch):
+    import acme_change_form as A
+    import fsv.change_flow as flow
+    c = A.FakeClient()
+    monkeypatch.setattr(cli, "_client", lambda: c)
+    monkeypatch.setattr(flow, "interactive", lambda: False)
+    monkeypatch.delenv("FSV_TZ", raising=False)
+    return c
 
 
-def test_create_no_flags_emits_template():
-    out = _dry(["changes", "create", "--dry-run"])
-    assert "subject" in out and "dry_run" not in out
+def test_create_flags_resolve_labels(monkeypatch):
+    # legacy flags still work; they are answers replayed through the form engine
+    _acme(monkeypatch)
+    out = _dry(["changes", "create", "--subject", "Patch DB", "--priority", "High",
+                "--set", "Cloud Only=Yes", "--set", "Stage=Live", "--description", "x",
+                "--set", "Planned Start Date=2030-01-01 10:00", "--set", "Planned End Date=2030-01-01 11:00",
+                "--requester", "jane.doe@example.com", "--dry-run", "-o", "json"])
+    body = out["payload"]
+    assert body["subject"] == "Patch DB" and body["priority"] == 3 and body["status"] == 1
+    assert body["custom_fields"] == {"cloud_only": "Yes", "stage": "Live"}
 
 
-def test_create_no_input_without_flags_errors():
+def test_create_no_flags_emits_template(monkeypatch):
+    _acme(monkeypatch)
+    result = runner.invoke(cli.app, ["changes", "create", "--dry-run"])
+    assert result.exit_code == 0, result.output
+    assert "Subject:" in result.output and "# REQUIRED" in result.output
+
+
+def test_create_no_input_without_flags_errors(monkeypatch):
+    _acme(monkeypatch)
     result = runner.invoke(cli.app, ["changes", "create", "--no-input"])
-    assert result.exit_code != 0
-    assert "no-input" in result.output
+    assert result.exit_code == 2
+    assert "--from" in result.output
 
 
 def test_missing_required_lists_fk_and_custom():
@@ -91,14 +109,12 @@ def test_missing_required_lists_fk_and_custom():
 
 
 def test_create_preflight_blocks_real_submit(monkeypatch):
-    # --no-input + flags, NOT --dry-run → reaches preflight, must error before POST
-    monkeypatch.setattr(schema_mod, "load", lambda res, c=None: {"fields": [
-        {"name": "requester", "label": "Requester", "field_type": "default_requester", "required": True},
-        {"name": "subject", "label": "Subject", "field_type": "default_subject", "required": True},
-    ]})
-    result = runner.invoke(cli.app, ["changes", "create", "--subject", "x", "--no-input"])
-    assert result.exit_code != 0
-    assert "Requester" in result.output and "required" in result.output
+    # not a dry run, but incomplete: refused before any POST
+    c = _acme(monkeypatch)
+    result = runner.invoke(cli.app, ["changes", "create", "--subject", "x", "--requester",
+                                     "jane.doe@example.com", "--no-input", "--yes"])
+    assert result.exit_code == 2
+    assert "required" in result.output and not c.writes()
 
 
 def test_update_resolves_labels():

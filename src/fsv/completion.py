@@ -474,6 +474,8 @@ def complete_set(res: Resource):
 def complete_config_key(incomplete: str) -> Iterable[tuple[str, str]]:
     yield from _complete_pairs(incomplete, (
         ("completion.network", "enable remote requester/agent completion [on|off]"),
+        ("defaults.requester", "requester email for changes create"),
+        ("forms.workspace_id", "workspace whose business rules apply"),
     ))
 
 

@@ -109,11 +109,19 @@ def test_change_planning_status_needs_yes(fake):
     assert r.exit_code == 2 and not fake.writes
 
 
-def test_set_status_is_gated_like_status_flag(fake):
-    r = runner.invoke(cli.app, ["changes", "update", "CHN-1", "--set", "status=Planning"])
-    assert r.exit_code == 2 and not fake.writes
+def test_set_status_is_gated_like_status_flag(fake, monkeypatch):
     r = runner.invoke(cli.app, ["tickets", "update", "INC-1", "--set", "status=Closed"])
     assert r.exit_code == 2 and not fake.writes
+    # changes --set runs the edit form's rules; the same gate applies
+    import acme_change_form as A
+    import fsv.change_flow as flow
+    acme = A.FakeClient()
+    monkeypatch.setattr(cli, "_client", lambda: acme)
+    monkeypatch.setattr(flow, "interactive", lambda: False)
+    r = runner.invoke(cli.app, ["changes", "update", "CHN-501", "--set", "status=Planning"])
+    assert r.exit_code == 2 and "--yes" in r.output and not acme.writes()
+    r = runner.invoke(cli.app, ["changes", "update", "CHN-501", "--set", "status=Planning", "--yes"])
+    assert r.exit_code == 0 and acme.writes() == [("PUT", "changes/501", {"status": 2})]
 
 
 def test_same_status_is_not_gated(fake):
@@ -135,15 +143,27 @@ def test_dry_run_never_asks_and_reports_risks(fake):
     assert out["body"] == {"status": 2} and out["requires_confirmation"]
 
 
-def test_update_edit_final_body_is_gated(fake, monkeypatch):
-    sent = fake.writes
-    monkeypatch.setattr(cli, "_edit_body", lambda data, hint, no_input=False: {**data, "status": 2})
-    r = runner.invoke(cli.app, ["changes", "update", "CHN-1", "--edit"])
-    assert r.exit_code == 2 and not sent
-    # an edit that leaves status/assignment alone needs no confirmation
-    monkeypatch.setattr(cli, "_edit_body", lambda data, hint, no_input=False: {**data, "subject": "new"})
-    r = runner.invoke(cli.app, ["changes", "update", "CHN-1", "--edit"])
-    assert r.exit_code == 0 and sent
+def test_update_edit_final_body_is_gated(monkeypatch, tmp_path):
+    """--edit opens the YAML draft (edit-form rules); the review is the gate:
+    nothing is sent until [y], and a reassignment shows as a risk."""
+    import sys
+    import acme_change_form as A
+    import fsv.change_flow as flow
+    acme = A.FakeClient()
+    monkeypatch.setattr(cli, "_client", lambda: acme)
+    monkeypatch.setattr(flow, "interactive", lambda: True)
+    editor = tmp_path / "ed.py"
+    editor.write_text(
+        "import sys, pathlib\n"
+        "p = pathlib.Path(sys.argv[1])\n"
+        "p.write_text(p.read_text().replace('  Group: 9000009001', '  Group: 9000009002'))\n")
+    monkeypatch.setenv("VISUAL", f"{sys.executable} {editor}")
+    r = runner.invoke(cli.app, ["changes", "update", "CHN-501", "--edit"], input="n\n")
+    assert r.exit_code == 1 and not acme.writes()
+    assert "reassign group" in r.output
+    r = runner.invoke(cli.app, ["changes", "update", "CHN-501", "--edit"], input="y\n")
+    assert r.exit_code == 0, r.output
+    assert acme.writes() == [("PUT", "changes/501", {"group_id": 9000009002})]
 
 
 def test_tasks_update_flags_and_edit_gated(monkeypatch):
