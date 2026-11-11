@@ -224,6 +224,7 @@ fsv auth status
 fsv config set <key> <value>
 fsv cache status | refresh | clear
 fsv journal ls | tail | path               # local write journal
+fsv form explain | fields | dump | diff     # form fields and business rules
 ```
 
 ### List
@@ -269,10 +270,8 @@ fsv changes url CHN-1234
 ```bash
 fsv changes update CHN-1234 --status Closed --priority Medium --dry-run
 fsv changes update CHN-1234 --planning "Reference Documents" --description "Evidence attached" --file evidence.xlsx
-fsv changes create                                   # opens $VISUAL/$EDITOR with a JSON template (reopens with the error if the JSON is invalid)
-fsv changes create --subject "Patch DB" --status Open --priority High --set "Change Category=Infrastructure"
-fsv changes create --subject "Patch DB" --set "requester=alice@example.com" --no-input   # scriptable
-fsv changes create --dry-run
+fsv changes create --from change.yaml --dry-run      # see "Creating and editing changes" below
+fsv changes create --subject "Patch DB" --set "Change Category=Infrastructure" --requester alice@example.com --dry-run
 fsv changes clone CHN-1234 --dry-run --with-tasks   # list side effects first
 fsv changes clone CHN-1234 --with-tasks --with-planning --yes
 fsv changes download CHN-1234 --all --dir ./evidence
@@ -288,6 +287,99 @@ fsv changes add-note CHN-1234 "PVT result PASS"      # private by default
 fsv changes add-note CHN-1234 "..." --public
 fsv tickets reply INC-9012 "<HTML or text>" --dry-run
 ```
+
+### Creating and editing changes
+
+`fsv changes create` and `fsv changes update --set/--from/--edit` build the
+change the way the web form does: the field list, labels, help text and
+choices come from the form metadata, and the form's business rules show,
+hide, require and restrict fields as answers are given. Every face ends in
+the same review screen; nothing is sent before it.
+
+**A draft file** (`change.yaml`), answers by label or internal name:
+
+```yaml
+preset: acme-normal              # optional: presets/acme-normal.yaml in the config dir, or a path
+requester: jane.doe@example.com
+answers:
+  Subject: "Billing: rotate keys"
+  Change Type: Normal
+  Cloud Only: No                 # labels stay labels: No is not a boolean here
+  Stage: Staging
+  Staging Start: 2030-11-18 09:00   # your Freshservice time zone (FSV_TZ overrides) unless +HH:MM
+  Services: [Billing, Search]
+description_md: |                # or description_html: "<p>...</p>"
+  Rotate the **billing** keys.
+attachments: [evidence/plan.pdf] # uploaded only after you confirm
+planning:                        # planning field label -> files (and optional text)
+  Go-Live Checklist: [evidence/checklist.xlsx]
+```
+
+```bash
+fsv changes create --from change.yaml --dry-run          # review + exact JSON payload + plan hash
+fsv changes create --from change.yaml --dry-run -o json  # {plan_hash, payload, review, warnings}
+fsv changes create --from change.yaml --yes --expect-plan 0cfda1921f64   # send exactly the reviewed plan
+fsv changes create --edit                                # annotated YAML draft in $VISUAL/$EDITOR
+fsv changes create --dry-run > change.yaml               # the same draft, to fill in later
+fsv changes create --preset acme-normal --set "Subject=Billing: rotate keys" --set "Cloud Only=No" --edit
+fsv changes update CHN-1234 --set "Stage=Live" --dry-run # old -> new review; sends only what changed
+fsv changes update CHN-1234 --from change-update.yaml --yes
+fsv form explain changes --set "Cloud Only=No"           # visible / required / hidden, and the rule behind each
+fsv form fields changes --choices Priority               # choices with their meanings
+fsv form dump changes > snap.json && fsv form diff snap.json   # what admins changed since
+```
+
+* **The draft** (`--edit`, or `--dry-run` with no answers) lists the fields
+  the form shows for your answers, in web order, as `Label: value` with
+  `# REQUIRED · type · help` and `# choices: a | b | c` above each. Fields a
+  rule hides are left out; status is never asked (the form default is sent).
+  When something is missing or invalid the editor reopens with `# ERROR:`
+  lines at the top and newly required fields added; your values are kept.
+* **Order**: answers from files and `--set` are replayed top to bottom in
+  web field order, like a person filling the form. `fsv form explain` shows
+  which rule decided each field.
+* **Precedence**: preset < file < `--set` < flags (`--subject`, `--priority`,
+  `--agent`, `--group`, `--description`). Presets are partial answers, not
+  payload: they go through the same rules and validation.
+* **Requester**: `--requester`, the draft's `requester:`, or
+  `fsv config set defaults.requester EMAIL`; otherwise fsv asks (terminal)
+  or stops. It is never silently the logged-in user. Matches must be exact.
+* **Review**: values as the web shows them, *Will notify / create work
+  for*, rule messages (blocking ones need `--ack` or `y`), fields dropped
+  because a rule hid them, rule notes (restricted choices, read-only
+  fields, conflicts), attachments with size and sha256, the form metadata
+  time, and the plan hash. Interactively: `[y] create  [e] edit  [s] save
+  draft  [n] cancel`.
+* **Without a terminal** `--yes` is required. `--expect-plan HASH` (12+ hex
+  characters) refuses to send anything but the reviewed plan: a changed
+  answer, file or form rule changes the hash.
+* **Freshness**: just before sending, fsv fetches the fields and rules again.
+  If the plan changed, it shows what moved and asks again (with `--yes` it
+  stops with exit 4).
+* **Duplicates**: every create is journaled under its plan hash; the same
+  plan within 24 hours is refused (exit 4) unless `--allow-duplicate`.
+* **Files** are uploaded after the change is created. If an upload fails,
+  fsv prints the new change id and the ids already uploaded (exit 5).
+* **Markdown** in `description_md` becomes simple HTML (headings, lists,
+  bold/italic, code, http/https links); raw HTML in it is shown as text.
+  Use `description_html` for raw HTML.
+* `br_validation_excludes` is always computed from the rules, never taken
+  from input.
+
+**Local hints** (`hints.yaml` in the config dir: `$FSV_CONFIG_DIR`,
+`$XDG_CONFIG_HOME/fsv` or `~/.config/fsv`) add tenant knowledge the metadata
+does not carry, shown under *Will notify / create work for*:
+
+```yaml
+changes:
+  - when: {"Notify Ops Team": "Yes"}           # label or internal name -> value
+    warn: creates a task for the Acme ops team
+  - when: {"Change Type": Normal, "Stage": [Staging, Live]}   # list = any of; "*" = any value
+    warn: the release board reviews this change
+```
+
+Config keys: `defaults.requester`, `forms.workspace_id` (the workspace
+whose business rules apply; by default taken from the form metadata).
 
 ### Safety confirmations
 
