@@ -207,6 +207,24 @@ method-specific evidence beyond the prior title update/delete scope. No new
 maintenance writer or guessed optional payload keys were added. Offline Pilot
 search/select/cancel tests do not constitute a live browser or accepted send.
 
+## Legacy-write transport coverage and residual safety debt
+
+`tests/test_legacy_write_guards.py` drives real `Client`/`MockTransport` through
+legacy change note/status, asset add/remove, task update/delete and task-clone
+callers. Each caller is exercised for 403, 429, server failure, disconnect, CSRF
+preparation failure and success. Assertions cover exact current method/path/body,
+one automatic attempt, token preparation and failure audit rows. Clone tests
+preserve the old envelope as compatibility evidence, not accepted native parity.
+
+These are **transport checks, not durable-plan certification**. Legacy helpers
+still lack reviewed full-hash gates, pre-send durable started guards across
+process restarts, and independent exact-ID/field readback. Their transport audit
+is written after the attempt; it must not be presented as the reviewed sender's
+pre-send ambiguity guard. Broader clone base/side-effect transaction and
+attachment rollback/failure matrices also remain unfinished. Use the dedicated
+reviewed workflows where available; do not retry a legacy ambiguous write based
+on these tests or interpret an old helper's response as independent verification.
+
 ## Self watchers
 
 ```sh
