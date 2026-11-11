@@ -15,9 +15,12 @@ before submitting (:func:`load_meta` with ``fresh=True``) and compare the
 fingerprint, so a rule or choice edited since the draft was reviewed is
 noticed.
 
-The workspace comes from ``fsv config set forms.workspace_id N`` or, by
-default, from the form metadata itself (the workspace the custom fields
-belong to).
+The workspace comes from ``fsv config set forms.workspace_id N`` (an
+override) or, by default, from the form metadata itself (the workspace the
+custom fields belong to), then from the account (the session's workspace
+cookie, ``bootstrap/me``, ``workspaces``), then the workspace-less path.
+When no path gives rules, :func:`rules_note` / :func:`rules_warnings` say
+why in one line.
 """
 from __future__ import annotations
 
@@ -105,36 +108,193 @@ def normalize_rules(raw: Any) -> dict[str, Any]:
 
 
 RULES_UNAVAILABLE_KEY = "unavailable"
+RULES_WORKSPACE_KEY = "workspace"  # where the rules came from (informational)
 
 
-def fetch_rules(client: Any, module: str, workspace_id: Any, **query: Any) -> dict[str, Any]:
+def _ws_id(v: Any) -> Any:
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, int):
+        return v
+    if isinstance(v, str) and v.strip().isdigit():
+        return int(v.strip())
+    return None
+
+
+def _add(out: list[Any], v: Any) -> None:
+    w = _ws_id(v)
+    if w is not None and w not in out:
+        out.append(w)
+
+
+_CURRENT_KEYS = ("current_workspace_id", "current_workspace", "selected_workspace_id", "active_workspace_id")
+_PRIMARY_KEYS = ("primary_workspace_id", "default_workspace_id", "workspace_id")
+_PRIMARY_FLAGS = ("primary", "is_primary", "default", "is_default", "current", "selected")
+
+
+def workspaces_in(doc: Any) -> list[Any]:
+    """Workspace ids an account document names, current/primary first.
+
+    Reads ``current_workspace_id``-like keys, then ``primary``/``default``
+    workspace keys, then ``workspaces: [{id, primary}]`` lists and
+    ``workspace_ids`` (a few levels deep: ``{"user": {...}}``,
+    ``{"account": {...}}``). Unknown shapes give ``[]``."""
+    current: list[Any] = []
+    primary: list[Any] = []
+    rest: list[Any] = []
+
+    def walk(o: Any, depth: int) -> None:
+        if depth > 3 or not isinstance(o, Mapping):
+            return
+        for k in _CURRENT_KEYS:
+            v = o.get(k)
+            _add(current, v.get("id") if isinstance(v, Mapping) else v)
+        for k in _PRIMARY_KEYS:
+            _add(primary, o.get(k))
+        for k in ("workspaces", "workspace_list"):
+            rows = o.get(k)
+            if isinstance(rows, list):
+                for r in rows:
+                    if isinstance(r, Mapping):
+                        flagged = any(r.get(f) is True for f in _PRIMARY_FLAGS)
+                        _add(primary if flagged else rest, r.get("id"))
+                    else:
+                        _add(rest, r)
+        ids = o.get("workspace_ids")
+        if isinstance(ids, list):
+            for v in ids:
+                _add(rest, v)
+        for v in o.values():
+            if isinstance(v, Mapping):
+                walk(v, depth + 1)
+
+    walk(doc, 0)
+    out: list[Any] = []
+    for v in current + primary + rest:
+        _add(out, v)
+    return out
+
+
+def _cookie_workspace(client: Any) -> list[Any]:
+    """A numeric ``*workspace*`` cookie of the session (the web remembers
+    the workspace the agent last worked in), if the client exposes one."""
+    jar = getattr(getattr(getattr(client, "_client", None), "cookies", None), "jar", None)
+    out: list[Any] = []
+    try:
+        for ck in jar or []:
+            if "workspace" in str(getattr(ck, "name", "")).lower():
+                _add(out, getattr(ck, "value", None))
+    except Exception:  # noqa: BLE001 - a cookie jar oddity never blocks a form
+        return []
+    return out
+
+
+ACCOUNT_WORKSPACE_PATHS = ("bootstrap/me", "workspaces")
+
+
+def account_workspaces(client: Any) -> list[Any]:
+    """Workspace ids the account itself reports for the signed-in agent:
+    the session's workspace cookie, ``GET /api/_/bootstrap/me``, then
+    ``GET /api/_/workspaces`` (current/primary first). Optional endpoints:
+    a 403/404 or an unknown shape just gives fewer candidates."""
+    out = _cookie_workspace(client)
+    for path in ACCOUNT_WORKSPACE_PATHS:
+        try:
+            doc = client.int_get(path)
+        except APIError:
+            continue
+        except Exception as e:  # noqa: BLE001
+            if type(e).__name__ == "SessionError":
+                raise
+            continue
+        for w in workspaces_in(doc):
+            _add(out, w)
+        if out:
+            break
+    return out
+
+
+def fetch_rules(client: Any, module: str, workspace_id: Any, *, fallback: Any = None,
+                **query: Any) -> dict[str, Any]:
     """Business rules for a form, portable across tenants.
 
-    Tries ``/api/_/ws/<ws>/business_rules`` when the tenant has a workspace,
-    then the workspace-less ``/api/_/business_rules`` (single-workspace
-    accounts). A 403/404 on every path (rules not permitted for the role, or
-    not a feature of the plan) gives an empty rule set with
-    ``unavailable`` set: the form then runs on the static required/visible
-    flags only, and every review says so.
+    Tries ``/api/_/ws/<ws>/business_rules`` for ``workspace_id`` (one id or
+    a list of candidates, best first), then for the workspaces ``fallback``
+    returns (a callable, asked only when every earlier candidate failed: the
+    account's own workspaces), then the workspace-less
+    ``/api/_/business_rules`` (accounts without workspaces). A candidate
+    that answers with no rules is remembered and the next one is tried.
+    A 403/404 on every path (rules not permitted for the role, or not a
+    feature of the plan) gives an empty rule set with ``unavailable`` set
+    to a one-line reason: the form then runs on the static
+    required/visible flags only, and every review says so.
     """
-    has_ws = workspace_id not in (None, "")
-    q = business_rules_query(module, workspace_id=workspace_id if has_ws else 0, **query)
-    params = dict(q.params)
-    paths = ([q.path.removeprefix("/api/_/")] if has_ws else []) + ["business_rules"]
+    cands: list[Any] = []
+    for w in (workspace_id if isinstance(workspace_id, (list, tuple)) else [workspace_id]):
+        if w not in (None, "") and w not in cands:
+            cands.append(w)
+    tried: list[str] = []
+    empty: dict[str, Any] | None = None
     last: APIError | None = None
-    for path in paths:
+
+    def attempt(path: str, params: dict[str, Any], ws: Any) -> dict[str, Any] | None:
+        nonlocal last, empty
         try:
             raw = client.int_get(path, params)
         except APIError as e:
             if e.status in (403, 404):
                 last = e
-                continue
+                tried.append(f"/api/_/{path} HTTP {e.status}")
+                return None
             raise
         if raw in (None, "", [], {}):
-            return {"business_rules": [], "user": None}
-        return normalize_rules(raw)
-    why = f"HTTP {last.status}" if last is not None else "not offered"
-    return {"business_rules": [], "user": None, RULES_UNAVAILABLE_KEY: why}
+            rules: dict[str, Any] = {"business_rules": [], "user": None}
+        else:
+            rules = normalize_rules(raw)
+        if ws is not None:
+            rules[RULES_WORKSPACE_KEY] = ws
+        if rules.get("business_rules"):
+            return rules
+        if empty is None:
+            empty = rules
+        return None
+
+    def ws_try(ws: Any) -> dict[str, Any] | None:
+        q = business_rules_query(module, workspace_id=ws, **query)
+        return attempt(q.path.removeprefix("/api/_/"), dict(q.params), ws)
+
+    for ws in cands:
+        got = ws_try(ws)
+        if got is not None:
+            return got
+    if empty is not None:
+        return empty  # the workspace answered: it has no rules for this form
+    if fallback is not None:
+        try:
+            extra = [w for w in (fallback() or []) if w not in cands]
+        except APIError:
+            extra = []
+        for ws in extra:
+            cands.append(ws)
+            got = ws_try(ws)
+            if got is not None:
+                return got
+    if empty is not None:
+        return empty
+    q = business_rules_query(module, workspace_id=0, **query)
+    got = attempt("business_rules", dict(q.params), None)
+    if got is not None:
+        return got
+    if empty is not None:
+        return empty
+    if cands:
+        why = (f"workspace {', '.join(map(str, cands))} and the workspace-less path answered "
+               f"HTTP {last.status if last else '?'}")
+    else:
+        why = (f"no workspace found in the form metadata or the account, and /api/_/business_rules "
+               f"answered HTTP {last.status if last else '?'}")
+    return {"business_rules": [], "user": None, RULES_UNAVAILABLE_KEY: why,
+            "unavailable_status": last.status if last is not None else None}
 
 
 def rules_warnings(rules: Mapping[str, Any] | None) -> list[str]:
@@ -142,8 +302,18 @@ def rules_warnings(rules: Mapping[str, Any] | None) -> list[str]:
     why = (rules or {}).get(RULES_UNAVAILABLE_KEY)
     if not why:
         return []
-    return [f"business rules are not available ({why}); only the form's static required/visible "
-            "settings were checked, the server may still ask for more"]
+    return [f"business rules could not be loaded ({why}); only the form's static required/visible "
+            "settings were checked, the server may still ask for more. If the account has workspaces, "
+            "`fsv config set forms.workspace_id N` picks the right one"]
+
+
+def rules_note(rules: Mapping[str, Any] | None) -> str | None:
+    """One line for stderr when the rules could not be loaded, else None."""
+    why = (rules or {}).get(RULES_UNAVAILABLE_KEY)
+    if not why:
+        return None
+    return (f"note: business rules not loaded ({why}); checking static required/visible flags only "
+            "(override the workspace with `fsv config set forms.workspace_id N`)")
 
 
 def workspace_from_fields(fields: Sequence[Mapping[str, Any]]) -> Any:
@@ -159,6 +329,30 @@ def workspace_from_fields(fields: Sequence[Mapping[str, Any]]) -> Any:
 def configured_workspace() -> Any:
     v = (config.load_config().get("forms") or {}).get("workspace_id")
     return int(v) if isinstance(v, str) and v.isdigit() else v
+
+
+def workspace_candidates(*preferred: Any) -> list[Any]:
+    """Workspaces to try for business rules, best first: the
+    ``forms.workspace_id`` override alone when set, else the given ones
+    (record workspace, form metadata workspace, ...)."""
+    override = configured_workspace()
+    if override not in (None, ""):
+        return [override]
+    out: list[Any] = []
+    for w in preferred:
+        if w not in (None, "") and w not in out:
+            out.append(w)
+    return out
+
+
+def load_rules(client: Any, module: str, *preferred: Any, **query: Any) -> dict[str, Any]:
+    """:func:`fetch_rules` with the workspace defaulted portably: the config
+    override, else ``preferred`` (record / metadata workspaces), else the
+    account's own workspaces, else the workspace-less path."""
+    cands = workspace_candidates(*preferred)
+    use_account = configured_workspace() in (None, "")
+    return fetch_rules(client, module, cands, fallback=(lambda: account_workspaces(client)) if use_account else None,
+                       **query)
 
 
 @dataclass
@@ -224,15 +418,16 @@ def load_meta(client: Any, module: str = "change", mode: str = "new", *, fresh: 
             raise APIError(200, f"no form fields returned for {module}", "GET", path)
         fields = {key: raw[key]}
         _save(f"{module}-fields", "schema", fields)
-    # None on accounts without workspaces: the rules come from the
-    # workspace-less path (fetch_rules)
+    # the override, else the fields' workspace; accounts without one get the
+    # account's own workspace or the workspace-less path (load_rules)
     ws = configured_workspace() or workspace_from_fields(fields[key])
     ckey = f"{module}-rules-{form_type}-ws{ws}" + (f"-{module_id}" if module_id is not None else "")
     rules = None if fresh else _cached(ckey)
     if rules is None:
         source = "server"
-        rules = fetch_rules(client, module, ws, form_type=form_type, module_id=module_id)
+        rules = load_rules(client, module, ws, form_type=form_type, module_id=module_id)
         _save(ckey, "form_rules", rules)
+    ws = rules.get(RULES_WORKSPACE_KEY, ws)
     return FormMeta(module, form_type, fields, rules, ws, time.time(), source, module_id)
 
 

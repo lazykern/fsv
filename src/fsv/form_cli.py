@@ -26,6 +26,7 @@ from fsv.formmeta import (
     load_meta,
     module_name,
     name_existing,
+    rules_note,
 )
 from fsv.forms import FormError, FormState, canonical_json, plain_text
 from fsv.render import console, err
@@ -67,6 +68,12 @@ def _guard(fn: Any) -> Any:
         _fail(str(e), exit_code_for(e) if not isinstance(e, FormError) else 2)
 
 
+def _note_rules(meta: Any) -> None:
+    note = rules_note(meta.rules)
+    if note:
+        err.print(f"[dim]{escape(note)}[/dim]", highlight=False)
+
+
 def _one_line(text: str, limit: int = 100) -> str:
     s = " ".join(plain_text(text or "").split())
     return s if len(s) <= limit else s[: limit - 1] + "…"
@@ -97,6 +104,7 @@ def explain(
         record = data.get("change", data)
     meta = _guard(lambda: load_meta(c, mod, "edit" if record else "new",
                                     module_id=(record.get("display_id") or record.get("id")) if record else None))
+    _note_rules(meta)
     draft = _guard(lambda: resolve_draft(from_, preset, set_))
     spec = meta.spec
     state = _guard(lambda: FormState(spec, meta.engine(), mode="edit" if record else "new",
@@ -159,6 +167,7 @@ def fields(
     mod = _module(module)
     c = _client()
     meta = _guard(lambda: load_meta(c, mod, "new"))
+    _note_rules(meta)
     spec = meta.spec
     state = _guard(lambda: FormState(spec, meta.engine(), mode="new"))
     ev = state.evaluated

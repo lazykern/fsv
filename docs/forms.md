@@ -54,11 +54,31 @@ business_rules_query("change", workspace_id=2, form_type="edit", module_id=4242)
 ```
 
 `fsv.formmeta.fetch_rules(client, module, workspace_id, **query)` makes
-that request portably: without a workspace (accounts that have none) it
-uses `/api/_/business_rules`, it falls back to that path after a 403/404 on
-the workspace path, and when every path answers 403/404 it returns an empty
-rule set marked `unavailable` (the form then runs on the metadata's static
-required/visible flags, and reviews warn about it).
+that request portably. `workspace_id` may be one id or a list of
+candidates; each `/api/_/ws/<id>/business_rules` is tried in turn, then
+the workspace-less `/api/_/business_rules` (accounts without workspaces).
+A workspace that answers with an empty rule set ends the search. When
+every path answers 403/404 it returns an empty rule set marked
+`unavailable` with a one-line reason (the form then runs on the metadata's
+static required/visible flags; reviews warn, and `fsv form fields` /
+`form explain` print the reason on stderr via `formmeta.rules_note()`).
+
+**Which workspace.** `formmeta.load_rules()` (used by every form face)
+picks the workspace like this:
+
+1. `fsv config set forms.workspace_id N`: an override, used alone;
+2. the record's own `workspace_id` (edit forms and detail pages);
+3. the workspace the form's custom fields belong to (`workspace_id` in the
+   form-fields metadata);
+4. only when those are missing or refused: the account itself, the
+   session's `*workspace*` cookie, `GET /api/_/bootstrap/me`
+   (`current_workspace_id`, `primary_workspace_id`, `workspace_ids`, ...)
+   and `GET /api/_/workspaces` (the `primary` one first), all optional;
+5. the workspace-less path.
+
+The workspace the rules came from is kept as `meta.workspace_id` (the
+engine filters rules by it). Edit-form rules are cached per record
+(`module_id`), since the server filters them by record.
 
 Parameters: `module_type`, `workspace_id` (path), `item_id` (catalog item
 `id`; `null` otherwise), `form_type` (`new`/`edit`), `requester` and

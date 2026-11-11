@@ -48,7 +48,7 @@ def test_change_form_without_workspaces_or_rules(globex):
     t, c = globex
     s = change_session(c)
     assert [it.label for it in s.items][:4] == ["Antragsteller", "Betreff", "Änderungstyp", "Umgebung"]
-    assert any("business rules are not available (HTTP 404)" in n for n in s.load_notes)
+    assert any("business rules could not be loaded" in n and "HTTP 404" in n for n in s.load_notes)
     assert not any("/ws/" in p for p in t.paths())
     # the agent profile's time zone is used when the rules carry no user
     assert s.tz_source == "Freshservice user time zone (Berlin)" and str(s.tz) == "Europe/Berlin"
@@ -56,7 +56,7 @@ def test_change_form_without_workspaces_or_rules(globex):
     fill(s)
     plan = s.build_plan()
     assert plan.ok, plan.errors
-    assert any("business rules are not available" in w for w in plan.review.warnings)
+    assert any("business rules could not be loaded" in w for w in plan.review.warnings)
     assert plan.payload["planned_start_date"] == "2031-03-02T18:00:00+01:00"
 
 
@@ -128,7 +128,7 @@ def test_create_from_the_form_on_globex(globex, monkeypatch):
         app.screen.refresh_rows()
         await pilot.press("ctrl+s")
         await settle(app, pilot, 0.1)
-        assert "business rules are not available" in text_of(app.screen.query_one("#rv-body"))
+        assert "business rules could not be loaded" in text_of(app.screen.query_one("#rv-body"))
         await pilot.click("#rv-submit")
         await settle(app, pilot)
 
@@ -144,7 +144,7 @@ def test_service_request_without_sections_rules_or_attachments(globex, tmp_path)
     t, c = globex
     s = sr_session(c, 501)
     assert [it.label for it in s.items] == ["Requester", "Begründung", "Modell", "Benötigt bis", "Angebot (.pdf)"]
-    assert any("business rules are not available (HTTP 404)" in n for n in s.load_notes)
+    assert any("business rules could not be loaded" in n and "HTTP 404" in n for n in s.load_notes)
     (tmp_path / "angebot.pdf").write_bytes(b"%PDF")
     (tmp_path / "angebot.docx").write_bytes(b"doc")
     s.set("__requester__", ERIKA)

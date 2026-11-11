@@ -30,7 +30,7 @@ from fsv.change_flow import FlowExit, check_duplicate, review_diff, sha256_file
 from fsv.change_flow import _acknowledge, _dropped, _messages, _notes  # shared review helpers
 from fsv.drafts import Draft
 from fsv.errors import APIError, SessionError
-from fsv.formmeta import apply_answers, configured_workspace, fetch_rules, find_field, rules_warnings
+from fsv.formmeta import RULES_WORKSPACE_KEY, apply_answers, configured_workspace, find_field, load_rules, rules_warnings
 from fsv.forms import (
     Field,
     FormError,
@@ -268,9 +268,9 @@ class ItemMeta:
 def load_item_meta(client: Any, ref: Any, *, item: Mapping[str, Any] | None = None) -> ItemMeta:
     """Item form + business rules (always from the server: one GET each)."""
     raw = dict(item) if item is not None else find_item(client, ref)
-    ws = configured_workspace() or raw.get("workspace_id")  # None: account without workspaces
-    rules = fetch_rules(client, "service_request", ws, item_id=raw.get("id"))
-    return ItemMeta(raw, rules, ws, time.time())
+    ws = configured_workspace() or raw.get("workspace_id")  # None: ask the account, else no workspaces
+    rules = load_rules(client, "service_request", ws, item_id=raw.get("id"))
+    return ItemMeta(raw, rules, rules.get(RULES_WORKSPACE_KEY, ws), time.time())
 
 
 # ---------------------------------------------------------------------------

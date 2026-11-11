@@ -783,32 +783,34 @@ def _record_for_form(res: Resource, record: Mapping[str, Any]) -> dict[str, Any]
 
 def load_edit_rules(c: Any, module: str, record: Mapping[str, Any], raw_fields: Sequence[Mapping[str, Any]]
                     ) -> tuple[dict[str, Any] | None, str | None]:
-    """Edit-form business rules (cached); ``(None, note)`` when the account
-    has none or will not show them."""
+    """Edit-form business rules (cached per record: the server filters them
+    by ``module_id``); ``(None, note)`` when the account has none or will
+    not show them."""
     from fsv import formmeta
-    from fsv.forms import business_rules_query
 
     ws = record.get("workspace_id")
-    if ws in (None, ""):
-        ws = formmeta.workspace_from_fields(raw_fields)
-    key = f"{module}-rules-edit_form-ws{ws if ws not in (None, '') else 'none'}"
+    fws = formmeta.workspace_from_fields(raw_fields)
+    mid = record.get("display_id") or record.get("id")
+    where = formmeta.configured_workspace() or (ws if ws not in (None, "") else fws)
+    key = f"{module}-rules-edit_form-ws{where if where not in (None, '') else 'none'}-{mid}"
     try:
         cached = formmeta._cached(key)
     except Exception:  # noqa: BLE001
         cached = None
     if isinstance(cached, Mapping):
         return dict(cached), None
-    q = business_rules_query(module, workspace_id=ws if ws not in (None, "") else 0, form_type="edit",
-                             module_id=record.get("display_id") or record.get("id"))
-    data, miss = workspace_get(c, "business_rules", dict(q.params), ws, "business rules")
-    if miss:
-        return None, "static field visibility (" + miss.note + ")"
     try:
-        rules = formmeta.normalize_rules(data)
+        rules = formmeta.load_rules(c, module, ws, fws, form_type="edit", module_id=mid)
     except SessionError:
         raise
+    except APIError as e:
+        return None, f"static field visibility (business rules: unavailable ({e.status}))"
     except Exception:  # noqa: BLE001
         return None, "static field visibility (business rules unreadable)"
+    if rules.get(formmeta.RULES_UNAVAILABLE_KEY):
+        status = rules.get("unavailable_status")
+        return None, ("static field visibility (business rules: not available on this account"
+                      + (f" ({status}))" if status else ")"))
     if not rules.get("business_rules"):
         return None, None
     try:

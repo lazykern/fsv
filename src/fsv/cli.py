@@ -3036,7 +3036,7 @@ _CONFIG_KEYS: dict[str, str] = {
     "completion.network": "enable remote requester/agent completion [on|off]",
     "defaults.requester": "requester email for `changes create` when --requester is not given",
     "changes.attach_flow": "`changes create` attachments: after-create (default) | before-create (unverified vs the web)",
-    "forms.workspace_id": "workspace whose business rules apply (default: taken from the form metadata)",
+    "forms.workspace_id": "workspace whose business rules apply (default: the form metadata, else the account)",
     "defaults.sr_requester": "requester email for `sr create` when --requester is not given",
     "tui.read_only": "open the TUI without write actions [on|off]",
 }
