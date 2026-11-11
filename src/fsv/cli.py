@@ -752,8 +752,8 @@ def _confirm_terminal_status(res: Resource, cid: int, sch: dict[str, Any], statu
 
 
 def _emit_dry_run(res: Resource, cid: int, body: dict[str, Any], action: str = "update",
-                  risks: list[str] | None = None) -> None:
-    out: dict[str, Any] = {"dry_run": True, "action": action, "id": format_id({"id": cid}, res), "body": body}
+                  risks: list[str] | None = None, display_id: str | None = None) -> None:
+    out: dict[str, Any] = {"dry_run": True, "action": action, "id": display_id or format_id({"id": cid}, res), "body": body}
     if risks:
         out["requires_confirmation"] = risks
     emit_json(out)
@@ -2627,9 +2627,21 @@ def update_resource(
             body[k] = v
     if not body:
         _err("nothing to update; pass at least one field (--status, --priority, --agent, --group, --set FIELD=VALUE)")
-    risks = _risks_for_item_write(res, cid, body, sch, c)
+    current = _current_flat(res, cid, c) if dry_run and res.name == "tickets" else None
+    risks = _risks_for_item_write(res, cid, body, sch, c, current=current)
     if dry_run:
-        _emit_dry_run(res, cid, body, risks=risks)
+        display_id = None
+        if res.name == "tickets":
+            # Prefer the server's explicit identity; an untyped numeric ID is
+            # not evidence that a ticket is an incident or a service request.
+            human = (current or {}).get("human_display_id")
+            if human and re.fullmatch(r"(?:INC|SR)-[0-9]+", str(human), re.IGNORECASE):
+                display_id = str(human)
+            elif re.fullmatch(r"(?:INC|SR)-[0-9]+", id_.strip(), re.IGNORECASE):
+                display_id = id_.strip().upper()
+            else:
+                display_id = f"tickets/{cid}"
+        _emit_dry_run(res, cid, body, risks=risks, display_id=display_id)
         return
     _confirm_writes(risks, format_id({"id": cid}, res), yes, no_input)
     item = _api(lambda: service.update_item(res, cid, body, client=c))
