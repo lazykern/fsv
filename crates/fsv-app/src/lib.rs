@@ -17,5 +17,5 @@ pub use form::{
 };
 pub use meta::LiveMeta;
 pub use source::ClientSource;
-pub use tui::{LiveBackend, LivePages, SchemaLoader, run_tui};
+pub use tui::{LiveBackend, LivePages, SchemaLoader, run_tui, schema_loader};
 pub use writer::LiveWriter;

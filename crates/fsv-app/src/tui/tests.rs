@@ -14,6 +14,7 @@ fn backend(t: &Tenant) -> LiveBackend {
     let schema: SchemaLoader = Arc::new(|r: Res| Ok(json!({"fields": [], "for": r.name})));
     LiveBackend::new(t.client.clone(), schema)
         .with_journal(Arc::new(MemJournal::default()))
+        .with_store(Arc::new(fsv_api::formmeta::MemStore::default()))
         .with_config(Map::new())
 }
 
