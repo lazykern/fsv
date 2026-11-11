@@ -1,0 +1,170 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change_task_fields",
+  "json": {
+   "change_task_fields": [
+    {
+     "name": "status",
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "In Progress"
+      },
+      {
+       "id": 3,
+       "value": "Completed"
+      },
+      {
+       "id": 9,
+       "value": "Old",
+       "deleted": true
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/agents",
+  "json": {
+   "results": [
+    {
+     "id": 31,
+     "user_id": 131,
+     "email": "ann@acme.com",
+     "value": "Ann"
+    },
+    {
+     "id": 32,
+     "user_id": 132,
+     "email": "bob@acme.com",
+     "value": "Bob (Deactivated)"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/bootstrap/agents_groups",
+  "json": {
+   "groups": [
+    {
+     "id": 4,
+     "name": "Ops"
+    },
+    {
+     "id": 5,
+     "name": "DBA"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 7,
+     "title": "old",
+     "owner_id": null
+    }
+   ],
+   "meta": {
+    "total_count": 1
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/changes/5/tasks",
+  "json": {
+   "task": {
+    "id": 12
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/approvals",
+  "json": [
+   {
+    "id": 70,
+    "member_id": 31,
+    "status": {
+     "id": 0,
+     "name": "requested"
+    }
+   }
+  ]
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/5/approvals/70",
+  "json": {}
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/changes/5/approval-groups",
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/approval-chains",
+  "json": {
+   "approval_chains": [
+    {
+     "id": 1,
+     "approval_groups": [
+      {
+       "id": 3,
+       "name": "CAB",
+       "approval_status": 0,
+       "approvals": [
+        {
+         "id": 70,
+         "member_id": 31,
+         "status": {
+          "id": 0,
+          "name": "requested"
+         }
+        }
+       ]
+      },
+      {
+       "id": 4,
+       "name": "Done",
+       "approval_status": 1,
+       "approvals": [
+        {
+         "id": 71,
+         "member_id": 32,
+         "status": {
+          "id": 1,
+          "name": "approved"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/5/approval-groups/3/cancel",
+  "json": {}
+ }
+]

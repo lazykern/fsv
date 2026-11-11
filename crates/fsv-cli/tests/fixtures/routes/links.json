@@ -1,0 +1,158 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/cmdb/items",
+  "text": "<html><select class=\"x\" name=\"ci_type_id\"><option>All Assets</option><option value=\"7\">Application <b>Portfolio</b></option><option value=\"8\">Hardware &amp; Devices</option><option value=\"9\">Application Server</option></select></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/assets",
+  "json": {
+   "associated_assets": [
+    {
+     "config_item": {
+      "display_id": 44,
+      "name": "AcmeApp",
+      "ci_type_name": "Application Portfolio",
+      "ci_type_id": 7,
+      "asset_state_7": "In Use",
+      "serial_number_3": "S1",
+      "location_name": "BKK"
+     },
+     "id": 900
+    },
+    {
+     "config_item": {
+      "display_id": 45,
+      "name": "DB01",
+      "asset_type": "Hardware & Devices",
+      "user_name": "Ann"
+     },
+     "id": 901
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/assets-to-associate",
+  "json": {
+   "assets": [
+    {
+     "display_id": 44,
+     "name": "AcmeApp",
+     "ci_type_name": "Application Portfolio"
+    },
+    {
+     "display_id": 46,
+     "name": "AcmeWeb",
+     "ci_type_name": "Application Server",
+     "location_name": "HQ"
+    }
+   ],
+   "meta": {
+    "count": 2
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/5/assets/associate",
+  "json": {}
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/5/assets/detach",
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/tickets/search",
+  "json": {
+   "tickets": [
+    {
+     "id": 100,
+     "human_display_id": "SR-100",
+     "subject": "Disk full",
+     "status_name": "Open"
+    },
+    {
+     "id": 101,
+     "human_display_id": "INC-101",
+     "subject": "Disk slow",
+     "status": 2
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/tickets",
+  "json": {
+   "tickets": [
+    {
+     "id": 100,
+     "human_display_id": "SR-100",
+     "subject": "Disk full",
+     "status_name": "Open"
+    }
+   ],
+   "meta": {
+    "total_count": 1
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/problems",
+  "json": {
+   "problems": [
+    {
+     "id": 7,
+     "subject": "Root",
+     "status": 1
+    }
+   ],
+   "meta": {
+    "total_count": 1
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/releases",
+  "status": 403,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/6/tickets",
+  "json": {
+   "tickets": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/6/problems",
+  "json": {
+   "problems": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/6/releases",
+  "json": {
+   "releases": []
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/6/tickets/associate",
+  "json": {}
+ }
+]

@@ -1,0 +1,89 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/5/activities",
+  "json": {
+   "activities": [
+    {
+     "created_at": "2024-03-01T10:15:00+07:00",
+     "actor": {
+      "name": "Ann [x]"
+     },
+     "content": "<b>Set</b>  status\n to Open",
+     "sub_contents": [
+      "<i>a</i>  b",
+      "c"
+     ]
+    },
+    {
+     "created_at": "2024-03-01T23:30:00Z",
+     "actor": null,
+     "content": "second"
+    },
+    {
+     "created_at": "bad",
+     "actor": {
+      "name": "Bob"
+     },
+     "content": null
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/6/activities",
+  "status": 403,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/5/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 1,
+     "human_display_id": "TSK-1",
+     "status_name": "Open",
+     "group": {
+      "name": "Ops"
+     },
+     "due_date": "2024-01-01",
+     "title": "A very long title that goes on and on and on past sixty characters total"
+    },
+    {
+     "id": 2,
+     "status": 2,
+     "agent": {
+      "name": "Ann"
+     },
+     "title": null
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 3,
+     "status_name": "Done",
+     "custom_fields": {
+      "system": "SAP",
+      "environment": null
+     },
+     "task_due_status": "overdue",
+     "title": "t"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/6/tasks",
+  "status": 404,
+  "json": {}
+ }
+]

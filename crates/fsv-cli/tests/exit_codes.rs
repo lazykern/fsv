@@ -171,12 +171,12 @@ fn form_diff_unreadable_snapshot() {
 }
 
 #[test]
-fn unported_step_reports_exit_1() {
+fn identical_snapshots_exit_0() {
     let dir = tempfile::tempdir().unwrap();
     let snap = dir.path().join("s.json");
     std::fs::write(&snap, r#"{"fsv_form_snapshot": 1, "fields": []}"#).unwrap();
     let s = snap.to_str().unwrap();
     let r = fsv(&["form", "diff", s, "--against", s]);
-    assert_eq!(r.code, 1);
-    assert!(r.err.contains("not ported to Rust yet"), "{}", r.err);
+    assert_eq!(r.code, 0);
+    assert_eq!(r.out, "no changes\n");
 }

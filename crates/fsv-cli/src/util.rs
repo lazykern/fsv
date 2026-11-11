@@ -98,13 +98,30 @@ pub fn interactive() -> bool {
     !no_input(false) && stdin_tty()
 }
 
+/// `get_client()`: the process-wide client.
+pub fn shared_client() -> Result<Arc<Client>> {
+    #[cfg(debug_assertions)]
+    {
+        static MOCK: std::sync::OnceLock<Option<Arc<Client>>> = std::sync::OnceLock::new();
+        let mock = MOCK.get_or_init(|| {
+            let t = crate::mock::transport()?;
+            let ctx = Arc::new(fsv_core::Ctx::from_process());
+            Client::builder(ctx).transport(t).build().ok().map(Arc::new)
+        });
+        if let Some(c) = mock {
+            return Ok(c.clone());
+        }
+    }
+    fsv_core::get_client()
+}
+
 /// `_client()`.
 pub fn client() -> Result<Arc<Client>> {
     if fsv_core::session::session_age_hours().is_none() {
         err().print("[red]error[/red]: no session; run `fsv auth login`");
         return Err(Error::exit(3, ""));
     }
-    match fsv_core::get_client() {
+    match shared_client() {
         Ok(c) => Ok(c),
         Err(e) => {
             let code = if matches!(e, Error::Session(_)) { 3 } else { 1 };
@@ -149,10 +166,25 @@ pub fn confirm_writes(
 
 /// `_emit_dry_run`.
 pub fn emit_dry_run(res: &Resource, cid: i64, body: Value, action: &str, risks: &[String]) {
+    emit_dry_run_as(res, cid, body, action, risks, None);
+}
+
+/// `_emit_dry_run(..., display_id=...)`.
+pub fn emit_dry_run_as(
+    res: &Resource,
+    cid: i64,
+    body: Value,
+    action: &str,
+    risks: &[String],
+    display_id: Option<String>,
+) {
     let mut out = Map::new();
     out.insert("dry_run".into(), json!(true));
     out.insert("action".into(), json!(action));
-    out.insert("id".into(), json!(format_cid(cid, res)));
+    out.insert(
+        "id".into(),
+        json!(display_id.unwrap_or_else(|| format_cid(cid, res))),
+    );
     out.insert("body".into(), body);
     if !risks.is_empty() {
         out.insert("requires_confirmation".into(), json!(risks));
@@ -169,6 +201,23 @@ pub fn emit_fmt(raw: &Value, flat: &[Map<String, Value>], fmt: OutputFormat) -> 
         OutputFormat::Table => return Ok(false),
     }
     Ok(true)
+}
+
+/// `_edit_body`: open `$EDITOR` on `data` as JSON and return the edited object.
+pub fn edit_body(data: &Value, hint: &str, local_no_input: bool) -> Result<Map<String, Value>> {
+    if no_input(local_no_input) {
+        return Err(usage(
+            "editor disabled by --no-input; use --dry-run/--dry or provide non-interactive flags",
+        ));
+    }
+    match fsv_core::editor::edit_json(data, hint) {
+        Ok(Value::Object(m)) => Ok(m),
+        Ok(other) => Err(uncaught(Error::other(format!(
+            "edited JSON must be an object, got {}",
+            fsv_py::py_str(&other)
+        )))),
+        Err(e) => Err(fail_exc(e)),
+    }
 }
 
 /// `str(d.get(a) or d.get(b) or ... or default)`.

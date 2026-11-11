@@ -1,0 +1,624 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/catalog/service-categories",
+  "json": {
+   "service_categories": [
+    {
+     "id": 7001,
+     "name": "Engineering",
+     "description": "Product work",
+     "position": 1,
+     "workspace_id": 3,
+     "hierarchy_info": {
+      "has_sub_category": true,
+      "order": "az"
+     }
+    },
+    {
+     "id": 7004,
+     "name": "Engineering Tools",
+     "description": "Build tools",
+     "position": 2,
+     "workspace_id": 3,
+     "parent_id": 7001,
+     "hierarchy_info": {
+      "has_sub_category": null,
+      "order": null
+     }
+    },
+    {
+     "id": 7002,
+     "name": "Access",
+     "description": "Accounts and permissions",
+     "position": 3,
+     "workspace_id": 3,
+     "hierarchy_info": {
+      "has_sub_category": null,
+      "order": "az"
+     }
+    },
+    {
+     "id": 7003,
+     "name": "Hardware",
+     "description": "Devices",
+     "position": 4,
+     "workspace_id": 3,
+     "hierarchy_info": {
+      "has_sub_category": null,
+      "order": null
+     }
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/catalog/service-items",
+  "query": {
+   "filter": "frequently_requested"
+  },
+  "json": {
+   "service_items": [
+    {
+     "id": 4400001,
+     "display_id": 77,
+     "name": "Feature Request",
+     "short_description": "Ask for a product change",
+     "category_id": 7001,
+     "deleted": false,
+     "workspace_id": 3,
+     "allow_attachments": true,
+     "allow_quantity": false,
+     "configs": {
+      "attachment_mandatory": false,
+      "subject": "",
+      "auto_gen_document": false
+     },
+     "icon_detail": {
+      "name": "icon.png",
+      "type": "image/png",
+      "url": "https://files.acme.example/icon.png"
+     }
+    },
+    {
+     "id": 4400002,
+     "display_id": 78,
+     "name": "VPN Access",
+     "short_description": "Remote access to the office network",
+     "category_id": 7002,
+     "deleted": false,
+     "workspace_id": 3,
+     "allow_attachments": false,
+     "allow_quantity": false,
+     "configs": {
+      "attachment_mandatory": false,
+      "subject": "",
+      "auto_gen_document": false
+     },
+     "icon_detail": {
+      "name": "icon.png",
+      "type": "image/png",
+      "url": "https://files.acme.example/icon.png"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/catalog/service-items",
+  "query": {
+   "page": "1"
+  },
+  "json": {
+   "service_items": [
+    {
+     "id": 4400001,
+     "display_id": 77,
+     "name": "Feature Request",
+     "short_description": "Ask for a product change",
+     "category_id": 7001,
+     "deleted": false,
+     "workspace_id": 3,
+     "allow_attachments": true,
+     "allow_quantity": false,
+     "configs": {
+      "attachment_mandatory": false,
+      "subject": "",
+      "auto_gen_document": false
+     },
+     "icon_detail": {
+      "name": "icon.png",
+      "type": "image/png",
+      "url": "https://files.acme.example/icon.png"
+     }
+    },
+    {
+     "id": 4400002,
+     "display_id": 78,
+     "name": "VPN Access",
+     "short_description": "Remote access to the office network",
+     "category_id": 7002,
+     "deleted": false,
+     "workspace_id": 3,
+     "allow_attachments": false,
+     "allow_quantity": false,
+     "configs": {
+      "attachment_mandatory": false,
+      "subject": "",
+      "auto_gen_document": false
+     },
+     "icon_detail": {
+      "name": "icon.png",
+      "type": "image/png",
+      "url": "https://files.acme.example/icon.png"
+     }
+    },
+    {
+     "id": 4400003,
+     "display_id": 79,
+     "name": "Laptop",
+     "short_description": "A new or replacement laptop",
+     "category_id": 7003,
+     "deleted": false,
+     "workspace_id": 3,
+     "allow_attachments": true,
+     "allow_quantity": false,
+     "configs": {
+      "attachment_mandatory": false,
+      "subject": "",
+      "auto_gen_document": false
+     },
+     "icon_detail": {
+      "name": "icon.png",
+      "type": "image/png",
+      "url": "https://files.acme.example/icon.png"
+     }
+    },
+    {
+     "id": 4400004,
+     "display_id": 80,
+     "name": "Build Agent",
+     "short_description": "A CI build agent",
+     "category_id": 7004,
+     "deleted": false,
+     "workspace_id": 3,
+     "allow_attachments": true,
+     "allow_quantity": false,
+     "configs": {
+      "attachment_mandatory": false,
+      "subject": "",
+      "auto_gen_document": false
+     },
+     "icon_detail": {
+      "name": "icon.png",
+      "type": "image/png",
+      "url": "https://files.acme.example/icon.png"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/catalog/service-items",
+  "query": {
+   "page": "2"
+  },
+  "json": {
+   "service_items": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/catalog/service-items/77",
+  "json": {
+   "service_item": {
+    "id": 4400001,
+    "display_id": 77,
+    "name": "Feature Request",
+    "short_description": "Ask for a product change",
+    "category_id": 7001,
+    "category_name": "Engineering",
+    "workspace_id": 3,
+    "updated_at": "2030-01-15T10:00:00+09:00",
+    "description": "<p>Use this form for <b>feature</b> work.</p>",
+    "allow_attachments": true,
+    "allow_quantity": false,
+    "attachment_mandatory": true,
+    "configs": {
+     "attachment_mandatory": true,
+     "subject": "{{custom_field.cf_title_100}}",
+     "auto_gen_document": false
+    },
+    "custom_fields": [
+     {
+      "id": "f-notice",
+      "name": "notice",
+      "type": 1024,
+      "position": 1,
+      "label": "&lt;p&gt;Attach the &lt;b&gt;overview deck&lt;/b&gt;.&lt;/p&gt;",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {
+       "content_name": "Notice"
+      },
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-title",
+      "name": "title_100",
+      "type": 1001,
+      "position": 2,
+      "label": "Title",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "Short name",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-details",
+      "name": "paragraph_101",
+      "type": 1008,
+      "position": 3,
+      "label": "Details",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-sys",
+      "name": "paragraph_102",
+      "type": 1008,
+      "position": 4,
+      "label": "Affected system (if known)",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-date",
+      "name": "date_103",
+      "type": 1007,
+      "position": 5,
+      "label": "Needed by",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {
+       "date_only": "true"
+      },
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-goal",
+      "name": "goal",
+      "type": 1003,
+      "position": 6,
+      "label": "1. Expected benefit",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {
+       "section_info": "[{\"sectionFields\": [\"f-goal-rev\"], \"sectionChoices\": [\"More revenue  (Total USD)\"]}, {\"sectionFields\": [\"f-goal-cost\"], \"sectionChoices\": [\"Lower cost\"]}]"
+      },
+      "choices": [
+       {
+        "id": "c-rev",
+        "value": "More revenue  (Total USD)",
+        "label": "More revenue  (Total USD)",
+        "position": 1,
+        "dependent_ids": {
+         "field": [
+          "f-goal-rev"
+         ]
+        }
+       },
+       {
+        "id": "c-cost",
+        "value": "Lower cost",
+        "label": "Lower cost",
+        "position": 2,
+        "dependent_ids": {
+         "field": [
+          "f-goal-cost"
+         ]
+        }
+       },
+       {
+        "id": "c-none",
+        "value": "Other",
+        "label": "Other",
+        "position": 3,
+        "dependent_ids": {}
+       }
+      ],
+      "fields": [
+       {
+        "id": "f-goal-rev",
+        "name": "goal_1_kpi",
+        "type": 1001,
+        "position": 1,
+        "label": "1.1 Revenue target",
+        "required": true,
+        "visible": true,
+        "deleted": false,
+        "account_id": "4242",
+        "placeholder": "",
+        "field_options": {},
+        "choices": [],
+        "fields": [],
+        "parent_id": "f-goal"
+       },
+       {
+        "id": "f-goal-cost",
+        "name": "goal_2_kpi",
+        "type": 1001,
+        "position": 2,
+        "label": "1.2 Cost target",
+        "required": true,
+        "visible": true,
+        "deleted": false,
+        "account_id": "4242",
+        "placeholder": "",
+        "field_options": {},
+        "choices": [],
+        "fields": [],
+        "parent_id": "f-goal"
+       }
+      ],
+      "parent_id": null
+     },
+     {
+      "id": "f-prio",
+      "name": "priority",
+      "type": 1003,
+      "position": 7,
+      "label": "Priority",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [
+       {
+        "id": "p1",
+        "value": "Critical - blocks customers",
+        "label": "Critical - blocks customers",
+        "position": 1
+       },
+       {
+        "id": "p3",
+        "value": "Medium - planned work",
+        "label": "Medium - planned work",
+        "position": 2
+       },
+       {
+        "id": "p4",
+        "value": "Low - cosmetic, reports",
+        "label": "Low - cosmetic, reports",
+        "position": 3
+       }
+      ],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-deck",
+      "name": "overview_deck",
+      "type": 1014,
+      "position": 8,
+      "label": "Overview deck (.pptx)",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "&lt;span class=\"btn-link\"&gt;Upload files&lt;/span&gt; or drop here",
+      "field_options": {
+       "allowed_file_types": "[\".pptx\"]",
+       "max_attachment_limit": "1"
+      },
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     }
+    ]
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/catalog/service-items/78",
+  "json": {
+   "service_item": {
+    "id": 4400002,
+    "display_id": 78,
+    "name": "VPN Access",
+    "short_description": "Remote access to the office network",
+    "category_id": 7002,
+    "category_name": "Access",
+    "workspace_id": 3,
+    "updated_at": "2030-01-10T10:00:00+09:00",
+    "description": "",
+    "allow_attachments": false,
+    "allow_quantity": false,
+    "attachment_mandatory": false,
+    "configs": {
+     "attachment_mandatory": false,
+     "subject": "",
+     "auto_gen_document": false
+    },
+    "custom_fields": [
+     {
+      "id": "v-reason",
+      "name": "reason_200",
+      "type": 1001,
+      "position": 1,
+      "label": "Reason",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "v-level",
+      "name": "access_level",
+      "type": 1003,
+      "position": 2,
+      "label": "Access level",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [
+       {
+        "id": "l1",
+        "value": "Read only",
+        "label": "Read only",
+        "position": 1
+       },
+       {
+        "id": "l2",
+        "value": "Read  write",
+        "label": "Read  write",
+        "position": 2
+       },
+       {
+        "id": "l3",
+        "value": "Admin",
+        "label": "Admin",
+        "position": 3
+       }
+      ],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "v-why",
+      "name": "justification",
+      "type": 1008,
+      "position": 3,
+      "label": "Justification",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     }
+    ]
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ws/3/business_rules",
+  "query": {
+   "item_id": "4400002"
+  },
+  "json": {
+   "business_rules": [
+    {
+     "id": 9100001,
+     "name": "Admin needs a justification",
+     "workspace_id": 3,
+     "module_type": "service_request",
+     "item_id": 4400002,
+     "deleted": false,
+     "user_type": "both",
+     "form_type": "both",
+     "state": "active",
+     "rule_type": "client_side",
+     "description": "",
+     "condition_data": {
+      "all": [
+       {
+        "name": "customField.sr_access_level",
+        "operator": "is",
+        "value": [
+         "Admin"
+        ],
+        "evaluate_on": "change"
+       }
+      ]
+     },
+     "action_data": {
+      "action": [
+       {
+        "name": [
+         "customField.sr_justification"
+        ],
+        "property": "show"
+       },
+       {
+        "name": [
+         "customField.sr_justification"
+        ],
+        "property": "mandate"
+       }
+      ]
+     },
+     "is_reversible": true,
+     "is_validation": false
+    }
+   ],
+   "user": {
+    "first_name": "Test",
+    "last_name": "Agent",
+    "time_zone": "Tokyo"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ws/3/business_rules",
+  "json": {
+   "business_rules": [],
+   "user": {
+    "first_name": "Test",
+    "last_name": "Agent",
+    "time_zone": "Tokyo"
+   }
+  }
+ }
+]

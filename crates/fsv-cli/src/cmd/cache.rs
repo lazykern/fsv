@@ -11,7 +11,6 @@ use fsv_core::term::{Column, Justify, Table, out};
 use fsv_core::{Client, Ctx, Result, cache, config};
 
 use crate::generated::CacheClearArgs;
-use crate::pending;
 use crate::util::{CmdResult, usage};
 
 fn now() -> f64 {
@@ -106,6 +105,10 @@ pub fn status() -> CmdResult {
 }
 
 fn new_client() -> Result<Arc<Client>> {
+    #[cfg(debug_assertions)]
+    if std::env::var_os("FSV_TEST_ROUTES").is_some() {
+        return crate::util::shared_client();
+    }
     Ok(Arc::new(Client::new(Arc::new(Ctx::from_process()))?))
 }
 
@@ -151,7 +154,10 @@ fn tasks() -> Vec<Task> {
     let mut out: Vec<Task> = Vec::new();
     for res in REGISTRY {
         out.push(Box::new(move || {
-            new_client().and_then(|c| pending::refresh_schema(res, &c))
+            new_client().and_then(|c| {
+                let sch = crate::schema::load(res, &c, true)?;
+                Ok((res.name.to_string(), crate::schema::fields(&sch).len()))
+            })
         }));
         if res.filters_path.is_some() {
             out.push(Box::new(move || fetch_filters(res)));

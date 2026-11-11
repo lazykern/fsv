@@ -1,44 +1,284 @@
 //! `tickets`-only commands.
 
 use clap::ArgMatches;
-use serde_json::{Value, json};
+use serde_json::{Map, Value, json};
 
 use fsv_api::associations::SendOpts;
+use fsv_api::conversations::{self, ConversationArgs};
+use fsv_api::formmeta::DiskStore;
 use fsv_api::notes::{self, BodyFormat};
 use fsv_api::service::DiskJournal;
-use fsv_core::resource::TICKETS;
+use fsv_core::resource::{CHANGES, PROBLEMS, TICKETS};
+use fsv_core::term::{Column, Table, err, escape, out};
 use fsv_core::{Error, Result, config, term};
 
 use crate::cmd::changes::form_tty;
-use crate::cmd::{parse, resource};
+use crate::cmd::{formflow, parse, resource};
 use crate::generated::*;
-use crate::pending;
-use crate::types::OutputFormat;
-use crate::util::{CmdResult, cid, client, fail_exc, interactive, no_input, plain_fail, uncaught};
+use crate::types::{OutputFormat, effective};
+use crate::util::{
+    CmdResult, cid, client, emit_fmt, fail_exc, first_str, interactive, no_input, obj, plain_fail,
+    uncaught, usage,
+};
 
 pub fn dispatch(sub: &str, m: &ArgMatches) -> CmdResult {
     match sub {
-        "conversations" => resource::history(
-            &TICKETS,
-            &parse::<TicketsConversationsArgs>(m)?.id_,
-            "conversations",
-        ),
+        "conversations" => {
+            let a: TicketsConversationsArgs = parse(m)?;
+            resource::history(
+                &TICKETS,
+                resource::HistoryArgs {
+                    id_: &a.id_,
+                    page: a.page,
+                    per_page: a.per_page,
+                    all_pages: a.all_pages,
+                    n_pages: a.n_pages,
+                    fmt: effective(a.format_, a.json_out),
+                },
+            )
+        }
         "reply" => reply(parse(m)?),
         "create" => create(parse(m)?),
-        "approvals" => {
-            let a: TicketsApprovalsArgs = parse(m)?;
-            let id = cid(&a.id_, &TICKETS)?;
-            let c = client()?;
-            pending::ticket_approvals(&c, id).map_err(fail_exc)
-        }
-        "associations" => {
-            let a: TicketsAssociationsArgs = parse(m)?;
-            let id = cid(&a.id_, &TICKETS)?;
-            let c = client()?;
-            pending::ticket_associations(&c, id).map_err(fail_exc)
-        }
+        "approvals" => approvals(parse(m)?),
+        "associations" => associations(parse(m)?),
         _ => Err(Error::other(format!("unknown command: tickets {sub}"))),
     }
+}
+
+/// `(d.get(k) or {}).get("name")` truthy, as text.
+fn name_of(v: &Value, key: &str) -> Option<String> {
+    v.get(key)
+        .and_then(|x| x.get("name"))
+        .filter(|n| fsv_py::truthy(n))
+        .map(fsv_py::py_str)
+}
+
+/// `str(d.get(k, "-"))`.
+fn get_dash(v: &Value, key: &str) -> String {
+    v.get(key).map_or_else(|| "-".into(), fsv_py::py_str)
+}
+
+/// `ticket_approvals_resource`.
+fn approvals(a: TicketsApprovalsArgs) -> CmdResult {
+    let id = cid(&a.id_, &TICKETS)?;
+    let c = client()?;
+    let items = match fsv_api::service::get_ticket_approvals(c.as_ref(), &TICKETS, id) {
+        Ok(items) => items,
+        Err(e) if e.status() == Some(404) => {
+            let prefix = match a.id_.split_once('-') {
+                Some((p, _)) => p.to_uppercase(),
+                None => "ticket".into(),
+            };
+            let mut hint = "ticket approvals not available for this ticket".to_string();
+            if prefix == "INC" {
+                hint.push_str("; INC tickets often do not expose approvals, try SR or another approval-capable ticket");
+            }
+            return Err(usage(&hint));
+        }
+        Err(e @ Error::Api(_)) => return Err(fail_exc(e)),
+        Err(e) => return Err(uncaught(e)),
+    };
+    let row = |x: &Value| {
+        let remark = x
+            .get("remark")
+            .filter(|r| fsv_py::truthy(r))
+            .and_then(|r| r.get(0))
+            .cloned()
+            .unwrap_or_else(|| json!({}));
+        let decided = first_str(&remark, &["updated_at"], "");
+        let decided = if decided.is_empty() {
+            first_str(x, &["updated_at"], "-")
+        } else {
+            decided
+        };
+        [
+            get_dash(x, "level_id"),
+            name_of(x, "member").unwrap_or_else(|| get_dash(x, "member_id")),
+            name_of(x, "status").unwrap_or_else(|| "-".into()),
+            if decided == "-" {
+                decided
+            } else {
+                decided.chars().take(19).collect()
+            },
+            name_of(x, "type").unwrap_or_else(|| "-".into()),
+            first_str(&remark, &["data"], ""),
+        ]
+    };
+    let flat: Vec<Map<String, Value>> = items
+        .iter()
+        .map(|x| {
+            let r = row(x);
+            ["level", "approver", "status", "decided", "type", "comment"]
+                .iter()
+                .zip(r)
+                .map(|(k, v)| (k.to_string(), json!(v)))
+                .collect()
+        })
+        .collect();
+    if emit_fmt(
+        &Value::Array(items.clone()),
+        &flat,
+        effective(a.format_, a.json_out),
+    )? {
+        return Ok(());
+    }
+    let mut t = Table::new();
+    t.add_column(Column::new("Level").style("cyan"));
+    for h in ["Approver", "Status", "Decided", "Type", "Comment"] {
+        t.add_column(Column::new(h));
+    }
+    for x in &items {
+        t.add_row(row(x));
+    }
+    out().print_table(&t);
+    Ok(())
+}
+
+/// `schema.PRIORITY.get(item.get("priority") or 0, "-")`.
+fn priority_label(item: &Value) -> String {
+    let p = item.get("priority").filter(|v| fsv_py::truthy(v));
+    let n = match p {
+        None => Some(0),
+        Some(Value::Number(n)) => n.as_i64(),
+        Some(Value::Bool(b)) => Some(i64::from(*b)),
+        _ => None,
+    };
+    n.and_then(|n| fsv_api::PRIORITY.iter().find(|(k, _)| *k == n))
+        .map_or_else(|| "-".into(), |(_, v)| v.to_string())
+}
+
+/// `ticket_associations_resource`.
+fn associations(a: TicketsAssociationsArgs) -> CmdResult {
+    let id = cid(&a.id_, &TICKETS)?;
+    let c = client()?;
+    let tabs = c
+        .int_get(&format!("tickets/{id}/tabs"), None)
+        .map_err(fail_exc)?;
+    let mut modules: Vec<String> = Vec::new();
+    for tab in tabs.as_array().into_iter().flatten() {
+        if tab.get("name").and_then(Value::as_str) == Some("associations") {
+            for m in tab
+                .get("associated_modules")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+            {
+                modules.push(fsv_py::py_str(m));
+            }
+        }
+    }
+    let wants = |m: &str| modules.is_empty() || modules.iter().any(|x| x == m);
+    let associated = |key: &str, params: Option<Map<String, Value>>| -> Result<Vec<Value>> {
+        let got = fsv_api::service::collect_pages(
+            |p, q| c.int_get(p, q),
+            &format!("tickets/{id}/{key}"),
+            key,
+            params.as_ref(),
+            key,
+            fsv_api::service::MAX_DETAIL_PAGES,
+        )
+        .map_err(fail_exc)?;
+        if let Some(p) = got.meta.get("partial").filter(|v| fsv_py::truthy(v)) {
+            err().print(&escape(&fsv_py::py_str(p)));
+        }
+        if got.missing.is_some() && !got.meta.get("pages").is_some_and(fsv_py::truthy) {
+            return Err(Error::exit(1, ""));
+        }
+        Ok(got.rows)
+    };
+    let change_type = |t: &str| Some(obj(vec![("change_type", json!(t))]));
+    let changes = if wants("change") {
+        associated("changes", change_type("change"))?
+    } else {
+        Vec::new()
+    };
+    let causes = if wants("change_cause") {
+        associated("changes", change_type("change_cause"))?
+    } else {
+        Vec::new()
+    };
+    let problems = if wants("problem") {
+        associated("problems", None)?
+    } else {
+        Vec::new()
+    };
+    let id_of = |item: &Value, res: &fsv_core::resource::Resource| match item
+        .get("human_display_id")
+        .filter(|v| fsv_py::truthy(v))
+    {
+        Some(h) => fsv_py::py_str(h),
+        None => fsv_core::resource::format_id(item, res),
+    };
+    let row = |kind: &str, item: &Value| {
+        let res = if kind == "problems" {
+            &PROBLEMS
+        } else {
+            &CHANGES
+        };
+        [
+            id_of(item, res),
+            first_str(item, &["subject"], "-"),
+            match item.get("status_name").filter(|v| fsv_py::truthy(v)) {
+                Some(s) => fsv_py::py_str(s),
+                None => get_dash(item, "status"),
+            },
+            match item.get("priority_name").filter(|v| fsv_py::truthy(v)) {
+                Some(s) => fsv_py::py_str(s),
+                None => priority_label(item),
+            },
+        ]
+    };
+    let payload = json!({"changes": changes, "change_causes": causes, "problems": problems});
+    let mut flat = Vec::new();
+    for (kind, items) in [
+        ("changes", &changes),
+        ("change_causes", &causes),
+        ("problems", &problems),
+    ] {
+        for x in items {
+            let [i, s, st, p] = row(kind, x);
+            flat.push(obj(vec![
+                ("type", json!(kind)),
+                ("id", json!(i)),
+                ("subject", json!(s)),
+                ("status", json!(st)),
+                ("priority", json!(p)),
+            ]));
+        }
+    }
+    if emit_fmt(&payload, &flat, effective(a.format_, a.json_out))? {
+        return Ok(());
+    }
+    if changes.is_empty() && causes.is_empty() && problems.is_empty() {
+        out().print("no associations");
+        return Ok(());
+    }
+    for (title, kind, items) in [
+        ("Changes", "changes", &changes),
+        ("Caused by changes", "change_causes", &causes),
+        ("Problems", "problems", &problems),
+    ] {
+        if items.is_empty() {
+            continue;
+        }
+        let mut t = Table::new().title(title);
+        t.add_column(Column::new("ID").style("cyan"));
+        t.add_column(Column::new("Subject"));
+        t.add_column(Column::new("Status"));
+        if kind != "problems" {
+            t.add_column(Column::new("Priority"));
+        }
+        for x in items {
+            let [i, s, st, p] = row(kind, x);
+            if kind == "problems" {
+                t.add_row([i, s, st]);
+            } else {
+                t.add_row([i, s, st, p]);
+            }
+        }
+        out().print_table(&t);
+    }
+    Ok(())
 }
 
 fn pretty(v: &Value) -> String {
@@ -67,8 +307,79 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
         if a.read_only && !a.dry_run {
             return Err(Error::exit(2, "read-only mode: no note was sent"));
         }
-        let _c = fsv_core::get_client()?;
-        return pending::ticket_review("ticket_conversation.build_plan");
+        let c = crate::util::shared_client()?;
+        let store = DiskStore::current();
+        let format = if a.html_body {
+            BodyFormat::Html
+        } else {
+            BodyFormat::Plain
+        };
+        let args = ConversationArgs {
+            kind: "note",
+            public: a.public,
+            notify: &a.notify,
+            format,
+            set_status: a.set_status.as_deref(),
+            ..Default::default()
+        };
+        let plan = conversations::build_plan(c.as_ref(), &store, &a.id_, &a.body, &args)?;
+        let review = plan.review();
+        if a.dry_run {
+            let mut out = serde_json::Map::new();
+            out.insert("status".into(), json!("dry_run"));
+            out.extend(review);
+            println!("{}", pretty(&Value::Object(out)));
+            return Ok(());
+        }
+        eprintln!("{}", pretty(&Value::Object(review)));
+        let hash = plan.hash();
+        if a.expected.as_deref().is_some_and(|e| e != hash) {
+            return Err(Error::exit(
+                2,
+                "note review hash does not match; review again",
+            ));
+        }
+        if a.yes {
+            if a.expected.as_deref() != Some(hash.as_str()) {
+                return Err(Error::exit(
+                    2,
+                    "--yes requires the full --expect-plan from a prior review",
+                ));
+            }
+        } else if a.no_input {
+            return Err(Error::exit(
+                2,
+                "sending requires --yes and --expect-plan in no-input mode",
+            ));
+        } else if !term::confirm("Add this exact reviewed note?", Some(false), false)? {
+            println!("Cancelled; no note was sent.");
+            return Ok(());
+        }
+        let mut confirm_public = a.confirm_public;
+        if a.public && !confirm_public {
+            if a.yes || a.no_input {
+                return Err(Error::exit(2, "--public also requires --confirm-public"));
+            }
+            if !term::confirm(
+                "Confirm PUBLIC note visible to the customer?",
+                Some(false),
+                false,
+            )? {
+                println!("Cancelled; no note was sent.");
+                return Ok(());
+            }
+            confirm_public = true;
+        }
+        let result = conversations::send(
+            &plan,
+            c.as_ref(),
+            &DiskJournal,
+            &store,
+            Some(&hash),
+            confirm_public,
+        )?;
+        println!("{}", pretty(&result));
+        return Ok(());
     }
     let format = if a.html_body {
         BodyFormat::Html
@@ -135,7 +446,7 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
         }
         confirm_public = true;
     }
-    let c = fsv_core::get_client()?;
+    let c = crate::util::shared_client()?;
     let opts = SendOpts {
         reviewed_hash: Some(&hash),
         read_only: false,
@@ -163,11 +474,52 @@ fn reply(a: TicketsReplyArgs) -> CmdResult {
     if a.cc.is_empty() && a.set_status.is_none() && a.expect_plan.is_none() {
         return resource::reply(&TICKETS, &a.id_, &a.body, a.dry_run, a.yes, a.no_input);
     }
-    let _c = client()?;
-    pending::ticket_review("ticket_conversation.build_plan").map_err(|e| match e {
-        Error::Value(m) => plain_fail(&m, 2),
-        other => fail_exc(other),
-    })
+    let c = client()?;
+    reply_reviewed(&a, &c).map_err(note_error)
+}
+
+fn reply_reviewed(a: &TicketsReplyArgs, c: &fsv_core::Client) -> Result<()> {
+    let store = DiskStore::current();
+    let cc = conversations::recipients(c, &a.cc)?;
+    let args = ConversationArgs {
+        kind: "reply",
+        cc: &cc,
+        set_status: a.set_status.as_deref(),
+        ..Default::default()
+    };
+    let plan = conversations::build_plan(c, &store, &a.id_, &a.body, &args)?;
+    let review = plan.review();
+    if a.dry_run {
+        let mut out = serde_json::Map::new();
+        out.insert("status".into(), json!("dry_run"));
+        out.extend(review);
+        println!("{}", pretty(&Value::Object(out)));
+        return Ok(());
+    }
+    eprintln!("{}", pretty(&Value::Object(review)));
+    let hash = plan.hash();
+    if a.expect_plan.as_deref().is_some_and(|e| e != hash) {
+        return Err(Error::exit(2, "review hash changed; review again"));
+    }
+    if a.yes {
+        if a.expect_plan.as_deref() != Some(hash.as_str()) {
+            return Err(Error::exit(
+                2,
+                "--yes requires the full --expect-plan from a prior reply review",
+            ));
+        }
+    } else if no_input(a.no_input) {
+        return Err(Error::exit(
+            2,
+            "sending requires --yes and --expect-plan in no-input mode",
+        ));
+    } else if !term::confirm("Send this exact PUBLIC reply?", Some(false), false)? {
+        println!("Cancelled; no reply sent.");
+        return Ok(());
+    }
+    let result = conversations::send(&plan, c, &DiskJournal, &store, Some(&hash), true)?;
+    println!("{}", pretty(&result));
+    Ok(())
 }
 
 fn create(a: TicketsCreateArgs) -> CmdResult {
@@ -195,7 +547,189 @@ fn create(a: TicketsCreateArgs) -> CmdResult {
             "--edit needs a terminal; use --from or --set",
         ));
     }
-    let _c = client()?;
-    pending::load_meta("ticket", "new").map_err(fail_exc)?;
-    pending::ticket_create().map_err(fail_exc)
+    let c = client()?;
+    ticket_create(&a, c, tty, form, template_only).map_err(fail_exc)
+}
+
+/// `ticket_cli.create_command` after the input checks.
+fn ticket_create(
+    a: &TicketsCreateArgs,
+    c: std::sync::Arc<fsv_core::Client>,
+    tty: bool,
+    form: bool,
+    template_only: bool,
+) -> CmdResult {
+    use formflow::{Requester, Reviewed};
+    use fsv_flows::change::{Plan, edit_loop, editor_edit, flow_exit, template_for};
+    use fsv_flows::drafts::{Draft, resolve_draft};
+    use fsv_flows::meta::{FormMeta, Resolver};
+    use fsv_flows::ticket::{self, TicketOptions};
+    use std::sync::Arc;
+
+    let as_json = a.json_out || a.format_ == OutputFormat::Json;
+    let deps = fsv_app::FormDeps::live(c)?;
+    let fresh = a.dry || a.yes || !tty;
+    let meta = Arc::new(deps.meta.load_meta("ticket", "new", fresh, &Value::Null)?);
+    let draft = resolve_draft(
+        a.from_.as_deref(),
+        a.preset.as_deref(),
+        &a.set_,
+        Some(&Draft::default()),
+    )
+    .map_err(formflow::draft_error)?;
+    let who = Requester::new(deps.api.as_ref(), a.requester.clone(), tty);
+    let resolver: Arc<dyn Resolver> = deps.resolver.clone();
+    let build = |d: &Draft, ack_all: bool, m: Option<Arc<FormMeta>>| -> Result<Plan> {
+        let (req, problem) = who.resolve(d)?;
+        let opts = TicketOptions {
+            resolver: Some(resolver.clone()),
+            requester: req,
+            ack_all,
+            cc_emails: a.cc.clone(),
+        };
+        let mut plan = ticket::build_create_plan(&m.unwrap_or_else(|| meta.clone()), d, &opts)?;
+        if let Some(p) = problem {
+            plan.errors.insert(0, p);
+            plan.hash.clear();
+            plan.review.plan_hash.clear();
+        }
+        Ok(plan)
+    };
+
+    if template_only {
+        let plan = build(&draft, a.ack, None)?;
+        print!(
+            "{}",
+            template_for(
+                &plan,
+                &draft,
+                "fsv incident draft: fill in, then use tickets create --dry-run",
+                &[],
+                None,
+                None
+            )?
+        );
+        return Ok(());
+    }
+    let plan = if form {
+        let (req, problem) = who.resolve(&draft)?;
+        if let Some(p) = problem {
+            return Err(flow_exit(2, p));
+        }
+        let session = fsv_app::ticket_session(&deps, Some(meta.clone()), req, a.dry)?;
+        Reviewed::Form(Box::new(formflow::run_form(session)?))
+    } else if a.edit {
+        let mut b = |d: &Draft| build(d, a.ack, None);
+        let mut ed = editor_edit;
+        let (_, plan) = edit_loop(&mut b, draft, "New incident", None, &mut ed, 20)
+            .map_err(formflow::editor_abort)?;
+        Reviewed::Flow(Box::new(plan))
+    } else {
+        Reviewed::Flow(Box::new(build(&draft, a.ack, None)?))
+    };
+
+    if a.dry {
+        ticket_print_plan(&plan, as_json);
+        if !plan.ok() {
+            return Err(flow_exit(2, ""));
+        }
+        return plan.expect(a.expect_plan.as_deref());
+    }
+    let is_form = matches!(plan, Reviewed::Form(_));
+    if !is_form && tty && !a.yes {
+        plan.render(err());
+        if !plan.ok() || !plan.review().blocking_unacked().is_empty() {
+            return Err(flow_exit(
+                2,
+                "fix the form or acknowledge blocking messages before creating",
+            ));
+        }
+        if !term::confirm("Create this incident?", Some(false), false)? {
+            return Err(flow_exit(1, "cancelled; nothing was sent"));
+        }
+    } else if !is_form {
+        if !a.yes {
+            return Err(flow_exit(
+                2,
+                "review with --dry-run, then use --yes --expect-plan HASH",
+            ));
+        }
+        if !tty && a.expect_plan.as_deref().is_none_or(str::is_empty) {
+            return Err(flow_exit(
+                2,
+                "non-interactive create requires --expect-plan HASH",
+            ));
+        }
+    }
+    let blocking = plan.review().blocking_unacked();
+    if !plan.ok() || !blocking.is_empty() {
+        let why = if plan.errors().is_empty() {
+            blocking
+        } else {
+            plan.errors().to_vec()
+        };
+        return Err(flow_exit(2, format!("cannot create: {}", why.join("; "))));
+    }
+    plan.expect(a.expect_plan.as_deref())?;
+    let result = match plan {
+        Reviewed::Form(s) => s.session.send(&s.plan, a.allow_duplicate)?,
+        Reviewed::Flow(p) => {
+            let ack_now = a.ack || !p.state.acknowledged.is_empty();
+            let d = p.draft.clone();
+            let mut rebuild = |m: Arc<FormMeta>| build(&d, ack_now, Some(m));
+            ticket::send(
+                *p,
+                deps.api.as_ref(),
+                deps.meta.as_ref(),
+                &mut rebuild,
+                deps.plan_journal.as_ref(),
+                a.expect_plan.as_deref(),
+                a.allow_duplicate,
+            )?
+        }
+    };
+    let get = |k: &str| result.get(k).cloned().unwrap_or(Value::Null);
+    if as_json {
+        let mut o = Map::new();
+        o.insert("created".into(), get("result"));
+        o.insert("plan_hash".into(), get("plan_hash"));
+        if let Some(v) = result.get("verification") {
+            o.insert("verification".into(), v.clone());
+        }
+        println!("{}", fsv_py::Dumps::default().dump(&Value::Object(o)));
+    } else {
+        out().print(&format!(
+            "[green]created[/green] incident {}",
+            fsv_py::py_str(&get("id"))
+        ));
+        if let Some(w) = result
+            .get("verification")
+            .and_then(|v| v.get("warning"))
+            .filter(|w| fsv_py::truthy(w))
+        {
+            err().print(&fsv_py::py_str(w));
+        }
+    }
+    Ok(())
+}
+
+/// `ticket_cli.print_plan`.
+fn ticket_print_plan(plan: &formflow::Reviewed, as_json: bool) {
+    if as_json {
+        println!("{}", formflow::pretty(&plan.to_json("create")));
+        return;
+    }
+    plan.render(out());
+    match plan.payload().filter(|_| plan.ok()) {
+        Some(payload) => {
+            out().print("Payload (POST /api/_/tickets)");
+            println!("{}", formflow::pretty(&payload));
+            let h = plan.hash();
+            out().print(&format!(
+                "plan_hash: {h}\nSend with --yes --expect-plan {}",
+                &h[..h.len().min(16)]
+            ));
+        }
+        None => out().print("No payload: fix the problems above."),
+    }
 }

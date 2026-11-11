@@ -1,0 +1,366 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "display_id": 123,
+    "human_display_id": "SR-123",
+    "subject": "Dark mode",
+    "type": "Service Request",
+    "attachments": [
+     {
+      "id": 801,
+      "name": "deck.pptx",
+      "size": 11,
+      "content_type": "application/octet-stream",
+      "attachment_url": "https://acme.freshservice.com/helpdesk/attachments/801"
+     },
+     {
+      "id": 802,
+      "name": "../escape.sh",
+      "size": 5,
+      "attachment_url": "https://acme.freshservice.com/helpdesk/attachments/802"
+     },
+     {
+      "id": 803,
+      "name": "brief.pdf",
+      "size": 9,
+      "attachment_url": "https://acme.freshservice.com/helpdesk/attachments/803"
+     }
+    ]
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/requested_items",
+  "json": {
+   "requested_items": [
+    {
+     "id": 5,
+     "stage": {
+      "name": "Requested"
+     },
+     "item": {
+      "name": "Feature Request",
+      "display_id": 77,
+      "custom_fields": [
+       {
+        "name": "title_100",
+        "label": "Title"
+       },
+       {
+        "name": "goal",
+        "label": "1. Expected benefit",
+        "fields": [
+         {
+          "name": "goal_1_kpi",
+          "label": "1.1 Revenue target"
+         }
+        ]
+       }
+      ]
+     },
+     "custom_fields": {
+      "title_100": "Dark mode",
+      "paragraph_101": "Please add dark mode.",
+      "goal": "More revenue  (Total USD)",
+      "goal_1_kpi": "+5%",
+      "date_103": "2030-12-03",
+      "paragraph_102": null,
+      "overview_deck": [
+       801
+      ]
+     }
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124",
+  "json": {
+   "ticket": {
+    "id": 124,
+    "display_id": 124,
+    "subject": "Dark mode",
+    "type": "Service Request",
+    "attachments": []
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124/requested_items",
+  "json": {
+   "requested_items": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/catalog/service-items/77",
+  "json": {
+   "service_item": {
+    "id": 4400001,
+    "display_id": 77,
+    "name": "Feature Request",
+    "short_description": "Ask for a product change",
+    "category_id": 7001,
+    "category_name": "Engineering",
+    "workspace_id": 3,
+    "updated_at": "2030-01-15T10:00:00+09:00",
+    "description": "<p>Use this form for <b>feature</b> work.</p>",
+    "allow_attachments": true,
+    "allow_quantity": false,
+    "attachment_mandatory": true,
+    "configs": {
+     "attachment_mandatory": true,
+     "subject": "{{custom_field.cf_title_100}}",
+     "auto_gen_document": false
+    },
+    "custom_fields": [
+     {
+      "id": "f-notice",
+      "name": "notice",
+      "type": 1024,
+      "position": 1,
+      "label": "&lt;p&gt;Attach the &lt;b&gt;overview deck&lt;/b&gt;.&lt;/p&gt;",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {
+       "content_name": "Notice"
+      },
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-title",
+      "name": "title_100",
+      "type": 1001,
+      "position": 2,
+      "label": "Title",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "Short name",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-details",
+      "name": "paragraph_101",
+      "type": 1008,
+      "position": 3,
+      "label": "Details",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-sys",
+      "name": "paragraph_102",
+      "type": 1008,
+      "position": 4,
+      "label": "Affected system (if known)",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-date",
+      "name": "date_103",
+      "type": 1007,
+      "position": 5,
+      "label": "Needed by",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {
+       "date_only": "true"
+      },
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-goal",
+      "name": "goal",
+      "type": 1003,
+      "position": 6,
+      "label": "1. Expected benefit",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {
+       "section_info": "[{\"sectionFields\": [\"f-goal-rev\"], \"sectionChoices\": [\"More revenue  (Total USD)\"]}, {\"sectionFields\": [\"f-goal-cost\"], \"sectionChoices\": [\"Lower cost\"]}]"
+      },
+      "choices": [
+       {
+        "id": "c-rev",
+        "value": "More revenue  (Total USD)",
+        "label": "More revenue  (Total USD)",
+        "position": 1,
+        "dependent_ids": {
+         "field": [
+          "f-goal-rev"
+         ]
+        }
+       },
+       {
+        "id": "c-cost",
+        "value": "Lower cost",
+        "label": "Lower cost",
+        "position": 2,
+        "dependent_ids": {
+         "field": [
+          "f-goal-cost"
+         ]
+        }
+       },
+       {
+        "id": "c-none",
+        "value": "Other",
+        "label": "Other",
+        "position": 3,
+        "dependent_ids": {}
+       }
+      ],
+      "fields": [
+       {
+        "id": "f-goal-rev",
+        "name": "goal_1_kpi",
+        "type": 1001,
+        "position": 1,
+        "label": "1.1 Revenue target",
+        "required": true,
+        "visible": true,
+        "deleted": false,
+        "account_id": "4242",
+        "placeholder": "",
+        "field_options": {},
+        "choices": [],
+        "fields": [],
+        "parent_id": "f-goal"
+       },
+       {
+        "id": "f-goal-cost",
+        "name": "goal_2_kpi",
+        "type": 1001,
+        "position": 2,
+        "label": "1.2 Cost target",
+        "required": true,
+        "visible": true,
+        "deleted": false,
+        "account_id": "4242",
+        "placeholder": "",
+        "field_options": {},
+        "choices": [],
+        "fields": [],
+        "parent_id": "f-goal"
+       }
+      ],
+      "parent_id": null
+     },
+     {
+      "id": "f-prio",
+      "name": "priority",
+      "type": 1003,
+      "position": 7,
+      "label": "Priority",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [
+       {
+        "id": "p1",
+        "value": "Critical - blocks customers",
+        "label": "Critical - blocks customers",
+        "position": 1
+       },
+       {
+        "id": "p3",
+        "value": "Medium - planned work",
+        "label": "Medium - planned work",
+        "position": 2
+       },
+       {
+        "id": "p4",
+        "value": "Low - cosmetic, reports",
+        "label": "Low - cosmetic, reports",
+        "position": 3
+       }
+      ],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-deck",
+      "name": "overview_deck",
+      "type": 1014,
+      "position": 8,
+      "label": "Overview deck (.pptx)",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "&lt;span class=\"btn-link\"&gt;Upload files&lt;/span&gt; or drop here",
+      "field_options": {
+       "allowed_file_types": "[\".pptx\"]",
+       "max_attachment_limit": "1"
+      },
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     }
+    ]
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/helpdesk/attachments/801",
+  "text": "deck-bytes!"
+ },
+ {
+  "method": "GET",
+  "path": "/helpdesk/attachments/803",
+  "status": 500,
+  "text": "x"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125",
+  "status": 404,
+  "json": {
+   "message": "Record not found"
+  }
+ }
+]

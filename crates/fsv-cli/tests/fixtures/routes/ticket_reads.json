@@ -1,0 +1,21 @@
+[
+ {"method":"GET","path":"/api/_/tickets/5/conversations","json":{"conversations":[
+   {"id":101,"created_at":"2026-01-02T03:04:05Z","user":{"name":"Ann"},"private":true,"body_text":"internal note"},
+   {"id":102,"created_at":"2026-01-03T03:04:05Z","user_id":9,"incoming":true,"body":"<p>Hello <b>there</b></p>"},
+   {"id":103,"created_at":"2026-01-04T03:04:05Z","user":{"name":"Bob"},"body_text":"reply"}],
+   "meta":{"count":3}}},
+ {"method":"GET","path":"/api/_/problems/7/notes","json":{"notes":[
+   {"id":201,"created_at":"2026-02-02T03:04:05Z","user":{"name":"Cy"},"private":true,"body_text":"pn"},
+   {"id":202,"created_at":"2026-02-03T03:04:05Z","user_id":4,"private":false,"body":"<div>pub</div>"}]}},
+ {"method":"GET","path":"/api/_/problems/8/notes","status":403,"json":{}},
+ {"method":"GET","path":"/api/_/tickets/5/approvals","json":{"approvals":[
+   {"level_id":1,"member":{"name":"Dee"},"status":{"name":"approved"},"remark":[{"updated_at":"2026-03-01T10:00:00Z","data":"ok by me"}],"type":{"name":"everyone"}},
+   {"level_id":2,"member_id":44,"status":{"name":"requested"},"updated_at":"2026-03-02T11:00:00Z"}]}},
+ {"method":"GET","path":"/api/_/tickets/6/approvals","status":404,"json":{}},
+ {"method":"GET","path":"/api/_/tickets/5/tabs","json":[{"name":"associations","associated_modules":["change","problem"]}]},
+ {"method":"GET","path":"/api/_/tickets/5/changes","query":{"change_type":"change"},"json":{"changes":[{"id":12,"subject":"Patch","status_name":"Open","priority":2}]}},
+ {"method":"GET","path":"/api/_/tickets/5/problems","json":{"problems":[{"id":3,"human_display_id":"PRB-3","subject":"Root","status":1}]}},
+ {"method":"GET","path":"/api/_/tickets/6/tabs","json":[]},
+ {"method":"GET","path":"/api/_/tickets/6/changes","json":{"changes":[]}},
+ {"method":"GET","path":"/api/_/tickets/6/problems","json":{"problems":[]}}
+]

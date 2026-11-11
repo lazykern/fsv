@@ -18,10 +18,18 @@ fsv-py.workspace = true
 fsv-core.workspace = true
 fsv-api.workspace = true
 fsv-completion.workspace = true
+fsv-flows.workspace = true
+fsv-forms.workspace = true
+fsv-views.workspace = true
+fsv-app.workspace = true
+fsv-formui.workspace = true
 clap.workspace = true
 serde_json.workspace = true
+indexmap.workspace = true
 regex.workspace = true
+jiff.workspace = true
 which.workspace = true
+url.workspace = true
 
 [target.'cfg(unix)'.dependencies]
 libc.workspace = true

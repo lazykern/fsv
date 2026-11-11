@@ -5,11 +5,12 @@ use std::sync::LazyLock;
 use regex::Regex;
 use serde_json::{Map, Value, json};
 
+use fsv_core::config;
 use fsv_core::pystr;
-use fsv_core::term::{Column, Table, err, out};
+use fsv_core::session;
+use fsv_core::term::{self, Column, Justify, Table, err, out};
 
 use crate::generated::{HelpArgs, SearchArgs, TuiArgs};
-use crate::pending;
 use crate::types::{OutputFormat, effective};
 use crate::util::{CmdResult, client, first_str, head, stdin_tty, usage};
 
@@ -226,12 +227,286 @@ pub fn search(a: SearchArgs) -> CmdResult {
     Ok(())
 }
 
+const SETUP_ITEMS: [(&str, &str); 6] = [
+    ("Domain", "Freshservice instance URL"),
+    ("Authentication", "Login with session cookies"),
+    ("Shell completion", "Install tab completion"),
+    ("Network completion", "Remote requester/agent lookup"),
+    ("Default filters", "Default --where per resource"),
+    ("All", "Run full setup"),
+];
+
 /// `fsv setup`.
-pub fn setup() -> CmdResult {
+pub fn setup(prog: &str) -> CmdResult {
     if !stdin_tty() {
         return Err(usage("setup requires an interactive terminal"));
     }
-    pending::setup_wizard()
+    setup_show_status();
+    out().blank();
+    let mut t = Table::new().show_header(false);
+    t.add_column(Column::new("#").justify(Justify::Right).style("bold cyan"));
+    t.add_column(Column::new("Item").style("bold"));
+    t.add_column(Column::new("Description"));
+    for (i, (name, desc)) in SETUP_ITEMS.iter().enumerate() {
+        t.add_row([(i + 1).to_string(), name.to_string(), desc.to_string()]);
+    }
+    out().print_table(&t);
+    let choice = loop {
+        let answer = term::prompt("Choose", Some("6"), true)?;
+        let answer = pystr::strip(&answer);
+        if let Some(n) = pystr::parse_decimal(answer)
+            && (1..=SETUP_ITEMS.len() as i64).contains(&n)
+        {
+            break n;
+        }
+        err().print(&format!("[red]error[/red]: choose 1-{}", SETUP_ITEMS.len()));
+    };
+    let all = choice == 6;
+    if choice == 1 || all {
+        out().print("\n[bold]── Domain ──[/bold]");
+        crate::cmd::auth::resolve_domain(false)?;
+        out().print(&format!("domain set to [bold]{}[/bold]", config::domain()));
+    }
+    if choice == 2 || all {
+        setup_auth()?;
+    }
+    if choice == 3 || all {
+        setup_completion_install(prog)?;
+    }
+    if choice == 4 || all {
+        setup_network_completion()?;
+    }
+    if choice == 5 || all {
+        setup_defaults()?;
+    }
+    out().print("\n[green]✓[/green] setup complete");
+    Ok(())
+}
+
+/// `_setup_show_status`.
+fn setup_show_status() {
+    let mut t = Table::new().title("Current status").show_header(false);
+    t.add_column(Column::new("Setting").style("bold"));
+    t.add_column(Column::new("Value"));
+    let domain = config::domain();
+    t.add_row([
+        "domain".to_string(),
+        if domain.is_empty() {
+            "[dim](not set)[/dim]".to_string()
+        } else {
+            domain
+        },
+    ]);
+    let auth = match session::session_age_hours() {
+        Some(age) => format!(
+            "[green]✓[/green] {}, {age:.1}h ago",
+            session::current_backend().as_str()
+        ),
+        None => "[red]✗[/red] not logged in".to_string(),
+    };
+    t.add_row(["auth".to_string(), auth]);
+    let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+    let mut shells: Vec<&str> = Vec::new();
+    if home.join(".config/fish/completions/fsv.fish").exists() {
+        shells.push("fish");
+    }
+    for sh in ["bash", "zsh"] {
+        if home.join(format!(".fsv-complete.{sh}")).exists() {
+            shells.push(sh);
+        }
+    }
+    t.add_row([
+        "completion".to_string(),
+        if shells.is_empty() {
+            "[red]✗[/red] not installed".to_string()
+        } else {
+            format!("[green]✓[/green] {}", shells.join(", "))
+        },
+    ]);
+    let cfg = config::load_config();
+    let network = cfg
+        .get("completion")
+        .filter(|v| fsv_py::truthy(v))
+        .and_then(|c| c.get("network"))
+        .map(fsv_py::py_str)
+        .unwrap_or_else(|| "[dim](unset)[/dim]".to_string());
+    t.add_row(["network completion".to_string(), network]);
+    for r in fsv_core::resource::REGISTRY {
+        let exprs = config::get_default_where(r.name);
+        let val = if exprs.is_empty() {
+            "[dim](none)[/dim]".to_string()
+        } else {
+            exprs.join(", ")
+        };
+        t.add_row([format!("defaults.{}", r.name), val]);
+    }
+    out().print_table(&t);
+}
+
+/// `_setup_auth`.
+fn setup_auth() -> CmdResult {
+    out().print("\n[bold]── Authentication ──[/bold]");
+    if config::domain().is_empty() {
+        out().print("domain required first");
+        crate::cmd::auth::resolve_domain(false)?;
+    }
+    let cookies = session::login_interactive().map_err(crate::util::fail_exc)?;
+    crate::cmd::auth::validate_new_cookies(&cookies)?;
+    let store = crate::cmd::auth::choose_store()?;
+    let backend = session::save_cookies(&cookies, Some(store))?;
+    let target = if backend == session::Backend::Keychain {
+        "Keychain".to_string()
+    } else {
+        config::display_path(&config::session_file())
+    };
+    out().print(&format!("saved {} cookies to {target}", cookies.len()));
+    session::clear_cache();
+    fsv_core::client::reset_client();
+    match fsv_core::get_client().and_then(|c| c.check_session()) {
+        Ok(agent) => {
+            let s = |k: &str| agent.get(k).map(fsv_py::py_str).unwrap_or_default();
+            let name = format!("{} {}", s("first_name"), s("last_name"))
+                .trim()
+                .to_string();
+            if agent.as_object().is_some_and(|m| !m.is_empty()) {
+                out().print(&format!(
+                    "logged in as: [bold]{name}[/bold] <{}>",
+                    s("email")
+                ));
+            } else {
+                out().print("logged in (identity unavailable: agent profile is not readable)");
+            }
+            err().print_plain("warming cache in background...");
+            crate::cmd::cache::refresh_background();
+        }
+        Err(e) => err().print(&format!(
+            "[yellow]warning[/yellow]: saved but could not verify: {e}"
+        )),
+    }
+    Ok(())
+}
+
+/// `_setup_completion_install`.
+fn setup_completion_install(prog: &str) -> CmdResult {
+    out().print("\n[bold]── Shell completion ──[/bold]");
+    let Some(shell) = crate::cmd::completion::shell_from_env() else {
+        err().print("[yellow]could not detect shell; skipping[/yellow]");
+        return Ok(());
+    };
+    let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+    let comp_path = match shell.as_str() {
+        "fish" => Some(home.join(format!(".config/fish/completions/{prog}.fish"))),
+        "bash" | "zsh" => Some(home.join(format!(".{prog}-complete.{shell}"))),
+        _ => None,
+    };
+    match &comp_path {
+        Some(p) if p.exists() => {
+            out().print(&format!("already installed: {}", p.display()));
+            if !term::confirm("Reinstall?", Some(false), false)? {
+                return Ok(());
+            }
+        }
+        _ => {
+            if !term::confirm(&format!("Install {shell} completion?"), Some(true), false)? {
+                return Ok(());
+            }
+        }
+    }
+    let script = crate::cmd::completion::build_script(&shell, prog)?;
+    if shell == "fish" {
+        let dir = home.join(".config/fish/completions");
+        std::fs::create_dir_all(&dir)?;
+        let path = dir.join(format!("{prog}.fish"));
+        std::fs::write(&path, &script)?;
+        out().print(&format!("installed: {}", path.display()));
+    } else if shell == "bash" || shell == "zsh" {
+        let script_path = home.join(format!(".{prog}-complete.{shell}"));
+        std::fs::write(&script_path, &script)?;
+        let rc = home.join(if shell == "bash" { ".bashrc" } else { ".zshrc" });
+        let existing = std::fs::read_to_string(&rc).unwrap_or_default();
+        let shown = script_path.display().to_string();
+        if !existing.contains(&shown) {
+            use std::io::Write;
+            let mut f = std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(&rc)?;
+            write!(f, "\n. {shown}\n")?;
+        }
+        out().print(&format!("installed: {shown}"));
+        out().print(&format!("sourced from: {}", rc.display()));
+    }
+    out().print("restart shell: exec $SHELL");
+    Ok(())
+}
+
+/// `_setup_network_completion`.
+fn setup_network_completion() -> CmdResult {
+    out().print("\n[bold]── Network completion ──[/bold]");
+    let mut cfg = config::load_config();
+    let current = cfg
+        .get("completion")
+        .filter(|v| fsv_py::truthy(v))
+        .and_then(|c| c.get("network"))
+        .map(fsv_py::py_str)
+        .unwrap_or_else(|| "(unset)".to_string());
+    out().print(&format!("current: {current}"));
+    out().print("when on, TAB fetches live requester/agent names");
+    let answer = term::prompt("Enable? [on/off]", Some("on"), true)?;
+    let answer = pystr::strip(&answer).to_lowercase();
+    if answer != "on" && answer != "off" {
+        err().print("[yellow]expected on/off; skipping[/yellow]");
+        return Ok(());
+    }
+    let entry = cfg.entry("completion").or_insert_with(|| json!({}));
+    if !entry.is_object() {
+        *entry = json!({});
+    }
+    if let Some(m) = entry.as_object_mut() {
+        m.insert("network".into(), json!(answer));
+    }
+    config::save_config(&cfg)?;
+    out().print(&format!("completion.network = {answer}"));
+    Ok(())
+}
+
+/// `_setup_defaults`.
+fn setup_defaults() -> CmdResult {
+    out().print("\n[bold]── Default filters ──[/bold]");
+    out().print("set default --where filters for every `ls` query");
+    out().print("examples: status=Open, agent=alice@example.com, requester=john@example.com");
+    for r in fsv_core::resource::REGISTRY {
+        let current = config::get_default_where(r.name);
+        let hint = if current.is_empty() {
+            String::new()
+        } else {
+            format!(" [{}]", current.join(", "))
+        };
+        let answer = term::prompt(
+            &format!("\n{} --where (comma-sep, enter to skip){hint}", r.name),
+            Some(""),
+            false,
+        )?;
+        let answer = pystr::strip(&answer);
+        if answer.is_empty() {
+            continue;
+        }
+        let exprs: Vec<String> = answer
+            .split(',')
+            .map(|e| pystr::strip(e).to_string())
+            .filter(|e| !e.is_empty())
+            .collect();
+        if !exprs.is_empty() {
+            config::set_default_where(r.name, &exprs)?;
+            let shown: Vec<Value> = exprs.iter().map(|e| json!(e)).collect();
+            out().print(&format!(
+                "  defaults.{}.where = {}",
+                r.name,
+                fsv_core::term::escape(&fsv_py::py_repr(&Value::Array(shown)))
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// `tui/actions.py resolve_read_only`.
@@ -249,5 +524,5 @@ pub fn tui_read_only(flag: bool) -> bool {
 
 /// `fsv tui`.
 pub fn tui(a: TuiArgs) -> CmdResult {
-    pending::tui_launch(tui_read_only(a.read_only))
+    fsv_app::run_tui(tui_read_only(a.read_only)).map_err(crate::util::uncaught)
 }

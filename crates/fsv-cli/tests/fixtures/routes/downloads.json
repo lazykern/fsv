@@ -1,0 +1,147 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/5",
+  "json": {
+   "ticket": {
+    "id": 5,
+    "attachments": [
+     {
+      "id": 91,
+      "name": "log.txt",
+      "attachment_url": "https://acme.freshservice.com/helpdesk/attachments/91"
+     }
+    ],
+    "description": "<p><a href=\"/helpdesk/attachments/93?x=1\">a</a> <img src=\"https://acme.freshservice.com/helpdesk/attachments/94\"></p>"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/5/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 1,
+     "attachments": [
+      {
+       "id": 92,
+       "name": "reply.png",
+       "canonical_url": "https://acme.freshservice.com/helpdesk/attachments/92"
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/helpdesk/attachments/91",
+  "text": "LOGDATA"
+ },
+ {
+  "method": "GET",
+  "path": "/helpdesk/attachments/92",
+  "text": "PNG!"
+ },
+ {
+  "method": "GET",
+  "path": "/helpdesk/attachments/93",
+  "text": "three"
+ },
+ {
+  "method": "GET",
+  "path": "/helpdesk/attachments/94",
+  "text": "four4"
+ },
+ {
+  "method": "GET",
+  "path": "/helpdesk/attachments/95",
+  "text": "plan-file"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5",
+  "json": {
+   "change": {
+    "id": 5,
+    "attachments": [
+     {
+      "id": 91,
+      "name": "log.txt",
+      "attachment_url": "https://acme.freshservice.com/helpdesk/attachments/91"
+     }
+    ],
+    "description": "see /helpdesk/attachments/93"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/planning-fields",
+  "json": {
+   "change_planning_fields": [
+    {
+     "name": "rollout_plan",
+     "attachments": [
+      {
+       "id": 95,
+       "name": "plan.pdf",
+       "attachment_url": "https://acme.freshservice.com/helpdesk/attachments/95"
+      }
+     ]
+    },
+    {
+     "name": "backout_plan",
+     "attachments": []
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change_form_fields",
+  "json": {
+   "change_fields": [
+    {
+     "name": "rollout_plan",
+     "label": "Rollout plan",
+     "field_type": "default_change_plan",
+     "default_field": true
+    },
+    {
+     "name": "backout_plan",
+     "label": "Backout plan",
+     "field_type": "default_backout_plan",
+     "default_field": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/v2/change_form_fields",
+  "status": 403,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/9",
+  "status": 500,
+  "json": {
+   "description": "boom"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/5/tasks/update",
+  "json": {
+   "success": true
+  }
+ }
+]

@@ -1,0 +1,11 @@
+[
+ {"method":"GET","path":"/api/_/change_form_fields","json":{"change_fields":[
+  {"name": "subject", "label": "Subject", "field_type": "default_subject", "default_field": true, "required": true},
+  {"name": "status", "label": "Status", "field_type": "default_status", "default_field": true, "choices": [{"id": 1, "value": "Open"}, {"id": 2, "value": "Planning"}, {"id": 5, "value": "Closed"}]},
+  {"name": "priority", "label": "Priority", "field_type": "default_priority", "default_field": true, "choices": [{"id": 1, "value": "Low"}, {"id": 2, "value": "Medium"}]},
+  {"name": "agent", "label": "Agent", "field_type": "default_agent", "default_field": true},
+  {"name": "group", "label": "Group", "field_type": "default_group", "default_field": true},
+  {"name": "cf_env", "label": "Environment", "field_type": "custom_dropdown", "default_field": false, "choices": [{"id": 11, "value": "Prod"}, {"id": 12, "value": "UAT"}]}
+ ]}},
+ {"method":"GET","path":"/api/v2/change_form_fields","json":{"change_fields":[{"name":"cf_env","choices":[{"id": 11, "value": "Prod"}, {"id": 12, "value": "UAT"},{"id":13,"value":"DEV"}]}]}}
+]

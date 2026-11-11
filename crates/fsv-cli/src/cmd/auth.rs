@@ -37,7 +37,7 @@ pub fn resolve_domain(local_no_input: bool) -> Result<bool> {
 }
 
 /// `_validate_new_cookies`.
-fn validate_new_cookies(cookies: &session::Cookies) -> CmdResult {
+pub(crate) fn validate_new_cookies(cookies: &session::Cookies) -> CmdResult {
     let domain = config::domain();
     let probe = Client::with_cookies(Arc::new(Ctx::from_process()), cookies.clone())
         .and_then(|c| c.check_session());

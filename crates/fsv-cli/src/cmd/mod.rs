@@ -5,10 +5,14 @@ pub mod cache;
 pub mod changes;
 pub mod completion;
 pub mod config;
+pub mod download;
 pub mod form;
+pub mod formflow;
 pub mod journal;
+pub mod links;
 pub mod misc;
 pub mod resource;
+pub mod review;
 pub mod sr;
 pub mod tickets;
 
@@ -39,7 +43,7 @@ pub fn dispatch(path: &str, m: &ArgMatches, prog: &str) -> CmdResult {
     match path {
         "help" => misc::help(parse(m)?),
         "search" => misc::search(parse(m)?),
-        "setup" => misc::setup(),
+        "setup" => misc::setup(prog),
         "tui" => misc::tui(parse(m)?),
         "auth login" => auth::login(parse(m)?),
         "auth logout" => auth::logout(parse(m)?),

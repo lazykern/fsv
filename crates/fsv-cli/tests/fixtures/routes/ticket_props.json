@@ -1,0 +1,46 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/7",
+  "json": {
+   "ticket": {
+    "id": 7,
+    "subject": "s"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/8",
+  "json": {
+   "ticket": {
+    "id": 9,
+    "tags": []
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/10",
+  "json": [
+   1
+  ]
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/11",
+  "json": {
+   "ticket": {
+    "id": 11,
+    "tags": [
+     "x"
+    ]
+   }
+  }
+ }
+]

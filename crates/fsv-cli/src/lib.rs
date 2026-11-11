@@ -6,7 +6,11 @@
 mod app;
 mod cmd;
 pub mod generated;
-mod pending;
+mod lazy;
+mod lookup;
+#[cfg(debug_assertions)]
+mod mock;
+mod schema;
 pub mod types;
 mod util;
 
