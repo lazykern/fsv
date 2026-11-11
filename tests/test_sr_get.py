@@ -83,6 +83,41 @@ def test_download_is_safe_and_reports_rejections(fake, tmp_path):
     assert (out / "deck.pptx").read_bytes() == A.DOWNLOADS[801]
 
 
+@pytest.mark.parametrize("args", [
+    ("--download", "--help"),
+    ("--download", "--force"),
+    ("--download=--help",),
+    ("--download",),
+])
+def test_download_rejects_flags_and_missing_value_before_client(args, tmp_path, monkeypatch):
+    work = tmp_path / "work"
+    work.mkdir()
+    monkeypatch.chdir(work)
+
+    def no_client():
+        raise AssertionError("client must not be called")
+
+    monkeypatch.setattr(cli_sr, "_client", no_client)
+    r = run("get", "SR-123", *args)
+    assert r.exit_code == 2, r.output
+    assert "--download" in r.output
+    assert list(work.iterdir()) == []
+
+
+def test_download_option_like_directory_with_dot_slash(fake, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    r = run("get", "SR-123", "--download", "./--name", "-o", "json")
+    assert r.exit_code == 2  # one attachment name is rejected
+    assert (tmp_path / "--name" / "deck.pptx").read_bytes() == A.DOWNLOADS[801]
+
+
+def test_get_help_remains_available_without_client(monkeypatch):
+    monkeypatch.setattr(cli_sr, "_client", lambda: pytest.fail("client must not be called"))
+    r = run("get", "--help")
+    assert r.exit_code == 0
+    assert "--download" in r.output
+
+
 def test_bad_id_prefix(fake):
     r = run("get", "CHN-5")
     assert r.exit_code == 2

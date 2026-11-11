@@ -184,6 +184,8 @@ else from the catalog item form) and the attachments with their source
 
 `--download DIR` saves the attachments into `DIR`:
 
+* a directory beginning with `-` must be written with `./`, such as
+  `--download ./--name`; option-looking values are rejected before any request;
 * server-supplied names containing `..`, `/` or `\`, absolute or drive
   paths, control characters, or that resolve outside `DIR` (symlinks
   included) are rejected and reported; the command then exits 2;

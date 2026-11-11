@@ -797,7 +797,7 @@ def get_cmd(
     sr_id: str = typer.Argument(..., metavar="SR-ID"),
     items: bool = typer.Option(False, "--items", help="requested item values, by label"),
     attachments: bool = typer.Option(False, "--attachments", help="list attachments"),
-    download: Optional[Path] = typer.Option(None, "--download", help="download the attachments into DIR"),
+    download: Optional[str] = typer.Option(None, "--download", metavar="DIR", help="download attachments into DIR; prefix names starting with - with ./"),
     force: bool = typer.Option(False, "--force", help="overwrite files that exist in DIR"),
     output: str = typer.Option("table", "--output", "-o", help="table|json"),
 ) -> None:
@@ -806,6 +806,10 @@ def get_cmd(
     from fsv.resources import TICKETS, parse_id
     from fsv.service import get_requested_items
 
+    if download is not None and download.startswith("-"):
+        raise typer.BadParameter("expected a directory, not an option; use ./ for names starting with -",
+                                 param_hint="--download")
+    download_dir = Path(download) if download is not None else None
     if not items and not attachments and download is None:
         items = attachments = True
     tid = _guard(lambda: parse_id(sr_id, TICKETS))
@@ -834,9 +838,9 @@ def get_cmd(
                           "stage": stage.get("name") if isinstance(stage, dict) else stage, "values": vals})
     att_rows = _attachment_rows(ticket, reqs, labels) if (attachments or download is not None) else []
     downloads: list[dict[str, Any]] = []
-    if download is not None:
+    if download_dir is not None:
         for a in att_rows:
-            downloads.append(_guard(lambda a=a: _download(c, a, download, force)))
+            downloads.append(_guard(lambda a=a: _download(c, a, download_dir, force)))
     shown_id = ticket.get("human_display_id") or f"SR-{ticket.get('display_id') or tid}"
     doc: dict[str, Any] = {"id": shown_id, "subject": ticket.get("subject")}
     if items:
