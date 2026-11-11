@@ -102,10 +102,11 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
             if field.api_name in answered:
                 raise PropertyError(f"{field.label}: duplicate property answer")
             answered.add(field.api_name)
-            if not field.sent or field.synthetic or field.kind == "notice":
+            beneficiary = field.api_name == "requested_for" and field.field_type == "default_requested_for"
+            if (not field.sent and not beneficiary) or field.synthetic or field.kind == "notice":
                 raise PropertyError(f"{field.label}: field is not writable")
             state.set(field.api_name, value)
-        allowed = {"subject", "description", "requester_id", "group_id", "responder_id",
+        allowed = {"subject", "description", "requester_id", "requested_for_id", "group_id", "responder_id",
                    "status", "priority", "urgency", "impact", "source", "category", "type"}
         for name in answers or {}:
             field = meta.spec.field(name)
@@ -120,7 +121,7 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
             if field.is_custom:
                 body.setdefault("custom_fields", {})[field.api_name] = encoded
             else:
-                key = "requester_id" if field.api_name == "requester" else TICKET_KEYS.get(field.api_name, field.api_name)
+                key = field.api_name + "_id" if field.api_name in {"requester", "requested_for"} else TICKET_KEYS.get(field.api_name, field.api_name)
                 if key not in allowed:
                     raise PropertyError(f"{field.label}: update wire is not proven")
                 body[key] = encoded

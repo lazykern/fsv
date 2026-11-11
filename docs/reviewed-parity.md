@@ -24,7 +24,17 @@ priority/urgency/impact/source/status and runtime custom-field update shape.
 Tags and planned dates can be included in the same review. Uncaptured core
 fields and combined Resolved/Closed workflows are refused. Readback reports
 missing fields as unavailable, not verified. Legacy basic update flags remain
-available; `--reviewed` selects this stricter path explicitly.
+available; `--reviewed` selects this stricter path explicitly. A real runtime
+`default_requested_for` field uses the separately captured SR
+`requested_for_id` update key; this does not enable that field for change or
+incident creation. Missing beneficiary-dependent rule context still blocks.
+
+The main TUI's **e** key on a ticket/SR opens a metadata-backed property
+picker, then a value/choice picker and exact before/after/hash review. Each
+review changes one property. Choices come from current metadata; unsupported
+and synthetic fields are not offered. Results remain in a scrollable outcome
+screen. Combined multi-field required transitions should use the reviewed CLI
+or the web form, not a sequence of single-field edits.
 
 ## BCC replies and whole-ticket forwards
 

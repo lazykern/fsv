@@ -1364,6 +1364,9 @@ class FsvApp(App):
                                           ("sr", "Service Request")], "Create"), self._create_choice)
             return
         item = self._selected
+        if mode == "edit" and item and item.get("_resource", TICKETS) == TICKETS:
+            self._load_ticket_property_fields(dict(item))
+            return
         if mode == "edit" and (not item or item.get("_resource", TICKETS).name != "changes"):
             self.notify("Select a change to edit", severity="warning")
             return
@@ -1375,6 +1378,62 @@ class FsvApp(App):
             return
         self.notify("opening the form…", timeout=2)
         self._build_form(mode, item, screen_cls)
+
+    @work(thread=True, exclusive=True, group="property-review")
+    def _load_ticket_property_fields(self, item: dict) -> None:
+        if self.read_only:
+            return
+        from fsv.formmeta import load_meta
+        try:
+            meta = load_meta(get_client(), "ticket", "edit", fresh=True, module_id=item.get("display_id") or item["id"])
+            core = {"subject", "description", "requester", "requested_for", "group", "agent", "status",
+                    "priority", "urgency", "impact", "source", "category", "ticket_type"}
+            fields = [f for f in meta.spec.fields if (f.sent or f.field_type == "default_requested_for") and
+                      not f.synthetic and f.is_input and f.kind != "unsupported" and
+                      (f.is_custom or f.api_name in core)]
+            def choose():
+                def picked(name):
+                    if name is None:
+                        return
+                    field = meta.spec.field(name)
+                    if field.kind == "dropdown":
+                        self.push_screen(ChoiceScreen([(ch.value, ch.label) for ch in field.choices if ch.visible], field.label),
+                            lambda value: self._prepare_ticket_property(item, name, value) if value is not None else None)
+                    else:
+                        self.push_screen(ValueScreen(field.label + " — exact value/name/email; comma-separated for multiple values"),
+                            lambda value: self._prepare_ticket_property(item, name, value) if value is not None else None)
+                self.push_screen(ChoiceScreen([(f.api_name, f.label) for f in fields], "Edit ticket/SR property — one field per review"), picked)
+            self.call_from_thread(choose)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
+    @work(thread=True, exclusive=True, group="property-review")
+    def _prepare_ticket_property(self, item: dict, name: str, value: Any) -> None:
+        if self.read_only:
+            return
+        from fsv import ticket_properties
+        try:
+            plan = ticket_properties.build_plan(get_client(), item.get("display_id") or item["id"], answers={name: value})
+            def review():
+                self.push_screen(ConfirmScreen("Review exact ticket property", [json.dumps(plan.review(), indent=2)]),
+                                 lambda ok: self._send_ticket_property(item, plan) if ok else None)
+            self.call_from_thread(review)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
+    @work(thread=True, group="write")
+    def _send_ticket_property(self, item: dict, plan: Any) -> None:
+        if self.read_only:
+            return
+        from fsv import ticket_properties
+        try:
+            result = ticket_properties.send(plan, get_client(), reviewed_hash=plan.hash)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+            return
+        self.call_from_thread(self.push_screen, OutcomeScreen("Property result — do not resend", json.dumps(result, indent=2)))
+        if result.get("verified"):
+            self.call_from_thread(self._after_write, TICKETS, item, "Ticket property verified")
 
     def _create_choice(self, kind: str | None) -> None:
         if kind is None or self.read_only:

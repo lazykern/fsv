@@ -170,9 +170,11 @@ def test_edit_hook_pushes_the_form_screen(monkeypatch):
         app = FsvApp()
         async with app.run_test(size=(170, 50)) as pilot:
             await settle(app, pilot)
-            await pilot.press("e")  # a ticket is selected: edit is for changes
+            ticket_edits = []
+            monkeypatch.setattr(app, "_load_ticket_property_fields", lambda item: ticket_edits.append(item))
+            await pilot.press("e")  # tickets now have a separate reviewed property picker
             await pilot.pause()
-            assert any("Select a change" in str(n.message) for n in app._notifications)
+            assert len(ticket_edits) == 1
             await pilot.press("g", "c")
             await settle(app, pilot, 8)
             await pilot.press("e")
