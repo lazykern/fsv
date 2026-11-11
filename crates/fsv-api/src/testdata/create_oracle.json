@@ -1,0 +1,1630 @@
+{
+ "build_template": [
+  {
+   "subject": "subject here",
+   "description": "<div>description here</div>",
+   "requester_id": "<requester email or ID>",
+   "status": [
+    "Open",
+    "Planning"
+   ],
+   "group_id": "<group name or ID>",
+   "cf_text": ""
+  },
+  {
+   "subject": "subject here",
+   "description": "<div>description here</div>",
+   "requester_id": "<requester email or ID>",
+   "agent_id": "<agent email/name or ID>",
+   "status": [
+    "Open",
+    "Planning"
+   ],
+   "priority": "<choose: P1, P2, ...>",
+   "cf_flag": false,
+   "cf_yes": false,
+   "cf_named": [
+    "N1",
+    7
+   ],
+   "planned_start_date": "2026-01-01T10:00:00+07:00",
+   "cf_num": 0,
+   "cf_dec": 0,
+   "group_id": "<group name or ID>",
+   "department_id": "<department name or ID>",
+   "cf_multi": [],
+   "cf_ref_id": "<ID>",
+   "cf_text": "",
+   "backout": ""
+  },
+  {
+   "subject": "subject here",
+   "description": "<div>description here</div>",
+   "requester_id": "<requester email or ID>",
+   "agent_id": "<agent email/name or ID>",
+   "status": [
+    "Open",
+    "Planning"
+   ],
+   "priority": "<choose: P1, P2, ...>",
+   "cf_flag": false,
+   "cf_yes": false,
+   "cf_named": [
+    "N1",
+    7
+   ],
+   "planned_start_date": "2026-01-01T10:00:00+07:00",
+   "cf_num": 0,
+   "cf_dec": 0,
+   "group_id": "<group name or ID>",
+   "department_id": "<department name or ID>",
+   "cf_multi": [],
+   "cf_ref_id": "<ID>",
+   "cf_text": "",
+   "backout": ""
+  }
+ ],
+ "field_default": [
+  "subject here",
+  "<div>description here</div>",
+  "<email or name>",
+  "<email or name>",
+  [
+   "Open",
+   "Planning"
+  ],
+  "<choose: P1, P2, ...>",
+  false,
+  false,
+  [
+   "N1",
+   7
+  ],
+  "2026-01-01T10:00:00+07:00",
+  0,
+  0,
+  "<name or ID>",
+  "<name or ID>",
+  [],
+  "<ID>",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  false
+ ],
+ "change_template": [
+  {
+   "subject": "subject here",
+   "description": "<div>description here</div>",
+   "requester_id": "<requester email or ID>",
+   "status": [
+    "Open",
+    "Planning"
+   ],
+   "group_id": "<group name or ID>",
+   "cf_text": ""
+  },
+  true
+ ],
+ "schema_fields": [
+  true
+ ],
+ "schema_fields_data": [
+  {
+   "name": "x"
+  }
+ ],
+ "schema_fields_flat": [
+  {
+   "name": "y"
+  }
+ ],
+ "clone_data": {
+  "subject": "S",
+  "status": 1,
+  "requester_id": 9,
+  "cf_lookup": 4,
+  "cf_text": "t",
+  "cf_obj": {
+   "id": 1,
+   "value": 2,
+   "x": 3
+  }
+ },
+ "for_edit": {
+  "subject": "S",
+  "status": 3,
+  "stats": {},
+  "reason_planning_fields": [],
+  "requester_id": 9,
+  "planning_field_definitions": [],
+  "cf_lookup": 4,
+  "cf_text": "t",
+  "cf_obj": {
+   "id": 1,
+   "value": 2,
+   "x": 3
+  }
+ },
+ "parse_when": [
+  "2030-01-01 10:00:00+00:00",
+  "2030-01-01 10:00:00+07:00",
+  "2030-01-01 10:00:00+00:00",
+  "None",
+  "None",
+  "None",
+  "None"
+ ],
+ "task_clone_body": [
+  {
+   "title": "Deploy",
+   "status": 1,
+   "planned_end_date": "2031-01-01T00:00:00Z",
+   "start_date": "junk",
+   "description": "d",
+   "custom_fields": {
+    "b": 2
+   }
+  },
+  [
+   "task 'Deploy': owner not copied",
+   "task 'Deploy': past due_date not copied"
+  ],
+  {
+   "title": "Deploy",
+   "status": 1,
+   "owner_id": 4,
+   "planned_end_date": "2031-01-01T00:00:00Z",
+   "start_date": "junk",
+   "description": "d",
+   "custom_fields": {
+    "b": 2
+   }
+  },
+  {
+   "title": "",
+   "status": 1
+  },
+  [
+   "task 71: owner not copied"
+  ]
+ ],
+ "clone_tasks": [
+  [
+   {
+    "id": 1
+   },
+   {
+    "id": 2
+   }
+  ],
+  [
+   "task 'Deploy': owner not copied",
+   "task 'Deploy': past due_date not copied",
+   "task 71: owner not copied"
+  ],
+  [
+   {
+    "method": "POST",
+    "path": "changes/6/tasks",
+    "params": null,
+    "body": {
+     "change_task": {
+      "title": "Deploy",
+      "status": 1,
+      "planned_end_date": "2031-01-01T00:00:00Z",
+      "start_date": "junk",
+      "description": "d",
+      "custom_fields": {
+       "b": 2
+      }
+     }
+    }
+   },
+   {
+    "method": "POST",
+    "path": "changes/6/tasks",
+    "params": null,
+    "body": {
+     "change_task": {
+      "title": "",
+      "status": 1
+     }
+    }
+   }
+  ]
+ ],
+ "side_effects": {
+  "tasks": 2,
+  "tasks_with_owner": 2,
+  "assets": 3,
+  "planning_fields": 3,
+  "planning_attachments": 3
+ },
+ "clone_assets": [
+  [
+   7,
+   8
+  ],
+  [
+   {
+    "method": "PUT",
+    "path": "changes/6/assets/associate",
+    "params": null,
+    "body": {
+     "item_ids": [
+      7,
+      8
+     ]
+    }
+   }
+  ]
+ ],
+ "clone_assets_none": [
+  [],
+  []
+ ],
+ "clone_planning": [
+  [
+   "reason_for_change",
+   "backout"
+  ],
+  [
+   {
+    "method": "GET",
+    "path": "changes/5/planning-fields",
+    "params": null,
+    "body": null
+   },
+   {
+    "method": "FETCH",
+    "path": "https://acme.freshservice.com/helpdesk/attachments/1?download=true"
+   },
+   {
+    "method": "POST",
+    "path": "attachments",
+    "params": null,
+    "body": {
+     "content": "data:text/plain;base64,UiE=",
+     "content_file_name": "r.txt",
+     "content_file_size": 2,
+     "content_content_type": "text/plain"
+    }
+   },
+   {
+    "method": "FETCH",
+    "path": "https://cdn/x?sig=1"
+   },
+   {
+    "method": "POST",
+    "path": "changes/6/planning-fields?id=reason_for_change",
+    "params": null,
+    "body": {
+     "description": " why ",
+     "attachments": [
+      900
+     ]
+    }
+   },
+   {
+    "method": "POST",
+    "path": "changes/6/planning-fields?id=backout",
+    "params": null,
+    "body": {
+     "description": "back"
+    }
+   }
+  ]
+ ],
+ "clone_planning_none_atts": {
+  "__error__": "TypeError",
+  "msg": "'NoneType' object is not iterable"
+ },
+ "attachment_url": [
+  "https://x/helpdesk/attachments/1?download=true",
+  "https://x/helpdesk/attachments/1?a=1",
+  "https://y/z",
+  "https://acme.freshservice.com/helpdesk/attachments/9?download=true",
+  ""
+ ],
+ "safe_filename": [
+  "a-bc",
+  "attachment",
+  "ok.txt"
+ ],
+ "download": [
+  [
+   {
+    "name": "one.txt",
+    "path": "one.txt",
+    "size": 3,
+    "skipped": false
+   },
+   {
+    "name": "one.txt",
+    "path": "one.txt",
+    "size": 3,
+    "skipped": true
+   },
+   {
+    "name": "one.txt",
+    "path": "one.txt",
+    "size": 3,
+    "skipped": false
+   },
+   {
+    "name": "attachment-4",
+    "path": "attachment-4",
+    "size": 3,
+    "skipped": false
+   }
+  ],
+  [
+   "https://x/f1",
+   "https://x/f1",
+   "https://x/f1"
+  ]
+ ],
+ "download_bad": {
+  "__error__": "APIError",
+  "msg": "HTTP 500: err body"
+ },
+ "download_nourl": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: attachment has no URL: {'id': 1}"
+ },
+ "reupload": [
+  [
+   5,
+   null,
+   null,
+   null
+  ],
+  [
+   {
+    "content": "data:application/octet-stream;base64,YWJj",
+    "content_file_name": "a.bin",
+    "content_file_size": 3,
+    "content_content_type": "application/octet-stream"
+   },
+   {
+    "content": "data:application/octet-stream;base64,YWJj",
+    "content_file_name": "attachment",
+    "content_file_size": 3,
+    "content_content_type": "application/octet-stream"
+   }
+  ]
+ ],
+ "upload_bytes": [
+  12,
+  [
+   {
+    "method": "POST",
+    "path": "attachments",
+    "params": null,
+    "body": {
+     "content": "data:text/plain;base64,eHl6",
+     "content_file_name": "n.txt",
+     "content_file_size": 3,
+     "content_content_type": "text/plain"
+    }
+   }
+  ]
+ ],
+ "upload_bytes_noid": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: attachment upload returned no id: {'name': 'n.txt'}"
+ },
+ "upload_file": [
+  33,
+  {
+   "content": "data:text/plain;base64,aGVsbG8=",
+   "content_file_name": "a.txt",
+   "content_file_size": 5,
+   "content_content_type": "text/plain"
+  }
+ ],
+ "attach_append": [
+  {
+   "attachments": [
+    1,
+    2,
+    50,
+    51
+   ],
+   "skipped": []
+  },
+  [
+   [
+    "GET",
+    "changes/5",
+    null
+   ],
+   [
+    "POST",
+    "attachments",
+    "a.txt"
+   ],
+   [
+    "POST",
+    "attachments",
+    "b.txt"
+   ],
+   [
+    "PUT",
+    "changes/5",
+    {
+     "attachments": [
+      1,
+      2,
+      50,
+      51
+     ]
+    }
+   ]
+  ]
+ ],
+ "attach_skip": [
+  {
+   "_fsv_noop": true,
+   "skipped": [
+    "a.txt"
+   ],
+   "attachments": [
+    1,
+    2
+   ]
+  },
+  [
+   [
+    "GET",
+    "changes/5",
+    null
+   ]
+  ]
+ ],
+ "attach_replace": [
+  {
+   "attachments": [
+    2,
+    50
+   ],
+   "skipped": []
+  },
+  [
+   [
+    "GET",
+    "changes/5",
+    null
+   ],
+   [
+    "POST",
+    "attachments",
+    "a.txt"
+   ],
+   [
+    "PUT",
+    "changes/5",
+    {
+     "attachments": [
+      2,
+      50
+     ]
+    }
+   ]
+  ]
+ ],
+ "attach_replace_backup": [
+  {
+   "attachments": [
+    2,
+    50,
+    51
+   ],
+   "skipped": []
+  },
+  [
+   [
+    "GET",
+    "changes/5",
+    null
+   ],
+   [
+    "FETCH",
+    "https://x/old-a",
+    null
+   ],
+   [
+    "POST",
+    "attachments",
+    "old.txt"
+   ],
+   [
+    "POST",
+    "attachments",
+    "a.txt"
+   ],
+   [
+    "PUT",
+    "changes/5",
+    {
+     "attachments": [
+      2,
+      50,
+      51
+     ]
+    }
+   ]
+  ]
+ ],
+ "attach_prompt_notty": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: attachment already exists: a.txt; use --duplicate skip|replace|append"
+ },
+ "attach_prompt_tty": [
+  {
+   "attachments": [
+    2,
+    50
+   ],
+   "skipped": []
+  },
+  [
+   [
+    "GET",
+    "changes/5",
+    null
+   ],
+   [
+    "POST",
+    "attachments",
+    "a.txt"
+   ],
+   [
+    "PUT",
+    "changes/5",
+    {
+     "attachments": [
+      2,
+      50
+     ]
+    }
+   ]
+  ]
+ ],
+ "attach_prompt_tty_backup": [
+  {
+   "attachments": [
+    2,
+    50,
+    51
+   ],
+   "skipped": []
+  },
+  [
+   [
+    "GET",
+    "changes/5",
+    null
+   ],
+   [
+    "FETCH",
+    "https://x/old-a",
+    null
+   ],
+   [
+    "POST",
+    "attachments",
+    "mine.txt"
+   ],
+   [
+    "POST",
+    "attachments",
+    "a.txt"
+   ],
+   [
+    "PUT",
+    "changes/5",
+    {
+     "attachments": [
+      2,
+      50,
+      51
+     ]
+    }
+   ]
+  ]
+ ],
+ "attach_prompt_tty_append": [
+  {
+   "attachments": [
+    1,
+    2,
+    50
+   ],
+   "skipped": []
+  },
+  [
+   [
+    "GET",
+    "changes/5",
+    null
+   ],
+   [
+    "POST",
+    "attachments",
+    "a.txt"
+   ],
+   [
+    "PUT",
+    "changes/5",
+    {
+     "attachments": [
+      1,
+      2,
+      50
+     ]
+    }
+   ]
+  ]
+ ],
+ "attach_prompt_tty_skip": [
+  {
+   "_fsv_noop": true,
+   "skipped": [
+    "a.txt"
+   ],
+   "attachments": [
+    1,
+    2
+   ]
+  },
+  [
+   [
+    "GET",
+    "changes/5",
+    null
+   ]
+  ]
+ ],
+ "attach_bad_mode": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: --duplicate must be one of: prompt, skip, replace, append"
+ },
+ "set_due_by": [
+  {
+   "ok": 1
+  },
+  [
+   {
+    "method": "PATCH",
+    "path": "changes/5",
+    "params": null,
+    "body": {
+     "due_by": "2030-01-01"
+    }
+   }
+  ]
+ ],
+ "update_change": [
+  {
+   "id": 5
+  },
+  [
+   {
+    "method": "PUT",
+    "path": "changes/5",
+    "params": null,
+    "body": {
+     "subject": "S",
+     "group_id": 3,
+     "planned_start_date": "d",
+     "attachments": [
+      1
+     ],
+     "custom_fields": {
+      "cf_text": "x",
+      "unknown": 1
+     }
+    }
+   }
+  ]
+ ],
+ "update_change_errs": {
+  "__error__": "RuntimeError",
+  "msg": "update failed:\n  subject: bad\n  ?: ?"
+ },
+ "update_change_desc": {
+  "__error__": "RuntimeError",
+  "msg": "update failed: Validation failed"
+ },
+ "update_change_dict": {
+  "__error__": "RuntimeError",
+  "msg": "update failed: {'code': 'x'}"
+ },
+ "update_change_raw": {
+  "__error__": "APIError",
+  "msg": "HTTP 500: boom"
+ },
+ "submit_change": [
+  {
+   "id": 9
+  },
+  [
+   {
+    "method": "POST",
+    "path": "changes",
+    "params": null,
+    "body": {
+     "subject": "S",
+     "group_id": 3,
+     "planned_start_date": "d",
+     "custom_fields": {
+      "cf_text": "x",
+      "attachments": [
+       1
+      ],
+      "unknown": 1
+     }
+    }
+   }
+  ]
+ ],
+ "submit_change_br": {
+  "__error__": "ValueError",
+  "msg": "br_validation_excludes is computed by fsv from the form rules; remove it from the body"
+ },
+ "submit_change_errs": {
+  "__error__": "RuntimeError",
+  "msg": "create failed:\n  f: m"
+ },
+ "submit_change_desc": {
+  "__error__": "RuntimeError",
+  "msg": "create failed: D"
+ },
+ "api_failure": [
+  [
+   "RuntimeError",
+   "create failed:\n  a: b"
+  ],
+  [
+   "RuntimeError",
+   "create failed: D"
+  ],
+  [
+   "RuntimeError",
+   "create failed: {'x': 1}"
+  ],
+  [
+   "APIError",
+   "HTTP 400: text"
+  ]
+ ],
+ "post_change_body": [
+  {
+   "id": 9
+  },
+  [
+   {
+    "method": "POST",
+    "path": "changes",
+    "params": null,
+    "body": {
+     "a": 1
+    }
+   }
+  ]
+ ],
+ "post_change_body_list": [
+  1,
+  2
+ ],
+ "post_change_body_err": {
+  "__error__": "RuntimeError",
+  "msg": "create failed: D"
+ },
+ "put_change_body": [
+  {
+   "id": 5
+  },
+  [
+   {
+    "method": "PUT",
+    "path": "changes/5",
+    "params": null,
+    "body": {
+     "a": 1
+    }
+   }
+  ]
+ ],
+ "put_change_body_err": {
+  "__error__": "RuntimeError",
+  "msg": "update failed:\n  a: ?"
+ },
+ "planning_key": [
+  "rolloutplans",
+  "reason",
+  "backoutrecovery",
+  "",
+  "",
+  "12"
+ ],
+ "singular_key": [
+  "rolloutplan",
+  "reason",
+  "backoutrecovery",
+  "",
+  "",
+  "12",
+  "planitem"
+ ],
+ "is_planning_field": [
+  false,
+  true,
+  true,
+  true
+ ],
+ "norm_label": [
+  "backout & recovery",
+  "",
+  "5"
+ ],
+ "planning_definitions": [
+  "reason_for_change",
+  "rollout_plan",
+  "backout"
+ ],
+ "planning_server_key": [
+  "a",
+  "2",
+  "3"
+ ],
+ "resolve_def": [
+  "reason_for_change",
+  "rollout_plan",
+  "rollout_plan",
+  "backout",
+  "rollout_plan",
+  "reason_for_change",
+  "backout"
+ ],
+ "resolve_def_missing": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: planning field not found: 'zzz'; choices: Reason for change, Rollout Plan, Backout & Recovery"
+ },
+ "resolve_def_blank": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: planning field not found: ' '; choices: Reason for change, Rollout Plan, Backout & Recovery"
+ },
+ "resolve_def_amb_label": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: ambiguous planning field: 'SAME'; select an exact identity"
+ },
+ "resolve_def_amb_alias": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: ambiguous planning field: 'planx'; select an exact identity"
+ },
+ "resolve_field": [
+  "rollout_plan",
+  "13"
+ ],
+ "match_row": [
+  {
+   "name": "r1",
+   "label": "Reason",
+   "field_id": 11
+  },
+  {
+   "name": "r2",
+   "label": "Plan",
+   "planning_field_id": 12
+  },
+  {
+   "id": 13,
+   "label": "Backout"
+  },
+  {
+   "name": "r1",
+   "label": "Reason",
+   "field_id": 11
+  },
+  null,
+  null,
+  null
+ ],
+ "match_row_amb": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: ambiguous planning rows for 'dup'"
+ },
+ "match_row_conflict": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: conflicting planning row identity for 'r1'"
+ },
+ "planning_description": [
+  "",
+  "",
+  "",
+  "b",
+  "c",
+  "dt"
+ ],
+ "default_planning_description": [
+  "a.txt, z.pdf",
+  ""
+ ],
+ "attachment_name": [
+  "n",
+  "c",
+  "c",
+  ""
+ ],
+ "attachment_id": [
+  3,
+  4,
+  null,
+  null
+ ],
+ "prompt_duplicate": [
+  "HTTP 0: attachment already exists: a.txt; use --duplicate skip|replace|append",
+  "replace",
+  "replace",
+  "replace",
+  "replace",
+  "append",
+  "append",
+  "skip",
+  "skip",
+  "skip"
+ ],
+ "backup_name_given": [
+  "b.tar.gz",
+  "b.tar-2.gz",
+  "plain-1"
+ ],
+ "backup_name_stamp": [
+  "a.backup-20261111-195924.txt",
+  "a.backup-20261111-195924-3.txt",
+  "noext.backup-20261111-195924"
+ ],
+ "choose_backup_name": [
+  "mine.txt",
+  "given.txt",
+  "given-1.txt",
+  "given.txt"
+ ],
+ "should_backup": [
+  true,
+  false,
+  false,
+  true,
+  true,
+  false,
+  false,
+  true
+ ],
+ "backup_attachment": [
+  61,
+  [
+   {
+    "method": "FETCH",
+    "path": "https://x/o"
+   },
+   {
+    "method": "POST",
+    "path": "attachments",
+    "params": null,
+    "body": {
+     "content": "data:text/plain;base64,b2xk",
+     "content_file_name": "old.txt",
+     "content_file_size": 3,
+     "content_content_type": "text/plain"
+    }
+   }
+  ]
+ ],
+ "backup_attachment_ct": [
+  61,
+  "image/png"
+ ],
+ "backup_attachment_nourl": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: cannot backup attachment with no URL: {'id': 1}"
+ },
+ "backup_attachment_fail": {
+  "__error__": "APIError",
+  "msg": "HTTP 404: missing"
+ },
+ "upf_append": [
+  {
+   "ok": "put"
+  },
+  [
+   [
+    "GET",
+    "changes/5/planning-fields",
+    null
+   ],
+   [
+    "POST",
+    "attachments",
+    "a.txt"
+   ],
+   [
+    "POST",
+    "attachments",
+    "b.txt"
+   ],
+   [
+    "PUT",
+    "changes/5/planning-fields/rollout_plan",
+    {
+     "description": "a.txt, b.txt",
+     "attachments": [
+      1,
+      70,
+      71
+     ]
+    }
+   ]
+  ]
+ ],
+ "upf_replace": [
+  {
+   "ok": "put"
+  },
+  [
+   [
+    "GET",
+    "changes/5/planning-fields",
+    null
+   ],
+   [
+    "FETCH",
+    "https://x/old-a",
+    null
+   ],
+   [
+    "POST",
+    "attachments",
+    "bk.txt"
+   ],
+   [
+    "POST",
+    "attachments",
+    "a.txt"
+   ],
+   [
+    "PUT",
+    "changes/5/planning-fields/rollout_plan",
+    {
+     "description": "a.txt",
+     "attachments": [
+      70,
+      71
+     ]
+    }
+   ]
+  ]
+ ],
+ "upf_skip_noop": [
+  {
+   "ok": "put"
+  },
+  [
+   [
+    "GET",
+    "changes/5/planning-fields",
+    null
+   ],
+   [
+    "PUT",
+    "changes/5/planning-fields/rollout_plan",
+    {
+     "description": "a.txt"
+    }
+   ]
+  ]
+ ],
+ "upf_desc_only": [
+  {
+   "ok": "put"
+  },
+  [
+   [
+    "GET",
+    "changes/5/planning-fields",
+    null
+   ],
+   [
+    "PUT",
+    "changes/5/planning-fields/reason_for_change",
+    {
+     "description": "new why"
+    }
+   ]
+  ]
+ ],
+ "upf_desc_kept": [
+  {
+   "ok": "put"
+  },
+  [
+   [
+    "GET",
+    "changes/5/planning-fields",
+    null
+   ],
+   [
+    "POST",
+    "attachments",
+    "b.txt"
+   ],
+   [
+    "PUT",
+    "changes/5/planning-fields/reason_for_change",
+    {
+     "attachments": [
+      70
+     ]
+    }
+   ]
+  ]
+ ],
+ "upf_new": [
+  {
+   "ok": "post"
+  },
+  [
+   [
+    "GET",
+    "changes/5/planning-fields",
+    null
+   ],
+   [
+    "POST",
+    "attachments",
+    "rollout.txt"
+   ],
+   [
+    "POST",
+    "changes/5/planning-fields?id=backout",
+    {
+     "description": "rollout.txt",
+     "attachments": [
+      70
+     ]
+    }
+   ]
+  ]
+ ],
+ "upf_new_desc": [
+  {
+   "ok": "post"
+  },
+  [
+   [
+    "GET",
+    "changes/5/planning-fields",
+    null
+   ],
+   [
+    "POST",
+    "changes/5/planning-fields?id=backout",
+    {
+     "description": "text"
+    }
+   ]
+  ]
+ ],
+ "upf_new_empty": [
+  {
+   "ok": "post"
+  },
+  [
+   [
+    "GET",
+    "changes/5/planning-fields",
+    null
+   ],
+   [
+    "POST",
+    "changes/5/planning-fields?id=backout",
+    {
+     "description": ""
+    }
+   ]
+  ]
+ ],
+ "upf_bad_mode": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: --duplicate must be one of: prompt, skip, replace, append"
+ },
+ "upf_unavailable": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: planning rows unavailable; cannot safely determine the write target"
+ },
+ "upf_unavailable_list": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: planning rows unavailable; cannot safely determine the write target"
+ },
+ "upf_invalid_row": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: invalid planning row; cannot safely determine the write target"
+ },
+ "upf_unidentified": {
+  "__error__": "APIError",
+  "msg": "HTTP 0: unidentified planning row; cannot safely determine the write target"
+ },
+ "approvals": [
+  [
+   {
+    "id": 1
+   }
+  ],
+  [
+   {
+    "id": 2
+   }
+  ],
+  []
+ ],
+ "approval_groups": [],
+ "approval_groups_bad": {
+  "__error__": "ApprovalError",
+  "msg": "approval chains inventory is unreadable"
+ },
+ "assets_direct": [
+  {
+   "id": 100,
+   "display_id": 7,
+   "config_item": {
+    "display_id": 7
+   }
+  },
+  {
+   "id": 101,
+   "config_item": {
+    "display_id": 8
+   }
+  },
+  {
+   "id": 102
+  }
+ ],
+ "assets_null": [],
+ "assets_fallback": [
+  [
+   {
+    "id": 1
+   },
+   {
+    "id": 3
+   }
+  ],
+  [
+   [
+    "changes/5/assets",
+    null
+   ],
+   [
+    "changes/5/associated-cis",
+    {
+     "page": 1,
+     "per_page": 100,
+     "association_type": "cis"
+    }
+   ],
+   [
+    "changes/5/associated-cis",
+    {
+     "page": 1,
+     "per_page": 100,
+     "association_type": "services"
+    }
+   ],
+   [
+    "changes/5/associated-cis",
+    {
+     "page": 1,
+     "per_page": 100,
+     "association_type": "softwares"
+    }
+   ]
+  ]
+ ],
+ "assets_other_shape": [
+  [
+   {
+    "id": 9
+   },
+   {
+    "id": 9
+   },
+   {
+    "id": 9
+   }
+  ],
+  4
+ ],
+ "assets_500": {
+  "__error__": "APIError",
+  "msg": "HTTP 500: nope"
+ },
+ "assets_cis_500": {
+  "__error__": "APIError",
+  "msg": "HTTP 500: nope"
+ },
+ "search_assets": [
+  {
+   "assets": []
+  },
+  {
+   "entity": "change",
+   "entity_id": 5,
+   "include_meta": "true",
+   "page": 2,
+   "per_page": 10,
+   "search_term": "srv"
+  },
+  {
+   "assets": []
+  },
+  {
+   "entity": "change",
+   "entity_id": 5,
+   "include_meta": "true",
+   "page": 1,
+   "per_page": 30
+  }
+ ],
+ "associate_assets": [
+  null,
+  [
+   {
+    "method": "PUT",
+    "path": "changes/5/assets/associate",
+    "params": null,
+    "body": {
+     "item_ids": [
+      7,
+      8
+     ]
+    }
+   }
+  ]
+ ],
+ "dissociate_assets": [
+  null,
+  [
+   {
+    "method": "PUT",
+    "path": "changes/5/assets/detach",
+    "params": null,
+    "body": {
+     "cmdb_request_id": 101
+    }
+   },
+   {
+    "method": "PUT",
+    "path": "changes/5/assets/detach",
+    "params": null,
+    "body": {
+     "cmdb_request_id": 100
+    }
+   }
+  ]
+ ],
+ "dissociate_missing": {
+  "__error__": "ValueError",
+  "msg": "asset 99 not found on change #5"
+ },
+ "associations": [
+  false,
+  [
+   "complete",
+   "meta",
+   "problems",
+   "releases",
+   "tickets",
+   "warnings"
+  ]
+ ],
+ "search_tickets": [
+  [
+   {
+    "id": 1
+   }
+  ],
+  {
+   "module_type": "change",
+   "q": "vpn"
+  }
+ ],
+ "activities": [
+  [
+   {
+    "id": 1
+   },
+   {
+    "id": 2
+   }
+  ],
+  [
+   {},
+   {
+    "start_token": "abc&y"
+   }
+  ],
+  [
+   {
+    "id": 1
+   }
+  ],
+  [
+   {},
+   {
+    "start_token": "T"
+   }
+  ]
+ ],
+ "associate_ticket_dry": {
+  "status": "dry_run",
+  "action": "change_ticket_association",
+  "tenant": "acme.freshservice.com",
+  "change_id": 5,
+  "ticket_ids": [
+   7
+  ],
+  "method": "PUT",
+  "path": "/api/_/changes/5/tickets/associate",
+  "payload": {
+   "item_ids": [
+    7
+   ],
+   "module_type": "ticket"
+  },
+  "params": null,
+  "plan_hash": "3a5721cc61e9fc275d88baf55d1d44ce96a069ae0a3f4c575f5901ca49277336",
+  "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit."
+ },
+ "associate_ticket_ro": {
+  "__error__": "AssociationError",
+  "msg": "read-only mode: no association request was sent"
+ },
+ "dissociate_ticket_dry": {
+  "status": "dry_run",
+  "action": "change_ticket_association",
+  "tenant": "acme.freshservice.com",
+  "change_id": 5,
+  "ticket_ids": [
+   7
+  ],
+  "method": "DELETE",
+  "path": "/api/_/changes/5/tickets/7",
+  "payload": {
+   "type": "unlink"
+  },
+  "params": {
+   "module_type": "ticket"
+  },
+  "plan_hash": "9ff5eda89b100f3fc38f26986a6eb3358b0ff67b03456fda66dd66a780d6a1ea",
+  "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit."
+ },
+ "task_for_edit": {
+  "title": "Deploy",
+  "status": 3,
+  "owner_id": 4,
+  "due_date": "2029-12-01T00:00:00Z",
+  "planned_end_date": "2031-01-01T00:00:00Z",
+  "start_date": "junk",
+  "description": "d",
+  "custom_fields": {
+   "a": null,
+   "b": 2
+  }
+ },
+ "task_put": [
+  {
+   "ok": 1
+  },
+  [
+   {
+    "method": "PUT",
+    "path": "changes/5/tasks/70",
+    "params": null,
+    "body": {
+     "a": 1
+    }
+   }
+  ]
+ ],
+ "delete_task": [
+  null,
+  [
+   {
+    "method": "PUT",
+    "path": "changes/5/tasks/update",
+    "params": null,
+    "body": {
+     "id": "70",
+     "action": "delete"
+    }
+   }
+  ]
+ ],
+ "update_task": [
+  {
+   "id": 70
+  },
+  [
+   {
+    "method": "PUT",
+    "path": "changes/5/tasks/70",
+    "params": null,
+    "body": {
+     "title": "T",
+     "custom_fields": {
+      "b": 1
+     }
+    }
+   }
+  ]
+ ],
+ "update_task_nocf": [
+  {
+   "id": 70
+  },
+  {
+   "title": "T"
+  }
+ ],
+ "planning_download": [
+  [
+   [
+    "Reason_for_change.md",
+    "why"
+   ],
+   [
+    "Reason_for_change_a.txt",
+    "one"
+   ],
+   [
+    "Reason_for_change_a_1.txt",
+    "two"
+   ],
+   [
+    "rollout_plan_r.txt",
+    "three"
+   ],
+   [
+    "backout.md",
+    "back"
+   ]
+  ],
+  [
+   "changes/5/planning-fields",
+   "https://x/1",
+   "https://x/2",
+   "https://x/404",
+   "https://x/3"
+  ]
+ ],
+ "planning_download_names": [
+  [
+   [
+    "rollout_plan_r.txt",
+    "three"
+   ]
+  ],
+  [
+   "changes/5/planning-fields",
+   "https://x/3"
+  ]
+ ]
+}

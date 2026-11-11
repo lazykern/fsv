@@ -460,3 +460,248 @@ pub fn send(plan: &TaskPlan, c: &dyn Api, journal: &dyn Journal, opts: SendOpts<
     }
     Ok(Value::Object(result))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::service::testing::*;
+
+    const T: &str = "acme.freshservice.com";
+    const OWNER_ERR: &str = "owner email must match exactly one active agent with a user ID; use an explicit user ID if unavailable";
+    const GROUP_ERR: &str = "group must resolve to exactly one exact name or be a positive ID; no POST attempted";
+    const DATE_ERR: &str = "planned dates require ISO-8601 date/time with explicit offset, whole seconds (no host timezone inferred)";
+    const DEFAULT_HASH: &str = "113e30a9864bcbe701be0b7a7aba721aaf2cea3fe91c6a31d08fcf410d29a6cc";
+
+    fn err<T: std::fmt::Debug>(r: Result<T>) -> String {
+        r.unwrap_err().to_string()
+    }
+
+    fn default_plan() -> TaskPlan {
+        build_plan("12", "Review", &TaskArgs { status_id: Some(1), ..Default::default() }, T).unwrap()
+    }
+
+    fn full_plan() -> TaskPlan {
+        let args = TaskArgs {
+            owner_id: Some(7),
+            group_id: Some(4),
+            status: "Done",
+            status_id: Some(3),
+            note: Some("x < y\r\nz"),
+            notify_before: "1 hour",
+            planned_start: Some("2026-01-02T03:00:00Z"),
+            planned_end: Some("2026-01-02T05:00:00+01:00"),
+            planned_effort: Some("90m"),
+        };
+        build_plan("CHN-12", "Review", &args, T).unwrap()
+    }
+
+    #[test]
+    fn id_rule() {
+        let got: Vec<Option<i64>> = [json!(5), json!("05"), json!("0"), json!(true), json!("x"), json!(-2), json!(1.5)].iter().map(positive_id).collect();
+        assert_eq!(got, [Some(5), Some(5), None, None, None, None, None]);
+    }
+
+    #[test]
+    fn resolve_owner_exact_active_agent() {
+        let agents = json!([{"email": "Ann@x.io", "user_id": 11}, {"email": "bob@x.io", "user_id": 12, "deleted": true},
+                            {"email": "cy@x.io", "user_id": 13, "value": "Cy (Deactivated)"}, {"email": "dee@x.io", "user_id": "x"}]);
+        let api = FakeApi::new().ok("GET autocomplete/agents", agents);
+        assert_eq!(resolve_owner(&api, None).unwrap(), None);
+        assert_eq!(resolve_owner(&api, Some("")).unwrap(), None);
+        assert_eq!(resolve_owner(&api, Some("42")).unwrap(), Some(42));
+        assert_eq!(resolve_owner(&api, Some("ann@X.io")).unwrap(), Some(11));
+        assert_eq!(err(resolve_owner(&api, Some("me"))), "owner must be a positive user ID or exact email (not 'me')");
+        for who in ["bob@x.io", "cy@x.io", "dee@x.io"] {
+            assert_eq!(err(resolve_owner(&api, Some(who))), OWNER_ERR);
+        }
+        let down = FakeApi::new().on("GET autocomplete/agents", Reply::Session);
+        assert_eq!(err(resolve_owner(&down, Some("ann@x.io"))),
+                   "could not resolve owner email; no task POST was attempted; use an explicit user ID if unavailable");
+    }
+
+    #[test]
+    fn resolve_group_exact_name() {
+        let api = FakeApi::new().ok("GET bootstrap/agents_groups", json!({"groups": [{"name": "Ops", "id": 4}, {"name": "dup", "id": 5}, {"name": "DUP", "id": 6}]}));
+        assert_eq!(resolve_group(&api, None).unwrap(), None);
+        assert_eq!(resolve_group(&api, Some("  ")).unwrap(), None);
+        assert_eq!(resolve_group(&api, Some("9")).unwrap(), Some(9));
+        assert_eq!(resolve_group(&api, Some("ops")).unwrap(), Some(4));
+        assert_eq!(err(resolve_group(&api, Some("dup"))), GROUP_ERR);
+        assert_eq!(err(resolve_group(&FakeApi::new(), Some("x"))), GROUP_ERR);
+    }
+
+    #[test]
+    fn status_label_and_resolve_status() {
+        assert_eq!(status_label("  In Progress ").unwrap(), "In Progress");
+        assert_eq!(err(status_label("a\tb")), "status must be a nonempty runtime label or ID");
+        assert_eq!(err(status_label("  ")), "status must be a nonempty runtime label or ID");
+        let fields = json!({"change_task_fields": [{"name": "status", "choices": [{"id": 1, "value": "Open"}, {"id": 2, "value": "In Progress"},
+                                                                               {"id": 9, "value": "Old", "deleted": true}]}]});
+        let api = FakeApi::new().ok("GET change_task_fields", fields);
+        assert_eq!((resolve_status(&api, "open").unwrap(), resolve_status(&api, "2").unwrap()), (1, 2));
+        assert_eq!(err(resolve_status(&api, "Old")), "Old requires an exact runtime task-status metadata ID; no ID inferred and no POST attempted");
+        assert_eq!(err(resolve_status(&FakeApi::new(), "Open")), "Open requires an exact runtime task-status metadata ID; no ID inferred and no POST attempted");
+    }
+
+    #[test]
+    fn date_effort_note() {
+        let got: Vec<Option<String>> = [None, Some(" "), Some("2026-01-02T03:04:05Z"), Some("2026-01-02T03:04+07:00"), Some("2026-01-02T03:04:05.000+00:00")]
+            .into_iter()
+            .map(|v| date(v).unwrap())
+            .collect();
+        assert_eq!(got, [None, None, Some("2026-01-02T03:04:05+00:00".into()), Some("2026-01-02T03:04:00+07:00".into()), Some("2026-01-02T03:04:05+00:00".into())]);
+        for bad in ["2026-01-02", "2026-01-02T03:04:05", "2026-01-02T03:04:05.5Z", "2026-01-02T03:04:05+05:30:30", "nope T"] {
+            assert_eq!(err(date(Some(bad))), DATE_ERR, "{bad}");
+        }
+        let got: Vec<Option<String>> = [None, Some(""), Some("1h30m"), Some("90m"), Some("01:30"), Some("2h"), Some(" 3h 75m "), Some("0:05")]
+            .into_iter()
+            .map(|v| effort(v).unwrap())
+            .collect();
+        let want: Vec<Option<String>> = [None, None, Some("1h 30m"), Some("1h 30m"), Some("1h 30m"), Some("2h 0m"), Some("4h 15m"), Some("0h 5m")]
+            .into_iter()
+            .map(|v| v.map(String::from))
+            .collect();
+        assert_eq!(got, want);
+        assert_eq!(err(effort(Some("1:75"))), "planned effort must be duration text (1h30m) or HH:MM (01:30)");
+        assert_eq!(err(effort(Some("soon"))), "planned effort must be duration text (1h30m) or HH:MM (01:30)");
+        assert_eq!((note(None).unwrap(), note(Some(" ")).unwrap(), note(Some("a\r\nb\tc")).unwrap()), (None, None, Some("a\r\nb\tc".into())));
+        assert_eq!(err(note(Some("a\x07"))), "note must be plain text without unsafe control characters");
+    }
+
+    #[test]
+    fn plan_payload_hash_review() {
+        let p = full_plan();
+        let payload = json!({"title": "Review", "status": 3, "notify_before": 3600, "description": "<div><p>x &lt; y<br>z</p></div>", "group_id": 4,
+                             "planned_start_date": "2026-01-02T03:00:00+00:00", "planned_end_date": "2026-01-02T05:00:00+01:00",
+                             "planned_effort": "1h 30m", "owner_id": 7});
+        assert_eq!(p.path(), "changes/12/tasks");
+        assert_eq!(Value::Object(p.payload()), payload);
+        let h = "b40c9b1a1e7e411c6048ef2180832f205633ec0b7a8422b671dcef69d0d149d7";
+        assert_eq!(p.hash(), h);
+        assert_eq!(
+            Value::Object(p.review()),
+            json!({"action": "change_task_create", "tenant": T, "change_id": 12, "method": "POST", "path": "/api/_/changes/12/tasks",
+                   "payload": payload, "owner": 7, "status_label": "Done", "reminder": "1 Hour", "note_text": "x < y\r\nz", "plan_hash": h,
+                   "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
+                   "contract": "Blocked request captured; accepted response unobserved. Blank optional fields omitted."})
+        );
+        let d = default_plan();
+        assert_eq!((Value::Object(d.payload()), d.hash()), (json!({"title": "Review", "status": 1, "notify_before": 0}), DEFAULT_HASH.to_string()));
+    }
+
+    #[test]
+    fn build_plan_errors() {
+        let a = |f: fn(&mut TaskArgs<'static>)| {
+            let mut args = TaskArgs { status_id: Some(1), ..Default::default() };
+            f(&mut args);
+            err(build_plan("12", "x", &args, T))
+        };
+        assert_eq!(err(build_plan("12", " ", &TaskArgs { status_id: Some(1), ..Default::default() }, T)), "task title must be nonempty text without control characters");
+        assert_eq!(a(|x| x.owner_id = Some(0)), "owner ID must be a positive integer or none");
+        assert_eq!(a(|x| x.group_id = Some(-1)), "group ID must be a positive integer or none");
+        assert_eq!(a(|x| x.status_id = None), "status ID must first be resolved from runtime metadata");
+        assert_eq!(a(|x| x.notify_before = "soon"), "notify before must be Never, 15 Minutes, 30 Minutes, 45 Minutes, 1 Hour, 2 Hours");
+        assert_eq!(a(|x| {
+            x.planned_start = Some("2026-01-02T05:00:00Z");
+            x.planned_end = Some("2026-01-02T04:00:00Z");
+        }), "planned end must not precede planned start");
+        assert_eq!(err(build_plan("INC-1", "x", &TaskArgs { status_id: Some(1), ..Default::default() }, T)), "prefix INC not valid for changes (expect CHN)");
+    }
+
+    #[test]
+    fn inventory_complete_and_valid() {
+        let d = default_plan();
+        let api = FakeApi::new().ok("GET changes/12/tasks", json!({"tasks": [{"id": 1, "title": "a"}]}));
+        assert_eq!(inventory(&api, &d).unwrap(), [json!({"id": 1, "title": "a"})]);
+        assert_eq!(api.calls.lock().unwrap()[0].params, Some(obj(json!({"page": 1, "per_page": 100}))));
+        let bad = FakeApi::new().ok("GET changes/12/tasks", json!({"tasks": [{"id": "x"}]}));
+        assert_eq!(err(inventory(&bad, &d)), "task inventory contains an invalid task ID");
+        assert_eq!(err(inventory(&FakeApi::new(), &d)), "task inventory is incomplete");
+    }
+
+    #[test]
+    fn matches_compare_fields_returned_id() {
+        let (d, p) = (default_plan(), full_plan());
+        let got: Vec<bool> = [
+            (json!({"title": "Review", "owner_id": null}), &d), (json!({"title": "Review"}), &d), (json!({"title": "Review", "owner_id": 7}), &d),
+            (json!({"title": "Review", "owner_id": "7"}), &p), (json!({"title": "Review", "owner_id": 8}), &p),
+        ].iter().map(|(r, pl)| matches(r, pl)).collect();
+        assert_eq!(got, [true, false, false, true, false]);
+        let s = |v: &[&str]| v.iter().map(|x| x.to_string()).collect::<Vec<_>>();
+        assert_eq!(compare_fields(None, &d), (s(&[]), s(&["title", "status", "notify_before"]), s(&[])));
+        assert_eq!(compare_fields(Some(&json!({"title": "Review", "status": 1, "notify_before": "0"})), &d), (s(&["title", "status"]), s(&[]), s(&["notify_before"])));
+        let row = json!({"title": "Review", "status": 3, "notify_before": 60, "group_id": "4", "owner_id": 7,
+                         "planned_start_date": "2026-01-02T04:00:00+01:00", "planned_end_date": "bad",
+                         "description": "<div><p>x &lt; y<br>z</p></div>"});
+        assert_eq!(compare_fields(Some(&row), &p),
+                   (s(&["title", "status", "description", "group_id", "planned_start_date", "owner_id"]), s(&["planned_effort"]), s(&["notify_before", "planned_end_date"])));
+        let got: Vec<Option<i64>> = [json!({"task": {"id": 5}}), json!({"task": {"id": "x"}, "id": 6}), json!({"id": "7"}), json!([1]), json!({"id": true})]
+            .iter()
+            .map(returned_id)
+            .collect();
+        assert_eq!(got, [Some(5), None, Some(7), None, None]);
+    }
+
+    #[test]
+    fn send_finds_new_task_by_title() {
+        let api = FakeApi::new()
+            .ok("GET changes/12/tasks", json!({"tasks": [{"id": 1, "title": "a"}]}))
+            .ok("GET changes/12/tasks", json!({"tasks": [{"id": 1, "title": "a"}, {"id": 2, "title": "Review", "owner_id": null, "status": 1, "notify_before": 0}]}))
+            .ok("POST changes/12/tasks", json!({"created": true}));
+        let j = MemJournal::default();
+        let d = default_plan();
+        let opts = SendOpts { reviewed_hash: Some(DEFAULT_HASH), ..Default::default() };
+        assert_eq!(
+            send(&d, &api, &j, opts).unwrap(),
+            json!({"status": "submitted", "change_id": 12, "task_id": 2, "verified": true, "identity_verified": true, "fields_verified": true,
+                   "verified_fields": ["title", "status", "notify_before"], "unverified_fields": [], "mismatched_fields": [],
+                   "readback": {"id": 2, "title": "Review", "owner_id": null, "status": 1, "notify_before": 0}, "plan_hash": DEFAULT_HASH})
+        );
+        assert_eq!(j.events(), ["started", "done"]);
+        assert_eq!(err(send(&d, &api, &j, opts)), "this task was sent or its outcome is unknown; inspect the change and journal; do not resubmit");
+    }
+
+    #[test]
+    fn send_unverified_and_partial_readback() {
+        let d = default_plan();
+        let opts = SendOpts { reviewed_hash: Some(DEFAULT_HASH), ..Default::default() };
+        let api = FakeApi::new().ok("GET changes/12/tasks", json!({"tasks": []})).ok("POST changes/12/tasks", json!({"task": {"id": 9}}));
+        assert_eq!(
+            send(&d, &api, &MemJournal::default(), opts).unwrap(),
+            json!({"status": "submitted", "change_id": 12, "task_id": 9, "verified": false, "identity_verified": false, "fields_verified": false,
+                   "verified_fields": [], "unverified_fields": ["title", "status", "notify_before"], "mismatched_fields": [], "readback": null,
+                   "plan_hash": DEFAULT_HASH, "warning": "Returned task ID/state not verified in task read-back; do not resend."})
+        );
+        let api = FakeApi::new()
+            .ok("GET changes/12/tasks", json!({"tasks": []}))
+            .ok("GET changes/12/tasks", json!({"tasks": [{"id": 9, "title": "Review", "owner_id": null}]}))
+            .ok("POST changes/12/tasks", json!({"task": {"id": 9}}));
+        assert_eq!(
+            send(&d, &api, &MemJournal::default(), opts).unwrap(),
+            json!({"status": "submitted", "change_id": 12, "task_id": 9, "verified": true, "identity_verified": true, "fields_verified": false,
+                   "verified_fields": ["title"], "unverified_fields": ["status", "notify_before"], "mismatched_fields": [],
+                   "readback": {"id": 9, "title": "Review", "owner_id": null}, "plan_hash": DEFAULT_HASH,
+                   "warning": "Task identity verified, but fields absent from GET remain unverified: status, notify_before; do not resend."})
+        );
+    }
+
+    #[test]
+    fn send_rejections_and_guards() {
+        let d = default_plan();
+        let opts = SendOpts { reviewed_hash: Some(DEFAULT_HASH), ..Default::default() };
+        let j = MemJournal::default();
+        let api = FakeApi::new().ok("GET changes/12/tasks", json!({"tasks": []})).on("POST changes/12/tasks", Reply::Status(422));
+        assert_eq!(err(send(&d, &api, &j, opts)), "task rejected (HTTP 422); no automatic retry");
+        assert_eq!(j.events(), ["started", "failed"]);
+        let j = MemJournal::default();
+        let api = FakeApi::new().ok("GET changes/12/tasks", json!({"tasks": []})).on("POST changes/12/tasks", Reply::Status(500));
+        assert_eq!(err(send(&d, &api, &j, opts)), UNKNOWN);
+        assert_eq!(j.events(), ["started"]);
+        let (none, j) = (FakeApi::new(), MemJournal::default());
+        assert_eq!(send(&d, &none, &j, SendOpts::default()).unwrap(), json!({"status": "cancelled", "change_id": 12}));
+        assert_eq!(send(&d, &none, &j, SendOpts { dry_run: true, ..Default::default() }).unwrap()["status"], "dry_run");
+        assert_eq!(err(send(&d, &none, &j, SendOpts { read_only: true, ..Default::default() })), "read-only mode: no task was sent");
+        assert_eq!(err(send(&d, &none, &j, SendOpts { reviewed_hash: Some("x"), ..Default::default() })), "task review hash does not match; review the exact task again");
+        assert_eq!(err(send(&d, &none, &j, opts)), "could not prepare a complete task inventory/session; no task POST was attempted");
+    }
+}

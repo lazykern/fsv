@@ -44,6 +44,8 @@ those stay identical.
   parse. `fsv-flows` golden draft cases remap that one key.
 - Read-only notes in a change plan follow the form's visible-field order.
   Python iterates a set, so the order is not stable.
+- `create.clone_planning_fields` treats a planning row with
+  `"attachments": null` as no attachments. Python raises `TypeError`.
 
 ## fsv-api (started)
 

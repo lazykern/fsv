@@ -866,3 +866,310 @@ pub fn apply_answers(state: &mut FormState, answers: &Map<String, Json>, mut fai
     }
     Ok(errors)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::service::testing::*;
+
+    fn err<T>(r: Result<T>) -> String {
+        match r {
+            Ok(_) => panic!("expected an error"),
+            Err(e) => e.to_string(),
+        }
+    }
+
+    fn rule() -> Json {
+        json!({"id": 1, "name": "r", "condition_data": {}, "action_data": []})
+    }
+
+    fn change_form() -> Json {
+        let f = |id, name, label, ty, pos, extra| form_field(id, name, label, ty, pos, extra);
+        json!({"change_fields": [
+            f(11, "requester", "Requester", "default_requester", 1, json!({})),
+            f(12, "group", "Group", "default_group", 2, json!({})),
+            f(13, "agent", "Agent", "default_agent", 3, json!({})),
+            f(14, "status", "Status", "default_status", 4, json!({"choices": [{"id": 1, "value": "Open"}, {"id": 2, "value": "Planning"}]})),
+            f(15, "description", "Description", "default_description", 5, json!({})),
+            f(16, "cf_note", "Dup", "custom_text", 6, json!({})),
+            f(17, "cf_other", "Dup", "custom_text", 7, json!({})),
+            f(18, "cf_env", "Environment", "custom_dropdown", 8, json!({"choices": [{"id": 1, "value": "Prod"}, {"id": 2, "value": "Test"}]})),
+            f(19, "subject", "Subject", "default_subject", 9, json!({"required": true})),
+        ]})
+    }
+
+    fn spec() -> FormSpec {
+        FormSpec::from_form_fields(&change_form(), "change").unwrap()
+    }
+
+    fn ser(v: &Value) -> Json {
+        match v {
+            Value::Lookup(l) => json!({"lookup": [l.id, l.display, l.email]}),
+            Value::List(xs) => Json::Array(xs.iter().map(ser).collect()),
+            other => other.to_json().unwrap(),
+        }
+    }
+
+    fn ser_values(v: &Values) -> Json {
+        Json::Object(v.iter().map(|(k, x)| (k.clone(), ser(x))).collect())
+    }
+
+    fn lv(l: &LookupValue) -> Json {
+        ser(&Value::Lookup(l.clone()))
+    }
+
+    fn calls_of(api: &FakeApi) -> Vec<(String, Json)> {
+        api.calls
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|c| (c.path.clone(), c.params.as_ref().and_then(|p| p.get("form_type").cloned()).unwrap_or(Json::Null)))
+            .collect()
+    }
+
+    fn call(path: &str, form_type: Json) -> (String, Json) {
+        (path.to_string(), form_type)
+    }
+
+    fn record() -> Map<String, Json> {
+        crate::service::obj(json!({"requester_id": 7, "requester": {"id": 7, "name": "Ann", "email": "ann@x.io"}, "group_id": {"id": 4, "name": "Ops"},
+                                   "agent_id": 21, "status": 2, "description": "", "subject": "Hi", "custom_fields": {"cf_env": "Prod", "cf_note": null}}))
+    }
+
+    fn boot() -> Json {
+        json!({"groups": [{"id": 4, "name": "Ops"}, {"id": 5, "name": "Ops East"}], "agents": [{"id": 1, "user_id": 21, "name": "Ann"}, {"id": 2, "value": "Bob"}]})
+    }
+
+    #[test]
+    fn module_name_and_cache_helpers() {
+        assert_eq!((module_name("Changes").unwrap(), module_name(" tickets ").unwrap()), ("change".to_string(), "ticket".to_string()));
+        assert_eq!(err(module_name("problems")), "unsupported form 'problems'; supported: changes, tickets");
+        assert_eq!(cache_path(Path::new("/c"), "acme.freshservice.com", "x"), PathBuf::from("/c/forms/acme.freshservice.com--x.json"));
+        let got: Vec<bool> = [json!({"a": [1]}), json!({"a": []}), json!({"a": 1}), json!([1]), json!([]), json!(""), json!("x"), Json::Null, json!({})]
+            .iter()
+            .map(non_empty)
+            .collect();
+        assert_eq!(got, [true, false, false, true, false, false, true, false, false]);
+    }
+
+    #[test]
+    fn disk_and_mem_store_roundtrip() {
+        let dir = tempfile::tempdir().unwrap();
+        let disk = DiskStore { cache_dir: dir.path().to_path_buf(), domain_key: "acme.freshservice.com".into(), config: Map::new() };
+        let mem = MemStore::default();
+        for store in [&disk as &dyn MetaStore, &mem] {
+            store.save("empty", "schema", &json!({"a": []}));
+            store.save("full", "schema", &json!({"a": [1]}));
+            assert_eq!((store.cached("empty"), store.cached("full"), store.cached("missing")), (None, Some(json!({"a": [1]})), None));
+            assert_eq!(store.configured_workspace(), Json::Null);
+        }
+        assert!(dir.path().join("forms/acme.freshservice.com--full.json").exists());
+        let set = crate::service::obj(json!({"forms": {"workspace_id": "9"}}));
+        assert_eq!(configured_workspace_in(&set), json!(9));
+        assert_eq!(configured_workspace_in(&Map::new()), Json::Null);
+    }
+
+    #[test]
+    fn normalize_rules_shapes() {
+        assert_eq!(normalize_rules(&json!({"business_rules": [rule()], "user": {"id": 1}})).unwrap(), json!({"business_rules": [rule()], "user": {"id": 1}}));
+        assert_eq!(normalize_rules(&json!([rule()])).unwrap(), json!({"business_rules": [rule()], "user": null}));
+        assert_eq!(normalize_rules(&json!({"business_rules": []})).unwrap(), json!({"business_rules": [], "user": null}));
+        assert_eq!(err(normalize_rules(&json!({"x": 1}))),
+                   "HTTP 200 listing business rules: unrecognised business_rules response (no business_rules / business_rule key)");
+        assert_eq!(err(normalize_rules(&json!({"business_rule": [{"id": 1}]}))),
+                   "HTTP 200 listing business rules: the server returned the business-rule listing without conditions/actions; fsv cannot evaluate the form from it (use the web)");
+    }
+
+    #[test]
+    fn workspace_ids_and_documents() {
+        let got: Vec<Option<i64>> = [json!(5), json!("7"), json!(" 8 "), json!(true), json!("x"), json!(1.5), Json::Null].iter().map(ws_id).collect();
+        assert_eq!(got, [Some(5), Some(7), Some(8), None, None, None, None]);
+        let doc = json!({"user": {"current_workspace": {"id": 3}, "workspaces": [{"id": 4, "primary": true}, {"id": 5}, 6], "workspace_ids": ["6", 5]}, "workspace_id": 9});
+        assert_eq!(workspaces_in(&doc), [3, 9, 4, 5, 6]);
+        assert!(workspaces_in(&json!([1])).is_empty());
+        assert!(workspaces_in(&json!({"a": {"b": {"c": {"d": {"workspace_id": 1}}}}})).is_empty());
+    }
+
+    #[test]
+    fn account_workspaces_sources() {
+        let mut cookie = FakeApi::new();
+        cookie.cookies = vec!["12".into(), "x".into()];
+        assert_eq!(account_workspaces(&cookie).unwrap(), [12]);
+        assert!(account_workspaces(&FakeApi::new()).unwrap().is_empty());
+        assert_eq!(account_workspaces(&FakeApi::new().ok("GET bootstrap/me", json!({"workspace_id": 4}))).unwrap(), [4]);
+        let ws = FakeApi::new().ok("GET workspaces", json!({"workspaces": [{"id": 7}, {"id": 8, "default": true}]}));
+        assert_eq!(account_workspaces(&ws).unwrap(), [8, 7]);
+        assert!(matches!(account_workspaces(&FakeApi::new().on("GET bootstrap/me", Reply::Session)).unwrap_err(), Error::Session(_)));
+    }
+
+    #[test]
+    fn fetch_rules_candidates_fallback_and_unavailable() {
+        let q = BusinessRulesOptions::default();
+        let api = FakeApi::new().ok("GET ws/3/business_rules", json!({"business_rules": [rule()], "user": {"id": 1}}));
+        assert_eq!(fetch_rules(&api, "change", &[json!(2), json!(3), json!(2), Json::Null], None, &q).unwrap(),
+                   json!({"business_rules": [rule()], "user": {"id": 1}, "workspace": 3}));
+        assert_eq!(calls_of(&api), [call("ws/2/business_rules", json!("new_form")), call("ws/3/business_rules", json!("new_form"))]);
+        let api = FakeApi::new().ok("GET ws/2/business_rules", json!({})).ok("GET ws/3/business_rules", json!({"business_rules": [rule()]}));
+        assert_eq!(fetch_rules(&api, "change", &[json!(2), json!(3)], None, &q).unwrap(), json!({"business_rules": [rule()], "user": null, "workspace": 3}));
+        let api = FakeApi::new().ok("GET ws/5/business_rules", json!({"business_rules": [rule()]}));
+        let fallback = || Ok(vec![2, 5]);
+        assert_eq!(fetch_rules(&api, "ticket", &[json!(2)], Some(&fallback), &q).unwrap(), json!({"business_rules": [rule()], "user": null, "workspace": 5}));
+        assert_eq!(calls_of(&api), [call("ws/2/business_rules", json!("new_form")), call("ws/5/business_rules", json!("new_form"))]);
+        let api = FakeApi::new().ok("GET business_rules", json!({"business_rules": [rule()]}));
+        assert_eq!(fetch_rules(&api, "change", &[], None, &q).unwrap(), json!({"business_rules": [rule()], "user": null}));
+        assert_eq!(calls_of(&api), [call("business_rules", json!("new_form"))]);
+        assert_eq!(fetch_rules(&FakeApi::new(), "change", &[json!(2)], None, &q).unwrap(),
+                   json!({"business_rules": [], "user": null, "unavailable": "workspace 2 and the workspace-less path answered HTTP 404", "unavailable_status": 404}));
+        assert_eq!(fetch_rules(&FakeApi::new().on("GET business_rules", Reply::Status(403)), "change", &[], None, &q).unwrap(),
+                   json!({"business_rules": [], "user": null,
+                          "unavailable": "no workspace found in the form metadata or the account, and /api/_/business_rules answered HTTP 403", "unavailable_status": 403}));
+        let down = FakeApi::new().on("GET ws/2/business_rules", Reply::Status(500));
+        assert!(matches!(fetch_rules(&down, "change", &[json!(2)], None, &q).unwrap_err(), Error::Api(e) if e.status == 500));
+    }
+
+    #[test]
+    fn rules_messages_and_workspace_choice() {
+        assert_eq!(rules_warnings(&json!({"unavailable": "x"})), ["business rules could not be loaded (x); only the form's static required/visible settings were checked, the server may still ask for more. If the account has workspaces, `fsv config set forms.workspace_id N` picks the right one"]);
+        assert!(rules_warnings(&json!({})).is_empty() && rules_warnings(&Json::Null).is_empty());
+        assert_eq!(rules_note(&json!({"unavailable": "x"})).as_deref(),
+                   Some("note: business rules not loaded (x); checking static required/visible flags only (override the workspace with `fsv config set forms.workspace_id N`)"));
+        assert_eq!(rules_note(&json!({"business_rules": []})), None);
+        let rows = |v: Json| v.as_array().unwrap().clone();
+        assert_eq!(workspace_from_fields(&rows(change_form()["change_fields"].clone())), json!(2));
+        assert_eq!(workspace_from_fields(&rows(ticket_form(3)["ticket_fields"].clone())), json!(1));
+        assert_eq!(workspace_from_fields(&[]), Json::Null);
+        assert_eq!(workspace_from_fields(&rows(json!([{"workspace_id": 4, "default_field": true}, {"workspace_id": 5}, {"workspace_id": 5}]))), json!(5));
+        assert_eq!(workspace_candidates(&Json::Null, &[json!(1), Json::Null, json!(""), json!(1), json!(2)]), [json!(1), json!(2)]);
+        assert!(workspace_candidates(&Json::Null, &[]).is_empty());
+        assert_eq!(workspace_candidates(&json!(9), &[json!(1), json!(2)]), [json!(9)]);
+    }
+
+    #[test]
+    fn load_rules_override_and_account() {
+        let q = BusinessRulesOptions::default();
+        let store = MemStore { workspace: json!(9), ..Default::default() };
+        let api = FakeApi::new().ok("GET ws/9/business_rules", json!({"business_rules": [rule()]}));
+        assert_eq!(load_rules(&api, &store, "change", &[json!(1)], &q).unwrap(), json!({"business_rules": [rule()], "user": null, "workspace": 9}));
+        assert_eq!(calls_of(&api), [call("ws/9/business_rules", json!("new_form"))]);
+        let api = FakeApi::new().ok("GET bootstrap/me", json!({"workspace_id": 4})).ok("GET ws/4/business_rules", json!({"business_rules": [rule()]}));
+        assert_eq!(load_rules(&api, &MemStore::default(), "change", &[Json::Null], &q).unwrap(), json!({"business_rules": [rule()], "user": null, "workspace": 4}));
+        assert_eq!(calls_of(&api), [call("bootstrap/me", Json::Null), call("ws/4/business_rules", json!("new_form"))]);
+    }
+
+    #[test]
+    fn form_meta_properties() {
+        let m = FormMeta::new("change", "new_form", change_form(), json!({"business_rules": [], "user": {"id": 1}}), json!(1), 0.0, "server", Json::Null).unwrap();
+        assert_eq!((m.fields_key(), m.raw_fields().len(), m.user().cloned()), ("change_fields", 9, Some(json!({"id": 1}))));
+        assert_eq!(m.fingerprint().hash, "fc9de18c99da72c0b5a2e45c2eba37b1176178d32eb70a61b89124e8926756db");
+        let as_of = m.as_of();
+        assert_eq!((as_of["updated_at"].clone(), as_of["source"].clone(), as_of["fingerprint"].clone()),
+                   (json!("2030-01-02T03:04:05+00:00"), json!("server"), json!("fc9de18c99da72c0")));
+        // Python ran under TZ=UTC: "1970-01-01T00:00:00+00:00"; the offset follows the host zone.
+        assert_eq!(as_of["fetched_at"].as_str().map(str::len), Some("1970-01-01T00:00:00+00:00".len()));
+        let names: Vec<String> = m.spec().fields().iter().map(|f| f.api_name.clone()).collect();
+        assert_eq!(names, ["requester", "group", "agent", "status", "description", "cf_note", "cf_other", "cf_env", "subject", "requested_for"]);
+        assert!(m.engine().is_ok() && m.state("new", None, None).is_ok());
+    }
+
+    #[test]
+    fn load_meta_fresh_then_cached_fields() {
+        let api = FakeApi::new().ok("GET ticket_form_fields", ticket_form(3)).ok("GET ws/1/business_rules", json!({}));
+        let store = MemStore::default();
+        let m = load_meta(&api, &store, "tickets", "edit", true, &json!(123)).unwrap();
+        assert_eq!((m.module.as_str(), m.form_type.as_str(), m.rules.clone(), m.workspace_id.clone(), m.source.as_str(), m.module_id.clone()),
+                   ("ticket", "edit_form", json!({"business_rules": [], "user": null, "workspace": 1}), json!(1), "server", json!(123)));
+        assert_eq!(calls_of(&api), [call("ticket_form_fields", Json::Null), call("ws/1/business_rules", json!("edit_form"))]);
+        let again = load_meta(&api, &store, "ticket", "edit", false, &json!(123)).unwrap();
+        assert_eq!((again.source.as_str(), again.rules.clone()), ("server", json!({"business_rules": [], "user": null, "workspace": 1})));
+        assert_eq!(calls_of(&api), [call("ticket_form_fields", Json::Null), call("ws/1/business_rules", json!("edit_form")), call("ws/1/business_rules", json!("edit_form"))]);
+        let none = FakeApi::new().ok("GET change_form_fields", json!({"change_fields": []}));
+        assert_eq!(err(load_meta(&none, &MemStore::default(), "change", "new", true, &Json::Null)),
+                   "HTTP 200 listing change form fields: no form fields returned for change");
+    }
+
+    #[test]
+    fn client_resolver_names_and_lookups() {
+        let r = ClientResolver::new(Arc::new(FakeApi::new().ok("GET bootstrap/agents_groups", boot())));
+        assert_eq!([r.name_for("group", &json!(4)), r.name_for("agent", &json!("21")), r.name_for("agent", &json!(2)), r.name_for("user", &json!(1)), r.name_for("group", &json!(9))],
+                   [Some("Ops".to_string()), Some("Ann".into()), Some("Bob".into()), None, None]);
+        let api = FakeApi::new()
+            .ok("GET bootstrap/agents_groups", boot())
+            .ok("GET autocomplete/requesters", json!([{"id": 1, "value": "Ann", "email": "ann@x.io"}, {"id": 2, "value": "Gone", "deleted": true}, {"name": "noid"}]))
+            .ok("GET autocomplete/agents", json!([{"user_id": 21, "value": "Ann", "details": "ann@x.io"}, {"user_id": 22, "value": "Old (Deactivated)"}]));
+        let r = ClientResolver::new(Arc::new(api));
+        let s = spec();
+        let look = |entity: &str, q: &str, field: &str| -> Json { Json::Array(r.lookup(entity, q, s.find(field).unwrap()).unwrap().iter().map(lv).collect()) };
+        assert_eq!(look("user", "a", "requester"), json!([{"lookup": [1, "Ann", "ann@x.io"]}]));
+        assert_eq!(look("agent", "a", "agent"), json!([{"lookup": [21, "Ann", "ann@x.io"]}]));
+        assert_eq!(look("group", "ops e", "group"), json!([{"lookup": [5, "Ops East", null]}]));
+        assert_eq!(look("other", "x", "subject"), json!([]));
+    }
+
+    #[test]
+    fn email_and_person() {
+        let got: Vec<Option<String>> = [json!({"email": "a@b"}), json!({"email": "x", "details": "d@e"}), json!({"primary_email": "p@q"}), json!({"email": 5})]
+            .iter()
+            .map(email_of)
+            .collect();
+        assert_eq!(got, [Some("a@b".to_string()), Some("d@e".into()), Some("p@q".into()), None]);
+        assert_eq!(lv(&person(&json!({"value": "Ann", "email": "a@b"}), &json!(1))), json!({"lookup": [1, "Ann", "a@b"]}));
+        assert_eq!(lv(&person(&json!({"name": "N"}), &json!(2))), json!({"lookup": [2, "N", null]}));
+        assert_eq!(lv(&person(&json!({}), &json!(3))), json!({"lookup": [3, "3", null]}));
+    }
+
+    #[test]
+    fn resolve_requester_exact_match() {
+        let api = FakeApi::new().ok("GET autocomplete/requesters", json!([{"id": 1, "value": "Ann Lee", "email": "ann@x.io"}, {"id": 2, "value": "Ann Lee", "email": "ann2@x.io"},
+                                                                          {"id": 3, "value": "Bo", "email": null}]));
+        assert_eq!(lv(&resolve_requester(&api, "ANN@x.io", None).unwrap()), json!({"lookup": [1, "Ann Lee", "ann@x.io"]}));
+        assert_eq!(err(resolve_requester(&api, "Ann Lee", None)),
+                   "requester 'Ann Lee': several exact matches: Ann Lee <ann@x.io>; Ann Lee <ann2@x.io>. Use the exact email address.");
+        let last = |c: &[LookupValue]| c[c.len() - 1].clone();
+        assert_eq!(lv(&resolve_requester(&api, "Ann Lee", Some(&last)).unwrap()), json!({"lookup": [2, "Ann Lee", "ann2@x.io"]}));
+        assert_eq!(err(resolve_requester(&api, "Bo", None)), "requester 'Bo': several exact matches: Bo. Use the exact email address.");
+        let none = FakeApi::new().ok("GET autocomplete/requesters", json!([]));
+        assert_eq!(err(resolve_requester(&none, "zed", None)), "no requester matches 'zed'; use the exact email address");
+        assert_eq!(err(resolve_requester(&api, "  ", None)), "requester is empty");
+    }
+
+    #[test]
+    fn find_field_and_kinds() {
+        let s = spec();
+        let names: Vec<String> = ["cf_env", " environment ", "Subject"].iter().map(|k| find_field(&s, k).unwrap().api_name.clone()).collect();
+        assert_eq!(names, ["cf_env", "cf_env", "subject"]);
+        assert_eq!(find_field(&s, "dup").unwrap_err().to_string(), "label 'dup' is ambiguous (fields: cf_note, cf_other); use the internal name");
+        assert_eq!(find_field(&s, "nope").unwrap_err().to_string(), "unknown field: 'nope'");
+        let pick = |p: fn(&Field) -> bool| s.fields().iter().filter(|f| p(f)).map(|f| f.api_name.clone()).collect::<Vec<_>>();
+        assert_eq!((pick(is_status), pick(is_requester), pick(is_description)), (vec!["status".to_string()], vec!["requester".to_string()], vec!["description".to_string()]));
+    }
+
+    #[test]
+    fn existing_values_and_names() {
+        let s = spec();
+        let rec = record();
+        let ex = existing_from_record(&s, &rec);
+        assert_eq!(ser_values(&ex), json!({"requester": {"lookup": [7, "", null]}, "group": {"lookup": [4, "", null]}, "agent": {"lookup": [21, "", null]},
+                                           "status": 2, "cf_env": "Prod", "subject": "Hi"}));
+        let empty = Map::new();
+        let owner = crate::service::obj(json!({"owner_name": "Own"}));
+        let full = crate::service::obj(json!({"agent": {"user_id": 21, "full_name": "Full"}}));
+        assert_eq!([hint_name("requester", &json!(7), &rec), hint_name("agent", &json!(21), &owner), hint_name("group", &json!(4), &empty), hint_name("agent", &json!(21), &full)],
+                   [(Some("Ann".to_string()), Some("ann@x.io".to_string())), (Some("Own".into()), None), (None, None), (Some("Full".into()), None)]);
+        let r = ClientResolver::new(Arc::new(FakeApi::new().ok("GET bootstrap/agents_groups", boot())));
+        assert_eq!(ser_values(&name_existing(ex.clone(), &s, &rec, Some(&r))),
+                   json!({"requester": {"lookup": [7, "Ann", "ann@x.io"]}, "group": {"lookup": [4, "Ops", null]}, "agent": {"lookup": [21, "Ann", null]},
+                          "status": 2, "cf_env": "Prod", "subject": "Hi"}));
+        assert_eq!(ser_values(&name_existing(ex.clone(), &s, &empty, None)), ser_values(&ex));
+    }
+
+    #[test]
+    fn apply_answers_collects_problems() {
+        let mut state = FormState::new(Arc::new(spec()), None, "new", None, StateOptions::default()).unwrap();
+        let answers = crate::service::obj(json!({"Environment": "Prod", "subject": "S", "dup": "x", "cf_env": "Nope", "Status": "Planning"}));
+        let mut failed = HashSet::new();
+        assert_eq!(apply_answers(&mut state, &answers, Some(&mut failed)).unwrap(),
+                   ["label 'dup' is ambiguous (fields: cf_note, cf_other); use the internal name", "Environment: 'Nope' is not a valid choice; choose one of: Prod, Test"]);
+        assert_eq!(failed.into_iter().collect::<Vec<_>>(), ["cf_env"]);
+        assert_eq!((ser(&state.values["subject"]), ser(&state.values["status"])), (json!("S"), json!("Planning")));
+    }
+}

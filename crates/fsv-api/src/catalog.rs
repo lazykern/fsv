@@ -1259,3 +1259,419 @@ pub fn safe_target(directory: &str, name: &str) -> Result<PathBuf> {
 pub fn domain_url(path: &str, domain: &str) -> String {
     format!("https://{domain}{path}")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::formmeta::MemStore;
+    use crate::service::testing::{FakeApi, MemJournal, Reply};
+    use std::sync::LazyLock;
+
+    /// Outputs of `/tmp/fsv_oracle/o_catalog.py` (the Python functions).
+    static ORACLE: LazyLock<Json> = LazyLock::new(|| serde_json::from_str(include_str!("testdata/catalog_oracle.json")).unwrap());
+    static FILES: LazyLock<String> = LazyLock::new(|| {
+        let dir = std::env::temp_dir().join("fsv_api_catalog_files");
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("deck.pptx"), b"deck-bytes").unwrap();
+        std::fs::write(dir.join("notes.txt"), b"notes\n").unwrap();
+        dir.to_string_lossy().into_owned()
+    });
+
+    fn want(key: &str) -> Json {
+        let text = ORACLE[key].to_string().replace("/tmp/fsv_oracle/files", &FILES);
+        serde_json::from_str(&text).unwrap()
+    }
+
+    fn want_err(key: &str) -> String {
+        ORACLE[key]["msg"].as_str().unwrap().to_string()
+    }
+
+    fn err<T>(r: Result<T>) -> String {
+        r.err().expect("an error").to_string()
+    }
+
+    fn item_with(name: &str, updated: &str, lookup: bool) -> Json {
+        let mut fields = json!([
+            {"id": 9000000003i64, "name": "answer", "label": "Answer", "type": 1001, "required": false, "account_id": 9000000004i64},
+            {"id": 9000000005i64, "name": "deck", "label": "Deck", "type": 1014, "required": false, "account_id": 9000000004i64,
+             "field_options": {"allowed_file_types": "[\".pptx\"]", "max_attachment_limit": "1"}},
+            {"id": 9000000008i64, "name": "size", "label": "Size", "type": 1003, "required": false, "account_id": 9000000004i64,
+             "choices": [{"id": "s1", "value": "Small", "label": "Small", "position": 1},
+                         {"id": "s2", "value": "Medium  Large", "label": "Medium  Large", "position": 2},
+                         {"id": "s3", "value": "Mega", "label": "Mega", "position": 3}]},
+        ]);
+        if lookup {
+            fields.as_array_mut().unwrap().push(json!({"id": 9000000009i64, "name": "who", "label": "Who", "type": 501, "required": false, "account_id": 9000000004i64}));
+        }
+        json!({"id": 9000000001i64, "display_id": 9000000002i64, "name": name, "category_name": "Eng", "workspace_id": 3,
+               "updated_at": updated, "allow_attachments": true, "configs": {"attachment_mandatory": false}, "custom_fields": fields})
+    }
+
+    fn item() -> Json {
+        item_with("Acme request", "2030-01-15T10:00:00+09:00", false)
+    }
+
+    fn meta() -> ItemMeta {
+        ItemMeta::new(item(), json!({"business_rules": []}), json!(3), 0.0, "server").unwrap()
+    }
+
+    fn answers(v: Json) -> Map<String, Json> {
+        obj(v)
+    }
+
+    fn ann() -> LookupValue {
+        LookupValue::new(json!(9000000007i64), "Acme", Some("a@example.com"))
+    }
+
+    fn state(m: &ItemMeta) -> FormState {
+        FormState::new(m.spec(), Some(m.engine().unwrap()), "new", None, StateOptions::default()).unwrap()
+    }
+
+    fn file(name: &str) -> String {
+        format!("{}/{name}", *FILES)
+    }
+
+    fn full_plan() -> SRPlan {
+        let draft = Draft { answers: answers(json!({"Answer": "ok", "Size": "meg", "Deck": file("deck.pptx")})), attachments: vec![file("notes.txt")], ..Draft::default() };
+        build_sr_plan(&meta(), &draft, None, Some(&ann()), false, &Recipients::default(), "acme.freshservice.com").unwrap()
+    }
+
+    fn recipients_plan() -> SRPlan {
+        let bob = LookupValue::new(json!(55), "Bob", Some("bob@example.com"));
+        let cc = ["c@example.com".to_string()];
+        let ids = [json!(66)];
+        let who = Recipients { requested_for: Some(&bob), cc_emails: &cc, cc_ids: &ids };
+        build_sr_plan(&meta(), &Draft { answers: answers(json!({"Answer": "ok"})), ..Draft::default() }, None, Some(&ann()), false, &who, "acme.freshservice.com").unwrap()
+    }
+
+    fn rows_json(p: &SRPlan) -> Json {
+        json!(p.review.rows.iter().map(|(a, b)| json!([a, b])).collect::<Vec<_>>())
+    }
+
+    #[test]
+    fn norm_and_rows() {
+        assert_eq!(json!([norm(&json!("  A\u{301}b  C ")), norm(&json!(5)), norm(&Json::Null)]), want("norm"));
+        let got = json!([rows(&json!([{"a": 1}, 2]), "k"), rows(&json!({"k": [{"b": 1}, "x"]}), "k"), rows(&json!({"k": 1}), "k"), rows(&json!("x"), "k")]);
+        assert_eq!(got, want("rows"));
+    }
+
+    fn cats() -> Json {
+        json!({"service_categories": [{"id": 1, "name": "Engineering", "sub_categories": [{"id": 2, "name": "Eng Tools"}, "x"]},
+                                      {"id": 3, "name": "Access", "children": [{"id": 4, "name": "VPN", "parent_id": 9}]}]})
+    }
+
+    fn flat() -> Vec<Json> {
+        list_categories(&FakeApi::new().ok("GET catalog/service-categories", cats())).unwrap()
+    }
+
+    fn summ(id: i64, did: i64, name: &str, cat: i64, extra: Json) -> Json {
+        let mut m = obj(json!({"id": id, "display_id": did, "name": name, "short_description": format!("{name} desc"), "category_id": cat}));
+        m.extend(obj(extra));
+        Json::Object(m)
+    }
+
+    fn params(a: &FakeApi) -> Json {
+        json!(a.calls.lock().unwrap().iter().map(|c| json!(c.params)).collect::<Vec<_>>())
+    }
+
+    #[test]
+    fn categories_and_items() {
+        let a = FakeApi::new().ok("GET catalog/service-categories", cats());
+        let got = list_categories(&a).unwrap();
+        assert_eq!(json!([got, params(&a)[0]]), want("list_categories"));
+
+        let page1 = json!({"service_items": [summ(1, 11, "Laptop", 1, json!({})), summ(2, 12, "VPN Access", 3, json!({})), summ(1, 11, "Laptop", 1, json!({}))], "meta": {"total_pages": 2}});
+        let page2 = json!({"service_items": [summ(3, 13, "Old", 1, json!({"deleted": true})), summ(4, 14, "Build Agent", 2, json!({}))], "meta": {"total_pages": 2}});
+        let a = FakeApi::new().ok("GET catalog/service-items", page1).ok("GET catalog/service-items", page2);
+        let ids: Vec<Json> = list_items(&a, false, MAX_PAGES).unwrap().iter().map(|i| i["id"].clone()).collect();
+        assert_eq!(json!([ids, params(&a)]), want("list_items"));
+
+        let a = FakeApi::new().ok("GET catalog/service-items", json!({"service_items": [summ(5, 15, "Pop", 1, json!({}))]}));
+        let got = list_items(&a, true, MAX_PAGES).unwrap();
+        assert_eq!(json!([got, params(&a)[0]]), want("list_popular"));
+
+        let a = FakeApi::new().ok("GET catalog/service-items", json!({"service_items": [summ(1, 11, "A", 1, json!({}))]})).ok("GET catalog/service-items", json!({"service_items": []}));
+        let ids: Vec<Json> = list_items(&a, false, MAX_PAGES).unwrap().iter().map(|i| i["id"].clone()).collect();
+        assert_eq!(json!([ids, a.calls.lock().unwrap().len()]), want("list_short_page"));
+    }
+
+    #[test]
+    fn resolve_and_filter() {
+        let flat = flat();
+        let ids = |q: &str| json!(resolve_category(&flat, q).unwrap().iter().map(|c| c["id"].clone()).collect::<Vec<_>>());
+        assert_eq!(json!([ids("engineering"), ids("3"), ids("vp")]), want("resolve_category"));
+        assert_eq!(err(resolve_category(&flat, "e")), want_err("resolve_category_many"));
+        assert_eq!(err(resolve_category(&flat, "zzz")), want_err("resolve_category_none"));
+
+        let items = [summ(1, 11, "Laptop", 1, json!({})), summ(2, 12, "VPN Access", 3, json!({"category_name": "Access"})), summ(4, 14, "Build Agent", 2, json!({}))];
+        let ids = |v: Vec<Json>| json!(v.iter().map(|i| i["id"].clone()).collect::<Vec<_>>());
+        let got = json!([
+            ids(filter_items(&items, Some(&[json!(1), json!("2")]), None, &[])),
+            ids(filter_items(&items, None, Some("access"), &[])),
+            ids(filter_items(&items, None, Some("eng tools"), &flat)),
+            ids(filter_items(&items, None, Some("14"), &[])),
+        ]);
+        assert_eq!(got, want("filter_items"));
+    }
+
+    #[test]
+    fn get_find_place_and_created_ref() {
+        let a = FakeApi::new().ok("GET catalog/service-items/9000000002", json!({"service_item": item()})).ok("GET catalog/service-items/5", json!({"x": 1}));
+        assert_eq!(json!(get_item(&a, &json!(9000000002i64)).unwrap()["name"]), want("get_item"));
+        assert_eq!(err(get_item(&a, &json!(5))), want_err("get_item_bad"));
+        assert_eq!(json!([item_ref(" #77 "), item_ref("Laptop")]), want("item_ref"));
+
+        let items = json!([summ(1, 11, "Laptop", 1, json!({})), summ(2, 12, "VPN Access", 3, json!({"category_name": "Access"})), summ(4, 14, "Build Agent", 2, json!({}))]);
+        let a = FakeApi::new()
+            .ok("GET catalog/service-items", json!({"service_items": items}))
+            .ok("GET catalog/service-items/11", json!({"service_item": {"display_id": 11, "name": "Laptop"}}))
+            .ok("GET catalog/service-items/77", json!({"service_item": {"display_id": 77}}));
+        assert_eq!(json!([find_item(&a, "#77").unwrap()["display_id"], find_item(&a, "laptop").unwrap()["display_id"]]), want("find_item"));
+        assert_eq!(err(find_item(&a, " # ")), want_err("find_item_empty"));
+        assert_eq!(err(find_item(&a, "printer")), want_err("find_item_none"));
+        assert_eq!(err(find_item(&a, "a")), want_err("find_item_many"));
+
+        let a = FakeApi::new().ok("POST catalog/service-items/77/place-request", json!({"service_request": {"id": 5, "display_id": 6}}));
+        let got = place_request(&a, &json!(77), &json!({"a": 1})).unwrap();
+        let w = &a.writes()[0];
+        assert_eq!(json!([got, [{"method": w.method, "path": w.path, "params": w.params, "body": w.body}]]), want("place_request"));
+
+        let cases = [json!({"id": 1}), json!({"x": {"display_id": 6}}), json!({"x": {"id": 2, "human_display_id": "SR-9"}}), json!({"x": 1}), json!("s")];
+        assert_eq!(json!(cases.iter().map(created_ref).collect::<Vec<_>>()), want("created_ref"));
+    }
+
+    #[test]
+    fn upload_posts_the_file() {
+        // `catalog.upload` is `create.upload_file`; same oracle case (`o_create.py` "upload_file").
+        let want: Json = serde_json::from_str::<Json>(include_str!("testdata/create_oracle.json")).unwrap()["upload_file"].clone();
+        let path = std::env::temp_dir().join("fsv_api_catalog_upload").join("a.txt");
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, b"hello").unwrap();
+        let a = FakeApi::new().ok("POST attachments", json!({"id": 33}));
+        let got = upload(&a, &path.to_string_lossy()).unwrap();
+        assert_eq!(json!([got, a.writes()[0].body]), want);
+    }
+
+    #[test]
+    fn item_meta_and_load() {
+        let m = meta();
+        let names: Vec<String> = m.spec().fields().iter().map(|f| f.api_name.clone()).collect();
+        let w = want("item_meta");
+        let mut as_of = m.as_of();
+        assert_eq!(as_of.remove("fetched_at").unwrap().as_str().unwrap().len(), w[4]["fetched_at"].as_str().unwrap().len());
+        let mut w_as_of = w[4].as_object().unwrap().clone();
+        w_as_of.remove("fetched_at");
+        assert_eq!(json!([m.display_id(), m.name(), names, m.fingerprint().hash]), json!([w[0], w[1], w[2], w[3]]));
+        assert_eq!(as_of, w_as_of);
+
+        let a = FakeApi::new().ok("GET ws/3/business_rules", json!({"business_rules": [], "user": {"id": 1}}));
+        let mm = load_item_meta(&a, &MemStore::default(), "", Some(&item())).unwrap();
+        let calls = a.calls.lock().unwrap();
+        let got = json!([mm.rules, mm.workspace_id, mm.source, calls.iter().map(|c| c.path.clone()).collect::<Vec<_>>(), calls[0].params.as_ref().unwrap()["item_id"]]);
+        assert_eq!(got, want("load_item_meta"));
+    }
+
+    #[test]
+    fn answers_helpers() {
+        let spec = meta().spec();
+        let size = find_field(&spec, "size").unwrap();
+        let got: Vec<Json> = [json!("Small"), json!("medium   large"), json!("me"), json!("meg"), json!("x"), json!(5)].iter().map(|v| json!(match_choice(size, v))).collect();
+        assert_eq!(json!(got), want("match_choice"));
+        assert_eq!(json!(lenient_answers(&spec, &answers(json!({"Size": "meg", "answer": "hi", "unknown": 1})))), want("lenient"));
+        assert_eq!(json!(file_answers(&spec, &answers(json!({"Deck": "deck.pptx", "answer": "x", "deck2": "y"})), Some("/base"))), want("file_answers"));
+        let got = file_answers(&spec, &answers(json!({"deck": ["/abs/a.pptx", "~/b.pptx"], "unknown": "z"})), None);
+        assert_eq!(got["deck"][0], want("file_answers_abs"));
+    }
+
+    #[test]
+    fn diagnostics_and_lookup_errors() {
+        let m = meta();
+        assert_eq!(json!(rule_diagnostics(&m, &state(&m))), want("rule_diag"));
+        let mu = ItemMeta::new(item(), json!({"business_rules": [], "unavailable": "why"}), json!(3), 0.0, "server").unwrap();
+        assert_eq!(json!(rule_diagnostics(&mu, &state(&mu))), want("rule_diag_unavailable"));
+        let ml = ItemMeta::new(item_with("Acme request", "2030-01-15T10:00:00+09:00", true), json!({"business_rules": []}), json!(3), 0.0, "server").unwrap();
+        let stl = state(&ml);
+        let d = |v: Json| Draft { answers: answers(v), ..Draft::default() };
+        let got = json!([
+            unsupported_lookup_errors(&stl, &d(json!({"Who": "Ann"}))),
+            unsupported_lookup_errors(&stl, &d(json!({"who": ""}))),
+            unsupported_lookup_errors(&state(&m), &d(json!({"answer": "x"}))),
+        ]);
+        assert_eq!(got, want("lookup_errors"));
+    }
+
+    #[test]
+    fn digest_and_requester_line() {
+        assert_eq!(json!(digest(&file("deck.pptx")).unwrap()), want("digest"));
+        let got = [
+            requester_line(&LookupValue::new(json!(1), "Ann", Some("a@b.co"))),
+            requester_line(&LookupValue::new(json!(2), String::new(), Some("b@c.co"))),
+            requester_line(&LookupValue::id(3)),
+        ];
+        assert_eq!(json!(got), want("requester_line"));
+    }
+
+    #[test]
+    fn build_sr_plan_matches_python() {
+        let p = full_plan();
+        let mut j = p.to_json();
+        j["review"]["metadata"].as_object_mut().unwrap().remove("fetched_at");
+        assert_eq!(json!([p.ok(), p.target(), p.files(), p.hash, j]), want("plan"));
+
+        let p2 = recipients_plan();
+        assert_eq!(json!([p2.ok(), p2.payload, p2.identity, p2.hash, rows_json(&p2)]), want("plan_recipients"));
+
+        let draft = Draft {
+            answers: answers(json!({"Nope": 1})),
+            description_html: Some("<p>x</p>".into()),
+            planning: answers(json!({"a": {}})),
+            attachments: vec!["/missing.txt".into()],
+            ..Draft::default()
+        };
+        let p3 = build_sr_plan(&meta(), &draft, None, None, false, &Recipients::default(), "acme.freshservice.com").unwrap();
+        assert_eq!(json!([p3.ok(), p3.errors, p3.payload, p3.hash]), want("plan_errors"));
+
+        let cc = ["bad".to_string()];
+        let who = Recipients { cc_emails: &cc, ..Recipients::default() };
+        let p4 = build_sr_plan(&meta(), &Draft::default(), None, Some(&LookupValue::new(json!(1), "NoMail", None)), false, &who, "acme.freshservice.com").unwrap();
+        assert_eq!(json!([p4.errors, p4.payload]), want("plan_errors2"));
+    }
+
+    #[test]
+    fn send_failure_and_substitute() {
+        let got = [
+            send_failure("upload", &[json!({"id": 1, "name": "a.txt"})], &"boom").to_string(),
+            send_failure("place-request", &[], &"x").to_string(),
+        ];
+        assert_eq!(json!(got), want("send_failure"));
+        let ids = obj(json!({"<u1>": 7}));
+        assert_eq!(substitute(&json!({"a": ["<u1>", {"b": "<u1>"}], "c": "<u2>", "d": 1}), &ids), want("substitute"));
+    }
+
+    const PLACE: &str = "POST catalog/service-items/9000000002/place-request";
+
+    #[test]
+    fn execute_uploads_then_places() {
+        let p = full_plan();
+        let j = MemJournal::default();
+        let a = FakeApi::new().ok(PLACE, json!({"service_request": {"id": 500, "display_id": 600}}));
+        let next = std::sync::atomic::AtomicI64::new(101);
+        let up = |_: &dyn Api, _: &str| Ok(next.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
+        assert_eq!(execute(&p, &a, &j, &up, false).unwrap(), want("execute"));
+        assert_eq!(json!(j.events()), want("execute_events"));
+        let w = &a.writes()[0];
+        assert_eq!(json!([{"method": w.method, "path": w.path, "params": w.params, "body": w.body}]), want("execute_writes"));
+        let msg = err(execute(&p, &a, &j, &|_: &dyn Api, _: &str| Ok(1), false));
+        assert_eq!(msg, want_err("execute_dup").replace(" at None ", &format!(" at {} ", py_str(&j.read()[1]["ts"]))));
+    }
+
+    #[test]
+    fn execute_failures() {
+        let p = full_plan();
+        let seven = |_: &dyn Api, _: &str| Ok(7);
+        let j = MemJournal::default();
+        let a = FakeApi::new().on(PLACE, Reply::Status(422));
+        assert_eq!(err(execute(&p, &a, &j, &seven, false)), want_err("execute_422"));
+        assert_eq!(json!(j.events()), want("execute_422_events"));
+
+        let j = MemJournal::default();
+        assert_eq!(err(execute(&p, &FakeApi::new(), &j, &|_: &dyn Api, _: &str| Err(Error::other("disk")), false)), want_err("execute_upload_fail"));
+        assert_eq!(json!(j.events()), want("execute_upload_fail_events"));
+
+        let draft = Draft { answers: answers(json!({"Nope": 1})), description_html: Some("<p>x</p>".into()), planning: answers(json!({"a": {}})), attachments: vec!["/missing.txt".into()], ..Draft::default() };
+        let p3 = build_sr_plan(&meta(), &draft, None, None, false, &Recipients::default(), "acme.freshservice.com").unwrap();
+        assert_eq!(err(execute(&p3, &FakeApi::new(), &MemJournal::default(), &seven, false)), want_err("execute_bad_plan"));
+
+        let j = MemJournal::default();
+        let three = |_: &dyn Api, _: &str| Ok(3);
+        let a = FakeApi::new().ok(PLACE, json!({"ok": true}));
+        assert_eq!(err(execute(&p, &a, &j, &three, false)), want_err("execute_noid"));
+        assert_eq!(json!(j.events()), want("execute_noid_events"));
+
+        let a = FakeApi::new().ok(PLACE, json!({"service_request": {"id": 500}})).ok(
+            "GET tickets/500",
+            json!({"ticket": {"id": 500, "email": "a@example.com", "requested_for": "bob@example.com", "cc_emails": ["x@example.com"]}}),
+        );
+        assert_eq!(execute(&recipients_plan(), &a, &MemJournal::default(), &three, false).unwrap(), want("execute_identity"));
+
+        let deck2 = file("deck2.pptx");
+        std::fs::write(&deck2, b"v1").unwrap();
+        let pd = build_sr_plan(&meta(), &Draft { answers: answers(json!({"Answer": "ok", "Deck": deck2})), ..Draft::default() }, None, Some(&ann()), false, &Recipients::default(), "acme.freshservice.com").unwrap();
+        std::fs::write(&deck2, b"v2").unwrap();
+        assert_eq!(err(execute(&pd, &FakeApi::new(), &MemJournal::default(), &three, false)), want_err("execute_changed_file"));
+    }
+
+    #[test]
+    fn duplicate_check_journal() {
+        let p = full_plan();
+        let j = MemJournal::default();
+        j.record_plan("started", &p.hash, "create", None, None);
+        assert_eq!(err(duplicate_check(&p, true, &j)), want_err("dup_started"));
+        let j = MemJournal::default();
+        j.record_plan("done", &p.hash, "create", None, Some(&json!(5)));
+        assert_eq!(err(duplicate_check(&p, false, &j)), want_err("dup_done"));
+        assert!(duplicate_check(&p, true, &j).is_ok());
+        assert_eq!(ORACLE["dup_allowed"], Json::Null);
+    }
+
+    #[test]
+    fn freshen_rebuilds_on_change() {
+        let store = MemStore::default();
+        let a = FakeApi::new().ok("GET catalog/service-items/9000000002", json!({"service_item": item()})).ok("GET ws/3/business_rules", json!({"business_rules": []}));
+        let ok = || Draft { answers: answers(json!({"Answer": "ok"})), ..Draft::default() };
+        let build = |m: &ItemMeta, d: Draft| build_sr_plan(m, &d, None, Some(&ann()), false, &Recipients::default(), "acme.freshservice.com");
+        let lm = load_item_meta(&a, &store, "9000000002", None).unwrap();
+        let pf = build(&lm, ok()).unwrap();
+        let hash = pf.hash.clone();
+        let (same, diff) = freshen(pf, &a, &store, &mut |_| Err(Error::other("rebuild must not run"))).unwrap();
+        assert_eq!(json!([same.hash == hash, diff]), want("freshen_same"));
+
+        let a = FakeApi::new()
+            .ok("GET catalog/service-items/9000000002", json!({"service_item": item_with("Acme request", "2030-02-01T00:00:00+09:00", false)}))
+            .ok("GET ws/3/business_rules", json!({"business_rules": []}));
+        let (new, diff) = freshen(same, &a, &store, &mut |m| build(&m, ok())).unwrap();
+        assert_eq!(json!([new.hash == hash, diff]), want("freshen_same_hash"));
+        let pf = build(&lm, ok()).unwrap();
+        let (new, diff) = freshen(pf, &a, &store, &mut |m| build(&m, Draft { answers: answers(json!({"Answer": "new"})), ..Draft::default() })).unwrap();
+        assert_eq!(json!([new.hash, diff]), want("freshen_changed"));
+    }
+
+    #[test]
+    fn labels_and_values() {
+        let defs = [
+            json!({"name": "a", "label": "A &amp; B"}),
+            json!({"name": "n", "label": "Notice", "type": 1024}),
+            json!({"name": "c", "label": "C", "field_type": "custom_static_rich_text"}),
+            json!({"name": "s", "label": "S", "fields": [{"name": "s1", "label": "S1"}], "nested_fields": [{"name": "s2", "label": "S2"}],
+                   "sections": [{"fields": [{"name": "s3", "label": "S3"}]}, "x"]}),
+            json!({"name": "a", "label": "dup"}),
+            json!("junk"),
+        ];
+        assert_eq!(json!(label_map(&defs)), want("label_map"));
+        let a = FakeApi::new().ok("GET catalog/service-items/9000000002", json!({"service_item": item()}));
+        let req = json!({"item": {"display_id": 9000000002i64, "custom_fields": [{"name": "answer", "label": "Ans"}]}, "custom_fields": {"answer": "x", "size": "Small", "zzz": 1}});
+        assert_eq!(json!(item_labels(&a, &req).unwrap()), want("item_labels"));
+        assert_eq!(json!(item_labels(&FakeApi::new(), &json!({"service_item_display_id": 5, "custom_fields": {"q": 1}})).unwrap()), want("item_labels_404"));
+        let req = json!({"item": {"custom_fields": [{"name": "q", "label": "Q"}]}, "custom_fields": {"q": 1}});
+        assert_eq!(json!(item_labels(&FakeApi::new(), &req).unwrap()), want("item_labels_complete"));
+
+        let vals = [json!(["a", {"name": "N"}]), json!({"value": "V"}), json!({"x": 1}), json!(true), json!(false), json!("<p>a  <b>b</b></p>"), json!(5), Json::Null, json!("a < b")];
+        assert_eq!(json!(vals.iter().map(value_text).collect::<Vec<_>>()), want("value_text"));
+        let vals = [json!([1, 2]), json!([{"attachment_url": "u"}]), json!([{"name": "n", "id": 1}]), json!([{"name": "n"}]), json!([]), json!("x"), json!([1, "a"])];
+        assert_eq!(json!(vals.iter().map(is_file_value).collect::<Vec<_>>()), want("is_file_value"));
+    }
+
+    #[test]
+    fn safe_target_and_domain_url() {
+        let dir = std::env::temp_dir().join("fsv_api_catalog_dl");
+        std::fs::create_dir_all(&dir).unwrap();
+        let got = safe_target(&dir.to_string_lossy(), "a.txt").unwrap();
+        let w = want("safe_target");
+        assert_eq!(got.file_name(), Path::new(w.as_str().unwrap()).file_name());
+        assert_eq!(got.parent().unwrap(), dir.canonicalize().unwrap());
+        for (key, bad) in [("st_empty", " "), ("st_dots", "a..b"), ("st_sep", "a/b"), ("st_bs", "a\\b"), ("st_drive", "C:x"), ("st_ctl", "a\u{1}")] {
+            assert_eq!(err(safe_target(&dir.to_string_lossy(), bad)), want_err(key), "{key}");
+        }
+        assert_eq!(json!(domain_url("/a/b", "acme.freshservice.com")), want("domain_url"));
+    }
+}

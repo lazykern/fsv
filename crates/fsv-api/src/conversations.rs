@@ -265,3 +265,130 @@ pub fn send(plan: &ConversationPlan, c: &dyn Api, journal: &dyn Journal, store: 
     }
     Ok(Value::Object(result))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::formmeta::MemStore;
+    use crate::service::testing::*;
+
+    const TOKEN: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=";
+    const ROW_HASH: &str = "1fdf7e536748426619ff7f88ffd5fb0a1b5940b5c4352579c3a462978c2f6a79";
+    const REPLY_HASH: &str = "a6558f93a3456b1bf04f15b2e3711aa8d995ae7483bb767c1a7bcd8b5553a2ca";
+    const NOTE_HASH: &str = "b968aa46849b709e7f57dcf98d4fe54d0529917405a43d49448bd410639a525a";
+    const CC: &str = "Acme User <person@example.com>";
+    const STATUS_ERR: &str = "could not resolve Pending and evaluate ticket rules from fresh metadata; no send attempted";
+    const UNVERIFIED: &str = "Conversation or ticket fields were not fully verified on read-back; do not resend.";
+
+    fn err<T: std::fmt::Debug>(r: Result<T>) -> String {
+        r.unwrap_err().to_string()
+    }
+
+    fn row() -> Value {
+        json!({"id": 123, "subject": "Test", "status": 2})
+    }
+
+    fn api() -> FakeApi {
+        ticket_api(json!({"ticket": row()}))
+            .ok("GET autocomplete/requesters", json!([{"id": 11, "value": "Acme User", "email": "person@example.com"}]))
+    }
+
+    fn reply_plan(c: &FakeApi) -> ConversationPlan {
+        let cc = vec![CC.to_string()];
+        build_plan(c, &MemStore::default(), "123", "Hello <team>", &ConversationArgs { cc: &cc, set_status: Some("Pending"), ..Default::default() }).unwrap()
+    }
+
+    fn note_plan(c: &FakeApi) -> ConversationPlan {
+        let notify = vec!["b@y.co".to_string()];
+        build_plan(c, &MemStore::default(), "INC-123", "Note", &ConversationArgs { kind: "note", notify: &notify, ..Default::default() }).unwrap()
+    }
+
+    #[test]
+    fn recipients_resolve_exact_users() {
+        let s = |v: &str| vec![v.to_string()];
+        assert_eq!(recipients(&api(), &s("person@example.com")).unwrap(), [CC]);
+        assert_eq!(err(recipients(&api(), &s("Ann <a@b.co>"))), "CC must be a plain email address");
+        let msg = "each CC email must resolve to exactly one non-deleted user with a valid name and email";
+        assert_eq!(err(recipients(&api(), &s("other@example.com"))), msg);
+        let down = FakeApi::new().on("GET autocomplete/requesters", Reply::Session);
+        assert_eq!(err(recipients(&down, &s("person@example.com"))), msg);
+    }
+
+    #[test]
+    fn status_context_pending_only() {
+        let store = MemStore::default();
+        assert_eq!(status_context(&api(), &store, 123, "pending").unwrap(), (3, TOKEN.to_string(), ROW_HASH.to_string()));
+        assert_eq!(err(status_context(&api(), &store, 123, "Resolved")),
+                   "only the Pending status transition was captured; use the web form for other statuses");
+        let other = ticket_api(json!({"ticket": {"id": 9}}));
+        assert_eq!(err(status_context(&other, &store, 123, "Pending")), STATUS_ERR);
+        let no_rules = FakeApi::new().ok("GET ticket_form_fields", ticket_form(3)).ok("GET tickets/123", json!({"ticket": row()}));
+        assert_eq!(err(status_context(&no_rules, &store, 123, "Pending")), STATUS_ERR);
+    }
+
+    #[test]
+    fn build_plan_reply_and_note() {
+        let c = api();
+        let p = reply_plan(&c);
+        let payload = json!({"body": "<div>Hello &lt;team&gt;</div>", "cc_emails": [CC], "conversation_from_summary": false, "freddy_message_id": null,
+                             "full_text": "<div>Hello &lt;team&gt;</div>", "helpdesk_ticket": {"br_validation_excludes": TOKEN, "status": 3}, "translate_reply": false});
+        assert_eq!(p.payload_json, format!(
+            "{{\"body\": \"<div>Hello &lt;team&gt;</div>\", \"cc_emails\": [\"{CC}\"], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"full_text\": \"<div>Hello &lt;team&gt;</div>\", \"helpdesk_ticket\": {{\"br_validation_excludes\": \"{TOKEN}\", \"status\": 3}}, \"translate_reply\": false}}"));
+        assert_eq!((p.path(), p.hash(), p.record_hash.as_deref(), p.status_label.as_deref()),
+                   ("tickets/123/reply".to_string(), REPLY_HASH.to_string(), Some(ROW_HASH), Some("Pending")));
+        assert_eq!(Value::Object(p.review()), json!({"action": "ticket_reply", "method": "POST", "path": "/api/_/tickets/123/reply", "payload": payload,
+            "status_label": "Pending", "plan_hash": REPLY_HASH, "warning": "A reply is public and may notify recipients; notes may also trigger tenant workflows."}));
+        let n = note_plan(&c);
+        assert_eq!(n.payload_json, r#"{"body": "<div>Note</div>", "conversation_from_summary": false, "notify_emails": ["b@y.co"], "private": true}"#);
+        assert_eq!((n.path(), n.hash(), n.record_hash), ("tickets/123/notes".to_string(), NOTE_HASH.to_string(), None));
+        let store = MemStore::default();
+        assert_eq!(err(build_plan(&c, &store, "123", "x", &ConversationArgs { kind: "forward", ..Default::default() })), "invalid conversation kind");
+        let bad = vec!["bad".to_string()];
+        assert_eq!(err(build_plan(&c, &store, "123", "x", &ConversationArgs { cc: &bad, ..Default::default() })), "invalid CC recipient");
+    }
+
+    #[test]
+    fn send_reply_verifies_conversation_and_status() {
+        let p = reply_plan(&api());
+        let c = ticket_api(json!({"ticket": row()}))
+            .ok("GET tickets/123", json!({"ticket": {"id": 123, "subject": "Test", "status": 3}}))
+            .ok("POST tickets/123/reply", json!({"conversation": {"id": 456}}))
+            .ok("GET tickets/123/conversations", json!({"conversations": [{"id": 456, "body": "<div>Hello &lt;team&gt;</div>", "cc_emails": [CC]}]}));
+        let (j, store) = (MemJournal::default(), MemStore::default());
+        assert_eq!(
+            send(&p, &c, &j, &store, Some(REPLY_HASH), true).unwrap(),
+            json!({"status": "submitted", "conversation_id": 456, "ticket_id": 123, "plan_hash": REPLY_HASH, "verified": true,
+                   "fields": {"body": "matched", "cc_emails": "matched", "ticket_status": "matched"}})
+        );
+        assert_eq!(j.events(), ["started", "done"]);
+        let w = c.writes();
+        assert_eq!((w[0].method.as_str(), w[0].path.as_str()), ("POST", "tickets/123/reply"));
+        assert_eq!(String::from_utf8(w[0].raw.clone().unwrap()).unwrap(), p.payload_json);
+        assert_eq!(err(send(&p, &c, &j, &store, Some(REPLY_HASH), true)), "conversation was sent or outcome unknown; inspect ticket and journal before retry");
+        assert_eq!(send(&p, &c, &j, &store, None, false).unwrap(), json!({"status": "cancelled"}));
+        assert_eq!(err(send(&p, &c, &j, &store, Some("x"), true)), "tenant or review hash changed; review again");
+        assert_eq!(err(send(&p, &c, &MemJournal::default(), &store, Some(REPLY_HASH), false)), "public conversation requires explicit confirmation");
+        let changed = ticket_api(json!({"ticket": {"id": 123, "subject": "Changed", "status": 2}}));
+        assert_eq!(err(send(&p, &changed, &MemJournal::default(), &store, Some(REPLY_HASH), true)), "ticket or status metadata changed; review again");
+    }
+
+    #[test]
+    fn send_note_failures_and_unverified() {
+        let n = note_plan(&api());
+        let store = MemStore::default();
+        let j = MemJournal::default();
+        let c = FakeApi::new().ok("POST tickets/123/notes", json!({"note": {"id": "x"}}));
+        assert_eq!(err(send(&n, &c, &j, &store, Some(NOTE_HASH), false)), "response has no exact conversation ID; outcome unknown, do not resend");
+        assert_eq!(j.events(), ["started"]);
+        let j = MemJournal::default();
+        let c = FakeApi::new().on("POST tickets/123/notes", Reply::Status(422));
+        assert_eq!(err(send(&n, &c, &j, &store, Some(NOTE_HASH), false)), "conversation rejected (HTTP 422); no retry");
+        assert_eq!(j.events(), ["started", "failed"]);
+        let c = FakeApi::new().ok("POST tickets/123/notes", json!({"note": {"id": 7}})).on("GET tickets/123/conversations", Reply::Status(500));
+        assert_eq!(
+            send(&n, &c, &MemJournal::default(), &store, Some(NOTE_HASH), false).unwrap(),
+            json!({"status": "submitted", "conversation_id": 7, "ticket_id": 123, "plan_hash": NOTE_HASH, "verified": false,
+                   "fields": {"body": "unavailable", "private": "unavailable", "notify_emails": "unavailable"}, "warning": UNVERIFIED})
+        );
+    }
+}

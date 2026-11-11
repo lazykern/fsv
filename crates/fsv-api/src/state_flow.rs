@@ -209,3 +209,125 @@ pub fn render_state_diagram(c: &dyn Api, change: &Value, context: usize) -> Vec<
     }
     out
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::service::testing::*;
+
+    fn t(s: &str) -> Printed {
+        Printed::Text(s.into())
+    }
+
+    fn flow() -> Value {
+        let states: Vec<Value> = [(1, "Open"), (2, "Plan [x]"), (3, "Approve"), (4, "Build"), (5, "Test"), (6, "Done"), (7, "Closed")]
+            .iter()
+            .map(|(i, v)| json!({"id": i, "value": v}))
+            .collect();
+        json!({"state_flow": {"name": "Std", "state_list": states}})
+    }
+
+    fn change() -> Value {
+        json!({"id": 5, "human_display_id": "CHN-5", "state_flow_id": 9, "status": 4, "status_name": "Build",
+               "state_traversal": [1, 2, 3, 2], "change_type": 1})
+    }
+
+    fn with_status(status: i64) -> Value {
+        let mut c = change();
+        c["status"] = json!(status);
+        c
+    }
+
+    fn api() -> FakeApi {
+        FakeApi::new().ok("GET change_management/9", flow()).ok(
+            "GET changes/5/approvals",
+            json!({"approvals": [{"level_id": 1, "status": {"name": "approved"}, "member": {"name": "Ann"}},
+                                 {"level_id": 2, "status": {"name": "rejected"}, "member_id": 8},
+                                 {"level_id": 2, "member": {"name": ""}, "member_id": 9}]}),
+        )
+    }
+
+    #[test]
+    fn get_state_flow_workspace_then_plain() {
+        let api = FakeApi::new().ok("GET ws/3/change_management/9", flow()).ok("GET change_management/9", json!({"name": "Plain", "state_list": []}));
+        assert_eq!(get_state_flow(&api, &json!(9), Some(&json!(3))).unwrap()["name"], "Std");
+        assert_eq!(get_state_flow(&api, &json!(9), None).unwrap(), json!({"name": "Plain", "state_list": []}));
+        let calls = api.calls.lock().unwrap();
+        assert_eq!((calls[0].path.as_str(), calls[1].path.as_str()), ("ws/3/change_management/9", "change_management/9"));
+        assert_eq!(calls[0].params, Some(obj(json!({"include": "state_info"}))));
+        drop(calls);
+        let fallback = FakeApi::new().ok("GET change_management/9", flow());
+        assert_eq!(get_state_flow(&fallback, &json!(9), Some(&json!(4))).unwrap()["name"], "Std");
+        assert_eq!(fallback.gets(), ["ws/4/change_management/9", "change_management/9"]);
+        let down = FakeApi::new().on("GET ws/4/change_management/9", Reply::Status(500));
+        assert!(matches!(get_state_flow(&down, &json!(9), Some(&json!(4))).unwrap_err(), Error::Api(e) if e.status == 500));
+    }
+
+    #[test]
+    fn try_get_approvals_never_fails() {
+        let env = FakeApi::new().ok("GET changes/5/approvals", json!({"approvals": [{"id": 1}]}));
+        assert_eq!(try_get_approvals(&env, &json!(5)), [json!({"id": 1})]);
+        let bare = FakeApi::new().ok("GET changes/5/approvals", json!([{"id": 1}]));
+        assert_eq!(try_get_approvals(&bare, &json!(5)), Vec::<Value>::new());
+        assert_eq!(try_get_approvals(&FakeApi::new(), &json!(5)), Vec::<Value>::new());
+    }
+
+    #[test]
+    fn render_flow_table_and_gates() {
+        let rows = |v: &[[&str; 3]]| v.iter().map(|r| r.map(String::from)).collect::<Vec<_>>();
+        let passed = |n: &str| ["[green]✓[/]".to_string(), format!("[green]{n}[/]"), "[green]passed[/]".into()];
+        let future = |n: &str| ["[dim]·[/]".to_string(), format!("[dim]{n}[/]"), "[dim]future[/]".into()];
+        let want_rows = vec![passed("Open"), passed("Plan [x]"), passed("Approve"),
+                             ["[bold yellow]▶[/]".into(), "[bold yellow]Build[/]".into(), "[bold yellow]current[/]".into()],
+                             future("Test"), future("Done"), future("Closed")];
+        assert_eq!(render_flow(&api(), &change()).unwrap(), [
+            Printed::Table { title: "CHN-5 flow — [bold]Std[/] (change_type=1)".into(), rows: want_rows },
+            t("  current: [bold yellow]Build[/] · past: 3 · ahead: 3"),
+            Printed::Blank,
+            t("[bold]Approval gates:[/]"),
+            t("  ✓ L1: Ann — approved"),
+            t("  ✗ L2: 8 — rejected"),
+            t("  ◷ L2: 9 — ?"),
+        ]);
+        assert_eq!(render_flow(&api(), &json!({"id": 5})).unwrap(), [t("[yellow]no state_flow_id on this change[/]")]);
+        let empty = FakeApi::new().ok("GET change_management/9", json!({"state_list": []}));
+        assert_eq!(render_flow(&empty, &json!({"id": 6, "state_flow_id": 9})).unwrap(), [t("[yellow]empty state_list[/]")]);
+        let bare = FakeApi::new().ok("GET change_management/9", json!({"state_list": [{"id": 1, "value": "Open"}]}));
+        assert_eq!(render_flow(&bare, &json!({"id": 6, "state_flow_id": 9, "status": 1})).unwrap(), [
+            Printed::Table { title: "CHN-6 flow — [bold]?[/] (change_type=None)".into(),
+                             rows: rows(&[["[bold yellow]▶[/]", "[bold yellow]Open[/]", "[bold yellow]current[/]"]]) },
+            t("  current: [bold yellow]1[/] · past: 0 · ahead: 0"),
+        ]);
+    }
+
+    #[test]
+    fn render_compact_window() {
+        assert_eq!(render_compact(&api(), &change(), 2), [
+            t("state:    [dim]…[/] [dim]→[/] [green]Plan \\[x][/] [dim]→[/] [green]Approve[/] [dim]→[/] [bold yellow]▶ Build[/] [dim]→[/] [dim]Test[/] [dim]→[/] [dim]Done[/] [dim]→[/] [dim]…[/]  [dim][3/7][/]"),
+            t("[dim]          `fsv changes state CHN-5` for full flow[/]"),
+        ]);
+        assert_eq!(render_compact(&api(), &with_status(1), 1), [
+            t("state:    [bold yellow]▶ Open[/] [dim]→[/] [green]Plan \\[x][/] [dim]→[/] [dim]…[/]  [dim][3/7][/]"),
+            t("[dim]          `fsv changes state CHN-5` for full flow[/]"),
+        ]);
+        assert!(render_compact(&api(), &with_status(99), 2).is_empty());
+        assert!(render_compact(&FakeApi::new(), &change(), 2).is_empty());
+        assert!(render_compact(&api(), &json!({"id": 1}), 2).is_empty());
+    }
+
+    #[test]
+    fn render_state_diagram_progress() {
+        assert_eq!(render_state_diagram(&api(), &change(), 3), [
+            t("[bold cyan]state flow:[/] [bold]43%[/] complete  [dim](3/7)[/]"),
+            t("[green]✓ Open[/] [dim]→[/] [green]✓ Plan \\[x][/] [dim]→[/] [green]✓ Approve[/] [dim]→[/] [bold yellow on blue] ▶ Build [/] [dim]→[/] [dim]Test[/] [dim]→[/] [dim]Done[/] [dim]→[/] [dim]Closed[/]"),
+        ]);
+        let mut last = with_status(7);
+        last["state_traversal"] = json!([1, 2, 3]);
+        assert_eq!(render_state_diagram(&api(), &last, 10), [
+            t("[bold cyan]state flow:[/] [bold]43%[/] complete  [dim](3/7)[/]"),
+            t("[green]✓ Open[/] [dim]→[/] [green]✓ Plan \\[x][/] [dim]→[/] [green]✓ Approve[/] [dim]→[/] [dim]Build[/] [dim]→[/] [dim]Test[/] [dim]→[/] [dim]Done[/] [dim]→[/] [bold yellow on blue] ▶ Closed [/]"),
+        ]);
+        assert!(render_state_diagram(&api(), &with_status(99), 3).is_empty());
+        assert!(render_state_diagram(&FakeApi::new(), &change(), 3).is_empty());
+    }
+}

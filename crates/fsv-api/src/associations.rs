@@ -253,11 +253,89 @@ mod tests {
         let p = build_plan("7", &[json!(3)], false, T).unwrap();
         let h = p.hash();
         let out = send(&p, &api, &j, SendOpts { reviewed_hash: Some(&h), ..Default::default() }).unwrap();
-        assert_eq!(out["status"], "submitted");
+        assert_eq!(
+            out,
+            json!({"status": "submitted", "verified": true, "action": "change_ticket_association", "tenant": T, "change_id": 7,
+                   "ticket_ids": [3], "method": "PUT", "path": "/api/_/changes/7/tickets/associate",
+                   "payload": {"item_ids": [3], "module_type": "ticket"}, "params": null,
+                   "plan_hash": "d4805e9f32883845348f95bc2a05e7e2ad8c4fb320537c52cebc22364aaab084",
+                   "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit."})
+        );
         assert_eq!(j.events(), ["started", "done"]);
         assert_eq!(api.writes()[0].raw.as_deref(), Some(br#"{"item_ids": [3], "module_type": "ticket"}"#.as_slice()));
         // a second send is blocked by the journal
         assert_eq!(send(&p, &api, &j, SendOpts { reviewed_hash: Some(&h), ..Default::default() }).unwrap_err().to_string(), UNKNOWN);
+    }
+
+    #[test]
+    fn id_accepts_positive_ascii_ints() {
+        let got: Vec<Option<i64>> = [json!(7), json!("007"), json!("0"), json!(-1), json!(true), json!(1.0), json!("١"), json!("x"), json!("12")]
+            .iter()
+            .map(positive_id)
+            .collect();
+        assert_eq!(got, [Some(7), Some(7), None, None, None, None, None, None, Some(12)]);
+    }
+
+    #[test]
+    fn read_page_validates_rows() {
+        let api = FakeApi::new()
+            .ok("GET changes/7/tickets", json!({"tickets": [{"id": 3}, {"id": "4"}]}))
+            .ok("GET changes/8/tickets", json!({"tickets": [{"id": 0}]}))
+            .ok("GET changes/9/tickets", json!("x"))
+            .on("GET changes/10/tickets", Reply::Session);
+        assert_eq!(read_page(&api, "changes/7/tickets", Some(obj(json!({"page": 1})))).unwrap(), json!({"tickets": [{"id": 3}, {"id": "4"}]}));
+        assert_eq!(read_page(&api, "changes/8/tickets", None).unwrap_err().to_string(), "unreadable association page");
+        assert_eq!(read_page(&api, "changes/9/tickets", None).unwrap_err().to_string(), "unreadable association page");
+        assert_eq!(read_page(&api, "changes/10/tickets", None).unwrap_err().to_string(), "association page unavailable");
+        assert!(matches!(read_page(&api, "changes/11/tickets", None).unwrap_err(), Error::Api(_)));
+    }
+
+    #[test]
+    fn inventory_and_ticket_ids_complete() {
+        let api = FakeApi::new()
+            .ok("GET changes/7/tickets", json!({"tickets": [{"id": 3}, {"id": 5}]}))
+            .ok("GET changes/7/problems", json!({"problems": [{"id": 1}]}))
+            .ok("GET changes/7/releases", json!({"releases": []}));
+        let m = |n: i64| json!({"loaded_count": n, "pages": 1, "complete": true, "has_more": false, "has_next": false, "continuation": null});
+        assert_eq!(
+            inventory(&api, 7, KINDS).unwrap(),
+            json!({"meta": {"tickets": m(2), "problems": m(1), "releases": m(0)}, "warnings": [],
+                   "tickets": [{"id": 3}, {"id": 5}], "problems": [{"id": 1}], "releases": [], "complete": true})
+        );
+        assert_eq!(ticket_ids(&api, 7).unwrap().into_iter().collect::<Vec<_>>(), [3, 5]);
+        let bad = FakeApi::new().ok("GET changes/7/tickets", json!({"tickets": [{"id": "x"}]}));
+        assert_eq!(ticket_ids(&bad, 7).unwrap_err().to_string(), "initiating-ticket inventory unavailable/incomplete; not an empty list");
+    }
+
+    #[test]
+    fn plan_review_and_hashes_match_python() {
+        let p = build_plan("CHN-7", &[json!(9), json!("3"), json!(9)], false, T).unwrap();
+        assert_eq!(p.hash(), "f62cb2272f5be747218b44872a3176c80f9d080e743b911d5dd54e1b374a8358");
+        assert_eq!(
+            Value::Object(p.review()),
+            json!({"action": "change_ticket_association", "tenant": T, "change_id": 7, "ticket_ids": [3, 9], "method": "PUT",
+                   "path": "/api/_/changes/7/tickets/associate", "payload": {"item_ids": [3, 9], "module_type": "ticket"}, "params": null,
+                   "plan_hash": "f62cb2272f5be747218b44872a3176c80f9d080e743b911d5dd54e1b374a8358",
+                   "warning": "Initiating-ticket relationship only. Tenant workflows may notify people. One attempt; never automatically resubmit."})
+        );
+        let u = build_plan("7", &[json!(4)], true, T).unwrap();
+        assert_eq!((u.payload(), u.params()), (json!({"type": "unlink"}), Some(obj(json!({"module_type": "ticket"})))));
+        assert_eq!(u.hash(), "43251246e10da108513e85530b50ef12d659d053fb054b6bae4224ed399df5f7");
+        assert_eq!(build_plan("7", &[json!(true)], false, T).unwrap_err().to_string(), "ticket IDs must be positive internal ticket IDs");
+        assert_eq!(build_plan("7", &[], false, T).unwrap_err().to_string(), "ticket IDs must be positive internal ticket IDs");
+        assert_eq!(build_plan("INC-7", &[json!(1)], false, T).unwrap_err().to_string(), "prefix INC not valid for changes (expect CHN)");
+    }
+
+    #[test]
+    fn send_guards_match_python() {
+        let api = FakeApi::new();
+        let j = MemJournal::default();
+        let p = build_plan("7", &[json!(3)], false, T).unwrap();
+        assert_eq!(p.hash(), "d4805e9f32883845348f95bc2a05e7e2ad8c4fb320537c52cebc22364aaab084");
+        assert_eq!(send(&p, &api, &j, SendOpts { dry_run: true, ..Default::default() }).unwrap()["status"], "dry_run");
+        assert_eq!(send(&p, &api, &j, SendOpts { read_only: true, ..Default::default() }).unwrap_err().to_string(), "read-only mode: no association request was sent");
+        assert_eq!(send(&p, &api, &j, SendOpts { reviewed_hash: Some("x"), ..Default::default() }).unwrap_err().to_string(), "association review hash/tenant does not match; review again");
+        assert!(api.calls.lock().unwrap().is_empty());
     }
 
     #[test]

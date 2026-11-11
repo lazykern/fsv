@@ -1261,4 +1261,620 @@ mod tests {
     fn api_body(e: Error) -> Value {
         e.as_api().expect("api error").body.clone()
     }
+
+    use std::sync::LazyLock;
+
+    /// Outputs of `/tmp/fsv_oracle/o_create.py` (the Python functions).
+    static ORACLE: LazyLock<Value> = LazyLock::new(|| serde_json::from_str(include_str!("testdata/create_oracle.json")).unwrap());
+    static FILES: LazyLock<String> = LazyLock::new(|| {
+        let dir = std::env::temp_dir().join("fsv_api_create_files");
+        std::fs::create_dir_all(&dir).unwrap();
+        for (n, b) in [("a.txt", &b"hello"[..]), ("b.txt", b"world!"), ("rollout.txt", b"steps")] {
+            std::fs::write(dir.join(n), b).unwrap();
+        }
+        dir.to_string_lossy().into_owned()
+    });
+
+    fn want(key: &str) -> Value {
+        ORACLE[key].clone()
+    }
+
+    fn want_err(key: &str) -> String {
+        ORACLE[key]["msg"].as_str().unwrap().to_string()
+    }
+
+    fn err<T: std::fmt::Debug>(r: Result<T>) -> String {
+        r.expect_err("an error").to_string()
+    }
+
+    fn file(n: &str) -> String {
+        format!("{}/{n}", *FILES)
+    }
+
+    fn tmp(sub: &str) -> PathBuf {
+        let d = std::env::temp_dir().join(format!("fsv_api_create_{sub}"));
+        let _ = std::fs::remove_dir_all(&d);
+        d
+    }
+
+    fn writes(a: &FakeApi) -> Value {
+        json!(a.writes().iter().filter(|c| c.method != "FETCH").map(|c| json!({"method": c.method, "path": c.path, "params": c.params, "body": c.body})).collect::<Vec<_>>())
+    }
+
+    /// `[method, path, uploaded file name | body]` per call (the oracle's projection).
+    fn trail(a: &FakeApi) -> Value {
+        json!(a
+            .calls
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|c| {
+                let third = if c.method == "POST" && c.path == "attachments" { c.body.as_ref().unwrap()["content_file_name"].clone() } else { json!(c.body) };
+                json!([c.method, c.path, third])
+            })
+            .collect::<Vec<_>>())
+    }
+
+    fn schema() -> Vec<Value> {
+        let pri: Vec<Value> = (1..7).map(|i| json!({"id": i, "value": format!("P{i}")})).collect();
+        serde_json::from_value(json!([
+            {"name": "subject", "field_type": "default_subject", "required": true, "default_field": true},
+            {"name": "description", "field_type": "default_description", "required": true, "default_field": true},
+            {"name": "requester", "field_type": "default_requester", "required": true, "default_field": true},
+            {"name": "agent", "field_type": "default_agent", "required": false, "default_field": true},
+            {"name": "status", "field_type": "default_status", "required": true, "default_field": true,
+             "choices": [{"id": 1, "value": "Open"}, {"id": 2, "value": "Planning"}]},
+            {"name": "priority", "field_type": "default_priority", "required": false, "default_field": true, "choices": pri},
+            {"name": "cf_flag", "field_type": "custom_checkbox"},
+            {"name": "cf_yes", "field_type": "custom_dropdown", "choices": [{"id": "y", "value": "true"}, {"id": "n", "value": "false"}]},
+            {"name": "cf_named", "field_type": "custom_dropdown", "choices": [{"name": "N1"}, {"id": 7}]},
+            {"name": "planned_start_date", "field_type": "default_date", "default_field": true},
+            {"name": "cf_num", "field_type": "custom_number"},
+            {"name": "cf_dec", "field_type": "custom_decimal"},
+            {"name": "group", "field_type": "default_group", "required": true},
+            {"name": "department", "field_type": "default_department"},
+            {"name": "cf_multi", "field_type": "custom_multi_select_dropdown"},
+            {"name": "cf_ref_id", "field_type": "custom_text"},
+            {"name": "cf_text", "field_type": "custom_text", "required": true},
+            {"name": "id", "field_type": "default_id", "required": true},
+            {"name": "cf_note", "field_type": "custom_content"},
+            {"name": "cf_static", "field_type": "custom_static_rich_text"},
+            {"name": "", "field_type": "custom_text"},
+            {"name": "reason_for_change", "field_type": "planning_field", "label": "Reason for change", "id": 11},
+            {"name": "rollout_plan", "field_type": "planning_field", "label": "Rollout  Plan", "id": 12, "export_label": "Rollout plans"},
+            {"name": "backout", "field_type": "default_backout_plan", "label": "Backout &amp; Recovery", "id": 13, "helptext": "Back out steps"},
+        ]))
+        .unwrap()
+    }
+
+    #[test]
+    fn templates_and_defaults() {
+        let sf = schema();
+        let got: Vec<Value> = ["required", "optional", "all"].iter().map(|l| json!(build_template(&sf, l))).collect();
+        assert_eq!(json!(got), want("build_template"));
+        let mut defaults: Vec<Value> = sf.iter().map(field_default).collect();
+        defaults.push(field_default(&json!({"field_type": "custom_text", "choices": [{"id": true}, {"id": false}]})));
+        assert_eq!(json!(defaults), want("field_default"));
+        let schema = json!({"fields": sf});
+        assert_eq!(json!([change_template(&schema, "required"), change_template(&schema, "all") == build_template(&sf, "all")]), want("change_template"));
+        assert_eq!(json!([change_schema_fields(&schema) == sf]), want("schema_fields"));
+        assert_eq!(json!(change_schema_fields(&json!({"data": {"change_fields": [{"name": "x"}]}}))), want("schema_fields_data"));
+        assert_eq!(json!(change_schema_fields(&json!({"fields": [], "change_fields": [{"name": "y"}]}))), want("schema_fields_flat"));
+    }
+
+    fn change() -> Value {
+        json!({"change": {"id": 5, "display_id": 5, "subject": "S", "status": 3, "attachments": [1], "stats": {}, "updated_at": "x",
+                          "reason_planning_fields": [], "requester_id": 9, "planning_field_definitions": [],
+                          "custom_fields": {"cf_lookup": {"id": 4, "value": "Four"}, "cf_text": "t", "cf_obj": {"id": 1, "value": 2, "x": 3}}}})
+    }
+
+    #[test]
+    fn clone_data_and_edit_view() {
+        let a = FakeApi::new().ok("GET changes/5", change());
+        assert_eq!(json!(change_clone_data(&a, 5).unwrap()), want("clone_data"));
+        assert_eq!(json!(get_change_for_edit(&a, 5).unwrap()), want("for_edit"));
+    }
+
+    #[test]
+    fn parse_when_instants() {
+        let vals = [json!("2030-01-01T10:00:00Z"), json!("2030-01-01T10:00:00+07:00"), json!("2030-01-01 10:00:00"), json!(""), json!("junk"), json!(5), Value::Null];
+        let w = want("parse_when");
+        for (v, w) in vals.iter().zip(w.as_array().unwrap()) {
+            let expect = match w.as_str().unwrap() {
+                "None" => None,
+                t => Some(t.replace(' ', "T").parse::<jiff::Timestamp>().unwrap()),
+            };
+            assert_eq!(parse_when(v), expect, "{v}");
+        }
+    }
+
+    fn task() -> Value {
+        json!({"id": 70, "title": "Deploy", "status": 3, "owner_id": 4, "agent_id": null, "due_date": "2029-12-01T00:00:00Z", "planned_end_date": "2031-01-01T00:00:00Z",
+               "start_date": "junk", "created_at": "x", "stack_rank": 1, "description": "d", "custom_fields": {"a": null, "b": 2}})
+    }
+
+    fn task2() -> Value {
+        json!({"id": 71, "title": "", "owner": {"id": 1}, "custom_fields": {"a": null}})
+    }
+
+    fn now() -> Option<jiff::Timestamp> {
+        Some("2030-01-01T00:00:00Z".parse().unwrap())
+    }
+
+    #[test]
+    fn task_clone_body_and_clone_tasks() {
+        let (mut d1, mut d2) = (Vec::new(), Vec::new());
+        let got = json!([
+            task_clone_body(&task(), false, now(), Some(&mut d1)),
+            d1,
+            task_clone_body(&task(), true, now(), None),
+            task_clone_body(&task2(), false, now(), Some(&mut d2)),
+            d2,
+        ]);
+        assert_eq!(got, want("task_clone_body"));
+
+        let a = FakeApi::new().ok("GET changes/5/tasks", json!({"tasks": [task(), task2()]})).ok("POST changes/6/tasks", json!({"task": {"id": 1}})).ok("POST changes/6/tasks", json!({"id": 2}));
+        let mut d = Vec::new();
+        let out = clone_tasks(&a, 5, 6, false, now(), Some(&mut d)).unwrap();
+        assert_eq!(json!([out, d, writes(&a)]), want("clone_tasks"));
+    }
+
+    fn plan_rows() -> Value {
+        json!({"change_planning_fields": [
+            {"name": "reason_for_change", "label": "Reason", "description": " why ", "attachments": [
+                {"id": 1, "name": "r.txt", "attachment_url": "https://acme.freshservice.com/helpdesk/attachments/1", "content_type": "text/plain; charset=utf-8"},
+                {"id": 2, "name": "gone.txt", "canonical_url": "https://cdn/x?sig=1"},
+                {"id": 3, "name": "nourl.txt"}]},
+            {"name": "rollout_plan", "label": "Rollout plan", "description": "", "attachments": []},
+            {"name": "backout", "label": "Backout", "description": "back", "attachments": []},
+            {"name": "", "description": "orphan"}]})
+    }
+
+    fn assets() -> Value {
+        json!({"associated_assets": [{"id": 100, "display_id": 7, "config_item": {"display_id": 7}}, {"id": 101, "config_item": {"display_id": 8}}, {"id": 102}]})
+    }
+
+    #[test]
+    fn clone_side_effects_assets_and_planning() {
+        let a = FakeApi::new().ok("GET changes/5/tasks", json!({"tasks": [task(), task2()]})).ok("GET changes/5/planning-fields", plan_rows()).ok("GET changes/5/assets", assets());
+        assert_eq!(json!(clone_side_effects(&a, 5).unwrap()), want("side_effects"));
+
+        let a = FakeApi::new().ok("GET changes/5/assets", assets()).ok("PUT changes/6/assets/associate", json!({}));
+        assert_eq!(json!([clone_assets(&a, 5, 6).unwrap(), writes(&a)]), want("clone_assets"));
+        let a = FakeApi::new().ok("GET changes/5/assets", json!({"associated_assets": []}));
+        assert_eq!(json!([clone_assets(&a, 5, 6).unwrap(), writes(&a)]), want("clone_assets_none"));
+
+        let a = FakeApi::new()
+            .ok("GET changes/5/planning-fields", plan_rows())
+            .on("FETCH https://acme.freshservice.com/helpdesk/attachments/1?download=true", Reply::Raw(200, b"R!".to_vec()))
+            .on("FETCH https://cdn/x?sig=1", Reply::Status(403))
+            .ok("POST attachments", json!({"attachment": {"id": 900}}))
+            .ok("POST changes/6/planning-fields?id=reason_for_change", json!({}))
+            .ok("POST changes/6/planning-fields?id=backout", json!({}));
+        let out = clone_planning_fields(&a, 5, 6).unwrap();
+        let calls: Vec<Value> = a
+            .calls
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|c| {
+                let mut body = c.body.clone();
+                if let Some(Value::Object(m)) = body.as_mut() {
+                    m.remove("content_updated_at");
+                }
+                json!([c.method, c.path, body])
+            })
+            .collect();
+        let w = want("clone_planning");
+        let wcalls: Vec<Value> = w[1].as_array().unwrap().iter().map(|c| json!([c["method"], c["path"], c.get("body").cloned().unwrap_or(Value::Null)])).collect();
+        assert_eq!(json!([out, calls]), json!([w[0], wcalls]));
+    }
+
+    #[test]
+    fn attachment_url_and_safe_filename() {
+        let atts = [
+            json!({"attachment_url": "https://x/helpdesk/attachments/1"}),
+            json!({"attachment_url": "https://x/helpdesk/attachments/1?a=1"}),
+            json!({"canonical_url": "https://y/z"}),
+            json!({"canonical_path": "/helpdesk/attachments/9"}),
+            json!({}),
+        ];
+        assert_eq!(json!(atts.iter().map(|a| attachment_url(a, "acme.freshservice.com")).collect::<Vec<_>>()), want("attachment_url"));
+        assert_eq!(json!([" a/b\0c ", "  ", "ok.txt"].iter().map(|n| safe_filename(n)).collect::<Vec<_>>()), want("safe_filename"));
+    }
+
+    #[test]
+    fn download_attachment_cases() {
+        let dir = tmp("dl");
+        let a = FakeApi::new().on("FETCH https://x/f1", Reply::Raw(200, b"one".to_vec()));
+        let one = json!({"name": "one.txt", "attachment_url": "https://x/f1"});
+        let mut out = vec![
+            download_attachment(&a, &one, &dir, false).unwrap(),
+            download_attachment(&a, &one, &dir, false).unwrap(),
+            download_attachment(&a, &one, &dir, true).unwrap(),
+            download_attachment(&a, &json!({"id": 4, "attachment_url": "https://x/f1"}), &dir, false).unwrap(),
+        ];
+        for o in &mut out {
+            let base = Path::new(o["path"].as_str().unwrap()).file_name().unwrap().to_string_lossy().into_owned();
+            o["path"] = json!(base);
+        }
+        let paths: Vec<String> = a.calls.lock().unwrap().iter().map(|c| c.path.clone()).collect();
+        assert_eq!(json!([out, paths]), want("download"));
+        let bad = FakeApi::new().on("FETCH https://x/bad", Reply::Raw(500, b"err body".to_vec()));
+        assert_eq!(err(download_attachment(&bad, &json!({"name": "z.txt", "attachment_url": "https://x/bad"}), &dir, false)), want_err("download_bad"));
+        assert_eq!(err(download_attachment(&FakeApi::new(), &json!({"id": 1}), &dir, false)), want_err("download_nourl"));
+    }
+
+    #[test]
+    fn reupload_and_upload() {
+        let a = FakeApi::new().on("FETCH https://x/a", Reply::Raw(200, b"abc".to_vec())).ok("POST attachments", json!({"id": 5})).ok("POST attachments", json!("notadict"));
+        let out = json!([
+            reupload_attachment(&a, &json!({"attachment_url": "https://x/a", "name": "a.bin"})).unwrap(),
+            reupload_attachment(&a, &json!({"attachment_url": "https://x/a"})).unwrap(),
+            reupload_attachment(&a, &json!({})).unwrap(),
+            reupload_attachment(&a, &json!({"attachment_url": "https://x/none"})).unwrap(),
+        ]);
+        let bodies: Vec<Value> = a
+            .writes()
+            .iter()
+            .filter(|c| c.method == "POST")
+            .map(|c| {
+                let mut b = c.body.clone().unwrap();
+                b.as_object_mut().unwrap().remove("content_updated_at");
+                b
+            })
+            .collect();
+        assert_eq!(json!([out, bodies]), want("reupload"));
+
+        let a = FakeApi::new().ok("POST attachments", json!({"id": "12", "content_file_size": 3, "content_file_name": "n.txt"}));
+        assert_eq!(json!([upload_bytes(&a, "n.txt", b"xyz", "text/plain").unwrap(), writes(&a)]), want("upload_bytes"));
+        assert_eq!(err(upload_bytes(&FakeApi::new().ok("POST attachments", json!({"name": "n.txt"})), "n.txt", b"xyz", "text/plain")), want_err("upload_bytes_noid"));
+        let a = FakeApi::new().ok("POST attachments", json!({"id": 33}));
+        assert_eq!(json!([upload_file(&a, &file("a.txt")).unwrap(), a.writes()[0].body]), want("upload_file"));
+    }
+
+    fn exist_api() -> FakeApi {
+        FakeApi::new()
+            .ok("GET changes/5", json!({"change": {"id": 5, "attachments": [{"id": 1, "name": "a.txt", "attachment_url": "https://x/old-a", "content_type": "text/plain"}, {"id": 2, "content_file_name": "c.txt"}, {"name": "noid.txt"}]}}))
+            .ok("POST attachments", json!({"id": 50}))
+            .ok("POST attachments", json!({"id": 51}))
+            .ok("POST attachments", json!({"id": 52}))
+            .ok("PUT changes/5", json!({}))
+            .on("FETCH https://x/old-a", Reply::Raw(200, b"old".to_vec()))
+    }
+
+    fn dup(mode: Option<&str>, backup: Option<bool>, name: Option<&str>) -> DuplicateOpts {
+        DuplicateOpts { duplicate: mode.map(str::to_string), backup_replaced: backup, backup_name: name.map(str::to_string) }
+    }
+
+    #[test]
+    fn attach_files_to_change_modes() {
+        let (a, b) = (file("a.txt"), file("b.txt"));
+        let run = |paths: &[String], opts: DuplicateOpts, script: Script| -> Value {
+            let api = exist_api();
+            match attach_files_to_change(&api, 5, paths, &opts, &script) {
+                Ok(v) => json!([v, trail(&api)]),
+                Err(e) => json!({"msg": e.to_string()}),
+            }
+        };
+        let no = || Script::new(false, &[]);
+        let one = [a.clone()];
+        assert_eq!(run(&[a.clone(), b.clone()], dup(Some("append"), None, None), no()), want("attach_append"));
+        assert_eq!(run(&one, dup(Some("SKIP"), None, None), no()), want("attach_skip"));
+        assert_eq!(run(&one, dup(Some("replace"), Some(false), None), no()), want("attach_replace"));
+        assert_eq!(run(&one, dup(Some("replace"), Some(true), Some("old.txt")), no()), want("attach_replace_backup"));
+        assert_eq!(run(&one, dup(None, None, None), no())["msg"], want("attach_prompt_notty")["msg"]);
+        assert_eq!(run(&one, dup(None, None, None), Script::new(true, &["r", "n"])), want("attach_prompt_tty"));
+        assert_eq!(run(&one, dup(None, None, None), Script::new(true, &["overwrite", "", "mine.txt"])), want("attach_prompt_tty_backup"));
+        assert_eq!(run(&one, dup(None, None, None), Script::new(true, &["a"])), want("attach_prompt_tty_append"));
+        assert_eq!(run(&one, dup(None, None, None), Script::new(true, &["whatever"])), want("attach_prompt_tty_skip"));
+        assert_eq!(run(&one, dup(Some("nope"), None, None), no())["msg"], want("attach_bad_mode")["msg"]);
+        let api = FakeApi::new().ok("PATCH changes/5", json!({"ok": 1}));
+        assert_eq!(json!([set_due_by(&api, 5, "2030-01-01").unwrap(), writes(&api)]), want("set_due_by"));
+    }
+
+    fn body() -> Map<String, Value> {
+        obj(json!({"subject": "S", "cf_text": "x", "group_id": {"id": 3, "value": "G"}, "planned_start_date": "d", "attachments": [1], "unknown": 1}))
+    }
+
+    #[test]
+    fn update_and_submit_change() {
+        let sf = schema();
+        let a = FakeApi::new().ok("PUT changes/5", json!({"change": {"id": 5}}));
+        assert_eq!(json!([update_change(&a, 5, &body(), &sf).unwrap(), writes(&a)]), want("update_change"));
+        let put = |r: Reply| FakeApi::new().on("PUT changes/5", r);
+        assert_eq!(err(update_change(&put(Reply::Fail(400, json!({"errors": [{"field": "subject", "message": "bad"}, {}]}))), 5, &body(), &sf)), want_err("update_change_errs"));
+        assert_eq!(err(update_change(&put(Reply::Fail(400, json!({"description": "Validation failed"}))), 5, &body(), &sf)), want_err("update_change_desc"));
+        assert_eq!(err(update_change(&put(Reply::Fail(400, json!({"code": "x"}))), 5, &body(), &sf)), want_err("update_change_dict"));
+        assert_eq!(err(update_change(&put(Reply::Fail(500, json!("boom"))), 5, &body(), &sf)), want_err("update_change_raw"));
+
+        let a = FakeApi::new().ok("POST changes", json!({"change": {"id": 9}}));
+        assert_eq!(json!([submit_change(&a, &body(), &sf).unwrap(), writes(&a)]), want("submit_change"));
+        assert_eq!(err(submit_change(&FakeApi::new(), &obj(json!({"br_validation_excludes": "x"})), &sf)), want_err("submit_change_br"));
+        let post = |r: Reply| FakeApi::new().on("POST changes", r);
+        assert_eq!(err(submit_change(&post(Reply::Fail(400, json!({"errors": [{"field": "f", "message": "m"}]}))), &body(), &sf)), want_err("submit_change_errs"));
+        assert_eq!(err(submit_change(&post(Reply::Fail(400, json!({"description": "D"}))), &body(), &sf)), want_err("submit_change_desc"));
+    }
+
+    #[test]
+    fn api_failure_and_raw_bodies() {
+        let got: Vec<Value> = [json!({"errors": [{"field": "a", "message": "b"}]}), json!({"description": "D"}), json!({"x": 1}), json!("text")]
+            .into_iter()
+            .map(|b| {
+                let e = api_failure("create", ApiError::new(400, b).into());
+                json!([if e.as_api().is_some() { "APIError" } else { "RuntimeError" }, e.to_string()])
+            })
+            .collect();
+        assert_eq!(json!(got), want("api_failure"));
+        assert_eq!(api_body(api_failure("x", ApiError::new(400, json!("text")).into())), json!("text"));
+
+        let a = FakeApi::new().ok("POST changes", json!({"change": {"id": 9}}));
+        assert_eq!(json!([post_change_body(&a, &json!({"a": 1})).unwrap(), writes(&a)]), want("post_change_body"));
+        assert_eq!(post_change_body(&FakeApi::new().ok("POST changes", json!([1, 2])), &json!({"a": 1})).unwrap(), want("post_change_body_list"));
+        assert_eq!(err(post_change_body(&FakeApi::new().on("POST changes", Reply::Fail(400, json!({"description": "D"}))), &json!({"a": 1}))), want_err("post_change_body_err"));
+        let a = FakeApi::new().ok("PUT changes/5", json!({"id": 5}));
+        assert_eq!(json!([put_change_body(&a, 5, &json!({"a": 1})).unwrap(), writes(&a)]), want("put_change_body"));
+        assert_eq!(err(put_change_body(&FakeApi::new().on("PUT changes/5", Reply::Fail(422, json!({"errors": [{"field": "a"}]}))), 5, &json!({"a": 1}))), want_err("put_change_body_err"));
+    }
+
+    #[test]
+    fn planning_keys_and_labels() {
+        let keys = [json!("Planning-Field-cf_Rollout_Plans"), json!("cf_reason"), json!("Backout & Recovery"), json!(""), Value::Null, json!(12)];
+        assert_eq!(json!(keys.iter().map(planning_key).collect::<Vec<_>>()), want("planning_key"));
+        let mut sk: Vec<String> = keys.iter().map(singular_key).collect();
+        sk.push(singular_key(&json!("plans-items s")));
+        assert_eq!(json!(sk), want("singular_key"));
+        let sf = schema();
+        assert_eq!(json!(sf[sf.len() - 4..].iter().map(is_planning_field).collect::<Vec<_>>()), want("is_planning_field"));
+        assert_eq!(json!([norm_label(Some(&json!("  Backout &amp;  Recovery "))), norm_label(None), norm_label(Some(&json!(5)))]), want("norm_label"));
+        let mut with_junk = sf.clone();
+        with_junk.push(json!("junk"));
+        assert_eq!(json!(planning_definitions(&with_junk).iter().map(|f| f["name"].clone()).collect::<Vec<_>>()), want("planning_definitions"));
+        let defs = [json!({"name": "a", "id": 1}), json!({"id": 2}), json!({"name": "", "id": 3})];
+        assert_eq!(json!(defs.iter().map(planning_server_key).collect::<Vec<_>>()), want("planning_server_key"));
+    }
+
+    #[test]
+    fn resolve_planning() {
+        let sf = schema();
+        let vals = ["reason_for_change", "12", "rollout plan", "backout &amp; recovery", "planning-field-cf_rollout_plans", "cf_reason_for_change", "Back out step"];
+        let got: Vec<Value> = vals.iter().map(|v| resolve_planning_definition(v, &sf).unwrap()["name"].clone()).collect();
+        assert_eq!(json!(got), want("resolve_def"));
+        assert_eq!(err(resolve_planning_definition("zzz", &sf)), want_err("resolve_def_missing"));
+        assert_eq!(err(resolve_planning_definition("  ", &sf)), want_err("resolve_def_blank"));
+        let amb: Vec<Value> = serde_json::from_value(json!([{"name": "a", "field_type": "planning_field", "label": "Same"}, {"name": "b", "field_type": "planning_field", "label": "same"},
+                                                            {"name": "plan_x", "field_type": "planning_field", "label": "X"}, {"name": "plans_x", "field_type": "planning_field", "label": "Y"}])).unwrap();
+        assert_eq!(err(resolve_planning_definition("SAME", &amb)), want_err("resolve_def_amb_label"));
+        assert_eq!(err(resolve_planning_definition("planx", &amb)), want_err("resolve_def_amb_alias"));
+        let got = json!([resolve_planning_field("Rollout plan", &sf).unwrap(), resolve_planning_field("13", &[json!({"id": 13, "field_type": "planning_field"})]).unwrap()]);
+        assert_eq!(got, want("resolve_field"));
+    }
+
+    #[test]
+    fn match_rows_and_descriptions() {
+        let rows: Vec<Value> = serde_json::from_value(json!([{"name": "r1", "label": "Reason", "field_id": 11}, {"name": "r2", "label": "Plan", "planning_field_id": 12},
+                                                             {"id": 13, "label": "Backout"}, {"label": "dup"}, {"label": "Dup"}, "junk"])).unwrap();
+        let defs = [json!({"name": "r1"}), json!({"id": 12}), json!({"id": "13"}), json!({"label": " reason "}), json!({"label": "Plan", "id": 99}), json!({"name": "zz", "label": "nothing"}), json!({})];
+        assert_eq!(json!(defs.iter().map(|d| match_planning_row(d, &rows).unwrap()).collect::<Vec<_>>()), want("match_row"));
+        assert_eq!(err(match_planning_row(&json!({"label": "DUP"}), &rows)), want_err("match_row_amb"));
+        assert_eq!(err(match_planning_row(&json!({"name": "r1", "id": 99}), &rows)), want_err("match_row_conflict"));
+
+        let descs = [None, Some(json!({})), Some(json!({"description": "  "})), Some(json!({"description": 5, "body": " b "})), Some(json!({"content": "c"})), Some(json!({"description_text": "dt", "content": "c"}))];
+        assert_eq!(json!(descs.iter().map(|d| planning_description(d.as_ref())).collect::<Vec<_>>()), want("planning_description"));
+        assert_eq!(json!([default_planning_description(&[file("a.txt"), "/x/y/z.pdf".into()]), default_planning_description(&[])]), want("default_planning_description"));
+        let atts = [json!({"name": "n"}), json!({"content_file_name": "c"}), json!({"name": "", "content_file_name": "c"}), json!({})];
+        assert_eq!(json!(atts.iter().map(attachment_name).collect::<Vec<_>>()), want("attachment_name"));
+        let ids = [json!({"id": 3}), json!({"id": "4"}), json!({}), json!({"id": null})];
+        assert_eq!(json!(ids.iter().map(attachment_id).collect::<Vec<_>>()), want("attachment_id"));
+    }
+
+    #[test]
+    fn prompts_and_backup_names() {
+        let mut got = vec![err(prompt_duplicate_action("a.txt", 2, &Script::new(false, &[])))];
+        for ans in ["r", "Replace", "o", "overwrite", "a", "APPEND", "", "s", "x"] {
+            got.push(prompt_duplicate_action("a.txt", 2, &Script::new(true, &[&format!(" {ans} ")])).unwrap());
+        }
+        assert_eq!(json!(got), want("prompt_duplicate"));
+        let s = Script::new(true, &["x"]);
+        prompt_duplicate_action("a.txt", 2, &s).unwrap();
+        assert_eq!(s.prompts.borrow()[0], "  duplicate a.txt (2 existing). Choose [s]kip, [r]eplace, [a]ppend: ");
+
+        assert_eq!(json!([backup_name("a.txt", Some("b.tar.gz"), 0), backup_name("a.txt", Some("b.tar.gz"), 2), backup_name("a.txt", Some("plain"), 1)]), want("backup_name_given"));
+        let stamp = Regex::new(r"\d{8}-\d{6}").unwrap();
+        let got: Vec<String> = [backup_name("dir/a.txt", None, 0), backup_name("a.txt", None, 3), backup_name("noext", None, 0)].iter().map(|n| stamp.replace(n, "STAMP").into_owned()).collect();
+        let w: Vec<String> = want("backup_name_stamp").as_array().unwrap().iter().map(|n| stamp.replace(n.as_str().unwrap(), "STAMP").into_owned()).collect();
+        assert_eq!(got, w);
+
+        let got = json!([
+            choose_backup_name("a.txt", None, 0, true, &Script::new(true, &["  mine.txt "])),
+            choose_backup_name("a.txt", Some("given.txt"), 0, true, &Script::new(true, &[""])),
+            choose_backup_name("a.txt", Some("given.txt"), 1, true, &Script::new(true, &[""])),
+            choose_backup_name("a.txt", Some("given.txt"), 0, true, &Script::new(false, &[])),
+        ]);
+        assert_eq!(got, want("choose_backup_name"));
+
+        let mut got = vec![should_backup_replaced("a", Some(true), &Script::new(false, &[])), should_backup_replaced("a", Some(false), &Script::new(false, &[]))];
+        got.push(should_backup_replaced("a", None, &Script::new(false, &[])));
+        for ans in ["", "y", " N ", "no", "nope"] {
+            got.push(should_backup_replaced("a", None, &Script::new(true, &[ans])));
+        }
+        assert_eq!(json!(got), want("should_backup"));
+    }
+
+    #[test]
+    fn backup_attachment_cases() {
+        let a = FakeApi::new().on("FETCH https://x/o", Reply::Raw(200, b"old".to_vec())).ok("POST attachments", json!({"id": 61}));
+        let w = want("backup_attachment");
+        assert_eq!(json!([backup_attachment(&a, &json!({"attachment_url": "https://x/o"}), "old.txt").unwrap(), writes(&a)]), json!([w[0], [w[1][1]]]));
+        let a = FakeApi::new().on("FETCH https://x/o", Reply::Raw(200, b"old".to_vec())).ok("POST attachments", json!({"id": 61}));
+        let id = backup_attachment(&a, &json!({"attachment_url": "https://x/o", "content_type": "image/png"}), "old.zzz").unwrap();
+        assert_eq!(json!([id, a.writes().iter().find(|c| c.method == "POST").unwrap().body.as_ref().unwrap()["content_content_type"]]), want("backup_attachment_ct"));
+        assert_eq!(err(backup_attachment(&FakeApi::new(), &json!({"id": 1}), "x")), want_err("backup_attachment_nourl"));
+        assert_eq!(err(backup_attachment(&FakeApi::new().on("FETCH https://x/o", Reply::Raw(404, b"missing".to_vec())), &json!({"attachment_url": "https://x/o"}), "x")), want_err("backup_attachment_fail"));
+    }
+
+    fn upf_rows() -> Value {
+        json!({"change_planning_fields": [{"name": "rollout_plan", "label": "Rollout plan", "description": "", "attachments": [{"id": 1, "name": "a.txt", "attachment_url": "https://x/old-a"}]},
+                                          {"name": "reason_for_change", "label": "Reason", "description": "why", "attachments": []}]})
+    }
+
+    fn upf(field: &str, rows: Value, description: Option<&str>, paths: &[String], opts: DuplicateOpts, label: Option<&str>) -> Value {
+        let a = FakeApi::new()
+            .ok("GET changes/5/planning-fields", rows)
+            .ok("POST attachments", json!({"id": 70}))
+            .ok("POST attachments", json!({"id": 71}))
+            .on("FETCH https://x/old-a", Reply::Raw(200, b"old".to_vec()))
+            .ok("PUT changes/5/planning-fields/rollout_plan", json!({"ok": "put"}))
+            .ok("PUT changes/5/planning-fields/reason_for_change", json!({"ok": "put"}))
+            .ok("POST changes/5/planning-fields?id=backout", json!({"ok": "post"}));
+        match update_planning_field(&a, 5, field, description, paths, &opts, label, &Script::new(false, &[])) {
+            Ok(v) => json!([v, trail(&a)]),
+            Err(e) => json!({"msg": e.to_string()}),
+        }
+    }
+
+    #[test]
+    fn update_planning_field_cases() {
+        let (a, b, r) = (file("a.txt"), file("b.txt"), file("rollout.txt"));
+        let append = || dup(Some("append"), None, None);
+        let cases: Vec<(&str, Value)> = vec![
+            ("upf_append", upf("rollout_plan", upf_rows(), None, &[a.clone(), b.clone()], append(), None)),
+            ("upf_replace", upf("Rollout plan", upf_rows(), None, &[a.clone()], dup(Some("replace"), Some(true), Some("bk.txt")), Some("Rollout plan"))),
+            ("upf_skip_noop", upf("rollout_plan", upf_rows(), None, &[a.clone()], dup(Some("skip"), None, None), None)),
+            ("upf_desc_only", upf("reason_for_change", upf_rows(), Some("new why"), &[], DuplicateOpts::default(), None)),
+            ("upf_desc_kept", upf("reason_for_change", upf_rows(), None, &[b.clone()], append(), None)),
+            ("upf_new", upf("backout", upf_rows(), None, &[r.clone()], append(), None)),
+            ("upf_new_desc", upf("backout", upf_rows(), Some("text"), &[], DuplicateOpts::default(), None)),
+            ("upf_new_empty", upf("backout", upf_rows(), None, &[], DuplicateOpts::default(), None)),
+            ("upf_bad_mode", upf("rollout_plan", upf_rows(), None, &[a.clone()], dup(Some("x"), None, None), None)),
+            ("upf_unavailable", upf("x", json!({"nope": 1}), None, &[], DuplicateOpts::default(), None)),
+            ("upf_unavailable_list", upf("x", json!([1]), None, &[], DuplicateOpts::default(), None)),
+            ("upf_invalid_row", upf("x", json!({"change_planning_fields": [{"name": "a"}, 5]}), None, &[], DuplicateOpts::default(), None)),
+            ("upf_unidentified", upf("x", json!({"change_planning_fields": [{"name": "a"}, {"description": "?"}]}), None, &[], DuplicateOpts::default(), None)),
+        ];
+        for (key, got) in cases {
+            let w = want(key);
+            let w = if w.get("__error__").is_some() { json!({"msg": w["msg"]}) } else { w };
+            assert_eq!(got, w, "{key}");
+        }
+    }
+
+    #[test]
+    fn approvals_and_assets_reads() {
+        let got = json!([
+            get_change_approvals(&FakeApi::new().ok("GET changes/5/approvals", json!([{"id": 1}])), 5).unwrap(),
+            get_change_approvals(&FakeApi::new().ok("GET changes/5/approvals", json!({"approvals": [{"id": 2}]})), 5).unwrap(),
+            get_change_approvals(&FakeApi::new().ok("GET changes/5/approvals", json!({})), 5).unwrap(),
+        ]);
+        assert_eq!(got, want("approvals"));
+        assert_eq!(json!(get_change_approval_groups(&FakeApi::new().ok("GET changes/5/approval-chains", json!({"approval_chains": []})), 5).unwrap()), want("approval_groups"));
+        assert_eq!(err(get_change_approval_groups(&FakeApi::new().ok("GET changes/5/approval-chains", json!({"x": 1})), 5)), want_err("approval_groups_bad"));
+
+        assert_eq!(json!(get_change_assets(&FakeApi::new().ok("GET changes/5/assets", assets()), 5).unwrap()), want("assets_direct"));
+        assert_eq!(json!(get_change_assets(&FakeApi::new().ok("GET changes/5/assets", json!({"associated_assets": null})), 5).unwrap()), want("assets_null"));
+        let a = FakeApi::new()
+            .ok("GET changes/5/associated-cis", json!({"data": [{"id": 1}]}))
+            .on("GET changes/5/associated-cis", Reply::Status(404))
+            .ok("GET changes/5/associated-cis", json!({"data": [{"id": 3}]}));
+        let items = get_change_assets(&a, 5).unwrap();
+        let calls: Vec<Value> = a.calls.lock().unwrap().iter().map(|c| json!([c.path, c.params])).collect();
+        assert_eq!(json!([items, calls]), want("assets_fallback"));
+        let a = FakeApi::new().ok("GET changes/5/assets", json!({"x": 1})).ok("GET changes/5/associated-cis", json!({"data": [{"id": 9}]}));
+        assert_eq!(json!([get_change_assets(&a, 5).unwrap(), a.calls.lock().unwrap().len()]), want("assets_other_shape"));
+        assert_eq!(err(get_change_assets(&FakeApi::new().on("GET changes/5/assets", Reply::Status(500)), 5)), want_err("assets_500"));
+        assert_eq!(err(get_change_assets(&FakeApi::new().on("GET changes/5/associated-cis", Reply::Status(500)), 5)), want_err("assets_cis_500"));
+    }
+
+    #[test]
+    fn asset_writes_and_searches() {
+        let a = FakeApi::new().ok("GET assets-to-associate", json!({"assets": []}));
+        let r1 = search_assets_for_change(&a, 5, "srv", 2, 10).unwrap();
+        let r2 = search_assets_for_change(&a, 5, "", 1, 30).unwrap();
+        let p = |i: usize| json!(a.calls.lock().unwrap()[i].params);
+        assert_eq!(json!([r1, p(0), r2, p(1)]), want("search_assets"));
+        let a = FakeApi::new().ok("PUT changes/5/assets/associate", json!({}));
+        associate_assets(&a, 5, &[7, 8]).unwrap();
+        assert_eq!(json!([null, writes(&a)]), want("associate_assets"));
+        let a = FakeApi::new().ok("GET changes/5/assets", assets()).ok("PUT changes/5/assets/detach", json!({}));
+        dissociate_assets(&a, 5, &[8, 7]).unwrap();
+        assert_eq!(json!([null, writes(&a)]), want("dissociate_assets"));
+        assert_eq!(err(dissociate_assets(&FakeApi::new().ok("GET changes/5/assets", assets()), 5, &[99])), want_err("dissociate_missing"));
+
+        let r = get_change_associations(&FakeApi::new(), 5).unwrap();
+        let mut keys: Vec<String> = r.as_object().unwrap().keys().cloned().collect();
+        keys.sort();
+        assert_eq!(json!([r["complete"], keys]), want("associations"));
+        let a = FakeApi::new().ok("GET changes/tickets/search", json!({"tickets": [{"id": 1}]}));
+        assert_eq!(json!([search_change_tickets(&a, "vpn").unwrap(), a.calls.lock().unwrap()[0].params]), want("search_tickets"));
+    }
+
+    #[test]
+    fn activities_follow_start_token() {
+        let f = FakeApi::new()
+            .ok("GET changes/5/activities", json!({"activities": [{"id": 1}], "next_page_url": "/x?start_token=abc&y"}))
+            .ok("GET changes/5/activities", json!({"activities": [{"id": 2}], "next_page_url": "/x?nothing"}));
+        let g = FakeApi::new()
+            .ok("GET changes/5/activities", json!({"activities": [{"id": 1}], "next_page_url": "/x?start_token=T"}))
+            .ok("GET changes/5/activities", json!({"activities": [], "next_page_url": "/x?start_token=U"}));
+        let (a, b) = (get_change_activities(&f, 5).unwrap(), get_change_activities(&g, 5).unwrap());
+        let params = |x: &FakeApi| json!(x.calls.lock().unwrap().iter().map(|c| json!(c.params)).collect::<Vec<_>>());
+        assert_eq!(json!([a, params(&f), b, params(&g)]), want("activities"));
+    }
+
+    #[test]
+    fn ticket_association_wrappers() {
+        let j = MemJournal::default();
+        let dry = crate::associations::SendOpts { reviewed_hash: None, read_only: false, dry_run: true };
+        let ro = crate::associations::SendOpts { reviewed_hash: None, read_only: true, dry_run: false };
+        assert_eq!(associate_ticket(&FakeApi::new(), &j, "5", &[json!(7)], dry).unwrap(), want("associate_ticket_dry"));
+        assert_eq!(err(associate_ticket(&FakeApi::new(), &j, "5", &[json!(7)], ro)), want_err("associate_ticket_ro"));
+        assert_eq!(dissociate_ticket(&FakeApi::new(), &j, "5", &json!(7), dry).unwrap(), want("dissociate_ticket_dry"));
+    }
+
+    #[test]
+    fn task_edit_writes() {
+        let a = FakeApi::new().ok("GET changes/5/tasks/70", json!({"task": task()}));
+        assert_eq!(json!(get_task_for_edit(&a, 5, 70).unwrap()), want("task_for_edit"));
+        let a = FakeApi::new().ok("PUT changes/5/tasks/70", json!({"ok": 1}));
+        assert_eq!(json!([task_put(&a, "changes/5/tasks/70", &json!({"a": 1})).unwrap(), writes(&a)]), want("task_put"));
+        let a = FakeApi::new().ok("PUT changes/5/tasks/update", json!({}));
+        delete_task(&a, 5, 70).unwrap();
+        assert_eq!(json!([null, writes(&a)]), want("delete_task"));
+        let a = FakeApi::new().ok("PUT changes/5/tasks/70", json!({"task": {"id": 70}}));
+        let got = update_task(&a, 5, 70, &obj(json!({"title": "T", "custom_fields": {"team_name": "x", "a": null, "b": 1}}))).unwrap();
+        assert_eq!(json!([got, writes(&a)]), want("update_task"));
+        let a = FakeApi::new().ok("PUT changes/5/tasks/70", json!({"id": 70}));
+        let got = update_task(&a, 5, 70, &obj(json!({"title": "T", "custom_fields": {}}))).unwrap();
+        assert_eq!(json!([got, a.writes()[0].body]), want("update_task_nocf"));
+    }
+
+    fn dl_api() -> FakeApi {
+        FakeApi::new()
+            .ok("GET changes/5/planning-fields", json!({"change_planning_fields": [
+                {"name": "reason_for_change", "label": "Reason for change!", "description": " why ", "attachments": [
+                    {"name": "a.txt", "attachment_url": "https://x/1"}, {"name": "a.txt", "canonical_url": "https://x/2"}, {"name": "skip.txt"}, {"attachment_url": "https://x/404"}]},
+                {"name": "rollout_plan", "label": "", "description": "", "attachments": [{"name": "r.txt", "attachment_url": "https://x/3"}]},
+                {"name": "backout", "label": "???", "description": "back", "attachments": []},
+                {"name": "empty", "label": "Empty", "description": "", "attachments": []},
+                {"label": "nameless", "description": "x"}]}))
+            .on("FETCH https://x/1", Reply::Raw(200, b"one".to_vec()))
+            .on("FETCH https://x/2", Reply::Raw(200, b"two".to_vec()))
+            .on("FETCH https://x/3", Reply::Raw(200, b"three".to_vec()))
+            .on("FETCH https://x/404", Reply::Raw(404, vec![]))
+    }
+
+    #[test]
+    fn download_planning_attachments_cases() {
+        let run = |names: Option<&[String]>, desc: bool, sub: &str| {
+            let a = dl_api();
+            let out = tmp(sub);
+            let paths = download_planning_attachments(&a, 5, names, Some(&out), desc).unwrap();
+            let files: Vec<Value> = paths.iter().map(|p| json!([p.file_name().unwrap().to_string_lossy(), std::fs::read_to_string(p).unwrap()])).collect();
+            let calls: Vec<String> = a.calls.lock().unwrap().iter().map(|c| c.path.clone()).collect();
+            json!([files, calls])
+        };
+        assert_eq!(run(None, true, "pdl_all"), want("planning_download"));
+        let names = ["rollout_plan".to_string(), "backout".to_string()];
+        assert_eq!(run(Some(&names), false, "pdl_names"), want("planning_download_names"));
+    }
 }

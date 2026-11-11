@@ -1,0 +1,743 @@
+{
+ "norm": [
+  "áb c",
+  "5",
+  "none"
+ ],
+ "rows": [
+  [
+   {
+    "a": 1
+   }
+  ],
+  [
+   {
+    "b": 1
+   }
+  ],
+  [],
+  []
+ ],
+ "list_categories": [
+  [
+   {
+    "id": 1,
+    "name": "Engineering"
+   },
+   {
+    "id": 2,
+    "name": "Eng Tools",
+    "parent_id": 1
+   },
+   {
+    "id": 3,
+    "name": "Access"
+   },
+   {
+    "id": 4,
+    "name": "VPN",
+    "parent_id": 9
+   }
+  ],
+  {
+   "category_hierarchy": "true"
+  }
+ ],
+ "list_items": [
+  [
+   1,
+   2,
+   4
+  ],
+  [
+   {
+    "aurora_search": "true",
+    "page": 1,
+    "per_page": 30
+   },
+   {
+    "aurora_search": "true",
+    "page": 2,
+    "per_page": 30
+   }
+  ]
+ ],
+ "list_popular": [
+  [
+   {
+    "id": 5,
+    "display_id": 15,
+    "name": "Pop",
+    "short_description": "Pop desc",
+    "category_id": 1
+   }
+  ],
+  {
+   "filter": "frequently_requested"
+  }
+ ],
+ "list_short_page": [
+  [
+   1
+  ],
+  1
+ ],
+ "resolve_category": [
+  [
+   1,
+   2
+  ],
+  [
+   3
+  ],
+  [
+   4
+  ]
+ ],
+ "resolve_category_many": {
+  "__error__": "ValueError",
+  "msg": "several categories match 'e'; categories: Engineering, Eng Tools, Access"
+ },
+ "resolve_category_none": {
+  "__error__": "ValueError",
+  "msg": "no category matches 'zzz'; categories: Engineering, Eng Tools, Access, VPN"
+ },
+ "filter_items": [
+  [
+   1,
+   4
+  ],
+  [
+   2
+  ],
+  [
+   4
+  ],
+  [
+   4
+  ]
+ ],
+ "get_item": "Acme request",
+ "get_item_bad": {
+  "__error__": "APIError",
+  "msg": "HTTP 200 fetching service-item: no catalog item 5 in the response"
+ },
+ "item_ref": [
+  "77",
+  "Laptop"
+ ],
+ "find_item": [
+  77,
+  11
+ ],
+ "find_item_empty": {
+  "__error__": "ValueError",
+  "msg": "catalog item is empty"
+ },
+ "find_item_none": {
+  "__error__": "ValueError",
+  "msg": "no catalog item matches 'printer'; list them with `fsv sr catalog --search TEXT`"
+ },
+ "find_item_many": {
+  "__error__": "ValueError",
+  "msg": "3 catalog items match 'a': #11 Laptop; #12 VPN Access; #14 Build Agent. Use the item id."
+ },
+ "place_request": [
+  {
+   "service_request": {
+    "id": 5,
+    "display_id": 6
+   }
+  },
+  [
+   {
+    "method": "POST",
+    "path": "catalog/service-items/77/place-request",
+    "params": null,
+    "body": {
+     "a": 1
+    }
+   }
+  ]
+ ],
+ "created_ref": [
+  {
+   "id": 1,
+   "display": "SR-1"
+  },
+  {
+   "id": 6,
+   "display": "SR-6"
+  },
+  {
+   "id": 2,
+   "display": "SR-9"
+  },
+  {
+   "id": null,
+   "display": "(no id in the response)"
+  },
+  {
+   "id": null,
+   "display": "(no id in the response)"
+  }
+ ],
+ "item_meta": [
+  9000000002,
+  "Acme request",
+  [
+   "answer",
+   "deck",
+   "size"
+  ],
+  "7710226f5e70aa2b688f1877c2b2e1f9307b1112f5ac5ba8b52c2233f060e048",
+  {
+   "updated_at": "2030-01-15T10:00:00+09:00",
+   "fetched_at": "1970-01-01T00:00:00+00:00",
+   "source": "server",
+   "fingerprint": "7710226f5e70aa2b"
+  }
+ ],
+ "load_item_meta": [
+  {
+   "business_rules": [],
+   "user": {
+    "id": 1
+   },
+   "workspace": 3
+  },
+  3,
+  "server",
+  [
+   "ws/3/business_rules"
+  ],
+  "9000000001"
+ ],
+ "match_choice": [
+  [
+   "Small",
+   null
+  ],
+  [
+   "medium   large",
+   null
+  ],
+  [
+   "me",
+   null
+  ],
+  [
+   "Mega",
+   "Size: 'meg' matched the choice 'Mega'"
+  ],
+  [
+   "x",
+   null
+  ],
+  [
+   5,
+   null
+  ]
+ ],
+ "lenient": [
+  {
+   "Size": "Mega",
+   "answer": "hi",
+   "unknown": 1
+  },
+  [
+   "Size: 'meg' matched the choice 'Mega'"
+  ]
+ ],
+ "file_answers": {
+  "Deck": [
+   "/base/deck.pptx"
+  ],
+  "answer": "x",
+  "deck2": "y"
+ },
+ "file_answers_abs": "/abs/a.pptx",
+ "rule_diag": [
+  [],
+  []
+ ],
+ "rule_diag_unavailable": [
+  [
+   "business rules could not be loaded (why); only the form's static required/visible settings were checked, the server may still ask for more. If the account has workspaces, `fsv config set forms.workspace_id N` picks the right one"
+  ],
+  [
+   "business rules are unavailable; use the web form"
+  ]
+ ],
+ "lookup_errors": [
+  [
+   "Who: catalog lookup submission is unverified; use the web form"
+  ],
+  [],
+  []
+ ],
+ "digest": {
+  "name": "deck.pptx",
+  "size": 10,
+  "sha256": "83233083fa45dbee0f0d1f45cdb338cc644165080ef965ccf9380bc040ac149d"
+ },
+ "requester_line": [
+  "Requester: Ann (approvals route via Ann’s manager)",
+  "Requester: b@c.co (approvals route via b@c.co’s manager)",
+  "Requester: 3 (approvals route via 3’s manager)"
+ ],
+ "plan": [
+  true,
+  "catalog-item/9000000002",
+  {
+   "deck": [
+    "/tmp/fsv_oracle/files/deck.pptx"
+   ],
+   "attachments": [
+    "/tmp/fsv_oracle/files/notes.txt"
+   ]
+  },
+  "82b90613beb7bbd6704611ea0265af441873d64e713cfdb8ec92022587d40b89",
+  {
+   "plan_hash": "82b90613beb7bbd6704611ea0265af441873d64e713cfdb8ec92022587d40b89",
+   "action": "place-request",
+   "item": {
+    "id": 9000000001,
+    "display_id": 9000000002,
+    "name": "Acme request"
+   },
+   "endpoint": "POST /api/_/catalog/service-items/9000000002/place-request",
+   "requester": {
+    "id": 9000000007,
+    "name": "Acme",
+    "email": "a@example.com"
+   },
+   "recipient_identity": {},
+   "payload": {
+    "email": "a@example.com",
+    "custom_fields": {
+     "answer": "ok",
+     "size": "Mega",
+     "deck": [
+      "<upload 1: deck.pptx>"
+     ]
+    },
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyI5MDAwMDAwMDAxIjp7Im9wdGlvbmFsIjoiW10iLCJkaXNhYmxlZCI6IltdIiwiaGlkZGVuIjoiW10ifX0=",
+    "attachments": [
+     "<upload 2: notes.txt>"
+    ]
+   },
+   "uploads": [
+    {
+     "placeholder": "<upload 1: deck.pptx>",
+     "target": "Deck",
+     "name": "deck.pptx",
+     "size": 10,
+     "sha256": "83233083fa45dbee0f0d1f45cdb338cc644165080ef965ccf9380bc040ac149d"
+    },
+    {
+     "placeholder": "<upload 2: notes.txt>",
+     "target": "Other attachments",
+     "name": "notes.txt",
+     "size": 6,
+     "sha256": "444e0fffbd825e9610ff5b199485707a0c895339ae80c15cc8a8aee41b106fda"
+    }
+   ],
+   "safety": "This sends a real service request to the catalog item's fulfilment team.",
+   "review": {
+    "title": "New service request: Acme request",
+    "rows": [
+     {
+      "label": "Catalog item",
+      "value": "Acme request (#9000000002) · Eng"
+     },
+     {
+      "label": "Requester",
+      "value": "Acme <a@example.com>"
+     },
+     {
+      "label": "Answer",
+      "value": "ok"
+     },
+     {
+      "label": "Deck",
+      "value": "deck.pptx"
+     },
+     {
+      "label": "Size",
+      "value": "Mega"
+     }
+    ],
+    "changes": [],
+    "notify": [
+     "This sends a real service request to the catalog item's fulfilment team.",
+     "Requester: Acme (approvals route via Acme’s manager)"
+    ],
+    "messages": [],
+    "dropped": [],
+    "notes": [],
+    "attachments": [
+     {
+      "target": "Deck",
+      "name": "deck.pptx",
+      "size": 10,
+      "sha256": "83233083fa45dbee0f0d1f45cdb338cc644165080ef965ccf9380bc040ac149d",
+      "path": "/tmp/fsv_oracle/files/deck.pptx"
+     },
+     {
+      "target": "Other attachments",
+      "name": "notes.txt",
+      "size": 6,
+      "sha256": "444e0fffbd825e9610ff5b199485707a0c895339ae80c15cc8a8aee41b106fda",
+      "path": "/tmp/fsv_oracle/files/notes.txt"
+     }
+    ],
+    "risks": [],
+    "errors": [],
+    "warnings": [
+     "Separate requested-for is available via --requested-for; requester remains unchanged.",
+     "Size: 'meg' matched the choice 'Mega'"
+    ],
+    "metadata": {
+     "updated_at": "2030-01-15T10:00:00+09:00",
+     "source": "server",
+     "fingerprint": "7710226f5e70aa2b"
+    },
+    "plan_hash": "82b90613beb7bbd6704611ea0265af441873d64e713cfdb8ec92022587d40b89"
+   },
+   "warnings": [
+    "Separate requested-for is available via --requested-for; requester remains unchanged.",
+    "Size: 'meg' matched the choice 'Mega'"
+   ],
+   "errors": []
+  }
+ ],
+ "plan_recipients": [
+  true,
+  {
+   "email": "a@example.com",
+   "custom_fields": {
+    "answer": "ok"
+   },
+   "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyI5MDAwMDAwMDAxIjp7Im9wdGlvbmFsIjoiW10iLCJkaXNhYmxlZCI6IltdIiwiaGlkZGVuIjoiW10ifX0=",
+   "attachments": [],
+   "requested_for": "bob@example.com",
+   "cc_emails": [
+    "c@example.com"
+   ]
+  },
+  {
+   "requested_for_id": 55,
+   "cc_ids": [
+    66
+   ],
+   "tenant": "acme.freshservice.com"
+  },
+  "ab09e59e340830bc1e26b2ba6b0f89f1c4360defee3340d4e239bc7b80a5f85e",
+  [
+   [
+    "Catalog item",
+    "Acme request (#9000000002) · Eng"
+   ],
+   [
+    "Requester",
+    "Acme <a@example.com>"
+   ],
+   [
+    "Requested for",
+    "Bob <bob@example.com> (user ID 55)"
+   ],
+   [
+    "CC",
+    "c@example.com (user ID 66)"
+   ],
+   [
+    "Answer",
+    "ok"
+   ]
+  ]
+ ],
+ "plan_errors": [
+  false,
+  [
+   "requester is not set: pass --requester EMAIL, add `requester:` to the draft, or set defaults.sr_requester in the fsv config",
+   "description_md/description_html: catalog items have no description field; answer the item's own fields",
+   "planning: is for changes; service requests have no planning fields",
+   "unknown field: 'Nope'",
+   "file not found: /missing.txt"
+  ],
+  null,
+  ""
+ ],
+ "plan_errors2": [
+  [
+   "requester NoMail has no email address",
+   "CC recipients must be plain email addresses"
+  ],
+  null
+ ],
+ "send_failure": [
+  "upload failed: boom. Uploaded attachment ids: 1 (a.txt)",
+  "place-request failed: x. Uploaded attachment ids: none"
+ ],
+ "substitute": {
+  "a": [
+   7,
+   {
+    "b": 7
+   }
+  ],
+  "c": "<u2>",
+  "d": 1
+ },
+ "execute": {
+  "created": {
+   "id": 500,
+   "display": "SR-600"
+  },
+  "result": {
+   "service_request": {
+    "id": 500,
+    "display_id": 600
+   }
+  },
+  "uploaded": [
+   {
+    "id": 101,
+    "name": "deck.pptx",
+    "target": "Deck"
+   },
+   {
+    "id": 102,
+    "name": "notes.txt",
+    "target": "Other attachments"
+   }
+  ],
+  "body": {
+   "email": "a@example.com",
+   "custom_fields": {
+    "answer": "ok",
+    "size": "Mega",
+    "deck": [
+     101
+    ]
+   },
+   "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyI5MDAwMDAwMDAxIjp7Im9wdGlvbmFsIjoiW10iLCJkaXNhYmxlZCI6IltdIiwiaGlkZGVuIjoiW10ifX0=",
+   "attachments": [
+    102
+   ]
+  },
+  "plan_hash": "82b90613beb7bbd6704611ea0265af441873d64e713cfdb8ec92022587d40b89",
+  "steps": [
+   {
+    "step": "upload",
+    "ok": true,
+    "ids": [
+     101,
+     102
+    ]
+   },
+   {
+    "step": "place-request",
+    "ok": true,
+    "id": 500
+   }
+  ],
+  "verification": {
+   "verified": false,
+   "fields": {}
+  }
+ },
+ "execute_events": [
+  "started",
+  "done"
+ ],
+ "execute_writes": [
+  {
+   "method": "POST",
+   "path": "catalog/service-items/9000000002/place-request",
+   "params": null,
+   "body": {
+    "email": "a@example.com",
+    "custom_fields": {
+     "answer": "ok",
+     "size": "Mega",
+     "deck": [
+      101
+     ]
+    },
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyI5MDAwMDAwMDAxIjp7Im9wdGlvbmFsIjoiW10iLCJkaXNhYmxlZCI6IltdIiwiaGlkZGVuIjoiW10ifX0=",
+    "attachments": [
+     102
+    ]
+   }
+  }
+ ],
+ "execute_dup": {
+  "__error__": "FlowExit",
+  "msg": "this exact plan was already sent at None (created 500). Check `fsv journal tail`; pass --allow-duplicate to send it again."
+ },
+ "execute_dup_allowed_started": null,
+ "execute_422": {
+  "__error__": "SendFailure",
+  "msg": "place-request failed: HTTP 422: nope. Uploaded attachment ids: 7 (deck.pptx), 7 (notes.txt)"
+ },
+ "execute_422_events": [
+  "started",
+  "failed"
+ ],
+ "execute_upload_fail": {
+  "__error__": "SendFailure",
+  "msg": "upload failed: disk. Uploaded attachment ids: none"
+ },
+ "execute_upload_fail_events": [
+  "started",
+  "failed"
+ ],
+ "execute_bad_plan": {
+  "__error__": "FlowExit",
+  "msg": "plan has problems: requester is not set: pass --requester EMAIL, add `requester:` to the draft, or set defaults.sr_requester in the fsv config; description_md/description_html: catalog items have no description field; answer the item's own fields; planning: is for changes; service requests have no planning fields; unknown field: 'Nope'; file not found: /missing.txt"
+ },
+ "execute_noid": {
+  "__error__": "SendFailure",
+  "msg": "place-request failed: response has no exact request ID; outcome unknown. Uploaded attachment ids: 3 (deck.pptx), 3 (notes.txt)"
+ },
+ "execute_noid_events": [
+  "started"
+ ],
+ "execute_identity": {
+  "created": {
+   "id": 500,
+   "display": "SR-500"
+  },
+  "result": {
+   "service_request": {
+    "id": 500
+   }
+  },
+  "uploaded": [],
+  "body": {
+   "email": "a@example.com",
+   "custom_fields": {
+    "answer": "ok"
+   },
+   "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyI5MDAwMDAwMDAxIjp7Im9wdGlvbmFsIjoiW10iLCJkaXNhYmxlZCI6IltdIiwiaGlkZGVuIjoiW10ifX0=",
+   "attachments": [],
+   "requested_for": "bob@example.com",
+   "cc_emails": [
+    "c@example.com"
+   ]
+  },
+  "plan_hash": "ab09e59e340830bc1e26b2ba6b0f89f1c4360defee3340d4e239bc7b80a5f85e",
+  "steps": [
+   {
+    "step": "upload",
+    "ok": true,
+    "ids": []
+   },
+   {
+    "step": "place-request",
+    "ok": true,
+    "id": 500
+   }
+  ],
+  "verification": {
+   "verified": false,
+   "fields": {
+    "email": "matched",
+    "requested_for": "matched",
+    "cc_emails": "mismatched"
+   },
+   "warning": "Request recipient fields were not fully verified; do not resend."
+  }
+ },
+ "execute_changed_file": {
+  "__error__": "FlowExit",
+  "msg": "the reviewed payload or files changed; review again"
+ },
+ "dup_started": {
+  "__error__": "FlowExit",
+  "msg": "previous request outcome is unknown; inspect the server and journal before retry"
+ },
+ "dup_done": {
+  "__error__": "FlowExit",
+  "msg": "this exact plan was already sent at None (created 5). Check `fsv journal tail`; pass --allow-duplicate to send it again."
+ },
+ "dup_allowed": null,
+ "freshen_same": [
+  true,
+  null
+ ],
+ "freshen_same_hash": [
+  true,
+  null
+ ],
+ "freshen_changed": [
+  "a55a9b393ef6c762aa3a433ac58eb934c6a5a75a3c8b8f2360e26fb3018e3f96",
+  [
+   "Answer: ok → new"
+  ]
+ ],
+ "label_map": {
+  "a": "A & B",
+  "s": "S",
+  "s1": "S1",
+  "s2": "S2",
+  "s3": "S3"
+ },
+ "item_labels": {
+  "answer": "Ans",
+  "deck": "Deck",
+  "size": "Size"
+ },
+ "item_labels_404": {},
+ "item_labels_complete": {
+  "q": "Q"
+ },
+ "value_text": [
+  "a, N",
+  "V",
+  "{'x': 1}",
+  "Yes",
+  "No",
+  "a b",
+  "5",
+  "None",
+  "a < b"
+ ],
+ "is_file_value": [
+  true,
+  true,
+  true,
+  false,
+  false,
+  false,
+  false
+ ],
+ "safe_target": "/private/tmp/fsv_oracle/dl/a.txt",
+ "st_empty": {
+  "__error__": "ValueError",
+  "msg": "empty file name"
+ },
+ "st_dots": {
+  "__error__": "ValueError",
+  "msg": "unsafe file name 'a..b': contains '..'"
+ },
+ "st_sep": {
+  "__error__": "ValueError",
+  "msg": "unsafe file name 'a/b': contains a path separator"
+ },
+ "st_bs": {
+  "__error__": "ValueError",
+  "msg": "unsafe file name 'a\\\\b': contains a path separator"
+ },
+ "st_drive": {
+  "__error__": "ValueError",
+  "msg": "unsafe file name 'C:x': absolute path"
+ },
+ "st_ctl": {
+  "__error__": "ValueError",
+  "msg": "unsafe file name 'a\\x01': control characters"
+ },
+ "domain_url": "https://acme.freshservice.com/a/b"
+}

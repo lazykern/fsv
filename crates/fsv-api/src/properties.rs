@@ -223,3 +223,111 @@ pub fn send(plan: &PropertyPlan, c: &dyn Api, journal: &dyn Journal, store: &dyn
     }
     Ok(Value::Object(result))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::formmeta::MemStore;
+    use crate::service::testing::*;
+
+    const TOKEN: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=";
+    const HASH: &str = "8d4a9b0683a1e5313139a37cb19d4b6f4e9fc917ee7891bd836574a744b03ffc";
+    const UNVERIFIED: &str = "Ticket fields not fully verified on read-back; do not resend.";
+
+    fn err<T: std::fmt::Debug>(r: Result<T>) -> String {
+        r.unwrap_err().to_string()
+    }
+
+    fn row() -> Value {
+        json!({"id": 123, "subject": "Test", "tags": ["old"], "planned_start_date": null, "planned_end_date": null, "status": 2})
+    }
+
+    fn tags() -> Vec<String> {
+        vec!["a".into(), "b".into()]
+    }
+
+    fn plan() -> PropertyPlan {
+        let t = tags();
+        build_plan(&ticket_api(json!({"ticket": row()})), &MemStore::default(), "123", Some(&t), Some("2030-01-01T09:00:00+07:00"), None).unwrap()
+    }
+
+    #[test]
+    fn record_exact_target() {
+        assert_eq!(Value::Object(record(&ticket_api(json!({"ticket": row()})), 123).unwrap()), row());
+        assert_eq!(Value::Object(record(&ticket_api(json!({"id": "123", "x": 1})), 123).unwrap()), json!({"id": "123", "x": 1}));
+        assert_eq!(err(record(&ticket_api(json!({"ticket": {"id": 5}})), 123)), "ticket read did not identify the exact target; no update attempted");
+        assert_eq!(err(record(&ticket_api(json!([1])), 123)), "ticket read returned an invalid record; no update attempted");
+    }
+
+    #[test]
+    fn build_plan_matches_python() {
+        let p = plan();
+        assert_eq!(p.body_json, format!("{{\"br_validation_excludes\": \"{TOKEN}\", \"planned_start_date\": \"2030-01-01T09:00:00+07:00\", \"tags\": [\"a\", \"b\"]}}"));
+        assert_eq!(p.before_json, r#"{"planned_start_date": null, "tags": ["old"]}"#);
+        assert_eq!((p.record_hash.as_str(), p.hash()), ("4ff17c2dd9deab1b41491a97c93c5857169f1d7dee30a7decb4552d53e4b9f7a", HASH.to_string()));
+        assert_eq!(Value::Object(p.review()), json!({"action": "ticket_properties", "method": "PUT", "path": "/api/_/tickets/123",
+            "before": {"planned_start_date": null, "tags": ["old"]}, "after": {"planned_start_date": "2030-01-01T09:00:00+07:00", "tags": ["a", "b"]},
+            "payload": {"br_validation_excludes": TOKEN, "planned_start_date": "2030-01-01T09:00:00+07:00", "tags": ["a", "b"]},
+            "plan_hash": HASH, "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."}));
+    }
+
+    #[test]
+    fn build_plan_errors() {
+        let c = ticket_api(json!({"ticket": row()}));
+        let store = MemStore::default();
+        let tag_err = "tags must be nonempty text without surrounding whitespace or control characters";
+        assert_eq!(err(build_plan(&c, &store, "123", Some(&[" a".to_string()]), None, None)), tag_err);
+        assert_eq!(err(build_plan(&c, &store, "123", Some(&[]), None, None)), tag_err);
+        assert_eq!(err(build_plan(&c, &store, "123", None, None, None)), "specify --tag, --planned-start or --planned-end");
+        assert_eq!(err(build_plan(&c, &store, "123", None, None, Some("2030-01-01"))),
+                   "planned dates require ISO-8601 date/time with explicit offset, whole seconds (no host timezone inferred)");
+        assert_eq!(err(build_plan(&c, &store, "123", None, Some(" "), None)), "planned dates cannot be empty");
+        let t = vec!["a".to_string()];
+        assert_eq!(err(build_plan(&ticket_api(json!({"ticket": {"id": 123}})), &store, "123", Some(&t), None, None)), "ticket read did not include: tags");
+        let no_rules = FakeApi::new().ok("GET ticket_form_fields", ticket_form(3)).ok("GET tickets/123", json!({"ticket": row()}));
+        assert_eq!(err(build_plan(&no_rules, &store, "123", Some(&t), None, None)), "ticket business rules are unavailable; use the web form");
+        assert_eq!(err(build_plan(&c, &store, "CHN-1", Some(&t), None, None)), "prefix CHN not valid for tickets (expect INC or SR)");
+    }
+
+    #[test]
+    fn send_verifies_readback() {
+        let p = plan();
+        let mut after = row();
+        after["tags"] = json!(["a", "b"]);
+        after["planned_start_date"] = json!("2030-01-01T02:00:00Z");
+        let c = ticket_api(json!({"ticket": row()})).ok("GET tickets/123", json!({"ticket": after})).ok("PUT tickets/123", json!({}));
+        let (j, store) = (MemJournal::default(), MemStore::default());
+        assert_eq!(send(&p, &c, &j, &store, Some(HASH)).unwrap(),
+                   json!({"status": "submitted", "ticket_id": 123, "plan_hash": HASH, "verified": true, "fields": {"planned_start_date": "matched", "tags": "matched"}}));
+        assert_eq!(j.events(), ["started", "done"]);
+        let w = c.writes();
+        assert_eq!((w[0].method.as_str(), w[0].path.as_str()), ("PUT", "tickets/123"));
+        assert_eq!(String::from_utf8(w[0].raw.clone().unwrap()).unwrap(), p.body_json);
+        assert_eq!(err(send(&p, &c, &j, &store, Some(HASH))), "update was sent or its outcome is unknown; inspect the ticket and journal before retry");
+        assert_eq!(send(&p, &c, &j, &store, None).unwrap(), json!({"status": "cancelled"}));
+        assert_eq!(err(send(&p, &c, &j, &store, Some("x"))), "tenant or review hash changed; review again");
+    }
+
+    #[test]
+    fn send_mismatch_readback_failure_and_rejection() {
+        let p = plan();
+        let store = MemStore::default();
+        let mut other = row();
+        other["tags"] = json!(["z"]);
+        let c = ticket_api(json!({"ticket": row()})).ok("GET tickets/123", json!({"ticket": other})).ok("PUT tickets/123", json!({}));
+        assert_eq!(send(&p, &c, &MemJournal::default(), &store, Some(HASH)).unwrap(),
+                   json!({"status": "submitted", "ticket_id": 123, "plan_hash": HASH, "verified": false,
+                          "fields": {"planned_start_date": "mismatched", "tags": "mismatched"}, "warning": UNVERIFIED}));
+        let c = ticket_api(json!({"ticket": row()})).on("GET tickets/123", Reply::Status(500)).ok("PUT tickets/123", json!({}));
+        assert_eq!(send(&p, &c, &MemJournal::default(), &store, Some(HASH)).unwrap(),
+                   json!({"status": "submitted", "ticket_id": 123, "plan_hash": HASH, "verified": false, "warning": UNVERIFIED}));
+        let mut changed = row();
+        changed["subject"] = json!("Changed");
+        assert_eq!(err(send(&p, &ticket_api(json!({"ticket": changed})), &MemJournal::default(), &store, Some(HASH))),
+                   "ticket or form changed since review; review again");
+        let j = MemJournal::default();
+        let c = ticket_api(json!({"ticket": row()})).on("PUT tickets/123", Reply::Status(409));
+        assert_eq!(err(send(&p, &c, &j, &store, Some(HASH))), "update rejected (HTTP 409); no retry");
+        assert_eq!(j.events(), ["started", "failed"]);
+    }
+}

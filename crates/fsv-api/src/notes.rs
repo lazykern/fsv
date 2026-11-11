@@ -269,6 +269,89 @@ mod tests {
     }
 
     #[test]
+    fn valid_recipient_forms() {
+        let got: Vec<bool> = ["a@b.co", "Ann Lee <ann@x.io>", "bad", "a@b", "x\n@y.co", "Ann <a@b.co> ", "<a@b.co>"].iter().map(|v| valid_recipient(v)).collect();
+        assert_eq!(got, [true, true, false, false, false, false, false]);
+    }
+
+    #[test]
+    fn plan_hash_review_and_ids_match_python() {
+        let p = build_plan("INC-5", "a < b\r\nline2\n\n\n\nnext \"q\"", false, &[], BodyFormat::Plain, T).unwrap();
+        assert_eq!(p.hash(), "9d9e097c80db19d0b3df42b6805108b75e3909f53d1437262e4539930b418e4d");
+        assert_eq!(p.path(), "tickets/5/notes");
+        let h = build_plan("5", "<p>x</p>", true, &["b@y.co".into()], BodyFormat::Html, T).unwrap();
+        assert_eq!(
+            Value::Object(h.review()),
+            json!({"action": "ticket_note", "tenant": T, "ticket_id": 5, "visibility": "public note (visible to customer)",
+                   "path": "/api/_/tickets/5/notes", "method": "POST",
+                   "payload": {"body": "<p>x</p>", "conversation_from_summary": false, "private": false, "notify_emails": ["b@y.co"]},
+                   "body_text": "x", "plan_hash": "45f1cf2e653ffd77e490218f577da59c65af9ea215f5c1a32cef61386d9df9bd",
+                   "risks": ["public note: visible to the requester and may send notifications"],
+                   "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications."})
+        );
+        assert_eq!(build_plan("CHN-5", "x", false, &[], BodyFormat::Plain, T).unwrap_err().to_string(), "prefix CHN not valid for tickets (expect INC or SR)");
+        assert_eq!(build_plan("0", "x", false, &[], BodyFormat::Plain, T).unwrap_err().to_string(), "ticket ID must be positive");
+    }
+
+    #[test]
+    fn check_plan_rebuilds_and_compares() {
+        let good = build_plan("5", "hi", false, &[], BodyFormat::Plain, T).unwrap();
+        assert!(check_plan(&good, T).is_ok());
+        let odd = NotePlan { body_html: "<div>x</div><script>".into(), ..good.clone() };
+        assert!(check_plan(&odd, T).is_ok());
+        let other = NotePlan { tenant: "other.freshservice.com".into(), ..good };
+        assert_eq!(check_plan(&other, T).unwrap_err().to_string(), "note plan or tenant changed; review a new plan before sending");
+    }
+
+    #[test]
+    fn duplicate_blocks_started_and_done_only() {
+        let good = build_plan("5", "hi", false, &[], BodyFormat::Plain, T).unwrap();
+        let j = MemJournal::default();
+        assert!(duplicate(&j, &good).is_ok());
+        j.record_plan("started", &good.hash(), ACTION, None, None);
+        assert_eq!(duplicate(&j, &good).unwrap_err().to_string(),
+                   "this note was sent or its outcome is unknown; check the exact ticket and journal before any retry");
+        j.record_plan("failed", &good.hash(), ACTION, None, None);
+        assert!(duplicate(&j, &good).is_ok());
+    }
+
+    #[test]
+    fn returned_note_and_note_id() {
+        let rs = [json!({"note": {"id": 1}}), json!({"conversation": {"id": 2}, "note": "x"}), json!({"id": 3}), json!({"x": 1}), json!([1])];
+        let got: Vec<Option<Value>> = rs.iter().map(|r| returned_note(r).cloned()).collect();
+        assert_eq!(got, [Some(json!({"id": 1})), Some(json!({"id": 2})), Some(json!({"id": 3})), None, None]);
+        let ids = [json!({"id": 1}), json!({"id": "77"}), json!({"id": "0"}), json!({"id": 0}), json!({"id": true}), json!({"id": "7a"}), json!({"id": 1.0})];
+        let got: Vec<Option<Value>> = ids.iter().map(|n| note_id(Some(n))).collect();
+        assert_eq!(got, [Some(json!(1)), Some(json!("77")), None, None, None, None, None]);
+        assert_eq!(note_id(None), None);
+    }
+
+    #[test]
+    fn send_full_result_and_failed_readback() {
+        let api = FakeApi::new()
+            .ok("POST tickets/5/notes", json!({"conversation": {"id": "77"}}))
+            .ok("GET tickets/5/conversations", json!({"conversations": [{"id": 77, "body": "<div>hi</div>", "private": true, "notify_emails": []}]}));
+        let p = build_plan("5", "hi", false, &[], BodyFormat::Plain, T).unwrap();
+        let h = p.hash();
+        assert_eq!(h, "6a1cb720ba3db32fb4b46fc60d96a34dd122fce1e3692e10f5182cc18ad61962");
+        let opts = SendOpts { reviewed_hash: Some(&h), ..Default::default() };
+        assert_eq!(
+            send(&p, &api, &MemJournal::default(), opts, false).unwrap(),
+            json!({"status": "submitted", "ticket_id": 5, "note_id": "77", "note": {"id": "77"}, "plan_hash": h, "verified": true,
+                   "readback": {"id": 77, "body": "<div>hi</div>", "private": true, "notify_emails": []},
+                   "identity_verified": true, "fields_verified": true, "readback_complete": true,
+                   "fields": {"body": "matched", "private": "matched", "notify_emails": "matched"}})
+        );
+        let api = FakeApi::new().ok("POST tickets/5/notes", json!({"note": {"id": 9}})).on("GET tickets/5/conversations", Reply::Status(500));
+        assert_eq!(
+            send(&p, &api, &MemJournal::default(), opts, false).unwrap(),
+            json!({"status": "submitted", "ticket_id": 5, "note_id": 9, "note": {"id": 9}, "plan_hash": h, "verified": false,
+                   "readback": null, "identity_verified": false, "fields_verified": false, "readback_complete": false,
+                   "warning": "Read-back did not fully verify the note fields and history; do not resend."})
+        );
+    }
+
+    #[test]
     fn public_needs_confirmation_and_unknown_outcomes_stay_started() {
         let api = FakeApi::new().on("POST tickets/5/notes", Reply::Status(500));
         let j = MemJournal::default();

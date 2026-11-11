@@ -881,7 +881,6 @@ pub(crate) mod testing {
     pub struct FakeApi {
         routes: Mutex<Vec<(String, VecDeque<Reply>)>>,
         pub calls: Mutex<Vec<Call>>,
-        pub agents: Mutex<Vec<Value>>,
         pub cookies: Vec<String>,
     }
 
@@ -1012,6 +1011,40 @@ pub(crate) mod testing {
             self.read().iter().filter_map(|r| r["event"].as_str().map(str::to_string)).collect()
         }
     }
+
+    /// One field of the ticket form fixture (mirrors the oracle's `ticket_meta.f`).
+    pub fn form_field(id: i64, name: &str, label: &str, field_type: &str, position: i64, extra: Value) -> Value {
+        let default = field_type.starts_with("default_");
+        let mut f = json!({"id": id, "name": name, "label": label, "description": "", "field_type": field_type,
+                           "required": false, "required_for_closure": false, "position": position,
+                           "default_field": default, "choices": [], "nested_fields": [],
+                           "placeholder": "", "helptext": "", "hint": false,
+                           "content": null, "displayed_to_agents": true, "data_source": 0,
+                           "lookup_config": null, "workspace_id": if default { 1 } else { 2 },
+                           "updated_at": "2030-01-02T03:04:05Z"});
+        if let (Some(m), Value::Object(e)) = (f.as_object_mut(), extra) {
+            m.extend(e);
+        }
+        f
+    }
+
+    /// The ticket edit form: subject, status (Open / Pending), planned dates.
+    pub fn ticket_form(status_id: i64) -> Value {
+        json!({"ticket_fields": [
+            form_field(1, "subject", "Subject", "default_subject", 1, json!({})),
+            form_field(2, "status", "Status", "default_status", 2, json!({"choices": [{"id": 2, "value": "Open"}, {"id": status_id, "value": "Pending"}]})),
+            form_field(3, "planned_start_date", "Start", "default_planned_start_date", 3, json!({})),
+            form_field(4, "planned_end_date", "End", "default_planned_end_date", 4, json!({})),
+        ]})
+    }
+
+    /// A client with the ticket form, empty workspace-1 rules and ticket 123.
+    pub fn ticket_api(ticket: Value) -> FakeApi {
+        FakeApi::new()
+            .ok("GET ticket_form_fields", ticket_form(3))
+            .ok("GET ws/1/business_rules", json!({}))
+            .ok("GET tickets/123", ticket)
+    }
 }
 
 #[cfg(test)]
@@ -1127,7 +1160,7 @@ mod tests {
             get_calls(&api),
             [json!(["GET", "changes", {"per_page": 30, "page": 1, "include": "change_status,agent,requester,group,department", "cache": "true", "filter": "mine", "order_by": "created_at", "order_type": "desc"}])]
         );
-        let api = FakeApi::new().ok("GET tickets", json!(["not a dict"]));
+        let api = FakeApi::new().ok("GET tickets", json!("not a dict"));
         assert_eq!(list_page(&api, &TICKETS, &ListArgs::default()).unwrap(), (vec![], json!({})));
     }
 
