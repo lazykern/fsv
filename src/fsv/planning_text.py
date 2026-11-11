@@ -7,6 +7,7 @@ from urllib.parse import parse_qs, quote, urlsplit
 
 from fsv import config, journal, schema
 from fsv.create import match_planning_row, planning_definitions, planning_server_key, resolve_planning_definition
+from fsv.readback import same_text
 from fsv.resources import CHANGES, PROBLEMS, parse_id
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
 from fsv.watchers import positive_id
@@ -37,6 +38,15 @@ def inventory(client: Any, module: str, target: int) -> list[dict[str, Any]]:
     return rows
 
 
+def section_content(row: dict[str, Any] | None) -> str | None:
+    """Read native section text in both edit and detail response shapes."""
+    if row is not None:
+        for key in ("description", "content", "description_html", "description_text", "body"):
+            if isinstance(row.get(key), str):
+                return row[key]
+    return None
+
+
 def build_plan(client: Any, module: str, target: str | int, section: str, description: str) -> WritePlan:
     if not isinstance(description, str) or not description.strip():
         raise ValueError("planning description must be nonempty text/HTML")
@@ -52,7 +62,7 @@ def build_plan(client: Any, module: str, target: str | int, section: str, descri
     key = planning_server_key(definition)
     rows = inventory(client, module, cid)
     existing = match_planning_row(definition, rows, defs)
-    if existing and ("attachments" not in existing or existing["attachments"]):
+    if existing and (existing.get("attachments", existing.get("files")) != []):
         raise ReviewedWriteError("planning attachments are present or unavailable; text-only preservation is not proven")
     return WritePlan(f"{module}_planning_text", cid, config.DOMAIN, "POST",
                      f"{module}/{cid}/planning-fields?id={quote(key, safe='')}",
@@ -69,7 +79,8 @@ def send(plan: WritePlan, client: Any, *, reviewed_hash: str | None) -> dict[str
         defs = definitions(client, module)
         definition = next(d for d in defs if planning_server_key(d) == section)
         row = match_planning_row(definition, inventory(client, module, plan.target), defs)
-        field = "unavailable" if row is None or "description" not in row else "matched" if row["description"] == description else "mismatched"
+        content = section_content(row)
+        field = "unavailable" if content is None else "matched" if same_text(content, description) else "mismatched"
         return {"section": section, "description": field, "verified": field == "matched"}
 
     return execute(plan, client, reviewed_hash=reviewed_hash,

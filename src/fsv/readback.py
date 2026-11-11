@@ -6,6 +6,13 @@ import re
 from typing import Any
 
 
+def same_text(actual: Any, expected: Any) -> bool:
+    """Compare rich-text wrappers/entities and whitespace, not missing values."""
+    from fsv.views import one_line
+
+    return isinstance(actual, str) and isinstance(expected, str) and one_line(actual) == one_line(expected)
+
+
 def same_instant(actual: Any, expected: Any) -> bool:
     """Compare explicit-offset timestamps without assuming a local timezone."""
     def parse(value: Any) -> datetime:
