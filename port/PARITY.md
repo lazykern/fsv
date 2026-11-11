@@ -118,14 +118,31 @@ those stay identical.
 | `views.py` record bits (source, approval, conversations, late badge) | `fsv_api::site::record` | ported. |
 | `views.collect_pages` | `fsv_api::site::collect_pages` | ported as a walker the caller feeds. Page-limit, short-page `count`, and foreign `next_page_url` match `test_read_completeness.py`. Incomplete meta inserts `continuation` before `partial`, matching Python's update-then-assign order. |
 | coverage-audit helpers: `query` private helpers, `formmeta._add` / `_cookie_workspace` / `ClientResolver._bootstrap`, `schema._cached_path` / `_fetch_schema`, `task_status.active_choices`, the three `_id`s, plan `payload`s, `views` list/format/detail/record helpers | same modules | ported. `cargo test -p fsv-api --offline` was 222 passed. Golden: `port/golden/gen_fsv_api_coverage.py` → `src/testdata/coverage_oracle.json`. |
+| `readback.py` | `fsv_api::readback` | ported (`test_readback_normalization` duration/timestamp cases). |
+| `reviewed_write.py` | `fsv_api::reviewed_write` | ported (`WritePlan`, `execute`, `refused`). |
+| `watchers.py`, `problem_known_error.py`, `planning_text.py`, `ticket_time.py`, `bulk_priority.py` | same-stem modules | ported, no CLI. Hashes and reviews checked against `port/golden/gen_fsv_api_reviewed.py` → `src/testdata/reviewed_oracle.json`. |
+| `ticket_properties.build_plan(answers=…)`, beneficiary, rule-context reset | `properties::build_plan_with` / `send_with` → `AnsweredPropertyPlan` | ported. `PropertyPlan` (no answers) keeps its fields and hash. |
+| `ticket_conversation` bcc / sender / forward, CC re-check | `conversations::build_plan_mail` + `MailArgs` | ported; `build_plan` is the no-BCC/no-sender wrapper. |
+| `catalog.SendFailure` + `cli_sr.place` conversion | `catalog::SendFailure`, `Executed`, `execute_detailed` | ported; `execute` still flattens to `Error::other` with the same text. |
+| `change_approvals._run` echo before an error | `approvals::run_action_detailed` → `RunActionError { echo, error }` | ported; `run_action` unchanged. |
+| `cli._merge_same_conditions` | `fsv_api::merge_same_conditions` | ported (the fsv-cli copy in `resource.rs` can switch to it). |
+| `Client.me`, `Client.v2_get` | `Api::me`, `Api::v2_get` | ported for `fsv_core::Client`; defaulted to an error on other impls. |
 
 Fixed to match Python while adding those tests: `_parse_where` needs a one-character field (`>=x` is field `>`, op `=`) and rejects an embedded newline. Field, choice and lookup matching use `casefold` and Python `or` truthiness (an id `0` or a `null` label no longer matches `"0"` / `"None"`). `_resolve_requester` falls back to the id for a blank `value`. `active_choices` takes the first truthy `value`/`label`/`name` and casefolds labels. `_file_names` gives `str(id)` when every name is falsy (`{"id": 0}` → `"0"`).
 
 Gaps:
 - `fsv_core::Client` has no way to list its cookie jar, so `Api::workspace_cookies` returns nothing for the live client and `_cookie_workspace` only works through test fakes. This needs a jar accessor in fsv-core.
-- `ticket_conversation.build_plan` `forward`, `bcc` and `sender` are not ported. `conversations::build_plan` rejects `forward`, and `ConversationPlan::path` maps every non-reply kind to `notes`.
-- `SendFailure` is still flattened into `Error::other` (see fsv-app). A structured error needs an `fsv_core::Error` variant or a new `catalog::execute` error type that the callers adopt.
-- Python modules added on 2026-11-12 are not ported: `bulk_priority`, `reviewed_write`, `watchers`, `planning_text.definitions`, `readback`, `ticket_time._duration`.
+- `Api::me` / `Api::v2_get` have erroring defaults. fsv-cli `LazyApi`, fsv-flows' testing `Api` and the fsv-views golden fake should forward them; until then watchers / ticket time through those impls fail with "signed-in agent identity is unavailable".
+- `07c85d0` (canned replies: `canned_id` and friends on `ConversationPlan`, `canned.py`, `scenarios.py`) is not ported.
+- `cli._resolve_where` (labels, aliases, `Me`) is an fsv-cli function; `query.resolve_where`'s "field not found: 'x'" already matches `query.py`.
+- `1dc7ab6`'s exact-bytes/headers HTTP tests have no equivalent; fsv-api tests run on `FakeApi` / `FnApi`, which see the method, path and body but not headers.
+
+Divergences:
+- `readback::duration_seconds`, `ticket_time::duration` and `watchers::positive_id` accept ASCII digits only; Python's `\d` / `str.isdigit` also accept other Unicode digits. Hours that overflow `i64` are an error rather than a big int.
+- `conversations::parseaddr` is a simplified `email.utils.parseaddr`: the address inside the last `<…>`, else the trimmed value. Quoted local parts and comments are not parsed.
+- `merge_same_conditions` turns a truthy non-iterable `value` (a number or `true`) into a one-item list; Python raises `TypeError` there.
+- `SendFailure::into_error` names the Python type of the cause from the `fsv_core::Error` variant (`Other`/`Context` → `RuntimeError`, `Io` → `OSError`, `Exit` → `FlowExit`), and takes the exit code from `Error::exit_code`, which for an `Exit` cause is its own code (Python's `exit_code_for` gives 1).
+- `Client::send_once` no longer sends `Content-Type` on a bodiless request (a `DELETE` with no payload), matching `reviewed_write.execute`, which passes headers without a body.
 
 ## fsv-views
 
@@ -272,14 +289,16 @@ CLI divergences:
 
 | Python | Rust | status |
 |---|---|---|
-| `tui/app.py`, `actions.py`, `modals.py`, `tui/__init__.launch` | `fsv_tui` (`app`, `app/reviewed.rs`, `modals`, `runtime::{launch, run}`) | partial. `cargo test -p fsv-tui --offline` was 190 passed (115 unit, 7 in `tests/actions.rs`, 61 in `tests/keys.rs`, 7 in `tests/tui.rs`). Key bindings, modals, status/note/approval/download/form flows, the `a` menu, ticket property edit (`e` on a ticket), known-error mark, native planning text, and ticket reply/note options (Ctrl+O) are covered against a recording `Backend`. The new flows mirror `test_tui_ticket_options.py`, `test_tui_ticket_properties.py`, `test_planning_text.py` and `test_problem_known_error.py`; all 23 of those Python tests pass. Gaps below. |
+| `tui/app.py`, `actions.py`, `modals.py`, `tui/__init__.launch` | `fsv_tui` (`app`, `app/reviewed.rs`, `modals`, `runtime::{launch, run}`) | partial. `cargo test -p fsv-tui --offline` was 199 passed (119 unit, 7 in `tests/actions.rs`, 66 in `tests/keys.rs`, 7 in `tests/tui.rs`). Key bindings, modals, status/note/approval/download/form flows, the `a` menu, ticket property edit (`e` on a ticket), known-error mark, native planning text, ticket reply/note options (Ctrl+O) and the read-only asset candidate picker (`i`, `app/assets.rs`; mirrors `test_asset_picker.py::test_pilot_readonly_search_selection_and_cancel`) are covered against a recording `Backend`. The new flows mirror `test_tui_ticket_options.py`, `test_tui_ticket_properties.py`, `test_planning_text.py` and `test_problem_known_error.py`; all 23 of those Python tests pass. Gaps below. |
 
 - `FsvApp._maybe` is a Textual `query_one` shim, so it has no counterpart. `FsvApp._set_filter_error` has no caller in Python (dead), so it is not ported; `filter_error` is set directly.
 - `launch` needs a terminal. Its loop is `fsv_tui::run(terminal, app, next_event)`, tested with `TestBackend` and scripted events.
 - The key-hint row advertises `gw`, which does nothing. Copied from Python; Python does the same.
 - Help dialog is clipped on 36-row terminals and does not scroll.
 - Plain ticket replies (`r`, Ctrl+S) go through `ticket_conversation_plan` / `send_ticket_conversation`, as in Python. `Backend::add_reply` and the "Confirm reply" path are now unreachable, because `can_reply` is tickets-only. They are kept so `LiveBackend` keeps compiling.
-- Python marks these workers `exclusive=True`, so a second press cancels the first. Rust runs both, like the other TUI workers (see the stale-generation divergence).
+- Python marks these workers `exclusive=True`, so a second press cancels the first. Rust runs both, like the other TUI workers (see the stale-generation divergence). The same holds for `_load_asset_inventory` (`group="asset-inventory"`).
+- Asset picker: Python calls `asset_picker.select` inside the picker callback, outside the worker's `try`, so a failure there would be an unhandled exception. Rust shows the failure screen `"Asset search unavailable: {exc}"` instead. It is unreachable in practice, because `candidates` already rejects duplicate display IDs. `AssetCandidates::select` and `backend::positive_id` port `asset_picker.select` and `watchers.positive_id` locally until fsv-api has `asset_picker`.
+- Asset picker failures are pushed as a plain `FailureScreen`, as in Python: they do not set the `!` "last write failure".
 
 ### fsv-tui → fsv-app wiring (new `Backend` methods, all default to "… is not available in this build")
 
@@ -298,6 +317,7 @@ CLI divergences:
 | `send_planning_text(plan) -> Value` | `planning_text.send(plan, c, reviewed_hash=plan.hash)` | **missing**. |
 | `ticket_conversation_plan(ticket_id, body, &ConversationRequest) -> ReviewPlan` | `recipients(c, cc)`, `recipients(c, notify)`, `recipients(c, bcc)` (validation only), then `build_plan(c, id, body, kind="reply"/"note", public, cc, notify, bcc, sender, set_status)` | `fsv_api::conversations::{recipients, build_plan}`. **Gap**: `ConversationArgs` has no `bcc`/`sender` (nor `forward`, which the TUI never uses). Python's `bcc_emails` / `from_email` payload keys and their validation need porting. Set `ReviewPlan.raw = plan.payload()`: the TUI reads `private` from it. Set `review = plan.review()`, `hash = plan.hash()`. |
 | `send_ticket_conversation(plan, public_confirmed) -> Value` | `ticket_conversation.send(plan, c, reviewed_hash=plan.hash, public_confirmed=...)` | `fsv_api::conversations::send(&plan, c, journal, store, Some(&hash), public_confirmed)` |
+| `asset_candidates(&AssetCandidatesRequest { change, query, page }) -> AssetCandidates` | `asset_picker.candidates(c, change, query, page=page)` (TUI: page 1, `change = display_id or id`). Map the result dict onto `AssetCandidates { change_id, page, scope, assets, mutation, warning }`; `assets` rows stay as returned. Its errors (`"page must be positive"`, `"asset candidate response is unavailable"`, `"duplicate asset display identities; selection is ambiguous"`, `positive_id`'s) become `Failure`s, shown as `"Asset search unavailable: {e}"`. | **missing**: no `asset_picker` module; `fsv_api::create::search_assets_for_change` exists. GET only, so the method must work in read-only mode. |
 
 `LiveBackend` now implements `ticket_conversation_plan`, `send_ticket_conversation`, `ticket_property_fields` and `send_ticket_property`. `ticket_property_plan` refuses every field until fsv-api has `answers`. The known-error and planning-text hooks still use the defaults. See the fsv-app section.
 
