@@ -55,7 +55,7 @@ MAX_PAGES = 50
 SAFETY = "This sends a real service request to the catalog item's fulfilment team."
 REQUESTER_MISSING = ("requester is not set: pass --requester EMAIL, add `requester:` to the draft, "
                      "or set defaults.sr_requester in the fsv config")
-REQUESTED_FOR_NOTE = "Selecting a separate requested-for person is not supported for service requests."
+REQUESTED_FOR_NOTE = "Separate requested-for is available via --requested-for; requester remains unchanged."
 
 
 def norm(value: Any) -> str:
@@ -464,11 +464,19 @@ def requester_line(req: LookupValue) -> str:
 
 
 def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: LookupValue | None,
-                  ack_all: bool = False) -> SRPlan:
+                  ack_all: bool = False, requested_for: LookupValue | None = None,
+                  cc_emails: tuple[str, ...] = ()) -> SRPlan:
     spec = meta.spec
     item = spec.item
     assert item is not None
-    state = FormState(spec, meta.engine(), mode="new", resolver=resolver)
+    engine = meta.engine()
+    if requested_for is not None:
+        # Metadata may contain the actor's context, not the selected person's.
+        # Rules needing requested-for attributes must fail closed until reloaded
+        # for that exact identity; never evaluate them against the wrong user.
+        from dataclasses import replace
+        engine.context = replace(engine.context, requested_for=None)
+    state = FormState(spec, engine, mode="new", resolver=resolver)
     errors: list[str] = []
     warnings: list[str] = list(spec.warnings) + [REQUESTED_FOR_NOTE]
     if draft.description_html is not None:
@@ -520,6 +528,13 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
         problems.insert(0, REQUESTER_MISSING)
     elif not requester.email:
         problems.insert(0, f"requester {requester} has no email address")
+    from fsv.ticket_notes import _EMAIL
+    if requested_for is not None and (not isinstance(requested_for, LookupValue) or
+                                      not isinstance(requested_for.email, str) or not _EMAIL.fullmatch(requested_for.email)):
+        problems.append("requested-for must resolve to a user with a plain email address")
+    valid_cc = isinstance(cc_emails, (list, tuple)) and all(isinstance(v, str) and _EMAIL.fullmatch(v) for v in cc_emails)
+    if not valid_cc:
+        problems.append("CC recipients must be plain email addresses")
 
     payload = None
     if requester is not None and requester.email:
@@ -528,6 +543,10 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
                 payload = build_sr_payload(item, state, requester.email, field_attachments=field_ph,
                                            attachments=general_ph if item.allow_attachments else [],
                                            allow_incomplete=incomplete)
+                if requested_for is not None and isinstance(requested_for, LookupValue) and requested_for.email:
+                    payload["requested_for"] = requested_for.email
+                if cc_emails and valid_cc:
+                    payload["cc_emails"] = list(cc_emails)
                 break
             except PayloadError as e:
                 problems += [p for p in e.problems if p not in problems]
@@ -539,6 +558,10 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
     review.rows.append(("Catalog item", f"{item.name} (#{item.display_id})"
                                         + (f" · {item.category_name}" if item.category_name else "")))
     review.rows.append(("Requester", str(requester) if requester is not None else "(not set)"))
+    if requested_for is not None:
+        review.rows.append(("Requested for", str(requested_for)))
+    if valid_cc and cc_emails:
+        review.rows.append(("CC", ", ".join(cc_emails)))
     subject = item.render_subject({k: v for k, v in ev.values.items()}) if item.subject_template else ""
     if subject:
         review.rows.append(("Subject (item template)", subject))

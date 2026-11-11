@@ -595,6 +595,8 @@ def create_command(
     allow_duplicate: bool,
     ack: bool,
     no_input: bool,
+    requested_for: str | None = None,
+    cc: list[str] | None = None,
 ) -> None:
     from fsv.editor import EditorAbort
     from fsv.formmeta import ClientResolver
@@ -615,6 +617,8 @@ def create_command(
         else:
             raise FlowExit(2, "nothing to request: pass --from FILE or --set LABEL=VALUE (the interactive form and "
                               "--edit need a terminal); start with `fsv sr create ITEM --dry-run` to get a draft")
+    if (form or template_only) and (requested_for is not None or cc):
+        raise FlowExit(2, "--requested-for and --cc require --from, --set, --preset or --edit; the interactive form and template cannot retain them")
     if edit and not tty:
         raise FlowExit(2, "--edit needs a terminal (no TTY or --no-input); use --from FILE")
 
@@ -631,7 +635,27 @@ def create_command(
 
     def build(d: Draft, ack_all: bool = ack, m: cat.ItemMeta | None = None) -> cat.SRPlan:
         req, problem = who.resolve(d)
-        plan = cat.build_sr_plan(m or meta, d, resolver=resolver, requester=req, ack_all=ack_all)
+        from fsv.formmeta import resolve_requester
+        from fsv.ticket_notes import _EMAIL
+        target = None
+        if requested_for is not None:
+            try:
+                target = resolve_requester(client, requested_for)
+            except ValueError as e:
+                raise FlowExit(2, f"requested-for: {e}") from None
+        resolved_cc = []
+        for email in cc or ():
+            if not _EMAIL.fullmatch(email):
+                raise FlowExit(2, "CC must be a plain email address")
+            try:
+                person = resolve_requester(client, email)
+                if not person.email or person.email.casefold() != email.casefold():
+                    raise ValueError("not an exact email match")
+                resolved_cc.append(person.email)
+            except ValueError:
+                raise FlowExit(2, "each CC email must resolve to exactly one non-deleted user") from None
+        plan = cat.build_sr_plan(m or meta, d, resolver=resolver, requester=req, ack_all=ack_all,
+                                 requested_for=target, cc_emails=tuple(resolved_cc))
         if problem:
             plan.errors[:] = [problem] + [e for e in plan.errors if e != cat.REQUESTER_MISSING]
             plan.review.errors = plan.errors
@@ -724,6 +748,8 @@ def create_cmd(
     preset: Optional[str] = typer.Option(None, "--preset", help="preset name or path (partial answers)"),
     edit: bool = typer.Option(False, "--edit", help="advanced: the annotated YAML draft in $EDITOR (default in a terminal: the interactive form)"),
     requester: Optional[str] = typer.Option(None, "--requester", help="requester email or exact name"),
+    requested_for: Optional[str] = typer.Option(None, "--requested-for", help="exact user email or name"),
+    cc: Optional[List[str]] = typer.Option(None, "--cc", help="plain CC email (repeatable)"),
     attach: Optional[List[str]] = typer.Option(None, "--attach", help="general attachment (repeatable)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="show the review, payload and plan hash; send nothing"),
     output: str = typer.Option("table", "--output", "-o", help="table|json (with --dry-run: the plan)"),
@@ -738,7 +764,7 @@ def create_cmd(
     _guard(lambda: create_command(
         _client, item, from_file=from_, sets=set_, preset=preset, edit=edit, requester=requester, attach=attach,
         dry_run=dry_run, as_json=output == "json", yes=yes, expect_plan=expect_plan,
-        allow_duplicate=allow_duplicate, ack=ack, no_input=no_input))
+        allow_duplicate=allow_duplicate, ack=ack, no_input=no_input, requested_for=requested_for, cc=cc))
 
 
 # ---------------------------------------------------------------------------
