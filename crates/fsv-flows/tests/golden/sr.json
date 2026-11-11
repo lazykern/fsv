@@ -1,0 +1,1749 @@
+{
+ "items": {
+  "feature": {
+   "item": {
+    "id": 4400001,
+    "display_id": 77,
+    "name": "Feature Request",
+    "short_description": "Ask for a product change",
+    "category_id": 7001,
+    "category_name": "Engineering",
+    "workspace_id": 3,
+    "updated_at": "2030-01-15T10:00:00+09:00",
+    "description": "<p>Use this form for <b>feature</b> work.</p>",
+    "allow_attachments": true,
+    "allow_quantity": false,
+    "attachment_mandatory": true,
+    "configs": {
+     "attachment_mandatory": true,
+     "subject": "{{custom_field.cf_title_100}}",
+     "auto_gen_document": false
+    },
+    "custom_fields": [
+     {
+      "id": "f-notice",
+      "name": "notice",
+      "type": 1024,
+      "position": 1,
+      "label": "&lt;p&gt;Attach the &lt;b&gt;overview deck&lt;/b&gt;.&lt;/p&gt;",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {
+       "content_name": "Notice"
+      },
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-title",
+      "name": "title_100",
+      "type": 1001,
+      "position": 2,
+      "label": "Title",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "Short name",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-details",
+      "name": "paragraph_101",
+      "type": 1008,
+      "position": 3,
+      "label": "Details",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-sys",
+      "name": "paragraph_102",
+      "type": 1008,
+      "position": 4,
+      "label": "Affected system (if known)",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-date",
+      "name": "date_103",
+      "type": 1007,
+      "position": 5,
+      "label": "Needed by",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {
+       "date_only": "true"
+      },
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-goal",
+      "name": "goal",
+      "type": 1003,
+      "position": 6,
+      "label": "1. Expected benefit",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {
+       "section_info": "[{\"sectionFields\": [\"f-goal-rev\"], \"sectionChoices\": [\"More revenue  (Total USD)\"]}, {\"sectionFields\": [\"f-goal-cost\"], \"sectionChoices\": [\"Lower cost\"]}]"
+      },
+      "choices": [
+       {
+        "id": "c-rev",
+        "value": "More revenue  (Total USD)",
+        "label": "More revenue  (Total USD)",
+        "position": 1,
+        "dependent_ids": {
+         "field": [
+          "f-goal-rev"
+         ]
+        }
+       },
+       {
+        "id": "c-cost",
+        "value": "Lower cost",
+        "label": "Lower cost",
+        "position": 2,
+        "dependent_ids": {
+         "field": [
+          "f-goal-cost"
+         ]
+        }
+       },
+       {
+        "id": "c-none",
+        "value": "Other",
+        "label": "Other",
+        "position": 3,
+        "dependent_ids": {}
+       }
+      ],
+      "fields": [
+       {
+        "id": "f-goal-rev",
+        "name": "goal_1_kpi",
+        "type": 1001,
+        "position": 1,
+        "label": "1.1 Revenue target",
+        "required": true,
+        "visible": true,
+        "deleted": false,
+        "account_id": "4242",
+        "placeholder": "",
+        "field_options": {},
+        "choices": [],
+        "fields": [],
+        "parent_id": "f-goal"
+       },
+       {
+        "id": "f-goal-cost",
+        "name": "goal_2_kpi",
+        "type": 1001,
+        "position": 2,
+        "label": "1.2 Cost target",
+        "required": true,
+        "visible": true,
+        "deleted": false,
+        "account_id": "4242",
+        "placeholder": "",
+        "field_options": {},
+        "choices": [],
+        "fields": [],
+        "parent_id": "f-goal"
+       }
+      ],
+      "parent_id": null
+     },
+     {
+      "id": "f-prio",
+      "name": "priority",
+      "type": 1003,
+      "position": 7,
+      "label": "Priority",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [
+       {
+        "id": "p1",
+        "value": "Critical - blocks customers",
+        "label": "Critical - blocks customers",
+        "position": 1
+       },
+       {
+        "id": "p3",
+        "value": "Medium - planned work",
+        "label": "Medium - planned work",
+        "position": 2
+       },
+       {
+        "id": "p4",
+        "value": "Low - cosmetic, reports",
+        "label": "Low - cosmetic, reports",
+        "position": 3
+       }
+      ],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "f-deck",
+      "name": "overview_deck",
+      "type": 1014,
+      "position": 8,
+      "label": "Overview deck (.pptx)",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "&lt;span class=\"btn-link\"&gt;Upload files&lt;/span&gt; or drop here",
+      "field_options": {
+       "allowed_file_types": "[\".pptx\"]",
+       "max_attachment_limit": "1"
+      },
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     }
+    ]
+   },
+   "rules": {
+    "business_rules": [],
+    "user": {
+     "first_name": "Test",
+     "last_name": "Agent",
+     "time_zone": "Tokyo"
+    }
+   }
+  },
+  "vpn": {
+   "item": {
+    "id": 4400002,
+    "display_id": 78,
+    "name": "VPN Access",
+    "short_description": "Remote access to the office network",
+    "category_id": 7002,
+    "category_name": "Access",
+    "workspace_id": 3,
+    "updated_at": "2030-01-10T10:00:00+09:00",
+    "description": "",
+    "allow_attachments": false,
+    "allow_quantity": false,
+    "attachment_mandatory": false,
+    "configs": {
+     "attachment_mandatory": false,
+     "subject": "",
+     "auto_gen_document": false
+    },
+    "custom_fields": [
+     {
+      "id": "v-reason",
+      "name": "reason_200",
+      "type": 1001,
+      "position": 1,
+      "label": "Reason",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "v-level",
+      "name": "access_level",
+      "type": 1003,
+      "position": 2,
+      "label": "Access level",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [
+       {
+        "id": "l1",
+        "value": "Read only",
+        "label": "Read only",
+        "position": 1
+       },
+       {
+        "id": "l2",
+        "value": "Read  write",
+        "label": "Read  write",
+        "position": 2
+       },
+       {
+        "id": "l3",
+        "value": "Admin",
+        "label": "Admin",
+        "position": 3
+       }
+      ],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "v-why",
+      "name": "justification",
+      "type": 1008,
+      "position": 3,
+      "label": "Justification",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     }
+    ]
+   },
+   "rules": {
+    "business_rules": [
+     {
+      "id": 9100001,
+      "name": "Admin needs a justification",
+      "workspace_id": 3,
+      "module_type": "service_request",
+      "item_id": 4400002,
+      "deleted": false,
+      "user_type": "both",
+      "form_type": "both",
+      "state": "active",
+      "rule_type": "client_side",
+      "description": "",
+      "condition_data": {
+       "all": [
+        {
+         "name": "customField.sr_access_level",
+         "operator": "is",
+         "value": [
+          "Admin"
+         ],
+         "evaluate_on": "change"
+        }
+       ]
+      },
+      "action_data": {
+       "action": [
+        {
+         "name": [
+          "customField.sr_justification"
+         ],
+         "property": "show"
+        },
+        {
+         "name": [
+          "customField.sr_justification"
+         ],
+         "property": "mandate"
+        }
+       ]
+      },
+      "is_reversible": true,
+      "is_validation": false
+     }
+    ],
+    "user": {
+     "first_name": "Test",
+     "last_name": "Agent",
+     "time_zone": "Tokyo"
+    }
+   }
+  },
+  "sink": {
+   "item": {
+    "id": 4400009,
+    "display_id": 90,
+    "name": "Kitchen Sink",
+    "short_description": "Every kind",
+    "category_id": 7003,
+    "category_name": "Hardware",
+    "workspace_id": 3,
+    "updated_at": "2030-02-01T10:00:00+09:00",
+    "description": "",
+    "allow_attachments": true,
+    "allow_quantity": false,
+    "attachment_mandatory": false,
+    "configs": {
+     "attachment_mandatory": false,
+     "subject": "",
+     "auto_gen_document": false
+    },
+    "custom_fields": [
+     {
+      "id": "k-notice",
+      "name": "readme",
+      "type": 1024,
+      "position": 1,
+      "label": "&lt;p&gt;Read &lt;i&gt;this&lt;/i&gt; first.&lt;/p&gt;",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {
+       "content_name": "Read me"
+      },
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "k-env",
+      "name": "environment",
+      "type": 1019,
+      "position": 2,
+      "label": "Environment",
+      "required": true,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [
+       {
+        "id": "e1",
+        "value": "Production",
+        "label": "Production",
+        "position": 1,
+        "description": "About  Production\n deploys"
+       },
+       {
+        "id": "e2",
+        "value": "Staging",
+        "label": "Staging",
+        "position": 2,
+        "dependent_ids": {
+         "field": [
+          "k-host"
+         ]
+        }
+       },
+       {
+        "id": "e3",
+        "value": "Dev",
+        "label": "Dev",
+        "position": 3,
+        "description": "About  Dev\n deploys"
+       },
+       {
+        "id": "e4",
+        "value": "QA",
+        "label": "QA",
+        "position": 4
+       },
+       {
+        "id": "e5",
+        "value": "Perf",
+        "label": "Perf",
+        "position": 5
+       },
+       {
+        "id": "e6",
+        "value": "Demo",
+        "label": "Demo",
+        "position": 6
+       },
+       {
+        "id": "e7",
+        "value": "Sandbox",
+        "label": "Sandbox",
+        "position": 7
+       },
+       {
+        "id": "e8",
+        "value": "Edge",
+        "label": "Edge",
+        "position": 8
+       },
+       {
+        "id": "e9",
+        "value": "Canary",
+        "label": "Canary",
+        "position": 9
+       },
+       {
+        "id": "e10",
+        "value": "Blue",
+        "label": "Blue",
+        "position": 10
+       },
+       {
+        "id": "e11",
+        "value": "Green",
+        "label": "Green",
+        "position": 11
+       },
+       {
+        "id": "e12",
+        "value": "Lab",
+        "label": "Lab",
+        "position": 12
+       },
+       {
+        "id": "e13",
+        "value": "Training",
+        "label": "Training",
+        "position": 13
+       },
+       {
+        "id": "e14",
+        "value": "Archive",
+        "label": "Archive",
+        "position": 14
+       }
+      ],
+      "fields": [
+       {
+        "id": "k-host",
+        "name": "staging_host",
+        "type": 1001,
+        "position": 1,
+        "label": "Staging host",
+        "required": true,
+        "visible": true,
+        "deleted": false,
+        "account_id": "4242",
+        "placeholder": "",
+        "field_options": {},
+        "choices": [],
+        "fields": [],
+        "parent_id": "k-env"
+       }
+      ],
+      "parent_id": null
+     },
+     {
+      "id": "k-when",
+      "name": "start_at",
+      "type": 1007,
+      "position": 3,
+      "label": "Start at",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {
+       "date_only": "false"
+      },
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "k-count",
+      "name": "count",
+      "type": 1021,
+      "position": 4,
+      "label": "Count",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null,
+      "helptext": "How many <b>units</b>\n are needed"
+     },
+     {
+      "id": "k-ok",
+      "name": "confirmed",
+      "type": 1006,
+      "position": 5,
+      "label": "Confirmed",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "k-notes1",
+      "name": "notes_a",
+      "type": 1001,
+      "position": 6,
+      "label": "Notes",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "k-notes2",
+      "name": "notes_b",
+      "type": 1008,
+      "position": 7,
+      "label": "Notes",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "k-cc",
+      "name": "cost_center",
+      "type": 1001,
+      "position": 8,
+      "label": "Cost center: main",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "e.g. &lt;b&gt;CC-1&lt;/b&gt;",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     },
+     {
+      "id": "k-files",
+      "name": "evidence",
+      "type": 1014,
+      "position": 9,
+      "label": "Evidence",
+      "required": false,
+      "visible": true,
+      "deleted": false,
+      "account_id": "4242",
+      "placeholder": "",
+      "field_options": {},
+      "choices": [],
+      "fields": [],
+      "parent_id": null
+     }
+    ]
+   },
+   "rules": {
+    "business_rules": [
+     {
+      "id": 9100009,
+      "name": "Production lock",
+      "workspace_id": 3,
+      "module_type": "service_request",
+      "item_id": 4400009,
+      "deleted": false,
+      "user_type": "both",
+      "form_type": "both",
+      "state": "active",
+      "rule_type": "client_side",
+      "description": "",
+      "condition_data": {
+       "all": [
+        {
+         "name": "customField.sr_environment",
+         "operator": "is",
+         "value": [
+          "Production"
+         ],
+         "evaluate_on": "change"
+        }
+       ]
+      },
+      "action_data": {
+       "action": [
+        {
+         "name": [
+          "customField.sr_cost_center"
+         ],
+         "property": "disable"
+        },
+        {
+         "name": [
+          "Production changes need <b>approval</b>"
+         ],
+         "property": "message"
+        }
+       ]
+      },
+      "is_reversible": true,
+      "is_validation": true
+     }
+    ],
+    "user": {
+     "first_name": "Test",
+     "last_name": "Agent",
+     "time_zone": "Tokyo"
+    }
+   }
+  }
+ },
+ "workspace_id": 3,
+ "fetched_at": 1900000000.0,
+ "base": "/work/drafts",
+ "templates": {
+  "feature_empty": {
+   "item": "feature",
+   "draft": "",
+   "requester": null,
+   "flag": null,
+   "with_errors": false,
+   "base_dir": null,
+   "ack": false,
+   "plan_errors": [
+    "requester is not set: pass --requester EMAIL, add `requester:` to the draft, or set defaults.sr_requester in the fsv config",
+    "Title is required",
+    "Details is required",
+    "Needed by is required",
+    "1. Expected benefit is required",
+    "Priority is required",
+    "Overview deck (.pptx) is required",
+    "this item requires at least one general attachment: add `attachments: [FILE]` to the draft or pass --attach FILE"
+   ],
+   "template": "# New service request: Feature Request (catalog item 77)\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear with your answers, like the web form; after saving, new\n# required fields are added and the file reopens if needed.\n# Full item form: fsv sr fields 77\n# Save and close to continue; close without changes to abort.\n# This sends a real service request to the catalog item's fulfilment team.\n# Separate requested-for is available via --requested-for; requester remains unchanged.\n\n# REQUIRED · email or exact name of the requester (approvals route via their manager)\nrequester:\n# Optional · exact email or name of the person receiving this request\nrequested_for:\nanswers:\n  # NOTE: Attach the overview deck.\n  # REQUIRED · text\n  # e.g. Short name\n  Title:\n  # REQUIRED · textarea\n  Details:\n  # optional · textarea\n  Affected system (if known):\n  # REQUIRED · date (YYYY-MM-DD)\n  Needed by:\n  # REQUIRED · dropdown\n  # choices: More revenue  (Total USD) | Lower cost | Other\n  #   More revenue  (Total USD) → adds: 1.1 Revenue target\n  #   Lower cost → adds: 1.2 Cost target\n  1. Expected benefit:\n  # REQUIRED · dropdown\n  # choices: Critical - blocks customers | Medium - planned work | Low - cosmetic, reports\n  Priority:\n  # REQUIRED · file(s): paths relative to this draft · types .pptx · at most 1 file(s)\n  Overview deck (.pptx): []\n\n# REQUIRED · general attachments for the request (uploaded only after you confirm)\nattachments: []\n",
+   "reparsed": {
+    "answers": {
+     "Title": null,
+     "Details": null,
+     "Affected system (if known)": null,
+     "Needed by": null,
+     "1. Expected benefit": null,
+     "Priority": null,
+     "Overview deck (.pptx)": []
+    },
+    "requester": null,
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  "feature_full": {
+   "item": "feature",
+   "draft": "requester: sam.lee@example.com\nrequested_for: \"  sam.leeds@example.com  \"\nanswers:\n  Title: Dark mode\n  Details: |\n    Please add\n    dark mode.\n  Needed by: 2030-12-03\n  1. Expected benefit: More revenue\n  1.1 Revenue target: +5%\n  Priority: Medium - planned work\n  Overview deck (.pptx): deck.pptx\nattachments: [brief.pdf, /abs/spec.pdf]\n",
+   "requester": {
+    "id": 9000001,
+    "display": "Jane Doe",
+    "email": "jane.doe@example.com"
+   },
+   "flag": null,
+   "with_errors": false,
+   "base_dir": "/work/drafts",
+   "ack": false,
+   "plan_errors": [
+    "file not found: /work/drafts/deck.pptx",
+    "file not found: /work/drafts/brief.pdf",
+    "file not found: /abs/spec.pdf"
+   ],
+   "template": "# New service request: Feature Request (catalog item 77)\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear with your answers, like the web form; after saving, new\n# required fields are added and the file reopens if needed.\n# Full item form: fsv sr fields 77\n# Save and close to continue; close without changes to abort.\n# This sends a real service request to the catalog item's fulfilment team.\n# Separate requested-for is available via --requested-for; requester remains unchanged.\n\n# REQUIRED · email or exact name of the requester (approvals route via their manager)\nrequester: jane.doe@example.com\n# Optional · exact email or name of the person receiving this request\nrequested_for: sam.leeds@example.com\nanswers:\n  # NOTE: Attach the overview deck.\n  # REQUIRED · text\n  # e.g. Short name\n  Title: Dark mode\n  # REQUIRED · textarea\n  Details: |-\n    Please add\n    dark mode.\n  # optional · textarea\n  Affected system (if known):\n  # REQUIRED · date (YYYY-MM-DD)\n  Needed by: 2030-12-03\n  # REQUIRED · dropdown\n  # choices: More revenue  (Total USD) | Lower cost | Other\n  #   More revenue  (Total USD) → adds: 1.1 Revenue target\n  #   Lower cost → adds: 1.2 Cost target\n  1. Expected benefit: More revenue  (Total USD)\n  # REQUIRED · text\n  1.1 Revenue target: +5%\n  # REQUIRED · dropdown\n  # choices: Critical - blocks customers | Medium - planned work | Low - cosmetic, reports\n  Priority: Medium - planned work\n  # REQUIRED · file(s): paths relative to this draft · types .pptx · at most 1 file(s)\n  Overview deck (.pptx): [deck.pptx]\n\n# REQUIRED · general attachments for the request (uploaded only after you confirm)\nattachments: [brief.pdf, \"../../abs/spec.pdf\"]\n",
+   "reparsed": {
+    "answers": {
+     "Title": "Dark mode",
+     "Details": "Please add\ndark mode.",
+     "Affected system (if known)": null,
+     "Needed by": "2030-12-03",
+     "1. Expected benefit": "More revenue  (Total USD)",
+     "1.1 Revenue target": "+5%",
+     "Priority": "Medium - planned work",
+     "Overview deck (.pptx)": [
+      "deck.pptx"
+     ]
+    },
+    "requester": "jane.doe@example.com",
+    "requested_for": "sam.leeds@example.com",
+    "description_html": null,
+    "attachments": [
+     "/work/drafts/brief.pdf",
+     "/work/drafts/../../abs/spec.pdf"
+    ],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  "feature_full_errors": {
+   "item": "feature",
+   "draft": "requester: sam.lee@example.com\nrequested_for: \"  sam.leeds@example.com  \"\nanswers:\n  Title: Dark mode\n  Details: |\n    Please add\n    dark mode.\n  Needed by: 2030-12-03\n  1. Expected benefit: More revenue\n  1.1 Revenue target: +5%\n  Priority: Medium - planned work\n  Overview deck (.pptx): deck.pptx\nattachments: [brief.pdf, /abs/spec.pdf]\n",
+   "requester": null,
+   "flag": null,
+   "with_errors": true,
+   "base_dir": "/work",
+   "ack": false,
+   "plan_errors": [
+    "requester is not set: pass --requester EMAIL, add `requester:` to the draft, or set defaults.sr_requester in the fsv config",
+    "file not found: /work/drafts/deck.pptx",
+    "file not found: /work/drafts/brief.pdf",
+    "file not found: /abs/spec.pdf"
+   ],
+   "template": "# New service request: Feature Request (catalog item 77)\n# ERROR: requester is not set: pass --requester EMAIL, add `requester:` to the draft, or set defaults.sr_requester in the fsv config\n# ERROR: file not found: /work/drafts/deck.pptx\n# ERROR: file not found: /work/drafts/brief.pdf\n# ERROR: file not found: /abs/spec.pdf\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear with your answers, like the web form; after saving, new\n# required fields are added and the file reopens if needed.\n# Full item form: fsv sr fields 77\n# Save and close to continue; close without changes to abort.\n# This sends a real service request to the catalog item's fulfilment team.\n# Separate requested-for is available via --requested-for; requester remains unchanged.\n\n# REQUIRED · email or exact name of the requester (approvals route via their manager)\nrequester: sam.lee@example.com\n# Optional · exact email or name of the person receiving this request\nrequested_for: sam.leeds@example.com\nanswers:\n  # NOTE: Attach the overview deck.\n  # REQUIRED · text\n  # e.g. Short name\n  Title: Dark mode\n  # REQUIRED · textarea\n  Details: |-\n    Please add\n    dark mode.\n  # optional · textarea\n  Affected system (if known):\n  # REQUIRED · date (YYYY-MM-DD)\n  Needed by: 2030-12-03\n  # REQUIRED · dropdown\n  # choices: More revenue  (Total USD) | Lower cost | Other\n  #   More revenue  (Total USD) → adds: 1.1 Revenue target\n  #   Lower cost → adds: 1.2 Cost target\n  1. Expected benefit: More revenue  (Total USD)\n  # REQUIRED · text\n  1.1 Revenue target: +5%\n  # REQUIRED · dropdown\n  # choices: Critical - blocks customers | Medium - planned work | Low - cosmetic, reports\n  Priority: Medium - planned work\n  # REQUIRED · file(s): paths relative to this draft · types .pptx · at most 1 file(s)\n  Overview deck (.pptx): [drafts/deck.pptx]\n\n# REQUIRED · general attachments for the request (uploaded only after you confirm)\nattachments: [drafts/brief.pdf, \"../abs/spec.pdf\"]\n",
+   "reparsed": {
+    "answers": {
+     "Title": "Dark mode",
+     "Details": "Please add\ndark mode.",
+     "Affected system (if known)": null,
+     "Needed by": "2030-12-03",
+     "1. Expected benefit": "More revenue  (Total USD)",
+     "1.1 Revenue target": "+5%",
+     "Priority": "Medium - planned work",
+     "Overview deck (.pptx)": [
+      "drafts/deck.pptx"
+     ]
+    },
+    "requester": "sam.lee@example.com",
+    "requested_for": "sam.leeds@example.com",
+    "description_html": null,
+    "attachments": [
+     "/work/drafts/drafts/brief.pdf",
+     "/work/drafts/../abs/spec.pdf"
+    ],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  "feature_flag": {
+   "item": "feature",
+   "draft": "requester: sam.lee@example.com\nrequested_for: \"  sam.leeds@example.com  \"\nanswers:\n  Title: Dark mode\n  Details: |\n    Please add\n    dark mode.\n  Needed by: 2030-12-03\n  1. Expected benefit: More revenue\n  1.1 Revenue target: +5%\n  Priority: Medium - planned work\n  Overview deck (.pptx): deck.pptx\nattachments: [brief.pdf, /abs/spec.pdf]\n",
+   "requester": {
+    "id": 9000001,
+    "display": "Jane Doe",
+    "email": "jane.doe@example.com"
+   },
+   "flag": "flag.user@example.com",
+   "with_errors": false,
+   "base_dir": "/work/drafts",
+   "ack": false,
+   "plan_errors": [
+    "file not found: /work/drafts/deck.pptx",
+    "file not found: /work/drafts/brief.pdf",
+    "file not found: /abs/spec.pdf"
+   ],
+   "template": "# New service request: Feature Request (catalog item 77)\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear with your answers, like the web form; after saving, new\n# required fields are added and the file reopens if needed.\n# Full item form: fsv sr fields 77\n# Save and close to continue; close without changes to abort.\n# This sends a real service request to the catalog item's fulfilment team.\n# Separate requested-for is available via --requested-for; requester remains unchanged.\n\n# REQUIRED · email or exact name of the requester (approvals route via their manager)\nrequester: flag.user@example.com\n# Optional · exact email or name of the person receiving this request\nrequested_for: sam.leeds@example.com\nanswers:\n  # NOTE: Attach the overview deck.\n  # REQUIRED · text\n  # e.g. Short name\n  Title: Dark mode\n  # REQUIRED · textarea\n  Details: |-\n    Please add\n    dark mode.\n  # optional · textarea\n  Affected system (if known):\n  # REQUIRED · date (YYYY-MM-DD)\n  Needed by: 2030-12-03\n  # REQUIRED · dropdown\n  # choices: More revenue  (Total USD) | Lower cost | Other\n  #   More revenue  (Total USD) → adds: 1.1 Revenue target\n  #   Lower cost → adds: 1.2 Cost target\n  1. Expected benefit: More revenue  (Total USD)\n  # REQUIRED · text\n  1.1 Revenue target: +5%\n  # REQUIRED · dropdown\n  # choices: Critical - blocks customers | Medium - planned work | Low - cosmetic, reports\n  Priority: Medium - planned work\n  # REQUIRED · file(s): paths relative to this draft · types .pptx · at most 1 file(s)\n  Overview deck (.pptx): [deck.pptx]\n\n# REQUIRED · general attachments for the request (uploaded only after you confirm)\nattachments: [brief.pdf, \"../../abs/spec.pdf\"]\n",
+   "reparsed": {
+    "answers": {
+     "Title": "Dark mode",
+     "Details": "Please add\ndark mode.",
+     "Affected system (if known)": null,
+     "Needed by": "2030-12-03",
+     "1. Expected benefit": "More revenue  (Total USD)",
+     "1.1 Revenue target": "+5%",
+     "Priority": "Medium - planned work",
+     "Overview deck (.pptx)": [
+      "deck.pptx"
+     ]
+    },
+    "requester": "flag.user@example.com",
+    "requested_for": "sam.leeds@example.com",
+    "description_html": null,
+    "attachments": [
+     "/work/drafts/brief.pdf",
+     "/work/drafts/../../abs/spec.pdf"
+    ],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  "feature_hidden": {
+   "item": "feature",
+   "draft": "answers:\n  Title: Dark mode\n  1. Expected benefit: Lower cost\n  1.1 Revenue target: +5%\n  Colour: blue\n  paragraph_102: \"#legacy: yes\"\n",
+   "requester": {
+    "id": 9000009,
+    "display": "No Email",
+    "email": null
+   },
+   "flag": null,
+   "with_errors": true,
+   "base_dir": "/work/drafts",
+   "ack": false,
+   "plan_errors": [
+    "requester No Email has no email address",
+    "unknown field: 'Colour'",
+    "Details is required",
+    "Needed by is required",
+    "1.2 Cost target is required",
+    "Priority is required",
+    "Overview deck (.pptx) is required",
+    "this item requires at least one general attachment: add `attachments: [FILE]` to the draft or pass --attach FILE"
+   ],
+   "template": "# New service request: Feature Request (catalog item 77)\n# ERROR: requester No Email has no email address\n# ERROR: unknown field: 'Colour'\n# ERROR: Details is required\n# ERROR: Needed by is required\n# ERROR: 1.2 Cost target is required\n# ERROR: Priority is required\n# ERROR: Overview deck (.pptx) is required\n# ERROR: this item requires at least one general attachment: add `attachments: [FILE]` to the draft or pass --attach FILE\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear with your answers, like the web form; after saving, new\n# required fields are added and the file reopens if needed.\n# Full item form: fsv sr fields 77\n# Save and close to continue; close without changes to abort.\n# This sends a real service request to the catalog item's fulfilment team.\n# Separate requested-for is available via --requested-for; requester remains unchanged.\n\n# REQUIRED · email or exact name of the requester (approvals route via their manager)\nrequester:\n# Optional · exact email or name of the person receiving this request\nrequested_for:\nanswers:\n  # NOTE: Attach the overview deck.\n  # REQUIRED · text\n  # e.g. Short name\n  Title: Dark mode\n  # REQUIRED · textarea\n  Details:\n  # optional · textarea\n  Affected system (if known): \"#legacy: yes\"\n  # REQUIRED · date (YYYY-MM-DD)\n  Needed by:\n  # REQUIRED · dropdown\n  # choices: More revenue  (Total USD) | Lower cost | Other\n  #   More revenue  (Total USD) → adds: 1.1 Revenue target\n  #   Lower cost → adds: 1.2 Cost target\n  1. Expected benefit: Lower cost\n  # REQUIRED · text\n  1.2 Cost target:\n  # REQUIRED · dropdown\n  # choices: Critical - blocks customers | Medium - planned work | Low - cosmetic, reports\n  Priority:\n  # REQUIRED · file(s): paths relative to this draft · types .pptx · at most 1 file(s)\n  Overview deck (.pptx): []\n  # hidden now (its section's choice is not selected): not sent\n  1.1 Revenue target: +5%\n  # not a field on this item: fix the label or delete the line\n  Colour: blue\n\n# REQUIRED · general attachments for the request (uploaded only after you confirm)\nattachments: []\n",
+   "reparsed": {
+    "answers": {
+     "Title": "Dark mode",
+     "Details": null,
+     "Affected system (if known)": "#legacy: yes",
+     "Needed by": null,
+     "1. Expected benefit": "Lower cost",
+     "1.2 Cost target": null,
+     "Priority": null,
+     "Overview deck (.pptx)": [],
+     "1.1 Revenue target": "+5%",
+     "Colour": "blue"
+    },
+    "requester": null,
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  "vpn_admin": {
+   "item": "vpn",
+   "draft": "requester: sam.lee@example.com\nanswers:\n  Access level: Admin\n  Reason: travel\n",
+   "requester": null,
+   "flag": null,
+   "with_errors": true,
+   "base_dir": null,
+   "ack": false,
+   "plan_errors": [
+    "requester is not set: pass --requester EMAIL, add `requester:` to the draft, or set defaults.sr_requester in the fsv config",
+    "Justification is required"
+   ],
+   "template": "# New service request: VPN Access (catalog item 78)\n# ERROR: requester is not set: pass --requester EMAIL, add `requester:` to the draft, or set defaults.sr_requester in the fsv config\n# ERROR: Justification is required\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear with your answers, like the web form; after saving, new\n# required fields are added and the file reopens if needed.\n# Full item form: fsv sr fields 78\n# Save and close to continue; close without changes to abort.\n# This sends a real service request to the catalog item's fulfilment team.\n# Separate requested-for is available via --requested-for; requester remains unchanged.\n\n# REQUIRED · email or exact name of the requester (approvals route via their manager)\nrequester: sam.lee@example.com\n# Optional · exact email or name of the person receiving this request\nrequested_for:\nanswers:\n  # REQUIRED · text\n  Reason: travel\n  # REQUIRED · dropdown\n  # choices: Read only | Read  write | Admin\n  Access level: Admin\n  # REQUIRED · textarea\n  Justification:\n\n# This item does not accept general attachments.\n",
+   "reparsed": {
+    "answers": {
+     "Reason": "travel",
+     "Access level": "Admin",
+     "Justification": null
+    },
+    "requester": "sam.lee@example.com",
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  "vpn_read": {
+   "item": "vpn",
+   "draft": "answers:\n  Access level: Read  write\n",
+   "requester": {
+    "id": 9000001,
+    "display": "Jane Doe",
+    "email": "jane.doe@example.com"
+   },
+   "flag": null,
+   "with_errors": false,
+   "base_dir": null,
+   "ack": false,
+   "plan_errors": [
+    "Reason is required"
+   ],
+   "template": "# New service request: VPN Access (catalog item 78)\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear with your answers, like the web form; after saving, new\n# required fields are added and the file reopens if needed.\n# Full item form: fsv sr fields 78\n# Save and close to continue; close without changes to abort.\n# This sends a real service request to the catalog item's fulfilment team.\n# Separate requested-for is available via --requested-for; requester remains unchanged.\n\n# REQUIRED · email or exact name of the requester (approvals route via their manager)\nrequester: jane.doe@example.com\n# Optional · exact email or name of the person receiving this request\nrequested_for:\nanswers:\n  # REQUIRED · text\n  Reason:\n  # REQUIRED · dropdown\n  # choices: Read only | Read  write | Admin\n  Access level: Read  write\n\n# This item does not accept general attachments.\n",
+   "reparsed": {
+    "answers": {
+     "Reason": null,
+     "Access level": "Read  write"
+    },
+    "requester": "jane.doe@example.com",
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  "sink_empty": {
+   "item": "sink",
+   "draft": "",
+   "requester": {
+    "id": 9000001,
+    "display": "Jane Doe",
+    "email": "jane.doe@example.com"
+   },
+   "flag": null,
+   "with_errors": false,
+   "base_dir": "/work/drafts",
+   "ack": false,
+   "plan_errors": [
+    "Environment is required"
+   ],
+   "template": "# New service request: Kitchen Sink (catalog item 90)\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear with your answers, like the web form; after saving, new\n# required fields are added and the file reopens if needed.\n# Full item form: fsv sr fields 90\n# Save and close to continue; close without changes to abort.\n# This sends a real service request to the catalog item's fulfilment team.\n# Separate requested-for is available via --requested-for; requester remains unchanged.\n\n# REQUIRED · email or exact name of the requester (approvals route via their manager)\nrequester: jane.doe@example.com\n# Optional · exact email or name of the person receiving this request\nrequested_for:\nanswers:\n  # NOTE: Read this first.\n  # REQUIRED · dropdown\n  # choices: Production | Staging | Dev | QA | Perf | Demo | Sandbox | Edge | Canary | Blue | Green | Lab | … (14 total; fsv sr fields 90)\n  #   Production — About Production deploys\n  #   Dev — About Dev deploys\n  #   Staging → adds: Staging host\n  Environment:\n  # optional · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Start at:\n  # optional · number · How many units are needed\n  Count:\n  # optional · yes/no\n  Confirmed:\n  # optional · text\n  notes_a:\n  # optional · textarea\n  notes_b:\n  # optional · text\n  # e.g. e.g. CC-1\n  \"Cost center: main\":\n  # optional · file(s): paths relative to this draft\n  Evidence: []\n\n# optional · general attachments for the request (uploaded only after you confirm)\nattachments: []\n",
+   "reparsed": {
+    "answers": {
+     "Environment": null,
+     "Start at": null,
+     "Count": null,
+     "Confirmed": null,
+     "notes_a": null,
+     "notes_b": null,
+     "Cost center: main": null,
+     "Evidence": []
+    },
+    "requester": "jane.doe@example.com",
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  "sink_staging": {
+   "item": "sink",
+   "draft": "answers:\n  Environment: Staging\n  Staging host: st-1\n",
+   "requester": {
+    "id": 9000001,
+    "display": "Jane Doe",
+    "email": "jane.doe@example.com"
+   },
+   "flag": null,
+   "with_errors": false,
+   "base_dir": "/work/drafts",
+   "ack": false,
+   "plan_errors": [],
+   "template": "# New service request: Kitchen Sink (catalog item 90)\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear with your answers, like the web form; after saving, new\n# required fields are added and the file reopens if needed.\n# Full item form: fsv sr fields 90\n# Save and close to continue; close without changes to abort.\n# This sends a real service request to the catalog item's fulfilment team.\n# Separate requested-for is available via --requested-for; requester remains unchanged.\n\n# REQUIRED · email or exact name of the requester (approvals route via their manager)\nrequester: jane.doe@example.com\n# Optional · exact email or name of the person receiving this request\nrequested_for:\nanswers:\n  # NOTE: Read this first.\n  # REQUIRED · dropdown\n  # choices: Production | Staging | Dev | QA | Perf | Demo | Sandbox | Edge | Canary | Blue | Green | Lab | … (14 total; fsv sr fields 90)\n  #   Production — About Production deploys\n  #   Dev — About Dev deploys\n  #   Staging → adds: Staging host\n  Environment: Staging\n  # REQUIRED · text\n  Staging host: st-1\n  # optional · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Start at:\n  # optional · number · How many units are needed\n  Count:\n  # optional · yes/no\n  Confirmed:\n  # optional · text\n  notes_a:\n  # optional · textarea\n  notes_b:\n  # optional · text\n  # e.g. e.g. CC-1\n  \"Cost center: main\":\n  # optional · file(s): paths relative to this draft\n  Evidence: []\n\n# optional · general attachments for the request (uploaded only after you confirm)\nattachments: []\n",
+   "reparsed": {
+    "answers": {
+     "Environment": "Staging",
+     "Staging host": "st-1",
+     "Start at": null,
+     "Count": null,
+     "Confirmed": null,
+     "notes_a": null,
+     "notes_b": null,
+     "Cost center: main": null,
+     "Evidence": []
+    },
+    "requester": "jane.doe@example.com",
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  "sink_prod": {
+   "item": "sink",
+   "draft": "answers:\n  Environment: Production\n  Start at: 2030-12-03 09:30\n  Count: 3\n  Confirmed: true\n  notes_a: one\n  notes_b: \"two\\nlines\"\n  Evidence: [a.png, sub/b.png]\nack: [all]\n",
+   "requester": {
+    "id": 9000001,
+    "display": "Jane Doe",
+    "email": "jane.doe@example.com"
+   },
+   "flag": null,
+   "with_errors": true,
+   "base_dir": "/work/drafts",
+   "ack": false,
+   "plan_errors": [
+    "file not found: /work/drafts/a.png",
+    "file not found: /work/drafts/sub/b.png"
+   ],
+   "template": "# New service request: Kitchen Sink (catalog item 90)\n# ERROR: file not found: /work/drafts/a.png\n# ERROR: file not found: /work/drafts/sub/b.png\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear with your answers, like the web form; after saving, new\n# required fields are added and the file reopens if needed.\n# Full item form: fsv sr fields 90\n# Save and close to continue; close without changes to abort.\n# This sends a real service request to the catalog item's fulfilment team.\n# Separate requested-for is available via --requested-for; requester remains unchanged.\n\n# REQUIRED · email or exact name of the requester (approvals route via their manager)\nrequester: jane.doe@example.com\n# Optional · exact email or name of the person receiving this request\nrequested_for:\nanswers:\n  # NOTE: Read this first.\n  # REQUIRED · dropdown\n  # choices: Production | Staging | Dev | QA | Perf | Demo | Sandbox | Edge | Canary | Blue | Green | Lab | … (14 total; fsv sr fields 90)\n  #   Production — About Production deploys\n  #   Dev — About Dev deploys\n  #   Staging → adds: Staging host\n  Environment: Production\n  # optional · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Start at: 2030-12-03T09:30+09:00\n  # optional · number · How many units are needed\n  Count: 3\n  # optional · yes/no\n  Confirmed: true\n  # optional · text\n  notes_a: one\n  # optional · textarea\n  notes_b: |-\n    two\n    lines\n  # optional · text · read-only (set by a rule)\n  # e.g. e.g. CC-1\n  \"Cost center: main\":\n  # optional · file(s): paths relative to this draft\n  Evidence: [a.png, sub/b.png]\n\n# optional · general attachments for the request (uploaded only after you confirm)\nattachments: []\n\n# BLOCKING MESSAGE: Production changes need approval\n# Acknowledge with: ack: [all]\nack: [all]\n",
+   "reparsed": {
+    "answers": {
+     "Environment": "Production",
+     "Start at": "2030-12-03T09:30+09:00",
+     "Count": "3",
+     "Confirmed": true,
+     "notes_a": "one",
+     "notes_b": "two\nlines",
+     "Cost center: main": null,
+     "Evidence": [
+      "a.png",
+      "sub/b.png"
+     ]
+    },
+    "requester": "jane.doe@example.com",
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [
+     "all"
+    ],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  "sink_prod_ack": {
+   "item": "sink",
+   "draft": "answers:\n  Environment: Production\n  Start at: 2030-12-03 09:30\n  Count: 3\n  Confirmed: true\n  notes_a: one\n  notes_b: \"two\\nlines\"\n  Evidence: [a.png, sub/b.png]\nack: [all]\n",
+   "requester": {
+    "id": 9000001,
+    "display": "Jane Doe",
+    "email": "jane.doe@example.com"
+   },
+   "flag": null,
+   "with_errors": false,
+   "base_dir": "/work/drafts",
+   "ack": true,
+   "plan_errors": [
+    "file not found: /work/drafts/a.png",
+    "file not found: /work/drafts/sub/b.png"
+   ],
+   "template": "# New service request: Kitchen Sink (catalog item 90)\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear with your answers, like the web form; after saving, new\n# required fields are added and the file reopens if needed.\n# Full item form: fsv sr fields 90\n# Save and close to continue; close without changes to abort.\n# This sends a real service request to the catalog item's fulfilment team.\n# Separate requested-for is available via --requested-for; requester remains unchanged.\n\n# REQUIRED · email or exact name of the requester (approvals route via their manager)\nrequester: jane.doe@example.com\n# Optional · exact email or name of the person receiving this request\nrequested_for:\nanswers:\n  # NOTE: Read this first.\n  # REQUIRED · dropdown\n  # choices: Production | Staging | Dev | QA | Perf | Demo | Sandbox | Edge | Canary | Blue | Green | Lab | … (14 total; fsv sr fields 90)\n  #   Production — About Production deploys\n  #   Dev — About Dev deploys\n  #   Staging → adds: Staging host\n  Environment: Production\n  # optional · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Start at: 2030-12-03T09:30+09:00\n  # optional · number · How many units are needed\n  Count: 3\n  # optional · yes/no\n  Confirmed: true\n  # optional · text\n  notes_a: one\n  # optional · textarea\n  notes_b: |-\n    two\n    lines\n  # optional · text · read-only (set by a rule)\n  # e.g. e.g. CC-1\n  \"Cost center: main\":\n  # optional · file(s): paths relative to this draft\n  Evidence: [a.png, sub/b.png]\n\n# optional · general attachments for the request (uploaded only after you confirm)\nattachments: []\n\n# BLOCKING MESSAGE: Production changes need approval\n# Acknowledge with: ack: [all]\nack: [all]\n",
+   "reparsed": {
+    "answers": {
+     "Environment": "Production",
+     "Start at": "2030-12-03T09:30+09:00",
+     "Count": "3",
+     "Confirmed": true,
+     "notes_a": "one",
+     "notes_b": "two\nlines",
+     "Cost center: main": null,
+     "Evidence": [
+      "a.png",
+      "sub/b.png"
+     ]
+    },
+    "requester": "jane.doe@example.com",
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [
+     "all"
+    ],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  }
+ },
+ "parse": [
+  {
+   "text": "",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  {
+   "text": "requested_for: target@example.com\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "requested_for": "target@example.com",
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  {
+   "text": "requested_for: '  t@example.com  '\nrequester: jane\n",
+   "draft": {
+    "answers": {},
+    "requester": "jane",
+    "requested_for": "t@example.com",
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  {
+   "text": "requested_for: '   '\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  {
+   "text": "requested_for: ''\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  {
+   "text": "requested_for: 12\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "requested_for": "12",
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  {
+   "text": "requested_for: [a]\n",
+   "error": "draft: requested_for must be an email or exact name"
+  },
+  {
+   "text": "requested_for: null\nanswers: {A: 1}\n",
+   "draft": {
+    "answers": {
+     "A": "1"
+    },
+    "requester": null,
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  },
+  {
+   "text": "colour: x\n",
+   "error": "draft: unknown key(s) colour; expected: ack, answers, attachments, description_html, description_md, planning, preset, requested_for, requester"
+  },
+  {
+   "text": "colour: x\nrequested_for: 12\n",
+   "error": "draft: unknown key(s) colour; expected: ack, answers, attachments, description_html, description_md, planning, preset, requested_for, requester"
+  },
+  {
+   "text": "requested_for: 12\nanswers: [1]\n",
+   "error": "draft: answers must be a mapping of field label -> value"
+  },
+  {
+   "text": "answers: [1]\n",
+   "error": "draft: answers must be a mapping of field label -> value"
+  },
+  {
+   "text": "- a\n",
+   "error": "draft: top level must be a mapping (preset/answers/description_md/...)"
+  },
+  {
+   "text": "attachments: [a.pdf, /b.pdf]\nack: all\npreset: p\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [
+     "/work/drafts/a.pdf",
+     "/b.pdf"
+    ],
+    "planning": {},
+    "ack": [
+     "all"
+    ],
+    "preset": "p",
+    "base_dir": "/work/drafts"
+   }
+  },
+  {
+   "text": "description_md: '*x*'\nplanning:\n  P: [f.txt]\n",
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "requested_for": null,
+    "description_html": "<p><em>x</em></p>",
+    "attachments": [],
+    "planning": {
+     "P": {
+      "files": [
+       "/work/drafts/f.txt"
+      ],
+      "description_html": null
+     }
+    },
+    "ack": [],
+    "preset": null,
+    "base_dir": "/work/drafts"
+   }
+  }
+ ],
+ "files": {
+  "config/presets/acme.yaml": "requester: preset.user@example.com\nrequested_for: pre.for@example.com\nanswers:\n  Title: From preset\n  Priority: Low - cosmetic, reports\n  Overview deck (.pptx): preset-deck.pptx\nattachments: [p.pdf]\nack: [p]\n",
+  "config/presets/other.yml": "answers:\n  Details: other preset\n",
+  "config/presets/nested.yaml": "preset: acme\n",
+  "config/presets/badfor.yaml": "requested_for: 7\n",
+  "drafts/full.yaml": "preset: acme\nrequester: file.user@example.com\nanswers:\n  Title: From file\n  Details: file details\n  Overview deck (.pptx): [sub/deck.pptx, /abs/d2.pptx]\nattachments: [brief.pdf]\nack: [f]\n",
+  "drafts/plain.yaml": "requested_for: file.for@example.com\nanswers:\n  Title: Plain\n  goal_1_kpi: x\n",
+  "drafts/empty.yaml": "",
+  "drafts/emptyfor.yaml": "requested_for: ''\npreset: acme\n",
+  "drafts/bad.yaml": "colour: red\n",
+  "drafts/badfor.yaml": "requested_for: 7\n",
+  "drafts/nested.yaml": "preset: nested\n",
+  "drafts/missing_preset.yaml": "preset: nope\n"
+ },
+ "resolve": [
+  {
+   "file": null,
+   "preset": null,
+   "sets": null,
+   "attach": null,
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": null
+   }
+  },
+  {
+   "file": "",
+   "preset": null,
+   "sets": [
+    "Title=x"
+   ],
+   "attach": null,
+   "draft": {
+    "answers": {
+     "Title": "x"
+    },
+    "requester": null,
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": null
+   }
+  },
+  {
+   "file": "drafts/plain.yaml",
+   "preset": null,
+   "sets": null,
+   "attach": null,
+   "draft": {
+    "answers": {
+     "Title": "Plain",
+     "goal_1_kpi": "x"
+    },
+    "requester": null,
+    "requested_for": "file.for@example.com",
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "<TMP>/drafts"
+   }
+  },
+  {
+   "file": "drafts/full.yaml",
+   "preset": null,
+   "sets": null,
+   "attach": null,
+   "draft": {
+    "answers": {
+     "Title": "From file",
+     "Priority": "Low - cosmetic, reports",
+     "Overview deck (.pptx)": [
+      "<TMP>/drafts/sub/deck.pptx",
+      "/abs/d2.pptx"
+     ],
+     "Details": "file details"
+    },
+    "requester": "file.user@example.com",
+    "requested_for": "pre.for@example.com",
+    "description_html": null,
+    "attachments": [
+     "<TMP>/drafts/brief.pdf"
+    ],
+    "planning": {},
+    "ack": [
+     "p",
+     "f"
+    ],
+    "preset": "acme",
+    "base_dir": "<TMP>/drafts"
+   }
+  },
+  {
+   "file": "drafts/full.yaml",
+   "preset": null,
+   "sets": [
+    "Title=From set",
+    "Overview deck (.pptx)=set.pptx",
+    " Details = a=b"
+   ],
+   "attach": [
+    "extra.pdf",
+    "/abs/x.pdf",
+    "../up.pdf"
+   ],
+   "draft": {
+    "answers": {
+     "Title": "From set",
+     "Priority": "Low - cosmetic, reports",
+     "Overview deck (.pptx)": [
+      "<TMP>/cwd/set.pptx"
+     ],
+     "Details": " a=b"
+    },
+    "requester": "file.user@example.com",
+    "requested_for": "pre.for@example.com",
+    "description_html": null,
+    "attachments": [
+     "<TMP>/drafts/brief.pdf",
+     "<TMP>/cwd/extra.pdf",
+     "/abs/x.pdf",
+     "<TMP>/up.pdf"
+    ],
+    "planning": {},
+    "ack": [
+     "p",
+     "f"
+    ],
+    "preset": "acme",
+    "base_dir": "<TMP>/drafts"
+   }
+  },
+  {
+   "file": "drafts/full.yaml",
+   "preset": "other",
+   "sets": null,
+   "attach": null,
+   "draft": {
+    "answers": {
+     "Details": "file details",
+     "Title": "From file",
+     "Overview deck (.pptx)": [
+      "<TMP>/drafts/sub/deck.pptx",
+      "/abs/d2.pptx"
+     ]
+    },
+    "requester": "file.user@example.com",
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [
+     "<TMP>/drafts/brief.pdf"
+    ],
+    "planning": {},
+    "ack": [
+     "f"
+    ],
+    "preset": "other",
+    "base_dir": "<TMP>/drafts"
+   }
+  },
+  {
+   "file": "drafts/plain.yaml",
+   "preset": "acme",
+   "sets": [
+    "Priority=Critical"
+   ],
+   "attach": null,
+   "draft": {
+    "answers": {
+     "Title": "Plain",
+     "Priority": "Critical",
+     "Overview deck (.pptx)": [
+      "<TMP>/config/presets/preset-deck.pptx"
+     ],
+     "goal_1_kpi": "x"
+    },
+    "requester": "preset.user@example.com",
+    "requested_for": "file.for@example.com",
+    "description_html": null,
+    "attachments": [
+     "<TMP>/config/presets/p.pdf"
+    ],
+    "planning": {},
+    "ack": [
+     "p"
+    ],
+    "preset": "acme",
+    "base_dir": "<TMP>/drafts"
+   }
+  },
+  {
+   "file": null,
+   "preset": "acme",
+   "sets": null,
+   "attach": [
+    "a.pdf"
+   ],
+   "draft": {
+    "answers": {
+     "Title": "From preset",
+     "Priority": "Low - cosmetic, reports",
+     "Overview deck (.pptx)": [
+      "<TMP>/config/presets/preset-deck.pptx"
+     ]
+    },
+    "requester": "preset.user@example.com",
+    "requested_for": "pre.for@example.com",
+    "description_html": null,
+    "attachments": [
+     "<TMP>/config/presets/p.pdf",
+     "<TMP>/cwd/a.pdf"
+    ],
+    "planning": {},
+    "ack": [
+     "p"
+    ],
+    "preset": "acme",
+    "base_dir": "<TMP>/config/presets"
+   }
+  },
+  {
+   "file": null,
+   "preset": "acme",
+   "sets": [
+    "Overview deck (.pptx)="
+   ],
+   "attach": null,
+   "draft": {
+    "answers": {
+     "Title": "From preset",
+     "Priority": "Low - cosmetic, reports",
+     "Overview deck (.pptx)": ""
+    },
+    "requester": "preset.user@example.com",
+    "requested_for": "pre.for@example.com",
+    "description_html": null,
+    "attachments": [
+     "<TMP>/config/presets/p.pdf"
+    ],
+    "planning": {},
+    "ack": [
+     "p"
+    ],
+    "preset": "acme",
+    "base_dir": "<TMP>/config/presets"
+   }
+  },
+  {
+   "file": "drafts/emptyfor.yaml",
+   "preset": null,
+   "sets": null,
+   "attach": null,
+   "draft": {
+    "answers": {
+     "Title": "From preset",
+     "Priority": "Low - cosmetic, reports",
+     "Overview deck (.pptx)": [
+      "<TMP>/config/presets/preset-deck.pptx"
+     ]
+    },
+    "requester": "preset.user@example.com",
+    "requested_for": "pre.for@example.com",
+    "description_html": null,
+    "attachments": [
+     "<TMP>/config/presets/p.pdf"
+    ],
+    "planning": {},
+    "ack": [
+     "p"
+    ],
+    "preset": "acme",
+    "base_dir": "<TMP>/drafts"
+   }
+  },
+  {
+   "file": "drafts/empty.yaml",
+   "preset": null,
+   "sets": null,
+   "attach": [],
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "<TMP>/drafts"
+   }
+  },
+  {
+   "file": null,
+   "preset": "<TMP>/config/presets/other.yml",
+   "sets": null,
+   "attach": null,
+   "draft": {
+    "answers": {
+     "Details": "other preset"
+    },
+    "requester": null,
+    "requested_for": null,
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": "<TMP>/config/presets/other.yml",
+    "base_dir": "<TMP>/config/presets"
+   }
+  },
+  {
+   "file": "drafts/nested.yaml",
+   "preset": null,
+   "sets": null,
+   "attach": null,
+   "error": "preset 'nested': presets cannot reference other presets"
+  },
+  {
+   "file": null,
+   "preset": "nested",
+   "sets": null,
+   "attach": null,
+   "error": "preset 'nested': presets cannot reference other presets"
+  },
+  {
+   "file": "drafts/missing_preset.yaml",
+   "preset": null,
+   "sets": null,
+   "attach": null,
+   "error": "preset 'nope' not found; available: acme, badfor, nested, other"
+  },
+  {
+   "file": "drafts/bad.yaml",
+   "preset": null,
+   "sets": null,
+   "attach": null,
+   "error": "<TMP>/drafts/bad.yaml: unknown key(s) colour; expected: ack, answers, attachments, description_html, description_md, planning, preset, requested_for, requester"
+  },
+  {
+   "file": "drafts/badfor.yaml",
+   "preset": null,
+   "sets": null,
+   "attach": null,
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "requested_for": "7",
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": null,
+    "base_dir": "<TMP>/drafts"
+   }
+  },
+  {
+   "file": null,
+   "preset": "badfor",
+   "sets": null,
+   "attach": null,
+   "draft": {
+    "answers": {},
+    "requester": null,
+    "requested_for": "7",
+    "description_html": null,
+    "attachments": [],
+    "planning": {},
+    "ack": [],
+    "preset": "badfor",
+    "base_dir": "<TMP>/config/presets"
+   }
+  },
+  {
+   "file": "drafts/nope.yaml",
+   "preset": null,
+   "sets": null,
+   "attach": null,
+   "error": "cannot read <TMP>/drafts/nope.yaml: No such file or directory"
+  },
+  {
+   "file": null,
+   "preset": "missing.yaml",
+   "sets": null,
+   "attach": null,
+   "error": "preset file not found: missing.yaml"
+  },
+  {
+   "file": null,
+   "preset": null,
+   "sets": [
+    "novalue"
+   ],
+   "attach": null,
+   "error": "--set needs LABEL=VALUE, got 'novalue'"
+  },
+  {
+   "file": null,
+   "preset": null,
+   "sets": [
+    " =v"
+   ],
+   "attach": null,
+   "error": "--set needs LABEL=VALUE, got ' =v'"
+  }
+ ]
+}

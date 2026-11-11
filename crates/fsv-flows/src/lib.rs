@@ -12,6 +12,7 @@
 pub mod change;
 pub mod drafts;
 pub mod meta;
+pub mod sr;
 pub mod ticket;
 
 #[cfg(test)]

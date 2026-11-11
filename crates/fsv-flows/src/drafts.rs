@@ -202,7 +202,7 @@ pub(crate) fn normpath(p: &str) -> String {
     if out.is_empty() { ".".to_string() } else { out }
 }
 
-fn abspath(p: &str, cwd: &str) -> String {
+pub(crate) fn abspath(p: &str, cwd: &str) -> String {
     if p.starts_with('/') {
         normpath(p)
     } else {
@@ -389,7 +389,7 @@ pub fn draft_from_data(data: &Json, base_dir: Option<&Path>, where_: &str) -> Re
 }
 
 /// `OSError.strerror` from a Rust I/O error.
-fn strerror(e: &std::io::Error) -> String {
+pub(crate) fn strerror(e: &std::io::Error) -> String {
     let s = e.to_string();
     match s.rfind(" (os error ") {
         Some(i) => s[..i].to_string(),
