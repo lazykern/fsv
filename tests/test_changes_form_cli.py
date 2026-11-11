@@ -397,7 +397,7 @@ FAKE_EDITOR = textwrap.dedent("""\
         text = text.replace("description_md: |\\n  \\n", "description_md: |\\n  Rotate keys.\\n", 1)
     else:
         assert text.startswith("# New change\\n# ERROR: ") or "# ERROR: " in text.splitlines()[1]
-        text = text.replace("  Stage:", "  Stage: Staging", 1)
+        text = text.replace("  Stage:\\n", "  Stage: Staging\\n", 1)
         text = text.replace("  Staging Start:", "  Staging Start: 2030-11-18 09:00", 1)
         text = text.replace("  Staging End:", "  Staging End: 2030-11-18 12:00", 1)
     path.write_text(text)
@@ -417,7 +417,9 @@ def test_edit_reopens_with_errors_until_complete(fake, tmp_path, monkeypatch):
     # round 2 shows the errors at the top; Cloud Only = No made the dates required
     assert second.lstrip().startswith("# New change\n# ERROR: Staging Start is required")
     assert "# REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Staging Start:" in second
-    assert "# choices: Staging\n  Stage:" in second  # the rule limited the choices
+    # the rule left one option: offered, pre-filled and said so
+    assert "only option allowed by rule" in second
+    assert "# choices: Staging\n  Stage: Staging" in second
     post = next(b for m, p, b in fake.writes() if p == "changes")
     assert post["custom_fields"]["staging_start"] == "2030-11-18T09:00:00+09:00"
     assert post["subject"] == "Billing: rotate keys"

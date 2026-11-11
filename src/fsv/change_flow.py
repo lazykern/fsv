@@ -39,6 +39,7 @@ from fsv.formmeta import (
     is_requester,
     is_status,
     load_meta,
+    name_existing,
 )
 from fsv.forms import (
     Field,
@@ -217,6 +218,55 @@ def _file_errors(paths: list[str]) -> list[str]:
     return [f"file not found: {p}" for p in paths if not os.path.isfile(p)]
 
 
+def real_conflicts(ev: Any) -> list[Any]:
+    """Genuine rule conflicts: two rules that BOTH match in the final state
+    and give opposite actions on one field property. The engine also logs
+    rules that matched earlier in the event replay but no longer match (an
+    ordinary Yes/No pair where only one applies); those are not conflicts."""
+    from fsv.forms.rules import Conflict
+
+    current = {str(r) for r in ev.matched}
+    out = []
+    for c in ev.conflicts:
+        live = [d for d in c.decisions if str(d.rule_id) in current]
+        if len({str(d.rule_id) for d in live}) < 2:
+            continue
+        positive = {d.action in ("show", "mandate", "disable") for d in live}
+        if len(positive) < 2:
+            continue
+        winner = c.winner if c.winner in live else live[-1]
+        out.append(Conflict(c.field, c.property, tuple(live), winner))
+    return out
+
+
+def only_option(state: FormState, name: str) -> tuple[Any, Any] | None:
+    """(choice, restriction) when a rule limits ``name`` to exactly one
+    real (non-empty) choice."""
+    r = state.evaluated.restricted.get(name)
+    if r is None:
+        return None
+    offered = [c for c in state.choices(name) if c.visible and c.label and str(c.value) != ""]
+    return (offered[0], r) if len(offered) == 1 else None
+
+
+def _rule_of(r: Any) -> str:
+    return str(r.rule_name or r.rule_id)
+
+
+def _auto_suffix(state: FormState, name: str) -> str:
+    """Review-row suffix: how a rule shaped this value."""
+    ev = state.evaluated
+    if name in ev.populated:
+        return " (auto)"
+    one = only_option(state, name)
+    if one is not None and norm(state.display(name)) == norm(one[0].label):
+        return f" (only option allowed by rule {_rule_of(one[1])})"
+    r = ev.restricted.get(name)
+    if r is not None:
+        return f" (choices limited by rule {_rule_of(r)})"
+    return ""
+
+
 def _notes(state: FormState) -> list[str]:
     ev = state.evaluated
     spec = state.spec
@@ -228,14 +278,14 @@ def _notes(state: FormState) -> list[str]:
         if name in ev.visible:
             offered = [c.label for c in state.choices(name) if c.visible]
             out.append(f"{spec.by_name[name].label}: choices limited to {', '.join(offered) or '(none)'} "
-                       f"by rule {r.rule_name or r.rule_id!r}")
+                       f"by rule {_rule_of(r)!r}")
     for name in sorted(ev.disabled, key=lambda n: ev.visible.index(n) if n in ev.visible else 1 << 20):
         d = ev.decision(name, "disabled")
         out.append(f"{spec.by_name[name].label}: read-only" + (f" ({d.describe()})" if d else ""))
     for name, (old, rid) in ev.overridden.items():
         f = spec.by_name[name]
         out.append(f"{f.label}: your value {state.display(name, old)!r} was replaced by rule {rid}")
-    out.extend(f"conflict: {c.describe()}" for c in ev.conflicts)
+    out.extend(f"conflict: {c.describe()}" for c in real_conflicts(ev))
     return out
 
 
@@ -298,7 +348,8 @@ def build_create_plan(
             state.set(req_field.api_name, requester)
         except FormError as e:
             errors.append(str(e))
-    errors += apply_answers(state, answers)
+    failed: set[str] = set()
+    errors += apply_answers(state, answers, failed)
     warnings += _acknowledge(state, draft.ack, ack_all)
 
     status_field = next((f for f in spec.fields if is_status(f)), None)
@@ -313,8 +364,9 @@ def build_create_plan(
             label = status_field.choice(status_value).label if status_field.choice(status_value) else status_value
             risks.append(f"status on create -> {label} (not the form default; may start approvals/workflows)")
 
-    form_problems = [p for p in state.errors()
-                     if not (req_field is not None and p == f"{req_field.label} is required")]
+    skip = {f"{req_field.label} is required"} if req_field is not None else set()
+    skip |= {f"{spec.by_name[n].label} is required" for n in failed}  # one report per field
+    form_problems = [p for p in state.errors() if p not in skip]
     if requester is None:
         form_problems.insert(0, "requester is not set: pass --requester EMAIL, add `requester:` to the draft, "
                                 "or `fsv config set defaults.requester EMAIL`")
@@ -348,10 +400,7 @@ def build_create_plan(
         f = spec.by_name[name]
         if is_requester(f) or is_status(f):
             continue
-        text = state.display(name)
-        if name in state.evaluated.populated:
-            text += " (auto)"
-        review.rows.append((f.label, text))
+        review.rows.append((f.label, state.display(name) + _auto_suffix(state, name)))
     if status_field is not None:
         st = status_field.choice(status_value)
         review.rows.append((f"{status_field.label} on create",
@@ -426,7 +475,7 @@ def build_update_plan(
     status_label: Callable[[Any], str] | None = None,
 ) -> Plan:
     spec = meta.spec
-    existing = existing_from_record(spec, record)
+    existing = name_existing(existing_from_record(spec, record), spec, record, resolver)
     state = FormState(spec, meta.engine(), mode="edit", resolver=resolver, existing=existing)
     answers: dict[str, Any] = dict(draft.answers)
     errors: list[str] = []
@@ -442,9 +491,11 @@ def build_update_plan(
         f = spec.find(k)
         if f is not None:
             answered.add(f.api_name)
-    errors += apply_answers(state, answers)
+    failed: set[str] = set()
+    errors += apply_answers(state, answers, failed)
     warnings = list(spec.warnings) + _acknowledge(state, draft.ack, ack_all)
-    problems = errors + state.errors()
+    problems = errors + [p for p in state.errors()
+                         if p not in {f"{spec.by_name[n].label} is required" for n in failed}]
 
     top: dict[str, Any] = {}
     custom: dict[str, Any] = {}
@@ -468,7 +519,7 @@ def build_update_plan(
         else:
             top[RECORD_KEYS.get(name, name)] = new_e
         changes.append((f.label, state.display(name, old_v) if old_v is not None else "",
-                        state.display(name) + (" (auto)" if name in ev.populated else "")))
+                        state.display(name) + _auto_suffix(state, name)))
     body: dict[str, Any] = dict(top)
     if custom:
         body["custom_fields"] = custom
@@ -521,7 +572,30 @@ def check_duplicate(plan: Plan, allow_duplicate: bool) -> None:
     raise FlowExit(4, f"this exact plan {what}. Check `fsv journal tail`; pass --allow-duplicate to send it again.")
 
 
-def execute(plan: Plan, client: Any, *, duplicate: str = "append") -> dict[str, Any]:
+ATTACH_FLOWS = ("after-create", "before-create")
+
+
+def resolve_attach_flow(option: str | None = None) -> str:
+    """Attachment flow for ``changes create``: the option, else config
+    ``changes.attach_flow``, else ``after-create``.
+
+    * ``after-create`` (default): create the change, upload each file, then
+      PUT ``{"attachments": [ids]}`` on the new change.
+    * ``before-create``: upload each file first (still only after you
+      confirm), then include ``attachments: [ids]`` in the create body.
+
+    TODO: neither order is verified against what the web UI sends on create;
+    confirm with a browser capture and make the verified one the default.
+    """
+    from fsv import config
+
+    value = option or str((config.load_config().get("changes") or {}).get("attach_flow") or "") or ATTACH_FLOWS[0]
+    if value not in ATTACH_FLOWS:
+        raise FlowExit(2, f"attach flow {value!r}: expected one of {', '.join(ATTACH_FLOWS)}")
+    return value
+
+
+def execute(plan: Plan, client: Any, *, duplicate: str = "append", attach_flow: str | None = None) -> dict[str, Any]:
     """Send the plan. Raises PartialFailure when the change was written but a
     later step (upload, planning) failed."""
     from fsv.create import attach_files_to_change, post_change_body, put_change_body, update_planning_field, upload_file
@@ -529,10 +603,21 @@ def execute(plan: Plan, client: Any, *, duplicate: str = "append") -> dict[str, 
     if not plan.ok:
         raise FlowExit(2, "plan has problems: " + "; ".join(plan.errors))
     steps: list[dict[str, Any]] = []
+    uploaded: list[dict[str, Any]] = []
+    paths = plan.files.get("attachments") or []
+    early = plan.action == "create" and bool(paths) and resolve_attach_flow(attach_flow) == "before-create"
+    body = dict(plan.payload or {})
     journal.record_plan("started", plan.hash, action=plan.action, target=plan.target)
     try:
+        if early:
+            ids = []
+            for p in paths:
+                att_id = upload_file(p, client)
+                ids.append(att_id)
+                uploaded.append({"id": att_id, "name": os.path.basename(p)})
+            body["attachments"] = ids
         if plan.action == "create":
-            result = post_change_body(plan.payload or {}, client)
+            result = post_change_body(body, client)
             cid = result.get("id")
         else:
             cid = plan.target
@@ -541,12 +626,17 @@ def execute(plan: Plan, client: Any, *, duplicate: str = "append") -> dict[str, 
         rejected = isinstance(e, (APIError, RuntimeError)) and not isinstance(e, SessionError)
         if rejected or isinstance(e, SessionError):
             journal.record_plan("failed", plan.hash, action=plan.action, target=plan.target, error=str(e))
+        if uploaded:
+            err_out = ", ".join(f"{u['id']} ({u['name']})" for u in uploaded)
+            sys.stderr.write(f"note: files were uploaded before the change was rejected (unused attachment ids: {err_out})\n")
         raise
     steps.append({"step": plan.action, "ok": True, "id": cid})
-    uploaded: list[dict[str, Any]] = []
+    if early:
+        steps.append({"step": "attachments", "ok": True, "ids": body["attachments"]})
     try:
-        paths = plan.files.get("attachments") or []
-        if paths and plan.action == "create":
+        if early:
+            pass
+        elif paths and plan.action == "create":
             ids = []
             for p in paths:
                 att_id = upload_file(p, client)

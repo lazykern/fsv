@@ -206,6 +206,27 @@ class ClientResolver:
     def __init__(self, client: Any) -> None:
         self.client = client
         self._groups: list[dict[str, Any]] | None = None
+        self._boot: dict[str, Any] | None = None
+
+    def _bootstrap(self) -> dict[str, Any]:
+        if self._boot is None:
+            self._boot = self.client.int_get("bootstrap/agents_groups") or {}
+        return self._boot
+
+    def name_for(self, entity: str, id_: Any) -> str | None:
+        """Display name of a group/agent by id from the (once-fetched,
+        cached) bootstrap lists; None when unknown (e.g. requesters)."""
+        key = "groups" if entity == "group" else "agents" if entity == "agent" else None
+        if key is None:
+            return None
+        for row in self._bootstrap().get(key) or []:
+            if not isinstance(row, Mapping):
+                continue
+            if str(row.get("id")) == str(id_) or str(row.get("user_id")) == str(id_):
+                shown = row.get("name") or row.get("value")
+                if shown:
+                    return str(shown)
+        return None
 
     def lookup(self, entity: str, query: str, field: Field) -> Sequence[LookupValue]:
         c = self.client
@@ -218,8 +239,7 @@ class ClientResolver:
                     if r.get("user_id") is not None and "(Deactivated)" not in str(r.get("value") or "")]
         if entity == "group":
             if self._groups is None:
-                data = c.int_get("bootstrap/agents_groups")
-                self._groups = list((data or {}).get("groups") or [])
+                self._groups = list(self._bootstrap().get("groups") or [])
             q = norm(query)
             return [LookupValue(g["id"], str(g.get("name") or g["id"])) for g in self._groups
                     if g.get("id") is not None and q in norm(g.get("name"))]
@@ -317,9 +337,57 @@ def existing_from_record(spec: FormSpec, record: Mapping[str, Any]) -> dict[str,
     return out
 
 
-def apply_answers(state: FormState, answers: Mapping[str, Any]) -> list[str]:
+_RECORD_OBJECTS = {"requester": ("requester",), "agent": ("agent", "responder", "owner"), "group": ("group",)}
+_RECORD_NAMES = {"agent": ("owner_name", "responder_name", "agent_name"), "group": ("group_name",),
+                 "requester": ("requester_name",)}
+
+
+def _hint_name(name: str, vid: Any, record: Mapping[str, Any]) -> tuple[str | None, str | None]:
+    """(display, email) the record itself carries for a lookup field, if any."""
+    for key in _RECORD_OBJECTS.get(name, ()):
+        obj = record.get(key)
+        if isinstance(obj, Mapping) and (obj.get("id") in (None, vid) or str(obj.get("id")) == str(vid)
+                                         or obj.get("user_id") == vid):
+            shown = obj.get("name") or obj.get("value") or obj.get("full_name")
+            if shown:
+                return str(shown), _email(obj)
+    for key in _RECORD_NAMES.get(name, ()):
+        if record.get(key):
+            return str(record[key]), None
+    return None, None
+
+
+def name_existing(existing: dict[str, Any], spec: FormSpec, record: Mapping[str, Any],
+                  resolver: Any = None) -> dict[str, Any]:
+    """Give id-only lookup values (requester, agent, group, ...) a display
+    name: from the record's own nested objects, else the resolver's cached
+    lookups (``name_for``). Ids nobody can name are left as they are."""
+    namer = getattr(resolver, "name_for", None)
+
+    def fix(f: Field, v: Any) -> Any:
+        if not isinstance(v, LookupValue) or (v.display and v.display != str(v.id)):
+            return v
+        display, email = _hint_name(f.api_name, v.id, record)
+        if display is None and namer is not None:
+            try:
+                display = namer(f.lookup_entity or {"lookup_group": "group", "lookup_agent": "agent",
+                                                    "lookup_user": "user"}.get(f.kind, ""), v.id)
+            except Exception:  # naming is cosmetic: never fail a plan for it
+                display = None
+        return LookupValue(v.id, display, email or v.email) if display else v
+
+    for name, v in list(existing.items()):
+        f = spec.by_name.get(name)
+        if f is None:
+            continue
+        existing[name] = tuple(fix(f, x) for x in v) if isinstance(v, tuple) else fix(f, v)
+    return existing
+
+
+def apply_answers(state: FormState, answers: Mapping[str, Any], failed: set[str] | None = None) -> list[str]:
     """Set answers (label or internal name -> raw) in web field order.
-    Returns every problem instead of stopping at the first."""
+    Returns every problem instead of stopping at the first. ``failed``, if
+    given, collects the api names of fields whose answer was rejected."""
     spec = state.spec
     errors: list[str] = []
     resolved: dict[str, Any] = {}
@@ -335,4 +403,6 @@ def apply_answers(state: FormState, answers: Mapping[str, Any]) -> list[str]:
             state.set(name, resolved[name])
         except FormError as e:
             errors.append(str(e))
+            if failed is not None:
+                failed.add(name)
     return errors

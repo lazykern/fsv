@@ -67,8 +67,47 @@ def _custom_field_category(name: str, schema: dict[str, Any]) -> str:
     return "other"
 
 
+_INTERNAL_KEYS = frozenset({"_resource", "_search_result", "_agent", "_group"})
+
+
+def _strip_internal(obj: Any) -> Any:
+    if isinstance(obj, dict):
+        return {k: _strip_internal(v) for k, v in obj.items() if k not in _INTERNAL_KEYS}
+    if isinstance(obj, (list, tuple)):
+        return [_strip_internal(v) for v in obj]
+    return obj
+
+
+def fmt_dt(value: Any) -> str:
+    """ISO timestamp -> local ``YYYY-MM-DD HH:MM``; anything unparseable is returned as text."""
+    if value in (None, ""):
+        return "-"
+    from datetime import datetime
+    text = str(value)
+    try:
+        dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return text
+    if dt.tzinfo is not None:
+        dt = dt.astimezone()
+    return dt.strftime("%Y-%m-%d %H:%M") if ("T" in text or " " in text) else dt.strftime("%Y-%m-%d")
+
+
+def fmt_value(v: Any) -> str:
+    """Human display of a custom-field value (lists comma-separated, no Python reprs)."""
+    if isinstance(v, (list, tuple)):
+        return ", ".join(fmt_value(i) for i in v)
+    if isinstance(v, dict):
+        return str(v.get("name") or v.get("value") or v.get("label") or ", ".join(f"{k}={fmt_value(x)}" for k, x in v.items()))
+    if v is True:
+        return "Yes"
+    if v is False:
+        return "No"
+    return "-" if v is None else str(v)
+
+
 def emit_json(obj: Any) -> None:
-    json.dump(obj, sys.stdout, indent=2, default=str)
+    json.dump(_strip_internal(obj), sys.stdout, indent=2, default=str)
     sys.stdout.write("\n")
 
 
@@ -289,7 +328,9 @@ def detail_panel(item: dict, resource: Resource, schema: dict[str, Any]) -> None
     if item.get("impact") is not None:
         console.print(f"impact    {schema_mod.IMPACT.get(item.get('impact'), '-')}")
     if item.get("planned_start_date") or item.get("planned_end_date"):
-        console.print(f"planned   {item.get('planned_start_date')}  →  {item.get('planned_end_date')}")
+        console.print(f"planned   {fmt_dt(item.get('planned_start_date'))}  →  {fmt_dt(item.get('planned_end_date'))}")
+    if item.get("created_at") or item.get("updated_at"):
+        console.print(f"created   {fmt_dt(item.get('created_at'))}  updated {fmt_dt(item.get('updated_at'))}")
     requester_obj = item.get("requester")
     agent_obj = item.get("agent") or item.get("responder")
     agent_id = item.get("agent_id") or item.get("responder_id")
@@ -322,7 +363,7 @@ def detail_panel(item: dict, resource: Resource, schema: dict[str, Any]) -> None
             first = False
             console.print(f"  [bold]{category}[/]")
             for k, v in items:
-                console.print(f"    [cyan]{k}[/]: {v}")
+                console.print(f"    [cyan]{k}[/]: {escape(fmt_value(v))}", highlight=False)
     pf = item.get("planning_fields") or {}
     if pf:
         console.print()

@@ -275,7 +275,14 @@ def _err(msg: str, code: int = 2) -> None:
 def _err_exc(exc: BaseException) -> None:
     """Exit with the stable code for *exc* (3 session, 4 conflict, 5 server, 2 value, 1 other)."""
     from fsv.errors import exit_code_for
-    _err(str(exc), exit_code_for(exc))
+    if isinstance(exc, (typer.Abort, KeyboardInterrupt)):
+        err.print("Aborted.")
+        raise typer.Exit(1) from None
+    msg = " ".join(str(exc).split()) or type(exc).__name__
+    if VERBOSE and isinstance(exc, APIError):
+        msg += "\n" + exc.detail()
+    from rich.markup import escape
+    _err(escape(msg), exit_code_for(exc))
 
 
 def _flow_exit(e: Any) -> None:
@@ -2835,6 +2842,7 @@ config_app = typer.Typer(
 _CONFIG_KEYS: dict[str, str] = {
     "completion.network": "enable remote requester/agent completion [on|off]",
     "defaults.requester": "requester email for `changes create` when --requester is not given",
+    "changes.attach_flow": "`changes create` attachments: after-create (default) | before-create (unverified vs the web)",
     "forms.workspace_id": "workspace whose business rules apply (default: taken from the form metadata)",
 }
 
@@ -3182,6 +3190,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
         format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     ) -> None:
+        tasks_resource(res, id_, format_, json_out)
+
+    if res == CHANGES:
         from fsv import state_flow
         from fsv.create import (
             associate_ticket,
@@ -3193,9 +3204,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             search_change_tickets,
             update_task,
         )
-        tasks_resource(res, id_, format_, json_out)
 
-    if res == CHANGES:
         assets_app = typer.Typer(
             cls=ChangeLegacyGroup,
             invoke_without_command=True,
@@ -4155,8 +4164,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
                         if with_planning:
                             err.print(f"  - {fx['planning_fields']} planning field(s) copied, {fx['planning_attachments']} attachment(s) re-uploaded", highlight=False)
                     return
-                body = data if no_edit else _edit_body(data, f"Cloning change #{cid}", no_input)
                 _confirm_writes(clone_risks(with_tasks), f"clone of {format_id({'id': cid}, res)}", yes, no_input)
+                body = data if no_edit else _edit_body(data, f"Cloning change #{cid}", no_input)
                 created = submit_change(body)
                 cid_out = created.get("id", "?")
                 label = format_id(created, res)
@@ -4222,7 +4231,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
             preset: Optional[str] = typer.Option(None, "--preset", help="preset name (config presets/NAME.yaml) or path"),
             edit: bool = typer.Option(False, "--edit", "-e", help="edit an annotated YAML draft in $EDITOR"),
             requester: Optional[str] = typer.Option(None, "--requester", help="requester email or exact name (default: config defaults.requester)"),
-            attach: Optional[List[str]] = typer.Option(None, "--attach", "-a", help="file to attach after the change is created (repeatable)"),
+            attach: Optional[List[str]] = typer.Option(None, "--attach", "-a", help="file to attach (uploaded only after you confirm; repeatable)"),
+            attach_flow: Optional[str] = typer.Option(None, "--attach-flow", help="after-create (default: create, upload, PUT ids) | before-create (upload, send ids in the create body); config changes.attach_flow"),
             dry: bool = typer.Option(False, "--dry-run", help="print the review, exact payload and plan hash; send nothing"),
             format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="table|json (json: {plan_hash, payload, review, warnings})", autocompletion=completion.complete_format),
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
@@ -4260,6 +4270,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     dry_run=dry, as_json=json_out or format_ == OutputFormat.json, yes=yes,
                     expect_plan=expect_plan, allow_duplicate=allow_duplicate, ack=ack,
                     no_input=_no_input(no_input), no_validate=no_validate, portal_url=res.portal_url,
+                    attach_flow=attach_flow,
                 )
             except FlowExit as e:
                 _flow_exit(e)

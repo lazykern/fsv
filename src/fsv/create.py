@@ -12,6 +12,9 @@ from fsv.client import APIError, Client, get_client
 from fsv.resources import Resource, CHANGES
 from fsv.schema import load as load_schema
 
+# Embedded read models the clone flow copies separately (or not at all).
+CLONE_SKIP_FIELDS = {"stats", "planning_field_definitions", "main_attachments", "attachments"}
+
 READ_ONLY_FIELDS = {
     # system IDs / identity
     "id", "display_id", "human_display_id", "change_id", "workspace_id",
@@ -154,7 +157,7 @@ def change_clone_data(change_id: int, c: Client | None = None) -> dict[str, Any]
 
     out: dict[str, Any] = {}
     for k, v in change.items():
-        if k in READ_ONLY_FIELDS:
+        if k in READ_ONLY_FIELDS or k in CLONE_SKIP_FIELDS or k.endswith("planning_fields"):
             continue
         # skip None-valued fields that aren't core to reduce editor noise
         out[k] = v

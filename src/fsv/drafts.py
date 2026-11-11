@@ -318,8 +318,18 @@ def render_template(
         if name in ev.populated:
             meta.append("filled in by a rule")
         r = ev.restricted.get(name)
+        prefill = None
         if r is not None:
-            meta.append(f"choices limited by rule {r.rule_name or r.rule_id}")
+            rule = r.rule_name or r.rule_id
+            offered = [c for c in state.choices(name) if c.visible and c.label and str(c.value) != ""]
+            if len(offered) == 1:
+                meta.append(f"only option allowed by rule {rule}")
+                if _value_for_yaml(state, f) is None:
+                    prefill = offered[0].label  # still visible on the review screen
+            else:
+                shown_n = ", ".join(c.label for c in offered[:MAX_CHOICES_SHOWN])
+                meta.append(f"choices limited to {shown_n or '(none)'} by rule {rule}"
+                            if len(offered) <= 5 else f"choices limited by rule {rule}")
         lines.append("  # " + " · ".join(meta))
         if f.choices or f.is_nested_level:
             pool = [c for c in state.choices(f.api_name) if c.visible]
@@ -331,7 +341,8 @@ def render_template(
                 lines.append(f"  # choices: {shown}{more}")
         if f.placeholder and not f.choices:
             lines.append(f"  # e.g. {_one_line(f.placeholder, 80)}")
-        lines.append(_kv(f.label if _label_unique(spec, f) else f.api_name, _value_for_yaml(state, f)))
+        value = _value_for_yaml(state, f)
+        lines.append(_kv(f.label if _label_unique(spec, f) else f.api_name, prefill if prefill is not None else value))
         shown_any = True
     for k, v in (hidden or {}).items():
         lines.append("  # hidden by a rule now: not sent; kept in case it reappears")

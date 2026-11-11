@@ -156,7 +156,7 @@ def test_update_edit_final_body_is_gated(monkeypatch, tmp_path):
     editor.write_text(
         "import sys, pathlib\n"
         "p = pathlib.Path(sys.argv[1])\n"
-        "p.write_text(p.read_text().replace('  Group: 9000009001', '  Group: 9000009002'))\n")
+        "p.write_text(p.read_text().replace('  Group: Platform Ops', '  Group: 9000009002'))\n")
     monkeypatch.setenv("VISUAL", f"{sys.executable} {editor}")
     r = runner.invoke(cli.app, ["changes", "update", "CHN-501", "--edit"], input="n\n")
     assert r.exit_code == 1 and not acme.writes()

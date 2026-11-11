@@ -358,8 +358,29 @@ fsv form dump changes > snap.json && fsv form diff snap.json   # what admins cha
   stops with exit 4).
 * **Duplicates**: every create is journaled under its plan hash; the same
   plan within 24 hours is refused (exit 4) unless `--allow-duplicate`.
-* **Files** are uploaded after the change is created. If an upload fails,
-  fsv prints the new change id and the ids already uploaded (exit 5).
+* **Files** are uploaded only after you confirm. The order is configurable
+  (`--attach-flow` or `fsv config set changes.attach_flow VALUE`):
+  `after-create` (default) creates the change, uploads each file, then
+  `PUT`s `{"attachments": [ids]}` on it; `before-create` uploads first and
+  sends `attachments: [ids]` in the create body. If a later step fails, fsv
+  prints the new change id and the ids already uploaded (exit 5); if the
+  create itself is rejected after a `before-create` upload, the unused ids
+  are printed.
+  *TODO: neither order is verified against what the web UI sends on create;
+  capture a browser create with an attachment and make that order the
+  default.*
+* **Rule effects**: when a rule limits a dropdown, the review says
+  `choices limited to X by rule R`; when exactly one real choice is left,
+  the draft pre-fills it with `# only option allowed by rule R` (it still
+  appears in the review). *Rule notes* list a conflict only when two rules
+  that both match give opposite show/hide, mandate/unmandate or
+  disable/enable on the same field; an ordinary Yes/No rule pair where one
+  matches is not a conflict.
+* **Names, not ids**: drafts and reviews for `update` show requester, agent
+  and group by name (from the change record, else the group/agent lists,
+  fetched once per run).
+* **Errors** are one line: `HTTP 503 listing changes: <server message>`.
+  Add `-v` for the request and the raw response body.
 * **Markdown** in `description_md` becomes simple HTML (headings, lists,
   bold/italic, code, http/https links); raw HTML in it is shown as text.
   Use `description_html` for raw HTML.

@@ -28,9 +28,12 @@ def _print_plan(plan: Plan, *, as_json: bool, to_stdout: bool = True) -> None:
     out = console if to_stdout else err
     plan.review.render(out)
     if to_stdout:
-        out.print("[bold]Payload[/bold]" + (f" (PUT changes/{plan.target})" if plan.action == "update"
-                                             else " (POST /api/_/changes)"), highlight=False)
-        print(json.dumps(plan.payload, indent=2, default=str, ensure_ascii=False))
+        if plan.payload is None:
+            out.print("[dim]No payload yet: fix the problems above first.[/dim]", highlight=False)
+        else:
+            out.print("[bold]Payload[/bold]" + (f" (PUT changes/{plan.target})" if plan.action == "update"
+                                                 else " (POST /api/_/changes)"), highlight=False)
+            print(json.dumps(plan.payload, indent=2, default=str, ensure_ascii=False))
         if plan.hash:
             out.print(f"plan_hash: {plan.hash}", highlight=False)
             out.print(f"[dim]send exactly this with: --yes --expect-plan {plan.hash[:16]}[/dim]", highlight=False)
@@ -140,7 +143,8 @@ def _confirm_loop(plan: Plan, draft: Draft, build: Callable[[Draft, bool], Plan]
 
 
 def _send(plan: Plan, client: Any, *, rebuild: Callable[[Any], Plan], tty: bool, yes: bool,
-          expect_plan: str | None, allow_duplicate: bool, duplicate: str = "append") -> dict[str, Any]:
+          expect_plan: str | None, allow_duplicate: bool, duplicate: str = "append",
+          attach_flow: str | None = None) -> dict[str, Any]:
     flow.check_duplicate(plan, allow_duplicate)
     new, diff = flow.freshen(plan, client, rebuild)
     if diff is not None:
@@ -159,7 +163,7 @@ def _send(plan: Plan, client: Any, *, rebuild: Callable[[Any], Plan], tty: bool,
         flow.check_duplicate(new, allow_duplicate)
     plan = new
     flow.expect(plan, expect_plan)
-    return flow.execute(plan, client, duplicate=duplicate)
+    return flow.execute(plan, client, duplicate=duplicate, attach_flow=attach_flow)
 
 
 def _report_partial(e: PartialFailure, what: str) -> FlowExit:
@@ -195,10 +199,12 @@ def create_command(
     no_input: bool,
     no_validate: bool,
     portal_url: str,
+    attach_flow: str | None = None,
 ) -> None:
     from fsv.editor import EditorAbort
 
     tty = flow.interactive() and not no_input
+    attach_flow = flow.resolve_attach_flow(attach_flow)
     legacy = {k: v for k, v in legacy.items() if v is not None}
     has_input = bool(from_file or sets or preset or legacy or attach)
     template_only = False
@@ -279,7 +285,7 @@ def create_command(
     ack_now = ack or bool(plan.state.acknowledged)
     try:
         result = _send(plan, client, rebuild=lambda m: build(plan.draft, ack_now, m), tty=tty, yes=yes,
-                       expect_plan=expect_plan, allow_duplicate=allow_duplicate)
+                       expect_plan=expect_plan, allow_duplicate=allow_duplicate, attach_flow=attach_flow)
     except PartialFailure as e:
         raise _report_partial(e, "change") from None
     cid = result["id"]

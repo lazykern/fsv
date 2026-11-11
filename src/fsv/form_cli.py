@@ -17,7 +17,16 @@ from rich.markup import escape
 from rich.table import Table
 
 from fsv.drafts import resolve_draft
-from fsv.formmeta import ClientResolver, apply_answers, existing_from_record, find_field, load_meta, module_name
+from fsv.change_flow import real_conflicts
+from fsv.formmeta import (
+    ClientResolver,
+    apply_answers,
+    existing_from_record,
+    find_field,
+    load_meta,
+    module_name,
+    name_existing,
+)
 from fsv.forms import FormError, FormState, canonical_json, plain_text
 from fsv.render import console, err
 
@@ -92,7 +101,8 @@ def explain(
     spec = meta.spec
     state = _guard(lambda: FormState(spec, meta.engine(), mode="edit" if record else "new",
                                      resolver=ClientResolver(c),
-                                     existing=existing_from_record(spec, record) if record else None))
+                                     existing=(name_existing(existing_from_record(spec, record), spec, record, ClientResolver(c))
+                                              if record else None)))
     answers = dict(draft.answers)
     errors = apply_answers(state, answers)
     ev = state.evaluated
@@ -112,7 +122,7 @@ def explain(
             "populated_by": ev.populated.get(f.api_name), "why": why,
         })
     out = {"rows": rows, "messages": [{"text": m.text, "blocking": m.blocking, "rule": m.rule_name} for m in ev.messages],
-           "conflicts": [c.describe() for c in ev.conflicts], "errors": errors,
+           "conflicts": [c.describe() for c in real_conflicts(ev)], "errors": errors,
            "metadata": meta.as_of()}
     if output == "json":
         print(json.dumps(out, indent=2, default=str, ensure_ascii=False))
