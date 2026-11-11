@@ -433,7 +433,7 @@ account's own metadata at run time; nothing is tied to one tenant:
 
 One gate checks the final request body (after flags, `--set` and `--edit` are merged). It asks `y/N` interactively, and refuses with exit 2 under `--no-input` or without a TTY unless you pass `--yes`. `--dry-run` never asks and lists `requires_confirmation`.
 
-It covers: any change status transition (unchanged status is ignored), ticket/problem moves to resolved/closed, agent/group reassignment, task status and reassignment, public notes, ticket replies, and `clone --with-tasks`. Paths: quick flags, `--set status=...`, `update --edit`, `tasks-update` (flags and `--edit`), `add-note`, `reply`. Status labels come from your tenant schema.
+It covers: any change status transition (unchanged status is ignored), ticket/problem moves to resolved/closed (or to a status fsv cannot classify, such as a localized or custom label), agent/group reassignment, task status and reassignment, public notes, ticket replies, and `clone --with-tasks`. Paths: quick flags, `--set status=...`, `update --edit`, `tasks-update` (flags and `--edit`), `add-note`, `reply`. Status labels come from your tenant schema.
 
 `--agent/--group/--requester` need an exact name or email (case-insensitive, Unicode-normalized) or a numeric ID. A substring-only match is an error that lists candidates; interactively you can pick one.
 

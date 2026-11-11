@@ -11,6 +11,14 @@ import unicodedata
 from typing import Any, Callable
 
 TERMINAL_STATUS_WORDS = {"closed", "resolved", "rejected", "cancelled", "canceled"}
+# Status labels known NOT to close a record. A label that is neither known
+# terminal nor known open (a localized or custom status) is treated as
+# possibly terminal: confirming one extra time beats closing silently.
+OPEN_STATUS_WORDS = {"open", "pending", "in progress", "waiting", "on hold", "new", "planning", "awaiting",
+                     "assigned", "scheduled", "review", "reopened"}
+# Freshservice API default terminal status ids (tickets: 4 Resolved,
+# 5 Closed; problems: 3 Closed), used when the label is unknown.
+TERMINAL_STATUS_IDS = {"tickets": {"4", "5"}, "problems": {"3"}}
 ASSIGNEE_KEYS = ("agent_id", "responder_id", "owner_id")
 GROUP_KEYS = ("group_id",)
 
@@ -23,6 +31,21 @@ def norm(text: Any) -> str:
 def is_terminal_label(label: str) -> bool:
     folded = norm(label)
     return any(word in folded for word in TERMINAL_STATUS_WORDS)
+
+
+def is_open_label(label: str) -> bool:
+    folded = norm(label)
+    return not is_terminal_label(label) and any(word in folded for word in OPEN_STATUS_WORDS)
+
+
+def status_closes(resource: str, value: Any, label: str) -> bool | None:
+    """True: the status closes/resolves the record; False: known open;
+    None: unknown (e.g. a localized or custom label)."""
+    if is_terminal_label(label) or str(value) in TERMINAL_STATUS_IDS.get(resource, set()):
+        return True
+    if is_open_label(label):
+        return False
+    return None
 
 
 def _plain(v: Any) -> Any:
@@ -60,8 +83,13 @@ def write_risks(
         elif resource == "changes":
             # every change status transition can fire approvals/workflows
             risks.append(f"change status -> {label}")
-        elif is_terminal_label(label):
-            risks.append(f"{resource[:-1] if resource.endswith('s') else resource} status -> {label}")
+        else:
+            what = resource[:-1] if resource.endswith("s") else resource
+            closes = status_closes(resource, _plain(body["status"]), label)
+            if closes:
+                risks.append(f"{what} status -> {label}")
+            elif closes is None:
+                risks.append(f"{what} status -> {label} (fsv cannot tell whether this status closes it)")
 
     for key in ASSIGNEE_KEYS:
         if key in body and not (current is not None and key in cur and _same(body[key], cur[key])):
