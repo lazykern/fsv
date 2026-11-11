@@ -914,19 +914,10 @@ def dissociate_assets(change_id: int, asset_display_ids: list[int], c: Client | 
         c.int_put(f"changes/{change_id}/assets/detach", {"cmdb_request_id": cmdb_id})
 
 
-def get_change_associations(change_id: int, c: Client | None = None) -> dict[str, list]:
-    """Fetch associated tickets, problems, and releases for a change."""
-    if c is None:
-        c = get_client()
-    def _get(path: str, key: str) -> list:
-        try:
-            return c.int_get(path).get(key, [])
-        except APIError:
-            return []
-    tickets = _get(f"changes/{change_id}/tickets", "tickets")
-    problems = _get(f"changes/{change_id}/problems", "problems")
-    releases = _get(f"changes/{change_id}/releases", "releases")
-    return {"tickets": tickets, "problems": problems, "releases": releases}
+def get_change_associations(change_id: int, c: Client | None = None) -> dict[str, Any]:
+    """Paginated association rows plus complete/meta/warnings (never false empty)."""
+    from fsv.change_associations import inventory
+    return inventory(change_id, c)
 
 
 def search_change_tickets(query: str, c: Client | None = None) -> list[dict[str, Any]]:
@@ -958,19 +949,22 @@ def get_change_activities(change_id: int, c: Client | None = None) -> list[dict[
     return all_acts
 
 
-def associate_ticket(change_id: int, ticket_ids: list[int], c: Client | None = None) -> None:
-    """Associate tickets with a change."""
-    if c is None:
-        c = get_client()
-    c.int_put(f"changes/{change_id}/tickets/associate", {"item_ids": ticket_ids, "module_type": "ticket"})
+def associate_ticket(change_id: int, ticket_ids: list[int], c: Client | None = None, *,
+                     reviewed_hash: str | None = None, read_only: bool = False,
+                     dry_run: bool = False) -> dict[str, Any]:
+    """One reviewed, journaled PUT; cancellation without an exact review hash."""
+    from fsv.change_associations import build_plan, send
+    return send(build_plan(change_id, ticket_ids), c, reviewed_hash=reviewed_hash,
+                read_only=read_only, dry_run=dry_run)
 
 
-def dissociate_ticket(change_id: int, ticket_id: int, c: Client | None = None) -> None:
-    """Remove a ticket association from a change."""
-    if c is None:
-        c = get_client()
-    c.int_delete(f"changes/{change_id}/tickets/{ticket_id}",
-                 body={"type": "unlink"}, params={"module_type": "ticket"})
+def dissociate_ticket(change_id: int, ticket_id: int, c: Client | None = None, *,
+                      reviewed_hash: str | None = None, read_only: bool = False,
+                      dry_run: bool = False) -> dict[str, Any]:
+    """One reviewed, journaled DELETE; never replay after a 403 or uncertainty."""
+    from fsv.change_associations import build_plan, send
+    return send(build_plan(change_id, [ticket_id], unlink=True), c, reviewed_hash=reviewed_hash,
+                read_only=read_only, dry_run=dry_run)
 
 
 def get_task_for_edit(change_id: int, task_id: int, c: Client | None = None) -> dict[str, Any]:

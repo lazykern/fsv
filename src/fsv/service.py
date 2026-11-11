@@ -321,10 +321,7 @@ def get_associations(
         return result
     if resource.name == "changes":
         from fsv.create import get_change_associations
-        try:
-            return get_change_associations(item_id, c)
-        except Exception:
-            return {}
+        return get_change_associations(item_id, c)
     if resource.name == "problems":
         result = {}
         try:

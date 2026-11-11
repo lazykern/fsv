@@ -1812,10 +1812,10 @@ def change_associations_resource(
     json_out: bool,
     format_: OutputFormat | str = "table",
     pick: bool = False,
+    expect_plan: str | None = None,
+    read_only: bool = False,
 ) -> None:
     from fsv.create import (
-        associate_ticket,
-        dissociate_ticket,
         get_change_associations,
         search_change_tickets,
     )
@@ -1838,57 +1838,40 @@ def change_associations_resource(
             return
         _print_tickets(items, "Ticket search")
         return
-    if pick:
-        ids = _pick_change_tickets(cid)
+    if pick or add or remove:
+        from fsv.change_associations import build_plan, send
+        if read_only and not dry_run:
+            _err("read-only mode: no association request was sent")
+        if remove and len(remove) != 1:
+            _err("unlink accepts one ticket per reviewed request; review each removal separately")
+        ids = (_pick_change_tickets(cid) if pick else
+               [_resolve_associated_change_ticket_id(cid, x) for x in remove] if remove else
+               [_resolve_change_ticket_id(x) for x in add])
         if not ids:
             console.print("cancelled")
             return
-        payload = {"action": "associate_tickets", "change_id": cid, "ticket_ids": ids}
+        plan = build_plan(cid, ids, unlink=bool(remove))
         if dry_run:
-            emit_json(payload)
+            emit_json(send(plan, reviewed_hash=None, dry_run=True))
             return
-        if not yes:
-            if _no_input() or not sys.stdin.isatty():
-                _err("pass --yes to confirm")
-            typer.confirm(f"Associate {len(ids)} ticket(s) with #{cid}?", abort=True)
-        associate_ticket(cid, ids)
+        if read_only:
+            _err("read-only mode: no association request was sent")
+        err.print_json(data=plan.review())
+        if expect_plan is not None and expect_plan != plan.hash:
+            _err("association review hash does not match; review again")
+        if yes:
+            if expect_plan != plan.hash:
+                _err("--yes requires the full --expect-plan from a prior association review")
+        elif _no_input() or not sys.stdin.isatty():
+            _err("sending requires --yes and --expect-plan in no-input mode")
+        elif not typer.confirm("Send this exact reviewed association request?", default=False):
+            console.print("cancelled")
+            return
+        result = send(plan, reviewed_hash=plan.hash, read_only=read_only)
         if json_out:
-            emit_json({**payload, "ok": True})
-            return
-        console.print(f"[green]associated[/] {len(ids)} ticket(s) with #{cid}")
-        return
-    if add:
-        ids = [_resolve_change_ticket_id(x) for x in add]
-        payload = {"action": "associate_tickets", "change_id": cid, "ticket_ids": ids}
-        if dry_run:
-            emit_json(payload)
-            return
-        if not yes:
-            if _no_input() or not sys.stdin.isatty():
-                _err("pass --yes to confirm")
-            typer.confirm(f"Associate {len(ids)} ticket(s) with #{cid}?", abort=True)
-        associate_ticket(cid, ids)
-        if json_out:
-            emit_json({**payload, "ok": True})
-            return
-        console.print(f"[green]associated[/] {len(ids)} ticket(s) with #{cid}")
-        return
-    if remove:
-        ids = [_resolve_associated_change_ticket_id(cid, x) for x in remove]
-        payload = {"action": "dissociate_tickets", "change_id": cid, "ticket_ids": ids}
-        if dry_run:
-            emit_json(payload)
-            return
-        if not yes:
-            if _no_input() or not sys.stdin.isatty():
-                _err("pass --yes to confirm")
-            typer.confirm(f"Dissociate {len(ids)} ticket(s) from #{cid}?", abort=True)
-        for tid in ids:
-            dissociate_ticket(cid, tid)
-        if json_out:
-            emit_json({**payload, "ok": True})
-            return
-        console.print(f"[green]dissociated[/] {len(ids)} ticket(s) from #{cid}")
+            emit_json(result)
+        else:
+            console.print(f"Association {result['status']}; complete inventory verified: {result['verified']}")
         return
     assoc = get_change_associations(cid)
     flat_rows = [
@@ -1898,12 +1881,15 @@ def change_associations_resource(
             "subject": item.get("subject") or item.get("title") or "-",
             "status": item.get("status_name") or str(item.get("status", "-")),
         }
-        for k, itms in assoc.items() for item in itms
+        for k in ("tickets", "problems", "releases") for item in assoc[k]
     ]
+    for warning in assoc["warnings"]:
+        err.print(warning, markup=False)
     if _emit_fmt(assoc, flat_rows, format_, json_out):
         return
     any_shown = False
-    for kind, items in assoc.items():
+    for kind in ("tickets", "problems", "releases"):
+        items = assoc[kind]
         if not items:
             continue
         any_shown = True
@@ -1918,7 +1904,7 @@ def change_associations_resource(
             t.add_row(hid, subj, st)
         console.print(t)
     if not any_shown:
-        console.print("no associations")
+        console.print("no associations" if assoc["complete"] else "association inventory unavailable/incomplete; not an empty list")
 
 
 def _network_completion_enabled() -> bool:
@@ -2193,7 +2179,10 @@ def _resolve_associated_change_ticket_id(change_id: int, value: str, c: Client |
         target_id = None
     if c is None:
         c = get_client()
-    tickets = get_change_associations(change_id, c).get("tickets", [])
+    inventory = get_change_associations(change_id, c)
+    if not inventory["meta"]["tickets"].get("complete"):
+        _err("initiating-ticket inventory unavailable/incomplete; cannot resolve removal")
+    tickets = inventory["tickets"]
     if target_id is not None:
         for ticket in tickets:
             if int(ticket.get("id") or 0) == target_id:
@@ -3776,8 +3765,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 "fsv changes associations ls CHN-1234  |  "
                 "fsv changes associations search CHN-1234 SR-123  |  "
                 "fsv changes associations add CHN-1234 SR-123 --dry-run  |  "
-                "fsv changes associations remove CHN-1234 SR-123 --yes  |  "
-                "fsv changes associations pick CHN-1234 --yes"
+                "fsv changes associations remove CHN-1234 SR-123 --yes --expect-plan FULL_HASH  |  "
+                "fsv changes associations pick CHN-1234 --dry-run"
             ),
         )
 
@@ -3795,11 +3784,13 @@ def _make_subapp(res: Resource) -> typer.Typer:
             pick: bool = typer.Option(False, "--pick", help="interactive picker for add flow"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
+            expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full hash from exact association review"),
+            read_only: bool = typer.Option(False, "--read-only", help="refuse association writes"),
             format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
             json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         ) -> None:
             try:
-                change_associations_resource(id_, search, list(add or []), list(remove or []), dry_run, yes, json_out, format_, pick=pick)
+                change_associations_resource(id_, search, list(add or []), list(remove or []), dry_run, yes, json_out, format_, pick=pick, **({"expect_plan": expect_plan, "read_only": read_only} if expect_plan is not None or read_only else {}))
             except (SessionError, APIError, ValueError) as e:
                 _err_exc(e)
 
@@ -3826,41 +3817,47 @@ def _make_subapp(res: Resource) -> typer.Typer:
             except (SessionError, APIError, ValueError) as e:
                 _err_exc(e)
 
-        @associations_app.command("add", help="Associate ticket(s) to change.", epilog="[bold]Examples:[/bold]  fsv changes associations add CHN-1234 SR-123 --dry-run  |  fsv changes associations add CHN-1234 'Napimpat' --yes")
+        @associations_app.command("add", help="Associate ticket(s) to change.", epilog="[bold]Examples:[/bold]  fsv changes associations add CHN-1234 SR-123 --dry-run  |  fsv changes associations add CHN-1234 SR-123 --yes --expect-plan FULL_HASH")
         def associations_add(
             id_: str = typer.Argument(..., metavar="CHANGE_ID"),
             tickets_: List[str] = typer.Argument(..., metavar="TICKET", autocompletion=_complete_ticket_for_change),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
+            expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full hash from exact association review"),
+            read_only: bool = typer.Option(False, "--read-only", help="refuse association writes"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON"),
         ) -> None:
             try:
-                change_associations_resource(id_, None, list(tickets_), [], dry_run, yes, json_out)
+                change_associations_resource(id_, None, list(tickets_), [], dry_run, yes, json_out, **({"expect_plan": expect_plan, "read_only": read_only} if expect_plan is not None or read_only else {}))
             except (SessionError, APIError, ValueError) as e:
                 _err_exc(e)
 
-        @associations_app.command("remove", help="Dissociate ticket(s) from change.", epilog="[bold]Examples:[/bold]  fsv changes associations remove CHN-1234 SR-123 --dry-run  |  fsv changes associations remove CHN-1234 SR-123 --yes")
+        @associations_app.command("remove", help="Dissociate ticket(s) from change.", epilog="[bold]Examples:[/bold]  fsv changes associations remove CHN-1234 SR-123 --dry-run  |  fsv changes associations remove CHN-1234 SR-123 --yes --expect-plan FULL_HASH")
         def associations_remove(
             id_: str = typer.Argument(..., metavar="CHANGE_ID"),
             tickets_: List[str] = typer.Argument(..., metavar="TICKET", autocompletion=_complete_ticket_for_change),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
+            expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full hash from exact association review"),
+            read_only: bool = typer.Option(False, "--read-only", help="refuse association writes"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON"),
         ) -> None:
             try:
-                change_associations_resource(id_, None, [], list(tickets_), dry_run, yes, json_out)
+                change_associations_resource(id_, None, [], list(tickets_), dry_run, yes, json_out, **({"expect_plan": expect_plan, "read_only": read_only} if expect_plan is not None or read_only else {}))
             except (SessionError, APIError, ValueError) as e:
                 _err_exc(e)
 
-        @associations_app.command("pick", help="Interactively pick ticket(s) to associate.", epilog="[bold]Examples:[/bold]  fsv changes associations pick CHN-1234 --yes  |  fsv changes associations pick CHN-1234 --dry-run")
+        @associations_app.command("pick", help="Interactively pick ticket(s) to associate.", epilog="[bold]Examples:[/bold]  fsv changes associations pick CHN-1234 --yes --expect-plan FULL_HASH  |  fsv changes associations pick CHN-1234 --dry-run")
         def associations_pick(
             id_: str = typer.Argument(..., metavar="CHANGE_ID"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
+            expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full hash from exact association review"),
+            read_only: bool = typer.Option(False, "--read-only", help="refuse association writes"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON"),
         ) -> None:
             try:
-                change_associations_resource(id_, None, [], [], dry_run, yes, json_out, pick=True)
+                change_associations_resource(id_, None, [], [], dry_run, yes, json_out, pick=True, **({"expect_plan": expect_plan, "read_only": read_only} if expect_plan is not None or read_only else {}))
             except (SessionError, APIError, ValueError) as e:
                 _err_exc(e)
 

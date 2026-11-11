@@ -100,6 +100,8 @@ Use `--dry-run` first when you're unsure. Writes can trigger your account's work
 
 [Change-task creation](docs/change-tasks.md) uses an exact reviewed hash for scripted sends (`--yes --expect-plan FULL_HASH --no-input`), defaults to no owner, and never retries an uncertain POST. In the main TUI, select a change and use **a → Add task**. Task CREATE is backed by a blocked request capture; its accepted live response remains unobserved.
 
+[Change–ticket associations](docs/change-associations.md) use a reviewed hash, one write attempt and complete paginated readback. Scripted sends require `--yes --expect-plan FULL_HASH`; uncertain outcomes block resubmission. Lists retain partial rows with explicit completeness warnings.
+
 For the full command list, run `fsv --help` or a module's help:
 
 ```bash

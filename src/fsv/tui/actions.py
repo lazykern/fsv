@@ -148,17 +148,19 @@ def task_patch(current: dict, field: str, value: Any) -> dict:
     return {} if current.get(field) == value else {field: value}
 
 
-def apply_change_action(kind: str, change_id: int, target: dict, body: dict, client: Any) -> None:
+def apply_change_action(kind: str, change_id: int, target: dict, body: dict, client: Any) -> Any:
     """One helper invocation, with no fallback or write retry here."""
     from fsv import create
     if kind == "task-update":
         create.update_task(change_id, target["id"], body, c=client)
     elif kind == "task-delete":
         create.delete_task(change_id, target["id"], c=client)
-    elif kind == "link":
-        create.associate_ticket(change_id, [target["id"]], c=client)
-    elif kind == "unlink":
-        create.dissociate_ticket(change_id, target["id"], c=client)
+    elif kind in ("link", "unlink"):
+        from fsv.change_associations import build_plan, send
+        plan = target.get("_association_plan")
+        if plan is None or plan != build_plan(change_id, [target["id"]], unlink=kind == "unlink"):
+            raise ValueError("association requires the exact reviewed plan")
+        return send(plan, client, reviewed_hash=plan.hash)
     else:
         raise ValueError("Unsupported change action")
 

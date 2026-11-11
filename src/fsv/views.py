@@ -1204,6 +1204,8 @@ def load_tab(c: Any, res: Resource, record: Mapping[str, Any], name: str) -> Tab
         return td
     if name == "associations":
         if res.name == "changes":
+            from fsv.change_associations import AssociationReader
+            c = AssociationReader(c)
             specs = [("Releases", f"{base}/releases", {"per_page": 50}, "releases"),
                      ("Tickets", f"{base}/tickets", {"per_page": 50}, "tickets"),
                      ("Archived tickets", f"{base}/tickets", {"filter": "archived", "per_page": 50}, "tickets"),

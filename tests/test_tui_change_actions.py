@@ -31,8 +31,6 @@ class Client:
 @pytest.mark.parametrize("kind,body,expected", [
     ("task-update", {"status": 3}, ("PUT", "changes/9000001001/tasks/9000001002", {"status": 3})),
     ("task-delete", {}, ("PUT", "changes/9000001001/tasks/update", {"id": "9000001002", "action": "delete"})),
-    ("link", {}, ("PUT", "changes/9000001001/tickets/associate", {"item_ids": [9000001002], "module_type": "ticket"})),
-    ("unlink", {}, ("DELETE", "changes/9000001001/tickets/9000001002", {"body": {"type": "unlink"}, "params": {"module_type": "ticket"}})),
 ])
 def test_exact_helper_one_send(kind, body, expected):
     client = Client()
@@ -45,7 +43,7 @@ def test_exact_helper_one_send(kind, body, expected):
 def test_selected_action_review(offline, monkeypatch, kind, confirm):
     sent = []
     monkeypatch.setattr(create, "get_task_for_edit", lambda *a, **kw: TARGET.copy())
-    monkeypatch.setattr(actions, "apply_change_action", lambda *args: sent.append(args))
+    monkeypatch.setattr(actions, "apply_change_action", lambda *args: sent.append(args) or {"verified": True})
     monkeypatch.setattr(actions, "download_selected", lambda *args: sent.append(args) or {"status": "downloaded", "path": "acme.txt"})
     def tab(*args):
         rows = [] if kind in ("task-delete", "unlink") else [{**TARGET, "status": 3}]
@@ -69,6 +67,10 @@ def test_selected_action_review(offline, monkeypatch, kind, confirm):
                 assert isinstance(app.screen, ValueScreen)
                 await pilot.press("enter")
             assert isinstance(app.screen, ConfirmScreen)
+            if kind in ("link", "unlink"):
+                from fsv.change_associations import build_plan
+                plan = build_plan(11, [TARGET["id"]], unlink=kind == "unlink")
+                assert any(plan.hash in line for line in app.screen._lines)
             assert sent == []
             await pilot.press("y" if confirm else "escape")
             await app.workers.wait_for_complete()

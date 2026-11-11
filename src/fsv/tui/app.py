@@ -1823,8 +1823,9 @@ class FsvApp(App):
         if not data:
             return "\n[dim]no associations[/]\n"
         lines: list[str] = [""]
+        lines.extend(_markup(w) for w in data.get("warnings", []))
         for key, items in data.items():
-            if not isinstance(items, list) or not items:
+            if key in ("meta", "warnings", "complete") or not isinstance(items, list) or not items:
                 continue
             lines.append(f"  [dim]── {_markup(key.upper())} ──[/]")
             for item in items:
@@ -2382,6 +2383,15 @@ class FsvApp(App):
                  f"Source: {target.get('source', 'request')}. Existing files are skipped; no overwrite."]
         if "_before" in target:
             lines.insert(3, "Before: " + json.dumps(target["_before"], ensure_ascii=False))
+        if kind in ("link", "unlink"):
+            from fsv.change_associations import build_plan
+            try:
+                plan = build_plan(item.get("display_id") or item["id"], [target["id"]], unlink=kind == "unlink")
+            except ValueError as exc:
+                self._show_failure(str(exc))
+                return
+            target = {**target, "_association_plan": plan}
+            lines.append(json.dumps(plan.review(), indent=2))
         lines.extend(target.get("_inventory_warnings", []))
         self.push_screen(ConfirmScreen(f"Confirm {kind}", lines),
                          lambda ok: self._execute_action(kind, item, target, body) if ok else None)
@@ -2399,7 +2409,12 @@ class FsvApp(App):
                     raise ValueError(json.dumps(result))
                 self.call_from_thread(self.notify, json.dumps(result), title="Download result", timeout=15)
                 return
-            actions.apply_change_action(kind, item.get("display_id") or item["id"], target, body, client)
+            result = actions.apply_change_action(kind, item.get("display_id") or item["id"], target, body, client)
+            if kind in ("link", "unlink"):
+                if not isinstance(result, dict) or not result.get("verified"):
+                    raise ValueError("Association outcome unknown/unverified; do not resubmit")
+                self.call_from_thread(self._after_write, res, item, f"{kind} complete inventory verified")
+                return
         except Exception as exc:
             self.call_from_thread(self._show_failure, actions.failure_detail(exc))
             return
