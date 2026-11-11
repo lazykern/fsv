@@ -89,6 +89,7 @@ fsv tickets update INC-5678 --status Pending --agent alice@example.com
 fsv changes update CHN-1234 --status Closed --dry-run
 fsv changes update CHN-1234 --planning "Reference Documents" --description "Evidence attached" --file evidence.xlsx
 fsv changes add-note CHN-1234 "Verification passed"       # private by default
+fsv changes tasks-add CHN-1234 --title "Acme verification" --dry-run --json
 fsv tickets reply INC-5678 "Investigation is in progress." --dry-run
 fsv changes clone CHN-1234 --with-tasks --with-planning --dry-run
 fsv changes assets add CHN-1234 myapp --category "Application Portfolio" --dry-run
@@ -96,6 +97,8 @@ fsv changes associations add CHN-1234 SR-5678 --dry-run
 ```
 
 Use `--dry-run` first when you're unsure. Writes can trigger your account's workflows, send notifications or create tasks. fsv can't discover every downstream effect.
+
+[Change-task creation](docs/change-tasks.md) uses an exact reviewed hash for scripted sends (`--yes --expect-plan FULL_HASH --no-input`), defaults to no owner, and never retries an uncertain POST. In the main TUI, select a change and use **a → Add task**. Task CREATE is backed by a blocked request capture; its accepted live response remains unobserved.
 
 For the full command list, run `fsv --help` or a module's help:
 
@@ -182,7 +185,7 @@ That doesn't mean every Freshservice feature or account configuration has been t
 - Your role and plan determine which tabs, lookups and actions are available.
 - Custom workflows can add work that isn't visible in the form metadata. You can document known effects in local `hints.yaml`; see [the forms guide](docs/forms.md).
 - A create can succeed even if a later attachment or planning step fails. fsv prints the created ID and partial results. Check that record before retrying.
-- Creates with the same plan hash are blocked for 24 hours unless you pass `--allow-duplicate`.
+- Form creates with the same plan hash are blocked for 24 hours unless you pass `--allow-duplicate`. Reviewed task creates instead keep identical sent/unknown plans blocked without an override.
 
 ## Shell completion
 

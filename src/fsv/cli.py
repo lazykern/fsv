@@ -3575,6 +3575,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
 
         sub.add_typer(assets_app, name="assets")
 
+        from fsv.change_tasks import register as register_change_tasks
+        register_change_tasks(sub)
+
         @sub.command("tasks-update", help="Update a change task.", epilog=(
             "[bold]Examples:[/bold]  "
             "fsv changes tasks-update CHN-1234 987 --status Completed --dry-run  |  "

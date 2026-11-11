@@ -143,7 +143,7 @@ class HelpScreen(ModalScreen[None]):
   [cyan]s[/]            change status: pick, then confirm
   [cyan]n[/]            add note (private by default; Ctrl+T toggles public)
   [cyan]r[/]            reply to ticket (detail pane; public, confirmed)
-  [cyan]a[/]            selected task / initiating-ticket / attachment actions
+  [cyan]a[/]            add/update/delete task / initiating-ticket / attachment actions
   [cyan]![/]            reopen the last persistent failure
 
 [bold]App[/]
@@ -2220,7 +2220,7 @@ class FsvApp(App):
         item = dict(self._selected)
         choices = [("download", "Download selected attachment")]
         if item.get("_resource", TICKETS) == CHANGES:
-            choices = [("task-update", "Update selected task"), ("task-delete", "Delete selected task"),
+            choices = [("task-add", "Add task"), ("task-update", "Update selected task"), ("task-delete", "Delete selected task"),
                        ("link", "Link initiating ticket"), ("unlink", "Unlink initiating ticket")] + choices
         self.push_screen(ChoiceScreen(choices, "Selected record actions"),
                          lambda kind: self._prepare_action(kind, item) if kind is not None else None)
@@ -2228,11 +2228,68 @@ class FsvApp(App):
     def _prepare_action(self, kind: str, item: dict) -> None:
         if self.read_only:
             return
-        if kind == "link":
+        if kind == "task-add":
+            self._compose_change_task(item)
+        elif kind == "link":
             self.push_screen(ValueScreen("Search initiating tickets (ID or subject)"),
                              lambda query: self._load_action_targets(kind, item, query) if query else None)
         else:
             self._load_action_targets(kind, item)
+
+    def _compose_change_task(self, item: dict) -> None:
+        if self.read_only or item.get("_resource", TICKETS) != CHANGES:
+            return
+
+        def titled(title):
+            if title is None or self.read_only:
+                return
+
+            def owner_mode(mode):
+                if mode is None or self.read_only:
+                    return
+                if mode == "none":
+                    self._prepare_change_task(item, title, None)
+                else:
+                    self.push_screen(ValueScreen("Explicit task owner user ID or exact email (no implicit self)"),
+                                     lambda owner: self._prepare_change_task(item, title, owner) if owner is not None else None)
+            self.push_screen(ChoiceScreen([("none", "No owner (default)"),
+                                           ("explicit", "Explicit owner user ID or email")], "Task owner"), owner_mode)
+        self.push_screen(ValueScreen("New change task title — Open; reminder Never"), titled)
+
+    @work(thread=True, exclusive=True, group="task-create-review")
+    def _prepare_change_task(self, item: dict, title: str, owner: str | None) -> None:
+        from fsv import change_tasks
+        if self.read_only:
+            return
+        try:
+            change_tasks.build_plan(item.get("display_id") or item["id"], title)
+            owner_id = change_tasks.resolve_owner(owner)
+            plan = change_tasks.build_plan(item.get("display_id") or item["id"], title, owner_id=owner_id)
+            self.call_from_thread(self._review_change_task, item, plan)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
+    def _review_change_task(self, item: dict, plan: Any) -> None:
+        if self.read_only:
+            return
+        self.push_screen(ConfirmScreen("Review exact new change task", [json.dumps(plan.review(), indent=2)]),
+                         lambda ok: self._send_change_task(item, plan) if ok else None)
+
+    @work(thread=True, group="write")
+    def _send_change_task(self, item: dict, plan: Any) -> None:
+        from fsv import change_tasks
+        if self.read_only:
+            return
+        try:
+            result = change_tasks.send(plan, reviewed_hash=plan.hash, read_only=self.read_only)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+            return
+        if not result.get("verified"):
+            self.call_from_thread(self._show_failure,
+                                  f"Task ID {result.get('task_id')} submitted; readback unverified.\n{result.get('warning', '')}\nDo not resend.")
+            return
+        self.call_from_thread(self._after_write, CHANGES, item, f"Task {result['task_id']} verified")
 
     @work(thread=True, exclusive=True, group="action-read")
     def _load_action_targets(self, kind: str, item: dict, query: str = "") -> None:
