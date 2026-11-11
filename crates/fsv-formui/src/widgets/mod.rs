@@ -8,6 +8,7 @@
 pub mod calendar;
 mod combo;
 mod date;
+mod markdown;
 mod text;
 
 use std::time::Duration;

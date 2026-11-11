@@ -184,6 +184,11 @@ pub fn shell_quote(s: &str) -> String {
     }
 }
 
+/// A throw-away copy to try a value on (`set` replaces `evaluated`).
+fn fork(state: &FormState) -> FormState {
+    state.clone()
+}
+
 /// One row of the form (a spec field or a form-level input).
 #[derive(Clone, Debug)]
 pub struct FormItem {
@@ -1029,7 +1034,7 @@ impl FormSession {
             {
                 continue;
             }
-            let mut s2 = self.state.clone();
+            let mut s2 = fork(&self.state);
             let Ok(d) = s2.set(&f.api_name, value.clone()) else {
                 continue;
             };
@@ -1549,3 +1554,185 @@ pub fn sr_title(spec: &FormSpec, meta_name: &str) -> String {
 }
 
 pub const TICKET_TITLE: &str = "New Incident";
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::acme;
+
+    // Expected values: `change_session(acme_change_form.FakeClient())` in Python.
+
+    #[test]
+    fn plain_squashes_and_cuts() {
+        assert_eq!(
+            plain("<p>Hello <b>big</b>\n  world</p>", 600),
+            "Hello big world"
+        );
+        assert_eq!(plain("abcdefghij", 5), "abcd…");
+        assert_eq!(plain("", 600), "");
+    }
+
+    #[test]
+    fn structure_of_a_new_change() {
+        let (_a, s) = acme::acme();
+        assert_eq!(
+            s.requester_field().map(|f| f.api_name),
+            Some("requester".into())
+        );
+        assert_eq!(
+            s.description_field().map(|f| f.api_name),
+            Some("description".into())
+        );
+        assert!(s.requester_is_special());
+        let (tz, source) = s.timezone();
+        assert_eq!(
+            (tz.name.as_str(), source.as_str()),
+            ("Asia/Tokyo", "Freshservice user time zone (Tokyo)")
+        );
+        let items: Vec<(String, String, WidgetKind, bool, Option<String>)> = s
+            .build_items()
+            .into_iter()
+            .map(|it| {
+                let synthetic = it.is_synthetic();
+                (it.key, it.label, it.widget, synthetic, it.entity)
+            })
+            .collect();
+        let user = || Some("user".to_string());
+        use WidgetKind::*;
+        let want: Vec<(&str, &str, WidgetKind, bool, Option<String>)> = vec![
+            ("requester", "Requester", Lookup, false, user()),
+            ("requested_for", "Request for", Lookup, false, user()),
+            ("subject", "Subject", Text, false, None),
+            ("change_type", "Change Type", Choice, false, None),
+            ("cloud_only", "Cloud Only", Choice, false, None),
+            ("stage", "Stage", Choice, false, None),
+            ("staging_start", "Staging Start", Datetime, false, None),
+            ("staging_end", "Staging End", Datetime, false, None),
+            ("services", "Services", Multi, false, None),
+            ("notify_ops", "Notify Ops Team", Choice, false, None),
+            ("reviewer", "Reviewer", Lookup, false, user()),
+            ("downtime_window", "Downtime Window", Text, false, None),
+            ("legacy_flag", "Legacy Flag", Checkbox, false, None),
+            ("description", "Description", Richtext, false, None),
+            ("priority", "Priority", Choice, false, None),
+            ("impact", "Impact", Choice, false, None),
+            ("risk", "Risk", Choice, false, None),
+            ("group", "Group", Lookup, false, Some("group".into())),
+            ("agent", "Agent", Lookup, false, Some("agent".into())),
+            (
+                "planned_start_date",
+                "Planned Start Date",
+                Datetime,
+                false,
+                None,
+            ),
+            (
+                "planned_end_date",
+                "Planned End Date",
+                Datetime,
+                false,
+                None,
+            ),
+            (ATTACHMENTS, "Attachments", File, true, None),
+            (
+                "planning:Go-Live Checklist",
+                "Go-Live Checklist (planning files)",
+                File,
+                true,
+                None,
+            ),
+        ];
+        let want: Vec<_> = want
+            .into_iter()
+            .map(|(k, l, w, syn, e)| (k.to_string(), l.to_string(), w, syn, e))
+            .collect();
+        assert_eq!(items, want);
+        let synthetic = FormItem::synthetic(REQUESTER, "Requester", Lookup, "help");
+        assert!(synthetic.is_synthetic() && synthetic.entity.is_none());
+    }
+
+    #[test]
+    fn visible_missing_and_pools() {
+        let (_a, s) = acme::acme();
+        let visible = s.visible_keys();
+        assert_eq!(visible.len(), 22);
+        assert!(!visible.iter().any(|k| k == "legacy_flag"));
+        assert_eq!(visible[..3], ["requester", "requested_for", "subject"]);
+        assert_eq!(
+            s.missing_keys(),
+            [
+                "requester",
+                "subject",
+                "cloud_only",
+                "description",
+                "planned_start_date",
+                "planned_end_date"
+            ]
+        );
+        let labels = |key: &str| -> Vec<String> {
+            s.pool(s.item(key).expect("item"))
+                .into_iter()
+                .map(|c| c.label)
+                .collect()
+        };
+        assert_eq!(labels("priority"), ["Low", "Medium", "High", "Urgent"]);
+        assert_eq!(labels("stage"), ["Live", "Staging"]);
+    }
+
+    #[test]
+    fn requester_and_description_setters() {
+        let (_a, mut s) = acme::acme();
+        let req = s.item("requester").cloned().expect("item");
+        let out = s.set_requester(&req, Value::str("jane"));
+        assert_eq!(out.error, "pick a person from the list");
+        assert_eq!(
+            s.errors_by_key.get("requester").map(String::as_str),
+            Some("pick a person from the list")
+        );
+        let out = s.set_requester(&req, Value::Lookup(acme::jane()));
+        assert_eq!(out, Outcome::default());
+        assert_eq!(s.draft.requester.as_deref(), Some("jane.doe@example.com"));
+        assert_eq!(
+            s.requester.as_ref().map(ToString::to_string).as_deref(),
+            Some("Jane Doe <jane.doe@example.com>")
+        );
+        assert_eq!(s.desc_text(), "");
+        let desc = s.item("description").cloned().expect("item");
+        let f = desc.field.clone().expect("field");
+        let out = s.set_description(&desc, &f, "Rotate the **billing** keys.".into());
+        assert_eq!(out, Outcome::default());
+        assert_eq!(
+            s.draft.description_html.as_deref(),
+            Some("<p>Rotate the <strong>billing</strong> keys.</p>")
+        );
+        assert_eq!(s.desc_text(), "Rotate the **billing** keys.");
+    }
+
+    #[test]
+    fn a_forked_state_explains_a_choice_and_leaves_the_form_alone() {
+        let (_a, s) = acme::acme();
+        let mut st = fork(&s.state);
+        let d = st.set("cloud_only", Value::str("No")).expect("set");
+        assert_eq!(
+            s.diff_parts(&st, &d),
+            [
+                "make required: Staging Start, Staging End",
+                "limit Stage to Staging"
+            ]
+        );
+        assert!(matches!(s.state.get("cloud_only"), Ok(None)));
+    }
+
+    #[test]
+    fn a_single_allowed_choice_is_preselected_once() {
+        let (_a, mut s) = acme::acme();
+        assert!(s.preselect_all().is_empty());
+        assert!(s.load_notes.is_empty());
+        s.state.set("cloud_only", Value::str("No")).expect("set");
+        assert_eq!(
+            s.preselect(&["stage".to_string()]),
+            ["Stage = Staging (the only choice rule Cloud only: no allows)"]
+        );
+        assert!(s.preselect(&["stage".to_string()]).is_empty());
+    }
+}

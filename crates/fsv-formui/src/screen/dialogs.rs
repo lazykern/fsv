@@ -140,6 +140,7 @@ impl SavePathDialog {
     pub fn new(default: &Path, title: &str) -> Self {
         let mut input = LineInput::new("");
         input.set_value(&default.to_string_lossy());
+        input.select_all();
         SavePathDialog {
             title: title.into(),
             input,
@@ -153,6 +154,9 @@ impl SavePathDialog {
     pub fn handle_key(&mut self, k: &KeyEvent, paths: &Paths) -> Dlg<Option<PathBuf>> {
         if let Some(by) = is_tab(k) {
             self.focus = step(self.focus, 3, by);
+            if self.focus == 0 {
+                self.input.select_all();
+            }
             return Dlg::Open;
         }
         if k.code == KeyCode::Esc {
@@ -467,6 +471,26 @@ impl DatePicker {
         }
     }
 
+    /// `DatePickerScreen._picked`: a date-only field is done, else on to
+    /// the time.
+    fn picked(&mut self, d: Date) -> Dlg<Option<Value>> {
+        self.update();
+        if self.date_only {
+            return Dlg::Done(Some(Value::Date(d)));
+        }
+        self.focus = PickerFocus::Time;
+        self.time.select_all();
+        Dlg::Open
+    }
+
+    /// `DatePickerScreen._time`: a suggested time, then focus on OK.
+    fn time(&mut self, index: usize) {
+        self.time.set_value(TIME_SUGGESTIONS[index]);
+        self.update();
+        self.focus = PickerFocus::Ok;
+    }
+
+    /// `DatePickerScreen.on_key`: every key refreshes the preview.
     pub fn handle_key(&mut self, k: &KeyEvent) -> Dlg<Option<Value>> {
         let out = self.key(k);
         if out == Dlg::Open {
@@ -483,19 +507,16 @@ impl DatePicker {
             let ring = self.ring();
             let i = ring.iter().position(|f| *f == self.focus).unwrap_or(0);
             self.focus = ring[step(i, ring.len(), by)];
+            if self.focus == PickerFocus::Time {
+                self.time.select_all();
+            }
             return Dlg::Open;
         }
         match self.focus {
-            PickerFocus::Calendar => {
-                if let CalendarEvent::Picked(d) = self.grid.handle_key(k) {
-                    self.update();
-                    if self.date_only {
-                        return Dlg::Done(Some(Value::Date(d)));
-                    }
-                    self.focus = PickerFocus::Time;
-                }
-                Dlg::Open
-            }
+            PickerFocus::Calendar => match self.grid.handle_key(k) {
+                CalendarEvent::Picked(d) => self.picked(d),
+                _ => Dlg::Open,
+            },
             PickerFocus::Time => match self.time.handle_key(k) {
                 InputEvent::Submitted => self.ok(),
                 _ => Dlg::Open,
@@ -507,11 +528,7 @@ impl DatePicker {
                     KeyCode::Up => self.suggest = self.suggest.saturating_sub(1),
                     KeyCode::Home => self.suggest = 0,
                     KeyCode::End => self.suggest = n - 1,
-                    KeyCode::Enter => {
-                        self.time.set_value(TIME_SUGGESTIONS[self.suggest]);
-                        self.update();
-                        self.focus = PickerFocus::Ok;
-                    }
+                    KeyCode::Enter => self.time(self.suggest),
                     _ => {}
                 }
                 Dlg::Open
@@ -604,5 +621,149 @@ impl DatePicker {
             theme,
         );
         cursor
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::kit::parse_key;
+
+    fn picker(date_only: bool) -> DatePicker {
+        let (_acme, s) = crate::acme::acme();
+        assert_eq!(s.tz_source, "Freshservice user time zone (Tokyo)");
+        let today = jiff::civil::date(2030, 11, 26);
+        DatePicker::with_today(
+            "Planned Start",
+            &Value::Null,
+            date_only,
+            &s.tz,
+            &s.tz_source,
+            today,
+        )
+    }
+
+    /// `DatePickerScreen.value` / `_update`: the preview of what OK would
+    /// give, or why it cannot.
+    #[test]
+    fn the_preview_follows_the_typed_time() {
+        let mut p = picker(false);
+        assert_eq!(p.time.value(), "09:00");
+        assert_eq!(
+            p.preview,
+            "Tue 26 Nov 2030 09:00 (+09:00 from your Freshservice profile tz)"
+        );
+        match p.value() {
+            Some(Value::DateTime(d)) => {
+                assert_eq!(d.local, jiff::civil::date(2030, 11, 26).at(9, 0, 0, 0));
+                assert_eq!(d.offset, jiff::tz::Offset::constant(9));
+            }
+            other => panic!("{other:?}"),
+        }
+        for (time, preview) in [
+            (
+                "9pm",
+                "Tue 26 Nov 2030 21:00 (+09:00 from your Freshservice profile tz)",
+            ),
+            ("", "Tue 26 Nov 2030: add a time, e.g. 2030-11-26 19:00"),
+            ("25:00", "'25:00' is not a time of day"),
+        ] {
+            p.time.set_value(time);
+            p.update();
+            assert_eq!(p.preview, preview, "{time:?}");
+        }
+        assert_eq!(p.value(), None);
+        assert_eq!(p.ok(), Dlg::Open);
+        p.time.set_value("19:00");
+        assert!(matches!(p.ok(), Dlg::Done(Some(Value::DateTime(_)))));
+    }
+
+    #[test]
+    fn a_date_only_picker_is_done_on_the_day() {
+        let mut p = picker(true);
+        assert_eq!(p.preview, "Tue 26 Nov 2030");
+        assert_eq!(p.handle_key(&parse_key("right")), Dlg::Open);
+        assert_eq!(
+            p.handle_key(&parse_key("enter")),
+            Dlg::Done(Some(Value::Date(jiff::civil::date(2030, 11, 27))))
+        );
+    }
+
+    /// `_picked` moves on to the time (all of it selected), `_time` takes a
+    /// suggestion and focuses OK, `_time_enter` is OK.
+    #[test]
+    fn picking_a_day_then_a_time() {
+        let mut p = picker(false);
+        assert_eq!(p.handle_key(&parse_key("enter")), Dlg::Open);
+        assert_eq!(p.focus, PickerFocus::Time);
+        assert_eq!(p.time.selection(), Some((0, 5)));
+        p.handle_key(&parse_key("1"));
+        assert_eq!(p.time.value(), "1");
+        p.time(5);
+        assert_eq!(p.time.value(), TIME_SUGGESTIONS[5]);
+        assert_eq!(p.focus, PickerFocus::Ok);
+        assert_eq!(
+            p.preview,
+            "Tue 26 Nov 2030 19:00 (+09:00 from your Freshservice profile tz)"
+        );
+        p.focus = PickerFocus::Time;
+        assert!(matches!(
+            p.handle_key(&parse_key("enter")),
+            Dlg::Done(Some(Value::DateTime(_)))
+        ));
+        assert_eq!(p.handle_key(&parse_key("escape")), Dlg::Done(None));
+    }
+
+    /// `SavePathDialog`: the path is selected on open; Save and Cancel.
+    #[test]
+    fn save_path_buttons() {
+        let dir = tempfile::tempdir().expect("tmp");
+        let paths = Paths::new(None, dir.path().to_path_buf());
+        let mut d = SavePathDialog::new(&dir.path().join("d.yaml"), "Save draft to");
+        assert!(d.input.selection().is_some());
+        d.handle_key(&parse_key("tab"), &paths);
+        assert_eq!(
+            d.handle_key(&parse_key("enter"), &paths),
+            Dlg::Done(Some(dir.path().join("d.yaml")))
+        );
+        d.handle_key(&parse_key("tab"), &paths);
+        assert_eq!(d.handle_key(&parse_key("enter"), &paths), Dlg::Done(None));
+        d.handle_key(&parse_key("tab"), &paths);
+        assert_eq!(d.focus, 0);
+        assert!(d.input.selection().is_some());
+        d.input.set_value(" ");
+        assert_eq!(d.check(&paths), Dlg::Open);
+        assert_eq!(d.note, "type a file path");
+    }
+
+    /// `ConfirmDialog`: `y` is Discard, Esc keeps editing, arrows move.
+    #[test]
+    fn confirm_keys() {
+        let mut c = ConfirmDialog::new("Discard?", "Discard", "Keep editing");
+        assert_eq!(c.focus, 1);
+        assert_eq!(c.handle_key(&parse_key("enter")), Dlg::Done(false));
+        assert_eq!(c.handle_key(&parse_key("y")), Dlg::Done(true));
+        assert_eq!(c.handle_key(&parse_key("escape")), Dlg::Done(false));
+        c.handle_key(&parse_key("left"));
+        assert_eq!(c.handle_key(&parse_key("space")), Dlg::Done(true));
+    }
+
+    /// `TextDialog`: Copy has focus; Tab then Enter closes, Esc too.
+    #[test]
+    fn text_dialog_keys() {
+        let mut t = TextDialog::new("Equivalent command", "fsv x", "");
+        assert!(matches!(
+            t.handle_key(&parse_key("enter")),
+            Dlg::Done(TextOut::Copy)
+        ));
+        t.handle_key(&parse_key("tab"));
+        assert!(matches!(
+            t.handle_key(&parse_key("enter")),
+            Dlg::Done(TextOut::Close)
+        ));
+        assert!(matches!(
+            t.handle_key(&parse_key("escape")),
+            Dlg::Done(TextOut::Close)
+        ));
     }
 }

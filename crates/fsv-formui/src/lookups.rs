@@ -516,6 +516,53 @@ mod tests {
     }
 
     #[test]
+    fn email_of_reads_fields_then_details() {
+        let got: Vec<Option<String>> = [
+            json!({"email": "a@x.io"}),
+            json!({"email": "nope", "primary_email": "p@x.io"}),
+            json!({"details": "Jane Doe <jane@x.io >"}),
+            json!({"details": "Jane <>"}),
+            json!({"details": " j@x.io "}),
+            json!({"details": "Jane"}),
+            json!({}),
+        ]
+        .into_iter()
+        .map(|v| email_of(&row(v)))
+        .collect();
+        let want = [
+            Some("a@x.io"),
+            Some("p@x.io"),
+            Some("jane@x.io"),
+            None,
+            Some("j@x.io"),
+            None,
+            None,
+        ];
+        assert_eq!(got, want.map(|w| w.map(str::to_string)));
+    }
+
+    #[test]
+    fn has_tells_whether_a_list_came_back() {
+        let api = Arc::new(Api {
+            boot: Some(Ok(json!({"groups": [], "agents": null}))),
+            ..Default::default()
+        });
+        let boot = AgentsGroups::new(api.clone());
+        assert!(boot.has("groups").expect("has"));
+        assert!(!boot.has("agents").expect("has"));
+        assert!(!boot.has("x").expect("has"));
+        assert_eq!(api.boot_calls.load(Ordering::SeqCst), 1);
+        let denied = AgentsGroups::new(Arc::new(Api {
+            boot: Some(Err(ApiFailure::new(Some(403), "forbidden"))),
+            ..Default::default()
+        }));
+        assert_eq!(
+            denied.has("groups").expect_err("denied").to_string(),
+            "the agents and groups list is not available for your role (HTTP 403)"
+        );
+    }
+
+    #[test]
     fn bootstrap_is_fetched_once_and_filtered_locally() {
         let api = Arc::new(Api {
             boot: Some(Ok(json!({

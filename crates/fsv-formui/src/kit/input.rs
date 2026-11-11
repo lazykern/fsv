@@ -31,6 +31,9 @@ pub struct LineInput {
     /// The whole completed text, shown dim after the cursor.
     pub suggestion: Option<String>,
     scroll: usize,
+    /// Selected `(start, end)`: all of the text on focus, so typing
+    /// replaces it (Textual's `select_on_focus`).
+    selection: Option<(usize, usize)>,
 }
 
 fn is_word(c: char) -> bool {
@@ -82,6 +85,31 @@ impl LineInput {
     pub fn set_value(&mut self, v: &str) {
         self.chars = v.chars().collect();
         self.cursor = self.chars.len();
+        self.selection = None;
+    }
+
+    /// Select all of the text, as focusing a Textual `Input` does.
+    pub fn select_all(&mut self) {
+        self.selection = (!self.chars.is_empty()).then_some((0, self.chars.len()));
+        self.cursor = self.chars.len();
+        self.suggestion = None;
+    }
+
+    /// The selected `(start, end)`, if any.
+    pub fn selection(&self) -> Option<(usize, usize)> {
+        self.selection
+    }
+
+    /// Drop the selection (`true` when there was one).
+    fn delete_selection(&mut self) -> bool {
+        match self.selection.take() {
+            Some((a, b)) => {
+                self.chars.drain(a..b);
+                self.cursor = a;
+                true
+            }
+            None => false,
+        }
     }
 
     pub fn cursor(&self) -> usize {
@@ -91,12 +119,14 @@ impl LineInput {
     fn insert(&mut self, s: &str) -> bool {
         let mut next = self.chars.clone();
         let add: Vec<char> = s.chars().filter(|c| *c != '\n' && *c != '\r').collect();
-        next.splice(self.cursor..self.cursor, add.iter().copied());
+        let (a, b) = self.selection.unwrap_or((self.cursor, self.cursor));
+        next.splice(a..b, add.iter().copied());
         if self.number && !number_like(&next.iter().collect::<String>()) {
             return false;
         }
         self.chars = next;
-        self.cursor += add.len();
+        self.cursor = a + add.len();
+        self.selection = None;
         true
     }
 
@@ -138,8 +168,21 @@ impl LineInput {
         let n = self.chars.len();
         let moved = |me: &mut Self, to: usize| {
             me.cursor = to;
+            me.selection = None;
             InputEvent::Handled
         };
+        let deletes = matches!(k.code, KeyCode::Backspace | KeyCode::Delete)
+            || (ctrl && matches!(k.code, KeyCode::Char('u' | 'k' | 'w' | 'd')));
+        if deletes && self.delete_selection() {
+            return InputEvent::Changed;
+        }
+        if let Some((a, b)) = self.selection
+            && matches!(k.code, KeyCode::Left | KeyCode::Right)
+            && !ctrl
+            && !(k.code == KeyCode::Right && self.suggestion.is_some())
+        {
+            return moved(self, if k.code == KeyCode::Left { a } else { b });
+        }
         match k.code {
             KeyCode::Enter => InputEvent::Submitted,
             KeyCode::Char(c) if !ctrl && !k.modifiers.contains(KeyModifiers::ALT) => {
@@ -289,7 +332,13 @@ impl LineInput {
             if x + cw > right {
                 break;
             }
-            buf.set_string(x, area.y, ch.to_string(), base);
+            let selected = focused && self.selection.is_some_and(|(a, b)| (a..b).contains(&i));
+            let st = if selected {
+                base.bg(theme.input_selection())
+            } else {
+                base
+            };
+            buf.set_string(x, area.y, ch.to_string(), st);
             x += cw;
         }
         if self.cursor == self.chars.len() {
@@ -354,5 +403,61 @@ mod tests {
         f.suggestion = Some("/tmp/roll".into());
         assert_eq!(f.handle_key(&parse_key("right")), InputEvent::Changed);
         assert_eq!(f.value(), "/tmp/roll");
+    }
+
+    /// Textual `Input`: focus selects all; typing or a paste replaces the
+    /// selection, a delete key removes it, an arrow drops it.
+    #[test]
+    fn a_selection_is_replaced_or_dropped() {
+        let mut i = typed("Normal");
+        i.select_all();
+        assert_eq!(i.selection(), Some((0, 6)));
+        i.handle_key(&parse_key("e"));
+        assert_eq!(i.value(), "e");
+        assert_eq!(i.selection(), None);
+
+        let mut i = typed("Hello");
+        i.select_all();
+        assert_eq!(i.paste("x"), InputEvent::Changed);
+        assert_eq!(i.value(), "x");
+
+        for key in ["backspace", "delete", "ctrl+u", "ctrl+k", "ctrl+w"] {
+            let mut i = typed("09:00");
+            i.select_all();
+            assert_eq!(i.handle_key(&parse_key(key)), InputEvent::Changed, "{key}");
+            assert_eq!(i.value(), "", "{key}");
+        }
+
+        let mut i = typed("2030-01-01");
+        i.select_all();
+        i.handle_key(&parse_key("left"));
+        assert_eq!((i.cursor(), i.selection()), (0, None));
+        i.select_all();
+        i.handle_key(&parse_key("right"));
+        assert_eq!((i.cursor(), i.selection()), (10, None));
+        i.select_all();
+        i.handle_key(&parse_key("home"));
+        assert_eq!((i.cursor(), i.selection()), (0, None));
+        i.handle_key(&parse_key("x"));
+        assert_eq!(i.value(), "x2030-01-01");
+
+        let mut empty = LineInput::default();
+        empty.select_all();
+        assert_eq!(empty.selection(), None);
+    }
+
+    #[test]
+    fn the_selection_is_drawn_while_focused() {
+        let theme = Theme::textual_dark();
+        let mut i = typed("ab");
+        i.select_all();
+        let area = Rect::new(0, 0, 10, 1);
+        let mut buf = Buffer::empty(area);
+        i.render_line(area, &mut buf, true, &theme);
+        assert_eq!(buf[(0, 0)].bg, theme.input_selection());
+        assert_eq!(buf[(1, 0)].bg, theme.input_selection());
+        let mut buf = Buffer::empty(area);
+        i.render_line(area, &mut buf, false, &theme);
+        assert_ne!(buf[(0, 0)].bg, theme.input_selection());
     }
 }

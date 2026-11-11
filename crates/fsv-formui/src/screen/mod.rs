@@ -13,6 +13,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use fsv_forms::Value;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Position, Rect};
 use ratatui::style::{Modifier, Style};
@@ -393,17 +394,8 @@ impl FormScreen {
         while !self.pending.is_empty() {
             for m in std::mem::take(&mut self.pending) {
                 match m {
-                    EdMsg::Edited(key, value) => {
-                        let out = self.session.set(&key, value);
-                        self.refresh_rows();
-                        if !out.notes.is_empty() {
-                            self.show_notes(&out.notes);
-                        }
-                    }
-                    EdMsg::Invalid(key, error) => {
-                        self.session.mark_invalid(&key, &error);
-                        self.refresh_rows();
-                    }
+                    EdMsg::Edited(key, value) => self.edited(&key, value),
+                    EdMsg::Invalid(key, error) => self.invalid(&key, &error),
                     EdMsg::OpenCalendar(key) => self.open_calendar(&key),
                     EdMsg::Search {
                         key,
@@ -411,10 +403,31 @@ impl FormScreen {
                         generation,
                     } => self.start_search(key, query, generation),
                     EdMsg::FocusNext => self.focus_step(1),
-                    EdMsg::Opened(_) => self.scroll_to_focus = true,
+                    EdMsg::Opened(_) => self.opened(),
                 }
             }
         }
+    }
+
+    /// `FormScreen._edited`: apply a committed value, re-sync every row and
+    /// show what the rules did.
+    fn edited(&mut self, key: &str, value: Value) {
+        let out = self.session.set(key, value);
+        self.refresh_rows();
+        if !out.notes.is_empty() {
+            self.show_notes(&out.notes);
+        }
+    }
+
+    /// `FormScreen._invalid`: unreadable input blocks the review.
+    fn invalid(&mut self, key: &str, error: &str) {
+        self.session.mark_invalid(key, error);
+        self.refresh_rows();
+    }
+
+    /// `FormScreen._opened`: an opened list scrolls into view.
+    fn opened(&mut self) {
+        self.scroll_to_focus = true;
     }
 
     fn start_search(&mut self, key: String, query: String, generation: u64) {
@@ -760,11 +773,7 @@ impl FormScreen {
                 }
             }
             Some(Focus::Button(b)) if matches!(k.code, KeyCode::Enter | KeyCode::Char(' ')) => {
-                match b {
-                    FormButton::Review => self.action_review(),
-                    FormButton::Save => self.action_save(),
-                    FormButton::Cancel => self.action_cancel(),
-                }
+                self.press_button(b);
                 return;
             }
             _ => {}
@@ -774,7 +783,7 @@ impl FormScreen {
             KeyCode::Tab => self.focus_step(1),
             KeyCode::BackTab => self.focus_step(-1),
             KeyCode::Esc => self.action_cancel(),
-            KeyCode::F(1) => self.hide_help = !self.hide_help,
+            KeyCode::F(1) => self.action_toggle_help(),
             KeyCode::F(4) => self.action_save(),
             KeyCode::Up => self.scroll = self.scroll.saturating_sub(1),
             KeyCode::Down => self.scroll += 1,
@@ -802,13 +811,8 @@ impl FormScreen {
             }
             Layer::Text(d) => match d.handle_key(k) {
                 Dlg::Done(TextOut::Copy) => {
-                    self.clipboard = Some(d.text.clone());
-                    self.notify(
-                        "copied to the clipboard (terminal clipboard support permitting)",
-                        "",
-                        Severity::Information,
-                        Duration::from_secs(4),
-                    );
+                    let text = d.text.clone();
+                    self.copy(text);
                 }
                 Dlg::Done(TextOut::Close) => self.pop(),
                 Dlg::Open => {}
@@ -852,7 +856,32 @@ impl FormScreen {
         }
     }
 
+    /// `TextDialog._copy`.
+    fn copy(&mut self, text: String) {
+        self.clipboard = Some(text);
+        self.notify(
+            "copied to the clipboard (terminal clipboard support permitting)",
+            "",
+            Severity::Information,
+            Duration::from_secs(4),
+        );
+    }
+
     // -- actions -------------------------------------------------------------
+    /// The Review & submit / Save draft / Cancel buttons under the fields.
+    fn press_button(&mut self, b: FormButton) {
+        match b {
+            FormButton::Review => self.action_review(),
+            FormButton::Save => self.action_save(),
+            FormButton::Cancel => self.action_cancel(),
+        }
+    }
+
+    /// Show or hide the help panel (F1).
+    pub fn action_toggle_help(&mut self) {
+        self.hide_help = !self.hide_help;
+    }
+
     fn commit_focused(&mut self) {
         if let Some(Focus::Field(i, _)) = self.focus {
             self.with_editor(i, |e, cx| e.commit(cx));
@@ -868,6 +897,11 @@ impl FormScreen {
 
     pub fn action_review(&mut self) {
         self.commit_focused();
+        self.open_review();
+    }
+
+    /// `FormScreen._open_review`: every error shows, then the review opens.
+    fn open_review(&mut self) {
         self.session.show_all_errors = true;
         self.refresh_rows();
         self.process();
@@ -964,11 +998,13 @@ impl FormScreen {
         }
     }
 
-    fn review_action(&mut self, a: ReviewAction) {
+    /// `FormScreen._after_review`: finish, or back on the form at the first
+    /// field to fix.
+    fn after_review(&mut self, a: ReviewAction) {
         match a {
             ReviewAction::Submit => self.finish(Action::Submit),
             ReviewAction::Cancel => self.finish(Action::Cancel),
-            ReviewAction::Back => {
+            _ => {
                 self.pop();
                 let s = &self.session;
                 let mut missing = s.missing_keys();
@@ -984,6 +1020,28 @@ impl FormScreen {
                     self.focus_key(&k);
                 }
             }
+        }
+    }
+
+    /// `ReviewScreen._ack`: the acknowledgement box rebuilds the plan.
+    fn ack(&mut self) {
+        self.session.ack = !self.session.ack;
+        match self.session.build_plan(None) {
+            Ok(plan) => {
+                if let Some(Layer::Review(r)) = self.layers.last_mut() {
+                    r.plan = plan;
+                    r.refocus();
+                }
+            }
+            Err(e) => self.notify(&e, "cannot build the plan", Severity::Error, TOAST_SECONDS),
+        }
+    }
+
+    fn review_action(&mut self, a: ReviewAction) {
+        match a {
+            ReviewAction::Submit | ReviewAction::Cancel | ReviewAction::Back => {
+                self.after_review(a)
+            }
             ReviewAction::Save => {
                 let d = SavePathDialog::new(&self.session.default_draft_path(), "Save draft to");
                 self.layers.push(Layer::SavePath(d, SaveFor::Review));
@@ -998,20 +1056,7 @@ impl FormScreen {
             ReviewAction::Refused(msg) => {
                 self.notify(msg, "", Severity::Warning, Duration::from_secs(4))
             }
-            ReviewAction::ToggleAck => {
-                self.session.ack = !self.session.ack;
-                match self.session.build_plan(None) {
-                    Ok(plan) => {
-                        if let Some(Layer::Review(r)) = self.layers.last_mut() {
-                            r.plan = plan;
-                            r.refocus();
-                        }
-                    }
-                    Err(e) => {
-                        self.notify(&e, "cannot build the plan", Severity::Error, TOAST_SECONDS)
-                    }
-                }
-            }
+            ReviewAction::ToggleAck => self.ack(),
         }
     }
 

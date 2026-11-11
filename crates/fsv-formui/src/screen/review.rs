@@ -11,7 +11,7 @@ use ratatui::text::Line;
 
 use crate::backend::{FormKind, FormMode, Plan};
 use crate::kit::draw::{Button, Variant, draw_lines, fill, wrap_line, wrap_lines};
-use crate::kit::{Theme, markup};
+use crate::kit::{Theme, ansi, markup};
 use crate::session::FormSession;
 
 pub const SR_SAFETY: &str =
@@ -40,7 +40,7 @@ pub enum ReviewFocus {
     Cancel,
 }
 
-/// The review lines `Review::render` prints, as styled lines.
+/// `review_text`: the review `Review::render` prints, as styled lines.
 pub fn review_lines(review: &Review, width: u16) -> Vec<Line<'static>> {
     let width = width.max(40);
     let mut lines: Vec<Line<'static>> = vec![];
@@ -55,8 +55,8 @@ pub fn review_lines(review: &Review, width: u16) -> Vec<Line<'static>> {
         ),
     );
     let push_table = |lines: &mut Vec<Line<'static>>, t: &Table| {
-        for row in t.render_lines(usize::from(width), false) {
-            lines.push(Line::from(row));
+        for row in t.render_lines(usize::from(width), true) {
+            lines.push(ansi::line(&row));
         }
     };
     if !review.rows.is_empty() {
@@ -272,26 +272,37 @@ impl ReviewState {
         }
     }
 
+    /// Submit (Ctrl+S), refused while the plan has problems.
+    pub fn action_submit(&self) -> ReviewAction {
+        if self.submit_disabled() {
+            ReviewAction::Refused("fix the problems first (Back to edit)")
+        } else {
+            ReviewAction::Submit
+        }
+    }
+
+    /// Copy as command (F6), refused without a complete plan.
+    pub fn action_command(&self) -> ReviewAction {
+        if self.command_disabled() {
+            ReviewAction::Refused("no complete plan yet")
+        } else {
+            ReviewAction::Command
+        }
+    }
+
+    /// Show or hide the payload under the review (F7).
+    pub fn action_payload(&mut self) {
+        self.show_payload = !self.show_payload;
+    }
+
     pub fn handle_key(&mut self, k: &KeyEvent) -> Option<ReviewAction> {
         let ctrl = k.modifiers.contains(KeyModifiers::CONTROL);
         match k.code {
-            KeyCode::Char('s') if ctrl => {
-                return Some(if self.submit_disabled() {
-                    ReviewAction::Refused("fix the problems first (Back to edit)")
-                } else {
-                    ReviewAction::Submit
-                });
-            }
+            KeyCode::Char('s') if ctrl => return Some(self.action_submit()),
             KeyCode::Esc => return Some(ReviewAction::Back),
             KeyCode::F(4) => return Some(ReviewAction::Save),
-            KeyCode::F(6) => {
-                return Some(if self.command_disabled() {
-                    ReviewAction::Refused("no complete plan yet")
-                } else {
-                    ReviewAction::Command
-                });
-            }
-            KeyCode::F(7) => self.show_payload = !self.show_payload,
+            KeyCode::F(6) => return Some(self.action_command()),
+            KeyCode::F(7) => self.action_payload(),
             KeyCode::Tab | KeyCode::BackTab => {
                 let back = k.code == KeyCode::BackTab || k.modifiers.contains(KeyModifiers::SHIFT);
                 let ring = self.ring();
@@ -318,10 +329,10 @@ impl ReviewState {
             KeyCode::Enter | KeyCode::Char(' ') => {
                 return Some(match self.focus {
                     ReviewFocus::Ack => ReviewAction::ToggleAck,
-                    ReviewFocus::Submit => ReviewAction::Submit,
+                    ReviewFocus::Submit => self.action_submit(),
                     ReviewFocus::Back => ReviewAction::Back,
                     ReviewFocus::Save => ReviewAction::Save,
-                    ReviewFocus::Command => ReviewAction::Command,
+                    ReviewFocus::Command => self.action_command(),
                     ReviewFocus::Cancel => ReviewAction::Cancel,
                 });
             }
@@ -330,6 +341,7 @@ impl ReviewState {
         None
     }
 
+    /// `ReviewScreen._refresh_review`: the review, then the payload when shown.
     fn body(&self, width: u16, theme: &Theme) -> Vec<Line<'static>> {
         let mut lines = review_lines(&self.plan.review, width);
         if self.show_payload {
@@ -467,5 +479,93 @@ impl ReviewState {
             ],
             theme,
         );
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ratatui::style::Color;
+
+    fn cells(l: &Line<'_>) -> Vec<(char, Style)> {
+        l.spans
+            .iter()
+            .flat_map(|s| s.content.chars().map(move |c| (c, s.style)))
+            .collect()
+    }
+
+    /// `review_text(review, 60)` in Python, colours on.
+    #[test]
+    fn review_text_keeps_the_cli_layout_and_the_cyan_labels() {
+        let mut r = Review::new("New Change");
+        r.rows = vec![
+            ("Subject".into(), "Billing: rotate keys".into()),
+            ("Priority".into(), "High".into()),
+        ];
+        r.changes = vec![
+            ("Priority".into(), "Medium".into(), "High".into()),
+            ("Stage".into(), String::new(), "Live".into()),
+        ];
+        r.errors = vec!["Subject is required".into()];
+        r.plan_hash = "0123456789abcdef".into();
+        let lines = review_lines(&r, 60);
+        let plain: Vec<String> = lines
+            .iter()
+            .map(|l| cells(l).into_iter().map(|c| c.0).collect())
+            .collect();
+        assert_eq!(
+            plain,
+            [
+                "──────── Review: New Change ────────",
+                "Subject   Billing: rotate keys",
+                "Priority  High                ",
+                "Field     Old        New ",
+                "Priority  Medium  →  High",
+                "Stage     —       →  Live",
+                "Problems (must be fixed before sending)",
+                "  Subject is required",
+                "plan 0123456789abcdef",
+            ]
+        );
+        for i in [1, 2, 4, 5] {
+            let c = cells(&lines[i]);
+            assert!(c[..9].iter().all(|x| x.1.fg == Some(Color::Cyan)), "{i}");
+            assert_eq!(c[9].1.fg, None, "{i}");
+        }
+        let head = cells(&lines[3]);
+        assert!(
+            head[..8]
+                .iter()
+                .all(|x| x.1.add_modifier.contains(Modifier::BOLD))
+        );
+        let err = cells(&lines[7]);
+        assert_eq!(err[2].1.fg, Some(Color::Red));
+        assert_eq!(err[1].1.fg, None);
+    }
+
+    /// `ReviewScreen.action_submit` / `action_command` / `action_payload`.
+    #[test]
+    fn review_actions_refuse_an_incomplete_plan() {
+        let (_acme, mut session) = crate::acme::acme();
+        let plan = session.build_plan(None).expect("plan");
+        let mut r = ReviewState::new(plan, &session);
+        assert_eq!(r.action_submit(), ReviewAction::Submit);
+        assert_eq!(r.action_command(), ReviewAction::Command);
+        r.action_payload();
+        assert!(r.show_payload);
+        r.action_payload();
+        assert!(!r.show_payload);
+        r.plan.hash.clear();
+        assert_eq!(
+            r.action_submit(),
+            ReviewAction::Refused("fix the problems first (Back to edit)")
+        );
+        assert_eq!(
+            r.action_command(),
+            ReviewAction::Refused("no complete plan yet")
+        );
+        r.refocus();
+        assert_eq!(r.focus, ReviewFocus::Back);
+        assert_eq!(ReviewState::submit_label(&session), "Create");
     }
 }

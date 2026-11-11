@@ -2,6 +2,7 @@
 //! a virtual clock, workers, the theme, Rich markup → ratatui, text inputs
 //! and small drawing helpers.
 
+pub mod ansi;
 pub mod draw;
 pub mod input;
 pub mod keys;

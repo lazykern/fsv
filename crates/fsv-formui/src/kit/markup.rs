@@ -5,7 +5,7 @@ use fsv_core::term::{Color as TColor, Style as TStyle, parse_markup};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
 
-fn color(c: TColor) -> Color {
+pub(crate) fn color(c: TColor) -> Color {
     const NAMED: [Color; 16] = [
         Color::Black,
         Color::Red,

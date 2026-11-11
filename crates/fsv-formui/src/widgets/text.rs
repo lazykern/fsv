@@ -6,10 +6,12 @@ use ratatui::buffer::Buffer;
 use ratatui::layout::{Position, Rect};
 use ratatui::style::{Modifier, Style};
 use ratatui::text::Line;
-use ratatui::widgets::{Block, BorderType, Borders, Paragraph, Widget, Wrap};
+use ratatui::widgets::{Block, BorderType, Borders, Widget};
 
+use super::markdown::markdown_lines;
 use super::{DEBOUNCE_TEXT, EdCx, EdMsg, Editor, TimerId};
 use crate::files::{complete_path, human_size};
+use crate::kit::draw::draw_lines;
 use crate::kit::{InputEvent, LineInput, TextArea, Theme};
 use crate::session::{FormItem, ItemView};
 
@@ -70,6 +72,11 @@ impl Editor for TextEditor {
         }
     }
 
+    fn focus(&mut self, _slot: usize, _cx: &mut EdCx<'_>) {
+        self.input.select_all();
+    }
+
+    /// `TextEditor.on_blur`: leaving the field commits it.
     fn blur(&mut self, _slot: usize, cx: &mut EdCx<'_>) {
         self.commit(cx);
     }
@@ -169,6 +176,7 @@ impl Editor for ParagraphEditor {
         }
     }
 
+    /// `ParagraphEditor.on_blur`: leaving the field commits it.
     fn blur(&mut self, _slot: usize, cx: &mut EdCx<'_>) {
         self.commit(cx);
     }
@@ -231,14 +239,14 @@ impl DescriptionEditor {
         }
     }
 
-    fn preview_lines(&self) -> Vec<Line<'static>> {
-        let text = self.area.text();
-        let text = if text.is_empty() {
-            "_(empty)_".to_string()
-        } else {
-            text
-        };
-        text.lines().map(|l| Line::from(l.to_string())).collect()
+    /// The Markdown preview inside the border and the side padding.
+    fn preview_lines(&self, width: u16, theme: &Theme) -> Vec<Line<'static>> {
+        markdown_lines(&self.area.text(), width.saturating_sub(4), theme)
+    }
+
+    /// `DescriptionEditor.action_toggle_preview` (F3).
+    pub fn action_toggle_preview(&mut self) {
+        self.preview = !self.preview;
     }
 }
 
@@ -250,7 +258,7 @@ impl Editor for DescriptionEditor {
     fn handle_key(&mut self, k: &KeyEvent, _slot: usize, cx: &mut EdCx<'_>) -> bool {
         if k.code == KeyCode::F(3) {
             // focus stays here in preview mode so F3 toggles back
-            self.preview = !self.preview;
+            self.action_toggle_preview();
             return true;
         }
         if self.preview {
@@ -266,6 +274,7 @@ impl Editor for DescriptionEditor {
         }
     }
 
+    /// `DescriptionEditor.on_descendant_blur`: leaving the area commits it.
     fn blur(&mut self, _slot: usize, cx: &mut EdCx<'_>) {
         self.commit(cx);
     }
@@ -291,9 +300,10 @@ impl Editor for DescriptionEditor {
         area_commit(&self.area, &self.key, &mut self.committed, cx);
     }
 
-    fn height(&self, _width: u16) -> u16 {
+    fn height(&self, width: u16) -> u16 {
         if self.preview {
-            (self.preview_lines().len() as u16 + 2).min(14) + 1
+            let rows = self.preview_lines(width, &Theme::textual_dark()).len();
+            (rows as u16 + 2).min(14) + 1
         } else {
             10 + 1
         }
@@ -308,15 +318,19 @@ impl Editor for DescriptionEditor {
     ) -> Option<Position> {
         let body = Rect::new(area.x, area.y, area.width, area.height.saturating_sub(1));
         let cursor = if self.preview {
-            Paragraph::new(self.preview_lines())
-                .wrap(Wrap { trim: false })
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .border_type(BorderType::Rounded)
-                        .border_style(Style::default().fg(theme.primary)),
-                )
-                .render(body, buf);
+            let frame = Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .border_style(Style::default().fg(theme.primary));
+            let inner = frame.inner(body);
+            frame.render(body, buf);
+            let text = Rect::new(
+                inner.x + 1,
+                inner.y,
+                inner.width.saturating_sub(2),
+                inner.height,
+            );
+            draw_lines(text, buf, &self.preview_lines(body.width, theme), 0);
             None
         } else {
             self.area.render(body, buf, focus.is_some(), theme)
@@ -431,6 +445,11 @@ impl FileEditor {
         }
     }
 
+    /// `PathSuggester.get_suggestion`: the completion → accepts.
+    fn suggest(&mut self, cx: &EdCx<'_>) {
+        self.input.suggestion = complete_path(&self.input.value(), &cx.session.paths);
+    }
+
     fn list_lines(&self) -> Vec<String> {
         let mut lines: Vec<String> = self
             .files
@@ -465,7 +484,7 @@ impl Editor for FileEditor {
                 true
             }
             InputEvent::Changed => {
-                self.input.suggestion = complete_path(&self.input.value(), &cx.session.paths);
+                self.suggest(cx);
                 true
             }
             InputEvent::Handled => true,
@@ -475,10 +494,15 @@ impl Editor for FileEditor {
 
     fn paste(&mut self, text: &str, _slot: usize, cx: &mut EdCx<'_>) {
         if self.input.paste(text) == InputEvent::Changed {
-            self.input.suggestion = complete_path(&self.input.value(), &cx.session.paths);
+            self.suggest(cx);
         }
     }
 
+    fn focus(&mut self, _slot: usize, _cx: &mut EdCx<'_>) {
+        self.input.select_all();
+    }
+
+    /// `FileEditor.on_descendant_blur`: leaving the input commits it.
     fn blur(&mut self, _slot: usize, cx: &mut EdCx<'_>) {
         self.commit(cx);
     }

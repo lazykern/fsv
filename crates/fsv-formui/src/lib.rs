@@ -24,6 +24,13 @@ pub mod screen;
 pub mod session;
 pub mod widgets;
 
+#[cfg(test)]
+extern crate self as fsv_formui;
+/// The Acme fixture of the integration tests, for unit tests of private fns.
+#[cfg(test)]
+#[path = "../tests/common/mod.rs"]
+pub(crate) mod acme;
+
 pub use app::{FormResult, form_available, form_available_in, run_form};
 pub use backend::{Draft, FormBackend, FormKind, FormMode, Plan, PlanRequest, PlanningFiles};
 pub use lookups::{ApiFailure, FormApi, LookupUnavailable, Resolver};

@@ -541,3 +541,462 @@ fn narrow_and_tiny_terminals_draw() {
     u.key("f6");
     u.draw(40, 12);
 }
+
+fn combo<'a>(u: &'a mut Ui, key: &str) -> &'a mut fsv_formui::widgets::ComboBox {
+    u.s.editor_mut(key)
+        .and_then(|e| e.as_combo())
+        .expect("combo")
+}
+
+fn labels(u: &mut Ui, key: &str) -> Vec<String> {
+    combo(u, key)
+        .options
+        .iter()
+        .map(|o| o.label.clone())
+        .collect()
+}
+
+fn preview(u: &mut Ui, key: &str) -> String {
+    let ed = u.s.editor_mut(key).and_then(|e| e.as_date()).expect("date");
+    if ed.preview.error.is_empty() {
+        ed.preview.preview.clone()
+    } else {
+        ed.preview.error.clone()
+    }
+}
+
+/// `test_type_to_filter_picks_a_choice`.
+#[test]
+fn type_to_filter_picks_a_choice() {
+    let mut u = ui();
+    u.s.focus_key("change_type");
+    assert!(combo(&mut u, "change_type").is_open);
+    assert_eq!(
+        labels(&mut u, "change_type"),
+        ["Normal", "Standard", "Emergency"]
+    );
+    u.typ("emer");
+    assert_eq!(labels(&mut u, "change_type"), ["Emergency"]);
+    u.key("enter");
+    let c = combo(&mut u, "change_type");
+    assert!(!c.is_open);
+    assert_eq!(c.input.value(), "Emergency");
+    assert_eq!(u.s.session.view("change_type").text, "Emergency");
+}
+
+/// `test_arrows_and_multi_select_checklist`.
+#[test]
+fn multi_select_toggles_and_stays_open() {
+    let mut u = ui();
+    u.s.focus_key("services");
+    u.typ("s");
+    u.key("enter");
+    u.typ("bill");
+    u.key("enter");
+    assert!(combo(&mut u, "services").is_open);
+    assert!(u.draw(120, 60).contains("✓ Search, Billing"));
+    u.typ("bill");
+    u.key("enter");
+    assert_eq!(u.s.session.view("services").text, "Search");
+    assert_eq!(
+        u.s.session.view("services").value,
+        Value::List(vec![Value::str("Search")])
+    );
+}
+
+/// `test_answer_reveals_fields_live_with_a_note`.
+#[test]
+fn an_answer_reveals_fields_live_with_a_note() {
+    let mut u = ui();
+    u.s.focus_key("cloud_only");
+    u.typ("yes");
+    u.key("enter");
+    assert!(!u.s.session.view("staging_start").visible);
+    assert!(!u.s.session.view("staging_end").visible);
+    for _ in 0..3 {
+        u.key("backspace");
+    }
+    u.typ("no");
+    u.key("enter");
+    let v = u.s.session.view("staging_start");
+    assert!(v.visible && v.required);
+    assert!(u.draw(120, 60).contains("Staging Start *"));
+    assert!(u.s.notes.iter().any(|n| n
+        == "+ Staging Start (required), Staging End (required) appeared because Cloud Only = No"));
+}
+
+/// `test_restricted_dropdown_only_offers_the_allowed_choice`.
+#[test]
+fn a_restricted_dropdown_only_offers_the_allowed_choice() {
+    let mut u = ui();
+    u.s.focus_key("cloud_only");
+    u.typ("no");
+    u.key("enter");
+    u.s.focus_key("stage");
+    u.typ("l");
+    assert!(labels(&mut u, "stage").is_empty());
+    assert!(combo(&mut u, "stage").note.contains("no choice matches"));
+    assert!(
+        u.s.session
+            .view("stage")
+            .note
+            .contains("choices limited by rule Cloud only: no")
+    );
+    let help = u.s.help_text();
+    assert!(help.contains("Choices") && help.contains("Staging") && !help.contains("Live"));
+    assert_eq!(u.s.session.view("stage").value, Value::str("Staging"));
+}
+
+/// `test_typed_date_previews_and_commits`.
+#[test]
+fn a_typed_date_previews_and_commits() {
+    let mut u = ui();
+    u.s.focus_key("planned_start_date");
+    u.typ("2030-11-26 19:00");
+    assert_eq!(
+        preview(&mut u, "planned_start_date"),
+        "Tue 26 Nov 2030 19:00 (+09:00 from your Freshservice profile tz)"
+    );
+    u.key("enter");
+    u.s.focus_key("planned_end_date");
+    u.typ("2030-11-26");
+    u.key("tab");
+    assert!(preview(&mut u, "planned_end_date").contains("add a time"));
+    match u.s.session.view("planned_start_date").value {
+        Value::DateTime(d) => {
+            assert_eq!(d.local, jiff::civil::date(2030, 11, 26).at(19, 0, 0, 0));
+            assert_eq!(d.offset, jiff::tz::Offset::constant(9));
+        }
+        other => panic!("{other:?}"),
+    }
+    assert_eq!(u.s.session.view("planned_end_date").value, Value::Null);
+}
+
+/// `test_calendar_picks_day_and_time`.
+#[test]
+fn the_calendar_picks_a_day_and_a_time() {
+    let mut u = ui();
+    u.s.focus_key("planned_start_date");
+    u.key("f2");
+    assert_eq!(u.s.layer(), Some("calendar"));
+    let today = u.s.date_picker().expect("picker").grid.today;
+    u.key("right");
+    u.key("enter");
+    for _ in 0..5 {
+        u.key("backspace");
+    }
+    u.typ("19:00");
+    u.key("enter");
+    assert_eq!(u.s.layer(), None);
+    match u.s.session.view("planned_start_date").value {
+        Value::DateTime(d) => {
+            assert_eq!(d.local, today.tomorrow().unwrap().at(19, 0, 0, 0));
+            assert_eq!(d.offset, jiff::tz::Offset::constant(9));
+        }
+        other => panic!("{other:?}"),
+    }
+    assert_eq!(u.s.focused_key(), Some("planned_start_date"));
+}
+
+/// The time suggestions, OK and Cancel of `DatePickerScreen`.
+#[test]
+fn the_calendar_time_suggestions_ok_and_cancel() {
+    let mut u = ui();
+    u.s.focus_key("planned_start_date");
+    u.key("f2");
+    u.key("tab"); // the time
+    u.key("tab"); // the suggestions
+    u.key("down");
+    u.key("enter");
+    {
+        let p = u.s.date_picker().expect("picker");
+        assert_eq!(p.time.value(), "10:00");
+        assert_eq!(p.focus, fsv_formui::screen::dialogs::PickerFocus::Ok);
+        assert!(p.preview.contains("10:00"), "{}", p.preview);
+    }
+    u.key("enter"); // OK
+    assert_eq!(u.s.layer(), None);
+    let picked = u.date_text("planned_start_date");
+    assert!(picked.ends_with(" 10:00"), "{picked}");
+    u.key("f2");
+    for _ in 0..4 {
+        u.key("tab"); // time, suggestions, OK, Cancel
+    }
+    u.key("enter");
+    assert_eq!(u.s.layer(), None);
+    assert_eq!(u.date_text("planned_start_date"), picked);
+}
+
+/// `test_required_fields_block_submit`.
+#[test]
+fn required_fields_block_submit() {
+    let mut u = ui();
+    assert!(
+        u.s.status
+            .contains("required field(s) missing: Requester, Subject")
+    );
+    // the Acme plan builder reports the missing fields as errors
+    u.backend
+        .errors
+        .lock()
+        .expect("lock")
+        .push("Requester is required".into());
+    u.s.focus_key("subject");
+    u.key("ctrl+s");
+    assert_eq!(u.s.layer(), Some("review"));
+    assert!(u.s.review().expect("review").submit_disabled());
+    u.key("escape");
+    assert_eq!(u.s.layer(), None);
+    assert_eq!(u.s.focused_key(), Some("requester"));
+    assert_eq!(u.s.session.view("subject").error, "required");
+}
+
+/// The Review & submit / Save draft / Cancel buttons and F1.
+#[test]
+fn form_buttons_and_the_help_toggle() {
+    use fsv_formui::screen::{Focus, FormButton};
+    let mut u = ui();
+    let help = "Type to search · ↑↓ move · Enter picks";
+    assert!(u.draw(200, 40).contains(help));
+    u.key("f1");
+    assert!(u.s.hide_help);
+    assert!(!u.draw(200, 40).contains(help));
+    u.s.action_toggle_help();
+    assert!(u.draw(200, 40).contains(help));
+
+    u.s.set_focus(Some(Focus::Button(FormButton::Save)));
+    u.key("enter");
+    assert_eq!(u.s.layer(), Some("save"));
+    assert_eq!(u.s.save_dialog().expect("dialog").title, "Save draft to");
+    u.key("tab");
+    u.key("tab"); // Cancel
+    u.key("enter");
+    assert_eq!(u.s.layer(), None);
+
+    u.s.set_focus(Some(Focus::Button(FormButton::Review)));
+    u.key("enter");
+    assert_eq!(u.s.layer(), Some("review"));
+    u.key("escape");
+
+    u.s.set_focus(Some(Focus::Button(FormButton::Cancel)));
+    u.key(" ");
+    assert_eq!(u.s.done(), Some(Action::Cancel));
+}
+
+/// `ConfirmDialog`: arrows move between the buttons; Discard finishes.
+#[test]
+fn the_discard_question_takes_arrows() {
+    let mut u = ui();
+    u.s.focus_key("subject");
+    u.typ("hi");
+    u.key("escape");
+    assert_eq!(u.s.layer(), Some("confirm"));
+    u.key("left");
+    u.key("enter");
+    assert_eq!(u.s.done(), Some(Action::Cancel));
+}
+
+/// F7 payload, refused Submit / Copy as command, F4 and Cancel from the review.
+#[test]
+fn review_keys_and_buttons() {
+    let mut u = ui();
+    u.s.focus_key("subject");
+    u.typ("Billing: rotate keys");
+    u.key("ctrl+s");
+    u.key("f7");
+    assert!(u.s.review().expect("review").show_payload);
+    let screen = u.draw(120, 60);
+    assert!(screen.contains("Payload"), "{screen}");
+    assert!(screen.contains("\"subject\": \"Billing: rotate keys\""));
+    u.key("f7");
+    assert!(!u.s.review().expect("review").show_payload);
+    assert!(!u.draw(120, 60).contains("Payload"));
+
+    // Tab to Cancel: Submit → Back → Save → Copy as command → Cancel
+    for _ in 0..4 {
+        u.key("tab");
+    }
+    assert_eq!(
+        u.s.review().expect("review").focus,
+        fsv_formui::screen::review::ReviewFocus::Cancel
+    );
+    u.key("enter");
+    assert_eq!(u.s.done(), Some(Action::Cancel));
+
+    let mut u = ui();
+    u.backend
+        .errors
+        .lock()
+        .expect("lock")
+        .push("Subject is required".into());
+    u.key("ctrl+s");
+    u.key("ctrl+s");
+    u.key("f6");
+    let toasts = u.s.toast_texts();
+    assert!(
+        toasts
+            .iter()
+            .any(|t| t == "fix the problems first (Back to edit)"),
+        "{toasts:?}"
+    );
+    assert!(
+        toasts.iter().any(|t| t == "no complete plan yet"),
+        "{toasts:?}"
+    );
+    assert_eq!(u.s.done(), None);
+
+    let dir = tempfile::tempdir().expect("tmp");
+    let mut u = ui();
+    u.key("ctrl+s");
+    u.key("f4");
+    assert_eq!(u.s.save_dialog().expect("dialog").title, "Save draft to");
+    let path = dir.path().join("r.yaml");
+    u.s.save_dialog()
+        .expect("dialog")
+        .input
+        .set_value(&path.to_string_lossy());
+    u.key("enter");
+    assert_eq!(u.s.done(), Some(Action::SaveDraft));
+    assert_eq!(
+        u.s.into_result().saved_path.as_deref(),
+        Some(path.as_path())
+    );
+}
+
+/// `TextDialog` Close goes back to the review.
+#[test]
+fn the_command_dialog_closes_back_to_the_review() {
+    let dir = tempfile::tempdir().expect("tmp");
+    let mut u = ui();
+    u.key("ctrl+s");
+    u.key("f6");
+    let path = dir.path().join("c.yaml");
+    u.s.save_dialog()
+        .expect("dialog")
+        .input
+        .set_value(&path.to_string_lossy());
+    u.key("enter");
+    assert!(u.s.text_dialog().is_some());
+    u.key("tab"); // Close
+    u.key("enter");
+    assert_eq!(u.s.layer(), Some("review"));
+    assert!(u.s.take_clipboard().is_none());
+}
+
+/// A backend whose plan has one blocking rule message.
+struct Blocking;
+
+impl fsv_formui::FormBackend for Blocking {
+    fn build_plan(&self, req: &fsv_formui::PlanRequest<'_>) -> Result<fsv_formui::Plan, String> {
+        let mut review = fsv_core::review::Review::new("New Change");
+        review.messages.push(fsv_core::review::ReviewMessage {
+            text: "Freeze window".into(),
+            blocking: true,
+            acknowledged: req.ack_all,
+            rule: serde_json::Value::Null,
+        });
+        review.plan_hash = "0123456789abcdef".into();
+        Ok(fsv_formui::Plan {
+            errors: vec![],
+            hash: "0123456789abcdef".into(),
+            review,
+            payload: None,
+            detail: None,
+        })
+    }
+
+    fn save_draft(
+        &self,
+        _req: &fsv_formui::PlanRequest<'_>,
+        _plan: &fsv_formui::Plan,
+        _path: &std::path::Path,
+    ) -> std::io::Result<()> {
+        Ok(())
+    }
+
+    fn send(
+        &self,
+        _req: &fsv_formui::PlanRequest<'_>,
+        _plan: &fsv_formui::Plan,
+        _allow: bool,
+    ) -> Result<serde_json::Value, fsv_core::Error> {
+        Ok(serde_json::Value::Null)
+    }
+}
+
+/// `ReviewScreen._ack`: ticking the box rebuilds the plan and enables Submit.
+#[test]
+fn acknowledging_a_blocking_message_enables_submit() {
+    let api = Arc::new(FakeApi::default());
+    let mut i = init(
+        FormKind::Change,
+        FormMode::New,
+        api,
+        Arc::new(FakeBackend::default()),
+    );
+    i.backend = Arc::new(Blocking);
+    let session = FormSession::new(i).expect("session");
+    let mut s = FormScreen::with_workers(session, Theme::textual_dark(), WorkersMode::Inline);
+    s.handle_key(parse_key("ctrl+s"));
+    let r = s.review().expect("review");
+    assert!(r.has_ack && r.submit_disabled());
+    assert_eq!(
+        r.banner(&s.session),
+        ["A blocking rule message needs your acknowledgement (tick the box below)."]
+    );
+    s.handle_key(parse_key("shift+tab")); // Back → the box
+    s.handle_key(parse_key("space"));
+    assert!(s.session.ack);
+    let r = s.review().expect("review");
+    assert!(!r.submit_disabled());
+    assert!(r.banner(&s.session).is_empty());
+    s.handle_key(parse_key("ctrl+s"));
+    assert_eq!(s.done(), Some(Action::Submit));
+}
+
+/// `FormScreen.show_help` / `show_notes` and the actions behind the keys.
+#[test]
+fn form_screen_help_notes_and_actions() {
+    let mut u = ui();
+    u.s.show_help("subject", false);
+    assert!(
+        u.s.help_text()
+            .starts_with("Subject * required\ne.g. Service: objective"),
+        "{}",
+        u.s.help_text()
+    );
+    let notes: Vec<String> = ["a", "b", "c", "d", "e"].map(String::from).to_vec();
+    u.s.show_notes(&notes);
+    assert_eq!(u.s.notes, ["b", "c", "d", "e"]);
+    assert!(u.s.toast_texts().iter().any(|t| t == "a\nb\nc\nd\ne"));
+    u.s.show_notes(&[]);
+    assert_eq!(u.s.notes.len(), 4);
+
+    u.s.action_save();
+    assert_eq!(u.s.layer(), Some("save"));
+    u.key("escape");
+    u.s.focus_key("subject");
+    u.typ("x");
+    u.s.action_review();
+    assert_eq!(u.s.layer(), Some("review"));
+    assert_eq!(
+        u.s.session.view("subject").value,
+        Value::str("x"),
+        "committed first"
+    );
+    u.key("escape");
+    u.s.action_cancel();
+    assert_eq!(u.s.layer(), Some("confirm"));
+}
+
+/// Textual `Input` selects its text on focus: typing replaces it.
+#[test]
+fn focusing_a_field_selects_its_text() {
+    let mut u = ui();
+    u.s.session.set("subject", Value::str("Hello"));
+    u.s.refresh_rows();
+    u.s.focus_key("subject");
+    u.typ("x");
+    u.key("enter");
+    assert_eq!(u.s.session.view("subject").value, Value::str("x"));
+}

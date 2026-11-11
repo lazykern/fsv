@@ -210,7 +210,7 @@ pub fn human_size(n: u64) -> String {
     unreachable!("GB is the last unit")
 }
 
-/// `forms.max_file_mb` from the config, in bytes.
+/// `_max_bytes`: `forms.max_file_mb` from the config, in bytes.
 pub fn max_file_bytes(config: &Map<String, Json>) -> Option<u64> {
     let v = config.get("forms")?.get("max_file_mb")?;
     let mb = match v {

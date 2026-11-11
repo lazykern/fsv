@@ -140,6 +140,7 @@ impl ComboBox {
         self.set_note(note);
     }
 
+    /// `ComboBox._note`: the highlighted choice's description, then `note`.
     fn set_note(&mut self, note: &str) {
         let desc = self
             .highlighted
@@ -267,7 +268,8 @@ impl ComboBox {
         self.close(true);
     }
 
-    fn cursor(&mut self, n: isize, cx: &mut EdCx<'_>) {
+    /// Move the highlight `n` rows (opens a closed list first).
+    fn action_cursor(&mut self, n: isize, cx: &mut EdCx<'_>) {
         if !self.is_open {
             self.open(cx);
             return;
@@ -279,6 +281,13 @@ impl ComboBox {
         let next = (cur + n).clamp(0, self.options.len() as isize - 1) as usize;
         self.highlighted = Some(next);
         self.set_note("");
+    }
+
+    /// `ComboBox._maybe_close`: shortly after the input lost focus.
+    fn maybe_close(&mut self, focused: bool) {
+        if !focused {
+            self.close(false);
+        }
     }
 
     fn list_height(&self) -> u16 {
@@ -304,10 +313,10 @@ impl Editor for ComboBox {
 
     fn handle_key(&mut self, k: &KeyEvent, _slot: usize, cx: &mut EdCx<'_>) -> bool {
         match k.code {
-            KeyCode::Down => self.cursor(1, cx),
-            KeyCode::Up => self.cursor(-1, cx),
-            KeyCode::PageDown => self.cursor(8, cx),
-            KeyCode::PageUp => self.cursor(-8, cx),
+            KeyCode::Down => self.action_cursor(1, cx),
+            KeyCode::Up => self.action_cursor(-1, cx),
+            KeyCode::PageDown => self.action_cursor(8, cx),
+            KeyCode::PageUp => self.action_cursor(-8, cx),
             KeyCode::Esc => {
                 if !self.is_open {
                     return false;
@@ -330,11 +339,14 @@ impl Editor for ComboBox {
         }
     }
 
+    /// `ComboBox.on_descendant_focus`: the list opens.
     fn focus(&mut self, _slot: usize, cx: &mut EdCx<'_>) {
         cx.timers.cancel(&TimerId::ComboClose(self.key()));
+        self.input.select_all();
         self.open(cx);
     }
 
+    /// `ComboBox.on_descendant_blur`: closes after [`COMBO_CLOSE`].
     fn blur(&mut self, _slot: usize, cx: &mut EdCx<'_>) {
         cx.timer(TimerId::ComboClose(self.key()), COMBO_CLOSE);
     }
@@ -342,7 +354,7 @@ impl Editor for ComboBox {
     fn timer(&mut self, id: &TimerId, focused: bool, cx: &mut EdCx<'_>) {
         match id {
             TimerId::Search(_) => self.search(cx),
-            TimerId::ComboClose(_) if !focused => self.close(false),
+            TimerId::ComboClose(_) => self.maybe_close(focused),
             _ => {}
         }
     }

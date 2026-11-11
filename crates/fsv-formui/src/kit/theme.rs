@@ -41,6 +41,15 @@ pub fn blend(fg: u32, bg: u32, alpha: f32) -> Color {
 }
 
 impl Theme {
+    /// `$input-selection-background` over the input.
+    pub fn input_selection(&self) -> Color {
+        if self.name == "textual-light" {
+            c(0x899EB3)
+        } else {
+            c(0x2D4E74)
+        }
+    }
+
     pub fn textual_dark() -> Theme {
         let bg = 0x121212;
         Theme {

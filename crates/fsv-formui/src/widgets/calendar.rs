@@ -45,28 +45,40 @@ impl CalendarGrid {
         }
     }
 
-    fn move_days(&mut self, n: i64) {
+    /// Move the cursor `n` days (arrows).
+    pub fn action_move(&mut self, n: i64) {
         if let Ok(d) = self.cursor.checked_add(n.days()) {
             self.cursor = d;
         }
     }
 
-    fn move_months(&mut self, n: i64) {
+    /// Move the cursor `n` months, clamping the day (PgUp / PgDn).
+    pub fn action_month(&mut self, n: i64) {
         if let Ok(d) = add_months(self.cursor, n) {
             self.cursor = d;
         }
     }
 
+    /// Back to today (Home).
+    pub fn action_today(&mut self) {
+        self.cursor = self.today;
+    }
+
+    /// Pick the day under the cursor (Enter).
+    pub fn action_pick(&self) -> CalendarEvent {
+        CalendarEvent::Picked(self.cursor)
+    }
+
     pub fn handle_key(&mut self, k: &KeyEvent) -> CalendarEvent {
         match k.code {
-            KeyCode::Left => self.move_days(-1),
-            KeyCode::Right => self.move_days(1),
-            KeyCode::Up => self.move_days(-7),
-            KeyCode::Down => self.move_days(7),
-            KeyCode::PageUp => self.move_months(-1),
-            KeyCode::PageDown => self.move_months(1),
-            KeyCode::Home => self.cursor = self.today,
-            KeyCode::Enter => return CalendarEvent::Picked(self.cursor),
+            KeyCode::Left => self.action_move(-1),
+            KeyCode::Right => self.action_move(1),
+            KeyCode::Up => self.action_move(-7),
+            KeyCode::Down => self.action_move(7),
+            KeyCode::PageUp => self.action_month(-1),
+            KeyCode::PageDown => self.action_month(1),
+            KeyCode::Home => self.action_today(),
+            KeyCode::Enter => return self.action_pick(),
             _ => return CalendarEvent::Ignored,
         }
         CalendarEvent::Handled
@@ -193,5 +205,52 @@ mod tests {
             g.handle_key(&KeyEvent::from(KeyCode::Enter)),
             CalendarEvent::Picked(_)
         ));
+    }
+
+    #[test]
+    fn actions_move_pick_and_go_back_to_today() {
+        let today = Date::new(2026, 11, 12).unwrap();
+        let mut g = CalendarGrid::new(Date::new(2026, 3, 31).unwrap(), today);
+        g.action_month(-1);
+        assert_eq!(g.cursor, Date::new(2026, 2, 28).unwrap());
+        g.action_move(-28);
+        assert_eq!(g.cursor, Date::new(2026, 1, 31).unwrap());
+        g.action_today();
+        assert_eq!(g.cursor, today);
+        assert!(matches!(g.action_pick(), CalendarEvent::Picked(d) if d == today));
+        assert!(matches!(
+            g.handle_key(&KeyEvent::from(KeyCode::Home)),
+            CalendarEvent::Handled
+        ));
+        assert!(matches!(
+            g.handle_key(&KeyEvent::from(KeyCode::Char('x'))),
+            CalendarEvent::Ignored
+        ));
+    }
+
+    /// `CalendarGrid.render`: bold header, dim day names, the cursor
+    /// reversed bold, other months dim, today underlined.
+    #[test]
+    fn render_styles_the_cells() {
+        let theme = Theme::textual_dark();
+        let g = CalendarGrid::new(
+            Date::new(2026, 11, 12).unwrap(),
+            Date::new(2026, 11, 10).unwrap(),
+        );
+        let area = Rect::new(0, 0, WIDTH, HEIGHT);
+        let mut buf = Buffer::empty(area);
+        g.render(area, &mut buf, true, &theme);
+        let m = |x: u16, y: u16| buf[(x, y)].modifier;
+        let row = |y: u16| crate::kit::draw::row_text(&buf, y);
+        assert_eq!(row(0).trim_end(), "‹     Nov 2026     ›");
+        assert!(m(0, 0).contains(Modifier::BOLD) && m(19, 0).contains(Modifier::BOLD));
+        assert!(m(0, 1).contains(Modifier::DIM));
+        // weeks: Oct 26 .. Nov 1, Nov 2 .. 8, Nov 9 .. 15
+        assert!(row(2).starts_with("26 27 28 29 30 31  1"));
+        assert!(m(0, 2).contains(Modifier::DIM));
+        assert!(!m(18, 2).contains(Modifier::DIM));
+        assert!(m(3, 4).contains(Modifier::UNDERLINED));
+        assert!(m(9, 4).contains(Modifier::REVERSED | Modifier::BOLD));
+        assert!(m(6, 4).is_empty());
     }
 }

@@ -102,6 +102,11 @@ impl DateEditor {
         cx.emit(EdMsg::Edited(self.key.clone(), value));
     }
 
+    /// Ask the screen for the calendar (F2 or the Calendar button).
+    pub fn action_calendar(&self, cx: &mut EdCx<'_>) {
+        cx.emit(EdMsg::OpenCalendar(self.key.clone()));
+    }
+
     fn preview_lines(&self, width: u16, theme: &Theme) -> Vec<Line<'static>> {
         let (text, color) = if self.preview.error.is_empty() {
             (&self.preview.preview, theme.success)
@@ -129,12 +134,12 @@ impl Editor for DateEditor {
 
     fn handle_key(&mut self, k: &KeyEvent, slot: usize, cx: &mut EdCx<'_>) -> bool {
         if k.code == KeyCode::F(2) {
-            cx.emit(EdMsg::OpenCalendar(self.key.clone()));
+            self.action_calendar(cx);
             return true;
         }
         if slot == 1 {
             if matches!(k.code, KeyCode::Enter | KeyCode::Char(' ')) && !self.input.disabled {
-                cx.emit(EdMsg::OpenCalendar(self.key.clone()));
+                self.action_calendar(cx);
                 return true;
             }
             return false;
@@ -161,6 +166,13 @@ impl Editor for DateEditor {
         }
     }
 
+    fn focus(&mut self, slot: usize, _cx: &mut EdCx<'_>) {
+        if slot == 0 {
+            self.input.select_all();
+        }
+    }
+
+    /// `DateEditor.on_descendant_blur`: leaving the input commits it.
     fn blur(&mut self, slot: usize, cx: &mut EdCx<'_>) {
         if slot == 0 {
             self.commit_text(cx);
