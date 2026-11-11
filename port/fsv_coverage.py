@@ -612,7 +612,7 @@ def main() -> int:
     for cdir in CRATES.iterdir():
         toml = cdir / "Cargo.toml"
         if toml.exists():
-            deps[cdir.name] = set(re.findall(r"^(fsv-[\w-]+)\s*=", toml.read_text(), re.M))
+            deps[cdir.name] = set(re.findall(r"^(fsv-[\w-]+)(?:\.workspace)?\s*=", toml.read_text(), re.M))
 
     def can_call(user: str, owner: str, seen=None) -> bool:
         if user == owner:
