@@ -2,7 +2,7 @@
 
 Freshservice CLI. Drives changes, tickets, and problems via session-cookie auth; no API key needed.
 
-![fsv TUI demo](assets/fsv-tui-demo.png)
+Launch the interactive terminal interface with `fsv tui`.
 
 Interactive TUI with filter autocomplete, pagination, fulltext search, and keyboard navigation. Launch with `fsv tui`.
 
