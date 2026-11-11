@@ -105,9 +105,12 @@ def test_update_planning_refused_without_yes_then_allowed(fake):
     assert r.exit_code == 0 and fake.writes == [("PUT", "tickets/1", {"status": 3})]
 
 
-def test_change_planning_status_needs_yes(fake):
-    r = runner.invoke(cli.app, ["changes", "update", "CHN-1", "--status", "Planning"])
-    assert r.exit_code == 2 and not fake.writes
+def test_change_planning_status_needs_yes(fake, monkeypatch):
+    import acme_change_form as A
+    acme = A.FakeClient()
+    monkeypatch.setattr(cli, "_client", lambda: acme)
+    r = runner.invoke(cli.app, ["changes", "update", "CHN-501", "--status", "Planning"])
+    assert r.exit_code == 2 and "--yes" in r.output and not acme.writes()
 
 
 def test_set_status_is_gated_like_status_flag(fake, monkeypatch):
@@ -125,23 +128,33 @@ def test_set_status_is_gated_like_status_flag(fake, monkeypatch):
     assert r.exit_code == 0 and acme.writes() == [("PUT", "changes/501", {"status": 2})]
 
 
-def test_same_status_is_not_gated(fake):
-    r = runner.invoke(cli.app, ["changes", "update", "CHN-1", "--status", "Open"])
-    assert r.exit_code == 0 and fake.writes
+def test_same_status_is_not_gated(fake, monkeypatch):
+    import acme_change_form as A
+    acme = A.FakeClient()
+    monkeypatch.setattr(cli, "_client", lambda: acme)
+    r = runner.invoke(cli.app, ["changes", "update", "CHN-501", "--status", "Open"])
+    assert r.exit_code == 0 and not acme.writes()
 
 
-def test_reassign_gated(fake):
+def test_reassign_gated(fake, monkeypatch):
+    import acme_change_form as A
+    acme = A.FakeClient()
+    monkeypatch.setattr(cli, "_client", lambda: acme)
     r = runner.invoke(cli.app, ["changes", "update", "CHN-1", "--group", "999"])
     assert r.exit_code == 2 and not fake.writes
     r = runner.invoke(cli.app, ["changes", "update", "CHN-1", "--group", "999", "--yes"])
     assert r.exit_code == 0
 
 
-def test_dry_run_never_asks_and_reports_risks(fake):
-    r = runner.invoke(cli.app, ["changes", "update", "CHN-1", "--status", "Planning", "--dry-run"])
-    assert r.exit_code == 0 and not fake.writes
+def test_dry_run_never_asks_and_reports_risks(fake, monkeypatch):
+    import acme_change_form as A
+    acme = A.FakeClient()
+    monkeypatch.setattr(cli, "_client", lambda: acme)
+    r = runner.invoke(cli.app, ["changes", "update", "CHN-501", "--status", "Planning", "--dry-run", "--json"])
+    assert r.exit_code == 0, r.output
+    assert not acme.writes()
     out = json.loads(r.output)
-    assert out["body"] == {"status": 2} and out["requires_confirmation"]
+    assert out["payload"] == {"status": 2} and out["risks"] and out["plan_hash"]
 
 
 def test_update_edit_final_body_is_gated(monkeypatch, tmp_path):

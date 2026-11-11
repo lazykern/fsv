@@ -4033,7 +4033,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
 
             --set, --from, --preset and --edit run the edit form's business
             rules and send only the fields that change (review shows old ->
-            new). --status/--priority/--agent/--group alone use the quick path."""
+            new). Legacy --status/--priority/--agent/--group flags use the same
+            reviewed, hash-bound form path."""
             try:
                 cid = _cid(id_, res)
                 no_input = _no_input(no_input)
@@ -4044,7 +4045,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     from fsv.change_cli import form_tty
                     from fsv.change_flow import interactive
                     open_form = interactive() and form_tty()
-                if (edit or set_ or from_ or preset or open_form) and due_by is None and planning is None:
+                form_flags = edit or set_ or from_ or preset or open_form or any(
+                    v is not None for v in (status, priority, agent_id, group_id))
+                if form_flags and due_by is None and planning is None:
                     from fsv.change_cli import FlowExit, update_command
                     from fsv.forms import FormError
                     try:

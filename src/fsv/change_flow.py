@@ -132,6 +132,8 @@ class Plan:
             },
             "review": self.review.to_dict(),
             "warnings": self.review.warnings,
+            "risks": self.risks,
+            "requires_confirmation": bool(self.risks),
             "errors": self.errors,
         }
 

@@ -117,7 +117,21 @@ def test_create_preflight_blocks_real_submit(monkeypatch):
     assert "required" in result.output and not c.writes()
 
 
-def test_update_resolves_labels():
-    body = _dry(["changes", "update", "CHN-1", "--status", "Open",
-                 "--priority", "High", "--dry-run"])["body"]
-    assert body == {"status": 1, "priority": 3}
+def test_update_resolves_labels(monkeypatch):
+    _acme(monkeypatch)
+    body = _dry(["changes", "update", "CHN-501", "--status", "Planning",
+                 "--priority", "High", "--dry-run", "--json"])["payload"]
+    assert body == {"status": 2, "priority": 3}
+
+
+def test_legacy_status_hash_matches_set_and_refuses_mismatch(monkeypatch):
+    c = _acme(monkeypatch)
+    base = ["changes", "update", "CHN-501"]
+    legacy = _dry(base + ["--status", "Planning", "--dry-run", "--json"])
+    form = _dry(base + ["--set", "Status=Planning", "--dry-run", "--json"])
+    assert legacy["plan_hash"] == form["plan_hash"]
+    result = runner.invoke(cli.app, base + ["--status", "Planning", "--yes", "--expect-plan", "0" * 64])
+    assert result.exit_code == 4 and not c.writes()
+    result = runner.invoke(cli.app, base + ["--status", "Planning", "--yes", "--expect-plan", legacy["plan_hash"]])
+    assert result.exit_code == 0, result.output
+    assert c.writes() == [("PUT", "changes/501", {"status": 2})]
