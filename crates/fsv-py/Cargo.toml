@@ -1,0 +1,11 @@
+[package]
+name = "fsv-py"
+description = "Byte-exact Python compatibility helpers (json.dumps, str/repr) used for hashes and messages"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde_json.workspace = true
+
+[dev-dependencies]

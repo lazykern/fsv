@@ -1,0 +1,781 @@
+============================================================
+COMMAND: fsv | hidden: False | help: Freshservice CLI
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
+  OPT verbose ['--verbose', '-v'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print debug info to stderr'
+  OPT version ['--version', '-V'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print version and exit'
+  OPT install_completion ['--install-completion'] type=BOOL req=False nargs=1 flag=True multi=False default=None sec=[] hidden=False help='Install completion for the current shell.'
+  OPT show_completion ['--show-completion'] type=BOOL req=False nargs=1 flag=True multi=False default=None sec=[] hidden=False help='Show completion for the current shell, to copy it or customize the installation.'
+============================================================
+COMMAND: fsv help | hidden: False | help: Show topic help.
+  ARG topic ['topic'] type=STRING req=False nargs=1 help='topic: auth|workflow|fields|scripting|comments'
+============================================================
+COMMAND: fsv search | hidden: False | help: Global search across all entities (tickets, problems, changes, tasks, assets, solutions).
+  ARG query ['query'] type=STRING req=True nargs=1 help="Free-text term, e.g. 'AcmeApp'"
+  OPT page ['--page', '-p'] type=INT req=False nargs=1 flag=False multi=False default=1 sec=[] hidden=False help=None
+  OPT sort ['--sort'] type=Choice(['relevance', 'created', 'modified']) req=False nargs=1 flag=False multi=False default=<SearchSort.relevance: 'relevance'> sec=[] hidden=False help='relevance | created | modified'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+  OPT n_pages ['--npages', '-N'] type=INT req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='fetch exactly N pages (30 results each)'
+  OPT all_pages ['--all', '-a'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fetch all pages (auto-paginate)'
+============================================================
+COMMAND: fsv setup | hidden: False | help: Interactive setup wizard.
+============================================================
+COMMAND: fsv tui | hidden: False | help: Launch interactive TUI.
+  OPT read_only ['--read-only'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='disable write actions (status, notes, replies)'
+============================================================
+COMMAND: fsv auth | hidden: False | help: authenticate and manage sessions
+============================================================
+COMMAND: fsv auth login | hidden: False | help: Save Freshservice session cookies.
+  OPT domain ['--domain', '-d'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='Freshservice domain or URL, e.g. acme.freshservice.com. Saved before login.'
+  OPT header ['--header', '-H'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help="Cookie header string. Use '-' to read from stdin."
+  OPT browser ['--browser'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='Open an isolated browser, let you finish SSO/MFA, then read HttpOnly cookies via CDP.'
+  OPT store ['--store'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help="Where to save: 'file' (plain chmod 600), 'argon' (Argon2id + AES-GCM), or 'keychain' (macOS Keychain). Interactive when omitted; default keychain on macOS."
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
+  OPT force ['--force'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='save cookies even if they fail validation against the tenant'
+============================================================
+COMMAND: fsv auth logout | hidden: False | help: Wipe stored session (file + Keychain + backend pref).
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='skip confirmation prompt'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
+============================================================
+COMMAND: fsv auth status | hidden: False | help: Show current agent identity and session status.
+============================================================
+COMMAND: fsv completion | hidden: False | help: shell completion helpers
+============================================================
+COMMAND: fsv completion show | hidden: False | help: Show shell completion script.
+  ARG shell ['shell'] type=STRING req=False nargs=1 help='bash|zsh|fish|powershell|pwsh'
+============================================================
+COMMAND: fsv completion install | hidden: False | help: Install shell completion for current shell.
+  ARG shell ['shell'] type=STRING req=False nargs=1 help='bash|zsh|fish|powershell|pwsh'
+============================================================
+COMMAND: fsv completion refresh | hidden: False | help: Alias for `fsv cache refresh`.
+============================================================
+COMMAND: fsv completion doctor | hidden: False | help: Show completion install/cache diagnostics.
+============================================================
+COMMAND: fsv config | hidden: False | help: manage fsv settings
+============================================================
+COMMAND: fsv config list | hidden: False | help: List all config keys and current values.
+============================================================
+COMMAND: fsv config get | hidden: False | help: Get a single config value.
+  ARG key ['key'] type=STRING req=True nargs=1 help='config key'
+============================================================
+COMMAND: fsv config set | hidden: False | help: Set a config value.
+  ARG key ['key'] type=STRING req=True nargs=1 help='completion.network, ...'
+  ARG value ['value'] type=STRING req=True nargs=1 help='on|off|true|false|1|0'
+============================================================
+COMMAND: fsv config defaults | hidden: False | help: manage default --where filters per resource
+============================================================
+COMMAND: fsv config defaults show | hidden: False | help: Show default --where filters.
+  ARG resource ['resource'] type=STRING req=False nargs=1 help='changes|tickets|problems; omit for all'
+============================================================
+COMMAND: fsv config defaults set | hidden: False | help: Set (replace) default --where filters for a resource.
+  ARG resource ['resource'] type=STRING req=True nargs=1 help='changes|tickets|problems'
+  OPT where ['--where', '-w'] type=STRING req=True nargs=1 flag=False multi=True default=None sec=[] hidden=False help='field=value filter; repeat to add multiple'
+============================================================
+COMMAND: fsv config defaults clear | hidden: False | help: Clear default --where filters for a resource.
+  ARG resource ['resource'] type=STRING req=True nargs=1 help='changes|tickets|problems'
+============================================================
+COMMAND: fsv cache | hidden: False | help: inspect and manage local cache
+============================================================
+COMMAND: fsv cache status | hidden: False | help: Show cache health and TTL.
+============================================================
+COMMAND: fsv cache refresh | hidden: False | help: Refresh only stale caches.
+============================================================
+COMMAND: fsv cache clear | hidden: False | help: Delete cached data.
+  ARG target ['target'] type=STRING req=False nargs=1 help='schema|views|groups|all'
+============================================================
+COMMAND: fsv journal | hidden: False | help: read the local write journal
+============================================================
+COMMAND: fsv journal ls | hidden: False | help: List journaled write requests (oldest first).
+  OPT limit ['--limit', '-n'] type=INT req=False nargs=1 flag=False multi=False default=0 sec=[] hidden=False help='only the last N entries (0 = all)'
+  OPT failed ['--failed'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='only failed writes'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='one JSON object per line'
+============================================================
+COMMAND: fsv journal tail | hidden: False | help: Show the most recent journaled writes.
+  OPT limit ['--limit', '-n'] type=INT req=False nargs=1 flag=False multi=False default=10 sec=[] hidden=False help='number of entries'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='one JSON object per line'
+============================================================
+COMMAND: fsv journal path | hidden: False | help: Print the journal file location.
+============================================================
+COMMAND: fsv changes | hidden: False | help: changes commands
+============================================================
+COMMAND: fsv changes ls | hidden: False | help: List changes.
+  OPT filter_name ['--view'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='saved view by name as the web shows it (exact or unique prefix; see `views`); default: the view the server marks default'
+  OPT where ['--where', '-w'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help="filter like the web's filter panel: LABEL=VALUE, e.g. Status=Open, Agents=Me, Created='Last 6 months', 'Environment=(empty)'; internal names work too"
+  OPT query_hash ['--query-hash'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='raw or URL-encoded Freshservice query_hash JSON array'
+  OPT or_grouping ['--or'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='combine --where conditions with OR instead of AND'
+  OPT debug ['--debug'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show resolved query_hash and exit'
+  OPT per_page ['--per-page', '-n'] type=INT req=False nargs=1 flag=False multi=False default=30 sec=[] hidden=False help=None
+  OPT page ['--page', '-p'] type=INT req=False nargs=1 flag=False multi=False default=1 sec=[] hidden=False help=None
+  OPT order_by ['--order-by'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='sort field, e.g. created_at'
+  OPT order_type ['--order-type'] type=Choice(['asc', 'desc']) req=False nargs=1 flag=False multi=False default=<SortOrder.desc: 'desc'> sec=[] hidden=False help='asc | desc'
+  OPT all_pages ['--all', '-a'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fetch all pages (auto-paginate)'
+  OPT n_pages ['--npages', '-N'] type=INT req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='fetch exactly N pages'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+  OPT pager ['--pager'] type=BOOL req=False nargs=1 flag=True multi=False default=True sec=['--no-pager'] hidden=False help='page long table output when stdout is a TTY'
+  OPT no_defaults ['--no-defaults'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='ignore default --where filters from config'
+============================================================
+COMMAND: fsv changes get | hidden: False | help: Show one change.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT tab ['--tab', '-t'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='show one tab of the page: notes|tasks|approvals|assets|impacted|associations|activity|risk|devops (only tabs the server shows)'
+  OPT all_tabs ['--all-tabs'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print the Details tab and every other tab the server shows'
+  OPT all_conversations ['--all-conversations'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='every conversation, not only the latest (tickets)'
+  OPT stats ['--stats'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='with --json: the record plus planning fields and attachment evidence'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes activity | hidden: False | help: List change activity.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT limit ['-l', '--limit'] type=INT req=False nargs=1 flag=False multi=False default=20 sec=[] hidden=False help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes tasks | hidden: False | help: List change tasks.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes tasks-add | hidden: False | help: Review and create a change task (no implicit owner).
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT title ['--title'] type=STRING req=True nargs=1 flag=False multi=False default=None sec=[] hidden=False help='exact task title to review'
+  OPT owner ['--owner'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='explicit user ID or exact agent email; default none, no implicit self'
+  OPT group ['--group'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='positive group ID or exact group name'
+  OPT status ['--status'] type=STRING req=False nargs=1 flag=False multi=False default='Open' sec=[] hidden=False help='exact active runtime status label or ID (including the default Open)'
+  OPT note ['--note'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='plain text, HTML-escaped'
+  OPT notify_before ['--notify-before'] type=STRING req=False nargs=1 flag=False multi=False default='Never' sec=[] hidden=False help='Never, 15 Minutes, 30 Minutes, 45 Minutes, 1 Hour, 2 Hours'
+  OPT planned_start ['--planned-start'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='ISO date/time with explicit timezone offset'
+  OPT planned_end ['--planned-end'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='ISO date/time with explicit timezone offset'
+  OPT planned_effort ['--planned-effort'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='1h30m or 01:30; sends 1h 30m'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='review only; email resolution may read, no POST or journal writes'
+  OPT read_only ['--read-only'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='refuse task creation'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm the full previously reviewed --expect-plan'
+  OPT expected ['--expect-plan'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='full hash from the exact task review'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='never prompt'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit structured result'
+============================================================
+COMMAND: fsv changes approval-request | hidden: False | help: Review and REQUEST manual change approval (selected rule; sends irreversible emails).
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT name ['--name'] type=STRING req=True nargs=1 flag=False multi=False default=None sec=[] hidden=False help='exact approval group name'
+  OPT message ['--message'] type=STRING req=True nargs=1 flag=False multi=False default=None sec=[] hidden=False help='plain text; always HTML-escaped'
+  OPT approver ['--approver'] type=STRING req=True nargs=1 flag=False multi=True default=None sec=[] hidden=False help='explicit agent ID or exact email (repeatable; no implicit recipients)'
+  OPT rule ['--rule'] type=STRING req=False nargs=1 flag=False multi=False default='everyone' sec=[] hidden=False help='everyone, anyone, majority or first-responder'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='review only; emails may require read-only lookup'
+  OPT read_only ['--read-only'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='refuse approval requests'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm the full previously reviewed --expect-plan'
+  OPT expected ['--expect-plan'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='full hash from the exact prior review'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='never prompt'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit structured result'
+============================================================
+COMMAND: fsv changes approval-respond | hidden: False | help: Review and approve/reject an exact approval record (notifies people; may move workflow).
+  ARG change ['change'] type=STRING req=True nargs=1 help=None
+  ARG approval_id ['approval_id'] type=STRING req=True nargs=1 help=None
+  OPT approve ['--approve'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT reject ['--reject'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT remark ['--remark'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='required nonempty for reject; optional for approve'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT read_only ['--read-only'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT expected ['--expect-plan'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help=None
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+============================================================
+COMMAND: fsv changes approval-cancel | hidden: False | help: Review and cancel an exact approval group (irreversible; notifies people).
+  ARG change ['change'] type=STRING req=True nargs=1 help=None
+  ARG group_id ['group_id'] type=STRING req=True nargs=1 help=None
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT read_only ['--read-only'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT expected ['--expect-plan'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help=None
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+============================================================
+COMMAND: fsv changes tasks-update | hidden: False | help: Update a change task.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  ARG task_id ['task_id'] type=INT req=True nargs=1 help=None
+  OPT status ['--status', '-s'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='Open/Completed or status ID'
+  OPT title ['--title'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='task title'
+  OPT group_id ['--group', '--group-id'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='group name or ID'
+  OPT agent_id ['--agent', '--agent-id'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='agent name/email/user ID'
+  OPT system ['--system'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='task custom field system label or numeric ID'
+  OPT environment ['--environment', '--env'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='task custom field environment label or numeric ID'
+  OPT due_date ['--due-date'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='ISO-8601 due date'
+  OPT planned_start ['--planned-start'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='ISO-8601 planned start'
+  OPT planned_end ['--planned-end'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='ISO-8601 planned end'
+  OPT edit ['--edit', '-e'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='open $EDITOR with all task fields'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print resolved payload without updating'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm status changes and reassignment'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
+============================================================
+COMMAND: fsv changes tasks-delete | hidden: False | help: Delete a change task.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  ARG task_id ['task_id'] type=INT req=True nargs=1 help=None
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print target without deleting'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm deletion'
+============================================================
+COMMAND: fsv changes approvals | hidden: False | help: List change approvals.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT groups ['--groups'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='read approval-chain groups (IDs, raw statuses, members), instead of legacy records'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes state | hidden: False | help: Approval lifecycle state flow.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes fields | hidden: False | help: List discoverable change fields.
+  ARG search ['search'] type=STRING req=False nargs=1 help='field name/label search'
+  OPT default ['--default'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show portable Freshservice fields only'
+  OPT custom ['--custom'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show tenant custom fields only'
+  OPT required ['--required'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show only fields required to create'
+  OPT choices ['--choices'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='show choices for a field'
+  OPT refresh ['--refresh'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes lookup | hidden: False | help: Look up users, groups, or field choices.
+  ARG kind ['kind'] type=STRING req=True nargs=1 help='requester | agent | group | field name/label'
+  ARG query ['query'] type=STRING req=False nargs=1 help='name/email/text to search'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes views | hidden: False | help: List saved view names.
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes search | hidden: False | help: Full-text keyword search changes.
+  ARG query ['query'] type=STRING req=True nargs=1 help='free-text keyword(s)'
+  OPT page ['--page', '-p'] type=INT req=False nargs=1 flag=False multi=False default=1 sec=[] hidden=False help=None
+  OPT sort ['--sort'] type=Choice(['relevance', 'created', 'modified']) req=False nargs=1 flag=False multi=False default=<SearchSort.relevance: 'relevance'> sec=[] hidden=False help='relevance | created | modified'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+  OPT n_pages ['--npages', '-N'] type=INT req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='fetch exactly N pages (30 results each)'
+  OPT all_pages ['--all', '-a'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fetch all pages (auto-paginate)'
+============================================================
+COMMAND: fsv changes url | hidden: False | help: Print change browser URL.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+============================================================
+COMMAND: fsv changes update | hidden: False | help: Update change fields.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT status ['--status', '-s'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='status label or ID'
+  OPT priority ['--priority', '-p'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='priority label or ID'
+  OPT agent_id ['--agent', '--agent-id'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='agent name/email/user ID'
+  OPT group_id ['--group', '--group-id'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='group name or ID'
+  OPT edit ['--edit', '-e'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='open $EDITOR with all fields'
+  OPT set_ ['--set'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='set FIELD=VALUE (repeatable)'
+  OPT planning ['--planning'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='planning field label/name/id to update'
+  OPT description ['--description', '--desc'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help="planning field description HTML/text; use '-' for stdin"
+  OPT files ['--file', '-f'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='file(s) to upload to --planning field'
+  OPT duplicate ['--duplicate'] type=STRING req=False nargs=1 flag=False multi=False default='prompt' sec=[] hidden=False help='same-name attachment behavior: prompt|skip|replace|append'
+  OPT backup_replaced ['--backup-replaced'] type=BOOL req=False nargs=1 flag=True multi=False default=None sec=['--no-backup-replaced'] hidden=False help='when --duplicate replace, backup old attachment first'
+  OPT backup_name ['--backup-name'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='backup filename for replaced attachment'
+  OPT attach ['--attach', '-a'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='file(s) to attach to main change (Attachments section)'
+  OPT due_by ['--due-by'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='set resolution due date (ISO-8601, e.g. 2026-06-09T18:00:00+07:00)'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print resolved payload without updating'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm status changes, reassignment and other notifying writes'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
+  OPT from_ ['--from'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='YAML draft with answers to change (labels or internal names)'
+  OPT preset ['--preset'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='preset name or path (partial answers)'
+  OPT expect_plan ['--expect-plan'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='refuse unless the computed plan hash matches'
+  OPT ack ['--ack'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='acknowledge blocking rule messages'
+============================================================
+COMMAND: fsv changes download | hidden: False | help: Download change attachments.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT planning ['--planning'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='planning field label/name/id (repeatable)'
+  OPT all_planning ['--all-planning'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='download all planning field attachments'
+  OPT main_attachments ['--attachments', '--main-attachments'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='download main change attachments'
+  OPT description_attachments ['--description-attachments'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='download attachment links found in description HTML'
+  OPT all_ ['--all'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='download planning, main, and description attachments'
+  OPT out ['--dir', '--out'] type=<typer.models.TyperPath object at 0x10aac79e0> req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='output directory (default: ./CHN-<id>)'
+  OPT force ['--force'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='overwrite existing files'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON manifest'
+============================================================
+COMMAND: fsv changes clone | hidden: False | help: Clone a change.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help='change ID to clone (pre-fills form)'
+  OPT no_edit ['--no-edit'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='create directly without editing'
+  OPT dry ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print template to stdout and list side effects on stderr; do not create'
+  OPT with_tasks ['--with-tasks'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='clone tasks from source change (owners and past dates are dropped)'
+  OPT keep_task_owners ['--keep-task-owners'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='with --with-tasks: keep task owners and past dates (notifies people)'
+  OPT with_assets ['--with-assets'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='associate same assets as source change'
+  OPT with_planning ['--with-planning'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='clone planning fields (text + attachments)'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm --with-tasks'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
+============================================================
+COMMAND: fsv changes create | hidden: False | help: Create a change through the web form's own fields and rules.
+  OPT from_ ['--from'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='draft YAML (answers by label, description_md, attachments, planning)'
+  OPT set_ ['--set'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='answer LABEL=VALUE (label or internal name; repeatable)'
+  OPT preset ['--preset'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='preset name (config presets/NAME.yaml) or path'
+  OPT edit ['--edit', '-e'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='advanced: edit an annotated YAML draft in $EDITOR (default in a terminal: the interactive form)'
+  OPT requester ['--requester'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='requester email or exact name (default: config defaults.requester)'
+  OPT attach ['--attach', '-a'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='file to attach (uploaded only after you confirm; repeatable)'
+  OPT attach_flow ['--attach-flow'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='after-create (default: create, upload, PUT ids) | before-create (upload, send ids in the create body); config changes.attach_flow'
+  OPT dry ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print the review, exact payload and plan hash; send nothing'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='table|json (json: {plan_hash, payload, review, warnings})'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='send without the interactive review (required without a terminal)'
+  OPT expect_plan ['--expect-plan'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='refuse unless the computed plan hash matches (prefix >= 12 chars)'
+  OPT allow_duplicate ['--allow-duplicate'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='send even if the journal shows this exact plan in the last 24h'
+  OPT ack ['--ack'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='acknowledge blocking rule messages'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='never prompt or open an editor'
+  OPT subject ['--subject'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='subject (same as --set Subject=...)'
+  OPT description ['--description', '--desc'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help="description HTML/text; '-' for stdin"
+  OPT status ['--status', '-s'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='status on create (default: the form default; others need confirmation)'
+  OPT priority ['--priority', '-p'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='priority label'
+  OPT agent_id ['--agent', '--agent-id'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='agent name/email/ID'
+  OPT group_id ['--group', '--group-id'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='group name or ID'
+  OPT no_validate ['--no-validate'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='skip the client-side required-field check (the server still checks)'
+  OPT optional ['--optional', '-O'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=True help='(ignored; the draft lists every visible field)'
+  OPT all_fields ['--all'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=True help='(ignored; the draft lists every visible field)'
+============================================================
+COMMAND: fsv changes notes | hidden: False | help: List change notes.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT page ['--page', '-p'] type=INT req=False nargs=1 flag=False multi=False default=1 sec=[] hidden=False help=None
+  OPT per_page ['--per-page', '-n'] type=INT req=False nargs=1 flag=False multi=False default=30 sec=[] hidden=False help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+  OPT all_pages ['--all', '-a'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fetch all pages (auto-paginate)'
+  OPT n_pages ['--npages', '-N'] type=INT req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='fetch exactly N pages'
+============================================================
+COMMAND: fsv changes add-note | hidden: False | help: Add change note.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  ARG body ['body'] type=STRING req=True nargs=1 help='HTML or plain text'
+  OPT public ['--public'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print the note without adding it'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm a public note'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
+============================================================
+COMMAND: fsv changes assets | hidden: False | help: Manage change assets.
+============================================================
+COMMAND: fsv changes assets legacy | hidden: True | help: 
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT search ['--search', '-q'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='search assets available to associate'
+  OPT add ['--add'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='asset display ID(s) or names to associate'
+  OPT remove ['--remove'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='asset display ID(s) or names to remove'
+  OPT page ['--page', '-p'] type=INT req=False nargs=1 flag=False multi=False default=1 sec=[] hidden=False help=None
+  OPT per_page ['--per-page', '-n'] type=INT req=False nargs=1 flag=False multi=False default=30 sec=[] hidden=False help=None
+  OPT category ['--category'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='asset category/type label from Freshservice UI'
+  OPT list_categories ['--list-categories'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show available asset categories from /cmdb/items'
+  OPT pick ['--pick'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='interactive picker for add flow; prompts for category first when omitted'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print resolved payload without mutating'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm add/remove mutation'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes assets ls | hidden: False | help: List associated change assets.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT page ['--page', '-p'] type=INT req=False nargs=1 flag=False multi=False default=1 sec=[] hidden=False help=None
+  OPT per_page ['--per-page', '-n'] type=INT req=False nargs=1 flag=False multi=False default=30 sec=[] hidden=False help=None
+  OPT category ['--category'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='asset category/type label from Freshservice UI'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes assets search | hidden: False | help: Search assets available to associate.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  ARG query ['query'] type=STRING req=True nargs=1 help=None
+  OPT page ['--page', '-p'] type=INT req=False nargs=1 flag=False multi=False default=1 sec=[] hidden=False help=None
+  OPT per_page ['--per-page', '-n'] type=INT req=False nargs=1 flag=False multi=False default=30 sec=[] hidden=False help=None
+  OPT category ['--category'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='asset category/type label from Freshservice UI'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes assets add | hidden: False | help: Associate asset(s) to change.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  ARG assets_ ['assets_'] type=STRING req=True nargs=-1 help=None
+  OPT category ['--category'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='asset category/type label from Freshservice UI'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print resolved payload without mutating'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm mutation'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON'
+============================================================
+COMMAND: fsv changes assets remove | hidden: False | help: Remove asset(s) from change.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  ARG assets_ ['assets_'] type=STRING req=True nargs=-1 help=None
+  OPT category ['--category'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='asset category/type label from Freshservice UI'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print resolved payload without mutating'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm mutation'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON'
+============================================================
+COMMAND: fsv changes assets pick | hidden: False | help: Interactively pick asset(s) to associate.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT category ['--category'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='asset category/type label from Freshservice UI'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print resolved payload without mutating'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm mutation'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON'
+============================================================
+COMMAND: fsv changes assets categories | hidden: False | help: List available asset categories.
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes associations | hidden: False | help: Manage change ticket associations.
+============================================================
+COMMAND: fsv changes associations legacy | hidden: True | help: 
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT search ['--search', '-q'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='search tickets available to associate'
+  OPT add ['--add'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='ticket ID(s) or subject text to associate, e.g. SR-565163'
+  OPT remove ['--remove'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='ticket ID(s) or subject text to dissociate'
+  OPT pick ['--pick'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='interactive picker for add flow'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print resolved payload without mutating'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm mutation'
+  OPT expect_plan ['--expect-plan'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='full hash from exact association review'
+  OPT read_only ['--read-only'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='refuse association writes'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes associations ls | hidden: False | help: List associated tickets for change.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes associations search | hidden: False | help: Search tickets available to associate.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  ARG query ['query'] type=STRING req=True nargs=1 help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv changes associations add | hidden: False | help: Associate ticket(s) to change.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  ARG tickets_ ['tickets_'] type=STRING req=True nargs=-1 help=None
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print resolved payload without mutating'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm mutation'
+  OPT expect_plan ['--expect-plan'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='full hash from exact association review'
+  OPT read_only ['--read-only'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='refuse association writes'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON'
+============================================================
+COMMAND: fsv changes associations remove | hidden: False | help: Dissociate ticket(s) from change.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  ARG tickets_ ['tickets_'] type=STRING req=True nargs=-1 help=None
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print resolved payload without mutating'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm mutation'
+  OPT expect_plan ['--expect-plan'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='full hash from exact association review'
+  OPT read_only ['--read-only'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='refuse association writes'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON'
+============================================================
+COMMAND: fsv changes associations pick | hidden: False | help: Interactively pick ticket(s) to associate.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print resolved payload without mutating'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm mutation'
+  OPT expect_plan ['--expect-plan'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='full hash from exact association review'
+  OPT read_only ['--read-only'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='refuse association writes'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON'
+============================================================
+COMMAND: fsv tickets | hidden: False | help: tickets commands
+============================================================
+COMMAND: fsv tickets ls | hidden: False | help: List tickets.
+  OPT filter_name ['--view'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='saved view by name as the web shows it (exact or unique prefix; see `views`); default: the view the server marks default'
+  OPT where ['--where', '-w'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help="filter like the web's filter panel: LABEL=VALUE, e.g. Status=Open, Agents=Me, Created='Last 6 months', 'Environment=(empty)'; internal names work too"
+  OPT query_hash ['--query-hash'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='raw or URL-encoded Freshservice query_hash JSON array'
+  OPT or_grouping ['--or'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='combine --where conditions with OR instead of AND'
+  OPT debug ['--debug'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show resolved query_hash and exit'
+  OPT per_page ['--per-page', '-n'] type=INT req=False nargs=1 flag=False multi=False default=30 sec=[] hidden=False help=None
+  OPT page ['--page', '-p'] type=INT req=False nargs=1 flag=False multi=False default=1 sec=[] hidden=False help=None
+  OPT order_by ['--order-by'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='sort field, e.g. created_at'
+  OPT order_type ['--order-type'] type=Choice(['asc', 'desc']) req=False nargs=1 flag=False multi=False default=<SortOrder.desc: 'desc'> sec=[] hidden=False help='asc | desc'
+  OPT all_pages ['--all', '-a'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fetch all pages (auto-paginate)'
+  OPT n_pages ['--npages', '-N'] type=INT req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='fetch exactly N pages'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+  OPT pager ['--pager'] type=BOOL req=False nargs=1 flag=True multi=False default=True sec=['--no-pager'] hidden=False help='page long table output when stdout is a TTY'
+  OPT no_defaults ['--no-defaults'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='ignore default --where filters from config'
+============================================================
+COMMAND: fsv tickets get | hidden: False | help: Show one ticket.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT tab ['--tab', '-t'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='show one tab of the page: related|tasks|assets|associations|approvals|activity|resolution (only tabs the server shows)'
+  OPT all_tabs ['--all-tabs'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print the Details tab and every other tab the server shows'
+  OPT all_conversations ['--all-conversations'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='every conversation, not only the latest (tickets)'
+  OPT stats ['--stats'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='with --json: the record plus planning fields and attachment evidence'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv tickets activity | hidden: False | help: List ticket activity.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT limit ['-l', '--limit'] type=INT req=False nargs=1 flag=False multi=False default=20 sec=[] hidden=False help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv tickets tasks | hidden: False | help: List ticket tasks.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv tickets fields | hidden: False | help: List discoverable ticket fields.
+  ARG search ['search'] type=STRING req=False nargs=1 help='field name/label search'
+  OPT default ['--default'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show portable Freshservice fields only'
+  OPT custom ['--custom'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show tenant custom fields only'
+  OPT required ['--required'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show only fields required to create'
+  OPT choices ['--choices'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='show choices for a field'
+  OPT refresh ['--refresh'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv tickets lookup | hidden: False | help: Look up users, groups, or field choices.
+  ARG kind ['kind'] type=STRING req=True nargs=1 help='requester | agent | group | field name/label'
+  ARG query ['query'] type=STRING req=False nargs=1 help='name/email/text to search'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv tickets views | hidden: False | help: List saved view names.
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv tickets search | hidden: False | help: Full-text keyword search tickets.
+  ARG query ['query'] type=STRING req=True nargs=1 help='free-text keyword(s)'
+  OPT page ['--page', '-p'] type=INT req=False nargs=1 flag=False multi=False default=1 sec=[] hidden=False help=None
+  OPT sort ['--sort'] type=Choice(['relevance', 'created', 'modified']) req=False nargs=1 flag=False multi=False default=<SearchSort.relevance: 'relevance'> sec=[] hidden=False help='relevance | created | modified'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+  OPT n_pages ['--npages', '-N'] type=INT req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='fetch exactly N pages (30 results each)'
+  OPT all_pages ['--all', '-a'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fetch all pages (auto-paginate)'
+============================================================
+COMMAND: fsv tickets url | hidden: False | help: Print ticket browser URL.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+============================================================
+COMMAND: fsv tickets add-note | hidden: False | help: Review and add a ticket note (private by default; not a reply).
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT body ['--body', '-b'] type=STRING req=True nargs=1 flag=False multi=False default=None sec=[] hidden=False help='note body to review'
+  OPT public ['--public'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='select a public note visible to the customer'
+  OPT confirm_public ['--confirm-public'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='separately confirm public visibility'
+  OPT html_body ['--html'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='body is already HTML; otherwise escape plain text'
+  OPT notify ['--notify-email'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='explicit notification recipient (repeatable; default none)'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='review only; no client, POST or journal writes'
+  OPT read_only ['--read-only'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='refuse sends'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm the exact previously reviewed --expect-plan'
+  OPT expected ['--expect-plan'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='full hash from a prior body review'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='never prompt'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit structured result'
+============================================================
+COMMAND: fsv tickets create | hidden: False | help: Create an incident using the ticket form and business rules.
+  OPT from_ ['--from'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='YAML draft'
+  OPT set_ ['--set'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='answer LABEL=VALUE (repeatable)'
+  OPT preset ['--preset'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='draft preset'
+  OPT edit ['--edit', '-e'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='edit YAML in a terminal'
+  OPT requester ['--requester'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='requester email or exact name'
+  OPT dry ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='review and show the payload without sending'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='table or json'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm create'
+  OPT expect_plan ['--expect-plan'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='reviewed plan hash prefix'
+  OPT allow_duplicate ['--allow-duplicate'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='allow a known completed duplicate'
+  OPT ack ['--ack'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='acknowledge blocking rule messages'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='never prompt'
+============================================================
+COMMAND: fsv tickets approvals | hidden: False | help: List ticket approvals for approval-capable tickets; some INC tickets may return 404.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv tickets associations | hidden: False | help: List ticket associations.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv tickets update | hidden: False | help: Update ticket fields.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT status ['--status', '-s'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='status label or ID'
+  OPT priority ['--priority', '-p'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='priority label or ID'
+  OPT agent_id ['--agent', '--agent-id'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='agent name/email/user ID'
+  OPT group_id ['--group', '--group-id'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='group name or ID'
+  OPT set_ ['--set'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='set FIELD=VALUE (repeatable)'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print resolved payload without updating'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm status changes, reassignment and other notifying writes'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
+============================================================
+COMMAND: fsv tickets download | hidden: False | help: Download ticket attachments.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT main_attachments ['--attachments', '--main-attachments'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='download main attachments'
+  OPT threads ['--conversations'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='download attachments from conversations/replies'
+  OPT description_attachments ['--description-attachments'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='download attachment links found in description HTML'
+  OPT all_ ['--all'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='download all attachments from all sources'
+  OPT out ['--dir', '--out'] type=<typer.models.TyperPath object at 0x10ab7e630> req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='output directory'
+  OPT force ['--force'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='overwrite existing files'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON manifest'
+============================================================
+COMMAND: fsv tickets conversations | hidden: False | help: List ticket conversations/replies.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT page ['--page', '-p'] type=INT req=False nargs=1 flag=False multi=False default=1 sec=[] hidden=False help=None
+  OPT per_page ['--per-page', '-n'] type=INT req=False nargs=1 flag=False multi=False default=30 sec=[] hidden=False help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+  OPT all_pages ['--all', '-a'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fetch all pages (auto-paginate)'
+  OPT n_pages ['--npages', '-N'] type=INT req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='fetch exactly N pages'
+============================================================
+COMMAND: fsv tickets reply | hidden: False | help: Add a ticket reply.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  ARG body ['body'] type=STRING req=True nargs=1 help=None
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print the reply without sending it'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm sending the reply'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
+============================================================
+COMMAND: fsv problems | hidden: False | help: problems commands
+============================================================
+COMMAND: fsv problems ls | hidden: False | help: List problems.
+  OPT filter_name ['--view'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='saved view by name as the web shows it (exact or unique prefix; see `views`); default: the view the server marks default'
+  OPT where ['--where', '-w'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help="filter like the web's filter panel: LABEL=VALUE, e.g. Status=Open, Agents=Me, Created='Last 6 months', 'Environment=(empty)'; internal names work too"
+  OPT query_hash ['--query-hash'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='raw or URL-encoded Freshservice query_hash JSON array'
+  OPT or_grouping ['--or'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='combine --where conditions with OR instead of AND'
+  OPT debug ['--debug'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show resolved query_hash and exit'
+  OPT per_page ['--per-page', '-n'] type=INT req=False nargs=1 flag=False multi=False default=30 sec=[] hidden=False help=None
+  OPT page ['--page', '-p'] type=INT req=False nargs=1 flag=False multi=False default=1 sec=[] hidden=False help=None
+  OPT order_by ['--order-by'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='sort field, e.g. created_at'
+  OPT order_type ['--order-type'] type=Choice(['asc', 'desc']) req=False nargs=1 flag=False multi=False default=<SortOrder.desc: 'desc'> sec=[] hidden=False help='asc | desc'
+  OPT all_pages ['--all', '-a'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fetch all pages (auto-paginate)'
+  OPT n_pages ['--npages', '-N'] type=INT req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='fetch exactly N pages'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+  OPT pager ['--pager'] type=BOOL req=False nargs=1 flag=True multi=False default=True sec=['--no-pager'] hidden=False help='page long table output when stdout is a TTY'
+  OPT no_defaults ['--no-defaults'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='ignore default --where filters from config'
+============================================================
+COMMAND: fsv problems get | hidden: False | help: Show one problem.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT tab ['--tab', '-t'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='show one tab of the page: notes|tasks|assets|associations|activity (only tabs the server shows)'
+  OPT all_tabs ['--all-tabs'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print the Details tab and every other tab the server shows'
+  OPT all_conversations ['--all-conversations'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='every conversation, not only the latest (tickets)'
+  OPT stats ['--stats'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='with --json: the record plus planning fields and attachment evidence'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv problems activity | hidden: False | help: List problem activity.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT limit ['-l', '--limit'] type=INT req=False nargs=1 flag=False multi=False default=20 sec=[] hidden=False help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv problems tasks | hidden: False | help: List problem tasks.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv problems fields | hidden: False | help: List discoverable problem fields.
+  ARG search ['search'] type=STRING req=False nargs=1 help='field name/label search'
+  OPT default ['--default'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show portable Freshservice fields only'
+  OPT custom ['--custom'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show tenant custom fields only'
+  OPT required ['--required'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show only fields required to create'
+  OPT choices ['--choices'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='show choices for a field'
+  OPT refresh ['--refresh'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv problems lookup | hidden: False | help: Look up users, groups, or field choices.
+  ARG kind ['kind'] type=STRING req=True nargs=1 help='requester | agent | group | field name/label'
+  ARG query ['query'] type=STRING req=False nargs=1 help='name/email/text to search'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv problems views | hidden: False | help: List saved view names.
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+============================================================
+COMMAND: fsv problems search | hidden: False | help: Full-text keyword search problems.
+  ARG query ['query'] type=STRING req=True nargs=1 help='free-text keyword(s)'
+  OPT page ['--page', '-p'] type=INT req=False nargs=1 flag=False multi=False default=1 sec=[] hidden=False help=None
+  OPT sort ['--sort'] type=Choice(['relevance', 'created', 'modified']) req=False nargs=1 flag=False multi=False default=<SearchSort.relevance: 'relevance'> sec=[] hidden=False help='relevance | created | modified'
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+  OPT n_pages ['--npages', '-N'] type=INT req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='fetch exactly N pages (30 results each)'
+  OPT all_pages ['--all', '-a'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fetch all pages (auto-paginate)'
+============================================================
+COMMAND: fsv problems url | hidden: False | help: Print problem browser URL.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+============================================================
+COMMAND: fsv problems update | hidden: False | help: Update problem fields.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT status ['--status', '-s'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='status label or ID'
+  OPT priority ['--priority', '-p'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='priority label or ID'
+  OPT agent_id ['--agent', '--agent-id'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='agent name/email/user ID'
+  OPT group_id ['--group', '--group-id'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='group name or ID'
+  OPT set_ ['--set'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='set FIELD=VALUE (repeatable)'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print resolved payload without updating'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm status changes, reassignment and other notifying writes'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
+============================================================
+COMMAND: fsv problems download | hidden: False | help: Download problem attachments.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT main_attachments ['--attachments', '--main-attachments'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='download main attachments'
+  OPT threads ['--notes'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='download attachments from notes'
+  OPT description_attachments ['--description-attachments'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='download attachment links found in description HTML'
+  OPT all_ ['--all'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='download all attachments from all sources'
+  OPT out ['--dir', '--out'] type=<typer.models.TyperPath object at 0x10ab93740> req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='output directory'
+  OPT force ['--force'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='overwrite existing files'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='emit JSON manifest'
+============================================================
+COMMAND: fsv problems notes | hidden: False | help: List problem notes.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  OPT page ['--page', '-p'] type=INT req=False nargs=1 flag=False multi=False default=1 sec=[] hidden=False help=None
+  OPT per_page ['--per-page', '-n'] type=INT req=False nargs=1 flag=False multi=False default=30 sec=[] hidden=False help=None
+  OPT format_ ['--output', '-o'] type=Choice(['table', 'json', 'csv', 'tsv']) req=False nargs=1 flag=False multi=False default=<OutputFormat.table: 'table'> sec=[] hidden=False help='output format'
+  OPT json_out ['--json'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='alias for --output json'
+  OPT all_pages ['--all', '-a'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fetch all pages (auto-paginate)'
+  OPT n_pages ['--npages', '-N'] type=INT req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='fetch exactly N pages'
+============================================================
+COMMAND: fsv problems add-note | hidden: False | help: Add problem note.
+  ARG id_ ['id_'] type=STRING req=True nargs=1 help=None
+  ARG body ['body'] type=STRING req=True nargs=1 help='HTML or plain text'
+  OPT public ['--public'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help=None
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='print the note without adding it'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='confirm a public note'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='fail instead of prompting'
+============================================================
+COMMAND: fsv form | hidden: False | help: inspect form fields and business rules (explain, fields, dump, diff)
+============================================================
+COMMAND: fsv form explain | hidden: False | help: Why each field is visible, required or hidden, by rule.
+  ARG module ['module'] type=STRING req=False nargs=1 help='form: changes'
+  OPT set_ ['--set'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='answer LABEL=VALUE (repeatable)'
+  OPT from_ ['--from'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='draft YAML with answers'
+  OPT preset ['--preset'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='preset name or path'
+  OPT id_ ['--id'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='explain the edit form of this record'
+  OPT all_ ['--all'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='also list fields hidden by metadata/sections'
+  OPT output ['--output', '-o'] type=STRING req=False nargs=1 flag=False multi=False default='table' sec=[] hidden=False help='table|json'
+============================================================
+COMMAND: fsv form fields | hidden: False | help: Fields in web order with labels, help text and choices.
+  ARG module ['module'] type=STRING req=False nargs=1 help='form: changes'
+  OPT choices ['--choices'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='list the choices of this field (label or name)'
+  OPT output ['--output', '-o'] type=STRING req=False nargs=1 flag=False multi=False default='table' sec=[] hidden=False help='table|json'
+============================================================
+COMMAND: fsv form dump | hidden: False | help: Print a metadata snapshot (fields + rules) as JSON. Keep it local: the requesting user's profile is left out.
+  ARG module ['module'] type=STRING req=False nargs=1 help='form: changes'
+  OPT mode ['--mode'] type=STRING req=False nargs=1 flag=False multi=False default='new' sec=[] hidden=False help="new|edit (which form's rules)"
+============================================================
+COMMAND: fsv form diff | hidden: False | help: Compare a snapshot with the current metadata (or another snapshot).
+  ARG snapshot ['snapshot'] type=STRING req=True nargs=1 help='snapshot from `fsv form dump`'
+  OPT against ['--against'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='compare with this snapshot instead of the server'
+  OPT output ['--output', '-o'] type=STRING req=False nargs=1 flag=False multi=False default='table' sec=[] hidden=False help='table|json'
+============================================================
+COMMAND: fsv sr | hidden: False | help: service requests: browse the catalog, see an item's form, place and read requests
+============================================================
+COMMAND: fsv sr catalog | hidden: False | help: List catalog categories and items (name, short description, id).
+  OPT category ['--category', '-c'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='category name or id'
+  OPT search ['--search', '-s'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='words in the name or description'
+  OPT popular ['--popular'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='only frequently requested items'
+  OPT categories_only ['--categories'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='list the categories only'
+  OPT output ['--output', '-o'] type=STRING req=False nargs=1 flag=False multi=False default='table' sec=[] hidden=False help='table|json'
+============================================================
+COMMAND: fsv sr fields | hidden: False | help: Show an item's form like the web: labels, required, help, choices, fields revealed by a choice, and the attachment rules.
+  ARG item ['item'] type=STRING req=True nargs=1 help='catalog item id or name'
+  OPT output ['--output', '-o'] type=STRING req=False nargs=1 flag=False multi=False default='table' sec=[] hidden=False help='table|json'
+============================================================
+COMMAND: fsv sr create | hidden: False | help: Place a service request from a catalog item (review first; files are uploaded only after you confirm).
+  ARG item ['item'] type=STRING req=True nargs=1 help='catalog item id or name'
+  OPT from_ ['--from'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='draft YAML (requester, answers, attachments)'
+  OPT set_ ['--set'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='answer LABEL=VALUE (repeatable; file fields take a path)'
+  OPT preset ['--preset'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='preset name or path (partial answers)'
+  OPT edit ['--edit'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='advanced: the annotated YAML draft in $EDITOR (default in a terminal: the interactive form)'
+  OPT requester ['--requester'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='requester email or exact name'
+  OPT attach ['--attach'] type=STRING req=False nargs=1 flag=False multi=True default=None sec=[] hidden=False help='general attachment (repeatable)'
+  OPT dry_run ['--dry-run'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='show the review, payload and plan hash; send nothing'
+  OPT output ['--output', '-o'] type=STRING req=False nargs=1 flag=False multi=False default='table' sec=[] hidden=False help='table|json (with --dry-run: the plan)'
+  OPT yes ['--yes', '-y'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='place without the prompt (required without a terminal)'
+  OPT expect_plan ['--expect-plan'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='refuse unless the plan hash matches'
+  OPT allow_duplicate ['--allow-duplicate'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='send a plan the journal says was sent'
+  OPT ack ['--ack'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='acknowledge blocking rule messages'
+  OPT no_input ['--no-input'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='never prompt'
+============================================================
+COMMAND: fsv sr get | hidden: False | help: A service request's requested-item values (labels, not internal names) and its attachments.
+  ARG sr_id ['sr_id'] type=STRING req=True nargs=1 help=None
+  OPT items ['--items'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='requested item values, by label'
+  OPT attachments ['--attachments'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='list attachments'
+  OPT download ['--download'] type=STRING req=False nargs=1 flag=False multi=False default=None sec=[] hidden=False help='download attachments into DIR; prefix names starting with - with ./'
+  OPT force ['--force'] type=BOOL req=False nargs=1 flag=True multi=False default=False sec=[] hidden=False help='overwrite files that exist in DIR'
+  OPT output ['--output', '-o'] type=STRING req=False nargs=1 flag=False multi=False default='table' sec=[] hidden=False help='table|json'
