@@ -76,6 +76,9 @@ class ConversationPlan:
     payload_json: str
     status_label: str | None
     record_hash: str | None
+    canned_id: int | None = None
+    canned_pointer: str | None = None
+    canned_hash: str | None = None
 
     @property
     def payload(self) -> dict[str, Any]:
@@ -87,8 +90,12 @@ class ConversationPlan:
 
     @property
     def hash(self) -> str:
-        return journal.plan_hash({"tenant": self.tenant, "path": self.path, "payload": self.payload,
-                                  "record_hash": self.record_hash}) or ""
+        identity = {"tenant": self.tenant, "path": self.path, "payload": self.payload,
+                    "record_hash": self.record_hash}
+        # Preserve all legacy conversation hashes and their durable send guards.
+        if self.canned_id is not None:
+            identity["canned"] = {"id": self.canned_id, "pointer": self.canned_pointer, "hash": self.canned_hash}
+        return journal.plan_hash(identity) or ""
 
     def review(self) -> dict[str, Any]:
         return {"action": f"ticket_{self.kind}", "method": "POST", "path": f"/api/_/{self.path}",
@@ -154,6 +161,9 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
     events = [r for r in journal.read() if r.get("kind") == f"plan:{action}" and r.get("plan") == plan.hash]
     if events and events[-1].get("event") in ("started", "done"):
         raise ConversationError("conversation was sent or outcome unknown; inspect ticket and journal before retry")
+    if plan.canned_id is not None:
+        from fsv.canned import freshen
+        freshen(plan, client)
     if plan.status_label is not None:
         status_id, token, record_hash = status_context(client, plan.ticket_id, plan.status_label)
         if record_hash != plan.record_hash or payload.get("helpdesk_ticket") != {"status": status_id, "br_validation_excludes": token}:

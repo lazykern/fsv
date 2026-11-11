@@ -70,6 +70,38 @@ review/result schemas are unchanged. Other formats are rejected before a client
 is opened; these commands do not flatten structured reviews into tables or CSV.
 Output options never bypass `--dry-run` or the full-hash send gate.
 
+## Canned responses and scenarios
+
+```sh
+fsv tickets canned folders --json
+fsv tickets canned list --folder 702 --output json
+fsv tickets canned show 701 --json
+fsv tickets canned reply INC-123 --response 701 --content-pointer /canned_response/content --sender support@example.com --dry-run --json
+fsv tickets scenarios list --json
+fsv tickets scenarios show 703 --json
+fsv tickets scenarios apply INC-123 --scenario 703 --dry-run --json
+```
+
+Inspect `show` before choosing the content JSON pointer; detail key names are
+not assumed portable. Canned insertion sends only the selected literal HTML in
+the ordinary reviewed reply body, with no canned-ID wire field. Placeholders
+are refused, not expanded. Attachments/signatures are not inserted. Review the
+entire body and source hash, then use `--yes --expect-plan FULL_HASH`. The source
+is re-read before sending; metadata/content drift blocks the send. Legacy reply
+hashes and durable send guards are preserved.
+
+Scenario `show` selects an exact ID from the captured list route, never an
+inferred detail endpoint. `apply` uses the captured single-ticket native execute
+wire, **not** canned insertion: automation can send mail, mutate records or run
+workflows. The definition and exact ticket are hash-bound and refreshed before
+a single attempt. Exact ticket readback is attempted, but `verified` remains
+false because complete scenario side effects cannot be established. Never
+repeat an unverified execution. Both scenario and canned reads expose server
+responses without claiming to exhaust any undocumented pagination.
+
+All tests use synthetic sources and offline transports. Blocked browser wires
+establish shape only, not accepted live sends or portable template schemas.
+
 ## Self watchers
 
 ```sh

@@ -3910,6 +3910,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
     if res.name == "tickets":
         from fsv.ticket_time_cli import register as register_time
         from fsv.bulk_priority_cli import register as register_bulk_priority
+        from fsv.canned_cli import register as register_canned
+        register_canned(sub, lambda: _client())
         register_time(sub, lambda: _client())
         register_bulk_priority(sub, lambda: _client())
 
