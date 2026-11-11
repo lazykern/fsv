@@ -25,7 +25,12 @@ def resolve_read_only(flag: bool = False) -> bool:
         cfg = config.load_config().get("tui") or {}
     except Exception:
         return False
-    return bool(cfg.get("read_only")) if isinstance(cfg, dict) else False
+    if not isinstance(cfg, dict):
+        return False
+    val = cfg.get("read_only")
+    if isinstance(val, str):
+        return val.strip().lower() in ("on", "true", "1", "yes")
+    return bool(val)
 
 
 def can_change_status(resource: Resource) -> bool:

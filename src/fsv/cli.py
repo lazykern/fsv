@@ -2844,6 +2844,8 @@ _CONFIG_KEYS: dict[str, str] = {
     "defaults.requester": "requester email for `changes create` when --requester is not given",
     "changes.attach_flow": "`changes create` attachments: after-create (default) | before-create (unverified vs the web)",
     "forms.workspace_id": "workspace whose business rules apply (default: taken from the form metadata)",
+    "defaults.sr_requester": "requester email for `sr create` when --requester is not given",
+    "tui.read_only": "open the TUI without write actions [on|off]",
 }
 
 
@@ -4605,10 +4607,12 @@ def setup() -> None:
 
 
 @app.command()
-def tui() -> None:
+def tui(
+    read_only: bool = typer.Option(False, "--read-only", help="disable write actions (status, notes, replies)"),
+) -> None:
     """Launch interactive TUI."""
     from fsv.tui import launch
-    launch()
+    launch(read_only=read_only)
 
 
 for r in REGISTRY.values():
