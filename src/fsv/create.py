@@ -845,7 +845,7 @@ def get_change_approvals(change_id: int, c: Client | None = None) -> list[dict[s
     if c is None:
         c = get_client()
     data = c.int_get(f"changes/{change_id}/approvals")
-    return data.get("approvals", [])
+    return data if isinstance(data, list) else data.get("approvals", [])
 
 
 def get_change_assets(change_id: int, c: Client | None = None) -> list[dict[str, Any]]:

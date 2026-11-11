@@ -1,7 +1,7 @@
-"""Reviewed manual approval REQUEST from an aborted UI wire, not a live send.
+"""Reviewed manual approval REQUEST, verified by new per-member approval IDs.
 
-Only Everyone is supported. The accepted response is unobserved; never use it
-as proof of creation and never replay a POST to recover an identifier.
+Only Everyone is supported. Never trust the POST response as proof of creation
+or replay a POST to recover an identifier. Group names cannot be read back.
 """
 from __future__ import annotations
 
@@ -107,7 +107,8 @@ class ApprovalPlan:
                 "method": "POST", "path": f"/api/_/{self.path}", "payload": self.payload,
                 "recipients": list(self.approver_ids), "approval_rule": "Everyone",
                 "message_text": self.message, "plan_hash": self.hash, "warning": _WARNING,
-                "contract": "Aborted request captured; accepted response and cancel/revoke unobserved."}
+                "verification": "Complete before/after approval record IDs, exact new recipients, requested status and Everyone rule. Group name cannot be read back.",
+                "contract": "Per-member approvals read-back observed; POST response not trusted; cancel/revoke unobserved."}
 
 
 def build_plan(change_id: int | str, name: str, message: str, *, approver_ids: Sequence[int]) -> ApprovalPlan:
@@ -137,6 +138,10 @@ def _inventory(client: Any, plan: ApprovalPlan) -> list[dict[str, Any]]:
         # The generic collector filters non-object rows and deduplicates IDs.
         # For write verification, inspect raw pages before that information loss.
         data = client.int_get(path, params=params)
+        # The observed endpoint returns a bare list; retain envelope pagination
+        # support without allowing the collector to discard malformed rows.
+        if isinstance(data, list):
+            data = {"approvals": data}
         if not isinstance(data, dict) or not isinstance(data.get("approvals"), list):
             raise ApprovalError("approval inventory is unreadable")
         for source in (data, data.get("meta", {})):
@@ -147,7 +152,7 @@ def _inventory(client: Any, plan: ApprovalPlan) -> list[dict[str, Any]]:
                     total = source[key]
                     if isinstance(total, bool) or not re.fullmatch(r"[0-9]+", str(total)):
                         raise ApprovalError("approval inventory has an invalid total")
-                    totals.add(int(total))
+                    totals.add(int(str(total)))
         for row in data["approvals"]:
             aid = _id(row.get("id")) if isinstance(row, dict) else None
             if aid is None or aid in seen:
@@ -167,35 +172,27 @@ def _inventory(client: Any, plan: ApprovalPlan) -> list[dict[str, Any]]:
     return tab.data
 
 
-def _groups(rows: list[dict[str, Any]]) -> dict[int, tuple[str, set[int]]]:
-    """Conservative flat approval/member read-back adapter.
+def _verify_new(rows: list[dict[str, Any]], plan: ApprovalPlan) -> None:
+    """One fresh, requested Everyone record per explicit recipient; no extras.
 
-    Existing approval reads expose individual approvals with member IDs. Require
-    explicit approval_group identity AND name; level IDs are not group IDs.
-    Unknown/group-less shapes fail closed, never inferred from 'latest' or POST.
-    The populated group shape is a supported offline adapter, not observed wire.
+    Group name/ID are absent from the observed list. Neither level_id nor user_id
+    is a substitute. Existing approval records are only baseline ID evidence.
     """
-    groups: dict[int, tuple[str, set[int]]] = {}
+    members: list[int] = []
     for row in rows:
-        group = row.get("approval_group")
-        if not isinstance(group, dict):
-            raise ApprovalError("approval group identity/name unavailable")
-        gid, name = _id(group.get("id")), group.get("name")
-        member = row.get("member")
         aid = _id(row.get("member_id"))
-        if isinstance(member, dict):
-            nested = _id(member.get("id"))
-            if aid is not None and nested is not None and aid != nested:
-                raise ApprovalError("conflicting approval member IDs")
-            aid = aid if aid is not None else nested
-        if gid is None or not isinstance(name, str) or not name or aid is None:
-            raise ApprovalError("approval group/member identity unavailable")
-        if gid not in groups:
-            groups[gid] = (name, set())
-        if groups[gid][0] != name or aid in groups[gid][1]:
-            raise ApprovalError("ambiguous approval group inventory")
-        groups[gid][1].add(aid)
-    return groups
+        member = row.get("member")
+        if aid is None or (member is not None and (
+                not isinstance(member, dict) or _id(member.get("id")) != aid)):
+            raise ApprovalError("approval member identity unavailable or conflicting")
+        for key, expected_id, expected_name in (("status", 0, "requested"), ("type", 1, "everyone")):
+            value = row.get(key)
+            if (not isinstance(value, dict) or type(value.get("id")) is not int
+                    or value["id"] != expected_id or value.get("name") != expected_name):
+                raise ApprovalError("approval status or rule does not match the request")
+        members.append(aid)
+    if len(members) != len(plan.approver_ids) or set(members) != set(plan.approver_ids):
+        raise ApprovalError("new approval records do not exactly match the recipients")
 
 
 def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
@@ -220,7 +217,6 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
     try:
         c = client if client is not None else get_client()
         before_rows = _inventory(c, plan)
-        before = _groups(before_rows)
         before_ids = {_id(r["id"]) for r in before_rows}
         csrf = c._get_csrf()
     except Exception:
@@ -243,22 +239,18 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
         raise ApprovalError(_UNKNOWN) from None
     try:
         after_rows = _inventory(c, plan)
-        after = _groups(after_rows)
-        fresh = set(after) - set(before)
-        # Require exactly one new group overall, not one selected from multiple
-        # concurrent groups. Every member approval must also be newly created.
-        if len(fresh) != 1:
+        after_ids = {_id(r["id"]) for r in after_rows}
+        if not before_ids <= after_ids:
             raise ApprovalError(_UNKNOWN)
-        gid = fresh.pop()
-        if after[gid] != (plan.name, set(plan.approver_ids)):
-            raise ApprovalError(_UNKNOWN)
-        exact = [r for r in after_rows if _id(r["approval_group"]["id"]) == gid]
-        if any(_id(r["id"]) in before_ids for r in exact):
-            raise ApprovalError(_UNKNOWN)
+        # Inspect ALL newly created record IDs, including unrelated concurrent
+        # requests. Do not select a matching subset or infer a group identity.
+        exact = [r for r in after_rows if _id(r["id"]) not in before_ids]
+        _verify_new(exact, plan)
     except Exception:
         raise ApprovalError(_UNKNOWN) from None
-    journal.record_plan("done", plan.hash, action=_ACTION, target=plan.change_id, created_id=gid)
-    return {"status": "submitted", "change_id": plan.change_id, "approval_group_id": gid,
+    journal.record_plan("done", plan.hash, action=_ACTION, target=plan.change_id)
+    return {"status": "submitted", "change_id": plan.change_id,
+            "approval_ids": [_id(r["id"]) for r in exact], "group_name_verified": False,
             "verified": True, "readback": exact, "plan_hash": plan.hash}
 
 
@@ -300,7 +292,7 @@ def register(app: typer.Typer) -> None:
             if json_out:
                 typer.echo(json.dumps(result, indent=2))
             else:
-                typer.echo(f"Approval group {result['approval_group_id']} requested on change {plan.change_id}; complete inventory verification: {result['verified']}")
+                typer.echo(f"Approval requested on change {plan.change_id}; approval record IDs: {result['approval_ids']}; complete inventory verification: {result['verified']}; group name cannot be read back")
         except (ValueError, ApprovalError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

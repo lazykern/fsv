@@ -61,9 +61,10 @@ hash for a future TUI integration.
 ## Captured request contract
 
 An isolated UI **Request for approval > Add approvers > Users > Done > Send**
-request was captured with traffic aborted. No accepted write, server response,
-notification delivery, or cancel/revoke was observed. The synthetic illustration
-below preserves only its method, path and field structure:
+request was first captured with traffic aborted. A subsequent accepted trial
+request exposed the populated per-member approvals list described below. The POST
+response is not used as evidence; notification delivery and cancel/revoke remain
+unverified. The synthetic illustration preserves its method, path and fields:
 
 ```http
 POST /api/_/changes/1234/approval-groups
@@ -85,24 +86,42 @@ prepares CSRF, persists a content-free `started` journal entry, and reads that
 entry back. Failure in preparation prevents the POST. It uses exactly one
 lower-level POST, never the helper that replays writes on HTTP 403.
 
-Because the accepted response shape is unobserved, **no POST response ID or
-success-shaped body is trusted**. Verification requires another complete
-inventory with exactly one new approval group overall, an exact group-name and
-approver-set match, and new individual approval IDs absent from the baseline.
-An existing identical name is not a fresh group. Multiple fresh groups, even an
-unrelated concurrent one, are ambiguous. Only verified inventory evidence marks
-the plan `done` and returns `verified: true` with `approval_group_id`, `readback`
-and `plan_hash`.
+**No POST response ID or success-shaped body is trusted.** Verification compares
+complete before/after inventories of individual approval **record IDs**, not
+groups. All baseline IDs must remain present. The entire set of new records must
+contain exactly one row per requested approver: their positive `member_id` values
+must equal the requested approver set, with no duplicates or unrelated new rows.
+Each new row must have `status: {id: 0, name: "requested"}` and
+`type: {id: 1, name: "everyone"}`. An existing requested approval for the same
+recipient does not count as new evidence. Concurrent extra requests are ambiguous,
+even if some new records match. Missing recipients, already-decided new records,
+or a different rule also leave the outcome unknown.
 
-The populated read-back group contract remains **unobserved**. The conservative
-offline adapter supports flat individual approval rows with a positive `id`,
-`approval_group: {id, name}`, and a positive `member_id` or `member: {id}`.
-These supported fields are not represented as captured populated wire. No group
-identity is inferred from approval level, list order, timestamps, or member name.
-Unknown/group-less shapes, malformed rows, conflicting identities, duplicate
-IDs and incomplete pages fail closed. An unreadable baseline blocks sending;
-an unreadable post-send inventory leaves the outcome unknown. The captured
-baseline was empty; empty inventories are valid, but cannot prove creation.
+The observed `GET /api/_/changes/<display-id>/approvals` response is a **bare JSON
+list** of per-member records; envelope-shaped paginated lists are also supported.
+A synthetic illustration (other observed fields omitted for clarity):
+
+```json
+[{"id":310000000001,"member_id":9000003001,"level_id":1,"remark":[],"status":{"id":0,"name":"requested"},"type":{"id":1,"name":"everyone"},"member":{"id":9000003001,"name":"Example Agent","email":"agent@example.com"}}]
+```
+
+**Group name and group ID cannot be read back from this list.** The review states
+this limitation: the requested group name remains bound in the plan hash but is
+not claimed verified. Neither `level_id`, timestamps, list order, `user_id`, nor a
+POST response ID is treated as a group identity or substituted for `member_id`.
+A supplied nested `member.id` must agree with `member_id`. Baseline records may
+already have other statuses; only new records must match the request.
+
+Only this complete inventory evidence marks the plan `done` and returns
+`verified: true`, `approval_ids`, `group_name_verified: false`, `readback` and
+`plan_hash`. No `approval_group_id` is fabricated. Malformed rows, conflicting
+member identities, duplicate record IDs, inconsistent totals and incomplete pages
+fail closed before generic collection can hide them. An unreadable baseline
+blocks sending; an unreadable post-send inventory leaves the outcome unknown.
+Empty inventories are valid, but an empty post-send difference proves nothing.
+The read-only `fsv changes approvals` command accepts the same bare list, keeps
+raw records in JSON output, and shows member, requested status and empty decision
+fields sensibly in table/CSV output.
 
 Timeouts, rate limits, server failures, session uncertainty and ambiguous
 read-back leave the journal **started** and the outcome **unknown**. They never

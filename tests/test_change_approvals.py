@@ -1,4 +1,4 @@
-"""Offline synthetic approval REQUEST safety; no accepted live contract claimed."""
+"""Offline synthetic approval REQUEST safety using per-member read-back shape."""
 import json
 from dataclasses import replace
 from types import SimpleNamespace
@@ -24,10 +24,18 @@ def plan():
                                 approver_ids=[9000003001, 9000003002])
 
 
-def rows(gid=9000003010, name="Acme review", agents=(9000003001, 9000003002), start=9000003020):
-    # Supported conservative flat read-back adapter, not observed populated wire.
-    return [{"id": start + i, "approval_group": {"id": gid, "name": name},
-             "member": {"id": aid, "name": "Example Agent"}} for i, aid in enumerate(agents)]
+def rows(agents=(9000003001, 9000003002), start=310000000001):
+    # Synthetic values preserving the observed populated list shape: no group.
+    return [{"id": start + i, "created_at": "2026-01-01T00:00:00Z",
+             "member_id": aid, "user_id": aid, "level_id": 1,
+             "approval_level_status": None, "remark": [],
+             "response_details": {"response_time": None, "first_responder": None},
+             "status": {"id": 0, "name": "requested"},
+             "type": {"id": 1, "name": "everyone"},
+             "triggered_at": "2026-01-01T00:00:00Z", "change_id": 123,
+             "user": {"id": aid, "name": "Example Agent", "email": "agent@example.com"},
+             "member": {"id": aid, "name": "Example Agent", "email": "agent@example.com"},
+             "delegatee": None} for i, aid in enumerate(agents)]
 
 
 def events():
@@ -35,21 +43,30 @@ def events():
 
 
 @pytest.mark.parametrize("response", [{}, {"id": 1}, {"approval_groups": [{"id": 1}]}])
-def test_exact_post_verified_only_by_inventory(monkeypatch, tenant, response):
+@pytest.mark.parametrize("envelope", [False, True])
+@pytest.mark.parametrize("populated_baseline", [False, True])
+def test_exact_post_verified_only_by_inventory(monkeypatch, tenant, response, envelope, populated_baseline):
     seen = []
-    old = rows(gid=9000003009, start=9000003018)
+    old = rows(start=310000000011) if populated_baseline else []
+    # Old decisions may already be approved, and have no group identity either.
+    for row in old:
+        row["status"] = {"id": 1, "name": "approved"}
     exact = rows()
     def handler(req):
         seen.append(req)
         if req.method == "POST":
             return httpx.Response(200, json=response)
         assert req.url.path == "/api/_/changes/123/approvals"
-        return httpx.Response(200, json={"approvals": old if len(seen) == 1 else old + exact})
+        data = old if len(seen) == 1 else old + exact
+        return httpx.Response(200, json={"approvals": data} if envelope else data)
     c = mock_client(monkeypatch, handler)
     try:
         p = plan()
         result = approvals.send(p, c, reviewed_hash=p.hash)
-        assert result["verified"] is True and result["approval_group_id"] == 9000003010
+        assert result["verified"] is True
+        assert result["approval_ids"] == [310000000001, 310000000002]
+        assert result["group_name_verified"] is False
+        assert "approval_group_id" not in result
         assert result["readback"] == exact
         post = [r for r in seen if r.method == "POST"]
         assert len(post) == 1
@@ -67,44 +84,65 @@ def test_exact_post_verified_only_by_inventory(monkeypatch, tenant, response):
         c.close()
 
 
-@pytest.mark.parametrize("case", ["none", "multiple", "concurrent-unrelated", "wrong-name", "wrong-agents", "extra-agent",
-    "missing-agent", "partial", "read-error", "malformed", "group-less", "reused-member", "duplicate-id", "old-group"])
+@pytest.mark.parametrize("case", ["none", "multiple", "concurrent-unrelated", "wrong-agents", "extra-agent",
+    "missing-agent", "partial", "read-error", "malformed", "missing-fields", "reused-id", "duplicate-id",
+    "duplicate-member", "conflicting-member", "missing-member-id", "user-not-member", "missing-baseline",
+    "wrong-status", "wrong-rule", "missing-status", "missing-rule", "boolean-status", "boolean-rule",
+    "conflicting-status", "conflicting-rule"])
 def test_ambiguous_stays_unknown_and_blocks_retry(monkeypatch, case):
     seen = []
-    old = rows(gid=9000003009, start=9000003018)
-    after = old + rows()
+    old = rows(start=310000000011)
+    fresh = rows()
     if case == "none":
-        after = old
-    elif case in ("multiple", "concurrent-unrelated"):
-        after += rows(gid=9000003011, start=9000003022,
-                      name="Globex review" if case == "concurrent-unrelated" else "Acme review")
-    elif case == "wrong-name":
-        after = old + rows(name="Globex review")
+        fresh = []
+    elif case == "multiple":
+        fresh += rows(start=310000000021)
+    elif case == "concurrent-unrelated":
+        fresh += rows(start=310000000021, agents=(9000003003,))
     elif case == "wrong-agents":
-        after = old + rows(agents=(9000003003, 9000003004))
+        fresh = rows(agents=(9000003003, 9000003004))
     elif case == "extra-agent":
-        after = old + rows(agents=(9000003001, 9000003002, 9000003003))
+        fresh = rows(agents=(9000003001, 9000003002, 9000003003))
     elif case == "missing-agent":
-        after = old + rows(agents=(9000003001,))
-    elif case == "group-less":
-        after = [{"id": 9000003020, "member_id": 9000003001}]
-    elif case == "reused-member":
-        after = rows(start=9000003018)
+        fresh = rows(agents=(9000003001,))
+    elif case == "missing-fields":
+        fresh = [{"id": 310000000001, "member_id": 9000003001}]
+    elif case == "reused-id":
+        fresh[0]["id"] = old[0]["id"]
     elif case == "duplicate-id":
-        after = old + rows() + [rows()[0]]
-    elif case == "old-group":
-        after = old + rows(gid=9000003009)
+        fresh += [fresh[0]]
+    elif case == "duplicate-member":
+        fresh = rows(agents=(9000003001, 9000003001))
+    elif case == "conflicting-member":
+        fresh[0]["member"]["id"] = 9000003003
+    elif case in ("missing-member-id", "user-not-member"):
+        del fresh[0]["member_id"]
+        if case == "user-not-member":
+            del fresh[0]["member"]
+    elif case in ("wrong-status", "conflicting-status", "boolean-status"):
+        fresh[0]["status"] = {"id": False if case == "boolean-status" else 1,
+                              "name": "requested" if case != "wrong-status" else "approved"}
+    elif case in ("wrong-rule", "conflicting-rule", "boolean-rule"):
+        fresh[0]["type"] = {"id": True if case == "boolean-rule" else 2,
+                            "name": "everyone" if case != "wrong-rule" else "anyone"}
+    elif case == "missing-status":
+        del fresh[0]["status"]
+    elif case == "missing-rule":
+        del fresh[0]["type"]
+    after = ([] if case == "missing-baseline" else old[1:] if case == "reused-id" else old) + fresh
     def handler(req):
         seen.append(req)
         if req.method == "POST":
             # A plausible returned ID is explicitly NOT trusted.
             return httpx.Response(200, json={"id": 9000003010})
         if len(seen) == 1:
-            return httpx.Response(200, json={"approvals": old})
+            return httpx.Response(200, json=old)
         if case == "read-error":
             raise httpx.ReadTimeout("synthetic read failure", request=req)
-        return httpx.Response(200, json={"approvals": None if case == "malformed" else after,
-                                       "meta": {"has_next": case == "partial"}})
+        data = {"approvals": None} if case == "malformed" else after
+        if case == "partial":
+            data = {"approvals": after, "meta": {"partial": True}}
+        return httpx.Response(200, json=data)
     c = mock_client(monkeypatch, handler)
     try:
         p = plan()
@@ -166,15 +204,15 @@ def test_guards_no_io(monkeypatch, mode):
     assert journal.read() == []
 
 
-@pytest.mark.parametrize("case", ["partial", "malformed", "group-less", "duplicate", "csrf", "journal"])
+@pytest.mark.parametrize("case", ["partial", "malformed", "bad-id", "duplicate", "csrf", "journal"])
 def test_preparation_failure_no_post(monkeypatch, case):
     def handler(req):
         assert req.method == "GET"
         data = rows()
         if case == "duplicate":
             data += [data[0]]
-        elif case == "group-less":
-            data = [{"id": 9000003020, "member_id": 9000003001}]
+        elif case == "bad-id":
+            data = [{"id": False, "member_id": 9000003001}]
         return httpx.Response(200, json={"approvals": None if case == "malformed" else data,
                                        "meta": {"has_next": case == "partial"}})
     c = mock_client(monkeypatch, handler)
@@ -201,6 +239,7 @@ def test_escape_immutable_and_review():
     assert "irreversible" in p.review()["warning"] and "cancel/revoke" in p.review()["warning"]
     assert p.review()["recipients"] == [9000003001]
     assert p.review()["approval_rule"] == "Everyone"
+    assert "Group name cannot be read back" in p.review()["verification"]
 
 
 @pytest.mark.parametrize("cid,name,message,ids", [(True, "Acme", "review", [1]), (0, "Acme", "review", [1]),
@@ -271,7 +310,7 @@ def test_cli_reviewed_send_repeatable(monkeypatch):
     seen = []
     def send(p, **kw):
         seen.append((p, kw))
-        return {"approval_group_id": 9000003010, "verified": True}
+        return {"approval_ids": [310000000001, 310000000002], "verified": True}
     monkeypatch.setattr(approvals, "send", send)
     r = runner.invoke(cli.app, [*base, "--yes", "--expect-plan", review["plan_hash"], "--no-input", "--json"])
     assert r.exit_code == 0, r.output
@@ -280,7 +319,8 @@ def test_cli_reviewed_send_repeatable(monkeypatch):
     assert seen[0][1] == {"reviewed_hash": review["plan_hash"]}
 
 
-@pytest.mark.parametrize("case", ["total", "bad-total", "non-object", "bad-id", "partial", "complete-false"])
+@pytest.mark.parametrize("case", ["total", "bad-total", "non-object", "bad-id", "partial", "complete-false",
+                                  "bare-non-object", "bare-bad-id", "bare-duplicate"])
 @pytest.mark.parametrize("after_post", [False, True])
 def test_raw_inventory_failures_cannot_be_hidden(monkeypatch, case, after_post):
     seen = []
@@ -292,6 +332,9 @@ def test_raw_inventory_failures_cannot_be_hidden(monkeypatch, case, after_post):
             return httpx.Response(200, json={"approvals": []})
         data = rows()
         meta: dict[str, Any] = {"has_next": False}
+        if case.startswith("bare-"):
+            data += [None if case == "bare-non-object" else {"id": False} if case == "bare-bad-id" else data[0]]
+            return httpx.Response(200, json=data)
         if case == "total":
             meta["total_count"] = 99
         elif case == "bad-total":
@@ -326,7 +369,7 @@ def test_cli_read_only_blocks_even_email_lookup(monkeypatch):
 @pytest.mark.parametrize("complete", [True, False])
 def test_complete_paginated_before_after(monkeypatch, complete):
     seen, posted = [], False
-    old = rows(gid=9000003009, start=9000003018)
+    old = rows(start=310000000011)
     def handler(req):
         nonlocal posted
         seen.append(req)
@@ -349,5 +392,67 @@ def test_complete_paginated_before_after(monkeypatch, complete):
             with pytest.raises(approvals.ApprovalError, match="no approval POST"):
                 approvals.send(p, c, reviewed_hash=p.hash)
             assert posted is False and journal.read() == []
+    finally:
+        c.close()
+
+
+@pytest.mark.parametrize("envelope", [False, True])
+@pytest.mark.parametrize("empty", [False, True])
+@pytest.mark.parametrize("format_", ["table", "json", "csv"])
+def test_cli_approvals_list_populated_shape(monkeypatch, envelope, empty, format_):
+    from fsv import create
+
+    data = [] if empty else rows()
+    seen = []
+    def handler(req):
+        seen.append(req)
+        assert req.method == "GET" and req.url.path == "/api/_/changes/123/approvals"
+        return httpx.Response(200, json={"approvals": data} if envelope else data)
+    c = mock_client(monkeypatch, handler)
+    monkeypatch.setattr(create, "get_client", lambda: c)
+    try:
+        result = CliRunner().invoke(cli.app, ["changes", "approvals", "CHN-123", "--output", format_])
+        assert result.exit_code == 0, result.output
+        if format_ == "json":
+            assert json.loads(result.stdout) == data
+        elif not empty:
+            assert "Example Agent" in result.stdout and "requested" in result.stdout
+            assert "approved" not in result.stdout
+        assert len(seen) == 1
+    finally:
+        c.close()
+
+
+@pytest.mark.parametrize("format_", ["text", "json"])
+@pytest.mark.parametrize("exact", [False, True])
+def test_cli_actual_send_readback(monkeypatch, format_, exact):
+    seen = []
+    def handler(req):
+        seen.append(req)
+        if req.method == "POST":
+            return httpx.Response(200, json={"id": 99})
+        return httpx.Response(200, json=rows(agents=(9000003001,)) if exact and len(seen) > 1 else [])
+    c = mock_client(monkeypatch, handler)
+    monkeypatch.setattr(approvals, "get_client", lambda: c)
+    try:
+        draft = CliRunner().invoke(cli.app, [*BASE, "--dry-run"])
+        assert draft.exit_code == 0, draft.output
+        review = json.loads(draft.stdout)
+        args = [*BASE, "--yes", "--expect-plan", review["plan_hash"], "--no-input"]
+        if format_ == "json":
+            args.append("--json")
+        result = CliRunner().invoke(cli.app, args)
+        assert result.exit_code == (0 if exact else 2), result.output
+        if not exact:
+            assert "outcome unknown" in result.output
+            retry = CliRunner().invoke(cli.app, args)
+            assert retry.exit_code == 2 and "do not resubmit" in retry.output
+        elif format_ == "json":
+            assert json.loads(result.stdout)["approval_ids"] == [310000000001]
+            assert json.loads(result.stdout)["group_name_verified"] is False
+        else:
+            assert "310000000001" in result.stdout
+            assert "group name cannot be read back" in result.stdout
+        assert [req.method for req in seen] == ["GET", "POST", "GET"]
     finally:
         c.close()
