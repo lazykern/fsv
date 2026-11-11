@@ -102,12 +102,13 @@ fn resolve_scalar(
     Ok(Value::String(text))
 }
 
+/// A mapping key as Python's callers see it after `str(k)`: a plain `true:`
+/// is `"True"`, `null:` / `~:` is `"None"`, a quoted `"true":` stays `"true"`.
 fn key_text(v: &Value) -> std::result::Result<String, String> {
     match v {
-        Value::String(s) => Ok(s.clone()),
-        Value::Null => Ok("null".into()),
-        Value::Bool(b) => Ok(if *b { "true".into() } else { "false".into() }),
-        Value::Number(n) => Ok(n.to_string()),
+        Value::String(_) | Value::Null | Value::Bool(_) | Value::Number(_) => {
+            Ok(fsv_py::py_str(v))
+        }
         _ => Err("found unhashable key".into()),
     }
 }
@@ -313,6 +314,26 @@ mod tests {
                 loads(&format!("k: {}", flow_list(std::slice::from_ref(&v)))).unwrap(),
                 json!({"k": [v]})
             );
+        }
+    }
+
+    #[test]
+    fn typed_keys_read_as_python_str() {
+        for (text, want) in [
+            ("true: 1", json!({"True": "1"})),
+            ("True: 1", json!({"True": "1"})),
+            ("FALSE: 1", json!({"False": "1"})),
+            ("null: 1", json!({"None": "1"})),
+            ("~: 1", json!({"None": "1"})),
+            ("? \n: 1", json!({"None": "1"})),
+            ("\"true\": 1", json!({"true": "1"})),
+            ("'null': 1", json!({"null": "1"})),
+            ("!!int 7: a", json!({"7": "a"})),
+            ("!!float 1: a", json!({"1.0": "a"})),
+            ("a: {false: x, Null: y}", json!({"a": {"False": "x", "None": "y"}})),
+            ("true: 1\nTrue: 2\n\"True\": 3", json!({"True": "3"})),
+        ] {
+            assert_eq!(loads(text).unwrap(), want, "{text:?}");
         }
     }
 

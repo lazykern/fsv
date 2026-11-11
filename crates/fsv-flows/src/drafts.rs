@@ -1077,11 +1077,7 @@ mod tests {
                 continue;
             }
             match parse_template(text, Some(Path::new(BASE))) {
-                Ok(mut d) => {
-                    // fsv_core::yaml keys a plain `true:` as "true"; Python's str(True) is "True".
-                    if let Some(v) = d.answers.shift_remove("true") {
-                        d.answers.shift_insert(0, "True".into(), v);
-                    }
+                Ok(d) => {
                     assert_eq!(draft_json(&d), case["draft"], "{text}");
                     assert_eq!(
                         fsv_py::canonical(&draft_json(&d)),
@@ -1094,6 +1090,27 @@ mod tests {
                     "{text}"
                 ),
             }
+        }
+    }
+
+    #[test]
+    fn plain_bool_and_null_keys_are_python_str() {
+        let d = parse_template(
+            "answers:\n  true: a\n  null: b\n  \"false\": c\nplanning:\n  TRUE: x.txt\n",
+            Some(Path::new(BASE)),
+        )
+        .unwrap();
+        assert_eq!(
+            d.answers.keys().collect::<Vec<_>>(),
+            ["True", "None", "false"]
+        );
+        assert_eq!(d.planning.keys().collect::<Vec<_>>(), ["True"]);
+        let expected = "ack, answers, attachments, description_html, description_md, planning, preset, requester";
+        for (text, key) in [("true: 1", "True"), ("null: 1", "None")] {
+            assert_eq!(
+                parse_template(text, None).unwrap_err().to_string(),
+                format!("draft: unknown key(s) {key}; expected: {expected}")
+            );
         }
     }
 

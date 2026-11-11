@@ -350,6 +350,12 @@ pub struct PlanEvent<'a> {
 
 /// Append a plan event (`started`, `done`, `failed`). Never fails.
 pub fn record_plan(event: &str, plan: &str, action: &str, extra: PlanEvent<'_>) {
+    let _ = try_record_plan(event, plan, action, extra);
+}
+
+/// [`record_plan`] that reports a failed append, so a caller can refuse to
+/// send when its `started` mark was not persisted.
+pub fn try_record_plan(event: &str, plan: &str, action: &str, extra: PlanEvent<'_>) -> Result<()> {
     let mut entry = Map::new();
     entry.insert("ts".into(), json!(timestamp()));
     entry.insert("epoch".into(), json!(epoch()));
@@ -385,7 +391,7 @@ pub fn record_plan(event: &str, plan: &str, action: &str, extra: PlanEvent<'_>) 
     if extra.error {
         entry.insert("error".into(), json!("details omitted"));
     }
-    let _ = append(&entry);
+    append(&entry)
 }
 
 fn epoch_of(row: &Value) -> f64 {
@@ -789,6 +795,7 @@ mod tests {
         testenv::set("XDG_STATE_HOME", &blocker);
         assert!(append(&Map::new()).is_err());
         record_plan("done", "x", "create", PlanEvent::default());
+        assert!(try_record_plan("started", "x", "create", PlanEvent::default()).is_err());
         assert!(read(None).is_empty());
     }
 }

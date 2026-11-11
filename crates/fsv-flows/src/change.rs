@@ -471,7 +471,6 @@ pub fn resolve_planning_definition<'a>(
     }
     let known: Vec<String> = defs
         .iter()
-        .take(12)
         .map(|f| {
             let l = f
                 .get("label")
@@ -1303,6 +1302,19 @@ pub struct PlanRecord<'a> {
 pub trait PlanJournal {
     fn read(&self) -> Vec<Json>;
     fn record_plan(&self, event: &str, plan: &str, action: &str, extra: PlanRecord<'_>);
+    /// [`PlanJournal::record_plan`] that reports a failed write. Callers
+    /// still read the event back, so a journal that drops writes silently
+    /// is caught too.
+    fn try_record_plan(
+        &self,
+        event: &str,
+        plan: &str,
+        action: &str,
+        extra: PlanRecord<'_>,
+    ) -> Result<()> {
+        self.record_plan(event, plan, action, extra);
+        Ok(())
+    }
     fn recent_plan(&self, plan: &str, action: &str, hours: f64) -> Option<Json>;
 }
 
@@ -1314,6 +1326,15 @@ impl PlanJournal for DiskJournal {
         fsv_core::journal::read(None)
     }
     fn record_plan(&self, event: &str, plan: &str, action: &str, extra: PlanRecord<'_>) {
+        let _ = self.try_record_plan(event, plan, action, extra);
+    }
+    fn try_record_plan(
+        &self,
+        event: &str,
+        plan: &str,
+        action: &str,
+        extra: PlanRecord<'_>,
+    ) -> Result<()> {
         let steps: Option<Vec<fsv_core::journal::PlanStep>> = extra.steps.map(|s| {
             s.iter()
                 .map(|x| fsv_core::journal::PlanStep {
@@ -1332,7 +1353,7 @@ impl PlanJournal for DiskJournal {
             steps: steps.as_deref(),
             error: extra.error,
         };
-        fsv_core::journal::record_plan(event, plan, action, ev);
+        fsv_core::journal::try_record_plan(event, plan, action, ev)
     }
     fn recent_plan(&self, plan: &str, action: &str, hours: f64) -> Option<Json> {
         fsv_core::journal::recent_plan(plan, action, hours)
@@ -1507,6 +1528,15 @@ fn upload_all(
     Ok(ids)
 }
 
+/// `400 <= status < 500 and status not in (403, 408, 429)`: the server
+/// definitely refused, so the plan may be marked `failed`.
+///
+/// mirrors `fsv_api::service::definite_rejection` (crate-private there).
+pub(crate) fn definite_rejection(err: &Error) -> Option<u16> {
+    let status = err.as_api()?.status;
+    ((400..500).contains(&status) && ![403, 408, 429].contains(&status)).then_some(status)
+}
+
 /// Send the plan. Fails with [`ExecError::Partial`] when the change was
 /// written but a later step (upload, planning) failed.
 pub fn execute(
@@ -1530,17 +1560,29 @@ pub fn execute(
         PlanRecord { target, ..extra }
     }
     let tref = target.as_ref();
-    journal.record_plan(
+    let before = journal.read().len();
+    let written = journal.try_record_plan(
         "started",
         &plan.hash,
         &plan.action,
         with_target(tref, PlanRecord::default()),
     );
+    let entries = journal.read();
+    let last = entries.last();
+    if written.is_err()
+        || entries.len() <= before
+        || last.and_then(|r| r.get("plan")).and_then(Json::as_str) != Some(&plan.hash)
+        || last.and_then(|r| r.get("event")).and_then(Json::as_str) != Some("started")
+    {
+        return Err(flow_exit(5, "could not persist the change journal; nothing was sent").into());
+    }
+    let mut sending = false;
     let first = (|| -> Result<(Json, Json)> {
         if early {
             let ids = upload_all(&paths, writer, &mut uploaded)?;
             body.insert("attachments".into(), Json::Array(ids));
         }
+        sending = true;
         if create {
             let result = writer.post_change_body(&body)?;
             let cid = result.get("id").cloned().unwrap_or(Json::Null);
@@ -1559,7 +1601,15 @@ pub fn execute(
     let (cid, result) = match first {
         Ok(v) => v,
         Err(e) => {
-            if matches!(e, Error::Api(_) | Error::Other(_) | Error::Session(_)) {
+            // Once the change body may have gone out, only a definite refusal
+            // is `failed`; anything else leaves `started` so a resend needs
+            // review.
+            let rejected = if sending {
+                definite_rejection(&e).is_some()
+            } else {
+                matches!(e, Error::Api(_) | Error::Other(_) | Error::Session(_))
+            };
+            if rejected {
                 journal.record_plan(
                     "failed",
                     &plan.hash,

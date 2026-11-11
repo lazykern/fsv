@@ -831,3 +831,162 @@ fn disk_journal_and_editor_are_wired() {
     let _: &dyn PlanJournal = &DiskJournal;
     let _: fn(&str) -> Result<Draft> = editor_edit;
 }
+
+/// Answers every change POST/PUT with HTTP `status`.
+struct RejectWriter {
+    inner: FakeWriter,
+    status: u16,
+}
+
+impl RejectWriter {
+    fn new(status: u16) -> RejectWriter {
+        RejectWriter {
+            inner: FakeWriter::default(),
+            status,
+        }
+    }
+    fn reject(&self) -> Error {
+        Error::Api(fsv_core::error::ApiError::new(
+            self.status,
+            json!("rejected"),
+        ))
+    }
+}
+
+impl ChangeWriter for RejectWriter {
+    fn upload_file(&self, path: &str) -> Result<Json> {
+        self.inner.upload_file(path)
+    }
+    fn post_change_body(&self, body: &Map<String, Json>) -> Result<Json> {
+        self.inner.post_change_body(body)?;
+        Err(self.reject())
+    }
+    fn put_change_body(&self, change_id: &Json, body: &Map<String, Json>) -> Result<Json> {
+        self.inner.put_change_body(change_id, body)?;
+        Err(self.reject())
+    }
+    fn attach_files_to_change(&self, id: &Json, paths: &[String], dup: &str) -> Result<()> {
+        self.inner.attach_files_to_change(id, paths, dup)
+    }
+    fn update_planning_field(&self, id: &Json, req: &PlanningUpdate<'_>) -> Result<()> {
+        self.inner.update_planning_field(id, req)
+    }
+}
+
+fn events(j: &MemJournal) -> Vec<Json> {
+    j.read().iter().map(|r| r["event"].clone()).collect()
+}
+
+#[test]
+fn execute_unknown_outcome_leaves_started() {
+    let h = Hints::new();
+    let (create, _) = golden_create("full", &h);
+    let (update, _) = golden_update("subject", &h);
+    for status in [500, 502, 503, 504, 429, 408, 403] {
+        for plan in [&create, &update] {
+            let j = MemJournal::default();
+            let Err(ExecError::Failed(e)) =
+                execute(plan, &RejectWriter::new(status), &j, "skip", None)
+            else {
+                panic!("{status} {}", plan.action)
+            };
+            assert_eq!(e.as_api().unwrap().status, status);
+            assert_eq!(events(&j), [json!("started")], "{status} {}", plan.action);
+            if plan.action == "create" {
+                let again = check_duplicate(plan, false, &j).unwrap_err();
+                assert_eq!(again.exit_code(), 4);
+                assert!(again.to_string().contains("no recorded outcome"));
+            }
+        }
+    }
+}
+
+#[test]
+fn execute_definite_rejection_records_failed() {
+    let h = Hints::new();
+    let (create, _) = golden_create("full", &h);
+    let (update, _) = golden_update("subject", &h);
+    for status in [400, 404, 409, 422] {
+        for plan in [&create, &update] {
+            let j = MemJournal::default();
+            assert!(execute(plan, &RejectWriter::new(status), &j, "skip", None).is_err());
+            assert_eq!(events(&j), [json!("started"), json!("failed")]);
+            assert_eq!(j.read()[1]["error"], json!("details omitted"));
+            check_duplicate(plan, false, &j).unwrap();
+        }
+    }
+}
+
+#[test]
+fn execute_failed_upload_before_create_records_failed() {
+    let h = Hints::new();
+    let (p, _d) = with_attachment(&h);
+    let w = FakeWriter {
+        fail_upload: true,
+        ..FakeWriter::default()
+    };
+    let j = MemJournal::default();
+    assert!(execute(&p, &w, &j, "skip", Some("before-create")).is_err());
+    assert!(w.calls.lock().unwrap().is_empty());
+    assert_eq!(events(&j), [json!("started"), json!("failed")]);
+}
+
+/// Journal whose writes fail (a full disk or read-only state directory).
+#[derive(Default)]
+struct FailingJournal(MemJournal);
+
+impl PlanJournal for FailingJournal {
+    fn read(&self) -> Vec<Json> {
+        self.0.read()
+    }
+    fn record_plan(&self, event: &str, plan: &str, action: &str, extra: PlanRecord<'_>) {
+        let _ = self.try_record_plan(event, plan, action, extra);
+    }
+    fn try_record_plan(&self, _: &str, _: &str, _: &str, _: PlanRecord<'_>) -> Result<()> {
+        Err(Error::other("No space left on device"))
+    }
+    fn recent_plan(&self, plan: &str, action: &str, hours: f64) -> Option<Json> {
+        self.0.recent_plan(plan, action, hours)
+    }
+}
+
+#[test]
+fn execute_refuses_when_started_is_not_persisted() {
+    let h = Hints::new();
+    let (create, _) = golden_create("full", &h);
+    let (update, _) = golden_update("subject", &h);
+    let dropping = MemJournal {
+        drop_writes: true,
+        ..MemJournal::default()
+    };
+    let journals: [&dyn PlanJournal; 2] = [&FailingJournal::default(), &dropping];
+    for j in journals {
+        for plan in [&create, &update] {
+            let w = FakeWriter::default();
+            let Err(ExecError::Failed(e)) = execute(plan, &w, j, "skip", None) else {
+                panic!("{}", plan.action)
+            };
+            assert_eq!(e.exit_code(), 5);
+            assert_eq!(
+                e.to_string(),
+                "could not persist the change journal; nothing was sent"
+            );
+            assert!(w.calls.lock().unwrap().is_empty());
+        }
+    }
+}
+
+#[test]
+fn execute_refuses_when_only_an_older_started_exists() {
+    let h = Hints::new();
+    let (p, _) = golden_create("full", &h);
+    let j = MemJournal::default();
+    j.record_plan("started", &p.hash, "create", PlanRecord::default());
+    let dropping = MemJournal {
+        rows: std::sync::Mutex::new(j.read()),
+        drop_writes: true,
+    };
+    let w = FakeWriter::default();
+    assert!(execute(&p, &w, &dropping, "skip", None).is_err());
+    assert!(w.calls.lock().unwrap().is_empty());
+}

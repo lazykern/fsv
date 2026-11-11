@@ -348,19 +348,16 @@ pub fn execute(
     let result =
         match client.send_once("POST", "tickets", Body::Raw(body.into_bytes()), None, &csrf) {
             Ok(r) => r,
-            Err(Error::Api(e))
-                if (400..500).contains(&e.status) && ![403, 408, 429].contains(&e.status) =>
-            {
+            Err(e) => {
+                let Some(status) = change::definite_rejection(&e) else {
+                    return Err(unknown_outcome());
+                };
                 journal.record_plan("failed", &plan.hash, ACTION, PlanRecord::default());
                 return Err(flow_exit(
                     5,
-                    format!(
-                        "incident create rejected (HTTP {}); no automatic retry",
-                        e.status
-                    ),
+                    format!("incident create rejected (HTTP {status}); no automatic retry"),
                 ));
             }
-            Err(_) => return Err(unknown_outcome()),
         };
     let ticket = match &result {
         Json::Object(m) => Some(m.get("ticket").cloned().unwrap_or_else(|| result.clone())),
