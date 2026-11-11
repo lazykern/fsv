@@ -2680,12 +2680,18 @@ class FsvApp(App):
             return
         item = dict(self._selected or {})
         # Ticket notes use the reviewed sender; public replies remain separate.
-        screen = NoteScreen(self._target_label(res), reply=reply, can_toggle=True)
+        screen = NoteScreen(self._target_label(res), reply=reply, can_toggle=True, ticket_options=res == TICKETS)
 
         def composed(result) -> None:
             if not result:
                 return
-            body, public = result
+            body, public = result[:2]
+            if res == TICKETS and len(result) > 2:
+                self._ticket_conversation_options(item, body, public, reply)
+                return
+            if res == TICKETS and reply:
+                self._prepare_ticket_conversation(item, body, public, reply, {})
+                return
             if res == TICKETS and not reply:
                 self._review_ticket_note(item, body, public)
                 return
@@ -2699,6 +2705,80 @@ class FsvApp(App):
             self.push_screen(ConfirmScreen(plan.title, plan.lines + preview), confirmed)
 
         self.push_screen(screen, composed)
+
+    def _ticket_conversation_options(self, item: dict, body: str, public: bool, reply: bool,
+                                     options: dict | None = None) -> None:
+        if self.read_only:
+            return
+        options = dict(options or {})
+        choices = [("review", "Review exact reply" if reply else "Review exact note"),
+                   ("pending", "Status: " + ("Pending" if options.get("pending") else "unchanged") + " (toggle Pending)")]
+        choices += ([("cc", "CC emails"), ("bcc", "BCC emails (no CC/status combination)"),
+                     ("sender", "Configured sender (required for BCC)")] if reply else [("notify", "Notify-to emails")])
+
+        def picked(key):
+            if key is None:
+                return
+            if key == "review":
+                self._prepare_ticket_conversation(item, body, public, reply, options)
+            elif key == "pending":
+                self._ticket_conversation_options(item, body, public, reply, {**options, "pending": not options.get("pending")})
+            else:
+                def entered(value):
+                    if value is not None:
+                        self._ticket_conversation_options(item, body, public, reply, {**options, key: value})
+                self.push_screen(ValueScreen("Configured support email" if key == "sender" else "Comma-separated plain emails (empty clears)",
+                                             str(options.get(key, ""))), entered)
+        self.push_screen(ChoiceScreen(choices, "Reply recipient/status options" if reply else "Note notification/status options"), picked)
+
+    @work(thread=True, exclusive=True, group="conversation-review")
+    def _prepare_ticket_conversation(self, item: dict, body: str, public: bool, reply: bool, options: dict) -> None:
+        if self.read_only:
+            return
+        from fsv import ticket_conversation as conversations
+        try:
+            client = get_client()
+            def emails(key):
+                return [v.strip() for v in options.get(key, "").split(",") if v.strip()]
+            cc = conversations.recipients(client, emails("cc"))
+            notify = conversations.recipients(client, emails("notify"))
+            bcc = tuple(emails("bcc"))
+            conversations.recipients(client, list(bcc))
+            plan = conversations.build_plan(client, item.get("display_id") or item["id"], body,
+                kind="reply" if reply else "note", public=public, cc=cc, notify=notify, bcc=bcc,
+                sender=options.get("sender") or None, set_status="Pending" if options.get("pending") else None)
+            self.call_from_thread(self._review_ticket_conversation, item, plan)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
+    def _review_ticket_conversation(self, item: dict, plan: Any) -> None:
+        if self.read_only:
+            return
+        public = plan.kind == "reply" or plan.payload.get("private") is False
+        def reviewed(ok):
+            if not ok:
+                return
+            if public:
+                self.push_screen(ConfirmScreen("Confirm PUBLIC mail/visibility", [
+                    "Review every recipient. This public conversation may send email and trigger workflows."]),
+                    lambda consent: self._send_ticket_conversation(item, plan, True) if consent else None)
+            else:
+                self._send_ticket_conversation(item, plan, False)
+        self.push_screen(ConfirmScreen("Review exact ticket conversation", [json.dumps(plan.review(), indent=2)]), reviewed)
+
+    @work(thread=True, group="write")
+    def _send_ticket_conversation(self, item: dict, plan: Any, public: bool) -> None:
+        if self.read_only:
+            return
+        from fsv import ticket_conversation as conversations
+        try:
+            result = conversations.send(plan, get_client(), reviewed_hash=plan.hash, public_confirmed=public)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+            return
+        self.call_from_thread(self.push_screen, OutcomeScreen("Conversation result — do not resend", json.dumps(result, indent=2)))
+        if result.get("verified"):
+            self.call_from_thread(self._after_write, TICKETS, item, "Exact conversation verified")
 
     def _review_ticket_note(self, item: dict, body: str, public: bool) -> None:
         from fsv import ticket_notes

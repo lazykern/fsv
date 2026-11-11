@@ -132,6 +132,11 @@ def test_public_note_confirmed(calls):
 
 
 def test_ticket_reply_from_detail_pane(calls, monkeypatch):
+    from fsv import ticket_conversation
+    monkeypatch.setattr("fsv.tui.app.get_client", lambda: object())
+    monkeypatch.setattr(ticket_conversation, "send", lambda plan, client, **kw:
+                        calls.append(("reviewed_reply", plan.ticket_id, plan.payload["body"])) or
+                        {"conversation_id": 901, "verified": True})
     async def go():
         app = _app(TICKETS)
         async with app.run_test() as pilot:
@@ -140,11 +145,15 @@ def test_ticket_reply_from_detail_pane(calls, monkeypatch):
             assert isinstance(app.screen, NoteScreen)
             app.screen.query_one(TextArea).text = "thanks"
             await pilot.press("ctrl+s")
-            assert "ticket reply" in str(app.screen.query_one("#confirm-body").render())
+            await app.workers.wait_for_complete()
+            await pilot.pause()
+            assert "ticket conversation" in app.screen._title
+            await pilot.click("#confirm")
+            assert "PUBLIC" in app.screen._title and not calls
             await pilot.click("#confirm")
             await app.workers.wait_for_complete()
     run(go())
-    assert calls == [("reply", "tickets", 42, "thanks")]
+    assert calls == [("reviewed_reply", 42, "<div>thanks</div>")]
 
 
 def test_empty_note_not_submitted(calls):

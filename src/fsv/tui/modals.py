@@ -90,18 +90,21 @@ class ConfirmScreen(ModalScreen[bool]):
 
 
 
-class NoteScreen(ModalScreen["tuple[str, bool] | None"]):
-    """Compose a note or reply. Dismisses with (body, public) or None."""
+class NoteScreen(ModalScreen["tuple[str, bool] | tuple[str, bool, dict] | None"]):
+    """Compose text/visibility, optionally requesting ticket-recipient options."""
 
     BINDINGS = [
         Binding("escape", "cancel", "Cancel"),
         Binding("ctrl+t", "toggle_public", "Private/Public"),
         Binding("ctrl+s", "submit", "Continue"),
+        Binding("ctrl+o", "options", "Ticket options"),
     ]
 
-    def __init__(self, target: str, *, reply: bool = False, can_toggle: bool = True) -> None:
+    def __init__(self, target: str, *, reply: bool = False, can_toggle: bool = True,
+                 ticket_options: bool = False) -> None:
         super().__init__()
         self._target = target
+        self._ticket_options = ticket_options
         self._reply = reply
         self._can_toggle = can_toggle and not reply
         self.public = reply
@@ -116,7 +119,10 @@ class NoteScreen(ModalScreen["tuple[str, bool] | None"]):
             with Horizontal(classes="dialog-buttons"):
                 yield Button("Continue", variant="primary", id="submit")
                 yield Button("Cancel", id="cancel")
-            yield Static("[dim]Ctrl+S continue · Ctrl+T toggle · Esc cancel[/]", classes="dialog-hint")
+            hint = "Ctrl+S continue · Ctrl+T toggle · Esc cancel"
+            if self._ticket_options:
+                hint += " · Ctrl+O recipients/status options"
+            yield Static("[dim]" + hint + "[/]", classes="dialog-hint")
 
     def on_mount(self) -> None:
         self.query_one(TextArea).focus()
@@ -146,6 +152,15 @@ class NoteScreen(ModalScreen["tuple[str, bool] | None"]):
         if self._can_toggle:
             self.public = not self.public
             self._refresh()
+
+    def action_options(self) -> None:
+        if not self._ticket_options:
+            return
+        body = self.query_one(TextArea).text.strip()
+        if not body:
+            self.app.notify("Note is empty", severity="warning")
+            return
+        self.dismiss((body, self.public, {"edit_options": True}))
 
     def action_submit(self) -> None:
         body = self.query_one(TextArea).text.strip()

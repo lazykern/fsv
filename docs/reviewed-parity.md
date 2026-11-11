@@ -75,6 +75,18 @@ time, and change/problem time mutations are not implemented. Reads must be
 complete; create verification needs the exact returned entry ID. An absent
 response ID or failed readback never triggers a resend or latest-entry guess.
 
+## Main-TUI conversation options
+
+In a ticket/SR note (`n`) or detail-pane reply (`r`), compose the text then
+press **Ctrl+O** for recipient/status options. Notes support Notify-to and
+Pending; replies support CC and Pending, or the separately captured BCC plus
+explicit sender variant. Leave status unchanged by default. Choices and
+recipient lookups are evaluated before exact payload/hash review. Public
+conversations require a second visibility/mail confirmation. Results stay in
+a scrollable outcome screen, including unverified readback and returned IDs;
+there is no retry button. **Ctrl+S** keeps the simple compose/review path.
+Read-only mode blocks option preparation and sends.
+
 Schema reads use a seven-day cache, including legacy cache envelopes. Stale
 reads are identified internally with `stale` and `source`, warn on stderr,
 and start a background refresh; JSON stdout remains parseable. Force a
