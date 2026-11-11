@@ -101,6 +101,9 @@ def create_command(client_factory: Callable[[], Any], *, from_file: str | None, 
     rebuild = (lambda m: session.build_plan(ack_now, m)) if session else (lambda m: build(plan.draft, ack_now, m))
     result = ticket_flow.send(plan, client, rebuild, expected=expect_plan, allow_duplicate=allow_duplicate)
     if as_json:
-        print(json.dumps({"created": result["result"], "plan_hash": result["plan_hash"]}, default=str))
+        print(json.dumps({"created": result["result"], "plan_hash": result["plan_hash"],
+                          **({"verification": result["verification"]} if "verification" in result else {})}, default=str))
     else:
         console.print(f"[green]created[/green] incident {result['id']}", highlight=False)
+        if result.get("verification", {}).get("warning"):
+            err.print(result["verification"]["warning"], highlight=False)

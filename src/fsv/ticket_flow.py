@@ -136,7 +136,24 @@ def execute(plan: flow.Plan, client: Any, *, allow_duplicate: bool = False) -> d
     if cid is None:
         raise flow.FlowExit(5, "incident create response has no ID; outcome unknown, check the server before retry")
     journal.record_plan("done", plan.hash, action="ticket_create", created_id=cid)
-    return {"id": cid, "result": ticket, "plan_hash": plan.hash, "steps": [{"step": "create", "ok": True}]}
+    result_out: dict[str, Any] = {"id": cid, "result": ticket, "plan_hash": plan.hash,
+                                  "steps": [{"step": "create", "ok": True}]}
+    if "cc_emails" in plan.payload:
+        verification: dict[str, Any] = {"verified": False}
+        try:
+            raw = client.int_get(f"tickets/{cid}")
+            row = raw.get("ticket", raw) if isinstance(raw, dict) else None
+            if not isinstance(row, dict) or str(row.get("id")) != str(cid):
+                raise ValueError("identity mismatch")
+            verification["field"] = ("unavailable" if "cc_emails" not in row else
+                                     "matched" if row["cc_emails"] == plan.payload["cc_emails"] else "mismatched")
+            verification["verified"] = verification["field"] == "matched"
+        except Exception:
+            verification["field"] = "unavailable"
+        if not verification["verified"]:
+            verification["warning"] = "Incident CC was not fully verified on exact-ticket read-back; do not resend."
+        result_out["verification"] = verification
+    return result_out
 
 
 def send(plan: flow.Plan, client: Any, rebuild: Callable[[Any], flow.Plan], *,

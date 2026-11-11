@@ -45,3 +45,22 @@ def test_cli_cc_review_and_one_write(monkeypatch, tmp_path):
     result = runner.invoke(cli.app, args + ["--yes", "--expect-plan", data["plan_hash"]])
     assert result.exit_code == 0, result.output
     assert len(c.writes) == 1 and c.writes[0][2]["cc_emails"] == data["payload"]["cc_emails"]
+    assert "not fully verified" in result.output
+
+
+@pytest.mark.parametrize("readback,expected", [
+    ({"id": 123, "cc_emails": ["a@example.com"]}, "matched"),
+    ({"id": 123}, "unavailable"),
+    ({"id": 123, "cc_emails": ["other@example.com"]}, "mismatched"),
+    ({"id": 999, "cc_emails": ["a@example.com"]}, "unavailable"),
+])
+def test_exact_incident_cc_readback(monkeypatch, tmp_path, readback, expected):
+    from fsv import journal
+    monkeypatch.setattr(journal, "journal_path", lambda: tmp_path / "j")
+    c = Client()
+    c.int_get = lambda path: {"ticket": readback}
+    p = ticket_flow.build_create_plan(meta(), draft(), resolver=None, requester=WHO, cc_emails=("a@example.com",))
+    result = ticket_flow.execute(p, c)
+    assert result["verification"]["field"] == expected
+    assert result["verification"]["verified"] == (expected == "matched")
+    assert len(c.writes) == 1
