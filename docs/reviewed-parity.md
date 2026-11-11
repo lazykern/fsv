@@ -93,6 +93,14 @@ unmodified time/note and do not change start time. Timers, billing, task-linked
 time, and change/problem time mutations are not implemented. Reads must be
 complete; create verification needs the exact returned entry ID. An absent
 response ID or failed readback never triggers a resend or latest-entry guess.
+Readback compares HH:MM and HH:MM:SS by seconds and explicit-offset timestamps
+by instant, so server normalization does not create false mismatches. Missing
+fields remain unavailable; invalid or genuinely different values mismatch.
+Note-only updates preserve minute-aligned server durations; an existing duration
+with nonzero seconds requires an explicit `--spent` rather than silent rounding.
+Task and ticket-property timestamps share the same strict instant comparator;
+planning text is verbatim, watchers compare normalized numeric memberships, and
+SR recipient fields remain exact (they are not durations or timestamps).
 
 ## Main-TUI conversation options
 

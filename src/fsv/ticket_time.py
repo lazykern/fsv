@@ -8,6 +8,7 @@ from typing import Any
 from fsv import config, journal
 from fsv.change_tasks import _date
 from fsv.resources import TICKETS, parse_id
+from fsv.readback import duration_seconds, same_duration, same_instant
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
 from fsv.views import collect_pages
 from fsv.watchers import positive_id, self_id
@@ -66,7 +67,14 @@ def build_plan(client: Any, target: str | int, *, action: str, entry_id: int | N
             if "time_spent" not in row or "note" not in row:
                 raise ReviewedWriteError("entry time/note is unavailable")
             method = "PUT"
-            payload = {"time_spent": _duration(spent if spent is not None else row["time_spent"]),
+            # The server returns HH:MM:SS even for minute-only writes.
+            current = row["time_spent"]
+            if spent is None:
+                seconds = duration_seconds(current)
+                if seconds % 60:
+                    raise ReviewedWriteError("entry has sub-minute precision; provide --spent explicitly")
+                current = f"{seconds // 3600:02d}:{seconds // 60 % 60:02d}"
+            payload = {"time_spent": _duration(spent if spent is not None else current),
                        "note": note if note is not None else row["note"]}
     context = journal.plan_hash({"self": user, "entries": rows}) or ""
     return WritePlan(f"ticket_time_{action}", cid, config.DOMAIN, method, path,
@@ -81,7 +89,7 @@ def send(plan: WritePlan, client: Any, *, reviewed_hash: str | None) -> dict[str
     def rebuild() -> WritePlan:
         return build_plan(client, plan.target, action=action, entry_id=eid,
                           spent=payload.get("time_spent") if payload else None,
-                          note=payload.get("note") if payload else None,
+                          note=payload.get("note") or None if payload else None,
                           executed_at=payload.get("executed_at") if payload else None)
 
     def verify(response: Any) -> dict[str, Any]:
@@ -94,8 +102,15 @@ def send(plan: WritePlan, client: Any, *, reviewed_hash: str | None) -> dict[str
         if action == "delete":
             return {"entry_id": exact_id, "verified": row is None}
         expected = {k: v for k, v in payload.items()}
+        def matches(key: str, actual: Any, value: Any) -> bool:
+            if key == "time_spent":
+                return same_duration(actual, value)
+            if key == "executed_at":
+                return same_instant(actual, value)
+            return type(actual) is type(value) and actual == value
+
         fields = {k: "unavailable" if row is None or k not in row else
-                  "matched" if row[k] == value else "mismatched" for k, value in expected.items()}
+                  "matched" if matches(k, row[k], value) else "mismatched" for k, value in expected.items()}
         return {"entry_id": exact_id, "fields": fields, "verified": row is not None and all(v == "matched" for v in fields.values())}
 
     return execute(plan, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=verify)

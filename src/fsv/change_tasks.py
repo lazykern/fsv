@@ -14,6 +14,7 @@ from typing import Any
 import typer
 
 from fsv import config, journal, views, task_status
+from fsv.readback import same_instant
 from fsv.client import get_client
 from fsv.errors import APIError
 from fsv.resources import CHANGES, parse_id
@@ -237,10 +238,7 @@ def _compare_fields(exact: dict[str, Any] | None, plan: TaskPlan) -> tuple[list[
         if key in ("group_id", "owner_id"):
             matched = _id(observed) == expected
         elif key in ("planned_start_date", "planned_end_date"):
-            try:
-                matched = datetime.fromisoformat(observed.replace("Z", "+00:00")) == datetime.fromisoformat(expected)
-            except (ValueError, AttributeError, TypeError):
-                matched = False
+            matched = same_instant(observed, expected)
         else:
             matched = type(observed) is type(expected) and observed == expected
         (verified_fields if matched else mismatched_fields).append(key)
