@@ -590,15 +590,16 @@ class ListPage:
 
     def header(self) -> str:
         n = len(self.items)
+        end = (self.page - 1) * self.per_page + n  # rows up to the end of this page
         if n:
             lo = (self.page - 1) * self.per_page + 1
-            rng = f"{lo}-{lo + n - 1}"
+            rng = f"{lo}-{end}"
         else:
             rng = "0"
-        if self.total is not None and self.total >= n:
+        if self.total is not None and self.total >= end:
             of = f" of {self.total}"
-        else:
-            of = f" of {n}+" if self.has_next else f" of {n}"
+        else:  # unknown total: the end of this page is a lower bound
+            of = f" of {end}+" if self.has_next else f" of {end}"
         return f"{self.title} · {rng}{of} · Sort by: {self.sort}"
 
 

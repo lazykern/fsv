@@ -114,3 +114,16 @@ def test_state_flow_uses_the_record_workspace_and_falls_back():
 def test_fmt_when_keeps_an_impossible_date():
     assert views.fmt_when("2031-02-30") == "2031-02-30"
     assert views.fmt_when("2031-02-28").startswith("Fri, 28 Feb 2031")
+
+
+# P2 #11 (list part): page > 1 without a total never prints an impossible range
+def test_list_header_without_a_total_on_a_later_page():
+    from fsv.resources import CHANGES
+
+    def page(n: int, has_next: bool, total=None) -> str:
+        return views.ListPage(CHANGES, [{}] * n, [], [], None, 2, 30, total, has_next, "created_at", "desc",
+                              "Created Date").header()
+
+    assert "31-33 of 33 ·" in page(3, False)
+    assert "31-60 of 60+ ·" in page(30, True)
+    assert "31-60 of 75 ·" in page(30, True, 75)
