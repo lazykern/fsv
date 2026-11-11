@@ -10,7 +10,7 @@ import json
 import re
 from dataclasses import dataclass
 from types import SimpleNamespace
-from typing import Any, Sequence
+from typing import Any, Protocol, Sequence
 
 import typer
 
@@ -21,7 +21,7 @@ from fsv.resources import CHANGES, parse_id
 
 _ACTION = "change_approval_request"
 _UNKNOWN = "approval request outcome unknown; inspect the change and journal before any retry; do not resubmit"
-_WARNING = ("Approval emails are irreversible. No cancel/revoke contract is known. "
+_WARNING = ("Approval emails are irreversible. No verified cancel/revoke recovery is available. "
             "This requests approval; it does not approve the change. Tenant workflows may also notify people.")
 _EMAIL = re.compile(r"[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+\Z")
 
@@ -108,7 +108,7 @@ class ApprovalPlan:
                 "recipients": list(self.approver_ids), "approval_rule": "Everyone",
                 "message_text": self.message, "plan_hash": self.hash, "warning": _WARNING,
                 "verification": "Complete before/after approval record IDs, exact new recipients, requested status and Everyone rule. Group name cannot be read back.",
-                "contract": "Per-member approvals read-back observed; POST response not trusted; cancel/revoke unobserved."}
+                "contract": "Per-member approvals read-back observed; POST response not trusted; cancel wire captured but group identity read unobserved."}
 
 
 def build_plan(change_id: int | str, name: str, message: str, *, approver_ids: Sequence[int]) -> ApprovalPlan:
@@ -130,7 +130,12 @@ def build_plan(change_id: int | str, name: str, message: str, *, approver_ids: S
     return ApprovalPlan(cid, name, message, tuple(approver_ids), config.DOMAIN)
 
 
-def _inventory(client: Any, plan: ApprovalPlan) -> list[dict[str, Any]]:
+class _InventoryPlan(Protocol):
+    @property
+    def change_id(self) -> int: ...
+
+
+def _inventory(client: Any, plan: _InventoryPlan) -> list[dict[str, Any]]:
     seen: set[int] = set()
     totals: set[int] = set()
 
@@ -285,7 +290,7 @@ def register(app: typer.Typer) -> None:
                     raise ApprovalError("--yes requires the full --expect-plan from a prior approval review")
             elif no_input:
                 raise ApprovalError("sending requires --yes and --expect-plan in no-input mode")
-            elif not typer.confirm("Send this exact approval request and irreversible emails (no known revoke)?", default=False):
+            elif not typer.confirm("Send this exact approval request and irreversible emails (no verified revoke)?", default=False):
                 typer.echo("Cancelled; no approval request was sent.")
                 return
             result = send(plan, reviewed_hash=plan.hash)

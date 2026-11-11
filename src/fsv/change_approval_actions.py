@@ -1,0 +1,275 @@
+"""Reviewed approval decisions; group cancellation fails closed without identity evidence.
+
+Captured writes were aborted. Decision status IDs are not inferred from request
+values; only the observed read-back is reported. No live calls are needed here.
+"""
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+from typing import Any
+
+import typer
+
+from fsv import config, journal
+from fsv.change_approvals import ApprovalError, _id, _inventory
+from fsv.client import get_client
+from fsv.errors import APIError
+from fsv.resources import CHANGES, parse_id
+
+_WARNING = ("Approval actions notify people; approval/rejection may move the change workflow. "
+            "Cancellation is irreversible. Review the exact tenant and identifiers.")
+_CANCEL_BLOCKED = (
+    "approval group identity unavailable; no cancel PUT attempted. The observed approvals list "
+    "has no group ID or group membership. Capture the read that populates the UI approval-group "
+    "menu, including its group ID field and associated approval record IDs, before enabling cancel. "
+    "Do not substitute an approval record ID, level_id or user_id."
+)
+_UNKNOWN = "approval action outcome unknown; inspect the change and journal before any retry; do not resubmit"
+
+
+@dataclass(frozen=True)
+class ActionPlan:
+    change_id: int
+    target_id: int
+    operation: str
+    remark: str | None
+    tenant: str
+
+    @property
+    def action(self) -> str:
+        return "change_approval_cancel" if self.operation == "cancel" else "change_approval_respond"
+
+    @property
+    def path(self) -> str:
+        suffix = (f"approval-groups/{self.target_id}/cancel" if self.operation == "cancel"
+                  else f"approvals/{self.target_id}")
+        return f"changes/{self.change_id}/{suffix}"
+
+    @property
+    def payload(self) -> dict[str, Any] | None:
+        if self.operation == "cancel":
+            return None  # NO body, not JSON null or {}.
+        body: dict[str, Any] = {"approval_status": 1 if self.operation == "approve" else 2}
+        if self.remark is not None:
+            body["remark"] = self.remark
+        return body
+
+    @property
+    def hash(self) -> str:
+        return journal.plan_hash({"tenant": self.tenant, "method": "PUT", "path": self.path,
+                                  "payload": self.payload}) or ""
+
+    def review(self) -> dict[str, Any]:
+        result = {"action": self.action, "operation": self.operation, "tenant": self.tenant,
+                  "change_id": self.change_id, "method": "PUT", "path": f"/api/_/{self.path}",
+                  "payload": self.payload, "body_present": self.payload is not None,
+                  "plan_hash": self.hash, "warning": _WARNING,
+                  "contract": "Aborted UI request; accepted response and numeric decision status mapping unobserved.",
+                  "verification": "Complete approvals list; exact record ID and changed raw status. Named decision checked if exposed; no numeric mapping inferred."}
+        result["group_id" if self.operation == "cancel" else "approval_id"] = self.target_id
+        if self.operation == "cancel":
+            result.update(send_enabled=False, blocker=_CANCEL_BLOCKED,
+                          verification="Blocked: no observed group-to-approval-record identity read.")
+        return result
+
+
+def build_plan(change_id: int | str, target_id: int | str, operation: str,
+               remark: str | None = None) -> ActionPlan:
+    if isinstance(change_id, bool) or not isinstance(change_id, (str, int)):
+        raise ValueError("change ID must be a positive display ID")
+    cid = parse_id(str(change_id), CHANGES)
+    if cid <= 0:
+        raise ValueError("change ID must be positive")
+    tid = _id(target_id)
+    if tid is None:
+        raise ValueError("approval record/group ID must be a positive integer")
+    if operation not in ("approve", "reject", "cancel"):
+        raise ValueError("choose exactly one of approve, reject or cancel")
+    if remark is not None and (not isinstance(remark, str) or any(
+            (ord(c) < 32 and c not in "\r\n\t") or ord(c) == 127 for c in remark)):
+        raise ValueError("remark must be plain text without unsafe control characters")
+    if operation == "reject" and (remark is None or not remark.strip()):
+        raise ValueError("reject requires a nonempty --remark")
+    if operation == "cancel" and remark is not None:
+        raise ValueError("cancel sends no body and does not accept a remark")
+    return ActionPlan(cid, tid, operation, remark, config.DOMAIN)
+
+
+def _status(row: dict[str, Any]) -> Any:
+    """Validate raw status without inventing a decision ID-to-name mapping."""
+    value = row.get("status")
+    if type(value) is int and value >= 0:
+        return value
+    if (isinstance(value, dict) and type(value.get("id")) is int and value["id"] >= 0
+            and ("name" not in value or isinstance(value["name"], str) and value["name"].strip())):
+        return value
+    raise ApprovalError("approval status unreadable")
+
+
+def send(plan: ActionPlan, client: Any = None, *, reviewed_hash: str | None,
+         read_only: bool = False, dry_run: bool = False) -> dict[str, Any]:
+    if build_plan(plan.change_id, plan.target_id, plan.operation, plan.remark) != plan:
+        raise ApprovalError("approval action plan or tenant changed; review a new plan")
+    if dry_run:
+        return {"status": "dry_run", **plan.review()}
+    if read_only:
+        raise ApprovalError("read-only mode: no approval action was sent")
+    if reviewed_hash is None:
+        return {"status": "cancelled", "change_id": plan.change_id}
+    if reviewed_hash != plan.hash:
+        raise ApprovalError("approval action review hash does not match; review the exact action again")
+    if not plan.tenant:
+        raise ApprovalError("configure a tenant before an approval action")
+    if plan.operation == "cancel":
+        # The captured write path does not establish the read/membership contract.
+        # In particular, neither the per-member record ID nor level_id is a group.
+        raise ApprovalError(_CANCEL_BLOCKED)
+
+    def events() -> list[dict[str, Any]]:
+        return [r for r in journal.read() if r.get("kind") == f"plan:{plan.action}" and r.get("plan") == plan.hash]
+
+    prior = events()
+    if prior and prior[-1].get("event") in ("started", "done"):
+        raise ApprovalError("this approval action was sent or its outcome is unknown; inspect the change and journal; do not resubmit")
+    try:
+        c = client if client is not None else get_client()
+        before_rows = _inventory(c, plan)
+        before = next(r for r in before_rows if _id(r["id"]) == plan.target_id)
+        before_status = _status(before)
+        if before_status != {"id": 0, "name": "requested"}:
+            raise ApprovalError("target approval is not requested")
+        member_id = _id(before.get("member_id"))
+        if member_id is None:
+            raise ApprovalError("approval member identity unavailable")
+        member = before.get("member")
+        if member is not None and (not isinstance(member, dict) or _id(member.get("id")) != member_id):
+            raise ApprovalError("approval member identity conflicting")
+        if "change_id" in before and _id(before["change_id"]) != plan.change_id:
+            raise ApprovalError("approval change identity conflicting")
+        csrf = c._get_csrf()
+    except Exception:
+        raise ApprovalError("could not prepare complete approvals inventory/session with the exact requested record; no approval PUT attempted") from None
+    journal.record_plan("started", plan.hash, action=plan.action, target=plan.change_id)
+    recorded = events()
+    if not recorded or recorded[-1].get("event") != "started":
+        raise ApprovalError("could not persist approval action journal; no approval PUT attempted")
+    try:
+        # Never int_put: it can replay on 403. The response body is not evidence.
+        c._request("PUT", f"{config.API_INT}/{plan.path}",
+                   content=json.dumps(plan.payload, ensure_ascii=False).encode("utf-8"),
+                   headers={"Content-Type": "application/json", "X-CSRF-Token": csrf})
+    except APIError as exc:
+        if 400 <= exc.status < 500 and exc.status not in (408, 429):
+            journal.record_plan("failed", plan.hash, action=plan.action, target=plan.change_id)
+            raise ApprovalError(f"approval action rejected (HTTP {exc.status}); no automatic retry") from None
+        raise ApprovalError(_UNKNOWN) from None
+    except Exception:
+        raise ApprovalError(_UNKNOWN) from None
+    try:
+        after_rows = _inventory(c, plan)
+        exact = next(r for r in after_rows if _id(r["id"]) == plan.target_id)
+        # Preserve baseline identities; disappearance is not proof of a decision.
+        if not {_id(r["id"]) for r in before_rows} <= {_id(r["id"]) for r in after_rows}:
+            raise ApprovalError(_UNKNOWN)
+        if _id(exact.get("member_id")) != _id(before.get("member_id")):
+            raise ApprovalError(_UNKNOWN)
+        member = exact.get("member")
+        if member is not None and (not isinstance(member, dict) or _id(member.get("id")) != member_id):
+            raise ApprovalError(_UNKNOWN)
+        if "change_id" in exact and _id(exact["change_id"]) != plan.change_id:
+            raise ApprovalError(_UNKNOWN)
+        raw = _status(exact)
+        raw_id = raw.get("id") if isinstance(raw, dict) else raw
+        name = raw.get("name") if isinstance(raw, dict) else None
+        expected = "approved" if plan.operation == "approve" else "rejected"
+        # requested=0 is observed. Decision/cancellation numeric mappings are not.
+        if raw == before_status or raw_id == 0 or name == "requested":
+            raise ApprovalError(_UNKNOWN)
+        if name in ("approved", "rejected", "cancelled", "canceled") and name != expected:
+            raise ApprovalError(_UNKNOWN)
+    except Exception:
+        raise ApprovalError(_UNKNOWN) from None
+    journal.record_plan("done", plan.hash, action=plan.action, target=plan.change_id)
+    result = {"status": "submitted", "change_id": plan.change_id, "approval_id": plan.target_id,
+              "operation": plan.operation, "verified": True, "decision_verified": name == expected,
+              "verification_basis": "named_decision" if name == expected else "changed_raw_status_only",
+              "before_status": before_status, "observed_status": raw, "readback": exact,
+              "plan_hash": plan.hash}
+    if name != expected:
+        result["warning"] = "Raw status changed; decision name/mapping unobserved. Only the status transition is verified; do not resend."
+    return result
+
+
+def _run(plan: ActionPlan, *, dry_run: bool, read_only: bool, yes: bool,
+         expected: str | None, no_input: bool, json_out: bool) -> None:
+    if read_only and not dry_run:
+        raise ApprovalError("read-only mode: no approval action was sent")
+    if dry_run:
+        typer.echo(json.dumps(send(plan, reviewed_hash=None, dry_run=True), indent=2))
+        return
+    typer.echo(json.dumps(plan.review(), indent=2), err=True)
+    if expected is not None and expected != plan.hash:
+        raise ApprovalError("approval action review hash does not match; review the exact action again")
+    if yes:
+        if expected != plan.hash:
+            raise ApprovalError("--yes requires the full --expect-plan from a prior approval action review")
+    elif no_input:
+        raise ApprovalError("sending requires --yes and --expect-plan in no-input mode")
+    elif not typer.confirm("Send this exact approval action (notifies people; may move workflow; cancel irreversible)?", default=False):
+        typer.echo("Cancelled; no approval action was sent.")
+        return
+    result = send(plan, reviewed_hash=plan.hash, read_only=read_only)
+    if json_out:
+        typer.echo(json.dumps(result, indent=2))
+    else:
+        typer.echo(f"Approval record {plan.target_id} submitted on change {plan.change_id}; "
+                   f"observed raw status: {json.dumps(result['observed_status'])}; "
+                   f"verification: {result['verification_basis']}")
+        if result.get("warning"):
+            typer.echo(result["warning"], err=True)
+
+
+def register(app: typer.Typer) -> None:
+    @app.command("approval-respond", help="Review and approve/reject an exact approval record (notifies people; may move workflow).")
+    def approval_respond(
+        change: str = typer.Argument(..., metavar="CHANGE_ID"),
+        approval_id: str = typer.Argument(..., metavar="APPROVAL_ID"),
+        approve: bool = typer.Option(False, "--approve"),
+        reject: bool = typer.Option(False, "--reject"),
+        remark: str | None = typer.Option(None, "--remark", help="required nonempty for reject; optional for approve"),
+        dry_run: bool = typer.Option(False, "--dry-run"),
+        read_only: bool = typer.Option(False, "--read-only"),
+        yes: bool = typer.Option(False, "--yes", "-y"),
+        expected: str | None = typer.Option(None, "--expect-plan"),
+        no_input: bool = typer.Option(False, "--no-input"),
+        json_out: bool = typer.Option(False, "--json"),
+    ) -> None:
+        try:
+            if approve == reject:
+                raise ValueError("choose exactly one of --approve or --reject")
+            plan = build_plan(change, approval_id, "approve" if approve else "reject", remark)
+            _run(plan, dry_run=dry_run, read_only=read_only, yes=yes, expected=expected,
+                 no_input=no_input, json_out=json_out)
+        except (ValueError, ApprovalError) as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(2) from None
+
+    @app.command("approval-cancel", help="Review irreversible group cancellation; sending blocked until group identity read is captured.")
+    def approval_cancel(
+        change: str = typer.Argument(..., metavar="CHANGE_ID"),
+        group_id: str = typer.Argument(..., metavar="GROUP_ID"),
+        dry_run: bool = typer.Option(False, "--dry-run"),
+        read_only: bool = typer.Option(False, "--read-only"),
+        yes: bool = typer.Option(False, "--yes", "-y"),
+        expected: str | None = typer.Option(None, "--expect-plan"),
+        no_input: bool = typer.Option(False, "--no-input"),
+        json_out: bool = typer.Option(False, "--json"),
+    ) -> None:
+        try:
+            plan = build_plan(change, group_id, "cancel")
+            _run(plan, dry_run=dry_run, read_only=read_only, yes=yes, expected=expected,
+                 no_input=no_input, json_out=json_out)
+        except (ValueError, ApprovalError) as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(2) from None

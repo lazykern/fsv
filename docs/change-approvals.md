@@ -1,14 +1,15 @@
-# Reviewed manual change approval requests
+# Reviewed change approvals
 
 `fsv changes approval-request` **requests** manual approval from explicitly named
 agents. It does not approve a change, change its status, or trigger its state-flow
 transition. The only supported rule is **Everyone** (`approval_type: 1`).
 
-**Approval emails are irreversible. No cancel/revoke contract is known.** Review
+**Approval emails are irreversible. No verified cancel/revoke recovery is available.** Review
 the exact recipients, tenant, change, group name and escaped message before
 sending. Tenant workflows may also notify people. No implicit self, default
 recipients, requester substitution, fuzzy names, recipient groups, HTML input,
-attachments, approval decisions or revoke operations are supported.
+attachments or revoke operations are supported by `approval-request`. Reviewed
+individual decisions are described below; group cancellation currently fails closed.
 
 ## Review and send
 
@@ -63,8 +64,9 @@ hash for a future TUI integration.
 An isolated UI **Request for approval > Add approvers > Users > Done > Send**
 request was first captured with traffic aborted. A subsequent accepted trial
 request exposed the populated per-member approvals list described below. The POST
-response is not used as evidence; notification delivery and cancel/revoke remain
-unverified. The synthetic illustration preserves its method, path and fields:
+response is not used as evidence; notification delivery and cancel/revoke success remain
+unverified. A bodyless cancel request has since been captured, but its group identity
+read contract remains unavailable. The synthetic illustration preserves its method, path and fields:
 
 ```http
 POST /api/_/changes/1234/approval-groups
@@ -134,3 +136,113 @@ Inspect the exact change and local journal before any manual recovery. Do not
 change a group name or delete journal entries to evade an unknown-outcome guard.
 All automated tests use offline synthetic Acme/Globex data; no live Freshservice
 calls are required or performed by them.
+
+## Reviewed approve / reject
+
+**These approval actions notify people. Approval/rejection may move the change
+workflow. Cancellation is irreversible.** The following contracts were captured
+with all traffic aborted, not accepted live writes. The CLI does not claim email
+delivery or a particular workflow transition.
+
+```bash
+fsv changes approval-respond CHN-1234 310000000001 --approve --dry-run --json
+fsv changes approval-respond CHN-1234 310000000001 --reject \
+  --remark "Rollback evidence is incomplete." --dry-run --json
+```
+
+Exactly one of `--approve` and `--reject` is required. The positional identifier
+is the individual **approval record ID**, not an agent, user, group or level ID.
+Reject requires a nonempty, non-whitespace `--remark`. Approve allows omission
+or an explicitly empty `--remark ""`; these produce distinct reviewed payloads.
+Remarks are plain text preserved exactly, not HTML-wrapped.
+
+After reviewing one of those drafts, repeat its exact arguments with the full
+hash (a rejection example):
+
+```bash
+fsv changes approval-respond CHN-1234 310000000001 --reject \
+  --remark "Rollback evidence is incomplete." \
+  --yes --expect-plan "$PLAN_HASH" --no-input --json
+```
+
+Both commands accept `--dry-run`, `--read-only`, `--yes` / `-y`, `--expect-plan`,
+`--no-input` and `--json`. Numeric-ID dry runs do no network or journal I/O.
+Read-only mode refuses sends; read-only dry runs are allowed. `--yes` requires
+the full prior hash; otherwise a default-No prompt reviews the exact operation.
+The immutable plan hash binds tenant, method, path, target and exact body.
+
+The Approvals tab's self-row Approve/Reject actions open an inline Remark form.
+Approve's remark is optional; Reject's final button is disabled for blank input,
+even though native textarea required attributes do not expose that rule.
+
+```http
+PUT /api/_/changes/1234/approvals/310000000001
+Content-Type: application/json
+
+{"approval_status":1,"remark":""}
+```
+
+Reject uses `{"approval_status":2,"remark":"Rollback evidence is incomplete."}`
+on the same path. An omitted optional approve remark omits that property.
+These request values do **not** establish a numeric read-back status mapping.
+
+Before sending, the sender requires the complete approvals inventory, the exact
+requested record (`status: {id: 0, name: "requested"}`), consistent member/change
+identity, CSRF and a persisted `started` journal entry. It makes exactly one
+lower-level PUT, never the helper that replays on 403. The write response is not
+trusted. Read-only preparation failures send nothing.
+
+Read-back uses `GET /api/_/changes/<display-id>/approvals`, including all pages,
+and locates the exact record `id`. All baseline IDs must remain present; the
+record's `member_id`, optional nested `member.id`, and optional `change_id` must
+remain consistent. Verification reports `before_status`, `observed_status` and
+the raw `readback` record. Status must change away from observed requested/0.
+When `status.name` is `approved` for approve or `rejected` for reject, the result
+has `verified: true`, `decision_verified: true`, and
+`verification_basis: "named_decision"`. Numeric IDs are not guessed from the
+write payload. If a valid raw status changes but its name/mapping is unobserved,
+`verified: true` means **only the status transition**; `decision_verified: false`,
+`verification_basis: "changed_raw_status_only"` and an explicit warning prevent
+claiming an approved/rejected decision. A conflicting known decision, unchanged,
+requested, malformed, missing or unreadable status leaves the outcome unknown.
+
+Unknown outcomes leave the journal `started`; identical plans remain blocked.
+Verified transitions mark `done` and also block resending. Definite HTTP client
+rejections are `failed`; timeouts, 408/429, server and session uncertainty are not
+replayed. Errors exit 2. Inspect the change and journal; never vary a remark to
+evade a duplicate guard.
+
+## Cancel an approval group: review available, send blocked
+
+```bash
+fsv changes approval-cancel CHN-1234 310000000099 --dry-run --json
+fsv changes approval-cancel CHN-1234 310000000099 \
+  --yes --expect-plan "$PLAN_HASH" --no-input --json
+```
+
+The second command currently exits 2 **without any network or journal I/O**.
+The review includes `send_enabled: false` and the blocker. The group identifier
+is distinct from an approval record identifier. Never substitute `level_id`,
+`user_id`, the approval record ID or a guessed POST response ID.
+
+The captured Approvals > approval group More > Cancel approval group action
+opens a confirmation with no input fields and emits:
+
+```http
+PUT /api/_/changes/1234/approval-groups/310000000099/cancel
+```
+
+There is **no body**: not `{}`, not JSON `null`. The plan represents this as
+`payload: null` with `body_present: false`; no cancel request is issued yet.
+
+**Missing read:** capture the authenticated read that populates the UI's
+approval-group menu, including its actual endpoint, group-ID field and associated
+approval record IDs. The available capture starts with that menu already loaded;
+it establishes the write path only. The observed approvals list has neither a
+group ID nor group membership. No endpoint or field can be named from this
+evidence without guessing. Until that read contract is available, the CLI cannot
+validate group identity or verify the affected records in the approvals list and
+therefore fails closed. Future cancellation verification must check all records
+belonging to the exact group are no longer requested/cancelled, exposing raw
+changed statuses rather than inventing numeric mappings. No cancellation success
+is claimed by this implementation.
