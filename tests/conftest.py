@@ -18,6 +18,7 @@ _BOOT = tempfile.mkdtemp(prefix="fsv-test-")
 os.environ["FSV_CONFIG_DIR"] = os.path.join(_BOOT, "config")
 os.environ["FSV_CACHE_DIR"] = os.path.join(_BOOT, "cache")
 os.environ["FSV_NO_KEYCHAIN"] = "1"  # never touch the real macOS Keychain
+os.environ["XDG_STATE_HOME"] = os.path.join(_BOOT, "state")  # write journal
 os.environ.pop("FSV_BROWSER", None)
 
 
@@ -71,6 +72,7 @@ def _isolated_fsv_env(tmp_path, monkeypatch):
     monkeypatch.setenv("FSV_CONFIG_DIR", str(cfg))
     monkeypatch.setenv("FSV_CACHE_DIR", str(cache))
     monkeypatch.setenv("FSV_NO_KEYCHAIN", "1")
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "fsv-state"))
     monkeypatch.delenv("FSV_COMPLETION_NETWORK", raising=False)
 
     config = sys.modules.get("fsv.config")

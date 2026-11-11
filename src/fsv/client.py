@@ -339,7 +339,25 @@ class Client:
             raise APIError(r.status_code, _response_body(r), method, _request_target(url, params))
 
     def _request(self, method: str, url: str, **kw: Any) -> Any:
+        if method.upper() in ("GET", "HEAD"):
+            return self._request_inner(method, url, **kw)
+        from fsv import journal
+        self._last_status = None
+        try:
+            result = self._request_inner(method, url, **kw)
+        except BaseException as e:
+            journal.record(method, url, kw.get("json"), ok=False,
+                           status=getattr(e, "status", None) or self._last_status,
+                           error=type(e).__name__)
+            raise
+        journal.record(method, url, kw.get("json"), ok=True, status=self._last_status, response=result)
+        return result
+
+    _last_status: int | None = None
+
+    def _request_inner(self, method: str, url: str, **kw: Any) -> Any:
         r = self._send(method, url, **kw)
+        self._last_status = r.status_code
         self._check_response(r, method, url, kw.get("params"))
         fw = self._fw_cookie()
         if fw and fw != self._fw_session_id:
