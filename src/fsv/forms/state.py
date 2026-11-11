@@ -433,10 +433,17 @@ class FormState:
                 out.append(f)
         return out
 
+    def unsupported_errors(self) -> list[str]:
+        return [f"{f.label}: unsupported field semantics ({f.field_type}); write blocked"
+                for f in self.spec.fields if f.kind == "unsupported" and (
+                    (f.api_name in self.evaluated.visible and f.api_name in self.evaluated.required)
+                    or not is_empty(self.evaluated.values.get(f.api_name)))]
+
     def errors(self) -> list[str]:
         """Everything that would stop the web form from submitting
         (blocking messages count until acknowledged)."""
         out = [f"{f.label} is required" for f in self.missing_required()]
+        out.extend(self.unsupported_errors())
         out.extend(self.unavailable_errors())
         out.extend(f"blocked by rule (acknowledge to continue): {m.text}" for m in self.unacknowledged())
         return out

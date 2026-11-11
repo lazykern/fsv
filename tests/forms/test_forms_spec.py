@@ -195,5 +195,5 @@ def test_ticket_sections_nested_custom_and_unknown_type(ticket_spec: FormSpec) -
     assert by["customers_hit"].parent == "ticket_type"
     assert by["ticket_type"].sections[0].choices == ("major incident",)
     assert by["source"].default == "Phone"  # first choice, as the web shows
-    assert by["mystery"].kind == "text"
+    assert by["mystery"].kind == "unsupported"
     assert any("custom_hologram" in w for w in ticket_spec.warnings)

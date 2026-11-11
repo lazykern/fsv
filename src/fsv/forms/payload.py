@@ -173,6 +173,8 @@ def text_to_html(text: str) -> str:
 def encode_value(spec: FormSpec, f: Field, value: Any, values: Mapping[str, Any]) -> Any:
     """Form value -> JSON value for the API."""
     k = f.kind
+    if k == "unsupported":
+        raise PayloadError([f"{f.label}: unsupported field semantics; write blocked"])
     if k in ("dropdown", "department", "nested"):
         ch = f.choice(value, spec.choices_for(f, values))
         if ch is None:
@@ -213,6 +215,9 @@ def _problems(state: FormState, skip: Sequence[str] = ()) -> list[str]:
 
 
 def _check(state: FormState, allow_incomplete: bool, skip: Sequence[str] = ()) -> None:
+    unsupported = state.unsupported_errors()
+    if unsupported:
+        raise PayloadError(unsupported)
     if allow_incomplete:
         return
     problems = _problems(state, skip)
@@ -250,7 +255,7 @@ def _module_body(
 def _status_id(spec: FormSpec, status: Any) -> Any:
     f = spec.by_name.get("status")
     if f is None:
-        return status
+        raise PayloadError(["status schema is unavailable; no raw status permitted"])
     ch = f.choice(status)
     if ch is None:
         raise PayloadError([f"status {status!r} is not a valid choice"])

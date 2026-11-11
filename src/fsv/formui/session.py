@@ -262,7 +262,7 @@ class FormSession:
         for f in self.spec.ordered():
             if self.kind in ("change", "ticket") and self.mode == "new" and is_status(f):
                 continue  # status on create is the form default (shown on the review)
-            widget = WIDGET_FOR_KIND.get(f.kind, "text")
+            widget = WIDGET_FOR_KIND.get(f.kind, "notice")
             entity = ENTITY_FOR_KIND.get(f.kind, f.lookup_entity or "lookup") if widget == "lookup" else None
             out.append(FormItem(f.api_name, f.label, widget, field=f, entity=entity, help=_plain(f.help),
                                 placeholder=_plain(f.placeholder, 80), allowed_types=tuple(f.allowed_file_types),

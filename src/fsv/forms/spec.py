@@ -41,6 +41,7 @@ KINDS = frozenset(
         "nested",
         "attachment",
         "notice",
+        "unsupported",
     }
 )
 
@@ -296,13 +297,13 @@ class Field:
         """Find a choice by value/label (normalised exact), else by id/display id."""
         pool = self.choices if choices is None else choices
         key = norm(raw)
-        for c in pool:
-            if norm(c.value) == key or norm(c.label) == key:
-                return c
-        for c in pool:
-            if (c.id is not None and norm(c.id) == key) or (c.display_id is not None and norm(c.display_id) == key):
-                return c
-        return None
+        matches = [c for c in pool if (norm(c.value) == key or norm(c.label) == key)]
+        if not matches:
+            matches = [c for c in pool if ((c.id is not None and norm(c.id) == key)
+                       or (c.display_id is not None and norm(c.display_id) == key))]
+        if len(matches) > 1:
+            raise ValueError(f"{self.label}: ambiguous choice {raw!r}")
+        return matches[0] if matches else None
 
     def choice_by_display_id(self, display_id: Any) -> Choice | None:
         """The choice with this ``display_id`` (what ``populate`` actions use)."""
@@ -662,14 +663,14 @@ def _fields_from_form_field(f: Mapping[str, Any], warnings: list[str]) -> list[F
     if kind is None and is_content_type(ftype):
         kind = "notice"
     if kind is None:
-        kind = "text"
-        warnings.append(f"field {name!r}: unknown field_type {ftype!r}, treated as text")
+        kind = "unsupported"
+        warnings.append(f"field {name!r}: unsupported field_type {ftype!r}; writes blocked when required or answered")
     lookup_cfg = f.get("lookup_config") or {}
     lookup_entity = None
     if ftype in ("custom_lookup", "custom_multi_lookup"):
         src = lookup_cfg.get("data_source", f.get("data_source"))
         if src not in (None, _USER_LOOKUP_SOURCE):
-            kind = "lookup"
+            kind = "unsupported"
             lookup_entity = str(src)
         else:
             lookup_entity = "user"
@@ -688,6 +689,15 @@ def _fields_from_form_field(f: Mapping[str, Any], warnings: list[str]) -> list[F
     if ftype in FIRST_CHOICE_DEFAULT_TYPES:
         first = next((c for c in choices if c.visible), None)
         default = first.value if first else None
+    explicit = f.get("default_value", f.get("default"))
+    if explicit is not None:
+        matches = [c for c in choices if c.visible and norm(explicit) in (norm(c.value), norm(c.label), norm(c.id))]
+        if kind in CHOICE_KINDS:
+            if len(matches) != 1:
+                raise ValueError(f"{name}: explicit default must match one active choice")
+            default = matches[0].value
+        else:
+            default = explicit
     nested_levels = sorted(f.get("nested_fields") or [], key=lambda n: n.get("level") or 0)
     top = Field(
         api_name=name,
@@ -712,7 +722,7 @@ def _fields_from_form_field(f: Mapping[str, Any], warnings: list[str]) -> list[F
         date_only=kind == "date",
         lookup_entity=lookup_entity if ftype != REQUESTED_FOR_TYPE else "user",
         lookup_link=lookup_cfg.get("link"),
-        sent=ftype not in UNSENT_TYPES,
+        sent=kind != "unsupported" and ftype not in UNSENT_TYPES,
     )
     out = [top]
     prev = name
@@ -817,8 +827,8 @@ def _field_from_sr(
     name = str(c.get("name") or c.get("id"))
     kind = SR_TYPE_KINDS.get(code if isinstance(code, int) else -1)
     if kind is None:
-        kind = "text"
-        warnings.append(f"item field {name!r}: unknown type {code!r}, treated as text")
+        kind = "unsupported"
+        warnings.append(f"item field {name!r}: unsupported type {code!r}; writes blocked when required or answered")
     if kind == "date" and opts.get("date_only") is not None and not _opt_true(opts, "date_only"):
         kind = "datetime"
     raw_label = str(c.get("label") or name)
@@ -894,7 +904,7 @@ def _field_from_sr(
         date_only=kind == "date",
         lookup_entity="catalog_lookup" if is_lookup else None,
         lookup_config=dict(opts) if is_lookup else None,
-        sent=not is_lookup,
+        sent=kind != "unsupported" and not is_lookup,
         allowed_file_types=file_types,
         max_files=max_files,
     )
