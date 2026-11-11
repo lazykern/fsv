@@ -40,19 +40,37 @@ duplicate-send protection.
 | `fsv-api` | `schema`, `query`, `service`, `create`, `views` (as `site`: loaders only), `state_flow` fetch half, `task_status`, `change_tasks`, `change_approvals`, `change_approval_actions`, `change_associations`, `ticket_notes`, `formmeta`, `attachments` (`cli_sr._attachment_rows`/`_download`, `create._attachment_url`, `catalog.is_file_value`/`safe_target`/`domain_url`), completion data helpers | Freshservice operations. `views.py` lives here because `change_tasks`, approvals, associations and `ticket_notes` call it and it calls them back. |
 | `fsv-flows` | `drafts`, `change_flow`, `ticket_flow`, `catalog`, `cli_sr.render_sr_template` | plan → review → send. Reuses `fsv_api::attachments`. |
 | `fsv-views` | `pages`, `render` (Rich tables/panels), `state_flow` render half (`render_flow`, `render_compact`, `render_state_diagram`) | markup strings only. Depends on fsv-api, not on fsv-flows. |
-| `fsv-formui` | `formui/session`, `formui/lookups`, `formui/widgets`, `formui/screens`, `formui/app` | ratatui form UI; `session` logic stays UI-agnostic |
-| `fsv-tui` | `tui/app`, `tui/modals`, `tui/actions` | ratatui. Depends on fsv-views, fsv-formui, fsv-flows, fsv-api. |
-| `fsv-completion` | `completion_gen`, `_complete` | takes `&clap::Command` from fsv-cli. Must not depend on fsv-cli. |
+| `fsv-formui` | `formui/session`, `formui/lookups`, `formui/widgets`, `formui/screens`, `formui/app` | ratatui form UI; `session` logic stays UI-agnostic. Depends on fsv-core, fsv-forms only; lookups go through a seam trait. |
+| `fsv-tui` | `tui/app`, `tui/modals`, `tui/actions` | ratatui. Depends on fsv-api and fsv-core only; every network action goes through the `Backend` trait. |
+| `fsv-completion` | `completion_gen`, `_complete` | takes `&clap::Command` from fsv-cli. Depends on fsv-core, fsv-forms; must not depend on fsv-cli. |
+| `fsv-app` | — | live adapters for every seam trait (TUI `Backend`, formui lookups, completion data, flow journals). The only crate that wires `fsv_core::Client` into the UIs. |
 | `fsv-cli` (package `fsv`, binary `fsv`) | `cli`, `change_cli`, `ticket_cli`, `cli_sr`, `form_cli`, `__init__` | clap command tree, glue only |
 
+Real edges (every crate also depends on fsv-py):
+
+| crate | depends on |
+|---|---|
+| fsv-core | — |
+| fsv-forms | — |
+| fsv-api | core, forms |
+| fsv-completion | core, forms |
+| fsv-formui | core, forms |
+| fsv-flows | api, core, forms |
+| fsv-views | api, core, forms |
+| fsv-tui | api, core |
+| fsv-app | api, completion, core, flows, forms, formui, tui, views |
+| fsv-cli | api, app, completion, core, flows, forms, formui, views |
+
 ```
-fsv-py ← fsv-forms ← fsv-core ← fsv-api ← fsv-flows ← fsv-formui ← fsv-tui ← fsv-cli
-                        ↑          ↑  ↖── fsv-views ←──────────────────┘      ↑
-                        └──────────┴──── fsv-completion ──────────────────────┘
+fsv-py ← fsv-core ─┬─ fsv-api ─┬─ fsv-flows ─┐
+fsv-py ← fsv-forms ┤           ├─ fsv-views ─┤
+                   │           └─ fsv-tui ───┤
+                   ├─ fsv-formui ────────────┼─ fsv-app ← fsv-cli
+                   └─ fsv-completion ────────┘
 ```
 
-fsv-core may depend on fsv-forms (pure, no cycle) so `Error::Form` can hold
-`fsv_forms::FormError`. No other edge runs backwards. Full rationale:
+fsv-core and fsv-forms are independent; form errors reach the CLI as
+`Error::Value`. UI crates never name a concrete HTTP client. Full rationale:
 `port/specs/design-review.md`.
 
 ## Libraries
@@ -141,28 +159,29 @@ so a usage error exits 2 even when an `APIError` was swallowed.
 `Display` never includes the context. `--verbose` appends `APIError.detail()`.
 
 ```rust
-pub enum Error {
-    Api(ApiError),                                          // 409 or duplicate regex → 4, else 5
-    Session(String),                                        // 3
-    Usage { message: String, context: Option<Box<Error>> }, // ValueError family → 2
-    Exit { code: i32, message: String },                    // FlowExit
-    Form(fsv_forms::FormError),                             // CLI sites that map FormError to 2 match this
-    Failed { kind: &'static str, message: String, context: Option<Box<Error>> },
-        // TaskError, NoteError, ApprovalError, EditorAbort, …: code = context if Api/Session, else 1
-    Partial(Box<PartialFailure>),  // created_id, uploaded, steps, error
-    Send(Box<SendFailure>),        // step, uploaded, error; exit code comes from `error`
+pub enum Error {                                 // crates/fsv-core/src/error.rs
+    Api(ApiError),                               // 409 or duplicate regex → 4, else 5
+    Session(String),                             // 3
+    Value(String),                               // ValueError family → 2 (FormError lands here)
+    Exit { code: i32, message: String },         // FlowExit / typer.Exit; empty = already printed
+    EditorAbort(String),
+    Http { kind: String, message: String },      // httpx.TransportError; kind = Python class name
+    Other(String),                               // RuntimeError etc. → 1
     Io(std::io::Error),
-    Aborted,                       // click abort prints "Aborted!"; _err_exc prints "Aborted."
+    Aborted,                                     // click Abort prints "Aborted!"
+    Context { message: String, source: Box<Error> }, // `raise X(message) from source`
 }
 impl Error {
     pub fn exit_code(&self) -> i32;
-    pub fn with_context(self, swallowed: Error) -> Error;
+    pub fn context(self, message: impl Into<String>) -> Error;
 }
 ```
 
 An empty message falls back to `kind` (`str(exc) or type(exc).__name__`).
 Domain crates may keep a typed error internally, but every Python
-`except APIError: raise X(...) from None` becomes `.with_context(api_err)`.
+`except APIError: raise X(...) from None` becomes `api_err.context(msg)`.
+Partial-send failures (`created_id`, `uploaded`, `steps`) are typed in the
+domain crates (`fsv_api::catalog::SendFailure`, fsv-app `SendError`).
 
 ## Terminal output
 
