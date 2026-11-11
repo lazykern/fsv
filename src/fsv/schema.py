@@ -8,6 +8,7 @@ from pathlib import Path
 
 from fsv.cache import load as _cache_load, refresh_async, save, update_meta
 from fsv.client import Client
+from fsv.errors import APIError, SessionError
 from fsv.config import ensure_dirs, schema_cache_candidates, schema_cache_path
 from fsv.resources import Resource
 
@@ -18,10 +19,25 @@ def _path(res: Resource) -> Path:
     return schema_cache_path(res.name)
 
 
+def _doc_fields(doc: Any) -> list[dict[str, Any]] | None:
+    """Return the non-empty field list stored in a cache doc, else None.
+
+    Empty or malformed entries (e.g. written when an expired session made
+    both field APIs fail) count as a cache miss.
+    """
+    if not isinstance(doc, dict):
+        return None
+    for key in ("data", "fields"):
+        inner = doc.get(key)
+        if isinstance(inner, list) and inner:
+            return inner
+    return None
+
+
 def _cached_path(res: Resource) -> tuple[Path, dict[str, Any] | None, bool]:
     for path in schema_cache_candidates(res.name):
         doc, stale = _cache_load(path)
-        if doc is not None:
+        if doc is not None and _doc_fields(doc):
             return path, doc, stale
     primary = _path(res)
     return primary, None, True
@@ -29,23 +45,38 @@ def _cached_path(res: Resource) -> tuple[Path, dict[str, Any] | None, bool]:
 
 def _fetch_schema(c: Client, res: Resource) -> list[dict[str, Any]]:
     """Try internal API first (richer data: choices for reference fields),
-    fall back to v2 API. Always merges v2 choices for fields where v2 has more."""
+    fall back to v2 API. Always merges v2 choices for fields where v2 has more.
+
+    Never returns an empty list: if neither API yields fields, raises the
+    underlying SessionError/APIError (or an APIError if both answered empty).
+    """
     int_fields: list[dict[str, Any]] | None = None
+    errors: list[Exception] = []
     try:
         raw = c.int_get(res.form_fields_path)
         if raw.get(res.form_fields_key):
             int_fields = raw[res.form_fields_key]
-    except Exception:
-        pass
+    except Exception as e:
+        errors.append(e)
 
     try:
         v2_raw = c.v2_get(res.form_fields_path)
         v2_fields = v2_raw.get(res.form_fields_key) or []
-    except Exception:
+    except Exception as e:
+        errors.append(e)
         v2_fields = []
 
     if not int_fields:
-        return v2_fields or []
+        if v2_fields:
+            return v2_fields
+        # Prefer a session error (the actionable one), then any API error.
+        for kind in (SessionError, APIError):
+            for e in errors:
+                if isinstance(e, kind):
+                    raise e
+        if errors:
+            raise errors[0]
+        raise APIError(200, f"no form fields returned for {res.name}", "GET", res.form_fields_path)
 
     if v2_fields:
         v2_by_name = {f["name"]: f for f in v2_fields if "name" in f}
@@ -58,21 +89,24 @@ def _fetch_schema(c: Client, res: Resource) -> list[dict[str, Any]]:
     return int_fields
 
 
+def _unwrap(d: dict[str, Any]) -> dict[str, Any]:
+    """Extract {saved_at, fields} from an envelope or old-format cache.
+
+    Uses key presence (not truthiness) so an empty list never drops 'fields'.
+    """
+    fields = _doc_fields(d) or []
+    return {"saved_at": d.get("saved_at", 0), "fields": fields}
+
+
 def load(res: Resource, client: Client | None = None, force: bool = False) -> dict[str, Any]:
     """Return the cached schema for *res*, fetching on miss or when *force*.
 
     Uses stale-while-revalidate: if cache exists but stale, returns old data
-    immediately and spawns a background refresh.
+    immediately and spawns a background refresh.  Empty schemas are never
+    cached or returned; a failed fetch raises.
     """
     p = _path(res)
     cache_path, doc, stale = _cached_path(res)
-
-    def _unwrap(d: dict[str, Any]) -> dict[str, Any]:
-        """Extract schema dict from envelope or old-format cache."""
-        inner = d.get("data") or d.get("fields")
-        if isinstance(inner, list):
-            return {"saved_at": d.get("saved_at", 0), "fields": inner}
-        return d  # already in old format {saved_at, fields}
 
     if doc is not None and not force and not stale:
         update_meta(cache_path, checked_at=True, fetch_inc=True)
@@ -104,6 +138,8 @@ def load(res: Resource, client: Client | None = None, force: bool = False) -> di
     finally:
         if own:
             c.close()
+    if not fields:
+        raise APIError(200, f"empty schema for {res.name}", "GET", res.form_fields_path)
     ensure_dirs()
     save(p, "schema", fields, latency_ms=latency)
     return {"saved_at": time.time(), "fields": fields}
