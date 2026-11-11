@@ -222,7 +222,8 @@ def register(app: typer.Typer) -> None:
         confirm_public: bool = typer.Option(False, "--confirm-public", help="separately confirm public visibility"),
         html_body: bool = typer.Option(False, "--html", help="body is already HTML; otherwise escape plain text"),
         notify: list[str] | None = typer.Option(None, "--notify-email", help="explicit notification recipient (repeatable; default none)"),
-        dry_run: bool = typer.Option(False, "--dry-run", help="review only; no client, POST or journal writes"),
+        set_status: str | None = typer.Option(None, "--set-status", help="add and set status (Pending only; resolved from runtime metadata)"),
+        dry_run: bool = typer.Option(False, "--dry-run", help="review only; no POST or journal writes"),
         read_only: bool = typer.Option(False, "--read-only", help="refuse sends"),
         yes: bool = typer.Option(False, "--yes", "-y", help="confirm the exact previously reviewed --expect-plan"),
         expected: str | None = typer.Option(None, "--expect-plan", help="full hash from a prior body review"),
@@ -230,6 +231,40 @@ def register(app: typer.Typer) -> None:
         json_out: bool = typer.Option(False, "--json", help="emit structured result"),
     ) -> None:
         try:
+            if set_status is not None:
+                from fsv.ticket_conversation import ConversationError, build_plan as build_conversation, send as send_conversation
+                try:
+                    if read_only and not dry_run:
+                        raise ConversationError("read-only mode: no note was sent")
+                    c = get_client()
+                    plan = build_conversation(c, id_, body, kind="note", public=public, notify=tuple(notify or ()),
+                                              body_format="html" if html_body else "plain", set_status=set_status)
+                    if dry_run:
+                        typer.echo(json.dumps({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
+                        return
+                    typer.echo(json.dumps(plan.review(), ensure_ascii=False, indent=2), err=True)
+                    if expected is not None and expected != plan.hash:
+                        raise ConversationError("note review hash does not match; review again")
+                    if yes:
+                        if expected != plan.hash:
+                            raise ConversationError("--yes requires the full --expect-plan from a prior review")
+                    elif no_input:
+                        raise ConversationError("sending requires --yes and --expect-plan in no-input mode")
+                    elif not typer.confirm("Add this exact reviewed note?", default=False):
+                        typer.echo("Cancelled; no note was sent.")
+                        return
+                    if public and not confirm_public:
+                        if yes or no_input:
+                            raise ConversationError("--public also requires --confirm-public")
+                        if not typer.confirm("Confirm PUBLIC note visible to the customer?", default=False):
+                            typer.echo("Cancelled; no note was sent.")
+                            return
+                        confirm_public = True
+                    result = send_conversation(plan, c, reviewed_hash=plan.hash, public_confirmed=confirm_public)
+                    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+                    return
+                except ConversationError as exc:
+                    raise NoteError(str(exc)) from None
             plan = build_plan(id_, body, public=public, notify_emails=notify,
                               body_format="html" if html_body else "plain")
             if dry_run:

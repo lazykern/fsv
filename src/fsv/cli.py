@@ -4687,12 +4687,41 @@ def _make_subapp(res: Resource) -> typer.Typer:
         def reply(
             id_: str = typer.Argument(...),
             body: str = typer.Argument(...),
+            cc: Optional[List[str]] = typer.Option(None, "--cc", help="CC email from user lookup (repeatable)"),
+            set_status: Optional[str] = typer.Option(None, "--set-status", help="send and set status (Pending only; resolved from runtime metadata)"),
+            expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full hash from prior reply review"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print the reply without sending it"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm sending the reply"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Add a reply (conversation) to a ticket."""
-            reply_resource(res, id_, body, dry_run, yes, no_input)
+            if not cc and set_status is None and expect_plan is None:
+                reply_resource(res, id_, body, dry_run, yes, no_input)
+                return
+            import json
+            from fsv.ticket_conversation import ConversationError, build_plan, recipients, send
+            try:
+                c = _client()
+                plan = build_plan(c, id_, body, cc=recipients(c, list(cc or [])), set_status=set_status)
+                if dry_run:
+                    typer.echo(json.dumps({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
+                    return
+                typer.echo(json.dumps(plan.review(), ensure_ascii=False, indent=2), err=True)
+                if expect_plan is not None and expect_plan != plan.hash:
+                    raise ConversationError("review hash changed; review again")
+                if yes:
+                    if expect_plan != plan.hash:
+                        raise ConversationError("--yes requires the full --expect-plan from a prior reply review")
+                elif _no_input(no_input):
+                    raise ConversationError("sending requires --yes and --expect-plan in no-input mode")
+                elif not typer.confirm("Send this exact PUBLIC reply?", default=False):
+                    typer.echo("Cancelled; no reply sent.")
+                    return
+                result = send(plan, c, reviewed_hash=plan.hash, public_confirmed=True)
+                typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+            except (ValueError, ConversationError) as exc:
+                typer.echo(str(exc), err=True)
+                raise typer.Exit(2) from None
 
     return sub
 
