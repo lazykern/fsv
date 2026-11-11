@@ -4270,6 +4270,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 preset: Optional[str] = typer.Option(None, "--preset", help="draft preset"),
                 edit: bool = typer.Option(False, "--edit", "-e", help="edit YAML in a terminal"),
                 requester: Optional[str] = typer.Option(None, "--requester", help="requester email or exact name"),
+                cc: Optional[List[str]] = typer.Option(None, "--cc", help="plain CC email (repeatable)"),
                 dry: bool = typer.Option(False, "--dry-run", help="review and show the payload without sending"),
                 format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="table or json"),
                 json_out: bool = typer.Option(False, "--json", help="emit JSON"),
@@ -4285,7 +4286,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     create_command(_client, from_file=from_, sets=list(set_ or []), preset=preset, edit=edit,
                                    requester=requester, dry_run=dry, as_json=json_out or format_ == OutputFormat.json,
                                    yes=yes, expect_plan=expect_plan, allow_duplicate=allow_duplicate, ack=ack,
-                                   no_input=_no_input(no_input))
+                                   no_input=_no_input(no_input), cc=list(cc or []))
                 except FlowExit as e:
                     _flow_exit(e)
                 except (SessionError, APIError) as e:

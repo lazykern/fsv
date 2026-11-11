@@ -29,12 +29,14 @@ def print_plan(plan: flow.Plan, as_json: bool) -> None:
 def create_command(client_factory: Callable[[], Any], *, from_file: str | None, sets: list[str],
                    preset: str | None, edit: bool, requester: str | None, dry_run: bool,
                    as_json: bool, yes: bool, expect_plan: str | None, allow_duplicate: bool,
-                   ack: bool, no_input: bool) -> None:
+                   ack: bool, no_input: bool, cc: list[str] | None = None) -> None:
     tty = flow.interactive() and not no_input
     form = not (from_file or sets or preset or edit) and tty and form_tty()
     template_only = not (from_file or sets or preset or edit or form) and dry_run
     if not (from_file or sets or preset or edit or form or template_only):
         raise flow.FlowExit(2, "pass --from or --set, or open the interactive form in a terminal")
+    if (form or template_only) and cc:
+        raise flow.FlowExit(2, "--cc requires --from, --set, --preset or --edit; the interactive form and template cannot retain it")
     if edit and not tty:
         raise flow.FlowExit(2, "--edit needs a terminal; use --from or --set")
     client = client_factory()
@@ -48,7 +50,8 @@ def create_command(client_factory: Callable[[], Any], *, from_file: str | None, 
 
     def build(d: Draft, ack_all: bool = ack, m: Any = None) -> flow.Plan:
         req, problem = who.resolve(d)
-        plan = ticket_flow.build_create_plan(m or meta, d, resolver=resolver, requester=req, ack_all=ack_all)
+        plan = ticket_flow.build_create_plan(m or meta, d, resolver=resolver, requester=req, ack_all=ack_all,
+                                             cc_emails=tuple(cc or ()))
         if problem:
             plan.errors.insert(0, problem)
             plan.hash = plan.review.plan_hash = ""

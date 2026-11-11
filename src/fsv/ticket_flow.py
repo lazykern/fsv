@@ -15,7 +15,7 @@ from fsv.review import Review
 
 
 def build_create_plan(meta: Any, draft: Draft, *, resolver: Any, requester: LookupValue | None,
-                      ack_all: bool = False) -> flow.Plan:
+                      ack_all: bool = False, cc_emails: tuple[str, ...] = ()) -> flow.Plan:
     spec = meta.spec
     state = FormState(spec, meta.engine(), mode="new", resolver=resolver)
     answers, status_raw, req_raw, errors = flow._split_special(meta, draft)
@@ -62,15 +62,22 @@ def build_create_plan(meta: Any, draft: Draft, *, resolver: Any, requester: Look
                 errors.append(f"{field.label}: deprecated or deleted field cannot be sent")
     if requester is None or not requester.email:
         errors.insert(0, "requester email is required; use --requester or the draft requester key")
+    from fsv.ticket_notes import _EMAIL
+    if not isinstance(cc_emails, (list, tuple)) or any(not isinstance(v, str) or not _EMAIL.fullmatch(v) for v in cc_emails):
+        errors.append("CC recipients must be plain email addresses")
     payload = None
     if requester is not None and requester.email:
         try:
             payload = build_ticket_payload(state, requester.email, requester.display, status=status,
                                            allow_incomplete=bool(errors))
+            if cc_emails:
+                payload["cc_emails"] = list(cc_emails)
         except (FormError, PayloadError) as e:
             errors.extend(getattr(e, "problems", [str(e)]))
     review = Review(title="New Incident")
     review.rows.append(("Requester", str(requester) if requester else "(not set)"))
+    if cc_emails and not any(not isinstance(v, str) for v in cc_emails):
+        review.rows.append(("CC", ", ".join(cc_emails)))
     for name in state.payload_values():
         f = spec.by_name[name]
         if not is_requester(f) and not is_status(f):
