@@ -46,6 +46,20 @@ those stay identical.
   Python iterates a set, so the order is not stable.
 - `create.clone_planning_fields` treats a planning row with
   `"attachments": null` as no attachments. Python raises `TypeError`.
+- A schema cache whose `saved_at` is NaN or Infinity is treated as missing
+  and refetched before returning. Python reads it and treats it as stale.
+  `serde_json` cannot parse those values.
+- `resolve_view_name` skips non-object view rows. Python raises
+  `AttributeError`. `schema::fetch` treats a non-list, non-empty fields
+  payload as empty.
+- `fsv_forms::FormSpec::from_form_fields` accepts a non-object field or a
+  non-list `nested_fields`. Python reports "form metadata unreadable" or
+  crashes. Open gap, to fix in `fsv-forms`.
+- The stale-schema warning goes to stderr with `eprintln!`, as in Python.
+  Python's TUI captures stderr; the Rust TUI does not yet, so the line can
+  draw over the screen. Open gap, to fix in `fsv-app`.
+- The form's F3 description preview shows only the top rows of long text.
+  Textual's 14-row preview scrolls.
 - Form submit rebuilds the plan from the same metadata at save and at send.
   If the hash differs from the reviewed one, it refuses with exit 4 ("the
   reviewed plan could not be rebuilt identically; review it again"). Python
