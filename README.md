@@ -407,8 +407,27 @@ changes:
     warn: the release board reviews this change
 ```
 
-Config keys: `defaults.requester`, `forms.workspace_id` (the workspace
-whose business rules apply; by default taken from the form metadata).
+Config keys: `defaults.requester`, `forms.workspace_id` (an override for the
+workspace whose business rules apply; by default the record's or the form
+metadata's workspace, else the account's own, else none).
+
+**Works with any Freshservice account.** Everything above comes from the
+account's own metadata at run time; nothing is tied to one tenant:
+
+* workspaces are optional: without `forms.workspace_id` fsv tries the form
+  metadata's workspace, then asks the account (`bootstrap/me`,
+  `workspaces`), then the workspace-less endpoint; when no business rules
+  can be loaded it says why in one line and checks the static
+  required/visible flags only;
+* content-only blocks (notes, guides) are shown read-only in the
+  interactive form and never listed or sent as inputs;
+* the web's **Request for** field is in the change form (answered like the
+  requester) but is not sent yet: its request key is unverified, so reviews
+  mark it "not sent";
+* planning fields are matched by label (their internal names differ between
+  accounts), so drafts and presets move between accounts;
+* labels, choices, time zones and roles are the account's own (non-English
+  labels, 403 on optional endpoints, no rules or sections all work).
 
 ### Safety confirmations
 
@@ -446,7 +465,7 @@ Every write request (success or failure) appends one JSON line to `$XDG_STATE_HO
 - **Schema filters**: repeat `ls --where FIELD=VALUE`; fields resolve by current tenant schema, so custom fields remain tenant-specific. There is no singular `filter` command.
 - **AND/OR grouping**: Default AND; add `--or` for OR grouping (e.g., `fsv tickets ls --where status=Open --where status=Pending --or`).
 - **Custom field values**: Custom fields use text labels (e.g., `--where 'Business Service=Email'`), default fields use choice IDs in filters.
-- **Update values**: `update --status/--priority` accepts labels or IDs; `--agent/--group` accepts names/emails or IDs; `--planning` accepts planning field label/name/id.
+- **Update values**: `update --status/--priority` accepts labels or IDs; `--agent/--group` accepts names/emails or IDs; `--planning` accepts a planning field label (preferred: names differ between accounts), name or id.
 - **Machine output**: write/download commands use `--json`; `--output` stays on read/list/search commands.
 - **Nested asset/association commands**: use `changes assets {ls|search|add|remove|pick|categories}` and `changes associations {ls|search|add|remove|pick}`. Legacy flag-only forms still work but print deprecation warning.
 - **Autocomplete**: `lookup` searches requesters, agents, groups, and schema choices; `--where requester=...` and `--where agent=...` use the same resolver. `changes assets {ls|search|add|remove|pick} --category` completes from Freshservice CMDB asset types.
