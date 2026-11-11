@@ -26,7 +26,7 @@ from fsv.query import build_query_hash_from_schema
 from fsv.render import strip_html
 from fsv.resources import CHANGES, PROBLEMS, TICKETS, Resource, format_id
 from fsv.tui import actions
-from fsv.tui.modals import (ChoiceScreen, ConfirmScreen, FailureScreen, NoteScreen,
+from fsv.tui.modals import (ChoiceScreen, ConfirmScreen, FailureScreen, NoteScreen, OutcomeScreen,
                             StatusScreen, ValueScreen, ViewPickerScreen)
 
 
@@ -2222,7 +2222,9 @@ class FsvApp(App):
         choices = [("download", "Download selected attachment")]
         if item.get("_resource", TICKETS) == CHANGES:
             choices = [("task-add", "Add task"), ("task-update", "Update selected task"), ("task-delete", "Delete selected task"),
-                       ("link", "Link initiating ticket"), ("unlink", "Unlink initiating ticket")] + choices
+                       ("link", "Link initiating ticket"), ("unlink", "Unlink initiating ticket"),
+                       ("approval-request", "Request approval"), ("approval-respond", "Respond to approval"),
+                       ("approval-cancel", "Cancel approval group"), ("approval-groups", "List approval groups")] + choices
         self.push_screen(ChoiceScreen(choices, "Selected record actions"),
                          lambda kind: self._prepare_action(kind, item) if kind is not None else None)
 
@@ -2231,11 +2233,132 @@ class FsvApp(App):
             return
         if kind == "task-add":
             self._compose_change_task(item)
+        elif kind == "approval-request":
+            self._compose_approval_request(item)
+        elif kind in ("approval-respond", "approval-cancel", "approval-groups"):
+            self._load_approval_targets(kind, item)
         elif kind == "link":
             self.push_screen(ValueScreen("Search initiating tickets (ID or subject)"),
                              lambda query: self._load_action_targets(kind, item, query) if query else None)
         else:
             self._load_action_targets(kind, item)
+
+    def _compose_approval_request(self, item: dict) -> None:
+        from fsv.change_approvals import RULES
+
+        def named(name):
+            if not name or self.read_only:
+                return
+            def messaged(message):
+                if not message or self.read_only:
+                    return
+                def recipients(value):
+                    if not value or self.read_only:
+                        return
+                    self.push_screen(ChoiceScreen([(key, label) for key, (_, label) in RULES.items()],
+                                                  "Approval rule"),
+                                     lambda rule: self._prepare_approval_request(item, name, message, value, rule)
+                                     if rule is not None else None)
+                self.push_screen(ValueScreen("Explicit approver IDs or exact emails, comma separated"), recipients)
+            self.push_screen(ValueScreen("Approval message"), messaged)
+        self.push_screen(ValueScreen("Approval group name"), named)
+
+    @work(thread=True, exclusive=True, group="approval-review")
+    def _prepare_approval_request(self, item: dict, name: str, message: str, recipients: str, rule: str) -> None:
+        from fsv import change_approvals
+        if self.read_only:
+            return
+        try:
+            values = [value.strip() for value in recipients.split(",")]
+            ids = change_approvals.resolve_approvers(values, get_client())
+            plan = change_approvals.build_plan(item.get("display_id") or item["id"], name, message,
+                                               approver_ids=ids, rule=rule)
+            self.call_from_thread(self._review_approval, item, plan, None)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
+    @work(thread=True, exclusive=True, group="approval-read")
+    def _load_approval_targets(self, kind: str, item: dict) -> None:
+        from types import SimpleNamespace
+        from fsv import change_approvals
+        if self.read_only:
+            return
+        try:
+            cid = item.get("display_id") or item["id"]
+            client = get_client()
+            if kind == "approval-respond":
+                rows = change_approvals._inventory(client, SimpleNamespace(change_id=cid))
+            else:
+                rows = change_approvals.get_change_approval_groups(cid, client)
+            self.call_from_thread(self._pick_approval_target, kind, item, rows)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, f"Approval inventory unavailable: {exc}")
+
+    def _pick_approval_target(self, kind: str, item: dict, rows: list[dict]) -> None:
+        if self.read_only:
+            return
+        if not rows:
+            self.notify("No approval records or groups", severity="warning")
+            return
+        choices = [(row, json.dumps(row, ensure_ascii=False, default=str)) for row in rows]
+        def picked(row):
+            if row is None or self.read_only:
+                return
+            if kind == "approval-groups":
+                self.push_screen(OutcomeScreen("Approval group details (read only)",
+                                               json.dumps(row, ensure_ascii=False, indent=2, default=str)))
+            elif kind == "approval-cancel":
+                self._prepare_approval_action(item, row, "cancel", None)
+            else:
+                def operation(op):
+                    if op is None or self.read_only:
+                        return
+                    self.push_screen(ValueScreen("Remark (required for reject; optional for approve)", allow_empty=op == "approve"),
+                                     lambda remark: self._prepare_approval_action(item, row, op, remark or None)
+                                     if remark is not None else None)
+                self.push_screen(ChoiceScreen([("approve", "Approve"), ("reject", "Reject")],
+                                              "Approval response"), operation)
+        self.push_screen(ChoiceScreen(choices, "Approval groups" if kind != "approval-respond" else "Approval records"), picked)
+
+    def _prepare_approval_action(self, item: dict, row: dict, operation: str, remark: str | None) -> None:
+        from fsv import change_approval_actions
+        if self.read_only:
+            return
+        try:
+            plan = change_approval_actions.build_plan(item.get("display_id") or item["id"], row["id"], operation, remark)
+            self._review_approval(item, plan, row)
+        except Exception as exc:
+            self._show_failure(actions.failure_detail(exc))
+
+    def _review_approval(self, item: dict, plan: Any, before: dict | None) -> None:
+        if self.read_only:
+            return
+        lines = [json.dumps(plan.review(), ensure_ascii=False, indent=2, default=str)]
+        if before is not None:
+            lines.append("Selected inventory row: " + json.dumps(before, ensure_ascii=False, indent=2, default=str))
+        self.push_screen(ConfirmScreen("Review exact approval action", lines),
+                         lambda ok: self._send_approval(item, plan) if ok else None)
+
+    @work(thread=True, group="write")
+    def _send_approval(self, item: dict, plan: Any) -> None:
+        from fsv import change_approval_actions, change_approvals
+        if self.read_only:
+            return
+        try:
+            if isinstance(plan, change_approvals.ApprovalPlan):
+                result = change_approvals.send(plan, get_client(), reviewed_hash=plan.hash, read_only=self.read_only)
+            else:
+                result = change_approval_actions.send(plan, get_client(), reviewed_hash=plan.hash, read_only=self.read_only)
+            if not result.get("verified"):
+                raise ValueError("Approval outcome unverified; do not resend; inspect the record")
+            self.call_from_thread(self._approval_result, item, result)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
+    def _approval_result(self, item: dict, result: dict) -> None:
+        self._after_write(CHANGES, item, "Approval submitted; inspect verification details")
+        self.push_screen(OutcomeScreen("Approval result — do not resend",
+                                       json.dumps(result, ensure_ascii=False, indent=2, default=str)))
 
     def _compose_change_task(self, item: dict) -> None:
         if self.read_only or item.get("_resource", TICKETS) != CHANGES:

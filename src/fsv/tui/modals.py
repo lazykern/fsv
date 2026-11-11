@@ -254,9 +254,9 @@ class ChoiceScreen(ViewPickerScreen):
 class ValueScreen(ModalScreen["str | None"]):
     BINDINGS = [Binding("escape", "cancel", "Cancel")]
 
-    def __init__(self, title: str, value: str = "") -> None:
+    def __init__(self, title: str, value: str = "", *, allow_empty: bool = False) -> None:
         super().__init__()
-        self._title, self._value = title, value
+        self._title, self._value, self._allow_empty = title, value, allow_empty
 
     def compose(self) -> ComposeResult:
         with Vertical(classes="dialog"):
@@ -270,10 +270,32 @@ class ValueScreen(ModalScreen["str | None"]):
     @on(Input.Submitted)
     def submitted(self, event: Input.Submitted) -> None:
         event.stop()
-        if event.value.strip():
+        if event.value.strip() or self._allow_empty:
             self.dismiss(event.value.strip())
 
     def action_cancel(self) -> None:
+        self.dismiss(None)
+
+
+class OutcomeScreen(ModalScreen[None]):
+    """Scrollable read or write result without a send or retry control."""
+
+    BINDINGS = [Binding("escape", "close", "Close")]
+
+    def __init__(self, title: str, message: str) -> None:
+        super().__init__()
+        self.title_text = title
+        self.message = message
+
+    def compose(self) -> ComposeResult:
+        with Vertical(classes="dialog"):
+            yield Static(Text(self.title_text), classes="dialog-title")
+            with VerticalScroll():
+                yield Static(Text(self.message))
+            yield Button("Close", id="close")
+
+    @on(Button.Pressed, "#close")
+    def action_close(self) -> None:
         self.dismiss(None)
 
 
