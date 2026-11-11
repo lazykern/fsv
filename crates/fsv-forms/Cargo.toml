@@ -1,0 +1,20 @@
+[package]
+name = "fsv-forms"
+description = "Freshservice form engine: form specs, business rules, answers, payloads and plan hashes (pure, no I/O)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+fsv-py.workspace = true
+serde_json.workspace = true
+indexmap.workspace = true
+thiserror.workspace = true
+regex.workspace = true
+jiff.workspace = true
+unicode-normalization.workspace = true
+sha2.workspace = true
+hex.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
