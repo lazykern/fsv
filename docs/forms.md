@@ -13,7 +13,7 @@ business rules ───────────────> RulesEngine ─> F
 ```
 
 ```python
-from fsv.forms import FormSpec, RulesEngine, FormState, build_change_payload
+from fsv.forms import FormSpec, RulesEngine, FormState, build_change_payload, plan_hash
 
 spec = FormSpec.from_form_fields(form_fields_json, module="change")
 rules = RulesEngine(spec, business_rules_json, module="change")
@@ -22,8 +22,10 @@ state = FormState(spec, rules, mode="new", resolver=resolver)
 diff = state.set("Environment", "Staging")   # label or API name
 print(diff.describe(spec))                    # ["added: Staging Start, ... (required: ...)"]
 state.missing_required()                      # [Field, ...]
+state.explain(["Staging Start"])              # why it is visible/required, by rule
 state.to_review()                             # [("Change Type", "Normal"), ...]
-body = build_change_payload(state, "jane@example.com", "Jane Doe")
+body = build_change_payload(state, "jane@example.com", "Jane Doe")  # incl. br_validation_excludes
+plan = plan_hash(body)                        # for --dry-run / --expect-plan
 ```
 
 ## Metadata sources
@@ -99,123 +101,258 @@ Unknown types become `text` and add a line to `spec.warnings`.
 
 ## RulesEngine
 
-`RulesEngine(spec, rules, module=..., user_type="agent", item_id=None,
-dedupe="exact", strict=False)`; `engine.evaluate(values, mode="new"|"edit")`
+```python
+RulesEngine(spec, rules, *, module=None, user_type="agent", item_id=None,
+            workspace_id=None, user=None, context=None, dedupe="exact",
+            strict=True, model="event", same_value_fires=False,
+            event_reverse="transition")
+engine.evaluate(values, mode="new"|"edit", *, base=None, order=None, events=None)
+```
+
 returns an `EvaluatedForm`: `visible` (ordered), `required` (visible and
 required), `disabled`, `values` (effective), `populated` (field → rule id),
-`messages`.
+`messages`, `blocking_messages`, `excludes`, `decisions`, `conflicts`,
+`refused`, `overridden`, `attachments_required`, and `explain()`.
 
-**Loading**
+**Context and filters.** `RuleContext(module, form, user_type, workspace_id,
+item_id, user, requester, requested_for)` (or the matching keyword
+arguments) decides which rules apply:
 
-* Kept: `state == "active"`, `rule_type == "client_side"`, not deleted,
-  matching `module_type` and `item_id`. Others are listed in
-  `engine.skipped`. Server-side rules are not evaluated.
-* Applied per call: `form_type` `both` or `new_form` (mode `new`) /
-  `edit_form` (mode `edit`); `user_type` `both` or the engine's user type.
-* Duplicate rule ids: the endpoint can return the same id more than once,
-  sometimes with *different* content (e.g. one reversible entry and one
-  non-reversible entry with a longer action list). The default policy
-  `exact` drops only identical copies and evaluates the remaining entries in
-  order. Checked against a live tenant, this reproduced the web form's
-  visible/required set exactly, while keeping only the first or last entry
-  did not. `first`, `last` and `none` are available.
+* Loaded: `state == "active"`, `rule_type == "client_side"`, not deleted,
+  matching `module_type`; a rule with an `item_id` only for that catalog
+  item; a rule's `workspace_id` must be in the context's workspace(s) when
+  those are given (one id or a collection). Others are listed in
+  `engine.skipped`.
+* Per evaluation: `form_type` `both` or `new_form` (mode `new`) /
+  `edit_form` (mode `edit`); `user_type` `both` or the context's user type.
+* `user` defaults to the `user` object of the business_rules response.
+  Conditions with `evaluate_on: "current_user"` read it;
+  `"requester"`/`"requested_for"` read the matching context records. A
+  missing record makes those conditions see empty values (with a warning).
+* Duplicate rule ids: the endpoint returns a reversible and a
+  non-reversible entry for many ids, with different action lists. The
+  default `dedupe="exact"` drops only identical copies; both entries are
+  evaluated in order. `first`, `last` and `none` exist for experiments.
+
+**Strict by default.** An operator, action or `evaluate_on` the engine does
+not implement raises `UnsupportedRuleError` (a `FormRuleError`) naming the
+rule: computing the wrong required set silently is worse than refusing.
+`strict=False` is the lenient mode: such rules are skipped and listed in
+`engine.unsupported`. Actions on fields that are not on the form are ignored
+with a warning.
 
 **Conditions**: `{"all": [...]}` or `{"any": [...]}`, items are conditions or
-nested groups; `{"all": null}` always matches.
+nested groups; `{"all": null}` / `{"any": null}` (or no condition data)
+means unconditional.
 
-| operator | matches when |
-|---|---|
-| `is` / `includes` | the value (any selected value for multi-selects) equals one of the rule values |
-| `is_not` / `does_not_include` | the opposite (so an empty field matches) |
-| `selected` / `not_selected` | checkbox is ticked / not ticked (other kinds: has a value / is empty) |
+| operator | single value | multi-select |
+|---|---|---|
+| `is` / `includes` | value is one of the rule values | any selected value is one of them |
+| `is_not` / `does_not_include` | value is none of them (an empty field matches) | no selected value is one of them |
+| `selected` / `not_selected` | checkbox ticked / not ticked (other kinds: has a value / is empty) | |
 
 Rule values are compared with each choice's value, label, id and display id
-(whitespace-collapsed, case-insensitive), so both `"Emergency"` and `"4"`
-match change type Emergency. Unknown operators or action properties skip the
-whole rule and are reported in `engine.unsupported` (`strict=True` raises
-`UnsupportedRuleError`). Actions on unknown fields are ignored with a warning.
+(whitespace-collapsed, case-insensitive), so `"4"` and `"Emergency"` both
+match change type Emergency.
 
-**Actions and evaluation**
+**Actions**
 
-Each evaluation starts from the base state (`visible`, `required` from the
-metadata) and applies every rule **in order**; a later rule overrides an
-earlier one for the same field and property. So the result is a pure
-function of the values.
-
-| property | when the rule matches | when it does not and `is_reversible` |
+| property | when the rule matches | reverse (reversible rule stops matching) |
 |---|---|---|
 | `show` / `hide` | show / hide | hide / show |
 | `mandate` / `unmandate` | required / not required | not required / required |
 | `disable` | read-only | editable again |
-| `populate` | fill the field (see below) | nothing |
-| `message` | add message (blocking if the rule `is_validation`) | nothing |
+| `populate` | set the value (choice **display id**) | nothing |
+| `message` | add message; blocking if the rule `is_validation` | message removed |
 
-`populate` values are choice display ids (or ids/values). A populated value
-is applied only while its rule matches and only if the user has not set the
-field; it is reported in `populated` with the rule id and never overwrites
-user input. Populated values feed back into conditions; the engine repeats
-until they settle.
+Empty `name` lists are no-ops. `populate` values are choice `display_id`s
+(looked up through `Field.choice_by_display_id`, then id/value).
+
+### Evaluation models
+
+**`event` (default): what the web form does.**
+
+1. On load, every rule is evaluated in array order against the load values
+   (defaults on a new form, the record on an edit form). A reversible rule
+   that does not match applies its reverse.
+2. Each change of field F is a change event: only rules whose conditions
+   reference F run, in array order. A matching rule applies its actions; a
+   reversible rule is reversed only when it goes from matching to not
+   matching (`event_reverse="always"` reverses on every non-match).
+3. `populate` does not cascade: filling a field fires no change event, so
+   rules on that field do not run.
+4. Selecting the value a field already has is not a change event
+   (`same_value_fires=True` changes that).
+
+Answers without an inherent order (YAML, `--set`) are replayed as change
+events in web field order (`position`): a person filling the form top to
+bottom. The result can differ from the web when a person answers out of
+order; `explain()` and the conflict report show where order matters.
+
+**`replay`: a pure function of the values.** Every evaluation starts from
+the metadata and applies every rule in order; a later rule overrides an
+earlier one. `populate` never overwrites a user value and feeds back until
+it settles.
+
+**Choosing the model.** Both models were scored against captured web forms
+of a live tenant (the initial change form, the form after answering a
+populate-driving question, a service item before/after a section choice)
+and against the `br_validation_excludes` token of a real change created in
+the web UI. All agree on the form captures; only the event model, with
+transition-only reversal and no same-value events, reproduces the real
+token byte for byte (the replay model gets the right fields in the wrong
+order; reversing on every non-match re-shows fields the web keeps hidden).
+`DEFAULT_MODEL` is therefore `event`. Rerun the comparison whenever new
+scenario captures arrive.
+
+### Explain and conflicts
+
+* `evaluated.decisions[(field, "visible"|"required"|"disabled")]` is the
+  `Decision` in effect: rule id, name, action, whether it was a reverse,
+  and the field change that triggered it.
+* `evaluated.explain(names=None)` returns an `Explanation` per field and
+  property: the deciding rule, or `metadata`, `section` (its section's
+  choice is not selected), `nested` (no options under the upper level),
+  `parent` (the field it belongs to is hidden).
+* `evaluated.conflicts`: matching rules that disagree on one field property
+  (show vs hide, mandate vs unmandate, disable vs enable), with the winner.
+  Show them in `--dry-run`.
 
 ## FormState
 
-`FormState(spec, rules, mode, values=None, resolver=None, tz=None)`. On `new`
-it applies the defaults. `set(field, raw)` accepts a label or API name,
-validates, re-evaluates, and returns a `Diff` (`appeared`, `disappeared`,
-`became_required`, `no_longer_required`, `messages_added/removed`,
-`populated`, `cleared`); `diff.describe(spec)` gives label-based lines.
+```python
+FormState(spec, rules, mode="new"|"edit", values=None, *, resolver=None,
+          tz=None, existing=None, event_order="position")
+```
+
+* `mode="new"` applies the defaults; `mode="edit"` takes the record in
+  `existing=`. Both are the *load* values; `values=` and `set()` are the
+  user's answers. `update --set` on an existing record must use
+  `mode="edit"` so the edit-form rules run.
+* `event_order`: `position` (answers replayed in field order, the
+  YAML/`--set` contract), `input` (in the order first given), `history`
+  (every `set()` call is a change event, repeats included, like clicks on
+  the web). With `position`/`input` the state replays the *final* answers
+  from scratch after every change, so editing an earlier answer is
+  deterministic.
+* `set(field, raw)` accepts a label or API name, validates, re-evaluates
+  and returns a `Diff` (`appeared`, `disappeared`, `became_required`,
+  `no_longer_required`, `messages_added/removed`, `populated`, `cleared`).
+* Disabled fields refuse input (`FieldDisabledError` naming the rule) but
+  keep populated values. An answer that a replay reaches after a rule
+  disabled its field is refused too (the set is rolled back). An answer a
+  later populate replaced is reported in `evaluated.overridden` and in the
+  review ("Replaced").
+* Nested fields: a lower level must be a child of the chosen upper level;
+  changing an upper level clears every lower level (as the web does).
+* Blocking messages (`is_validation` rules) must be acknowledged:
+  `state.unacknowledged()`, `state.acknowledge(rule_id | text | message)`
+  or `state.acknowledge()` for all. Until then they count in `errors()`
+  and payload builders refuse.
+* `dropped()`: fields with a value that will not be sent because they are
+  hidden, with the hiding rule. `to_review()` lists them as "Dropped".
+* `explain()` / `conflicts` delegate to the evaluated form.
 
 | kind | accepted input |
 |---|---|
-| dropdown / department / nested | choice value or label, case-insensitive exact; ids for default fields. Nested levels only accept children of the chosen upper level; changing an upper level clears lower levels that no longer fit |
+| dropdown / department / nested | choice value or label, case-insensitive exact; ids for default fields. Dropdowns whose labels look like dates (meeting dates, "N/A") are matched as text, never parsed as dates |
 | multi_select | list, or comma-separated string (a single label containing commas is matched first) |
 | checkbox | `yes/no/true/false/y/n` or bool; anything else is an error |
 | number | int or float (`1,200` accepted) |
 | date | `YYYY-MM-DD` or `date` |
-| datetime | ISO date + time; no offset → **Asia/Bangkok** (override with `tz=` or `FSV_TZ`); `Z`/`+HH:MM` kept; date alone is rejected |
+| datetime | ISO date + time; `Z`/`+HH:MM` kept; without an offset the time zone is resolved as below; date alone is rejected |
 | lookups | `LookupValue`, numeric id, or text resolved via the resolver: one result, or one exact display/email match, else `AmbiguousLookupError` |
 | attachment | path(s) or ids; checks allowed extensions and the file limit |
 
-Fields disabled by a rule raise `FieldDisabledError`. Values of hidden fields
-are kept in the state (so switching back restores them) but are never in
-`payload_values()` or the payload.
-
-* `missing_required()`: visible required fields without a value; a required
-  checkbox must be ticked.
-* `errors()`: missing fields plus blocking rule messages.
-* `to_review()`: `(label, display)` rows for visible filled fields in form
-  order (populated values marked `(auto)`), then `("Message"|"Blocked", text)`.
+**Time zone** (`state.tz`, `state.tz_source`): `tz=` argument, then
+`FSV_TZ`, then the Freshservice user's `time_zone` from the business_rules
+`user` object (Rails names such as `"Tokyo"` are mapped to IANA names), then
+the system time zone. Nothing is hardcoded.
 
 ## Payloads
 
 Only visible fields with a value are sent. Status is never taken from the
 form state; pass `status=` explicitly to send it. Builders raise
-`PayloadError` when required fields are missing or a blocking rule message is
-active, unless `allow_incomplete=True` (for drafts and dry runs).
+`PayloadError` when required fields are missing or a blocking message is
+not acknowledged, unless `allow_incomplete=True` (drafts and dry runs).
 
 | Builder | Endpoint | Body |
 |---|---|---|
-| `build_change_payload(state, email, name)` | `POST /api/_/changes` | default fields at top level (`department_id`, `group_id`, `agent_id`, `change_type`/`priority`/`impact`/`risk` ids, ISO dates with offset), `custom_fields` (choice values, value lists, booleans, user ids), `email: "Name <email>"` |
-| `build_ticket_payload(state, email, name)` | `POST /api/_/tickets` | same pattern; `agent` → `responder_id`, `urgency`/`source` ids |
-| `build_sr_payload(item, state, email, field_attachments=, attachments=)` | `POST /api/_/catalog/service-items/<display_id>/place-request` | `email`, `custom_fields` keyed by item field name (date fields `YYYY-MM-DD`, file fields → attachment id lists), `attachments` (general) |
+| `build_change_payload(state, email, name, *, status=None, account_id=None)` | `POST /api/_/changes` | default fields at top level (`department_id`, `group_id`, `agent_id`, `change_type`/`priority`/`impact`/`risk` ids, ISO dates with offset), `custom_fields` (choice values, value lists, booleans, user ids), `email: "Name <email>"`, `br_validation_excludes` |
+| `build_ticket_payload(state, email, name, ...)` | `POST /api/_/tickets` | same pattern; `agent` → `responder_id`, `urgency`/`source` ids |
+| `build_sr_payload(item, state, email, field_attachments=, attachments=, account_id=None)` | `POST /api/_/catalog/service-items/<display_id>/place-request` | `email`, `custom_fields` keyed by item field name (date fields `YYYY-MM-DD`, file fields → attachment id lists), `br_validation_excludes`, `attachments` (general) |
 
 Files are uploaded first (`POST /api/_/attachments`); builders take the
-returned ids. The SR builder enforces the item's `attachment_mandatory` and
-`allow_attachments`.
+returned ids. The SR builder enforces the item's `attachment_mandatory`
+(unless a rule unmandated `attachment_ids`) and `allow_attachments`.
 
 `description` text that does not start with `<` is escaped and wrapped in
 `<div>` blocks.
 
 ### `br_validation_excludes`
 
-The web adds a `br_validation_excludes` token to every create body. Its
-meaning, and whether the server requires it, is unknown. The engine never
-fabricates it: pass `br_validation_excludes=` to include a value you
-obtained, otherwise the key is omitted (`fsv.forms.BR_VALIDATION_EXCLUDES`).
+The web sends this with every create. It tells the server which static
+checks to skip, so fsv always computes it from the engine state and **never
+accepts a token from the caller** (that would be a way around required
+fields).
 
-### Not yet verified against a live create
+Format: an unsigned JWT-shaped token, two segments:
+`base64('{"alg":"HS256","typ":"JWT"}') + "." + base64(payload)`, standard
+base64 with padding, no signature. Payload (compact JSON):
+
+* change / ticket: `{"optional": L, "disabled": L, "hidden": L}`
+* service request: `{"<item id>": {"optional": L, "disabled": L, "hidden": L}}`
+  (the item's `id`, not its display id)
+
+Each `L` is a JSON list *encoded as a string*, with `", "` separators:
+`"[\"a_123\", \"priority\"]"`, or `"[]"`.
+
+* Names: default fields bare (`priority`, `category`); custom fields
+  `<name>_<account id>`. The account id comes from the metadata
+  (`spec.account_id`: lookup links `field_name=<name>_<id>`, formserv
+  `account_id`), else the builders' `account_id=` argument.
+* `hidden`: fields a rule hid (or a reverse hid) and that are hidden now.
+* `optional`: statically required fields that the rules leave not required.
+* `disabled`: fields a rule disabled and that are disabled now.
+* Order: the first time a rule action (or its reverse) touched that
+  property of the field, in evaluation order. Fields not on the form are
+  never listed.
+
+`build_br_validation_excludes(evaluated, kind, account_id=None,
+item_id=None)` builds it; `excludes_lists()` returns the three lists;
+`decode_br_validation_excludes()` is for inspection only.
+
+This reproduces captured tokens byte for byte (a change created in the web
+UI and a blocked service-request submit, end to end from metadata; a
+ticket token given its lists, since that tenant's ticket rules were not
+captured).
+
+## Plan hash and metadata freshness (`fsv.forms.plan`)
+
+* `plan_hash(payload, files=None)`: sha256 over the canonical JSON (sorted
+  keys, compact, UTF-8) of the request body plus, per file, its field, name,
+  size and sha256 (`files`: `{field: path | [paths]}` or a list of general
+  attachments). `br_validation_excludes` is **included**: it is
+  deterministic (no time stamp or signature) and changes exactly when the
+  rules' effect on the form changes, which an approver should re-review.
+  `plan_matches(expected, actual)` accepts the full hash or a prefix of at
+  least 12 hex characters. Use it for `--dry-run` / `--yes --expect-plan`.
+* `metadata_fingerprint(form_fields, rules, item)`: sha256 of the canonical
+  metadata (the rules response's `user` object included, since rules can
+  read it) plus the newest `updated_at` ("form metadata as of ..."). Fetch
+  again before submit, compare with `.changed()`, and re-run the engine if
+  anything moved.
+
+## Not yet verified against a live create
 
 * ticket `responder_id`, `type` (ticket type sent as its label) and change
   `change_window_id` keys;
 * "request for someone else" and quantity on service requests (not built);
-* whether non-reversible `populate` should keep its value after the rule
-  stops matching (the engine recomputes it each time).
+* whether `populate` keeps its value after its rule stops matching (the
+  engine keeps it in the event model);
+* whether the token's base64 is standard or URL-safe (captured tokens
+  contain neither `+`/`/` nor `-`/`_`; fsv uses standard, like `btoa`), and
+  how service-request field names appear in it (the captured lists were
+  empty);
+* how messages, the `is` operator on multi-selects, and `requester`
+  conditions behave on the web (no capture yet).
