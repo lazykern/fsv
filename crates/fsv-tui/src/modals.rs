@@ -140,6 +140,14 @@ impl StatusModal {
             cursor: OptionCursor { highlighted: hl },
         }
     }
+
+    /// Enter on the highlighted option: `(id, label)`.
+    fn selected(&self) -> Outcome {
+        match self.cursor.highlighted.and_then(|i| self.choices.get(i)) {
+            Some((id, label)) => Outcome::Close(ModalResult::Status(id.clone(), label.clone())),
+            None => Outcome::Stay,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
@@ -164,6 +172,21 @@ impl ConfirmModal {
             focus: ConfirmFocus::Cancel,
             scroll: 0,
         }
+    }
+
+    /// The Confirm button.
+    fn yes(&self) -> Outcome {
+        Outcome::Close(ModalResult::Bool(true))
+    }
+
+    /// The Cancel button.
+    fn no(&self) -> Outcome {
+        Outcome::Close(ModalResult::Bool(false))
+    }
+
+    /// The `y` binding.
+    fn action_confirm(&self) -> Outcome {
+        self.yes()
     }
 }
 
@@ -210,13 +233,44 @@ impl NoteModal {
         }
     }
 
-    fn submit(&self) -> Outcome {
+    /// `(visibility markup, preview body)`; the body is `None` when empty.
+    pub fn refresh(&self) -> (&'static str, Option<String>) {
+        let body = self.text.value().trim();
+        (
+            self.visibility(),
+            (!body.is_empty()).then(|| body.to_string()),
+        )
+    }
+
+    /// An edit in the text area.
+    fn changed(&mut self, ev: &KeyEvent) {
+        self.text.handle(ev);
+    }
+
+    fn action_toggle_public(&mut self) {
+        if self.can_toggle {
+            self.public = !self.public;
+        }
+    }
+
+    /// Ctrl+S: `(body, public)`, or a warning when the body is blank.
+    fn action_submit(&self) -> Outcome {
         let body = self.text.value().trim();
         if body.is_empty() {
             Outcome::Warn("Note is empty".into())
         } else {
             Outcome::Close(ModalResult::Note(body.to_string(), self.public))
         }
+    }
+
+    /// The Continue button.
+    fn submit(&self) -> Outcome {
+        self.action_submit()
+    }
+
+    /// The Cancel button.
+    fn cancel(&self) -> Outcome {
+        Outcome::Close(ModalResult::Cancelled)
     }
 }
 
@@ -258,7 +312,7 @@ impl PickerModal {
         p
     }
 
-    /// `ChoiceScreen(choices, title)`.
+    /// `ChoiceScreen.__init__`: `ChoiceScreen(choices, title)`.
     pub fn choices(title: &str, choices: Vec<(Value, String)>) -> PickerModal {
         let options = choices
             .into_iter()
@@ -293,6 +347,36 @@ impl PickerModal {
         };
     }
 
+    /// Typing in the filter input.
+    fn filter(&mut self, ev: &KeyEvent) {
+        if self.input.handle(ev) == InputEvent::Changed {
+            self.fill();
+        }
+    }
+
+    /// Enter in the filter input picks the highlighted row.
+    fn submit(&self) -> Outcome {
+        match self.cursor.highlighted {
+            Some(pos) if pos < self.shown.len() => self.selected(pos),
+            _ => Outcome::Stay,
+        }
+    }
+
+    /// ↑/↓ move the highlight, clamped; other keys belong to the input.
+    fn on_key(&mut self, key: &str) -> bool {
+        matches!(key, "up" | "down") && self.cursor.step(self.shown.len(), key)
+    }
+
+    /// The row at `pos` among the shown options.
+    fn selected(&self, pos: usize) -> Outcome {
+        self.dismiss(self.shown[pos])
+    }
+
+    /// `ChoiceScreen.dismiss`: the option's value, never its label.
+    fn dismiss(&self, i: usize) -> Outcome {
+        Outcome::Close(ModalResult::Choice(self.options[i].0.clone()))
+    }
+
     pub fn row_markup(&self, i: usize) -> String {
         let (_, name, current, custom) = &self.options[i];
         let mark = if *current { "▸ " } else { "  " };
@@ -320,6 +404,18 @@ pub struct ValueModal {
     pub allow_empty: bool,
 }
 
+impl ValueModal {
+    /// Enter: the trimmed value; a blank one stays unless `allow_empty`.
+    fn submitted(&self) -> Outcome {
+        let t = self.input.value().trim();
+        if t.is_empty() && !self.allow_empty {
+            Outcome::Stay
+        } else {
+            Outcome::Close(ModalResult::Text(t.to_string()))
+        }
+    }
+}
+
 /// `FailureScreen` (title fixed) and `OutcomeScreen` (title given): a
 /// scrollable message with only a Close control.
 #[derive(Clone, Debug)]
@@ -327,6 +423,18 @@ pub struct FailureModal {
     pub title: String,
     pub message: String,
     pub scroll: u16,
+}
+
+impl FailureModal {
+    /// Escape or the Close button.
+    fn action_close(&self) -> Outcome {
+        Outcome::Close(ModalResult::Cancelled)
+    }
+}
+
+/// `HelpScreen.on_key`: any key closes the help.
+fn dismiss_help() -> Outcome {
+    Outcome::Close(ModalResult::Cancelled)
 }
 
 pub const FAILURE_TITLE: &str = "Write failed — inspect before retrying";
@@ -385,26 +493,20 @@ impl Modal {
     pub fn handle(&mut self, ev: &KeyEvent) -> Outcome {
         let key = keys::name(ev);
         match self {
-            Modal::Help => Outcome::Close(ModalResult::Cancelled),
+            Modal::Help => dismiss_help(),
             Modal::Status(s) => match key.as_str() {
                 "escape" => Outcome::Close(ModalResult::Cancelled),
-                "enter" => match s.cursor.highlighted.and_then(|i| s.choices.get(i)) {
-                    Some((id, label)) => {
-                        Outcome::Close(ModalResult::Status(id.clone(), label.clone()))
-                    }
-                    None => Outcome::Stay,
-                },
+                "enter" => s.selected(),
                 k => {
                     s.cursor.step(s.choices.len(), k);
                     Outcome::Stay
                 }
             },
             Modal::Confirm(c) => match key.as_str() {
-                "escape" => Outcome::Close(ModalResult::Bool(false)),
-                "y" => Outcome::Close(ModalResult::Bool(true)),
-                "enter" | "space" => {
-                    Outcome::Close(ModalResult::Bool(c.focus == ConfirmFocus::Confirm))
-                }
+                "escape" => c.no(),
+                "y" => c.action_confirm(),
+                "enter" | "space" if c.focus == ConfirmFocus::Confirm => c.yes(),
+                "enter" | "space" => c.no(),
                 "tab" | "shift+tab" | "left" | "right" => {
                     c.focus = if c.focus == ConfirmFocus::Confirm {
                         ConfirmFocus::Cancel
@@ -424,14 +526,12 @@ impl Modal {
                 _ => Outcome::Stay,
             },
             Modal::Note(n) => match key.as_str() {
-                "escape" => Outcome::Close(ModalResult::Cancelled),
+                "escape" => n.cancel(),
                 "ctrl+t" => {
-                    if n.can_toggle {
-                        n.public = !n.public;
-                    }
+                    n.action_toggle_public();
                     Outcome::Stay
                 }
-                "ctrl+s" => n.submit(),
+                "ctrl+s" => n.action_submit(),
                 "tab" => {
                     n.focus = match n.focus {
                         NoteFocus::Text => NoteFocus::Continue,
@@ -449,47 +549,31 @@ impl Modal {
                     Outcome::Stay
                 }
                 "enter" | "space" if n.focus == NoteFocus::Continue => n.submit(),
-                "enter" | "space" if n.focus == NoteFocus::Cancel => {
-                    Outcome::Close(ModalResult::Cancelled)
-                }
+                "enter" | "space" if n.focus == NoteFocus::Cancel => n.cancel(),
                 _ => {
                     if n.focus == NoteFocus::Text {
-                        n.text.handle(ev);
+                        n.changed(ev);
                     }
                     Outcome::Stay
                 }
             },
             Modal::Picker(p) => match key.as_str() {
                 "escape" => Outcome::Close(ModalResult::Cancelled),
-                "enter" => match p.cursor.highlighted.and_then(|i| p.shown.get(i)) {
-                    Some(&i) => Outcome::Close(ModalResult::Choice(p.options[i].0.clone())),
-                    None => Outcome::Stay,
-                },
-                k @ ("up" | "down" | "pageup" | "pagedown") => {
-                    p.cursor.step(p.shown.len(), k);
-                    Outcome::Stay
-                }
-                _ => {
-                    if p.input.handle(ev) == InputEvent::Changed {
-                        p.fill();
+                "enter" => p.submit(),
+                k => {
+                    if !p.on_key(k) {
+                        p.filter(ev);
                     }
                     Outcome::Stay
                 }
             },
             Modal::Value(v) => match v.input.handle(ev) {
-                InputEvent::Submitted => {
-                    let t = v.input.value().trim();
-                    if t.is_empty() && !v.allow_empty {
-                        Outcome::Stay
-                    } else {
-                        Outcome::Close(ModalResult::Text(t.to_string()))
-                    }
-                }
+                InputEvent::Submitted => v.submitted(),
                 InputEvent::Ignored if key == "escape" => Outcome::Close(ModalResult::Cancelled),
                 _ => Outcome::Stay,
             },
             Modal::Failure(fm) | Modal::Outcome(fm) => match key.as_str() {
-                "escape" | "enter" | "space" => Outcome::Close(ModalResult::Cancelled),
+                "escape" | "enter" | "space" => fm.action_close(),
                 "down" | "j" => {
                     fm.scroll = fm.scroll.saturating_add(1);
                     Outcome::Stay
@@ -507,9 +591,20 @@ impl Modal {
         match self {
             Modal::Help => {
                 let text = to_text(HELP_TEXT);
-                let rect = dialog_rect(area, 76, text.lines.len() as u16 + 4);
+                let inner_w = dialog_rect(area, 76, 1).width.saturating_sub(6).max(1) as usize;
+                let rows: usize = text
+                    .lines
+                    .iter()
+                    .map(|l| l.width().div_ceil(inner_w).max(1))
+                    .sum();
+                let rect = dialog_rect(area, 76, rows as u16 + 4);
                 frame(f, rect);
-                f.render_widget(Paragraph::new(text).block(dialog_block()), rect);
+                f.render_widget(
+                    Paragraph::new(text)
+                        .wrap(Wrap { trim: false })
+                        .block(dialog_block()),
+                    rect,
+                );
             }
             Modal::Status(s) => {
                 let title = format!(
@@ -560,18 +655,18 @@ impl Modal {
             }
             Modal::Confirm(c) => {
                 let body = plain_text(&c.lines.join("\n"));
-                let body_h =
-                    (body.lines.len() as u16).clamp(1, area.height.saturating_sub(14).max(3));
-                let rect = dialog_rect(area, 64, body_h + 11);
+                // The body's VerticalScroll is 1fr: the dialog always grows to max-height.
+                let rect = dialog_rect(area, 64, area.height);
                 frame(f, rect);
                 let inner = dialog_block().inner(rect);
                 f.render_widget(dialog_block(), rect);
-                let [t, _, b, _, btn, h] = Layout::vertical([
+                let [t, _, b, _, btn, _, h] = Layout::vertical([
                     Constraint::Length(1),
                     Constraint::Length(1),
                     Constraint::Min(1),
                     Constraint::Length(1),
                     Constraint::Length(3),
+                    Constraint::Length(1),
                     Constraint::Length(1),
                 ])
                 .areas(inner);
@@ -645,19 +740,18 @@ impl Modal {
                         text_area.y + row.min(text_area.height.saturating_sub(1)),
                     ));
                 }
+                let (visibility, body) = n.refresh();
                 f.render_widget(
-                    Paragraph::new(vec![Line::default(), to_line(n.visibility())]),
+                    Paragraph::new(vec![Line::default(), to_line(visibility)]),
                     vis,
                 );
-                let body = n.text.value().trim();
                 let mut preview = vec![Span::styled(
                     "Preview: ",
                     Style::default().add_modifier(Modifier::BOLD),
                 )];
-                preview.push(if body.is_empty() {
-                    Span::styled("(empty)", Style::default().add_modifier(Modifier::DIM))
-                } else {
-                    Span::raw(body.to_string())
+                preview.push(match body {
+                    None => Span::styled("(empty)", Style::default().add_modifier(Modifier::DIM)),
+                    Some(b) => Span::raw(b),
                 });
                 f.render_widget(
                     Paragraph::new(vec![Line::default(), Line::from(preview)])
@@ -1098,6 +1192,105 @@ mod tests {
                 press(&mut Modal::Help, k),
                 Outcome::Close(ModalResult::Cancelled)
             );
+        }
+        assert_eq!(dismiss_help(), Outcome::Close(ModalResult::Cancelled));
+    }
+
+    // One test per `modals.py` handler, calling the Rust method it maps to.
+
+    #[test]
+    fn status_selected_dismisses_with_id_and_label() {
+        let s = StatusModal::new(
+            vec![(json!(1), "Open".into()), (json!(2), "Pending".into())],
+            "Pending",
+        );
+        assert_eq!(
+            s.selected(),
+            Outcome::Close(ModalResult::Status(json!(2), "Pending".into()))
+        );
+        assert_eq!(StatusModal::new(Vec::new(), "x").selected(), Outcome::Stay);
+    }
+
+    #[test]
+    fn confirm_yes_no_and_action_confirm() {
+        let c = ConfirmModal::new("T", vec![]);
+        assert_eq!(c.yes(), Outcome::Close(ModalResult::Bool(true)));
+        assert_eq!(c.no(), Outcome::Close(ModalResult::Bool(false)));
+        assert_eq!(c.action_confirm(), Outcome::Close(ModalResult::Bool(true)));
+    }
+
+    #[test]
+    fn note_refresh_changed_toggle_submit_cancel() {
+        let mut n = NoteModal::new("CHN-1", false, true);
+        assert_eq!(
+            n.refresh(),
+            ("[b]Visibility: Private[/] [dim](Ctrl+T: public)[/]", None)
+        );
+        n.changed(&keys::parse("h"));
+        n.changed(&keys::parse("i"));
+        n.action_toggle_public();
+        assert_eq!(
+            n.refresh(),
+            (
+                "[b]Visibility: PUBLIC[/] [dim](Ctrl+T: private)[/]",
+                Some("hi".into())
+            )
+        );
+        assert_eq!(
+            n.action_submit(),
+            Outcome::Close(ModalResult::Note("hi".into(), true))
+        );
+        assert_eq!(n.submit(), n.action_submit());
+        assert_eq!(n.cancel(), Outcome::Close(ModalResult::Cancelled));
+        let mut fixed = NoteModal::new("CHN-1", false, false);
+        fixed.action_toggle_public();
+        assert!(!fixed.public);
+        assert_eq!(fixed.action_submit(), Outcome::Warn("Note is empty".into()));
+    }
+
+    #[test]
+    fn picker_fill_filter_on_key_submit_selected_dismiss() {
+        let mut p = PickerModal::views(
+            "Views",
+            vec![
+                (json!(0), "All  tickets".into(), false, true),
+                (json!(1), "My open".into(), true, false),
+                (json!(2), "Open urgent".into(), false, true),
+            ],
+        );
+        assert_eq!(p.cursor.highlighted, Some(1));
+        assert_eq!(
+            p.labels(),
+            vec!["  All  tickets", "▸ My open  (custom)", "  Open urgent"]
+        );
+        p.input.set_value("  OPEN ");
+        p.fill();
+        assert_eq!(p.shown, vec![1, 2]);
+        p.filter(&keys::parse("x"));
+        assert!(p.shown.is_empty());
+        assert_eq!(p.submit(), Outcome::Stay);
+        assert!(!p.on_key("down"));
+        p.filter(&keys::parse("backspace"));
+        assert_eq!(p.shown, vec![1, 2]);
+        assert!(p.on_key("down"));
+        assert!(p.on_key("down"));
+        assert_eq!(p.cursor.highlighted, Some(1));
+        assert!(!p.on_key("pagedown"));
+        assert_eq!(p.submit(), Outcome::Close(ModalResult::Choice(json!(2))));
+        assert_eq!(p.selected(0), Outcome::Close(ModalResult::Choice(json!(1))));
+        assert_eq!(p.dismiss(0), Outcome::Close(ModalResult::Choice(json!(0))));
+    }
+
+    #[test]
+    fn value_submitted_and_failure_action_close() {
+        if let Modal::Value(v) = Modal::value("T", " a ") {
+            assert_eq!(v.submitted(), Outcome::Close(ModalResult::Text("a".into())));
+        }
+        if let Modal::Value(v) = Modal::value_with("T", " ", false) {
+            assert_eq!(v.submitted(), Outcome::Stay);
+        }
+        if let Modal::Failure(f) = Modal::failure("x") {
+            assert_eq!(f.action_close(), Outcome::Close(ModalResult::Cancelled));
         }
     }
 }

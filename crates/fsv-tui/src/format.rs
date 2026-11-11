@@ -35,6 +35,7 @@ pub fn m(v: &str) -> String {
     escape(v)
 }
 
+/// `_markup`: `escape(str(value))`, `None` as `""`.
 fn mv(v: Option<&Value>) -> String {
     escape(&s(v))
 }
@@ -553,5 +554,75 @@ mod tests {
         assert_eq!(clip("abc", 4), "abc");
         assert_eq!(format_tasks(&json!([])), "\n[dim]no tasks[/]\n");
         assert!(plain(&format_resolution(&json!({}))).contains("no resolution"));
+    }
+
+    // Expected strings: `FsvApp._format_*` / `_markup` run on the same input.
+
+    #[test]
+    fn markup_escapes_str_of_value() {
+        assert_eq!(mv(None), "");
+        assert_eq!(mv(Some(&json!("[b]x"))), "\\[b]x");
+        assert_eq!(mv(Some(&json!(3))), "3");
+    }
+
+    #[test]
+    fn format_approvals_icons_member_level_created() {
+        let a = json!([
+            {"member": {"name": "Ann [x]"}, "status": {"name": "Approved"}, "level_id": 2, "created_at": "2026-01-02T03:04:05Z"},
+            {"member_id": 77, "status": "rejected", "created_at": null},
+            {"member": {}, "status": {"name": "Requested"}, "level_id": 1}
+        ]);
+        assert_eq!(
+            format_approvals(&a),
+            "\n  [green]✓[/] [bold]Ann \\[x][/]  L2\n    Approved  [dim]2026-01-02T03:04:05[/]\n\n  [red]✗[/] [bold]77[/]  L?\n    rejected  [dim][/]\n\n  [yellow]⏳[/] [bold]?[/]  L1\n    Requested  [dim][/]\n"
+        );
+        assert_eq!(format_approvals(&json!([])), "\n[dim]no approvals[/]\n");
+    }
+
+    #[test]
+    fn format_assets_config_item_and_parts() {
+        let a = json!([
+            {"config_item": {"name": "Laptop [A]", "display_id": 5, "asset_type": "Hardware", "department": {"name": "IT"}, "location_name": "HQ"}},
+            {"display_name": "Server", "id": 9, "ci_type_name": "CI"},
+            {}
+        ]);
+        assert_eq!(
+            format_assets(&a),
+            "\n  [bold]Laptop [A][/]\n    [dim]ID: 5 · Type: Hardware · Dept: IT · Location: HQ[/]\n\n  [bold]Server[/]\n    [dim]ID: 9 · Type: CI[/]\n\n  [bold]-[/]\n"
+        );
+        assert_eq!(format_assets(&json!([])), "\n[dim]no assets[/]\n");
+    }
+
+    #[test]
+    fn format_associations_sections_skip_meta() {
+        let d = json!({"warnings": ["partial [list]"], "meta": {"x": 1}, "complete": true,
+            "Tickets": [{"human_display_id": "INC-1", "subject": "S".repeat(70), "status_name": "Open", "priority": 3},
+                        {"display_id": 2, "status": 2}],
+            "Problems": [], "Other": "x"});
+        assert_eq!(
+            format_associations(&d),
+            format!(
+                "\npartial \\[list]\n  [dim]── TICKETS ──[/]\n    [cyan]INC-1[/]  {}\n      Status: Open  Priority: High\n    [cyan]2[/]  \n      Status: 2  Priority: -\n",
+                "S".repeat(60)
+            )
+        );
+        assert_eq!(
+            format_associations(&json!({})),
+            "\n[dim]no associations[/]\n"
+        );
+    }
+
+    #[test]
+    fn format_activity_groups_by_day() {
+        let a = json!([
+            {"created_at": "2026-01-02T03:04:05Z", "actor": {"name": "Bob"}, "content": "<p>did [thing]</p>\nline2"},
+            {"created_at": "2026-01-02T09:10:11Z", "note_content": "n"},
+            {"created_at": "2026-01-03", "actor": "x"}
+        ]);
+        assert_eq!(
+            format_activity(&a),
+            "\n  [dim]── 2026-01-02 ──[/]\n  [dim]03:04[/]  [bold]Bob[/]\n         did \\[thing] \n         line2\n\n  [dim]09:10[/]  [bold]System[/]\n         n\n\n  [dim]── 2026-01-03 ──[/]\n  [dim][/]  [bold]System[/]\n"
+        );
+        assert_eq!(format_activity(&json!([])), "\n[dim]no activity[/]\n");
     }
 }

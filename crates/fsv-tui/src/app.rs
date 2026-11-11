@@ -37,6 +37,7 @@ const ENTITY_DEBOUNCE: Duration = Duration::from_millis(200);
 const LOOKUP_DEBOUNCE: Duration = Duration::from_millis(300);
 const TOAST_SECS: u64 = 5;
 
+/// `_resource_for_entity`, with the callers' `or TICKETS` fallback.
 pub fn resource_for(name: &str) -> Res {
     match name {
         "changes" => &CHANGES,
@@ -875,16 +876,7 @@ impl App {
                 );
             }
             Ui::Catalog(items, categories) => self.pick_catalog(items, categories),
-            Ui::TaskPlan(item, plan) => {
-                if self.read_only {
-                    return;
-                }
-                let review = fsv_py::pretty(&plan.review);
-                self.push(
-                    Modal::confirm("Review exact new change task", vec![review]),
-                    Cont::TaskReviewed { item, plan },
-                );
-            }
+            Ui::TaskPlan(item, plan) => self.review_change_task(item, plan),
             Ui::Targets {
                 kind,
                 item,
@@ -899,114 +891,33 @@ impl App {
             } => self.edit_task_field(item, target, current, fields),
             Ui::ApprovalReview { item, plan, before } => self.review_approval(item, plan, before),
             Ui::ApprovalTargets { kind, item, rows } => self.pick_approval_target(kind, item, rows),
-            Ui::ApprovalResult { item, result } => {
-                self.after_write(
-                    &CHANGES,
-                    item,
-                    "Approval submitted; inspect verification details",
-                );
-                self.push(
-                    Modal::outcome("Approval result — do not resend", &json_pretty(&result)),
-                    Cont::None,
-                );
-            }
+            Ui::ApprovalResult { item, result } => self.approval_result(item, result),
         }
     }
 
     // ── list loading ────────────────────────────────────────
 
     pub fn load_list(&mut self, append: bool) {
-        let epoch = self.list_epoch;
-        let entity = self.entity;
-        let page = if append { self.page + 1 } else { 1 };
-        let res = resource_for(entity);
-        let have: Vec<&'static str> = self.schemas.keys().copied().collect();
-        let need_me = self.me.is_none();
-        let need_views = !self.views.contains_key(res.name);
-        let need_headers = res.name == "tickets" && !self.headers.contains_key(res.name);
-        let filters = self.active_filters.clone();
-        let schema = self.schemas.get(res.name).cloned();
-        let cur_view = self.view.get(res.name).cloned();
-        let per_page = self.per_page;
-        self.spawn(move |b| {
-            let mut loaded = Loaded::default();
-            let outcome = (|| -> ListOutcome {
-                for r in ALL_RESOURCES {
-                    if !have.contains(&r.name) {
-                        match b.load_schema(r) {
-                            Ok(s) => loaded.schemas.push((r.name, s)),
-                            Err(e) if e.is_session() => return Err(e.to_string()),
-                            Err(_) => loaded.schemas.push((r.name, json!({"fields": []}))),
-                        }
-                    }
-                }
-                if need_me {
-                    let me = b.current_user().map_err(|e| e.to_string())?;
-                    let tz = b.user_tz(&me);
-                    loaded.me = Some((me, tz));
-                }
-                let mut view = cur_view;
-                if need_views {
-                    let views = b.load_views(res).map_err(|e| e.to_string())?;
-                    if view.is_none() {
-                        view = site::default_view(&views).cloned();
-                    }
-                    loaded.views = Some((res.name, views));
-                }
-                if need_headers {
-                    loaded.headers = Some(b.ticket_headers().map_err(|e| e.to_string())?);
-                }
-                let mut query_hash = None;
-                if !filters.is_empty() {
-                    let sch = schema
-                        .or_else(|| {
-                            loaded
-                                .schemas
-                                .iter()
-                                .find(|(n, _)| *n == res.name)
-                                .map(|(_, s)| s.clone())
-                        })
-                        .unwrap_or_else(|| json!({"fields": []}));
-                    query_hash = Some(
-                        b.build_query_hash(res, &sch, &filters)
-                            .map_err(|e| e.to_string())?,
-                    );
-                }
-                let view = if filters.is_empty() { view } else { None };
-                let (mut order_by, mut order_type) = ("created_at".to_string(), "desc".to_string());
-                if let Some(v) = view.as_ref().filter(|v| fsv_py::truthy(&v.raw)) {
-                    let settings = b.view_settings(res, v).map_err(|e| e.to_string())?;
-                    if let Some(ob) = settings.get("order_by").filter(|x| fsv_py::truthy(x)) {
-                        order_by = fsv_py::py_str(ob);
-                        order_type = settings
-                            .get("order_type")
-                            .filter(|x| fsv_py::truthy(x))
-                            .map_or("desc".into(), fsv_py::py_str);
-                    }
-                }
-                loaded.sort = Some(order_by.clone());
-                let req = ListRequest {
-                    res,
-                    page,
-                    per_page,
-                    query_hash,
-                    filter_name: view.map(|v| v.id),
-                    order_by,
-                    order_type,
-                };
-                let (items, data) = b.list_page(&req).map_err(|e| e.to_string())?;
-                let (total, more) = site::list_meta(&data, items.len(), page, per_page);
-                Ok((items, total, more))
-            })();
-            Msg::List {
-                epoch,
-                entity,
-                page,
-                append,
-                loaded,
-                outcome,
-            }
-        });
+        let job = self.list_job(append);
+        self.spawn(move |b| job.fetch_list(b));
+    }
+
+    fn list_job(&self, append: bool) -> ListJob {
+        let res = resource_for(self.entity);
+        ListJob {
+            epoch: self.list_epoch,
+            entity: self.entity,
+            page: if append { self.page + 1 } else { 1 },
+            append,
+            have: self.schemas.keys().copied().collect(),
+            need_me: self.me.is_none(),
+            need_views: !self.views.contains_key(res.name),
+            need_headers: res.name == "tickets" && !self.headers.contains_key(res.name),
+            filters: self.active_filters.clone(),
+            schema: self.schemas.get(res.name).cloned(),
+            cur_view: self.view.get(res.name).cloned(),
+            per_page: self.per_page,
+        }
     }
 
     fn merge_loaded(&mut self, loaded: Loaded) {
@@ -1278,6 +1189,8 @@ impl App {
         self.items.iter().find(|i| i.display_id() == did).cloned()
     }
 
+    /// `FsvApp.on_data_table_row_highlighted`: show the cached record or a
+    /// placeholder, debounce the detail load, and page at the last row.
     fn row_highlighted(&mut self) {
         let Some(did) = self.rows.get(self.cursor).map(|r| r.key.clone()) else {
             return;
@@ -1395,6 +1308,32 @@ impl App {
         };
     }
 
+    fn toggle_pane(&mut self) {
+        self.focus_pane(if self.active_pane() == Pane::List {
+            Pane::Detail
+        } else {
+            Pane::List
+        });
+    }
+
+    fn selected_key(&self) -> Option<String> {
+        self.selected.as_ref().map(Item::key)
+    }
+
+    /// The properties side panel; `None` hides it.
+    fn show_side(&mut self, lines: Option<Vec<String>>) {
+        self.detail.side = lines;
+    }
+
+    fn scroll_detail_home(&mut self) {
+        self.detail.scroll = 0;
+    }
+
+    /// Python defers this until after the refresh; the next draw is that.
+    fn reset_detail_scroll(&mut self) {
+        self.scroll_detail_home();
+    }
+
     fn clear_detail(&mut self, message: &str) {
         self.selected = None;
         self.pending_detail_key = None;
@@ -1403,6 +1342,8 @@ impl App {
             content: Content::Markup(message.to_string()),
             ..DetailView::default()
         };
+        self.show_side(None);
+        self.reset_detail_scroll();
     }
 
     fn set_pending_detail(&mut self, key: &str, message: &str) {
@@ -1411,9 +1352,9 @@ impl App {
         self.pending_sub_key = None;
         self.detail.bar.clear();
         self.detail.tabs.clear();
-        self.detail.side = None;
+        self.show_side(None);
         self.detail.content = Content::Markup(message.to_string());
-        self.detail.scroll = 0;
+        self.reset_detail_scroll();
     }
 
     fn trigger_state_flow(&mut self, item: &Item) {
@@ -1520,7 +1461,7 @@ impl App {
                 lines.extend(self.pages.notes_lines(page));
                 let side = self.pages.side_lines(page);
                 self.detail.content = Content::Markup(lines.join("\n"));
-                self.detail.side = Some(side);
+                self.show_side(Some(side));
             } else {
                 let schema = self
                     .schemas
@@ -1529,15 +1470,15 @@ impl App {
                     .unwrap_or_else(|| json!({"fields": []}));
                 self.detail.content =
                     Content::Markup(format::format_details(&item.data, item.res, &schema));
-                self.detail.side = None;
+                self.show_side(None);
             }
-            self.detail.scroll = 0;
+            self.reset_detail_scroll();
         } else {
-            self.detail.side = None;
+            self.show_side(None);
             let sub_key = format!("{}:{tab}", item.key());
             self.pending_sub_key = Some(sub_key.clone());
             self.detail.content = Content::Markup(format!("[dim]loading {tab}...[/]"));
-            self.detail.scroll = 0;
+            self.reset_detail_scroll();
             self.load_sub_resource(tab, sub_key);
         }
     }
@@ -1576,8 +1517,10 @@ impl App {
         if self.pending_sub_key.as_deref() != Some(sub_key) {
             return;
         }
-        let Some(sel) = &self.selected else { return };
-        if format!("{}:{}", sel.key(), self.current_tab_name(Some(res))) != sub_key {
+        let Some(current) = self.selected_key() else {
+            return;
+        };
+        if format!("{current}:{}", self.current_tab_name(Some(res))) != sub_key {
             return;
         }
         let page = self.page_for(self.selected.as_ref());
@@ -1587,7 +1530,7 @@ impl App {
         lines.extend(self.pages.tab_lines(data, tz, schema));
         lines.push(String::new());
         self.detail.content = Content::Markup(lines.join("\n"));
-        self.detail.scroll = 0;
+        self.reset_detail_scroll();
     }
 
     fn set_detail_tab(&mut self, idx: usize) {
@@ -1652,6 +1595,7 @@ impl App {
         }
     }
 
+    /// `FsvApp._render_header`: entity tabs or search tabs with counts.
     pub fn header_markup(&self) -> String {
         let mut parts: Vec<String> = Vec::new();
         if self.search_mode {
@@ -1702,6 +1646,7 @@ impl App {
         parts.concat()
     }
 
+    /// `FsvApp._render_filter_bar`.
     pub fn filter_bar_markup(&self) -> String {
         let sel = self.selected.as_ref().map_or("-".into(), Item::display_id);
         let loading = if self.loading_more {
@@ -1732,7 +1677,7 @@ impl App {
         )
     }
 
-    /// Status bar: `(label, dim suffix)`.
+    /// `FsvApp._render_status`: `(label, dim suffix)`.
     pub fn status_parts(&self) -> (String, String) {
         let mut label = if self.search_mode {
             let mut l = format!("SEARCH: {}", self.search_term);
@@ -1761,6 +1706,7 @@ impl App {
         )
     }
 
+    /// `FsvApp._render_key_hints`.
     pub fn key_hints_markup(&self) -> String {
         let write = if self.read_only {
             ""
@@ -1804,6 +1750,7 @@ impl App {
         self.maybe_schedule_lookup();
     }
 
+    /// `FsvApp._cancel_filter_input`; applying a filter closes it the same way.
     fn close_filter(&mut self) {
         self.filter.close();
         self.stop_timer(Slot::Lookup);
@@ -1823,6 +1770,7 @@ impl App {
         self.reload_list("[dim]filtering...[/]");
     }
 
+    /// `FsvApp._maybe_schedule_network_lookup`.
     fn maybe_schedule_lookup(&mut self) {
         if !self.backend.completion_network() {
             return;
@@ -1892,16 +1840,37 @@ impl App {
             _ => {}
         }
         match self.filter.input.handle(ev) {
-            InputEvent::Submitted => {
+            InputEvent::Submitted => self.on_input_submitted(Focus::Filter),
+            InputEvent::Changed => self.on_input_changed(),
+            _ => {}
+        }
+    }
+
+    /// Enter in the filter or search input.
+    fn on_input_submitted(&mut self, input: Focus) {
+        match input {
+            Focus::Filter => {
                 let raw = self.filter.input.value().to_string();
                 self.apply_filter(&raw);
             }
-            InputEvent::Changed => {
-                self.with_source(|st, src| st.typed(src));
-                self.maybe_schedule_lookup();
+            Focus::Search => {
+                let raw = self.search_input.value().to_string();
+                self.apply_search(&raw);
             }
             _ => {}
         }
+    }
+
+    /// Typing in the filter input; code-set values (Tab, history) never get
+    /// here, which is what Python's tab / history locks are for.
+    fn on_input_changed(&mut self) {
+        self.with_source(|st, src| st.typed(src));
+        self.maybe_schedule_lookup();
+    }
+
+    fn cancel_search_input(&mut self) {
+        self.search_input_visible = false;
+        self.focus = Focus::List;
     }
 
     // ── search ──────────────────────────────────────────────
@@ -1964,7 +1933,7 @@ impl App {
         self.search_sort = "relevance";
         self.search_page = 1;
         self.search_has_more = false;
-        self.active_filters = self.backend.default_where(self.entity);
+        self.active_filters = self.get_default_filters(self.entity);
         self.filter_error = None;
         self.reload_list("[dim]loading rows...[/]");
     }
@@ -2219,9 +2188,14 @@ impl App {
         self.list_epoch += 1;
         self.has_more = false;
         self.loading_more = false;
-        self.active_filters = self.backend.default_where(name);
+        self.active_filters = self.get_default_filters(name);
         self.filter_error = None;
         self.set_timer(Slot::Entity, ENTITY_DEBOUNCE, TimerKind::Entity);
+    }
+
+    /// `config.get_default_where(entity)`; the backend maps errors to `[]`.
+    fn get_default_filters(&self, entity: &str) -> Vec<String> {
+        self.backend.default_where(entity)
     }
 
     fn step_entity(&mut self, delta: isize) {
@@ -2230,6 +2204,14 @@ impl App {
             .position(|e| *e == self.entity)
             .unwrap_or(0) as isize;
         self.switch_entity(ENTITY_TABS[(idx + delta).rem_euclid(3) as usize]);
+    }
+
+    fn next_entity(&mut self) {
+        self.step_entity(1);
+    }
+
+    fn prev_entity(&mut self) {
+        self.step_entity(-1);
     }
 
     fn pick_view(&mut self) {
@@ -2273,6 +2255,8 @@ impl App {
         }
     }
 
+    /// `FsvApp.on_key`: ctrl+c, then the open modal, the search or filter
+    /// input, and finally the main-pane keys.
     pub fn handle_key(&mut self, ev: &KeyEvent) {
         let key = keys::name(ev);
         if key == "ctrl+c" {
@@ -2294,11 +2278,9 @@ impl App {
         match self.focus {
             Focus::Search => {
                 if key == "escape" {
-                    self.search_input_visible = false;
-                    self.focus = Focus::List;
+                    self.cancel_search_input();
                 } else if self.search_input.handle(ev) == InputEvent::Submitted {
-                    let raw = self.search_input.value().to_string();
-                    self.apply_search(&raw);
+                    self.on_input_submitted(Focus::Search);
                 }
                 return;
             }
@@ -2316,7 +2298,7 @@ impl App {
         if let Some(pending) = self.g_pending.take() {
             if key == "g" {
                 if pending == Pane::Detail {
-                    self.detail.scroll = 0;
+                    self.scroll_detail_home();
                 } else {
                     self.move_cursor(0, false);
                 }
@@ -2339,11 +2321,7 @@ impl App {
                     self.open_filter_input();
                 }
             }
-            "tab" => self.focus_pane(if pane == Pane::List {
-                Pane::Detail
-            } else {
-                Pane::List
-            }),
+            "tab" => self.toggle_pane(),
             "ctrl+j" => self.focus_pane(Pane::Detail),
             "ctrl+k" => self.focus_pane(Pane::List),
             "question_mark" => self.push(Modal::Help, Cont::None),
@@ -2393,7 +2371,7 @@ impl App {
                 } else if self.search_mode {
                     self.step_search_entity(-1)
                 } else {
-                    self.step_entity(-1)
+                    self.prev_entity()
                 }
             }
             "l" | "right" => {
@@ -2402,7 +2380,7 @@ impl App {
                 } else if self.search_mode {
                     self.step_search_entity(1)
                 } else {
-                    self.step_entity(1)
+                    self.next_entity()
                 }
             }
             "o" => self.open_browser(),
@@ -2576,22 +2554,7 @@ impl App {
             (Cont::LinkQuery { item }, R::Text(q)) => {
                 self.load_action_targets("link".into(), item, q)
             }
-            (Cont::TaskTitle { item }, R::Text(title)) => {
-                if self.read_only {
-                    return;
-                }
-                let choices = vec![
-                    (json!("none"), "No owner (default)".to_string()),
-                    (
-                        json!("explicit"),
-                        "Explicit owner user ID or email".to_string(),
-                    ),
-                ];
-                self.push(
-                    Modal::choices("Task owner", choices),
-                    Cont::TaskOwnerMode { item, title },
-                );
-            }
+            (Cont::TaskTitle { item }, R::Text(title)) => self.task_titled(item, title),
             (Cont::TaskOwnerMode { item, title }, R::Choice(mode)) => {
                 if self.read_only {
                     return;
@@ -2900,16 +2863,7 @@ impl App {
                 },
                 R::Bool(true),
             ) => self.execute_action(kind, item, target, body, plan),
-            (Cont::CreateChoice, R::Choice(kind)) => {
-                if self.read_only {
-                    return;
-                }
-                if kind == "sr" {
-                    self.load_catalog();
-                } else {
-                    self.launch_create();
-                }
-            }
+            (Cont::CreateChoice, R::Choice(kind)) => self.create_choice(&fsv_py::py_str(&kind)),
             (Cont::CatalogCategory { items, categories }, R::Choice(category)) => {
                 if self.read_only {
                     return;
@@ -3020,8 +2974,12 @@ impl App {
             self.notify("Not available for this item type", Severity::Warning);
             return;
         }
-        let modal = NoteModal::new(&item.display_id(), reply, true);
+        let modal = NoteModal::new(&self.target_label(&item), reply, true);
         self.push(Modal::Note(modal), Cont::NoteComposed { item, reply });
+    }
+
+    fn target_label(&self, item: &Item) -> String {
+        item.display_id()
     }
 
     fn review_ticket_note(&mut self, item: Item, body: String, public: bool) {
@@ -3149,18 +3107,8 @@ impl App {
             return;
         }
         match kind {
-            "task-add" => {
-                if item.res.name == "changes" {
-                    self.push(
-                        Modal::value("New change task title — Open; reminder Never", ""),
-                        Cont::TaskTitle { item },
-                    );
-                }
-            }
-            "approval-request" => self.push(
-                Modal::value("Approval group name", ""),
-                Cont::ApprovalName { item },
-            ),
+            "task-add" => self.compose_change_task(item),
+            "approval-request" => self.compose_approval_request(item),
             "approval-respond" | "approval-cancel" | "approval-groups" => {
                 self.load_approval_targets(kind.to_string(), item)
             }
@@ -3170,6 +3118,65 @@ impl App {
             ),
             _ => self.load_action_targets(kind.to_string(), item, String::new()),
         }
+    }
+
+    /// Title → owner mode → optional fields (see `task_titled`).
+    fn compose_change_task(&mut self, item: Item) {
+        if self.read_only || item.res.name != "changes" {
+            return;
+        }
+        self.push(
+            Modal::value("New change task title — Open; reminder Never", ""),
+            Cont::TaskTitle { item },
+        );
+    }
+
+    fn task_titled(&mut self, item: Item, title: String) {
+        if self.read_only {
+            return;
+        }
+        let choices = vec![
+            (json!("none"), "No owner (default)".to_string()),
+            (
+                json!("explicit"),
+                "Explicit owner user ID or email".to_string(),
+            ),
+        ];
+        self.push(
+            Modal::choices("Task owner", choices),
+            Cont::TaskOwnerMode { item, title },
+        );
+    }
+
+    fn review_change_task(&mut self, item: Item, plan: ReviewPlan) {
+        if self.read_only {
+            return;
+        }
+        let review = fsv_py::pretty(&plan.review);
+        self.push(
+            Modal::confirm("Review exact new change task", vec![review]),
+            Cont::TaskReviewed { item, plan },
+        );
+    }
+
+    /// Name → message → recipients → rule, then `prepare_approval_request`.
+    fn compose_approval_request(&mut self, item: Item) {
+        self.push(
+            Modal::value("Approval group name", ""),
+            Cont::ApprovalName { item },
+        );
+    }
+
+    fn approval_result(&mut self, item: Item, result: Value) {
+        self.after_write(
+            &CHANGES,
+            item,
+            "Approval submitted; inspect verification details",
+        );
+        self.push(
+            Modal::outcome("Approval result — do not resend", &json_pretty(&result)),
+            Cont::None,
+        );
     }
 
     fn prepare_approval_request(
@@ -3648,6 +3655,17 @@ impl App {
         self.notify("form UI not available", Severity::Warning);
     }
 
+    fn create_choice(&mut self, kind: &str) {
+        if self.read_only {
+            return;
+        }
+        if kind == "sr" {
+            self.load_catalog();
+        } else {
+            self.launch_create();
+        }
+    }
+
     fn launch_create(&mut self) {
         if self.read_only {
             return;
@@ -3695,6 +3713,108 @@ enum WriteKind {
     Status(Value, String),
     Note(String, bool),
     Reply(String),
+}
+
+/// What a list worker needs from the app, captured on the UI thread.
+struct ListJob {
+    epoch: u64,
+    entity: &'static str,
+    page: i64,
+    append: bool,
+    have: Vec<&'static str>,
+    need_me: bool,
+    need_views: bool,
+    need_headers: bool,
+    filters: Vec<String>,
+    schema: Option<Value>,
+    cur_view: Option<View>,
+    per_page: i64,
+}
+
+impl ListJob {
+    /// Schemas, the signed-in agent, saved views, ticket headers, the query
+    /// hash and view sort, then one `list_page`.
+    fn fetch_list(self, b: &dyn Backend) -> Msg {
+        let res = resource_for(self.entity);
+        let mut loaded = Loaded::default();
+        let outcome = (|| -> ListOutcome {
+            for r in ALL_RESOURCES {
+                if !self.have.contains(&r.name) {
+                    match b.load_schema(r) {
+                        Ok(s) => loaded.schemas.push((r.name, s)),
+                        Err(e) if e.is_session() => return Err(e.to_string()),
+                        Err(_) => loaded.schemas.push((r.name, json!({"fields": []}))),
+                    }
+                }
+            }
+            if self.need_me {
+                let me = b.current_user().map_err(|e| e.to_string())?;
+                let tz = b.user_tz(&me);
+                loaded.me = Some((me, tz));
+            }
+            let mut view = self.cur_view;
+            if self.need_views {
+                let views = b.load_views(res).map_err(|e| e.to_string())?;
+                if view.is_none() {
+                    view = site::default_view(&views).cloned();
+                }
+                loaded.views = Some((res.name, views));
+            }
+            if self.need_headers {
+                loaded.headers = Some(b.ticket_headers().map_err(|e| e.to_string())?);
+            }
+            let mut query_hash = None;
+            if !self.filters.is_empty() {
+                let sch = self
+                    .schema
+                    .or_else(|| {
+                        loaded
+                            .schemas
+                            .iter()
+                            .find(|(n, _)| *n == res.name)
+                            .map(|(_, s)| s.clone())
+                    })
+                    .unwrap_or_else(|| json!({"fields": []}));
+                query_hash = Some(
+                    b.build_query_hash(res, &sch, &self.filters)
+                        .map_err(|e| e.to_string())?,
+                );
+            }
+            let view = if self.filters.is_empty() { view } else { None };
+            let (mut order_by, mut order_type) = ("created_at".to_string(), "desc".to_string());
+            if let Some(v) = view.as_ref().filter(|v| fsv_py::truthy(&v.raw)) {
+                let settings = b.view_settings(res, v).map_err(|e| e.to_string())?;
+                if let Some(ob) = settings.get("order_by").filter(|x| fsv_py::truthy(x)) {
+                    order_by = fsv_py::py_str(ob);
+                    order_type = settings
+                        .get("order_type")
+                        .filter(|x| fsv_py::truthy(x))
+                        .map_or("desc".into(), fsv_py::py_str);
+                }
+            }
+            loaded.sort = Some(order_by.clone());
+            let req = ListRequest {
+                res,
+                page: self.page,
+                per_page: self.per_page,
+                query_hash,
+                filter_name: view.map(|v| v.id),
+                order_by,
+                order_type,
+            };
+            let (items, data) = b.list_page(&req).map_err(|e| e.to_string())?;
+            let (total, more) = site::list_meta(&data, items.len(), self.page, self.per_page);
+            Ok((items, total, more))
+        })();
+        Msg::List {
+            epoch: self.epoch,
+            entity: self.entity,
+            page: self.page,
+            append: self.append,
+            loaded,
+            outcome,
+        }
+    }
 }
 
 fn run_job(job: Job, backend: &dyn Backend) -> Msg {
@@ -3795,3 +3915,6 @@ fn execute_action_job(
         )),
     }
 }
+
+#[cfg(test)]
+mod tests;

@@ -94,6 +94,7 @@ impl Item {
         fsv_core::resource::format_id(&self.data, self.res)
     }
 
+    /// `FsvApp._item_key`: `<resource>:<id>`, the detail / sub cache key.
     pub fn key(&self) -> String {
         format!("{}:{}", self.res.name, self.id_str())
     }

@@ -150,7 +150,7 @@ fn match_field<'a>(fields: &'a [Value], field_lower: &str) -> Option<&'a Value> 
         })
 }
 
-/// `_get_suggestions`: `(completions, hint)`.
+/// `FsvApp._get_suggestions`: `(completions, hint)`.
 pub fn suggestions(value: &str, src: &Source<'_>) -> (Vec<String>, Option<String>) {
     let fields = src.fields;
     if value.is_empty() {
@@ -459,6 +459,7 @@ impl FilterState {
         self.update_bar(src);
     }
 
+    /// `FsvApp._update_suggestion_bar`: first 8 suggestions, else the hint.
     pub fn update_bar(&mut self, src: &Source<'_>) {
         let (sugg, hint) = suggestions(self.input.value(), src);
         self.suggestions = sugg;
@@ -482,6 +483,7 @@ impl FilterState {
         self.bar = Some(parts.join("  ") + &suffix);
     }
 
+    /// `FsvApp._show_suggestions_cycling`: an 8-wide window around `active`.
     fn show_cycling(&mut self, list: &[String], active: usize) {
         let total = list.len();
         let (lo, hi) = if total <= WINDOW {
@@ -508,7 +510,8 @@ impl FilterState {
         self.bar = Some(parts.join("  ") + "  [dim]tab→[/]");
     }
 
-    /// Tab: complete the current token, cycling through the suggestions.
+    /// `FsvApp._complete_suggestion`: Tab completes the current token,
+    /// cycling through the suggestions.
     pub fn complete(&mut self, src: &Source<'_>) {
         let value = self.input.value().to_string();
         if self.tab_base.is_none() {
@@ -562,7 +565,8 @@ impl FilterState {
         self.show_cycling(&list, idx);
     }
 
-    /// Network results for `key` (drop when stale or cycling).
+    /// `FsvApp._apply_network_suggestions`: network results for `key`
+    /// (dropped when stale, cycling or hidden).
     pub fn apply_network(&mut self, key: &str, values: Vec<String>) {
         if key != self.lookup_key || self.tab_base.is_some() || !self.visible || values.is_empty() {
             return;
@@ -667,5 +671,136 @@ mod tests {
         assert_eq!(st.input.value(), "typed");
         st.remember("b=2");
         assert_eq!(st.history, vec!["b=2", "a=1"]);
+    }
+
+    // Expected bars: the Python methods run on the same input, with rich's
+    // normalised closing tags (`[/dim]`, `[/bold cyan]`) written as `[/]`.
+
+    fn bar_fields() -> Vec<Value> {
+        let choices: Vec<Value> = (1..12)
+            .map(|i| json!({"id": i, "value": format!("S{i}")}))
+            .collect();
+        vec![
+            json!({"name": "status", "label": "Status", "choices": choices}),
+            json!({"name": "requester", "label": "Requester", "field_type": "default_requester"}),
+            json!({"name": "summary", "label": "Summary", "field_type": "custom_text"}),
+        ]
+    }
+
+    fn bar_items() -> Vec<Item> {
+        let t = &fsv_core::resource::TICKETS;
+        [
+            json!({"requester": {"name": "Alice"}}),
+            json!({"requester": "alan@x.io"}),
+            json!({"requester": null, "custom_fields": {"requester": "Al Custom"}}),
+            json!({"responder": null, "agent": {"name": "Agent A"}}),
+            json!({"requester": {"name": "Alice"}}),
+            json!({"requester": {"name": "Bob"}}),
+        ]
+        .into_iter()
+        .map(|d| Item::new(t, d))
+        .collect()
+    }
+
+    #[test]
+    fn extract_item_values_names_strings_custom_and_agent() {
+        let items = bar_items();
+        assert_eq!(
+            extract_item_values(&items, "requester", "al"),
+            vec!["Alice", "alan@x.io", "Al Custom"]
+        );
+        assert_eq!(
+            extract_item_values(&items, "responder", ""),
+            vec!["Agent A"]
+        );
+    }
+
+    #[test]
+    fn update_bar_overflow_hint_and_item_values() {
+        let f = bar_fields();
+        let items = bar_items();
+        let groups = Vec::new;
+        let src = Source {
+            fields: &f,
+            items: &items,
+            groups: &groups,
+        };
+        let mut st = FilterState::new(Vec::new());
+        st.input.set_value("status=");
+        st.update_bar(&src);
+        assert_eq!(
+            st.bar.as_deref(),
+            Some(
+                "[bold cyan]S1[/]  [dim]S2[/]  [dim]S3[/]  [dim]S4[/]  [dim]S5[/]  [dim]S6[/]  [dim]S7[/]  [dim]S8[/]  [dim](+3 more)  tab→[/]"
+            )
+        );
+        assert_eq!(st.suggestions.len(), 11);
+        st.input.set_value("summary=x");
+        st.update_bar(&src);
+        assert_eq!(st.bar.as_deref(), Some("[dim]text[/]"));
+        st.input.set_value("requester=al");
+        st.update_bar(&src);
+        assert_eq!(
+            st.bar.as_deref(),
+            Some("[bold cyan]Alice[/]  [dim]alan@x.io[/]  [dim]Al Custom[/]  [dim]tab→[/]")
+        );
+        assert_eq!(
+            suggestions("requester=al", &src),
+            (
+                vec!["Alice".to_string(), "alan@x.io".into(), "Al Custom".into()],
+                None
+            )
+        );
+    }
+
+    #[test]
+    fn show_cycling_windows_around_the_active_suggestion() {
+        let list: Vec<String> = (1..12).map(|i| format!("S{i}")).collect();
+        let mut st = FilterState::new(Vec::new());
+        st.show_cycling(&list, 0);
+        assert_eq!(
+            st.bar.as_deref(),
+            Some(
+                "[bold cyan]S1[/]  [dim]S2[/]  [dim]S3[/]  [dim]S4[/]  [dim]S5[/]  [dim]S6[/]  [dim]S7[/]  [dim]S8[/]  [dim]…[/]  [dim]tab→[/]"
+            )
+        );
+        st.show_cycling(&list, 6);
+        assert_eq!(
+            st.bar.as_deref(),
+            Some(
+                "[dim]…[/]  [dim]S3[/]  [dim]S4[/]  [dim]S5[/]  [dim]S6[/]  [bold cyan]S7[/]  [dim]S8[/]  [dim]S9[/]  [dim]S10[/]  [dim]…[/]  [dim]tab→[/]"
+            )
+        );
+        st.show_cycling(&list, 10);
+        assert_eq!(
+            st.bar.as_deref(),
+            Some(
+                "[dim]…[/]  [dim]S4[/]  [dim]S5[/]  [dim]S6[/]  [dim]S7[/]  [dim]S8[/]  [dim]S9[/]  [dim]S10[/]  [bold cyan]S11[/]  [dim]tab→[/]"
+            )
+        );
+        st.show_cycling(&["a".into(), "b".into()], 1);
+        assert_eq!(
+            st.bar.as_deref(),
+            Some("[dim]a[/]  [bold cyan]b[/]  [dim]tab→[/]")
+        );
+    }
+
+    #[test]
+    fn apply_network_shows_fresh_results_and_drops_stale() {
+        let mut st = FilterState::new(Vec::new());
+        st.visible = true;
+        st.lookup_key = "requesters:al".into();
+        st.apply_network("requesters:al", vec!["al@x.io".into(), "Alan [x]".into()]);
+        assert_eq!(
+            st.bar.as_deref(),
+            Some("[bold cyan]al@x.io[/]  [dim]Alan \\[x][/]  [dim]tab→[/]")
+        );
+        assert_eq!(st.suggestions, vec!["al@x.io", "Alan [x]"]);
+        st.bar = None;
+        st.apply_network("requesters:zz", vec!["q".into()]);
+        assert_eq!(st.bar, None);
+        st.tab_base = Some("requester=al".into());
+        st.apply_network("requesters:al", vec!["q".into()]);
+        assert_eq!(st.bar, None);
     }
 }
