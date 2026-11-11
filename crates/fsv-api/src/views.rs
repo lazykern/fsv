@@ -281,7 +281,7 @@ fn empty_value(v: &Value) -> bool {
 }
 
 /// `_prop_value`: the display text of one field in the evaluated form.
-fn prop_value(state: &FormState, f: &Field, tz: Option<&TimeZone>) -> String {
+pub fn prop_value(state: &FormState, f: &Field, tz: Option<&TimeZone>) -> String {
     let Some(v) = state
         .evaluated
         .values

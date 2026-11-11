@@ -4,16 +4,20 @@
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use crossterm::event::{KeyCode, KeyEvent};
 use fsv_core::resource::Resource;
 use fsv_tui::app::{App, Focus};
 use fsv_tui::backend::{
-    BResult, DetailPage, Failure, Item, ListRequest, ReviewPlan, SearchResult, TabData, TabInfo,
-    View,
+    BResult, DetailPage, Failure, FormExit, FormRequest, FormSend, FormView, Item, ListRequest,
+    ReviewPlan, SearchResult, TabData, TabInfo, View,
 };
 use fsv_tui::modals::Modal;
 use fsv_tui::{Backend, BasicPages, view};
 use ratatui::Terminal;
 use ratatui::backend::TestBackend;
+use ratatui::buffer::Buffer;
+use ratatui::layout::{Position, Rect};
+use ratatui::widgets::{Paragraph, Widget};
 use serde_json::{Map, Value, json};
 
 type Res = &'static Resource;
@@ -26,6 +30,88 @@ struct Mock {
     views: Vec<View>,
     note_fails: bool,
     approval_unverified: bool,
+    forms: bool,
+    form_fails: bool,
+    send_fails: bool,
+    sent: Arc<Mutex<Vec<String>>>,
+}
+
+/// A stand-in `FormScreen`: `s` submits, `d` saves a draft, `escape`
+/// cancels, `c` asks for a clipboard copy; it shows what it was opened with.
+struct FakeForm {
+    req: FormRequest,
+    exit: Option<char>,
+    clip: Option<String>,
+    keys: Vec<String>,
+    send_fails: bool,
+    sent: Arc<Mutex<Vec<String>>>,
+}
+
+impl FormView for FakeForm {
+    fn tick(&mut self, _now: Duration) {}
+    fn handle_key(&mut self, key: &KeyEvent) {
+        match key.code {
+            KeyCode::Char(c @ ('s' | 'd')) => self.exit = Some(c),
+            KeyCode::Esc => self.exit = Some('x'),
+            KeyCode::Char('c') => self.clip = Some("copied".into()),
+            KeyCode::Char(c) => self.keys.push(c.to_string()),
+            _ => {}
+        }
+    }
+    fn render(&mut self, area: Rect, buf: &mut Buffer) -> Option<Position> {
+        let field = |v: &Option<Value>, k: &str| {
+            v.as_ref()
+                .and_then(|v| v.get(k))
+                .map_or("-".to_string(), |v| v.to_string())
+        };
+        let text = format!(
+            "FORM {} item={} record={} typed={}",
+            self.req.mode,
+            field(&self.req.item, "display_id"),
+            field(&self.req.record, "subject"),
+            self.keys.join("")
+        );
+        Paragraph::new(text).render(area, buf);
+        None
+    }
+    fn done(&self) -> bool {
+        self.exit.is_some()
+    }
+    fn take_clipboard(&mut self) -> Option<String> {
+        self.clip.take()
+    }
+    fn finish(self: Box<Self>) -> FormExit {
+        match self.exit {
+            Some('s') => FormExit::Submit(Box::new(FakeSend {
+                mode: self.req.mode,
+                fails: self.send_fails,
+                sent: self.sent,
+            })),
+            Some('d') => FormExit::Draft("/tmp/fsv-draft.json".into()),
+            _ => FormExit::Cancelled,
+        }
+    }
+}
+
+struct FakeSend {
+    mode: String,
+    fails: bool,
+    sent: Arc<Mutex<Vec<String>>>,
+}
+
+impl FormSend for FakeSend {
+    fn send(self: Box<Self>) -> BResult<Value> {
+        self.sent.lock().unwrap().push(self.mode.clone());
+        if self.fails {
+            return Err(Failure::value("send denied"));
+        }
+        Ok(match self.mode.as_str() {
+            "new" => json!({"created": {"id": 99, "display_id": 12}}),
+            "incident" => json!({"result": {"ticket": {"human_display_id": "INC-7", "id": 70}}}),
+            "sr" => json!({"result": {"id": 5}}),
+            _ => json!({"result": {"change": {"display_id": 3}}}),
+        })
+    }
 }
 
 impl Mock {
@@ -60,6 +146,32 @@ fn plan(review: Value, public: bool) -> ReviewPlan {
 }
 
 impl Backend for Mock {
+    fn forms_available(&self) -> bool {
+        self.forms
+    }
+    fn open_form(&self, req: &FormRequest) -> BResult<Box<dyn FormView>> {
+        self.log(format!("open_form {}", req.mode));
+        if self.form_fails {
+            return Err(Failure::value("no change form"));
+        }
+        Ok(Box::new(FakeForm {
+            req: req.clone(),
+            exit: None,
+            clip: None,
+            keys: Vec::new(),
+            send_fails: self.send_fails,
+            sent: self.sent.clone(),
+        }))
+    }
+    fn catalog(&self) -> BResult<(Vec<Value>, Vec<Value>)> {
+        if !self.forms {
+            return Err(Failure::value("catalog denied"));
+        }
+        Ok((
+            vec![json!({"id": 40, "display_id": 4, "name": "Laptop", "category_id": 1})],
+            vec![json!({"id": 1, "name": "Hardware"})],
+        ))
+    }
     fn load_filter_history(&self) -> Vec<String> {
         self.history.lock().unwrap().clone()
     }
@@ -1114,4 +1226,162 @@ fn e_edits_only_a_selected_change() {
     to_changes(&mut a);
     a.press("e");
     assert!(toasts(&a).iter().any(|t| t == "form UI not available"));
+}
+
+fn forms() -> (App, Arc<Mock>) {
+    start(
+        Mock {
+            forms: true,
+            ..Mock::new(3)
+        },
+        false,
+    )
+}
+
+fn sent(m: &Mock) -> Vec<String> {
+    m.sent.lock().unwrap().clone()
+}
+
+/// `_create_choice("change")` -> `_build_form("new")`; submit sends once,
+/// toasts `form_result` ("Change created CHN-12") and reloads the list.
+#[test]
+fn n_change_opens_the_form_and_a_submit_sends_and_reloads() {
+    let (mut a, m) = forms();
+    let lists = m.calls("list").len();
+    a.press("N");
+    a.press("enter");
+    a.settle();
+    assert_eq!(m.calls("open_form"), ["open_form new"]);
+    assert!(a.form_open());
+    assert!(screen(&a).contains("FORM new item=- record=-"));
+    a.press("q");
+    a.press("j");
+    assert!(!a.quit);
+    assert!(screen(&a).contains("typed=qj"));
+    a.press("s");
+    assert!(!a.form_open());
+    a.settle();
+    assert_eq!(sent(&m), ["new"]);
+    assert!(toasts(&a).contains(&"Change created CHN-12".to_string()));
+    assert_eq!(m.calls("list").len(), lists + 1);
+    assert!(!screen(&a).contains("FORM"));
+}
+
+#[test]
+fn n_incident_draft_toasts_the_path_and_sends_nothing() {
+    let (mut a, m) = forms();
+    a.press("N");
+    a.type_text("incident");
+    a.press("enter");
+    a.settle();
+    assert_eq!(m.calls("open_form"), ["open_form incident"]);
+    a.press("d");
+    a.settle();
+    assert!(toasts(&a).contains(&"Draft saved: /tmp/fsv-draft.json".to_string()));
+    assert!(sent(&m).is_empty());
+    assert!(!a.form_open());
+}
+
+/// `_launch_create("sr", row)`: the picked catalog row opens `sr_session`;
+/// a cancelled form sends nothing and says nothing.
+#[test]
+fn n_service_request_opens_the_picked_catalog_item() {
+    let (mut a, m) = forms();
+    a.press("N");
+    a.type_text("service");
+    a.press("enter");
+    a.settle();
+    a.press("enter");
+    a.press("enter");
+    a.settle();
+    assert_eq!(m.calls("open_form"), ["open_form sr"]);
+    assert!(screen(&a).contains("FORM sr item=4"));
+    let before = toasts(&a);
+    a.press("escape");
+    a.settle();
+    assert!(!a.form_open());
+    assert!(sent(&m).is_empty());
+    assert_eq!(toasts(&a), before);
+
+    let (mut c, _) = forms();
+    c.press("N");
+    c.type_text("service");
+    c.press("enter");
+    c.settle();
+    c.press("enter");
+    c.press("enter");
+    c.settle();
+    c.press("s");
+    c.settle();
+    assert!(toasts(&c).contains(&"Service Request created ID 5".to_string()));
+}
+
+/// `e`: "opening the form…", the form edits the loaded detail record, and a
+/// send toasts "Change updated" and reloads the change.
+#[test]
+fn e_edits_the_loaded_change_and_reloads_it() {
+    let (mut a, m) = forms();
+    to_changes(&mut a);
+    a.press("e");
+    assert!(toasts(&a).contains(&"opening the form…".to_string()));
+    a.settle();
+    assert_eq!(m.calls("open_form"), ["open_form edit"]);
+    assert!(screen(&a).contains(r#"FORM edit item=1 record="row""#));
+    let details = m.calls("detail changes").len();
+    a.press("s");
+    a.settle();
+    assert_eq!(sent(&m), ["edit"]);
+    assert!(toasts(&a).contains(&"Change updated".to_string()));
+    assert_eq!(m.calls("detail changes").len(), details + 1);
+}
+
+#[test]
+fn form_failures_open_the_failure_screen() {
+    let (mut a, _) = start(
+        Mock {
+            forms: true,
+            form_fails: true,
+            ..Mock::new(3)
+        },
+        false,
+    );
+    a.press("N");
+    a.press("enter");
+    a.settle();
+    assert!(!a.form_open());
+    assert!(screen(&a).contains("Form unavailable: no change form"));
+
+    let (mut b, m) = start(
+        Mock {
+            forms: true,
+            send_fails: true,
+            ..Mock::new(3)
+        },
+        false,
+    );
+    b.press("N");
+    b.press("enter");
+    b.settle();
+    b.press("s");
+    b.settle();
+    assert_eq!(sent(&m), ["new"]);
+    assert_eq!(
+        b.write_failure.as_deref(),
+        Some(
+            "send denied\nNo automatic retry. Check the exact record and journal before another send; outcome may be unknown."
+        )
+    );
+}
+
+#[test]
+fn form_copy_goes_to_the_clipboard_and_ctrl_q_quits() {
+    let (mut a, m) = forms();
+    a.press("N");
+    a.press("enter");
+    a.settle();
+    a.press("c");
+    a.tick();
+    assert_eq!(m.calls("copy"), ["copy copied"]);
+    a.press("ctrl+q");
+    assert!(a.quit);
 }

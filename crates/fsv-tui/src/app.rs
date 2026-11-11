@@ -5,6 +5,7 @@
 //! detail / sub keys, completion key). A worker error toasts or opens the
 //! failure screen; it never ends the app.
 
+use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::{Arc, mpsc};
@@ -20,8 +21,9 @@ use serde_json::{Map, Value, json};
 
 use crate::actions;
 use crate::backend::{
-    Backend, DetailPage, Failure, Item, ListRequest, Missing, Pages, Res, ReviewPlan, SearchResult,
-    TASK_NOTIFY_BEFORE, TASK_STATUS_LABELS, TabData, View,
+    Backend, DetailPage, Failure, FormExit, FormRequest, FormSend, FormView, Item, ListRequest,
+    Missing, Pages, Res, ReviewPlan, SearchResult, TASK_NOTIFY_BEFORE, TASK_STATUS_LABELS, TabData,
+    View,
 };
 use crate::filter::{self, FilterState, Lookup, LookupRequest, Source};
 use crate::format::{self, clip, cut, resolve_priority, resolve_status};
@@ -355,6 +357,30 @@ pub enum Cont {
     CatalogItem,
 }
 
+/// A form a worker opened (`_push_form(screen_cls, session, mode, item)`).
+pub struct OpenedForm {
+    pub view: Box<dyn FormView>,
+    pub mode: String,
+    pub item: Option<Item>,
+}
+
+impl std::fmt::Debug for OpenedForm {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("OpenedForm")
+            .field("mode", &self.mode)
+            .field("item", &self.item)
+            .finish_non_exhaustive()
+    }
+}
+
+/// The form on screen; its clock starts when it opens.
+pub(crate) struct ActiveForm {
+    pub(crate) view: RefCell<Box<dyn FormView>>,
+    mode: String,
+    item: Option<Item>,
+    start: Duration,
+}
+
 /// UI-thread follow-ups a worker asks for (`call_from_thread`).
 #[derive(Debug)]
 pub enum Ui {
@@ -398,6 +424,8 @@ pub enum Ui {
         item: Item,
         result: Value,
     },
+    Form(OpenedForm),
+    ReloadList,
 }
 
 #[derive(Debug, Default)]
@@ -544,6 +572,7 @@ pub struct App {
     pub modals: Vec<(Modal, Cont)>,
     pub toasts: Vec<Toast>,
     pub quit: bool,
+    pub(crate) form: Option<ActiveForm>,
     pub(crate) detail_max_scroll: std::cell::Cell<u16>,
     pub(crate) table_offset: std::cell::Cell<usize>,
     pub(crate) table_height: std::cell::Cell<usize>,
@@ -640,6 +669,7 @@ impl App {
             modals: Vec::new(),
             toasts: Vec::new(),
             quit: false,
+            form: None,
             detail_max_scroll: std::cell::Cell::new(u16::MAX),
             table_offset: std::cell::Cell::new(0),
             table_height: std::cell::Cell::new(10),
@@ -696,6 +726,17 @@ impl App {
         self.fire_timers();
         let now = self.clock.now();
         self.toasts.retain(|t| t.expires > now);
+        if let Some(form) = &self.form {
+            let clip = {
+                let mut view = form.view.borrow_mut();
+                view.tick(now.saturating_sub(form.start));
+                view.take_clipboard()
+            };
+            if let Some(text) = clip {
+                let _ = self.backend.copy_to_clipboard(&text);
+            }
+        }
+        self.check_form_done();
     }
 
     fn fire_timers(&mut self) {
@@ -892,6 +933,8 @@ impl App {
             Ui::ApprovalReview { item, plan, before } => self.review_approval(item, plan, before),
             Ui::ApprovalTargets { kind, item, rows } => self.pick_approval_target(kind, item, rows),
             Ui::ApprovalResult { item, result } => self.approval_result(item, result),
+            Ui::Form(opened) => self.push_form(opened),
+            Ui::ReloadList => self.reload_list("[dim]reloading...[/]"),
         }
     }
 
@@ -2263,6 +2306,17 @@ impl App {
             self.quit = true;
             return;
         }
+        if self.form.is_some() && self.modals.is_empty() {
+            if key == "ctrl+q" {
+                self.quit = true;
+                return;
+            }
+            if let Some(form) = &self.form {
+                form.view.borrow_mut().handle_key(ev);
+            }
+            self.check_form_done();
+            return;
+        }
         if let Some((modal, _)) = self.modals.last_mut() {
             match modal.handle(ev) {
                 Outcome::Stay => {}
@@ -2906,7 +2960,7 @@ impl App {
                     Cont::CatalogItem,
                 );
             }
-            (Cont::CatalogItem, R::Choice(_)) => self.launch_create(),
+            (Cont::CatalogItem, R::Choice(row)) => self.launch_create("sr", Some(row)),
             _ => {}
         }
     }
@@ -3652,7 +3706,13 @@ impl App {
             self.notify("Select a change to edit", Severity::Warning);
             return;
         }
-        self.notify("form UI not available", Severity::Warning);
+        if !self.backend.forms_available() {
+            self.notify("form UI not available", Severity::Warning);
+            return;
+        }
+        self.notify_full("opening the form…".into(), Severity::Information, None, 2);
+        let item = self.selected.clone();
+        self.build_form(mode, item.as_ref().map(|i| i.data.clone()), item);
     }
 
     fn create_choice(&mut self, kind: &str) {
@@ -3662,15 +3722,107 @@ impl App {
         if kind == "sr" {
             self.load_catalog();
         } else {
-            self.launch_create();
+            self.launch_create(kind, None);
         }
     }
 
-    fn launch_create(&mut self) {
+    fn launch_create(&mut self, kind: &str, item: Option<Value>) {
         if self.read_only {
             return;
         }
-        self.notify("form UI not available", Severity::Warning);
+        if !self.backend.forms_available() {
+            self.notify("form UI not available", Severity::Warning);
+            return;
+        }
+        let mode = if kind == "change" { "new" } else { kind };
+        self.build_form(mode, item, None);
+    }
+
+    /// `_build_form`: open the session on a worker; `edit` starts from the
+    /// loaded detail record (`_page_for(item)`), else the row.
+    fn build_form(&mut self, mode: &str, data: Option<Value>, item: Option<Item>) {
+        let record = self
+            .page_for(item.as_ref())
+            .map(|p| p.record.clone())
+            .or_else(|| data.clone());
+        let req = FormRequest {
+            mode: mode.to_string(),
+            item: data,
+            record,
+        };
+        self.spawn(move |b| {
+            Msg::Ui(vec![match b.open_form(&req) {
+                Ok(view) => Ui::Form(OpenedForm {
+                    view,
+                    mode: req.mode,
+                    item,
+                }),
+                Err(e) => Ui::Failure(format!("Form unavailable: {e}")),
+            }])
+        });
+    }
+
+    /// `_push_form`.
+    fn push_form(&mut self, opened: OpenedForm) {
+        self.form = Some(ActiveForm {
+            view: RefCell::new(opened.view),
+            mode: opened.mode,
+            item: opened.item,
+            start: self.clock.now(),
+        });
+        self.check_form_done();
+    }
+
+    /// Is a form on screen?
+    pub fn form_open(&self) -> bool {
+        self.form.is_some()
+    }
+
+    /// `_push_form`'s `done` callback once the form finished.
+    fn check_form_done(&mut self) {
+        if !self.form.as_ref().is_some_and(|f| f.view.borrow().done()) {
+            return;
+        }
+        let Some(form) = self.form.take() else {
+            return;
+        };
+        match form.view.into_inner().finish() {
+            FormExit::Cancelled => {}
+            FormExit::Draft(path) => {
+                self.notify(format!("Draft saved: {path}"), Severity::Information)
+            }
+            FormExit::Submit(send) => self.send_form(send, form.mode, form.item),
+        }
+    }
+
+    /// `_send_form`: send once; an edit reloads the change, a create toasts
+    /// the new id and reloads the list.
+    fn send_form(&mut self, send: Box<dyn FormSend>, mode: String, item: Option<Item>) {
+        if self.read_only {
+            return;
+        }
+        self.spawn(move |_| {
+            Msg::Ui(match send.send() {
+                Err(e) => vec![Ui::Failure(actions::failure_detail(&e))],
+                Ok(out) => {
+                    let (label, done) = actions::form_result(&mode, &out);
+                    match item {
+                        Some(item) if mode == "edit" => {
+                            vec![Ui::AfterWrite(item.res, item, "Change updated".into())]
+                        }
+                        _ => vec![
+                            Ui::Toast {
+                                message: format!("{label} created {done}").trim().to_string(),
+                                severity: Severity::Information,
+                                title: None,
+                                secs: TOAST_SECS,
+                            },
+                            Ui::ReloadList,
+                        ],
+                    }
+                }
+            })
+        });
     }
 
     fn load_catalog(&mut self) {

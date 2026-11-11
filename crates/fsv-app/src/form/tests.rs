@@ -664,3 +664,136 @@ fn live_deps_use_the_profile_and_working_directory() {
     assert_eq!(d.attach_flow, None);
     assert_eq!(d.api.domain(), crate::testkit::HOST);
 }
+
+mod tui_forms {
+    //! `N` / `e` through [`crate::LiveBackend`]: the session `_build_form`
+    //! opens, driven as an embedded `FormScreen` on its own thread.
+
+    use std::time::Duration;
+
+    use fsv_tui::backend::{Buffer, FormExit, FormRequest, FormView, Rect};
+    use fsv_tui::keys::parse;
+    use fsv_tui::{App, Backend, BasicPages};
+
+    use super::*;
+
+    fn backend(t: &Tenant, j: &Arc<MemJournal>) -> crate::LiveBackend {
+        let (t2, j2) = (t.client.clone(), j.clone());
+        let dir = t.dir.path().to_path_buf();
+        let factory: crate::tui::forms::DepsFactory = Arc::new(move || {
+            let api: Arc<dyn Api + Send + Sync> = t2.clone();
+            let store: Arc<dyn MetaStore + Send + Sync> = Arc::new(MemStore::default());
+            Ok(FormDeps {
+                form_api: t2.clone(),
+                meta: Arc::new(LiveMeta::new(api.clone(), store.clone())),
+                store,
+                plan_journal: j2.clone(),
+                journal: j2.clone(),
+                writer: Arc::new(LiveWriter::new(api.clone())),
+                resolver: Arc::new(ClientResolver::new(api.clone())),
+                config: Map::new(),
+                paths: Paths::new(Some(dir.clone()), &dir),
+                attach_flow: Some("after-create".into()),
+                api,
+            })
+        });
+        crate::LiveBackend::new(t.client.clone(), Arc::new(|_| Ok(json!({"fields": []}))))
+            .with_form_deps(factory)
+    }
+
+    fn text(view: &mut dyn FormView) -> String {
+        let area = Rect::new(0, 0, 100, 30);
+        let mut buf = Buffer::empty(area);
+        view.render(area, &mut buf);
+        (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
+    fn press(view: &mut dyn FormView, keys: &[&str]) {
+        for k in keys {
+            view.handle_key(&parse(k));
+        }
+    }
+
+    /// The edit of `edit_change_fetches_the_record_and_puts_the_diff`, typed
+    /// into the form: same reviewed hash, same PUT, same send result.
+    #[test]
+    fn e_opens_the_change_edit_form_and_sends_the_reviewed_plan() {
+        let (t, j) = (tenant(route), Arc::new(MemJournal::default()));
+        let b = backend(&t, &j);
+        assert!(b.forms_available());
+        let req = FormRequest {
+            mode: "edit".into(),
+            item: Some(json!({"id": 77, "display_id": 77})),
+            record: Some(json!({"id": 77, "display_id": 77, "subject": "Old"})),
+        };
+        let mut view = b.open_form(&req).unwrap();
+        assert_eq!(
+            t.lines()[..2],
+            ["GET /api/_/changes/77", "GET /api/_/change_form_fields"]
+        );
+        assert!(text(view.as_mut()).contains("Edit change CHN-77"));
+        press(view.as_mut(), &["backspace"; 3]);
+        for c in "New subject".chars() {
+            view.handle_key(&parse(&c.to_string()));
+        }
+        press(view.as_mut(), &["ctrl+s", "ctrl+s"]);
+        assert!(view.done());
+        let FormExit::Submit(send) = view.finish() else {
+            panic!("not submitted");
+        };
+        let n = t.calls().len();
+        let out = send.send().unwrap();
+        let calls = t.calls().split_off(n);
+        let put = calls.iter().find(|c| c.method == "PUT").unwrap();
+        assert_eq!(put.path, "/api/_/changes/77");
+        assert_eq!(put.body.as_deref(), Some(r#"{"subject":"New subject"}"#));
+        assert_eq!(
+            out,
+            json!({"id": 77, "result": {"id": 77}, "steps": [{"step": "update", "ok": true, "id": 77}], "uploaded": [], "plan_hash": EDIT_HASH})
+        );
+        assert_eq!(
+            fsv_tui::actions::form_result("edit", &out),
+            ("Change".to_string(), "ID 77".to_string())
+        );
+    }
+
+    #[test]
+    fn a_session_that_cannot_open_is_an_error() {
+        let (t, j) = (tenant(route), Arc::new(MemJournal::default()));
+        let b = backend(&t, &j);
+        let req = FormRequest {
+            mode: "sr".into(),
+            item: Some(json!({"id": 1})),
+            record: None,
+        };
+        assert_eq!(b.open_form(&req).err().unwrap().to_string(), "'display_id'");
+    }
+
+    /// `N` -> Change: the new-change form fills the screen; Escape on an
+    /// untouched form cancels with nothing sent and no toast.
+    #[test]
+    fn shift_n_change_opens_the_new_change_form_in_the_tui() {
+        let (t, j) = (tenant(route), Arc::new(MemJournal::default()));
+        let mut a = App::new_inline(Arc::new(backend(&t, &j)), Arc::new(BasicPages), false);
+        a.mount();
+        a.settle();
+        a.press("N");
+        a.press("enter");
+        a.settle();
+        assert!(a.form_open());
+        assert!(fsv_tui::view::screen_text(&a, 100, 30).contains("New Change"));
+        let toasts = a.toasts.len();
+        a.press("escape");
+        a.advance(Duration::from_millis(10));
+        assert!(!a.form_open());
+        assert_eq!(a.toasts.len(), toasts);
+        assert!(!t.lines().iter().any(|l| l.starts_with("POST")));
+    }
+}

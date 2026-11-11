@@ -22,30 +22,35 @@ use fsv_api::tasks::{self, TaskArgs, TaskPlan};
 use fsv_api::{QueryError, site};
 use fsv_core::{Client, Error, Result};
 use fsv_tui::backend::{
-    BResult, DetailPage, Failure, Item, ListRequest, Missing, Res, ReviewPlan, SearchResult,
-    TabData, TabInfo, View,
+    BResult, DetailPage, Failure, FormRequest, FormView, Item, ListRequest, Missing, Res,
+    ReviewPlan, SearchResult, TabData, TabInfo, View,
 };
 use fsv_tui::{Backend, BasicPages, Pages};
 use fsv_views::{Detail, DetailInput, SessionError};
 
+use crate::form::FormDeps;
 use crate::source::ClientSource;
 use crate::writer::change_id;
 
 pub mod desktop;
 pub mod files;
+pub mod forms;
 
 pub use desktop::{Browser, Clipboard};
 
 /// `schema.load(res, client)`: the list/detail schema of one resource.
 pub type SchemaLoader = Arc<dyn Fn(Res) -> Result<Value> + Send + Sync>;
 
-/// `schema.load(res, client)` ([`fsv_api::schema::load_in`]) cached under
-/// the client's profile paths for its tenant.
+/// `schema.load(res, client)` ([`fsv_api::schema::load_in_quiet`]) cached
+/// under the client's profile paths for its tenant.
+///
+/// The stale-cache warning is dropped: Python prints it to stderr while the
+/// Textual app is running, which captures stderr and never draws it.
 pub fn schema_loader(client: Arc<Client>) -> SchemaLoader {
     Arc::new(move |res: Res| {
         let key = fsv_core::config::cache_domain_key(Some(&client.domain()));
         let paths = client.ctx().paths.clone();
-        fsv_api::schema::load_in(res, &client, false, &paths, &key)
+        fsv_api::schema::load_in_quiet(res, &client, false, &paths, &key).map(|(doc, _)| doc)
     })
 }
 
@@ -130,6 +135,8 @@ pub struct LiveBackend {
     /// Open in the browser (`webbrowser.open`).
     pub browser: Browser,
     me: Mutex<Option<Value>>,
+    /// What `N` / `e` forms talk to; `None`: [`FormDeps::live`] per form.
+    form_deps: Option<forms::DepsFactory>,
 }
 
 fn session(e: SessionError) -> Failure {
@@ -256,7 +263,13 @@ impl LiveBackend {
             clipboard: Arc::new(desktop::pbcopy),
             browser: Arc::new(desktop::open_in_browser),
             me: Mutex::new(None),
+            form_deps: None,
         }
+    }
+
+    pub fn with_form_deps(mut self, deps: forms::DepsFactory) -> LiveBackend {
+        self.form_deps = Some(deps);
+        self
     }
 
     pub fn with_clipboard(mut self, clipboard: Clipboard) -> LiveBackend {
@@ -918,6 +931,18 @@ impl Backend for LiveBackend {
     }
 
     /// `catalog.list_items(client)` then `catalog.list_categories(client)`.
+    fn forms_available(&self) -> bool {
+        true
+    }
+
+    fn open_form(&self, req: &FormRequest) -> BResult<Box<dyn FormView>> {
+        let deps = self.form_deps.clone().unwrap_or_else(|| {
+            let client = self.client.clone();
+            Arc::new(move || FormDeps::live(client.clone()))
+        });
+        Ok(Box::new(forms::open(deps, req.clone())?))
+    }
+
     fn catalog(&self) -> BResult<(Vec<Value>, Vec<Value>)> {
         let items = fsv_api::catalog::list_items(self.api(), false, fsv_api::catalog::MAX_PAGES)?;
         let categories = fsv_api::catalog::list_categories(self.api())?;

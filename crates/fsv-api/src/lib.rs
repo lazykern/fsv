@@ -12,6 +12,7 @@ pub mod associations;
 pub mod catalog;
 pub mod conversations;
 pub mod create;
+pub mod downloads;
 pub mod formmeta;
 pub mod notes;
 pub mod properties;

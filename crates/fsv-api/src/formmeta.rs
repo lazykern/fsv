@@ -1930,6 +1930,26 @@ mod tests {
         );
     }
 
+    /// `name_existing` wraps `namer(...)` in `except Exception`, which catches
+    /// `SessionError` too: the value stays id-only after one bootstrap read
+    /// (Python: `{'group': LookupValue(id=5, display='5', email=None)}`, 1 call).
+    #[test]
+    fn name_existing_swallows_a_session_failure_like_python() {
+        let s = spec();
+        let api = Arc::new(FakeApi::new().on("GET bootstrap/agents_groups", Reply::Session));
+        let r = ClientResolver::new(api.clone());
+        let mut ex = Values::new();
+        ex.insert(
+            "group".into(),
+            Value::Lookup(LookupValue::new(json!(5), "5", None)),
+        );
+        assert_eq!(
+            ser_values(&name_existing(ex, &s, &Map::new(), Some(&r))),
+            json!({"group": {"lookup": [5, "5", null]}})
+        );
+        assert_eq!(api.gets(), ["bootstrap/agents_groups"]);
+    }
+
     #[test]
     fn apply_answers_collects_problems() {
         let mut state =

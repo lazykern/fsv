@@ -301,6 +301,22 @@ pub fn load_in(
     paths: &Paths,
     domain_key: &str,
 ) -> Result<Value> {
+    let (doc, warning) = load_in_quiet(res, client, force, paths, domain_key)?;
+    if let Some(w) = warning {
+        eprintln!("{w}");
+    }
+    Ok(doc)
+}
+
+/// [`load_in`] that returns the stale-cache warning instead of printing it
+/// (for callers that own the terminal, like the TUI).
+pub fn load_in_quiet(
+    res: &'static Resource,
+    client: &Arc<Client>,
+    force: bool,
+    paths: &Paths,
+    domain_key: &str,
+) -> Result<(Value, Option<String>)> {
     let primary = cache_path(paths, domain_key, res.name);
     load_at(
         res,
@@ -312,6 +328,14 @@ pub fn load_in(
     )
 }
 
+/// The stderr line [`load`] prints when it serves a stale cache.
+pub fn stale_warning(res: &Resource) -> String {
+    format!(
+        "Warning: stale {0} schema; refreshing in background. Run `fsv {0} fields --refresh` for current definitions.",
+        res.name
+    )
+}
+
 fn load_at(
     res: &'static Resource,
     client: &Arc<Client>,
@@ -319,18 +343,14 @@ fn load_at(
     primary: &Path,
     candidates: &[PathBuf],
     paths: &Paths,
-) -> Result<Value> {
+) -> Result<(Value, Option<String>)> {
     if let Some((path, doc, stale)) = cached_doc(candidates)
         && !force
     {
         if !stale {
             let _ = cache::update_meta(&path, true, true, None);
-            return Ok(with_provenance(&doc, false));
+            return Ok((with_provenance(&doc, false), None));
         }
-        eprintln!(
-            "Warning: stale {0} schema; refreshing in background. Run `fsv {0} fields --refresh` for current definitions.",
-            res.name
-        );
         let c = client.clone();
         let _ = cache::refresh_async(
             primary,
@@ -338,7 +358,7 @@ fn load_at(
             move || fetch(&c, res).map(Value::Array),
             None,
         );
-        return Ok(with_provenance(&doc, true));
+        return Ok((with_provenance(&doc, true), Some(stale_warning(res))));
     }
     let t0 = Instant::now();
     let fields = fetch(client, res)?;
@@ -355,7 +375,10 @@ fn load_at(
         "",
         latency,
     )?;
-    Ok(json!({"saved_at": now(), "fields": fields, "stale": false, "source": "server"}))
+    Ok((
+        json!({"saved_at": now(), "fields": fields, "stale": false, "source": "server"}),
+        None,
+    ))
 }
 
 #[cfg(test)]
@@ -626,6 +649,24 @@ mod load_tests {
         let w = World::new(R::Status(401), R::Status(401));
         w.write(&json!({"_kind": "schema", "data": fields(), "saved_at": now() - CACHE_TTL_SECS as f64 - 60.0}));
         assert_eq!(w.load(false).unwrap()["stale"], json!(true));
+    }
+
+    /// `schema.py`: `print(f"Warning: stale {res.name} schema; ...", file=sys.stderr)`.
+    #[test]
+    fn quiet_load_returns_the_stale_warning_instead_of_printing() {
+        let w = World::new(R::Status(401), R::Status(401));
+        w.write(&json!({"_kind": "schema", "data": fields(), "saved_at": now() - CACHE_TTL_SECS as f64 - 60.0}));
+        let (got, warning) = load_in_quiet(&CHANGES, &w.client, false, &w.paths(), KEY).unwrap();
+        assert_eq!(got["stale"], json!(true));
+        assert_eq!(
+            warning.as_deref(),
+            Some(
+                "Warning: stale changes schema; refreshing in background. Run `fsv changes fields --refresh` for current definitions."
+            )
+        );
+        w.save(&fields());
+        let (got, warning) = load_in_quiet(&CHANGES, &w.client, false, &w.paths(), KEY).unwrap();
+        assert_eq!((got["stale"].clone(), warning), (json!(false), None));
     }
 
     #[test]

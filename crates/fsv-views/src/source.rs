@@ -121,7 +121,7 @@ pub fn load_views(
     src: &mut dyn Source,
     res: &Resource,
 ) -> Result<(Vec<SavedView>, Option<Missing>), SessionError> {
-    let Some(path) = res.filters_path else {
+    let Some(path) = res.filters_path.filter(|p| !p.is_empty()) else {
         return Ok((Vec::new(), None));
     };
     Ok(match optional_get(src, path, None, "saved views")? {
@@ -130,23 +130,8 @@ pub fn load_views(
     })
 }
 
-/// `_record_for_form`: a ticket record under the names its form uses
-/// (`agent_id` for `responder_id`, `ticket_type` for `type`).
-pub fn record_for_form(res: &Resource, record: &Map<String, Value>) -> Map<String, Value> {
-    let mut rec = record.clone();
-    if res.name == "tickets" {
-        if !rec.contains_key("agent_id") {
-            let responder = rec.get("responder_id").cloned().unwrap_or(Value::Null);
-            rec.insert("agent_id".into(), responder);
-        }
-        if rec.get("ticket_type").is_none_or(Value::is_null)
-            && let Some(t) = rec.get("type").filter(|v| fsv_py::truthy(v)).cloned()
-        {
-            rec.insert("ticket_type".into(), t);
-        }
-    }
-    rec
-}
+/// `_record_for_form`: [`fsv_api::views::record_for_form`].
+pub use fsv_api::views::record_for_form;
 
 /// `change_associations.AssociationReader`: a page whose rows lack a positive
 /// id fails as a whole instead of being silently trimmed by the paginator.

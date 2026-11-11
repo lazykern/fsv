@@ -8,12 +8,18 @@
 //! binary once the service crates land; tests substitute recorders.
 
 use std::fmt;
+use std::time::Duration;
 
 use fsv_core::Error;
 use fsv_core::resource::Resource;
 use fsv_core::term::escape;
 use jiff::tz::TimeZone;
 use serde_json::{Map, Value};
+
+/// The types [`FormView`] is written in, for implementors.
+pub use crossterm::event::KeyEvent;
+pub use ratatui::buffer::Buffer;
+pub use ratatui::layout::{Position, Rect};
 
 pub type Res = &'static Resource;
 
@@ -221,6 +227,45 @@ pub const TASK_NOTIFY_BEFORE: &[&str] = &[
     "2 Hours",
 ];
 
+/// The form `N` / `e` open (`_build_form(mode, item, ...)`).
+#[derive(Clone, Debug)]
+pub struct FormRequest {
+    /// `new` (a change), `edit` (the selected change), `incident` or `sr`.
+    pub mode: String,
+    /// The selected change's row (`edit`) or the picked catalog item (`sr`).
+    pub item: Option<Value>,
+    /// `edit`: the loaded detail record, else the list row.
+    pub record: Option<Value>,
+}
+
+/// An open full-screen form (`fsv.formui.FormScreen`) the TUI drives with
+/// keys, ticks and draws until it is done.
+pub trait FormView: Send {
+    fn tick(&mut self, now: Duration);
+    fn handle_key(&mut self, key: &KeyEvent);
+    fn render(&mut self, area: Rect, buf: &mut Buffer) -> Option<Position>;
+    fn done(&self) -> bool;
+    /// Text the form asked to put on the clipboard.
+    fn take_clipboard(&mut self) -> Option<String> {
+        None
+    }
+    fn finish(self: Box<Self>) -> FormExit;
+}
+
+/// How a form ended (`FormScreen`'s result `action`).
+pub enum FormExit {
+    Cancelled,
+    /// `save_draft`, with the saved path.
+    Draft(String),
+    /// `submit` with a reviewed plan, ready for `session.send(plan)`.
+    Submit(Box<dyn FormSend>),
+}
+
+/// A submitted form's send (`session.send(result.plan)`).
+pub trait FormSend: Send {
+    fn send(self: Box<Self>) -> BResult<Value>;
+}
+
 #[allow(unused_variables)]
 pub trait Backend: Send + Sync {
     // ── settings ────────────────────────────────────────────
@@ -409,6 +454,16 @@ pub trait Backend: Send + Sync {
     }
 
     // ── create forms ────────────────────────────────────────
+    /// `import fsv.formui` succeeded; without it `N` / `e` toast
+    /// "form UI not available".
+    fn forms_available(&self) -> bool {
+        false
+    }
+    /// `_form_session` / `ticket_session` / `sr_session` wrapped in a
+    /// `FormScreen` (runs on a worker).
+    fn open_form(&self, req: &FormRequest) -> BResult<Box<dyn FormView>> {
+        Err(Failure::unavailable("the form UI"))
+    }
     fn catalog(&self) -> BResult<(Vec<Value>, Vec<Value>)> {
         Err(Failure::unavailable("service catalog"))
     }

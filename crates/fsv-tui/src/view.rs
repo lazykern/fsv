@@ -33,6 +33,14 @@ fn wrapped_rows(text: &Text, width: u16) -> usize {
 
 pub fn draw(app: &App, f: &mut Frame) {
     let area = f.area();
+    if let Some(form) = &app.form {
+        f.render_widget(Clear, area);
+        if let Some(p) = form.view.borrow_mut().render(area, f.buffer_mut()) {
+            f.set_cursor_position(p);
+        }
+        draw_overlays(app, f, area);
+        return;
+    }
     let [header, main, status, hints] = Layout::vertical([
         Constraint::Length(1),
         Constraint::Fill(1),
@@ -67,6 +75,24 @@ pub fn draw(app: &App, f: &mut Frame) {
         ),
         hints,
     );
+    draw_overlays(app, f, area);
+}
+
+/// The app drawn on a `width` x `height` off-screen terminal, one line per row.
+pub fn screen_text(app: &App, width: u16, height: u16) -> String {
+    let Ok(mut term) = ratatui::Terminal::new(ratatui::backend::TestBackend::new(width, height));
+    if term.draw(|f| draw(app, f)).is_err() {
+        return String::new();
+    }
+    let buf = term.backend().buffer();
+    (0..height)
+        .map(|y| (0..width).map(|x| buf[(x, y)].symbol()).collect::<String>())
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// Toasts and modals over whatever screen is up.
+fn draw_overlays(app: &App, f: &mut Frame, area: Rect) {
     draw_toasts(
         app,
         f,

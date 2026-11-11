@@ -1337,7 +1337,7 @@ fn open_form_create_choice_and_launch_create() {
     a.open_form("new");
     assert_eq!(last_toast(&a), "Read-only mode: write actions are disabled");
     let n = a.toasts.len();
-    a.launch_create();
+    a.launch_create("incident", None);
     a.create_choice("incident");
     assert_eq!(a.toasts.len(), n);
 }
