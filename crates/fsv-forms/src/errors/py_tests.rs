@@ -108,3 +108,28 @@ fn payload_init_message_and_problems() {
         g(&["errors", "payload_two", "problems"]),
     );
 }
+
+#[test]
+fn message_helpers_match_python() {
+    assert_eq!(
+        super::unknown_field_message("pri", &["Priority".into(), "Primary".into()]),
+        "unknown field: 'pri' (did you mean: Priority, Primary)"
+    );
+    assert_eq!(
+        super::unknown_field_message("Prio", &[]),
+        "unknown field: 'Prio'"
+    );
+    assert_eq!(
+        super::ambiguous_message(
+            "Owner",
+            "x",
+            &[
+                LookupValue::new(7, "", None),
+                LookupValue::new(8, "Ann", None)
+            ]
+        ),
+        "Owner: 'x' matches 2 records: 7, Ann"
+    );
+    assert_eq!(super::payload_message(&[]), "invalid payload");
+    assert_eq!(super::payload_message(&["a".into(), "b".into()]), "a; b");
+}

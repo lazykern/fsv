@@ -437,6 +437,33 @@ mod tests {
     }
 
     #[test]
+    fn cdp_call_skips_other_frames_and_reports_errors() {
+        let (port, received, handle) = fake_devtools(vec![
+            json!([["ping"], ["text", {"id": 2, "result": {"x": 0}}], ["text", {"id": 1, "result": {"ok": true}}]]),
+            json!([["text", {"id": 1, "result": []}]]),
+            json!([["text", {"id": 1, "error": {"message": "nope"}}]]),
+            json!([["close"]]),
+        ]);
+        let ws = format!("ws://127.0.0.1:{port}/devtools/page/X");
+        assert_eq!(
+            cdp_call(&ws, "A.b", json!({"k": 1})).unwrap(),
+            json!({"ok": true})
+        );
+        assert_eq!(cdp_call(&ws, "A.b", json!({})).unwrap(), json!({}));
+        let err = cdp_call(&ws, "A.b", json!({})).unwrap_err().to_string();
+        assert!(err.contains("nope"), "{err}");
+        let err = cdp_call(&ws, "A.b", json!({})).unwrap_err().to_string();
+        assert!(err.contains("websocket closed"), "{err}");
+        handle.join().unwrap();
+        let first = &received.lock().unwrap()[0];
+        assert_eq!(first["path"], "/devtools/page/X");
+        assert_eq!(
+            serde_json::from_str::<Value>(first["text"].as_str().unwrap()).unwrap(),
+            json!({"id": 1, "method": "A.b", "params": {"k": 1}})
+        );
+    }
+
+    #[test]
     fn page_ws_url_and_http_json_read_the_target_list() {
         let (port, _, handle) = fake_devtools(vec![]);
         let url = page_ws_url(port, "acme.freshservice.com").unwrap();

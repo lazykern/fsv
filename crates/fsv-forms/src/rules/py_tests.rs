@@ -492,6 +492,15 @@ fn evaluate_matches_python() {
             .and_then(|m| m.as_str())
             .map(|m| Model::parse(m).unwrap());
         let label = format!("evaluate #{i} {ename} {}", row["values"]);
+        if kw.as_object().is_none_or(|o| o.is_empty())
+            && let Ok(ev) = e.evaluate(&values, mode)
+        {
+            check(
+                &format!("{label} defaults"),
+                &evaluated(&ev),
+                &row["out"]["ok"],
+            );
+        }
         let res = e.evaluate_with(
             &values,
             mode,

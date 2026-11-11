@@ -234,7 +234,9 @@ impl NoteModal {
         self
     }
 
-    /// `PlanningTextScreen(target, initial)`.
+    /// `PlanningTextScreen(target, initial)`; `title`, `hint` and
+    /// `visibility` give its composed text.
+    /// Port of fsv.tui.modals.PlanningTextScreen.__init__ and fsv.tui.modals.PlanningTextScreen.compose.
     pub fn planning(target: &str, initial: &str) -> NoteModal {
         let mut n = NoteModal::new(target, false, false);
         n.planning = true;

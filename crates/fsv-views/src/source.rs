@@ -458,6 +458,33 @@ mod tests {
     use super::*;
 
     #[test]
+    fn name_of_matches_python() {
+        let got: Vec<String> = [
+            json!({"name": " Ann "}),
+            json!({"name": "", "value": "v"}),
+            json!({"email": "e@x"}),
+            json!({"name": 0, "value": 5}),
+            json!("str"),
+            json!({}),
+        ]
+        .iter()
+        .map(name_of)
+        .collect();
+        assert_eq!(got, ["Ann", "v", "e@x", "5", "", ""]);
+    }
+
+    #[test]
+    fn rows_of_matches_python() {
+        assert_eq!(
+            rows_of(&json!({"a": [{"x": 1}, 2, {"y": 2}]}), "a"),
+            [json!({"x": 1}), json!({"y": 2})]
+        );
+        assert_eq!(rows_of(&json!([{"x": 1}, "z"]), "a"), [json!({"x": 1})]);
+        assert!(rows_of(&json!({"a": {"x": 1}}), "a").is_empty());
+        assert!(rows_of(&json!("s"), "a").is_empty());
+    }
+
+    #[test]
     fn workspace_get_falls_back_on_404() {
         let mut src = Canned {
             int: vec![("change_management/9".into(), Ok(json!({"ok": 1})))],

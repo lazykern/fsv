@@ -3836,6 +3836,7 @@ impl App {
 
     /// `_send_form`: send once; an edit reloads the change, a create toasts
     /// the new id and reloads the list.
+    /// Port of fsv.tui.app.FsvApp._send_form.
     fn send_form(&mut self, send: Box<dyn FormSend>, mode: String, item: Option<Item>) {
         if self.read_only {
             return;

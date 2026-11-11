@@ -369,6 +369,16 @@ mod tests {
     use super::*;
 
     #[test]
+    fn offset_text_floors_minutes() {
+        let off = |s| offset_text(Offset::from_seconds(s).unwrap());
+        assert_eq!(off(-12600), "-03:30");
+        assert_eq!(off(-30), "-00:01");
+        assert_eq!(off(19800), "+05:30");
+        assert_eq!(off(0), "+00:00");
+        assert_eq!(off(45), "+00:00");
+    }
+
+    #[test]
     fn iso_dates() {
         assert_eq!(
             date_fromisoformat("2030-12-03").map(date_iso).as_deref(),

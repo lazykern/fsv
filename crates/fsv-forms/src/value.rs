@@ -430,6 +430,7 @@ impl PyObj for i64 {
 }
 
 /// `norm(value)`: collapse whitespace, casefold.
+/// Port of fsv.forms.spec.norm.
 pub fn norm(s: &str) -> String {
     casefold(&squash_ws(s))
 }
@@ -442,4 +443,16 @@ pub fn values_from_json(obj: &Map<String, Json>) -> Values {
     obj.iter()
         .map(|(k, v)| (k.clone(), Value::from_json(v)))
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn norm_collapses_whitespace_and_casefolds() {
+        assert_eq!(norm("  Foo\t BAR\n baz "), "foo bar baz");
+        assert_eq!(norm("Straße"), "strasse");
+        assert_eq!(Value::Int(42).norm(), "42");
+    }
 }

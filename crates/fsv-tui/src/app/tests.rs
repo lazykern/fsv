@@ -2258,3 +2258,18 @@ fn build_form_push_form_and_send_form() {
     a.settle();
     assert!(sent.lock().unwrap().is_empty());
 }
+
+/// `_send_form` directly: a create toasts the new id; read-only never sends.
+#[test]
+fn send_form_sends_once_unless_read_only() {
+    let (mut a, _) = app(1);
+    let sent = Arc::new(Mutex::new(Vec::new()));
+    a.send_form(Box::new(DoneSend(sent.clone())), "incident".into(), None);
+    a.settle();
+    assert_eq!(*sent.lock().unwrap(), ["send"]);
+    assert!(toasts(&a).contains(&("Incident created INC-12".into(), Severity::Information)));
+    a.read_only = true;
+    a.send_form(Box::new(DoneSend(sent.clone())), "new".into(), None);
+    a.settle();
+    assert_eq!(sent.lock().unwrap().len(), 1);
+}

@@ -27,3 +27,10 @@ fsv.session._ws_recv_text: websocket framing is done by tungstenite; covered by 
 fsv.forms.errors.FormRuleError.__init__: enum variant stores the message as given
 fsv.tui.app.FsvApp._maybe: Textual widget-lookup helper
 fsv.tui.app.FsvApp._set_filter_error: no caller in Python
+fsv.tui.__init__.launch: terminal setup wrapper (raw mode, alternate screen); its loop fsv_tui::runtime::run is tested in fsv-tui/tests/tui.rs
+fsv.formui.app.run_form: terminal setup wrapper (raw mode, alternate screen); its loop fsv_formui::app::event_loop is tested in app.rs
+fsv.session.login_interactive: reads the real terminal; login_interactive_with (injected reader) is tested, as are its reader loops collect_secret and read_piped
+fsv.session._read_secret: reads the real stdin/terminal; its loops collect_secret (TTY keys) and read_piped (piped stdin) are tested in session/paste.rs
+fsv.forms.plan._default: canonical_json takes serde_json::Value, so datetimes/sets/tuples are converted (isoformat, sorted lists) before serialisation
+fsv.forms.state.LookupResolver.lookup: Protocol method; the Rust trait method has no body, implemented by the test resolvers in state.rs and py_golden.rs
+fsv.views._now: inlined as jiff::Timestamp::now() (UTC instant) in fsv_views::detail; tests inject `now`

@@ -162,6 +162,21 @@ fn sent(result: BResult<Value>, title: &str, res: Res, item: Item, verified: &st
     }
 }
 
+/// The exact review of a reply/note; a reply, or a note whose payload is
+/// `private: false`, asks for public consent after it (`resume_reviewed`).
+///
+/// Port of fsv.tui.app.FsvApp._review_ticket_conversation.
+fn review_ticket_conversation(item: Item, plan: ReviewPlan, reply: bool) -> Msg {
+    let public = reply || plan.raw.get("private") == Some(&Value::Bool(false));
+    Msg::Ui(vec![push(
+        Modal::confirm(
+            "Review exact ticket conversation",
+            vec![dumps(&plan.review)],
+        ),
+        Step::ConversationReviewed { item, plan, public },
+    )])
+}
+
 /// `match_planning_row` found a row whose text or attachments cannot be
 /// carried over unchanged.
 fn planning_row_unsafe(row: &Value) -> bool {
@@ -338,6 +353,7 @@ impl App {
     }
 
     /// `_send_ticket_property`.
+    /// Port of fsv.tui.app.FsvApp._send_ticket_property.
     fn send_ticket_property(&mut self, item: Item, plan: ReviewPlan) {
         if self.read_only {
             return;
@@ -414,6 +430,7 @@ impl App {
 
     /// `_load_planning_editor`: refuses a section whose text or attachments
     /// would not survive the save.
+    /// Port of fsv.tui.app.FsvApp._load_planning_editor.
     fn load_planning_editor(&mut self, item: Item, section: String) {
         if self.read_only {
             return;
@@ -440,6 +457,7 @@ impl App {
     }
 
     /// `_prepare_planning_text`.
+    /// Port of fsv.tui.app.FsvApp._prepare_planning_text.
     fn prepare_planning_text(&mut self, item: Item, section: String, description: String) {
         if self.read_only {
             return;
@@ -547,21 +565,13 @@ impl App {
         self.spawn(
             move |b| match b.ticket_conversation_plan(&item.ref_id(), &body, &req) {
                 Err(e) => failure(&e),
-                Ok(plan) => {
-                    let public = reply || plan.raw.get("private") == Some(&Value::Bool(false));
-                    Msg::Ui(vec![push(
-                        Modal::confirm(
-                            "Review exact ticket conversation",
-                            vec![dumps(&plan.review)],
-                        ),
-                        Step::ConversationReviewed { item, plan, public },
-                    )])
-                }
+                Ok(plan) => review_ticket_conversation(item, plan, reply),
             },
         );
     }
 
     /// `_send_ticket_conversation`.
+    /// Port of fsv.tui.app.FsvApp._send_ticket_conversation.
     fn send_ticket_conversation(&mut self, item: Item, plan: ReviewPlan, public: bool) {
         if self.read_only {
             return;
@@ -580,7 +590,228 @@ impl App {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::{Arc, Mutex};
+
     use super::*;
+    use crate::backend::{Backend, BasicPages};
+    use fsv_core::resource::CHANGES;
+
+    /// Records each reviewed-write call; `row` is the planning inventory match.
+    #[derive(Default)]
+    struct Writes {
+        calls: Mutex<Vec<String>>,
+        row: Option<Value>,
+        private: Option<bool>,
+    }
+
+    fn plan(review: Value, raw: Value) -> ReviewPlan {
+        ReviewPlan {
+            hash: "h".into(),
+            review,
+            public: false,
+            target_id: json!(11),
+            raw,
+        }
+    }
+
+    impl Writes {
+        fn log(&self, s: String) {
+            self.calls.lock().unwrap().push(s);
+        }
+    }
+
+    impl Backend for Writes {
+        fn send_ticket_property(&self, p: &ReviewPlan) -> BResult<Value> {
+            self.log(format!("property {}", p.hash));
+            Ok(json!({"verified": true, "id": 123}))
+        }
+        fn planning_row(&self, module: &str, id: &Value, section: &str) -> BResult<Option<Value>> {
+            self.log(format!("row {module} {id} {section}"));
+            Ok(self.row.clone())
+        }
+        fn planning_text_plan(
+            &self,
+            module: &str,
+            id: &Value,
+            section: &str,
+            description: &str,
+        ) -> BResult<ReviewPlan> {
+            self.log(format!("plan {module} {id} {section} {description}"));
+            Ok(plan(json!({"section": section}), Value::Null))
+        }
+        fn ticket_conversation_plan(
+            &self,
+            ticket_id: &Value,
+            body: &str,
+            req: &ConversationRequest,
+        ) -> BResult<ReviewPlan> {
+            self.log(format!("conv-plan {ticket_id} {body} reply={}", req.reply));
+            let raw = self.private.map_or(json!({}), |p| json!({"private": p}));
+            Ok(plan(json!({"body": body}), raw))
+        }
+        fn send_ticket_conversation(&self, p: &ReviewPlan, public: bool) -> BResult<Value> {
+            self.log(format!("conv-send {} public={public}", p.hash));
+            Ok(json!({"verified": false}))
+        }
+    }
+
+    fn app(w: Writes, read_only: bool) -> (App, Arc<Writes>) {
+        let w = Arc::new(w);
+        (
+            App::new_inline(w.clone(), Arc::new(BasicPages), read_only),
+            w,
+        )
+    }
+
+    fn calls(w: &Writes) -> Vec<String> {
+        w.calls.lock().unwrap().clone()
+    }
+
+    fn top(a: &App) -> &Modal {
+        &a.modals.last().expect("a modal").0
+    }
+
+    fn ticket() -> Item {
+        Item::new(&TICKETS, json!({"id": 123}))
+    }
+
+    /// `_send_ticket_property`: one send, the outcome, then `_after_write`
+    /// on a verified result; read-only sends nothing.
+    #[test]
+    fn send_ticket_property_shows_outcome_and_reloads() {
+        let (mut a, w) = app(Writes::default(), false);
+        a.send_ticket_property(ticket(), plan(json!({}), Value::Null));
+        a.settle();
+        assert_eq!(calls(&w), ["property h"]);
+        match top(&a) {
+            Modal::Outcome(o) => {
+                assert_eq!(o.title, "Property result — do not resend");
+                assert_eq!(o.message, "{\n  \"verified\": true,\n  \"id\": 123\n}");
+            }
+            m => panic!("not an outcome: {m:?}"),
+        }
+        assert_eq!(
+            a.toasts.last().map(|t| t.message.as_str()),
+            Some("Ticket property verified")
+        );
+        let (mut a, w) = app(Writes::default(), true);
+        a.send_ticket_property(ticket(), plan(json!({}), Value::Null));
+        a.settle();
+        assert!(calls(&w).is_empty() && a.modals.is_empty());
+    }
+
+    /// `_load_planning_editor` opens `PlanningTextScreen(section, description)`
+    /// or refuses an unsafe row; `_prepare_planning_text` shows the review.
+    #[test]
+    fn planning_editor_then_review() {
+        let change = Item::new(&CHANGES, json!({"id": 11, "display_id": 11}));
+        let (mut a, w) = app(
+            Writes {
+                row: Some(json!({"description": "old", "attachments": []})),
+                ..Default::default()
+            },
+            false,
+        );
+        a.load_planning_editor(change.clone(), "acme_plan".into());
+        a.settle();
+        assert_eq!(calls(&w), ["row changes 11 acme_plan"]);
+        match top(&a) {
+            Modal::Note(n) => {
+                assert!(n.planning);
+                assert_eq!((n.target.as_str(), n.text.value()), ("acme_plan", "old"));
+            }
+            m => panic!("not a note: {m:?}"),
+        }
+        a.modals.clear();
+        a.prepare_planning_text(change.clone(), "acme_plan".into(), "new".into());
+        a.settle();
+        assert_eq!(calls(&w)[1], "plan changes 11 acme_plan new");
+        match top(&a) {
+            Modal::Confirm(c) => {
+                assert_eq!(c.title, "Review exact planning text");
+                assert_eq!(c.lines, ["{\n  \"section\": \"acme_plan\"\n}"]);
+            }
+            m => panic!("not a confirm: {m:?}"),
+        }
+
+        let (mut a, _) = app(
+            Writes {
+                row: Some(json!({"description": "old"})),
+                ..Default::default()
+            },
+            false,
+        );
+        a.load_planning_editor(change, "acme_plan".into());
+        a.settle();
+        match top(&a) {
+            Modal::Failure(f) => {
+                assert_eq!(
+                    f.message,
+                    "Planning text/attachment preservation is unavailable\nNo automatic retry. Check the exact record and journal before another send; outcome may be unknown."
+                )
+            }
+            m => panic!("not a failure: {m:?}"),
+        }
+    }
+
+    /// `_review_ticket_conversation`: a reply or a `private: false` note is
+    /// public; `_send_ticket_conversation` passes that consent through.
+    #[test]
+    fn review_and_send_ticket_conversation() {
+        let reviewed = |reply: bool, private: Option<bool>| {
+            let raw = private.map_or(json!({}), |p| json!({"private": p}));
+            match review_ticket_conversation(ticket(), plan(json!({"b": 1}), raw), reply) {
+                Msg::Ui(ui) => match &ui[..] {
+                    [Ui::Push(m, Cont::Reviewed(Step::ConversationReviewed { public, .. }))] => {
+                        let Modal::Confirm(c) = &**m else {
+                            panic!("not a confirm")
+                        };
+                        assert_eq!(c.title, "Review exact ticket conversation");
+                        assert_eq!(c.lines, ["{\n  \"b\": 1\n}"]);
+                        *public
+                    }
+                    _ => panic!("unexpected ui"),
+                },
+                _ => panic!("unexpected msg"),
+            }
+        };
+        assert!(reviewed(true, None));
+        assert!(reviewed(false, Some(false)));
+        assert!(!reviewed(false, Some(true)));
+        assert!(!reviewed(false, None));
+
+        let (mut a, w) = app(
+            Writes {
+                private: Some(false),
+                ..Default::default()
+            },
+            false,
+        );
+        a.prepare_ticket_conversation(ticket(), "Acme".into(), false, false, Default::default());
+        a.settle();
+        assert_eq!(calls(&w), ["conv-plan 123 Acme reply=false"]);
+        assert!(matches!(
+            a.modals.last(),
+            Some((
+                _,
+                Cont::Reviewed(Step::ConversationReviewed { public: true, .. })
+            ))
+        ));
+
+        let (mut a, w) = app(Writes::default(), false);
+        a.send_ticket_conversation(ticket(), plan(json!({}), Value::Null), true);
+        a.settle();
+        assert_eq!(calls(&w), ["conv-send h public=true"]);
+        match top(&a) {
+            Modal::Outcome(o) => assert_eq!(o.title, "Conversation result — do not resend"),
+            m => panic!("not an outcome: {m:?}"),
+        }
+        assert!(a.toasts.is_empty());
+        let (mut a, w) = app(Writes::default(), true);
+        a.send_ticket_conversation(ticket(), plan(json!({}), Value::Null), false);
+        a.settle();
+        assert!(calls(&w).is_empty());
+    }
 
     #[test]
     fn conversation_options_split_emails_and_map_pending() {
