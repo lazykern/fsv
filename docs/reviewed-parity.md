@@ -104,6 +104,22 @@ a scrollable outcome screen, including unverified readback and returned IDs;
 there is no retry button. **Ctrl+S** keeps the simple compose/review path.
 Read-only mode blocks option preparation and sends.
 
+## Explicit-ticket bulk priority
+
+```sh
+fsv tickets bulk-priority INC-123 SR-124 --priority High --dry-run
+fsv tickets bulk-priority INC-123 SR-124 --priority High --yes --expect-plan REVIEWED_HASH
+```
+
+Only captured bulk priority is implemented, with 1–100 explicit unique ticket
+IDs and no query/view/all-pages expansion. Fresh per-ticket edit metadata and
+rules must agree on the chosen priority enum. Every record/metadata hash is
+bound to review, and every target is read independently after the single bulk
+request. Partial or missing per-ticket results remain unverified and return
+nonzero from the CLI; neither the whole batch nor failed members are retried.
+This has blocked-wire/offline transport evidence, not accepted live bulk proof.
+Spam/delete/merge/pick-up and scenario execution are not included.
+
 ## Problem known-error mark
 
 ```sh

@@ -3908,7 +3908,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
         register_watchers(sub, res, lambda: _client())
     if res.name == "tickets":
         from fsv.ticket_time_cli import register as register_time
+        from fsv.bulk_priority_cli import register as register_bulk_priority
         register_time(sub, lambda: _client())
+        register_bulk_priority(sub, lambda: _client())
 
     @sub.command("fields", help=f"List discoverable {singular} fields.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} fields  |  fsv {res.name} fields --required  |  fsv {res.name} fields --choices status  |  fsv {res.name} fields --custom"
