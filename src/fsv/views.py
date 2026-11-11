@@ -192,7 +192,10 @@ def fmt_when(value: Any, tz: dt.tzinfo | None = None, *, year: bool = True) -> s
     if value in (None, ""):
         return ""
     if _is_date_only(value):
-        d = dt.date.fromisoformat(str(value).strip())
+        try:
+            d = dt.date.fromisoformat(str(value).strip())
+        except ValueError:  # e.g. 2031-02-30: show it as stored
+            return str(value)
         return f"{d:%a}, {d.day} {d:%b %Y}"
     when = parse_dt(value)
     if when is None:
@@ -921,21 +924,38 @@ def load_conversations(c: Any, ticket_id: Any, *, all_pages: bool = False, per_p
         meta = dict((data or {}).get("meta") or {})
     else:
         rows, meta, page = [], {}, 1
-        while page <= 50:
+        partial: Missing | None = None
+        complete = False
+        while page <= MAX_CONVERSATION_PAGES:
             data, miss = optional_get(c, f"tickets/{ticket_id}/conversations",
                                       {**params, "per_page": 30, "page": page}, "conversations")
             if miss:
                 if page == 1:
                     return [], {}, miss
+                # keep what arrived, but never claim it is everything
+                partial = Missing(f"conversations after the first {len(rows)} (page {page})", miss.status)
                 break
             batch = list((data or {}).get("conversations") or [])
             rows.extend(batch)
             meta = dict((data or {}).get("meta") or {})
             if not batch or len(batch) < 30 or meta.get("has_more") is False:
+                complete = True
                 break
             page += 1
+        if not complete and partial is None:
+            partial = Missing(f"conversations after page {MAX_CONVERSATION_PAGES} ({len(rows)} shown)")
         meta["count"] = max(int(meta.get("count") or 0), len(rows))
-        meta["has_more"] = False
+        meta["has_more"] = not complete
+        if partial is not None:
+            meta["partial"] = partial.note
+            return _oldest_first(rows), meta, partial
+    return _oldest_first(rows), meta, None
+
+
+MAX_CONVERSATION_PAGES = 50
+
+
+def _oldest_first(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     seen: set[Any] = set()
     uniq = []
     for r in rows:
@@ -944,7 +964,7 @@ def load_conversations(c: Any, ticket_id: Any, *, all_pages: bool = False, per_p
         seen.add(r.get("id"))
         uniq.append(r)
     uniq.sort(key=lambda r: str(r.get("created_at") or ""))
-    return uniq, meta, None
+    return uniq
 
 
 def conversation_kind(conv: Mapping[str, Any]) -> str:
@@ -1353,7 +1373,9 @@ def load_detail(c: Any, res: Resource, item_id: Any, *, record: Mapping[str, Any
             if d.requested_items_missing and d.requested_items_missing.status == 404 and tabs_miss is not None:
                 d.requested_items_missing = None
         convs, meta, miss = load_conversations(c, rid, all_pages=all_conversations)
-        d.conversations, d.conversations_meta, d.conversations_missing = (None if miss else convs), meta, miss
+        # a partial fetch keeps the rows that arrived and says what is missing
+        d.conversations, d.conversations_meta, d.conversations_missing = (
+            None if miss and not convs else convs), meta, miss
     d.properties, d.properties_note = load_properties(c, res, rec, sch, tz, user)
     for name in tabs:
         cname = canonical_tab(name)

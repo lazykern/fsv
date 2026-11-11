@@ -182,6 +182,8 @@ def main_lines(d: V.Detail) -> list[str]:
             out.append("  [dim]no conversations[/]")
         for cv in d.conversations:
             out += conversation_lines(cv, d.tz)
+        if d.conversations_missing:  # a partial fetch: never shown as complete
+            out.append(f"  [yellow]incomplete: {_e(d.conversations_missing.note)}[/]")
     elif d.conversations_missing:
         out += ["", f"[dim]{_e(d.conversations_missing.note)}[/]"]
     return out

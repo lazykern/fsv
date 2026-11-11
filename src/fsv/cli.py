@@ -3734,7 +3734,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 change = data.get("change", data)
                 fmt = format_.value if isinstance(format_, OutputFormat) else format_
                 if json_out or fmt == "json":
-                    flow_data = state_flow.get_state_flow(change["state_flow_id"], c)
+                    flow_data = state_flow.get_state_flow(change["state_flow_id"], c, change.get("workspace_id"))
                     emit_json({"change": change, "flow": flow_data})
                 elif fmt in ("csv", "tsv"):
                     render.emit_delimited([change], "," if fmt == "csv" else "\t")

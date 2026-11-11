@@ -10,10 +10,22 @@ from fsv.client import Client, get_client
 from fsv.resources import format_id
 
 
-def get_state_flow(state_flow_id: int, client: Client | None = None) -> dict[str, Any]:
-    """Fetch state flow definition from the internal API."""
+def get_state_flow(state_flow_id: int, client: Client | None = None, workspace_id: Any = None) -> dict[str, Any]:
+    """Fetch a state flow definition from the internal API: in the change's
+    workspace when it has one (``ws/<id>/change_management/<flow>``), else
+    (or when that 404s, e.g. an account without workspaces) the plain path."""
+    from fsv.errors import APIError
+
     c = client or get_client()
-    data = c.int_get(f"ws/2/change_management/{state_flow_id}", params={"include": "state_info"})
+    params = {"include": "state_info"}
+    if workspace_id not in (None, ""):
+        try:
+            data = c.int_get(f"ws/{workspace_id}/change_management/{state_flow_id}", params=params)
+            return data.get("state_flow", data)
+        except APIError as e:
+            if e.status != 404:
+                raise
+    data = c.int_get(f"change_management/{state_flow_id}", params=params)
     return data.get("state_flow", data)
 
 
@@ -30,7 +42,7 @@ def render_flow(
         out.print("[yellow]no state_flow_id on this change[/]")
         return
 
-    flow = get_state_flow(state_flow_id, client=c)
+    flow = get_state_flow(state_flow_id, client=c, workspace_id=change.get("workspace_id"))
     state_list = flow.get("state_list", [])
     if not state_list:
         out.print("[yellow]empty state_list[/]")
@@ -115,7 +127,7 @@ def render_compact(change: dict[str, Any], console: Console | None = None, conte
     if not state_flow_id:
         return
     try:
-        flow = get_state_flow(state_flow_id, client=c)
+        flow = get_state_flow(state_flow_id, client=c, workspace_id=change.get("workspace_id"))
     except Exception:
         return
 
@@ -172,7 +184,7 @@ def render_state_diagram(change: dict[str, Any], console: Console | None = None,
         return
 
     try:
-        flow = get_state_flow(state_flow_id, client=c)
+        flow = get_state_flow(state_flow_id, client=c, workspace_id=change.get("workspace_id"))
     except Exception:
         return
 
