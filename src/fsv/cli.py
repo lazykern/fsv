@@ -266,16 +266,23 @@ class SortOrder(str, Enum):
     desc = "desc"
 
 
-def _err(msg: str, code: int = 1) -> None:
+def _err(msg: str, code: int = 2) -> None:
+    """Print an error and exit. Default code 2 = validation/usage."""
     err.print(f"[red]error[/red]: {msg}")
     raise typer.Exit(code) from None
+
+
+def _err_exc(exc: BaseException) -> None:
+    """Exit with the stable code for *exc* (3 session, 4 conflict, 5 server, 2 value, 1 other)."""
+    from fsv.errors import exit_code_for
+    _err(str(exc), exit_code_for(exc))
 
 
 def _api(fn: Callable[[], T]) -> T:
     try:
         return fn()
     except (SessionError, APIError, ValueError) as e:
-        _err(str(e))
+        _err_exc(e)
 
 
 def _client():
@@ -283,12 +290,12 @@ def _client():
     from fsv.session import session_age_hours
     if session_age_hours() is None:
         err.print("[red]error[/red]: no session; run `fsv auth login`")
-        raise SystemExit(1)
+        raise SystemExit(3)
     try:
         return get_client()
     except (SessionError, RuntimeError) as e:
         err.print(f"[red]error[/red]: {e}")
-        raise SystemExit(1)
+        raise SystemExit(3 if isinstance(e, SessionError) else 1)
 
 
 def _edit_body(data: dict[str, Any], hint: str, no_input: bool = False) -> dict[str, Any]:
@@ -300,7 +307,7 @@ def _edit_body(data: dict[str, Any], hint: str, no_input: bool = False) -> dict[
     try:
         return edit_json(data, hint)
     except EditorAbort as e:
-        _err(str(e))
+        _err_exc(e)
 
 
 def _choose_store() -> str:
@@ -342,7 +349,7 @@ def _cid(id_: str, res: Resource) -> int:
     try:
         return parse_id(id_, res)
     except ValueError as e:
-        _err(str(e))
+        _err_exc(e)
 
 
 def _page_text(text: str) -> bool:
@@ -553,17 +560,40 @@ def _load_query_hash(raw: str) -> list[dict[str, Any]]:
     return loaded
 
 
+def _interactive() -> bool:
+    return not _no_input() and sys.stdin.isatty()
+
+
+def _candidate_label(item: dict[str, Any]) -> str:
+    name = item.get("value") or item.get("name") or item.get("id")
+    extra = item.get("details") or item.get("email")
+    return f"{name} <{extra}>" if extra and extra != name else str(name)
+
+
 def _pick_lookup(kind: str, value: str, results: list[dict[str, Any]], exact_keys: tuple[str, ...]) -> dict[str, Any]:
+    """Exact (NFC, case-insensitive) match wins. Anything else is an error that
+    lists candidates (interactive: pick one). Never a silent substring pick."""
+    from fsv.safety import norm
     if not results:
         _err(f"no {kind} match: {value}")
-    folded = value.casefold()
-    for item in results:
-        if any(str(item.get(k) or "").casefold() == folded for k in exact_keys):
-            return item
-    if len(results) == 1:
-        return results[0]
-    choices = ", ".join(str(x.get("details") or x.get("value") or x.get("id")) for x in results[:5])
-    _err(f"multiple {kind} matches for {value}: {choices}")
+    folded = norm(value)
+    exact = [x for x in results if any(norm(x.get(k)) == folded for k in exact_keys)]
+    if len(exact) == 1:
+        return exact[0]
+    candidates = exact or results
+    problem = f"multiple exact {kind} matches for {value!r}" if exact else f"no exact {kind} match for {value!r}"
+    if _interactive():
+        shown = candidates[:20]
+        err.print(f"{problem}; candidates:", highlight=False)
+        for i, item in enumerate(shown, 1):
+            err.print(f"  {i}. {_candidate_label(item)}", highlight=False)
+        choice = typer.prompt("Pick a number (0 to cancel)", type=int, default=0)
+        if 1 <= choice <= len(shown):
+            return shown[choice - 1]
+        _err(f"no {kind} chosen")
+    listed = "; ".join(_candidate_label(x) for x in candidates[:8])
+    more = f" (+{len(candidates) - 8} more)" if len(candidates) > 8 else ""
+    _err(f"{problem}: {listed}{more}. Use the exact name/email or a numeric ID.")
 
 
 def _resolve_requester(c: Any, value: str) -> dict[str, Any]:
@@ -622,10 +652,11 @@ def _resolve_group(c: Any, value: str) -> str:
     if value.isdigit():
         return value
     data = c.int_get("bootstrap/agents_groups")
-    folded = value.casefold()
+    from fsv.safety import norm
+    folded = norm(value)
     groups = [
         g for g in data.get("groups", [])
-        if folded in str(g.get("name") or "").casefold() or str(g.get("id") or "") == value
+        if folded in norm(g.get("name")) or str(g.get("id") or "") == value
     ]
     item = _pick_lookup("group", value, groups, ("name", "id"))
     group_id = item.get("id")
@@ -665,21 +696,57 @@ def _status_label(sch: dict[str, Any], status: int | str) -> str:
 
 
 def _is_terminal_status(label: str) -> bool:
-    folded = label.casefold()
-    return any(word in folded for word in TERMINAL_STATUS_WORDS)
+    from fsv.safety import is_terminal_label
+    return is_terminal_label(label)
+
+
+def _confirm_writes(risks: list[str], subject: str, yes: bool, no_input: bool = False) -> None:
+    """Single gate for every notifying/state-changing write.
+
+    No risks or --yes: proceed. Interactive: show what will happen, ask y/N.
+    Non-interactive (--no-input or no TTY): refuse unless --yes.
+    """
+    if not risks or yes:
+        return
+    if _no_input(no_input) or not sys.stdin.isatty():
+        _err(f"{subject}: " + "; ".join(risks) + ". Pass --yes to confirm.")
+    err.print(f"[bold]{subject}[/bold] will:", highlight=False)
+    for r in risks:
+        err.print(f"  - {r}", highlight=False)
+    typer.confirm("Proceed?", default=False, abort=True)
+
+
+def _current_flat(res: Resource, cid: int, c: Any) -> dict[str, Any] | None:
+    """Best-effort current item (status/assignee/group) to detect no-op writes."""
+    try:
+        data = c.int_get(f"{res.api_path}/{cid}")
+        item = data.get(res.item_key, data) if isinstance(data, dict) else None
+        return item if isinstance(item, dict) else None
+    except Exception:
+        return None
+
+
+def _risks_for_item_write(res: Resource, cid: int, body: dict[str, Any], sch: dict[str, Any], c: Any,
+                          current: dict[str, Any] | None = None) -> list[str]:
+    from fsv.safety import write_risks
+    if current is None and any(k in body for k in ("status", "agent_id", "responder_id", "group_id")):
+        current = _current_flat(res, cid, c)
+    return write_risks(res.name, body, current=current, status_label=lambda v: _status_label(sch, v))
 
 
 def _confirm_terminal_status(res: Resource, cid: int, sch: dict[str, Any], status: int | str, yes: bool, no_input: bool = False) -> None:
-    label = _status_label(sch, status)
-    if not _is_terminal_status(label) or yes:
-        return
-    if _no_input(no_input) or not sys.stdin.isatty():
-        _err(f"pass --yes to confirm setting {format_id({'id': cid}, res)} status to {label}")
-    typer.confirm(f"Set {format_id({'id': cid}, res)} status to {label}?", abort=True)
+    """Back-compat wrapper: gate a lone status change."""
+    from fsv.safety import write_risks
+    risks = write_risks(res.name, {"status": status}, status_label=lambda v: _status_label(sch, v))
+    _confirm_writes(risks, f"{format_id({'id': cid}, res)}", yes, no_input)
 
 
-def _emit_dry_run(res: Resource, cid: int, body: dict[str, Any], action: str = "update") -> None:
-    emit_json({"dry_run": True, "action": action, "id": format_id({"id": cid}, res), "body": body})
+def _emit_dry_run(res: Resource, cid: int, body: dict[str, Any], action: str = "update",
+                  risks: list[str] | None = None) -> None:
+    out: dict[str, Any] = {"dry_run": True, "action": action, "id": format_id({"id": cid}, res), "body": body}
+    if risks:
+        out["requires_confirmation"] = risks
+    emit_json(out)
 
 
 def _strip_quotes(value: str) -> str:
@@ -1150,6 +1217,21 @@ _ASSET_CATEGORY_OPTION_RE = re.compile(r'<option(?:\s+value(?:="([^"]*)")?)?[^>]
 _ASSET_CATEGORY_CACHE: list[dict[str, str]] | None = None
 
 
+def _prefixed_value(ci: dict[str, Any], prefix: str) -> Any:
+    """Value of the CI-type-specific field ``<prefix><ci_type_id>`` without
+    hard-coding the tenant's CI-type suffix: prefer the key whose suffix is this
+    asset's ci_type_id, else the first non-empty key with the prefix."""
+    keys = sorted(k for k in ci if isinstance(k, str) and k.startswith(prefix))
+    type_id = str(ci.get("ci_type_id") or "")
+    if type_id and f"{prefix}{type_id}" in keys:
+        keys.remove(f"{prefix}{type_id}")
+        keys.insert(0, f"{prefix}{type_id}")
+    for k in keys:
+        if ci.get(k) not in (None, ""):
+            return ci[k]
+    return None
+
+
 def _asset_display(asset: dict[str, Any]) -> dict[str, Any]:
     ci = asset.get("config_item") if isinstance(asset.get("config_item"), dict) else asset
     return {
@@ -1158,8 +1240,8 @@ def _asset_display(asset: dict[str, Any]) -> dict[str, Any]:
         "type": ci.get("asset_type") or ci.get("ci_type_name") or "-",
         "used_by": ci.get("user_name") or ci.get("used_by") or "-",
         "location": ci.get("location_name") or "-",
-        "state": ci.get("asset_state_9000510422") or "-",
-        "serial": ci.get("serial_number_9000510422") or "-",
+        "state": _prefixed_value(ci, "asset_state_") or "-",
+        "serial": _prefixed_value(ci, "serial_number_") or "-",
     }
 
 
@@ -2041,7 +2123,7 @@ def ticket_approvals_resource(id_: str, format_: OutputFormat | str = "table", j
             if prefix == "INC":
                 hint += "; INC tickets often do not expose approvals, try SR or another approval-capable ticket"
             _err(hint)
-        _err(str(e))
+        _err_exc(e)
     def _flat(a: dict) -> dict:
         remark = (a.get("remark") or [{}])[0]
         decided = remark.get("updated_at") or a.get("updated_at") or "-"
@@ -2312,7 +2394,6 @@ def update_resource(
     body: dict[str, Any] = {}
     if status is not None:
         body["status"] = _resolve_update_choice(sch, "status", status)
-        _confirm_terminal_status(res, cid, sch, body["status"], yes, no_input)
     if priority is not None:
         body["priority"] = _resolve_update_choice(sch, "priority", priority)
     if agent_id is not None:
@@ -2327,9 +2408,11 @@ def update_resource(
         body[k] = v
     if not body:
         _err("nothing to update; pass at least one field (--status, --priority, --agent, --group, --set FIELD=VALUE)")
+    risks = _risks_for_item_write(res, cid, body, sch, c)
     if dry_run:
-        _emit_dry_run(res, cid, body)
+        _emit_dry_run(res, cid, body, risks=risks)
         return
+    _confirm_writes(risks, format_id({"id": cid}, res), yes, no_input)
     item = _api(lambda: service.update_item(res, cid, body, client=c))
     if json_out:
         emit_json(item)
@@ -2337,18 +2420,32 @@ def update_resource(
     console.print(f"[green]updated[/] {format_id(item, res)}")
 
 
-def note_resource(res: Resource, id_: str, body: str, public: bool) -> None:
+def note_resource(res: Resource, id_: str, body: str, public: bool, dry_run: bool = False,
+                  yes: bool = False, no_input: bool = False) -> None:
     from fsv import service
+    from fsv.safety import note_risks
     cid = _cid(id_, res)
+    risks = note_risks(public)
+    if dry_run:
+        _emit_dry_run(res, cid, {"body": body, "private": not public}, "add_note", risks=risks)
+        return
+    _confirm_writes(risks, f"note on {format_id({'id': cid}, res)}", yes, no_input)
     c = _client()
     n = _api(lambda: service.add_note(res, cid, body, public=public, client=c))
     visibility = "public" if public else "private"
     console.print(f"[green]added[/] {visibility} note {n.get('id')}")
 
 
-def reply_resource(res: Resource, id_: str, body: str) -> None:
+def reply_resource(res: Resource, id_: str, body: str, dry_run: bool = False,
+                   yes: bool = False, no_input: bool = False) -> None:
     from fsv import service
+    from fsv.safety import reply_risks
     cid = _cid(id_, res)
+    risks = reply_risks()
+    if dry_run:
+        _emit_dry_run(res, cid, {"body": body}, "reply", risks=risks)
+        return
+    _confirm_writes(risks, f"reply on {format_id({'id': cid}, res)}", yes, no_input)
     c = _client()
     reply = _api(lambda: service.add_reply(res, cid, body, client=c))
     console.print(f"[green]added[/] reply {reply.get('id', '')}")
@@ -2364,7 +2461,7 @@ auth_app = typer.Typer(
 
 def _resolve_domain(no_input: bool = False) -> bool:
     """Prompt for domain. Returns True if input looked like a URL (always confirm)."""
-    default = config.DOMAIN or "yourcompany.freshservice.com"
+    default = config.DOMAIN or "acme.freshservice.com"
     if config.DOMAIN and not sys.stdin.isatty():
         err.print(f"Domain: [bold]{config.DOMAIN}[/]")
         return False
@@ -2375,7 +2472,7 @@ def _resolve_domain(no_input: bool = False) -> bool:
     try:
         config.set_domain(config.normalize_domain(answer or default))
     except ValueError as e:
-        _err(str(e))
+        _err_exc(e)
     return looks_like_url
 
 
@@ -2388,9 +2485,9 @@ def _validate_new_cookies(cookies: dict[str, str]) -> None:
             probe.check_session()
     except SessionError:
         _err("these cookies are expired or invalid for "
-             f"{config.DOMAIN}; nothing saved (use --force to save anyway)")
+             f"{config.DOMAIN}; nothing saved (use --force to save anyway)", 3)
     except Exception as e:
-        _err(f"could not verify cookies against {config.DOMAIN}: {e}; nothing saved (use --force to save anyway)")
+        _err(f"could not verify cookies against {config.DOMAIN}: {e}; nothing saved (use --force to save anyway)", 1)
 
 
 @auth_app.command("login", epilog="[bold]Examples:[/bold]  fsv auth login --browser  |  pbpaste | fsv auth login --header - --store keychain")
@@ -2420,7 +2517,7 @@ def auth_login(
         try:
             config.set_domain(domain)
         except ValueError as e:
-            _err(str(e))
+            _err_exc(e)
     elif not config.DOMAIN:
         url_pasted = _resolve_domain(no_input)
     else:
@@ -2439,7 +2536,7 @@ def auth_login(
         else:
             cookies = login_interactive()
     except SessionError as e:
-        _err(str(e))
+        _err_exc(e)
     if not force:
         _validate_new_cookies(cookies)
     if store is None and sys.stdin.isatty() and not no_input:
@@ -2461,7 +2558,7 @@ def auth_login(
         _refresh_cache(verbose=False, blocking=False)
     except Exception as e:
         err.print(f"[yellow]warning[/yellow]: saved cookies but could not verify login for {config.DOMAIN}: {e}")
-        err.print("If this is the wrong tenant, rerun with `fsv auth login --domain yourcompany.freshservice.com`.")
+        err.print("If this is the wrong tenant, rerun with `fsv auth login --domain acme.freshservice.com`.")
 
 
 @auth_app.command("logout", epilog="[bold]Examples:[/bold]  fsv auth logout  |  fsv auth logout --yes")
@@ -2512,7 +2609,7 @@ app.add_typer(auth_app, name="auth")
 
 
 HELP_TOPICS = {
-    "auth": "Login: fsv auth login --browser --domain yourcompany.freshservice.com; fsv auth status. Scripts: use fsv auth login --domain ... --header ... --store file.",
+    "auth": "Login: fsv auth login --browser --domain acme.freshservice.com; fsv auth status. Scripts: use fsv auth login --domain ... --header ... --store file.",
     "workflow": "Daily flow: fsv changes ls --where status=Open; fsv changes get CHN-1234 --internal; fsv changes update CHN-1234 --set 'field=value'; fsv changes download CHN-1234 --all.",
     "fields": "Discover fields with fsv changes fields, fsv changes fields --choices status, and fsv changes lookup requester alice@example.com. Prefer dedicated flags for default fields; use --set for custom fields.",
     "scripting": "Use --json for create/update/clone/download. Use --output json/csv/tsv for list/search commands. Use --no-input in CI. Use --dry-run before updates. Do not parse rich table output.",
@@ -2918,6 +3015,64 @@ def cache_clear(
 
 app.add_typer(cache_app, name="cache")
 
+journal_app = typer.Typer(
+    no_args_is_help=True,
+    help="read the local write journal",
+    rich_markup_mode=None if _COMPLETING else "rich",
+)
+
+
+def _journal_rows(rows: list[dict[str, Any]], json_out: bool) -> None:
+    import json
+    from rich.table import Table
+    if json_out:
+        for r in rows:
+            print(json.dumps(r, ensure_ascii=False))
+        return
+    if not rows:
+        console.print("[dim]journal is empty[/dim]")
+        return
+    t = Table()
+    for col in ("time", "command", "kind", "target", "status", "created", "plan"):
+        t.add_column(col)
+    for r in rows:
+        t.add_row(str(r.get("ts", "")), str(r.get("command") or "-"), str(r.get("kind", "")),
+                  str(r.get("target") or "-"), ("ok " if r.get("ok") else "FAIL ") + str(r.get("status") or ""),
+                  str(r.get("created_id") or "-"), str(r.get("plan_hash") or "-")[:12])
+    console.print(t)
+
+
+@journal_app.command("ls", epilog="[bold]Examples:[/bold]  fsv journal ls  |  fsv journal ls --json --failed")
+def journal_ls(
+    limit: int = typer.Option(0, "--limit", "-n", help="only the last N entries (0 = all)"),
+    failed: bool = typer.Option(False, "--failed", help="only failed writes"),
+    json_out: bool = typer.Option(False, "--json", help="one JSON object per line"),
+) -> None:
+    """List journaled write requests (oldest first)."""
+    from fsv import journal
+    rows = [r for r in journal.read() if not failed or not r.get("ok")]
+    _journal_rows(rows[-limit:] if limit else rows, json_out)
+
+
+@journal_app.command("tail", epilog="[bold]Examples:[/bold]  fsv journal tail  |  fsv journal tail -n 5 --json")
+def journal_tail(
+    limit: int = typer.Option(10, "--limit", "-n", help="number of entries"),
+    json_out: bool = typer.Option(False, "--json", help="one JSON object per line"),
+) -> None:
+    """Show the most recent journaled writes."""
+    from fsv import journal
+    _journal_rows(journal.read(limit), json_out)
+
+
+@journal_app.command("path", epilog="[bold]Examples:[/bold]  fsv journal path")
+def journal_path_cmd() -> None:
+    """Print the journal file location."""
+    from fsv import journal
+    print(journal.journal_path())
+
+
+app.add_typer(journal_app, name="journal")
+
 
 def _make_subapp(res: Resource) -> typer.Typer:
     _pfx = res.display_prefixes[0]
@@ -3085,7 +3240,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     list_categories=list_categories,
                 )
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @assets_app.command("ls", help="List associated change assets.", epilog="[bold]Examples:[/bold]  fsv changes assets ls CHN-1234  |  fsv changes assets ls CHN-1234 --category 'Application Portfolio' --json")
         def assets_ls(
@@ -3099,7 +3254,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 assets_resource(id_, None, [], [], page, per_page, False, False, json_out, format_, category_name=category)
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @assets_app.command("search", help="Search assets available to associate.", epilog="[bold]Examples:[/bold]  fsv changes assets search CHN-1234 app  |  fsv changes assets search CHN-1234 AcmeApp --category 'Application Portfolio' --json")
         def assets_search(
@@ -3114,7 +3269,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 assets_resource(id_, query, [], [], page, per_page, False, False, json_out, format_, category_name=category)
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @assets_app.command("add", help="Associate asset(s) to change.", epilog="[bold]Examples:[/bold]  fsv changes assets add CHN-1234 456 --dry-run  |  fsv changes assets add CHN-1234 OOS --category 'Application Portfolio' --yes")
         def assets_add(
@@ -3128,7 +3283,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 assets_resource(id_, None, list(assets_), [], 1, 30, dry_run, yes, json_out, pick=False, category_name=category)
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @assets_app.command("remove", help="Remove asset(s) from change.", epilog="[bold]Examples:[/bold]  fsv changes assets remove CHN-1234 456 --dry-run  |  fsv changes assets remove CHN-1234 OOS --category 'Application Portfolio' --yes")
         def assets_remove(
@@ -3142,7 +3297,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 assets_resource(id_, None, [], list(assets_), 1, 30, dry_run, yes, json_out, pick=False, category_name=category)
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @assets_app.command("pick", help="Interactively pick asset(s) to associate.", epilog="[bold]Examples:[/bold]  fsv changes assets pick CHN-1234 --category 'Application Portfolio' --yes  |  fsv changes assets pick CHN-1234 --dry-run")
         def assets_pick(
@@ -3155,7 +3310,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 assets_resource(id_, None, [], [], 1, 30, dry_run, yes, json_out, pick=True, category_name=category)
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @assets_app.command("categories", help="List available asset categories.", epilog="[bold]Examples:[/bold]  fsv changes assets categories  |  fsv changes assets categories --json")
         def assets_categories(
@@ -3165,7 +3320,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 asset_categories_resource(format_, json_out)
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         sub.add_typer(assets_app, name="assets")
 
@@ -3188,19 +3343,33 @@ def _make_subapp(res: Resource) -> typer.Typer:
             planned_end: Optional[str] = typer.Option(None, "--planned-end", help="ISO-8601 planned end"),
             edit: bool = typer.Option(False, "--edit", "-e", help="open $EDITOR with all task fields"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="confirm status changes and reassignment"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Update a task on a change. Use --edit for full edit or flags for quick update."""
             from fsv.create import get_task_for_edit, update_task
+            from fsv.safety import write_risks
+
+            def _task_risks(body: dict[str, Any], current: dict[str, Any] | None) -> list[str]:
+                if current is None and any(k in body for k in ("status", "owner_id", "agent_id", "group_id")):
+                    try:
+                        current = get_task_for_edit(cid, task_id)
+                    except Exception:
+                        current = None
+                return write_risks(res.name, body, current=current, kind="task",
+                                   status_label=lambda v: (status if status and not str(status).isdigit() else f"status {v}"))
             try:
                 cid = _cid(id_, res)
                 if edit:
                     current = get_task_for_edit(cid, task_id)
                     body = _edit_body(current, f"Editing task {task_id} on change #{cid}", no_input)
+                    risks = _task_risks(body, current)
                     if dry_run:
-                        emit_json({"action": "update_task", "change_id": cid, "task_id": task_id, "body": body})
+                        emit_json({"action": "update_task", "change_id": cid, "task_id": task_id, "body": body,
+                                   **({"requires_confirmation": risks} if risks else {})})
                         return
+                    _confirm_writes(risks, f"task {task_id} on #{cid}", yes, no_input)
                     updated = update_task(cid, task_id, body)
                 else:
                     body: dict[str, Any] = {}
@@ -3228,16 +3397,19 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     if not body:
                         _err("nothing to update; use --edit or pass task fields")
                         return
+                    risks = _task_risks(body, None)
                     if dry_run:
-                        emit_json({"action": "update_task", "change_id": cid, "task_id": task_id, "body": body})
+                        emit_json({"action": "update_task", "change_id": cid, "task_id": task_id, "body": body,
+                                   **({"requires_confirmation": risks} if risks else {})})
                         return
+                    _confirm_writes(risks, f"task {task_id} on #{cid}", yes, no_input)
                     updated = update_task(cid, task_id, body)
                 if json_out:
                     emit_json(updated)
                 else:
                     console.print(f"[green]updated[/] task {task_id} on #{cid}")
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @sub.command("tasks-delete", help="Delete a change task.", epilog=(
             "[bold]Examples:[/bold]  fsv changes tasks-delete CHN-1234 987 --dry-run  |  fsv changes tasks-delete CHN-1234 987 --yes"
@@ -3261,7 +3433,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 _api(lambda: delete_task(cid, task_id))
                 console.print(f"[green]deleted[/] task {task_id} from #{cid}")
             except (SessionError, APIError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @sub.command("approvals", help="List change approvals.", epilog=(
             "[bold]Examples:[/bold]  fsv changes approvals CHN-1234  |  fsv changes approvals CHN-1234 --json"
@@ -3304,7 +3476,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     t.add_row(str(a.get("level_id", "-")), member, status_name, decided[:10] if decided != "-" else "-", message)
                 console.print(t)
             except (SessionError, APIError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @sub.command("state", help="Approval lifecycle state flow.", epilog=(
             "[bold]Examples:[/bold]  fsv changes state CHN-1234  |  fsv changes state CHN-1234 --json"
@@ -3335,7 +3507,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             except KeyError:
                 _err("no state_flow_id on this change")
             except (SessionError, APIError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         associations_app = typer.Typer(
             cls=ChangeLegacyGroup,
@@ -3373,7 +3545,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 change_associations_resource(id_, search, list(add or []), list(remove or []), dry_run, yes, json_out, format_, pick=pick)
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @associations_app.command("ls", help="List associated tickets for change.", epilog="[bold]Examples:[/bold]  fsv changes associations ls CHN-1234  |  fsv changes associations ls CHN-1234 --json")
         def associations_ls(
@@ -3384,7 +3556,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 change_associations_resource(id_, None, [], [], False, False, json_out, format_)
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @associations_app.command("search", help="Search tickets available to associate.", epilog="[bold]Examples:[/bold]  fsv changes associations search CHN-1234 SR-123  |  fsv changes associations search CHN-1234 Napimpat --output csv")
         def associations_search(
@@ -3396,7 +3568,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 change_associations_resource(id_, query, [], [], False, False, json_out, format_)
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @associations_app.command("add", help="Associate ticket(s) to change.", epilog="[bold]Examples:[/bold]  fsv changes associations add CHN-1234 SR-123 --dry-run  |  fsv changes associations add CHN-1234 'Napimpat' --yes")
         def associations_add(
@@ -3409,7 +3581,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 change_associations_resource(id_, None, list(tickets_), [], dry_run, yes, json_out)
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @associations_app.command("remove", help="Dissociate ticket(s) from change.", epilog="[bold]Examples:[/bold]  fsv changes associations remove CHN-1234 SR-123 --dry-run  |  fsv changes associations remove CHN-1234 SR-123 --yes")
         def associations_remove(
@@ -3422,7 +3594,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 change_associations_resource(id_, None, [], list(tickets_), dry_run, yes, json_out)
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         @associations_app.command("pick", help="Interactively pick ticket(s) to associate.", epilog="[bold]Examples:[/bold]  fsv changes associations pick CHN-1234 --yes  |  fsv changes associations pick CHN-1234 --dry-run")
         def associations_pick(
@@ -3434,7 +3606,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 change_associations_resource(id_, None, [], [], dry_run, yes, json_out, pick=True)
             except (SessionError, APIError, ValueError) as e:
-                _err(str(e))
+                _err_exc(e)
 
         sub.add_typer(associations_app, name="associations")
 
@@ -3455,11 +3627,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
         try:
             fields_resource(res, search, default, custom, choices, refresh, json_out, required, format_)
         except (SessionError, APIError) as e:
-            _err(str(e))
+            _err_exc(e)
         except typer.Exit:
             raise
         except Exception as e:
-            _err(str(e))
+            _err_exc(e)
 
     @sub.command("lookup", help="Look up users, groups, or field choices.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} lookup requester me@example.com  |  fsv {res.name} lookup group desk"
@@ -3474,11 +3646,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
         try:
             lookup_resource(res, kind, query, json_out, format_)
         except (SessionError, APIError) as e:
-            _err(str(e))
+            _err_exc(e)
         except typer.Exit:
             raise
         except Exception as e:
-            _err(str(e))
+            _err_exc(e)
 
     if res.filters_path:
         @sub.command("views", help="List saved view names.", epilog=(
@@ -3557,7 +3729,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             attach: Optional[List[str]] = typer.Option(None, "--attach", "-a", help="file(s) to attach to main change (Attachments section)"),
             due_by: Optional[str] = typer.Option(None, "--due-by", help="set resolution due date (ISO-8601, e.g. 2026-06-09T18:00:00+07:00)"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
-            yes: bool = typer.Option(False, "--yes", "-y", help="confirm terminal status transitions"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="confirm status changes, reassignment and other notifying writes"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
@@ -3614,9 +3786,13 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 if edit:
                     current = get_change_for_edit(cid)
                     body = _edit_body(current, f"Editing change #{cid}", no_input)
+                    c = _client()
+                    sch = _api(lambda: schema_mod.load(res, c))
+                    risks = _risks_for_item_write(res, cid, body, sch, c, current=current)
                     if dry_run:
-                        _emit_dry_run(res, cid, body)
+                        _emit_dry_run(res, cid, body, risks=risks)
                         return
+                    _confirm_writes(risks, format_id({"id": cid}, res), yes, no_input)
                     updated = update_change(cid, body)
                     if json_out:
                         emit_json(updated)
@@ -3630,7 +3806,6 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     quick: dict[str, Any] = {}
                     if status is not None:
                         quick["status"] = _resolve_update_choice(sch, "status", status)
-                        _confirm_terminal_status(res, cid, sch, quick["status"], yes, no_input)
                     if priority is not None:
                         quick["priority"] = _resolve_update_choice(sch, "priority", priority)
                     if agent_id is not None:
@@ -3643,6 +3818,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
                         field_text, _, raw_value = expr.partition("=")
                         k, v = _resolve_set_field(c, sch, field_text.strip(), raw_value)
                         quick[k] = v
+                    risks = _risks_for_item_write(res, cid, quick, sch, c)
+                    if not dry_run:
+                        _confirm_writes(risks, format_id({"id": cid}, res), yes, no_input)
                     attach_result: dict[str, Any] | None = None
                     if attach:
                         if dry_run:
@@ -3657,7 +3835,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                                 backup_name=backup_name,
                             )
                     if dry_run:
-                        _emit_dry_run(res, cid, quick)
+                        _emit_dry_run(res, cid, quick, risks=risks)
                         return
                     if quick:
                         updated = update_change(cid, quick)
@@ -3679,11 +3857,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
 
                 _err("nothing to update; use --edit, --attach, --planning, --set, or pass --status/--priority/--agent/--group")
             except (SessionError, APIError) as e:
-                _err(str(e))
+                _err_exc(e)
             except (SystemExit, typer.Exit):
                 raise
             except Exception as e:
-                _err(str(e))
+                _err_exc(e)
 
         @sub.command("download", help="Download change attachments.", epilog=(
             "[bold]Examples:[/bold]  "
@@ -3766,11 +3944,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 console.print(t)
                 console.print(f"[green]output[/] {out_dir}")
             except (SessionError, APIError) as e:
-                _err(str(e))
+                _err_exc(e)
             except (SystemExit, typer.Exit):
                 raise
             except Exception as e:
-                _err(str(e))
+                _err_exc(e)
     else:
         if res == TICKETS:
             @sub.command("approvals", help="List ticket approvals for approval-capable tickets; some INC tickets may return 404.", epilog=(
@@ -3807,7 +3985,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             group_id: Optional[str] = typer.Option(None, "--group", "--group-id", help="group name or ID", autocompletion=completion.complete_update_group_id),
             set_: Optional[List[str]] = typer.Option(None, "--set", help="set FIELD=VALUE (repeatable)", autocompletion=completion.complete_set(res)),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
-            yes: bool = typer.Option(False, "--yes", "-y", help="confirm terminal status transitions"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="confirm status changes, reassignment and other notifying writes"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
@@ -3895,7 +4073,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 console.print(t)
                 console.print(f"[green]output[/] {out_dir}")
             except (SessionError, APIError) as e:
-                _err(str(e))
+                _err_exc(e)
 
     if res == CHANGES:
         @sub.command("clone", help="Clone a change.", epilog=(
@@ -3907,45 +4085,93 @@ def _make_subapp(res: Resource) -> typer.Typer:
         def clone(
             id_: str = typer.Argument(..., metavar="ID", help="change ID to clone (pre-fills form)"),
             no_edit: bool = typer.Option(False, "--no-edit", help="create directly without editing"),
-            dry: bool = typer.Option(False, "--dry-run", help="print template to stdout, do not create"),
-            with_tasks: bool = typer.Option(False, "--with-tasks", help="clone tasks from source change"),
+            dry: bool = typer.Option(False, "--dry-run", help="print template to stdout and list side effects on stderr; do not create"),
+            with_tasks: bool = typer.Option(False, "--with-tasks", help="clone tasks from source change (owners and past dates are dropped)"),
+            keep_task_owners: bool = typer.Option(False, "--keep-task-owners", help="with --with-tasks: keep task owners and past dates (notifies people)"),
             with_assets: bool = typer.Option(False, "--with-assets", help="associate same assets as source change"),
             with_planning: bool = typer.Option(False, "--with-planning", help="clone planning fields (text + attachments)"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="confirm --with-tasks"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
-            """Clone a change — pre-fills form and opens $EDITOR."""
+            """Clone a change: pre-fills form and opens $EDITOR.
+
+            The new ID is printed as soon as the change exists. If a later step
+            (tasks/assets/planning) fails, the change is NOT rolled back and the
+            command exits non-zero: fix the failed step by hand, do not rerun clone.
+            """
+            from fsv.create import clone_side_effects
+            from fsv.errors import exit_code_for
+            from fsv.safety import clone_risks
             try:
                 cid = _cid(id_, res)
                 data = change_clone_data(cid)
                 if dry:
                     emit_json(data)
+                    if with_tasks or with_assets or with_planning:
+                        fx = clone_side_effects(cid)
+                        err.print("[bold]side effects if run without --dry-run:[/bold]", highlight=False)
+                        if with_tasks:
+                            keep = "kept" if keep_task_owners else "dropped"
+                            err.print(f"  - {fx['tasks']} task(s) created ({fx['tasks_with_owner']} with an owner; owners/past dates {keep})", highlight=False)
+                            err.print("  - tenant workflows may add their own tasks to the new change", highlight=False)
+                        if with_assets:
+                            err.print(f"  - {fx['assets']} asset(s) associated", highlight=False)
+                        if with_planning:
+                            err.print(f"  - {fx['planning_fields']} planning field(s) copied, {fx['planning_attachments']} attachment(s) re-uploaded", highlight=False)
                     return
-                if no_edit:
-                    created = submit_change(data)
-                else:
-                    body = _edit_body(data, f"Cloning change #{cid}", no_input)
-                    created = submit_change(body)
+                body = data if no_edit else _edit_body(data, f"Cloning change #{cid}", no_input)
+                _confirm_writes(clone_risks(with_tasks), f"clone of {format_id({'id': cid}, res)}", yes, no_input)
+                created = submit_change(body)
                 cid_out = created.get("id", "?")
-                if with_tasks and cid_out != "?":
-                    tasks = clone_tasks(cid, cid_out)
-                    err.print(f"  cloned {len(tasks)} task(s)", highlight=False)
-                if with_assets and cid_out != "?":
-                    assets = clone_assets(cid, cid_out)
-                    err.print(f"  associated {len(assets)} asset(s)", highlight=False)
-                if with_planning and cid_out != "?":
-                    planning = clone_planning_fields(cid, cid_out)
-                    err.print(f"  cloned {len(planning)} planning field(s)", highlight=False)
-                if json_out:
-                    emit_json(created)
+                label = format_id(created, res)
+                if not json_out:
+                    console.print(f"[green]created[/] {label}  {res.portal_url}/{cid_out}")
                 else:
-                    console.print(f"[green]created[/] {format_id(created, res)}  {res.portal_url}/{cid_out}")
+                    err.print(f"created {label}", highlight=False)
+                if cid_out == "?":
+                    err.print("[yellow]warning[/yellow]: change created but the response had no id; see `fsv journal tail`", highlight=False)
+                steps: dict[str, str] = {}
+                failures: list[BaseException] = []
+
+                def _step(name: str, fn: Callable[[], str]) -> None:
+                    try:
+                        steps[name] = "ok"
+                        err.print(f"  {fn()}", highlight=False)
+                    except (SessionError, APIError, ValueError, RuntimeError) as e:
+                        steps[name] = f"failed: {e}"
+                        failures.append(e)
+                        err.print(f"[red]step failed[/red]: {name}: {e}", highlight=False)
+
+                if cid_out != "?":
+                    if with_tasks:
+                        dropped: list[str] = []
+
+                        def _tasks() -> str:
+                            tasks = clone_tasks(cid, cid_out, keep_owners=keep_task_owners, dropped=dropped)
+                            return f"cloned {len(tasks)} task(s)"
+                        _step("tasks", _tasks)
+                        for note in sorted(set(dropped)):
+                            err.print(f"  note: {note}", highlight=False)
+                        err.print("  note: tenant workflows may have added their own tasks; compare with the source before relying on the copy", highlight=False)
+                    if with_assets:
+                        _step("assets", lambda: f"associated {len(clone_assets(cid, cid_out))} asset(s)")
+                    if with_planning:
+                        _step("planning", lambda: f"cloned {len(clone_planning_fields(cid, cid_out))} planning field(s)")
+                if json_out:
+                    out = dict(created)
+                    if steps:
+                        out["fsv_clone_steps"] = steps
+                    emit_json(out)
+                if failures:
+                    err.print(f"[red]error[/red]: {label} WAS created but {len(failures)} step(s) failed; do not rerun clone (it would duplicate the change). Fix the failed step(s) on {label} directly.", highlight=False)
+                    raise typer.Exit(exit_code_for(failures[0]))
             except (SessionError, APIError) as e:
-                _err(str(e))
+                _err_exc(e)
             except (SystemExit, typer.Exit):
                 raise
             except Exception as e:
-                _err(str(e))
+                _err_exc(e)
 
         @sub.command("create", help="Create a change.", epilog=(
             "[bold]Examples:[/bold]  "
@@ -4023,11 +4249,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 else:
                     console.print(f"[green]created[/] {format_id(created, res)}  {res.portal_url}/{cid}")
             except (SessionError, APIError) as e:
-                _err(str(e))
+                _err_exc(e)
             except (SystemExit, typer.Exit):
                 raise
             except Exception as e:
-                _err(str(e))
+                _err_exc(e)
 
     if res.has_notes:
         @sub.command("notes", help=f"List {singular} notes.", epilog=(
@@ -4057,8 +4283,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
             id_: str = typer.Argument(...),
             body: str = typer.Argument(..., help="HTML or plain text"),
             public: bool = typer.Option(False, "--public"),
+            dry_run: bool = typer.Option(False, "--dry-run", help="print the note without adding it"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="confirm a public note"),
+            no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
-            note_resource(res, id_, body, public)
+            note_resource(res, id_, body, public, dry_run, yes, no_input)
     else:
         @sub.command("conversations", help="List ticket conversations/replies.", epilog=(
             f"[bold]Examples:[/bold]  "
@@ -4084,9 +4313,12 @@ def _make_subapp(res: Resource) -> typer.Typer:
         def reply(
             id_: str = typer.Argument(...),
             body: str = typer.Argument(...),
+            dry_run: bool = typer.Option(False, "--dry-run", help="print the reply without sending it"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="confirm sending the reply"),
+            no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Add a reply (conversation) to a ticket."""
-            reply_resource(res, id_, body)
+            reply_resource(res, id_, body, dry_run, yes, no_input)
 
     return sub
 
@@ -4115,11 +4347,11 @@ def global_search_cmd(
     try:
         global_search(query, page, format_, json_out, sort, all_pages, n_pages)
     except (SessionError, APIError) as e:
-        _err(str(e))
+        _err_exc(e)
     except typer.Exit:
         raise
     except Exception as e:
-        _err(str(e))
+        _err_exc(e)
 
 
 # ── setup wizard ──────────────────────────────────────────────
@@ -4181,7 +4413,7 @@ def _setup_auth() -> None:
     try:
         cookies = login_interactive()
     except SessionError as e:
-        _err(str(e))
+        _err_exc(e)
 
     _validate_new_cookies(cookies)
     store = _choose_store()

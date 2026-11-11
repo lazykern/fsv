@@ -18,7 +18,7 @@ def test_cache_clear_rejects_invalid_target():
 
     result = CliRunner().invoke(cli.app, ["cache", "clear", "bogus"])
 
-    assert result.exit_code == 1
+    assert result.exit_code == 2
     assert "choose schema|views|groups|all" in result.output
 
 

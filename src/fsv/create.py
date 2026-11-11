@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -164,30 +165,87 @@ def change_clone_data(change_id: int, c: Client | None = None) -> dict[str, Any]
     return out
 
 
+TASK_OWNER_KEYS = ("owner_id", "agent_id", "responder_id", "owner")
+TASK_DATE_KEYS = ("due_date", "planned_start_date", "planned_end_date", "start_date", "end_date")
+
+
+def _parse_when(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
 def clone_tasks(
     source_change_id: int,
     new_change_id: int,
     c: Client | None = None,
+    keep_owners: bool = False,
+    now: datetime | None = None,
+    dropped: list[str] | None = None,
 ) -> list[dict[str, Any]]:
-    """Clone all tasks from source change into new change. Returns created tasks."""
+    """Clone all tasks from source change into new change. Returns created tasks.
+
+    By default owners/agents and past dates are NOT copied (they would notify
+    people and create overdue tasks); pass keep_owners=True to keep owners.
+    *dropped* (if given) collects human-readable notes about what was removed.
+    """
     if c is None:
         c = get_client()
     data = c.int_get(f"changes/{source_change_id}/tasks")
     tasks = data.get("tasks", [])
     created = []
     for task in tasks:
-        body = _task_clone_body(task)
+        body = _task_clone_body(task, keep_owners=keep_owners, now=now, dropped=dropped)
         result = c.int_post(f"changes/{new_change_id}/tasks", {"change_task": body})
         created.append(result.get("task", result))
     return created
 
 
-def _task_clone_body(task: dict[str, Any]) -> dict[str, Any]:
-    """Strip read-only fields and nulls from a task, reset status to Open."""
+def clone_side_effects(source_change_id: int, c: Client | None = None) -> dict[str, int]:
+    """Read-only counts of what --with-tasks/--with-assets/--with-planning would copy."""
+    if c is None:
+        c = get_client()
+    tasks = c.int_get(f"changes/{source_change_id}/tasks").get("tasks", [])
+    planning = c.int_get(f"changes/{source_change_id}/planning-fields").get("change_planning_fields", [])
+    return {
+        "tasks": len(tasks),
+        "tasks_with_owner": sum(1 for t in tasks if any(t.get(k) for k in TASK_OWNER_KEYS)),
+        "assets": len(get_change_assets(source_change_id, c)),
+        "planning_fields": sum(1 for f in planning if (f.get("description") or "").strip() or f.get("attachments")),
+        "planning_attachments": sum(len(f.get("attachments") or []) for f in planning),
+    }
+
+
+def _task_clone_body(
+    task: dict[str, Any],
+    keep_owners: bool = False,
+    now: datetime | None = None,
+    dropped: list[str] | None = None,
+) -> dict[str, Any]:
+    """Strip read-only fields and nulls from a task, reset status to Open.
+
+    Unless keep_owners, drops owner/agent assignment and dates already in the past.
+    """
+    now = now or datetime.now(timezone.utc)
     out: dict[str, Any] = {}
+    title = task.get("title") or task.get("id")
     for k, v in task.items():
         if k in TASK_READ_ONLY_FIELDS or v is None:
             continue
+        if not keep_owners and k in TASK_OWNER_KEYS:
+            if dropped is not None:
+                dropped.append(f"task {title!r}: owner not copied")
+            continue
+        if k in TASK_DATE_KEYS:
+            when = _parse_when(v)
+            if when is not None and when < now:
+                if dropped is not None:
+                    dropped.append(f"task {title!r}: past {k} not copied")
+                continue
         out[k] = v
     out["status"] = 1
     if isinstance(out.get("custom_fields"), dict):

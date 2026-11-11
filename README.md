@@ -23,7 +23,7 @@ fsv setup
 Or set up manually:
 
 ```bash
-fsv auth login --browser --domain yourcompany.freshservice.com
+fsv auth login --browser --domain acme.freshservice.com
 # complete SSO/MFA in the opened browser (see Login section below)
 ```
 
@@ -144,22 +144,22 @@ uv sync
 Preferred path: let fsv open an isolated browser, finish SSO/MFA there, then fsv checks every 2 seconds until it can read the browser cookies via CDP and store them.
 
 ```bash
-fsv auth login --browser --domain yourcompany.freshservice.com
+fsv auth login --browser --domain acme.freshservice.com
 ```
 
 Browser login requires Chrome, Chromium, Edge, or Brave. If fsv cannot find your browser, set `FSV_BROWSER=/path/to/browser`.
 
 Manual fallback still works:
 
-1. Open `https://yourcompany.freshservice.com` in any browser, complete SSO login.
+1. Open `https://acme.freshservice.com` in any browser, complete SSO login.
 2. Open DevTools → Network tab → click any `/api/_/...` request.
 3. Copy the value of the `Cookie:` request header (right-click → Copy value).
 4. Paste into fsv:
 
 ```bash
-fsv auth login --domain yourcompany.freshservice.com              # interactive prompt
-pbpaste | fsv auth login --domain yourcompany.freshservice.com --header -
-fsv auth login -d yourcompany.freshservice.com -H "_x_m=...; _x_d=...; ..."
+fsv auth login --domain acme.freshservice.com              # interactive prompt
+pbpaste | fsv auth login --domain acme.freshservice.com --header -
+fsv auth login -d acme.freshservice.com -H "_x_m=...; _x_d=...; ..."
 ```
 
 The browser/Network cookie set includes HttpOnly cookies (`_itildesk_session`, `user_credentials`) that `document.cookie` cannot read; fsv needs these for API access.
@@ -219,10 +219,11 @@ fsv tickets  ls | search | get | update | url | reply | activity | tasks | appro
 fsv problems ls | search | get | update | url | add-note | notes | activity | tasks | download | fields | lookup | views
 
 fsv setup                                  # interactive setup wizard
-fsv auth login --domain yourcompany.freshservice.com
+fsv auth login --domain acme.freshservice.com
 fsv auth status
 fsv config set <key> <value>
 fsv cache status | refresh | clear
+fsv journal ls | tail | path               # local write journal
 ```
 
 ### List
@@ -267,25 +268,53 @@ fsv changes url CHN-1234
 
 ```bash
 fsv changes update CHN-1234 --status Closed --priority Medium --dry-run
-fsv changes update CHN-1234 --planning "Other Document" --description "Evidence attached" --file evidence.xlsx
-fsv changes create                                   # opens $EDITOR with a JSON template
+fsv changes update CHN-1234 --planning "Reference Documents" --description "Evidence attached" --file evidence.xlsx
+fsv changes create                                   # opens $VISUAL/$EDITOR with a JSON template (reopens with the error if the JSON is invalid)
 fsv changes create --subject "Patch DB" --status Open --priority High --set "Change Category=Infrastructure"
 fsv changes create --subject "Patch DB" --set "requester=alice@example.com" --no-input   # scriptable
 fsv changes create --dry-run
-fsv changes clone CHN-1234 --with-tasks --with-planning
+fsv changes clone CHN-1234 --dry-run --with-tasks   # list side effects first
+fsv changes clone CHN-1234 --with-tasks --with-planning --yes
 fsv changes download CHN-1234 --all --dir ./evidence
 fsv changes assets categories
 fsv changes assets search CHN-1234 app
-fsv changes assets search CHN-1234 OOS --category "Application Portfolio"
-fsv changes assets add CHN-1234 OOS --category "Application Portfolio" --dry-run
+fsv changes assets search CHN-1234 myapp --category "Application Portfolio"
+fsv changes assets add CHN-1234 myapp --category "Application Portfolio" --dry-run
 fsv changes assets pick CHN-1234 --yes
 fsv changes associations add CHN-1234 SR-5678 --dry-run
 fsv tickets update INC-9012 --status Pending --agent alice@example.com
 fsv tickets update INC-9012 --group "Service Desk"
 fsv changes add-note CHN-1234 "PVT result PASS"      # private by default
 fsv changes add-note CHN-1234 "..." --public
-fsv tickets reply INC-9012 "<HTML or text>"
+fsv tickets reply INC-9012 "<HTML or text>" --dry-run
 ```
+
+### Safety confirmations
+
+One gate checks the final request body (after flags, `--set` and `--edit` are merged). It asks `y/N` interactively, and refuses with exit 2 under `--no-input` or without a TTY unless you pass `--yes`. `--dry-run` never asks and lists `requires_confirmation`.
+
+It covers: any change status transition (unchanged status is ignored), ticket/problem moves to resolved/closed, agent/group reassignment, task status and reassignment, public notes, ticket replies, and `clone --with-tasks`. Paths: quick flags, `--set status=...`, `update --edit`, `tasks-update` (flags and `--edit`), `add-note`, `reply`. Status labels come from your tenant schema.
+
+`--agent/--group/--requester` need an exact name or email (case-insensitive, Unicode-normalized) or a numeric ID. A substring-only match is an error that lists candidates; interactively you can pick one.
+
+### Clone
+
+The new ID is printed as soon as the change exists. If a later step (tasks, assets, planning) fails, the change is kept, the failure is reported, and the exit code is non-zero: fix that step by hand and do not rerun clone. `--with-tasks` drops task owners and past dates unless `--keep-task-owners`; tenant workflows may add their own tasks, so review the result. `clone --dry-run` prints the template and lists the side effects on stderr.
+
+### Exit codes
+
+| Code | Meaning |
+|---|---|
+| 0 | ok |
+| 1 | other error |
+| 2 | validation / usage (including a refused confirmation) |
+| 3 | session missing or expired: run `fsv auth login` |
+| 4 | conflict / duplicate (HTTP 409, or "already exists") |
+| 5 | server rejected the request (other HTTP 4xx/5xx) |
+
+### Write journal
+
+Every write request (success or failure) appends one JSON line to `$XDG_STATE_HOME/fsv/journal.jsonl` (default `~/.local/state/fsv/journal.jsonl`, mode 0600): time, command, kind, target, method, path, plan hash (sha256 of the normalized JSON body), HTTP status, created ID. No cookies, headers or bodies are stored. Read it with `fsv journal ls [--failed] [--json]` or `fsv journal tail -n 20`. After a clone that printed no ID, `fsv journal tail` shows the created ID.
 
 ## Notes
 

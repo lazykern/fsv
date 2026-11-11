@@ -20,7 +20,7 @@ def test_problem_note_uses_internal_api(monkeypatch):
     assert calls == [("int_post", "problems/1/notes", {"body": "hello", "private": True})]
 
     calls.clear()
-    cli.note_resource(PROBLEMS, "PRB-1", "hello", public=True)
+    cli.note_resource(PROBLEMS, "PRB-1", "hello", public=True, yes=True)
 
     assert calls == [("int_post", "problems/1/notes", {"body": "hello", "private": False})]
 

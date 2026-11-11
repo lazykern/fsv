@@ -304,7 +304,7 @@ def _expired(self):
 
 def test_login_refuses_invalid_cookies_without_force(monkeypatch):
     result = _login(monkeypatch, _expired)
-    assert result.exit_code == 1
+    assert result.exit_code == 3
     flat = " ".join(result.output.split())
     assert "nothing saved" in flat and "--force" in flat
     assert not config.SESSION_FILE.exists()
@@ -359,5 +359,5 @@ def test_auth_status_expired_session_shows_clear_error(monkeypatch):
 
     monkeypatch.setattr(cli, "_client", lambda: C())
     result = CliRunner().invoke(cli.app, ["auth", "status"])
-    assert result.exit_code == 1
+    assert result.exit_code == 3
     assert "session expired or invalid" in result.output

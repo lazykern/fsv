@@ -92,7 +92,7 @@ def test_no_input_login_requires_domain(monkeypatch, tmp_path):
 
     result = CliRunner().invoke(cli.app, ["--no-input", "auth", "login", "--header", "x=y"])
 
-    assert result.exit_code == 1
+    assert result.exit_code == 2
     assert "--domain" in result.output
 
 
@@ -102,7 +102,7 @@ def test_local_no_input_login_requires_domain(monkeypatch, tmp_path):
 
     result = CliRunner().invoke(cli.app, ["auth", "login", "--no-input", "--header", "x=y"])
 
-    assert result.exit_code == 1
+    assert result.exit_code == 2
     assert "--domain" in result.output
 
 
@@ -118,7 +118,7 @@ def test_no_input_login_requires_header(monkeypatch, tmp_path):
         "--store", "file",
     ])
 
-    assert result.exit_code == 1
+    assert result.exit_code == 2
     assert "pass --header" in result.output
 
 
@@ -134,7 +134,7 @@ def test_local_no_input_login_requires_header(monkeypatch, tmp_path):
         "--store", "file",
     ])
 
-    assert result.exit_code == 1
+    assert result.exit_code == 2
     assert "pass --header" in result.output
 
 
@@ -177,7 +177,7 @@ def test_browser_login_rejects_no_input(monkeypatch, tmp_path):
         "--domain", "demo.freshservice.com",
     ])
 
-    assert result.exit_code == 1
+    assert result.exit_code == 2
     assert "--browser is interactive" in result.output
 
 
