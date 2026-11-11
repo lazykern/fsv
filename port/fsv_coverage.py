@@ -585,6 +585,19 @@ def main() -> int:
             for m in re.finditer(r'&\[\s*((?:"(?:[^"\\]|\\.)*"\s*,?\s*)+)\]', rf.raw):
                 argvs.append(re.findall(r'"((?:[^"\\]|\\.)*)"', m.group(1)))
 
+    argv_tokens = {t for a in argvs for t in a if t and not t.startswith("-")}
+    golden_roots: set[str] = set()
+    for s, lst in arms.items():
+        if s not in argv_tokens:
+            continue
+        for _path, target, _ln, block in lst:
+            if target:
+                golden_roots.add(target.split("::")[-1])
+            else:
+                golden_roots.update(re.findall(r"\b([a-z_]\w*)\s*\(", block))
+
+    golden_roots -= {"dispatch", "run", "main", "Ok", "Err", "Some"}
+
     def argv_hits(path: str) -> bool:
         toks = path.split()
         return any(a[: len(toks)] == toks for a in argvs)
@@ -639,6 +652,28 @@ def main() -> int:
                         seen.add(id(h))
                         nxt.append(h)
             frontier = nxt[:40]
+        return None
+
+    def reached_golden(f: RsFn) -> str | None:
+        """fsv-cli fn reachable (name call graph, <=6 hops) from a dispatch target a golden argv runs."""
+        if f.name in golden_roots:
+            return f"dispatch target {f.name}"
+        seen, frontier = {id(f)}, [f]
+        for _ in range(6):
+            nxt = []
+            for g in frontier:
+                rx = ref_regex(g.name)
+                for h in prod:
+                    if id(h) in seen or h.crate != "fsv-cli" or not h.body:
+                        continue
+                    if common(g.name) and h.file != g.file:
+                        continue
+                    if rx.search(h.body[h.body.find("{"):] if "{" in h.body else h.body):
+                        if h.name in golden_roots:
+                            return f"{h.name} ({h.file.relative_to(CRATES)}:{h.line})"
+                        seen.add(id(h))
+                        nxt.append(h)
+            frontier = nxt[:60]
         return None
 
     port_idx: dict[str, list[RsFn]] = defaultdict(list)
@@ -783,9 +818,13 @@ def main() -> int:
                 status, evidence = "covered", ev
             else:
                 status = "fn-only"
-                r = reached_via(chosen)
-                if r:
-                    note = (note + "; " if note else "") + f"reached indirectly from tested {r}"
+                g = reached_golden(chosen) if chosen.crate == "fsv-cli" else None
+                if g:
+                    status, evidence = "covered", f"golden binary run via {g}"
+                else:
+                    r = reached_via(chosen)
+                    if r:
+                        note = (note + "; " if note else "") + f"reached indirectly from tested {r}"
         else:
             na = None
             if d.module.endswith("__init__") and d.name in ("__getattr__", "__dir__"):
