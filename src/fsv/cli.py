@@ -3903,6 +3903,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
 
     from fsv.list_preferences_cli import register as register_list_preferences
     register_list_preferences(sub, res, lambda: _client())
+    if res.name == "changes":
+        from fsv.asset_picker_cli import register as register_asset_picker
+        register_asset_picker(sub, lambda: _client())
     if res.name == "problems":
         from fsv.problem_cli import register as register_problem
         register_problem(sub, lambda: _client())

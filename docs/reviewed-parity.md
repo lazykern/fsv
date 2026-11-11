@@ -184,6 +184,29 @@ false, and no filename, job ID, polling endpoint or successful download is
 fabricated. An unknown response never causes another export attempt. The
 contracts were browser-aborted; public tests use synthetic HTTP only.
 
+## Read-only CI/asset picker and task limits
+
+```sh
+fsv changes asset-picker CHN-123 --search Acme --json
+fsv changes asset-picker CHN-123 --search Acme --page 2 --select 701 --output json
+```
+
+The CLI selects an exact **display ID**, never an internal asset ID, from one
+explicit search page. In the TUI, select a change and press `i`; search, pick or
+cancel. The selected candidate appears in a persistent outcome screen. This is
+available in read-only mode and issues GETs only. Empty results and duplicate
+identities are handled without manufacturing candidates. Both interfaces label
+the result as a single page, not a complete CMDB inventory.
+
+Selection **does not associate** an asset/CI. No eligible asset/service fixture
+was present in the scoped browser evidence, so broader add/remove contracts and
+TUI sends remain blocked. Existing legacy association helpers are not upgraded
+or certified by this picker. Similarly, problem/ticket task edit/complete/delete
+cannot be inferred from captured task creation; broader change task fields need
+method-specific evidence beyond the prior title update/delete scope. No new
+maintenance writer or guessed optional payload keys were added. Offline Pilot
+search/select/cancel tests do not constitute a live browser or accepted send.
+
 ## Self watchers
 
 ```sh

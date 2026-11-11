@@ -113,6 +113,7 @@ class HelpScreen(ModalScreen[None]):
   [cyan]gt/gp/gc[/]     jump to tickets/problems/changes
   [cyan]1-9[/]          switch detail tab (the tabs the web shows for the item)
   [cyan]v[/]            pick a saved view by name (the list opens with the default view)
+  [cyan]i[/]            browse change asset candidates (read-only, no association)
   [cyan]\\[][/cyan]         resize list/detail pane
 
 [bold]Search[/]
@@ -2129,6 +2130,10 @@ class FsvApp(App):
             self._open_browser()
             event.stop()
             event.prevent_default()
+        elif key == "i":
+            self._asset_inventory_prompt()
+            event.stop()
+            event.prevent_default()
         elif key == "a":
             self._action_menu()
             event.stop()
@@ -2269,6 +2274,35 @@ class FsvApp(App):
         self._render_status()
 
     # ── Write actions ───────────────────────────────────────
+
+    def _asset_inventory_prompt(self) -> None:
+        if not self._selected or self._selected.get("_resource", TICKETS) != CHANGES:
+            self.notify("Select a change to browse asset candidates", severity="warning")
+            return
+        item = dict(self._selected)
+        self.push_screen(ValueScreen("Read-only asset search — selection does not associate"),
+                         lambda query: self._load_asset_inventory(item, query) if query is not None else None)
+
+    @work(thread=True, exclusive=True, group="asset-inventory")
+    def _load_asset_inventory(self, item: dict, query: str) -> None:
+        from fsv import asset_picker
+        try:
+            result = asset_picker.candidates(get_client(), item.get("display_id") or item["id"], query)
+            choices = [(row["display_id"], f"[{row['display_id']}] {row.get('name') or '-'} — {row.get('ci_type_name') or '-'}")
+                       for row in result["assets"]]
+            def pick():
+                if not choices:
+                    self.push_screen(OutcomeScreen("Asset candidates — read-only", "No candidates on search page 1. No association was attempted."))
+                    return
+                def selected(value):
+                    if value is not None:
+                        row = asset_picker.select(result, value)
+                        self.push_screen(OutcomeScreen("Selected asset — no association", json.dumps(
+                            {"selected": row, "scope": result["scope"], "mutation": "none"}, indent=2)))
+                self.push_screen(ChoiceScreen(choices, "Asset candidates — page 1 only; read-only"), selected)
+            self.call_from_thread(pick)
+        except Exception as exc:
+            self.call_from_thread(self.push_screen, FailureScreen("Asset search unavailable: " + str(exc)))
 
     def _action_menu(self) -> None:
         if self.read_only:
