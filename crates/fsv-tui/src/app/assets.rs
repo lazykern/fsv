@@ -176,7 +176,10 @@ mod tests {
         assert!(a.modals.is_empty());
         assert_eq!(
             a.toasts.last().map(|t| (t.message.as_str(), t.severity)),
-            Some(("Select a change to browse asset candidates", Severity::Warning))
+            Some((
+                "Select a change to browse asset candidates",
+                Severity::Warning
+            ))
         );
         a.selected = Some(Item::new(&TICKETS, json!({"id": 5})));
         a.asset_inventory_prompt();
@@ -226,7 +229,10 @@ mod tests {
         a.settle();
         match top(&a) {
             Modal::Outcome(o) => {
-                assert_eq!((o.title.as_str(), o.message.as_str()), (EMPTY_TITLE, EMPTY_MESSAGE));
+                assert_eq!(
+                    (o.title.as_str(), o.message.as_str()),
+                    (EMPTY_TITLE, EMPTY_MESSAGE)
+                );
             }
             m => panic!("not an outcome: {m:?}"),
         }
