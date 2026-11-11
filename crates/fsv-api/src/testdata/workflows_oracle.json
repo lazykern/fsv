@@ -1,0 +1,6709 @@
+{
+ "canned": {
+  "reads": {
+   "folders": {
+    "canned_response_folders": [
+     {
+      "id": 702
+     }
+    ]
+   },
+   "responses": {
+    "canned_responses": [
+     {
+      "id": 701
+     }
+    ]
+   },
+   "show": {
+    "canned_response": {
+     "id": 701,
+     "content": "<div>Acme response</div>"
+    }
+   },
+   "scenarios": {
+    "scenario_automations": [
+     {
+      "id": 703,
+      "name": "Globex"
+     }
+    ]
+   },
+   "scenario": {
+    "id": 703,
+    "name": "Globex"
+   },
+   "scenario_missing": {
+    "error": "scenario identity is missing or ambiguous in this inventory",
+    "type": "ValueError"
+   },
+   "calls": [
+    [
+     "GET",
+     "canned_response_folders",
+     null
+    ],
+    [
+     "GET",
+     "canned_response_folders/702/canned_responses",
+     null
+    ],
+    [
+     "GET",
+     "canned_responses/701",
+     null
+    ],
+    [
+     "GET",
+     "scenario_automations",
+     null
+    ],
+    [
+     "GET",
+     "scenario_automations",
+     null
+    ],
+    [
+     "GET",
+     "scenario_automations",
+     null
+    ]
+   ],
+   "scenario_not_list": {
+    "error": "scenario inventory is not a list; inspect scenarios list",
+    "type": "ValueError"
+   },
+   "scenario_ambiguous": {
+    "error": "scenario identity is missing or ambiguous in this inventory",
+    "type": "ValueError"
+   },
+   "scenario_bare_list": {
+    "ok": {
+     "id": 703,
+     "name": "bare list"
+    }
+   }
+  },
+  "content": [
+   {
+    "raw": {
+     "body": "{{name}}"
+    },
+    "pointer": "/body",
+    "error": "unresolved canned placeholders require the web editor",
+    "type": "ValueError"
+   },
+   {
+    "raw": {
+     "body": "{% if user %}"
+    },
+    "pointer": "/body",
+    "error": "unresolved canned placeholders require the web editor",
+    "type": "ValueError"
+   },
+   {
+    "raw": {
+     "body": "${name}"
+    },
+    "pointer": "/body",
+    "error": "unresolved canned placeholders require the web editor",
+    "type": "ValueError"
+   },
+   {
+    "raw": {
+     "body": "[[name]]"
+    },
+    "pointer": "/body",
+    "error": "unresolved canned placeholders require the web editor",
+    "type": "ValueError"
+   },
+   {
+    "raw": {
+     "body": ""
+    },
+    "pointer": "/body",
+    "error": "selected canned content must be nonempty text/HTML",
+    "type": "ValueError"
+   },
+   {
+    "raw": {
+     "body": "  "
+    },
+    "pointer": "/body",
+    "error": "selected canned content must be nonempty text/HTML",
+    "type": "ValueError"
+   },
+   {
+    "raw": {
+     "body": null
+    },
+    "pointer": "/body",
+    "error": "selected canned content must be nonempty text/HTML",
+    "type": "ValueError"
+   },
+   {
+    "raw": {
+     "body": 123
+    },
+    "pointer": "/body",
+    "error": "selected canned content must be nonempty text/HTML",
+    "type": "ValueError"
+   },
+   {
+    "raw": {
+     "body": "Acme"
+    },
+    "pointer": "body",
+    "error": "content pointer must start with /; inspect canned show first",
+    "type": "ValueError"
+   },
+   {
+    "raw": {
+     "body": "Acme"
+    },
+    "pointer": "/missing",
+    "error": "content pointer does not identify a source field",
+    "type": "ValueError"
+   },
+   {
+    "raw": {
+     "body": "Acme"
+    },
+    "pointer": "/body/~2",
+    "error": "invalid JSON pointer escape",
+    "type": "ValueError"
+   },
+   {
+    "raw": {
+     "body": {
+      "x": "Acme"
+     }
+    },
+    "pointer": "/body/x",
+    "ok": "Acme"
+   },
+   {
+    "raw": {
+     "a/b": {
+      "m~n": "Acme"
+     }
+    },
+    "pointer": "/a~1b/m~0n",
+    "ok": "Acme"
+   },
+   {
+    "raw": {
+     "": "Acme"
+    },
+    "pointer": "/",
+    "ok": "Acme"
+   },
+   {
+    "raw": {
+     "body": [
+      "Acme"
+     ]
+    },
+    "pointer": "/body/0",
+    "error": "content pointer does not identify a source field",
+    "type": "ValueError"
+   },
+   {
+    "raw": {
+     "body": "Acme"
+    },
+    "pointer": "/body~",
+    "error": "invalid JSON pointer escape",
+    "type": "ValueError"
+   }
+  ],
+  "reply": {
+   "plan_calls": [
+    [
+     "GET",
+     "canned_responses/701",
+     null
+    ]
+   ],
+   "hash": "4c9cf0fba4998584c16cd45109f78625c4e856a9a23f1f8ac45dbaf2d11e00e1",
+   "payload_json": "{\"body\": \"<div>Acme response</div>\", \"cc_emails\": [], \"conversation_from_summary\": false, \"freddy_message_id\": null, \"from_email\": \"support@example.com\", \"full_text\": \"<div>Acme response</div>\", \"translate_reply\": false}",
+   "review": {
+    "action": "ticket_reply",
+    "method": "POST",
+    "path": "/api/_/tickets/123/reply",
+    "payload": {
+     "body": "<div>Acme response</div>",
+     "cc_emails": [],
+     "conversation_from_summary": false,
+     "freddy_message_id": null,
+     "from_email": "support@example.com",
+     "full_text": "<div>Acme response</div>",
+     "translate_reply": false
+    },
+    "status_label": null,
+    "plan_hash": "4c9cf0fba4998584c16cd45109f78625c4e856a9a23f1f8ac45dbaf2d11e00e1",
+    "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+   },
+   "canned_hash": "130030f8f3b97c1cc9251943b5663b483691b2ccbbec0476020f35230cb81098",
+   "unconfirmed": {
+    "error": "public conversation requires explicit confirmation",
+    "type": "ConversationError"
+   },
+   "send": {
+    "ok": {
+     "status": "submitted",
+     "conversation_id": 704,
+     "ticket_id": 123,
+     "plan_hash": "4c9cf0fba4998584c16cd45109f78625c4e856a9a23f1f8ac45dbaf2d11e00e1",
+     "verified": true,
+     "fields": {
+      "body": "matched",
+      "cc_emails": "matched",
+      "from_email": "matched"
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "canned_responses/701",
+      null
+     ],
+     [
+      "POST",
+      "tickets/123/reply",
+      {
+       "body": "<div>Acme response</div>",
+       "cc_emails": [],
+       "conversation_from_summary": false,
+       "freddy_message_id": null,
+       "from_email": "support@example.com",
+       "full_text": "<div>Acme response</div>",
+       "translate_reply": false
+      }
+     ],
+     [
+      "GET",
+      "tickets/123/conversations",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   "resend": {
+    "error": "conversation was sent or outcome unknown; inspect ticket and journal before retry",
+    "type": "ConversationError",
+    "calls": [],
+    "events": [
+     "started",
+     "done"
+    ]
+   }
+  },
+  "legacy_hash": "b48eaeba1e6d4ef0f37642b66820af43560bb0ad6e3f10e97065b87c5d6c5d86",
+  "stale": {
+   "error": "canned source changed; review again",
+   "type": "ConversationError",
+   "calls": [
+    [
+     "GET",
+     "canned_responses/701",
+     null
+    ]
+   ],
+   "events": []
+  },
+  "reply_refusals": {
+   "no_sender": {
+    "error": "sender must be a plain configured support email address",
+    "type": "ValueError"
+   },
+   "bad_pointer": {
+    "error": "content pointer does not identify a source field",
+    "type": "ValueError"
+   },
+   "bad_id": {
+    "error": "expected a positive numeric identity",
+    "type": "ReviewedWriteError"
+   }
+  },
+  "reply_fail_500": {
+   "error": "conversation outcome unknown; inspect ticket and journal before retry",
+   "type": "ConversationError",
+   "calls": [
+    [
+     "GET",
+     "canned_responses/701",
+     null
+    ],
+    [
+     "POST",
+     "tickets/123/reply",
+     {
+      "body": "<div>Acme response</div>",
+      "cc_emails": [],
+      "conversation_from_summary": false,
+      "freddy_message_id": null,
+      "from_email": "support@example.com",
+      "full_text": "<div>Acme response</div>",
+      "translate_reply": false
+     }
+    ]
+   ],
+   "events": [
+    "started"
+   ]
+  },
+  "reply_fail_422": {
+   "error": "conversation rejected (HTTP 422); no retry",
+   "type": "ConversationError",
+   "calls": [
+    [
+     "GET",
+     "canned_responses/701",
+     null
+    ],
+    [
+     "POST",
+     "tickets/123/reply",
+     {
+      "body": "<div>Acme response</div>",
+      "cc_emails": [],
+      "conversation_from_summary": false,
+      "freddy_message_id": null,
+      "from_email": "support@example.com",
+      "full_text": "<div>Acme response</div>",
+      "translate_reply": false
+     }
+    ]
+   ],
+   "events": [
+    "started",
+    "failed"
+   ]
+  },
+  "reply_fail_disconnect": {
+   "error": "conversation outcome unknown; inspect ticket and journal before retry",
+   "type": "ConversationError",
+   "calls": [
+    [
+     "GET",
+     "canned_responses/701",
+     null
+    ],
+    [
+     "POST",
+     "tickets/123/reply",
+     {
+      "body": "<div>Acme response</div>",
+      "cc_emails": [],
+      "conversation_from_summary": false,
+      "freddy_message_id": null,
+      "from_email": "support@example.com",
+      "full_text": "<div>Acme response</div>",
+      "translate_reply": false
+     }
+    ]
+   ],
+   "events": [
+    "started"
+   ]
+  }
+ },
+ "scenarios": {
+  "plan": {
+   "calls": [
+    [
+     "GET",
+     "scenario_automations",
+     null
+    ],
+    [
+     "GET",
+     "tickets/123",
+     null
+    ]
+   ],
+   "hash": "dc2227d377724b7be8b0e7c8ca743413cb9daeafce96c4035c941a7270c8704d",
+   "review": {
+    "action": "ticket_scenario",
+    "method": "PUT",
+    "path": "/api/_/tickets/execute_scenario",
+    "payload": {
+     "ids": [
+      123
+     ],
+     "scenario_id": 703
+    },
+    "plan_hash": "dc2227d377724b7be8b0e7c8ca743413cb9daeafce96c4035c941a7270c8704d",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+   },
+   "action": "ticket_scenario",
+   "target": 123,
+   "method": "PUT",
+   "path": "tickets/execute_scenario",
+   "payload_json": "{\"ids\": [123], \"scenario_id\": 703}",
+   "context_hash": "65d5d32c46a822b77fb3e3408bc62dd489cc961bd3cdb6115a88d9f25b58521e"
+  },
+  "cancel": {
+   "status": "cancelled",
+   "verified": false
+  },
+  "send": {
+   "ok": {
+    "status": "submitted",
+    "plan_hash": "dc2227d377724b7be8b0e7c8ca743413cb9daeafce96c4035c941a7270c8704d",
+    "verified": false,
+    "ticket_id": 123,
+    "identity_verified": true,
+    "warning": "Exact ticket was read back; scenario side effects (including mail/workflows) are unverified. Do not resend."
+   },
+   "calls": [
+    [
+     "GET",
+     "scenario_automations",
+     null
+    ],
+    [
+     "GET",
+     "tickets/123",
+     null
+    ],
+    [
+     "PUT",
+     "tickets/execute_scenario",
+     {
+      "ids": [
+       123
+      ],
+      "scenario_id": 703
+     }
+    ],
+    [
+     "GET",
+     "tickets/123",
+     null
+    ]
+   ],
+   "events": [
+    "started",
+    "done"
+   ]
+  },
+  "resend": {
+   "error": "write was sent or outcome unknown; inspect target and journal before retry",
+   "type": "ReviewedWriteError",
+   "calls": [],
+   "events": [
+    "started",
+    "done"
+   ]
+  },
+  "fail_500": {
+   "error": "write outcome unknown; inspect target and journal before retry",
+   "type": "ReviewedWriteError",
+   "calls": [
+    [
+     "GET",
+     "scenario_automations",
+     null
+    ],
+    [
+     "GET",
+     "tickets/123",
+     null
+    ],
+    [
+     "PUT",
+     "tickets/execute_scenario",
+     {
+      "ids": [
+       123
+      ],
+      "scenario_id": 703
+     }
+    ]
+   ],
+   "events": [
+    "started"
+   ]
+  },
+  "fail_422": {
+   "error": "write rejected (HTTP 422); no retry",
+   "type": "ReviewedWriteError",
+   "calls": [
+    [
+     "GET",
+     "scenario_automations",
+     null
+    ],
+    [
+     "GET",
+     "tickets/123",
+     null
+    ],
+    [
+     "PUT",
+     "tickets/execute_scenario",
+     {
+      "ids": [
+       123
+      ],
+      "scenario_id": 703
+     }
+    ]
+   ],
+   "events": [
+    "started",
+    "failed"
+   ]
+  },
+  "fail_disconnect": {
+   "error": "write outcome unknown; inspect target and journal before retry",
+   "type": "ReviewedWriteError",
+   "calls": [
+    [
+     "GET",
+     "scenario_automations",
+     null
+    ],
+    [
+     "GET",
+     "tickets/123",
+     null
+    ],
+    [
+     "PUT",
+     "tickets/execute_scenario",
+     {
+      "ids": [
+       123
+      ],
+      "scenario_id": 703
+     }
+    ]
+   ],
+   "events": [
+    "started"
+   ]
+  },
+  "refusals": {
+   "missing_scenario": {
+    "error": "scenario identity is missing or ambiguous in this inventory",
+    "type": "ValueError"
+   },
+   "bad_ticket": {
+    "error": "prefix CHN not valid for tickets (expect INC or SR)",
+    "type": "ValueError"
+   },
+   "zero_scenario": {
+    "error": "expected a positive numeric identity",
+    "type": "ReviewedWriteError"
+   }
+  }
+ },
+ "private_views": {
+  "lifecycle": [
+   {
+    "source": 701,
+    "action": "private_view_create",
+    "name": "Globex clone",
+    "plan_calls": [
+     [
+      "GET",
+      "ticket_filters/701",
+      null
+     ]
+    ],
+    "hash": "412ce0ee9b2fcbbefe66e66607b1e3a82200f039bacde27f673d43761e6dc663",
+    "review": {
+     "action": "private_view_create",
+     "method": "POST",
+     "path": "/api/_/ticket_filters",
+     "payload": {
+      "advanced_query_hash": null,
+      "name": "Globex clone",
+      "order_by": "created_at",
+      "order_type": "desc",
+      "query_hash": [
+       {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+         "42"
+        ]
+       }
+      ],
+      "visibility": 81,
+      "workspace_id": 17
+     },
+     "plan_hash": "412ce0ee9b2fcbbefe66e66607b1e3a82200f039bacde27f673d43761e6dc663",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "target": 701,
+    "method": "POST",
+    "path": "ticket_filters",
+    "payload_json": "{\"advanced_query_hash\": null, \"name\": \"Globex clone\", \"order_by\": \"created_at\", \"order_type\": \"desc\", \"query_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"42\"]}], \"visibility\": 81, \"workspace_id\": 17}",
+    "context_hash": "d0f69e59bbeb9147b162d6927044bc938f18b7aa964f7376bd31e4e708e94d6c",
+    "source_id": 701,
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "412ce0ee9b2fcbbefe66e66607b1e3a82200f039bacde27f673d43761e6dc663",
+      "verified": true,
+      "view_id": 702,
+      "fields": {
+       "advanced_query_hash": "matched",
+       "name": "matched",
+       "order_by": "matched",
+       "order_type": "matched",
+       "query_hash": "matched",
+       "visibility": "matched",
+       "workspace_id": "matched"
+      }
+     },
+     "calls": [
+      [
+       "GET",
+       "ticket_filters/701",
+       null
+      ],
+      [
+       "POST",
+       "ticket_filters",
+       {
+        "advanced_query_hash": null,
+        "name": "Globex clone",
+        "order_by": "created_at",
+        "order_type": "desc",
+        "query_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "42"
+          ]
+         }
+        ],
+        "visibility": 81,
+        "workspace_id": 17
+       }
+      ],
+      [
+       "GET",
+       "ticket_filters/702",
+       null
+      ]
+     ],
+     "events": [
+      "started",
+      "done"
+     ]
+    }
+   },
+   {
+    "source": 702,
+    "action": "private_view_edit",
+    "name": "Globex renamed",
+    "plan_calls": [
+     [
+      "GET",
+      "ticket_filters/702",
+      null
+     ]
+    ],
+    "hash": "ace77db054f646a7aa1ac69637326196d559271ee6706ddb595860439c33673c",
+    "review": {
+     "action": "private_view_edit",
+     "method": "PUT",
+     "path": "/api/_/ticket_filters/702",
+     "payload": {
+      "advanced_query_hash": null,
+      "name": "Globex renamed",
+      "order_by": "created_at",
+      "order_type": "desc",
+      "query_hash": [
+       {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+         "42"
+        ]
+       }
+      ],
+      "visibility": 81,
+      "workspace_id": 17
+     },
+     "plan_hash": "ace77db054f646a7aa1ac69637326196d559271ee6706ddb595860439c33673c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "target": 702,
+    "method": "PUT",
+    "path": "ticket_filters/702",
+    "payload_json": "{\"advanced_query_hash\": null, \"name\": \"Globex renamed\", \"order_by\": \"created_at\", \"order_type\": \"desc\", \"query_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"42\"]}], \"visibility\": 81, \"workspace_id\": 17}",
+    "context_hash": "fb370f83370cadc6344bac8ec1b5f8762a4df7b7ac64e8cb78d5612b50cbbe9e",
+    "source_id": 702,
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "ace77db054f646a7aa1ac69637326196d559271ee6706ddb595860439c33673c",
+      "verified": true,
+      "view_id": 702,
+      "fields": {
+       "advanced_query_hash": "matched",
+       "name": "matched",
+       "order_by": "matched",
+       "order_type": "matched",
+       "query_hash": "matched",
+       "visibility": "matched",
+       "workspace_id": "matched"
+      }
+     },
+     "calls": [
+      [
+       "GET",
+       "ticket_filters/702",
+       null
+      ],
+      [
+       "PUT",
+       "ticket_filters/702",
+       {
+        "advanced_query_hash": null,
+        "name": "Globex renamed",
+        "order_by": "created_at",
+        "order_type": "desc",
+        "query_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "42"
+          ]
+         }
+        ],
+        "visibility": 81,
+        "workspace_id": 17
+       }
+      ],
+      [
+       "GET",
+       "ticket_filters/702",
+       null
+      ]
+     ],
+     "events": [
+      "started",
+      "done",
+      "started",
+      "done"
+     ]
+    }
+   },
+   {
+    "source": 702,
+    "action": "private_view_delete",
+    "name": null,
+    "plan_calls": [
+     [
+      "GET",
+      "ticket_filters/702",
+      null
+     ]
+    ],
+    "hash": "498ca7cef1ec58ccdb02c5aa6f23e197a4854a7725fe242508152282a5282b51",
+    "review": {
+     "action": "private_view_delete",
+     "method": "DELETE",
+     "path": "/api/_/ticket_filters/702",
+     "payload": null,
+     "plan_hash": "498ca7cef1ec58ccdb02c5aa6f23e197a4854a7725fe242508152282a5282b51",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "target": 702,
+    "method": "DELETE",
+    "path": "ticket_filters/702",
+    "payload_json": "null",
+    "context_hash": "daa372d28444c391697b2ad60609dad9e478758eb08d9dbd33497a6957e6f9d7",
+    "source_id": 702,
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "498ca7cef1ec58ccdb02c5aa6f23e197a4854a7725fe242508152282a5282b51",
+      "verified": true,
+      "view_id": 702
+     },
+     "calls": [
+      [
+       "GET",
+       "ticket_filters/702",
+       null
+      ],
+      [
+       "DELETE",
+       "ticket_filters/702",
+       null
+      ],
+      [
+       "GET",
+       "ticket_filters/702",
+       null
+      ],
+      [
+       "GET",
+       "ticket_filters",
+       null
+      ]
+     ],
+     "events": [
+      "started",
+      "done",
+      "started",
+      "done",
+      "started",
+      "done"
+     ]
+    }
+   }
+  ],
+  "delete_partial": {
+   "ok": {
+    "status": "submitted",
+    "plan_hash": "f3381fde201a5e4b7d0ac1b0b14ce4430afff7127203da126201e02e36117d57",
+    "verified": false,
+    "view_id": 701,
+    "warning": "Readback was not fully verified; do not resend."
+   },
+   "calls": [
+    [
+     "GET",
+     "ticket_filters/701",
+     null
+    ],
+    [
+     "DELETE",
+     "ticket_filters/701",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters/701",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters",
+     null
+    ]
+   ],
+   "events": [
+    "started",
+    "done"
+   ]
+  },
+  "create_fail_500": {
+   "error": "write outcome unknown; inspect target and journal before retry",
+   "type": "ReviewedWriteError",
+   "calls": [
+    [
+     "GET",
+     "ticket_filters/701",
+     null
+    ],
+    [
+     "POST",
+     "ticket_filters",
+     {
+      "advanced_query_hash": null,
+      "name": "Globex",
+      "order_by": "created_at",
+      "order_type": "desc",
+      "query_hash": [
+       {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+         "42"
+        ]
+       }
+      ],
+      "visibility": 81,
+      "workspace_id": 17
+     }
+    ]
+   ],
+   "events": [
+    "started"
+   ]
+  },
+  "refusals": [
+   {
+    "mods": {},
+    "action": "rename",
+    "name": "x",
+    "error": "unsupported saved-view action",
+    "type": "ValueError"
+   },
+   {
+    "mods": {},
+    "action": "delete",
+    "name": "x",
+    "error": "delete does not accept a name",
+    "type": "ValueError"
+   },
+   {
+    "mods": {},
+    "action": "create",
+    "name": " ",
+    "error": "create/edit requires a nonempty --name",
+    "type": "ValueError"
+   },
+   {
+    "mods": {},
+    "action": "edit",
+    "name": null,
+    "error": "create/edit requires a nonempty --name",
+    "type": "ValueError"
+   },
+   {
+    "mods": {
+     "user_id": 902
+    },
+    "action": "create",
+    "name": "x",
+    "error": "only self-owned, explicitly non-default private views are supported",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "default": null
+    },
+    "action": "create",
+    "name": "x",
+    "error": "only self-owned, explicitly non-default private views are supported",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "system": true
+    },
+    "action": "create",
+    "name": "x",
+    "error": "only self-owned, explicitly non-default private views are supported",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "visibility_name": "Everyone"
+    },
+    "action": "create",
+    "name": "x",
+    "error": "named private visibility metadata is unavailable; numeric visibility alone is not proof",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "visibility_name": null
+    },
+    "action": "create",
+    "name": "x",
+    "error": "named private visibility metadata is unavailable; numeric visibility alone is not proof",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "visibility": {
+      "id": 5,
+      "label": " Only Me "
+     }
+    },
+    "action": "create",
+    "name": "x",
+    "ok": {
+     "hash": "0502c42d27eaa63a63dfc77d0a093790ecc8a1108828205daecf601ff1012930",
+     "review": {
+      "action": "private_view_create",
+      "method": "POST",
+      "path": "/api/_/ticket_filters",
+      "payload": {
+       "advanced_query_hash": null,
+       "name": "x",
+       "order_by": "created_at",
+       "order_type": "desc",
+       "query_hash": [
+        {
+         "condition": "status",
+         "operator": "is_in",
+         "type": "default",
+         "value": [
+          "42"
+         ]
+        }
+       ],
+       "visibility": 5,
+       "workspace_id": 17
+      },
+      "plan_hash": "0502c42d27eaa63a63dfc77d0a093790ecc8a1108828205daecf601ff1012930",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     },
+     "action": "private_view_create",
+     "target": 701,
+     "method": "POST",
+     "path": "ticket_filters",
+     "payload_json": "{\"advanced_query_hash\": null, \"name\": \"x\", \"order_by\": \"created_at\", \"order_type\": \"desc\", \"query_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"42\"]}], \"visibility\": 5, \"workspace_id\": 17}",
+     "context_hash": "f168c3ba49ba467807fd9220f44598a0233917ab7ba84ca5bb5924fcb6ddea56",
+     "source_id": 701
+    }
+   },
+   {
+    "mods": {
+     "visibility": {
+      "id": 5,
+      "label": "Agents"
+     }
+    },
+    "action": "create",
+    "name": "x",
+    "error": "named private visibility metadata is unavailable; numeric visibility alone is not proof",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "advanced_query_hash": []
+    },
+    "action": "create",
+    "name": "x",
+    "error": "only the captured ordinary query-hash subset is supported",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "query_hash": "x"
+    },
+    "action": "create",
+    "name": "x",
+    "error": "only the captured ordinary query-hash subset is supported",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "order_by": "updated_at"
+    },
+    "action": "edit",
+    "name": "x",
+    "error": "only captured created-at descending views are supported",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "order_type": "asc"
+    },
+    "action": "create",
+    "name": "x",
+    "error": "only captured created-at descending views are supported",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "id": 9
+    },
+    "action": "delete",
+    "name": null,
+    "error": "exact saved-view identity is unavailable",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "workspace_id": null
+    },
+    "action": "create",
+    "name": "x",
+    "error": "expected a positive numeric identity",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "system": false
+    },
+    "action": "create",
+    "name": "x",
+    "ok": {
+     "hash": "770762314ca2133978aa58e88b47561e8935b6feef0337b25aa071141e5494c6",
+     "review": {
+      "action": "private_view_create",
+      "method": "POST",
+      "path": "/api/_/ticket_filters",
+      "payload": {
+       "advanced_query_hash": null,
+       "name": "x",
+       "order_by": "created_at",
+       "order_type": "desc",
+       "query_hash": [
+        {
+         "condition": "status",
+         "operator": "is_in",
+         "type": "default",
+         "value": [
+          "42"
+         ]
+        }
+       ],
+       "visibility": 81,
+       "workspace_id": 17
+      },
+      "plan_hash": "770762314ca2133978aa58e88b47561e8935b6feef0337b25aa071141e5494c6",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     },
+     "action": "private_view_create",
+     "target": 701,
+     "method": "POST",
+     "path": "ticket_filters",
+     "payload_json": "{\"advanced_query_hash\": null, \"name\": \"x\", \"order_by\": \"created_at\", \"order_type\": \"desc\", \"query_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"42\"]}], \"visibility\": 81, \"workspace_id\": 17}",
+     "context_hash": "91588e9dcfed33b755b9d390a61c12dd8b0d6865710157cd91754c21ba7f87b8",
+     "source_id": 701
+    }
+   }
+  ]
+ },
+ "list_preferences": {
+  "tickets": {
+   "columns": {
+    "plan_calls": [
+     [
+      "GET",
+      "tickets/headers",
+      null
+     ]
+    ],
+    "hash": "5a322cdbb7ca98607a2e65ca211a90835d161ea8b98e9870d4c6512669f9d60c",
+    "review": {
+     "action": "list_columns",
+     "method": "POST",
+     "path": "/api/_/tickets/headers",
+     "payload": {
+      "columns": {
+       "display_id": 1,
+       "requester": 2,
+       "status": 3,
+       "ticket_subject": 1
+      },
+      "frozen_columns": [
+       "display_id"
+      ]
+     },
+     "plan_hash": "5a322cdbb7ca98607a2e65ca211a90835d161ea8b98e9870d4c6512669f9d60c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "action": "list_columns",
+    "target": 0,
+    "method": "POST",
+    "path": "tickets/headers",
+    "payload_json": "{\"columns\": {\"display_id\": 1, \"requester\": 2, \"status\": 3, \"ticket_subject\": 1}, \"frozen_columns\": [\"display_id\"]}",
+    "context_hash": "e14619a7bfbeeb4a8ff55422a1b7c8b2cd4a9d3d67deb28c7e877bbb8e7f0ece",
+    "inputs_json": "{\"module\": \"tickets\", \"columns\": [\"ticket_subject\", \"requester\", \"status\"], \"frozen\": []}",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "5a322cdbb7ca98607a2e65ca211a90835d161ea8b98e9870d4c6512669f9d60c",
+      "verified": true,
+      "fields": {
+       "display_id": "matched",
+       "requester": "matched",
+       "status": "matched",
+       "ticket_subject": "matched"
+      },
+      "unverified_omissions": []
+     },
+     "calls": [
+      [
+       "GET",
+       "tickets/headers",
+       null
+      ],
+      [
+       "POST",
+       "tickets/headers",
+       {
+        "columns": {
+         "display_id": 1,
+         "requester": 2,
+         "status": 3,
+         "ticket_subject": 1
+        },
+        "frozen_columns": [
+         "display_id"
+        ]
+       }
+      ],
+      [
+       "GET",
+       "tickets/headers",
+       null
+      ]
+     ],
+     "events": [
+      "started",
+      "done"
+     ]
+    },
+    "resend": {
+     "error": "write was sent or outcome unknown; inspect target and journal before retry",
+     "type": "ReviewedWriteError",
+     "calls": [],
+     "events": [
+      "started",
+      "done"
+     ]
+    }
+   },
+   "export": {
+    "plan_calls": [
+     [
+      "GET",
+      "tickets/headers",
+      null
+     ],
+     [
+      "GET",
+      "ticket_filters",
+      null
+     ],
+     [
+      "GET",
+      "ticket_filters/701",
+      null
+     ]
+    ],
+    "hash": "132af14d22df0869dd963e13ce581c36df4482b6d6d947d444e1b768bfb4857a",
+    "review": {
+     "action": "list_export",
+     "method": "POST",
+     "path": "/api/_/tickets/export",
+     "payload": {
+      "advanced_data_hash": null,
+      "custom_fields": {},
+      "data_hash": [
+       {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+         "47"
+        ]
+       }
+      ],
+      "date_filter": 30,
+      "export_fields": {
+       "display_id": "Acme ID",
+       "status_name": "Acme state",
+       "subject": "Acme subject"
+      },
+      "format": "csv",
+      "selected_filter_view": {
+       "id": "701",
+       "is_additional_filters_applied": false,
+       "name": "Acme queue"
+      },
+      "ticket_state_filter": "created_at"
+     },
+     "plan_hash": "132af14d22df0869dd963e13ce581c36df4482b6d6d947d444e1b768bfb4857a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "action": "list_export",
+    "target": 0,
+    "method": "POST",
+    "path": "tickets/export",
+    "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"display_id\": \"Acme ID\", \"status_name\": \"Acme state\", \"subject\": \"Acme subject\"}, \"format\": \"csv\", \"selected_filter_view\": {\"id\": \"701\", \"is_additional_filters_applied\": false, \"name\": \"Acme queue\"}, \"ticket_state_filter\": \"created_at\"}",
+    "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+    "inputs_json": "{\"module\": \"tickets\", \"view\": \"701\", \"fields\": [\"subject\", \"status_name\", \"display_id\"]}",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "132af14d22df0869dd963e13ce581c36df4482b6d6d947d444e1b768bfb4857a",
+      "verified": false,
+      "source_readback": true,
+      "job": "unavailable",
+      "download": "unavailable",
+      "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend."
+     },
+     "calls": [
+      [
+       "GET",
+       "tickets/headers",
+       null
+      ],
+      [
+       "GET",
+       "ticket_filters",
+       null
+      ],
+      [
+       "GET",
+       "ticket_filters/701",
+       null
+      ],
+      [
+       "POST",
+       "tickets/export",
+       {
+        "advanced_data_hash": null,
+        "custom_fields": {},
+        "data_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "47"
+          ]
+         }
+        ],
+        "date_filter": 30,
+        "export_fields": {
+         "display_id": "Acme ID",
+         "status_name": "Acme state",
+         "subject": "Acme subject"
+        },
+        "format": "csv",
+        "selected_filter_view": {
+         "id": "701",
+         "is_additional_filters_applied": false,
+         "name": "Acme queue"
+        },
+        "ticket_state_filter": "created_at"
+       }
+      ],
+      [
+       "GET",
+       "ticket_filters",
+       null
+      ],
+      [
+       "GET",
+       "ticket_filters/701",
+       null
+      ]
+     ],
+     "events": [
+      "started",
+      "done"
+     ]
+    }
+   },
+   "columns_missing": {
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "86de5fbc18255de2af45d23e5f302b655809940f137edc5c825200ec106c78af",
+     "verified": false,
+     "fields": {
+      "display_id": "matched",
+      "status": "matched",
+      "ticket_subject": "unavailable"
+     },
+     "unverified_omissions": [],
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "tickets/headers",
+      null
+     ],
+     [
+      "POST",
+      "tickets/headers",
+      {
+       "columns": {
+        "display_id": 1,
+        "status": 2,
+        "ticket_subject": 1
+       },
+       "frozen_columns": [
+        "display_id"
+       ]
+      }
+     ],
+     [
+      "GET",
+      "tickets/headers",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   "columns_drift": {
+    "error": "target or metadata changed since review; review again",
+    "type": "ReviewedWriteError",
+    "calls": [
+     [
+      "GET",
+      "tickets/headers",
+      null
+     ]
+    ],
+    "events": []
+   },
+   "export_fail_429": {
+    "error": "write outcome unknown; inspect target and journal before retry",
+    "type": "ReviewedWriteError",
+    "calls": [
+     [
+      "GET",
+      "tickets/headers",
+      null
+     ],
+     [
+      "GET",
+      "ticket_filters",
+      null
+     ],
+     [
+      "GET",
+      "ticket_filters/701",
+      null
+     ],
+     [
+      "POST",
+      "tickets/export",
+      {
+       "advanced_data_hash": null,
+       "custom_fields": {},
+       "data_hash": [
+        {
+         "condition": "status",
+         "operator": "is_in",
+         "type": "default",
+         "value": [
+          "47"
+         ]
+        }
+       ],
+       "date_filter": 30,
+       "export_fields": {
+        "subject": "Acme subject"
+       },
+       "format": "csv",
+       "selected_filter_view": {
+        "id": "701",
+        "is_additional_filters_applied": false,
+        "name": "Acme queue"
+       },
+       "ticket_state_filter": "created_at"
+      }
+     ]
+    ],
+    "events": [
+     "started"
+    ]
+   },
+   "refusals": [
+    {
+     "kind": "columns",
+     "args": [
+      [],
+      []
+     ],
+     "error": "choose unique exact runtime column names; display_id is anchored automatically",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "ticket_subject"
+      ],
+      []
+     ],
+     "error": "choose unique exact runtime column names; display_id is anchored automatically",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "nope"
+      ],
+      []
+     ],
+     "error": "choose unique exact runtime column names; display_id is anchored automatically",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "display_id"
+      ],
+      []
+     ],
+     "error": "choose unique exact runtime column names; display_id is anchored automatically",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "status"
+      ],
+      []
+     ],
+     "error": "captured preference contract requires ticket_subject",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject"
+      ],
+      [
+       "status"
+      ]
+     ],
+     "error": "frozen columns must be unique selected columns",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "requester"
+      ],
+      [
+       "requester",
+       "requester"
+      ]
+     ],
+     "error": "frozen columns must be unique selected columns",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "requester"
+      ],
+      [
+       "requester"
+      ]
+     ],
+     "error": "only change requester freezing plus the automatic display_id anchor is captured",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "status"
+      ],
+      [
+       "status"
+      ]
+     ],
+     "error": "only change requester freezing plus the automatic display_id anchor is captured",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      []
+     ],
+     "error": "select unique captured export field keys",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "subject",
+       "subject"
+      ]
+     ],
+     "error": "select unique captured export field keys",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "owner"
+      ]
+     ],
+     "error": "select unique captured export field keys",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "responder_name"
+      ]
+     ],
+     "ok": {
+      "hash": "0bc75a130df9ddb1e8447efebcc63c39be9b548befa49bdece24890e4312b9a5",
+      "review": {
+       "action": "list_export",
+       "method": "POST",
+       "path": "/api/_/tickets/export",
+       "payload": {
+        "advanced_data_hash": null,
+        "custom_fields": {},
+        "data_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "47"
+          ]
+         }
+        ],
+        "date_filter": 30,
+        "export_fields": {
+         "responder_name": "Acme agent"
+        },
+        "format": "csv",
+        "selected_filter_view": {
+         "id": "701",
+         "is_additional_filters_applied": false,
+         "name": "Acme queue"
+        },
+        "ticket_state_filter": "created_at"
+       },
+       "plan_hash": "0bc75a130df9ddb1e8447efebcc63c39be9b548befa49bdece24890e4312b9a5",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "list_export",
+      "target": 0,
+      "method": "POST",
+      "path": "tickets/export",
+      "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"responder_name\": \"Acme agent\"}, \"format\": \"csv\", \"selected_filter_view\": {\"id\": \"701\", \"is_additional_filters_applied\": false, \"name\": \"Acme queue\"}, \"ticket_state_filter\": \"created_at\"}",
+      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "inputs_json": "{\"module\": \"tickets\", \"view\": \"701\", \"fields\": [\"responder_name\"]}"
+     }
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "group_name"
+      ]
+     ],
+     "error": "runtime export-field label is unavailable for group_name",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "requester_info"
+      ]
+     ],
+     "ok": {
+      "hash": "118d8bb9a0a0ebbec2211ac288d6fb73db88b61a2893fafc8262b119e8d7d570",
+      "review": {
+       "action": "list_export",
+       "method": "POST",
+       "path": "/api/_/tickets/export",
+       "payload": {
+        "advanced_data_hash": null,
+        "custom_fields": {},
+        "data_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "47"
+          ]
+         }
+        ],
+        "date_filter": 30,
+        "export_fields": {
+         "requester_info": "Acme requester"
+        },
+        "format": "csv",
+        "selected_filter_view": {
+         "id": "701",
+         "is_additional_filters_applied": false,
+         "name": "Acme queue"
+        },
+        "ticket_state_filter": "created_at"
+       },
+       "plan_hash": "118d8bb9a0a0ebbec2211ac288d6fb73db88b61a2893fafc8262b119e8d7d570",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "list_export",
+      "target": 0,
+      "method": "POST",
+      "path": "tickets/export",
+      "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"requester_info\": \"Acme requester\"}, \"format\": \"csv\", \"selected_filter_view\": {\"id\": \"701\", \"is_additional_filters_applied\": false, \"name\": \"Acme queue\"}, \"ticket_state_filter\": \"created_at\"}",
+      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "inputs_json": "{\"module\": \"tickets\", \"view\": \"701\", \"fields\": [\"requester_info\"]}"
+     }
+    },
+    {
+     "kind": "export",
+     "args": [
+      "Acme queue",
+      [
+       "display_id"
+      ]
+     ],
+     "ok": {
+      "hash": "d534ac2ae8da57107d3b9140c74f711740aa28c4064713c7d45d4e84211665c2",
+      "review": {
+       "action": "list_export",
+       "method": "POST",
+       "path": "/api/_/tickets/export",
+       "payload": {
+        "advanced_data_hash": null,
+        "custom_fields": {},
+        "data_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "47"
+          ]
+         }
+        ],
+        "date_filter": 30,
+        "export_fields": {
+         "display_id": "Acme ID"
+        },
+        "format": "csv",
+        "selected_filter_view": {
+         "id": "701",
+         "is_additional_filters_applied": false,
+         "name": "Acme queue"
+        },
+        "ticket_state_filter": "created_at"
+       },
+       "plan_hash": "d534ac2ae8da57107d3b9140c74f711740aa28c4064713c7d45d4e84211665c2",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "list_export",
+      "target": 0,
+      "method": "POST",
+      "path": "tickets/export",
+      "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"display_id\": \"Acme ID\"}, \"format\": \"csv\", \"selected_filter_view\": {\"id\": \"701\", \"is_additional_filters_applied\": false, \"name\": \"Acme queue\"}, \"ticket_state_filter\": \"created_at\"}",
+      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "inputs_json": "{\"module\": \"tickets\", \"view\": \"701\", \"fields\": [\"display_id\"]}"
+     }
+    },
+    {
+     "kind": "export",
+     "args": [
+      "nope",
+      [
+       "display_id"
+      ]
+     ],
+     "error": "no view named 'nope'; views: 'Acme queue'",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "advanced"
+     ],
+     "error": "only ordinary saved-view queries have a captured export contract",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "query_not_list"
+     ],
+     "error": "only ordinary saved-view queries have a captured export contract",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "id_mismatch"
+     ],
+     "error": "no view named '701'; views: 'Acme queue'",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "headers_empty"
+     ],
+     "error": "runtime list-header metadata is unavailable",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "headers_dup"
+     ],
+     "error": "ambiguous runtime list-header keys",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "headers_no_name"
+     ],
+     "error": "runtime list-header metadata is unavailable",
+     "type": "ReviewedWriteError"
+    }
+   ]
+  },
+  "changes": {
+   "columns": {
+    "plan_calls": [
+     [
+      "GET",
+      "changes/headers",
+      null
+     ]
+    ],
+    "hash": "9803652b561e7fefda69bdc5160822cc9e561184045f63768ee80855dd90e405",
+    "review": {
+     "action": "list_columns",
+     "method": "POST",
+     "path": "/api/_/changes/headers",
+     "payload": {
+      "columns": {
+       "display_id": 1,
+       "requester": 2,
+       "status": 3,
+       "ticket_subject": 1
+      },
+      "frozen_columns": [
+       "display_id"
+      ]
+     },
+     "plan_hash": "9803652b561e7fefda69bdc5160822cc9e561184045f63768ee80855dd90e405",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "action": "list_columns",
+    "target": 0,
+    "method": "POST",
+    "path": "changes/headers",
+    "payload_json": "{\"columns\": {\"display_id\": 1, \"requester\": 2, \"status\": 3, \"ticket_subject\": 1}, \"frozen_columns\": [\"display_id\"]}",
+    "context_hash": "e14619a7bfbeeb4a8ff55422a1b7c8b2cd4a9d3d67deb28c7e877bbb8e7f0ece",
+    "inputs_json": "{\"module\": \"changes\", \"columns\": [\"ticket_subject\", \"requester\", \"status\"], \"frozen\": []}",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "9803652b561e7fefda69bdc5160822cc9e561184045f63768ee80855dd90e405",
+      "verified": true,
+      "fields": {
+       "display_id": "matched",
+       "requester": "matched",
+       "status": "matched",
+       "ticket_subject": "matched"
+      },
+      "unverified_omissions": []
+     },
+     "calls": [
+      [
+       "GET",
+       "changes/headers",
+       null
+      ],
+      [
+       "POST",
+       "changes/headers",
+       {
+        "columns": {
+         "display_id": 1,
+         "requester": 2,
+         "status": 3,
+         "ticket_subject": 1
+        },
+        "frozen_columns": [
+         "display_id"
+        ]
+       }
+      ],
+      [
+       "GET",
+       "changes/headers",
+       null
+      ]
+     ],
+     "events": [
+      "started",
+      "done"
+     ]
+    },
+    "resend": {
+     "error": "write was sent or outcome unknown; inspect target and journal before retry",
+     "type": "ReviewedWriteError",
+     "calls": [],
+     "events": [
+      "started",
+      "done"
+     ]
+    }
+   },
+   "export": {
+    "plan_calls": [
+     [
+      "GET",
+      "changes/headers",
+      null
+     ],
+     [
+      "GET",
+      "change-filters",
+      null
+     ],
+     [
+      "GET",
+      "change-filters/701",
+      null
+     ]
+    ],
+    "hash": "0c180e75b3f4c968d62f25c36684abac06abc12abd09c6b52b2aa7fac9ca0747",
+    "review": {
+     "action": "list_export",
+     "method": "POST",
+     "path": "/api/_/changes/export",
+     "payload": {
+      "advanced_data_hash": null,
+      "custom_fields": {},
+      "data_hash": [
+       {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+         "47"
+        ]
+       }
+      ],
+      "date_filter": 30,
+      "export_fields": {
+       "display_id": "Acme ID",
+       "status_name": "Acme state",
+       "subject": "Acme subject"
+      },
+      "format": "csv",
+      "state_filter": "created_at"
+     },
+     "plan_hash": "0c180e75b3f4c968d62f25c36684abac06abc12abd09c6b52b2aa7fac9ca0747",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "action": "list_export",
+    "target": 0,
+    "method": "POST",
+    "path": "changes/export",
+    "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"display_id\": \"Acme ID\", \"status_name\": \"Acme state\", \"subject\": \"Acme subject\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
+    "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+    "inputs_json": "{\"module\": \"changes\", \"view\": \"701\", \"fields\": [\"subject\", \"status_name\", \"display_id\"]}",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "0c180e75b3f4c968d62f25c36684abac06abc12abd09c6b52b2aa7fac9ca0747",
+      "verified": false,
+      "source_readback": true,
+      "job": "unavailable",
+      "download": "unavailable",
+      "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend."
+     },
+     "calls": [
+      [
+       "GET",
+       "changes/headers",
+       null
+      ],
+      [
+       "GET",
+       "change-filters",
+       null
+      ],
+      [
+       "GET",
+       "change-filters/701",
+       null
+      ],
+      [
+       "POST",
+       "changes/export",
+       {
+        "advanced_data_hash": null,
+        "custom_fields": {},
+        "data_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "47"
+          ]
+         }
+        ],
+        "date_filter": 30,
+        "export_fields": {
+         "display_id": "Acme ID",
+         "status_name": "Acme state",
+         "subject": "Acme subject"
+        },
+        "format": "csv",
+        "state_filter": "created_at"
+       }
+      ],
+      [
+       "GET",
+       "change-filters",
+       null
+      ],
+      [
+       "GET",
+       "change-filters/701",
+       null
+      ]
+     ],
+     "events": [
+      "started",
+      "done"
+     ]
+    }
+   },
+   "columns_missing": {
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "78cfce2dbeae4990ee89f79be6f7a7eac0a51e3e37ef4ac7865503bbe6f480cb",
+     "verified": false,
+     "fields": {
+      "display_id": "matched",
+      "status": "matched",
+      "ticket_subject": "unavailable"
+     },
+     "unverified_omissions": [],
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "changes/headers",
+      null
+     ],
+     [
+      "POST",
+      "changes/headers",
+      {
+       "columns": {
+        "display_id": 1,
+        "status": 2,
+        "ticket_subject": 1
+       },
+       "frozen_columns": [
+        "display_id"
+       ]
+      }
+     ],
+     [
+      "GET",
+      "changes/headers",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   "columns_drift": {
+    "error": "target or metadata changed since review; review again",
+    "type": "ReviewedWriteError",
+    "calls": [
+     [
+      "GET",
+      "changes/headers",
+      null
+     ]
+    ],
+    "events": []
+   },
+   "export_fail_429": {
+    "error": "write outcome unknown; inspect target and journal before retry",
+    "type": "ReviewedWriteError",
+    "calls": [
+     [
+      "GET",
+      "changes/headers",
+      null
+     ],
+     [
+      "GET",
+      "change-filters",
+      null
+     ],
+     [
+      "GET",
+      "change-filters/701",
+      null
+     ],
+     [
+      "POST",
+      "changes/export",
+      {
+       "advanced_data_hash": null,
+       "custom_fields": {},
+       "data_hash": [
+        {
+         "condition": "status",
+         "operator": "is_in",
+         "type": "default",
+         "value": [
+          "47"
+         ]
+        }
+       ],
+       "date_filter": 30,
+       "export_fields": {
+        "subject": "Acme subject"
+       },
+       "format": "csv",
+       "state_filter": "created_at"
+      }
+     ]
+    ],
+    "events": [
+     "started"
+    ]
+   },
+   "refusals": [
+    {
+     "kind": "columns",
+     "args": [
+      [],
+      []
+     ],
+     "error": "choose unique exact runtime column names; display_id is anchored automatically",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "ticket_subject"
+      ],
+      []
+     ],
+     "error": "choose unique exact runtime column names; display_id is anchored automatically",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "nope"
+      ],
+      []
+     ],
+     "error": "choose unique exact runtime column names; display_id is anchored automatically",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "display_id"
+      ],
+      []
+     ],
+     "error": "choose unique exact runtime column names; display_id is anchored automatically",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "status"
+      ],
+      []
+     ],
+     "error": "captured preference contract requires ticket_subject",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject"
+      ],
+      [
+       "status"
+      ]
+     ],
+     "error": "frozen columns must be unique selected columns",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "requester"
+      ],
+      [
+       "requester",
+       "requester"
+      ]
+     ],
+     "error": "frozen columns must be unique selected columns",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "requester"
+      ],
+      [
+       "requester"
+      ]
+     ],
+     "ok": {
+      "hash": "27487f2186864c6e88f300fdd24c8c332b5586bc7155cd0afdfd49fd09acc1fd",
+      "review": {
+       "action": "list_columns",
+       "method": "POST",
+       "path": "/api/_/changes/headers",
+       "payload": {
+        "columns": {
+         "display_id": 1,
+         "requester": 2,
+         "ticket_subject": 1
+        },
+        "frozen_columns": [
+         "requester",
+         "display_id"
+        ]
+       },
+       "plan_hash": "27487f2186864c6e88f300fdd24c8c332b5586bc7155cd0afdfd49fd09acc1fd",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "list_columns",
+      "target": 0,
+      "method": "POST",
+      "path": "changes/headers",
+      "payload_json": "{\"columns\": {\"display_id\": 1, \"requester\": 2, \"ticket_subject\": 1}, \"frozen_columns\": [\"requester\", \"display_id\"]}",
+      "context_hash": "e14619a7bfbeeb4a8ff55422a1b7c8b2cd4a9d3d67deb28c7e877bbb8e7f0ece",
+      "inputs_json": "{\"module\": \"changes\", \"columns\": [\"ticket_subject\", \"requester\"], \"frozen\": [\"requester\"]}"
+     }
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "status"
+      ],
+      [
+       "status"
+      ]
+     ],
+     "error": "only change requester freezing plus the automatic display_id anchor is captured",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      []
+     ],
+     "error": "select unique captured export field keys",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "subject",
+       "subject"
+      ]
+     ],
+     "error": "select unique captured export field keys",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "owner"
+      ]
+     ],
+     "ok": {
+      "hash": "402e66771dd506488e5a377abd89b14af86617c070ddff6bac83727aad80ab19",
+      "review": {
+       "action": "list_export",
+       "method": "POST",
+       "path": "/api/_/changes/export",
+       "payload": {
+        "advanced_data_hash": null,
+        "custom_fields": {},
+        "data_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "47"
+          ]
+         }
+        ],
+        "date_filter": 30,
+        "export_fields": {
+         "owner": "Acme agent"
+        },
+        "format": "csv",
+        "state_filter": "created_at"
+       },
+       "plan_hash": "402e66771dd506488e5a377abd89b14af86617c070ddff6bac83727aad80ab19",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "list_export",
+      "target": 0,
+      "method": "POST",
+      "path": "changes/export",
+      "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"owner\": \"Acme agent\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
+      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "inputs_json": "{\"module\": \"changes\", \"view\": \"701\", \"fields\": [\"owner\"]}"
+     }
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "responder_name"
+      ]
+     ],
+     "error": "select unique captured export field keys",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "group_name"
+      ]
+     ],
+     "error": "runtime export-field label is unavailable for group_name",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "requester_info"
+      ]
+     ],
+     "ok": {
+      "hash": "7bbd60d1594543cf94997f312928d44363786d318e3f93b2941e693605becbd1",
+      "review": {
+       "action": "list_export",
+       "method": "POST",
+       "path": "/api/_/changes/export",
+       "payload": {
+        "advanced_data_hash": null,
+        "custom_fields": {},
+        "data_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "47"
+          ]
+         }
+        ],
+        "date_filter": 30,
+        "export_fields": {
+         "requester_info": "Acme requester"
+        },
+        "format": "csv",
+        "state_filter": "created_at"
+       },
+       "plan_hash": "7bbd60d1594543cf94997f312928d44363786d318e3f93b2941e693605becbd1",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "list_export",
+      "target": 0,
+      "method": "POST",
+      "path": "changes/export",
+      "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"requester_info\": \"Acme requester\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
+      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "inputs_json": "{\"module\": \"changes\", \"view\": \"701\", \"fields\": [\"requester_info\"]}"
+     }
+    },
+    {
+     "kind": "export",
+     "args": [
+      "Acme queue",
+      [
+       "display_id"
+      ]
+     ],
+     "ok": {
+      "hash": "0f385c43fc7e171ad3fa7fc5ebbcfab783cbaefdd96e230cbbe4bd040a2cd027",
+      "review": {
+       "action": "list_export",
+       "method": "POST",
+       "path": "/api/_/changes/export",
+       "payload": {
+        "advanced_data_hash": null,
+        "custom_fields": {},
+        "data_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "47"
+          ]
+         }
+        ],
+        "date_filter": 30,
+        "export_fields": {
+         "display_id": "Acme ID"
+        },
+        "format": "csv",
+        "state_filter": "created_at"
+       },
+       "plan_hash": "0f385c43fc7e171ad3fa7fc5ebbcfab783cbaefdd96e230cbbe4bd040a2cd027",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "list_export",
+      "target": 0,
+      "method": "POST",
+      "path": "changes/export",
+      "payload_json": "{\"advanced_data_hash\": null, \"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"display_id\": \"Acme ID\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
+      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "inputs_json": "{\"module\": \"changes\", \"view\": \"701\", \"fields\": [\"display_id\"]}"
+     }
+    },
+    {
+     "kind": "export",
+     "args": [
+      "nope",
+      [
+       "display_id"
+      ]
+     ],
+     "error": "no view named 'nope'; views: 'Acme queue'",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "advanced"
+     ],
+     "error": "only ordinary saved-view queries have a captured export contract",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "query_not_list"
+     ],
+     "error": "only ordinary saved-view queries have a captured export contract",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "id_mismatch"
+     ],
+     "error": "no view named '701'; views: 'Acme queue'",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "headers_empty"
+     ],
+     "error": "runtime list-header metadata is unavailable",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "headers_dup"
+     ],
+     "error": "ambiguous runtime list-header keys",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "headers_no_name"
+     ],
+     "error": "runtime list-header metadata is unavailable",
+     "type": "ReviewedWriteError"
+    }
+   ]
+  },
+  "problems": {
+   "columns": {
+    "plan_calls": [
+     [
+      "GET",
+      "problems/headers",
+      null
+     ]
+    ],
+    "hash": "2046ce860f12d89e23c084bfa0a94194f5ac8da93a22a53364e31f366af7182c",
+    "review": {
+     "action": "list_columns",
+     "method": "POST",
+     "path": "/api/_/problems/headers",
+     "payload": {
+      "columns": {
+       "display_id": 1,
+       "requester": 2,
+       "status": 3,
+       "ticket_subject": 1
+      },
+      "frozen_columns": [
+       "display_id"
+      ]
+     },
+     "plan_hash": "2046ce860f12d89e23c084bfa0a94194f5ac8da93a22a53364e31f366af7182c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "action": "list_columns",
+    "target": 0,
+    "method": "POST",
+    "path": "problems/headers",
+    "payload_json": "{\"columns\": {\"display_id\": 1, \"requester\": 2, \"status\": 3, \"ticket_subject\": 1}, \"frozen_columns\": [\"display_id\"]}",
+    "context_hash": "e14619a7bfbeeb4a8ff55422a1b7c8b2cd4a9d3d67deb28c7e877bbb8e7f0ece",
+    "inputs_json": "{\"module\": \"problems\", \"columns\": [\"ticket_subject\", \"requester\", \"status\"], \"frozen\": []}",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "2046ce860f12d89e23c084bfa0a94194f5ac8da93a22a53364e31f366af7182c",
+      "verified": true,
+      "fields": {
+       "display_id": "matched",
+       "requester": "matched",
+       "status": "matched",
+       "ticket_subject": "matched"
+      },
+      "unverified_omissions": []
+     },
+     "calls": [
+      [
+       "GET",
+       "problems/headers",
+       null
+      ],
+      [
+       "POST",
+       "problems/headers",
+       {
+        "columns": {
+         "display_id": 1,
+         "requester": 2,
+         "status": 3,
+         "ticket_subject": 1
+        },
+        "frozen_columns": [
+         "display_id"
+        ]
+       }
+      ],
+      [
+       "GET",
+       "problems/headers",
+       null
+      ]
+     ],
+     "events": [
+      "started",
+      "done"
+     ]
+    },
+    "resend": {
+     "error": "write was sent or outcome unknown; inspect target and journal before retry",
+     "type": "ReviewedWriteError",
+     "calls": [],
+     "events": [
+      "started",
+      "done"
+     ]
+    }
+   },
+   "export": {
+    "plan_calls": [
+     [
+      "GET",
+      "problems/headers",
+      null
+     ],
+     [
+      "GET",
+      "problem-filters",
+      null
+     ],
+     [
+      "GET",
+      "problem-filters/701",
+      null
+     ]
+    ],
+    "hash": "c490107c6d167c8e0a97c87d8949a790804f0d3932fe3a752f66f6536042d59c",
+    "review": {
+     "action": "list_export",
+     "method": "POST",
+     "path": "/api/_/problems/export",
+     "payload": {
+      "custom_fields": {},
+      "data_hash": [
+       {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+         "47"
+        ]
+       }
+      ],
+      "date_filter": 30,
+      "export_fields": {
+       "display_id": "Acme ID",
+       "status_name": "Acme state",
+       "subject": "Acme subject"
+      },
+      "format": "csv",
+      "state_filter": "created_at"
+     },
+     "plan_hash": "c490107c6d167c8e0a97c87d8949a790804f0d3932fe3a752f66f6536042d59c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "action": "list_export",
+    "target": 0,
+    "method": "POST",
+    "path": "problems/export",
+    "payload_json": "{\"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"display_id\": \"Acme ID\", \"status_name\": \"Acme state\", \"subject\": \"Acme subject\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
+    "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+    "inputs_json": "{\"module\": \"problems\", \"view\": \"701\", \"fields\": [\"subject\", \"status_name\", \"display_id\"]}",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "c490107c6d167c8e0a97c87d8949a790804f0d3932fe3a752f66f6536042d59c",
+      "verified": false,
+      "source_readback": true,
+      "job": "unavailable",
+      "download": "unavailable",
+      "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend."
+     },
+     "calls": [
+      [
+       "GET",
+       "problems/headers",
+       null
+      ],
+      [
+       "GET",
+       "problem-filters",
+       null
+      ],
+      [
+       "GET",
+       "problem-filters/701",
+       null
+      ],
+      [
+       "POST",
+       "problems/export",
+       {
+        "custom_fields": {},
+        "data_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "47"
+          ]
+         }
+        ],
+        "date_filter": 30,
+        "export_fields": {
+         "display_id": "Acme ID",
+         "status_name": "Acme state",
+         "subject": "Acme subject"
+        },
+        "format": "csv",
+        "state_filter": "created_at"
+       }
+      ],
+      [
+       "GET",
+       "problem-filters",
+       null
+      ],
+      [
+       "GET",
+       "problem-filters/701",
+       null
+      ]
+     ],
+     "events": [
+      "started",
+      "done"
+     ]
+    }
+   },
+   "columns_missing": {
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "c1cc6f1bbebd590942d19aa297c042130921b24ecdc8ab90b17692ec78c1a7b8",
+     "verified": false,
+     "fields": {
+      "display_id": "matched",
+      "status": "matched",
+      "ticket_subject": "unavailable"
+     },
+     "unverified_omissions": [],
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problems/headers",
+      null
+     ],
+     [
+      "POST",
+      "problems/headers",
+      {
+       "columns": {
+        "display_id": 1,
+        "status": 2,
+        "ticket_subject": 1
+       },
+       "frozen_columns": [
+        "display_id"
+       ]
+      }
+     ],
+     [
+      "GET",
+      "problems/headers",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   "columns_drift": {
+    "error": "target or metadata changed since review; review again",
+    "type": "ReviewedWriteError",
+    "calls": [
+     [
+      "GET",
+      "problems/headers",
+      null
+     ]
+    ],
+    "events": []
+   },
+   "export_fail_429": {
+    "error": "write outcome unknown; inspect target and journal before retry",
+    "type": "ReviewedWriteError",
+    "calls": [
+     [
+      "GET",
+      "problems/headers",
+      null
+     ],
+     [
+      "GET",
+      "problem-filters",
+      null
+     ],
+     [
+      "GET",
+      "problem-filters/701",
+      null
+     ],
+     [
+      "POST",
+      "problems/export",
+      {
+       "custom_fields": {},
+       "data_hash": [
+        {
+         "condition": "status",
+         "operator": "is_in",
+         "type": "default",
+         "value": [
+          "47"
+         ]
+        }
+       ],
+       "date_filter": 30,
+       "export_fields": {
+        "subject": "Acme subject"
+       },
+       "format": "csv",
+       "state_filter": "created_at"
+      }
+     ]
+    ],
+    "events": [
+     "started"
+    ]
+   },
+   "refusals": [
+    {
+     "kind": "columns",
+     "args": [
+      [],
+      []
+     ],
+     "error": "choose unique exact runtime column names; display_id is anchored automatically",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "ticket_subject"
+      ],
+      []
+     ],
+     "error": "choose unique exact runtime column names; display_id is anchored automatically",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "nope"
+      ],
+      []
+     ],
+     "error": "choose unique exact runtime column names; display_id is anchored automatically",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "display_id"
+      ],
+      []
+     ],
+     "error": "choose unique exact runtime column names; display_id is anchored automatically",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "status"
+      ],
+      []
+     ],
+     "error": "captured preference contract requires ticket_subject",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject"
+      ],
+      [
+       "status"
+      ]
+     ],
+     "error": "frozen columns must be unique selected columns",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "requester"
+      ],
+      [
+       "requester",
+       "requester"
+      ]
+     ],
+     "error": "frozen columns must be unique selected columns",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "requester"
+      ],
+      [
+       "requester"
+      ]
+     ],
+     "error": "only change requester freezing plus the automatic display_id anchor is captured",
+     "type": "ValueError"
+    },
+    {
+     "kind": "columns",
+     "args": [
+      [
+       "ticket_subject",
+       "status"
+      ],
+      [
+       "status"
+      ]
+     ],
+     "error": "only change requester freezing plus the automatic display_id anchor is captured",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      []
+     ],
+     "error": "select unique captured export field keys",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "subject",
+       "subject"
+      ]
+     ],
+     "error": "select unique captured export field keys",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "owner"
+      ]
+     ],
+     "ok": {
+      "hash": "85d2bfa0e1934a4948928d0aefabc0868fc3747eb457b5e7e0f9a7f781081885",
+      "review": {
+       "action": "list_export",
+       "method": "POST",
+       "path": "/api/_/problems/export",
+       "payload": {
+        "custom_fields": {},
+        "data_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "47"
+          ]
+         }
+        ],
+        "date_filter": 30,
+        "export_fields": {
+         "owner": "Acme agent"
+        },
+        "format": "csv",
+        "state_filter": "created_at"
+       },
+       "plan_hash": "85d2bfa0e1934a4948928d0aefabc0868fc3747eb457b5e7e0f9a7f781081885",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "list_export",
+      "target": 0,
+      "method": "POST",
+      "path": "problems/export",
+      "payload_json": "{\"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"owner\": \"Acme agent\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
+      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "inputs_json": "{\"module\": \"problems\", \"view\": \"701\", \"fields\": [\"owner\"]}"
+     }
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "responder_name"
+      ]
+     ],
+     "error": "select unique captured export field keys",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "group_name"
+      ]
+     ],
+     "error": "runtime export-field label is unavailable for group_name",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export",
+     "args": [
+      "701",
+      [
+       "requester_info"
+      ]
+     ],
+     "ok": {
+      "hash": "efcd86c4bad5972227a5a5e042a885636920dbc43abe21e58906459eabbf43bf",
+      "review": {
+       "action": "list_export",
+       "method": "POST",
+       "path": "/api/_/problems/export",
+       "payload": {
+        "custom_fields": {},
+        "data_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "47"
+          ]
+         }
+        ],
+        "date_filter": 30,
+        "export_fields": {
+         "requester_info": "Acme requester"
+        },
+        "format": "csv",
+        "state_filter": "created_at"
+       },
+       "plan_hash": "efcd86c4bad5972227a5a5e042a885636920dbc43abe21e58906459eabbf43bf",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "list_export",
+      "target": 0,
+      "method": "POST",
+      "path": "problems/export",
+      "payload_json": "{\"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"requester_info\": \"Acme requester\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
+      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "inputs_json": "{\"module\": \"problems\", \"view\": \"701\", \"fields\": [\"requester_info\"]}"
+     }
+    },
+    {
+     "kind": "export",
+     "args": [
+      "Acme queue",
+      [
+       "display_id"
+      ]
+     ],
+     "ok": {
+      "hash": "7064db9678bfc44f740f3c20cff4dbacb021e7e210d526f9180b8186956bbb65",
+      "review": {
+       "action": "list_export",
+       "method": "POST",
+       "path": "/api/_/problems/export",
+       "payload": {
+        "custom_fields": {},
+        "data_hash": [
+         {
+          "condition": "status",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+           "47"
+          ]
+         }
+        ],
+        "date_filter": 30,
+        "export_fields": {
+         "display_id": "Acme ID"
+        },
+        "format": "csv",
+        "state_filter": "created_at"
+       },
+       "plan_hash": "7064db9678bfc44f740f3c20cff4dbacb021e7e210d526f9180b8186956bbb65",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "action": "list_export",
+      "target": 0,
+      "method": "POST",
+      "path": "problems/export",
+      "payload_json": "{\"custom_fields\": {}, \"data_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"47\"]}], \"date_filter\": 30, \"export_fields\": {\"display_id\": \"Acme ID\"}, \"format\": \"csv\", \"state_filter\": \"created_at\"}",
+      "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
+      "inputs_json": "{\"module\": \"problems\", \"view\": \"701\", \"fields\": [\"display_id\"]}"
+     }
+    },
+    {
+     "kind": "export",
+     "args": [
+      "nope",
+      [
+       "display_id"
+      ]
+     ],
+     "error": "no view named 'nope'; views: 'Acme queue'",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "advanced"
+     ],
+     "error": "only ordinary saved-view queries have a captured export contract",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "query_not_list"
+     ],
+     "error": "only ordinary saved-view queries have a captured export contract",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "id_mismatch"
+     ],
+     "error": "no view named '701'; views: 'Acme queue'",
+     "type": "ValueError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "headers_empty"
+     ],
+     "error": "runtime list-header metadata is unavailable",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "headers_dup"
+     ],
+     "error": "ambiguous runtime list-header keys",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "kind": "export_source",
+     "args": [
+      "headers_no_name"
+     ],
+     "error": "runtime list-header metadata is unavailable",
+     "type": "ReviewedWriteError"
+    }
+   ]
+  },
+  "unsupported": {
+   "error": "unsupported list module",
+   "type": "ValueError"
+  }
+ },
+ "problem_workflows": {
+  "fields": [
+   {
+    "id": 501,
+    "name": "subject",
+    "label": "Subject",
+    "field_type": "default_subject",
+    "required": true,
+    "position": 1
+   },
+   {
+    "id": 502,
+    "name": "description",
+    "label": "Description",
+    "field_type": "default_description",
+    "required": true,
+    "position": 2
+   },
+   {
+    "id": 503,
+    "name": "requester",
+    "label": "Requester",
+    "field_type": "default_requester",
+    "required": true,
+    "position": 3
+   },
+   {
+    "id": 510,
+    "name": "status",
+    "label": "Status",
+    "field_type": "default_status",
+    "required": true,
+    "choices": [
+     {
+      "id": 41,
+      "value": "Open"
+     }
+    ],
+    "position": 4
+   },
+   {
+    "id": 511,
+    "name": "priority",
+    "label": "Priority",
+    "field_type": "default_priority",
+    "required": true,
+    "choices": [
+     {
+      "id": 42,
+      "value": "Low"
+     }
+    ],
+    "position": 5
+   },
+   {
+    "id": 512,
+    "name": "impact",
+    "label": "Impact",
+    "field_type": "default_impact",
+    "required": true,
+    "choices": [
+     {
+      "id": 43,
+      "value": "Low"
+     }
+    ],
+    "position": 6
+   }
+  ],
+  "answers": {
+   "Subject": "Acme problem",
+   "Description": "Acme details",
+   "Status": "Open",
+   "Priority": "Low",
+   "Impact": "Low"
+  },
+  "create": {
+   "plan_calls": [
+    [
+     "GET",
+     "problem_form_fields",
+     null
+    ],
+    [
+     "GET",
+     "ws/17/business_rules",
+     null
+    ],
+    [
+     "GET",
+     "autocomplete/requesters",
+     null
+    ]
+   ],
+   "hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
+   "review": {
+    "action": "problem_create",
+    "method": "POST",
+    "path": "/api/_/problems",
+    "payload": {
+     "custom_fields": {},
+     "description": "<div>Acme details</div>",
+     "email": "person@example.com",
+     "impact": 43,
+     "priority": 42,
+     "status": 41,
+     "subject": "Acme problem"
+    },
+    "plan_hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+   },
+   "action": "problem_create",
+   "target": 0,
+   "method": "POST",
+   "path": "problems",
+   "payload_json": "{\"custom_fields\": {}, \"description\": \"<div>Acme details</div>\", \"email\": \"person@example.com\", \"impact\": 43, \"priority\": 42, \"status\": 41, \"subject\": \"Acme problem\"}",
+   "context_hash": "ea1c4c321c7a297d4bebdbb143719539685fb83fab26eeb8c58e8a3bdc6a27ec",
+   "inputs_json": "{\"answers\": {\"Description\": \"Acme details\", \"Impact\": \"Low\", \"Priority\": \"Low\", \"Status\": \"Open\", \"Subject\": \"Acme problem\"}, \"requester\": \"person@example.com\"}",
+   "send": {
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
+     "verified": true,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "matched",
+      "description": "matched",
+      "email": "matched",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched"
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {},
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   "resend": {
+    "error": "write was sent or outcome unknown; inspect target and journal before retry",
+    "type": "ReviewedWriteError",
+    "calls": [],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   "missing": {
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
+     "verified": false,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "matched",
+      "description": "matched",
+      "email": "unavailable",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {},
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   "no-id": {
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
+     "verified": false,
+     "warning": "Independent readback failed; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {},
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   }
+  },
+  "create_custom": [
+   {
+    "actual": {
+     "acme_count": "7",
+     "default_flag": null
+    },
+    "hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+    "payload_json": "{\"custom_fields\": {\"acme_count\": 7}, \"description\": \"<div>Acme details</div>\", \"email\": \"person@example.com\", \"impact\": 43, \"priority\": 42, \"status\": 41, \"subject\": \"Acme problem\"}",
+    "inputs_json": "{\"answers\": {\"Acme count\": 7, \"Description\": \"Acme details\", \"Impact\": \"Low\", \"Priority\": \"Low\", \"Status\": \"Open\", \"Subject\": \"Acme problem\"}, \"requester\": \"person@example.com\"}",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+     "verified": true,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "matched",
+      "description": "matched",
+      "email": "matched",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched"
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {
+        "acme_count": 7
+       },
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   {
+    "actual": {
+     "acme_count": 7,
+     "default_flag": false
+    },
+    "hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+    "payload_json": "{\"custom_fields\": {\"acme_count\": 7}, \"description\": \"<div>Acme details</div>\", \"email\": \"person@example.com\", \"impact\": 43, \"priority\": 42, \"status\": 41, \"subject\": \"Acme problem\"}",
+    "inputs_json": "{\"answers\": {\"Acme count\": 7, \"Description\": \"Acme details\", \"Impact\": \"Low\", \"Priority\": \"Low\", \"Status\": \"Open\", \"Subject\": \"Acme problem\"}, \"requester\": \"person@example.com\"}",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+     "verified": true,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "matched",
+      "description": "matched",
+      "email": "matched",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched"
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {
+        "acme_count": 7
+       },
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   {
+    "actual": {
+     "acme_count": "8"
+    },
+    "hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+    "payload_json": "{\"custom_fields\": {\"acme_count\": 7}, \"description\": \"<div>Acme details</div>\", \"email\": \"person@example.com\", \"impact\": 43, \"priority\": 42, \"status\": 41, \"subject\": \"Acme problem\"}",
+    "inputs_json": "{\"answers\": {\"Acme count\": 7, \"Description\": \"Acme details\", \"Impact\": \"Low\", \"Priority\": \"Low\", \"Status\": \"Open\", \"Subject\": \"Acme problem\"}, \"requester\": \"person@example.com\"}",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+     "verified": false,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "mismatched",
+      "description": "matched",
+      "email": "matched",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {
+        "acme_count": 7
+       },
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   {
+    "actual": {
+     "default_flag": null
+    },
+    "hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+    "payload_json": "{\"custom_fields\": {\"acme_count\": 7}, \"description\": \"<div>Acme details</div>\", \"email\": \"person@example.com\", \"impact\": 43, \"priority\": 42, \"status\": 41, \"subject\": \"Acme problem\"}",
+    "inputs_json": "{\"answers\": {\"Acme count\": 7, \"Description\": \"Acme details\", \"Impact\": \"Low\", \"Priority\": \"Low\", \"Status\": \"Open\", \"Subject\": \"Acme problem\"}, \"requester\": \"person@example.com\"}",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+     "verified": false,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "mismatched",
+      "description": "matched",
+      "email": "matched",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {
+        "acme_count": 7
+       },
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   {
+    "actual": {
+     "acme_count": true
+    },
+    "hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+    "payload_json": "{\"custom_fields\": {\"acme_count\": 7}, \"description\": \"<div>Acme details</div>\", \"email\": \"person@example.com\", \"impact\": 43, \"priority\": 42, \"status\": 41, \"subject\": \"Acme problem\"}",
+    "inputs_json": "{\"answers\": {\"Acme count\": 7, \"Description\": \"Acme details\", \"Impact\": \"Low\", \"Priority\": \"Low\", \"Status\": \"Open\", \"Subject\": \"Acme problem\"}, \"requester\": \"person@example.com\"}",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+     "verified": false,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "mismatched",
+      "description": "matched",
+      "email": "matched",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {
+        "acme_count": 7
+       },
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   {
+    "actual": null,
+    "hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+    "payload_json": "{\"custom_fields\": {\"acme_count\": 7}, \"description\": \"<div>Acme details</div>\", \"email\": \"person@example.com\", \"impact\": 43, \"priority\": 42, \"status\": 41, \"subject\": \"Acme problem\"}",
+    "inputs_json": "{\"answers\": {\"Acme count\": 7, \"Description\": \"Acme details\", \"Impact\": \"Low\", \"Priority\": \"Low\", \"Status\": \"Open\", \"Subject\": \"Acme problem\"}, \"requester\": \"person@example.com\"}",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+     "verified": false,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "mismatched",
+      "description": "matched",
+      "email": "matched",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {
+        "acme_count": 7
+       },
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   {
+    "actual": {
+     "acme_count": "7.0"
+    },
+    "hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+    "payload_json": "{\"custom_fields\": {\"acme_count\": 7}, \"description\": \"<div>Acme details</div>\", \"email\": \"person@example.com\", \"impact\": 43, \"priority\": 42, \"status\": 41, \"subject\": \"Acme problem\"}",
+    "inputs_json": "{\"answers\": {\"Acme count\": 7, \"Description\": \"Acme details\", \"Impact\": \"Low\", \"Priority\": \"Low\", \"Status\": \"Open\", \"Subject\": \"Acme problem\"}, \"requester\": \"person@example.com\"}",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+     "verified": true,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "matched",
+      "description": "matched",
+      "email": "matched",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched"
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {
+        "acme_count": 7
+       },
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   {
+    "actual": {
+     "acme_count": " 7 "
+    },
+    "hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+    "payload_json": "{\"custom_fields\": {\"acme_count\": 7}, \"description\": \"<div>Acme details</div>\", \"email\": \"person@example.com\", \"impact\": 43, \"priority\": 42, \"status\": 41, \"subject\": \"Acme problem\"}",
+    "inputs_json": "{\"answers\": {\"Acme count\": 7, \"Description\": \"Acme details\", \"Impact\": \"Low\", \"Priority\": \"Low\", \"Status\": \"Open\", \"Subject\": \"Acme problem\"}, \"requester\": \"person@example.com\"}",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+     "verified": true,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "matched",
+      "description": "matched",
+      "email": "matched",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched"
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {
+        "acme_count": 7
+       },
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   {
+    "actual": {
+     "acme_count": "1_0"
+    },
+    "hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+    "payload_json": "{\"custom_fields\": {\"acme_count\": 7}, \"description\": \"<div>Acme details</div>\", \"email\": \"person@example.com\", \"impact\": 43, \"priority\": 42, \"status\": 41, \"subject\": \"Acme problem\"}",
+    "inputs_json": "{\"answers\": {\"Acme count\": 7, \"Description\": \"Acme details\", \"Impact\": \"Low\", \"Priority\": \"Low\", \"Status\": \"Open\", \"Subject\": \"Acme problem\"}, \"requester\": \"person@example.com\"}",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "3d31a232e552fe8ae7098be5c83dfed06ddfca73dfb5bc906989c843445bd9c6",
+     "verified": false,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "mismatched",
+      "description": "matched",
+      "email": "matched",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {
+        "acme_count": 7
+       },
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   }
+  ],
+  "note": {
+   "plan_calls": [
+    [
+     "GET",
+     "problems/123",
+     null
+    ],
+    [
+     "GET",
+     "problems/123/notes",
+     null
+    ]
+   ],
+   "hash": "d4e8552a8fd24b5316f03803e693a6e5f171ddef5218e39ba9e6eed406a6d7b6",
+   "review": {
+    "action": "problem_note",
+    "method": "POST",
+    "path": "/api/_/problems/123/notes",
+    "payload": {
+     "body": "Acme"
+    },
+    "plan_hash": "d4e8552a8fd24b5316f03803e693a6e5f171ddef5218e39ba9e6eed406a6d7b6",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+   },
+   "action": "problem_note",
+   "target": 123,
+   "method": "POST",
+   "path": "problems/123/notes",
+   "payload_json": "{\"body\": \"Acme\"}",
+   "context_hash": "3c62d994f13ce46180e74dfb743e30c7916b61f60244b2a64f3e198e37c2603c",
+   "inputs_json": "{\"text\": \"Acme\", \"kind\": \"note\"}",
+   "send": {
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "d4e8552a8fd24b5316f03803e693a6e5f171ddef5218e39ba9e6eed406a6d7b6",
+     "verified": true,
+     "note_id": 456,
+     "fields": {
+      "body": "matched"
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "problems/123",
+      null
+     ],
+     [
+      "GET",
+      "problems/123/notes",
+      null
+     ],
+     [
+      "POST",
+      "problems/123/notes",
+      {
+       "body": "Acme"
+      }
+     ],
+     [
+      "GET",
+      "problems/123/notes",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   "missing": {
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "d4e8552a8fd24b5316f03803e693a6e5f171ddef5218e39ba9e6eed406a6d7b6",
+     "verified": false,
+     "note_id": 456,
+     "fields": {
+      "body": "unavailable"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problems/123",
+      null
+     ],
+     [
+      "GET",
+      "problems/123/notes",
+      null
+     ],
+     [
+      "POST",
+      "problems/123/notes",
+      {
+       "body": "Acme"
+      }
+     ],
+     [
+      "GET",
+      "problems/123/notes",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   "no-id": {
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "d4e8552a8fd24b5316f03803e693a6e5f171ddef5218e39ba9e6eed406a6d7b6",
+     "verified": false,
+     "warning": "Independent readback failed; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problems/123",
+      null
+     ],
+     [
+      "GET",
+      "problems/123/notes",
+      null
+     ],
+     [
+      "POST",
+      "problems/123/notes",
+      {
+       "body": "Acme"
+      }
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   }
+  },
+  "task": {
+   "plan_calls": [
+    [
+     "GET",
+     "problems/123",
+     null
+    ],
+    [
+     "GET",
+     "problems/123/tasks",
+     null
+    ],
+    [
+     "GET",
+     "problem_task_fields",
+     null
+    ]
+   ],
+   "hash": "94c433cf1c8d624318d7ddde7eafd44cc6453ba89469a4396857172d11226a7e",
+   "review": {
+    "action": "problem_task",
+    "method": "POST",
+    "path": "/api/_/problems/123/tasks",
+    "payload": {
+     "notify_before": 52,
+     "owner_id": 901,
+     "planned_effort": "1m",
+     "status": 51,
+     "title": "Acme"
+    },
+    "plan_hash": "94c433cf1c8d624318d7ddde7eafd44cc6453ba89469a4396857172d11226a7e",
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+   },
+   "action": "problem_task",
+   "target": 123,
+   "method": "POST",
+   "path": "problems/123/tasks",
+   "payload_json": "{\"notify_before\": 52, \"owner_id\": 901, \"planned_effort\": \"1m\", \"status\": 51, \"title\": \"Acme\"}",
+   "context_hash": "8ad9060caa7252aaec3d8a9257e7537db5edfbbef224f8f7b455caff8d14c7ae",
+   "inputs_json": "{\"text\": \"Acme\", \"kind\": \"task\"}",
+   "send": {
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "94c433cf1c8d624318d7ddde7eafd44cc6453ba89469a4396857172d11226a7e",
+     "verified": true,
+     "task_id": 456,
+     "fields": {
+      "notify_before": "matched",
+      "owner_id": "matched",
+      "planned_effort": "matched",
+      "status": "matched",
+      "title": "matched"
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "problems/123",
+      null
+     ],
+     [
+      "GET",
+      "problems/123/tasks",
+      null
+     ],
+     [
+      "GET",
+      "problem_task_fields",
+      null
+     ],
+     [
+      "POST",
+      "problems/123/tasks",
+      {
+       "notify_before": 52,
+       "owner_id": 901,
+       "planned_effort": "1m",
+       "status": 51,
+       "title": "Acme"
+      }
+     ],
+     [
+      "GET",
+      "problems/123/tasks",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   "missing": {
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "94c433cf1c8d624318d7ddde7eafd44cc6453ba89469a4396857172d11226a7e",
+     "verified": false,
+     "task_id": 456,
+     "fields": {
+      "notify_before": "matched",
+      "owner_id": "matched",
+      "planned_effort": "matched",
+      "status": "matched",
+      "title": "unavailable"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problems/123",
+      null
+     ],
+     [
+      "GET",
+      "problems/123/tasks",
+      null
+     ],
+     [
+      "GET",
+      "problem_task_fields",
+      null
+     ],
+     [
+      "POST",
+      "problems/123/tasks",
+      {
+       "notify_before": 52,
+       "owner_id": 901,
+       "planned_effort": "1m",
+       "status": 51,
+       "title": "Acme"
+      }
+     ],
+     [
+      "GET",
+      "problems/123/tasks",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   "no-id": {
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "94c433cf1c8d624318d7ddde7eafd44cc6453ba89469a4396857172d11226a7e",
+     "verified": false,
+     "warning": "Independent readback failed; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problems/123",
+      null
+     ],
+     [
+      "GET",
+      "problems/123/tasks",
+      null
+     ],
+     [
+      "GET",
+      "problem_task_fields",
+      null
+     ],
+     [
+      "POST",
+      "problems/123/tasks",
+      {
+       "notify_before": 52,
+       "owner_id": 901,
+       "planned_effort": "1m",
+       "status": 51,
+       "title": "Acme"
+      }
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   }
+  },
+  "create_drift": {
+   "error": "target or metadata changed since review; review again",
+   "type": "ReviewedWriteError",
+   "calls": [
+    [
+     "GET",
+     "problem_form_fields",
+     null
+    ],
+    [
+     "GET",
+     "ws/17/business_rules",
+     null
+    ],
+    [
+     "GET",
+     "autocomplete/requesters",
+     null
+    ]
+   ],
+   "events": []
+  },
+  "create_fail_500": {
+   "error": "write outcome unknown; inspect target and journal before retry",
+   "type": "ReviewedWriteError",
+   "calls": [
+    [
+     "GET",
+     "problem_form_fields",
+     null
+    ],
+    [
+     "GET",
+     "ws/17/business_rules",
+     null
+    ],
+    [
+     "GET",
+     "autocomplete/requesters",
+     null
+    ],
+    [
+     "POST",
+     "problems",
+     {
+      "custom_fields": {},
+      "description": "<div>Acme details</div>",
+      "email": "person@example.com",
+      "impact": 43,
+      "priority": 42,
+      "status": 41,
+      "subject": "Acme problem"
+     }
+    ]
+   ],
+   "events": [
+    "started"
+   ]
+  },
+  "refusals": [
+   {
+    "name": "rules_denied",
+    "error": "problem rules are unavailable; no static-form write",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "name": "requester_answer",
+    "error": "requester answers are not allowed; use --requester",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "name": "unknown_answer",
+    "error": "unknown field: 'Nope'",
+    "type": "UnknownFieldError"
+   },
+   {
+    "name": "no_requester_field",
+    "error": "unique problem requester field is unavailable",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "name": "bad_choice",
+    "error": "Status: 'Closed' is not a valid choice; choose one of: Open",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "name": "missing_impact",
+    "ok": {
+     "hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
+     "review": {
+      "action": "problem_create",
+      "method": "POST",
+      "path": "/api/_/problems",
+      "payload": {
+       "custom_fields": {},
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      },
+      "plan_hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     },
+     "action": "problem_create",
+     "target": 0,
+     "method": "POST",
+     "path": "problems",
+     "payload_json": "{\"custom_fields\": {}, \"description\": \"<div>Acme details</div>\", \"email\": \"person@example.com\", \"impact\": 43, \"priority\": 42, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "context_hash": "ea1c4c321c7a297d4bebdbb143719539685fb83fab26eeb8c58e8a3bdc6a27ec",
+     "inputs_json": "{\"answers\": {\"Description\": \"Acme details\", \"Priority\": \"Low\", \"Status\": \"Open\", \"Subject\": \"Acme problem\"}, \"requester\": \"person@example.com\"}"
+    }
+   },
+   {
+    "name": "extra_top",
+    "error": "problem form needs uncaptured top-level create fields",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "name": "no_requester_match",
+    "error": "requester 'nobody@example.com': no exact match: Acme Operator <person@example.com>. Use the exact email address.",
+    "type": "ValueError"
+   },
+   {
+    "name": "child_kind",
+    "error": "unsupported problem child kind",
+    "type": "ValueError"
+   },
+   {
+    "name": "child_text",
+    "error": "nonempty text is required",
+    "type": "ValueError"
+   },
+   {
+    "name": "child_target",
+    "error": "prefix CHN not valid for problems (expect PRB)",
+    "type": "ValueError"
+   },
+   {
+    "name": "child_missing_parent",
+    "error": "HTTP 404 fetching problem: synthetic",
+    "type": "APIError"
+   },
+   {
+    "name": "task_no_meta",
+    "error": "problem task metadata is unavailable",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "name": "task_no_status",
+    "error": "unique runtime status metadata is unavailable",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "name": "task_deleted_choice",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "name": "task_str_id",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "name": "task_required",
+    "error": "problem task has an uncaptured required field",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "name": "task_label_match",
+    "ok": {
+     "hash": "5aa04f9996e0b83e483f006a0a03eee881c57ac97fd407423a494690ce4aca74",
+     "review": {
+      "action": "problem_task",
+      "method": "POST",
+      "path": "/api/_/problems/123/tasks",
+      "payload": {
+       "notify_before": 52,
+       "owner_id": 901,
+       "planned_effort": "1m",
+       "status": 51,
+       "title": "Acme"
+      },
+      "plan_hash": "5aa04f9996e0b83e483f006a0a03eee881c57ac97fd407423a494690ce4aca74",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     },
+     "action": "problem_task",
+     "target": 123,
+     "method": "POST",
+     "path": "problems/123/tasks",
+     "payload_json": "{\"notify_before\": 52, \"owner_id\": 901, \"planned_effort\": \"1m\", \"status\": 51, \"title\": \"Acme\"}",
+     "context_hash": "16d6a349e9cf0519638d153a72f121c58c302df3880e4f464d2584ec7b3d93d1",
+     "inputs_json": "{\"text\": \"Acme\", \"kind\": \"task\"}"
+    }
+   },
+   {
+    "name": "task_dup_rows",
+    "ok": {
+     "hash": "b5ff7b94b306fc5b9fae00b2768b40e95bbfc793d8e2fd4c6cf363ef3d0c9975",
+     "review": {
+      "action": "problem_task",
+      "method": "POST",
+      "path": "/api/_/problems/123/tasks",
+      "payload": {
+       "notify_before": 52,
+       "owner_id": 901,
+       "planned_effort": "1m",
+       "status": 51,
+       "title": "Acme"
+      },
+      "plan_hash": "b5ff7b94b306fc5b9fae00b2768b40e95bbfc793d8e2fd4c6cf363ef3d0c9975",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     },
+     "action": "problem_task",
+     "target": 123,
+     "method": "POST",
+     "path": "problems/123/tasks",
+     "payload_json": "{\"notify_before\": 52, \"owner_id\": 901, \"planned_effort\": \"1m\", \"status\": 51, \"title\": \"Acme\"}",
+     "context_hash": "ce809c37e6016162e7596dd1fbfb0886121ba58edb585e654f7d8bcca7383552",
+     "inputs_json": "{\"text\": \"Acme\", \"kind\": \"task\"}"
+    }
+   }
+  ]
+ },
+ "readback": {
+  "submitted": [
+   {
+    "actual": "7",
+    "expected": 7,
+    "submitted": true
+   },
+   {
+    "actual": "7.0",
+    "expected": 7,
+    "submitted": true
+   },
+   {
+    "actual": " 7 ",
+    "expected": 7,
+    "submitted": true
+   },
+   {
+    "actual": "1_0",
+    "expected": 10,
+    "submitted": true
+   },
+   {
+    "actual": "07",
+    "expected": 7,
+    "submitted": true
+   },
+   {
+    "actual": "x",
+    "expected": 7,
+    "submitted": false
+   },
+   {
+    "actual": "inf",
+    "expected": 7.5,
+    "submitted": false
+   },
+   {
+    "actual": "7.5",
+    "expected": 7.5,
+    "submitted": true
+   },
+   {
+    "actual": "1e1",
+    "expected": 10,
+    "submitted": true
+   },
+   {
+    "actual": "-0",
+    "expected": 0,
+    "submitted": true
+   },
+   {
+    "actual": 7,
+    "expected": "7",
+    "submitted": true
+   },
+   {
+    "actual": 7.0,
+    "expected": "7",
+    "submitted": false
+   },
+   {
+    "actual": 7.0,
+    "expected": "7.0",
+    "submitted": true
+   },
+   {
+    "actual": "true",
+    "expected": true,
+    "submitted": true
+   },
+   {
+    "actual": "True",
+    "expected": true,
+    "submitted": true
+   },
+   {
+    "actual": "1",
+    "expected": true,
+    "submitted": false
+   },
+   {
+    "actual": true,
+    "expected": 1,
+    "submitted": false
+   },
+   {
+    "actual": null,
+    "expected": null,
+    "submitted": true
+   },
+   {
+    "actual": null,
+    "expected": 0,
+    "submitted": false
+   },
+   {
+    "actual": 0,
+    "expected": null,
+    "submitted": false
+   },
+   {
+    "actual": [
+     1,
+     2
+    ],
+    "expected": [
+     1,
+     2
+    ],
+    "submitted": true
+   },
+   {
+    "actual": [
+     1
+    ],
+    "expected": [
+     1,
+     2
+    ],
+    "submitted": false
+   },
+   {
+    "actual": {
+     "a": 1,
+     "b": 2
+    },
+    "expected": {
+     "a": "1"
+    },
+    "submitted": true
+   },
+   {
+    "actual": {
+     "a": 1
+    },
+    "expected": {
+     "a": 1,
+     "b": null
+    },
+    "submitted": false
+   },
+   {
+    "actual": 1,
+    "expected": 1.0,
+    "submitted": false
+   },
+   {
+    "actual": 1.0,
+    "expected": 1,
+    "submitted": false
+   },
+   {
+    "actual": "a",
+    "expected": "a",
+    "submitted": true
+   },
+   {
+    "actual": "1__0",
+    "expected": 10,
+    "submitted": true
+   },
+   {
+    "actual": "_1",
+    "expected": 1,
+    "submitted": true
+   },
+   {
+    "actual": "1.",
+    "expected": 1,
+    "submitted": true
+   },
+   {
+    "actual": ".5",
+    "expected": 0.5,
+    "submitted": true
+   },
+   {
+    "actual": "+5",
+    "expected": 5,
+    "submitted": true
+   },
+   {
+    "actual": "5e",
+    "expected": 5,
+    "submitted": false
+   }
+  ],
+  "same_text": [
+   {
+    "actual": "<div>Acme details</div>",
+    "expected": "Acme details",
+    "same": true
+   },
+   {
+    "actual": "<p>a&amp;b</p>",
+    "expected": "a&b",
+    "same": true
+   },
+   {
+    "actual": "a  b",
+    "expected": "a b",
+    "same": true
+   },
+   {
+    "actual": null,
+    "expected": "x",
+    "same": false
+   },
+   {
+    "actual": "x",
+    "expected": null,
+    "same": false
+   },
+   {
+    "actual": "<p>x</p>",
+    "expected": "<p>y</p>",
+    "same": false
+   }
+  ]
+ },
+ "planning_text": {
+  "sections": [
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "hash": "17c0b65b9c783cfd451d191103a39b4171eb11272274e548e7670e856f2df6f0",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "POST",
+     "path": "/api/_/changes/123/planning-fields?id=acme_plan",
+     "payload": {
+      "description": "<div>Acme evidence</div>"
+     },
+     "plan_hash": "17c0b65b9c783cfd451d191103a39b4171eb11272274e548e7670e856f2df6f0",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "<div>Acme evidence</div>"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "changes/123/planning-fields?id=acme_plan",
+    "payload_json": "{\"description\": \"<div>Acme evidence</div>\"}",
+    "context_hash": "591515838e755b7e6f82c40eede5971505f78048e241dbbc12bdbe34306c4622",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "17c0b65b9c783cfd451d191103a39b4171eb11272274e548e7670e856f2df6f0",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "resend": {
+     "error": "write was sent or outcome unknown; inspect target and journal before retry",
+     "type": "ReviewedWriteError"
+    },
+    "writes": [
+     [
+      "POST",
+      "changes/123/planning-fields?id=acme_plan",
+      {
+       "description": "<div>Acme evidence</div>"
+      }
+     ]
+    ]
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "hash": "648ef43948a9e57eb5c2637c7be7508d77388a4e22cf3a22dc1392f17e51a637",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "POST",
+     "path": "/api/_/problems/123/planning-fields?id=problem_cause",
+     "payload": {
+      "description": "<div>Acme evidence</div>"
+     },
+     "plan_hash": "648ef43948a9e57eb5c2637c7be7508d77388a4e22cf3a22dc1392f17e51a637",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "<div>Acme evidence</div>"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "problems/123/planning-fields?id=problem_cause",
+    "payload_json": "{\"description\": \"<div>Acme evidence</div>\"}",
+    "context_hash": "3e7895177c1a70977b2cb3925901dea5140d83d95106bcaf6aefe9ea8f363f2f",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "648ef43948a9e57eb5c2637c7be7508d77388a4e22cf3a22dc1392f17e51a637",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "resend": {
+     "error": "write was sent or outcome unknown; inspect target and journal before retry",
+     "type": "ReviewedWriteError"
+    },
+    "writes": [
+     [
+      "POST",
+      "problems/123/planning-fields?id=problem_cause",
+      {
+       "description": "<div>Acme evidence</div>"
+      }
+     ]
+    ]
+   },
+   {
+    "module": "problems",
+    "section": "Impact",
+    "hash": "18e0fcb5c7d80e6aa2dc65993567526815c968fefeb13abc570bcb2dbb67d7be",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "POST",
+     "path": "/api/_/problems/123/planning-fields?id=problem_impact",
+     "payload": {
+      "description": "<div>Acme evidence</div>"
+     },
+     "plan_hash": "18e0fcb5c7d80e6aa2dc65993567526815c968fefeb13abc570bcb2dbb67d7be",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "<div>Acme evidence</div>"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "problems/123/planning-fields?id=problem_impact",
+    "payload_json": "{\"description\": \"<div>Acme evidence</div>\"}",
+    "context_hash": "3e7895177c1a70977b2cb3925901dea5140d83d95106bcaf6aefe9ea8f363f2f",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "18e0fcb5c7d80e6aa2dc65993567526815c968fefeb13abc570bcb2dbb67d7be",
+      "verified": true,
+      "section": "problem_impact",
+      "description": "matched"
+     }
+    },
+    "resend": {
+     "error": "write was sent or outcome unknown; inspect target and journal before retry",
+     "type": "ReviewedWriteError"
+    },
+    "writes": [
+     [
+      "POST",
+      "problems/123/planning-fields?id=problem_impact",
+      {
+       "description": "<div>Acme evidence</div>"
+      }
+     ]
+    ]
+   },
+   {
+    "module": "problems",
+    "section": "Symptoms",
+    "hash": "b711f4393ec481a9bc507b544e945aed755794ea508bf0ff77b8d272502ad5ba",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "POST",
+     "path": "/api/_/problems/123/planning-fields?id=problem_symptom",
+     "payload": {
+      "description": "<div>Acme evidence</div>"
+     },
+     "plan_hash": "b711f4393ec481a9bc507b544e945aed755794ea508bf0ff77b8d272502ad5ba",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "<div>Acme evidence</div>"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "problems/123/planning-fields?id=problem_symptom",
+    "payload_json": "{\"description\": \"<div>Acme evidence</div>\"}",
+    "context_hash": "3e7895177c1a70977b2cb3925901dea5140d83d95106bcaf6aefe9ea8f363f2f",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "b711f4393ec481a9bc507b544e945aed755794ea508bf0ff77b8d272502ad5ba",
+      "verified": true,
+      "section": "problem_symptom",
+      "description": "matched"
+     }
+    },
+    "resend": {
+     "error": "write was sent or outcome unknown; inspect target and journal before retry",
+     "type": "ReviewedWriteError"
+    },
+    "writes": [
+     [
+      "POST",
+      "problems/123/planning-fields?id=problem_symptom",
+      {
+       "description": "<div>Acme evidence</div>"
+      }
+     ]
+    ]
+   }
+  ],
+  "create": [
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "description": "",
+      "files": [],
+      "empty": true
+     }
+    ],
+    "hash": "80edd716ae639d22e3b358c80da95a8ac1ce62ce56f2870348f256aa6271b9cb",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "POST",
+     "path": "/api/_/changes/123/planning-fields?id=acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "80edd716ae639d22e3b358c80da95a8ac1ce62ce56f2870348f256aa6271b9cb",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "changes/123/planning-fields?id=acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "7ab52cd42d7c4b278fbc1aeaf8be9692b463e23ae670d9ffb954628f2827b257",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "80edd716ae639d22e3b358c80da95a8ac1ce62ce56f2870348f256aa6271b9cb",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "POST",
+      "changes/123/planning-fields?id=acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "content": "",
+      "files": [],
+      "empty": true
+     }
+    ],
+    "hash": "542d0c65593df52338b0b0516033a0f1399eafd3ca3ff3b2f83f0259041aa7a2",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "POST",
+     "path": "/api/_/changes/123/planning-fields?id=acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "542d0c65593df52338b0b0516033a0f1399eafd3ca3ff3b2f83f0259041aa7a2",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "changes/123/planning-fields?id=acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "93eda5fbdef5dde51c9d51e48a11f91aff4cc951040e7f9a3b83fa7bec026aa0",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "542d0c65593df52338b0b0516033a0f1399eafd3ca3ff3b2f83f0259041aa7a2",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "POST",
+      "changes/123/planning-fields?id=acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "description_html": "",
+      "files": [],
+      "empty": true
+     }
+    ],
+    "hash": "37ac1e886cf219e927d65ae6657af3d88ee8e67274cc94f0e885e7eb6212501a",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "POST",
+     "path": "/api/_/changes/123/planning-fields?id=acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "37ac1e886cf219e927d65ae6657af3d88ee8e67274cc94f0e885e7eb6212501a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "changes/123/planning-fields?id=acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "aa198d15c9c031139c7cf42d93408185d92ebff2413d7ef2c737c720ce84b28f",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "37ac1e886cf219e927d65ae6657af3d88ee8e67274cc94f0e885e7eb6212501a",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "POST",
+      "changes/123/planning-fields?id=acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "description_text": "",
+      "files": [],
+      "empty": true
+     }
+    ],
+    "hash": "9ad649d211ebe653f5450287b78da18ffc25e2c852a8ef223d4a98ff8bfdf340",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "POST",
+     "path": "/api/_/changes/123/planning-fields?id=acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "9ad649d211ebe653f5450287b78da18ffc25e2c852a8ef223d4a98ff8bfdf340",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "changes/123/planning-fields?id=acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "e8acee3c404f92127a7a5981aaec9328e205140bf02f8b7378795b8ff5980ac6",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "9ad649d211ebe653f5450287b78da18ffc25e2c852a8ef223d4a98ff8bfdf340",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "POST",
+      "changes/123/planning-fields?id=acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "body": "",
+      "files": [],
+      "empty": true
+     }
+    ],
+    "hash": "1d2dd20d7eeec5675a3d2116c6a1c4209e119632184de4d1b25fda22912359cd",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "POST",
+     "path": "/api/_/changes/123/planning-fields?id=acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "1d2dd20d7eeec5675a3d2116c6a1c4209e119632184de4d1b25fda22912359cd",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "changes/123/planning-fields?id=acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "c9302225b2f2e5c10e674ceb3f76e8b543c27ccb22567546da5dd7aa483caa16",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "1d2dd20d7eeec5675a3d2116c6a1c4209e119632184de4d1b25fda22912359cd",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "POST",
+      "changes/123/planning-fields?id=acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "description": "",
+      "files": [],
+      "empty": true
+     }
+    ],
+    "hash": "ad6b7d410c33137a20052e2a117c67ae7074d78bf49fc3520daf73077c93c66e",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "POST",
+     "path": "/api/_/problems/123/planning-fields?id=problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "ad6b7d410c33137a20052e2a117c67ae7074d78bf49fc3520daf73077c93c66e",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "problems/123/planning-fields?id=problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "79b13b173d011526217079008a7ab606430d9fee5e3288a6efc5ed6a15631916",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "ad6b7d410c33137a20052e2a117c67ae7074d78bf49fc3520daf73077c93c66e",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "POST",
+      "problems/123/planning-fields?id=problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "content": "",
+      "files": [],
+      "empty": true
+     }
+    ],
+    "hash": "05beb017cd86569695a197a684c1d6832862177fce161ad44ada921a49ba4f37",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "POST",
+     "path": "/api/_/problems/123/planning-fields?id=problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "05beb017cd86569695a197a684c1d6832862177fce161ad44ada921a49ba4f37",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "problems/123/planning-fields?id=problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "8ed46f36b54f55e498d8aeffdad3f60f6aa366621a677a8baa82ab39c25cce40",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "05beb017cd86569695a197a684c1d6832862177fce161ad44ada921a49ba4f37",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "POST",
+      "problems/123/planning-fields?id=problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "description_html": "",
+      "files": [],
+      "empty": true
+     }
+    ],
+    "hash": "f104d9bfaa2a379de2535e7f859b7fec2d3d5b98f8a547ea328eda5a7a622c2d",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "POST",
+     "path": "/api/_/problems/123/planning-fields?id=problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "f104d9bfaa2a379de2535e7f859b7fec2d3d5b98f8a547ea328eda5a7a622c2d",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "problems/123/planning-fields?id=problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "bfcd7530304f518ebbdee9a8200fdf7a8ce8f55ba87b1a36118d4a28eaea3316",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "f104d9bfaa2a379de2535e7f859b7fec2d3d5b98f8a547ea328eda5a7a622c2d",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "POST",
+      "problems/123/planning-fields?id=problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "description_text": "",
+      "files": [],
+      "empty": true
+     }
+    ],
+    "hash": "9d201d05d04122036c7460751f83b40aeb14ba325002fdfe9e168cf3e33d3fcc",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "POST",
+     "path": "/api/_/problems/123/planning-fields?id=problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "9d201d05d04122036c7460751f83b40aeb14ba325002fdfe9e168cf3e33d3fcc",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "problems/123/planning-fields?id=problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "fc08fdb36a6942d0e3097134fcdc9e73a5a5501dc3e5d93316e260dd1ead9cb8",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "9d201d05d04122036c7460751f83b40aeb14ba325002fdfe9e168cf3e33d3fcc",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "POST",
+      "problems/123/planning-fields?id=problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "body": "",
+      "files": [],
+      "empty": true
+     }
+    ],
+    "hash": "52e6b850fdf4f855cae2df64fdeb75d8210e6104ff569c87112300252a46d5c9",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "POST",
+     "path": "/api/_/problems/123/planning-fields?id=problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "52e6b850fdf4f855cae2df64fdeb75d8210e6104ff569c87112300252a46d5c9",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "create",
+     "before": "",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "POST",
+    "path": "problems/123/planning-fields?id=problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "917ec2db78e91568c85a34521cd58802b58d4b8a86ae476bf38b491dc9a521bd",
+    "before": "",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "52e6b850fdf4f855cae2df64fdeb75d8210e6104ff569c87112300252a46d5c9",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "POST",
+      "problems/123/planning-fields?id=problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
+   }
+  ],
+  "existing": [
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "description": "Acme original",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "description": " ",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "description": "<div><br></div>",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "content": "Acme original",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "content": " ",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "content": "<div><br></div>",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "description_html": "Acme original",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "description_html": " ",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "description_html": "<div><br></div>",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "description_text": "Acme original",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "description_text": " ",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "description_text": "<div><br></div>",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "body": "Acme original",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "body": " ",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "body": "<div><br></div>",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "description": "Acme original",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "description": " ",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "description": "<div><br></div>",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "content": "Acme original",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "content": " ",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "content": "<div><br></div>",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "description_html": "Acme original",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "description_html": " ",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "description_html": "<div><br></div>",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "description_text": "Acme original",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "description_text": " ",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "description_text": "<div><br></div>",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "body": "Acme original",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "body": " ",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "body": "<div><br></div>",
+      "files": []
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   }
+  ],
+  "unknown": [
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "files": [],
+      "content": null
+     }
+    ],
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "files": [],
+      "content": 42
+     }
+    ],
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "files": []
+     }
+    ],
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "files": [],
+      "empty": true
+     }
+    ],
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "files": [],
+      "description": "",
+      "content": "Acme original"
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "files": [],
+      "description": "",
+      "content": 42
+     }
+    ],
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "files": [],
+      "description": "",
+      "content": null
+     }
+    ],
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "files": [],
+      "content": "",
+      "empty": false
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "files": [],
+      "content": null
+     }
+    ],
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "files": [],
+      "content": 42
+     }
+    ],
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "files": []
+     }
+    ],
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "files": [],
+      "empty": true
+     }
+    ],
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "files": [],
+      "description": "",
+      "content": "Acme original"
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "files": [],
+      "description": "",
+      "content": 42
+     }
+    ],
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "files": [],
+      "description": "",
+      "content": null
+     }
+    ],
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "files": [],
+      "content": "",
+      "empty": false
+     }
+    ],
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError"
+   }
+  ],
+  "files": [
+   {
+    "rows": [
+     {
+      "name": "acme_plan",
+      "content": ""
+     }
+    ],
+    "error": "planning attachments are present or unavailable; text-only preservation is not proven",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "rows": [
+     {
+      "name": "acme_plan",
+      "content": "",
+      "files": null
+     }
+    ],
+    "error": "planning attachments are present or unavailable; text-only preservation is not proven",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "rows": [
+     {
+      "name": "acme_plan",
+      "content": "",
+      "attachments": [],
+      "files": [
+       {
+        "id": 456
+       }
+      ]
+     }
+    ],
+    "error": "planning attachments are present or unavailable; text-only preservation is not proven",
+    "type": "ReviewedWriteError"
+   }
+  ],
+  "race": [
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "rows": [
+     {
+      "name": "acme_plan",
+      "content": "Someone else's update",
+      "files": []
+     }
+    ],
+    "hash": "15ed697b40b4935fb6102b52a126b63a0460b601c83928666ce6074d1749b29c",
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError",
+    "writes": []
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "rows": [
+     {
+      "name": "problem_cause",
+      "content": "Someone else's update",
+      "files": []
+     }
+    ],
+    "hash": "2c035c87a499019647f15c08d5c6eb436fd906c1c82de97ebfea93338b64fabb",
+    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "type": "ReviewedWriteError",
+    "writes": []
+   }
+  ],
+  "readback": [
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "stored": "Acme & Globex details",
+    "hash": "888388020f62295b1d0e02e12cc04f0ed7808c2e05164b8d582d436bd0db82fb",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "888388020f62295b1d0e02e12cc04f0ed7808c2e05164b8d582d436bd0db82fb",
+     "verified": true,
+     "section": "acme_plan",
+     "description": "matched"
+    }
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "stored": "<p>Acme &amp; Globex&nbsp; details</p>",
+    "hash": "888388020f62295b1d0e02e12cc04f0ed7808c2e05164b8d582d436bd0db82fb",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "888388020f62295b1d0e02e12cc04f0ed7808c2e05164b8d582d436bd0db82fb",
+     "verified": true,
+     "section": "acme_plan",
+     "description": "matched"
+    }
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "stored": "Acme wrong details",
+    "hash": "888388020f62295b1d0e02e12cc04f0ed7808c2e05164b8d582d436bd0db82fb",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "888388020f62295b1d0e02e12cc04f0ed7808c2e05164b8d582d436bd0db82fb",
+     "verified": false,
+     "section": "acme_plan",
+     "description": "mismatched",
+     "warning": "Readback was not fully verified; do not resend."
+    }
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "stored": null,
+    "hash": "888388020f62295b1d0e02e12cc04f0ed7808c2e05164b8d582d436bd0db82fb",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "888388020f62295b1d0e02e12cc04f0ed7808c2e05164b8d582d436bd0db82fb",
+     "verified": false,
+     "section": "acme_plan",
+     "description": "unavailable",
+     "warning": "Readback was not fully verified; do not resend."
+    }
+   },
+   {
+    "module": "changes",
+    "section": "Rollout Plan",
+    "stored": 42,
+    "hash": "888388020f62295b1d0e02e12cc04f0ed7808c2e05164b8d582d436bd0db82fb",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "888388020f62295b1d0e02e12cc04f0ed7808c2e05164b8d582d436bd0db82fb",
+     "verified": false,
+     "section": "acme_plan",
+     "description": "unavailable",
+     "warning": "Readback was not fully verified; do not resend."
+    }
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "stored": "Acme & Globex details",
+    "hash": "99572f8e147c7878efdffded5bce5e9e6f4c49c103e583f5c7bde23e270d201f",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "99572f8e147c7878efdffded5bce5e9e6f4c49c103e583f5c7bde23e270d201f",
+     "verified": true,
+     "section": "problem_cause",
+     "description": "matched"
+    }
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "stored": "<p>Acme &amp; Globex&nbsp; details</p>",
+    "hash": "99572f8e147c7878efdffded5bce5e9e6f4c49c103e583f5c7bde23e270d201f",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "99572f8e147c7878efdffded5bce5e9e6f4c49c103e583f5c7bde23e270d201f",
+     "verified": true,
+     "section": "problem_cause",
+     "description": "matched"
+    }
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "stored": "Acme wrong details",
+    "hash": "99572f8e147c7878efdffded5bce5e9e6f4c49c103e583f5c7bde23e270d201f",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "99572f8e147c7878efdffded5bce5e9e6f4c49c103e583f5c7bde23e270d201f",
+     "verified": false,
+     "section": "problem_cause",
+     "description": "mismatched",
+     "warning": "Readback was not fully verified; do not resend."
+    }
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "stored": null,
+    "hash": "99572f8e147c7878efdffded5bce5e9e6f4c49c103e583f5c7bde23e270d201f",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "99572f8e147c7878efdffded5bce5e9e6f4c49c103e583f5c7bde23e270d201f",
+     "verified": false,
+     "section": "problem_cause",
+     "description": "unavailable",
+     "warning": "Readback was not fully verified; do not resend."
+    }
+   },
+   {
+    "module": "problems",
+    "section": "Root Cause",
+    "stored": 42,
+    "hash": "99572f8e147c7878efdffded5bce5e9e6f4c49c103e583f5c7bde23e270d201f",
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "99572f8e147c7878efdffded5bce5e9e6f4c49c103e583f5c7bde23e270d201f",
+     "verified": false,
+     "section": "problem_cause",
+     "description": "unavailable",
+     "warning": "Readback was not fully verified; do not resend."
+    }
+   }
+  ],
+  "same_text": [
+   {
+    "actual": "Acme Globex",
+    "expected": "<div>Acme</div><div>Globex</div>",
+    "same": true
+   },
+   {
+    "actual": "AcmeGlobex",
+    "expected": "<div>Acme</div><div>Globex</div>",
+    "same": false
+   },
+   {
+    "actual": "acme",
+    "expected": "Acme",
+    "same": false
+   },
+   {
+    "actual": null,
+    "expected": "",
+    "same": false
+   }
+  ],
+  "section_content": [
+   {
+    "row": null,
+    "content": null
+   },
+   {
+    "row": {},
+    "content": null
+   },
+   {
+    "row": {
+     "description": 1,
+     "content": "c"
+    },
+    "content": "c"
+   },
+   {
+    "row": {
+     "body": "b",
+     "description_text": "t"
+    },
+    "content": "t"
+   },
+   {
+    "row": {
+     "description_html": "h"
+    },
+    "content": "h"
+   }
+  ]
+ }
+}

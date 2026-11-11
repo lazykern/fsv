@@ -156,6 +156,10 @@ pub struct ConversationPlan {
     pub payload_json: String,
     pub status_label: Option<String>,
     pub record_hash: Option<String>,
+    /// The canned response the body was selected from (`canned.reply_plan`).
+    pub canned_id: Option<i64>,
+    pub canned_pointer: Option<String>,
+    pub canned_hash: Option<String>,
 }
 
 impl ConversationPlan {
@@ -173,9 +177,14 @@ impl ConversationPlan {
     }
 
     pub fn hash(&self) -> String {
-        plan_hash(
-            &json!({"tenant": self.tenant, "path": self.path(), "payload": self.payload(), "record_hash": self.record_hash}),
-        )
+        let mut identity = json!({"tenant": self.tenant, "path": self.path(), "payload": self.payload(),
+                                  "record_hash": self.record_hash});
+        // Preserve all legacy conversation hashes and their durable send guards.
+        if let Some(id) = self.canned_id {
+            identity["canned"] =
+                json!({"id": id, "pointer": self.canned_pointer, "hash": self.canned_hash});
+        }
+        plan_hash(&identity)
     }
 
     pub fn review(&self) -> Map<String, Value> {
@@ -329,6 +338,9 @@ pub fn build_plan_mail(
         payload_json: dumps_sorted(&payload),
         status_label: args.set_status.map(str::to_string),
         record_hash,
+        canned_id: None,
+        canned_pointer: None,
+        canned_hash: None,
     })
 }
 
@@ -364,6 +376,9 @@ pub fn send(
         return Err(refused(
             "conversation was sent or outcome unknown; inspect ticket and journal before retry",
         ));
+    }
+    if plan.canned_id.is_some() {
+        crate::canned::freshen(plan, c)?;
     }
     if let Some(label) = &plan.status_label {
         let (status_id, token, record_hash) = status_context(c, store, plan.ticket_id, label)?;
@@ -513,6 +528,9 @@ mod tests {
             payload_json: r#"{"body": "<p>x</p>", "private": true}"#.into(),
             status_label: None,
             record_hash: None,
+            canned_id: None,
+            canned_pointer: None,
+            canned_hash: None,
         };
         assert_eq!(plan.payload(), oracle["misc"]["conversation_payload"]);
     }

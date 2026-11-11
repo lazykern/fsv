@@ -693,8 +693,8 @@
   ]
  ],
  "attach_bad_mode": {
-  "__error__": "APIError",
-  "msg": "HTTP 0: --duplicate must be one of: prompt, skip, replace, append"
+  "__error__": "UsageError",
+  "msg": "--duplicate must be one of: prompt, skip, replace, append"
  },
  "set_due_by": [
   {
@@ -895,20 +895,20 @@
   "backout"
  ],
  "resolve_def_missing": {
-  "__error__": "APIError",
-  "msg": "HTTP 0: planning field not found: 'zzz'; choices: Reason for change, Rollout Plan, Backout & Recovery"
+  "__error__": "UsageError",
+  "msg": "planning field not found: 'zzz'; choices: Reason for change, Rollout  Plan, Backout &amp; Recovery"
  },
  "resolve_def_blank": {
-  "__error__": "APIError",
-  "msg": "HTTP 0: planning field not found: ' '; choices: Reason for change, Rollout Plan, Backout & Recovery"
+  "__error__": "UsageError",
+  "msg": "planning field not found: '  '; choices: Reason for change, Rollout  Plan, Backout &amp; Recovery"
  },
  "resolve_def_amb_label": {
-  "__error__": "APIError",
-  "msg": "HTTP 0: ambiguous planning field: 'SAME'; select an exact identity"
+  "__error__": "UsageError",
+  "msg": "ambiguous planning field: 'SAME'; select an exact identity"
  },
  "resolve_def_amb_alias": {
-  "__error__": "APIError",
-  "msg": "HTTP 0: ambiguous planning field: 'planx'; select an exact identity"
+  "__error__": "UsageError",
+  "msg": "ambiguous planning field: 'planx'; select an exact identity"
  },
  "resolve_field": [
   "rollout_plan",
@@ -1242,8 +1242,8 @@
   ]
  ],
  "upf_bad_mode": {
-  "__error__": "APIError",
-  "msg": "HTTP 0: --duplicate must be one of: prompt, skip, replace, append"
+  "__error__": "UsageError",
+  "msg": "--duplicate must be one of: prompt, skip, replace, append"
  },
  "upf_unavailable": {
   "__error__": "APIError",

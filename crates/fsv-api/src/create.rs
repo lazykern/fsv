@@ -153,6 +153,11 @@ fn api0(msg: impl Into<String>) -> Error {
     ApiError::new(0, Value::String(msg.into())).into()
 }
 
+/// `UsageError(message)`: local validation, the bare message and exit 2.
+fn usage(msg: impl Into<String>) -> Error {
+    Error::value(msg)
+}
+
 fn s(v: Option<&Value>) -> String {
     v.filter(|x| truthy(x)).map(py_str).unwrap_or_default()
 }
@@ -745,7 +750,7 @@ impl DuplicateOpts {
     fn mode(&self) -> Result<String> {
         let mode = casefold(self.duplicate.as_deref().unwrap_or("prompt"));
         if !["prompt", "skip", "replace", "append"].contains(&mode.as_str()) {
-            return Err(api0(
+            return Err(usage(
                 "--duplicate must be one of: prompt, skip, replace, append",
             ));
         }
@@ -1033,7 +1038,7 @@ pub fn resolve_planning_definition(value: &str, schema_fields: &[Value]) -> Resu
     let raw = fsv_core::pystr::strip(value).to_string();
     let defs = planning_definitions(schema_fields);
     let ambiguous = || {
-        api0(format!(
+        usage(format!(
             "ambiguous planning field: {}; select an exact identity",
             py_repr_str(value)
         ))
@@ -1107,7 +1112,6 @@ pub fn resolve_planning_definition(value: &str, schema_fields: &[Value]) -> Resu
     }
     let known: Vec<String> = defs
         .iter()
-        .take(12)
         .map(|f| {
             py_str(
                 f.get_truthy("label")
@@ -1116,7 +1120,7 @@ pub fn resolve_planning_definition(value: &str, schema_fields: &[Value]) -> Resu
             )
         })
         .collect();
-    Err(api0(format!(
+    Err(usage(format!(
         "planning field not found: {}; choices: {}",
         py_repr_str(value),
         known.join(", ")

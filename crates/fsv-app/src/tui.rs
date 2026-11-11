@@ -1019,12 +1019,19 @@ impl Backend for LiveBackend {
             description,
             self.change_schema.as_ref(),
         )?;
-        Ok(write_review(&p))
+        let mut review = write_review(&p.plan);
+        review.review = Value::Object(p.review());
+        review.hash = p.hash();
+        review.raw["before"] = json!(p.before);
+        Ok(review)
     }
 
     /// `planning_text.send(plan, reviewed_hash=plan.hash)`.
     fn send_planning_text(&self, plan: &ReviewPlan) -> BResult<Value> {
-        let p = write_plan(&plan.raw, |a| a.ends_with("_planning_text"))?;
+        let p = planning_text::PlanningTextPlan {
+            plan: write_plan(&plan.raw, |a| a.ends_with("_planning_text"))?,
+            before: str_at(&plan.raw, "before"),
+        };
         Ok(planning_text::send(
             &p,
             self.api(),

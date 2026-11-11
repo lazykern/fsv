@@ -751,7 +751,9 @@ pub fn load_detail(
 
     if res.name == "changes" {
         (d.lifecycle, d.lifecycle_missing) = load_lifecycle(src, &d.record)?;
-        (d.planning, d.planning_missing) = load_planning(src, &d.record, &d.schema)?;
+        (d.planning, d.planning_missing) = load_planning(src, &d.record, &d.schema, "changes")?;
+    } else if res.name == "problems" {
+        (d.planning, d.planning_missing) = load_planning(src, &d.record, &d.schema, "problems")?;
     }
     if res.name == "tickets" {
         d.requested_for = requested_for(src, &d.record)?;
@@ -819,29 +821,37 @@ pub fn load_lifecycle(
     }
 }
 
-/// `load_planning`: `(None, None)` when the form defines no planning fields.
+/// `load_planning`: planning fields (problems: the native analysis
+/// sections) in form order; `(None, None)` when the account defines none.
 pub fn load_planning(
     src: &mut dyn Source,
     record: &Value,
     schema: &Value,
+    module: &str,
 ) -> Result<(Option<Vec<PlanningEntry>>, Option<Missing>), SessionError> {
-    if site::planning_from(Some(schema), &json!([])) == PlanningOutcome::NoDefinitions {
+    let defs = if module == "problems" {
+        fsv_api::planning_text::PROBLEM_SECTIONS
+            .iter()
+            .map(|(_, key, title)| json!({"name": key, "label": title}))
+            .collect()
+    } else {
+        site::change_planning_defs(Some(schema))
+    };
+    if defs.is_empty() {
         return Ok((None, None));
     }
-    let path = format!("changes/{}/planning-fields", rid_of(record));
+    let path = format!("{module}/{}/planning-fields", rid_of(record));
     let data = match optional_get(src, &path, None, "planning")? {
         Err(miss) => return Ok((None, Some(miss))),
         Ok(data) => data,
     };
-    Ok(match site::planning_from(Some(schema), &data) {
+    let miss = |why: &str| Some(Missing::new(why, None));
+    Ok(match site::planning_rows(&defs, &data, module) {
         PlanningOutcome::Entries(rows) => (Some(rows), None),
         PlanningOutcome::NoDefinitions => (None, None),
-        PlanningOutcome::Unidentified => {
-            (None, Some(Missing::new("unidentified planning rows", None)))
-        }
-        PlanningOutcome::Ambiguous(_) => {
-            (None, Some(Missing::new("ambiguous planning rows", None)))
-        }
+        PlanningOutcome::Unavailable => (None, miss("planning rows unavailable")),
+        PlanningOutcome::Unidentified => (None, miss("unidentified planning rows")),
+        PlanningOutcome::Ambiguous(_) => (None, miss("ambiguous planning rows")),
     })
 }
 

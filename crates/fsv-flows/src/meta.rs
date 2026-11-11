@@ -24,9 +24,10 @@ use fsv_forms::{
 use fsv_py::truthy;
 
 /// `MODULES`: module -> (metadata path, fields key).
-pub const MODULES: [(&str, &str, &str); 2] = [
+pub const MODULES: [(&str, &str, &str); 3] = [
     ("change", "change_form_fields", "change_fields"),
     ("ticket", "ticket_form_fields", "ticket_fields"),
+    ("problem", "problem_form_fields", "problem_fields"),
 ];
 
 /// Default fields whose record key differs from the form field name.

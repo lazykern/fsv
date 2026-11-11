@@ -1042,7 +1042,7 @@
       "row": {
         "name": "problem_cause",
         "label": "Root Cause",
-        "description": "<p>old</p>",
+        "description": "",
         "attachments": []
       },
       "missing_row": null,
@@ -1052,7 +1052,7 @@
       "plan_lines": [
         "GET /api/_/problems/77/planning-fields"
       ],
-      "hash": "7dd0209ac02d3e522769a4d922dc9b801a60491f5b0347977986cc0170560b1e",
+      "hash": "86db5c9ac0d97a2caa05136c46daac37ee727c342b11c5c3d5f0e3d07a707f89",
       "review": {
         "action": "problems_planning_text",
         "method": "POST",
@@ -1060,15 +1060,18 @@
         "payload": {
           "description": "<p>new cause</p>"
         },
-        "plan_hash": "7dd0209ac02d3e522769a4d922dc9b801a60491f5b0347977986cc0170560b1e",
-        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+        "plan_hash": "86db5c9ac0d97a2caa05136c46daac37ee727c342b11c5c3d5f0e3d07a707f89",
+        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+        "operation": "create",
+        "before": "",
+        "after": "<p>new cause</p>"
       },
       "action": "problems_planning_text",
       "target": 77,
       "method": "POST",
       "path": "problems/77/planning-fields?id=problem_cause",
       "payload_json": "{\"description\": \"<p>new cause</p>\"}",
-      "context_hash": "00945572427bf6e877a73f259f19ba95348dd89e3523dc31e4284308961de20e",
+      "context_hash": "09d8b107f02f14182312028621f2cc6e3cf25a3e17b5c50b2acc28d7aaffd901",
       "send_lines": [
         "GET /api/_/problems/77/planning-fields",
         "POST /api/_/problems/77/planning-fields?id=problem_cause",
@@ -1079,7 +1082,7 @@
       ],
       "result": {
         "status": "submitted",
-        "plan_hash": "7dd0209ac02d3e522769a4d922dc9b801a60491f5b0347977986cc0170560b1e",
+        "plan_hash": "86db5c9ac0d97a2caa05136c46daac37ee727c342b11c5c3d5f0e3d07a707f89",
         "verified": true,
         "section": "problem_cause",
         "description": "matched"
@@ -1104,7 +1107,7 @@
       "row": {
         "name": "rollout_plan",
         "label": "Rollout Plan",
-        "description": "<p>v1</p>",
+        "description": "",
         "attachments": []
       },
       "missing_row": null,
@@ -1114,7 +1117,7 @@
       "plan_lines": [
         "GET /api/_/changes/5/planning-fields"
       ],
-      "hash": "8ae60112930f4150cd9d09545ecf2b25ce85b8ed1afcdec03068f83576b92aa5",
+      "hash": "b74ff20117b866ed15311aa673ff3176f334ac1f17a62ab99503bfe3e9be9942",
       "review": {
         "action": "changes_planning_text",
         "method": "POST",
@@ -1122,15 +1125,18 @@
         "payload": {
           "description": "<p>v2</p>"
         },
-        "plan_hash": "8ae60112930f4150cd9d09545ecf2b25ce85b8ed1afcdec03068f83576b92aa5",
-        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+        "plan_hash": "b74ff20117b866ed15311aa673ff3176f334ac1f17a62ab99503bfe3e9be9942",
+        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+        "operation": "create",
+        "before": "",
+        "after": "<p>v2</p>"
       },
       "action": "changes_planning_text",
       "target": 5,
       "method": "POST",
       "path": "changes/5/planning-fields?id=rollout_plan",
       "payload_json": "{\"description\": \"<p>v2</p>\"}",
-      "context_hash": "c5eee0eeed35c8ed469f68b4eb3d7a9582aff5da72cac163431f83ad97e96151",
+      "context_hash": "a94f41190448a82751cdcfb2555f85beb84a13742cc7b8cceb42a004113344f1",
       "send_lines": [
         "GET /api/_/changes/5/planning-fields",
         "POST /api/_/changes/5/planning-fields?id=rollout_plan",
@@ -1141,7 +1147,7 @@
       ],
       "result": {
         "status": "submitted",
-        "plan_hash": "8ae60112930f4150cd9d09545ecf2b25ce85b8ed1afcdec03068f83576b92aa5",
+        "plan_hash": "b74ff20117b866ed15311aa673ff3176f334ac1f17a62ab99503bfe3e9be9942",
         "verified": true,
         "section": "rollout_plan",
         "description": "matched"

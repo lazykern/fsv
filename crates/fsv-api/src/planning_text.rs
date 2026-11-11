@@ -9,7 +9,8 @@ use fsv_core::resource::{CHANGES, PROBLEMS, parse_id};
 use crate::create::{
     match_planning_row, planning_definitions, planning_server_key, resolve_planning_definition,
 };
-use crate::reviewed_write::{WritePlan, execute, refused};
+use crate::readback::same_text;
+use crate::reviewed_write::{WritePlan, execute_as, refused};
 use crate::service::{Api, Journal, obj, plan_hash};
 use crate::watchers::{has_continuation, positive_id, total_differs};
 
@@ -127,8 +128,82 @@ fn unquote_plus(text: &str) -> String {
     String::from_utf8_lossy(&out).into_owned()
 }
 
-/// Port of fsv.planning_text.build_plan: one native section's text, refused
-/// when an existing row has (or may have) attachments.
+const TEXT_KEYS: [&str; 5] = [
+    "description",
+    "content",
+    "description_html",
+    "description_text",
+    "body",
+];
+
+/// Port of fsv.planning_text.section_content: native section text in both
+/// the edit and detail response shapes.
+pub fn section_content(row: Option<&Value>) -> Option<String> {
+    let row = row?;
+    TEXT_KEYS
+        .iter()
+        .find_map(|k| row.get(*k).and_then(Value::as_str))
+        .map(str::to_string)
+}
+
+/// Port of fsv.planning_text.editable_content: a readable text baseline
+/// with an explicitly empty file inventory (`""` without a row).
+pub fn editable_content(row: Option<&Value>) -> Result<String> {
+    let Some(r) = row else {
+        return Ok(String::new());
+    };
+    let inventories: Vec<&Value> = ["attachments", "files"]
+        .iter()
+        .filter_map(|k| r.get(*k))
+        .collect();
+    if inventories.is_empty() || inventories.iter().any(|v| **v != json!([])) {
+        return Err(refused(
+            "planning attachments are present or unavailable; text-only preservation is not proven",
+        ));
+    }
+    let content = section_content(row);
+    if content.is_none()
+        || TEXT_KEYS
+            .iter()
+            .any(|k| r.get(*k).is_some_and(|v| !v.is_string()))
+    {
+        return Err(refused(
+            "planning text state is unavailable; no write attempted",
+        ));
+    }
+    Ok(content.unwrap_or_default())
+}
+
+/// Port of fsv.planning_text.PlanningTextPlan: a first-write POST whose
+/// hash also binds the reviewed (empty) baseline.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PlanningTextPlan {
+    pub plan: WritePlan,
+    pub before: String,
+}
+
+impl PlanningTextPlan {
+    pub fn payload(&self) -> Value {
+        self.plan.payload()
+    }
+
+    pub fn hash(&self) -> String {
+        plan_hash(&json!({"wire_plan": self.plan.hash(), "before": self.before}))
+    }
+
+    pub fn review(&self) -> Map<String, Value> {
+        let mut review = self.plan.review();
+        review.insert("plan_hash".into(), json!(self.hash()));
+        review.insert("operation".into(), json!("create"));
+        review.insert("before".into(), json!(self.before));
+        review.insert("after".into(), self.payload()["description"].clone());
+        review
+    }
+}
+
+/// Port of fsv.planning_text.build_plan: one native section's first text.
+/// Refused when the section has (or may have) attachments or any stored
+/// text, since only the create POST is captured.
 pub fn build_plan(
     c: &dyn Api,
     module: &str,
@@ -136,7 +211,7 @@ pub fn build_plan(
     section: &str,
     description: &str,
     schema: &ChangeSchema,
-) -> Result<WritePlan> {
+) -> Result<PlanningTextPlan> {
     if fsv_core::pystr::strip(description).is_empty() {
         return Err(Error::value(
             "planning description must be nonempty text/HTML",
@@ -172,14 +247,21 @@ pub fn build_plan(
     };
     let key = planning_server_key(&definition);
     let rows = inventory(c, module, cid)?;
-    if let Some(existing) = match_planning_row(&definition, &rows)?
-        && existing.get("attachments").is_none_or(fsv_py::truthy)
-    {
+    let existing = match_planning_row(&definition, &rows)?;
+    let before = editable_content(existing.as_ref())?;
+    let has_text = existing.as_ref().is_some_and(|r| {
+        TEXT_KEYS.iter().any(|k| {
+            r.get(*k)
+                .and_then(Value::as_str)
+                .is_some_and(|t| !t.is_empty())
+        }) || r.get("empty") == Some(&json!(false))
+    });
+    if !before.is_empty() || has_text {
         return Err(refused(
-            "planning attachments are present or unavailable; text-only preservation is not proven",
+            "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
         ));
     }
-    Ok(WritePlan {
+    let plan = WritePlan {
         action: format!("{module}_planning_text"),
         target: cid,
         tenant: c.domain(),
@@ -190,20 +272,22 @@ pub fn build_plan(
             .ensure_ascii(false)
             .dump(&json!({"description": description})),
         context_hash: plan_hash(&json!({"definitions": defs, "rows": rows})),
-    })
+    };
+    Ok(PlanningTextPlan { plan, before })
 }
 
 /// Port of fsv.planning_text.send: one POST, then the section's description
 /// read back from a fresh inventory.
 pub fn send(
-    plan: &WritePlan,
+    plan: &PlanningTextPlan,
     c: &dyn Api,
     journal: &dyn Journal,
     reviewed_hash: Option<&str>,
     schema: &ChangeSchema,
 ) -> Result<Value> {
-    let module = plan.path.split('/').next().unwrap_or_default().to_string();
-    let section = query_id(&plan.path)?;
+    let wire = &plan.plan;
+    let module = wire.path.split('/').next().unwrap_or_default().to_string();
+    let section = query_id(&wire.path)?;
     let payload = plan.payload();
     let description = payload
         .get("description")
@@ -215,20 +299,28 @@ pub fn send(
             .iter()
             .find(|d| planning_server_key(d) == section)
             .ok_or_else(|| Error::other("StopIteration"))?;
-        let row = match_planning_row(definition, &inventory(c, &module, plan.target)?)?;
-        let field = match row.as_ref().and_then(|r| r.get("description")) {
+        let row = match_planning_row(definition, &inventory(c, &module, wire.target)?)?;
+        let field = match section_content(row.as_ref()) {
             None => "unavailable",
-            Some(d) if *d == description => "matched",
+            Some(d) if same_text(&json!(d), &description) => "matched",
             Some(_) => "mismatched",
         };
         Ok(obj(
             json!({"section": section, "description": field, "verified": field == "matched"}),
         ))
     };
-    let target = plan.target.to_string();
+    let target = wire.target.to_string();
     let text = description.as_str().unwrap_or_default().to_string();
-    let rebuild = || build_plan(c, &module, &target, &section, &text, schema);
-    execute(plan, c, journal, reviewed_hash, &rebuild, &verify)
+    let rebuild = || build_plan(c, &module, &target, &section, &text, schema).map(|p| p.hash());
+    execute_as(
+        wire,
+        &plan.hash(),
+        c,
+        journal,
+        reviewed_hash,
+        &rebuild,
+        &verify,
+    )
 }
 
 #[cfg(test)]
@@ -243,6 +335,8 @@ mod tests {
         module: &'static str,
         rows: Value,
         failure: Option<u16>,
+        /// The rows a POST leaves behind (native detail shape) instead of the echo.
+        after: Option<Value>,
     }
 
     fn schema(_: &dyn Api) -> Result<Value> {
@@ -268,7 +362,10 @@ mod tests {
             }
             let name = query_id(&call.path).unwrap();
             let description = call.body.as_ref().unwrap()["description"].clone();
-            w.rows = json!([{"name": name, "description": description, "attachments": []}]);
+            w.rows = w
+                .after
+                .clone()
+                .unwrap_or(json!([{"name": name, "description": description, "attachments": []}]));
             Ok(json!({}))
         })
     }
@@ -278,6 +375,7 @@ mod tests {
             module,
             rows: json!([]),
             failure: None,
+            after: None,
         }))
     }
 
@@ -285,17 +383,56 @@ mod tests {
         r.unwrap_err().to_string()
     }
 
-    /// `test_planning_text.py::test_section_query_exact_wire_and_readback`.
+    static ORACLE: std::sync::LazyLock<Value> = std::sync::LazyLock::new(|| {
+        serde_json::from_str::<Value>(include_str!("testdata/workflows_oracle.json")).unwrap()
+            ["planning_text"]
+            .clone()
+    });
+
+    fn module_of(case: &Value) -> &'static str {
+        if case["module"] == "problems" {
+            "problems"
+        } else {
+            "changes"
+        }
+    }
+
+    fn plan_json(p: &PlanningTextPlan) -> Value {
+        let w = &p.plan;
+        json!({"hash": p.hash(), "review": p.review(), "action": w.action, "target": w.target,
+               "method": w.method, "path": w.path, "payload_json": w.payload_json,
+               "context_hash": w.context_hash, "before": p.before})
+    }
+
+    fn outcome(r: Result<Value>) -> Value {
+        match r {
+            Ok(v) => json!({"ok": v}),
+            Err(e) => json!({"error": e.to_string()}),
+        }
+    }
+
+    fn writes(c: &FnApi) -> Value {
+        json!(
+            c.writes()
+                .iter()
+                .map(|w| json!([w.method, w.path, w.body]))
+                .collect::<Vec<_>>()
+        )
+    }
+
+    fn same(got: &Value, want: &Value, ctx: &str) {
+        for key in ["ok", "error"] {
+            assert_eq!(got.get(key), want.get(key), "{ctx}: {key}");
+        }
+    }
+
+    /// `test_planning_text.py::test_section_query_exact_wire_and_readback`,
+    /// with plans and results from `gen_fsv_api_workflows.py`.
     #[test]
     fn section_query_exact_wire_and_readback() {
-        let oracle: Value =
-            serde_json::from_str(include_str!("testdata/reviewed_oracle.json")).unwrap();
-        for (module, section, key) in [
-            ("changes", "Rollout Plan", "acme_plan"),
-            ("problems", "Root Cause", "problem_cause"),
-            ("problems", "Impact", "problem_impact"),
-            ("problems", "Symptoms", "problem_symptom"),
-        ] {
+        for case in ORACLE["sections"].as_array().unwrap() {
+            let module = module_of(case);
+            let section = case["section"].as_str().unwrap();
             let w = world(module);
             let c = client(&w);
             let j = MemJournal::default();
@@ -308,18 +445,158 @@ mod tests {
                 &schema,
             )
             .unwrap();
-            assert_eq!(p.method, "POST");
-            assert!(p.path.ends_with(&format!("?id={key}")));
             assert_eq!(
-                p.payload(),
-                json!({"description": "<div>Acme evidence</div>"})
+                plan_json(&p),
+                json!(
+                    case.as_object()
+                        .unwrap()
+                        .iter()
+                        .filter(|(k, _)| !["module", "section", "send", "resend", "writes"]
+                            .contains(&k.as_str()))
+                        .map(|(k, v)| (k.clone(), v.clone()))
+                        .collect::<Map<_, _>>()
+                ),
+                "{section}"
             );
-            assert_eq!(p.hash(), oracle["planning"][key]["hash"], "{key}");
-            let out = send(&p, &c, &j, Some(&p.hash()), &schema).unwrap();
-            assert_eq!(out["verified"], true, "{out}");
-            assert_eq!(out["section"], key);
-            assert_eq!(c.writes().len(), 1);
-            assert!(err(send(&p, &c, &j, Some(&p.hash()), &schema)).contains("was sent"));
+            same(
+                &outcome(send(&p, &c, &j, Some(&p.hash()), &schema)),
+                &case["send"],
+                section,
+            );
+            same(
+                &outcome(send(&p, &c, &j, Some(&p.hash()), &schema)),
+                &case["resend"],
+                section,
+            );
+            assert_eq!(writes(&c), case["writes"], "{section}");
+        }
+    }
+
+    /// `test_planning_state.py`: known-empty creates, refused existing or
+    /// unknown text and files, the GET race, and normalized readback.
+    #[test]
+    fn create_versus_edit_boundaries() {
+        let build = |case: &Value, rows: &Value, text: &str| {
+            let module = module_of(case);
+            let w = world(module);
+            w.lock().unwrap().rows = rows.clone();
+            let c = client(&w);
+            let section = case["section"].as_str().unwrap_or("Rollout Plan");
+            (
+                w.clone(),
+                build_plan(&c, module, "123", section, text, &schema).map(|p| plan_json(&p)),
+                c,
+            )
+        };
+        for case in ORACLE["create"].as_array().unwrap() {
+            let (_, got, c) = build(case, &case["rows"], "Acme replacement");
+            let got = got.unwrap();
+            for key in ["hash", "review", "payload_json", "context_hash", "before"] {
+                assert_eq!(got[key], case[key], "{} {key}", case["rows"]);
+            }
+            let module = module_of(case);
+            let p = build_plan(
+                &c,
+                module,
+                "123",
+                case["section"].as_str().unwrap(),
+                "Acme replacement",
+                &schema,
+            )
+            .unwrap();
+            let mut other = p.clone();
+            other.before = "other baseline".into();
+            assert_ne!(other.hash(), p.hash());
+            same(
+                &outcome(send(
+                    &p,
+                    &c,
+                    &MemJournal::default(),
+                    Some(&p.hash()),
+                    &schema,
+                )),
+                &case["send"],
+                "create",
+            );
+            assert_eq!(writes(&c), case["writes"]);
+        }
+        for key in ["existing", "unknown", "files"] {
+            for case in ORACLE[key].as_array().unwrap() {
+                let text = if key == "files" {
+                    "Acme"
+                } else {
+                    "Acme replacement"
+                };
+                let (_, got, c) = build(case, &case["rows"], text);
+                let ctx = format!("{key} {}", case["rows"]);
+                assert_eq!(
+                    got.err().map(|e| e.to_string()),
+                    case["error"].as_str().map(str::to_string),
+                    "{ctx}"
+                );
+                assert!(c.writes().is_empty(), "{ctx}");
+            }
+        }
+        for case in ORACLE["race"].as_array().unwrap() {
+            let (w, got, c) = build(case, &json!([]), "Acme");
+            assert_eq!(got.unwrap()["hash"], case["hash"]);
+            let p = build_plan(
+                &c,
+                module_of(case),
+                "123",
+                case["section"].as_str().unwrap(),
+                "Acme",
+                &schema,
+            )
+            .unwrap();
+            w.lock().unwrap().rows = case["rows"].clone();
+            let j = MemJournal::default();
+            same(
+                &outcome(send(&p, &c, &j, Some(&p.hash()), &schema)),
+                case,
+                "race",
+            );
+            assert!(c.writes().is_empty() && j.events().is_empty());
+        }
+        for case in ORACLE["readback"].as_array().unwrap() {
+            let section = case["section"].as_str().unwrap();
+            let key = if module_of(case) == "changes" {
+                "acme_plan"
+            } else {
+                "problem_cause"
+            };
+            let w = world(module_of(case));
+            w.lock().unwrap().rows =
+                json!([{"name": key, "label": section, "content": "", "files": [], "empty": true}]);
+            w.lock().unwrap().after = Some(
+                json!([{"name": key, "label": section, "content": case["stored"], "files": [], "empty": false}]),
+            );
+            let c = client(&w);
+            let text = "<div>Acme &amp; Globex\n details</div>";
+            let p = build_plan(&c, module_of(case), "123", section, text, &schema).unwrap();
+            assert_eq!(p.hash(), case["hash"]);
+            same(
+                &outcome(send(
+                    &p,
+                    &c,
+                    &MemJournal::default(),
+                    Some(&p.hash()),
+                    &schema,
+                )),
+                case,
+                &format!("readback {}", case["stored"]),
+            );
+        }
+        for case in ORACLE["same_text"].as_array().unwrap() {
+            assert_eq!(
+                same_text(&case["actual"], &case["expected"]),
+                case["same"] == true,
+                "{case}"
+            );
+        }
+        for case in ORACLE["section_content"].as_array().unwrap() {
+            let row = Some(&case["row"]).filter(|r| !r.is_null());
+            assert_eq!(json!(section_content(row)), case["content"], "{case}");
         }
     }
 

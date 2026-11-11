@@ -31,8 +31,8 @@ fn ticket_tenant() -> Tenant {
         json!({"id": 77, "subject": "Disk", "known_error": false}),
     ));
     let planning = Arc::new(Mutex::new(json!({
-        "problems/77": [{"name": "problem_cause", "label": "Root Cause", "description": "<p>old</p>", "attachments": []}],
-        "changes/5": [{"name": "rollout_plan", "label": "Rollout Plan", "description": "<p>v1</p>", "attachments": []}],
+        "problems/77": [{"name": "problem_cause", "label": "Root Cause", "description": "", "attachments": []}],
+        "changes/5": [{"name": "rollout_plan", "label": "Rollout Plan", "description": "", "attachments": []}],
     })));
     tenant(move |c: &Call| {
         let p = c.path.strip_prefix("/api/_/").unwrap_or(&c.path);

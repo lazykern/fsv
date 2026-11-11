@@ -209,39 +209,63 @@ pub fn match_planning_row<'a>(
 pub enum PlanningOutcome {
     Entries(Vec<PlanningEntry>),
     NoDefinitions,
+    /// The rows are not a list of objects (`Missing("planning rows unavailable")`).
+    Unavailable,
     Unidentified,
     Ambiguous(String),
 }
 
-pub fn planning_from(schema: Option<&Value>, data: &Value) -> PlanningOutcome {
-    let defs: Vec<&Map<String, Value>> = schema
+/// The change form's planning-type fields, in form order.
+pub fn change_planning_defs(schema: Option<&Value>) -> Vec<Value> {
+    schema
         .and_then(|s| s.get("fields"))
         .and_then(Value::as_array)
         .map(|items| {
             items
                 .iter()
-                .filter_map(Value::as_object)
                 .filter(|f| {
-                    is_planning_type(&f.get("field_type").map(fsv_py::py_str).unwrap_or_default())
+                    f.is_object()
+                        && is_planning_type(
+                            &f.get("field_type").map(fsv_py::py_str).unwrap_or_default(),
+                        )
                 })
+                .cloned()
                 .collect()
         })
-        .unwrap_or_default();
+        .unwrap_or_default()
+}
+
+/// [`planning_rows`] for changes, with the definitions from the change form.
+pub fn planning_from(schema: Option<&Value>, data: &Value) -> PlanningOutcome {
+    planning_rows(&change_planning_defs(schema), data, "changes")
+}
+
+/// The body of fsv.views.load_planning after the fetch: `defs` against the
+/// `{module}/planning-fields` response.
+pub fn planning_rows(defs: &[Value], data: &Value, module: &str) -> PlanningOutcome {
+    let defs: Vec<&Map<String, Value>> = defs.iter().filter_map(Value::as_object).collect();
     if defs.is_empty() {
         return PlanningOutcome::NoDefinitions;
     }
+    let key = if module == "problems" {
+        "problem_planning_fields"
+    } else {
+        "change_planning_fields"
+    };
     let rows_val = match data {
-        Value::Object(map) => map.get("change_planning_fields").unwrap_or(data),
+        Value::Object(map) => map.get(key).unwrap_or(&Value::Null),
         other => other,
     };
-    let rows: Vec<Value> = rows_val
+    let Some(rows) = rows_val
         .as_array()
-        .map(|items| items.iter().filter(|r| r.is_object()).cloned().collect())
-        .unwrap_or_default();
+        .filter(|items| items.iter().all(Value::is_object))
+    else {
+        return PlanningOutcome::Unavailable;
+    };
     let mut out = Vec::new();
     for d in defs {
         let name = d.get("name").map(fsv_py::py_str).unwrap_or_default();
-        let matched = match match_planning_row(d, &rows) {
+        let matched = match match_planning_row(d, rows) {
             Ok(row) => row,
             Err(err) => return PlanningOutcome::Ambiguous(err.0),
         };
@@ -249,7 +273,10 @@ pub fn planning_from(schema: Option<&Value>, data: &Value) -> PlanningOutcome {
             return PlanningOutcome::Unidentified;
         }
         let v = matched.cloned().unwrap_or_else(Map::new);
-        let text = planning_text(&v);
+        let text = html_to_text(&json!(
+            crate::planning_text::section_content(Some(&Value::Object(v.clone())))
+                .unwrap_or_default()
+        ));
         let label = d
             .get("label")
             .filter(|v| fsv_py::truthy(v))
@@ -266,7 +293,7 @@ pub fn planning_from(schema: Option<&Value>, data: &Value) -> PlanningOutcome {
             label: pystr::html_unescape(&label).into_owned(),
             help: one_line(&help_src),
             text,
-            files: file_names(v.get("attachments")),
+            files: file_names(v.get("attachments").or_else(|| v.get("files"))),
         });
     }
     PlanningOutcome::Entries(out)
@@ -375,25 +402,6 @@ fn unidentified_row(row: &Value) -> bool {
     !["name", "label", "field_id", "planning_field_id"]
         .iter()
         .any(|k| map.get(*k).is_some_and(fsv_py::truthy))
-}
-
-fn planning_text(v: &Map<String, Value>) -> String {
-    let primary = v
-        .get("description")
-        .filter(|v| fsv_py::truthy(v))
-        .or_else(|| v.get("description_html").filter(|v| fsv_py::truthy(v)))
-        .cloned()
-        .unwrap_or(Value::String(String::new()));
-    let text = html_to_text(&primary);
-    if !text.is_empty() {
-        return text;
-    }
-    v.get("description_text")
-        .filter(|v| fsv_py::truthy(v))
-        .map(fsv_py::py_str)
-        .unwrap_or_default()
-        .trim()
-        .to_string()
 }
 
 fn file_names(rows: Option<&Value>) -> Vec<String> {

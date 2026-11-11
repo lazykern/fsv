@@ -25,9 +25,10 @@ use fsv_py::{py_str, truthy};
 use crate::service::Api;
 
 /// `MODULES`: module -> (metadata path, fields key).
-pub const MODULES: [(&str, &str, &str); 2] = [
+pub const MODULES: [(&str, &str, &str); 3] = [
     ("change", "change_form_fields", "change_fields"),
     ("ticket", "ticket_form_fields", "ticket_fields"),
+    ("problem", "problem_form_fields", "problem_fields"),
 ];
 pub const FORM_TYPES: [(&str, &str); 2] = [("new", "new_form"), ("edit", "edit_form")];
 /// Default fields whose record key differs from the form field name.
@@ -84,7 +85,7 @@ pub fn module_name(text: &str) -> Result<String> {
     let t = t.trim_end_matches('s');
     if !MODULES.iter().any(|(m, _, _)| *m == t) {
         return Err(Error::value(format!(
-            "unsupported form {}; supported: changes, tickets",
+            "unsupported form {}; supported: changes, tickets, problems",
             fsv_py::py_repr_str(text)
         )));
     }
@@ -1352,9 +1353,10 @@ mod tests {
             ),
             ("change".to_string(), "ticket".to_string())
         );
+        assert_eq!(module_name("Problems").unwrap(), "problem");
         assert_eq!(
-            err(module_name("problems")),
-            "unsupported form 'problems'; supported: changes, tickets"
+            err(module_name("assets")),
+            "unsupported form 'assets'; supported: changes, tickets, problems"
         );
         assert_eq!(
             cache_path(Path::new("/c"), "acme.freshservice.com", "x"),

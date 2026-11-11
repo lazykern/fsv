@@ -69,10 +69,33 @@ pub fn execute(
     rebuild: &dyn Fn() -> Result<WritePlan>,
     verify: &dyn Fn(&Value) -> Result<Map<String, Value>>,
 ) -> Result<Value> {
+    let rebuild_hash = || rebuild().map(|p| p.hash());
+    execute_as(
+        plan,
+        &plan.hash(),
+        c,
+        journal,
+        reviewed_hash,
+        &rebuild_hash,
+        verify,
+    )
+}
+
+/// [`execute`] for a `WritePlan` subclass whose `hash` binds more than the
+/// wire (`hash` is the subclass hash; `rebuild` returns the rebuilt one).
+pub fn execute_as(
+    plan: &WritePlan,
+    hash: &str,
+    c: &dyn Api,
+    journal: &dyn Journal,
+    reviewed_hash: Option<&str>,
+    rebuild: &dyn Fn() -> Result<String>,
+    verify: &dyn Fn(&Value) -> Result<Map<String, Value>>,
+) -> Result<Value> {
     let Some(reviewed) = reviewed_hash else {
         return Ok(json!({"status": "cancelled", "verified": false}));
     };
-    let hash = plan.hash();
+    let hash = hash.to_string();
     if plan.tenant.is_empty() || plan.tenant != c.domain() || reviewed != hash {
         return Err(refused("tenant or full review hash changed; review again"));
     }
@@ -84,7 +107,7 @@ pub fn execute(
             "write was sent or outcome unknown; inspect target and journal before retry",
         ));
     }
-    if rebuild()?.hash() != hash {
+    if rebuild()? != hash {
         return Err(refused(
             "target or metadata changed since review; review again",
         ));

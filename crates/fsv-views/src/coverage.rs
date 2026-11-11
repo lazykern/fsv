@@ -675,7 +675,8 @@ fn load_planning_rows_missing_none_unidentified() {
         "changes/4/planning-fields",
         vec![Ok(json!({"change_planning_fields": [{"name": "planning_reason", "description": "<p>Because</p>", "attachments": [{"name": "p.pdf"}]}]}))],
     );
-    let (rows, miss) = load_planning(&mut src, &json!({"display_id": 4}), &schema).unwrap();
+    let (rows, miss) =
+        load_planning(&mut src, &json!({"display_id": 4}), &schema, "changes").unwrap();
     let rows: Vec<Value> = rows.unwrap().iter().map(PlanningEntry::to_json).collect();
     assert_eq!(
         compact(&json!(rows)),
@@ -683,8 +684,13 @@ fn load_planning_rows_missing_none_unidentified() {
     );
     assert!(miss.is_none());
 
-    let (rows, miss) =
-        load_planning(&mut Seq::default(), &json!({"display_id": 4}), &schema).unwrap();
+    let (rows, miss) = load_planning(
+        &mut Seq::default(),
+        &json!({"display_id": 4}),
+        &schema,
+        "changes",
+    )
+    .unwrap();
     assert!(rows.is_none());
     assert_eq!(note(&miss), "planning: not available on this account (404)");
 
@@ -692,6 +698,7 @@ fn load_planning_rows_missing_none_unidentified() {
         &mut Seq::default(),
         &json!({"display_id": 4}),
         &json!({"fields": []}),
+        "changes",
     )
     .unwrap();
     assert!(rows.is_none() && miss.is_none());
@@ -700,9 +707,59 @@ fn load_planning_rows_missing_none_unidentified() {
         "changes/4/planning-fields",
         vec![Ok(json!([{"description": "orphan"}]))],
     );
-    let (rows, miss) = load_planning(&mut src, &json!({"display_id": 4}), &schema).unwrap();
+    let (rows, miss) =
+        load_planning(&mut src, &json!({"display_id": 4}), &schema, "changes").unwrap();
     assert!(rows.is_none());
     assert_eq!(note(&miss), "unidentified planning rows: unavailable");
+}
+
+/// `test_problem_details.py`: the native analysis sections, in either
+/// stored shape, with `files`; values from `uv run python` on `load_planning`.
+#[test]
+fn load_planning_problem_analysis_sections() {
+    for shape in ["content", "description"] {
+        let mut src = Seq::default().int(
+            "problems/123/planning-fields",
+            vec![Ok(json!({"problem_planning_fields": [
+                {"name": "problem_cause", shape: "<div>Acme cause &amp; evidence</div>", "files": []},
+                {"name": "problem_impact", shape: "Acme impact", "files": [{"name": "evidence.txt"}]},
+                {"name": "problem_symptom", shape: "Acme symptoms", "files": []}
+            ]}))],
+        );
+        let (rows, miss) =
+            load_planning(&mut src, &json!({"id": 123}), &json!({}), "problems").unwrap();
+        let got: Vec<Value> = rows
+            .unwrap()
+            .iter()
+            .map(|r| json!({"name": r.name, "label": r.label, "help": r.help, "text": r.text, "files": r.files}))
+            .collect();
+        assert_eq!(
+            json!(got),
+            json!([
+                {"name": "problem_cause", "label": "Root Cause", "help": "", "text": "Acme cause & evidence", "files": []},
+                {"name": "problem_impact", "label": "Impact", "help": "", "text": "Acme impact", "files": ["evidence.txt"]},
+                {"name": "problem_symptom", "label": "Symptoms", "help": "", "text": "Acme symptoms", "files": []}
+            ]),
+            "{shape}"
+        );
+        assert!(miss.is_none());
+    }
+    for payload in [
+        json!({}),
+        json!({"problem_planning_fields": null}),
+        json!({"problem_planning_fields": [42]}),
+        json!({"change_planning_fields": [{"name": "x"}]}),
+    ] {
+        let mut src = Seq::default().int("problems/123/planning-fields", vec![Ok(payload.clone())]);
+        let (rows, miss) =
+            load_planning(&mut src, &json!({"id": 123}), &json!({}), "problems").unwrap();
+        assert!(rows.is_none(), "{payload}");
+        assert_eq!(
+            note(&miss),
+            "planning rows unavailable: unavailable",
+            "{payload}"
+        );
+    }
 }
 
 #[test]

@@ -11,18 +11,23 @@ pub mod approvals;
 pub mod asset_picker;
 pub mod associations;
 pub mod bulk_priority;
+pub mod canned;
 pub mod catalog;
 pub mod conversations;
 pub mod create;
 pub mod downloads;
 pub mod formmeta;
+pub mod list_preferences;
 pub mod notes;
 pub mod planning_text;
+pub mod private_views;
 pub mod problem_known_error;
+pub mod problem_workflows;
 pub mod properties;
 mod query;
 pub mod readback;
 pub mod reviewed_write;
+pub mod scenarios;
 pub mod schema;
 pub mod service;
 pub mod site;
@@ -129,3 +134,6 @@ impl From<QueryFailure> for fsv_core::Error {
 pub fn is_session_error(e: &fsv_core::Error) -> bool {
     matches!(e, fsv_core::Error::Session(_))
 }
+
+#[cfg(test)]
+mod workflows_tests;

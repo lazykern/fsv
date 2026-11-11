@@ -76,8 +76,8 @@ CHANGE_FIELDS = [
 ]
 PROBLEM = {"id": 77, "subject": "Disk", "known_error": False}
 PLANNING = {
-    "problems/77": [{"name": "problem_cause", "label": "Root Cause", "description": "<p>old</p>", "attachments": []}],
-    "changes/5": [{"name": "rollout_plan", "label": "Rollout Plan", "description": "<p>v1</p>", "attachments": []}],
+    "problems/77": [{"name": "problem_cause", "label": "Root Cause", "description": "", "attachments": []}],
+    "changes/5": [{"name": "rollout_plan", "label": "Rollout Plan", "description": "", "attachments": []}],
 }
 ASSETS = [{"display_id": 7, "name": "Acme DB"}, {"display_id": 8, "name": "Globex"}]
 ROW = {"id": 123, "subject": "Test", "status": 2, "priority": 1, "tags": ["old"],
