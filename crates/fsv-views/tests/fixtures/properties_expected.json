@@ -1,0 +1,8709 @@
+[
+ {
+  "name": "change_ws2",
+  "resource": "changes",
+  "record": {
+   "id": 900000501,
+   "human_display_id": "CHN-501",
+   "subject": "Billing: rotate keys",
+   "description": "<p>Rotate keys.</p>",
+   "requester_id": 9000007001,
+   "change_type": 1,
+   "priority": 2,
+   "impact": 1,
+   "risk": 1,
+   "status": 1,
+   "group_id": 9000009001,
+   "agent_id": null,
+   "planned_start_date": "2030-11-26T12:00:00Z",
+   "planned_end_date": "2030-11-26T15:00:00Z",
+   "custom_fields": {
+    "cloud_only": "Yes",
+    "stage": "Live",
+    "services": [
+     "Billing"
+    ],
+    "notify_ops": "No",
+    "downtime_window": "22:00 - 22:30",
+    "reviewer": null,
+    "legacy_flag": false,
+    "staging_start": null,
+    "staging_end": null
+   }
+  },
+  "fields": [
+   {
+    "id": 9000006001,
+    "name": "requester",
+    "label": "Requester",
+    "description": "",
+    "field_type": "default_requester",
+    "required": true,
+    "required_for_closure": false,
+    "position": 1,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006002,
+    "name": "subject",
+    "label": "Subject",
+    "description": "",
+    "field_type": "default_subject",
+    "required": true,
+    "required_for_closure": false,
+    "position": 2,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "Service: objective",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006003,
+    "name": "change_type",
+    "label": "Change Type",
+    "description": "",
+    "field_type": "default_change_type",
+    "required": true,
+    "required_for_closure": false,
+    "position": 3,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Normal"
+     },
+     {
+      "id": 2,
+      "value": "Standard"
+     },
+     {
+      "id": 4,
+      "value": "Emergency"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006004,
+    "name": "cloud_only",
+    "label": "Cloud Only",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": true,
+    "required_for_closure": false,
+    "position": 4,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002101,
+      "display_id": 9000003101,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002102,
+      "display_id": 9000003102,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Only the cloud team performs this change",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006005,
+    "name": "stage",
+    "label": "Stage",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 5,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002111,
+      "display_id": 9000003111,
+      "value": "Live",
+      "label": "Live"
+     },
+     {
+      "id": 9000002112,
+      "display_id": 9000003112,
+      "value": "Staging",
+      "label": "Staging"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006006,
+    "name": "staging_start",
+    "label": "Staging Start",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 6,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006007,
+    "name": "staging_end",
+    "label": "Staging End",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 7,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006008,
+    "name": "services",
+    "label": "Services",
+    "description": "",
+    "field_type": "custom_multi_select_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 8,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002200,
+      "display_id": 9000003200,
+      "value": "Billing",
+      "label": "Billing"
+     },
+     {
+      "id": 9000002201,
+      "display_id": 9000003201,
+      "value": "Search",
+      "label": "Search"
+     },
+     {
+      "id": 9000002202,
+      "display_id": 9000003202,
+      "value": "Reports",
+      "label": "Reports"
+     },
+     {
+      "id": 9000002203,
+      "display_id": 9000003203,
+      "value": "Ledger",
+      "label": "Ledger"
+     },
+     {
+      "id": 9000002204,
+      "display_id": 9000003204,
+      "value": "Mail",
+      "label": "Mail"
+     },
+     {
+      "id": 9000002205,
+      "display_id": 9000003205,
+      "value": "Chat",
+      "label": "Chat"
+     },
+     {
+      "id": 9000002206,
+      "display_id": 9000003206,
+      "value": "Docs",
+      "label": "Docs"
+     },
+     {
+      "id": 9000002207,
+      "display_id": 9000003207,
+      "value": "Wiki",
+      "label": "Wiki"
+     },
+     {
+      "id": 9000002208,
+      "display_id": 9000003208,
+      "value": "Pager",
+      "label": "Pager"
+     },
+     {
+      "id": 9000002209,
+      "display_id": 9000003209,
+      "value": "Auth",
+      "label": "Auth"
+     },
+     {
+      "id": 9000002210,
+      "display_id": 9000003210,
+      "value": "Queue",
+      "label": "Queue"
+     },
+     {
+      "id": 9000002211,
+      "display_id": 9000003211,
+      "value": "Cache",
+      "label": "Cache"
+     },
+     {
+      "id": 9000002212,
+      "display_id": 9000003212,
+      "value": "Storage",
+      "label": "Storage"
+     },
+     {
+      "id": 9000002213,
+      "display_id": 9000003213,
+      "value": "Metrics",
+      "label": "Metrics"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006009,
+    "name": "notify_ops",
+    "label": "Notify Ops Team",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 9,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002301,
+      "display_id": 9000003301,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002302,
+      "display_id": 9000003302,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006010,
+    "name": "reviewer",
+    "label": "Reviewer",
+    "description": "",
+    "field_type": "custom_lookup",
+    "required": false,
+    "required_for_closure": false,
+    "position": 10,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 5,
+    "lookup_config": {
+     "data_source": 5,
+     "link": "/lookup_choices?field_name=reviewer_900000777&module=change"
+    },
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006011,
+    "name": "downtime_window",
+    "label": "Downtime Window",
+    "description": "",
+    "field_type": "custom_text",
+    "required": false,
+    "required_for_closure": false,
+    "position": 11,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "22:00 - 22:30",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006012,
+    "name": "legacy_flag",
+    "label": "Legacy Flag",
+    "description": "",
+    "field_type": "custom_checkbox",
+    "required": false,
+    "required_for_closure": false,
+    "position": 12,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006013,
+    "name": "description",
+    "label": "Description",
+    "description": "",
+    "field_type": "default_description",
+    "required": true,
+    "required_for_closure": false,
+    "position": 13,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "What and why",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006014,
+    "name": "priority",
+    "label": "Priority",
+    "description": "",
+    "field_type": "default_priority",
+    "required": true,
+    "required_for_closure": false,
+    "position": 14,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     },
+     {
+      "id": 4,
+      "value": "Urgent"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Low - Can wait || Medium - Planned work || High - Revenue at risk || Urgent - Outage",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006015,
+    "name": "impact",
+    "label": "Impact",
+    "description": "",
+    "field_type": "default_impact",
+    "required": true,
+    "required_for_closure": false,
+    "position": 15,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006016,
+    "name": "risk",
+    "label": "Risk",
+    "description": "",
+    "field_type": "default_risk",
+    "required": true,
+    "required_for_closure": false,
+    "position": 16,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006017,
+    "name": "group",
+    "label": "Group",
+    "description": "",
+    "field_type": "default_group",
+    "required": false,
+    "required_for_closure": false,
+    "position": 17,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006018,
+    "name": "agent",
+    "label": "Agent",
+    "description": "",
+    "field_type": "default_agent",
+    "required": false,
+    "required_for_closure": false,
+    "position": 18,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006019,
+    "name": "planned_start_date",
+    "label": "Planned Start Date",
+    "description": "",
+    "field_type": "default_planned_start_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 19,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006020,
+    "name": "planned_end_date",
+    "label": "Planned End Date",
+    "description": "",
+    "field_type": "default_planned_end_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 20,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006021,
+    "name": "status",
+    "label": "Status",
+    "description": "",
+    "field_type": "default_status",
+    "required": true,
+    "required_for_closure": false,
+    "position": 21,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006022,
+    "name": "go_live_checklist",
+    "label": "Go-Live Checklist",
+    "description": "",
+    "field_type": "planning_field",
+    "required": false,
+    "required_for_closure": false,
+    "position": null,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   }
+  ],
+  "routes": {
+   "ws/2/business_rules": {
+    "ok": {
+     "business_rules": [
+      {
+       "id": 9000004101,
+       "name": "Cloud only: no",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "customFields.cloud_only",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "No"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.stage"
+          ],
+          "property": "populate",
+          "values": [
+           9000003112
+          ]
+         },
+         {
+          "name": [
+           "customFields.staging_start",
+           "customFields.staging_end"
+          ],
+          "property": "show"
+         },
+         {
+          "name": [
+           "customFields.staging_start",
+           "customFields.staging_end"
+          ],
+          "property": "mandate"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false,
+       "updated_at": "2030-01-03T00:00:00Z"
+      },
+      {
+       "id": 9000004102,
+       "name": "Cloud only: yes",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "customFields.cloud_only",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "Yes"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.stage"
+          ],
+          "property": "populate",
+          "values": [
+           9000003111
+          ]
+         },
+         {
+          "name": [
+           "customFields.staging_start",
+           "customFields.staging_end"
+          ],
+          "property": "hide"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false,
+       "updated_at": "2030-01-03T00:00:00Z"
+      },
+      {
+       "id": 9000004103,
+       "name": "Hide legacy flag",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": null
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.legacy_flag"
+          ],
+          "property": "hide"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false,
+       "updated_at": "2030-01-03T00:00:00Z"
+      },
+      {
+       "id": 9000004104,
+       "name": "Urgent priority",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "priority",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "4"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "Urgent changes need the duty lead's approval"
+          ],
+          "property": "message"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": true,
+       "updated_at": "2030-01-03T00:00:00Z"
+      },
+      {
+       "id": 9000004105,
+       "name": "Edit: live needs a window",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "edit_form",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "customFields.stage",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "Live"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.downtime_window"
+          ],
+          "property": "mandate"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false,
+       "updated_at": "2030-01-03T00:00:00Z"
+      }
+     ],
+     "user": {
+      "first_name": "Robin",
+      "last_name": "Agent",
+      "email": "robin.agent@example.com",
+      "time_zone": "Tokyo"
+     }
+    }
+   }
+  },
+  "user": {
+   "time_zone": "Asia/Bangkok"
+  },
+  "result": {
+   "props": [
+    {
+     "name": "requester",
+     "label": "Requester",
+     "value": "9000007001",
+     "required": true
+    },
+    {
+     "name": "change_type",
+     "label": "Change Type",
+     "value": "Normal",
+     "required": true
+    },
+    {
+     "name": "cloud_only",
+     "label": "Cloud Only",
+     "value": "Yes",
+     "required": true
+    },
+    {
+     "name": "stage",
+     "label": "Stage",
+     "value": "Live",
+     "required": false
+    },
+    {
+     "name": "services",
+     "label": "Services",
+     "value": "Billing",
+     "required": false
+    },
+    {
+     "name": "notify_ops",
+     "label": "Notify Ops Team",
+     "value": "No",
+     "required": false
+    },
+    {
+     "name": "reviewer",
+     "label": "Reviewer",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "downtime_window",
+     "label": "Downtime Window",
+     "value": "22:00 - 22:30",
+     "required": true
+    },
+    {
+     "name": "priority",
+     "label": "Priority",
+     "value": "Medium",
+     "required": true
+    },
+    {
+     "name": "impact",
+     "label": "Impact",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "risk",
+     "label": "Risk",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "group",
+     "label": "Group",
+     "value": "9000009001",
+     "required": false
+    },
+    {
+     "name": "agent",
+     "label": "Agent",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "planned_start_date",
+     "label": "Planned Start Date",
+     "value": "Tue, 26 Nov 2030 19:00",
+     "required": true
+    },
+    {
+     "name": "planned_end_date",
+     "label": "Planned End Date",
+     "value": "Tue, 26 Nov 2030 22:00",
+     "required": true
+    },
+    {
+     "name": "status",
+     "label": "Status",
+     "value": "Open",
+     "required": true
+    }
+   ],
+   "note": null
+  },
+  "calls": [
+   [
+    "int_get",
+    "ws/2/business_rules",
+    {
+     "ember_api": "true",
+     "module_type": "change",
+     "item_id": "null",
+     "requester": "",
+     "requested_for": "",
+     "include_workspace": "false",
+     "filter_by_default_form_action": "true",
+     "form_type": "edit_form",
+     "user_type": "null",
+     "module_id": "900000501",
+     "cf_name_prefix": "customFields."
+    }
+   ],
+   [
+    "int_get",
+    "bootstrap/agents_groups",
+    null
+   ]
+  ],
+  "saves": [
+   [
+    "change-rules-edit_form-ws2-900000501",
+    "form_rules"
+   ]
+  ]
+ },
+ {
+  "name": "change_no_rules",
+  "resource": "changes",
+  "record": {
+   "id": 900000501,
+   "human_display_id": "CHN-501",
+   "subject": "Billing: rotate keys",
+   "description": "<p>Rotate keys.</p>",
+   "requester_id": 9000007001,
+   "change_type": 1,
+   "priority": 2,
+   "impact": 1,
+   "risk": 1,
+   "status": 1,
+   "group_id": 9000009001,
+   "agent_id": null,
+   "planned_start_date": "2030-11-26T12:00:00Z",
+   "planned_end_date": "2030-11-26T15:00:00Z",
+   "custom_fields": {
+    "cloud_only": "Yes",
+    "stage": "Live",
+    "services": [
+     "Billing"
+    ],
+    "notify_ops": "No",
+    "downtime_window": "22:00 - 22:30",
+    "reviewer": null,
+    "legacy_flag": false,
+    "staging_start": null,
+    "staging_end": null
+   }
+  },
+  "fields": [
+   {
+    "id": 9000006001,
+    "name": "requester",
+    "label": "Requester",
+    "description": "",
+    "field_type": "default_requester",
+    "required": true,
+    "required_for_closure": false,
+    "position": 1,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006002,
+    "name": "subject",
+    "label": "Subject",
+    "description": "",
+    "field_type": "default_subject",
+    "required": true,
+    "required_for_closure": false,
+    "position": 2,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "Service: objective",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006003,
+    "name": "change_type",
+    "label": "Change Type",
+    "description": "",
+    "field_type": "default_change_type",
+    "required": true,
+    "required_for_closure": false,
+    "position": 3,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Normal"
+     },
+     {
+      "id": 2,
+      "value": "Standard"
+     },
+     {
+      "id": 4,
+      "value": "Emergency"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006004,
+    "name": "cloud_only",
+    "label": "Cloud Only",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": true,
+    "required_for_closure": false,
+    "position": 4,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002101,
+      "display_id": 9000003101,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002102,
+      "display_id": 9000003102,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Only the cloud team performs this change",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006005,
+    "name": "stage",
+    "label": "Stage",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 5,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002111,
+      "display_id": 9000003111,
+      "value": "Live",
+      "label": "Live"
+     },
+     {
+      "id": 9000002112,
+      "display_id": 9000003112,
+      "value": "Staging",
+      "label": "Staging"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006006,
+    "name": "staging_start",
+    "label": "Staging Start",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 6,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006007,
+    "name": "staging_end",
+    "label": "Staging End",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 7,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006008,
+    "name": "services",
+    "label": "Services",
+    "description": "",
+    "field_type": "custom_multi_select_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 8,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002200,
+      "display_id": 9000003200,
+      "value": "Billing",
+      "label": "Billing"
+     },
+     {
+      "id": 9000002201,
+      "display_id": 9000003201,
+      "value": "Search",
+      "label": "Search"
+     },
+     {
+      "id": 9000002202,
+      "display_id": 9000003202,
+      "value": "Reports",
+      "label": "Reports"
+     },
+     {
+      "id": 9000002203,
+      "display_id": 9000003203,
+      "value": "Ledger",
+      "label": "Ledger"
+     },
+     {
+      "id": 9000002204,
+      "display_id": 9000003204,
+      "value": "Mail",
+      "label": "Mail"
+     },
+     {
+      "id": 9000002205,
+      "display_id": 9000003205,
+      "value": "Chat",
+      "label": "Chat"
+     },
+     {
+      "id": 9000002206,
+      "display_id": 9000003206,
+      "value": "Docs",
+      "label": "Docs"
+     },
+     {
+      "id": 9000002207,
+      "display_id": 9000003207,
+      "value": "Wiki",
+      "label": "Wiki"
+     },
+     {
+      "id": 9000002208,
+      "display_id": 9000003208,
+      "value": "Pager",
+      "label": "Pager"
+     },
+     {
+      "id": 9000002209,
+      "display_id": 9000003209,
+      "value": "Auth",
+      "label": "Auth"
+     },
+     {
+      "id": 9000002210,
+      "display_id": 9000003210,
+      "value": "Queue",
+      "label": "Queue"
+     },
+     {
+      "id": 9000002211,
+      "display_id": 9000003211,
+      "value": "Cache",
+      "label": "Cache"
+     },
+     {
+      "id": 9000002212,
+      "display_id": 9000003212,
+      "value": "Storage",
+      "label": "Storage"
+     },
+     {
+      "id": 9000002213,
+      "display_id": 9000003213,
+      "value": "Metrics",
+      "label": "Metrics"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006009,
+    "name": "notify_ops",
+    "label": "Notify Ops Team",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 9,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002301,
+      "display_id": 9000003301,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002302,
+      "display_id": 9000003302,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006010,
+    "name": "reviewer",
+    "label": "Reviewer",
+    "description": "",
+    "field_type": "custom_lookup",
+    "required": false,
+    "required_for_closure": false,
+    "position": 10,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 5,
+    "lookup_config": {
+     "data_source": 5,
+     "link": "/lookup_choices?field_name=reviewer_900000777&module=change"
+    },
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006011,
+    "name": "downtime_window",
+    "label": "Downtime Window",
+    "description": "",
+    "field_type": "custom_text",
+    "required": false,
+    "required_for_closure": false,
+    "position": 11,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "22:00 - 22:30",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006012,
+    "name": "legacy_flag",
+    "label": "Legacy Flag",
+    "description": "",
+    "field_type": "custom_checkbox",
+    "required": false,
+    "required_for_closure": false,
+    "position": 12,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006013,
+    "name": "description",
+    "label": "Description",
+    "description": "",
+    "field_type": "default_description",
+    "required": true,
+    "required_for_closure": false,
+    "position": 13,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "What and why",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006014,
+    "name": "priority",
+    "label": "Priority",
+    "description": "",
+    "field_type": "default_priority",
+    "required": true,
+    "required_for_closure": false,
+    "position": 14,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     },
+     {
+      "id": 4,
+      "value": "Urgent"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Low - Can wait || Medium - Planned work || High - Revenue at risk || Urgent - Outage",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006015,
+    "name": "impact",
+    "label": "Impact",
+    "description": "",
+    "field_type": "default_impact",
+    "required": true,
+    "required_for_closure": false,
+    "position": 15,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006016,
+    "name": "risk",
+    "label": "Risk",
+    "description": "",
+    "field_type": "default_risk",
+    "required": true,
+    "required_for_closure": false,
+    "position": 16,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006017,
+    "name": "group",
+    "label": "Group",
+    "description": "",
+    "field_type": "default_group",
+    "required": false,
+    "required_for_closure": false,
+    "position": 17,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006018,
+    "name": "agent",
+    "label": "Agent",
+    "description": "",
+    "field_type": "default_agent",
+    "required": false,
+    "required_for_closure": false,
+    "position": 18,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006019,
+    "name": "planned_start_date",
+    "label": "Planned Start Date",
+    "description": "",
+    "field_type": "default_planned_start_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 19,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006020,
+    "name": "planned_end_date",
+    "label": "Planned End Date",
+    "description": "",
+    "field_type": "default_planned_end_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 20,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006021,
+    "name": "status",
+    "label": "Status",
+    "description": "",
+    "field_type": "default_status",
+    "required": true,
+    "required_for_closure": false,
+    "position": 21,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006022,
+    "name": "go_live_checklist",
+    "label": "Go-Live Checklist",
+    "description": "",
+    "field_type": "planning_field",
+    "required": false,
+    "required_for_closure": false,
+    "position": null,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   }
+  ],
+  "routes": {},
+  "user": {
+   "time_zone": "Asia/Bangkok"
+  },
+  "result": {
+   "props": [
+    {
+     "name": "requester",
+     "label": "Requester",
+     "value": "9000007001",
+     "required": true
+    },
+    {
+     "name": "change_type",
+     "label": "Change Type",
+     "value": "Normal",
+     "required": true
+    },
+    {
+     "name": "cloud_only",
+     "label": "Cloud Only",
+     "value": "Yes",
+     "required": true
+    },
+    {
+     "name": "stage",
+     "label": "Stage",
+     "value": "Live",
+     "required": false
+    },
+    {
+     "name": "staging_start",
+     "label": "Staging Start",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "staging_end",
+     "label": "Staging End",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "services",
+     "label": "Services",
+     "value": "Billing",
+     "required": false
+    },
+    {
+     "name": "notify_ops",
+     "label": "Notify Ops Team",
+     "value": "No",
+     "required": false
+    },
+    {
+     "name": "reviewer",
+     "label": "Reviewer",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "downtime_window",
+     "label": "Downtime Window",
+     "value": "22:00 - 22:30",
+     "required": false
+    },
+    {
+     "name": "legacy_flag",
+     "label": "Legacy Flag",
+     "value": "No",
+     "required": false
+    },
+    {
+     "name": "priority",
+     "label": "Priority",
+     "value": "Medium",
+     "required": true
+    },
+    {
+     "name": "impact",
+     "label": "Impact",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "risk",
+     "label": "Risk",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "group",
+     "label": "Group",
+     "value": "9000009001",
+     "required": false
+    },
+    {
+     "name": "agent",
+     "label": "Agent",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "planned_start_date",
+     "label": "Planned Start Date",
+     "value": "Tue, 26 Nov 2030 19:00",
+     "required": true
+    },
+    {
+     "name": "planned_end_date",
+     "label": "Planned End Date",
+     "value": "Tue, 26 Nov 2030 22:00",
+     "required": true
+    },
+    {
+     "name": "status",
+     "label": "Status",
+     "value": "Open",
+     "required": true
+    }
+   ],
+   "note": "static field visibility (business rules: not available on this account (404))"
+  },
+  "calls": [
+   [
+    "int_get",
+    "ws/2/business_rules",
+    {
+     "ember_api": "true",
+     "module_type": "change",
+     "item_id": "null",
+     "requester": "",
+     "requested_for": "",
+     "include_workspace": "false",
+     "filter_by_default_form_action": "true",
+     "form_type": "edit_form",
+     "user_type": "null",
+     "module_id": "900000501",
+     "cf_name_prefix": "customFields."
+    }
+   ],
+   [
+    "int_get",
+    "bootstrap/me",
+    null
+   ],
+   [
+    "int_get",
+    "workspaces",
+    null
+   ],
+   [
+    "int_get",
+    "business_rules",
+    {
+     "ember_api": "true",
+     "module_type": "change",
+     "item_id": "null",
+     "requester": "",
+     "requested_for": "",
+     "include_workspace": "false",
+     "filter_by_default_form_action": "true",
+     "form_type": "edit_form",
+     "user_type": "null",
+     "module_id": "900000501",
+     "cf_name_prefix": "customFields."
+    }
+   ],
+   [
+    "int_get",
+    "bootstrap/agents_groups",
+    null
+   ]
+  ],
+  "saves": []
+ },
+ {
+  "name": "change_rules_500",
+  "resource": "changes",
+  "record": {
+   "id": 900000501,
+   "human_display_id": "CHN-501",
+   "subject": "Billing: rotate keys",
+   "description": "<p>Rotate keys.</p>",
+   "requester_id": 9000007001,
+   "change_type": 1,
+   "priority": 2,
+   "impact": 1,
+   "risk": 1,
+   "status": 1,
+   "group_id": 9000009001,
+   "agent_id": null,
+   "planned_start_date": "2030-11-26T12:00:00Z",
+   "planned_end_date": "2030-11-26T15:00:00Z",
+   "custom_fields": {
+    "cloud_only": "Yes",
+    "stage": "Live",
+    "services": [
+     "Billing"
+    ],
+    "notify_ops": "No",
+    "downtime_window": "22:00 - 22:30",
+    "reviewer": null,
+    "legacy_flag": false,
+    "staging_start": null,
+    "staging_end": null
+   }
+  },
+  "fields": [
+   {
+    "id": 9000006001,
+    "name": "requester",
+    "label": "Requester",
+    "description": "",
+    "field_type": "default_requester",
+    "required": true,
+    "required_for_closure": false,
+    "position": 1,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006002,
+    "name": "subject",
+    "label": "Subject",
+    "description": "",
+    "field_type": "default_subject",
+    "required": true,
+    "required_for_closure": false,
+    "position": 2,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "Service: objective",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006003,
+    "name": "change_type",
+    "label": "Change Type",
+    "description": "",
+    "field_type": "default_change_type",
+    "required": true,
+    "required_for_closure": false,
+    "position": 3,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Normal"
+     },
+     {
+      "id": 2,
+      "value": "Standard"
+     },
+     {
+      "id": 4,
+      "value": "Emergency"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006004,
+    "name": "cloud_only",
+    "label": "Cloud Only",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": true,
+    "required_for_closure": false,
+    "position": 4,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002101,
+      "display_id": 9000003101,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002102,
+      "display_id": 9000003102,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Only the cloud team performs this change",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006005,
+    "name": "stage",
+    "label": "Stage",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 5,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002111,
+      "display_id": 9000003111,
+      "value": "Live",
+      "label": "Live"
+     },
+     {
+      "id": 9000002112,
+      "display_id": 9000003112,
+      "value": "Staging",
+      "label": "Staging"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006006,
+    "name": "staging_start",
+    "label": "Staging Start",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 6,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006007,
+    "name": "staging_end",
+    "label": "Staging End",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 7,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006008,
+    "name": "services",
+    "label": "Services",
+    "description": "",
+    "field_type": "custom_multi_select_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 8,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002200,
+      "display_id": 9000003200,
+      "value": "Billing",
+      "label": "Billing"
+     },
+     {
+      "id": 9000002201,
+      "display_id": 9000003201,
+      "value": "Search",
+      "label": "Search"
+     },
+     {
+      "id": 9000002202,
+      "display_id": 9000003202,
+      "value": "Reports",
+      "label": "Reports"
+     },
+     {
+      "id": 9000002203,
+      "display_id": 9000003203,
+      "value": "Ledger",
+      "label": "Ledger"
+     },
+     {
+      "id": 9000002204,
+      "display_id": 9000003204,
+      "value": "Mail",
+      "label": "Mail"
+     },
+     {
+      "id": 9000002205,
+      "display_id": 9000003205,
+      "value": "Chat",
+      "label": "Chat"
+     },
+     {
+      "id": 9000002206,
+      "display_id": 9000003206,
+      "value": "Docs",
+      "label": "Docs"
+     },
+     {
+      "id": 9000002207,
+      "display_id": 9000003207,
+      "value": "Wiki",
+      "label": "Wiki"
+     },
+     {
+      "id": 9000002208,
+      "display_id": 9000003208,
+      "value": "Pager",
+      "label": "Pager"
+     },
+     {
+      "id": 9000002209,
+      "display_id": 9000003209,
+      "value": "Auth",
+      "label": "Auth"
+     },
+     {
+      "id": 9000002210,
+      "display_id": 9000003210,
+      "value": "Queue",
+      "label": "Queue"
+     },
+     {
+      "id": 9000002211,
+      "display_id": 9000003211,
+      "value": "Cache",
+      "label": "Cache"
+     },
+     {
+      "id": 9000002212,
+      "display_id": 9000003212,
+      "value": "Storage",
+      "label": "Storage"
+     },
+     {
+      "id": 9000002213,
+      "display_id": 9000003213,
+      "value": "Metrics",
+      "label": "Metrics"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006009,
+    "name": "notify_ops",
+    "label": "Notify Ops Team",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 9,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002301,
+      "display_id": 9000003301,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002302,
+      "display_id": 9000003302,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006010,
+    "name": "reviewer",
+    "label": "Reviewer",
+    "description": "",
+    "field_type": "custom_lookup",
+    "required": false,
+    "required_for_closure": false,
+    "position": 10,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 5,
+    "lookup_config": {
+     "data_source": 5,
+     "link": "/lookup_choices?field_name=reviewer_900000777&module=change"
+    },
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006011,
+    "name": "downtime_window",
+    "label": "Downtime Window",
+    "description": "",
+    "field_type": "custom_text",
+    "required": false,
+    "required_for_closure": false,
+    "position": 11,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "22:00 - 22:30",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006012,
+    "name": "legacy_flag",
+    "label": "Legacy Flag",
+    "description": "",
+    "field_type": "custom_checkbox",
+    "required": false,
+    "required_for_closure": false,
+    "position": 12,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006013,
+    "name": "description",
+    "label": "Description",
+    "description": "",
+    "field_type": "default_description",
+    "required": true,
+    "required_for_closure": false,
+    "position": 13,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "What and why",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006014,
+    "name": "priority",
+    "label": "Priority",
+    "description": "",
+    "field_type": "default_priority",
+    "required": true,
+    "required_for_closure": false,
+    "position": 14,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     },
+     {
+      "id": 4,
+      "value": "Urgent"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Low - Can wait || Medium - Planned work || High - Revenue at risk || Urgent - Outage",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006015,
+    "name": "impact",
+    "label": "Impact",
+    "description": "",
+    "field_type": "default_impact",
+    "required": true,
+    "required_for_closure": false,
+    "position": 15,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006016,
+    "name": "risk",
+    "label": "Risk",
+    "description": "",
+    "field_type": "default_risk",
+    "required": true,
+    "required_for_closure": false,
+    "position": 16,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006017,
+    "name": "group",
+    "label": "Group",
+    "description": "",
+    "field_type": "default_group",
+    "required": false,
+    "required_for_closure": false,
+    "position": 17,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006018,
+    "name": "agent",
+    "label": "Agent",
+    "description": "",
+    "field_type": "default_agent",
+    "required": false,
+    "required_for_closure": false,
+    "position": 18,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006019,
+    "name": "planned_start_date",
+    "label": "Planned Start Date",
+    "description": "",
+    "field_type": "default_planned_start_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 19,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006020,
+    "name": "planned_end_date",
+    "label": "Planned End Date",
+    "description": "",
+    "field_type": "default_planned_end_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 20,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006021,
+    "name": "status",
+    "label": "Status",
+    "description": "",
+    "field_type": "default_status",
+    "required": true,
+    "required_for_closure": false,
+    "position": 21,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006022,
+    "name": "go_live_checklist",
+    "label": "Go-Live Checklist",
+    "description": "",
+    "field_type": "planning_field",
+    "required": false,
+    "required_for_closure": false,
+    "position": null,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   }
+  ],
+  "routes": {
+   "ws/2/business_rules": {
+    "api": 500
+   }
+  },
+  "user": {
+   "time_zone": "Asia/Bangkok"
+  },
+  "result": {
+   "props": [
+    {
+     "name": "requester",
+     "label": "Requester",
+     "value": "9000007001",
+     "required": true
+    },
+    {
+     "name": "change_type",
+     "label": "Change Type",
+     "value": "Normal",
+     "required": true
+    },
+    {
+     "name": "cloud_only",
+     "label": "Cloud Only",
+     "value": "Yes",
+     "required": true
+    },
+    {
+     "name": "stage",
+     "label": "Stage",
+     "value": "Live",
+     "required": false
+    },
+    {
+     "name": "staging_start",
+     "label": "Staging Start",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "staging_end",
+     "label": "Staging End",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "services",
+     "label": "Services",
+     "value": "Billing",
+     "required": false
+    },
+    {
+     "name": "notify_ops",
+     "label": "Notify Ops Team",
+     "value": "No",
+     "required": false
+    },
+    {
+     "name": "reviewer",
+     "label": "Reviewer",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "downtime_window",
+     "label": "Downtime Window",
+     "value": "22:00 - 22:30",
+     "required": false
+    },
+    {
+     "name": "legacy_flag",
+     "label": "Legacy Flag",
+     "value": "No",
+     "required": false
+    },
+    {
+     "name": "priority",
+     "label": "Priority",
+     "value": "Medium",
+     "required": true
+    },
+    {
+     "name": "impact",
+     "label": "Impact",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "risk",
+     "label": "Risk",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "group",
+     "label": "Group",
+     "value": "9000009001",
+     "required": false
+    },
+    {
+     "name": "agent",
+     "label": "Agent",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "planned_start_date",
+     "label": "Planned Start Date",
+     "value": "Tue, 26 Nov 2030 19:00",
+     "required": true
+    },
+    {
+     "name": "planned_end_date",
+     "label": "Planned End Date",
+     "value": "Tue, 26 Nov 2030 22:00",
+     "required": true
+    },
+    {
+     "name": "status",
+     "label": "Status",
+     "value": "Open",
+     "required": true
+    }
+   ],
+   "note": "static field visibility (business rules: unavailable (500))"
+  },
+  "calls": [
+   [
+    "int_get",
+    "ws/2/business_rules",
+    {
+     "ember_api": "true",
+     "module_type": "change",
+     "item_id": "null",
+     "requester": "",
+     "requested_for": "",
+     "include_workspace": "false",
+     "filter_by_default_form_action": "true",
+     "form_type": "edit_form",
+     "user_type": "null",
+     "module_id": "900000501",
+     "cf_name_prefix": "customFields."
+    }
+   ],
+   [
+    "int_get",
+    "bootstrap/agents_groups",
+    null
+   ]
+  ],
+  "saves": []
+ },
+ {
+  "name": "change_session",
+  "resource": "changes",
+  "record": {
+   "id": 900000501,
+   "human_display_id": "CHN-501",
+   "subject": "Billing: rotate keys",
+   "description": "<p>Rotate keys.</p>",
+   "requester_id": 9000007001,
+   "change_type": 1,
+   "priority": 2,
+   "impact": 1,
+   "risk": 1,
+   "status": 1,
+   "group_id": 9000009001,
+   "agent_id": null,
+   "planned_start_date": "2030-11-26T12:00:00Z",
+   "planned_end_date": "2030-11-26T15:00:00Z",
+   "custom_fields": {
+    "cloud_only": "Yes",
+    "stage": "Live",
+    "services": [
+     "Billing"
+    ],
+    "notify_ops": "No",
+    "downtime_window": "22:00 - 22:30",
+    "reviewer": null,
+    "legacy_flag": false,
+    "staging_start": null,
+    "staging_end": null
+   }
+  },
+  "fields": [
+   {
+    "id": 9000006001,
+    "name": "requester",
+    "label": "Requester",
+    "description": "",
+    "field_type": "default_requester",
+    "required": true,
+    "required_for_closure": false,
+    "position": 1,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006002,
+    "name": "subject",
+    "label": "Subject",
+    "description": "",
+    "field_type": "default_subject",
+    "required": true,
+    "required_for_closure": false,
+    "position": 2,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "Service: objective",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006003,
+    "name": "change_type",
+    "label": "Change Type",
+    "description": "",
+    "field_type": "default_change_type",
+    "required": true,
+    "required_for_closure": false,
+    "position": 3,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Normal"
+     },
+     {
+      "id": 2,
+      "value": "Standard"
+     },
+     {
+      "id": 4,
+      "value": "Emergency"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006004,
+    "name": "cloud_only",
+    "label": "Cloud Only",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": true,
+    "required_for_closure": false,
+    "position": 4,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002101,
+      "display_id": 9000003101,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002102,
+      "display_id": 9000003102,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Only the cloud team performs this change",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006005,
+    "name": "stage",
+    "label": "Stage",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 5,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002111,
+      "display_id": 9000003111,
+      "value": "Live",
+      "label": "Live"
+     },
+     {
+      "id": 9000002112,
+      "display_id": 9000003112,
+      "value": "Staging",
+      "label": "Staging"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006006,
+    "name": "staging_start",
+    "label": "Staging Start",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 6,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006007,
+    "name": "staging_end",
+    "label": "Staging End",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 7,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006008,
+    "name": "services",
+    "label": "Services",
+    "description": "",
+    "field_type": "custom_multi_select_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 8,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002200,
+      "display_id": 9000003200,
+      "value": "Billing",
+      "label": "Billing"
+     },
+     {
+      "id": 9000002201,
+      "display_id": 9000003201,
+      "value": "Search",
+      "label": "Search"
+     },
+     {
+      "id": 9000002202,
+      "display_id": 9000003202,
+      "value": "Reports",
+      "label": "Reports"
+     },
+     {
+      "id": 9000002203,
+      "display_id": 9000003203,
+      "value": "Ledger",
+      "label": "Ledger"
+     },
+     {
+      "id": 9000002204,
+      "display_id": 9000003204,
+      "value": "Mail",
+      "label": "Mail"
+     },
+     {
+      "id": 9000002205,
+      "display_id": 9000003205,
+      "value": "Chat",
+      "label": "Chat"
+     },
+     {
+      "id": 9000002206,
+      "display_id": 9000003206,
+      "value": "Docs",
+      "label": "Docs"
+     },
+     {
+      "id": 9000002207,
+      "display_id": 9000003207,
+      "value": "Wiki",
+      "label": "Wiki"
+     },
+     {
+      "id": 9000002208,
+      "display_id": 9000003208,
+      "value": "Pager",
+      "label": "Pager"
+     },
+     {
+      "id": 9000002209,
+      "display_id": 9000003209,
+      "value": "Auth",
+      "label": "Auth"
+     },
+     {
+      "id": 9000002210,
+      "display_id": 9000003210,
+      "value": "Queue",
+      "label": "Queue"
+     },
+     {
+      "id": 9000002211,
+      "display_id": 9000003211,
+      "value": "Cache",
+      "label": "Cache"
+     },
+     {
+      "id": 9000002212,
+      "display_id": 9000003212,
+      "value": "Storage",
+      "label": "Storage"
+     },
+     {
+      "id": 9000002213,
+      "display_id": 9000003213,
+      "value": "Metrics",
+      "label": "Metrics"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006009,
+    "name": "notify_ops",
+    "label": "Notify Ops Team",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 9,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002301,
+      "display_id": 9000003301,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002302,
+      "display_id": 9000003302,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006010,
+    "name": "reviewer",
+    "label": "Reviewer",
+    "description": "",
+    "field_type": "custom_lookup",
+    "required": false,
+    "required_for_closure": false,
+    "position": 10,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 5,
+    "lookup_config": {
+     "data_source": 5,
+     "link": "/lookup_choices?field_name=reviewer_900000777&module=change"
+    },
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006011,
+    "name": "downtime_window",
+    "label": "Downtime Window",
+    "description": "",
+    "field_type": "custom_text",
+    "required": false,
+    "required_for_closure": false,
+    "position": 11,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "22:00 - 22:30",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006012,
+    "name": "legacy_flag",
+    "label": "Legacy Flag",
+    "description": "",
+    "field_type": "custom_checkbox",
+    "required": false,
+    "required_for_closure": false,
+    "position": 12,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006013,
+    "name": "description",
+    "label": "Description",
+    "description": "",
+    "field_type": "default_description",
+    "required": true,
+    "required_for_closure": false,
+    "position": 13,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "What and why",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006014,
+    "name": "priority",
+    "label": "Priority",
+    "description": "",
+    "field_type": "default_priority",
+    "required": true,
+    "required_for_closure": false,
+    "position": 14,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     },
+     {
+      "id": 4,
+      "value": "Urgent"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Low - Can wait || Medium - Planned work || High - Revenue at risk || Urgent - Outage",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006015,
+    "name": "impact",
+    "label": "Impact",
+    "description": "",
+    "field_type": "default_impact",
+    "required": true,
+    "required_for_closure": false,
+    "position": 15,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006016,
+    "name": "risk",
+    "label": "Risk",
+    "description": "",
+    "field_type": "default_risk",
+    "required": true,
+    "required_for_closure": false,
+    "position": 16,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006017,
+    "name": "group",
+    "label": "Group",
+    "description": "",
+    "field_type": "default_group",
+    "required": false,
+    "required_for_closure": false,
+    "position": 17,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006018,
+    "name": "agent",
+    "label": "Agent",
+    "description": "",
+    "field_type": "default_agent",
+    "required": false,
+    "required_for_closure": false,
+    "position": 18,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006019,
+    "name": "planned_start_date",
+    "label": "Planned Start Date",
+    "description": "",
+    "field_type": "default_planned_start_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 19,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006020,
+    "name": "planned_end_date",
+    "label": "Planned End Date",
+    "description": "",
+    "field_type": "default_planned_end_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 20,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006021,
+    "name": "status",
+    "label": "Status",
+    "description": "",
+    "field_type": "default_status",
+    "required": true,
+    "required_for_closure": false,
+    "position": 21,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006022,
+    "name": "go_live_checklist",
+    "label": "Go-Live Checklist",
+    "description": "",
+    "field_type": "planning_field",
+    "required": false,
+    "required_for_closure": false,
+    "position": null,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   }
+  ],
+  "routes": {
+   "ws/2/business_rules": {
+    "session": "expired"
+   }
+  },
+  "user": {
+   "time_zone": "Asia/Bangkok"
+  },
+  "result": {
+   "session": "expired"
+  },
+  "calls": [
+   [
+    "int_get",
+    "ws/2/business_rules",
+    {
+     "ember_api": "true",
+     "module_type": "change",
+     "item_id": "null",
+     "requester": "",
+     "requested_for": "",
+     "include_workspace": "false",
+     "filter_by_default_form_action": "true",
+     "form_type": "edit_form",
+     "user_type": "null",
+     "module_id": "900000501",
+     "cf_name_prefix": "customFields."
+    }
+   ]
+  ],
+  "saves": []
+ },
+ {
+  "name": "change_empty_rules",
+  "resource": "changes",
+  "record": {
+   "id": 900000501,
+   "human_display_id": "CHN-501",
+   "subject": "Billing: rotate keys",
+   "description": "<p>Rotate keys.</p>",
+   "requester_id": 9000007001,
+   "change_type": 1,
+   "priority": 2,
+   "impact": 1,
+   "risk": 1,
+   "status": 1,
+   "group_id": 9000009001,
+   "agent_id": null,
+   "planned_start_date": "2030-11-26T12:00:00Z",
+   "planned_end_date": "2030-11-26T15:00:00Z",
+   "custom_fields": {
+    "cloud_only": "Yes",
+    "stage": "Live",
+    "services": [
+     "Billing"
+    ],
+    "notify_ops": "No",
+    "downtime_window": "22:00 - 22:30",
+    "reviewer": null,
+    "legacy_flag": false,
+    "staging_start": null,
+    "staging_end": null
+   }
+  },
+  "fields": [
+   {
+    "id": 9000006001,
+    "name": "requester",
+    "label": "Requester",
+    "description": "",
+    "field_type": "default_requester",
+    "required": true,
+    "required_for_closure": false,
+    "position": 1,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006002,
+    "name": "subject",
+    "label": "Subject",
+    "description": "",
+    "field_type": "default_subject",
+    "required": true,
+    "required_for_closure": false,
+    "position": 2,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "Service: objective",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006003,
+    "name": "change_type",
+    "label": "Change Type",
+    "description": "",
+    "field_type": "default_change_type",
+    "required": true,
+    "required_for_closure": false,
+    "position": 3,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Normal"
+     },
+     {
+      "id": 2,
+      "value": "Standard"
+     },
+     {
+      "id": 4,
+      "value": "Emergency"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006004,
+    "name": "cloud_only",
+    "label": "Cloud Only",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": true,
+    "required_for_closure": false,
+    "position": 4,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002101,
+      "display_id": 9000003101,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002102,
+      "display_id": 9000003102,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Only the cloud team performs this change",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006005,
+    "name": "stage",
+    "label": "Stage",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 5,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002111,
+      "display_id": 9000003111,
+      "value": "Live",
+      "label": "Live"
+     },
+     {
+      "id": 9000002112,
+      "display_id": 9000003112,
+      "value": "Staging",
+      "label": "Staging"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006006,
+    "name": "staging_start",
+    "label": "Staging Start",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 6,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006007,
+    "name": "staging_end",
+    "label": "Staging End",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 7,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006008,
+    "name": "services",
+    "label": "Services",
+    "description": "",
+    "field_type": "custom_multi_select_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 8,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002200,
+      "display_id": 9000003200,
+      "value": "Billing",
+      "label": "Billing"
+     },
+     {
+      "id": 9000002201,
+      "display_id": 9000003201,
+      "value": "Search",
+      "label": "Search"
+     },
+     {
+      "id": 9000002202,
+      "display_id": 9000003202,
+      "value": "Reports",
+      "label": "Reports"
+     },
+     {
+      "id": 9000002203,
+      "display_id": 9000003203,
+      "value": "Ledger",
+      "label": "Ledger"
+     },
+     {
+      "id": 9000002204,
+      "display_id": 9000003204,
+      "value": "Mail",
+      "label": "Mail"
+     },
+     {
+      "id": 9000002205,
+      "display_id": 9000003205,
+      "value": "Chat",
+      "label": "Chat"
+     },
+     {
+      "id": 9000002206,
+      "display_id": 9000003206,
+      "value": "Docs",
+      "label": "Docs"
+     },
+     {
+      "id": 9000002207,
+      "display_id": 9000003207,
+      "value": "Wiki",
+      "label": "Wiki"
+     },
+     {
+      "id": 9000002208,
+      "display_id": 9000003208,
+      "value": "Pager",
+      "label": "Pager"
+     },
+     {
+      "id": 9000002209,
+      "display_id": 9000003209,
+      "value": "Auth",
+      "label": "Auth"
+     },
+     {
+      "id": 9000002210,
+      "display_id": 9000003210,
+      "value": "Queue",
+      "label": "Queue"
+     },
+     {
+      "id": 9000002211,
+      "display_id": 9000003211,
+      "value": "Cache",
+      "label": "Cache"
+     },
+     {
+      "id": 9000002212,
+      "display_id": 9000003212,
+      "value": "Storage",
+      "label": "Storage"
+     },
+     {
+      "id": 9000002213,
+      "display_id": 9000003213,
+      "value": "Metrics",
+      "label": "Metrics"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006009,
+    "name": "notify_ops",
+    "label": "Notify Ops Team",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 9,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002301,
+      "display_id": 9000003301,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002302,
+      "display_id": 9000003302,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006010,
+    "name": "reviewer",
+    "label": "Reviewer",
+    "description": "",
+    "field_type": "custom_lookup",
+    "required": false,
+    "required_for_closure": false,
+    "position": 10,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 5,
+    "lookup_config": {
+     "data_source": 5,
+     "link": "/lookup_choices?field_name=reviewer_900000777&module=change"
+    },
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006011,
+    "name": "downtime_window",
+    "label": "Downtime Window",
+    "description": "",
+    "field_type": "custom_text",
+    "required": false,
+    "required_for_closure": false,
+    "position": 11,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "22:00 - 22:30",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006012,
+    "name": "legacy_flag",
+    "label": "Legacy Flag",
+    "description": "",
+    "field_type": "custom_checkbox",
+    "required": false,
+    "required_for_closure": false,
+    "position": 12,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006013,
+    "name": "description",
+    "label": "Description",
+    "description": "",
+    "field_type": "default_description",
+    "required": true,
+    "required_for_closure": false,
+    "position": 13,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "What and why",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006014,
+    "name": "priority",
+    "label": "Priority",
+    "description": "",
+    "field_type": "default_priority",
+    "required": true,
+    "required_for_closure": false,
+    "position": 14,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     },
+     {
+      "id": 4,
+      "value": "Urgent"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Low - Can wait || Medium - Planned work || High - Revenue at risk || Urgent - Outage",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006015,
+    "name": "impact",
+    "label": "Impact",
+    "description": "",
+    "field_type": "default_impact",
+    "required": true,
+    "required_for_closure": false,
+    "position": 15,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006016,
+    "name": "risk",
+    "label": "Risk",
+    "description": "",
+    "field_type": "default_risk",
+    "required": true,
+    "required_for_closure": false,
+    "position": 16,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006017,
+    "name": "group",
+    "label": "Group",
+    "description": "",
+    "field_type": "default_group",
+    "required": false,
+    "required_for_closure": false,
+    "position": 17,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006018,
+    "name": "agent",
+    "label": "Agent",
+    "description": "",
+    "field_type": "default_agent",
+    "required": false,
+    "required_for_closure": false,
+    "position": 18,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006019,
+    "name": "planned_start_date",
+    "label": "Planned Start Date",
+    "description": "",
+    "field_type": "default_planned_start_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 19,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006020,
+    "name": "planned_end_date",
+    "label": "Planned End Date",
+    "description": "",
+    "field_type": "default_planned_end_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 20,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006021,
+    "name": "status",
+    "label": "Status",
+    "description": "",
+    "field_type": "default_status",
+    "required": true,
+    "required_for_closure": false,
+    "position": 21,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006022,
+    "name": "go_live_checklist",
+    "label": "Go-Live Checklist",
+    "description": "",
+    "field_type": "planning_field",
+    "required": false,
+    "required_for_closure": false,
+    "position": null,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   }
+  ],
+  "routes": {
+   "ws/2/business_rules": {
+    "ok": {
+     "business_rules": [],
+     "user": null
+    }
+   }
+  },
+  "user": null,
+  "result": {
+   "props": [
+    {
+     "name": "requester",
+     "label": "Requester",
+     "value": "9000007001",
+     "required": true
+    },
+    {
+     "name": "change_type",
+     "label": "Change Type",
+     "value": "Normal",
+     "required": true
+    },
+    {
+     "name": "cloud_only",
+     "label": "Cloud Only",
+     "value": "Yes",
+     "required": true
+    },
+    {
+     "name": "stage",
+     "label": "Stage",
+     "value": "Live",
+     "required": false
+    },
+    {
+     "name": "staging_start",
+     "label": "Staging Start",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "staging_end",
+     "label": "Staging End",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "services",
+     "label": "Services",
+     "value": "Billing",
+     "required": false
+    },
+    {
+     "name": "notify_ops",
+     "label": "Notify Ops Team",
+     "value": "No",
+     "required": false
+    },
+    {
+     "name": "reviewer",
+     "label": "Reviewer",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "downtime_window",
+     "label": "Downtime Window",
+     "value": "22:00 - 22:30",
+     "required": false
+    },
+    {
+     "name": "legacy_flag",
+     "label": "Legacy Flag",
+     "value": "No",
+     "required": false
+    },
+    {
+     "name": "priority",
+     "label": "Priority",
+     "value": "Medium",
+     "required": true
+    },
+    {
+     "name": "impact",
+     "label": "Impact",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "risk",
+     "label": "Risk",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "group",
+     "label": "Group",
+     "value": "9000009001",
+     "required": false
+    },
+    {
+     "name": "agent",
+     "label": "Agent",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "planned_start_date",
+     "label": "Planned Start Date",
+     "value": "Tue, 26 Nov 2030 19:00",
+     "required": true
+    },
+    {
+     "name": "planned_end_date",
+     "label": "Planned End Date",
+     "value": "Tue, 26 Nov 2030 22:00",
+     "required": true
+    },
+    {
+     "name": "status",
+     "label": "Status",
+     "value": "Open",
+     "required": true
+    }
+   ],
+   "note": null
+  },
+  "calls": [
+   [
+    "int_get",
+    "ws/2/business_rules",
+    {
+     "ember_api": "true",
+     "module_type": "change",
+     "item_id": "null",
+     "requester": "",
+     "requested_for": "",
+     "include_workspace": "false",
+     "filter_by_default_form_action": "true",
+     "form_type": "edit_form",
+     "user_type": "null",
+     "module_id": "900000501",
+     "cf_name_prefix": "customFields."
+    }
+   ],
+   [
+    "int_get",
+    "bootstrap/agents_groups",
+    null
+   ]
+  ],
+  "saves": []
+ },
+ {
+  "name": "change_cached",
+  "resource": "changes",
+  "record": {
+   "id": 900000501,
+   "human_display_id": "CHN-501",
+   "subject": "Billing: rotate keys",
+   "description": "<p>Rotate keys.</p>",
+   "requester_id": 9000007001,
+   "change_type": 1,
+   "priority": 2,
+   "impact": 1,
+   "risk": 1,
+   "status": 1,
+   "group_id": 9000009001,
+   "agent_id": null,
+   "planned_start_date": "2030-11-26T12:00:00Z",
+   "planned_end_date": "2030-11-26T15:00:00Z",
+   "custom_fields": {
+    "cloud_only": "Yes",
+    "stage": "Live",
+    "services": [
+     "Billing"
+    ],
+    "notify_ops": "No",
+    "downtime_window": "22:00 - 22:30",
+    "reviewer": null,
+    "legacy_flag": false,
+    "staging_start": null,
+    "staging_end": null
+   }
+  },
+  "fields": [
+   {
+    "id": 9000006001,
+    "name": "requester",
+    "label": "Requester",
+    "description": "",
+    "field_type": "default_requester",
+    "required": true,
+    "required_for_closure": false,
+    "position": 1,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006002,
+    "name": "subject",
+    "label": "Subject",
+    "description": "",
+    "field_type": "default_subject",
+    "required": true,
+    "required_for_closure": false,
+    "position": 2,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "Service: objective",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006003,
+    "name": "change_type",
+    "label": "Change Type",
+    "description": "",
+    "field_type": "default_change_type",
+    "required": true,
+    "required_for_closure": false,
+    "position": 3,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Normal"
+     },
+     {
+      "id": 2,
+      "value": "Standard"
+     },
+     {
+      "id": 4,
+      "value": "Emergency"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006004,
+    "name": "cloud_only",
+    "label": "Cloud Only",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": true,
+    "required_for_closure": false,
+    "position": 4,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002101,
+      "display_id": 9000003101,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002102,
+      "display_id": 9000003102,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Only the cloud team performs this change",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006005,
+    "name": "stage",
+    "label": "Stage",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 5,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002111,
+      "display_id": 9000003111,
+      "value": "Live",
+      "label": "Live"
+     },
+     {
+      "id": 9000002112,
+      "display_id": 9000003112,
+      "value": "Staging",
+      "label": "Staging"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006006,
+    "name": "staging_start",
+    "label": "Staging Start",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 6,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006007,
+    "name": "staging_end",
+    "label": "Staging End",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 7,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006008,
+    "name": "services",
+    "label": "Services",
+    "description": "",
+    "field_type": "custom_multi_select_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 8,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002200,
+      "display_id": 9000003200,
+      "value": "Billing",
+      "label": "Billing"
+     },
+     {
+      "id": 9000002201,
+      "display_id": 9000003201,
+      "value": "Search",
+      "label": "Search"
+     },
+     {
+      "id": 9000002202,
+      "display_id": 9000003202,
+      "value": "Reports",
+      "label": "Reports"
+     },
+     {
+      "id": 9000002203,
+      "display_id": 9000003203,
+      "value": "Ledger",
+      "label": "Ledger"
+     },
+     {
+      "id": 9000002204,
+      "display_id": 9000003204,
+      "value": "Mail",
+      "label": "Mail"
+     },
+     {
+      "id": 9000002205,
+      "display_id": 9000003205,
+      "value": "Chat",
+      "label": "Chat"
+     },
+     {
+      "id": 9000002206,
+      "display_id": 9000003206,
+      "value": "Docs",
+      "label": "Docs"
+     },
+     {
+      "id": 9000002207,
+      "display_id": 9000003207,
+      "value": "Wiki",
+      "label": "Wiki"
+     },
+     {
+      "id": 9000002208,
+      "display_id": 9000003208,
+      "value": "Pager",
+      "label": "Pager"
+     },
+     {
+      "id": 9000002209,
+      "display_id": 9000003209,
+      "value": "Auth",
+      "label": "Auth"
+     },
+     {
+      "id": 9000002210,
+      "display_id": 9000003210,
+      "value": "Queue",
+      "label": "Queue"
+     },
+     {
+      "id": 9000002211,
+      "display_id": 9000003211,
+      "value": "Cache",
+      "label": "Cache"
+     },
+     {
+      "id": 9000002212,
+      "display_id": 9000003212,
+      "value": "Storage",
+      "label": "Storage"
+     },
+     {
+      "id": 9000002213,
+      "display_id": 9000003213,
+      "value": "Metrics",
+      "label": "Metrics"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006009,
+    "name": "notify_ops",
+    "label": "Notify Ops Team",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 9,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002301,
+      "display_id": 9000003301,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002302,
+      "display_id": 9000003302,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006010,
+    "name": "reviewer",
+    "label": "Reviewer",
+    "description": "",
+    "field_type": "custom_lookup",
+    "required": false,
+    "required_for_closure": false,
+    "position": 10,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 5,
+    "lookup_config": {
+     "data_source": 5,
+     "link": "/lookup_choices?field_name=reviewer_900000777&module=change"
+    },
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006011,
+    "name": "downtime_window",
+    "label": "Downtime Window",
+    "description": "",
+    "field_type": "custom_text",
+    "required": false,
+    "required_for_closure": false,
+    "position": 11,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "22:00 - 22:30",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006012,
+    "name": "legacy_flag",
+    "label": "Legacy Flag",
+    "description": "",
+    "field_type": "custom_checkbox",
+    "required": false,
+    "required_for_closure": false,
+    "position": 12,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006013,
+    "name": "description",
+    "label": "Description",
+    "description": "",
+    "field_type": "default_description",
+    "required": true,
+    "required_for_closure": false,
+    "position": 13,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "What and why",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006014,
+    "name": "priority",
+    "label": "Priority",
+    "description": "",
+    "field_type": "default_priority",
+    "required": true,
+    "required_for_closure": false,
+    "position": 14,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     },
+     {
+      "id": 4,
+      "value": "Urgent"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Low - Can wait || Medium - Planned work || High - Revenue at risk || Urgent - Outage",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006015,
+    "name": "impact",
+    "label": "Impact",
+    "description": "",
+    "field_type": "default_impact",
+    "required": true,
+    "required_for_closure": false,
+    "position": 15,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006016,
+    "name": "risk",
+    "label": "Risk",
+    "description": "",
+    "field_type": "default_risk",
+    "required": true,
+    "required_for_closure": false,
+    "position": 16,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006017,
+    "name": "group",
+    "label": "Group",
+    "description": "",
+    "field_type": "default_group",
+    "required": false,
+    "required_for_closure": false,
+    "position": 17,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006018,
+    "name": "agent",
+    "label": "Agent",
+    "description": "",
+    "field_type": "default_agent",
+    "required": false,
+    "required_for_closure": false,
+    "position": 18,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006019,
+    "name": "planned_start_date",
+    "label": "Planned Start Date",
+    "description": "",
+    "field_type": "default_planned_start_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 19,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006020,
+    "name": "planned_end_date",
+    "label": "Planned End Date",
+    "description": "",
+    "field_type": "default_planned_end_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 20,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006021,
+    "name": "status",
+    "label": "Status",
+    "description": "",
+    "field_type": "default_status",
+    "required": true,
+    "required_for_closure": false,
+    "position": 21,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006022,
+    "name": "go_live_checklist",
+    "label": "Go-Live Checklist",
+    "description": "",
+    "field_type": "planning_field",
+    "required": false,
+    "required_for_closure": false,
+    "position": null,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   }
+  ],
+  "routes": {},
+  "user": {
+   "time_zone": "Asia/Bangkok"
+  },
+  "seed": {
+   "change-rules-edit_form-ws2-900000501": {
+    "business_rules": [
+     {
+      "id": 9000004101,
+      "name": "Cloud only: no",
+      "workspace_id": 2,
+      "module_type": "change",
+      "item_id": null,
+      "deleted": false,
+      "user_type": "both",
+      "form_type": "both",
+      "state": "active",
+      "rule_type": "client_side",
+      "description": "",
+      "condition_data": {
+       "all": [
+        {
+         "name": "customFields.cloud_only",
+         "operator": "is",
+         "evaluate_on": "change",
+         "value": "No"
+        }
+       ]
+      },
+      "action_data": {
+       "action": [
+        {
+         "name": [
+          "customFields.stage"
+         ],
+         "property": "populate",
+         "values": [
+          9000003112
+         ]
+        },
+        {
+         "name": [
+          "customFields.staging_start",
+          "customFields.staging_end"
+         ],
+         "property": "show"
+        },
+        {
+         "name": [
+          "customFields.staging_start",
+          "customFields.staging_end"
+         ],
+         "property": "mandate"
+        }
+       ]
+      },
+      "is_reversible": false,
+      "is_validation": false,
+      "updated_at": "2030-01-03T00:00:00Z"
+     },
+     {
+      "id": 9000004102,
+      "name": "Cloud only: yes",
+      "workspace_id": 2,
+      "module_type": "change",
+      "item_id": null,
+      "deleted": false,
+      "user_type": "both",
+      "form_type": "both",
+      "state": "active",
+      "rule_type": "client_side",
+      "description": "",
+      "condition_data": {
+       "all": [
+        {
+         "name": "customFields.cloud_only",
+         "operator": "is",
+         "evaluate_on": "change",
+         "value": "Yes"
+        }
+       ]
+      },
+      "action_data": {
+       "action": [
+        {
+         "name": [
+          "customFields.stage"
+         ],
+         "property": "populate",
+         "values": [
+          9000003111
+         ]
+        },
+        {
+         "name": [
+          "customFields.staging_start",
+          "customFields.staging_end"
+         ],
+         "property": "hide"
+        }
+       ]
+      },
+      "is_reversible": false,
+      "is_validation": false,
+      "updated_at": "2030-01-03T00:00:00Z"
+     },
+     {
+      "id": 9000004103,
+      "name": "Hide legacy flag",
+      "workspace_id": 2,
+      "module_type": "change",
+      "item_id": null,
+      "deleted": false,
+      "user_type": "both",
+      "form_type": "both",
+      "state": "active",
+      "rule_type": "client_side",
+      "description": "",
+      "condition_data": {
+       "all": null
+      },
+      "action_data": {
+       "action": [
+        {
+         "name": [
+          "customFields.legacy_flag"
+         ],
+         "property": "hide"
+        }
+       ]
+      },
+      "is_reversible": false,
+      "is_validation": false,
+      "updated_at": "2030-01-03T00:00:00Z"
+     },
+     {
+      "id": 9000004104,
+      "name": "Urgent priority",
+      "workspace_id": 2,
+      "module_type": "change",
+      "item_id": null,
+      "deleted": false,
+      "user_type": "both",
+      "form_type": "both",
+      "state": "active",
+      "rule_type": "client_side",
+      "description": "",
+      "condition_data": {
+       "all": [
+        {
+         "name": "priority",
+         "operator": "is",
+         "evaluate_on": "change",
+         "value": "4"
+        }
+       ]
+      },
+      "action_data": {
+       "action": [
+        {
+         "name": [
+          "Urgent changes need the duty lead's approval"
+         ],
+         "property": "message"
+        }
+       ]
+      },
+      "is_reversible": false,
+      "is_validation": true,
+      "updated_at": "2030-01-03T00:00:00Z"
+     },
+     {
+      "id": 9000004105,
+      "name": "Edit: live needs a window",
+      "workspace_id": 2,
+      "module_type": "change",
+      "item_id": null,
+      "deleted": false,
+      "user_type": "both",
+      "form_type": "edit_form",
+      "state": "active",
+      "rule_type": "client_side",
+      "description": "",
+      "condition_data": {
+       "all": [
+        {
+         "name": "customFields.stage",
+         "operator": "is",
+         "evaluate_on": "change",
+         "value": "Live"
+        }
+       ]
+      },
+      "action_data": {
+       "action": [
+        {
+         "name": [
+          "customFields.downtime_window"
+         ],
+         "property": "mandate"
+        }
+       ]
+      },
+      "is_reversible": false,
+      "is_validation": false,
+      "updated_at": "2030-01-03T00:00:00Z"
+     }
+    ],
+    "user": {
+     "first_name": "Robin",
+     "last_name": "Agent",
+     "email": "robin.agent@example.com",
+     "time_zone": "Tokyo"
+    }
+   }
+  },
+  "result": {
+   "props": [
+    {
+     "name": "requester",
+     "label": "Requester",
+     "value": "9000007001",
+     "required": true
+    },
+    {
+     "name": "change_type",
+     "label": "Change Type",
+     "value": "Normal",
+     "required": true
+    },
+    {
+     "name": "cloud_only",
+     "label": "Cloud Only",
+     "value": "Yes",
+     "required": true
+    },
+    {
+     "name": "stage",
+     "label": "Stage",
+     "value": "Live",
+     "required": false
+    },
+    {
+     "name": "services",
+     "label": "Services",
+     "value": "Billing",
+     "required": false
+    },
+    {
+     "name": "notify_ops",
+     "label": "Notify Ops Team",
+     "value": "No",
+     "required": false
+    },
+    {
+     "name": "reviewer",
+     "label": "Reviewer",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "downtime_window",
+     "label": "Downtime Window",
+     "value": "22:00 - 22:30",
+     "required": true
+    },
+    {
+     "name": "priority",
+     "label": "Priority",
+     "value": "Medium",
+     "required": true
+    },
+    {
+     "name": "impact",
+     "label": "Impact",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "risk",
+     "label": "Risk",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "group",
+     "label": "Group",
+     "value": "9000009001",
+     "required": false
+    },
+    {
+     "name": "agent",
+     "label": "Agent",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "planned_start_date",
+     "label": "Planned Start Date",
+     "value": "Tue, 26 Nov 2030 19:00",
+     "required": true
+    },
+    {
+     "name": "planned_end_date",
+     "label": "Planned End Date",
+     "value": "Tue, 26 Nov 2030 22:00",
+     "required": true
+    },
+    {
+     "name": "status",
+     "label": "Status",
+     "value": "Open",
+     "required": true
+    }
+   ],
+   "note": null
+  },
+  "calls": [
+   [
+    "int_get",
+    "bootstrap/agents_groups",
+    null
+   ]
+  ],
+  "saves": []
+ },
+ {
+  "name": "change_configured_ws",
+  "resource": "changes",
+  "record": {
+   "id": 900000501,
+   "human_display_id": "CHN-501",
+   "subject": "Billing: rotate keys",
+   "description": "<p>Rotate keys.</p>",
+   "requester_id": 9000007001,
+   "change_type": 1,
+   "priority": 2,
+   "impact": 1,
+   "risk": 1,
+   "status": 1,
+   "group_id": 9000009001,
+   "agent_id": null,
+   "planned_start_date": "2030-11-26T12:00:00Z",
+   "planned_end_date": "2030-11-26T15:00:00Z",
+   "custom_fields": {
+    "cloud_only": "Yes",
+    "stage": "Live",
+    "services": [
+     "Billing"
+    ],
+    "notify_ops": "No",
+    "downtime_window": "22:00 - 22:30",
+    "reviewer": null,
+    "legacy_flag": false,
+    "staging_start": null,
+    "staging_end": null
+   }
+  },
+  "fields": [
+   {
+    "id": 9000006001,
+    "name": "requester",
+    "label": "Requester",
+    "description": "",
+    "field_type": "default_requester",
+    "required": true,
+    "required_for_closure": false,
+    "position": 1,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006002,
+    "name": "subject",
+    "label": "Subject",
+    "description": "",
+    "field_type": "default_subject",
+    "required": true,
+    "required_for_closure": false,
+    "position": 2,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "Service: objective",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006003,
+    "name": "change_type",
+    "label": "Change Type",
+    "description": "",
+    "field_type": "default_change_type",
+    "required": true,
+    "required_for_closure": false,
+    "position": 3,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Normal"
+     },
+     {
+      "id": 2,
+      "value": "Standard"
+     },
+     {
+      "id": 4,
+      "value": "Emergency"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006004,
+    "name": "cloud_only",
+    "label": "Cloud Only",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": true,
+    "required_for_closure": false,
+    "position": 4,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002101,
+      "display_id": 9000003101,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002102,
+      "display_id": 9000003102,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Only the cloud team performs this change",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006005,
+    "name": "stage",
+    "label": "Stage",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 5,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002111,
+      "display_id": 9000003111,
+      "value": "Live",
+      "label": "Live"
+     },
+     {
+      "id": 9000002112,
+      "display_id": 9000003112,
+      "value": "Staging",
+      "label": "Staging"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006006,
+    "name": "staging_start",
+    "label": "Staging Start",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 6,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006007,
+    "name": "staging_end",
+    "label": "Staging End",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 7,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006008,
+    "name": "services",
+    "label": "Services",
+    "description": "",
+    "field_type": "custom_multi_select_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 8,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002200,
+      "display_id": 9000003200,
+      "value": "Billing",
+      "label": "Billing"
+     },
+     {
+      "id": 9000002201,
+      "display_id": 9000003201,
+      "value": "Search",
+      "label": "Search"
+     },
+     {
+      "id": 9000002202,
+      "display_id": 9000003202,
+      "value": "Reports",
+      "label": "Reports"
+     },
+     {
+      "id": 9000002203,
+      "display_id": 9000003203,
+      "value": "Ledger",
+      "label": "Ledger"
+     },
+     {
+      "id": 9000002204,
+      "display_id": 9000003204,
+      "value": "Mail",
+      "label": "Mail"
+     },
+     {
+      "id": 9000002205,
+      "display_id": 9000003205,
+      "value": "Chat",
+      "label": "Chat"
+     },
+     {
+      "id": 9000002206,
+      "display_id": 9000003206,
+      "value": "Docs",
+      "label": "Docs"
+     },
+     {
+      "id": 9000002207,
+      "display_id": 9000003207,
+      "value": "Wiki",
+      "label": "Wiki"
+     },
+     {
+      "id": 9000002208,
+      "display_id": 9000003208,
+      "value": "Pager",
+      "label": "Pager"
+     },
+     {
+      "id": 9000002209,
+      "display_id": 9000003209,
+      "value": "Auth",
+      "label": "Auth"
+     },
+     {
+      "id": 9000002210,
+      "display_id": 9000003210,
+      "value": "Queue",
+      "label": "Queue"
+     },
+     {
+      "id": 9000002211,
+      "display_id": 9000003211,
+      "value": "Cache",
+      "label": "Cache"
+     },
+     {
+      "id": 9000002212,
+      "display_id": 9000003212,
+      "value": "Storage",
+      "label": "Storage"
+     },
+     {
+      "id": 9000002213,
+      "display_id": 9000003213,
+      "value": "Metrics",
+      "label": "Metrics"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006009,
+    "name": "notify_ops",
+    "label": "Notify Ops Team",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 9,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002301,
+      "display_id": 9000003301,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002302,
+      "display_id": 9000003302,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006010,
+    "name": "reviewer",
+    "label": "Reviewer",
+    "description": "",
+    "field_type": "custom_lookup",
+    "required": false,
+    "required_for_closure": false,
+    "position": 10,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 5,
+    "lookup_config": {
+     "data_source": 5,
+     "link": "/lookup_choices?field_name=reviewer_900000777&module=change"
+    },
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006011,
+    "name": "downtime_window",
+    "label": "Downtime Window",
+    "description": "",
+    "field_type": "custom_text",
+    "required": false,
+    "required_for_closure": false,
+    "position": 11,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "22:00 - 22:30",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006012,
+    "name": "legacy_flag",
+    "label": "Legacy Flag",
+    "description": "",
+    "field_type": "custom_checkbox",
+    "required": false,
+    "required_for_closure": false,
+    "position": 12,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006013,
+    "name": "description",
+    "label": "Description",
+    "description": "",
+    "field_type": "default_description",
+    "required": true,
+    "required_for_closure": false,
+    "position": 13,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "What and why",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006014,
+    "name": "priority",
+    "label": "Priority",
+    "description": "",
+    "field_type": "default_priority",
+    "required": true,
+    "required_for_closure": false,
+    "position": 14,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     },
+     {
+      "id": 4,
+      "value": "Urgent"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Low - Can wait || Medium - Planned work || High - Revenue at risk || Urgent - Outage",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006015,
+    "name": "impact",
+    "label": "Impact",
+    "description": "",
+    "field_type": "default_impact",
+    "required": true,
+    "required_for_closure": false,
+    "position": 15,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006016,
+    "name": "risk",
+    "label": "Risk",
+    "description": "",
+    "field_type": "default_risk",
+    "required": true,
+    "required_for_closure": false,
+    "position": 16,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006017,
+    "name": "group",
+    "label": "Group",
+    "description": "",
+    "field_type": "default_group",
+    "required": false,
+    "required_for_closure": false,
+    "position": 17,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006018,
+    "name": "agent",
+    "label": "Agent",
+    "description": "",
+    "field_type": "default_agent",
+    "required": false,
+    "required_for_closure": false,
+    "position": 18,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006019,
+    "name": "planned_start_date",
+    "label": "Planned Start Date",
+    "description": "",
+    "field_type": "default_planned_start_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 19,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006020,
+    "name": "planned_end_date",
+    "label": "Planned End Date",
+    "description": "",
+    "field_type": "default_planned_end_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 20,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006021,
+    "name": "status",
+    "label": "Status",
+    "description": "",
+    "field_type": "default_status",
+    "required": true,
+    "required_for_closure": false,
+    "position": 21,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006022,
+    "name": "go_live_checklist",
+    "label": "Go-Live Checklist",
+    "description": "",
+    "field_type": "planning_field",
+    "required": false,
+    "required_for_closure": false,
+    "position": null,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   }
+  ],
+  "routes": {
+   "ws/5/business_rules": {
+    "ok": {
+     "business_rules": [
+      {
+       "id": 9000004101,
+       "name": "Cloud only: no",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "customFields.cloud_only",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "No"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.stage"
+          ],
+          "property": "populate",
+          "values": [
+           9000003112
+          ]
+         },
+         {
+          "name": [
+           "customFields.staging_start",
+           "customFields.staging_end"
+          ],
+          "property": "show"
+         },
+         {
+          "name": [
+           "customFields.staging_start",
+           "customFields.staging_end"
+          ],
+          "property": "mandate"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false,
+       "updated_at": "2030-01-03T00:00:00Z"
+      },
+      {
+       "id": 9000004102,
+       "name": "Cloud only: yes",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "customFields.cloud_only",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "Yes"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.stage"
+          ],
+          "property": "populate",
+          "values": [
+           9000003111
+          ]
+         },
+         {
+          "name": [
+           "customFields.staging_start",
+           "customFields.staging_end"
+          ],
+          "property": "hide"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false,
+       "updated_at": "2030-01-03T00:00:00Z"
+      },
+      {
+       "id": 9000004103,
+       "name": "Hide legacy flag",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": null
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.legacy_flag"
+          ],
+          "property": "hide"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false,
+       "updated_at": "2030-01-03T00:00:00Z"
+      },
+      {
+       "id": 9000004104,
+       "name": "Urgent priority",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "priority",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "4"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "Urgent changes need the duty lead's approval"
+          ],
+          "property": "message"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": true,
+       "updated_at": "2030-01-03T00:00:00Z"
+      },
+      {
+       "id": 9000004105,
+       "name": "Edit: live needs a window",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "edit_form",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "customFields.stage",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "Live"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.downtime_window"
+          ],
+          "property": "mandate"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false,
+       "updated_at": "2030-01-03T00:00:00Z"
+      }
+     ],
+     "user": {
+      "first_name": "Robin",
+      "last_name": "Agent",
+      "email": "robin.agent@example.com",
+      "time_zone": "Tokyo"
+     }
+    }
+   }
+  },
+  "user": {
+   "time_zone": "Asia/Bangkok"
+  },
+  "configured": 5,
+  "result": {
+   "props": [
+    {
+     "name": "requester",
+     "label": "Requester",
+     "value": "9000007001",
+     "required": true
+    },
+    {
+     "name": "change_type",
+     "label": "Change Type",
+     "value": "Normal",
+     "required": true
+    },
+    {
+     "name": "cloud_only",
+     "label": "Cloud Only",
+     "value": "Yes",
+     "required": true
+    },
+    {
+     "name": "stage",
+     "label": "Stage",
+     "value": "Live",
+     "required": false
+    },
+    {
+     "name": "services",
+     "label": "Services",
+     "value": "Billing",
+     "required": false
+    },
+    {
+     "name": "notify_ops",
+     "label": "Notify Ops Team",
+     "value": "No",
+     "required": false
+    },
+    {
+     "name": "reviewer",
+     "label": "Reviewer",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "downtime_window",
+     "label": "Downtime Window",
+     "value": "22:00 - 22:30",
+     "required": true
+    },
+    {
+     "name": "priority",
+     "label": "Priority",
+     "value": "Medium",
+     "required": true
+    },
+    {
+     "name": "impact",
+     "label": "Impact",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "risk",
+     "label": "Risk",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "group",
+     "label": "Group",
+     "value": "9000009001",
+     "required": false
+    },
+    {
+     "name": "agent",
+     "label": "Agent",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "planned_start_date",
+     "label": "Planned Start Date",
+     "value": "Tue, 26 Nov 2030 19:00",
+     "required": true
+    },
+    {
+     "name": "planned_end_date",
+     "label": "Planned End Date",
+     "value": "Tue, 26 Nov 2030 22:00",
+     "required": true
+    },
+    {
+     "name": "status",
+     "label": "Status",
+     "value": "Open",
+     "required": true
+    }
+   ],
+   "note": null
+  },
+  "calls": [
+   [
+    "int_get",
+    "ws/5/business_rules",
+    {
+     "ember_api": "true",
+     "module_type": "change",
+     "item_id": "null",
+     "requester": "",
+     "requested_for": "",
+     "include_workspace": "false",
+     "filter_by_default_form_action": "true",
+     "form_type": "edit_form",
+     "user_type": "null",
+     "module_id": "900000501",
+     "cf_name_prefix": "customFields."
+    }
+   ],
+   [
+    "int_get",
+    "bootstrap/agents_groups",
+    null
+   ]
+  ],
+  "saves": [
+   [
+    "change-rules-edit_form-ws5-900000501",
+    "form_rules"
+   ]
+  ]
+ },
+ {
+  "name": "change_bad_tz",
+  "resource": "changes",
+  "record": {
+   "id": 900000501,
+   "human_display_id": "CHN-501",
+   "subject": "Billing: rotate keys",
+   "description": "<p>Rotate keys.</p>",
+   "requester_id": 9000007001,
+   "change_type": 1,
+   "priority": 2,
+   "impact": 1,
+   "risk": 1,
+   "status": 1,
+   "group_id": 9000009001,
+   "agent_id": null,
+   "planned_start_date": "2030-11-26T12:00:00Z",
+   "planned_end_date": "2030-11-26T15:00:00Z",
+   "custom_fields": {
+    "cloud_only": "Yes",
+    "stage": "Live",
+    "services": [
+     "Billing"
+    ],
+    "notify_ops": "No",
+    "downtime_window": "22:00 - 22:30",
+    "reviewer": null,
+    "legacy_flag": false,
+    "staging_start": null,
+    "staging_end": null
+   }
+  },
+  "fields": [
+   {
+    "id": 9000006001,
+    "name": "requester",
+    "label": "Requester",
+    "description": "",
+    "field_type": "default_requester",
+    "required": true,
+    "required_for_closure": false,
+    "position": 1,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006002,
+    "name": "subject",
+    "label": "Subject",
+    "description": "",
+    "field_type": "default_subject",
+    "required": true,
+    "required_for_closure": false,
+    "position": 2,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "Service: objective",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006003,
+    "name": "change_type",
+    "label": "Change Type",
+    "description": "",
+    "field_type": "default_change_type",
+    "required": true,
+    "required_for_closure": false,
+    "position": 3,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Normal"
+     },
+     {
+      "id": 2,
+      "value": "Standard"
+     },
+     {
+      "id": 4,
+      "value": "Emergency"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006004,
+    "name": "cloud_only",
+    "label": "Cloud Only",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": true,
+    "required_for_closure": false,
+    "position": 4,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002101,
+      "display_id": 9000003101,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002102,
+      "display_id": 9000003102,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Only the cloud team performs this change",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006005,
+    "name": "stage",
+    "label": "Stage",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 5,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002111,
+      "display_id": 9000003111,
+      "value": "Live",
+      "label": "Live"
+     },
+     {
+      "id": 9000002112,
+      "display_id": 9000003112,
+      "value": "Staging",
+      "label": "Staging"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006006,
+    "name": "staging_start",
+    "label": "Staging Start",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 6,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006007,
+    "name": "staging_end",
+    "label": "Staging End",
+    "description": "",
+    "field_type": "custom_date",
+    "required": false,
+    "required_for_closure": false,
+    "position": 7,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006008,
+    "name": "services",
+    "label": "Services",
+    "description": "",
+    "field_type": "custom_multi_select_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 8,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002200,
+      "display_id": 9000003200,
+      "value": "Billing",
+      "label": "Billing"
+     },
+     {
+      "id": 9000002201,
+      "display_id": 9000003201,
+      "value": "Search",
+      "label": "Search"
+     },
+     {
+      "id": 9000002202,
+      "display_id": 9000003202,
+      "value": "Reports",
+      "label": "Reports"
+     },
+     {
+      "id": 9000002203,
+      "display_id": 9000003203,
+      "value": "Ledger",
+      "label": "Ledger"
+     },
+     {
+      "id": 9000002204,
+      "display_id": 9000003204,
+      "value": "Mail",
+      "label": "Mail"
+     },
+     {
+      "id": 9000002205,
+      "display_id": 9000003205,
+      "value": "Chat",
+      "label": "Chat"
+     },
+     {
+      "id": 9000002206,
+      "display_id": 9000003206,
+      "value": "Docs",
+      "label": "Docs"
+     },
+     {
+      "id": 9000002207,
+      "display_id": 9000003207,
+      "value": "Wiki",
+      "label": "Wiki"
+     },
+     {
+      "id": 9000002208,
+      "display_id": 9000003208,
+      "value": "Pager",
+      "label": "Pager"
+     },
+     {
+      "id": 9000002209,
+      "display_id": 9000003209,
+      "value": "Auth",
+      "label": "Auth"
+     },
+     {
+      "id": 9000002210,
+      "display_id": 9000003210,
+      "value": "Queue",
+      "label": "Queue"
+     },
+     {
+      "id": 9000002211,
+      "display_id": 9000003211,
+      "value": "Cache",
+      "label": "Cache"
+     },
+     {
+      "id": 9000002212,
+      "display_id": 9000003212,
+      "value": "Storage",
+      "label": "Storage"
+     },
+     {
+      "id": 9000002213,
+      "display_id": 9000003213,
+      "value": "Metrics",
+      "label": "Metrics"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006009,
+    "name": "notify_ops",
+    "label": "Notify Ops Team",
+    "description": "",
+    "field_type": "custom_dropdown",
+    "required": false,
+    "required_for_closure": false,
+    "position": 9,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 9000002301,
+      "display_id": 9000003301,
+      "value": "Yes",
+      "label": "Yes"
+     },
+     {
+      "id": 9000002302,
+      "display_id": 9000003302,
+      "value": "No",
+      "label": "No"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006010,
+    "name": "reviewer",
+    "label": "Reviewer",
+    "description": "",
+    "field_type": "custom_lookup",
+    "required": false,
+    "required_for_closure": false,
+    "position": 10,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 5,
+    "lookup_config": {
+     "data_source": 5,
+     "link": "/lookup_choices?field_name=reviewer_900000777&module=change"
+    },
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006011,
+    "name": "downtime_window",
+    "label": "Downtime Window",
+    "description": "",
+    "field_type": "custom_text",
+    "required": false,
+    "required_for_closure": false,
+    "position": 11,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "22:00 - 22:30",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006012,
+    "name": "legacy_flag",
+    "label": "Legacy Flag",
+    "description": "",
+    "field_type": "custom_checkbox",
+    "required": false,
+    "required_for_closure": false,
+    "position": 12,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006013,
+    "name": "description",
+    "label": "Description",
+    "description": "",
+    "field_type": "default_description",
+    "required": true,
+    "required_for_closure": false,
+    "position": 13,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "What and why",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006014,
+    "name": "priority",
+    "label": "Priority",
+    "description": "",
+    "field_type": "default_priority",
+    "required": true,
+    "required_for_closure": false,
+    "position": 14,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     },
+     {
+      "id": 4,
+      "value": "Urgent"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "Low - Can wait || Medium - Planned work || High - Revenue at risk || Urgent - Outage",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006015,
+    "name": "impact",
+    "label": "Impact",
+    "description": "",
+    "field_type": "default_impact",
+    "required": true,
+    "required_for_closure": false,
+    "position": 15,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006016,
+    "name": "risk",
+    "label": "Risk",
+    "description": "",
+    "field_type": "default_risk",
+    "required": true,
+    "required_for_closure": false,
+    "position": 16,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     },
+     {
+      "id": 3,
+      "value": "High"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006017,
+    "name": "group",
+    "label": "Group",
+    "description": "",
+    "field_type": "default_group",
+    "required": false,
+    "required_for_closure": false,
+    "position": 17,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006018,
+    "name": "agent",
+    "label": "Agent",
+    "description": "",
+    "field_type": "default_agent",
+    "required": false,
+    "required_for_closure": false,
+    "position": 18,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006019,
+    "name": "planned_start_date",
+    "label": "Planned Start Date",
+    "description": "",
+    "field_type": "default_planned_start_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 19,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006020,
+    "name": "planned_end_date",
+    "label": "Planned End Date",
+    "description": "",
+    "field_type": "default_planned_end_date",
+    "required": true,
+    "required_for_closure": false,
+    "position": 20,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006021,
+    "name": "status",
+    "label": "Status",
+    "description": "",
+    "field_type": "default_status",
+    "required": true,
+    "required_for_closure": false,
+    "position": 21,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 1,
+    "updated_at": "2030-01-02T03:04:05Z"
+   },
+   {
+    "id": 9000006022,
+    "name": "go_live_checklist",
+    "label": "Go-Live Checklist",
+    "description": "",
+    "field_type": "planning_field",
+    "required": false,
+    "required_for_closure": false,
+    "position": null,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "placeholder": "",
+    "helptext": "",
+    "hint": false,
+    "content": null,
+    "displayed_to_agents": true,
+    "data_source": 0,
+    "lookup_config": null,
+    "workspace_id": 2,
+    "updated_at": "2030-01-02T03:04:05Z"
+   }
+  ],
+  "routes": {
+   "ws/2/business_rules": {
+    "ok": {
+     "business_rules": [
+      {
+       "id": 9000004101,
+       "name": "Cloud only: no",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "customFields.cloud_only",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "No"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.stage"
+          ],
+          "property": "populate",
+          "values": [
+           9000003112
+          ]
+         },
+         {
+          "name": [
+           "customFields.staging_start",
+           "customFields.staging_end"
+          ],
+          "property": "show"
+         },
+         {
+          "name": [
+           "customFields.staging_start",
+           "customFields.staging_end"
+          ],
+          "property": "mandate"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false,
+       "updated_at": "2030-01-03T00:00:00Z"
+      },
+      {
+       "id": 9000004102,
+       "name": "Cloud only: yes",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "customFields.cloud_only",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "Yes"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.stage"
+          ],
+          "property": "populate",
+          "values": [
+           9000003111
+          ]
+         },
+         {
+          "name": [
+           "customFields.staging_start",
+           "customFields.staging_end"
+          ],
+          "property": "hide"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false,
+       "updated_at": "2030-01-03T00:00:00Z"
+      },
+      {
+       "id": 9000004103,
+       "name": "Hide legacy flag",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": null
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.legacy_flag"
+          ],
+          "property": "hide"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false,
+       "updated_at": "2030-01-03T00:00:00Z"
+      },
+      {
+       "id": 9000004104,
+       "name": "Urgent priority",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "priority",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "4"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "Urgent changes need the duty lead's approval"
+          ],
+          "property": "message"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": true,
+       "updated_at": "2030-01-03T00:00:00Z"
+      },
+      {
+       "id": 9000004105,
+       "name": "Edit: live needs a window",
+       "workspace_id": 2,
+       "module_type": "change",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "edit_form",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "customFields.stage",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "Live"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.downtime_window"
+          ],
+          "property": "mandate"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false,
+       "updated_at": "2030-01-03T00:00:00Z"
+      }
+     ],
+     "user": {
+      "first_name": "Robin",
+      "last_name": "Agent",
+      "email": "robin.agent@example.com",
+      "time_zone": "Tokyo"
+     }
+    }
+   }
+  },
+  "user": {
+   "time_zone": "Mars/Olympus"
+  },
+  "result": {
+   "props": [
+    {
+     "name": "requester",
+     "label": "Requester",
+     "value": "9000007001",
+     "required": true
+    },
+    {
+     "name": "change_type",
+     "label": "Change Type",
+     "value": "Normal",
+     "required": true
+    },
+    {
+     "name": "cloud_only",
+     "label": "Cloud Only",
+     "value": "Yes",
+     "required": true
+    },
+    {
+     "name": "stage",
+     "label": "Stage",
+     "value": "Live",
+     "required": false
+    },
+    {
+     "name": "services",
+     "label": "Services",
+     "value": "Billing",
+     "required": false
+    },
+    {
+     "name": "notify_ops",
+     "label": "Notify Ops Team",
+     "value": "No",
+     "required": false
+    },
+    {
+     "name": "reviewer",
+     "label": "Reviewer",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "downtime_window",
+     "label": "Downtime Window",
+     "value": "22:00 - 22:30",
+     "required": true
+    },
+    {
+     "name": "priority",
+     "label": "Priority",
+     "value": "Medium",
+     "required": true
+    },
+    {
+     "name": "impact",
+     "label": "Impact",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "risk",
+     "label": "Risk",
+     "value": "Low",
+     "required": true
+    },
+    {
+     "name": "group",
+     "label": "Group",
+     "value": "9000009001",
+     "required": false
+    },
+    {
+     "name": "agent",
+     "label": "Agent",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "planned_start_date",
+     "label": "Planned Start Date",
+     "value": "Tue, 26 Nov 2030 19:00",
+     "required": true
+    },
+    {
+     "name": "planned_end_date",
+     "label": "Planned End Date",
+     "value": "Tue, 26 Nov 2030 22:00",
+     "required": true
+    },
+    {
+     "name": "status",
+     "label": "Status",
+     "value": "Open",
+     "required": true
+    }
+   ],
+   "note": null
+  },
+  "calls": [
+   [
+    "int_get",
+    "ws/2/business_rules",
+    {
+     "ember_api": "true",
+     "module_type": "change",
+     "item_id": "null",
+     "requester": "",
+     "requested_for": "",
+     "include_workspace": "false",
+     "filter_by_default_form_action": "true",
+     "form_type": "edit_form",
+     "user_type": "null",
+     "module_id": "900000501",
+     "cf_name_prefix": "customFields."
+    }
+   ],
+   [
+    "int_get",
+    "bootstrap/agents_groups",
+    null
+   ]
+  ],
+  "saves": [
+   [
+    "change-rules-edit_form-ws2-900000501",
+    "form_rules"
+   ]
+  ]
+ },
+ {
+  "name": "no_fields",
+  "resource": "changes",
+  "record": {
+   "id": 900000501,
+   "human_display_id": "CHN-501",
+   "subject": "Billing: rotate keys",
+   "description": "<p>Rotate keys.</p>",
+   "requester_id": 9000007001,
+   "change_type": 1,
+   "priority": 2,
+   "impact": 1,
+   "risk": 1,
+   "status": 1,
+   "group_id": 9000009001,
+   "agent_id": null,
+   "planned_start_date": "2030-11-26T12:00:00Z",
+   "planned_end_date": "2030-11-26T15:00:00Z",
+   "custom_fields": {
+    "cloud_only": "Yes",
+    "stage": "Live",
+    "services": [
+     "Billing"
+    ],
+    "notify_ops": "No",
+    "downtime_window": "22:00 - 22:30",
+    "reviewer": null,
+    "legacy_flag": false,
+    "staging_start": null,
+    "staging_end": null
+   }
+  },
+  "fields": [],
+  "routes": {},
+  "user": null,
+  "result": {
+   "props": [],
+   "note": "no form fields"
+  },
+  "calls": [],
+  "saves": []
+ },
+ {
+  "name": "ticket",
+  "resource": "tickets",
+  "record": {
+   "id": 42,
+   "display_id": 42,
+   "workspace_id": 3,
+   "subject": "Printer",
+   "description": "<p>Broken</p>",
+   "requester_id": 900,
+   "responder_id": null,
+   "type": "Incident",
+   "priority": 2,
+   "status": 2,
+   "source": 2,
+   "group_id": null,
+   "custom_fields": {
+    "customers_hit": 4,
+    "due_on": "2026-03-04"
+   }
+  },
+  "fields": [
+   {
+    "id": 301,
+    "name": "requester",
+    "label": "Requester",
+    "field_type": "default_requester",
+    "position": 1,
+    "required_for_agents": true,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 302,
+    "name": "subject",
+    "label": "Subject",
+    "field_type": "default_subject",
+    "position": 2,
+    "required_for_agents": true,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 303,
+    "name": "issue",
+    "label": "Issue",
+    "field_type": "nested_field",
+    "position": 3,
+    "required_for_agents": false,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Login",
+      "nested_options": [
+       {
+        "id": 2,
+        "value": "VPN",
+        "nested_options": [
+         {
+          "id": 3,
+          "value": "Timeout",
+          "nested_options": []
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "id": 4,
+      "value": "Printer",
+      "nested_options": []
+     }
+    ],
+    "nested_fields": [
+     {
+      "name": "issue_system",
+      "id": 3031,
+      "label": "System",
+      "level": 2
+     },
+     {
+      "name": "issue_detail",
+      "id": 3032,
+      "label": "Detail",
+      "level": 3
+     }
+    ],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 304,
+    "name": "ticket_type",
+    "label": "Type",
+    "field_type": "default_ticket_type",
+    "position": 4,
+    "required_for_agents": false,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 10,
+      "value": "Incident"
+     },
+     {
+      "id": 11,
+      "value": "Major Incident"
+     }
+    ],
+    "nested_fields": [],
+    "belongs_to_section": false,
+    "sections": [
+     {
+      "id": 1,
+      "label": "Major",
+      "choice_ids": [
+       11
+      ],
+      "ticket_field_ids": [
+       309
+      ]
+     }
+    ]
+   },
+   {
+    "id": 305,
+    "name": "priority",
+    "label": "Priority",
+    "field_type": "default_priority",
+    "position": 5,
+    "required_for_agents": false,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     }
+    ],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 306,
+    "name": "status",
+    "label": "Status",
+    "field_type": "default_status",
+    "position": 6,
+    "required_for_agents": true,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 2,
+      "value": "Open"
+     },
+     {
+      "id": 3,
+      "value": "Pending"
+     }
+    ],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 307,
+    "name": "source",
+    "label": "Source",
+    "field_type": "default_source",
+    "position": 7,
+    "required_for_agents": false,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 3,
+      "value": "Phone"
+     },
+     {
+      "id": 1,
+      "value": "Email"
+     }
+    ],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 308,
+    "name": "group",
+    "label": "Group",
+    "field_type": "default_group",
+    "position": 8,
+    "required_for_agents": false,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 309,
+    "name": "customers_hit",
+    "label": "Customers affected",
+    "field_type": "custom_number",
+    "position": 9,
+    "required_for_agents": true,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": true
+   },
+   {
+    "id": 310,
+    "name": "due_on",
+    "label": "Due on",
+    "field_type": "custom_date",
+    "date_only": true,
+    "position": 10,
+    "required_for_agents": false,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 311,
+    "name": "description",
+    "label": "Description",
+    "field_type": "default_description",
+    "position": 11,
+    "required_for_agents": false,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 312,
+    "name": "department",
+    "label": "Department",
+    "field_type": "default_department",
+    "position": 12,
+    "required_for_agents": false,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 501,
+      "value": "Engineering"
+     }
+    ],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 313,
+    "name": "mystery",
+    "label": "Mystery",
+    "field_type": "custom_hologram",
+    "position": 13,
+    "required_for_agents": false,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   }
+  ],
+  "routes": {
+   "ws/3/business_rules": {
+    "ok": {
+     "business_rules": [
+      {
+       "id": 9000008001,
+       "name": "Agent portal: hide planning",
+       "workspace_id": 2,
+       "module_type": "ticket",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "agent",
+       "form_type": "new_form",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "portal",
+          "value": "9000006001",
+          "operator": "is",
+          "evaluate_on": "system"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "priority",
+           "customFields.delivery_team"
+          ],
+          "property": "hide"
+         },
+         {
+          "name": [
+           "customFields.symptom"
+          ],
+          "property": "populate",
+          "values": [
+           {
+            "display_id": 1,
+            "nested_options": [
+             {
+              "display_id": 2,
+              "nested_options": null
+             }
+            ]
+           },
+           {
+            "display_id": 6,
+            "nested_options": null
+           }
+          ]
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false
+      },
+      {
+       "id": 9000008002,
+       "name": "Agent portal: lock check",
+       "workspace_id": 2,
+       "module_type": "ticket",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "agent",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "portal",
+          "value": "9000006001",
+          "operator": "is",
+          "evaluate_on": "system"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.attachment_check"
+          ],
+          "property": "disable"
+         }
+        ]
+       },
+       "is_reversible": true,
+       "is_validation": false
+      },
+      {
+       "id": 9000008003,
+       "name": "Slow: show priority",
+       "workspace_id": 2,
+       "module_type": "ticket",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "customFields.symptom",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "Slow"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "priority"
+          ],
+          "property": "show"
+         },
+         {
+          "name": [
+           "priority"
+          ],
+          "property": "mandate"
+         },
+         {
+          "name": [
+           "description_html"
+          ],
+          "property": "hide"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false
+      }
+     ],
+     "user": {
+      "first_name": "Robin",
+      "last_name": "Desk",
+      "email": "robin.desk@example.com",
+      "time_zone": "UTC"
+     }
+    }
+   }
+  },
+  "user": {
+   "time_zone": "Asia/Bangkok"
+  },
+  "result": {
+   "props": [
+    {
+     "name": "requester",
+     "label": "Requester",
+     "value": "900",
+     "required": true
+    },
+    {
+     "name": "issue",
+     "label": "Issue",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "ticket_type",
+     "label": "Type",
+     "value": "Incident",
+     "required": false
+    },
+    {
+     "name": "priority",
+     "label": "Priority",
+     "value": "Medium",
+     "required": false
+    },
+    {
+     "name": "status",
+     "label": "Status",
+     "value": "Open",
+     "required": true
+    },
+    {
+     "name": "source",
+     "label": "Source",
+     "value": "2",
+     "required": false
+    },
+    {
+     "name": "group",
+     "label": "Group",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "due_on",
+     "label": "Due on",
+     "value": "Wed, 4 Mar 2026",
+     "required": false
+    },
+    {
+     "name": "department",
+     "label": "Department",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "mystery",
+     "label": "Mystery",
+     "value": "",
+     "required": false
+    }
+   ],
+   "note": null
+  },
+  "calls": [
+   [
+    "int_get",
+    "ws/3/business_rules",
+    {
+     "ember_api": "true",
+     "module_type": "ticket",
+     "item_id": "null",
+     "requester": "",
+     "requested_for": "",
+     "include_workspace": "false",
+     "filter_by_default_form_action": "true",
+     "form_type": "edit_form",
+     "user_type": "null",
+     "module_id": "42",
+     "cf_name_prefix": "customFields."
+    }
+   ]
+  ],
+  "saves": [
+   [
+    "ticket-rules-edit_form-ws3-42",
+    "form_rules"
+   ]
+  ]
+ },
+ {
+  "name": "ticket_no_ws",
+  "resource": "tickets",
+  "record": {
+   "id": 42,
+   "display_id": 42,
+   "workspace_id": null,
+   "subject": "Printer",
+   "description": "<p>Broken</p>",
+   "requester_id": 900,
+   "responder_id": null,
+   "type": "Incident",
+   "priority": 2,
+   "status": 2,
+   "source": 2,
+   "group_id": null,
+   "custom_fields": {
+    "customers_hit": 4,
+    "due_on": "2026-03-04"
+   }
+  },
+  "fields": [
+   {
+    "id": 301,
+    "name": "requester",
+    "label": "Requester",
+    "field_type": "default_requester",
+    "position": 1,
+    "required_for_agents": true,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 302,
+    "name": "subject",
+    "label": "Subject",
+    "field_type": "default_subject",
+    "position": 2,
+    "required_for_agents": true,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 303,
+    "name": "issue",
+    "label": "Issue",
+    "field_type": "nested_field",
+    "position": 3,
+    "required_for_agents": false,
+    "default_field": false,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Login",
+      "nested_options": [
+       {
+        "id": 2,
+        "value": "VPN",
+        "nested_options": [
+         {
+          "id": 3,
+          "value": "Timeout",
+          "nested_options": []
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "id": 4,
+      "value": "Printer",
+      "nested_options": []
+     }
+    ],
+    "nested_fields": [
+     {
+      "name": "issue_system",
+      "id": 3031,
+      "label": "System",
+      "level": 2
+     },
+     {
+      "name": "issue_detail",
+      "id": 3032,
+      "label": "Detail",
+      "level": 3
+     }
+    ],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 304,
+    "name": "ticket_type",
+    "label": "Type",
+    "field_type": "default_ticket_type",
+    "position": 4,
+    "required_for_agents": false,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 10,
+      "value": "Incident"
+     },
+     {
+      "id": 11,
+      "value": "Major Incident"
+     }
+    ],
+    "nested_fields": [],
+    "belongs_to_section": false,
+    "sections": [
+     {
+      "id": 1,
+      "label": "Major",
+      "choice_ids": [
+       11
+      ],
+      "ticket_field_ids": [
+       309
+      ]
+     }
+    ]
+   },
+   {
+    "id": 305,
+    "name": "priority",
+    "label": "Priority",
+    "field_type": "default_priority",
+    "position": 5,
+    "required_for_agents": false,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Low"
+     },
+     {
+      "id": 2,
+      "value": "Medium"
+     }
+    ],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 306,
+    "name": "status",
+    "label": "Status",
+    "field_type": "default_status",
+    "position": 6,
+    "required_for_agents": true,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 2,
+      "value": "Open"
+     },
+     {
+      "id": 3,
+      "value": "Pending"
+     }
+    ],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 307,
+    "name": "source",
+    "label": "Source",
+    "field_type": "default_source",
+    "position": 7,
+    "required_for_agents": false,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 3,
+      "value": "Phone"
+     },
+     {
+      "id": 1,
+      "value": "Email"
+     }
+    ],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 308,
+    "name": "group",
+    "label": "Group",
+    "field_type": "default_group",
+    "position": 8,
+    "required_for_agents": false,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 309,
+    "name": "customers_hit",
+    "label": "Customers affected",
+    "field_type": "custom_number",
+    "position": 9,
+    "required_for_agents": true,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": true
+   },
+   {
+    "id": 310,
+    "name": "due_on",
+    "label": "Due on",
+    "field_type": "custom_date",
+    "date_only": true,
+    "position": 10,
+    "required_for_agents": false,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 311,
+    "name": "description",
+    "label": "Description",
+    "field_type": "default_description",
+    "position": 11,
+    "required_for_agents": false,
+    "default_field": true,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 312,
+    "name": "department",
+    "label": "Department",
+    "field_type": "default_department",
+    "position": 12,
+    "required_for_agents": false,
+    "default_field": true,
+    "choices": [
+     {
+      "id": 501,
+      "value": "Engineering"
+     }
+    ],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   },
+   {
+    "id": 313,
+    "name": "mystery",
+    "label": "Mystery",
+    "field_type": "custom_hologram",
+    "position": 13,
+    "required_for_agents": false,
+    "default_field": false,
+    "choices": [],
+    "nested_fields": [],
+    "sections": [],
+    "belongs_to_section": false
+   }
+  ],
+  "routes": {
+   "business_rules": {
+    "ok": {
+     "business_rules": [
+      {
+       "id": 9000008001,
+       "name": "Agent portal: hide planning",
+       "workspace_id": 2,
+       "module_type": "ticket",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "agent",
+       "form_type": "new_form",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "portal",
+          "value": "9000006001",
+          "operator": "is",
+          "evaluate_on": "system"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "priority",
+           "customFields.delivery_team"
+          ],
+          "property": "hide"
+         },
+         {
+          "name": [
+           "customFields.symptom"
+          ],
+          "property": "populate",
+          "values": [
+           {
+            "display_id": 1,
+            "nested_options": [
+             {
+              "display_id": 2,
+              "nested_options": null
+             }
+            ]
+           },
+           {
+            "display_id": 6,
+            "nested_options": null
+           }
+          ]
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false
+      },
+      {
+       "id": 9000008002,
+       "name": "Agent portal: lock check",
+       "workspace_id": 2,
+       "module_type": "ticket",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "agent",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "portal",
+          "value": "9000006001",
+          "operator": "is",
+          "evaluate_on": "system"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "customFields.attachment_check"
+          ],
+          "property": "disable"
+         }
+        ]
+       },
+       "is_reversible": true,
+       "is_validation": false
+      },
+      {
+       "id": 9000008003,
+       "name": "Slow: show priority",
+       "workspace_id": 2,
+       "module_type": "ticket",
+       "item_id": null,
+       "deleted": false,
+       "user_type": "both",
+       "form_type": "both",
+       "state": "active",
+       "rule_type": "client_side",
+       "description": "",
+       "condition_data": {
+        "all": [
+         {
+          "name": "customFields.symptom",
+          "operator": "is",
+          "evaluate_on": "change",
+          "value": "Slow"
+         }
+        ]
+       },
+       "action_data": {
+        "action": [
+         {
+          "name": [
+           "priority"
+          ],
+          "property": "show"
+         },
+         {
+          "name": [
+           "priority"
+          ],
+          "property": "mandate"
+         },
+         {
+          "name": [
+           "description_html"
+          ],
+          "property": "hide"
+         }
+        ]
+       },
+       "is_reversible": false,
+       "is_validation": false
+      }
+     ],
+     "user": {
+      "first_name": "Robin",
+      "last_name": "Desk",
+      "email": "robin.desk@example.com",
+      "time_zone": "UTC"
+     }
+    }
+   }
+  },
+  "user": null,
+  "result": {
+   "props": [
+    {
+     "name": "requester",
+     "label": "Requester",
+     "value": "900",
+     "required": true
+    },
+    {
+     "name": "issue",
+     "label": "Issue",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "ticket_type",
+     "label": "Type",
+     "value": "Incident",
+     "required": false
+    },
+    {
+     "name": "priority",
+     "label": "Priority",
+     "value": "Medium",
+     "required": false
+    },
+    {
+     "name": "status",
+     "label": "Status",
+     "value": "Open",
+     "required": true
+    },
+    {
+     "name": "source",
+     "label": "Source",
+     "value": "2",
+     "required": false
+    },
+    {
+     "name": "group",
+     "label": "Group",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "due_on",
+     "label": "Due on",
+     "value": "Wed, 4 Mar 2026",
+     "required": false
+    },
+    {
+     "name": "department",
+     "label": "Department",
+     "value": "",
+     "required": false
+    },
+    {
+     "name": "mystery",
+     "label": "Mystery",
+     "value": "",
+     "required": false
+    }
+   ],
+   "note": null
+  },
+  "calls": [
+   [
+    "int_get",
+    "bootstrap/me",
+    null
+   ],
+   [
+    "int_get",
+    "workspaces",
+    null
+   ],
+   [
+    "int_get",
+    "business_rules",
+    {
+     "ember_api": "true",
+     "module_type": "ticket",
+     "item_id": "null",
+     "requester": "",
+     "requested_for": "",
+     "include_workspace": "false",
+     "filter_by_default_form_action": "true",
+     "form_type": "edit_form",
+     "user_type": "null",
+     "module_id": "42",
+     "cf_name_prefix": "customFields."
+    }
+   ]
+  ],
+  "saves": [
+   [
+    "ticket-rules-edit_form-wsnone-42",
+    "form_rules"
+   ]
+  ]
+ }
+]

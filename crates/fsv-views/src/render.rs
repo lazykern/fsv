@@ -3,7 +3,7 @@
 
 use serde_json::{Map, Value, json};
 
-use fsv_api::{PRIORITY, RISK, IMPACT, choice_label, field};
+use fsv_api::{IMPACT, PRIORITY, RISK, choice_label, field};
 use fsv_core::output::{fmt_dt, fmt_value, strip_html};
 use fsv_core::pystr;
 use fsv_core::resource::{self, Resource};
@@ -32,7 +32,10 @@ pub enum Block {
     Table(Table),
     /// Details tab: two columns (3:2) when the console is at least 100 wide,
     /// otherwise `main`, a blank line, then `side`.
-    Columns { main: String, side: String },
+    Columns {
+        main: String,
+        side: String,
+    },
 }
 
 /// Width at which the Details tab switches to two columns.
@@ -48,19 +51,34 @@ fn lower(block: &Block, width: usize) -> Vec<Block> {
         Block::DimRule => vec![Block::Markup(format!("[dim]{}[/]", rule_chars(width)))],
         Block::LeftRule(title) => {
             let used = cell_len(&strip_markup(title)) + 1;
-            vec![Block::Markup(format!("{title} [dim]{}[/]", rule_chars(width.saturating_sub(used))))]
+            vec![Block::Markup(format!(
+                "{title} [dim]{}[/]",
+                rule_chars(width.saturating_sub(used))
+            ))]
         }
         Block::Columns { main, side } if width >= GRID_MIN_WIDTH => {
             // Rich `Table.grid(expand=True, padding=(0, 2))`: the 3:2 split includes the
             // collapsed 2-cell gap, which here is the 1+1 padding around the column edge.
             let main_width = (3 * width).div_ceil(5);
             let mut grid = Table::new().no_box().show_header(false).pad_edge(false);
-            grid.add_column(Column::new("").width(main_width - 2).overflow(Overflow::Fold));
-            grid.add_column(Column::new("").width(width - main_width).overflow(Overflow::Fold));
+            grid.add_column(
+                Column::new("")
+                    .width(main_width - 2)
+                    .overflow(Overflow::Fold),
+            );
+            grid.add_column(
+                Column::new("")
+                    .width(width - main_width)
+                    .overflow(Overflow::Fold),
+            );
             grid.add_row([main.clone(), side.clone()]);
             vec![Block::Table(grid)]
         }
-        Block::Columns { main, side } => vec![Block::Markup(main.clone()), Block::Blank, Block::Markup(side.clone())],
+        Block::Columns { main, side } => vec![
+            Block::Markup(main.clone()),
+            Block::Blank,
+            Block::Markup(side.clone()),
+        ],
         other => vec![other.clone()],
     }
 }
@@ -70,10 +88,17 @@ pub fn blocks_lines(blocks: &[Block], width: usize, color: bool) -> Vec<String> 
     let mut out = Vec::new();
     for b in blocks.iter().flat_map(|b| lower(b, width)) {
         match b {
-            Block::Markup(m) if color => out.extend(term::out().render(&m).split('\n').map(str::to_string)),
+            Block::Markup(m) if color => {
+                out.extend(term::out().render(&m).split('\n').map(str::to_string))
+            }
             Block::Markup(m) => out.extend(strip_markup(&m).split('\n').map(str::to_string)),
             Block::Blank => out.push(String::new()),
-            Block::Rule(title) => out.push(term::rule_line(&title, width, color, term::Style::default())),
+            Block::Rule(title) => out.push(term::rule_line(
+                &title,
+                width,
+                color,
+                term::Style::default(),
+            )),
             Block::Table(t) => out.extend(t.render_lines(width, color)),
             Block::DimRule | Block::LeftRule(_) | Block::Columns { .. } => {}
         }
@@ -83,7 +108,10 @@ pub fn blocks_lines(blocks: &[Block], width: usize, color: bool) -> Vec<String> 
 
 /// Plain text of `blocks` (one string, newline-terminated lines).
 pub fn blocks_text(blocks: &[Block], width: usize) -> String {
-    blocks_lines(blocks, width, false).into_iter().map(|l| l + "\n").collect()
+    blocks_lines(blocks, width, false)
+        .into_iter()
+        .map(|l| l + "\n")
+        .collect()
 }
 
 /// Print `blocks` on `console`.
@@ -148,7 +176,8 @@ fn schema_or_empty(schema: Option<&Value>) -> Value {
 // --------------------------------------------------------------------------
 // classic list
 
-const CUSTOM_FIELD_CATEGORY_ORDER: [&str; 6] = ["choices", "text", "dates", "numbers", "booleans", "other"];
+const CUSTOM_FIELD_CATEGORY_ORDER: [&str; 6] =
+    ["choices", "text", "dates", "numbers", "booleans", "other"];
 
 fn custom_field_category(name: &str, schema: &Value) -> &'static str {
     let ftype = field(name, schema)
@@ -198,7 +227,11 @@ fn priority_cell(v: Option<&Value>) -> &'static str {
 }
 
 /// `list_rows`: the `--csv`/`--tsv`/`--json` rows of the classic list.
-pub fn list_rows(items: &[Value], res: &Resource, schema: Option<&Value>) -> Vec<Map<String, Value>> {
+pub fn list_rows(
+    items: &[Value],
+    res: &Resource,
+    schema: Option<&Value>,
+) -> Vec<Map<String, Value>> {
     let schema = schema_or_empty(schema);
     items
         .iter()
@@ -206,19 +239,41 @@ pub fn list_rows(items: &[Value], res: &Resource, schema: Option<&Value>) -> Vec
             let sid = x.get("status").cloned().unwrap_or(Value::Null);
             let mut row = Map::new();
             row.insert("id".into(), json!(resource::format_id(x, res)));
-            row.insert("status".into(), json!(resolve_status_name(x, &sid, &schema)));
+            row.insert(
+                "status".into(),
+                json!(resolve_status_name(x, &sid, &schema)),
+            );
             row.insert("status_id".into(), sid);
             row.insert("priority".into(), json!(priority_cell(x.get("priority"))));
-            row.insert("subject".into(), x.get("subject").filter(|v| fsv_py::truthy(v)).cloned().unwrap_or(json!("")));
+            row.insert(
+                "subject".into(),
+                x.get("subject")
+                    .filter(|v| fsv_py::truthy(v))
+                    .cloned()
+                    .unwrap_or(json!("")),
+            );
             let requester = match x.get("requester") {
                 Some(Value::Object(r)) => r.get("name").filter(|v| fsv_py::truthy(v)).cloned(),
                 _ => None,
             };
             row.insert("requester".into(), requester.unwrap_or(json!("")));
             if res.name == "tickets" {
-                row.insert("type".into(), x.get("type").filter(|v| fsv_py::truthy(v)).cloned().unwrap_or(json!("")));
+                row.insert(
+                    "type".into(),
+                    x.get("type")
+                        .filter(|v| fsv_py::truthy(v))
+                        .cloned()
+                        .unwrap_or(json!("")),
+                );
             } else if res.name == "changes" {
-                row.insert("type".into(), json!(choice_label("change_type", x.get("change_type").unwrap_or(&Value::Null), &schema)));
+                row.insert(
+                    "type".into(),
+                    json!(choice_label(
+                        "change_type",
+                        x.get("change_type").unwrap_or(&Value::Null),
+                        &schema
+                    )),
+                );
             }
             row
         })
@@ -241,11 +296,18 @@ pub fn list_table(items: &[Value], res: &Resource, schema: Option<&Value>) -> Ta
     for x in items {
         let sid = x.get("status").cloned().unwrap_or(Value::Null);
         let status = resolve_status_name(x, &sid, &schema);
-        let mut row = vec![resource::format_id(x, res), format!("{status} ({})", fsv_py::py_str(&sid))];
+        let mut row = vec![
+            resource::format_id(x, res),
+            format!("{status} ({})", fsv_py::py_str(&sid)),
+        ];
         if res.name == "tickets" {
             row.push(truthy_str(x.get("type")).unwrap_or_else(|| "-".into()));
         } else if res.name == "changes" {
-            let label = choice_label("change_type", x.get("change_type").unwrap_or(&Value::Null), &schema);
+            let label = choice_label(
+                "change_type",
+                x.get("change_type").unwrap_or(&Value::Null),
+                &schema,
+            );
             row.push(if label.is_empty() { "-".into() } else { label });
         }
         row.push(priority_cell(x.get("priority")).to_string());
@@ -272,12 +334,21 @@ pub fn state_diagram(change: &Value, flow: Option<&Value>, context: usize) -> Ve
     if !change.get("state_flow_id").is_some_and(fsv_py::truthy) {
         return Vec::new();
     }
-    let Some(states) = flow.and_then(|f| f.get("state_list")).and_then(Value::as_array).filter(|s| !s.is_empty()) else {
+    let Some(states) = flow
+        .and_then(|f| f.get("state_list"))
+        .and_then(Value::as_array)
+        .filter(|s| !s.is_empty())
+    else {
         return Vec::new();
     };
     let current = change.get("status").cloned().unwrap_or(Value::Null);
     let mut traversal: Vec<Value> = Vec::new();
-    for v in change.get("state_traversal").and_then(Value::as_array).into_iter().flatten() {
+    for v in change
+        .get("state_traversal")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
         if !traversal.iter().any(|t| same(t, v)) {
             traversal.push(v.clone());
         }
@@ -310,12 +381,19 @@ pub fn state_diagram(change: &Value, flow: Option<&Value>, context: usize) -> Ve
         parts.push("[dim]…[/]".to_string());
     }
     let mut out = vec![
-        Block::Markup(format!("[bold cyan]state flow:[/] [bold]{pct}%[/] complete  [dim]({done}/{total})[/]")),
+        Block::Markup(format!(
+            "[bold cyan]state flow:[/] [bold]{pct}%[/] complete  [dim]({done}/{total})[/]"
+        )),
         Block::Markup(parts.join(" [dim]→[/] ")),
     ];
     if lo > 0 || hi < total - 1 {
-        let hid = change.get("human_display_id").map(fsv_py::py_str).unwrap_or_else(|| "None".into());
-        out.push(Block::Markup(format!("[dim]  use `fsv changes state {hid}` for full flow[/]")));
+        let hid = change
+            .get("human_display_id")
+            .map(fsv_py::py_str)
+            .unwrap_or_else(|| "None".into());
+        out.push(Block::Markup(format!(
+            "[dim]  use `fsv changes state {hid}` for full flow[/]"
+        )));
     }
     out
 }
@@ -323,10 +401,16 @@ pub fn state_diagram(change: &Value, flow: Option<&Value>, context: usize) -> Ve
 // --------------------------------------------------------------------------
 // classic detail
 
-fn party_display(obj: Option<&Value>, id_value: Option<&Value>, fallback_name: Option<&Value>) -> String {
+fn party_display(
+    obj: Option<&Value>,
+    id_value: Option<&Value>,
+    fallback_name: Option<&Value>,
+) -> String {
     let id_value = id_value.filter(|v| !v.is_null());
     if let Some(Value::Object(o)) = obj {
-        let name = ["name", "email", "value"].iter().find_map(|k| o.get(*k).filter(|v| fsv_py::truthy(v)));
+        let name = ["name", "email", "value"]
+            .iter()
+            .find_map(|k| o.get(*k).filter(|v| fsv_py::truthy(v)));
         let obj_id = o.get("id").filter(|v| fsv_py::truthy(v)).or(id_value);
         if let (Some(name), Some(id)) = (name, obj_id.filter(|v| !v.is_null())) {
             return format!("{} ({})", fsv_py::py_str(name), fsv_py::py_str(id));
@@ -339,51 +423,103 @@ fn party_display(obj: Option<&Value>, id_value: Option<&Value>, fallback_name: O
     match (fallback, id_value) {
         (Some(f), Some(id)) => format!("{} ({})", fsv_py::py_str(f), fsv_py::py_str(id)),
         (Some(f), None) => fsv_py::py_str(f),
-        _ => id_value.filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_else(|| "-".into()),
+        _ => id_value
+            .filter(|v| fsv_py::truthy(v))
+            .map(fsv_py::py_str)
+            .unwrap_or_else(|| "-".into()),
     }
 }
 
 /// The classic `fsv <resource> get` panel. `flow` feeds the change state diagram.
-pub fn detail_panel(item: &Value, res: &Resource, schema: Option<&Value>, flow: Option<&Value>) -> Vec<Block> {
+pub fn detail_panel(
+    item: &Value,
+    res: &Resource,
+    schema: Option<&Value>,
+    flow: Option<&Value>,
+) -> Vec<Block> {
     let schema = schema_or_empty(schema);
     let mut out = Vec::new();
     let subject = item.get("subject").map(fsv_py::py_str).unwrap_or_default();
-    out.push(Block::Rule(format!("[bold cyan]{}[/]  {subject}", resource::format_id(item, res))));
+    out.push(Block::Rule(format!(
+        "[bold cyan]{}[/]  {subject}",
+        resource::format_id(item, res)
+    )));
     let sid = item.get("status").cloned().unwrap_or(Value::Null);
-    let status = truthy_str(item.get("status_name")).unwrap_or_else(|| choice_label("status", &sid, &schema));
-    out.push(Block::Markup(format!("[green]status[/]    {status}  (id={})", fsv_py::py_str(&sid))));
+    let status = truthy_str(item.get("status_name"))
+        .unwrap_or_else(|| choice_label("status", &sid, &schema));
+    out.push(Block::Markup(format!(
+        "[green]status[/]    {status}  (id={})",
+        fsv_py::py_str(&sid)
+    )));
     if res.name == "changes" {
         out.extend(state_diagram(item, flow, 3));
-        let ct = choice_label("change_type", item.get("change_type").unwrap_or(&Value::Null), &schema);
+        let ct = choice_label(
+            "change_type",
+            item.get("change_type").unwrap_or(&Value::Null),
+            &schema,
+        );
         out.push(Block::Markup(format!("type      {ct}")));
-        out.push(Block::Markup(format!("risk      {}", lookup(RISK, item.get("risk")).unwrap_or("-"))));
+        out.push(Block::Markup(format!(
+            "risk      {}",
+            lookup(RISK, item.get("risk")).unwrap_or("-")
+        )));
     }
     if res.name == "tickets" {
-        let typ = item.get("type").map(fsv_py::py_str).unwrap_or_else(|| "-".into());
+        let typ = item
+            .get("type")
+            .map(fsv_py::py_str)
+            .unwrap_or_else(|| "-".into());
         out.push(Block::Markup(format!("type      {typ}")));
-        if let Some(dept) = truthy_str(obj_get(item.get("department").filter(|v| fsv_py::truthy(v)), "name")) {
+        if let Some(dept) = truthy_str(obj_get(
+            item.get("department").filter(|v| fsv_py::truthy(v)),
+            "name",
+        )) {
             out.push(Block::Markup(format!("department {dept}")));
         }
     }
-    out.push(Block::Markup(format!("priority  {}", lookup(PRIORITY, item.get("priority")).unwrap_or("-"))));
+    out.push(Block::Markup(format!(
+        "priority  {}",
+        lookup(PRIORITY, item.get("priority")).unwrap_or("-")
+    )));
     if item.get("impact").is_some_and(|v| !v.is_null()) {
-        out.push(Block::Markup(format!("impact    {}", lookup(IMPACT, item.get("impact")).unwrap_or("-"))));
+        out.push(Block::Markup(format!(
+            "impact    {}",
+            lookup(IMPACT, item.get("impact")).unwrap_or("-")
+        )));
     }
     let get = |k: &str| item.get(k).unwrap_or(&Value::Null);
     let has = |k: &str| item.get(k).is_some_and(fsv_py::truthy);
     if has("planned_start_date") || has("planned_end_date") {
-        out.push(Block::Markup(format!("planned   {}  →  {}", fmt_dt(get("planned_start_date")), fmt_dt(get("planned_end_date")))));
+        out.push(Block::Markup(format!(
+            "planned   {}  →  {}",
+            fmt_dt(get("planned_start_date")),
+            fmt_dt(get("planned_end_date"))
+        )));
     }
     if has("created_at") || has("updated_at") {
-        out.push(Block::Markup(format!("created   {}  updated {}", fmt_dt(get("created_at")), fmt_dt(get("updated_at")))));
+        out.push(Block::Markup(format!(
+            "created   {}  updated {}",
+            fmt_dt(get("created_at")),
+            fmt_dt(get("updated_at"))
+        )));
     }
-    let agent_obj = item.get("agent").filter(|v| fsv_py::truthy(v)).or_else(|| item.get("responder"));
-    let agent_id = item.get("agent_id").filter(|v| fsv_py::truthy(v)).or_else(|| item.get("responder_id"));
+    let agent_obj = item
+        .get("agent")
+        .filter(|v| fsv_py::truthy(v))
+        .or_else(|| item.get("responder"));
+    let agent_id = item
+        .get("agent_id")
+        .filter(|v| fsv_py::truthy(v))
+        .or_else(|| item.get("responder_id"));
     out.push(Block::Markup(format!(
         "requester {}  agent {}  group {}",
         party_display(item.get("requester"), item.get("requester_id"), None),
         party_display(agent_obj, agent_id, item.get("owner_name")),
-        party_display(item.get("group"), item.get("group_id"), item.get("group_name")),
+        party_display(
+            item.get("group"),
+            item.get("group_id"),
+            item.get("group_name")
+        ),
     )));
     let description = strip_html(item.get("description").and_then(Value::as_str));
     if !description.is_empty() {
@@ -391,14 +527,20 @@ pub fn detail_panel(item: &Value, res: &Resource, schema: Option<&Value>, flow: 
         out.push(Block::Rule("[dim]description[/]".into()));
         out.push(Block::Markup(description));
     }
-    if let Some(cf) = item.get("custom_fields").filter(|v| fsv_py::truthy(v)).and_then(Value::as_object) {
+    if let Some(cf) = item
+        .get("custom_fields")
+        .filter(|v| fsv_py::truthy(v))
+        .and_then(Value::as_object)
+    {
         out.push(Block::Blank);
         out.push(Block::Rule("[dim]custom_fields[/]".into()));
-        let mut keys: Vec<(&String, &Value)> = cf.iter().filter(|(_, v)| !blank_answer(v)).collect();
+        let mut keys: Vec<(&String, &Value)> =
+            cf.iter().filter(|(_, v)| !blank_answer(v)).collect();
         keys.sort_by(|a, b| a.0.cmp(b.0));
         let mut grouped: Vec<(&str, Vec<(String, &Value)>)> = Vec::new();
         for (k, v) in keys {
-            let label = truthy_str(field(k, &schema).and_then(|f| f.get("label"))).unwrap_or_else(|| k.clone());
+            let label = truthy_str(field(k, &schema).and_then(|f| f.get("label")))
+                .unwrap_or_else(|| k.clone());
             let cat = custom_field_category(k, &schema);
             match grouped.iter_mut().find(|(c, _)| *c == cat) {
                 Some((_, rows)) => rows.push((label, v)),
@@ -407,18 +549,27 @@ pub fn detail_panel(item: &Value, res: &Resource, schema: Option<&Value>, flow: 
         }
         let mut first = true;
         for category in CUSTOM_FIELD_CATEGORY_ORDER {
-            let Some((_, rows)) = grouped.iter().find(|(c, _)| *c == category) else { continue };
+            let Some((_, rows)) = grouped.iter().find(|(c, _)| *c == category) else {
+                continue;
+            };
             if !first {
                 out.push(Block::Blank);
             }
             first = false;
             out.push(Block::Markup(format!("  [bold]{category}[/]")));
             for (label, v) in rows {
-                out.push(Block::Markup(format!("    [cyan]{label}[/]: {}", escape(&fmt_value(v)))));
+                out.push(Block::Markup(format!(
+                    "    [cyan]{label}[/]: {}",
+                    escape(&fmt_value(v))
+                )));
             }
         }
     }
-    if let Some(pf) = item.get("planning_fields").filter(|v| fsv_py::truthy(v)).and_then(Value::as_object) {
+    if let Some(pf) = item
+        .get("planning_fields")
+        .filter(|v| fsv_py::truthy(v))
+        .and_then(Value::as_object)
+    {
         out.push(Block::Blank);
         out.push(Block::Rule("[dim]planning_fields[/]".into()));
         for (k, v) in pf {
@@ -437,10 +588,17 @@ pub fn detail_panel(item: &Value, res: &Resource, schema: Option<&Value>, flow: 
 fn field_value_text(value: &Value) -> String {
     match value {
         Value::Array(items) => {
-            let text = items.iter().map(field_value_text).collect::<Vec<_>>().join(", ");
+            let text = items
+                .iter()
+                .map(field_value_text)
+                .collect::<Vec<_>>()
+                .join(", ");
             if text.is_empty() { "-".into() } else { text }
         }
-        Value::Object(m) => match ["name", "value", "label", "email"].iter().find_map(|k| m.get(*k).filter(|v| fsv_py::truthy(v))) {
+        Value::Object(m) => match ["name", "value", "label", "email"]
+            .iter()
+            .find_map(|k| m.get(*k).filter(|v| fsv_py::truthy(v)))
+        {
             Some(v) => fsv_py::py_str(v),
             None => fsv_py::Dumps::default().ensure_ascii(false).dump(value),
         },
@@ -453,7 +611,12 @@ fn field_value_text(value: &Value) -> String {
 
 fn field_defs(field: &Value) -> Vec<&Value> {
     let mut defs = vec![field];
-    for nested in field.get("nested_fields").and_then(Value::as_array).into_iter().flatten() {
+    for nested in field
+        .get("nested_fields")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
         defs.extend(field_defs(nested));
     }
     defs
@@ -463,17 +626,28 @@ fn field_defs(field: &Value) -> Vec<&Value> {
 /// answered field the form does not describe (by name).
 pub fn requested_item_rows(item: &Value) -> Vec<(String, String)> {
     let empty = Map::new();
-    let values = item.get("custom_fields").and_then(Value::as_object).unwrap_or(&empty);
-    let defs: Vec<&Value> = obj_get(item.get("item"), "custom_fields").and_then(Value::as_array).map(|a| a.iter().collect()).unwrap_or_default();
+    let values = item
+        .get("custom_fields")
+        .and_then(Value::as_object)
+        .unwrap_or(&empty);
+    let defs: Vec<&Value> = obj_get(item.get("item"), "custom_fields")
+        .and_then(Value::as_array)
+        .map(|a| a.iter().collect())
+        .unwrap_or_default();
     let mut rows: Vec<(String, String)> = Vec::new();
     let mut seen: Vec<String> = Vec::new();
 
     let mut add_field = |f: &Value, rows: &mut Vec<(String, String)>| {
-        let (Some(name), Some(label)) = (truthy_str(f.get("name")), truthy_str(f.get("label"))) else { return };
+        let (Some(name), Some(label)) = (truthy_str(f.get("name")), truthy_str(f.get("label")))
+        else {
+            return;
+        };
         if seen.contains(&name) {
             return;
         }
-        let Some(value) = values.get(&name) else { return };
+        let Some(value) = values.get(&name) else {
+            return;
+        };
         if blank_answer(value) {
             return;
         }
@@ -483,14 +657,23 @@ pub fn requested_item_rows(item: &Value) -> Vec<(String, String)> {
 
     for f in defs {
         add_field(f, &mut rows);
-        let selected = f.get("name").map(fsv_py::py_str).and_then(|n| values.get(&n)).filter(|v| fsv_py::truthy(v));
+        let selected = f
+            .get("name")
+            .map(fsv_py::py_str)
+            .and_then(|n| values.get(&n))
+            .filter(|v| fsv_py::truthy(v));
         let sections = f.get("sections").filter(|v| fsv_py::truthy(v));
         if let (Some(selected), Some(sections)) = (selected, sections) {
             for section in sections.as_array().into_iter().flatten() {
                 if section.get("name").is_none_or(|n| !same(n, selected)) {
                     continue;
                 }
-                for sf in section.get("fields").and_then(Value::as_array).into_iter().flatten() {
+                for sf in section
+                    .get("fields")
+                    .and_then(Value::as_array)
+                    .into_iter()
+                    .flatten()
+                {
                     for nested in field_defs(sf) {
                         add_field(nested, &mut rows);
                     }
@@ -498,7 +681,12 @@ pub fn requested_item_rows(item: &Value) -> Vec<(String, String)> {
                 break;
             }
         } else {
-            for nested in f.get("nested_fields").and_then(Value::as_array).into_iter().flatten() {
+            for nested in f
+                .get("nested_fields")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+            {
                 for child in field_defs(nested) {
                     add_field(child, &mut rows);
                 }
@@ -527,7 +715,10 @@ pub fn requested_item_json(item: &Value) -> Value {
         Some(s) if fsv_py::truthy(s) => s.clone(),
         _ => json!(""),
     };
-    let answers: Vec<Value> = requested_item_rows(item).into_iter().map(|(k, v)| json!({"label": k, "value": v})).collect();
+    let answers: Vec<Value> = requested_item_rows(item)
+        .into_iter()
+        .map(|(k, v)| json!({"label": k, "value": v}))
+        .collect();
     json!({
         "name": name,
         "stage": stage,
@@ -548,13 +739,25 @@ pub fn requested_items_panel(items: &[Value]) -> Vec<Block> {
             .map(fsv_py::py_str)
             .unwrap_or_else(|| format!("requested item {idx}"));
         out.push(Block::Blank);
-        out.push(Block::Rule(format!("[dim]requested_item {idx}[/]  {}", escape(&item_name))));
+        out.push(Block::Rule(format!(
+            "[dim]requested_item {idx}[/]  {}",
+            escape(&item_name)
+        )));
         let stage = match item.get("stage") {
-            Some(Value::Object(s)) => s.get("name").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str),
+            Some(Value::Object(s)) => s
+                .get("name")
+                .filter(|v| fsv_py::truthy(v))
+                .map(fsv_py::py_str),
             other => other.filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str),
         };
-        out.push(Block::Markup(format!("stage     {}", stage.unwrap_or_else(|| "-".into()))));
-        let description = obj_get(meta, "description").filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str).unwrap_or_default();
+        out.push(Block::Markup(format!(
+            "stage     {}",
+            stage.unwrap_or_else(|| "-".into())
+        )));
+        let description = obj_get(meta, "description")
+            .filter(|v| fsv_py::truthy(v))
+            .map(fsv_py::py_str)
+            .unwrap_or_default();
         let description = pystr::strip(&description);
         if !description.is_empty() {
             out.push(Block::Blank);
@@ -566,7 +769,11 @@ pub fn requested_items_panel(items: &[Value]) -> Vec<Block> {
             out.push(Block::Blank);
             out.push(Block::Rule("[dim]requested_item fields[/]".into()));
             for (label, value) in rows {
-                out.push(Block::Markup(format!("[cyan]{}[/]  {}", escape(&label), escape(&value))));
+                out.push(Block::Markup(format!(
+                    "[cyan]{}[/]  {}",
+                    escape(&label),
+                    escape(&value)
+                )));
             }
         }
     }
@@ -614,14 +821,34 @@ mod tests {
 
     #[test]
     fn classic_list_columns_and_rows() {
-        let schema = json!({"fields": [{"name": "status", "choices": [{"id": 2, "value": "Open"}]}]});
-        let items = vec![json!({"id": 9, "status": 2, "priority": 3, "subject": "Disk", "type": "Incident", "requester": {"name": "Ann"}})];
+        let schema =
+            json!({"fields": [{"name": "status", "choices": [{"id": 2, "value": "Open"}]}]});
+        let items = vec![
+            json!({"id": 9, "status": 2, "priority": 3, "subject": "Disk", "type": "Incident", "requester": {"name": "Ann"}}),
+        ];
         let t = list_table(&items, &TICKETS, Some(&schema));
         let headers: Vec<&str> = t.columns.iter().map(|c| c.header.as_str()).collect();
-        assert_eq!(headers, ["ID", "Status", "Type", "Pri", "Subject", "Requester"]);
-        assert_eq!(t.rows[0], ["INC-9", "Open (2)", "Incident", "High", "Disk", "Ann"]);
+        assert_eq!(
+            headers,
+            ["ID", "Status", "Type", "Pri", "Subject", "Requester"]
+        );
+        assert_eq!(
+            t.rows[0],
+            ["INC-9", "Open (2)", "Incident", "High", "Disk", "Ann"]
+        );
         let rows = list_rows(&items, &TICKETS, Some(&schema));
-        assert_eq!(rows[0].keys().collect::<Vec<_>>(), ["id", "status", "status_id", "priority", "subject", "requester", "type"]);
+        assert_eq!(
+            rows[0].keys().collect::<Vec<_>>(),
+            [
+                "id",
+                "status",
+                "status_id",
+                "priority",
+                "subject",
+                "requester",
+                "type"
+            ]
+        );
     }
 
     #[test]
@@ -648,12 +875,19 @@ mod tests {
             {"id": 4, "value": "Test"}, {"id": 5, "value": "Done"}
         ]});
         let text = blocks_text(&state_diagram(&change, Some(&flow), 1), 80);
-        assert_eq!(text, "state flow: 40% complete  (2/5)\n… → ✓ Plan →  ▶ Build  → Test → …\n  use `fsv changes state CHN-1` for full flow\n");
+        assert_eq!(
+            text,
+            "state flow: 40% complete  (2/5)\n… → ✓ Plan →  ▶ Build  → Test → …\n  use `fsv changes state CHN-1` for full flow\n"
+        );
     }
 
     #[test]
     fn left_rule_fills_width() {
-        let lines = blocks_lines(&[Block::LeftRule("[bold]Notes[/]".into()), Block::DimRule], 12, false);
+        let lines = blocks_lines(
+            &[Block::LeftRule("[bold]Notes[/]".into()), Block::DimRule],
+            12,
+            false,
+        );
         assert_eq!(lines, ["Notes ──────", "────────────"]);
     }
 }

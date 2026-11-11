@@ -1,0 +1,5152 @@
+{
+ "offline": {
+  "cases": [
+   {
+    "case": [
+     "complete_format",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "table",
+      "rich table"
+     ],
+     [
+      "json",
+      "JSON array"
+     ],
+     [
+      "csv",
+      "comma-separated values"
+     ],
+     [
+      "tsv",
+      "tab-separated values"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_format",
+     "-",
+     "J",
+     []
+    ],
+    "pairs": [
+     [
+      "json",
+      "JSON array"
+     ],
+     [
+      "J",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_store",
+     "-",
+     "a",
+     []
+    ],
+    "pairs": [
+     [
+      "argon",
+      "Argon2id + AES-256-GCM encrypted"
+     ],
+     [
+      "a",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_shell",
+     "-",
+     "p",
+     []
+    ],
+    "pairs": [
+     [
+      "powershell",
+      "Windows PowerShell"
+     ],
+     [
+      "pwsh",
+      "PowerShell Core"
+     ],
+     [
+      "p",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_sort_order",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "asc",
+      "ascending"
+     ],
+     [
+      "desc",
+      "descending"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_config_key",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "completion.network",
+      "enable remote requester/agent completion [on|off]"
+     ],
+     [
+      "defaults.requester",
+      "requester email for changes create"
+     ],
+     [
+      "forms.workspace_id",
+      "workspace whose business rules apply"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_config_key",
+     "-",
+     "de",
+     []
+    ],
+    "pairs": [
+     [
+      "defaults.requester",
+      "requester email for changes create"
+     ],
+     [
+      "de",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_config_value",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "on",
+      ""
+     ],
+     [
+      "off",
+      ""
+     ],
+     [
+      "true",
+      ""
+     ],
+     [
+      "false",
+      ""
+     ],
+     [
+      "1",
+      ""
+     ],
+     [
+      "0",
+      ""
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_config_value",
+     "-",
+     "O",
+     []
+    ],
+    "pairs": [
+     [
+      "on",
+      ""
+     ],
+     [
+      "off",
+      ""
+     ],
+     [
+      "O",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_cache_target",
+     "-",
+     "g",
+     []
+    ],
+    "pairs": [
+     [
+      "groups",
+      "agent groups"
+     ],
+     [
+      "g",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_search_sort",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "relevance",
+      "best text match"
+     ],
+     [
+      "created",
+      "created time"
+     ],
+     [
+      "modified",
+      "last modified time"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_duplicate_mode",
+     "-",
+     "re",
+     []
+    ],
+    "pairs": [
+     [
+      "replace",
+      "replace existing file"
+     ],
+     [
+      "re",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_group_query",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "Service Desk",
+      "L1"
+     ],
+     [
+      "Network Ops",
+      ""
+     ],
+     [
+      "SERVICE Ops",
+      ""
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_group_query",
+     "-",
+     "serv",
+     []
+    ],
+    "pairs": [
+     [
+      "Service Desk",
+      "L1"
+     ],
+     [
+      "SERVICE Ops",
+      ""
+     ],
+     [
+      "serv",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_update_group_id",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "Service Desk",
+      "id=5 · L1"
+     ],
+     [
+      "5",
+      "Service Desk"
+     ],
+     [
+      "Network Ops",
+      "id=6"
+     ],
+     [
+      "6",
+      "Network Ops"
+     ],
+     [
+      "7",
+      ""
+     ],
+     [
+      "SERVICE Ops",
+      "id=55"
+     ],
+     [
+      "55",
+      "SERVICE Ops"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_update_group_id",
+     "-",
+     "5",
+     []
+    ],
+    "pairs": [
+     [
+      "5",
+      "Service Desk"
+     ],
+     [
+      "55",
+      "SERVICE Ops"
+     ],
+     [
+      "5",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_update_group_id",
+     "-",
+     "s",
+     []
+    ],
+    "pairs": [
+     [
+      "Service Desk",
+      "id=5 · L1"
+     ],
+     [
+      "SERVICE Ops",
+      "id=55"
+     ],
+     [
+      "s",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_update_agent_id",
+     "-",
+     "a",
+     []
+    ],
+    "pairs": [
+     [
+      "a",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_update_agent_id",
+     "-",
+     "al",
+     []
+    ],
+    "pairs": [
+     [
+      "al",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_update_choice",
+     "changes",
+     "O",
+     []
+    ],
+    "pairs": [],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_help_topic",
+     "-",
+     "a",
+     []
+    ],
+    "pairs": [],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_nope",
+     "-",
+     "a",
+     []
+    ],
+    "pairs": [],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "nope",
+     "st",
+     []
+    ],
+    "pairs": [],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_field_names",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "status",
+      "Status · default_status · default"
+     ],
+     [
+      "priority",
+      "Priority · default_priority · default"
+     ],
+     [
+      "impact",
+      "Impact · default_impact · default"
+     ],
+     [
+      "planned_start_date",
+      "Planned Start Date · default_date · default"
+     ],
+     [
+      "change_reason",
+      "Reason for Change · default_change_reason · default"
+     ],
+     [
+      "backout_plan",
+      "backout_plan · default_backout_plan · default"
+     ],
+     [
+      "cf_rollout",
+      "Rollout Plan · planning_field · custom"
+     ],
+     [
+      "cf_approved",
+      "Approved · custom_checkbox · custom"
+     ],
+     [
+      "cf_owner",
+      "Owner · custom_lookup_bigint · custom"
+     ],
+     [
+      "cf_reviewer",
+      "Reviewer · custom_lookup_bigint · custom"
+     ],
+     [
+      "requester",
+      "Requester · default_requester · default"
+     ],
+     [
+      "agent",
+      "Agent · default_agent · default"
+     ],
+     [
+      "cf_region",
+      "Région Straße · custom_dropdown · custom"
+     ],
+     [
+      "cf_status_note",
+      "Status Note · custom_text · custom"
+     ],
+     [
+      "cf_notes",
+      "cf_notes · ? · custom"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_field_names",
+     "changes",
+     "st",
+     []
+    ],
+    "pairs": [
+     [
+      "status",
+      "Status · default_status · default"
+     ],
+     [
+      "cf_status_note",
+      "Status Note · custom_text · custom"
+     ],
+     [
+      "st",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_field_names",
+     "changes",
+     "rég",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_region",
+      "Région Straße · custom_dropdown · custom"
+     ],
+     [
+      "rég",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_field_names",
+     "tickets",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "requester",
+      "Requester · default_requester · default"
+     ],
+     [
+      "agent",
+      "Agent · default_agent · default"
+     ],
+     [
+      "group",
+      "Group · default_group · default"
+     ],
+     [
+      "status",
+      "Status · default_status · default"
+     ],
+     [
+      "priority",
+      "Priority · default_priority · default"
+     ],
+     [
+      "created_at",
+      "Created · default_date · default"
+     ],
+     [
+      "updated_at",
+      "Updated · default_date · default"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_field_names",
+     "problems",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "status",
+      "Status · default_status · default"
+     ],
+     [
+      "cf_area",
+      "Area · custom_dropdown · custom"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_choice_field_names",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "status",
+      "Status · default_status · default · 3 choices"
+     ],
+     [
+      "priority",
+      "Priority · default_priority · default · 3 choices"
+     ],
+     [
+      "cf_region",
+      "Région Straße · custom_dropdown · custom · 4 choices"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_choice_field_names",
+     "changes",
+     "p",
+     []
+    ],
+    "pairs": [
+     [
+      "priority",
+      "Priority · default_priority · default · 3 choices"
+     ],
+     [
+      "p",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_choice_field_names",
+     "tickets",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_planning_field_names",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "Reason for Change",
+      "change_reason"
+     ],
+     [
+      "change_reason",
+      "Reason for Change"
+     ],
+     [
+      "backout_plan",
+      "backout_plan"
+     ],
+     [
+      "backout_plan",
+      "backout_plan"
+     ],
+     [
+      "Rollout Plan",
+      "cf_rollout"
+     ],
+     [
+      "cf_rollout",
+      "Rollout Plan"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_planning_field_names",
+     "changes",
+     "ro",
+     []
+    ],
+    "pairs": [
+     [
+      "Rollout Plan",
+      "cf_rollout"
+     ],
+     [
+      "cf_rollout",
+      "Rollout Plan"
+     ],
+     [
+      "ro",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_planning_field_names",
+     "changes",
+     "reason",
+     []
+    ],
+    "pairs": [
+     [
+      "Reason for Change",
+      "change_reason"
+     ],
+     [
+      "change_reason",
+      "Reason for Change"
+     ],
+     [
+      "reason",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_kind",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "requester",
+      "requester autocomplete"
+     ],
+     [
+      "agent",
+      "agent autocomplete"
+     ],
+     [
+      "group",
+      "group lookup"
+     ],
+     [
+      "status",
+      "Status · default_status · default"
+     ],
+     [
+      "priority",
+      "Priority · default_priority · default"
+     ],
+     [
+      "impact",
+      "Impact · default_impact · default"
+     ],
+     [
+      "planned_start_date",
+      "Planned Start Date · default_date · default"
+     ],
+     [
+      "change_reason",
+      "Reason for Change · default_change_reason · default"
+     ],
+     [
+      "backout_plan",
+      "backout_plan · default_backout_plan · default"
+     ],
+     [
+      "cf_rollout",
+      "Rollout Plan · planning_field · custom"
+     ],
+     [
+      "cf_approved",
+      "Approved · custom_checkbox · custom"
+     ],
+     [
+      "cf_owner",
+      "Owner · custom_lookup_bigint · custom"
+     ],
+     [
+      "cf_reviewer",
+      "Reviewer · custom_lookup_bigint · custom"
+     ],
+     [
+      "requester",
+      "Requester · default_requester · default"
+     ],
+     [
+      "agent",
+      "Agent · default_agent · default"
+     ],
+     [
+      "cf_region",
+      "Région Straße · custom_dropdown · custom"
+     ],
+     [
+      "cf_status_note",
+      "Status Note · custom_text · custom"
+     ],
+     [
+      "cf_notes",
+      "cf_notes · ? · custom"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_kind",
+     "changes",
+     "a",
+     []
+    ],
+    "pairs": [
+     [
+      "agent",
+      "agent autocomplete"
+     ],
+     [
+      "cf_approved",
+      "Approved · custom_checkbox · custom"
+     ],
+     [
+      "agent",
+      "Agent · default_agent · default"
+     ],
+     [
+      "a",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_kind",
+     "tickets",
+     "g",
+     []
+    ],
+    "pairs": [
+     [
+      "group",
+      "group lookup"
+     ],
+     [
+      "group",
+      "Group · default_group · default"
+     ],
+     [
+      "g",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "fsv",
+      "changes",
+      "lookup",
+      "--kind",
+      "group"
+     ]
+    ],
+    "pairs": [
+     [
+      "Service Desk",
+      "L1"
+     ],
+     [
+      "Network Ops",
+      ""
+     ],
+     [
+      "SERVICE Ops",
+      ""
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "SER",
+     [
+      "fsv",
+      "changes",
+      "lookup",
+      "-k",
+      "groups"
+     ]
+    ],
+    "pairs": [
+     [
+      "Service Desk",
+      "L1"
+     ],
+     [
+      "SERVICE Ops",
+      ""
+     ],
+     [
+      "SER",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "al",
+     [
+      "fsv",
+      "changes",
+      "lookup",
+      "--kind=agent"
+     ]
+    ],
+    "pairs": [
+     [
+      "al",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "al",
+     [
+      "fsv",
+      "changes",
+      "lookup",
+      "--kind",
+      "requester"
+     ]
+    ],
+    "pairs": [
+     [
+      "al",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "a",
+     [
+      "fsv",
+      "changes",
+      "lookup",
+      "--kind",
+      "agents"
+     ]
+    ],
+    "pairs": [
+     [
+      "a",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "--kind",
+      "status"
+     ]
+    ],
+    "pairs": [
+     [
+      "Open",
+      "status"
+     ],
+     [
+      "Planning",
+      "status"
+     ],
+     [
+      "Awaiting Approval",
+      "status"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "p",
+     [
+      "--kind",
+      "status"
+     ]
+    ],
+    "pairs": [
+     [
+      "Planning",
+      "status"
+     ],
+     [
+      "p",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "--kind",
+      "impact"
+     ]
+    ],
+    "pairs": [
+     [
+      "Low",
+      "impact"
+     ],
+     [
+      "Medium",
+      "impact"
+     ],
+     [
+      "High",
+      "impact"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "--kind",
+      "risk"
+     ]
+    ],
+    "pairs": [
+     [
+      "Low",
+      "risk"
+     ],
+     [
+      "Medium",
+      "risk"
+     ],
+     [
+      "High",
+      "risk"
+     ],
+     [
+      "Very High",
+      "risk"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "--kind",
+      "default:priority"
+     ]
+    ],
+    "pairs": [
+     [
+      "Low",
+      "default:priority"
+     ],
+     [
+      "Urgent",
+      "default:priority"
+     ],
+     [
+      "9",
+      "default:priority"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "--kind",
+      "custom:region"
+     ]
+    ],
+    "pairs": [
+     [
+      "Nord",
+      "custom:region"
+     ],
+     [
+      "Süd",
+      "custom:region"
+     ],
+     [
+      "7",
+      "custom:region"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "--kind",
+      "plan"
+     ]
+    ],
+    "pairs": [
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "tickets",
+     "",
+     [
+      "--kind",
+      "priority"
+     ]
+    ],
+    "pairs": [
+     [
+      "Low",
+      "priority"
+     ],
+     [
+      "Medium",
+      "priority"
+     ],
+     [
+      "High",
+      "priority"
+     ],
+     [
+      "Urgent",
+      "priority"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_filter_name",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "my_open",
+      "My open"
+     ],
+     [
+      "12",
+      "saved view"
+     ],
+     [
+      "all",
+      "All Changes"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_filter_name",
+     "changes",
+     "my",
+     []
+    ],
+    "pairs": [
+     [
+      "my_open",
+      "My open"
+     ],
+     [
+      "my",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_filter_name",
+     "changes",
+     "1",
+     []
+    ],
+    "pairs": [
+     [
+      "12",
+      "saved view"
+     ],
+     [
+      "1",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_filter_name",
+     "changes",
+     "all",
+     []
+    ],
+    "pairs": [
+     [
+      "all",
+      "All Changes"
+     ],
+     [
+      "all",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_filter_name",
+     "tickets",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "new_and_my_open",
+      "New & my open"
+     ],
+     [
+      "3",
+      "All tickets"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_filter_name",
+     "problems",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "status=",
+      "Status · default_status · default"
+     ],
+     [
+      "priority=",
+      "Priority · default_priority · default"
+     ],
+     [
+      "impact=",
+      "Impact · default_impact · default"
+     ],
+     [
+      "planned_start_date=",
+      "Planned Start Date · default_date · default"
+     ],
+     [
+      "change_reason=",
+      "Reason for Change · default_change_reason · default"
+     ],
+     [
+      "backout_plan=",
+      "backout_plan · default_backout_plan · default"
+     ],
+     [
+      "cf_rollout=",
+      "Rollout Plan · planning_field · custom"
+     ],
+     [
+      "cf_approved=",
+      "Approved · custom_checkbox · custom"
+     ],
+     [
+      "cf_owner=",
+      "Owner · custom_lookup_bigint · custom"
+     ],
+     [
+      "cf_reviewer=",
+      "Reviewer · custom_lookup_bigint · custom"
+     ],
+     [
+      "requester=",
+      "Requester · default_requester · default"
+     ],
+     [
+      "agent=",
+      "Agent · default_agent · default"
+     ],
+     [
+      "cf_region=",
+      "Région Straße · custom_dropdown · custom"
+     ],
+     [
+      "cf_status_note=",
+      "Status Note · custom_text · custom"
+     ],
+     [
+      "cf_notes=",
+      "cf_notes · ? · custom"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "s",
+     []
+    ],
+    "pairs": [
+     [
+      "status=",
+      "Status · default_status · default"
+     ],
+     [
+      "status Note=",
+      "cf_status_note · custom_text · custom"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "\"ro",
+     []
+    ],
+    "pairs": [
+     [
+      "rollout Plan=",
+      "cf_rollout · planning_field · custom"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "Réd",
+     []
+    ],
+    "pairs": [],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "rég",
+     []
+    ],
+    "pairs": [
+     [
+      "région Straße=",
+      "cf_region · custom_dropdown · custom"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "nosuch=1",
+     []
+    ],
+    "pairs": [
+     [
+      "nosuch=1",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "status=",
+     []
+    ],
+    "pairs": [
+     [
+      "status=Open",
+      "status"
+     ],
+     [
+      "status=Planning",
+      "status"
+     ],
+     [
+      "status=Awaiting Approval",
+      "status"
+     ],
+     [
+      "status=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "Status=a",
+     []
+    ],
+    "pairs": [
+     [
+      "Status=Awaiting Approval",
+      "status"
+     ],
+     [
+      "Status=a",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "priority=",
+     []
+    ],
+    "pairs": [
+     [
+      "priority=Low",
+      "priority"
+     ],
+     [
+      "priority=Urgent",
+      "priority"
+     ],
+     [
+      "priority=9",
+      "priority"
+     ],
+     [
+      "priority=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "impact=",
+     []
+    ],
+    "pairs": [
+     [
+      "impact=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "cf_approved=",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_approved=true",
+      ""
+     ],
+     [
+      "cf_approved=false",
+      ""
+     ],
+     [
+      "cf_approved=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "approved=T",
+     []
+    ],
+    "pairs": [
+     [
+      "approved=true",
+      ""
+     ],
+     [
+      "approved=T",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "planned_start_date=",
+     []
+    ],
+    "pairs": [
+     [
+      "planned_start_date=2025-01-01T00:00:00+07:00",
+      "ISO-8601"
+     ],
+     [
+      "planned_start_date=2025-12-31T23:59:59+07:00",
+      "ISO-8601"
+     ],
+     [
+      "planned_start_date=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "planned_start_date=2025-12",
+     []
+    ],
+    "pairs": [
+     [
+      "planned_start_date=2025-12-31T23:59:59+07:00",
+      "ISO-8601"
+     ],
+     [
+      "planned_start_date=2025-12",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "cf_owner=b",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_owner=b",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "cf_owner=bo",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_owner=bo",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "Owner=BO",
+     []
+    ],
+    "pairs": [
+     [
+      "Owner=BO",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "cf_reviewer=al",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_reviewer=al",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "cf_region=s",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_region=Süd",
+      "cf_region"
+     ],
+     [
+      "cf_region=s",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "cf_notes=x",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_notes=x",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "tickets",
+     "status=",
+     []
+    ],
+    "pairs": [
+     [
+      "status=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "tickets",
+     "created_at=",
+     []
+    ],
+    "pairs": [
+     [
+      "created_at=2025-01-01T00:00:00+07:00",
+      "ISO-8601"
+     ],
+     [
+      "created_at=2025-12-31T23:59:59+07:00",
+      "ISO-8601"
+     ],
+     [
+      "created_at=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "status=",
+      "Status · default_status · default"
+     ],
+     [
+      "priority=",
+      "Priority · default_priority · default"
+     ],
+     [
+      "impact=",
+      "Impact · default_impact · default"
+     ],
+     [
+      "planned_start_date=",
+      "Planned Start Date · default_date · default"
+     ],
+     [
+      "change_reason=",
+      "Reason for Change · default_change_reason · default"
+     ],
+     [
+      "backout_plan=",
+      "backout_plan · default_backout_plan · default"
+     ],
+     [
+      "cf_rollout=",
+      "Rollout Plan · planning_field · custom"
+     ],
+     [
+      "cf_approved=",
+      "Approved · custom_checkbox · custom"
+     ],
+     [
+      "cf_owner=",
+      "Owner · custom_lookup_bigint · custom"
+     ],
+     [
+      "cf_reviewer=",
+      "Reviewer · custom_lookup_bigint · custom"
+     ],
+     [
+      "requester=",
+      "Requester · default_requester · default"
+     ],
+     [
+      "agent=",
+      "Agent · default_agent · default"
+     ],
+     [
+      "cf_region=",
+      "Région Straße · custom_dropdown · custom"
+     ],
+     [
+      "cf_status_note=",
+      "Status Note · custom_text · custom"
+     ],
+     [
+      "cf_notes=",
+      "cf_notes · ? · custom"
+     ],
+     [
+      "created_at>=",
+      "created lower bound"
+     ],
+     [
+      "created_at<=",
+      "created upper bound"
+     ],
+     [
+      "updated_at>=",
+      "updated lower bound"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "cr",
+     []
+    ],
+    "pairs": [
+     [
+      "created_at>=",
+      "created lower bound"
+     ],
+     [
+      "created_at<=",
+      "created upper bound"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "status",
+     []
+    ],
+    "pairs": [
+     [
+      "status=",
+      "Status · default_status · default"
+     ],
+     [
+      "cf_status_note=",
+      "Status Note · custom_text · custom"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "status=",
+     []
+    ],
+    "pairs": [
+     [
+      "status=Open",
+      "status"
+     ],
+     [
+      "status=Planning",
+      "status"
+     ],
+     [
+      "status=Awaiting Approval",
+      "status"
+     ],
+     [
+      "status=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "status!=aw",
+     []
+    ],
+    "pairs": [
+     [
+      "status!=Awaiting Approval",
+      "status"
+     ],
+     [
+      "status!=aw",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     " Priority >= ",
+     []
+    ],
+    "pairs": [
+     [
+      " Priority >= ",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "impact=",
+     []
+    ],
+    "pairs": [
+     [
+      "impact=Low",
+      "impact"
+     ],
+     [
+      "impact=Medium",
+      "impact"
+     ],
+     [
+      "impact=High",
+      "impact"
+     ],
+     [
+      "impact=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "risk=",
+     []
+    ],
+    "pairs": [
+     [
+      "risk=Low",
+      "risk"
+     ],
+     [
+      "risk=Medium",
+      "risk"
+     ],
+     [
+      "risk=High",
+      "risk"
+     ],
+     [
+      "risk=Very High",
+      "risk"
+     ],
+     [
+      "risk=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "created_at>=",
+     []
+    ],
+    "pairs": [
+     [
+      "created_at>=2025-01-01T00:00:00+07:00",
+      "ISO-8601 timestamp"
+     ],
+     [
+      "created_at>=2025-12-31T23:59:59+07:00",
+      "ISO-8601 timestamp"
+     ],
+     [
+      "created_at>=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "planned_start_date<2025-01",
+     []
+    ],
+    "pairs": [
+     [
+      "planned_start_date<2025-01-01T00:00:00+07:00",
+      "ISO-8601 timestamp"
+     ],
+     [
+      "planned_start_date<2025-01",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "due_by=",
+     []
+    ],
+    "pairs": [
+     [
+      "due_by=2025-01-01T00:00:00+07:00",
+      "ISO-8601 timestamp"
+     ],
+     [
+      "due_by=2025-12-31T23:59:59+07:00",
+      "ISO-8601 timestamp"
+     ],
+     [
+      "due_by=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "requester=al",
+     []
+    ],
+    "pairs": [
+     [
+      "requester=al",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "agent~=AL",
+     []
+    ],
+    "pairs": [
+     [
+      "agent~=AL",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "agent=a",
+     []
+    ],
+    "pairs": [
+     [
+      "agent=a",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "cf_notes=x",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_notes=x",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "region=S",
+     []
+    ],
+    "pairs": [
+     [
+      "region=Süd",
+      "cf_region"
+     ],
+     [
+      "region=S",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "st=",
+     []
+    ],
+    "pairs": [
+     [
+      "st=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "tickets",
+     "status=",
+     []
+    ],
+    "pairs": [
+     [
+      "status=Open",
+      "status"
+     ],
+     [
+      "status=Pending",
+      "status"
+     ],
+     [
+      "status=Resolved",
+      "status"
+     ],
+     [
+      "status=Closed",
+      "status"
+     ],
+     [
+      "status=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "tickets",
+     "group=",
+     []
+    ],
+    "pairs": [
+     [
+      "group=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "problems",
+     "status=c",
+     []
+    ],
+    "pairs": [
+     [
+      "status=Change Requested",
+      "status"
+     ],
+     [
+      "status=c",
+      ""
+     ]
+    ],
+    "calls": []
+   }
+  ],
+  "runs": [
+   {
+    "argv": [
+     "fish",
+     "complete_format",
+     "-",
+     "t"
+    ],
+    "stdout": "table\trich table\ntsv\ttab-separated values\n"
+   },
+   {
+    "argv": [
+     "bash",
+     "complete_format",
+     "-",
+     "t"
+    ],
+    "stdout": "table\ntsv\n"
+   },
+   {
+    "argv": [
+     "zsh",
+     "complete_where",
+     "changes",
+     "status="
+    ],
+    "stdout": "status=Open\nstatus=Planning\nstatus=Awaiting Approval\n"
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_where",
+     "changes",
+     "status="
+    ],
+    "stdout": "status=Open\tstatus\nstatus=Planning\tstatus\nstatus=Awaiting Approval\tstatus\n"
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_set",
+     "changes",
+     "cf_approved="
+    ],
+    "stdout": "cf_approved=true\ncf_approved=false\n"
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_group_query",
+     "-",
+     "Service Desk"
+    ],
+    "stdout": ""
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_lookup_query",
+     "changes",
+     "",
+     "--",
+     "fsv",
+     "--kind",
+     "group"
+    ],
+    "stdout": "Service Desk\tL1\nNetwork Ops\nSERVICE Ops\n"
+   },
+   {
+    "argv": [
+     "bash",
+     "complete_lookup_query",
+     "changes",
+     "",
+     "--kind",
+     "group"
+    ],
+    "stdout": ""
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_lookup_query",
+     "changes",
+     "",
+     "--",
+     "--kind",
+     "group",
+     "--",
+     "x"
+    ],
+    "stdout": "Service Desk\tL1\nNetwork Ops\nSERVICE Ops\n"
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_update_agent_id",
+     "-",
+     "al"
+    ],
+    "stdout": ""
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_format",
+     "-"
+    ],
+    "stdout": ""
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_where",
+     "nope",
+     "st"
+    ],
+    "stdout": ""
+   }
+  ]
+ },
+ "network": {
+  "cases": [
+   {
+    "case": [
+     "complete_format",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "table",
+      "rich table"
+     ],
+     [
+      "json",
+      "JSON array"
+     ],
+     [
+      "csv",
+      "comma-separated values"
+     ],
+     [
+      "tsv",
+      "tab-separated values"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_format",
+     "-",
+     "J",
+     []
+    ],
+    "pairs": [
+     [
+      "json",
+      "JSON array"
+     ],
+     [
+      "J",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_store",
+     "-",
+     "a",
+     []
+    ],
+    "pairs": [
+     [
+      "argon",
+      "Argon2id + AES-256-GCM encrypted"
+     ],
+     [
+      "a",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_shell",
+     "-",
+     "p",
+     []
+    ],
+    "pairs": [
+     [
+      "powershell",
+      "Windows PowerShell"
+     ],
+     [
+      "pwsh",
+      "PowerShell Core"
+     ],
+     [
+      "p",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_sort_order",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "asc",
+      "ascending"
+     ],
+     [
+      "desc",
+      "descending"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_config_key",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "completion.network",
+      "enable remote requester/agent completion [on|off]"
+     ],
+     [
+      "defaults.requester",
+      "requester email for changes create"
+     ],
+     [
+      "forms.workspace_id",
+      "workspace whose business rules apply"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_config_key",
+     "-",
+     "de",
+     []
+    ],
+    "pairs": [
+     [
+      "defaults.requester",
+      "requester email for changes create"
+     ],
+     [
+      "de",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_config_value",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "on",
+      ""
+     ],
+     [
+      "off",
+      ""
+     ],
+     [
+      "true",
+      ""
+     ],
+     [
+      "false",
+      ""
+     ],
+     [
+      "1",
+      ""
+     ],
+     [
+      "0",
+      ""
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_config_value",
+     "-",
+     "O",
+     []
+    ],
+    "pairs": [
+     [
+      "on",
+      ""
+     ],
+     [
+      "off",
+      ""
+     ],
+     [
+      "O",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_cache_target",
+     "-",
+     "g",
+     []
+    ],
+    "pairs": [
+     [
+      "groups",
+      "agent groups"
+     ],
+     [
+      "g",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_search_sort",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "relevance",
+      "best text match"
+     ],
+     [
+      "created",
+      "created time"
+     ],
+     [
+      "modified",
+      "last modified time"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_duplicate_mode",
+     "-",
+     "re",
+     []
+    ],
+    "pairs": [
+     [
+      "replace",
+      "replace existing file"
+     ],
+     [
+      "re",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_group_query",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "Service Desk",
+      "L1"
+     ],
+     [
+      "Network Ops",
+      ""
+     ],
+     [
+      "SERVICE Ops",
+      ""
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_group_query",
+     "-",
+     "serv",
+     []
+    ],
+    "pairs": [
+     [
+      "Service Desk",
+      "L1"
+     ],
+     [
+      "SERVICE Ops",
+      ""
+     ],
+     [
+      "serv",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_update_group_id",
+     "-",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "Service Desk",
+      "id=5 · L1"
+     ],
+     [
+      "5",
+      "Service Desk"
+     ],
+     [
+      "Network Ops",
+      "id=6"
+     ],
+     [
+      "6",
+      "Network Ops"
+     ],
+     [
+      "7",
+      ""
+     ],
+     [
+      "SERVICE Ops",
+      "id=55"
+     ],
+     [
+      "55",
+      "SERVICE Ops"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_update_group_id",
+     "-",
+     "5",
+     []
+    ],
+    "pairs": [
+     [
+      "5",
+      "Service Desk"
+     ],
+     [
+      "55",
+      "SERVICE Ops"
+     ],
+     [
+      "5",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_update_group_id",
+     "-",
+     "s",
+     []
+    ],
+    "pairs": [
+     [
+      "Service Desk",
+      "id=5 · L1"
+     ],
+     [
+      "SERVICE Ops",
+      "id=55"
+     ],
+     [
+      "s",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_update_agent_id",
+     "-",
+     "a",
+     []
+    ],
+    "pairs": [
+     [
+      "a",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_update_agent_id",
+     "-",
+     "al",
+     []
+    ],
+    "pairs": [
+     [
+      "alice@x.com",
+      "Alice Smith"
+     ],
+     [
+      "albert@x.com",
+      "ALBERT Ng"
+     ],
+     [
+      "alan Turing",
+      "Alan Turing"
+     ],
+     [
+      "Zed",
+      "Zed"
+     ]
+    ],
+    "calls": [
+     [
+      "autocomplete",
+      "agents",
+      "al",
+      null
+     ]
+    ]
+   },
+   {
+    "case": [
+     "complete_update_choice",
+     "changes",
+     "O",
+     []
+    ],
+    "pairs": [],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_help_topic",
+     "-",
+     "a",
+     []
+    ],
+    "pairs": [],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_nope",
+     "-",
+     "a",
+     []
+    ],
+    "pairs": [],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "nope",
+     "st",
+     []
+    ],
+    "pairs": [],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_field_names",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "status",
+      "Status · default_status · default"
+     ],
+     [
+      "priority",
+      "Priority · default_priority · default"
+     ],
+     [
+      "impact",
+      "Impact · default_impact · default"
+     ],
+     [
+      "planned_start_date",
+      "Planned Start Date · default_date · default"
+     ],
+     [
+      "change_reason",
+      "Reason for Change · default_change_reason · default"
+     ],
+     [
+      "backout_plan",
+      "backout_plan · default_backout_plan · default"
+     ],
+     [
+      "cf_rollout",
+      "Rollout Plan · planning_field · custom"
+     ],
+     [
+      "cf_approved",
+      "Approved · custom_checkbox · custom"
+     ],
+     [
+      "cf_owner",
+      "Owner · custom_lookup_bigint · custom"
+     ],
+     [
+      "cf_reviewer",
+      "Reviewer · custom_lookup_bigint · custom"
+     ],
+     [
+      "requester",
+      "Requester · default_requester · default"
+     ],
+     [
+      "agent",
+      "Agent · default_agent · default"
+     ],
+     [
+      "cf_region",
+      "Région Straße · custom_dropdown · custom"
+     ],
+     [
+      "cf_status_note",
+      "Status Note · custom_text · custom"
+     ],
+     [
+      "cf_notes",
+      "cf_notes · ? · custom"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_field_names",
+     "changes",
+     "st",
+     []
+    ],
+    "pairs": [
+     [
+      "status",
+      "Status · default_status · default"
+     ],
+     [
+      "cf_status_note",
+      "Status Note · custom_text · custom"
+     ],
+     [
+      "st",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_field_names",
+     "changes",
+     "rég",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_region",
+      "Région Straße · custom_dropdown · custom"
+     ],
+     [
+      "rég",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_field_names",
+     "tickets",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "requester",
+      "Requester · default_requester · default"
+     ],
+     [
+      "agent",
+      "Agent · default_agent · default"
+     ],
+     [
+      "group",
+      "Group · default_group · default"
+     ],
+     [
+      "status",
+      "Status · default_status · default"
+     ],
+     [
+      "priority",
+      "Priority · default_priority · default"
+     ],
+     [
+      "created_at",
+      "Created · default_date · default"
+     ],
+     [
+      "updated_at",
+      "Updated · default_date · default"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_field_names",
+     "problems",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "status",
+      "Status · default_status · default"
+     ],
+     [
+      "cf_area",
+      "Area · custom_dropdown · custom"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_choice_field_names",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "status",
+      "Status · default_status · default · 3 choices"
+     ],
+     [
+      "priority",
+      "Priority · default_priority · default · 3 choices"
+     ],
+     [
+      "cf_region",
+      "Région Straße · custom_dropdown · custom · 4 choices"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_choice_field_names",
+     "changes",
+     "p",
+     []
+    ],
+    "pairs": [
+     [
+      "priority",
+      "Priority · default_priority · default · 3 choices"
+     ],
+     [
+      "p",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_choice_field_names",
+     "tickets",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_planning_field_names",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "Reason for Change",
+      "change_reason"
+     ],
+     [
+      "change_reason",
+      "Reason for Change"
+     ],
+     [
+      "backout_plan",
+      "backout_plan"
+     ],
+     [
+      "backout_plan",
+      "backout_plan"
+     ],
+     [
+      "Rollout Plan",
+      "cf_rollout"
+     ],
+     [
+      "cf_rollout",
+      "Rollout Plan"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_planning_field_names",
+     "changes",
+     "ro",
+     []
+    ],
+    "pairs": [
+     [
+      "Rollout Plan",
+      "cf_rollout"
+     ],
+     [
+      "cf_rollout",
+      "Rollout Plan"
+     ],
+     [
+      "ro",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_planning_field_names",
+     "changes",
+     "reason",
+     []
+    ],
+    "pairs": [
+     [
+      "Reason for Change",
+      "change_reason"
+     ],
+     [
+      "change_reason",
+      "Reason for Change"
+     ],
+     [
+      "reason",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_kind",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "requester",
+      "requester autocomplete"
+     ],
+     [
+      "agent",
+      "agent autocomplete"
+     ],
+     [
+      "group",
+      "group lookup"
+     ],
+     [
+      "status",
+      "Status · default_status · default"
+     ],
+     [
+      "priority",
+      "Priority · default_priority · default"
+     ],
+     [
+      "impact",
+      "Impact · default_impact · default"
+     ],
+     [
+      "planned_start_date",
+      "Planned Start Date · default_date · default"
+     ],
+     [
+      "change_reason",
+      "Reason for Change · default_change_reason · default"
+     ],
+     [
+      "backout_plan",
+      "backout_plan · default_backout_plan · default"
+     ],
+     [
+      "cf_rollout",
+      "Rollout Plan · planning_field · custom"
+     ],
+     [
+      "cf_approved",
+      "Approved · custom_checkbox · custom"
+     ],
+     [
+      "cf_owner",
+      "Owner · custom_lookup_bigint · custom"
+     ],
+     [
+      "cf_reviewer",
+      "Reviewer · custom_lookup_bigint · custom"
+     ],
+     [
+      "requester",
+      "Requester · default_requester · default"
+     ],
+     [
+      "agent",
+      "Agent · default_agent · default"
+     ],
+     [
+      "cf_region",
+      "Région Straße · custom_dropdown · custom"
+     ],
+     [
+      "cf_status_note",
+      "Status Note · custom_text · custom"
+     ],
+     [
+      "cf_notes",
+      "cf_notes · ? · custom"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_kind",
+     "changes",
+     "a",
+     []
+    ],
+    "pairs": [
+     [
+      "agent",
+      "agent autocomplete"
+     ],
+     [
+      "cf_approved",
+      "Approved · custom_checkbox · custom"
+     ],
+     [
+      "agent",
+      "Agent · default_agent · default"
+     ],
+     [
+      "a",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_kind",
+     "tickets",
+     "g",
+     []
+    ],
+    "pairs": [
+     [
+      "group",
+      "group lookup"
+     ],
+     [
+      "group",
+      "Group · default_group · default"
+     ],
+     [
+      "g",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "fsv",
+      "changes",
+      "lookup",
+      "--kind",
+      "group"
+     ]
+    ],
+    "pairs": [
+     [
+      "Service Desk",
+      "L1"
+     ],
+     [
+      "Network Ops",
+      ""
+     ],
+     [
+      "SERVICE Ops",
+      ""
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "SER",
+     [
+      "fsv",
+      "changes",
+      "lookup",
+      "-k",
+      "groups"
+     ]
+    ],
+    "pairs": [
+     [
+      "Service Desk",
+      "L1"
+     ],
+     [
+      "SERVICE Ops",
+      ""
+     ],
+     [
+      "SER",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "al",
+     [
+      "fsv",
+      "changes",
+      "lookup",
+      "--kind=agent"
+     ]
+    ],
+    "pairs": [
+     [
+      "alice@x.com",
+      "Alice Smith"
+     ],
+     [
+      "albert@x.com",
+      "ALBERT Ng"
+     ],
+     [
+      "alan Turing",
+      "Alan Turing"
+     ],
+     [
+      "Zed",
+      "Zed"
+     ],
+     [
+      "al",
+      ""
+     ]
+    ],
+    "calls": [
+     [
+      "autocomplete",
+      "agents",
+      "al",
+      null
+     ]
+    ]
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "al",
+     [
+      "fsv",
+      "changes",
+      "lookup",
+      "--kind",
+      "requester"
+     ]
+    ],
+    "pairs": [
+     [
+      "alex@y.com",
+      "alex@y.com"
+     ],
+     [
+      "alice@x.com",
+      "Alice Smith"
+     ],
+     [
+      "al",
+      ""
+     ]
+    ],
+    "calls": [
+     [
+      "autocomplete",
+      "requesters",
+      "al",
+      {
+       "all_users": "true"
+      }
+     ]
+    ]
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "a",
+     [
+      "fsv",
+      "changes",
+      "lookup",
+      "--kind",
+      "agents"
+     ]
+    ],
+    "pairs": [
+     [
+      "a",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "--kind",
+      "status"
+     ]
+    ],
+    "pairs": [
+     [
+      "Open",
+      "status"
+     ],
+     [
+      "Planning",
+      "status"
+     ],
+     [
+      "Awaiting Approval",
+      "status"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "p",
+     [
+      "--kind",
+      "status"
+     ]
+    ],
+    "pairs": [
+     [
+      "Planning",
+      "status"
+     ],
+     [
+      "p",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "--kind",
+      "impact"
+     ]
+    ],
+    "pairs": [
+     [
+      "Low",
+      "impact"
+     ],
+     [
+      "Medium",
+      "impact"
+     ],
+     [
+      "High",
+      "impact"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "--kind",
+      "risk"
+     ]
+    ],
+    "pairs": [
+     [
+      "Low",
+      "risk"
+     ],
+     [
+      "Medium",
+      "risk"
+     ],
+     [
+      "High",
+      "risk"
+     ],
+     [
+      "Very High",
+      "risk"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "--kind",
+      "default:priority"
+     ]
+    ],
+    "pairs": [
+     [
+      "Low",
+      "default:priority"
+     ],
+     [
+      "Urgent",
+      "default:priority"
+     ],
+     [
+      "9",
+      "default:priority"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "--kind",
+      "custom:region"
+     ]
+    ],
+    "pairs": [
+     [
+      "Nord",
+      "custom:region"
+     ],
+     [
+      "Süd",
+      "custom:region"
+     ],
+     [
+      "7",
+      "custom:region"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "changes",
+     "",
+     [
+      "--kind",
+      "plan"
+     ]
+    ],
+    "pairs": [
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_lookup_query",
+     "tickets",
+     "",
+     [
+      "--kind",
+      "priority"
+     ]
+    ],
+    "pairs": [
+     [
+      "Low",
+      "priority"
+     ],
+     [
+      "Medium",
+      "priority"
+     ],
+     [
+      "High",
+      "priority"
+     ],
+     [
+      "Urgent",
+      "priority"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_filter_name",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "my_open",
+      "My open"
+     ],
+     [
+      "12",
+      "saved view"
+     ],
+     [
+      "all",
+      "All Changes"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_filter_name",
+     "changes",
+     "my",
+     []
+    ],
+    "pairs": [
+     [
+      "my_open",
+      "My open"
+     ],
+     [
+      "my",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_filter_name",
+     "changes",
+     "1",
+     []
+    ],
+    "pairs": [
+     [
+      "12",
+      "saved view"
+     ],
+     [
+      "1",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_filter_name",
+     "changes",
+     "all",
+     []
+    ],
+    "pairs": [
+     [
+      "all",
+      "All Changes"
+     ],
+     [
+      "all",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_filter_name",
+     "tickets",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "new_and_my_open",
+      "New & my open"
+     ],
+     [
+      "3",
+      "All tickets"
+     ],
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_filter_name",
+     "problems",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "status=",
+      "Status · default_status · default"
+     ],
+     [
+      "priority=",
+      "Priority · default_priority · default"
+     ],
+     [
+      "impact=",
+      "Impact · default_impact · default"
+     ],
+     [
+      "planned_start_date=",
+      "Planned Start Date · default_date · default"
+     ],
+     [
+      "change_reason=",
+      "Reason for Change · default_change_reason · default"
+     ],
+     [
+      "backout_plan=",
+      "backout_plan · default_backout_plan · default"
+     ],
+     [
+      "cf_rollout=",
+      "Rollout Plan · planning_field · custom"
+     ],
+     [
+      "cf_approved=",
+      "Approved · custom_checkbox · custom"
+     ],
+     [
+      "cf_owner=",
+      "Owner · custom_lookup_bigint · custom"
+     ],
+     [
+      "cf_reviewer=",
+      "Reviewer · custom_lookup_bigint · custom"
+     ],
+     [
+      "requester=",
+      "Requester · default_requester · default"
+     ],
+     [
+      "agent=",
+      "Agent · default_agent · default"
+     ],
+     [
+      "cf_region=",
+      "Région Straße · custom_dropdown · custom"
+     ],
+     [
+      "cf_status_note=",
+      "Status Note · custom_text · custom"
+     ],
+     [
+      "cf_notes=",
+      "cf_notes · ? · custom"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "s",
+     []
+    ],
+    "pairs": [
+     [
+      "status=",
+      "Status · default_status · default"
+     ],
+     [
+      "status Note=",
+      "cf_status_note · custom_text · custom"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "\"ro",
+     []
+    ],
+    "pairs": [
+     [
+      "rollout Plan=",
+      "cf_rollout · planning_field · custom"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "Réd",
+     []
+    ],
+    "pairs": [],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "rég",
+     []
+    ],
+    "pairs": [
+     [
+      "région Straße=",
+      "cf_region · custom_dropdown · custom"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "nosuch=1",
+     []
+    ],
+    "pairs": [
+     [
+      "nosuch=1",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "status=",
+     []
+    ],
+    "pairs": [
+     [
+      "status=Open",
+      "status"
+     ],
+     [
+      "status=Planning",
+      "status"
+     ],
+     [
+      "status=Awaiting Approval",
+      "status"
+     ],
+     [
+      "status=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "Status=a",
+     []
+    ],
+    "pairs": [
+     [
+      "Status=Awaiting Approval",
+      "status"
+     ],
+     [
+      "Status=a",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "priority=",
+     []
+    ],
+    "pairs": [
+     [
+      "priority=Low",
+      "priority"
+     ],
+     [
+      "priority=Urgent",
+      "priority"
+     ],
+     [
+      "priority=9",
+      "priority"
+     ],
+     [
+      "priority=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "impact=",
+     []
+    ],
+    "pairs": [
+     [
+      "impact=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "cf_approved=",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_approved=true",
+      ""
+     ],
+     [
+      "cf_approved=false",
+      ""
+     ],
+     [
+      "cf_approved=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "approved=T",
+     []
+    ],
+    "pairs": [
+     [
+      "approved=true",
+      ""
+     ],
+     [
+      "approved=T",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "planned_start_date=",
+     []
+    ],
+    "pairs": [
+     [
+      "planned_start_date=2025-01-01T00:00:00+07:00",
+      "ISO-8601"
+     ],
+     [
+      "planned_start_date=2025-12-31T23:59:59+07:00",
+      "ISO-8601"
+     ],
+     [
+      "planned_start_date=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "planned_start_date=2025-12",
+     []
+    ],
+    "pairs": [
+     [
+      "planned_start_date=2025-12-31T23:59:59+07:00",
+      "ISO-8601"
+     ],
+     [
+      "planned_start_date=2025-12",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "cf_owner=b",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_owner=b",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "cf_owner=bo",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_owner=bobby@z.com",
+      "Zed"
+     ],
+     [
+      "cf_owner=bob@x.com",
+      "Bob Owner"
+     ],
+     [
+      "cf_owner=bo Diddley",
+      ""
+     ],
+     [
+      "cf_owner=bo",
+      ""
+     ]
+    ],
+    "calls": [
+     [
+      "lookup_choices",
+      "/api/_/lookup/users?x=1",
+      "bo",
+      null
+     ]
+    ]
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "Owner=BO",
+     []
+    ],
+    "pairs": [
+     [
+      "Owner=BObby@z.com",
+      "Zed"
+     ],
+     [
+      "Owner=BOb@x.com",
+      "Bob Owner"
+     ],
+     [
+      "Owner=BO Diddley",
+      ""
+     ],
+     [
+      "Owner=BO",
+      ""
+     ]
+    ],
+    "calls": [
+     [
+      "lookup_choices",
+      "/api/_/lookup/users?x=1",
+      "BO",
+      null
+     ]
+    ]
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "cf_reviewer=al",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_reviewer=alice@x.com",
+      "Alice Smith"
+     ],
+     [
+      "cf_reviewer=albert@x.com",
+      "ALBERT Ng"
+     ],
+     [
+      "cf_reviewer=alan Turing",
+      "Alan Turing"
+     ],
+     [
+      "cf_reviewer=Zed",
+      "Zed"
+     ],
+     [
+      "cf_reviewer=alex@y.com",
+      "alex@y.com"
+     ],
+     [
+      "cf_reviewer=al",
+      ""
+     ]
+    ],
+    "calls": [
+     [
+      "autocomplete",
+      "agents",
+      "al",
+      null
+     ],
+     [
+      "autocomplete",
+      "requesters",
+      "al",
+      {
+       "all_users": "true"
+      }
+     ]
+    ]
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "cf_region=s",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_region=Süd",
+      "cf_region"
+     ],
+     [
+      "cf_region=s",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "changes",
+     "cf_notes=x",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_notes=x",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "tickets",
+     "status=",
+     []
+    ],
+    "pairs": [
+     [
+      "status=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_set",
+     "tickets",
+     "created_at=",
+     []
+    ],
+    "pairs": [
+     [
+      "created_at=2025-01-01T00:00:00+07:00",
+      "ISO-8601"
+     ],
+     [
+      "created_at=2025-12-31T23:59:59+07:00",
+      "ISO-8601"
+     ],
+     [
+      "created_at=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "",
+     []
+    ],
+    "pairs": [
+     [
+      "status=",
+      "Status · default_status · default"
+     ],
+     [
+      "priority=",
+      "Priority · default_priority · default"
+     ],
+     [
+      "impact=",
+      "Impact · default_impact · default"
+     ],
+     [
+      "planned_start_date=",
+      "Planned Start Date · default_date · default"
+     ],
+     [
+      "change_reason=",
+      "Reason for Change · default_change_reason · default"
+     ],
+     [
+      "backout_plan=",
+      "backout_plan · default_backout_plan · default"
+     ],
+     [
+      "cf_rollout=",
+      "Rollout Plan · planning_field · custom"
+     ],
+     [
+      "cf_approved=",
+      "Approved · custom_checkbox · custom"
+     ],
+     [
+      "cf_owner=",
+      "Owner · custom_lookup_bigint · custom"
+     ],
+     [
+      "cf_reviewer=",
+      "Reviewer · custom_lookup_bigint · custom"
+     ],
+     [
+      "requester=",
+      "Requester · default_requester · default"
+     ],
+     [
+      "agent=",
+      "Agent · default_agent · default"
+     ],
+     [
+      "cf_region=",
+      "Région Straße · custom_dropdown · custom"
+     ],
+     [
+      "cf_status_note=",
+      "Status Note · custom_text · custom"
+     ],
+     [
+      "cf_notes=",
+      "cf_notes · ? · custom"
+     ],
+     [
+      "created_at>=",
+      "created lower bound"
+     ],
+     [
+      "created_at<=",
+      "created upper bound"
+     ],
+     [
+      "updated_at>=",
+      "updated lower bound"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "cr",
+     []
+    ],
+    "pairs": [
+     [
+      "created_at>=",
+      "created lower bound"
+     ],
+     [
+      "created_at<=",
+      "created upper bound"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "status",
+     []
+    ],
+    "pairs": [
+     [
+      "status=",
+      "Status · default_status · default"
+     ],
+     [
+      "cf_status_note=",
+      "Status Note · custom_text · custom"
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "status=",
+     []
+    ],
+    "pairs": [
+     [
+      "status=Open",
+      "status"
+     ],
+     [
+      "status=Planning",
+      "status"
+     ],
+     [
+      "status=Awaiting Approval",
+      "status"
+     ],
+     [
+      "status=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "status!=aw",
+     []
+    ],
+    "pairs": [
+     [
+      "status!=Awaiting Approval",
+      "status"
+     ],
+     [
+      "status!=aw",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     " Priority >= ",
+     []
+    ],
+    "pairs": [
+     [
+      " Priority >= ",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "impact=",
+     []
+    ],
+    "pairs": [
+     [
+      "impact=Low",
+      "impact"
+     ],
+     [
+      "impact=Medium",
+      "impact"
+     ],
+     [
+      "impact=High",
+      "impact"
+     ],
+     [
+      "impact=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "risk=",
+     []
+    ],
+    "pairs": [
+     [
+      "risk=Low",
+      "risk"
+     ],
+     [
+      "risk=Medium",
+      "risk"
+     ],
+     [
+      "risk=High",
+      "risk"
+     ],
+     [
+      "risk=Very High",
+      "risk"
+     ],
+     [
+      "risk=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "created_at>=",
+     []
+    ],
+    "pairs": [
+     [
+      "created_at>=2025-01-01T00:00:00+07:00",
+      "ISO-8601 timestamp"
+     ],
+     [
+      "created_at>=2025-12-31T23:59:59+07:00",
+      "ISO-8601 timestamp"
+     ],
+     [
+      "created_at>=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "planned_start_date<2025-01",
+     []
+    ],
+    "pairs": [
+     [
+      "planned_start_date<2025-01-01T00:00:00+07:00",
+      "ISO-8601 timestamp"
+     ],
+     [
+      "planned_start_date<2025-01",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "due_by=",
+     []
+    ],
+    "pairs": [
+     [
+      "due_by=2025-01-01T00:00:00+07:00",
+      "ISO-8601 timestamp"
+     ],
+     [
+      "due_by=2025-12-31T23:59:59+07:00",
+      "ISO-8601 timestamp"
+     ],
+     [
+      "due_by=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "requester=al",
+     []
+    ],
+    "pairs": [
+     [
+      "requester=alex@y.com",
+      "alex@y.com"
+     ],
+     [
+      "requester=alice@x.com",
+      "Alice Smith"
+     ],
+     [
+      "requester=al",
+      ""
+     ]
+    ],
+    "calls": [
+     [
+      "autocomplete",
+      "requesters",
+      "al",
+      {
+       "all_users": "true"
+      }
+     ]
+    ]
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "agent~=AL",
+     []
+    ],
+    "pairs": [
+     [
+      "agent~=ALice@x.com",
+      "Alice Smith"
+     ],
+     [
+      "agent~=ALbert@x.com",
+      "ALBERT Ng"
+     ],
+     [
+      "agent~=ALan Turing",
+      "Alan Turing"
+     ],
+     [
+      "agent~=Zed",
+      "Zed"
+     ],
+     [
+      "agent~=AL",
+      ""
+     ]
+    ],
+    "calls": [
+     [
+      "autocomplete",
+      "agents",
+      "AL",
+      null
+     ]
+    ]
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "agent=a",
+     []
+    ],
+    "pairs": [
+     [
+      "agent=a",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "cf_notes=x",
+     []
+    ],
+    "pairs": [
+     [
+      "cf_notes=x",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "region=S",
+     []
+    ],
+    "pairs": [
+     [
+      "region=Süd",
+      "cf_region"
+     ],
+     [
+      "region=S",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "changes",
+     "st=",
+     []
+    ],
+    "pairs": [
+     [
+      "st=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "tickets",
+     "status=",
+     []
+    ],
+    "pairs": [
+     [
+      "status=Open",
+      "status"
+     ],
+     [
+      "status=Pending",
+      "status"
+     ],
+     [
+      "status=Resolved",
+      "status"
+     ],
+     [
+      "status=Closed",
+      "status"
+     ],
+     [
+      "status=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "tickets",
+     "group=",
+     []
+    ],
+    "pairs": [
+     [
+      "group=",
+      ""
+     ]
+    ],
+    "calls": []
+   },
+   {
+    "case": [
+     "complete_where",
+     "problems",
+     "status=c",
+     []
+    ],
+    "pairs": [
+     [
+      "status=Change Requested",
+      "status"
+     ],
+     [
+      "status=c",
+      ""
+     ]
+    ],
+    "calls": []
+   }
+  ],
+  "runs": [
+   {
+    "argv": [
+     "fish",
+     "complete_format",
+     "-",
+     "t"
+    ],
+    "stdout": "table\trich table\ntsv\ttab-separated values\n"
+   },
+   {
+    "argv": [
+     "bash",
+     "complete_format",
+     "-",
+     "t"
+    ],
+    "stdout": "table\ntsv\n"
+   },
+   {
+    "argv": [
+     "zsh",
+     "complete_where",
+     "changes",
+     "status="
+    ],
+    "stdout": "status=Open\nstatus=Planning\nstatus=Awaiting Approval\n"
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_where",
+     "changes",
+     "status="
+    ],
+    "stdout": "status=Open\tstatus\nstatus=Planning\tstatus\nstatus=Awaiting Approval\tstatus\n"
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_set",
+     "changes",
+     "cf_approved="
+    ],
+    "stdout": "cf_approved=true\ncf_approved=false\n"
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_group_query",
+     "-",
+     "Service Desk"
+    ],
+    "stdout": ""
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_lookup_query",
+     "changes",
+     "",
+     "--",
+     "fsv",
+     "--kind",
+     "group"
+    ],
+    "stdout": "Service Desk\tL1\nNetwork Ops\nSERVICE Ops\n"
+   },
+   {
+    "argv": [
+     "bash",
+     "complete_lookup_query",
+     "changes",
+     "",
+     "--kind",
+     "group"
+    ],
+    "stdout": ""
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_lookup_query",
+     "changes",
+     "",
+     "--",
+     "--kind",
+     "group",
+     "--",
+     "x"
+    ],
+    "stdout": "Service Desk\tL1\nNetwork Ops\nSERVICE Ops\n"
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_update_agent_id",
+     "-",
+     "al"
+    ],
+    "stdout": "alice@x.com\tAlice Smith\nalbert@x.com\tALBERT Ng\nalan Turing\tAlan Turing\nZed\tZed\n"
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_format",
+     "-"
+    ],
+    "stdout": ""
+   },
+   {
+    "argv": [
+     "fish",
+     "complete_where",
+     "nope",
+     "st"
+    ],
+    "stdout": ""
+   }
+  ]
+ }
+}

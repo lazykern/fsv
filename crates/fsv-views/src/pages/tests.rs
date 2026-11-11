@@ -5,7 +5,10 @@
 use jiff::tz::{self, TimeZone};
 use serde_json::{Map, Value, json};
 
-use fsv_api::site::{self, Column as SiteColumn, Lifecycle, LifecycleState, ListPage, Missing, PlanningEntry, Prop, Tab};
+use fsv_api::site::{
+    self, Column as SiteColumn, Lifecycle, LifecycleState, ListPage, Missing, PlanningEntry, Prop,
+    Tab,
+};
 use fsv_core::resource::{CHANGES, Resource, TICKETS};
 use fsv_core::term::Overflow;
 
@@ -28,11 +31,22 @@ fn rels(lines: &[&str]) -> Vec<String> {
 }
 
 fn tab(name: &str, label: &str, count: Option<i64>) -> Tab {
-    Tab { name: name.into(), label: label.into(), count }
+    Tab {
+        name: name.into(),
+        label: label.into(),
+        count,
+    }
 }
 
 fn detail(res: &'static Resource, record: Value, schema: Value) -> Detail {
-    Detail::new(res, record, schema, json!({"id": 1}), tz7(), vec![tab("details", "Details", None)])
+    Detail::new(
+        res,
+        record,
+        schema,
+        json!({"id": 1}),
+        tz7(),
+        vec![tab("details", "Details", None)],
+    )
 }
 
 fn no_fields() -> Value {
@@ -44,7 +58,10 @@ fn td(name: &str) -> TabData {
 }
 
 fn td_data(name: &str, data: Value) -> TabData {
-    TabData { data: Some(data), ..TabData::new(name) }
+    TabData {
+        data: Some(data),
+        ..TabData::new(name)
+    }
 }
 
 fn obj(v: Value) -> Map<String, Value> {
@@ -52,20 +69,38 @@ fn obj(v: Value) -> Map<String, Value> {
 }
 
 fn lifecycle() -> Lifecycle {
-    let st = |id: i64, name: &str, mark: &str| LifecycleState { id: json!(id), name: name.into(), mark: mark.into() };
+    let st = |id: i64, name: &str, mark: &str| LifecycleState {
+        id: json!(id),
+        name: name.into(),
+        mark: mark.into(),
+    };
     Lifecycle {
         name: "Flow".into(),
-        states: vec![st(1, "Open", "done"), st(2, "Plan", "done"), st(3, "Build", "current"), st(4, "Test", "todo"), st(5, "Done [x]", "todo")],
+        states: vec![
+            st(1, "Open", "done"),
+            st(2, "Plan", "done"),
+            st(3, "Build", "current"),
+            st(4, "Test", "todo"),
+            st(5, "Done [x]", "todo"),
+        ],
     }
 }
 
 fn prop(name: &str, label: &str, value: &str, required: bool) -> Prop {
-    Prop { name: name.into(), label: label.into(), value: value.into(), required }
+    Prop {
+        name: name.into(),
+        label: label.into(),
+        value: value.into(),
+        required,
+    }
 }
 
 #[test]
 fn e_escapes_and_blanks_none() {
-    assert_eq!([e(&Value::Null), e(&json!(3)), e(&json!("[bold]x[/]"))], ["", "3", "\\[bold]x\\[/]"]);
+    assert_eq!(
+        [e(&Value::Null), e(&json!(3)), e(&json!("[bold]x[/]"))],
+        ["", "3", "\\[bold]x\\[/]"]
+    );
 }
 
 #[test]
@@ -74,14 +109,26 @@ fn section_is_bold_escaped() {
 }
 
 fn list_page() -> ListPage {
-    let col = |k: &str, l: &str| SiteColumn { key: k.into(), label: l.into() };
+    let col = |k: &str, l: &str| SiteColumn {
+        key: k.into(),
+        label: l.into(),
+    };
     ListPage {
         resource_name: "tickets".into(),
         items: vec![json!({}), json!({})],
-        columns: vec![col("subject", "Subject"), col("status", "Status"), col("assigned_to", "Assigned to"), col("priority", "Priority")],
+        columns: vec![
+            col("subject", "Subject"),
+            col("status", "Status"),
+            col("assigned_to", "Assigned to"),
+            col("priority", "Priority"),
+        ],
         rows: vec![
-            obj(json!({"id": "INC-1", "subject": "Disk [x]", "status": "Open", "assigned_to": "Ops / Ann (Me)", "priority": ""})),
-            obj(json!({"id": "INC-2", "subject": "Net", "status": "", "assigned_to": "Ops / Bob", "priority": "Low"})),
+            obj(
+                json!({"id": "INC-1", "subject": "Disk [x]", "status": "Open", "assigned_to": "Ops / Ann (Me)", "priority": ""}),
+            ),
+            obj(
+                json!({"id": "INC-2", "subject": "Net", "status": "", "assigned_to": "Ops / Bob", "priority": "Low"}),
+            ),
         ],
         view_name: None,
         page: 2,
@@ -106,13 +153,27 @@ fn list_table_columns_styles_and_cells() {
     assert_eq!(ratios, [Some(3), None, None, None]);
     assert!(t.columns.iter().all(|c| c.overflow == Overflow::Fold));
     assert!(!t.pad_edge && !t.expand && !t.show_lines);
-    assert_eq!(t.rows[0], ["Disk \\[x]\n[dim cyan]#INC-1[/]", "Open", "Ops / Ann [bold](Me)[/]", "[dim]--[/]"]);
-    assert_eq!(t.rows[1], ["Net\n[dim cyan]#INC-2[/]", "[dim]--[/]", "Ops / Bob", "Low"]);
+    assert_eq!(
+        t.rows[0],
+        [
+            "Disk \\[x]\n[dim cyan]#INC-1[/]",
+            "Open",
+            "Ops / Ann [bold](Me)[/]",
+            "[dim]--[/]"
+        ]
+    );
+    assert_eq!(
+        t.rows[1],
+        ["Net\n[dim cyan]#INC-2[/]", "[dim]--[/]", "Ops / Bob", "Low"]
+    );
 }
 
 #[test]
 fn list_header_title_and_range() {
-    assert_eq!(list_header(&list_page()), "[bold]All tickets[/][dim] · 31-32 of 32+ · Sort by: Created Date[/]");
+    assert_eq!(
+        list_header(&list_page()),
+        "[bold]All tickets[/][dim] · 31-32 of 32+ · Sort by: Created Date[/]"
+    );
     let page = ListPage {
         resource_name: "changes".into(),
         items: Vec::new(),
@@ -124,7 +185,10 @@ fn list_header_title_and_range() {
         sort: "Due".into(),
         ..list_page()
     };
-    assert_eq!(list_header(&page), "[bold]Mine \\[x][/][dim] · 0 of 0 · Sort by: Due[/]");
+    assert_eq!(
+        list_header(&page),
+        "[bold]Mine \\[x][/][dim] · 0 of 0 · Sort by: Due[/]"
+    );
 }
 
 #[test]
@@ -139,10 +203,29 @@ fn lifecycle_markup_full_window_and_empty() {
         "[dim]…[/] [dim]›[/] [green]✓ Plan[/] [dim]›[/] [bold black on green] Build [/] [dim]›[/] [dim]Test[/] [dim]›[/] [dim]…[/]"
     );
     assert_eq!(lifecycle_markup(None, None), "");
-    assert_eq!(lifecycle_markup(Some(&Lifecycle { name: "x".into(), states: vec![] }), None), "");
-    let todo = |id: i64, n: &str| LifecycleState { id: json!(id), name: n.into(), mark: "todo".into() };
-    let no_current = Lifecycle { name: "x".into(), states: vec![todo(1, "A"), todo(2, "B")] };
-    assert_eq!(lifecycle_markup(Some(&no_current), Some(0)), "[dim]A[/] [dim]›[/] [dim]…[/]");
+    assert_eq!(
+        lifecycle_markup(
+            Some(&Lifecycle {
+                name: "x".into(),
+                states: vec![]
+            }),
+            None
+        ),
+        ""
+    );
+    let todo = |id: i64, n: &str| LifecycleState {
+        id: json!(id),
+        name: n.into(),
+        mark: "todo".into(),
+    };
+    let no_current = Lifecycle {
+        name: "x".into(),
+        states: vec![todo(1, "A"), todo(2, "B")],
+    };
+    assert_eq!(
+        lifecycle_markup(Some(&no_current), Some(0)),
+        "[dim]A[/] [dim]›[/] [dim]…[/]"
+    );
 }
 
 fn d_ticket() -> Detail {
@@ -158,17 +241,43 @@ fn d_ticket() -> Detail {
 }
 
 fn d_change() -> Detail {
-    let mut d = detail(&CHANGES, json!({"display_id": 7, "subject": "Patch", "due_by": "2026-03-01T10:00:00Z", "stats": {"closed_at": "x"}}), no_fields());
+    let mut d = detail(
+        &CHANGES,
+        json!({"display_id": 7, "subject": "Patch", "due_by": "2026-03-01T10:00:00Z", "stats": {"closed_at": "x"}}),
+        no_fields(),
+    );
     d.lifecycle = Some(lifecycle());
     d
 }
 
 #[test]
 fn header_lines_due_unless_closed_ticket() {
-    assert_eq!(header_lines(&d_ticket()), ["[bold cyan]#INC-12[/]  [bold]Disk \\[full][/]", "[bold green]Open[/], due Sun, 1 Mar 2026 17:00"]);
-    let closed = detail(&TICKETS, json!({"id": 13, "subject": "x", "due_by": "2026-03-01T10:00:00Z", "stats": {"closed_at": "2026-03-02T00:00:00Z"}}), no_fields());
-    assert_eq!(header_lines(&closed), ["[bold cyan]#INC-13[/]  [bold]x[/]", "[bold green] (late)[/]"]);
-    assert_eq!(header_lines(&d_change()), ["[bold cyan]#CHN-7[/]  [bold]Patch[/]", "[bold green][/], due Sun, 1 Mar 2026 17:00"]);
+    assert_eq!(
+        header_lines(&d_ticket()),
+        [
+            "[bold cyan]#INC-12[/]  [bold]Disk \\[full][/]",
+            "[bold green]Open[/], due Sun, 1 Mar 2026 17:00"
+        ]
+    );
+    let closed = detail(
+        &TICKETS,
+        json!({"id": 13, "subject": "x", "due_by": "2026-03-01T10:00:00Z", "stats": {"closed_at": "2026-03-02T00:00:00Z"}}),
+        no_fields(),
+    );
+    assert_eq!(
+        header_lines(&closed),
+        [
+            "[bold cyan]#INC-13[/]  [bold]x[/]",
+            "[bold green] (late)[/]"
+        ]
+    );
+    assert_eq!(
+        header_lines(&d_change()),
+        [
+            "[bold cyan]#CHN-7[/]  [bold]Patch[/]",
+            "[bold green][/], due Sun, 1 Mar 2026 17:00"
+        ]
+    );
 }
 
 #[test]
@@ -182,18 +291,40 @@ fn status_line_is_lifecycle_or_empty() {
 
 #[test]
 fn reporter_markup_ticket_change_and_creator() {
-    assert_eq!(reporter_markup(&d_ticket()), rel("[bold]Ann[/] reported <REL> [dim](Fri, 2 Jan 10:04)[/] via [bold]Portal[/]   [dim]Request for:[/] Self"));
+    assert_eq!(
+        reporter_markup(&d_ticket()),
+        rel(
+            "[bold]Ann[/] reported <REL> [dim](Fri, 2 Jan 10:04)[/] via [bold]Portal[/]   [dim]Request for:[/] Self"
+        )
+    );
     assert_eq!(reporter_markup(&d_change()), "");
-    let d = detail(&CHANGES, json!({"created_by_name": "Cy", "created_at": WHEN}), no_fields());
-    assert_eq!(reporter_markup(&d), rel("[bold]Cy[/] reported <REL> [dim](Fri, 2 Jan 10:04)[/]"));
+    let d = detail(
+        &CHANGES,
+        json!({"created_by_name": "Cy", "created_at": WHEN}),
+        no_fields(),
+    );
+    assert_eq!(
+        reporter_markup(&d),
+        rel("[bold]Cy[/] reported <REL> [dim](Fri, 2 Jan 10:04)[/]")
+    );
 }
 
 #[test]
 fn tab_bar_active_counts_and_numbers() {
     let mut d = detail(&CHANGES, json!({"id": 1}), no_fields());
-    d.tabs = vec![tab("details", "Details", None), tab("notes", "Notes", Some(3)), tab("tasks", "Tasks [x]", Some(0))];
-    assert_eq!(tab_bar(&d, "details", false), "[bold reverse] Details [/]  [dim]Notes (3)[/]  [dim]Tasks \\[x][/]");
-    assert_eq!(tab_bar(&d, "notes", true), "[dim]1:Details[/]  [bold reverse] 2:Notes (3) [/]  [dim]3:Tasks \\[x][/]");
+    d.tabs = vec![
+        tab("details", "Details", None),
+        tab("notes", "Notes", Some(3)),
+        tab("tasks", "Tasks [x]", Some(0)),
+    ];
+    assert_eq!(
+        tab_bar(&d, "details", false),
+        "[bold reverse] Details [/]  [dim]Notes (3)[/]  [dim]Tasks \\[x][/]"
+    );
+    assert_eq!(
+        tab_bar(&d, "notes", true),
+        "[dim]1:Details[/]  [bold reverse] 2:Notes (3) [/]  [dim]3:Tasks \\[x][/]"
+    );
 }
 
 #[test]
@@ -216,8 +347,20 @@ fn main_lines_full_details_tab() {
         json!({"item": {}, "quantity": 1}),
     ]);
     d.planning = Some(vec![
-        PlanningEntry { name: "p1".into(), label: "Reason".into(), help: "Why".into(), text: "Because\nreasons".into(), files: vec!["plan.pdf".into()] },
-        PlanningEntry { name: "p2".into(), label: "Impact".into(), help: "Impact".into(), text: String::new(), files: vec![] },
+        PlanningEntry {
+            name: "p1".into(),
+            label: "Reason".into(),
+            help: "Why".into(),
+            text: "Because\nreasons".into(),
+            files: vec!["plan.pdf".into()],
+        },
+        PlanningEntry {
+            name: "p2".into(),
+            label: "Impact".into(),
+            help: "Impact".into(),
+            text: String::new(),
+            files: vec![],
+        },
     ]);
     d.conversations = Some(vec![
         json!({"id": 1, "body": "<p>Hello</p>", "user": {"name": "Ann"}, "incoming": true, "attachments": [{"name": "log.txt"}]}),
@@ -306,24 +449,64 @@ fn conversation_lines_public_and_private() {
                     "incoming": true, "attachments": [{"name": "x.log"}]});
     assert_eq!(
         conversation_lines(&cv, Some(&tz7())),
-        rels(&["  [bold]Ann[/] replied · [green]public[/] · <REL> [dim](Fri, 2 Jan 10:04)[/]", "    Hi", "", "    \\[there]", "    📎 x.log", ""])
+        rels(&[
+            "  [bold]Ann[/] replied · [green]public[/] · <REL> [dim](Fri, 2 Jan 10:04)[/]",
+            "    Hi",
+            "",
+            "    \\[there]",
+            "    📎 x.log",
+            ""
+        ])
     );
     assert_eq!(
-        conversation_lines(&json!({"id": 2, "private": true, "source": 2}), Some(&tz7())),
-        ["  [bold]Someone[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]", "    [dim](empty)[/]", ""]
+        conversation_lines(
+            &json!({"id": 2, "private": true, "source": 2}),
+            Some(&tz7())
+        ),
+        [
+            "  [bold]Someone[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
+            "    [dim](empty)[/]",
+            ""
+        ]
     );
 }
 
 #[test]
 fn human_size_units() {
     let got: Vec<String> = [
-        json!(0), json!(512), json!(1024), json!(1536), json!(5 * 1024 * 1024), json!(3_u64 * 1024 * 1024 * 1024),
-        json!(5_u64 * 1024 * 1024 * 1024 * 1024), json!("2048"), json!("abc"), Value::Null, json!(true), json!(-5),
+        json!(0),
+        json!(512),
+        json!(1024),
+        json!(1536),
+        json!(5 * 1024 * 1024),
+        json!(3_u64 * 1024 * 1024 * 1024),
+        json!(5_u64 * 1024 * 1024 * 1024 * 1024),
+        json!("2048"),
+        json!("abc"),
+        Value::Null,
+        json!(true),
+        json!(-5),
     ]
     .iter()
     .map(human_size)
     .collect();
-    assert_eq!(got, ["0 B", "512 B", "1.0 KB", "1.5 KB", "5.0 MB", "3.0 GB", "5120.0 GB", "2.0 KB", "abc", "None", "1 B", "-5 B"]);
+    assert_eq!(
+        got,
+        [
+            "0 B",
+            "512 B",
+            "1.0 KB",
+            "1.5 KB",
+            "5.0 MB",
+            "3.0 GB",
+            "5120.0 GB",
+            "2.0 KB",
+            "abc",
+            "None",
+            "1 B",
+            "-5 B"
+        ]
+    );
 }
 
 #[test]
@@ -334,7 +517,16 @@ fn side_lines_summary_and_properties() {
         json!({"fields": [{"name": "status", "label": "Status", "choices": [{"id": 2, "value": "Open"}]},
                           {"name": "priority", "label": "Priority"}]}),
     );
-    d.properties = vec![prop("a", "Category", "Hardware", true), prop("b", "Short", "", false), prop("c", "A very long property label that is cut", "v [x]", false)];
+    d.properties = vec![
+        prop("a", "Category", "Hardware", true),
+        prop("b", "Short", "", false),
+        prop(
+            "c",
+            "A very long property label that is cut",
+            "v [x]",
+            false,
+        ),
+    ];
     assert_eq!(
         side_lines(&d),
         [
@@ -349,7 +541,15 @@ fn side_lines_summary_and_properties() {
         ]
     );
     let d = detail(&CHANGES, json!({"display_id": 3}), no_fields());
-    assert_eq!(side_lines(&d), ["[cyan]Status[/]  [dim]--[/]", "", "[bold]Properties[/]", "  [dim]no fields[/]"]);
+    assert_eq!(
+        side_lines(&d),
+        [
+            "[cyan]Status[/]  [dim]--[/]",
+            "",
+            "[bold]Properties[/]",
+            "  [dim]no fields[/]"
+        ]
+    );
 }
 
 #[test]
@@ -357,24 +557,42 @@ fn notes_lines_dim_bullets() {
     let mut d = detail(&CHANGES, json!({"id": 1}), no_fields());
     d.tabs_missing = Some(Missing::new("tabs", Some(404)));
     d.properties_note = Some("no form fields".into());
-    assert_eq!(notes_lines(&d), ["[dim]· tabs: not available on this account (404)[/]", "[dim]· no form fields[/]"]);
+    assert_eq!(
+        notes_lines(&d),
+        [
+            "[dim]· tabs: not available on this account (404)[/]",
+            "[dim]· no form fields[/]"
+        ]
+    );
 }
 
 #[test]
 fn who_names_mappings_only() {
-    let got: Vec<String> = [Some(json!({"name": " Ann "})), Some(json!("x")), Some(json!({"email": "e@x"})), None]
-        .iter()
-        .map(|v| who(v.as_ref()))
-        .collect();
+    let got: Vec<String> = [
+        Some(json!({"name": " Ann "})),
+        Some(json!("x")),
+        Some(json!({"email": "e@x"})),
+        None,
+    ]
+    .iter()
+    .map(|v| who(v.as_ref()))
+    .collect();
     assert_eq!(got, ["Ann", "", "e@x", ""]);
 }
 
 #[test]
 fn status_text_mapping_or_scalar() {
-    let got: Vec<String> = [Some(json!({"name": "N"})), Some(json!({"value": "V"})), Some(json!({"id": 4})), Some(json!({})), None, Some(json!(3))]
-        .iter()
-        .map(|v| status_text(v.as_ref()))
-        .collect();
+    let got: Vec<String> = [
+        Some(json!({"name": "N"})),
+        Some(json!({"value": "V"})),
+        Some(json!({"id": 4})),
+        Some(json!({})),
+        None,
+        Some(json!(3)),
+    ]
+    .iter()
+    .map(|v| status_text(v.as_ref()))
+    .collect();
     assert_eq!(got, ["N", "V", "4", "", "", "3"]);
 }
 
@@ -382,10 +600,13 @@ fn status_text_mapping_or_scalar() {
 fn notes_tab_rows_and_empty() {
     let t = TabData {
         notes: vec!["partial read".into()],
-        ..td_data("notes", json!([
-            {"user": {"name": "Ann"}, "private": true, "created_at": WHEN, "body": "<p>Fixed [it]</p>"},
-            {"user_id": 9, "body_text": "plain"}
-        ]))
+        ..td_data(
+            "notes",
+            json!([
+                {"user": {"name": "Ann"}, "private": true, "created_at": WHEN, "body": "<p>Fixed [it]</p>"},
+                {"user_id": 9, "body_text": "plain"}
+            ]),
+        )
     };
     assert_eq!(
         notes_tab(&t, Some(&tz7()), None),
@@ -398,16 +619,22 @@ fn notes_tab_rows_and_empty() {
             "",
         ])
     );
-    assert_eq!(notes_tab(&td_data("notes", json!([])), Some(&tz7()), None), ["[dim]no notes[/]"]);
+    assert_eq!(
+        notes_tab(&td_data("notes", json!([])), Some(&tz7()), None),
+        ["[dim]no notes[/]"]
+    );
 }
 
 #[test]
 fn tasks_tab_rows_and_empty() {
-    let t = td_data("tasks", json!([
-        {"title": "Back up", "human_display_id": "TSK-1", "status_name": "Open", "group": {"name": "Ops"}, "due_date": "2026-03-01T10:00:00Z"},
-        {"display_id": 2, "status_info": {"name": "Done"}, "owner_name": "Bob"},
-        {"id": 3, "status": 99}
-    ]));
+    let t = td_data(
+        "tasks",
+        json!([
+            {"title": "Back up", "human_display_id": "TSK-1", "status_name": "Open", "group": {"name": "Ops"}, "due_date": "2026-03-01T10:00:00Z"},
+            {"display_id": 2, "status_info": {"name": "Done"}, "owner_name": "Bob"},
+            {"id": 3, "status": 99}
+        ]),
+    );
     assert_eq!(
         tasks_tab(&t, Some(&tz7()), None),
         [
@@ -419,18 +646,24 @@ fn tasks_tab_rows_and_empty() {
             "    [dim]99 (unknown)[/]",
         ]
     );
-    assert_eq!(tasks_tab(&td("tasks"), Some(&tz7()), None), ["[dim]no tasks[/]"]);
+    assert_eq!(
+        tasks_tab(&td("tasks"), Some(&tz7()), None),
+        ["[dim]no tasks[/]"]
+    );
 }
 
 #[test]
 fn approvals_tab_levels_sorted_ints_before_strings() {
-    let t = td_data("approvals", json!([
-        {"level_id": 2, "status": {"name": "approved"}, "member": {"name": "Ann"}, "updated_at": WHEN,
-         "remark": [{"data": "ok [fine]"}, {"data": ""}, "x"]},
-        {"level": 1, "approval_status": "rejected", "approver": {"name": "Bob"}},
-        {"status": "requested", "member_id": 5},
-        {"level_id": "B", "status": {"value": "pending"}}
-    ]));
+    let t = td_data(
+        "approvals",
+        json!([
+            {"level_id": 2, "status": {"name": "approved"}, "member": {"name": "Ann"}, "updated_at": WHEN,
+             "remark": [{"data": "ok [fine]"}, {"data": ""}, "x"]},
+            {"level": 1, "approval_status": "rejected", "approver": {"name": "Bob"}},
+            {"status": "requested", "member_id": 5},
+            {"level_id": "B", "status": {"value": "pending"}}
+        ]),
+    );
     assert_eq!(
         approvals_tab(&t, Some(&tz7()), None),
         rels(&[
@@ -444,30 +677,46 @@ fn approvals_tab_levels_sorted_ints_before_strings() {
             "  [yellow]◷[/] [bold][/]  Pending  [dim][/]",
         ])
     );
-    assert_eq!(approvals_tab(&td_data("approvals", json!([])), None, None), ["[dim]no approvals requested[/]"]);
+    assert_eq!(
+        approvals_tab(&td_data("approvals", json!([])), None, None),
+        ["[dim]no approvals requested[/]"]
+    );
 }
 
 #[test]
 fn assets_tab_config_items_and_empty() {
-    let t = td_data("assets", json!([
-        {"config_item": {"name": "srv-1", "ci_type_name": "Server", "display_id": 11}},
-        {"display_name": "Laptop", "ci_type": {"name": "Hardware"}, "id": 5},
-        {"asset_type_name": "Phone"}
-    ]));
+    let t = td_data(
+        "assets",
+        json!([
+            {"config_item": {"name": "srv-1", "ci_type_name": "Server", "display_id": 11}},
+            {"display_name": "Laptop", "ci_type": {"name": "Hardware"}, "id": 5},
+            {"asset_type_name": "Phone"}
+        ]),
+    );
     assert_eq!(
         assets_tab(&t, None, None),
-        ["[bold]srv-1[/]  [dim]Server · #11[/]", "[bold]Laptop[/]  [dim]Hardware · #5[/]", "[bold]-[/]  [dim]Phone · #[/]"]
+        [
+            "[bold]srv-1[/]  [dim]Server · #11[/]",
+            "[bold]Laptop[/]  [dim]Hardware · #5[/]",
+            "[bold]-[/]  [dim]Phone · #[/]"
+        ]
     );
-    assert_eq!(assets_tab(&td("assets"), None, None), ["[dim]none associated[/]"]);
+    assert_eq!(
+        assets_tab(&td("assets"), None, None),
+        ["[dim]none associated[/]"]
+    );
 }
 
 #[test]
 fn activity_tab_groups_by_local_day() {
-    let t = td_data("activity", json!([
-        {"created_at": WHEN, "actor": {"name": "Ann"}, "content": "<b>set</b> status", "sub_contents": ["a <i>b</i>"]},
-        {"created_at": "2026-01-02T20:00:00Z", "content": "next day local"},
-        {"content": "undated"}
-    ]));
+    let t = td_data(
+        "activity",
+        json!([
+            {"created_at": WHEN, "actor": {"name": "Ann"}, "content": "<b>set</b> status", "sub_contents": ["a <i>b</i>"]},
+            {"created_at": "2026-01-02T20:00:00Z", "content": "next day local"},
+            {"content": "undated"}
+        ]),
+    );
     assert_eq!(
         activity_tab(&t, Some(&tz7()), None),
         [
@@ -491,7 +740,10 @@ fn activity_tab_groups_by_local_day() {
             "  [bold]System[/] undated",
         ]
     );
-    assert_eq!(activity_tab(&td("activity"), Some(&tz7()), None), ["[dim]no activity[/]"]);
+    assert_eq!(
+        activity_tab(&td("activity"), Some(&tz7()), None),
+        ["[dim]no activity[/]"]
+    );
 }
 
 #[test]
@@ -505,22 +757,49 @@ fn item_line_id_subject_status() {
     .iter()
     .map(item_line)
     .collect();
-    assert_eq!(got, ["  [cyan]#CHN-1[/] S \\[x]  [dim]Open[/]", "  [cyan]#2[/] N  [dim]Closed[/]", "  [cyan]#3[/] T", "  [cyan]#[/] "]);
+    assert_eq!(
+        got,
+        [
+            "  [cyan]#CHN-1[/] S \\[x]  [dim]Open[/]",
+            "  [cyan]#2[/] N  [dim]Closed[/]",
+            "  [cyan]#3[/] T",
+            "  [cyan]#[/] "
+        ]
+    );
 }
 
 #[test]
 fn parts_tab_skips_survey() {
-    let t = TabData { parts: obj(json!({"Changes": [{"id": 1, "subject": "C"}], "Problems": [], "survey": {"a": 1}})), ..td("associations") };
-    assert_eq!(parts_tab(&t, None, None), ["[bold]Changes (1)[/]", "  [cyan]#1[/] C", "[bold]Problems (0)[/]", "  [dim]none[/]"]);
-    assert_eq!(parts_tab(&td("associations"), None, None), ["[dim]nothing associated[/]"]);
+    let t = TabData {
+        parts: obj(
+            json!({"Changes": [{"id": 1, "subject": "C"}], "Problems": [], "survey": {"a": 1}}),
+        ),
+        ..td("associations")
+    };
+    assert_eq!(
+        parts_tab(&t, None, None),
+        [
+            "[bold]Changes (1)[/]",
+            "  [cyan]#1[/] C",
+            "[bold]Problems (0)[/]",
+            "  [dim]none[/]"
+        ]
+    );
+    assert_eq!(
+        parts_tab(&td("associations"), None, None),
+        ["[dim]nothing associated[/]"]
+    );
 }
 
 #[test]
 fn risk_tab_scores_factors_survey() {
     let t = TabData {
         parts: obj(json!({"survey": {"q1": "yes", "q2": 2, "q3": [1], "q4": true}})),
-        ..td_data("risk", json!({"overall_score": 0, "computed_risk": {"name": "High"},
-                                  "basic_risk_awareness": [{"name": "impact_level", "operator": ">", "value": 3}, "x"]}))
+        ..td_data(
+            "risk",
+            json!({"overall_score": 0, "computed_risk": {"name": "High"},
+                                  "basic_risk_awareness": [{"name": "impact_level", "operator": ">", "value": 3}, "x"]}),
+        )
     };
     assert_eq!(
         risk_tab(&t, None, None),
@@ -539,46 +818,115 @@ fn risk_tab_scores_factors_survey() {
     );
     assert_eq!(
         risk_tab(&td_data("risk", json!({"computed_risk": ""})), None, None),
-        ["[cyan]Overall score[/]  [dim]--[/]", "[cyan]Computed risk[/]  [dim]--[/]"]
+        [
+            "[cyan]Overall score[/]  [dim]--[/]",
+            "[cyan]Computed risk[/]  [dim]--[/]"
+        ]
     );
 }
 
 #[test]
 fn resolution_tab_note_absent_empty_missing() {
-    let t = td_data("resolution_notes", json!({"resolved_at": WHEN, "closed_at": "2026-01-03T03:04:00Z", "note": "Fixed\n[it]"}));
+    let t = td_data(
+        "resolution_notes",
+        json!({"resolved_at": WHEN, "closed_at": "2026-01-03T03:04:00Z", "note": "Fixed\n[it]"}),
+    );
     assert_eq!(
         resolution_tab(&t, Some(&tz7()), None),
-        ["[cyan]Resolved[/]  Fri, 2 Jan 2026 10:04", "[cyan]Closed[/]  Sat, 3 Jan 2026 10:04", "", "[bold]Resolution note[/]", "  Fixed", "  \\[it]"]
+        [
+            "[cyan]Resolved[/]  Fri, 2 Jan 2026 10:04",
+            "[cyan]Closed[/]  Sat, 3 Jan 2026 10:04",
+            "",
+            "[bold]Resolution note[/]",
+            "  Fixed",
+            "  \\[it]"
+        ]
     );
     let mut absent = td_data("resolution_notes", json!({}));
     absent.meta.insert("absent".into(), json!(true));
-    assert_eq!(resolution_tab(&absent, None, None), ["[dim]no resolution note (404)[/]"]);
-    assert_eq!(resolution_tab(&td_data("resolution_notes", json!({})), None, None), ["[dim]no resolution yet[/]"]);
-    let denied = TabData { missing: Some(Missing::new("Resolution", Some(403))), ..td_data("resolution_notes", json!({})) };
+    assert_eq!(
+        resolution_tab(&absent, None, None),
+        ["[dim]no resolution note (404)[/]"]
+    );
+    assert_eq!(
+        resolution_tab(&td_data("resolution_notes", json!({})), None, None),
+        ["[dim]no resolution yet[/]"]
+    );
+    let denied = TabData {
+        missing: Some(Missing::new("Resolution", Some(403))),
+        ..td_data("resolution_notes", json!({}))
+    };
     assert!(resolution_tab(&denied, None, None).is_empty());
 }
 
 #[test]
 fn generic_tab_rows_text_and_parts() {
-    assert_eq!(generic_tab(&td_data("time_entries", json!([{"id": 1, "subject": "T"}, "x"])), None, None), ["  [cyan]#1[/] T"]);
-    assert_eq!(generic_tab(&td_data("time_entries", json!([])), None, None), ["[dim]nothing here[/]"]);
-    assert_eq!(generic_tab(&td_data("time_entries", json!("text [x]")), None, None), ["text \\[x]"]);
-    let parts = TabData { parts: obj(json!({"A": []})), ..td("time_entries") };
-    assert_eq!(generic_tab(&parts, None, None), ["[bold]A (0)[/]", "  [dim]none[/]"]);
+    assert_eq!(
+        generic_tab(
+            &td_data("time_entries", json!([{"id": 1, "subject": "T"}, "x"])),
+            None,
+            None
+        ),
+        ["  [cyan]#1[/] T"]
+    );
+    assert_eq!(
+        generic_tab(&td_data("time_entries", json!([])), None, None),
+        ["[dim]nothing here[/]"]
+    );
+    assert_eq!(
+        generic_tab(&td_data("time_entries", json!("text [x]")), None, None),
+        ["text \\[x]"]
+    );
+    let parts = TabData {
+        parts: obj(json!({"A": []})),
+        ..td("time_entries")
+    };
+    assert_eq!(
+        generic_tab(&parts, None, None),
+        ["[bold]A (0)[/]", "  [dim]none[/]"]
+    );
 }
 
 #[test]
 fn tab_lines_missing_notes_and_dispatch() {
-    let denied = TabData { missing: Some(Missing::new("Notes", Some(403))), ..td("notes") };
-    assert_eq!(tab_lines(&denied, None, None), ["[dim]Notes: not permitted for your role (403)[/]"]);
-    let partial = TabData { missing: Some(Missing::new("Notes", Some(500))), notes: vec!["n1".into()], ..td_data("notes", json!([])) };
-    assert_eq!(tab_lines(&partial, None, None), ["[dim]no notes[/]", "[dim]Notes: unavailable (500)[/]", "[dim]· n1[/]"]);
-    assert_eq!(tab_lines(&td_data("bogus", json!([{"id": 1}])), None, None), ["  [cyan]#1[/] "]);
+    let denied = TabData {
+        missing: Some(Missing::new("Notes", Some(403))),
+        ..td("notes")
+    };
+    assert_eq!(
+        tab_lines(&denied, None, None),
+        ["[dim]Notes: not permitted for your role (403)[/]"]
+    );
+    let partial = TabData {
+        missing: Some(Missing::new("Notes", Some(500))),
+        notes: vec!["n1".into()],
+        ..td_data("notes", json!([]))
+    };
+    assert_eq!(
+        tab_lines(&partial, None, None),
+        [
+            "[dim]no notes[/]",
+            "[dim]Notes: unavailable (500)[/]",
+            "[dim]· n1[/]"
+        ]
+    );
+    assert_eq!(
+        tab_lines(&td_data("bogus", json!([{"id": 1}])), None, None),
+        ["  [cyan]#1[/] "]
+    );
 }
 
 fn d_print() -> Detail {
-    let mut d = detail(&CHANGES, json!({"display_id": 7, "subject": "Patch", "description": "Body"}), no_fields());
-    d.tabs = vec![tab("details", "Details", None), tab("notes", "Notes", Some(1)), tab("tasks", "Tasks", None)];
+    let mut d = detail(
+        &CHANGES,
+        json!({"display_id": 7, "subject": "Patch", "description": "Body"}),
+        no_fields(),
+    );
+    d.tabs = vec![
+        tab("details", "Details", None),
+        tab("notes", "Notes", Some(1)),
+        tab("tasks", "Tasks", None),
+    ];
     d.lifecycle = Some(lifecycle());
     d.planning_missing = Some(Missing::new("planning", Some(404)));
     d.tabs_missing = Some(Missing::new("tabs", Some(403)));
@@ -587,14 +935,18 @@ fn d_print() -> Detail {
     d
 }
 
-const RULE80: &str = "────────────────────────────────────────────────────────────────────────────────";
+const RULE80: &str =
+    "────────────────────────────────────────────────────────────────────────────────";
 
 #[test]
 fn print_detail_details_tab_narrow() {
     let want = format!(
         "#CHN-7  Patch\n\n✓ Open › ✓ Plan ›  Build  › Test › Done [x]\n\n Details   Notes (1)  Tasks\n{RULE80}\nDescription\n  Body\n\nplanning: not available on this account (404)\n\nStatus  --\n\nProperties\n  Category   HW\n\n· tabs: not permitted for your role (403)\n"
     );
-    assert_eq!(blocks_text(&detail_blocks(&d_print(), None, false), 80), want);
+    assert_eq!(
+        blocks_text(&detail_blocks(&d_print(), None, false), 80),
+        want
+    );
 }
 
 #[test]
@@ -602,7 +954,10 @@ fn print_detail_single_tab() {
     let want = format!(
         "#CHN-7  Patch\n\n✓ Open › ✓ Plan ›  Build  › Test › Done [x]\n\nDetails   Notes (1)   Tasks\n{RULE80}\n9 added a note · public ·  ()\n  hi\n\n\n· tabs: not permitted for your role (403)\n"
     );
-    assert_eq!(blocks_text(&detail_blocks(&d_print(), Some("notes"), false), 80), want);
+    assert_eq!(
+        blocks_text(&detail_blocks(&d_print(), Some("notes"), false), 80),
+        want
+    );
 }
 
 #[test]
@@ -610,7 +965,35 @@ fn print_detail_all_tabs() {
     let want = format!(
         "#CHN-7  Patch\n\n✓ Open › ✓ Plan ›  Build  › Test › Done [x]\n\n Details   Notes (1)  Tasks\n{RULE80}\nDescription\n  Body\n\nplanning: not available on this account (404)\n\nStatus  --\n\nProperties\n  Category   HW\n\nNotes ──────────────────────────────────────────────────────────────────────────\n9 added a note · public ·  ()\n  hi\n\n\n· tabs: not permitted for your role (403)\n"
     );
-    assert_eq!(blocks_text(&detail_blocks(&d_print(), None, true), 80), want);
+    assert_eq!(
+        blocks_text(&detail_blocks(&d_print(), None, true), 80),
+        want
+    );
+}
+
+/// `print_detail` writes the same text Python printed; captured output is
+/// laid out at `$COLUMNS` (80 when unset).
+#[test]
+fn print_detail_prints_detail_blocks() {
+    let console = fsv_core::term::out();
+    let ((), got) = fsv_core::term::capture(|| print_detail(console, &d_print(), None, false));
+    let width = console.width();
+    if width == 80 {
+        let want = format!(
+            "#CHN-7  Patch\n\n✓ Open › ✓ Plan ›  Build  › Test › Done [x]\n\n Details   Notes (1)  Tasks\n{RULE80}\nDescription\n  Body\n\nplanning: not available on this account (404)\n\nStatus  --\n\nProperties\n  Category   HW\n\n· tabs: not permitted for your role (403)\n"
+        );
+        assert_eq!(got, want);
+    }
+    assert_eq!(
+        got,
+        blocks_text(&detail_blocks(&d_print(), None, false), width)
+    );
+    let ((), all) =
+        fsv_core::term::capture(|| print_detail(console, &d_print(), Some("notes"), true));
+    assert_eq!(
+        all,
+        blocks_text(&detail_blocks(&d_print(), Some("notes"), true), width)
+    );
 }
 
 #[test]
@@ -619,5 +1002,8 @@ fn print_detail_wide_grid() {
     let want = format!(
         "#CHN-7  Patch\n\n✓ Open › ✓ Plan ›  Build  › Test › Done [x]\n\n Details   Notes (1)  Tasks\n{rule120}\nDescription                                                             Status  --                                      \n  Body                                                                                                                  \n                                                                        Properties                                      \nplanning: not available on this account (404)                             Category   HW                                 \n\n· tabs: not permitted for your role (403)\n"
     );
-    assert_eq!(blocks_text(&detail_blocks(&d_print(), None, false), 120), want);
+    assert_eq!(
+        blocks_text(&detail_blocks(&d_print(), None, false), 120),
+        want
+    );
 }

@@ -1,0 +1,1240 @@
+{
+ "fields": [
+  {
+   "name": "a",
+   "label": "A",
+   "field_type": "t",
+   "default_field": true
+  },
+  {
+   "name": "b"
+  },
+  {
+   "label": "L"
+  },
+  {
+   "name": 0,
+   "label": null,
+   "default_field": 0
+  },
+  {
+   "name": "x",
+   "field_type": null,
+   "default_field": "yes"
+  },
+  {
+   "name": 12,
+   "label": ""
+  },
+  {
+   "name": "n",
+   "label": "Région",
+   "field_type": "custom_dropdown",
+   "default_field": false
+  }
+ ],
+ "field_scope": [
+  "default",
+  "custom",
+  "custom",
+  "custom",
+  "default",
+  "custom",
+  "custom"
+ ],
+ "field_name": [
+  "a",
+  "b",
+  "",
+  "",
+  "x",
+  "12",
+  "n"
+ ],
+ "field_label": [
+  "A",
+  "b",
+  "L",
+  "",
+  "x",
+  "12",
+  "Région"
+ ],
+ "field_help": [
+  "A · t · default",
+  "b · ? · custom",
+  "L · ? · custom",
+  " · ? · custom",
+  "x · ? · default",
+  "12 · ? · custom",
+  "Région · custom_dropdown · custom"
+ ],
+ "choices": [
+  {
+   "value": "V",
+   "name": "N"
+  },
+  {
+   "name": "N",
+   "label": "L"
+  },
+  {
+   "label": "L"
+  },
+  {
+   "id": 5
+  },
+  {
+   "id": 0
+  },
+  {
+   "value": "",
+   "name": "N"
+  },
+  {},
+  {
+   "id": 1.5
+  },
+  {
+   "value": true
+  }
+ ],
+ "choice_text": [
+  "V",
+  "N",
+  "L",
+  "5",
+  "",
+  "N",
+  "",
+  "1.5",
+  "True"
+ ],
+ "completion_case": [
+  [
+   "alice@x.com",
+   "AL",
+   "ALice@x.com"
+  ],
+  [
+   "Alice",
+   "al",
+   "alice"
+  ],
+  [
+   "bob",
+   "al",
+   "bob"
+  ],
+  [
+   "ALBERT",
+   "al",
+   "alBERT"
+  ],
+  [
+   "Straße",
+   "STRASS",
+   "STRASS"
+  ],
+  [
+   "ﬁle",
+   "FI",
+   "FIe"
+  ],
+  [
+   "x",
+   "",
+   "x"
+  ],
+  [
+   "",
+   "a",
+   ""
+  ]
+ ],
+ "match": [
+  [
+   "Status",
+   "st",
+   true
+  ],
+  [
+   "status",
+   "",
+   true
+  ],
+  [
+   "Straße",
+   "strasse",
+   true
+  ],
+  [
+   "x",
+   "xy",
+   false
+  ],
+  [
+   "",
+   "",
+   true
+  ],
+  [
+   "Région",
+   "RÉG",
+   true
+  ]
+ ],
+ "complete_pairs": [
+  [
+   "",
+   [
+    [
+     "table",
+     "rich table"
+    ],
+    [
+     "Json",
+     "JSON"
+    ],
+    [
+     "tsv",
+     ""
+    ],
+    [
+     "",
+     ""
+    ]
+   ]
+  ],
+  [
+   "t",
+   [
+    [
+     "table",
+     "rich table"
+    ],
+    [
+     "tsv",
+     ""
+    ],
+    [
+     "t",
+     ""
+    ]
+   ]
+  ],
+  [
+   "J",
+   [
+    [
+     "Json",
+     "JSON"
+    ],
+    [
+     "J",
+     ""
+    ]
+   ]
+  ],
+  [
+   "z",
+   [
+    [
+     "z",
+     ""
+    ]
+   ]
+  ]
+ ],
+ "pairs": [
+  [
+   "table",
+   "rich table"
+  ],
+  [
+   "Json",
+   "JSON"
+  ],
+  [
+   "tsv",
+   ""
+  ]
+ ],
+ "cached_fields": {
+  "changes": [
+   {
+    "name": "status",
+    "label": "Status",
+    "field_type": "default_status",
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Awaiting Approval"
+     }
+    ]
+   },
+   {
+    "name": "priority",
+    "label": "Priority",
+    "field_type": "default_priority",
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "name": "Low"
+     },
+     {
+      "id": 4,
+      "label": "Urgent"
+     },
+     {
+      "id": 9
+     }
+    ]
+   },
+   {
+    "name": "impact",
+    "label": "Impact",
+    "field_type": "default_impact",
+    "default_field": true
+   },
+   {
+    "name": "planned_start_date",
+    "label": "Planned Start Date",
+    "field_type": "default_date",
+    "default_field": true
+   },
+   {
+    "name": "change_reason",
+    "label": "Reason for Change",
+    "field_type": "default_change_reason",
+    "default_field": true
+   },
+   {
+    "name": "backout_plan",
+    "label": "",
+    "field_type": "default_backout_plan",
+    "default_field": true
+   },
+   {
+    "name": "cf_rollout",
+    "label": "Rollout Plan",
+    "field_type": "planning_field",
+    "default_field": false
+   },
+   {
+    "name": "cf_approved",
+    "label": "Approved",
+    "field_type": "custom_checkbox",
+    "default_field": false
+   },
+   {
+    "name": "cf_owner",
+    "label": "Owner",
+    "field_type": "custom_lookup_bigint",
+    "default_field": false,
+    "lookup_config": {
+     "link": "/api/_/lookup/users?x=1"
+    }
+   },
+   {
+    "name": "cf_reviewer",
+    "label": "Reviewer",
+    "field_type": "custom_lookup_bigint",
+    "default_field": false
+   },
+   {
+    "name": "requester",
+    "label": "Requester",
+    "field_type": "default_requester",
+    "default_field": true
+   },
+   {
+    "name": "agent",
+    "label": "Agent",
+    "field_type": "default_agent",
+    "default_field": true
+   },
+   {
+    "name": "cf_region",
+    "label": "Région Straße",
+    "field_type": "custom_dropdown",
+    "default_field": false,
+    "choices": [
+     {
+      "value": "Nord"
+     },
+     {
+      "value": "Süd"
+     },
+     {
+      "id": 7
+     },
+     {
+      "value": ""
+     }
+    ]
+   },
+   {
+    "name": "cf_status_note",
+    "label": "Status Note",
+    "field_type": "custom_text",
+    "default_field": false
+   },
+   {
+    "name": "",
+    "label": "Nameless",
+    "field_type": "custom_text"
+   },
+   {
+    "name": "cf_notes",
+    "field_type": "",
+    "default_field": false
+   }
+  ],
+  "tickets": [],
+  "problems": [
+   {
+    "name": "status",
+    "label": "Status",
+    "field_type": "default_status",
+    "default_field": true,
+    "choices": [
+     {
+      "value": "Open"
+     },
+     {
+      "value": "Change Requested"
+     }
+    ]
+   },
+   {
+    "name": "cf_area",
+    "label": "Area",
+    "field_type": "custom_dropdown"
+   }
+  ]
+ },
+ "fields_or_fallback": {
+  "changes": [
+   {
+    "name": "status",
+    "label": "Status",
+    "field_type": "default_status",
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Awaiting Approval"
+     }
+    ]
+   },
+   {
+    "name": "priority",
+    "label": "Priority",
+    "field_type": "default_priority",
+    "default_field": true,
+    "choices": [
+     {
+      "id": 1,
+      "name": "Low"
+     },
+     {
+      "id": 4,
+      "label": "Urgent"
+     },
+     {
+      "id": 9
+     }
+    ]
+   },
+   {
+    "name": "impact",
+    "label": "Impact",
+    "field_type": "default_impact",
+    "default_field": true
+   },
+   {
+    "name": "planned_start_date",
+    "label": "Planned Start Date",
+    "field_type": "default_date",
+    "default_field": true
+   },
+   {
+    "name": "change_reason",
+    "label": "Reason for Change",
+    "field_type": "default_change_reason",
+    "default_field": true
+   },
+   {
+    "name": "backout_plan",
+    "label": "",
+    "field_type": "default_backout_plan",
+    "default_field": true
+   },
+   {
+    "name": "cf_rollout",
+    "label": "Rollout Plan",
+    "field_type": "planning_field",
+    "default_field": false
+   },
+   {
+    "name": "cf_approved",
+    "label": "Approved",
+    "field_type": "custom_checkbox",
+    "default_field": false
+   },
+   {
+    "name": "cf_owner",
+    "label": "Owner",
+    "field_type": "custom_lookup_bigint",
+    "default_field": false,
+    "lookup_config": {
+     "link": "/api/_/lookup/users?x=1"
+    }
+   },
+   {
+    "name": "cf_reviewer",
+    "label": "Reviewer",
+    "field_type": "custom_lookup_bigint",
+    "default_field": false
+   },
+   {
+    "name": "requester",
+    "label": "Requester",
+    "field_type": "default_requester",
+    "default_field": true
+   },
+   {
+    "name": "agent",
+    "label": "Agent",
+    "field_type": "default_agent",
+    "default_field": true
+   },
+   {
+    "name": "cf_region",
+    "label": "Région Straße",
+    "field_type": "custom_dropdown",
+    "default_field": false,
+    "choices": [
+     {
+      "value": "Nord"
+     },
+     {
+      "value": "Süd"
+     },
+     {
+      "id": 7
+     },
+     {
+      "value": ""
+     }
+    ]
+   },
+   {
+    "name": "cf_status_note",
+    "label": "Status Note",
+    "field_type": "custom_text",
+    "default_field": false
+   },
+   {
+    "name": "",
+    "label": "Nameless",
+    "field_type": "custom_text"
+   },
+   {
+    "name": "cf_notes",
+    "field_type": "",
+    "default_field": false
+   }
+  ],
+  "tickets": [
+   {
+    "name": "requester",
+    "label": "Requester",
+    "field_type": "default_requester",
+    "default_field": true
+   },
+   {
+    "name": "agent",
+    "label": "Agent",
+    "field_type": "default_agent",
+    "default_field": true
+   },
+   {
+    "name": "group",
+    "label": "Group",
+    "field_type": "default_group",
+    "default_field": true
+   },
+   {
+    "name": "status",
+    "label": "Status",
+    "field_type": "default_status",
+    "default_field": true
+   },
+   {
+    "name": "priority",
+    "label": "Priority",
+    "field_type": "default_priority",
+    "default_field": true
+   },
+   {
+    "name": "created_at",
+    "label": "Created",
+    "field_type": "default_date",
+    "default_field": true
+   },
+   {
+    "name": "updated_at",
+    "label": "Updated",
+    "field_type": "default_date",
+    "default_field": true
+   }
+  ],
+  "problems": [
+   {
+    "name": "status",
+    "label": "Status",
+    "field_type": "default_status",
+    "default_field": true,
+    "choices": [
+     {
+      "value": "Open"
+     },
+     {
+      "value": "Change Requested"
+     }
+    ]
+   },
+   {
+    "name": "cf_area",
+    "label": "Area",
+    "field_type": "custom_dropdown"
+   }
+  ]
+ },
+ "find_field": {
+  "changes": [
+   [
+    "status",
+    "status"
+   ],
+   [
+    "STATUS",
+    "status"
+   ],
+   [
+    "Status Note",
+    "cf_status_note"
+   ],
+   [
+    "default:status",
+    "status"
+   ],
+   [
+    "custom:status",
+    "cf_status_note"
+   ],
+   [
+    "custom:region",
+    "cf_region"
+   ],
+   [
+    "plan",
+    null
+   ],
+   [
+    "stat",
+    null
+   ],
+   [
+    "nosuch",
+    null
+   ],
+   [
+    "default:",
+    null
+   ],
+   [
+    "custom:approved",
+    "cf_approved"
+   ],
+   [
+    "foo:bar",
+    null
+   ],
+   [
+    "",
+    ""
+   ],
+   [
+    "Rollout",
+    "cf_rollout"
+   ]
+  ],
+  "tickets": [
+   [
+    "status",
+    "status"
+   ],
+   [
+    "STATUS",
+    "status"
+   ],
+   [
+    "Status Note",
+    null
+   ],
+   [
+    "default:status",
+    "status"
+   ],
+   [
+    "custom:status",
+    null
+   ],
+   [
+    "custom:region",
+    null
+   ],
+   [
+    "plan",
+    null
+   ],
+   [
+    "stat",
+    "status"
+   ],
+   [
+    "nosuch",
+    null
+   ],
+   [
+    "default:",
+    null
+   ],
+   [
+    "custom:approved",
+    null
+   ],
+   [
+    "foo:bar",
+    null
+   ],
+   [
+    "",
+    null
+   ],
+   [
+    "Rollout",
+    null
+   ]
+  ],
+  "problems": [
+   [
+    "status",
+    "status"
+   ],
+   [
+    "STATUS",
+    "status"
+   ],
+   [
+    "Status Note",
+    null
+   ],
+   [
+    "default:status",
+    "status"
+   ],
+   [
+    "custom:status",
+    null
+   ],
+   [
+    "custom:region",
+    null
+   ],
+   [
+    "plan",
+    null
+   ],
+   [
+    "stat",
+    "status"
+   ],
+   [
+    "nosuch",
+    null
+   ],
+   [
+    "default:",
+    "status"
+   ],
+   [
+    "custom:approved",
+    null
+   ],
+   [
+    "foo:bar",
+    null
+   ],
+   [
+    "",
+    null
+   ],
+   [
+    "Rollout",
+    null
+   ]
+  ]
+ },
+ "choices_for": {
+  "changes": [
+   [
+    "status",
+    [
+     "Open",
+     "Planning",
+     "Awaiting Approval"
+    ]
+   ],
+   [
+    "priority",
+    [
+     "Low",
+     "Urgent",
+     "9"
+    ]
+   ],
+   [
+    "impact",
+    [
+     "Low",
+     "Medium",
+     "High"
+    ]
+   ],
+   [
+    "risk",
+    [
+     "Low",
+     "Medium",
+     "High",
+     "Very High"
+    ]
+   ],
+   [
+    "plan",
+    []
+   ],
+   [
+    "nosuch",
+    []
+   ],
+   [
+    "cf_region",
+    [
+     "Nord",
+     "Süd",
+     "7"
+    ]
+   ],
+   [
+    "default:priority",
+    [
+     "Low",
+     "Urgent",
+     "9"
+    ]
+   ],
+   [
+    "Région Straße",
+    [
+     "Nord",
+     "Süd",
+     "7"
+    ]
+   ]
+  ],
+  "tickets": [
+   [
+    "status",
+    [
+     "Open",
+     "Pending",
+     "Resolved",
+     "Closed"
+    ]
+   ],
+   [
+    "priority",
+    [
+     "Low",
+     "Medium",
+     "High",
+     "Urgent"
+    ]
+   ],
+   [
+    "impact",
+    [
+     "Low",
+     "Medium",
+     "High"
+    ]
+   ],
+   [
+    "risk",
+    [
+     "Low",
+     "Medium",
+     "High",
+     "Very High"
+    ]
+   ],
+   [
+    "plan",
+    []
+   ],
+   [
+    "nosuch",
+    []
+   ],
+   [
+    "cf_region",
+    []
+   ],
+   [
+    "default:priority",
+    [
+     "Low",
+     "Medium",
+     "High",
+     "Urgent"
+    ]
+   ],
+   [
+    "Région Straße",
+    []
+   ]
+  ],
+  "problems": [
+   [
+    "status",
+    [
+     "Open",
+     "Change Requested"
+    ]
+   ],
+   [
+    "priority",
+    [
+     "Low",
+     "Medium",
+     "High",
+     "Urgent"
+    ]
+   ],
+   [
+    "impact",
+    [
+     "Low",
+     "Medium",
+     "High"
+    ]
+   ],
+   [
+    "risk",
+    [
+     "Low",
+     "Medium",
+     "High",
+     "Very High"
+    ]
+   ],
+   [
+    "plan",
+    []
+   ],
+   [
+    "nosuch",
+    []
+   ],
+   [
+    "cf_region",
+    []
+   ],
+   [
+    "default:priority",
+    []
+   ],
+   [
+    "Région Straße",
+    []
+   ]
+  ]
+ },
+ "cached_filters": {
+  "changes": [
+   {
+    "id": "my_open",
+    "name": "My open"
+   },
+   {
+    "id": "12",
+    "name": ""
+   },
+   {
+    "id": "",
+    "name": "only name"
+   },
+   {
+    "id": "all",
+    "name": "All Changes"
+   }
+  ],
+  "tickets": [
+   {
+    "id": "new_and_my_open",
+    "name": "New & my open"
+   },
+   {
+    "id": "3",
+    "name": "All tickets"
+   }
+  ],
+  "problems": []
+ },
+ "cached_groups": [
+  {
+   "id": 5,
+   "name": "Service Desk",
+   "description": "L1"
+  },
+  {
+   "id": 6,
+   "name": "Network Ops"
+  },
+  {
+   "id": 7,
+   "name": "",
+   "description": "x"
+  },
+  {
+   "id": 55,
+   "name": "SERVICE Ops",
+   "description": ""
+  }
+ ],
+ "remote_user_values": {
+  "offline": [
+   {
+    "args": [
+     "agents",
+     "al"
+    ],
+    "out": [],
+    "calls": []
+   },
+   {
+    "args": [
+     "agents",
+     " a "
+    ],
+    "out": [],
+    "calls": []
+   },
+   {
+    "args": [
+     "agents",
+     " al "
+    ],
+    "out": [],
+    "calls": []
+   },
+   {
+    "args": [
+     "requesters",
+     "al"
+    ],
+    "out": [],
+    "calls": []
+   },
+   {
+    "args": [
+     "agents",
+     "A"
+    ],
+    "out": [],
+    "calls": []
+   },
+   {
+    "args": [
+     "agents",
+     "zz"
+    ],
+    "out": [],
+    "calls": []
+   }
+  ],
+  "network": [
+   {
+    "args": [
+     "agents",
+     "al"
+    ],
+    "out": [
+     [
+      "alice@x.com",
+      "Alice Smith"
+     ],
+     [
+      "albert@x.com",
+      "ALBERT Ng"
+     ],
+     [
+      "alan Turing",
+      "Alan Turing"
+     ],
+     [
+      "Zed",
+      "Zed"
+     ]
+    ],
+    "calls": [
+     [
+      "autocomplete",
+      "agents",
+      "al",
+      null
+     ]
+    ]
+   },
+   {
+    "args": [
+     "agents",
+     " a "
+    ],
+    "out": [],
+    "calls": []
+   },
+   {
+    "args": [
+     "agents",
+     " al "
+    ],
+    "out": [
+     [
+      "alice@x.com",
+      "Alice Smith"
+     ],
+     [
+      "albert@x.com",
+      "ALBERT Ng"
+     ],
+     [
+      "alan Turing",
+      "Alan Turing"
+     ],
+     [
+      "Zed",
+      "Zed"
+     ]
+    ],
+    "calls": [
+     [
+      "autocomplete",
+      "agents",
+      "al",
+      null
+     ]
+    ]
+   },
+   {
+    "args": [
+     "requesters",
+     "al"
+    ],
+    "out": [
+     [
+      "alex@y.com",
+      "alex@y.com"
+     ],
+     [
+      "alice@x.com",
+      "Alice Smith"
+     ]
+    ],
+    "calls": [
+     [
+      "autocomplete",
+      "requesters",
+      "al",
+      {
+       "all_users": "true"
+      }
+     ]
+    ]
+   },
+   {
+    "args": [
+     "agents",
+     "A"
+    ],
+    "out": [],
+    "calls": []
+   },
+   {
+    "args": [
+     "agents",
+     "zz"
+    ],
+    "out": [
+     [
+      "Alice Smith",
+      "Alice Smith"
+     ],
+     [
+      "ALBERT Ng",
+      "ALBERT Ng"
+     ],
+     [
+      "Alan Turing",
+      "Alan Turing"
+     ],
+     [
+      "Zed",
+      "Zed"
+     ]
+    ],
+    "calls": [
+     [
+      "autocomplete",
+      "agents",
+      "zz",
+      null
+     ]
+    ]
+   }
+  ]
+ }
+}

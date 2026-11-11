@@ -163,7 +163,8 @@ fn param_for(cmd: &Command, hint: &OptionHint) -> Param {
 
 /// `_walk`: the completion tree for `cmd`. `hints` is keyed by the command
 /// path under `cmd`'s own name; options in `inherit` (e.g. `-v`) are
-/// offered on every descendant.
+/// offered on every descendant, and an empty `inherit` passes every group
+/// option down.
 pub fn tree_from_clap(cmd: &Command, prog: &str, hints: &Hints, inherit: &[&str]) -> Node {
     walk(
         cmd,
@@ -206,9 +207,9 @@ fn walk(
     }
     let mut next = inherited;
     next.extend(
-        local
-            .into_iter()
-            .filter(|p| p.flags.iter().any(|f| inherit.contains(&f.as_str()))),
+        local.into_iter().filter(|p| {
+            inherit.is_empty() || p.flags.iter().any(|f| inherit.contains(&f.as_str()))
+        }),
     );
     let subcommands = cmd
         .get_subcommands()
@@ -233,5 +234,69 @@ fn walk(
         help: String::new(),
         params,
         subcommands,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::gen_tests::{HINTS, PROG, app, dump, expected_tree};
+
+    /// `_walk(app, [prog], inherited_flags=...)`; the clap side has no
+    /// `_extract_params`/`_filter_params_by_flags`/`_is_bool_annotation`
+    /// split, so those run here through `param_for` and the inherit filter.
+    #[test]
+    fn walk_matches_python() {
+        for (inherit, key) in [
+            (&["-v", "--verbose"][..], "inherit_verbose"),
+            (&[][..], "inherit_none"),
+        ] {
+            let node = walk(
+                &app(),
+                &["fsv".to_string()],
+                vec![PROG.to_string()],
+                Vec::new(),
+                HINTS,
+                inherit,
+                true,
+            );
+            assert_eq!(dump(&node), expected_tree(key), "{key}");
+        }
+    }
+
+    #[test]
+    fn param_for_reads_kind() {
+        let cmd = app();
+        let list = cmd
+            .find_subcommand("changes")
+            .and_then(|c| c.find_subcommand("list"))
+            .expect("list");
+        let opts = HINTS
+            .iter()
+            .find(|(k, _, _)| *k == "fsv changes list")
+            .map(|(_, _, o)| *o)
+            .expect("hints");
+        let kinds: Vec<Kind> = opts.iter().map(|h| param_for(list, h).kind).collect();
+        assert_eq!(
+            kinds,
+            [
+                Kind::Dynamic {
+                    completer: "complete_where".into(),
+                    resource: Some("changes".into())
+                },
+                Kind::Dynamic {
+                    completer: "complete_lookup_query".into(),
+                    resource: Some("changes".into())
+                },
+                Kind::Freeform,
+                Kind::Freeform,
+            ]
+        );
+        let root_opts = HINTS[0].2;
+        assert_eq!(param_for(&cmd, &root_opts[0]).kind, Kind::Boolean);
+        assert_eq!(
+            param_for(&cmd, &root_opts[1]).kind,
+            Kind::Static(static_values("complete_format").expect("format"))
+        );
     }
 }

@@ -126,6 +126,9 @@ fn golden_update_plans() {
 fn flow_exit_and_partial_failure_messages() {
     let e = flow_exit(4, "stop");
     assert_eq!((e.exit_code(), e.to_string()), (4, "stop".to_string()));
+    // `FlowExit(2)`: `code == 2`, `str(e) == ""`.
+    let e = flow_exit(2, "");
+    assert_eq!((e.exit_code(), e.to_string()), (2, String::new()));
     let p = PartialFailure::new(
         json!(501),
         vec![json!({"id": 9, "name": "a.txt"})],

@@ -1,0 +1,1467 @@
+{
+ "collect_pages": [
+  {
+   "name": "page_numbers",
+   "key": "conversations",
+   "params": {
+    "per_page": 2
+   },
+   "responses": [
+    {
+     "ok": {
+      "conversations": [
+       {
+        "id": 1
+       },
+       {
+        "id": 2
+       }
+      ]
+     }
+    },
+    {
+     "ok": {
+      "conversations": [
+       {
+        "id": 3
+       }
+      ]
+     }
+    }
+   ],
+   "result": {
+    "rows": [
+     {
+      "id": 1
+     },
+     {
+      "id": 2
+     },
+     {
+      "id": 3
+     }
+    ],
+    "meta": {
+     "loaded_count": 3,
+     "pages": 2,
+     "complete": true,
+     "has_more": false,
+     "has_next": false,
+     "continuation": null
+    },
+    "failure": null
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     {
+      "per_page": 2
+     }
+    ],
+    [
+     "tickets/5/conversations",
+     {
+      "per_page": 2,
+      "page": 2
+     }
+    ]
+   ]
+  },
+  {
+   "name": "has_more_dedupe",
+   "key": "items",
+   "params": {},
+   "responses": [
+    {
+     "ok": {
+      "items": [
+       {
+        "id": 1
+       }
+      ],
+      "meta": {
+       "has_more": true,
+       "x": 1
+      }
+     }
+    },
+    {
+     "ok": {
+      "items": [
+       {
+        "id": 1
+       },
+       {
+        "id": 2
+       },
+       {
+        "name": "no id"
+       }
+      ],
+      "meta": {
+       "has_more": false,
+       "count": 2
+      }
+     }
+    }
+   ],
+   "result": {
+    "rows": [
+     {
+      "id": 1
+     },
+     {
+      "id": 2
+     },
+     {
+      "name": "no id"
+     }
+    ],
+    "meta": {
+     "has_more": false,
+     "x": 1,
+     "count": 2,
+     "loaded_count": 3,
+     "pages": 2,
+     "complete": true,
+     "has_next": false,
+     "continuation": null
+    },
+    "failure": null
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     null
+    ],
+    [
+     "tickets/5/conversations",
+     {
+      "page": 2
+     }
+    ]
+   ]
+  },
+  {
+   "name": "next_page_url",
+   "key": "conversations",
+   "params": {
+    "include": "user",
+    "page": 1
+   },
+   "responses": [
+    {
+     "ok": {
+      "conversations": [
+       {
+        "id": 1
+       }
+      ],
+      "next_page_url": "/api/_/tickets/5/conversations?page=2&per_page=1"
+     }
+    },
+    {
+     "ok": {
+      "conversations": [
+       {
+        "id": 2
+       }
+      ],
+      "next_page_url": null
+     }
+    }
+   ],
+   "result": {
+    "rows": [
+     {
+      "id": 1
+     },
+     {
+      "id": 2
+     }
+    ],
+    "meta": {
+     "loaded_count": 2,
+     "pages": 2,
+     "complete": true,
+     "has_more": false,
+     "has_next": false,
+     "continuation": null
+    },
+    "failure": null
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     {
+      "include": "user",
+      "page": 1
+     }
+    ],
+    [
+     "tickets/5/conversations",
+     {
+      "include": "user",
+      "page": "2",
+      "per_page": "1"
+     }
+    ]
+   ]
+  },
+  {
+   "name": "foreign_endpoint",
+   "key": "conversations",
+   "params": {},
+   "responses": [
+    {
+     "ok": {
+      "conversations": [
+       {
+        "id": 1
+       }
+      ],
+      "next_page_url": "/api/v2/other?page=2"
+     }
+    }
+   ],
+   "result": {
+    "rows": [
+     {
+      "id": 1
+     }
+    ],
+    "meta": {
+     "loaded_count": 1,
+     "pages": 1,
+     "complete": false,
+     "has_more": true,
+     "has_next": true,
+     "continuation": {},
+     "partial": "conversations: incomplete (1 loaded; unsupported continuation endpoint)"
+    },
+    "failure": null
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     null
+    ]
+   ]
+  },
+  {
+   "name": "unreadable_link",
+   "key": "conversations",
+   "params": {},
+   "responses": [
+    {
+     "ok": {
+      "conversations": [
+       {
+        "id": 1
+       }
+      ],
+      "next_page_url": "/api/_/tickets/5/conversations"
+     }
+    }
+   ],
+   "result": {
+    "rows": [
+     {
+      "id": 1
+     }
+    ],
+    "meta": {
+     "loaded_count": 1,
+     "pages": 1,
+     "complete": false,
+     "has_more": true,
+     "has_next": true,
+     "continuation": {},
+     "partial": "conversations: incomplete (1 loaded; unreadable continuation)"
+    },
+    "failure": null
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     null
+    ]
+   ]
+  },
+  {
+   "name": "start_token",
+   "key": "conversations",
+   "params": {
+    "page": 1,
+    "per_page": 1
+   },
+   "responses": [
+    {
+     "ok": {
+      "conversations": [
+       {
+        "id": 1
+       }
+      ],
+      "meta": {
+       "next_start_token": "tok2"
+      }
+     }
+    },
+    {
+     "ok": {
+      "conversations": [
+       {
+        "id": 2
+       }
+      ],
+      "next_cursor": "c3"
+     }
+    },
+    {
+     "ok": {
+      "conversations": [
+       {
+        "id": 3
+       }
+      ],
+      "meta": {
+       "has_next": false
+      }
+     }
+    }
+   ],
+   "result": {
+    "rows": [
+     {
+      "id": 1
+     },
+     {
+      "id": 2
+     },
+     {
+      "id": 3
+     }
+    ],
+    "meta": {
+     "next_start_token": "tok2",
+     "has_next": false,
+     "loaded_count": 3,
+     "pages": 3,
+     "complete": true,
+     "has_more": false,
+     "continuation": null
+    },
+    "failure": null
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     {
+      "page": 1,
+      "per_page": 1
+     }
+    ],
+    [
+     "tickets/5/conversations",
+     {
+      "per_page": 1,
+      "start_token": "tok2"
+     }
+    ],
+    [
+     "tickets/5/conversations",
+     {
+      "per_page": 1,
+      "start_token": "tok2",
+      "cursor": "c3"
+     }
+    ]
+   ]
+  },
+  {
+   "name": "api_error_second_page",
+   "key": "conversations",
+   "params": {
+    "per_page": 1
+   },
+   "responses": [
+    {
+     "ok": {
+      "conversations": [
+       {
+        "id": 1
+       }
+      ]
+     }
+    },
+    {
+     "api": 500
+    }
+   ],
+   "result": {
+    "rows": [
+     {
+      "id": 1
+     }
+    ],
+    "meta": {
+     "loaded_count": 1,
+     "pages": 1,
+     "complete": false,
+     "has_more": true,
+     "has_next": true,
+     "continuation": {
+      "per_page": 1,
+      "page": 2
+     },
+     "partial": "conversations: incomplete (1 loaded; conversations: unavailable (500))"
+    },
+    "failure": {
+     "what": "conversations",
+     "status": 500
+    }
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     {
+      "per_page": 1
+     }
+    ],
+    [
+     "tickets/5/conversations",
+     {
+      "per_page": 1,
+      "page": 2
+     }
+    ]
+   ]
+  },
+  {
+   "name": "generic_error",
+   "key": "conversations",
+   "params": {},
+   "what": "Conversations",
+   "responses": [
+    {
+     "exc": true
+    }
+   ],
+   "result": {
+    "rows": [],
+    "meta": {
+     "loaded_count": 0,
+     "pages": 0,
+     "complete": false,
+     "has_more": true,
+     "has_next": true,
+     "continuation": {},
+     "partial": "Conversations: incomplete (0 loaded; Conversations: unavailable)"
+    },
+    "failure": {
+     "what": "Conversations",
+     "status": null
+    }
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     null
+    ]
+   ]
+  },
+  {
+   "name": "session_error",
+   "key": "conversations",
+   "params": {},
+   "responses": [
+    {
+     "session": "expired"
+    }
+   ],
+   "result": {
+    "session": "expired"
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     null
+    ]
+   ]
+  },
+  {
+   "name": "session_error_later",
+   "key": "conversations",
+   "params": {
+    "per_page": 1
+   },
+   "responses": [
+    {
+     "ok": {
+      "conversations": [
+       {
+        "id": 1
+       }
+      ]
+     }
+    },
+    {
+     "session": "expired later"
+    }
+   ],
+   "result": {
+    "session": "expired later"
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     {
+      "per_page": 1
+     }
+    ],
+    [
+     "tickets/5/conversations",
+     {
+      "per_page": 1,
+      "page": 2
+     }
+    ]
+   ]
+  },
+  {
+   "name": "unreadable_page",
+   "key": "conversations",
+   "params": {},
+   "responses": [
+    {
+     "ok": "garbage"
+    }
+   ],
+   "result": {
+    "rows": [],
+    "meta": {
+     "loaded_count": 0,
+     "pages": 0,
+     "complete": false,
+     "has_more": true,
+     "has_next": true,
+     "continuation": {},
+     "partial": "conversations: incomplete (0 loaded; unreadable page response)"
+    },
+    "failure": {
+     "what": "conversations",
+     "status": null
+    }
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     null
+    ]
+   ]
+  },
+  {
+   "name": "key_not_list",
+   "key": "conversations",
+   "params": {},
+   "responses": [
+    {
+     "ok": {
+      "conversations": {
+       "id": 1
+      }
+     }
+    }
+   ],
+   "result": {
+    "rows": [],
+    "meta": {
+     "loaded_count": 0,
+     "pages": 0,
+     "complete": false,
+     "has_more": true,
+     "has_next": true,
+     "continuation": {},
+     "partial": "conversations: incomplete (0 loaded; unreadable page response)"
+    },
+    "failure": {
+     "what": "conversations",
+     "status": null
+    }
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     null
+    ]
+   ]
+  },
+  {
+   "name": "bare_list",
+   "key": "conversations",
+   "params": {},
+   "responses": [
+    {
+     "ok": [
+      {
+       "id": 1
+      },
+      {
+       "id": 2
+      }
+     ]
+    }
+   ],
+   "result": {
+    "rows": [
+     {
+      "id": 1
+     },
+     {
+      "id": 2
+     }
+    ],
+    "meta": {
+     "loaded_count": 2,
+     "pages": 1,
+     "complete": true,
+     "has_more": false,
+     "has_next": false,
+     "continuation": null
+    },
+    "failure": null
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     null
+    ]
+   ]
+  },
+  {
+   "name": "page_limit",
+   "key": "items",
+   "params": {},
+   "max_pages": 2,
+   "responses": [
+    {
+     "ok": {
+      "items": [
+       {
+        "id": 1
+       }
+      ],
+      "has_more": true
+     }
+    },
+    {
+     "ok": {
+      "items": [
+       {
+        "id": 2
+       }
+      ],
+      "has_more": true
+     }
+    }
+   ],
+   "result": {
+    "rows": [
+     {
+      "id": 1
+     },
+     {
+      "id": 2
+     }
+    ],
+    "meta": {
+     "loaded_count": 2,
+     "pages": 2,
+     "complete": false,
+     "has_more": true,
+     "has_next": true,
+     "continuation": {
+      "page": 3
+     },
+     "partial": "items: incomplete (2 loaded; page limit (2))"
+    },
+    "failure": null
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     null
+    ],
+    [
+     "tickets/5/conversations",
+     {
+      "page": 2
+     }
+    ]
+   ]
+  },
+  {
+   "name": "cycle",
+   "key": "items",
+   "params": {},
+   "responses": [
+    {
+     "ok": {
+      "items": [
+       {
+        "id": 1
+       }
+      ],
+      "next_page_url": "/api/_/tickets/5/conversations?page=2"
+     }
+    },
+    {
+     "ok": {
+      "items": [
+       {
+        "id": 2
+       }
+      ],
+      "next_page_url": "/api/_/tickets/5/conversations?page=2"
+     }
+    }
+   ],
+   "result": {
+    "rows": [
+     {
+      "id": 1
+     },
+     {
+      "id": 2
+     }
+    ],
+    "meta": {
+     "loaded_count": 2,
+     "pages": 2,
+     "complete": false,
+     "has_more": true,
+     "has_next": true,
+     "continuation": {
+      "page": "2"
+     },
+     "partial": "items: incomplete (2 loaded; continuation cycle)"
+    },
+    "failure": null
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     null
+    ],
+    [
+     "tickets/5/conversations",
+     {
+      "page": "2"
+     }
+    ]
+   ]
+  },
+  {
+   "name": "total_count_empty_page",
+   "key": "items",
+   "params": {
+    "page": 1,
+    "per_page": 2
+   },
+   "responses": [
+    {
+     "ok": {
+      "items": [
+       {
+        "id": 1
+       },
+       {
+        "id": 2
+       }
+      ],
+      "meta": {
+       "total_count": 5
+      }
+     }
+    },
+    {
+     "ok": {
+      "items": []
+     }
+    }
+   ],
+   "result": {
+    "rows": [
+     {
+      "id": 1
+     },
+     {
+      "id": 2
+     }
+    ],
+    "meta": {
+     "total_count": 5,
+     "loaded_count": 2,
+     "pages": 2,
+     "complete": true,
+     "has_more": false,
+     "has_next": false,
+     "continuation": null
+    },
+    "failure": null
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     {
+      "page": 1,
+      "per_page": 2
+     }
+    ],
+    [
+     "tickets/5/conversations",
+     {
+      "page": 2,
+      "per_page": 2
+     }
+    ]
+   ]
+  },
+  {
+   "name": "total_count_done",
+   "key": "items",
+   "params": {
+    "page": 2,
+    "per_page": 2
+   },
+   "responses": [
+    {
+     "ok": {
+      "items": [
+       {
+        "id": 3
+       }
+      ],
+      "meta": {
+       "count": "3"
+      }
+     }
+    }
+   ],
+   "result": {
+    "rows": [
+     {
+      "id": 3
+     }
+    ],
+    "meta": {
+     "count": "3",
+     "loaded_count": 1,
+     "pages": 1,
+     "complete": true,
+     "has_more": false,
+     "has_next": false,
+     "continuation": null
+    },
+    "failure": null
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     {
+      "page": 2,
+      "per_page": 2
+     }
+    ]
+   ]
+  },
+  {
+   "name": "cursor_missing",
+   "key": "items",
+   "params": {
+    "cursor": "a",
+    "per_page": 1
+   },
+   "responses": [
+    {
+     "ok": {
+      "items": [
+       {
+        "id": 1
+       }
+      ]
+     }
+    }
+   ],
+   "result": {
+    "rows": [
+     {
+      "id": 1
+     }
+    ],
+    "meta": {
+     "loaded_count": 1,
+     "pages": 1,
+     "complete": false,
+     "has_more": true,
+     "has_next": true,
+     "continuation": {
+      "cursor": "a",
+      "per_page": 1
+     },
+     "partial": "items: incomplete (1 loaded; missing continuation cursor)"
+    },
+    "failure": null
+   },
+   "calls": [
+    [
+     "tickets/5/conversations",
+     {
+      "cursor": "a",
+      "per_page": 1
+     }
+    ]
+   ]
+  }
+ ],
+ "load_views": [
+  {
+   "resource": "changes",
+   "response": {
+    "ok": {
+     "change_filters": [
+      {
+       "id": 1,
+       "name": "All",
+       "default": true
+      },
+      {
+       "id": "mine",
+       "name": "",
+       "default": true,
+       "user_id": 9
+      },
+      {
+       "id": "",
+       "name": "blank"
+      },
+      {
+       "name": "no id"
+      },
+      {
+       "id": 0,
+       "name": "zero",
+       "default": 0
+      },
+      "junk"
+     ]
+    }
+   },
+   "result": {
+    "views": [
+     {
+      "id": "1",
+      "name": "All",
+      "system": true,
+      "default": true,
+      "raw": {
+       "id": 1,
+       "name": "All",
+       "default": true
+      }
+     },
+     {
+      "id": "mine",
+      "name": "mine",
+      "system": false,
+      "default": true,
+      "raw": {
+       "id": "mine",
+       "name": "",
+       "default": true,
+       "user_id": 9
+      }
+     },
+     {
+      "id": "0",
+      "name": "zero",
+      "system": false,
+      "default": false,
+      "raw": {
+       "id": 0,
+       "name": "zero",
+       "default": 0
+      }
+     }
+    ],
+    "missing": null
+   },
+   "calls": [
+    [
+     "change-filters",
+     null
+    ]
+   ]
+  },
+  {
+   "resource": "changes",
+   "response": {
+    "ok": [
+     {
+      "id": "a",
+      "name": "A"
+     }
+    ]
+   },
+   "result": {
+    "views": [
+     {
+      "id": "a",
+      "name": "A",
+      "system": false,
+      "default": false,
+      "raw": {
+       "id": "a",
+       "name": "A"
+      }
+     }
+    ],
+    "missing": null
+   },
+   "calls": [
+    [
+     "change-filters",
+     null
+    ]
+   ]
+  },
+  {
+   "resource": "changes",
+   "response": {
+    "ok": {
+     "other": [
+      {
+       "id": 1
+      }
+     ]
+    }
+   },
+   "result": {
+    "views": [],
+    "missing": null
+   },
+   "calls": [
+    [
+     "change-filters",
+     null
+    ]
+   ]
+  },
+  {
+   "resource": "changes",
+   "response": {
+    "api": 403
+   },
+   "result": {
+    "views": [],
+    "missing": {
+     "what": "saved views",
+     "status": 403
+    }
+   },
+   "calls": [
+    [
+     "change-filters",
+     null
+    ]
+   ]
+  },
+  {
+   "resource": "changes",
+   "response": {
+    "exc": true
+   },
+   "result": {
+    "views": [],
+    "missing": {
+     "what": "saved views",
+     "status": null
+    }
+   },
+   "calls": [
+    [
+     "change-filters",
+     null
+    ]
+   ]
+  },
+  {
+   "resource": "changes",
+   "response": {
+    "session": "expired"
+   },
+   "result": {
+    "session": "expired"
+   },
+   "calls": [
+    [
+     "change-filters",
+     null
+    ]
+   ]
+  },
+  {
+   "resource": "tickets",
+   "response": {
+    "ok": {
+     "change_filters": [
+      {
+       "id": 1,
+       "name": "All",
+       "default": true
+      },
+      {
+       "id": "mine",
+       "name": "",
+       "default": true,
+       "user_id": 9
+      },
+      {
+       "id": "",
+       "name": "blank"
+      },
+      {
+       "name": "no id"
+      },
+      {
+       "id": 0,
+       "name": "zero",
+       "default": 0
+      },
+      "junk"
+     ]
+    }
+   },
+   "result": {
+    "views": [
+     {
+      "id": "1",
+      "name": "All",
+      "system": true,
+      "default": true,
+      "raw": {
+       "id": 1,
+       "name": "All",
+       "default": true
+      }
+     },
+     {
+      "id": "mine",
+      "name": "mine",
+      "system": false,
+      "default": true,
+      "raw": {
+       "id": "mine",
+       "name": "",
+       "default": true,
+       "user_id": 9
+      }
+     },
+     {
+      "id": "0",
+      "name": "zero",
+      "system": false,
+      "default": false,
+      "raw": {
+       "id": 0,
+       "name": "zero",
+       "default": 0
+      }
+     }
+    ],
+    "missing": null
+   },
+   "calls": [
+    [
+     "ticket_filters",
+     null
+    ]
+   ]
+  },
+  {
+   "resource": "tickets",
+   "response": {
+    "ok": [
+     {
+      "id": "a",
+      "name": "A"
+     }
+    ]
+   },
+   "result": {
+    "views": [
+     {
+      "id": "a",
+      "name": "A",
+      "system": false,
+      "default": false,
+      "raw": {
+       "id": "a",
+       "name": "A"
+      }
+     }
+    ],
+    "missing": null
+   },
+   "calls": [
+    [
+     "ticket_filters",
+     null
+    ]
+   ]
+  },
+  {
+   "resource": "tickets",
+   "response": {
+    "ok": {
+     "other": [
+      {
+       "id": 1
+      }
+     ]
+    }
+   },
+   "result": {
+    "views": [],
+    "missing": null
+   },
+   "calls": [
+    [
+     "ticket_filters",
+     null
+    ]
+   ]
+  },
+  {
+   "resource": "tickets",
+   "response": {
+    "api": 403
+   },
+   "result": {
+    "views": [],
+    "missing": {
+     "what": "saved views",
+     "status": 403
+    }
+   },
+   "calls": [
+    [
+     "ticket_filters",
+     null
+    ]
+   ]
+  },
+  {
+   "resource": "tickets",
+   "response": {
+    "exc": true
+   },
+   "result": {
+    "views": [],
+    "missing": {
+     "what": "saved views",
+     "status": null
+    }
+   },
+   "calls": [
+    [
+     "ticket_filters",
+     null
+    ]
+   ]
+  },
+  {
+   "resource": "tickets",
+   "response": {
+    "session": "expired"
+   },
+   "result": {
+    "session": "expired"
+   },
+   "calls": [
+    [
+     "ticket_filters",
+     null
+    ]
+   ]
+  }
+ ],
+ "record_for_form": [
+  {
+   "resource": "tickets",
+   "record": {
+    "id": 1,
+    "responder_id": 5,
+    "type": "Incident"
+   },
+   "result": {
+    "id": 1,
+    "responder_id": 5,
+    "type": "Incident",
+    "agent_id": 5,
+    "ticket_type": "Incident"
+   }
+  },
+  {
+   "resource": "tickets",
+   "record": {
+    "id": 1,
+    "agent_id": null,
+    "responder_id": 5,
+    "ticket_type": null,
+    "type": ""
+   },
+   "result": {
+    "id": 1,
+    "agent_id": null,
+    "responder_id": 5,
+    "ticket_type": null,
+    "type": ""
+   }
+  },
+  {
+   "resource": "tickets",
+   "record": {
+    "id": 1,
+    "agent_id": 7,
+    "ticket_type": "Service Request",
+    "type": "Incident"
+   },
+   "result": {
+    "id": 1,
+    "agent_id": 7,
+    "ticket_type": "Service Request",
+    "type": "Incident"
+   }
+  },
+  {
+   "resource": "tickets",
+   "record": {
+    "id": 1
+   },
+   "result": {
+    "id": 1,
+    "agent_id": null
+   }
+  },
+  {
+   "resource": "changes",
+   "record": {
+    "id": 1,
+    "responder_id": 5,
+    "type": "Incident"
+   },
+   "result": {
+    "id": 1,
+    "responder_id": 5,
+    "type": "Incident"
+   }
+  },
+  {
+   "resource": "changes",
+   "record": {
+    "id": 1,
+    "agent_id": null,
+    "responder_id": 5,
+    "ticket_type": null,
+    "type": ""
+   },
+   "result": {
+    "id": 1,
+    "agent_id": null,
+    "responder_id": 5,
+    "ticket_type": null,
+    "type": ""
+   }
+  },
+  {
+   "resource": "changes",
+   "record": {
+    "id": 1,
+    "agent_id": 7,
+    "ticket_type": "Service Request",
+    "type": "Incident"
+   },
+   "result": {
+    "id": 1,
+    "agent_id": 7,
+    "ticket_type": "Service Request",
+    "type": "Incident"
+   }
+  },
+  {
+   "resource": "changes",
+   "record": {
+    "id": 1
+   },
+   "result": {
+    "id": 1
+   }
+  }
+ ],
+ "strip_html": [
+  [
+   null,
+   ""
+  ],
+  [
+   "",
+   ""
+  ],
+  [
+   "<p>a &amp; b</p><br>c ",
+   "a & b  c"
+  ],
+  [
+   "<div>x<br/>y</div>&lt;tag&gt; &nbsp;z",
+   "x y <tag>  z"
+  ],
+  [
+   "plain",
+   "plain"
+  ],
+  [
+   "<b>Tom</b> &#39;s\n\n<i>x</i>",
+   "Tom  's\n\n x"
+  ]
+ ],
+ "field_defs": {
+  "input": {
+   "name": "a",
+   "nested_fields": [
+    {
+     "name": "b",
+     "nested_fields": [
+      {
+       "name": "c"
+      }
+     ]
+    },
+    {
+     "name": "d",
+     "nested_fields": null
+    }
+   ]
+  },
+  "names": [
+   "a",
+   "b",
+   "c",
+   "d"
+  ],
+  "solo": [
+   "solo"
+  ]
+ }
+}

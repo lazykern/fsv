@@ -321,3 +321,116 @@ pub fn emit_zsh(root: &Node, prog: &str, exe: &str) -> String {
     lines.extend(["    esac".into(), "}".into(), String::new(), func]);
     lines.join("\n") + "\n"
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::gen_tests::{EXE, FISH, PROG, tree};
+
+    fn strings(v: &[&str]) -> Vec<String> {
+        v.iter().map(|s| s.to_string()).collect()
+    }
+
+    // Expected values: `completion_gen._fish_cond`, `_collect_bash` and
+    // `_fish_lines` on the `gen_tests` tree.
+
+    #[test]
+    fn fish_cond_matches_python() {
+        assert_eq!(fish_cond(&[]), "");
+        assert_eq!(
+            fish_cond(&strings(&["changes"])),
+            "__fish_seen_subcommand_from changes"
+        );
+        assert_eq!(
+            fish_cond(&strings(&["changes", "list"])),
+            "__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from list"
+        );
+        assert_eq!(
+            fish_cond(&strings(&["it's"])),
+            "__fish_seen_subcommand_from 'it'\"'\"'s'"
+        );
+    }
+
+    #[test]
+    fn collect_and_completions_match_python_cases() {
+        let root = tree();
+        let mut cases = Vec::new();
+        collect(&root, &mut cases);
+        let got: Vec<(String, Vec<&str>)> = cases
+            .iter()
+            .map(|c| (c.key.clone(), completions(c.node)))
+            .collect();
+        let expected: Vec<(&str, &[&str])> = vec![
+            (
+                "",
+                &[
+                    "whoami",
+                    "changes",
+                    "config",
+                    "--verbose",
+                    "-v",
+                    "--format",
+                    "-f",
+                ],
+            ),
+            ("whoami", &["--verbose", "-v", "--store"]),
+            ("changes", &["list", "show", "--verbose", "-v", "--debug"]),
+            (
+                "changes list",
+                &[
+                    "--verbose",
+                    "-v",
+                    "--where",
+                    "-w",
+                    "--kind",
+                    "-k",
+                    "--limit",
+                    "--yes",
+                    "-y",
+                ],
+            ),
+            ("changes show", &["--verbose", "-v"]),
+            ("config", &["set", "--verbose", "-v"]),
+            (
+                "config set",
+                &["--verbose", "-v", "--key", "--value", "--group"],
+            ),
+        ];
+        assert_eq!(got.len(), expected.len());
+        for ((key, comps), (ekey, ecomps)) in got.iter().zip(&expected) {
+            assert_eq!(key, ekey);
+            assert_eq!(comps.as_slice(), *ecomps, "{key}");
+        }
+        let keys: Vec<String> = sorted_cases(&root).into_iter().map(|c| c.key).collect();
+        assert_eq!(
+            keys,
+            [
+                "changes list",
+                "changes show",
+                "config set",
+                "whoami",
+                "changes",
+                "config",
+                ""
+            ]
+        );
+    }
+
+    #[test]
+    fn fish_lines_matches_python() {
+        let root = tree();
+        let mut lines = Vec::new();
+        fish_lines(&root.subcommands[1].subcommands[1], PROG, EXE, &mut lines);
+        assert_eq!(
+            lines,
+            [
+                "complete -c my-fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from show' -a --verbose",
+                "complete -c my-fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from show' -a -v",
+            ]
+        );
+        let mut all = Vec::new();
+        fish_lines(&root, PROG, EXE, &mut all);
+        let body = FISH.splitn(6, '\n').nth(5).expect("fish body");
+        assert_eq!(all.join("\n") + "\n", body);
+    }
+}

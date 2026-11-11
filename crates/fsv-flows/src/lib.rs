@@ -7,6 +7,8 @@
 //! [`fsv_api::service::Api`], [`change::PlanJournal`]) so every step runs
 //! offline in tests.
 
+#![allow(clippy::result_large_err)]
+
 pub mod change;
 pub mod drafts;
 pub mod meta;

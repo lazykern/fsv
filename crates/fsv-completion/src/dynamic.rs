@@ -232,11 +232,34 @@ fn completion_case(candidate: &str, query: &str) -> String {
     candidate.to_string()
 }
 
-struct Env {
-    network: bool,
+/// The tenant calls the completers make; `None` is a failed request.
+trait Remote {
+    fn autocomplete(&self, kind: &str, query: &str, params: Option<Obj>) -> Option<Vec<Value>>;
+    fn lookup_choices(&self, link: &str, query: &str) -> Option<Vec<Value>>;
 }
 
-impl Env {
+struct LiveRemote;
+
+impl Remote for LiveRemote {
+    fn autocomplete(&self, kind: &str, query: &str, params: Option<Obj>) -> Option<Vec<Value>> {
+        fsv_core::get_client()
+            .and_then(|c| c.autocomplete(kind, query, params))
+            .ok()
+    }
+
+    fn lookup_choices(&self, link: &str, query: &str) -> Option<Vec<Value>> {
+        fsv_core::get_client()
+            .and_then(|c| c.lookup_choices(link, query))
+            .ok()
+    }
+}
+
+struct Env<'a> {
+    network: bool,
+    remote: &'a dyn Remote,
+}
+
+impl Env<'_> {
     fn remote_user_values(&self, kind: &str, query: &str) -> Pairs {
         let query = fsv_core::pystr::strip(query);
         if !self.network || query.chars().count() < 2 {
@@ -247,8 +270,7 @@ impl Env {
             m.insert("all_users".into(), json!("true"));
             m
         });
-        let Ok(rows) = fsv_core::get_client().and_then(|c| c.autocomplete(kind, query, params))
-        else {
+        let Some(rows) = self.remote.autocomplete(kind, query, params) else {
             return Vec::new();
         };
         let mut out = Vec::new();
@@ -486,7 +508,7 @@ fn complete_set(env: &Env, res: &Resource, incomplete: &str) -> Pairs {
                 .map(|c| text(c, "link"))
                 .unwrap_or_default();
             if !link.is_empty() {
-                out.extend(lookup_values(field, raw_value, &link));
+                out.extend(lookup_values(env, field, raw_value, &link));
             } else {
                 let mut seen = Vec::new();
                 for kind in ["agents", "requesters"] {
@@ -515,9 +537,8 @@ fn complete_set(env: &Env, res: &Resource, incomplete: &str) -> Pairs {
     out
 }
 
-fn lookup_values(field: &str, raw_value: &str, link: &str) -> Pairs {
-    let Ok(mut rows) = fsv_core::get_client().and_then(|c| c.lookup_choices(link, raw_value))
-    else {
+fn lookup_values(env: &Env, field: &str, raw_value: &str, link: &str) -> Pairs {
+    let Some(mut rows) = env.remote.lookup_choices(link, raw_value) else {
         return Vec::new();
     };
     let r = casefold(raw_value);
@@ -686,9 +707,22 @@ pub fn complete(
     extra: &[String],
     network: bool,
 ) -> Vec<(String, String)> {
-    let env = Env { network };
+    let env = Env {
+        network,
+        remote: &LiveRemote,
+    };
+    complete_in(&env, completer, resource_name, token, extra)
+}
+
+fn complete_in(
+    env: &Env,
+    completer: &str,
+    resource_name: &str,
+    token: &str,
+    extra: &[String],
+) -> Pairs {
     match completer {
-        "complete_update_agent_id" => return complete_update_agent_id(&env, token),
+        "complete_update_agent_id" => return complete_update_agent_id(env, token),
         "complete_update_group_id" => return complete_update_group_id(token),
         "complete_group_query" => return complete_group_query(token),
         "complete_config_value" => {
@@ -709,15 +743,15 @@ pub fn complete(
         return Vec::new();
     };
     match completer {
-        "complete_where" => complete_where(&env, res, token),
-        "complete_set" => complete_set(&env, res, token),
+        "complete_where" => complete_where(env, res, token),
+        "complete_set" => complete_set(env, res, token),
         "complete_filter_name" => complete_filter_name(res, token),
         "complete_field_names" => complete_field_names(res, token),
         "complete_choice_field_names" => complete_choice_field_names(res, token),
         "complete_planning_field_names" => complete_planning_field_names(res, token),
         "complete_lookup_kind" => complete_lookup_kind(res, token),
         "complete_lookup_query" => {
-            complete_lookup_query(&env, res, &extract_flag(extra, &["--kind", "-k"]), token)
+            complete_lookup_query(env, res, &extract_flag(extra, &["--kind", "-k"]), token)
         }
         _ => Vec::new(),
     }
@@ -726,6 +760,14 @@ pub fn complete(
 /// `fsv._complete.main`: `args` are `<shell> <completer> <resource|-> <token> [-- tokens...]`;
 /// returns the lines to print.
 pub fn run(args: &[String], network: bool) -> String {
+    let env = Env {
+        network,
+        remote: &LiveRemote,
+    };
+    run_in(&env, args)
+}
+
+fn run_in(env: &Env, args: &[String]) -> String {
     if args.len() < 4 {
         return String::new();
     }
@@ -735,7 +777,7 @@ pub fn run(args: &[String], network: bool) -> String {
         None => &[],
     };
     let mut out = String::new();
-    for (value, help) in complete(completer, resource_name, token, extra, network) {
+    for (value, help) in complete_in(env, completer, resource_name, token, extra) {
         if value.is_empty() || &value == token {
             continue;
         }
@@ -748,6 +790,11 @@ pub fn run(args: &[String], network: bool) -> String {
     }
     out
 }
+
+#[cfg(test)]
+mod golden;
+#[cfg(test)]
+mod units;
 
 #[cfg(test)]
 mod tests {

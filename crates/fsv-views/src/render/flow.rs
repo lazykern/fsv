@@ -24,15 +24,27 @@ pub fn state_label(value: &Value, schema: Option<&Value>) -> String {
                 return fsv_py::py_str(v);
             }
         }
-        value = m.get("id").filter(|v| fsv_py::truthy(v)).or_else(|| m.get("status")).unwrap_or(&Value::Null);
+        value = m
+            .get("id")
+            .filter(|v| fsv_py::truthy(v))
+            .or_else(|| m.get("status"))
+            .unwrap_or(&Value::Null);
     }
     let label = choice_label("status", value, schema);
-    if label.is_empty() { fsv_py::py_str(value) } else { label }
+    if label.is_empty() {
+        fsv_py::py_str(value)
+    } else {
+        label
+    }
 }
 
 /// `_change_flow`: `Open → [bold]Planning[/]` over `state_traversal`; `""` without one.
 pub fn change_flow(item: &Value, schema: Option<&Value>) -> String {
-    let Some(states) = item.get("state_traversal").filter(|v| fsv_py::truthy(v)).and_then(Value::as_array) else {
+    let Some(states) = item
+        .get("state_traversal")
+        .filter(|v| fsv_py::truthy(v))
+        .and_then(Value::as_array)
+    else {
         return String::new();
     };
     let current = item.get("status").unwrap_or(&Value::Null);

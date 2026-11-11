@@ -1,0 +1,680 @@
+{
+ "inherit_verbose": {
+  "path": [
+   "my-fsv"
+  ],
+  "help": "",
+  "params": [
+   {
+    "flags": [
+     "--verbose",
+     "-v"
+    ],
+    "kind": "boolean"
+   },
+   {
+    "flags": [
+     "--format",
+     "-f"
+    ],
+    "kind": "static",
+    "values": [
+     [
+      "table",
+      "rich table"
+     ],
+     [
+      "json",
+      "JSON array"
+     ],
+     [
+      "csv",
+      "comma-separated values"
+     ],
+     [
+      "tsv",
+      "tab-separated values"
+     ]
+    ]
+   }
+  ],
+  "subcommands": [
+   {
+    "path": [
+     "my-fsv",
+     "whoami"
+    ],
+    "help": "Who am I?",
+    "params": [
+     {
+      "flags": [
+       "--verbose",
+       "-v"
+      ],
+      "kind": "boolean"
+     },
+     {
+      "flags": [
+       "--store"
+      ],
+      "kind": "static",
+      "values": [
+       [
+        "file",
+        "plain JSON, chmod 600"
+       ],
+       [
+        "argon",
+        "Argon2id + AES-256-GCM encrypted"
+       ],
+       [
+        "keychain",
+        "macOS Keychain"
+       ]
+      ]
+     }
+    ],
+    "subcommands": []
+   },
+   {
+    "path": [
+     "my-fsv",
+     "changes"
+    ],
+    "help": "",
+    "params": [
+     {
+      "flags": [
+       "--verbose",
+       "-v"
+      ],
+      "kind": "boolean"
+     },
+     {
+      "flags": [
+       "--debug"
+      ],
+      "kind": "boolean"
+     }
+    ],
+    "subcommands": [
+     {
+      "path": [
+       "my-fsv",
+       "changes",
+       "list"
+      ],
+      "help": "List changes.",
+      "params": [
+       {
+        "flags": [
+         "--verbose",
+         "-v"
+        ],
+        "kind": "boolean"
+       },
+       {
+        "flags": [
+         "--where",
+         "-w"
+        ],
+        "kind": "dynamic",
+        "completer": "complete_where",
+        "resource": "changes"
+       },
+       {
+        "flags": [
+         "--kind",
+         "-k"
+        ],
+        "kind": "dynamic",
+        "completer": "complete_lookup_query",
+        "resource": "changes"
+       },
+       {
+        "flags": [
+         "--limit"
+        ],
+        "kind": "freeform"
+       },
+       {
+        "flags": [
+         "--yes",
+         "-y"
+        ],
+        "kind": "freeform"
+       }
+      ],
+      "subcommands": []
+     },
+     {
+      "path": [
+       "my-fsv",
+       "changes",
+       "show"
+      ],
+      "help": "Show one change's details.",
+      "params": [
+       {
+        "flags": [
+         "--verbose",
+         "-v"
+        ],
+        "kind": "boolean"
+       }
+      ],
+      "subcommands": []
+     }
+    ]
+   },
+   {
+    "path": [
+     "my-fsv",
+     "config"
+    ],
+    "help": "",
+    "params": [
+     {
+      "flags": [
+       "--verbose",
+       "-v"
+      ],
+      "kind": "boolean"
+     }
+    ],
+    "subcommands": [
+     {
+      "path": [
+       "my-fsv",
+       "config",
+       "set"
+      ],
+      "help": "Set it.",
+      "params": [
+       {
+        "flags": [
+         "--verbose",
+         "-v"
+        ],
+        "kind": "boolean"
+       },
+       {
+        "flags": [
+         "--key"
+        ],
+        "kind": "static",
+        "values": [
+         [
+          "completion.network",
+          "enable remote requester/agent completion [on|off]"
+         ]
+        ]
+       },
+       {
+        "flags": [
+         "--value"
+        ],
+        "kind": "static",
+        "values": [
+         [
+          "on",
+          ""
+         ],
+         [
+          "off",
+          ""
+         ],
+         [
+          "true",
+          ""
+         ],
+         [
+          "false",
+          ""
+         ],
+         [
+          "1",
+          ""
+         ],
+         [
+          "0",
+          ""
+         ]
+        ]
+       },
+       {
+        "flags": [
+         "--group"
+        ],
+        "kind": "dynamic",
+        "completer": "complete_update_group_id",
+        "resource": null
+       }
+      ],
+      "subcommands": []
+     }
+    ]
+   }
+  ]
+ },
+ "inherit_none": {
+  "path": [
+   "my-fsv"
+  ],
+  "help": "",
+  "params": [
+   {
+    "flags": [
+     "--verbose",
+     "-v"
+    ],
+    "kind": "boolean"
+   },
+   {
+    "flags": [
+     "--format",
+     "-f"
+    ],
+    "kind": "static",
+    "values": [
+     [
+      "table",
+      "rich table"
+     ],
+     [
+      "json",
+      "JSON array"
+     ],
+     [
+      "csv",
+      "comma-separated values"
+     ],
+     [
+      "tsv",
+      "tab-separated values"
+     ]
+    ]
+   }
+  ],
+  "subcommands": [
+   {
+    "path": [
+     "my-fsv",
+     "whoami"
+    ],
+    "help": "Who am I?",
+    "params": [
+     {
+      "flags": [
+       "--verbose",
+       "-v"
+      ],
+      "kind": "boolean"
+     },
+     {
+      "flags": [
+       "--format",
+       "-f"
+      ],
+      "kind": "static",
+      "values": [
+       [
+        "table",
+        "rich table"
+       ],
+       [
+        "json",
+        "JSON array"
+       ],
+       [
+        "csv",
+        "comma-separated values"
+       ],
+       [
+        "tsv",
+        "tab-separated values"
+       ]
+      ]
+     },
+     {
+      "flags": [
+       "--store"
+      ],
+      "kind": "static",
+      "values": [
+       [
+        "file",
+        "plain JSON, chmod 600"
+       ],
+       [
+        "argon",
+        "Argon2id + AES-256-GCM encrypted"
+       ],
+       [
+        "keychain",
+        "macOS Keychain"
+       ]
+      ]
+     }
+    ],
+    "subcommands": []
+   },
+   {
+    "path": [
+     "my-fsv",
+     "changes"
+    ],
+    "help": "",
+    "params": [
+     {
+      "flags": [
+       "--verbose",
+       "-v"
+      ],
+      "kind": "boolean"
+     },
+     {
+      "flags": [
+       "--format",
+       "-f"
+      ],
+      "kind": "static",
+      "values": [
+       [
+        "table",
+        "rich table"
+       ],
+       [
+        "json",
+        "JSON array"
+       ],
+       [
+        "csv",
+        "comma-separated values"
+       ],
+       [
+        "tsv",
+        "tab-separated values"
+       ]
+      ]
+     },
+     {
+      "flags": [
+       "--debug"
+      ],
+      "kind": "boolean"
+     }
+    ],
+    "subcommands": [
+     {
+      "path": [
+       "my-fsv",
+       "changes",
+       "list"
+      ],
+      "help": "List changes.",
+      "params": [
+       {
+        "flags": [
+         "--verbose",
+         "-v"
+        ],
+        "kind": "boolean"
+       },
+       {
+        "flags": [
+         "--format",
+         "-f"
+        ],
+        "kind": "static",
+        "values": [
+         [
+          "table",
+          "rich table"
+         ],
+         [
+          "json",
+          "JSON array"
+         ],
+         [
+          "csv",
+          "comma-separated values"
+         ],
+         [
+          "tsv",
+          "tab-separated values"
+         ]
+        ]
+       },
+       {
+        "flags": [
+         "--debug"
+        ],
+        "kind": "boolean"
+       },
+       {
+        "flags": [
+         "--where",
+         "-w"
+        ],
+        "kind": "dynamic",
+        "completer": "complete_where",
+        "resource": "changes"
+       },
+       {
+        "flags": [
+         "--kind",
+         "-k"
+        ],
+        "kind": "dynamic",
+        "completer": "complete_lookup_query",
+        "resource": "changes"
+       },
+       {
+        "flags": [
+         "--limit"
+        ],
+        "kind": "freeform"
+       },
+       {
+        "flags": [
+         "--yes",
+         "-y"
+        ],
+        "kind": "freeform"
+       }
+      ],
+      "subcommands": []
+     },
+     {
+      "path": [
+       "my-fsv",
+       "changes",
+       "show"
+      ],
+      "help": "Show one change's details.",
+      "params": [
+       {
+        "flags": [
+         "--verbose",
+         "-v"
+        ],
+        "kind": "boolean"
+       },
+       {
+        "flags": [
+         "--format",
+         "-f"
+        ],
+        "kind": "static",
+        "values": [
+         [
+          "table",
+          "rich table"
+         ],
+         [
+          "json",
+          "JSON array"
+         ],
+         [
+          "csv",
+          "comma-separated values"
+         ],
+         [
+          "tsv",
+          "tab-separated values"
+         ]
+        ]
+       },
+       {
+        "flags": [
+         "--debug"
+        ],
+        "kind": "boolean"
+       }
+      ],
+      "subcommands": []
+     }
+    ]
+   },
+   {
+    "path": [
+     "my-fsv",
+     "config"
+    ],
+    "help": "",
+    "params": [
+     {
+      "flags": [
+       "--verbose",
+       "-v"
+      ],
+      "kind": "boolean"
+     },
+     {
+      "flags": [
+       "--format",
+       "-f"
+      ],
+      "kind": "static",
+      "values": [
+       [
+        "table",
+        "rich table"
+       ],
+       [
+        "json",
+        "JSON array"
+       ],
+       [
+        "csv",
+        "comma-separated values"
+       ],
+       [
+        "tsv",
+        "tab-separated values"
+       ]
+      ]
+     }
+    ],
+    "subcommands": [
+     {
+      "path": [
+       "my-fsv",
+       "config",
+       "set"
+      ],
+      "help": "Set it.",
+      "params": [
+       {
+        "flags": [
+         "--verbose",
+         "-v"
+        ],
+        "kind": "boolean"
+       },
+       {
+        "flags": [
+         "--format",
+         "-f"
+        ],
+        "kind": "static",
+        "values": [
+         [
+          "table",
+          "rich table"
+         ],
+         [
+          "json",
+          "JSON array"
+         ],
+         [
+          "csv",
+          "comma-separated values"
+         ],
+         [
+          "tsv",
+          "tab-separated values"
+         ]
+        ]
+       },
+       {
+        "flags": [
+         "--key"
+        ],
+        "kind": "static",
+        "values": [
+         [
+          "completion.network",
+          "enable remote requester/agent completion [on|off]"
+         ]
+        ]
+       },
+       {
+        "flags": [
+         "--value"
+        ],
+        "kind": "static",
+        "values": [
+         [
+          "on",
+          ""
+         ],
+         [
+          "off",
+          ""
+         ],
+         [
+          "true",
+          ""
+         ],
+         [
+          "false",
+          ""
+         ],
+         [
+          "1",
+          ""
+         ],
+         [
+          "0",
+          ""
+         ]
+        ]
+       },
+       {
+        "flags": [
+         "--group"
+        ],
+        "kind": "dynamic",
+        "completer": "complete_update_group_id",
+        "resource": null
+       }
+      ],
+      "subcommands": []
+     }
+    ]
+   }
+  ]
+ }
+}

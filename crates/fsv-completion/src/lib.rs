@@ -9,6 +9,8 @@
 
 mod dynamic;
 mod emit;
+#[cfg(test)]
+mod gen_tests;
 mod model;
 mod quote;
 

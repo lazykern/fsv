@@ -1449,4 +1449,29 @@ mod tests {
         );
         assert_eq!(expanduser("a~/b"), "a~/b");
     }
+
+    /// `drafts._path(p, base)`; expected values from Python with
+    /// `HOME=/home/u` (here the home dir is substituted).
+    #[test]
+    fn draft_path_matches_python_path() {
+        let home = fsv_core::config::home_dir().to_string_lossy().into_owned();
+        let home = home.trim_end_matches('/');
+        let w = Some(Path::new("/w"));
+        let cases: [(&str, Option<&Path>, String); 7] = [
+            ("~/r.pdf", w, format!("{home}/r.pdf")),
+            ("~", w, home.to_string()),
+            (
+                "b/./c//d.txt",
+                Some(Path::new("/w/")),
+                "/w/b/c/d.txt".into(),
+            ),
+            ("", w, "/w".into()),
+            ("", None, String::new()),
+            ("x/", w, "/w/x".into()),
+            ("~/a//b", None, format!("{home}/a//b")),
+        ];
+        for (p, base, want) in cases {
+            assert_eq!(draft_path(p, base), want, "{p:?} {base:?}");
+        }
+    }
 }

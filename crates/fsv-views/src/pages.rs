@@ -37,11 +37,14 @@ fn truthy(v: Option<&Value>) -> bool {
 }
 
 fn first_truthy<'a>(v: &'a Value, keys: &[&str]) -> Option<&'a Value> {
-    keys.iter().find_map(|k| v.get(*k).filter(|x| fsv_py::truthy(x)))
+    keys.iter()
+        .find_map(|k| v.get(*k).filter(|x| fsv_py::truthy(x)))
 }
 
 fn str_or_empty(v: Option<&Value>) -> String {
-    v.filter(|x| fsv_py::truthy(x)).map(fsv_py::py_str).unwrap_or_default()
+    v.filter(|x| fsv_py::truthy(x))
+        .map(fsv_py::py_str)
+        .unwrap_or_default()
 }
 
 fn char_len(s: &str) -> usize {
@@ -52,7 +55,10 @@ fn char_len(s: &str) -> usize {
 fn capitalize(s: &str) -> String {
     let mut chars = s.chars();
     match chars.next() {
-        Some(first) => first.to_uppercase().chain(chars.flat_map(char::to_lowercase)).collect(),
+        Some(first) => first
+            .to_uppercase()
+            .chain(chars.flat_map(char::to_lowercase))
+            .collect(),
         None => String::new(),
     }
 }
@@ -116,11 +122,16 @@ pub fn list_header(page: &ListPage) -> String {
 // detail: header, lifecycle, reporter, tab bar
 
 pub fn header_lines(d: &Detail) -> Vec<String> {
-    let mut out = vec![format!("[bold cyan]#{}[/]  [bold]{}[/]", es(&d.id()), es(&d.subject()))];
+    let mut out = vec![format!(
+        "[bold cyan]#{}[/]  [bold]{}[/]",
+        es(&d.id()),
+        es(&d.subject())
+    )];
     let mut status = format!("[bold green]{}[/]", es(&d.badge()));
     let due = d.due_text();
     let stats = d.record.get("stats");
-    let closed = (truthy(stats.and_then(|s| s.get("resolved_at"))) || truthy(stats.and_then(|s| s.get("closed_at"))))
+    let closed = (truthy(stats.and_then(|s| s.get("resolved_at")))
+        || truthy(stats.and_then(|s| s.get("closed_at"))))
         && d.resource.name == "tickets";
     if !due.is_empty() && !closed {
         status += &format!(", due {}", es(&due));
@@ -142,7 +153,11 @@ pub fn lifecycle_markup(lc: Option<&Lifecycle>, context: Option<usize>) -> Strin
         lo = cur.saturating_sub(c);
         hi = (states.len() - 1).min(cur + c);
     }
-    let mut parts: Vec<String> = if lo > 0 { vec!["[dim]…[/]".into()] } else { Vec::new() };
+    let mut parts: Vec<String> = if lo > 0 {
+        vec!["[dim]…[/]".into()]
+    } else {
+        Vec::new()
+    };
     for s in &states[lo..=hi] {
         let name = es(&s.name);
         parts.push(match s.mark.as_str() {
@@ -167,8 +182,15 @@ pub fn reporter_markup(d: &Detail) -> String {
     if !truthy(r.get("name")) && !truthy(r.get("created_at")) {
         return String::new();
     }
-    let name = r.get("name").filter(|v| fsv_py::truthy(v)).map(e).unwrap_or_else(|| "Someone".into());
-    let mut text = format!("[bold]{name}[/] reported {}", r.get("relative").map(e).unwrap_or_default());
+    let name = r
+        .get("name")
+        .filter(|v| fsv_py::truthy(v))
+        .map(e)
+        .unwrap_or_else(|| "Someone".into());
+    let mut text = format!(
+        "[bold]{name}[/] reported {}",
+        r.get("relative").map(e).unwrap_or_default()
+    );
     if let Some(when) = r.get("when").filter(|v| fsv_py::truthy(v)) {
         text += &format!(" [dim]({})[/]", e(when));
     }
@@ -205,9 +227,21 @@ pub fn tab_bar(d: &Detail, active: &str, numbered: bool) -> String {
 
 /// `_indent`.
 pub fn indent(text: &str, pad: &str) -> Vec<String> {
-    let out: Vec<String> =
-        site::py_splitlines(text).into_iter().map(|ln| if ln.is_empty() { String::new() } else { format!("{pad}{}", es(ln)) }).collect();
-    if out.is_empty() { vec![pad.to_string()] } else { out }
+    let out: Vec<String> = site::py_splitlines(text)
+        .into_iter()
+        .map(|ln| {
+            if ln.is_empty() {
+                String::new()
+            } else {
+                format!("{pad}{}", es(ln))
+            }
+        })
+        .collect();
+    if out.is_empty() {
+        vec![pad.to_string()]
+    } else {
+        out
+    }
 }
 
 pub fn main_lines(d: &Detail) -> Vec<String> {
@@ -219,15 +253,36 @@ pub fn main_lines(d: &Detail) -> Vec<String> {
         }
         for item in items {
             let j = requested_item_json(item);
-            let qty = match j.get("quantity").filter(|q| !q.is_boolean()).and_then(Value::as_i64) {
+            let qty = match j
+                .get("quantity")
+                .filter(|q| !q.is_boolean())
+                .and_then(Value::as_i64)
+            {
                 Some(q) if q > 1 => format!(" × {q}"),
                 _ => String::new(),
             };
-            let name = j.get("name").filter(|v| fsv_py::truthy(v)).map(e).unwrap_or_else(|| "Requested item".into());
-            let stage = j.get("stage").filter(|v| fsv_py::truthy(v)).map(e).unwrap_or_else(|| "-".into());
+            let name = j
+                .get("name")
+                .filter(|v| fsv_py::truthy(v))
+                .map(e)
+                .unwrap_or_else(|| "Requested item".into());
+            let stage = j
+                .get("stage")
+                .filter(|v| fsv_py::truthy(v))
+                .map(e)
+                .unwrap_or_else(|| "-".into());
             out.push(format!("  [bold]{name}[/]{qty}   [dim]Stage:[/] {stage}"));
-            for a in j.get("answers").and_then(Value::as_array).into_iter().flatten() {
-                out.push(format!("    [cyan]{}[/]  {}", e(&a["label"]), e(&a["value"])));
+            for a in j
+                .get("answers")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+            {
+                out.push(format!(
+                    "    [cyan]{}[/]  {}",
+                    e(&a["label"]),
+                    e(&a["value"])
+                ));
             }
         }
         out.push(String::new());
@@ -251,14 +306,21 @@ pub fn main_lines(d: &Detail) -> Vec<String> {
                 Some(s) => format!(" [dim]({})[/]", human_size(s)),
                 None => String::new(),
             };
-            out.push(format!("  📎 {}{size}", a.get("name").map(e).unwrap_or_default()));
+            out.push(format!(
+                "  📎 {}{size}",
+                a.get("name").map(e).unwrap_or_default()
+            ));
         }
     }
     if let Some(planning) = &d.planning {
         out.push(String::new());
         out.push(section("Planning"));
         for p in planning {
-            let help = if !p.help.is_empty() && p.help != p.label { format!("  [dim]{}[/]", es(&p.help)) } else { String::new() };
+            let help = if !p.help.is_empty() && p.help != p.label {
+                format!("  [dim]{}[/]", es(&p.help))
+            } else {
+                String::new()
+            };
             out.push(format!("  [cyan]{}[/]{help}", es(&p.label)));
             if p.empty() {
                 out.push("    [dim]empty[/]".into());
@@ -285,7 +347,10 @@ pub fn main_lines(d: &Detail) -> Vec<String> {
         };
         out.push(section(&title));
         if let Some(t) = py_int_exact(total).filter(|t| *t > shown) {
-            out.push(format!("  [dim]… {} earlier (use --all-conversations)[/]", t - shown));
+            out.push(format!(
+                "  [dim]… {} earlier (use --all-conversations)[/]",
+                t - shown
+            ));
         }
         if convs.is_empty() {
             out.push("  [dim]no conversations[/]".into());
@@ -306,11 +371,22 @@ pub fn main_lines(d: &Detail) -> Vec<String> {
 pub fn conversation_lines(cv: &Value, tz: Option<&TimeZone>) -> Vec<String> {
     let j = site::conversation_json(cv, tz);
     let kind = j["kind"].as_str().unwrap_or_default();
-    let mark = if fsv_py::truthy(&j["private"]) { "[yellow]🔒 private[/]" } else { "[green]public[/]" };
+    let mark = if fsv_py::truthy(&j["private"]) {
+        "[yellow]🔒 private[/]"
+    } else {
+        "[green]public[/]"
+    };
     let when = site::fmt_when(&j["created_at"], tz, false);
-    let author = Some(&j["author"]).filter(|v| fsv_py::truthy(v)).map(e).unwrap_or_else(|| "Someone".into());
-    let mut out =
-        vec![format!("  [bold]{author}[/] {} · {mark} · {} [dim]({})[/]", es(kind), e(&j["relative"]), es(&when))];
+    let author = Some(&j["author"])
+        .filter(|v| fsv_py::truthy(v))
+        .map(e)
+        .unwrap_or_else(|| "Someone".into());
+    let mut out = vec![format!(
+        "  [bold]{author}[/] {} · {mark} · {} [dim]({})[/]",
+        es(kind),
+        e(&j["relative"]),
+        es(&when)
+    )];
     let body = j["body"].as_str().unwrap_or_default();
     if body.is_empty() {
         out.push("    [dim](empty)[/]".into());
@@ -331,11 +407,13 @@ fn py_float(n: &Value) -> Option<f64> {
         Value::Number(x) => x.as_f64(),
         Value::String(s) => {
             let t = pystr::strip(s);
-            let t = if t.contains('_') && !t.starts_with('_') && !t.ends_with('_') && !t.contains("__") {
-                t.replace('_', "")
-            } else {
-                t.to_string()
-            };
+            let t =
+                if t.contains('_') && !t.starts_with('_') && !t.ends_with('_') && !t.contains("__")
+                {
+                    t.replace('_', "")
+                } else {
+                    t.to_string()
+                };
             t.parse().ok()
         }
         _ => None,
@@ -359,7 +437,11 @@ pub fn human_size(n: &Value) -> String {
     };
     for unit in ["B", "KB", "MB", "GB"] {
         if size < 1024.0 || unit == "GB" {
-            return if unit == "B" { format!("{} {unit}", fmt_fixed(size, 0)) } else { format!("{} {unit}", fmt_fixed(size, 1)) };
+            return if unit == "B" {
+                format!("{} {unit}", fmt_fixed(size, 0))
+            } else {
+                format!("{} {unit}", fmt_fixed(size, 1))
+            };
         }
         size /= 1024.0;
     }
@@ -371,15 +453,30 @@ pub fn side_lines(d: &Detail) -> Vec<String> {
     let rows = d.summary();
     let lw = rows.iter().map(|(k, _)| char_len(k)).max().unwrap_or(6) + 2;
     for (label, value) in &rows {
-        let v = if value.is_empty() { DIM_EMPTY.to_string() } else { es(value) };
-        out.push(format!("[cyan]{}[/]{}{v}", es(label), " ".repeat(lw - char_len(label))));
+        let v = if value.is_empty() {
+            DIM_EMPTY.to_string()
+        } else {
+            es(value)
+        };
+        out.push(format!(
+            "[cyan]{}[/]{}{v}",
+            es(label),
+            " ".repeat(lw - char_len(label))
+        ));
     }
     out.push(String::new());
     out.push(section("Properties"));
     if d.properties.is_empty() {
         out.push("  [dim]no fields[/]".into());
     }
-    let width = 28.min(d.properties.iter().map(|p| char_len(&p.label)).max().unwrap_or(8) + 2);
+    let width = 28.min(
+        d.properties
+            .iter()
+            .map(|p| char_len(&p.label))
+            .max()
+            .unwrap_or(8)
+            + 2,
+    );
     for p in &d.properties {
         let star = if p.required { "[red]*[/]" } else { " " };
         let label = if char_len(&p.label) <= width {
@@ -388,14 +485,21 @@ pub fn side_lines(d: &Detail) -> Vec<String> {
             p.label.chars().take(width - 1).collect::<String>() + "…"
         };
         let pad = " ".repeat(1.max(width.saturating_sub(char_len(&label))));
-        let v = if p.value.is_empty() { DIM_EMPTY.to_string() } else { es(&p.value) };
+        let v = if p.value.is_empty() {
+            DIM_EMPTY.to_string()
+        } else {
+            es(&p.value)
+        };
         out.push(format!("  [cyan]{}[/]{star}{pad}{v}", es(&label)));
     }
     out
 }
 
 pub fn notes_lines(d: &Detail) -> Vec<String> {
-    d.notes().iter().map(|n| format!("[dim]· {}[/]", es(n))).collect()
+    d.notes()
+        .iter()
+        .map(|n| format!("[dim]· {}[/]", es(n)))
+        .collect()
 }
 
 // --------------------------------------------------------------------------
@@ -447,11 +551,21 @@ pub fn tab_lines(td: &TabData, tz: Option<&TimeZone>, schema: Option<&Value>) ->
 }
 
 fn data_rows(td: &TabData) -> &[Value] {
-    td.data.as_ref().filter(|v| fsv_py::truthy(v)).and_then(Value::as_array).map(Vec::as_slice).unwrap_or(&[])
+    td.data
+        .as_ref()
+        .filter(|v| fsv_py::truthy(v))
+        .and_then(Value::as_array)
+        .map(Vec::as_slice)
+        .unwrap_or(&[])
 }
 
 fn data_obj(td: &TabData) -> Map<String, Value> {
-    td.data.as_ref().filter(|v| fsv_py::truthy(v)).and_then(Value::as_object).cloned().unwrap_or_default()
+    td.data
+        .as_ref()
+        .filter(|v| fsv_py::truthy(v))
+        .and_then(Value::as_object)
+        .cloned()
+        .unwrap_or_default()
 }
 
 pub fn notes_tab(td: &TabData, tz: Option<&TimeZone>, _schema: Option<&Value>) -> Vec<String> {
@@ -461,12 +575,20 @@ pub fn notes_tab(td: &TabData, tz: Option<&TimeZone>, _schema: Option<&Value>) -
     }
     let mut out = Vec::new();
     for n in rows {
-        let lock = if truthy(n.get("private")) { "[yellow]🔒 private[/]" } else { "[green]public[/]" };
+        let lock = if truthy(n.get("private")) {
+            "[yellow]🔒 private[/]"
+        } else {
+            "[green]public[/]"
+        };
         let mut who_ = who(n.get("user"));
         if who_.is_empty() {
             who_ = str_or_empty(n.get("user_id"));
         }
-        let who_ = if who_.is_empty() { "Someone".to_string() } else { who_ };
+        let who_ = if who_.is_empty() {
+            "Someone".to_string()
+        } else {
+            who_
+        };
         let created = n.get("created_at").unwrap_or(&Value::Null);
         out.push(format!(
             "[bold]{}[/] added a note · {lock} · {} [dim]({})[/]",
@@ -474,7 +596,11 @@ pub fn notes_tab(td: &TabData, tz: Option<&TimeZone>, _schema: Option<&Value>) -
             es(&site::relative(created, None)),
             es(&site::fmt_when(created, tz, false))
         ));
-        let html = n.get("body").filter(|v| fsv_py::truthy(v)).cloned().unwrap_or(Value::String(String::new()));
+        let html = n
+            .get("body")
+            .filter(|v| fsv_py::truthy(v))
+            .cloned()
+            .unwrap_or(Value::String(String::new()));
         let mut body = site::html_to_text(&html);
         if body.is_empty() {
             body = str_or_empty(n.get("body_text"));
@@ -503,10 +629,17 @@ pub fn tasks_tab(td: &TabData, tz: Option<&TimeZone>, _schema: Option<&Value>) -
             Some(h) => fsv_py::py_str(h),
             None => {
                 let id = first_truthy(t, &["display_id"]).or_else(|| t.get("id"));
-                format!("#{}", id.map(fsv_py::py_str).unwrap_or_else(|| "None".into()))
+                format!(
+                    "#{}",
+                    id.map(fsv_py::py_str).unwrap_or_else(|| "None".into())
+                )
             }
         };
-        let title = t.get("title").filter(|v| fsv_py::truthy(v)).map(e).unwrap_or_else(|| "-".into());
+        let title = t
+            .get("title")
+            .filter(|v| fsv_py::truthy(v))
+            .map(e)
+            .unwrap_or_else(|| "-".into());
         out.push(format!("○ [bold]{title}[/] [dim]{}[/]", es(&tid)));
         let mut bits = vec![st];
         let mut grp = who(t.get("group"));
@@ -524,7 +657,11 @@ pub fn tasks_tab(td: &TabData, tz: Option<&TimeZone>, _schema: Option<&Value>) -
         if let Some(due) = t.get("due_date").filter(|v| fsv_py::truthy(v)) {
             bits.push(format!("due {}", site::fmt_when(due, tz, true)));
         }
-        let joined = bits.into_iter().filter(|b| !b.is_empty()).collect::<Vec<_>>().join(" · ");
+        let joined = bits
+            .into_iter()
+            .filter(|b| !b.is_empty())
+            .collect::<Vec<_>>()
+            .join(" · ");
         out.push(format!("    [dim]{}[/]", es(&joined)));
     }
     out
@@ -559,13 +696,15 @@ fn level_eq(a: &Value, b: &Value) -> bool {
 }
 
 fn level_cmp(a: &Value, b: &Value) -> Ordering {
-    level_type(a).cmp(level_type(b)).then_with(|| match (level_num(a), level_num(b)) {
-        (Some(x), Some(y)) => x.partial_cmp(&y).unwrap_or(Ordering::Equal),
-        _ => match (a.as_str(), b.as_str()) {
-            (Some(x), Some(y)) => x.cmp(y),
-            _ => Ordering::Equal,
-        },
-    })
+    level_type(a)
+        .cmp(level_type(b))
+        .then_with(|| match (level_num(a), level_num(b)) {
+            (Some(x), Some(y)) => x.partial_cmp(&y).unwrap_or(Ordering::Equal),
+            _ => match (a.as_str(), b.as_str()) {
+                (Some(x), Some(y)) => x.cmp(y),
+                _ => Ordering::Equal,
+            },
+        })
 }
 
 pub fn approvals_tab(td: &TabData, _tz: Option<&TimeZone>, _schema: Option<&Value>) -> Vec<String> {
@@ -575,7 +714,9 @@ pub fn approvals_tab(td: &TabData, _tz: Option<&TimeZone>, _schema: Option<&Valu
     }
     let mut levels: Vec<(Value, Vec<&Value>)> = Vec::new();
     for a in rows {
-        let lvl = first_truthy(a, &["level_id", "level"]).cloned().unwrap_or(Value::from(1));
+        let lvl = first_truthy(a, &["level_id", "level"])
+            .cloned()
+            .unwrap_or(Value::from(1));
         match levels.iter_mut().find(|(k, _)| level_eq(k, &lvl)) {
             Some((_, group)) => group.push(a),
             None => levels.push((lvl, vec![a])),
@@ -599,16 +740,25 @@ pub fn approvals_tab(td: &TabData, _tz: Option<&TimeZone>, _schema: Option<&Valu
             if who_.is_empty() {
                 who_ = str_or_empty(a.get("member_id"));
             }
-            let when = first_truthy(a, &["updated_at"]).or_else(|| a.get("created_at")).unwrap_or(&Value::Null);
+            let when = first_truthy(a, &["updated_at"])
+                .or_else(|| a.get("created_at"))
+                .unwrap_or(&Value::Null);
             out.push(format!(
                 "  {icon} [bold]{}[/]  {}  [dim]{}[/]",
                 es(&who_),
                 es(&capitalize(&st)),
                 es(&site::relative(when, None))
             ));
-            let remarks = a.get("remark").filter(|v| fsv_py::truthy(v)).and_then(Value::as_array);
+            let remarks = a
+                .get("remark")
+                .filter(|v| fsv_py::truthy(v))
+                .and_then(Value::as_array);
             for r in remarks.into_iter().flatten() {
-                if let Some(data) = r.as_object().and_then(|m| m.get("data")).filter(|v| fsv_py::truthy(v)) {
+                if let Some(data) = r
+                    .as_object()
+                    .and_then(|m| m.get("data"))
+                    .filter(|v| fsv_py::truthy(v))
+                {
                     out.push(format!("      [dim]“{}”[/]", e(data)));
                 }
             }
@@ -629,12 +779,24 @@ pub fn assets_tab(td: &TabData, _tz: Option<&TimeZone>, _schema: Option<&Value>)
             Some(v) => fsv_py::py_str(v),
             None => {
                 let w = who(it.get("ci_type"));
-                if w.is_empty() { str_or_empty(it.get("asset_type_name")) } else { w }
+                if w.is_empty() {
+                    str_or_empty(it.get("asset_type_name"))
+                } else {
+                    w
+                }
             }
         };
-        let aid = first_truthy(it, &["display_id"]).or_else(|| it.get("id")).unwrap_or(&Value::Null);
-        let name = first_truthy(it, &["name", "display_name"]).map(e).unwrap_or_else(|| "-".into());
-        out.push(format!("[bold]{name}[/]  [dim]{} · #{}[/]", es(&typ), e(aid)));
+        let aid = first_truthy(it, &["display_id"])
+            .or_else(|| it.get("id"))
+            .unwrap_or(&Value::Null);
+        let name = first_truthy(it, &["name", "display_name"])
+            .map(e)
+            .unwrap_or_else(|| "-".into());
+        out.push(format!(
+            "[bold]{name}[/]  [dim]{} · #{}[/]",
+            es(&typ),
+            e(aid)
+        ));
     }
     out
 }
@@ -649,7 +811,12 @@ fn activity_when(value: &Value, tz: Option<&TimeZone>) -> Option<(String, String
             fsv_core::output::parse_isoformat(&text)?.0
         }
     };
-    let day = format!("{}, {} {}", dt.strftime("%a"), dt.day(), dt.strftime("%b %Y"));
+    let day = format!(
+        "{}, {} {}",
+        dt.strftime("%a"),
+        dt.day(),
+        dt.strftime("%b %Y")
+    );
     Some((day, dt.strftime("%H:%M").to_string()))
 }
 
@@ -662,7 +829,9 @@ pub fn activity_tab(td: &TabData, tz: Option<&TimeZone>, _schema: Option<&Value>
     let mut day: Option<String> = None;
     for a in rows {
         let local = activity_when(a.get("created_at").unwrap_or(&Value::Null), tz);
-        let d = local.as_ref().map_or_else(|| "?".to_string(), |(d, _)| d.clone());
+        let d = local
+            .as_ref()
+            .map_or_else(|| "?".to_string(), |(d, _)| d.clone());
         if day.as_deref() != Some(d.as_str()) {
             out.push(section(&d));
             day = Some(d);
@@ -676,7 +845,10 @@ pub fn activity_tab(td: &TabData, tz: Option<&TimeZone>, _schema: Option<&Value>
             Some((_, hm)) => format!("  [dim]{hm}[/]  [bold]{}[/] {content}", es(&actor)),
             None => format!("  [bold]{}[/] {content}", es(&actor)),
         });
-        let subs = a.get("sub_contents").filter(|v| fsv_py::truthy(v)).and_then(Value::as_array);
+        let subs = a
+            .get("sub_contents")
+            .filter(|v| fsv_py::truthy(v))
+            .and_then(Value::as_array);
         for s in subs.into_iter().flatten() {
             out.push(format!("         [dim]· {}[/]", es(&site::one_line(s))));
         }
@@ -686,13 +858,19 @@ pub fn activity_tab(td: &TabData, tz: Option<&TimeZone>, _schema: Option<&Value>
 
 /// `_item_line`.
 pub fn item_line(x: &Value) -> String {
-    let did = first_truthy(x, &["human_display_id", "display_id"]).or_else(|| x.get("id")).unwrap_or(&Value::Null);
+    let did = first_truthy(x, &["human_display_id", "display_id"])
+        .or_else(|| x.get("id"))
+        .unwrap_or(&Value::Null);
     let mut st = str_or_empty(x.get("status_name"));
     if st.is_empty() {
         st = status_text(x.get("status"));
     }
     let subject = str_or_empty(first_truthy(x, &["subject", "name", "title"]));
-    let tail = if st.is_empty() { String::new() } else { format!("  [dim]{}[/]", es(&st)) };
+    let tail = if st.is_empty() {
+        String::new()
+    } else {
+        format!("  [dim]{}[/]", es(&st))
+    };
     format!("  [cyan]#{}[/] {}{tail}", e(did), es(&subject))
 }
 
@@ -719,13 +897,23 @@ pub fn risk_tab(td: &TabData, _tz: Option<&TimeZone>, schema: Option<&Value>) ->
     let data = data_obj(td);
     let mut out = Vec::new();
     let score = data.get("overall_score").filter(|v| !v.is_null());
-    out.push(format!("[cyan]Overall score[/]  {}", score.map(e).unwrap_or_else(|| DIM_EMPTY.into())));
-    let computed = data.get("computed_risk").filter(|v| !v.is_null() && v.as_str() != Some(""));
+    out.push(format!(
+        "[cyan]Overall score[/]  {}",
+        score.map(e).unwrap_or_else(|| DIM_EMPTY.into())
+    ));
+    let computed = data
+        .get("computed_risk")
+        .filter(|v| !v.is_null() && v.as_str() != Some(""));
     out.push(format!(
         "[cyan]Computed risk[/]  {}",
-        computed.map(|c| es(&status_text(Some(c)))).unwrap_or_else(|| DIM_EMPTY.into())
+        computed
+            .map(|c| es(&status_text(Some(c))))
+            .unwrap_or_else(|| DIM_EMPTY.into())
     ));
-    let factors = data.get("basic_risk_awareness").filter(|v| fsv_py::truthy(v)).and_then(Value::as_array);
+    let factors = data
+        .get("basic_risk_awareness")
+        .filter(|v| fsv_py::truthy(v))
+        .and_then(Value::as_array);
     if let Some(factors) = factors.filter(|f| !f.is_empty()) {
         out.push(String::new());
         out.push(section(&format!("{} factors considered", factors.len())));
@@ -735,10 +923,20 @@ pub fn risk_tab(td: &TabData, _tz: Option<&TimeZone>, schema: Option<&Value>) ->
                 name = capitalize(&str_or_empty(f.get("name")).replace('_', " "));
             }
             let op = str_or_empty(f.get("operator"));
-            out.push(format!("  {} {} [bold]{}[/]", es(&name), es(&op), f.get("value").map(e).unwrap_or_default()));
+            out.push(format!(
+                "  {} {} [bold]{}[/]",
+                es(&name),
+                es(&op),
+                f.get("value").map(e).unwrap_or_default()
+            ));
         }
     }
-    if let Some(survey) = td.parts.get("survey").and_then(Value::as_object).filter(|s| !s.is_empty()) {
+    if let Some(survey) = td
+        .parts
+        .get("survey")
+        .and_then(Value::as_object)
+        .filter(|s| !s.is_empty())
+    {
         out.push(String::new());
         out.push(section("Risk assessment"));
         for (k, v) in survey {
@@ -754,10 +952,16 @@ pub fn resolution_tab(td: &TabData, tz: Option<&TimeZone>, _schema: Option<&Valu
     let data = data_obj(td);
     let mut out = Vec::new();
     if let Some(v) = data.get("resolved_at").filter(|v| fsv_py::truthy(v)) {
-        out.push(format!("[cyan]Resolved[/]  {}", es(&site::fmt_when(v, tz, true))));
+        out.push(format!(
+            "[cyan]Resolved[/]  {}",
+            es(&site::fmt_when(v, tz, true))
+        ));
     }
     if let Some(v) = data.get("closed_at").filter(|v| fsv_py::truthy(v)) {
-        out.push(format!("[cyan]Closed[/]  {}", es(&site::fmt_when(v, tz, true))));
+        out.push(format!(
+            "[cyan]Closed[/]  {}",
+            es(&site::fmt_when(v, tz, true))
+        ));
     }
     if let Some(note) = data.get("note").filter(|v| fsv_py::truthy(v)) {
         out.push(String::new());
@@ -780,8 +984,16 @@ pub fn generic_tab(td: &TabData, tz: Option<&TimeZone>, schema: Option<&Value>) 
     match td.data.as_ref().filter(|v| fsv_py::truthy(v)) {
         None => vec!["[dim]nothing here[/]".into()],
         Some(Value::Array(rows)) => {
-            let out: Vec<String> = rows.iter().filter(|r| r.is_object()).map(item_line).collect();
-            if out.is_empty() { vec!["[dim]nothing here[/]".into()] } else { out }
+            let out: Vec<String> = rows
+                .iter()
+                .filter(|r| r.is_object())
+                .map(item_line)
+                .collect();
+            if out.is_empty() {
+                vec!["[dim]nothing here[/]".into()]
+            } else {
+                out
+            }
         }
         Some(other) => vec![e(other)],
     }
@@ -806,10 +1018,17 @@ pub fn detail_blocks(d: &Detail, tab: Option<&str>, all_tabs: bool) -> Vec<Block
     out.push(Block::Markup(tab_bar(d, active, false)));
     out.push(Block::DimRule);
     if active == "details" || all_tabs {
-        out.push(Block::Columns { main: main_lines(d).join("\n"), side: side_lines(d).join("\n") });
+        out.push(Block::Columns {
+            main: main_lines(d).join("\n"),
+            side: side_lines(d).join("\n"),
+        });
     }
     let names: Vec<String> = if all_tabs {
-        d.tabs.iter().filter(|t| t.name != "details").map(|t| t.name.clone()).collect()
+        d.tabs
+            .iter()
+            .filter(|t| t.name != "details")
+            .map(|t| t.name.clone())
+            .collect()
     } else if active == "details" {
         Vec::new()
     } else {
@@ -821,11 +1040,27 @@ pub fn detail_blocks(d: &Detail, tab: Option<&str>, all_tabs: bool) -> Vec<Block
             out.push(Block::Blank);
             out.push(Block::LeftRule(format!("[bold]{}[/]", es(&td.label))));
         }
-        out.extend(tab_lines(td, Some(&d.tz), Some(&d.schema)).into_iter().map(Block::Markup));
+        out.extend(
+            tab_lines(td, Some(&d.tz), Some(&d.schema))
+                .into_iter()
+                .map(Block::Markup),
+        );
     }
-    let shown: Vec<String> =
-        [&d.requested_items_missing, &d.planning_missing, &d.conversations_missing].into_iter().flatten().map(|m| m.note()).collect();
-    let notes: Vec<String> = d.notes().into_iter().filter(|n| !shown.contains(n)).map(|n| format!("[dim]· {}[/]", es(&n))).collect();
+    let shown: Vec<String> = [
+        &d.requested_items_missing,
+        &d.planning_missing,
+        &d.conversations_missing,
+    ]
+    .into_iter()
+    .flatten()
+    .map(|m| m.note())
+    .collect();
+    let notes: Vec<String> = d
+        .notes()
+        .into_iter()
+        .filter(|n| !shown.contains(n))
+        .map(|n| format!("[dim]· {}[/]", es(&n)))
+        .collect();
     if !notes.is_empty() {
         out.push(Block::Blank);
         out.extend(notes.into_iter().map(Block::Markup));
