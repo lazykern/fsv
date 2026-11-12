@@ -1253,3 +1253,46 @@ fn cookies_follow_python_httpx_jar_order() {
     }
     assert_eq!(mock.gets().len(), 4);
 }
+
+/// `Client.me()` (`.get("agent", {})`) on each payload, from running Python.
+#[test]
+fn me_unwraps_the_agent() {
+    for (payload, want) in [
+        (json!({"agent": {"id": 5}}), Ok(json!({"id": 5}))),
+        (json!({}), Ok(json!({}))),
+        (json!({"agent": null}), Ok(Value::Null)),
+        (json!([]), Err("'list' object has no attribute 'get'")),
+    ] {
+        let body = payload.clone();
+        let h = harness(MockTransport::new(move |_| Ok(Response::json(200, &body))));
+        let got = h.client.me().map_err(|e| e.to_string());
+        assert_eq!(got, want.map_err(String::from), "{payload}");
+        assert!(h.mock.paths()[0].ends_with("/api/v2/agents/me"));
+    }
+}
+
+/// `client._query_string(url, params)` from running Python.
+#[test]
+fn log_query_string_matches_python() {
+    let cases = [
+        ("https://x/a?b=1&c=&d=%20e", Value::Null, "b=1&c=&d=%20e"),
+        (
+            "https://x/a",
+            json!({"q": "a b/c", "n": null, "ids": [1, null, "x&y"], "t": true, "f": 1.5}),
+            "q=a%20b/c&ids=1&ids=&ids=x%26y&t=True&f=1.5",
+        ),
+        ("https://x/a", json!({}), ""),
+        (
+            "https://x/a?x=1",
+            json!({"é": "ü@,:"}),
+            "x=1&%C3%A9=%C3%BC@,:",
+        ),
+    ];
+    for (url, params, want) in cases {
+        assert_eq!(
+            super::log::query_string(url, params.as_object()),
+            want,
+            "{url} {params}"
+        );
+    }
+}

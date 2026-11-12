@@ -173,7 +173,7 @@ Gaps:
 - `create` planning-field resolution and `--duplicate` errors are `Error::value` (Python `UsageError`, `820af12`): the bare message, exit 2. Other `APIError(0, …)` sites keep `ApiError` status 0, which `fsv_core::ApiError` renders as Python does: `Error: …` (`Error <what>: …` with a request).
 
 Divergences:
-- `readback::duration_seconds`, `ticket_time::duration` and `watchers::positive_id` accept ASCII digits only; Python's `\d` / `str.isdigit` also accept other Unicode digits. Hours that overflow `i64` are an error rather than a big int.
+- `readback::duration_seconds` accepts ASCII digits only; Python's `\d` also accepts other Unicode digits. Hours that overflow `i64` are an error rather than a big int. `ticket_time::duration` and `watchers::positive_id` take Unicode decimal digits as Python does (`positive_id("१२")` is 12; `"²"` is `int()`'s `ValueError`), but an id past `i64` is refused where Python returns the big int. fsv-tui's local `backend::positive_id` is still ASCII-only.
 - `conversations::parseaddr` is a simplified `email.utils.parseaddr`: the address inside the last `<…>`, else the trimmed value. Quoted local parts and comments are not parsed.
 - `merge_same_conditions` turns a truthy non-iterable `value` (a number or `true`) into a one-item list; Python raises `TypeError` there.
 - `SendFailure::into_error` names the Python type of the cause from the `fsv_core::Error` variant (`Other`/`Context` → `RuntimeError`, `Io` → `OSError`, `Exit` → `FlowExit`), and takes the exit code from `Error::exit_code`, which for an `Exit` cause is its own code (Python's `exit_code_for` gives 1).
@@ -281,7 +281,6 @@ No divergences from this pass.
 CLI divergences:
 - Usage errors use clap's text. Exit code 2 matches Click. This includes a non-`json` `--output` on the reviewed commands (Click's rich choice panel; both exit 2 before any request).
 - Typer `BadParameter` raised by a command body (`watchers list` errors) is reproduced as Rich's error panel (`cmd::reviewed::bad_parameter`), sized from the terminal width.
-- `changes asset-picker` with a duplicate display id followed by a non-numeric one: Python validates every id first (`expected a positive numeric identity`); fsv-api `asset_picker.rs` `candidates` checks duplicates row by row and reports the duplicate. Both exit 2. Pinned by the ignored `upstream_cmds.rs` `asset_picker_duplicate_then_bad`.
 - Uncaught exceptions (traceback, exit 1 in Python) print `error: <message>` with exit 1.
 - Completion scripts call `FSV_THIN_COMPLETE=1 fsv _complete` in place of `python -m fsv._complete`.
 - `--backup-replaced` carries a `value_flag` override so completion treats it as taking a value, as Python's generator does.

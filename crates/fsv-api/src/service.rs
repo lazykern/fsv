@@ -64,12 +64,12 @@ pub trait Api: Sync {
     fn workspace_cookies(&self) -> Vec<String> {
         Vec::new()
     }
-    /// Port of fsv.client.Client.me: the signed-in agent (`agents/me`,
-    /// unwrapped). Self-only writes must call this, never a cached identity.
+    /// The signed-in agent ([`fsv_core::Client::me`]). Self-only writes must
+    /// call this, never a cached identity; the default has none.
     fn me(&self) -> Result<Value> {
         Err(Error::other("signed-in agent identity is unavailable"))
     }
-    /// Port of fsv.client.Client.v2_get: a public v2 API read.
+    /// A public v2 API read ([`fsv_core::Client::v2_get`]); the default has none.
     fn v2_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
         let _ = params;
         Err(Error::other(format!("v2 API is unavailable: {path}")))
@@ -639,7 +639,7 @@ pub fn list_items(
     Ok((items, total))
 }
 
-fn search_resource(entity: &str) -> Option<&'static Resource> {
+fn search_entity_resource(entity: &str) -> Option<&'static Resource> {
     match entity {
         "tickets" => Some(&TICKETS),
         "problems" => Some(&PROBLEMS),
@@ -651,7 +651,7 @@ fn search_resource(entity: &str) -> Option<&'static Resource> {
 /// `_normalize_search_result`.
 pub fn normalize_search_result(row: &Value, entity: &str) -> Option<Value> {
     static TAIL: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"/(\d+)$").expect("regex"));
-    let resource = search_resource(entity)?;
+    let resource = search_entity_resource(entity)?;
     let (prefix, owner_field) = if row.get_truthy("ticket_path").is_some() {
         ("ticket", "responder_name")
     } else {
@@ -718,7 +718,7 @@ pub fn search_items(
     sort: Option<&str>,
     page: i64,
 ) -> Result<(Vec<Value>, Map<String, Value>)> {
-    if let Some(entity) = entity.filter(|e| search_resource(e).is_some()) {
+    if let Some(entity) = entity.filter(|e| search_entity_resource(e).is_some()) {
         let (items, total) = search_one(c, entity, term, sort, page)?;
         let mut totals = Map::new();
         totals.insert(entity.into(), total);

@@ -559,6 +559,7 @@ impl Client {
             .header("Content-Type", "application/json")
     }
 
+    /// Port of fsv.client.Client.v2_get: a public v2 API read.
     pub fn v2_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
         self.request(
             "GET",
@@ -790,7 +791,7 @@ impl Client {
         }
     }
 
-    /// `/agents/me` → the `agent` object.
+    /// Port of fsv.client.Client.me: `/agents/me` → the `agent` object.
     pub fn me(&self) -> Result<Value> {
         match self.request("GET", &self.v2_url("agents/me"), RequestOpts::default())? {
             Value::Object(mut m) => Ok(m.shift_remove("agent").unwrap_or_else(|| json!({}))),

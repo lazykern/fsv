@@ -561,7 +561,10 @@ mod tests {
         let mut c = combo(&h, "change_type");
         h.cx(|cx| c.open(cx));
         h.take();
-        let i = labels(&c).iter().position(|l| *l == "Emergency").expect("Emergency");
+        let i = labels(&c)
+            .iter()
+            .position(|l| *l == "Emergency")
+            .expect("Emergency");
         let want = c.options[i].value.clone();
         h.cx(|cx| c.pick(i, cx));
         assert_eq!(h.take(), [EdMsg::Edited("change_type".into(), want)]);
@@ -579,7 +582,10 @@ mod tests {
         h.cx(|cx| m.pick(0, cx));
         assert_eq!(
             h.take(),
-            [EdMsg::Edited("services".into(), Value::List(vec![first.clone()]))]
+            [EdMsg::Edited(
+                "services".into(),
+                Value::List(vec![first.clone()])
+            )]
         );
         assert_eq!(m.input.value(), "");
         assert!(m.is_open);

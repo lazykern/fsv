@@ -780,13 +780,128 @@ def gen_planning():
               {"attachments": [], "description": None, "content": "c"},
               {"attachments": [], "body": "b", "content": "c"}]:
         out["editable_content"].append({"row": r, **attempt(lambda: planning.editable_content(r))})
+    out["definitions"] = {m: attempt(lambda: planning.definitions(None, m)) for m in ["changes", "problems", "tickets"]}
+    return out
+
+
+# ------------------------------------------------- helpers called directly
+
+def gen_direct():
+    """Reads and checks the workflows call internally, called on their own."""
+    out = {}
+
+    reset()
+    w, state = canned_wire()
+    c = w.client()
+    p = canned.reply_plan(c, "123", 701, "/canned_response/content", sender="support@example.com")
+    n = len(w.log)
+    fresh = {"same": attempt(lambda: canned.freshen(p, c))}
+    state["source"]["canned_response"]["name"] = "Changed metadata"
+    fresh["metadata"] = attempt(lambda: canned.freshen(p, c))
+    state["source"] = {"canned_response": {"id": 701, "content": "<div>Globex response</div>"}}
+    fresh["content"] = attempt(lambda: canned.freshen(p, c))
+    fresh["calls"] = w.log[n:]
+    out["canned_freshen"] = fresh
+
+    reset()
+    w, state = canned_wire()
+    c = w.client()
+    out["scenarios_context"] = {"ok": attempt(lambda: scenarios.context(c, 123, 703)),
+                                "missing_scenario": attempt(lambda: scenarios.context(c, 123, 9)),
+                                "missing_ticket": attempt(lambda: scenarios.context(c, 999, 703)),
+                                "calls": w.log[:]}
+
+    reset()
+    w, state = view_wire()
+    c = w.client()
+    detail = {"ok": attempt(lambda: private_views.detail(c, 701)),
+              "missing": attempt(lambda: private_views.detail(c, 9))}
+    state["rows"][701]["id"] = 702
+    detail["other_id"] = attempt(lambda: private_views.detail(c, 701))
+    state["rows"][701]["id"] = "x"
+    detail["bad_id"] = attempt(lambda: private_views.detail(c, 701))
+    detail["calls"] = w.log[:]
+    out["private_detail"] = detail
+    vis = []
+    for mods in [{}, {"user_id": 902}, {"user_id": "901"}, {"default": None}, {"system": True},
+                 {"system": None}, {"visibility_name": " ONLY ME "}, {"visibility_name": "private"},
+                 {"visibility_name": "Everyone"}, {"visibility_name": 5},
+                 {"visibility": {"id": 5, "label": "me"}}, {"visibility": {"id": 0, "label": "me"}},
+                 {"visibility": {"id": 5}}, {"visibility": "81"}, {"visibility": None}]:
+        vis.append({"mods": mods, **attempt(lambda: private_views.private_visibility({**VIEW, **mods}, 901))})
+    out["private_visibility"] = vis
+
+    exports = []
+    for module, view, mutate in [("tickets", "701", None), ("changes", "Acme queue", None),
+                                 ("problems", "701", None), ("tickets", "nope", None),
+                                 ("tickets", "701", lambda s: s["row"].update(advanced_query_hash=[])),
+                                 ("tickets", "701", lambda s: s.update(row={**s["row"], "id": 702}))]:
+        reset()
+        w, state = list_wire(module)
+        if mutate:
+            mutate(state)
+        c = w.client()
+        got = attempt(lambda: list_preferences.export_source(c, module, view))
+        if "ok" in got:
+            selected, row = got["ok"]
+            got = {"ok": {"id": selected.id, "name": selected.name, "row": row}}
+        exports.append({"module": module, "view": view, **got, "calls": w.log[:]})
+    out["export_source"] = exports
+
+    reset()
+    w, state = problem_wire()
+    c = w.client()
+    state["notes"] = [{"id": 9, "body": "b"}, {"id": "3", "body": "a"}]
+    prob = {"record": attempt(lambda: problem_workflows.record(c, 123)),
+            "record_missing": attempt(lambda: problem_workflows.record(c, 9)),
+            "notes": attempt(lambda: problem_workflows.inventory(c, 123, "notes")),
+            "tasks": attempt(lambda: problem_workflows.inventory(c, 123, "tasks"))}
+    state["tasks"] = [{"id": 5}, {"id": "5"}]
+    prob["tasks_dup"] = attempt(lambda: problem_workflows.inventory(c, 123, "tasks"))
+    state["tasks"] = [{"id": "x"}]
+    prob["tasks_bad_id"] = attempt(lambda: problem_workflows.inventory(c, 123, "tasks"))
+    state["rows"][123] = {"id": "123"}
+    prob["record_str_id"] = attempt(lambda: problem_workflows.record(c, 123))
+    state["rows"][123] = {"id": 124}
+    prob["record_other_id"] = attempt(lambda: problem_workflows.record(c, 123))
+    prob["calls"] = w.log[:]
+    out["problem_reads"] = prob
+    status = {"name": "status", "choices": [{"id": 51, "value": "Open"}]}
+    choices = []
+    for fields, label in [([status], "open"), ([status], "Closed"), ([], "Open"), ([status, status], "Open"),
+                          ([{"name": "status", "choices": [{"id": 51, "label": "OPEN"}]}], "open"),
+                          ([{"name": "status", "choices": [{"id": 51, "name": "Open"}]}], "Open"),
+                          ([{"name": "status", "choices": [{"id": 51, "value": "Open", "deleted": True}]}], "Open"),
+                          ([{"name": "status", "choices": [{"id": 51, "value": "Open", "deleted_at": "x"}]}], "Open"),
+                          ([{"name": "status", "choices": [{"id": 51, "value": "Open"}, {"id": 52, "value": "open"}]}],
+                           "Open"),
+                          ([{"name": "status", "choices": [{"id": "51", "value": "Open"}]}], "Open"),
+                          ([{"name": "status", "choices": [{"id": True, "value": "Open"}]}], "Open"),
+                          ([{"name": "status", "choices": [{"id": -1, "value": "Open"}]}], "Open"),
+                          ([{"name": "status", "choices": [{"id": 0, "value": "Open"}]}], "Open"),
+                          ([{"name": "status", "choices": ["Open", {"id": 51, "value": "Open"}]}], "Open"),
+                          ([{"name": "status"}], "Open")]:
+        choices.append({"fields": fields, "label": label,
+                        **attempt(lambda: problem_workflows._choice(fields, "status", label))})
+    out["problem_choice"] = choices
+
+    from fsv import ticket_time
+    entries = []
+    for reply in [{"time_entries": [{"id": 9, "a": 1}, {"id": "3"}], "has_more": False},
+                  {"time_entries": [], "has_more": False},
+                  {"time_entries": [{"id": 3}, {"id": "3"}], "has_more": False},
+                  {"time_entries": [{"id": 0}], "has_more": False}, 403]:
+        reset()
+        w = Wire(lambda m, p, b, q, reply=reply: reply if p == "tickets/123/time_entries" else 404)
+        entries.append({"reply": reply, **attempt(lambda: ticket_time.inventory(w.client(), 123)), "calls": w.log})
+    out["time_inventory"] = entries
     return out
 
 
 def main():
     doc = {"canned": gen_canned(), "scenarios": gen_scenarios(), "private_views": gen_private_views(),
            "list_preferences": gen_list_preferences(), "problem_workflows": gen_problem_workflows(),
-           "readback": gen_readback(), "planning_text": gen_planning()}
+           "readback": gen_readback(), "planning_text": gen_planning(), "direct": gen_direct()}
     print(json.dumps(doc, indent=1, ensure_ascii=False))
 
 

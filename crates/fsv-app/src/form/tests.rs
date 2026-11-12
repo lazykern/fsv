@@ -818,3 +818,27 @@ mod tui_forms {
         assert!(!t.lines().iter().any(|l| l.starts_with("POST")));
     }
 }
+
+/// `change_cli._report_partial(PartialFailure(77, [{"id": 5, "name":
+/// "a.txt"}], [{"step": "attach"}], RuntimeError("boom")), "change")`: the
+/// stderr lines and the `FlowExit` from running Python.
+#[test]
+fn report_partial_matches_python() {
+    let e = change::PartialFailure {
+        created_id: json!(77),
+        uploaded: vec![json!({"id": 5, "name": "a.txt"})],
+        steps: vec![json!({"step": "attach"})],
+        error: Error::other("boom"),
+    };
+    assert_eq!(
+        partial_lines(&e, "change"),
+        [
+            "[red]error[/red]: change 77 was written, but a later step failed: boom",
+            "uploaded attachment ids: 5 (a.txt)",
+            "  {'step': 'attach'}",
+        ]
+    );
+    let exit = report_partial(&e, "change");
+    assert_eq!(exit.exit_code(), 5);
+    assert_eq!(exit.to_string(), "partial failure; change id 77");
+}

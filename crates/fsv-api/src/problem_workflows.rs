@@ -366,3 +366,28 @@ pub fn send(
     };
     execute(&plan.plan, c, journal, reviewed_hash, &rebuild, &verify)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `problem_workflows._choice(fields, "status", label)` from
+    /// `gen_fsv_api_workflows.py`.
+    #[test]
+    fn choice_matches_python() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/workflows_oracle.json")).unwrap();
+        for case in oracle["direct"]["problem_choice"].as_array().unwrap() {
+            let fields = case["fields"].as_array().unwrap();
+            let got = match choice(fields, "status", case["label"].as_str().unwrap()) {
+                Ok(id) => json!({"ok": id}),
+                Err(e) => json!({"error": e.to_string()}),
+            };
+            let want = match case.get("ok") {
+                Some(ok) => json!({"ok": ok}),
+                None => json!({"error": case["error"]}),
+            };
+            assert_eq!(got, want, "{case}");
+        }
+    }
+}

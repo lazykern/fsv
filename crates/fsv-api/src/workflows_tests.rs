@@ -1067,3 +1067,116 @@ fn readback_submitted_and_same_text() {
         );
     }
 }
+
+// ------------------------------------------------- helpers called directly
+
+/// The reads and checks the workflows call internally, called on their own
+/// (the generator's `gen_direct`).
+#[test]
+fn direct_reads_match_python() {
+    let want = &ORACLE["direct"];
+
+    let w = canned_wire();
+    let p = reply(
+        &w,
+        "123",
+        json!(701),
+        "/canned_response/content",
+        "support@example.com",
+    )
+    .unwrap();
+    let n = w.log().len();
+    let fresh = &want["canned_freshen"];
+    let freshen = |w: &Wire| attempt(canned::freshen(&p, &w.api).map(|()| Value::Null));
+    check(&freshen(&w), &fresh["same"], "freshen same");
+    w.set(|s| s["source"]["canned_response"]["name"] = json!("Changed metadata"));
+    check(&freshen(&w), &fresh["metadata"], "freshen metadata");
+    w.set(|s| {
+        s["source"] =
+            json!({"canned_response": {"id": 701, "content": "<div>Globex response</div>"}})
+    });
+    check(&freshen(&w), &fresh["content"], "freshen content");
+    assert_eq!(json!(w.log().split_off(n)), fresh["calls"]);
+
+    let w = canned_wire();
+    let ctx = &want["scenarios_context"];
+    for (key, ticket, scenario) in [
+        ("ok", 123, 703),
+        ("missing_scenario", 123, 9),
+        ("missing_ticket", 999, 703),
+    ] {
+        check(
+            &attempt(scenarios::context(&w.api, ticket, scenario)),
+            &ctx[key],
+            key,
+        );
+    }
+    assert_eq!(json!(w.log()), ctx["calls"]);
+
+    let w = view_wire(view());
+    let detail = &want["private_detail"];
+    let read = |w: &Wire, id| attempt_map(private_views::detail(&w.api, id));
+    check(&read(&w, 701), &detail["ok"], "detail");
+    check(&read(&w, 9), &detail["missing"], "detail missing");
+    w.set(|s| s["rows"]["701"]["id"] = json!(702));
+    check(&read(&w, 701), &detail["other_id"], "detail other id");
+    w.set(|s| s["rows"]["701"]["id"] = json!("x"));
+    check(&read(&w, 701), &detail["bad_id"], "detail bad id");
+    assert_eq!(json!(w.log()), detail["calls"]);
+    for case in want["private_visibility"].as_array().unwrap() {
+        let mut row = view().as_object().unwrap().clone();
+        row.extend(case["mods"].as_object().unwrap().clone());
+        let got = attempt(private_views::private_visibility(&row, 901).map(|id| json!(id)));
+        check(&got, case, &case["mods"].to_string());
+    }
+
+    for case in want["export_source"].as_array().unwrap() {
+        let module = case["module"].as_str().unwrap();
+        let w = list_wire(module);
+        let ctx = format!("export_source {}", case["view"]);
+        match case["error"].as_str() {
+            Some("only ordinary saved-view queries have a captured export contract") => {
+                w.set(|s| s["row"]["advanced_query_hash"] = json!([]));
+            }
+            Some(msg) if msg.starts_with("no view named '701'") => {
+                w.set(|s| s["row"]["id"] = json!(702));
+            }
+            _ => {}
+        }
+        let mut got = attempt(
+            list_preferences::export_source(&w.api, module, case["view"].as_str().unwrap()).map(
+                |(selected, row)| json!({"id": selected.id, "name": selected.name, "row": row}),
+            ),
+        );
+        got["calls"] = json!(w.log());
+        check(&got, case, &ctx);
+    }
+
+    let w = problem_wire();
+    let prob = &want["problem_reads"];
+    w.set(|s| s["notes"] = json!([{"id": 9, "body": "b"}, {"id": "3", "body": "a"}]));
+    let record = |w: &Wire, id| attempt_map(problem_workflows::record(&w.api, id));
+    let inventory =
+        |w: &Wire, kind| attempt(problem_workflows::inventory(&w.api, 123, kind).map(Value::from));
+    check(&record(&w, 123), &prob["record"], "record");
+    check(&record(&w, 9), &prob["record_missing"], "record missing");
+    check(&inventory(&w, "notes"), &prob["notes"], "notes");
+    check(&inventory(&w, "tasks"), &prob["tasks"], "tasks");
+    w.set(|s| s["tasks"] = json!([{"id": 5}, {"id": "5"}]));
+    check(&inventory(&w, "tasks"), &prob["tasks_dup"], "tasks dup");
+    w.set(|s| s["tasks"] = json!([{"id": "x"}]));
+    check(
+        &inventory(&w, "tasks"),
+        &prob["tasks_bad_id"],
+        "tasks bad id",
+    );
+    w.set(|s| s["rows"]["123"] = json!({"id": "123"}));
+    check(&record(&w, 123), &prob["record_str_id"], "record str id");
+    w.set(|s| s["rows"]["123"] = json!({"id": 124}));
+    check(
+        &record(&w, 123),
+        &prob["record_other_id"],
+        "record other id",
+    );
+    assert_eq!(json!(w.log()), prob["calls"]);
+}

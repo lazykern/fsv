@@ -46,9 +46,11 @@ pub fn inventory(c: &dyn Api, target: i64) -> Result<Vec<Value>> {
 
 /// Port of fsv.ticket_time._duration: a positive `HH:MM` manual time.
 pub fn duration(value: &str) -> Result<String> {
-    static RE: LazyLock<Regex> =
-        LazyLock::new(|| Regex::new(r"^[0-9]{2,}:[0-5][0-9]$").expect("regex"));
-    if !RE.is_match(value) || value.bytes().all(|b| b == b'0' || b == b':') {
+    static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d{2,}:[0-5]\d$").expect("regex"));
+    let zero = value
+        .chars()
+        .all(|c| c == ':' || fsv_core::pystr::decimal_value(c) == Some(0));
+    if !RE.is_match(value) || zero {
         return Err(Error::value(
             "manual time must be a positive HH:MM duration",
         ));
@@ -264,6 +266,64 @@ mod tests {
     use super::*;
     use crate::service::testing::*;
     use fsv_core::ApiError;
+
+    /// `ticket_time.inventory(c, 123)` over each listing, from
+    /// `gen_fsv_api_workflows.py` (`direct.time_inventory`).
+    #[test]
+    fn inventory_matches_python() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/workflows_oracle.json")).unwrap();
+        for case in oracle["direct"]["time_inventory"].as_array().unwrap() {
+            let reply = match &case["reply"] {
+                Value::Number(n) => Reply::Status(n.as_u64().unwrap() as u16),
+                v => Reply::Ok(v.clone()),
+            };
+            let c = FakeApi::new().on("GET tickets/123/time_entries", reply);
+            let got = match inventory(&c, 123) {
+                Ok(rows) => json!({"ok": rows}),
+                Err(e) => json!({"error": e.to_string()}),
+            };
+            let want = match case.get("ok") {
+                Some(ok) => json!({"ok": ok}),
+                None => json!({"error": case["error"]}),
+            };
+            assert_eq!(got, want, "{case}");
+        }
+    }
+
+    /// `ticket_time._duration(v)` from running Python.
+    #[test]
+    fn duration_matches_python() {
+        for ok in [
+            "01:30",
+            "00:01",
+            "001:00",
+            "100:59",
+            "٠١:30",
+            "01:3٠",
+            "１２:00",
+        ] {
+            assert_eq!(duration(ok).unwrap(), ok);
+        }
+        for bad in [
+            "00:00",
+            "٠٠:00",
+            "1:30",
+            "10:60",
+            "10:5",
+            "ab:cd",
+            "00:00:00",
+            "",
+            "12:3a",
+            "٠١:٣٠",
+        ] {
+            assert_eq!(
+                duration(bad).unwrap_err().to_string(),
+                "manual time must be a positive HH:MM duration",
+                "{bad}"
+            );
+        }
+    }
 
     type AfterPost = Box<dyn Fn(&Value) -> Vec<Value> + Send>;
 

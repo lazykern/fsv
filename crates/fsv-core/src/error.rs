@@ -77,6 +77,11 @@ impl Error {
     pub fn value(msg: impl Into<String>) -> Self {
         Error::Value(msg.into())
     }
+    /// Port of fsv.errors.UsageError.__init__: local validation, the bare
+    /// message (never truncated like a server body) and exit 2.
+    pub fn usage(msg: impl Into<String>) -> Self {
+        Error::Value(msg.into())
+    }
     /// `RuntimeError(msg)` / generic exception.
     pub fn other(msg: impl Into<String>) -> Self {
         Error::Other(msg.into())
@@ -376,6 +381,16 @@ mod tests {
         assert_eq!(Error::from(ApiError::new(503, "down")).exit_code(), 5);
         assert_eq!(Error::value("bad").exit_code(), 2);
         assert_eq!(Error::other("x").exit_code(), 1);
+    }
+
+    /// `str(UsageError(m))` and `exit_code_for` from running Python.
+    #[test]
+    fn usage_error_is_the_bare_message_with_exit_2() {
+        for msg in ["bad --x".to_string(), String::new(), "x".repeat(600)] {
+            let e = Error::usage(msg.clone());
+            assert_eq!(e.exit_code(), 2);
+            assert_eq!(e.to_string(), msg);
+        }
     }
 
     #[test]

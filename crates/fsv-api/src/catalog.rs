@@ -2700,6 +2700,42 @@ mod tests {
         );
     }
 
+    /// `catalog.execute` raising: `SendFailure(step, uploaded, error)` once a
+    /// step was tried, a `FlowExit` before; messages from the Python oracle.
+    #[test]
+    fn execute_detailed_keeps_the_failed_step() {
+        let p = full_plan();
+        let seven = |_: &dyn Api, _: &str| Ok(7);
+        let a = FakeApi::new().on(PLACE, Reply::Status(422));
+        let Err(Executed::Failed(f)) =
+            execute_detailed(&p, &a, &MemJournal::default(), &seven, false)
+        else {
+            panic!("place-request should fail");
+        };
+        assert_eq!(f.step, "place-request");
+        assert_eq!(f.uploaded.len(), p.uploads.len());
+        assert!(f.uploaded.iter().all(|u| u["id"] == json!(7)));
+        assert_eq!(f.cause.status(), Some(422));
+        assert_eq!(f.to_string(), want_err("execute_422"));
+
+        let disk = |_: &dyn Api, _: &str| Err(Error::other("disk"));
+        let Err(Executed::Failed(f)) =
+            execute_detailed(&p, &FakeApi::new(), &MemJournal::default(), &disk, false)
+        else {
+            panic!("upload should fail");
+        };
+        assert_eq!((f.step.as_str(), f.uploaded.len()), ("upload", 0));
+        assert_eq!(f.to_string(), want_err("execute_upload_fail"));
+
+        let j = MemJournal::default();
+        j.record_plan("done", &p.hash, "create", None, Some(&json!(5)));
+        let Err(Executed::Refused(e)) = execute_detailed(&p, &FakeApi::new(), &j, &seven, false)
+        else {
+            panic!("a placed plan is refused");
+        };
+        assert_eq!(e.to_string(), want_err("dup_done"));
+    }
+
     #[test]
     fn duplicate_check_journal() {
         let p = full_plan();

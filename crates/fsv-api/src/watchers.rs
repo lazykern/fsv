@@ -3,7 +3,8 @@
 
 use serde_json::{Map, Value, json};
 
-use fsv_core::error::Result;
+use fsv_core::error::{Error, Result};
+use fsv_core::pystr::{decimal_value, is_digit};
 use fsv_core::resource::{CHANGES, TICKETS, parse_id};
 use fsv_py::ValueExt;
 
@@ -11,8 +12,25 @@ use crate::reviewed_write::{WritePlan, execute, refused};
 use crate::service::{Api, Journal, obj, plan_hash};
 
 /// Port of fsv.watchers.positive_id: a positive decimal int or digit string,
-/// never a bool.
+/// never a bool. Like `int()`, any Unicode decimal digits count; a
+/// `str.isdigit` character that is not one (`²`) is `int()`'s `ValueError`.
 pub fn positive_id(value: &Value) -> Result<i64> {
+    if let Value::String(s) = value
+        && !s.is_ascii()
+        && is_digit(s)
+    {
+        let ascii: Option<String> = s
+            .chars()
+            .map(|c| decimal_value(c).and_then(|d| char::from_digit(d, 10)))
+            .collect();
+        let Some(ascii) = ascii else {
+            return Err(Error::value(format!(
+                "invalid literal for int() with base 10: {}",
+                fsv_py::py_repr_str(s)
+            )));
+        };
+        return positive_id(&Value::String(ascii));
+    }
     crate::service::positive_id(value)
         .ok_or_else(|| refused("expected a positive numeric identity"))
 }
@@ -166,7 +184,45 @@ mod tests {
     use super::*;
     use crate::service::testing::*;
     use fsv_core::ApiError;
-    use fsv_core::error::Error;
+
+    /// `watchers.positive_id(v)` from running Python (ids past `i64` are
+    /// out of range here; Python returns the big int).
+    #[test]
+    fn positive_id_matches_python() {
+        let refused = "expected a positive numeric identity";
+        let cases = [
+            (json!(5), Ok(5)),
+            (json!("7"), Ok(7)),
+            (json!("05"), Ok(5)),
+            (json!("१२"), Ok(12)),
+            (json!("١٢"), Ok(12)),
+            (json!("０７"), Ok(7)),
+            (json!("0"), Err(refused.to_string())),
+            (json!(0), Err(refused.into())),
+            (json!(-1), Err(refused.into())),
+            (json!(true), Err(refused.into())),
+            (json!(false), Err(refused.into())),
+            (json!(" 5"), Err(refused.into())),
+            (json!("5.0"), Err(refused.into())),
+            (json!(5.0), Err(refused.into())),
+            (Value::Null, Err(refused.into())),
+            (json!(""), Err(refused.into())),
+            (json!([1]), Err(refused.into())),
+            (
+                json!("²"),
+                Err("invalid literal for int() with base 10: '²'".into()),
+            ),
+            (
+                json!("1²"),
+                Err("invalid literal for int() with base 10: '1²'".into()),
+            ),
+        ];
+        for (value, want) in cases {
+            let got = positive_id(&value).map_err(|e| e.to_string());
+            assert_eq!(got, want, "{value}");
+        }
+        assert_eq!(positive_id(&json!("²")).unwrap_err().exit_code(), 2);
+    }
 
     struct World {
         user: i64,

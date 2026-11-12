@@ -278,8 +278,8 @@ fn ensure_dirs(paths: &Paths) -> Result<()> {
     Ok(())
 }
 
-/// `schema.load(res, client, force)` over the process config
-/// (`config::paths()` and the current tenant's cache key).
+/// Port of fsv.schema.load over the process config (`config::paths()`
+/// and the current tenant's cache key).
 ///
 /// Returns `{saved_at, fields, stale, source}`. A fresh cache is served as
 /// is; a stale one is served with a warning on stderr while a background
@@ -390,8 +390,8 @@ fn fetch_and_save(
     Ok(json!({"saved_at": now(), "fields": fields, "stale": false, "source": "server"}))
 }
 
-/// Port of fsv.schema.load with `force=True` over any [`Api`]: always
-/// fetches and saves to the process cache. Writes that bind to current
+/// [`load`] with `force=True` over any [`Api`]: always fetches and saves
+/// to the process cache. Writes that bind to current
 /// definitions use this.
 pub fn load_forced(res: &Resource, client: &dyn Api) -> Result<Value> {
     load_forced_in(

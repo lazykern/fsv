@@ -598,6 +598,29 @@ mod tests {
 
     /// `planning_text.section_content` and `editable_content` on the rows
     /// `gen_fsv_api_workflows.py` ran them on.
+    /// `planning_text.definitions(c, module)` with `schema.load` patched
+    /// to the generator's change schema.
+    #[test]
+    fn definitions_match_python() {
+        let schema = |_: &dyn Api| {
+            Ok(json!({"fields": [
+                {"name": "acme_plan", "label": "Rollout Plan", "field_type": "planning_field", "id": 901}]}))
+        };
+        let c = FakeApi::new();
+        for module in ["changes", "problems", "tickets"] {
+            let want = &ORACLE["definitions"][module];
+            let got = match definitions(&c, module, &schema) {
+                Ok(rows) => json!({"ok": rows}),
+                Err(e) => json!({"error": e.to_string()}),
+            };
+            let want = match want.get("ok") {
+                Some(ok) => json!({"ok": ok}),
+                None => json!({"error": want["error"]}),
+            };
+            assert_eq!(got, want, "{module}");
+        }
+    }
+
     #[test]
     fn editable_and_section_content_match_python() {
         for case in ORACLE["section_content"].as_array().unwrap() {

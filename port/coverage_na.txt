@@ -62,3 +62,7 @@ fsv.cli._task_observed_value_pairs: helper of unreachable cli completers
 fsv.cli._complete_task_custom_field: unreachable completer; Python prints nothing
 fsv.cli._complete_ticket_for_change: unreachable completer; Python prints nothing
 fsv.cli._complete_tab: unreachable completer; Python prints nothing
+fsv.change_approval_actions.register: Typer registration only; the nested command is fsv-cli `changes approval-respond` (clap dispatch), tested in fsv-cli tests
+fsv.change_approvals.register: Typer registration only; the nested command is fsv-cli `changes approval-request` (clap dispatch), tested in fsv-cli tests
+fsv.change_tasks.register: Typer registration only; the nested command is fsv-cli `changes tasks-add` (clap dispatch), tested in fsv-cli tests
+fsv.ticket_notes.register: Typer registration only; the nested command is fsv-cli `tickets add-note` (clap dispatch), tested in fsv-cli tests

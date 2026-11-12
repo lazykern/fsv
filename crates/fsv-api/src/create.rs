@@ -153,9 +153,8 @@ fn api0(msg: impl Into<String>) -> Error {
     ApiError::new(0, Value::String(msg.into())).into()
 }
 
-/// `UsageError(message)`: local validation, the bare message and exit 2.
 fn usage(msg: impl Into<String>) -> Error {
-    Error::value(msg)
+    Error::usage(msg)
 }
 
 fn s(v: Option<&Value>) -> String {

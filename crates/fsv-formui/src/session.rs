@@ -1589,7 +1589,9 @@ mod tests {
         s.mode = FormMode::Edit;
         s.remember("subject");
         assert_eq!(answers(&s), [("subject".into(), Value::Null)]);
-        s.state.values.insert("subject".into(), Value::from("Again"));
+        s.state
+            .values
+            .insert("subject".into(), Value::from("Again"));
         s.remember("subject");
         assert_eq!(answers(&s), [("subject".into(), Value::from("Again"))]);
     }

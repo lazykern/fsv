@@ -6790,6 +6790,871 @@
     },
     "ok": "c"
    }
+  ],
+  "definitions": {
+   "changes": {
+    "ok": [
+     {
+      "name": "acme_plan",
+      "label": "Rollout Plan",
+      "field_type": "planning_field",
+      "id": 901
+     }
+    ]
+   },
+   "problems": {
+    "ok": [
+     {
+      "name": "problem_cause",
+      "label": "Root Cause"
+     },
+     {
+      "name": "problem_impact",
+      "label": "Impact"
+     },
+     {
+      "name": "problem_symptom",
+      "label": "Symptoms"
+     }
+    ]
+   },
+   "tickets": {
+    "error": "planning wire is proven only for changes and the three native problem analysis sections",
+    "type": "ReviewedWriteError"
+   }
+  }
+ },
+ "direct": {
+  "canned_freshen": {
+   "same": {
+    "ok": null
+   },
+   "metadata": {
+    "error": "canned source changed; review again",
+    "type": "ConversationError"
+   },
+   "content": {
+    "error": "canned source changed; review again",
+    "type": "ConversationError"
+   },
+   "calls": [
+    [
+     "GET",
+     "canned_responses/701",
+     null
+    ],
+    [
+     "GET",
+     "canned_responses/701",
+     null
+    ],
+    [
+     "GET",
+     "canned_responses/701",
+     null
+    ]
+   ]
+  },
+  "scenarios_context": {
+   "ok": {
+    "ok": {
+     "scenario": {
+      "id": 703,
+      "name": "Globex"
+     },
+     "ticket": {
+      "id": 123,
+      "subject": "Acme",
+      "status": 42
+     }
+    }
+   },
+   "missing_scenario": {
+    "error": "scenario identity is missing or ambiguous in this inventory",
+    "type": "ValueError"
+   },
+   "missing_ticket": {
+    "error": "HTTP 404 fetching ticket: synthetic",
+    "type": "APIError"
+   },
+   "calls": [
+    [
+     "GET",
+     "scenario_automations",
+     null
+    ],
+    [
+     "GET",
+     "tickets/123",
+     null
+    ],
+    [
+     "GET",
+     "scenario_automations",
+     null
+    ],
+    [
+     "GET",
+     "scenario_automations",
+     null
+    ],
+    [
+     "GET",
+     "tickets/999",
+     null
+    ]
+   ]
+  },
+  "private_detail": {
+   "ok": {
+    "ok": {
+     "id": 701,
+     "user_id": 901,
+     "default": false,
+     "visibility": 81,
+     "visibility_name": "Me",
+     "name": "Acme source",
+     "workspace_id": 17,
+     "query_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "42"
+       ]
+      }
+     ],
+     "advanced_query_hash": null,
+     "order_by": "created_at",
+     "order_type": "desc"
+    }
+   },
+   "missing": {
+    "error": "HTTP 404 fetching ticket filter: Not found",
+    "type": "APIError"
+   },
+   "other_id": {
+    "error": "exact saved-view identity is unavailable",
+    "type": "ReviewedWriteError"
+   },
+   "bad_id": {
+    "error": "expected a positive numeric identity",
+    "type": "ReviewedWriteError"
+   },
+   "calls": [
+    [
+     "GET",
+     "ticket_filters/701",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters/9",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters/701",
+     null
+    ],
+    [
+     "GET",
+     "ticket_filters/701",
+     null
+    ]
+   ]
+  },
+  "private_visibility": [
+   {
+    "mods": {},
+    "ok": 81
+   },
+   {
+    "mods": {
+     "user_id": 902
+    },
+    "error": "only self-owned, explicitly non-default private views are supported",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "user_id": "901"
+    },
+    "ok": 81
+   },
+   {
+    "mods": {
+     "default": null
+    },
+    "error": "only self-owned, explicitly non-default private views are supported",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "system": true
+    },
+    "error": "only self-owned, explicitly non-default private views are supported",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "system": null
+    },
+    "error": "only self-owned, explicitly non-default private views are supported",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "visibility_name": " ONLY ME "
+    },
+    "ok": 81
+   },
+   {
+    "mods": {
+     "visibility_name": "private"
+    },
+    "ok": 81
+   },
+   {
+    "mods": {
+     "visibility_name": "Everyone"
+    },
+    "error": "named private visibility metadata is unavailable; numeric visibility alone is not proof",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "visibility_name": 5
+    },
+    "error": "named private visibility metadata is unavailable; numeric visibility alone is not proof",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "visibility": {
+      "id": 5,
+      "label": "me"
+     }
+    },
+    "ok": 5
+   },
+   {
+    "mods": {
+     "visibility": {
+      "id": 0,
+      "label": "me"
+     }
+    },
+    "error": "expected a positive numeric identity",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "visibility": {
+      "id": 5
+     }
+    },
+    "error": "named private visibility metadata is unavailable; numeric visibility alone is not proof",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "mods": {
+     "visibility": "81"
+    },
+    "ok": 81
+   },
+   {
+    "mods": {
+     "visibility": null
+    },
+    "error": "expected a positive numeric identity",
+    "type": "ReviewedWriteError"
+   }
+  ],
+  "export_source": [
+   {
+    "module": "tickets",
+    "view": "701",
+    "ok": {
+     "id": "701",
+     "name": "Acme queue",
+     "row": {
+      "id": 701,
+      "name": "Acme queue",
+      "query_hash": [
+       {
+        "condition": "status",
+        "operator": "is_in",
+        "value": [
+         "47"
+        ],
+        "type": "default"
+       }
+      ],
+      "advanced_query_hash": null
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "ticket_filters",
+      null
+     ],
+     [
+      "GET",
+      "ticket_filters/701",
+      null
+     ]
+    ]
+   },
+   {
+    "module": "changes",
+    "view": "Acme queue",
+    "ok": {
+     "id": "701",
+     "name": "Acme queue",
+     "row": {
+      "id": 701,
+      "name": "Acme queue",
+      "query_hash": [
+       {
+        "condition": "status",
+        "operator": "is_in",
+        "value": [
+         "47"
+        ],
+        "type": "default"
+       }
+      ],
+      "advanced_query_hash": null
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "change-filters",
+      null
+     ],
+     [
+      "GET",
+      "change-filters/701",
+      null
+     ]
+    ]
+   },
+   {
+    "module": "problems",
+    "view": "701",
+    "ok": {
+     "id": "701",
+     "name": "Acme queue",
+     "row": {
+      "id": 701,
+      "name": "Acme queue",
+      "query_hash": [
+       {
+        "condition": "status",
+        "operator": "is_in",
+        "value": [
+         "47"
+        ],
+        "type": "default"
+       }
+      ],
+      "advanced_query_hash": null
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "problem-filters",
+      null
+     ],
+     [
+      "GET",
+      "problem-filters/701",
+      null
+     ]
+    ]
+   },
+   {
+    "module": "tickets",
+    "view": "nope",
+    "error": "no view named 'nope'; views: 'Acme queue'",
+    "type": "ValueError",
+    "calls": [
+     [
+      "GET",
+      "ticket_filters",
+      null
+     ]
+    ]
+   },
+   {
+    "module": "tickets",
+    "view": "701",
+    "error": "only ordinary saved-view queries have a captured export contract",
+    "type": "ReviewedWriteError",
+    "calls": [
+     [
+      "GET",
+      "ticket_filters",
+      null
+     ],
+     [
+      "GET",
+      "ticket_filters/701",
+      null
+     ]
+    ]
+   },
+   {
+    "module": "tickets",
+    "view": "701",
+    "error": "no view named '701'; views: 'Acme queue'",
+    "type": "ValueError",
+    "calls": [
+     [
+      "GET",
+      "ticket_filters",
+      null
+     ]
+    ]
+   }
+  ],
+  "problem_reads": {
+   "record": {
+    "ok": {
+     "id": 123,
+     "subject": "Acme"
+    }
+   },
+   "record_missing": {
+    "error": "HTTP 404 fetching problem: synthetic",
+    "type": "APIError"
+   },
+   "notes": {
+    "ok": [
+     {
+      "id": "3",
+      "body": "a"
+     },
+     {
+      "id": 9,
+      "body": "b"
+     }
+    ]
+   },
+   "tasks": {
+    "ok": []
+   },
+   "tasks_dup": {
+    "ok": [
+     {
+      "id": 5
+     }
+    ]
+   },
+   "tasks_bad_id": {
+    "error": "expected a positive numeric identity",
+    "type": "ReviewedWriteError"
+   },
+   "record_str_id": {
+    "ok": {
+     "id": "123"
+    }
+   },
+   "record_other_id": {
+    "error": "exact problem identity is unavailable",
+    "type": "ReviewedWriteError"
+   },
+   "calls": [
+    [
+     "GET",
+     "problems/123",
+     null
+    ],
+    [
+     "GET",
+     "problems/9",
+     null
+    ],
+    [
+     "GET",
+     "problems/123/notes",
+     null
+    ],
+    [
+     "GET",
+     "problems/123/tasks",
+     null
+    ],
+    [
+     "GET",
+     "problems/123/tasks",
+     null
+    ],
+    [
+     "GET",
+     "problems/123/tasks",
+     null
+    ],
+    [
+     "GET",
+     "problems/123",
+     null
+    ],
+    [
+     "GET",
+     "problems/123",
+     null
+    ]
+   ]
+  },
+  "problem_choice": [
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 51,
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "open",
+    "ok": 51
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 51,
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Closed",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [],
+    "label": "Open",
+    "error": "unique runtime status metadata is unavailable",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 51,
+        "value": "Open"
+       }
+      ]
+     },
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 51,
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "error": "unique runtime status metadata is unavailable",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 51,
+        "label": "OPEN"
+       }
+      ]
+     }
+    ],
+    "label": "open",
+    "ok": 51
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 51,
+        "name": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "ok": 51
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 51,
+        "value": "Open",
+        "deleted": true
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 51,
+        "value": "Open",
+        "deleted_at": "x"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 51,
+        "value": "Open"
+       },
+       {
+        "id": 52,
+        "value": "open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": "51",
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": true,
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": -1,
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 0,
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "ok": 0
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       "Open",
+       {
+        "id": 51,
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "ok": 51
+   },
+   {
+    "fields": [
+     {
+      "name": "status"
+     }
+    ],
+    "label": "Open",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   }
+  ],
+  "time_inventory": [
+   {
+    "reply": {
+     "time_entries": [
+      {
+       "id": 9,
+       "a": 1
+      },
+      {
+       "id": "3"
+      }
+     ],
+     "has_more": false
+    },
+    "ok": [
+     {
+      "id": "3"
+     },
+     {
+      "id": 9,
+      "a": 1
+     }
+    ],
+    "calls": [
+     [
+      "GET",
+      "tickets/123/time_entries",
+      null
+     ]
+    ]
+   },
+   {
+    "reply": {
+     "time_entries": [],
+     "has_more": false
+    },
+    "ok": [],
+    "calls": [
+     [
+      "GET",
+      "tickets/123/time_entries",
+      null
+     ]
+    ]
+   },
+   {
+    "reply": {
+     "time_entries": [
+      {
+       "id": 3
+      },
+      {
+       "id": "3"
+      }
+     ],
+     "has_more": false
+    },
+    "ok": [
+     {
+      "id": 3
+     }
+    ],
+    "calls": [
+     [
+      "GET",
+      "tickets/123/time_entries",
+      null
+     ]
+    ]
+   },
+   {
+    "reply": {
+     "time_entries": [
+      {
+       "id": 0
+      }
+     ],
+     "has_more": false
+    },
+    "error": "expected a positive numeric identity",
+    "type": "ReviewedWriteError",
+    "calls": [
+     [
+      "GET",
+      "tickets/123/time_entries",
+      null
+     ]
+    ]
+   },
+   {
+    "reply": 403,
+    "error": "complete time-entry inventory is unavailable",
+    "type": "ReviewedWriteError",
+    "calls": [
+     [
+      "GET",
+      "tickets/123/time_entries",
+      null
+     ],
+     [
+      "GET",
+      "/a/dashboard",
+      null
+     ]
+    ]
+   }
   ]
  }
 }

@@ -606,7 +606,11 @@ mod tests {
         assert_eq!(
             got,
             vec![
-                (json!(71), "Alex Kim".into(), Some("alex@example.com".into())),
+                (
+                    json!(71),
+                    "Alex Kim".into(),
+                    Some("alex@example.com".into())
+                ),
                 (json!(4), "Cy Ray".into(), Some("cy@example.com".into())),
                 (json!(5), "Di Fox".into(), None),
             ]

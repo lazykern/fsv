@@ -42,15 +42,14 @@ pub fn candidates(c: &dyn Api, target: &Value, query: &str, page: i64) -> Result
         Some(Value::Array(rows)) if rows.iter().all(Value::is_object) => rows,
         _ => return Err(refused("asset candidate response is unavailable")),
     };
-    let mut ids = Vec::with_capacity(rows.len());
-    for row in rows {
-        let id = positive_id(row.get("display_id").unwrap_or(&Value::Null))?;
-        if ids.contains(&id) {
-            return Err(refused(
-                "duplicate asset display identities; selection is ambiguous",
-            ));
-        }
-        ids.push(id);
+    let ids = rows
+        .iter()
+        .map(|row| positive_id(row.get("display_id").unwrap_or(&Value::Null)))
+        .collect::<Result<Vec<_>>>()?;
+    if ids.iter().enumerate().any(|(i, id)| ids[..i].contains(id)) {
+        return Err(refused(
+            "duplicate asset display identities; selection is ambiguous",
+        ));
     }
     Ok(Candidates {
         change_id: target,
@@ -91,6 +90,36 @@ mod tests {
 
     fn api(assets: Value) -> FakeApi {
         FakeApi::new().ok("GET assets-to-associate", json!({ "assets": assets }))
+    }
+
+    /// Every display id is validated before duplicates are checked;
+    /// messages from running `asset_picker.candidates` on these rows.
+    #[test]
+    fn candidates_validates_every_id_before_duplicates() {
+        for (rows, want) in [
+            (
+                json!([{"display_id": 7}, {"display_id": 7}, {"display_id": "x"}]),
+                "expected a positive numeric identity",
+            ),
+            (
+                json!([{"display_id": 7}, {"display_id": "7"}, {"display_id": 0}]),
+                "expected a positive numeric identity",
+            ),
+            (
+                json!([{"display_id": "x"}, {"display_id": 7}, {"display_id": 7}]),
+                "expected a positive numeric identity",
+            ),
+            (
+                json!([{"display_id": 7}, {"display_id": "7"}]),
+                "duplicate asset display identities; selection is ambiguous",
+            ),
+        ] {
+            assert_eq!(
+                err(candidates(&api(rows.clone()), &json!("CHN-5"), "q", 1)),
+                want,
+                "{rows}"
+            );
+        }
     }
 
     /// Expected values from running `asset_picker.candidates` / `select`
