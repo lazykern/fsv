@@ -2791,7 +2791,7 @@
      "required": true
     }
    ],
-   "note": "static field visibility (business rules: unavailable (500))"
+   "note": "static field visibility (business rules: not available on this account (500))"
   },
   "calls": [
    [

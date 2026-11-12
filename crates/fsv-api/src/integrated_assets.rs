@@ -457,10 +457,23 @@ pub fn build_plan(
             "provide distinct inventory IDs; removal accepts exactly one ID",
         ));
     }
-    if driver(c, module, &json!(target_id), kind)? != INTEGRATED {
-        return legacy_plan(c, module, target_id, &ids, kind, remove);
-    }
-    let before = inventory(c, module, &json!(target_id), kind)?;
+    // A successful associated-cis read is the integrated driver. Probing it
+    // again would consume a scripted before-state page.
+    let before = match inventory(c, module, &json!(target_id), kind) {
+        Ok(rows) => rows,
+        Err(err) if err.status() == Some(404) => {
+            let (wire, id) = (wire, target_id);
+            if let Some(path) = legacy_read_path(wire, id)
+                && present(c, &path, None)?
+            {
+                return legacy_plan(c, module, id, &ids, kind, remove);
+            }
+            return Err(refused(format!(
+                "no asset association endpoint found for {wire} {id} (associated-cis and the legacy asset list both answered 404); nothing read or sent"
+            )));
+        }
+        Err(err) => return Err(err),
+    };
     let payload = if remove {
         let row = before.iter().find(|row| {
             positive_id(row.get("item_id").unwrap_or(&Value::Null)).ok() == Some(ids[0])

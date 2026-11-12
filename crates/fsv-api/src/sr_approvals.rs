@@ -142,13 +142,20 @@ pub fn build_plan(
     if operation == "reject" && fsv_core::pystr::strip(remark).is_empty() {
         return Err(Error::value("reject requires a nonempty --remark"));
     }
-    crate::approval_model::require_chains(
-        c,
-        "tickets",
-        target,
-        &format!("sr approvals {operation}"),
-    )?;
-    let before = inventory(c, target)?;
+    // The chains GET is the inventory read. A second probe would consume a
+    // scripted before-state response and rebuild a different plan.
+    let before = match inventory(c, target) {
+        Ok(rows) => rows,
+        Err(err) => {
+            if let Some(status) = crate::approval_model::groups_status(&err) {
+                return Err(crate::approval_model::refusal(
+                    &format!("sr approvals {operation}"),
+                    Some(status),
+                ));
+            }
+            return Err(err);
+        }
+    };
     let mut path = format!("tickets/{target}");
     let payload = if operation == "request" {
         let Some(name) = name.filter(|n| !fsv_core::pystr::strip(n).is_empty()) else {

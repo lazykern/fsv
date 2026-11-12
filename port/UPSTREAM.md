@@ -3142,7 +3142,9 @@ The partial is the SR list command, named below.
 | `5711a5a` | 11-13 03:10 | Detect the approval model and refuse chains-only actions on legacy tenants | partial | fsv-api `approval_model`, `approvals`, `sr_approvals` |
 
 `detect` is one read-only GET. `require_chains` refuses a proven legacy
-tenant before any write. Change approval request and cancel map the
+tenant before any write. SR `build_plan` does not probe before
+`inventory`: that read is the chains GET, and a page-1 400/404 becomes
+the same refusal. A second GET would consume a scripted before-state. Change approval request and cancel map the
 page-1 400/404 into "approval-request refused" / "approval-cancel
 refused". Approve and reject probe before the PUT
 (`approval-respond --approve` / `--reject`). `--groups` says
@@ -3313,7 +3315,9 @@ Triaged against `git show 58551c8`
 error propagates). `listing`, `legacy_inventory`, `legacy_candidates`,
 and `legacy_plan` cover the captured legacy add. Removal is refused.
 `build_plan` / `send` use the legacy plan when the tenant is not
-integrated. Verification reads the legacy list only.
+integrated. A successful `associated-cis` read is the integrated
+driver, so `build_plan` does not GET that path twice. `listing` still
+probes, then reads. Verification reads the legacy list only.
 
 Counts: **1 partial, 0 ported.** `port/UPSTREAM_BASE` is `58551c8`.
 

@@ -476,6 +476,10 @@ const ACT_HASH: &str = "17dd426733d6aadc540302d059b0de7734e2a86cdb92a4f57b45beb9
 fn approvals_server() -> Tenant {
     let decided = Arc::new(AtomicBool::new(false));
     tenant(move |c| match (c.method.as_str(), c.path.as_str()) {
+        ("GET", "/api/_/changes/5/approval-chains") => {
+            // 404 would be the legacy model and refuse this flat approval.
+            status(403, json!({"errors": "absent"}))
+        }
         ("GET", "/api/_/changes/5/approvals") => {
             let st = if decided.load(Ordering::SeqCst) {
                 json!({"id": 1, "name": "approved"})
@@ -513,13 +517,14 @@ fn approval_actions_send_once_and_verify_the_decision() {
     assert_eq!(
         calls.iter().map(|c| c.line()).collect::<Vec<_>>(),
         [
+            "GET /api/_/changes/5/approval-chains?page=1&per_page=100",
             "GET /api/_/changes/5/approvals",
             "PUT /api/_/changes/5/approvals/7",
             "GET /api/_/changes/5/approvals"
         ]
     );
     assert_eq!(
-        calls[1].body.as_deref(),
+        calls[2].body.as_deref(),
         Some(r#"{"approval_status": 1, "remark": "ok"}"#)
     );
     assert_eq!(
