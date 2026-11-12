@@ -64,11 +64,17 @@ def build_plan(client: Any, ids: list[str], *, action: str, where: list[str] | N
                select_all: bool = False, status: str | None = None, agent: str | None = None,
                group: str | None = None, primary: str | None = None,
                note_primary: str | None = None, note_secondary: str | None = None,
-               max_records: int | None = None) -> BulkPlan:
+               max_records: int | None = None, answers: dict[str, Any] | None = None) -> BulkPlan:
     where = where or []
     cids = selection(client, ids, where, select_all, max_records)
-    intent = dict(ids=ids, action=action, where=where, select_all=select_all, status=status,
+    intent: dict[str, Any] = dict(ids=ids, action=action, where=where, select_all=select_all, status=status,
                   agent=agent, group=group, primary=primary, note_primary=note_primary, note_secondary=note_secondary, max_records=max_records)
+    if answers:
+        if action != "status":
+            raise ValueError("--set is supported by bulk status only")
+        if any(str(k).strip().casefold() == "status" for k in answers):
+            raise ValueError("use --status for the status; --set is for the fields its rules require")
+        intent["answers"] = dict(answers)  # bound only when used: older review hashes are unchanged
     if action not in {"status", "assign", "pickup", "merge", "spam", "unspam", "delete"}:
         raise ValueError("unsupported bulk action")
     if (status is not None and action != "status") or ((agent or group) and action != "assign") or (
@@ -91,7 +97,8 @@ def build_plan(client: Any, ids: list[str], *, action: str, where: list[str] | N
         if action == "status":
             if not status or status.casefold() in {"resolved", "closed"}:
                 raise ValueError("bulk closure needs separate prerequisites; select an ordinary runtime status")
-            props = [ticket_properties.build_plan(client, i, answers={"status": status}) for i in cids]
+            # Each ticket's edit form and rules decide (e.g. a reason a status requires).
+            props = [ticket_properties.build_plan(client, i, answers={"status": status, **(answers or {})}) for i in cids]
             statuses = {p.payload.get("status") for p in props}
             if len(statuses) != 1 or None in statuses:
                 raise ReviewedWriteError("status metadata disagrees across selected tickets")
@@ -109,14 +116,24 @@ def build_plan(client: Any, ids: list[str], *, action: str, where: list[str] | N
             if any(type(r.get(next(iter(fields)))) is not bool for r in baselines):
                 raise ReviewedWriteError("spam/deleted baseline flag unavailable")
         expected = [fields for _ in cids]
-        if action in {"status", "assign"}:
+        if answers:
+            # The bulk update_multiple wire is captured for status/assignment
+            # only; rule-required field answers use the captured single-ticket
+            # PUT per ticket, each hash-bound and read back independently.
+            delegate = tuple(props)
+            expected = [{k: v for k, v in p.payload.items() if k != "br_validation_excludes"} for p in props]
+            write = WritePlan("ticket_bulk_status_fields", cids[0], config.DOMAIN, "PUT", "tickets/{id} (one per selected ticket)",
+                              json.dumps([{"id": p.ticket_id, **p.payload} for p in props], sort_keys=True, ensure_ascii=False),
+                              journal.snapshot_hash({"records": baselines, "plans": [p.hash for p in props]}) or "")
+        elif action in {"status", "assign"}:
             method, path, body = "PUT", "bulk_ticket_actions/update_multiple", {**fields, "ids": cids, "reply": {}}
         elif action == "delete":
             method, path, body = "DELETE", "tickets/delete_multiple?" + urlencode({"ids": ",".join(map(str, cids))}), None
         else:
             method, path, body = "POST", f"tickets/{action}_multiple", {"ids": cids}
-        write = WritePlan("ticket_bulk_" + action, cids[0], config.DOMAIN, method, path, json.dumps(body, sort_keys=True),
-                          journal.snapshot_hash({"records": baselines, "plans": [p.hash for p in props]}) or "")
+        if not answers:
+            write = WritePlan("ticket_bulk_" + action, cids[0], config.DOMAIN, method, path, json.dumps(body, sort_keys=True),
+                              journal.snapshot_hash({"records": baselines, "plans": [p.hash for p in props]}) or "")
     selected = []
     for cid in cids:
         row = ticket_properties._record(client, cid)
@@ -146,6 +163,8 @@ def send(plan: BulkPlan, client: Any, *, reviewed_hash: str | None, confirm_dest
             raise ReviewedWriteError("bulk selection, metadata or records changed; review again")
         return fresh.write
     rebuild()
+    if intent.get("answers"):
+        return _send_each(plan, client)
     if intent["action"] == "merge":
         result = ticket_merge.send(plan.delegate, client, reviewed_hash=plan.delegate.hash)
         return {**result, "delegated_plan_hash": result.get("plan_hash"), "plan_hash": plan.hash}
@@ -168,3 +187,24 @@ def send(plan: BulkPlan, client: Any, *, reviewed_hash: str | None, confirm_dest
     result = execute(plan.write, client, reviewed_hash=plan.write.hash, rebuild=rebuild,
                      verify=lambda response: bounded_readback(lambda: verify(response)))
     return {**result, "delegated_plan_hash": result.get("plan_hash"), "plan_hash": plan.hash}
+
+
+def _send_each(plan: BulkPlan, client: Any) -> dict[str, Any]:
+    """Per-ticket reviewed property writes; stop at the first uncertain one."""
+    action = plan.write.action
+    journal.record_plan("started", plan.write.hash, action=action, target=plan.write.target)
+    tickets: dict[str, Any] = {}
+    for index, prop in enumerate(plan.delegate):
+        try:
+            result = ticket_properties.send(prop, client, reviewed_hash=prop.hash)
+        except Exception as exc:  # noqa: BLE001 - reported per ticket, never retried
+            tickets[str(prop.ticket_id)] = {"verified": False, "error": str(exc)}
+            return {"status": "partial", "verified": False, "plan_hash": plan.hash, "ticket_ids": list(plan.ids),
+                    "tickets": tickets, "stopped_at": prop.ticket_id,
+                    "not_attempted": [p.ticket_id for p in plan.delegate[index + 1:]],
+                    "warning": "Stopped at the first failed or uncertain ticket; inspect it and the journal; never replay."}
+        tickets[str(prop.ticket_id)] = {k: result.get(k) for k in ("verified", "fields", "plan_hash") if k in result}
+    verified = all(t.get("verified") for t in tickets.values())
+    journal.record_plan("done", plan.write.hash, action=action, target=plan.write.target)
+    return {"status": "submitted", "verified": verified, "plan_hash": plan.hash, "ticket_ids": list(plan.ids),
+            "tickets": tickets}
