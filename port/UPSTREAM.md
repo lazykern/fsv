@@ -2826,4 +2826,45 @@ no such key, else "matched" or "mismatched".
 
 No CLI follow-up.
 
-Still not triaged: commits after `291e5cd`.
+## Ledger: `aa8df39` (library side)
+
+Triaged against `git show aa8df39`
+(`aa8df3956389e29eecb3774680772c32c0af9f1a`). A stamped generator gives
+six lagging bulk readbacks (spam and delete, lag 0, 2 and 100). Each
+records the result, the requested sleeps, the post-write reads, the
+write count and the replay refusal. All of them match. The
+ticket-assignment and ticket-merge oracles were regenerated at
+`aa8df39`: their results gain `readback_attempts`. The ticket-bulk and
+reviewed (bulk priority) oracles regenerate unchanged.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `aa8df39`.
+The partial is the CLI note named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `aa8df39` | 11-13 01:49 | Re-read bulk outcomes with bounded read-only observations and report the reviewed bulk hash | partial | fsv-api `readback`, `ticket_bulk`, `ticket_assignment`, `ticket_merge`, `bulk_priority`. fsv-cli note below |
+
+New `readback::bounded_readback` re-runs only the read-only verifier.
+It takes up to four observations, sleeping 0.5, 1.5 and 3.0 seconds
+between them, and stops at the first `verified: true`. A verifier error
+becomes `{verified: false, warning: "Independent readback unavailable;
+do not resend."}`. Every result carries `readback_attempts`. The
+journal still forbids any resend. Ticket bulk, assignment, merge and
+bulk priority sends use it. Ticket bulk results, including the merge
+and pickup delegates, report the bulk review hash as `plan_hash` and
+the write's hash as `delegated_plan_hash`.
+
+`readback::with_readback_sleep(hook, body)` replaces the sleep on the
+current thread, like the Python tests' `readback._sleep` patch. Without
+a hook the sleep is real, except in fsv-api's own unit tests.
+
+### CLI handoff (do not edit fsv-cli here)
+
+- CLI tests that send an unverified bulk, assignment, merge or priority
+  write now take up to 5 s of real sleep unless wrapped in
+  `fsv_api::readback::with_readback_sleep(|_| {}, ...)`.
+- CLI result goldens for these sends gain `readback_attempts`. Bulk
+  results also gain `delegated_plan_hash`, and their `plan_hash`
+  becomes the bulk review hash.
+
+Still not triaged: `29f7421` and later.

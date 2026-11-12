@@ -267,7 +267,8 @@ pub fn send(
             "verified": unchanged && primary_note && all_checks,
         })))
     };
-    execute(plan, c, journal, reviewed_hash, &rebuild, &verify)
+    let bounded = |r: &Value| Ok(crate::readback::bounded_readback(|| verify(r)));
+    execute(plan, c, journal, reviewed_hash, &rebuild, &bounded)
 }
 
 #[cfg(test)]

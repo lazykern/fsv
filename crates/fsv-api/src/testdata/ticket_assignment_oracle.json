@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "8f156c08ec19b91dc42656707ee229f0b38112e0",
+  "commit": "aa8df3956389e29eecb3774680772c32c0af9f1a",
   "dirty": false
  },
  "single_unassign": {
@@ -62,7 +62,8 @@
       "123": {
        "responder_id": "matched"
       }
-     }
+     },
+     "readback_attempts": 1
     },
     "writes": 1
    },
@@ -162,7 +163,8 @@
        "group_id": "matched",
        "responder_id": "matched"
       }
-     }
+     },
+     "readback_attempts": 1
     },
     "writes": 1
    },
@@ -218,7 +220,8 @@
       "124": {
        "responder_id": "matched"
       }
-     }
+     },
+     "readback_attempts": 1
     },
     "writes": 2
    }
@@ -312,7 +315,8 @@
        "group_id": "matched",
        "responder_id": "matched"
       }
-     }
+     },
+     "readback_attempts": 1
     },
     "writes": 1
    }
@@ -391,7 +395,8 @@
       "124": {
        "responder_id": "matched"
       }
-     }
+     },
+     "readback_attempts": 1
     },
     "writes": 1
    }
@@ -1030,6 +1035,7 @@
        "responder_id": "mismatched"
       }
      },
+     "readback_attempts": 4,
      "warning": "Readback was not fully verified; do not resend."
     },
     "writes": 1
@@ -1129,6 +1135,7 @@
        "responder_id": "mismatched"
       }
      },
+     "readback_attempts": 4,
      "warning": "Readback was not fully verified; do not resend."
     },
     "writes": 1

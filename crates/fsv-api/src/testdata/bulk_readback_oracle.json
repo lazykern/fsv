@@ -1,0 +1,196 @@
+{
+  "_python": {
+    "commit": "aa8df3956389e29eecb3774680772c32c0af9f1a",
+    "dirty": false
+  },
+  "cases": [
+    {
+      "action": "spam",
+      "lag": 0,
+      "hash": "eb985480ba77dfb1285de0dc017a3e5fe499132ca144aaaa43de94e94f8e2786",
+      "write_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f",
+      "result": {
+        "status": "submitted",
+        "plan_hash": "eb985480ba77dfb1285de0dc017a3e5fe499132ca144aaaa43de94e94f8e2786",
+        "verified": true,
+        "ticket_ids": [
+          71,
+          72
+        ],
+        "tickets": {
+          "71": {
+            "spam": "matched"
+          },
+          "72": {
+            "spam": "matched"
+          }
+        },
+        "readback_attempts": 1,
+        "delegated_plan_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f"
+      },
+      "sleeps": [],
+      "post_reads": 2,
+      "writes": 1,
+      "replay": "bulk write was sent or outcome unknown; do not replay"
+    },
+    {
+      "action": "spam",
+      "lag": 2,
+      "hash": "eb985480ba77dfb1285de0dc017a3e5fe499132ca144aaaa43de94e94f8e2786",
+      "write_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f",
+      "result": {
+        "status": "submitted",
+        "plan_hash": "eb985480ba77dfb1285de0dc017a3e5fe499132ca144aaaa43de94e94f8e2786",
+        "verified": true,
+        "ticket_ids": [
+          71,
+          72
+        ],
+        "tickets": {
+          "71": {
+            "spam": "matched"
+          },
+          "72": {
+            "spam": "matched"
+          }
+        },
+        "readback_attempts": 2,
+        "delegated_plan_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f"
+      },
+      "sleeps": [
+        0.5
+      ],
+      "post_reads": 4,
+      "writes": 1,
+      "replay": "bulk write was sent or outcome unknown; do not replay"
+    },
+    {
+      "action": "spam",
+      "lag": 100,
+      "hash": "eb985480ba77dfb1285de0dc017a3e5fe499132ca144aaaa43de94e94f8e2786",
+      "write_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f",
+      "result": {
+        "status": "submitted",
+        "plan_hash": "eb985480ba77dfb1285de0dc017a3e5fe499132ca144aaaa43de94e94f8e2786",
+        "verified": false,
+        "ticket_ids": [
+          71,
+          72
+        ],
+        "tickets": {
+          "71": {
+            "spam": "mismatched"
+          },
+          "72": {
+            "spam": "mismatched"
+          }
+        },
+        "readback_attempts": 4,
+        "warning": "Readback was not fully verified; do not resend.",
+        "delegated_plan_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f"
+      },
+      "sleeps": [
+        0.5,
+        1.5,
+        3.0
+      ],
+      "post_reads": 8,
+      "writes": 1,
+      "replay": "bulk write was sent or outcome unknown; do not replay"
+    },
+    {
+      "action": "delete",
+      "lag": 0,
+      "hash": "ab6d3cdb8eaddcb785c9f149f4bf58d1abb5ca5596a1fae6c3f52f501cbafa3d",
+      "write_hash": "3b233b4ff9045379ac49fc00cb9f06766890734770bdf59c279eca9ecf1b89a2",
+      "result": {
+        "status": "submitted",
+        "plan_hash": "ab6d3cdb8eaddcb785c9f149f4bf58d1abb5ca5596a1fae6c3f52f501cbafa3d",
+        "verified": true,
+        "ticket_ids": [
+          71,
+          72
+        ],
+        "tickets": {
+          "71": {
+            "deleted": "matched"
+          },
+          "72": {
+            "deleted": "matched"
+          }
+        },
+        "readback_attempts": 1,
+        "delegated_plan_hash": "3b233b4ff9045379ac49fc00cb9f06766890734770bdf59c279eca9ecf1b89a2"
+      },
+      "sleeps": [],
+      "post_reads": 2,
+      "writes": 1,
+      "replay": "bulk write was sent or outcome unknown; do not replay"
+    },
+    {
+      "action": "delete",
+      "lag": 2,
+      "hash": "ab6d3cdb8eaddcb785c9f149f4bf58d1abb5ca5596a1fae6c3f52f501cbafa3d",
+      "write_hash": "3b233b4ff9045379ac49fc00cb9f06766890734770bdf59c279eca9ecf1b89a2",
+      "result": {
+        "status": "submitted",
+        "plan_hash": "ab6d3cdb8eaddcb785c9f149f4bf58d1abb5ca5596a1fae6c3f52f501cbafa3d",
+        "verified": true,
+        "ticket_ids": [
+          71,
+          72
+        ],
+        "tickets": {
+          "71": {
+            "deleted": "matched"
+          },
+          "72": {
+            "deleted": "matched"
+          }
+        },
+        "readback_attempts": 2,
+        "delegated_plan_hash": "3b233b4ff9045379ac49fc00cb9f06766890734770bdf59c279eca9ecf1b89a2"
+      },
+      "sleeps": [
+        0.5
+      ],
+      "post_reads": 4,
+      "writes": 1,
+      "replay": "bulk write was sent or outcome unknown; do not replay"
+    },
+    {
+      "action": "delete",
+      "lag": 100,
+      "hash": "ab6d3cdb8eaddcb785c9f149f4bf58d1abb5ca5596a1fae6c3f52f501cbafa3d",
+      "write_hash": "3b233b4ff9045379ac49fc00cb9f06766890734770bdf59c279eca9ecf1b89a2",
+      "result": {
+        "status": "submitted",
+        "plan_hash": "ab6d3cdb8eaddcb785c9f149f4bf58d1abb5ca5596a1fae6c3f52f501cbafa3d",
+        "verified": false,
+        "ticket_ids": [
+          71,
+          72
+        ],
+        "tickets": {
+          "71": {
+            "deleted": "mismatched"
+          },
+          "72": {
+            "deleted": "mismatched"
+          }
+        },
+        "readback_attempts": 4,
+        "warning": "Readback was not fully verified; do not resend.",
+        "delegated_plan_hash": "3b233b4ff9045379ac49fc00cb9f06766890734770bdf59c279eca9ecf1b89a2"
+      },
+      "sleeps": [
+        0.5,
+        1.5,
+        3.0
+      ],
+      "post_reads": 8,
+      "writes": 1,
+      "replay": "bulk write was sent or outcome unknown; do not replay"
+    }
+  ]
+}

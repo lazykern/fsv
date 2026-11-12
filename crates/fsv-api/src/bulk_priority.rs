@@ -155,7 +155,8 @@ pub fn send(
         let verified = fields.values().all(|v| v == "matched");
         Ok(obj(json!({"tickets": fields, "verified": verified})))
     };
-    execute(&plan.write, c, journal, reviewed_hash, &rebuild, &verify)
+    let bounded = |r: &Value| Ok(crate::readback::bounded_readback(|| verify(r)));
+    execute(&plan.write, c, journal, reviewed_hash, &rebuild, &bounded)
 }
 
 #[cfg(test)]
