@@ -12,6 +12,7 @@ def test_assets_new_ls_subcommand_calls_integrated_inventory(monkeypatch):
     calls = []
     monkeypatch.setattr(cli, "_client", lambda: None)
     monkeypatch.setattr(integrated_assets, "inventory", lambda *a: calls.append(a) or [])
+    monkeypatch.setattr(integrated_assets, "driver", lambda *a: integrated_assets.INTEGRATED)
     result = runner.invoke(cli.app, ["changes", "assets", "ls", "CHN-1", "--json"])
     assert result.exit_code == 0, result.output
     assert calls == [(None, "changes", "CHN-1", "devices")]

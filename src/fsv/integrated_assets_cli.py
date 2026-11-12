@@ -43,7 +43,12 @@ def register(app: typer.Typer, module: str, factory: Callable[[], Any]) -> None:
     @group.command("list")
     @group.command("ls", hidden=True)
     def listing(target: str, kind: str = typer.Option("devices", "--kind"), json_out: bool = typer.Option(False, "--json")) -> None:
-        guard(lambda: typer.echo(json.dumps({"data": assets.inventory(factory(), module, target, kind), "complete": True}, indent=2)))
+        guard(lambda: typer.echo(json.dumps(assets.listing(factory(), module, target, kind), indent=2)))
+
+    @group.command("candidates", help="Assets the web offers to associate (legacy asset association driver).")
+    def candidates(target: str, json_out: bool = typer.Option(False, "--json")) -> None:
+        guard(lambda: typer.echo(json.dumps({"data": assets.legacy_candidates(factory(), module, target),
+                                             "complete": True}, indent=2)))
 
     if module == "changes":
         @group.command("legacy", hidden=True)

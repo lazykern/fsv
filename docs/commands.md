@@ -251,6 +251,11 @@ fsv changes columns list
 fsv changes watchers list CHN-1234
 ```
 
+`<module> assets list` probes the tenant with read-only GETs (404 means
+absent): the integrated-ITAM `<module>/<id>/associated-cis` is used when it
+exists, else the legacy list (`tickets/<id>/associated_assets`,
+`changes/<id>/assets`); neither fails closed. The JSON names the `driver`.
+
 ## Inventory, solutions, attachments, and forms
 
 ```bash
