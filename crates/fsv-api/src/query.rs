@@ -188,6 +188,7 @@ pub fn resolve_where(
         .get("field_type")
         .and_then(Value::as_str)
         .unwrap_or("");
+    crate::filter_proof::require_filterable_field(&field)?;
     let operator = where_operator(&op)?;
 
     if name == "requester" {

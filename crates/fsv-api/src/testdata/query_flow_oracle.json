@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "8f156c08ec19b91dc42656707ee229f0b38112e0",
+  "commit": "fbc54d41050d0fbc3d2f2c950cfff17a4f21c992",
   "dirty": false
  },
  "query": {
@@ -88,7 +88,7 @@
     "ok": "[{\"value\":[\"-12\"],\"condition\":\"cf_count\",\"operator\":\"is_in\",\"type\":\"custom_field\"}]"
    },
    "Subject='Acme = ready'": {
-    "ok": "[{\"value\":[\"Acme = ready\"],\"condition\":\"subject\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+    "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
    },
    "group=Acme Ops": {
     "ok": "[{\"value\":[\"93\"],\"condition\":\"group_id\",\"operator\":\"is_in\",\"type\":\"default\"}]"
@@ -592,7 +592,7 @@
       "err": "strict date operator '<' is not supported; use >= or <= for inclusive bounds"
      },
      "Subject~=Acme": {
-      "err": "operator ~= (contains) not supported; use = or !="
+      "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
      },
      "Count>12": {
       "err": "operator '>' not supported for this field; use = or !="
@@ -604,7 +604,7 @@
       "ok": "[{\"value\":{\"from\":\"2030-01-01\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"}]"
      },
      "Subject='=Acme'": {
-      "ok": "[{\"value\":[\"=Acme\"],\"condition\":\"subject\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+      "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
      }
     },
     "tickets": {
@@ -615,7 +615,7 @@
       "err": "strict date operator '<' is not supported; use >= or <= for inclusive bounds"
      },
      "Subject~=Acme": {
-      "err": "operator ~= (contains) not supported; use = or !="
+      "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
      },
      "Count>12": {
       "err": "operator '>' not supported for this field; use = or !="
@@ -627,7 +627,7 @@
       "ok": "[{\"value\":{\"from\":\"2030-01-01\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"}]"
      },
      "Subject='=Acme'": {
-      "ok": "[{\"value\":[\"=Acme\"],\"condition\":\"subject\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+      "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
      }
     },
     "problems": {
@@ -638,7 +638,7 @@
       "err": "strict date operator '<' is not supported; use >= or <= for inclusive bounds"
      },
      "Subject~=Acme": {
-      "err": "operator ~= (contains) not supported; use = or !="
+      "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
      },
      "Count>12": {
       "err": "operator '>' not supported for this field; use = or !="
@@ -650,7 +650,7 @@
       "ok": "[{\"value\":{\"from\":\"2030-01-01\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"}]"
      },
      "Subject='=Acme'": {
-      "ok": "[{\"value\":[\"=Acme\"],\"condition\":\"subject\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+      "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
      }
     }
    }

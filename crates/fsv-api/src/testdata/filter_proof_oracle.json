@@ -1,0 +1,599 @@
+{
+  "_python": {
+    "commit": "fbc54d41050d0fbc3d2f2c950cfff17a4f21c992",
+    "dirty": false
+  },
+  "filterable": [
+    {
+      "field": {
+        "name": "subject",
+        "field_type": "default_subject"
+      },
+      "err": "filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)"
+    },
+    {
+      "field": {
+        "name": "description",
+        "field_type": "default_description"
+      },
+      "err": "filter operator unavailable in runtime metadata for 'description'; refusing an unproven filter (use explicit IDs)"
+    },
+    {
+      "field": {
+        "name": "cf_note",
+        "field_type": "custom_text"
+      },
+      "err": "filter operator unavailable in runtime metadata for 'cf_note'; refusing an unproven filter (use explicit IDs)"
+    },
+    {
+      "field": {
+        "name": "cf_tier",
+        "field_type": "custom_text",
+        "choices": [
+          [
+            "Gold",
+            1
+          ]
+        ]
+      },
+      "ok": null
+    },
+    {
+      "field": {
+        "name": "cf_tier",
+        "field_type": "custom_text",
+        "choices": []
+      },
+      "err": "filter operator unavailable in runtime metadata for 'cf_tier'; refusing an unproven filter (use explicit IDs)"
+    },
+    {
+      "field": {
+        "name": "cf_pick",
+        "field_type": "nested_dropdown"
+      },
+      "ok": null
+    },
+    {
+      "field": {
+        "name": "cf_count",
+        "field_type": "custom_number"
+      },
+      "ok": null
+    },
+    {
+      "field": {
+        "name": "priority",
+        "field_type": "default_priority"
+      },
+      "ok": null
+    },
+    {
+      "field": {
+        "name": "status",
+        "field_type": "default_status"
+      },
+      "ok": null
+    },
+    {
+      "field": {
+        "name": "group",
+        "field_type": "custom_text"
+      },
+      "ok": null
+    },
+    {
+      "field": {
+        "name": "requester"
+      },
+      "ok": null
+    },
+    {
+      "field": {
+        "field_type": "custom_text"
+      },
+      "err": "filter operator unavailable in runtime metadata for None; refusing an unproven filter (use explicit IDs)"
+    },
+    {
+      "field": {
+        "name": 7,
+        "field_type": null
+      },
+      "err": "filter operator unavailable in runtime metadata for 7; refusing an unproven filter (use explicit IDs)"
+    },
+    {
+      "field": {
+        "name": "x",
+        "field_type": 0
+      },
+      "err": "filter operator unavailable in runtime metadata for 'x'; refusing an unproven filter (use explicit IDs)"
+    }
+  ],
+  "matches": [
+    {
+      "row": {
+        "priority": 1
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "row": {
+        "priority": "1"
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "row": {
+        "priority": 4
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "ok": false
+    },
+    {
+      "row": {
+        "priority": 2
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_not_in",
+          "type": "default",
+          "value": [
+            1,
+            "4"
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "row": {
+        "priority": 4
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_not_in",
+          "type": "default",
+          "value": [
+            1,
+            "4"
+          ]
+        }
+      ],
+      "ok": false
+    },
+    {
+      "row": {
+        "priority": {
+          "id": 1,
+          "name": "Low"
+        }
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "row": {
+        "priority": {
+          "id": 1,
+          "label": "Low"
+        }
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "err": "predicate value is not independently verifiable"
+    },
+    {
+      "row": {
+        "priority": {
+          "name": "Low"
+        }
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "err": "predicate value is not independently verifiable"
+    },
+    {
+      "row": {
+        "priority": null
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "err": "predicate value is not independently verifiable"
+    },
+    {
+      "row": {
+        "priority": true
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "err": "predicate value is not independently verifiable"
+    },
+    {
+      "row": {
+        "priority": 1.0
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "err": "predicate value is not independently verifiable"
+    },
+    {
+      "row": {
+        "priority": [
+          1
+        ]
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "err": "predicate value is not independently verifiable"
+    },
+    {
+      "row": {},
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "err": "predicate field unavailable in exact record: 'priority'"
+    },
+    {
+      "row": {
+        "priority": 1
+      },
+      "clauses": [],
+      "err": "empty predicate cannot authorize a filtered write"
+    },
+    {
+      "row": {
+        "priority": 1,
+        "custom_fields": {
+          "cf_tier": "Gold"
+        }
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        },
+        {
+          "condition": "cf_tier",
+          "operator": "is_in",
+          "type": "custom_field",
+          "value": [
+            "Gold"
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "row": {
+        "priority": 1,
+        "custom_fields": {
+          "cf_tier": "Silver"
+        }
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        },
+        {
+          "condition": "cf_tier",
+          "operator": "is_in",
+          "type": "custom_field",
+          "value": [
+            "Gold"
+          ]
+        }
+      ],
+      "ok": false
+    },
+    {
+      "row": {
+        "priority": 1,
+        "custom_fields": null
+      },
+      "clauses": [
+        {
+          "condition": "cf_tier",
+          "operator": "is_in",
+          "type": "custom_field",
+          "value": [
+            "Gold"
+          ]
+        }
+      ],
+      "err": "predicate field unavailable in exact record: 'cf_tier'"
+    },
+    {
+      "row": {
+        "priority": 1,
+        "cf_tier": "Gold"
+      },
+      "clauses": [
+        {
+          "condition": "cf_tier",
+          "operator": "is_in",
+          "type": "custom_field",
+          "value": [
+            "Gold"
+          ]
+        }
+      ],
+      "err": "predicate field unavailable in exact record: 'cf_tier'"
+    },
+    {
+      "row": {
+        "priority": 1
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": []
+        }
+      ],
+      "err": "predicate cannot be independently verified for 'priority'"
+    },
+    {
+      "row": {
+        "priority": 1
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": 1
+        }
+      ],
+      "err": "predicate cannot be independently verified for 'priority'"
+    },
+    {
+      "row": {
+        "priority": 1
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            null
+          ]
+        }
+      ],
+      "err": "predicate value is not independently verifiable"
+    },
+    {
+      "row": {
+        "priority": 1
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1.5
+          ]
+        }
+      ],
+      "err": "predicate value is not independently verifiable"
+    },
+    {
+      "row": {
+        "priority": 1
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "custom_date",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "err": "predicate cannot be independently verified for 'priority'"
+    },
+    {
+      "row": {
+        "priority": 1
+      },
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "other",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "err": "predicate cannot be independently verified for 'priority'"
+    },
+    {
+      "row": {
+        "priority": 1
+      },
+      "clauses": [
+        {
+          "condition": 3,
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "err": "predicate cannot be independently verified for 3"
+    },
+    {
+      "row": {
+        "created_at": "x"
+      },
+      "clauses": [
+        {
+          "condition": "created_at",
+          "operator": "custom_date"
+        }
+      ],
+      "err": "predicate cannot be independently verified for 'created_at'"
+    }
+  ],
+  "contradictions": [
+    {
+      "rows": [
+        {
+          "id": 1,
+          "priority": 1
+        },
+        {
+          "id": 2,
+          "priority": 4
+        },
+        {
+          "priority": 3
+        },
+        {
+          "id": 4
+        },
+        {
+          "id": 5,
+          "priority": null
+        },
+        {
+          "id": null,
+          "priority": 2
+        }
+      ],
+      "clauses": [
+        {
+          "condition": "priority",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            1
+          ]
+        }
+      ],
+      "ids": [
+        2,
+        "unknown",
+        null
+      ]
+    },
+    {
+      "rows": [
+        {
+          "id": 1,
+          "priority": 1
+        }
+      ],
+      "clauses": [],
+      "ids": []
+    }
+  ]
+}

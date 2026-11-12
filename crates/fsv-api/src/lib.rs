@@ -21,6 +21,7 @@ pub mod conversations;
 pub mod create;
 pub mod downloads;
 pub mod email_addr;
+pub mod filter_proof;
 pub mod formmeta;
 pub mod integrated_assets;
 pub mod list_preferences;

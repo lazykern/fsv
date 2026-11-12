@@ -78,12 +78,25 @@ fn py_same(a: &Value, b: &Value) -> bool {
     }
 }
 
-/// `selection`: sorted positive ids, or a complete filtered inventory.
+/// `selection` without a filtered-write bound: a filter is refused.
 pub fn selection(
     c: &dyn Api,
     ids: &[String],
     where_: &[String],
     select_all: bool,
+) -> Result<Vec<i64>> {
+    selection_bounded(c, ids, where_, select_all, None)
+}
+
+/// `selection`: sorted positive ids, or a complete filtered inventory of
+/// at most `max_records` tickets, each of whose exact record satisfies the
+/// predicate.
+pub fn selection_bounded(
+    c: &dyn Api,
+    ids: &[String],
+    where_: &[String],
+    select_all: bool,
+    max_records: Option<i64>,
 ) -> Result<Vec<i64>> {
     let mut values = if !where_.is_empty() {
         if !ids.is_empty() || !select_all {
@@ -91,9 +104,14 @@ pub fn selection(
                 "filters require --select-all and no explicit IDs",
             ));
         }
+        let Some(max_records) = max_records.filter(|n| (1..=50).contains(n)) else {
+            return Err(Error::value(
+                "filtered writes require --max-records N (1 to 50)",
+            ));
+        };
         let fields = crate::schema::fetch(c, &TICKETS)?;
         let schema = json!({"fields": fields});
-        let (query, _, _) =
+        let (query, clauses, _) =
             crate::query::build_query_hash(None, "tickets", Some(&schema), where_, None, false)
                 .map_err(|e| Error::value(e.0))?;
         let mut params = Map::new();
@@ -110,11 +128,24 @@ pub fn selection(
             Some(&params),
             crate::reviewed_inventory::Family::Internal,
         )?;
+        if rows.len() as i64 > max_records {
+            return Err(Error::value(
+                "filtered selection exceeds --max-records; refusing the whole plan",
+            ));
+        }
         let mut values = Vec::with_capacity(rows.len());
         for row in &rows {
             values.push(watchers::positive_id(
                 row.get("id").unwrap_or(&Value::Null),
             )?);
+        }
+        for cid in &values {
+            let exact = properties::record(c, *cid)?;
+            if !crate::filter_proof::matches(&exact, &clauses)? {
+                return Err(refused(format!(
+                    "ticket {cid} contradicts the predicate; refusing the whole filtered plan"
+                )));
+            }
         }
         values
     } else if select_all {
@@ -160,13 +191,17 @@ pub struct BulkPlan {
     pub ids: Vec<i64>,
     pub expected_json: String,
     pickup: Option<AssignmentPlan>,
+    /// The exact `{id, subject}` of every selected ticket, sorted JSON.
+    pub selected_json: String,
 }
 
 impl BulkPlan {
     /// `hash`: write hash plus the frozen selection, not the write hash alone.
     pub fn hash(&self) -> String {
         let selection: Value = serde_json::from_str(&self.intent_json).unwrap_or(Value::Null);
-        plan_hash(&json!({"selection": selection, "write": self.write.hash()}))
+        let selected: Value = serde_json::from_str(&self.selected_json).unwrap_or(Value::Null);
+        plan_hash(&json!({"write": self.write.hash(), "selection": selection,
+                          "selected": selected, "ids": self.ids}))
     }
 
     /// `review`.
@@ -178,17 +213,22 @@ impl BulkPlan {
             "selection".into(),
             serde_json::from_str(&self.intent_json).unwrap_or(Value::Null),
         );
+        out.insert(
+            "selected_tickets".into(),
+            serde_json::from_str(&self.selected_json).unwrap_or(Value::Null),
+        );
         out.insert("warning".into(), json!(WARNING));
         out
     }
 }
 
-fn intent_value(ids: &[String], args: &BulkArgs<'_>) -> Value {
+fn intent_value(ids: &[String], args: &BulkArgs<'_>, max_records: Option<i64>) -> Value {
     json!({
         "action": args.action,
         "agent": args.agent,
         "group": args.group,
         "ids": ids,
+        "max_records": max_records,
         "note_primary": args.note_primary,
         "note_secondary": args.note_secondary,
         "primary": args.primary,
@@ -198,15 +238,27 @@ fn intent_value(ids: &[String], args: &BulkArgs<'_>) -> Value {
     })
 }
 
-/// `build_plan`.
+/// `build_plan` without `max_records`: a filtered selection is refused.
 pub fn build_plan(
     c: &dyn Api,
     store: &dyn MetaStore,
     ids: &[String],
     args: &BulkArgs<'_>,
 ) -> Result<BulkPlan> {
-    let cids = selection(c, ids, args.where_, args.select_all)?;
-    let intent_json = dumps_sorted(&intent_value(ids, args));
+    build_plan_bounded(c, store, ids, args, None)
+}
+
+/// `build_plan(..., max_records=)`. `BulkArgs` stays unchanged so existing
+/// CLI literals keep compiling.
+pub fn build_plan_bounded(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    ids: &[String],
+    args: &BulkArgs<'_>,
+    max_records: Option<i64>,
+) -> Result<BulkPlan> {
+    let cids = selection_bounded(c, ids, args.where_, args.select_all, max_records)?;
+    let intent_json = dumps_sorted(&intent_value(ids, args, max_records));
     if !matches!(
         args.action,
         "status" | "assign" | "pickup" | "merge" | "spam" | "unspam" | "delete"
@@ -396,12 +448,24 @@ pub fn build_plan(
         };
         (write, expected, None)
     };
+    let mut selected = Vec::with_capacity(cids.len());
+    for cid in &cids {
+        let row = properties::record(c, *cid)?;
+        let subject = row.get("subject").cloned().unwrap_or(Value::Null);
+        if !args.where_.is_empty() && !subject.is_string() {
+            return Err(refused(
+                "exact selected subject unavailable; refusing filtered review",
+            ));
+        }
+        selected.push(json!({"id": cid, "subject": subject}));
+    }
     Ok(BulkPlan {
         write,
         intent_json,
         ids: cids,
         expected_json: dumps(&expected),
         pickup,
+        selected_json: dumps_sorted(&Value::Array(selected)),
     })
 }
 
@@ -416,7 +480,7 @@ fn plan_from_intent(c: &dyn Api, store: &dyn MetaStore, intent_json: &str) -> Re
     let primary = opt_str(&intent["primary"]);
     let note_primary = opt_str(&intent["note_primary"]);
     let note_secondary = opt_str(&intent["note_secondary"]);
-    build_plan(
+    build_plan_bounded(
         c,
         store,
         &ids,
@@ -431,6 +495,7 @@ fn plan_from_intent(c: &dyn Api, store: &dyn MetaStore, intent_json: &str) -> Re
             note_primary: note_primary.as_deref(),
             note_secondary: note_secondary.as_deref(),
         },
+        intent["max_records"].as_i64(),
     )
 }
 
@@ -807,15 +872,32 @@ mod tests {
         assert!(posts(&c).is_empty());
     }
 
+    fn filtered_world() -> World {
+        let mut w = world();
+        for (id, row) in &mut w.rows {
+            let obj = row.as_object_mut().unwrap();
+            obj.insert("group_id".into(), json!(93));
+            obj.insert("subject".into(), json!(format!("Acme {id}")));
+        }
+        w
+    }
+
+    const GROUP: [&str; 1] = ["group_id=93"];
+
+    fn filtered(action: &str) -> (Vec<String>, BulkArgs<'_>) {
+        let where_: Vec<String> = GROUP.iter().map(|s| s.to_string()).collect();
+        let mut bulk = args(action);
+        bulk.select_all = true;
+        (where_, bulk)
+    }
+
     #[test]
     fn filter_drift_and_partial_inventory_send_nothing() {
-        let state = Arc::new(Mutex::new(world()));
+        let state = Arc::new(Mutex::new(filtered_world()));
         let c = api(Arc::clone(&state));
-        let where_ = ["created_at>=2026-01-01".to_string()];
-        let mut bulk = args("spam");
+        let (where_, mut bulk) = filtered("spam");
         bulk.where_ = &where_;
-        bulk.select_all = true;
-        let plan = build_plan(&c, &store(), &[], &bulk).unwrap();
+        let plan = build_plan_bounded(&c, &store(), &[], &bulk, Some(2)).unwrap();
         assert_eq!(plan.ids, vec![71, 72]);
         state.lock().unwrap().list.retain(|id| *id != 72);
         let err = send(
@@ -830,16 +912,129 @@ mod tests {
         assert!(msg(&err).contains("selection"), "{}", msg(&err));
         assert!(posts(&c).is_empty());
 
-        let state = Arc::new(Mutex::new(world()));
+        let state = Arc::new(Mutex::new(filtered_world()));
         state.lock().unwrap().partial = true;
         let c = api(state);
-        let err = build_plan(&c, &store(), &[], &bulk).unwrap_err();
+        let err = build_plan_bounded(&c, &store(), &[], &bulk, Some(2)).unwrap_err();
         assert!(
             msg(&err).contains("complete, consistent mutation inventory"),
             "{}",
             msg(&err)
         );
         assert!(posts(&c).is_empty());
+    }
+
+    #[test]
+    fn filtered_expansion_is_explicitly_bounded() {
+        for bound in [None, Some(0), Some(51), Some(-1)] {
+            let c = api(Arc::new(Mutex::new(filtered_world())));
+            let (where_, mut bulk) = filtered("spam");
+            bulk.where_ = &where_;
+            let err = build_plan_bounded(&c, &store(), &[], &bulk, bound).unwrap_err();
+            assert_eq!(
+                msg(&err),
+                "filtered writes require --max-records N (1 to 50)"
+            );
+            assert!(c.calls.lock().unwrap().is_empty());
+        }
+        let c = api(Arc::new(Mutex::new(filtered_world())));
+        let (where_, mut bulk) = filtered("spam");
+        bulk.where_ = &where_;
+        let err = build_plan(&c, &store(), &[], &bulk).unwrap_err();
+        assert!(msg(&err).contains("--max-records"));
+        let err = build_plan_bounded(&c, &store(), &[], &bulk, Some(1)).unwrap_err();
+        assert_eq!(
+            msg(&err),
+            "filtered selection exceeds --max-records; refusing the whole plan"
+        );
+        assert!(posts(&c).is_empty());
+    }
+
+    #[test]
+    fn ignored_filter_blocks_every_action_before_write() {
+        for action in [
+            "status", "assign", "pickup", "merge", "spam", "unspam", "delete",
+        ] {
+            for bad in ["contradiction", "missing", "unsupported"] {
+                let mut w = filtered_world();
+                let row = w.rows.get_mut(&72).unwrap().as_object_mut().unwrap();
+                match bad {
+                    "contradiction" => {
+                        row.insert("group_id".into(), json!(94));
+                    }
+                    "missing" => {
+                        row.shift_remove("group_id");
+                    }
+                    _ => {}
+                }
+                let c = api(Arc::new(Mutex::new(w)));
+                let where_ = if bad == "unsupported" {
+                    vec!["created_at>=2026-01-01".to_string()]
+                } else {
+                    GROUP.iter().map(|s| s.to_string()).collect()
+                };
+                let mut bulk = args(action);
+                bulk.where_ = &where_;
+                bulk.select_all = true;
+                bulk.status = Some("Open");
+                bulk.agent = Some("me");
+                let err = build_plan_bounded(&c, &store(), &[], &bulk, Some(2)).unwrap_err();
+                let text = msg(&err);
+                let want = match bad {
+                    "contradiction" => {
+                        "ticket 72 contradicts the predicate; refusing the whole filtered plan"
+                    }
+                    "missing" => "predicate field unavailable in exact record: 'group_id'",
+                    _ => "predicate cannot be independently verified for 'created_at'",
+                };
+                assert_eq!(text, want, "{action} {bad}");
+                assert!(posts(&c).is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn full_selected_subjects_and_ids_are_hash_bound() {
+        let state = Arc::new(Mutex::new(filtered_world()));
+        let c = api(Arc::clone(&state));
+        let (where_, mut bulk) = filtered("spam");
+        bulk.where_ = &where_;
+        let plan = build_plan_bounded(&c, &store(), &[], &bulk, Some(2)).unwrap();
+        assert_eq!(
+            plan.review()["selected_tickets"],
+            json!([{"id": 71, "subject": "Acme 71"}, {"id": 72, "subject": "Acme 72"}])
+        );
+        let mut plan = plan;
+        let full = plan.hash();
+        plan.ids = vec![71];
+        assert_ne!(plan.hash(), full);
+        plan.ids = vec![71, 72];
+        state.lock().unwrap().rows.get_mut(&72).unwrap()["subject"] = json!("Globex changed");
+        let err = send(
+            &plan,
+            &c,
+            &store(),
+            &MemJournal::default(),
+            Some(&plan.hash()),
+            true,
+        )
+        .unwrap_err();
+        assert!(msg(&err).contains("selection"), "{}", msg(&err));
+        assert!(posts(&c).is_empty());
+
+        let mut w = filtered_world();
+        w.rows
+            .get_mut(&72)
+            .unwrap()
+            .as_object_mut()
+            .unwrap()
+            .shift_remove("subject");
+        let c = api(Arc::new(Mutex::new(w)));
+        let err = build_plan_bounded(&c, &store(), &[], &bulk, Some(2)).unwrap_err();
+        assert_eq!(
+            msg(&err),
+            "exact selected subject unavailable; refusing filtered review"
+        );
     }
 
     #[test]

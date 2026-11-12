@@ -2748,4 +2748,56 @@ plans set `requester_id` to the resolved requester. Ticket create sets
 hash)`, the legacy create hash when it differs, then the attachments
 action and wrapped hash.
 
-Still not triaged: `fbc54d4` and later.
+## Ledger: `fbc54d4` (library side)
+
+Triaged against `git show fbc54d4`
+(`fbc54d41050d0fbc3d2f2c950cfff17a4f21c992`). A stamped generator gives
+14 filterable-field guards, 26 exact-row predicate proofs and two
+contradiction lists. All of them match. The query-flow oracle was
+regenerated at `fbc54d4`. Its changes are the `Subject` cases, which
+now refuse as an unproven filter. The ticket-bulk oracle was also
+regenerated: the plan hash now binds `max_records`, the selected
+tickets and the ids.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `fbc54d4`.
+The partial is the CLI wiring, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `fbc54d4` | 11-12 23:47 | Fail closed on unproven filters and independently bound bulk write selection | partial | fsv-api `filter_proof`, `query`, `ticket_bulk`. fsv-cli follow-up below |
+
+New `filter_proof::require_filterable_field` runs in
+`query::resolve_where` before the operator is resolved. It refuses a
+field unless it has choices, is a dropdown or number field, or is a
+status, priority, requester, agent, group or department field.
+`Subject` filters now refuse with "filter operator unavailable in
+runtime metadata for 'subject'; refusing an unproven filter (use
+explicit IDs)". `filter_proof::matches` proves `is_in` / `is_not_in`
+clauses against an exact record. `contradictions` lists the ids of
+rows that provably fail.
+
+Filtered ticket bulk plans need `max_records` from 1 to 50. More rows
+than that refuse the whole plan. Every selected ticket's exact record
+must satisfy the predicate. The plan binds `[{id, subject}]` of every
+selected ticket (`selected_json`, review key `selected_tickets`). A
+filtered plan refuses when a subject is not a string. `BulkArgs` is
+unchanged. The bound goes through the new `build_plan_bounded` /
+`selection_bounded`, and rebuild reads it from the intent.
+`build_plan` / `selection` pass no bound, so a filtered call refuses.
+
+### CLI handoff (do not edit fsv-cli here)
+
+- `tickets bulk`: add `--max-records N` ("Required filtered-write
+  bound, 1 to 50.") and call `ticket_bulk::build_plan_bounded(...,
+  max_records)`. Print each selected ticket after the plan as
+  `  {id}: {subject}` on stderr.
+- The CLI copy of `resolve_where` (`crates/fsv-cli/src/filters.rs`)
+  needs the same `fsv_api::filter_proof::require_filterable_field`
+  guard, in the same place.
+- List reads with `--where` or a raw query hash, and without OR
+  grouping: run `filter_proof::contradictions(items, query)`. When it
+  is not empty, print "Warning: returned records contradict the
+  requested predicate; do not use this list for writes. IDs: " plus the
+  ids joined by ", " on stderr.
+
+Still not triaged: `291e5cd` and later.
