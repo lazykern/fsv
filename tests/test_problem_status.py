@@ -32,6 +32,8 @@ def api(request, monkeypatch, tmp_path):
             if path == "problem_form_fields":
                 return httpx.Response(200, json={"problem_fields": fields})
             if path.endswith("business_rules"):
+                if s.get("rules_status"):
+                    return httpx.Response(s["rules_status"], json={"error": "synthetic"})
                 return httpx.Response(200, json={"business_rules": []})
             if path.endswith("planning-fields"):
                 return httpx.Response(200, json={"problem_planning_fields": copy.deepcopy(s["analysis"])})
@@ -184,3 +186,14 @@ def test_cli_and_mismatched_independent_get(api):
     r = runner.invoke(cli.app, args+["--yes", "--expect-plan", hash_, "--json"])
     assert r.exit_code == 4, r.output
     assert not json.loads(r.output)["verified"] and len(s["writes"]) == 1
+
+
+def test_rules_500_degrades_to_warning_in_review_and_json(api):
+    c, s, _, n = api
+    s["rules_status"] = 500
+    p = flow.build_plan(c, 123, "In Progress")
+    assert any("rules unavailable" in w and "HTTP 500" in w for w in p.review()["warnings"])
+    out = CliRunner().invoke(cli.app, ["problems", "status", "PRB-123", "--to", "In Progress", "--dry-run", "--json"])
+    assert out.exit_code == 0, out.output
+    assert "rules unavailable" in json.loads(out.output)["warnings"][0]
+    assert not s["writes"]

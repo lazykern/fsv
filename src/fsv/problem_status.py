@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from fsv import config, journal, planning_text, task_status
-from fsv.formmeta import ClientResolver, RULES_UNAVAILABLE_KEY, existing_from_record, load_meta
+from fsv.formmeta import ClientResolver, existing_from_record, load_meta, rules_gate, rules_unavailable_warning
 from fsv.forms import FormState
 from fsv.problem_workflows import inventory, record
 from fsv.readback import submitted_value_matches
@@ -20,10 +20,15 @@ from fsv.watchers import positive_id
 class StatusPlan(WritePlan):
     label: str
     before_json: str
+    warnings_json: str = "[]"
 
     def review(self) -> dict[str, Any]:
-        return {**super().review(), "to": self.label, "before": json.loads(self.before_json),
-                "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."}
+        out = {**super().review(), "to": self.label, "before": json.loads(self.before_json),
+               "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."}
+        warnings = json.loads(self.warnings_json)
+        if warnings:
+            out["warnings"] = warnings
+        return out
 
 
 def closure_context(client: Any, target: int) -> dict[str, Any]:
@@ -49,8 +54,10 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
     if "status" not in before:
         raise ReviewedWriteError("current problem status unavailable")
     meta = load_meta(client, "problem", "edit", fresh=True, module_id=target)
-    if meta.rules.get(RULES_UNAVAILABLE_KEY):
-        raise ReviewedWriteError("problem rules unavailable")
+    blockers = rules_gate(meta.rules, meta.spec, ["status"])
+    if blockers:
+        raise ReviewedWriteError("problem rules are unavailable and this write depends on them: " + "; ".join(blockers))
+    warnings = [w for w in [rules_unavailable_warning(meta.rules)] if w]
     status_id, label = task_status.resolve(to, meta.raw_fields)
     state = FormState(meta.spec, meta.engine(), mode="edit", existing=existing_from_record(meta.spec, before), resolver=ClientResolver(client))
     field = meta.spec.field("status")
@@ -75,7 +82,7 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
     context = {"before": before, "fields": meta.form_fields, "rules": meta.rules, "closure": closure}
     return StatusPlan("problem_status", target, config.DOMAIN, "PUT", f"problems/{target}",
                       json.dumps({"status": status_id}), journal.snapshot_hash(context) or "", label,
-                      json.dumps(before, sort_keys=True))
+                      json.dumps(before, sort_keys=True), json.dumps(warnings))
 
 
 def rejection(exc: Any) -> str:

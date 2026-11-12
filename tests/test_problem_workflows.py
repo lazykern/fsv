@@ -40,6 +40,9 @@ def wire(request, monkeypatch, tmp_path):
             if path == "problem_task_fields":
                 return httpx.Response(200, json={"problem_task_fields": state["task_fields"]})
             if path.endswith("business_rules"):
+                state["rules_requests"] = state.get("rules_requests", 0) + 1
+                if state.get("rules_status"):
+                    return httpx.Response(state["rules_status"], json={"error": "synthetic"})
                 return httpx.Response(403, json={"error": "denied"}) if state["rules_denied"] else httpx.Response(200, json={"business_rules": []})
             if "/search/autocomplete/" in path:
                 return httpx.Response(200, json={"results": [{"id": 901, "value": "Acme Operator", "email": "person@example.com"}]})
@@ -171,9 +174,51 @@ def test_rules_unavailable_not_empty_and_metadata_drift_block(wire):
     with pytest.raises(ReviewedWriteError):
         flow.send(p, wire["client"], reviewed_hash=p.hash)
     wire["rules_denied"] = True
-    with pytest.raises(ReviewedWriteError, match="rules are unavailable"):
-        create(wire)
+    # unavailable is never "no rules": the review says so, and answers that
+    # only a rule could make valid (hidden on the static form) still block
+    p = create(wire)
+    assert any("rules unavailable" in w for w in p.review()["warnings"])
+    wire["fields"].append({"id": 602, "name": "acme_hidden", "label": "Acme hidden", "field_type": "custom_text",
+                           "position": 21, "displayed_to_agents": False})
+    with pytest.raises(ReviewedWriteError, match="rules are unavailable and this write depends on them"):
+        flow.create_plan(wire["client"], {"Subject": "Acme problem", "Description": "Acme details", "Status": "Open",
+                                          "Priority": "Low", "Impact": "Low", "Acme hidden": "x"}, "person@example.com")
     assert not wire["writes"]
+
+
+@pytest.mark.parametrize("status", [500, 503])
+def test_rules_server_error_degrades_with_warning_and_is_not_cached(wire, monkeypatch, status):
+    wire["rules_status"] = status
+    p = create(wire)
+    (warning,) = p.review()["warnings"]
+    assert "rules unavailable" in warning and f"HTTP {status}" in warning
+    before = wire["rules_requests"]
+    meta = formmeta.load_meta(wire["client"], "problem", "new")
+    assert meta.rules[formmeta.RULES_UNAVAILABLE_KEY] and formmeta.rules_server_error(meta.rules)
+    assert wire["rules_requests"] > before  # a 5xx is not cached as the form's answer
+    monkeypatch.setattr(cli, "_client", lambda: wire["client"])
+    out = CliRunner().invoke(cli.app, ["problems", "create", "--requester", "person@example.com", "--dry-run",
+                                       "--set", "Subject=Acme problem", "--set", "Description=Acme details",
+                                       "--set", "Status=Open", "--set", "Priority=Low", "--set", "Impact=Low"])
+    assert out.exit_code == 0, out.output
+    assert "rules unavailable" in json.loads(out.output)["warnings"][0]
+    assert not wire["writes"]
+
+
+def test_fetch_rules_5xx_never_falls_back_to_another_workspace(monkeypatch):
+    calls = []
+
+    class Fake:
+        def int_get(self, path, params=None):
+            calls.append(path)
+            if path.startswith("ws/2/"):
+                raise formmeta.APIError(500, "boom", "GET", path)
+            return {"business_rules": []}
+
+    rules = formmeta.fetch_rules(Fake(), "problem", [2, 1], fallback=lambda: [1, 3])
+    assert rules[formmeta.RULES_UNAVAILABLE_KEY] == "workspace 2 answered HTTP 500 (server error)"
+    assert rules["unavailable_status"] == 500 and calls == [calls[0]]
+    assert formmeta.rules_warnings(rules) and formmeta.rules_unavailable_warning(rules)
 
 
 def test_problem_form_dump_and_create_cli(wire, monkeypatch):

@@ -62,6 +62,13 @@ every path answers 403/404 it returns an empty rule set marked
 `unavailable` with a one-line reason (the form then runs on the metadata's
 static required/visible flags; reviews warn, and `fsv form fields` /
 `form explain` print the reason on stderr via `formmeta.rules_note()`).
+A 5xx (e.g. a tenant whose problem rules always answer 500) stops the
+search at once with the same `unavailable` shape and `unavailable_status`
+>= 500; it is never cached. Problem create/status writes then proceed with
+a `rules unavailable` warning in the review (and `--json`), and block only
+when the write depends on the rules: an answer on a field the static form
+hides, or a field not on the form (`formmeta.rules_gate()`). Ticket and
+change writes keep blocking on unavailable rules.
 
 **Which workspace.** `formmeta.load_rules()` (used by every form face)
 picks the workspace like this:

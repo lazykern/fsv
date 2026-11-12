@@ -231,6 +231,11 @@ def fetch_rules(client: Any, module: str, workspace_id: Any, *, fallback: Any = 
     feature of the plan) gives an empty rule set with ``unavailable`` set
     to a one-line reason: the form then runs on the static
     required/visible flags only, and every review says so.
+    A 5xx (the endpoint exists but failed, e.g. a tenant whose problem
+    rules always answer 500) stops at once with the same ``unavailable``
+    shape and ``unavailable_status`` >= 500: another workspace's (empty)
+    answer must not stand in for the form's own rules. Such a result is
+    not cached (see :func:`load_meta`).
     """
     cands: list[Any] = []
     for w in (workspace_id if isinstance(workspace_id, (list, tuple)) else [workspace_id]):
@@ -249,6 +254,8 @@ def fetch_rules(client: Any, module: str, workspace_id: Any, *, fallback: Any = 
                 last = e
                 tried.append(f"/api/_/{path} HTTP {e.status}")
                 return None
+            if isinstance(e.status, int) and e.status >= 500:
+                raise _RulesServerError(e, path, ws) from None
             raise
         if raw in (None, "", [], {}):
             rules: dict[str, Any] = {"business_rules": [], "user": None}
@@ -266,38 +273,90 @@ def fetch_rules(client: Any, module: str, workspace_id: Any, *, fallback: Any = 
         q = business_rules_query(module, workspace_id=ws, **query)
         return attempt(q.path.removeprefix("/api/_/"), dict(q.params), ws)
 
-    for ws in cands:
-        got = ws_try(ws)
-        if got is not None:
-            return got
-    if empty is not None:
-        return empty  # the workspace answered: it has no rules for this form
-    if fallback is not None:
-        try:
-            extra = [w for w in (fallback() or []) if w not in cands]
-        except APIError:
-            extra = []
-        for ws in extra:
-            cands.append(ws)
+    def search() -> dict[str, Any]:
+        for ws in cands:
             got = ws_try(ws)
             if got is not None:
                 return got
-    if empty is not None:
-        return empty
-    q = business_rules_query(module, workspace_id=0, **query)
-    got = attempt("business_rules", dict(q.params), None)
-    if got is not None:
-        return got
-    if empty is not None:
-        return empty
-    if cands:
-        why = (f"workspace {', '.join(map(str, cands))} and the workspace-less path answered "
-               f"HTTP {last.status if last else '?'}")
-    else:
-        why = (f"no workspace found in the form metadata or the account, and /api/_/business_rules "
-               f"answered HTTP {last.status if last else '?'}")
-    return {"business_rules": [], "user": None, RULES_UNAVAILABLE_KEY: why,
-            "unavailable_status": last.status if last is not None else None}
+        if empty is not None:
+            return empty  # the workspace answered: it has no rules for this form
+        if fallback is not None:
+            try:
+                extra = [w for w in (fallback() or []) if w not in cands]
+            except APIError:
+                extra = []
+            for ws in extra:
+                cands.append(ws)
+                got = ws_try(ws)
+                if got is not None:
+                    return got
+        if empty is not None:
+            return empty
+        q = business_rules_query(module, workspace_id=0, **query)
+        got = attempt("business_rules", dict(q.params), None)
+        if got is not None:
+            return got
+        if empty is not None:
+            return empty
+        if cands:
+            why = (f"workspace {', '.join(map(str, cands))} and the workspace-less path answered "
+                   f"HTTP {last.status if last else '?'}")
+        else:
+            why = (f"no workspace found in the form metadata or the account, and /api/_/business_rules "
+                   f"answered HTTP {last.status if last else '?'}")
+        return {"business_rules": [], "user": None, RULES_UNAVAILABLE_KEY: why,
+                "unavailable_status": last.status if last is not None else None}
+
+    try:
+        return search()
+    except _RulesServerError as e:
+        where = f"workspace {e.workspace}" if e.workspace is not None else "the workspace-less path"
+        return {"business_rules": [], "user": None,
+                RULES_UNAVAILABLE_KEY: f"{where} answered HTTP {e.error.status} (server error)",
+                "unavailable_status": e.error.status}
+
+
+class _RulesServerError(Exception):
+    def __init__(self, error: APIError, path: str, workspace: Any) -> None:
+        super().__init__(f"{path}: HTTP {error.status}")
+        self.error, self.path, self.workspace = error, path, workspace
+
+
+def rules_server_error(rules: Mapping[str, Any] | None) -> bool:
+    """The rules endpoint failed with a 5xx (transient or a broken tenant
+    configuration), as opposed to answering 403/404 (no rules feature)."""
+    status = (rules or {}).get("unavailable_status")
+    return bool((rules or {}).get(RULES_UNAVAILABLE_KEY)) and isinstance(status, int) and status >= 500
+
+
+def rules_unavailable_warning(rules: Mapping[str, Any] | None) -> str | None:
+    """One review/--json warning for a write planned without business rules."""
+    why = (rules or {}).get(RULES_UNAVAILABLE_KEY)
+    if not why:
+        return None
+    return (f"rules unavailable ({why}): conditional mandates, field locks, choice limits and validation "
+            "messages of the web form were not checked; the server still enforces the static required "
+            "fields and its own closure rules")
+
+
+def rules_gate(rules: Mapping[str, Any] | None, spec: Any, touched: Any) -> list[str]:
+    """Blockers for a write planned while the rules are unavailable.
+
+    Only writes whose safety depends on the rules are blocked: an answer on
+    a field the static form hides (only a rule could reveal it) or on a
+    field that is not on the form at all. Other writes
+    proceed with :func:`rules_unavailable_warning` in the review. With the
+    rules available this returns ``[]`` (the engine checks everything)."""
+    if not (rules or {}).get(RULES_UNAVAILABLE_KEY):
+        return []
+    out: list[str] = []
+    for name in touched:
+        f = spec.find(name) if hasattr(spec, "find") else None
+        if f is None:
+            out.append(f"{name}: not on the form; its rules are unavailable")
+        elif not f.visible_base:
+            out.append(f"{f.label}: hidden on the static form; only an unavailable rule could show it")
+    return out
 
 
 def rules_warnings(rules: Mapping[str, Any] | None) -> list[str]:
@@ -429,7 +488,8 @@ def load_meta(client: Any, module: str = "change", mode: str = "new", *, fresh: 
     if rules is None:
         source = "server"
         rules = load_rules(client, module, ws, form_type=form_type, module_id=module_id)
-        _save(ckey, "form_rules", rules)
+        if not rules_server_error(rules):  # a 5xx is not an answer: ask again next time
+            _save(ckey, "form_rules", rules)
     ws = rules.get(RULES_WORKSPACE_KEY, ws)
     return FormMeta(module, form_type, fields, rules, ws, time.time(), source, module_id)
 

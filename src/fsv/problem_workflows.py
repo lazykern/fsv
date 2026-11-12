@@ -6,8 +6,8 @@ import json
 from typing import Any
 
 from fsv import config, journal
-from fsv.formmeta import (ClientResolver, RULES_UNAVAILABLE_KEY, apply_answers,
-                         find_field, is_requester, load_meta, resolve_requester)
+from fsv.formmeta import (ClientResolver, apply_answers, find_field, is_requester, load_meta,
+                         resolve_requester, rules_gate, rules_unavailable_warning)
 from fsv.forms import FormState
 from fsv.forms.payload import _check, _module_body
 from fsv.readback import same_text, submitted_value_matches
@@ -20,6 +20,14 @@ from fsv.watchers import positive_id, self_id
 @dataclass(frozen=True)
 class ProblemPlan(WritePlan):
     inputs_json: str
+    warnings_json: str = "[]"
+
+    def review(self) -> dict[str, Any]:
+        out = super().review()
+        warnings = json.loads(self.warnings_json)
+        if warnings:
+            out["warnings"] = warnings
+        return out
 
 
 def record(client: Any, target: int) -> dict[str, Any]:
@@ -45,8 +53,10 @@ def inventory(client: Any, target: int, kind: str) -> list[dict[str, Any]]:
 
 def create_plan(client: Any, answers: dict[str, Any], requester: str) -> ProblemPlan:
     meta = load_meta(client, "problem", "new", fresh=True)
-    if meta.rules.get(RULES_UNAVAILABLE_KEY):
-        raise ReviewedWriteError("problem rules are unavailable; no static-form write")
+    blockers = rules_gate(meta.rules, meta.spec, answers)
+    if blockers:
+        raise ReviewedWriteError("problem rules are unavailable and this write depends on them: " + "; ".join(blockers))
+    warnings = [w for w in [rules_unavailable_warning(meta.rules)] if w]
     person = resolve_requester(client, requester)
     if not person.email:
         raise ValueError("resolved requester needs an email")
@@ -76,7 +86,8 @@ def create_plan(client: Any, answers: dict[str, Any], requester: str) -> Problem
     context = journal.plan_hash({"fields": meta.form_fields, "rules": meta.rules, "requester": str(person)}) or ""
     return ProblemPlan("problem_create", 0, config.DOMAIN, "POST", "problems",
                        json.dumps(payload, sort_keys=True, ensure_ascii=False), context,
-                       json.dumps({"answers": answers, "requester": requester}, sort_keys=True))
+                       json.dumps({"answers": answers, "requester": requester}, sort_keys=True),
+                       json.dumps(warnings))
 
 
 def _choice(fields: list[dict[str, Any]], name: str, label: str) -> int:
