@@ -603,6 +603,38 @@ pub fn user_values(rows: &[Value], query: &str) -> Vec<(String, String)> {
     out
 }
 
+fn form_value(value: &Value) -> fsv_forms::Value {
+    match value {
+        Value::Null => fsv_forms::Value::Null,
+        Value::Bool(v) => fsv_forms::Value::Bool(*v),
+        Value::Number(n) if n.as_i64().is_some() => fsv_forms::Value::Int(n.as_i64().unwrap_or(0)),
+        Value::Number(n) if n.as_f64().is_some() => {
+            fsv_forms::Value::Float(n.as_f64().unwrap_or(0.0))
+        }
+        Value::String(s) => fsv_forms::Value::Str(s.clone()),
+        other => fsv_forms::Value::Json(other.clone()),
+    }
+}
+
+fn change_status_session(
+    backend: &LiveBackend,
+    target: &Value,
+    status: &Value,
+) -> BResult<fsv_formui::FormSession> {
+    let factory = backend.form_deps.clone().unwrap_or_else(|| {
+        let client = backend.client.clone();
+        Arc::new(move || crate::form::FormDeps::live(client.clone()))
+    });
+    let mut options = crate::form::ChangeForm::new(fsv_formui::FormMode::Edit);
+    options.target = Some(target.clone());
+    let mut session = crate::form::change_session(&factory()?, options)?;
+    let set = session.set("status", form_value(status));
+    if !set.error.is_empty() {
+        return Err(Failure::value(set.error));
+    }
+    Ok(session)
+}
+
 impl Backend for LiveBackend {
     fn read_only_setting(&self) -> Value {
         match self.config.get("tui") {
@@ -1361,6 +1393,126 @@ impl Backend for LiveBackend {
     fn delete_task(&self, change_id: &Value, task_id: &Value) -> BResult<()> {
         fsv_api::create::delete_task(self.api(), id_of(change_id)?, id_of(task_id)?)?;
         Ok(())
+    }
+
+    fn task_mutation_plan(
+        &self,
+        kind: &str,
+        change_id: &Value,
+        task_id: &Value,
+        body: &Map<String, Value>,
+    ) -> BResult<ReviewPlan> {
+        if kind == "task-delete" {
+            let plan = fsv_api::change_task_delete::build_plan(self.api(), change_id, task_id)?;
+            return Ok(write_review(&plan));
+        }
+        let mut inputs = Map::new();
+        for (key, value) in body {
+            let name = if key == "owner_id" || key == "group_id" {
+                key.trim_end_matches("_id").to_string()
+            } else {
+                key.clone()
+            };
+            inputs.insert(name, Value::String(fsv_py::py_str(value)));
+        }
+        let plan =
+            fsv_api::change_task_update::build_plan(self.api(), change_id, task_id, &inputs)?;
+        let mut review = write_review(&plan.write);
+        review.hash = plan.hash();
+        review.review = Value::Object(plan.review());
+        if let Some(raw) = review.raw.as_object_mut() {
+            raw.insert("task_id".into(), json!(plan.task_id));
+            raw.insert("inputs_json".into(), json!(plan.inputs_json));
+        }
+        Ok(review)
+    }
+
+    fn send_task_mutation(&self, plan: &ReviewPlan) -> BResult<Value> {
+        let action = str_at(&plan.raw, "action");
+        if action == "change_task_delete" {
+            let write = write_plan(&plan.raw, |name| name == "change_task_delete")?;
+            return Ok(fsv_api::change_task_delete::send(
+                &write,
+                self.api(),
+                self.journal.as_ref(),
+                Some(&plan.hash),
+            )?);
+        }
+        let write = write_plan(&plan.raw, |name| name == "change_task_update")?;
+        let update = fsv_api::change_task_update::TaskUpdatePlan {
+            write,
+            task_id: i64_at(&plan.raw, "task_id"),
+            inputs_json: str_at(&plan.raw, "inputs_json"),
+        };
+        Ok(fsv_api::change_task_update::send(
+            &update,
+            self.api(),
+            self.journal.as_ref(),
+            Some(&plan.hash),
+        )?)
+    }
+
+    fn problem_note_plan(&self, problem_id: &Value, body: &str) -> BResult<ReviewPlan> {
+        let plan =
+            fsv_api::problem_workflows::child_plan(self.api(), &s(problem_id), "note", body)?;
+        let mut review = write_review(&plan.plan);
+        review.hash = plan.hash();
+        review.review = Value::Object(plan.review());
+        if let Some(raw) = review.raw.as_object_mut() {
+            raw.insert("inputs_json".into(), json!(plan.inputs_json));
+        }
+        Ok(review)
+    }
+
+    fn send_problem_note(&self, plan: &ReviewPlan) -> BResult<Value> {
+        let write = write_plan(&plan.raw, |name| name == "problem_note")?;
+        let child = fsv_api::problem_workflows::ProblemPlan {
+            plan: write,
+            inputs_json: str_at(&plan.raw, "inputs_json"),
+        };
+        Ok(fsv_api::problem_workflows::send(
+            &child,
+            self.api(),
+            self.journal.as_ref(),
+            self.store.as_ref(),
+            Some(&plan.hash),
+            Some(self.resolver()),
+        )?)
+    }
+
+    fn change_status_plan(&self, target: &Value, status: &Value) -> BResult<ReviewPlan> {
+        let mut session = change_status_session(self, target, status)?;
+        let plan = session.build_plan(None).map_err(Failure::value)?;
+        if !plan.ok() {
+            return Err(Failure::value(plan.errors.join("; ")));
+        }
+        Ok(ReviewPlan {
+            review: json!({
+                "plan_hash": plan.hash,
+                "errors": plan.errors,
+                "payload": plan.payload,
+            }),
+            hash: plan.hash,
+            public: false,
+            target_id: target.clone(),
+            raw: json!({"kind": "change_status", "target": target, "status": status}),
+        })
+    }
+
+    fn send_change_status(&self, plan: &ReviewPlan) -> BResult<Value> {
+        if plan.raw.get("kind").and_then(Value::as_str) != Some("change_status") {
+            return Err(Failure::value("not a change status plan"));
+        }
+        let target = plan.raw.get("target").cloned().unwrap_or(Value::Null);
+        let status = plan.raw.get("status").cloned().unwrap_or(Value::Null);
+        let mut session = change_status_session(self, &target, &status)?;
+        let fresh = session.build_plan(None).map_err(Failure::value)?;
+        if !fresh.ok() || fresh.hash != plan.hash {
+            return Err(Failure::value(
+                "Change tenant or exact reviewed payload changed; review again",
+            ));
+        }
+        Ok(session.send(&fresh, false)?)
     }
 
     /// `catalog.list_items(client)` then `catalog.list_categories(client)`.

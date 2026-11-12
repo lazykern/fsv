@@ -2340,3 +2340,72 @@ rows and reviews one id. Confirm sends once through
 write.
 
 Still not triaged: `9c8c91d` and later.
+
+## Ledger: `9c8c91d` (library side)
+
+Triaged against a `git archive 9c8c91d` export
+(`FSV_PY_COMMIT=9c8c91d8a10c52bd57a015e6591a8bea11c16b59`).
+`crates/fsv-flows/tests/golden/gen_flows.py` stamps
+`crates/fsv-flows/tests/golden/flows.json`. Create hashes are unchanged.
+Update hashes now wrap the legacy request hash, the record snapshot,
+the metadata fingerprint, and the tenant. The generator pins an empty
+`FSV_CONFIG_DIR` before importing `fsv`, and it snapshots form fields
+once so later plans share that fingerprint.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `9c8c91d`.
+The partial is the fsv-cli change update and task-delete commands,
+named below. `docs/change-tasks.md` and `docs/reviewed-parity.md` have
+no library behavior.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `9c8c91d` | 11-12 18:44 | Audit TUI sends with real transport and close legacy write gaps | partial | fsv-flows `change`, fsv-api `change_task_delete`, fsv-tui, fsv-app. fsv-cli follow-up below |
+
+An update plan stores `legacy_hash`, `record_hash`, and `tenant`.
+`change::execute` keeps its signature and sends property updates through
+`send_form_update`. Files or planning on that plan are refused before
+any PUT. An empty tenant or a changed payload is
+`Change tenant or exact reviewed payload changed; review again`.
+A missing hash, payload, or record snapshot is
+`Complete hash-bound property plan required`. A journal `started` or
+`done` on the wrapped hash or the legacy hash is
+`Change update was sent or outcome unknown; do not replay`.
+A definite 4xx records `failed` and
+`write rejected (HTTP {status}); no retry`. Any other write error
+leaves `started` and
+`write outcome unknown; inspect target and journal before retry`.
+Readback requires the target id, `display_id`, or `CHN-` suffix, the
+same record snapshot, and the same metadata fingerprint. Description
+matches with `same_text` only. Keys ending `_date` match with
+`same_instant` only. Other keys use `submitted_value_matches`.
+
+`change_task_delete::build_plan` writes
+`PUT changes/{id}/tasks/update` with `{"action":"delete","id":"<task>"}`.
+Verification is the previous inventory minus that one task. Clearing
+every task stays unverified. `ticket_tasks::build_plan` is unchanged.
+An omitted update status stays on `build_plan_assigned`. `TaskArgs`
+has no new fields.
+
+TUI status, notes, replies, task updates, and task deletes no longer
+use the legacy sender. Ticket status reviews through
+`prepare_ticket_property`. Change status reviews a live edit form.
+Problem notes use `problem_workflows`. Task mutations use
+`change_task_update` and `change_task_delete`. `do_write` refuses with
+`Legacy TUI send path disabled`.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`changes update` JSON should add `verified`, `fields`, and `warning`.
+When the update is not verified, exit 4 with
+`Change update readback unverified; do not resend` for JSON and human
+output. Human output prints later steps only when verified.
+
+`changes tasks-delete` should build `change_task_delete::build_plan`,
+require `--yes` and `--expect-plan` equal to `plan.hash`, then send.
+Add `--expect-plan` and `--json`. An unverified send exits 4. Do not
+call the legacy `delete_task`.
+
+HEAD scratch of `fsv-cli` against this library still fails the same 23
+tests. No new name. The update-hash move is not pinned by those goldens.
+
+Still not triaged: `922817f` and later.

@@ -560,6 +560,41 @@ pub trait Backend: Send + Sync {
         Err(Failure::unavailable("integrated inventory"))
     }
 
+    /// `change_task_update.build_plan` or `change_task_delete.build_plan`.
+    fn task_mutation_plan(
+        &self,
+        kind: &str,
+        change_id: &Value,
+        task_id: &Value,
+        body: &Map<String, Value>,
+    ) -> BResult<ReviewPlan> {
+        let _ = (kind, change_id, task_id, body);
+        Err(Failure::unavailable("task mutations"))
+    }
+    /// Send the reviewed task plan once.
+    fn send_task_mutation(&self, plan: &ReviewPlan) -> BResult<Value> {
+        let _ = plan;
+        Err(Failure::unavailable("task mutations"))
+    }
+    /// `problem_workflows.child_plan(..., kind="note")`.
+    fn problem_note_plan(&self, problem_id: &Value, body: &str) -> BResult<ReviewPlan> {
+        let _ = (problem_id, body);
+        Err(Failure::unavailable("problem notes"))
+    }
+    fn send_problem_note(&self, plan: &ReviewPlan) -> BResult<Value> {
+        let _ = plan;
+        Err(Failure::unavailable("problem notes"))
+    }
+    /// Edit-form change session with one status value.
+    fn change_status_plan(&self, target: &Value, status: &Value) -> BResult<ReviewPlan> {
+        let _ = (target, status);
+        Err(Failure::unavailable("change status"))
+    }
+    fn send_change_status(&self, plan: &ReviewPlan) -> BResult<Value> {
+        let _ = plan;
+        Err(Failure::unavailable("change status"))
+    }
+
     // ── create forms ────────────────────────────────────────
     /// `import fsv.formui` succeeded; without it `N` / `e` toast
     /// "form UI not available".

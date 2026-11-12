@@ -3,6 +3,54 @@ use crate::testing::{
     BASE, FakeWriter, MemJournal, acme_meta, acme_meta_id, fake_client, golden, resolver_arc,
 };
 use std::cell::RefCell;
+use std::ffi::OsString;
+use std::sync::{Mutex, MutexGuard};
+
+/// Update-plan hashes bind `config.DOMAIN`. Goldens are stamped with an empty
+/// domain; sends need a non-empty one. One lock so those tests do not race.
+static CONFIG_LOCK: Mutex<()> = Mutex::new(());
+
+struct CfgGuard {
+    prev: Option<OsString>,
+    _dir: tempfile::TempDir,
+    _lock: MutexGuard<'static, ()>,
+}
+
+impl Drop for CfgGuard {
+    fn drop(&mut self) {
+        match &self.prev {
+            Some(v) => unsafe { std::env::set_var("FSV_CONFIG_DIR", v) },
+            None => unsafe { std::env::remove_var("FSV_CONFIG_DIR") },
+        }
+        fsv_core::config::reload();
+    }
+}
+
+fn config_guard(domain: Option<&str>) -> CfgGuard {
+    let lock = CONFIG_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let prev = std::env::var_os("FSV_CONFIG_DIR");
+    let dir = tempfile::tempdir().unwrap();
+    if let Some(domain) = domain {
+        std::fs::write(
+            dir.path().join("config.json"),
+            format!("{{\"domain\": \"{domain}\"}}"),
+        )
+        .unwrap();
+    }
+    // SAFETY: CONFIG_LOCK is held by every test that reads or writes this variable.
+    unsafe { std::env::set_var("FSV_CONFIG_DIR", dir.path()) }
+    fsv_core::config::reload();
+    CfgGuard {
+        prev,
+        _dir: dir,
+        _lock: lock,
+    }
+}
+
+fn arm_change(w: &FakeWriter, plan: &Plan, record: &Json) {
+    *w.change.lock().unwrap() = record_of(record);
+    *w.fingerprint.lock().unwrap() = plan.meta.fingerprint().hash.clone();
+}
 
 fn jane() -> LookupValue {
     LookupValue::new(9000007001i64, "Jane Doe", Some("jane.doe@example.com"))
@@ -121,6 +169,7 @@ fn golden_create_plans() {
 
 #[test]
 fn golden_update_plans() {
+    let _cfg = config_guard(None);
     let h = Hints::new();
     for case in golden(&["update"]).as_object().unwrap().keys() {
         let (p, g) = golden_update(case, &h);
@@ -582,7 +631,7 @@ fn execute_partial_failure_and_rejection() {
 #[test]
 fn execute_update_puts_payload_and_planning() {
     let h = Hints::new();
-    let (mut p, _) = golden_update("subject", &h);
+    let (mut p, g) = golden_update("subject", &h);
     p.planning.push(PlanningEntry {
         label: "Rollout".into(),
         field_id: "cf_r".into(),
@@ -591,18 +640,35 @@ fn execute_update_puts_payload_and_planning() {
         description_html: Some("<p>x</p>".into()),
     });
     let (w, j) = (FakeWriter::default(), MemJournal::default());
+    let err = execute(&p, &w, &j, "skip", None).unwrap_err();
+    assert!(
+        err.to_string().contains("Combined change property"),
+        "{err}"
+    );
+    assert!(w.calls.lock().unwrap().is_empty());
+
+    let _cfg = config_guard(Some("acme.freshservice.com"));
+    let (p, _) = golden_update("subject", &h);
+    let w = FakeWriter::default();
+    arm_change(&w, &p, g);
     let out = execute(&p, &w, &j, "skip", None).unwrap();
     let calls = w.calls.lock().unwrap();
+    assert_eq!(calls.len(), 1);
     assert_eq!(calls[0].0, "put");
     assert_eq!(calls[0].1["id"], json!(501));
-    assert_eq!(calls[1].1["label"], json!("Rollout"));
-    assert_eq!(out["steps"][1]["step"], json!("planning:cf_r"));
-    assert_eq!(j.read()[0]["target"], json!(501));
+    assert_eq!(out["verified"], json!(true));
+    assert_eq!(out["steps"][0]["step"], json!("update"));
+    assert_eq!(j.read()[0]["kind"], json!("plan:change_form_update"));
     drop(calls);
+
     let (n, _) = golden_update("nothing", &h);
     let w = FakeWriter::default();
-    let out = execute(&n, &w, &j, "skip", None).unwrap();
-    assert_eq!(out["result"], json!({"id": 501}));
+    let err = execute(&n, &w, &j, "skip", None).unwrap_err();
+    assert!(
+        err.to_string()
+            .contains("Change tenant or exact reviewed payload changed; review again"),
+        "{err}"
+    );
     assert!(w.calls.lock().unwrap().is_empty());
 }
 
@@ -842,6 +908,12 @@ impl ChangeWriter for RejectWriter {
         self.inner.put_change_body(change_id, body)?;
         Err(self.reject())
     }
+    fn get_change(&self, id: i64) -> Result<Map<String, Json>> {
+        self.inner.get_change(id)
+    }
+    fn edit_fingerprint(&self, module_id: &Json) -> Result<String> {
+        self.inner.edit_fingerprint(module_id)
+    }
     fn attach_files_to_change(&self, id: &Json, paths: &[String], dup: &str) -> Result<()> {
         self.inner.attach_files_to_change(id, paths, dup)
     }
@@ -856,41 +928,58 @@ fn events(j: &MemJournal) -> Vec<Json> {
 
 #[test]
 fn execute_unknown_outcome_leaves_started() {
+    let _cfg = config_guard(Some("acme.freshservice.com"));
     let h = Hints::new();
     let (create, _) = golden_create("full", &h);
-    let (update, _) = golden_update("subject", &h);
+    let (update, g) = golden_update("subject", &h);
     for status in [500, 502, 503, 504, 429, 408, 403] {
-        for plan in [&create, &update] {
-            let j = MemJournal::default();
-            let Err(ExecError::Failed(e)) =
-                execute(plan, &RejectWriter::new(status), &j, "skip", None)
-            else {
-                panic!("{status} {}", plan.action)
-            };
-            assert_eq!(e.as_api().unwrap().status, status);
-            assert_eq!(events(&j), [json!("started")], "{status} {}", plan.action);
-            if plan.action == "create" {
-                let again = check_duplicate(plan, false, &j).unwrap_err();
-                assert_eq!(again.exit_code(), 4);
-                assert!(again.to_string().contains("no recorded outcome"));
-            }
-        }
+        let j = MemJournal::default();
+        let Err(ExecError::Failed(e)) =
+            execute(&create, &RejectWriter::new(status), &j, "skip", None)
+        else {
+            panic!("{status} create")
+        };
+        assert_eq!(e.as_api().unwrap().status, status);
+        assert_eq!(events(&j), [json!("started")], "{status} create");
+        let again = check_duplicate(&create, false, &j).unwrap_err();
+        assert_eq!(again.exit_code(), 4);
+        assert!(again.to_string().contains("no recorded outcome"));
+
+        let writer = RejectWriter::new(status);
+        arm_change(&writer.inner, &update, g);
+        let j = MemJournal::default();
+        let err = execute(&update, &writer, &j, "skip", None).unwrap_err();
+        assert!(
+            err.to_string().contains("write outcome unknown"),
+            "{status} {err}"
+        );
+        assert_eq!(events(&j), [json!("started")], "{status} update");
     }
 }
 
 #[test]
 fn execute_definite_rejection_records_failed() {
+    let _cfg = config_guard(Some("acme.freshservice.com"));
     let h = Hints::new();
     let (create, _) = golden_create("full", &h);
-    let (update, _) = golden_update("subject", &h);
+    let (update, g) = golden_update("subject", &h);
     for status in [400, 404, 409, 422] {
-        for plan in [&create, &update] {
-            let j = MemJournal::default();
-            assert!(execute(plan, &RejectWriter::new(status), &j, "skip", None).is_err());
-            assert_eq!(events(&j), [json!("started"), json!("failed")]);
-            assert_eq!(j.read()[1]["error"], json!("details omitted"));
-            check_duplicate(plan, false, &j).unwrap();
-        }
+        let j = MemJournal::default();
+        assert!(execute(&create, &RejectWriter::new(status), &j, "skip", None).is_err());
+        assert_eq!(events(&j), [json!("started"), json!("failed")]);
+        assert_eq!(j.read()[1]["error"], json!("details omitted"));
+        check_duplicate(&create, false, &j).unwrap();
+
+        let writer = RejectWriter::new(status);
+        arm_change(&writer.inner, &update, g);
+        let j = MemJournal::default();
+        let err = execute(&update, &writer, &j, "skip", None).unwrap_err();
+        assert!(
+            err.to_string()
+                .contains(&format!("write rejected (HTTP {status})")),
+            "{err}"
+        );
+        assert_eq!(events(&j), [json!("started"), json!("failed")]);
     }
 }
 
@@ -927,27 +1016,38 @@ impl Journal for FailingJournal {
 
 #[test]
 fn execute_refuses_when_started_is_not_persisted() {
+    let _cfg = config_guard(Some("acme.freshservice.com"));
     let h = Hints::new();
     let (create, _) = golden_create("full", &h);
-    let (update, _) = golden_update("subject", &h);
+    let (update, g) = golden_update("subject", &h);
     let dropping = MemJournal {
         drop_writes: true,
         ..MemJournal::default()
     };
     let journals: [&dyn Journal; 2] = [&FailingJournal::default(), &dropping];
     for j in journals {
-        for plan in [&create, &update] {
-            let w = FakeWriter::default();
-            let Err(ExecError::Failed(e)) = execute(plan, &w, j, "skip", None) else {
-                panic!("{}", plan.action)
-            };
-            assert_eq!(e.exit_code(), 5);
-            assert_eq!(
-                e.to_string(),
-                "could not persist the change journal; nothing was sent"
-            );
-            assert!(w.calls.lock().unwrap().is_empty());
-        }
+        let w = FakeWriter::default();
+        let Err(ExecError::Failed(e)) = execute(&create, &w, j, "skip", None) else {
+            panic!("create")
+        };
+        assert_eq!(e.exit_code(), 5);
+        assert_eq!(
+            e.to_string(),
+            "could not persist the change journal; nothing was sent"
+        );
+        assert!(w.calls.lock().unwrap().is_empty());
+
+        let w = FakeWriter::default();
+        arm_change(&w, &update, g);
+        let Err(ExecError::Failed(e)) = execute(&update, &w, j, "skip", None) else {
+            panic!("update")
+        };
+        assert_eq!(e.exit_code(), 2);
+        assert_eq!(
+            e.to_string(),
+            "could not persist ambiguity journal; no write attempted"
+        );
+        assert!(w.calls.lock().unwrap().is_empty());
     }
 }
 

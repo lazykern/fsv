@@ -154,6 +154,38 @@ impl Backend for Mock {
         self.tasks.lock().unwrap().retain(|t| &t["id"] != task_id);
         Ok(())
     }
+    fn task_mutation_plan(
+        &self,
+        kind: &str,
+        change_id: &Value,
+        task_id: &Value,
+        body: &Map<String, Value>,
+    ) -> BResult<ReviewPlan> {
+        self.log(format!(
+            "task-mutation {kind} {change_id} {task_id} {}",
+            Value::Object(body.clone())
+        ));
+        Ok(plan(
+            json!({"kind": kind}),
+            json!({"kind": kind, "task_id": task_id, "body": Value::Object(body.clone())}),
+        ))
+    }
+    fn send_task_mutation(&self, p: &ReviewPlan) -> BResult<Value> {
+        self.log(format!("task-mutation-send {}", p.raw["kind"]));
+        let task_id = &p.raw["task_id"];
+        if p.raw["kind"] == "task-delete" {
+            self.tasks.lock().unwrap().retain(|t| &t["id"] != task_id);
+        } else if let Some(body) = p.raw["body"].as_object() {
+            for t in self.tasks.lock().unwrap().iter_mut() {
+                if &t["id"] == task_id {
+                    for (k, v) in body {
+                        t[k] = v.clone();
+                    }
+                }
+            }
+        }
+        Ok(json!({"verified": true}))
+    }
     fn search_change_tickets(&self, query: &str) -> BResult<Vec<Value>> {
         self.log(format!("ticket-search {query}"));
         Ok(vec![
@@ -343,16 +375,16 @@ fn a_menu_task_update_changes_one_field_and_verifies_readback() {
     a.press("ctrl+u");
     a.type_text("Acme rollout v2");
     a.press("enter");
+    a.settle();
     let s = screen(&a);
-    assert!(s.contains("Confirm task-update"), "{s}");
-    assert!(s.contains("Action: task-update"), "{s}");
+    assert!(s.contains("Review exact task-update"), "{s}");
     a.press("y");
     a.settle();
     assert_eq!(
-        m.calls("task-update"),
-        vec!["task-update 11 600 {\"title\":\"Acme rollout v2\"}"]
+        m.calls("task-mutation task-update"),
+        vec!["task-mutation task-update 11 600 {\"title\":\"Acme rollout v2\"}"]
     );
-    assert_eq!(last_toast(&a), "task-update verified");
+    assert_eq!(last_toast(&a), "Exact task mutation verified");
     assert_eq!(m.tasks.lock().unwrap()[0]["title"], "Acme rollout v2");
 }
 
@@ -362,23 +394,19 @@ fn a_menu_task_delete_verifies_removal() {
     add_task(&mut a);
     menu_pick(&mut a, "Delete selected task");
     a.press("enter");
+    a.settle();
     let s = screen(&a);
-    assert!(s.contains("Confirm task-delete"), "{s}");
-    assert!(s.contains("Target: 600 — Acme rollout"), "{s}");
-    let rows: Vec<&str> = s.lines().collect();
-    let at = |y: usize| rows[y].chars().skip(31).take(58).collect::<String>();
-    assert_eq!(
-        at(10).trim_end(),
-        "Assignment/status changes may notify people. Deletion"
-    );
-    assert_eq!(at(11).trim_end(), "cannot be undone.");
-    assert_eq!(at(31).trim_end(), "y confirm · Esc cancel");
+    assert!(s.contains("Review exact task-delete"), "{s}");
+    assert!(s.contains("task-delete"), "{s}");
     a.press("y");
     a.settle();
-    assert_eq!(m.calls("task-delete"), vec!["task-delete 11 600"]);
+    assert_eq!(
+        m.calls("task-mutation task-delete"),
+        vec!["task-mutation task-delete 11 600 {}"]
+    );
     assert!(m.tasks.lock().unwrap().is_empty());
-    assert_eq!(last_toast(&a), "task-delete verified");
-    assert!(screen(&a).contains("task-delete verified"));
+    assert_eq!(last_toast(&a), "Exact task mutation verified");
+    assert!(screen(&a).contains("Exact task mutation verified"));
 }
 
 #[test]

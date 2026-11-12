@@ -274,6 +274,18 @@ pub enum Cont {
         item: Item,
         plan: ReviewPlan,
     },
+    TaskMutationReviewed {
+        item: Item,
+        plan: ReviewPlan,
+    },
+    ProblemNoteReviewed {
+        item: Item,
+        plan: ReviewPlan,
+    },
+    ChangeStatusReviewed {
+        item: Item,
+        plan: ReviewPlan,
+    },
     ActionTarget {
         kind: String,
         item: Item,
@@ -846,6 +858,11 @@ fn execute_action_job(
     let res = item.res;
     let cid = item.ref_id();
     let tid = target.get("id").cloned().unwrap_or(Value::Null);
+    if matches!(kind, "task-update" | "task-delete") {
+        return Ui::Failure(actions::failure_detail(&Failure::value(
+            "Task mutations require an exact reviewed task plan",
+        )));
+    }
     if kind == "download" {
         let dest = body
             .get("destination")

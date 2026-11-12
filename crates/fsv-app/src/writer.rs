@@ -86,6 +86,27 @@ impl ChangeWriter for LiveWriter {
         .map(|_| ())
     }
 
+    fn get_change(&self, id: i64) -> Result<Map<String, Json>> {
+        let raw = self.api.int_get(&format!("changes/{id}"), None)?;
+        let row = raw.get("change").cloned().unwrap_or(raw);
+        row.as_object()
+            .cloned()
+            .ok_or_else(|| Error::other("change readback unavailable"))
+    }
+
+    fn edit_fingerprint(&self, module_id: &Json) -> Result<String> {
+        let store = fsv_api::formmeta::DiskStore::current();
+        let meta = fsv_api::formmeta::load_meta(
+            self.api.as_ref(),
+            &store,
+            "change",
+            "edit",
+            true,
+            module_id,
+        )?;
+        Ok(meta.fingerprint().hash)
+    }
+
     fn associated_devices(&self, target: i64) -> Result<Vec<Json>> {
         fsv_api::integrated_assets::inventory(
             self.api.as_ref(),

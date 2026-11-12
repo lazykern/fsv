@@ -309,6 +309,10 @@ pub struct FakeWriter {
     pub calls: Mutex<Vec<(String, Json)>>,
     pub fail_upload: bool,
     pub fail_post: Option<u16>,
+    /// Change row returned by `get_change`, updated by a successful PUT.
+    pub change: Mutex<Map<String, Json>>,
+    /// Fresh edit-form fingerprint. Empty means metadata is unavailable.
+    pub fingerprint: Mutex<String>,
 }
 
 impl ChangeWriter for FakeWriter {
@@ -336,7 +340,32 @@ impl ChangeWriter for FakeWriter {
             .lock()
             .unwrap()
             .push(("put".into(), json!({"id": change_id, "body": body})));
+        let mut row = self.change.lock().unwrap();
+        for (key, value) in body {
+            if key == "custom_fields" {
+                let custom = row.entry(key.clone()).or_insert_with(|| json!({}));
+                if let (Some(dst), Some(src)) = (custom.as_object_mut(), value.as_object()) {
+                    for (k, v) in src {
+                        dst.insert(k.clone(), v.clone());
+                    }
+                } else {
+                    row.insert(key.clone(), value.clone());
+                }
+            } else {
+                row.insert(key.clone(), value.clone());
+            }
+        }
         Ok(json!({"id": change_id}))
+    }
+    fn get_change(&self, _id: i64) -> Result<Map<String, Json>> {
+        Ok(self.change.lock().unwrap().clone())
+    }
+    fn edit_fingerprint(&self, _module_id: &Json) -> Result<String> {
+        let hash = self.fingerprint.lock().unwrap().clone();
+        if hash.is_empty() {
+            return Err(Error::other("change metadata unavailable"));
+        }
+        Ok(hash)
     }
     fn attach_files_to_change(
         &self,

@@ -350,6 +350,9 @@ impl Backend for Mock {
         public_confirmed: bool,
         _read_only: bool,
     ) -> BResult<Value> {
+        if self.note_fails {
+            return Err(Failure::value("server down"));
+        }
         self.log(format!("ticket-note-send {} {public_confirmed}", p.hash));
         Ok(json!({"verified": true, "note_id": 11}))
     }
@@ -994,17 +997,8 @@ fn n_private_note_on_change_confirms_then_sends_once() {
     let (mut a, m) = app(3);
     to_changes(&mut a);
     a.press("n");
-    assert!(matches!(top(&a), Some(Modal::Note(_))));
-    a.type_text("qoy");
-    a.press("ctrl+s");
-    assert!(screen(&a).contains("Confirm private note"));
+    assert!(screen(&a).contains("Change-note visibility"));
     assert!(m.calls("note").is_empty());
-    a.press("y");
-    a.settle();
-    assert_eq!(
-        m.calls("note"),
-        vec!["note changes 1 qoy public=false".to_string()]
-    );
 }
 
 #[test]
@@ -1012,12 +1006,8 @@ fn n_ctrl_t_makes_a_public_note_and_escape_sends_nothing() {
     let (mut a, m) = app(3);
     to_changes(&mut a);
     a.press("n");
-    a.type_text("hi");
-    a.press("ctrl+t");
-    a.press("ctrl+s");
-    assert!(screen(&a).contains("Confirm public note"));
+    assert!(screen(&a).contains("Change-note visibility"));
     a.press("escape");
-    a.settle();
     assert!(m.calls("note").is_empty());
     assert!(a.modals.is_empty());
 }
@@ -1093,10 +1083,10 @@ fn exclamation_mark_reopens_the_last_failure() {
     let (mut a, _) = start(mock, false);
     a.press("exclamation_mark");
     assert!(a.modals.is_empty());
-    to_changes(&mut a);
     a.press("n");
     a.type_text("x");
     a.press("ctrl+s");
+    a.settle();
     a.press("y");
     a.settle();
     assert!(matches!(top(&a), Some(Modal::Failure(_))));
@@ -1957,9 +1947,7 @@ fn ctrl_o_needs_text_and_a_ticket() {
     let (mut b, _) = app(3);
     to_changes(&mut b);
     b.press("n");
-    b.type_text("x");
-    b.press("ctrl+o");
-    assert!(matches!(top(&b), Some(Modal::Note(n)) if !n.ticket_options));
+    assert!(screen(&b).contains("Change-note visibility"));
     assert!(m.calls("conversation-plan").is_empty());
 }
 

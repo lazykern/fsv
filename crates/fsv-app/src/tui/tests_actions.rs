@@ -269,6 +269,10 @@ fn task_edit_tenant() -> Tenant {
         ("GET", "changes/5/tasks/9") => ok(
             json!({"task": {"id": 9, "title": "T", "status": 1, "created_at": "x", "owner_id": null, "group_id": 4}}),
         ),
+        ("GET", "changes/5/tasks") => ok(json!({
+            "tasks": [{"id": 9, "title": "T", "status": 1, "owner_id": null, "group_id": 4}],
+            "meta": {"has_next": false}
+        })),
         ("GET", "change_task_fields") => ok(status_fields()),
         ("PUT", "changes/5/tasks/9") => ok(json!({"task": {"id": 9}})),
         ("PUT", "changes/5/tasks/update") => ok(json!({})),
@@ -291,39 +295,21 @@ fn task_edits_read_the_task_and_status_fields_then_put_one_field() {
     );
     let patch = fsv_tui::actions::task_patch(&current, "status", "In Progress", &fields).unwrap();
     assert_eq!(compact(&Value::Object(patch.clone())), r#"{"status":2}"#);
-    fsv_tui::actions::apply_change_action(
-        &b,
-        "task-update",
-        &json!(5),
-        &json!({"id": 9}),
-        &patch,
-        None,
-    )
-    .unwrap();
-    fsv_tui::actions::apply_change_action(
-        &b,
-        "task-delete",
-        &json!(5),
-        &json!({"id": 9}),
-        &Map::new(),
-        None,
-    )
-    .unwrap();
+    let update = b
+        .task_mutation_plan("task-update", &json!(5), &json!(9), &patch)
+        .unwrap();
+    b.send_task_mutation(&update).unwrap();
+    let delete = b
+        .task_mutation_plan("task-delete", &json!(5), &json!(9), &Map::new())
+        .unwrap();
+    b.send_task_mutation(&delete).unwrap();
     let calls = t.calls();
-    assert_eq!(
-        calls.iter().map(Call::line).collect::<Vec<_>>(),
-        [
-            "GET /api/_/changes/5/tasks/9",
-            "GET /api/_/change_task_fields?include_deleted_choices=true",
-            "PUT /api/_/changes/5/tasks/9",
-            "PUT /api/_/changes/5/tasks/update",
-        ]
-    );
-    assert_eq!(calls[2].json(), Some(json!({"status": 2})));
-    assert_eq!(
-        calls[3].json(),
-        Some(json!({"id": "9", "action": "delete"}))
-    );
+    let puts: Vec<_> = calls.iter().filter(|c| c.method == "PUT").collect();
+    assert_eq!(puts.len(), 2);
+    assert_eq!(puts[0].path, "/api/_/changes/5/tasks/9");
+    assert_eq!(puts[0].json(), Some(json!({"status": 2})));
+    assert_eq!(puts[1].path, "/api/_/changes/5/tasks/update");
+    assert_eq!(puts[1].json(), Some(json!({"action": "delete", "id": "9"})));
 }
 
 #[test]

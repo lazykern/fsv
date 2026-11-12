@@ -300,9 +300,10 @@ pub fn target_inventory(
 }
 
 pub fn apply_status(b: &dyn Backend, res: Res, item_id: &Value, new_id: &Value) -> BResult<Value> {
-    let mut body = Map::new();
-    body.insert("status".into(), new_id.clone());
-    b.update_item(res, item_id, &body)
+    let _ = (b, res, item_id, new_id);
+    Err(Failure::value(
+        "Status requires the shared reviewed property/form sender",
+    ))
 }
 
 pub fn apply_note(
@@ -312,12 +313,17 @@ pub fn apply_note(
     body: &str,
     public: bool,
 ) -> BResult<Value> {
-    if res.name == "tickets" {
-        return Err(Failure::value(
-            "Ticket notes require the reviewed ticket-note sender",
-        ));
-    }
-    b.add_note(res, item_id, body, public)
+    let _ = (b, res, item_id, body, public);
+    Err(Failure::value(
+        "Notes require a shared reviewed note sender; legacy visibility is not proven",
+    ))
+}
+
+pub fn apply_reply(b: &dyn Backend, res: Res, item_id: &Value, body: &str) -> BResult<Value> {
+    let _ = (b, res, item_id, body);
+    Err(Failure::value(
+        "Replies require the shared reviewed conversation sender",
+    ))
 }
 
 /// One helper invocation, with no fallback or write retry here. Link and
@@ -332,8 +338,12 @@ pub fn apply_change_action(
 ) -> BResult<Option<Value>> {
     let tid = target.get("id").cloned().unwrap_or(Value::Null);
     match kind {
-        "task-update" => b.update_task(change_id, &tid, body).map(|_| None),
-        "task-delete" => b.delete_task(change_id, &tid).map(|_| None),
+        "task-update" | "task-delete" => {
+            let _ = (b, change_id, tid, body);
+            Err(Failure::value(
+                "Task mutations require the shared reviewed task sender",
+            ))
+        }
         "link" | "unlink" => {
             let fresh = b.association_plan(change_id, std::slice::from_ref(&tid), kind == "unlink");
             match (reviewed, fresh) {
@@ -745,14 +755,21 @@ mod tests {
     #[test]
     fn apply_status_note_send_once() {
         let b = Rec::default();
-        apply_status(&b, &CHANGES, &json!(7), &json!(4)).unwrap();
-        apply_note(&b, &CHANGES, &json!(7), "hi", true).unwrap();
-        let err = apply_note(&b, &TICKETS, &json!(3), "x", false).unwrap_err();
-        assert!(err.to_string().contains("reviewed ticket-note sender"));
-        assert_eq!(
-            b.calls(),
-            vec!["update changes 7 {\"status\":4}", "note changes 7 hi true"]
+        let status = apply_status(&b, &CHANGES, &json!(7), &json!(4)).unwrap_err();
+        assert!(
+            status
+                .to_string()
+                .contains("shared reviewed property/form sender")
         );
+        let note = apply_note(&b, &CHANGES, &json!(7), "hi", true).unwrap_err();
+        assert!(note.to_string().contains("shared reviewed note sender"));
+        let reply = apply_reply(&b, &TICKETS, &json!(3), "x").unwrap_err();
+        assert!(
+            reply
+                .to_string()
+                .contains("shared reviewed conversation sender")
+        );
+        assert!(b.calls().is_empty());
     }
 
     #[test]
@@ -763,14 +780,12 @@ mod tests {
         };
         let body: Map<String, Value> = [("title".to_string(), json!("t"))].into_iter().collect();
         let target = json!({"id": 5});
-        assert_eq!(
-            apply_change_action(&b, "task-update", &json!(1), &target, &body, None).unwrap(),
-            None
-        );
-        assert_eq!(
-            apply_change_action(&b, "task-delete", &json!(1), &target, &Map::new(), None).unwrap(),
-            None
-        );
+        let update =
+            apply_change_action(&b, "task-update", &json!(1), &target, &body, None).unwrap_err();
+        assert!(update.to_string().contains("shared reviewed task sender"));
+        let delete = apply_change_action(&b, "task-delete", &json!(1), &target, &Map::new(), None)
+            .unwrap_err();
+        assert!(delete.to_string().contains("shared reviewed task sender"));
         let sent = apply_change_action(
             &b,
             "link",
@@ -795,14 +810,7 @@ mod tests {
         let bad =
             apply_change_action(&b, "nope", &json!(1), &target, &Map::new(), None).unwrap_err();
         assert_eq!(bad.to_string(), "Unsupported change action");
-        assert_eq!(
-            b.calls(),
-            vec![
-                "task-update 1 5 {\"title\":\"t\"}",
-                "task-delete 1 5",
-                "assoc h1"
-            ]
-        );
+        assert_eq!(b.calls(), vec!["assoc h1"]);
     }
 
     #[test]

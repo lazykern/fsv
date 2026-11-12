@@ -10,7 +10,7 @@ use fsv_core::client::Response;
 const BR: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=";
 const SR_BR: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyIxMSI6eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn19";
 const NEW_HASH: &str = "a28516d9594757efde10c3259d1f7e4499474bd3af6cb68b26f06ad66726ca24";
-const EDIT_HASH: &str = "1d7bd2f0e3d4e2b2ecd7afe26ac05911d028d968a55e18aa3a831fcbd9ecea51";
+const EDIT_HASH: &str = "de282eb78ab489672f6fba88eafaccc5a4585ecfe6770832c57a85370d262869";
 const TICKET_HASH: &str = "0f2785c0cb49ffd3b55b9a38696dc271157e7225aeb601050bd5bd65afa02d9a";
 const SR_HASH: &str = "51d1b1aaf494f9d0c061f3f62387b65e14b266a9d2b15cccff5e633d713c50b0";
 
@@ -230,18 +230,22 @@ fn edit_change_fetches_the_record_and_puts_the_diff() {
         [
             "GET /api/_/change_form_fields",
             "GET /api/_/ws/2/business_rules",
-            "PUT /api/_/changes/77"
+            "GET /api/_/change_form_fields",
+            "GET /api/_/ws/2/business_rules",
+            "GET /api/_/changes/77",
+            "PUT /api/_/changes/77",
+            "GET /api/_/changes/77"
         ]
     );
     assert_eq!(calls[1].query, rules_query("change", "edit_form", "77"));
     assert_eq!(
-        calls[2].body.as_deref(),
+        calls[5].body.as_deref(),
         Some(r#"{"subject":"New subject"}"#)
     );
-    assert_eq!(
-        out,
-        json!({"id": 77, "result": {"id": 77}, "steps": [{"step": "update", "ok": true, "id": 77}], "uploaded": [], "plan_hash": EDIT_HASH})
-    );
+    assert_eq!(out["plan_hash"], json!(EDIT_HASH));
+    assert_eq!(out["verified"], json!(false));
+    assert_eq!(out["fields"]["subject"], json!("mismatched"));
+    assert_eq!(out["steps"][0]["step"], json!("update"));
 }
 
 #[test]
@@ -853,13 +857,12 @@ mod tui_forms {
         let put = calls.iter().find(|c| c.method == "PUT").unwrap();
         assert_eq!(put.path, "/api/_/changes/77");
         assert_eq!(put.body.as_deref(), Some(r#"{"subject":"New subject"}"#));
-        assert_eq!(
-            out,
-            json!({"id": 77, "result": {"id": 77}, "steps": [{"step": "update", "ok": true, "id": 77}], "uploaded": [], "plan_hash": EDIT_HASH})
-        );
+        assert_eq!(out["plan_hash"], json!(EDIT_HASH));
+        assert_eq!(out["verified"], json!(false));
+        assert_eq!(out["fields"]["subject"], json!("mismatched"));
         assert_eq!(
             fsv_tui::actions::form_result("edit", &out),
-            ("Change".to_string(), "ID 77".to_string())
+            ("Change".to_string(), "CHN-77".to_string())
         );
     }
 

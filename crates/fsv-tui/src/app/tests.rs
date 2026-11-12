@@ -342,6 +342,37 @@ impl Backend for Mock {
         self.log(format!("task-delete {change_id} {task_id}"));
         Ok(())
     }
+    fn ticket_property_plan(
+        &self,
+        ticket_id: &Value,
+        name: &str,
+        value: &Value,
+    ) -> BResult<ReviewPlan> {
+        self.log(format!("property-plan {ticket_id} {name} {value}"));
+        self.fail("property")?;
+        Ok(plan(json!({"name": name, "value": value})))
+    }
+    fn send_ticket_property(&self, p: &ReviewPlan) -> BResult<Value> {
+        self.log(format!("property-send {}", p.hash));
+        Ok(json!({"verified": true}))
+    }
+    fn task_mutation_plan(
+        &self,
+        kind: &str,
+        change_id: &Value,
+        task_id: &Value,
+        body: &Map<String, Value>,
+    ) -> BResult<ReviewPlan> {
+        self.log(format!(
+            "task-mutation-plan {kind} {change_id} {task_id} {}",
+            Value::Object(body.clone())
+        ));
+        Ok(plan(json!({"kind": kind})))
+    }
+    fn send_task_mutation(&self, p: &ReviewPlan) -> BResult<Value> {
+        self.log(format!("task-mutation-send {}", p.hash));
+        Ok(json!({"verified": true}))
+    }
     fn catalog(&self) -> BResult<(Vec<Value>, Vec<Value>)> {
         self.fail("catalog")?;
         Ok((
@@ -358,8 +389,6 @@ impl Backend for Mock {
         download,
         send_approval,
         ticket_property_fields,
-        ticket_property_plan,
-        send_ticket_property,
         known_error_plan,
         send_known_error,
         planning_definitions,
@@ -1420,11 +1449,13 @@ fn start_status_confirms_then_do_write_once() {
     let item = a.selected.clone().unwrap();
     a.start_status(item);
     answer(&mut a, ModalResult::Status(json!(2), "Pending".into()));
-    assert_eq!(confirm(&a).title, "Confirm status change");
-    assert_eq!(confirm(&a).lines[0], "Status: Open  ->  Pending");
+    assert_eq!(confirm(&a).title, "Review exact ticket property");
+    assert_eq!(m.calls("property-plan"), vec!["property-plan 1 status 2"]);
     answer(&mut a, ModalResult::Bool(true));
-    assert_eq!(m.calls("update"), vec!["update tickets 1 {\"status\":2}"]);
-    assert_eq!(last_toast(&a), "Status set to Pending");
+    a.settle();
+    assert_eq!(m.calls("update"), Vec::<String>::new());
+    assert_eq!(m.calls("property-send").len(), 1);
+    assert_eq!(last_toast(&a), "Ticket property verified");
 }
 
 #[test]
@@ -1468,24 +1499,16 @@ fn do_write_messages_and_failures() {
     let (mut a, m) = on_change(Mock::new(1));
     let c = a.selected.clone().unwrap();
     a.do_write(WriteKind::Note("n1".into(), true), c.clone());
-    a.settle();
-    assert_eq!(last_toast(&a), "Public note added");
-    a.do_write(WriteKind::Note("n2".into(), false), c.clone());
-    a.settle();
-    assert_eq!(last_toast(&a), "Private note added");
-    assert_eq!(m.calls("note").len(), 2);
-
-    let mut mock = Mock::new(1);
-    mock.fails = vec!["write"];
-    let (mut b, _) = on_change(mock);
-    let c = b.selected.clone().unwrap();
-    b.do_write(WriteKind::Status(json!(2), "Pending".into()), c);
-    b.settle();
     assert!(
-        failure(&b)
+        failure(&a)
             .message
-            .starts_with("write denied\nNo automatic retry.")
+            .contains("Legacy TUI send path disabled")
     );
+    a.modals.clear();
+    a.do_write(WriteKind::Status(json!(2), "Pending".into()), c);
+    assert!(failure(&a).message.contains("Nothing sent."));
+    assert!(m.calls("note").is_empty());
+    assert!(m.calls("update").is_empty());
 }
 
 #[test]
@@ -1932,17 +1955,11 @@ fn load_task_editor_edit_task_field_and_confirm_action() {
     a.edit_task_field(c, target, json!({"owner_id": 1}), Vec::new());
     answer(&mut a, ModalResult::Choice(json!("owner_id")));
     answer(&mut a, ModalResult::Text("5".into()));
-    assert_eq!(confirm(&a).title, "Confirm task-update");
+    assert_eq!(confirm(&a).title, "Review exact task-update");
+    assert!(confirm(&a).lines[0].contains("task-update"));
     assert_eq!(
-        confirm(&a).lines,
-        vec![
-            "Record: CHN-11 (ID 11)",
-            "Target: 600 — Acme task",
-            "Action: task-update",
-            "Before: {\"owner_id\": 1}",
-            "{\"owner_id\": 5}",
-            "Assignment/status changes may notify people. Deletion cannot be undone.",
-        ]
+        m.calls("task-mutation-plan"),
+        vec!["task-mutation-plan task-update 11 600 {\"owner_id\":5}"]
     );
 
     let mut mock = Mock::new(1);
@@ -2003,11 +2020,9 @@ fn execute_action_sends_once_and_reads_back() {
         None,
     );
     a.settle();
-    assert_eq!(
-        m.calls("task-update"),
-        vec!["task-update 11 600 {\"status\":3}"]
-    );
-    assert_eq!(last_toast(&a), "task-update verified");
+    assert!(failure(&a).message.contains("exact reviewed task plan"));
+    assert!(m.calls("task-update").is_empty());
+    a.modals.clear();
     a.execute_action(
         "task-delete".into(),
         c.clone(),
@@ -2016,11 +2031,8 @@ fn execute_action_sends_once_and_reads_back() {
         None,
     );
     a.settle();
-    assert_eq!(
-        failure(&a).message,
-        "Write sent once; readback unverified: Removal is not verified in a complete list. Do not resend; inspect the record."
-    );
-    assert_eq!(m.calls("task-delete").len(), 1);
+    assert!(failure(&a).message.contains("exact reviewed task plan"));
+    assert!(m.calls("task-delete").is_empty());
     a.modals.clear();
     let reviewed = plan(json!({"change_id": 11, "unlink": false}));
     a.execute_action(

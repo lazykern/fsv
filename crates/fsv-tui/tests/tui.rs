@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use fsv_core::resource::Resource;
 use fsv_tui::app::{App, Focus};
-use fsv_tui::backend::{BResult, DetailPage, Failure, ListRequest, View};
+use fsv_tui::backend::{BResult, DetailPage, Failure, ListRequest, ReviewPlan, View};
 use fsv_tui::modals::Modal;
 use fsv_tui::{Backend, BasicPages, view};
 use ratatui::Terminal;
@@ -118,6 +118,25 @@ impl Backend for Mock {
     ) -> BResult<Value> {
         Err(Failure::unavailable("notes"))
     }
+    fn ticket_property_plan(
+        &self,
+        ticket_id: &Value,
+        name: &str,
+        value: &Value,
+    ) -> BResult<ReviewPlan> {
+        self.log(format!("property-plan {ticket_id} {name} {value}"));
+        Ok(ReviewPlan {
+            hash: "h-status".into(),
+            review: json!({"field": name, "value": value}),
+            public: false,
+            target_id: ticket_id.clone(),
+            raw: json!({"name": name, "value": value}),
+        })
+    }
+    fn send_ticket_property(&self, plan: &ReviewPlan) -> BResult<Value> {
+        self.log(format!("property-send {}", plan.hash));
+        Ok(json!({"verified": true}))
+    }
     fsv_tui::backend_stubs!(
         view_settings,
         search_items,
@@ -141,8 +160,6 @@ impl Backend for Mock {
         update_task,
         delete_task,
         ticket_property_fields,
-        ticket_property_plan,
-        send_ticket_property,
         known_error_plan,
         send_known_error,
         planning_definitions,
@@ -272,15 +289,20 @@ fn status_modal_confirms_one_write() {
 
     app.press("down");
     app.press("enter");
-    assert!(matches!(app.modals.last(), Some((Modal::Confirm(_), _))));
-    let s = screen(&app);
-    assert!(s.contains("->"), "{s}");
+    app.settle();
+    assert!(screen(&app).contains("Review exact ticket property"));
+    assert_eq!(mock.calls("property-plan"), ["property-plan 1 status 2"]);
+    assert!(mock.calls("property-send").is_empty());
     app.press("y");
     app.settle();
-    assert!(app.modals.is_empty());
-    let updates = mock.calls("update");
-    assert_eq!(updates.len(), 1, "{updates:?}");
-    assert!(updates[0].contains("\"status\""), "{updates:?}");
+    assert_eq!(mock.calls("property-send"), ["property-send h-status"]);
+    assert!(mock.calls("update").is_empty());
+    assert!(screen(&app).contains("Property result — do not resend"));
+    assert!(
+        app.toasts
+            .iter()
+            .any(|t| t.message.contains("Ticket property verified"))
+    );
 }
 
 #[test]

@@ -55,6 +55,12 @@ impl App {
     }
 
     pub(super) fn start_note(&mut self, item: Item, reply: bool) {
+        if item.res.name == "changes" && !reply {
+            self.show_failure(
+                "Change-note visibility and a shared reviewed CLI contract are unavailable. Use the web form; the legacy TUI note sender is disabled.".to_string(),
+            );
+            return;
+        }
         let ok = if reply {
             actions::can_reply(item.res)
         } else {
@@ -64,7 +70,11 @@ impl App {
             self.notify("Not available for this item type", Severity::Warning);
             return;
         }
-        let modal = NoteModal::new(&self.target_label(&item), reply, true)
+        let mut title = self.target_label(&item);
+        if item.res.name == "problems" {
+            title.push_str(" — visibility/notifications not proven");
+        }
+        let modal = NoteModal::new(&title, reply, item.res.name == "tickets")
             .with_ticket_options(item.res.name == "tickets");
         self.push(Modal::Note(modal), Cont::NoteComposed { item, reply });
     }
@@ -117,29 +127,20 @@ impl App {
     }
 
     pub(super) fn do_write(&mut self, kind: WriteKind, item: Item) {
+        match &kind {
+            WriteKind::Status(id, label) => {
+                let _ = (id, label, &item);
+            }
+            WriteKind::Note(body, public) => {
+                let _ = (body, public, &item);
+            }
+        }
         if self.read_only {
             return;
         }
-        self.spawn(move |b| {
-            let res = item.res;
-            let id = item.id();
-            let outcome = match &kind {
-                WriteKind::Status(new_id, label) => actions::apply_status(b, res, &id, new_id)
-                    .map(|_| format!("Status set to {label}")),
-                WriteKind::Note(body, public) => actions::apply_note(b, res, &id, body, *public)
-                    .map(|_| {
-                        if *public {
-                            "Public note added".into()
-                        } else {
-                            "Private note added".into()
-                        }
-                    }),
-            };
-            Msg::Ui(vec![match outcome {
-                Ok(msg) => Ui::AfterWrite(res, item, msg),
-                Err(e) => Ui::Failure(actions::failure_detail(&e)),
-            }])
-        });
+        self.show_failure(
+            "Legacy TUI send path disabled; prepare and confirm an exact shared reviewed plan. Nothing sent.".to_string(),
+        );
     }
 
     pub(super) fn after_write(&mut self, res: Res, item: Item, msg: &str) {
@@ -661,6 +662,10 @@ impl App {
         if self.read_only {
             return;
         }
+        if kind == "task-update" || kind == "task-delete" {
+            self.prepare_task_mutation(kind, item, target, body);
+            return;
+        }
         let tlabel = first_of(&target, &["title", "subject"])
             .map_or_else(|| fget(&target, "name", ""), |v| fsv_py::py_str(&v));
         let tid = first_of(&target, &["human_display_id"])
@@ -734,5 +739,139 @@ impl App {
                 b, &kind, item, &target, &body, plan,
             )])
         });
+    }
+
+    pub(super) fn prepare_task_mutation(
+        &mut self,
+        kind: String,
+        item: Item,
+        target: Value,
+        body: Map<String, Value>,
+    ) {
+        if self.read_only {
+            return;
+        }
+        let task_id = target.get("id").cloned().unwrap_or(Value::Null);
+        self.spawn(move |b| {
+            let ui = match b.task_mutation_plan(&kind, &item.ref_id(), &task_id, &body) {
+                Ok(plan) => Ui::Push(
+                    Box::new(Modal::confirm(
+                        &format!("Review exact {kind}"),
+                        vec![fsv_py::pretty(&plan.review)],
+                    )),
+                    Cont::TaskMutationReviewed { item, plan },
+                ),
+                Err(e) => Ui::Failure(actions::failure_detail(&e)),
+            };
+            Msg::Ui(vec![ui])
+        });
+    }
+
+    pub(super) fn send_task_mutation(&mut self, item: Item, plan: ReviewPlan) {
+        if self.read_only {
+            return;
+        }
+        self.spawn(move |b| {
+            outcome_msg(
+                b.send_task_mutation(&plan),
+                "Task mutation outcome — do not resend",
+                &CHANGES,
+                item,
+                "Exact task mutation verified",
+            )
+        });
+    }
+
+    pub(super) fn prepare_problem_note(&mut self, item: Item, body: String) {
+        if self.read_only {
+            return;
+        }
+        self.spawn(move |b| {
+            let ui = match b.problem_note_plan(&item.ref_id(), &body) {
+                Ok(plan) => Ui::Push(
+                    Box::new(Modal::confirm(
+                        "Review exact problem note — visibility not proven",
+                        vec![
+                            fsv_py::pretty(&plan.review),
+                            "Body-only native note. Privacy and notifications are not established; inspect before confirming.".into(),
+                        ],
+                    )),
+                    Cont::ProblemNoteReviewed { item, plan },
+                ),
+                Err(e) => Ui::Failure(actions::failure_detail(&e)),
+            };
+            Msg::Ui(vec![ui])
+        });
+    }
+
+    pub(super) fn send_problem_note(&mut self, item: Item, plan: ReviewPlan) {
+        if self.read_only {
+            return;
+        }
+        self.spawn(move |b| {
+            outcome_msg(
+                b.send_problem_note(&plan),
+                "Problem note outcome — do not resend",
+                &PROBLEMS,
+                item,
+                "Exact problem note verified",
+            )
+        });
+    }
+
+    pub(super) fn prepare_change_status(&mut self, item: Item, status: Value) {
+        if self.read_only {
+            return;
+        }
+        self.spawn(move |b| {
+            let ui = match b.change_status_plan(&item.ref_id(), &status) {
+                Ok(plan) => Ui::Push(
+                    Box::new(Modal::confirm(
+                        "Review exact change status",
+                        vec![fsv_py::Dumps::default().indent(2).dump(&plan.review)],
+                    )),
+                    Cont::ChangeStatusReviewed { item, plan },
+                ),
+                Err(e) => Ui::Failure(actions::failure_detail(&e)),
+            };
+            Msg::Ui(vec![ui])
+        });
+    }
+
+    pub(super) fn send_change_status(&mut self, item: Item, plan: ReviewPlan) {
+        if self.read_only {
+            return;
+        }
+        self.spawn(move |b| {
+            outcome_msg(
+                b.send_change_status(&plan),
+                "Form outcome — do not resend",
+                &CHANGES,
+                item,
+                "Change properties verified",
+            )
+        });
+    }
+}
+
+fn outcome_msg(
+    result: Result<Value, crate::backend::Failure>,
+    title: &str,
+    res: Res,
+    item: Item,
+    verified: &str,
+) -> Msg {
+    match result {
+        Err(e) => Msg::Ui(vec![Ui::Failure(actions::failure_detail(&e))]),
+        Ok(r) => {
+            let mut ui = vec![Ui::Outcome {
+                title: title.into(),
+                message: fsv_py::Dumps::default().indent(2).dump(&r),
+            }];
+            if r.get("verified").is_some_and(fsv_py::truthy) {
+                ui.push(Ui::AfterWrite(res, item, verified.into()));
+            }
+            Msg::Ui(ui)
+        }
     }
 }

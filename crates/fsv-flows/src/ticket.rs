@@ -243,6 +243,9 @@ pub fn build_create_plan(
         target: None,
         hash: String::new(),
         risks,
+        record_hash: String::new(),
+        legacy_hash: String::new(),
+        tenant: String::new(),
     };
     if let Some(p) = &plan.payload
         && plan.errors.is_empty()

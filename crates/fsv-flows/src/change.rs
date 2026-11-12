@@ -171,6 +171,12 @@ pub struct Plan {
     pub target: Option<i64>,
     pub hash: String,
     pub risks: Vec<String>,
+    /// Stable snapshot of the change row the update was planned against.
+    pub record_hash: String,
+    /// The pre-9c8c91d request hash. A journal hit on it blocks a resend.
+    pub legacy_hash: String,
+    /// Tenant the update hash binds. Empty on create plans.
+    pub tenant: String,
 }
 
 fn is_file(p: &str) -> bool {
@@ -1038,6 +1044,9 @@ pub fn build_create_plan(
         target: None,
         hash: String::new(),
         risks,
+        record_hash: String::new(),
+        legacy_hash: String::new(),
+        tenant: String::new(),
     };
     if let Some(p) = &plan.payload
         && plan.errors.is_empty()
@@ -1272,15 +1281,29 @@ pub fn build_update_plan(
         target: Some(target),
         hash: String::new(),
         risks,
+        record_hash: String::new(),
+        legacy_hash: String::new(),
+        tenant: String::new(),
     };
     let body = plan.payload.clone().unwrap_or_default();
     if plan.errors.is_empty() && (!body.is_empty() || any_files || !plan.planning.is_empty()) {
-        plan.hash = hash(
+        plan.legacy_hash = hash(
             &Json::Object(body),
             &plan.files,
             &plan.planning,
             Some(target),
         )?;
+        plan.record_hash = fsv_core::journal::snapshot_hash(Some(&Json::Object(record.clone())))
+            .map_err(Error::value)?
+            .unwrap_or_default();
+        plan.tenant = fsv_core::config::domain();
+        plan.hash = fsv_core::journal::plan_hash(Some(&json!({
+            "legacy": plan.legacy_hash,
+            "record": plan.record_hash,
+            "metadata": meta.fingerprint().hash,
+            "tenant": plan.tenant,
+        })))
+        .unwrap_or_default();
         plan.review.plan_hash = plan.hash.clone();
     }
     Ok(plan)
@@ -1403,6 +1426,16 @@ pub trait ChangeWriter {
         let _ = target;
         Err(Error::other("association inventory unavailable"))
     }
+    /// `GET changes/{id}` body, unwrapped to the change row when present.
+    fn get_change(&self, id: i64) -> Result<Map<String, Json>> {
+        let _ = id;
+        Err(Error::other("change readback unavailable"))
+    }
+    /// Fingerprint of a fresh edit-form metadata load.
+    fn edit_fingerprint(&self, module_id: &Json) -> Result<String> {
+        let _ = module_id;
+        Err(Error::other("change metadata unavailable"))
+    }
 }
 
 fn basename(p: &str) -> String {
@@ -1428,6 +1461,207 @@ pub(crate) fn lookup(r: &Option<Arc<dyn Resolver>>) -> Option<Arc<dyn fsv_forms:
     r.clone().map(|r| r as Arc<dyn fsv_forms::LookupResolver>)
 }
 
+fn update_journal_hit(journal: &dyn Journal, hash: &str) -> bool {
+    let rows = journal.read();
+    let last = rows.iter().rev().find(|row| {
+        row.get("kind").and_then(Json::as_str) == Some("plan:update")
+            && row.get("plan").and_then(Json::as_str) == Some(hash)
+    });
+    matches!(
+        last.and_then(|row| row.get("event")).and_then(Json::as_str),
+        Some("started" | "done")
+    )
+}
+
+fn form_journal_hit(journal: &dyn Journal, hash: &str) -> Option<String> {
+    journal
+        .read()
+        .iter()
+        .rev()
+        .find(|row| {
+            row.get("kind").and_then(Json::as_str) == Some("plan:change_form_update")
+                && row.get("plan").and_then(Json::as_str) == Some(hash)
+        })
+        .and_then(|row| row.get("event"))
+        .and_then(Json::as_str)
+        .map(str::to_string)
+}
+
+fn change_row(writer: &dyn ChangeWriter, target: i64) -> Result<Map<String, Json>> {
+    let row = writer.get_change(target)?;
+    let mut identities: Vec<String> = ["id", "display_id"]
+        .iter()
+        .filter_map(|key| row.get(*key).map(fsv_py::py_str))
+        .collect();
+    if let Some(human) = row.get("human_display_id").and_then(Json::as_str)
+        && let Some(rest) = human.strip_prefix("CHN-")
+    {
+        identities.push(rest.to_string());
+    }
+    if !identities.iter().any(|value| value == &target.to_string()) {
+        return Err(flow_exit(2, "Exact change readback unavailable"));
+    }
+    Ok(row)
+}
+
+/// Port of change_form_update.send. Property-only updates. Files and
+/// planning stay on their own reviewed operations.
+fn send_form_update(
+    source: &Plan,
+    writer: &dyn ChangeWriter,
+    journal: &dyn Journal,
+) -> Result<Json> {
+    let any_files = source.files.values().any(|v| !v.is_empty());
+    if any_files || !source.planning.is_empty() {
+        return Err(flow_exit(
+            2,
+            "Combined change property/files/planning sends are disabled; use separate reviewed operations",
+        ));
+    }
+    let body = source.payload.clone().unwrap_or_default();
+    let legacy = hash(
+        &Json::Object(body.clone()),
+        &source.files,
+        &source.planning,
+        source.target,
+    )?;
+    let expected = fsv_core::journal::plan_hash(Some(&json!({
+        "legacy": legacy,
+        "record": source.record_hash,
+        "metadata": source.meta.fingerprint().hash,
+        "tenant": source.tenant,
+    })))
+    .unwrap_or_default();
+    let domain = fsv_core::config::domain();
+    if source.tenant.is_empty() || source.tenant != domain || source.hash != expected {
+        return Err(flow_exit(
+            2,
+            "Change tenant or exact reviewed payload changed; review again",
+        ));
+    }
+    if !source.ok() || body.is_empty() || source.record_hash.is_empty() || source.hash.is_empty() {
+        return Err(flow_exit(2, "Complete hash-bound property plan required"));
+    }
+    let target = source
+        .target
+        .ok_or_else(|| flow_exit(2, "Complete hash-bound property plan required"))?;
+    for value in [source.hash.as_str(), source.legacy_hash.as_str()] {
+        if update_journal_hit(journal, value) {
+            return Err(flow_exit(
+                2,
+                "Change update was sent or outcome unknown; do not replay",
+            ));
+        }
+    }
+    if matches!(
+        form_journal_hit(journal, &source.hash).as_deref(),
+        Some("started" | "done")
+    ) {
+        return Err(flow_exit(
+            2,
+            "write was sent or outcome unknown; inspect target and journal before retry",
+        ));
+    }
+    let fresh = writer.edit_fingerprint(&source.meta.module_id)?;
+    if fresh != source.meta.fingerprint().hash
+        || fsv_core::journal::snapshot_hash(Some(&Json::Object(change_row(writer, target)?)))
+            .map_err(Error::value)?
+            .unwrap_or_default()
+            != source.record_hash
+    {
+        return Err(flow_exit(
+            2,
+            if fresh != source.meta.fingerprint().hash {
+                "Change metadata changed since review"
+            } else {
+                "Change record changed since review"
+            },
+        ));
+    }
+    let target_json = json!(target);
+    journal.record_plan(
+        "started",
+        &source.hash,
+        "change_form_update",
+        Some(&target_json),
+        None,
+    );
+    if form_journal_hit(journal, &source.hash).as_deref() != Some("started") {
+        return Err(flow_exit(
+            2,
+            "could not persist ambiguity journal; no write attempted",
+        ));
+    }
+    let response = match writer.put_change_body(&target_json, &body) {
+        Ok(row) => row,
+        Err(e) => {
+            if let Some(status) = fsv_api::service::definite_rejection(&e) {
+                journal.record_plan(
+                    "failed",
+                    &source.hash,
+                    "change_form_update",
+                    Some(&target_json),
+                    None,
+                );
+                return Err(flow_exit(
+                    2,
+                    format!("write rejected (HTTP {status}); no retry"),
+                ));
+            }
+            return Err(flow_exit(
+                2,
+                "write outcome unknown; inspect target and journal before retry",
+            ));
+        }
+    };
+    journal.record_plan(
+        "done",
+        &source.hash,
+        "change_form_update",
+        Some(&target_json),
+        None,
+    );
+    let row = match change_row(writer, target) {
+        Ok(row) => row,
+        Err(_) => {
+            return Ok(json!({
+                "status": "submitted", "plan_hash": source.hash, "verified": false,
+                "warning": "Independent readback failed; do not resend.",
+                "id": target, "result": response, "uploaded": [],
+                "steps": [{"step": "update", "ok": false, "id": target}],
+            }));
+        }
+    };
+    let mut fields = Map::new();
+    for (key, value) in &body {
+        let status = match row.get(key) {
+            None => "unavailable",
+            Some(actual) => {
+                let ok = if key == "description" {
+                    fsv_api::readback::same_text(actual, value)
+                } else if key.ends_with("_date") {
+                    fsv_api::readback::same_instant(actual, value)
+                } else {
+                    fsv_api::readback::submitted_value_matches(actual, value)
+                };
+                if ok { "matched" } else { "mismatched" }
+            }
+        };
+        fields.insert(key.clone(), json!(status));
+    }
+    let verified = fields.values().all(|v| v == "matched");
+    let mut result = json!({
+        "status": "submitted", "plan_hash": source.hash, "verified": verified,
+        "fields": fields, "readback": row, "id": target, "uploaded": [],
+        "steps": [{"step": "update", "ok": verified, "id": target}],
+    });
+    result["result"] = result["readback"].clone();
+    if !verified {
+        result["warning"] = json!("Readback was not fully verified; do not resend.");
+    }
+    Ok(result)
+}
+
 /// Send the plan. Fails with [`ExecError::Partial`] when the change was
 /// written but a later step (upload, planning) failed.
 pub fn execute(
@@ -1439,6 +1673,9 @@ pub fn execute(
 ) -> std::result::Result<Json, ExecError> {
     if !plan.ok() {
         return Err(flow_exit(2, format!("plan has problems: {}", plan.errors.join("; "))).into());
+    }
+    if plan.action == "update" {
+        return send_form_update(plan, writer, journal).map_err(ExecError::from);
     }
     let mut steps: Vec<Json> = Vec::new();
     let mut uploaded: Vec<Json> = Vec::new();

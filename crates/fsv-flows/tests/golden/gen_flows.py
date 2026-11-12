@@ -10,6 +10,7 @@ form from ``tests/acme_change_form.py``; no network.
 """
 from __future__ import annotations
 
+import copy
 import json
 import os
 import sys
@@ -18,14 +19,21 @@ import textwrap
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+# Update-plan hashes bind config.DOMAIN. Pin an empty tenant before provenance
+# imports fsv, which reads the domain once at import.
+TMP = Path(tempfile.mkdtemp(prefix="fsv-flows-golden-"))
+os.environ["FSV_CONFIG_DIR"] = str(TMP)
+os.environ["FSV_CACHE_DIR"] = str(TMP / "cache")
+os.environ["XDG_STATE_HOME"] = str(TMP / "state")
+os.environ.pop("FSV_TZ", None)
+
 sys.path.insert(0, str(HERE.parents[3] / "port" / "golden"))
 from provenance import py_root, stamped  # noqa: E402
 
 sys.path.insert(0, str(py_root() / "tests"))
-os.environ.pop("FSV_TZ", None)
+from fsv import config as fsv_config  # noqa: E402
 
-TMP = Path(tempfile.mkdtemp(prefix="fsv-flows-golden-"))
-os.environ["FSV_CONFIG_DIR"] = str(TMP)
+fsv_config.reload()
 (TMP / "hints.yaml").write_text(textwrap.dedent("""\
     changes:
       - when: {"Cloud Only": "No"}
@@ -66,11 +74,18 @@ DRAFT = textwrap.dedent("""\
     """)
 
 
+# Field ids come from a process-wide counter. Snapshot once so every plan's
+# metadata fingerprint is the fields blob stored in this file.
+FIELDS = A.fields()
+RULES = A.rules()
+
+
 def meta(module: str = "change", form_type: str = "new_form", module_id=None) -> FormMeta:
-    fields = A.fields()
+    fields = copy.deepcopy(FIELDS)
+    rules = copy.deepcopy(RULES)
     if module == "ticket":
         fields = {"ticket_fields": fields["change_fields"]}
-    return FormMeta(module, form_type, fields, A.rules(), 2, FETCHED_AT, "server", module_id)
+    return FormMeta(module, form_type, fields, rules, 2, FETCHED_AT, "server", module_id)
 
 
 def resolver() -> ClientResolver:
@@ -143,8 +158,8 @@ ROUND2 = textwrap.dedent("""\
 
 out = {
     "base_dir": BASE,
-    "fields": A.fields(),
-    "rules": A.rules(),
+    "fields": FIELDS,
+    "rules": RULES,
     "hints_yaml": (TMP / "hints.yaml").read_text(),
     "create": {
         "full": create(DRAFT),

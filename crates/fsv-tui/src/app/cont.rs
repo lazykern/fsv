@@ -16,17 +16,12 @@ impl App {
                 self.active_filters.clear();
                 self.reload_list(&msg);
             }
-            (Cont::StatusPicked { item }, R::Status(id, label)) => {
-                let schema = self
-                    .schemas
-                    .get(item.res.name)
-                    .cloned()
-                    .unwrap_or_else(|| json!({"fields": []}));
-                let plan = actions::status_plan(item.res, &item, &schema, &id, &label);
-                self.push(
-                    Modal::confirm(&plan.title, plan.lines),
-                    Cont::StatusConfirmed { item, id, label },
-                );
+            (Cont::StatusPicked { item }, R::Status(id, _label)) => {
+                if item.res.name == "tickets" {
+                    self.prepare_ticket_property(item, "status".into(), id);
+                } else {
+                    self.prepare_change_status(item, id);
+                }
             }
             (Cont::StatusConfirmed { item, id, label }, R::Bool(true)) => {
                 self.do_write(WriteKind::Status(id, label), item)
@@ -45,13 +40,13 @@ impl App {
                     self.review_ticket_note(item, body, public);
                     return;
                 }
-                let plan = actions::note_plan(public, false);
-                let mut lines = plan.lines.clone();
-                lines.push(String::new());
-                lines.push(format!("> {body}"));
-                self.push(
-                    Modal::confirm(&plan.title, lines),
-                    Cont::NoteConfirmed { item, body, public },
+                if item.res.name == "problems" && !reply {
+                    self.prepare_problem_note(item, body);
+                    return;
+                }
+                let _ = public;
+                self.show_failure(
+                    "No shared reviewed sender for this operation; nothing sent.".to_string(),
                 );
             }
             (Cont::NoteConfirmed { item, body, public }, R::Bool(true)) => {
@@ -175,6 +170,15 @@ impl App {
                 self.change_task_options(item, title, owner, values);
             }
             (Cont::TaskReviewed { item, plan }, R::Bool(true)) => self.send_change_task(item, plan),
+            (Cont::TaskMutationReviewed { item, plan }, R::Bool(true)) => {
+                self.send_task_mutation(item, plan)
+            }
+            (Cont::ProblemNoteReviewed { item, plan }, R::Bool(true)) => {
+                self.send_problem_note(item, plan)
+            }
+            (Cont::ChangeStatusReviewed { item, plan }, R::Bool(true)) => {
+                self.send_change_status(item, plan)
+            }
             (Cont::ActionTarget { kind, item }, R::Choice(target)) => {
                 if self.read_only {
                     return;
