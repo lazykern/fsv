@@ -1036,6 +1036,50 @@ fn problem_refusals() {
             Box::new(|s| s["tasks"] = json!([{"id": 5}, {"id": 5}])),
             Box::new(|w| problem_workflows::child_plan(&w.api, "123", "task", "Acme")),
         ),
+        (
+            "task_nested_required",
+            task_field(|t| {
+                t.as_array_mut().unwrap().push(json!({"name": "group_id", "required": false, "field_options": {"required_for_create": "true"}}))
+            }),
+            Box::new(|w| problem_workflows::child_plan(&w.api, "123", "task", "Acme")),
+        ),
+        (
+            "task_nested_bool_required",
+            task_field(|t| {
+                t.as_array_mut().unwrap().push(json!({"name": "group_id", "required": false, "field_options": {"required_for_create": true}}))
+            }),
+            Box::new(|w| problem_workflows::child_plan(&w.api, "123", "task", "Acme")),
+        ),
+        (
+            "task_nested_optional",
+            task_field(|t| {
+                t.as_array_mut().unwrap().push(json!({"name": "group_id", "required": false, "field_options": {"required_for_create": "false"}}))
+            }),
+            Box::new(|w| problem_workflows::child_plan(&w.api, "123", "task", "Acme")),
+        ),
+        (
+            "task_workspace_required",
+            task_field(|t| {
+                t.as_array_mut().unwrap().push(json!({"name": "workspace_id", "required": false, "field_options": {"required_for_create": "true"}}))
+            }),
+            Box::new(|w| problem_workflows::child_plan(&w.api, "123", "task", "Acme")),
+        ),
+        (
+            "task_title_required",
+            task_field(|t| {
+                t.as_array_mut().unwrap().push(json!({"name": "title", "required": false, "field_options": {"required_for_create": "true"}}))
+            }),
+            Box::new(|w| problem_workflows::child_plan(&w.api, "123", "task", "Acme")),
+        ),
+        (
+            "task_top_required_str",
+            task_field(|t| {
+                t.as_array_mut()
+                    .unwrap()
+                    .push(json!({"name": "agent", "required_for_create": "true"}))
+            }),
+            Box::new(|w| problem_workflows::child_plan(&w.api, "123", "task", "Acme")),
+        ),
     ];
     let wanted: Vec<&Value> = want.as_array().unwrap().iter().collect();
     assert_eq!(cases.len(), wanted.len());

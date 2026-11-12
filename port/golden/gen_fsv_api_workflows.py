@@ -647,6 +647,15 @@ def gen_problem_workflows():
     refuse("task_label_match", lambda s: s["task_fields"][0]["choices"][0].update(value=None, label="OPEN"),
            child(kind="task"))
     refuse("task_dup_rows", lambda s: s["tasks"].extend([{"id": 5}, {"id": 5}]), child(kind="task"))
+    nested = lambda name, flag: {"name": name, "required": False, "field_options": {"required_for_create": flag}}
+    refuse("task_nested_required", lambda s: s["task_fields"].append(nested("group_id", "true")), child(kind="task"))
+    refuse("task_nested_bool_required", lambda s: s["task_fields"].append(nested("group_id", True)), child(kind="task"))
+    refuse("task_nested_optional", lambda s: s["task_fields"].append(nested("group_id", "false")), child(kind="task"))
+    refuse("task_workspace_required", lambda s: s["task_fields"].append(nested("workspace_id", "true")),
+           child(kind="task"))
+    refuse("task_title_required", lambda s: s["task_fields"].append(nested("title", "true")), child(kind="task"))
+    refuse("task_top_required_str", lambda s: s["task_fields"].append({"name": "agent", "required_for_create": "true"}),
+           child(kind="task"))
     out["refusals"] = refusals
     return out
 
@@ -1006,7 +1015,15 @@ def gen_direct():
                           ([{"name": "status", "choices": [{"id": -1, "value": "Open"}]}], "Open"),
                           ([{"name": "status", "choices": [{"id": 0, "value": "Open"}]}], "Open"),
                           ([{"name": "status", "choices": ["Open", {"id": 51, "value": "Open"}]}], "Open"),
-                          ([{"name": "status"}], "Open")]:
+                          ([{"name": "status"}], "Open"),
+                          ([{"name": "status", "choices": [{"id": "1a", "value": "Open"}]}], "Open"),
+                          ([{"name": "status", "choices": [{"id": "-1", "value": "Open"}]}], "Open"),
+                          ([{"name": "status", "choices": [{"id": "", "value": "Open"}]}], "Open"),
+                          ([{"name": "status", "choices": [{"id": "\u0663", "value": "Open"}]}], "Open"),
+                          ([{"name": "status", "choices": [{"id": "007", "value": "Open"}]}], "Open"),
+                          ([{"name": "status", "choices": [{"id": "0", "value": "Open"}]}], "Open"),
+                          ([{"name": "status", "choices": [{"id": 51.0, "value": "Open"}]}], "Open"),
+                          ([{"name": "status", "choices": [{"id": None, "value": "Open"}]}], "Open")]:
         choices.append({"fields": fields, "label": label,
                         **attempt(lambda: problem_workflows._choice(fields, "status", label))})
     out["problem_choice"] = choices

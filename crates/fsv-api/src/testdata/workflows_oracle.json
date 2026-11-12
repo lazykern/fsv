@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "8f156c08ec19b91dc42656707ee229f0b38112e0",
+  "commit": "2b81a76f4dedb7547116732f2e9c71f000be8bbd",
   "dirty": false
  },
  "canned": {
@@ -4851,8 +4851,30 @@
    },
    {
     "name": "task_str_id",
-    "error": "active runtime status choice is unavailable or ambiguous",
-    "type": "ReviewedWriteError"
+    "ok": {
+     "hash": "504036250c7f6673f422759f93ed79fa712466c05683d431be363a78379ad432",
+     "review": {
+      "action": "problem_task",
+      "method": "POST",
+      "path": "/api/_/problems/123/tasks",
+      "payload": {
+       "notify_before": 52,
+       "owner_id": 901,
+       "planned_effort": "1m",
+       "status": 51,
+       "title": "Acme"
+      },
+      "plan_hash": "504036250c7f6673f422759f93ed79fa712466c05683d431be363a78379ad432",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     },
+     "action": "problem_task",
+     "target": 123,
+     "method": "POST",
+     "path": "problems/123/tasks",
+     "payload_json": "{\"notify_before\": 52, \"owner_id\": 901, \"planned_effort\": \"1m\", \"status\": 51, \"title\": \"Acme\"}",
+     "context_hash": "40aec694a588c47210c8eee3b7fd094995e818f0da2e2d83661b0622ae5183ec",
+     "inputs_json": "{\"text\": \"Acme\", \"kind\": \"task\"}"
+    }
    },
    {
     "name": "task_required",
@@ -4912,6 +4934,102 @@
      "context_hash": "ce809c37e6016162e7596dd1fbfb0886121ba58edb585e654f7d8bcca7383552",
      "inputs_json": "{\"text\": \"Acme\", \"kind\": \"task\"}"
     }
+   },
+   {
+    "name": "task_nested_required",
+    "error": "problem task has an uncaptured required field",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "name": "task_nested_bool_required",
+    "error": "problem task has an uncaptured required field",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "name": "task_nested_optional",
+    "ok": {
+     "hash": "ce7b626d70b9d1d5083624cbd05e76b61f51fae3961577de9c4fd9e7898a5757",
+     "review": {
+      "action": "problem_task",
+      "method": "POST",
+      "path": "/api/_/problems/123/tasks",
+      "payload": {
+       "notify_before": 52,
+       "owner_id": 901,
+       "planned_effort": "1m",
+       "status": 51,
+       "title": "Acme"
+      },
+      "plan_hash": "ce7b626d70b9d1d5083624cbd05e76b61f51fae3961577de9c4fd9e7898a5757",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     },
+     "action": "problem_task",
+     "target": 123,
+     "method": "POST",
+     "path": "problems/123/tasks",
+     "payload_json": "{\"notify_before\": 52, \"owner_id\": 901, \"planned_effort\": \"1m\", \"status\": 51, \"title\": \"Acme\"}",
+     "context_hash": "f4f82797ac0eb590e51399116af2dca4a3b20ac2ff4dfcf78d2f577a5735eb0f",
+     "inputs_json": "{\"text\": \"Acme\", \"kind\": \"task\"}"
+    }
+   },
+   {
+    "name": "task_workspace_required",
+    "ok": {
+     "hash": "7a01c6541f845d097d6c7e2a04ce8936c9e9dcca4c280d1d88b697fc0044db56",
+     "review": {
+      "action": "problem_task",
+      "method": "POST",
+      "path": "/api/_/problems/123/tasks",
+      "payload": {
+       "notify_before": 52,
+       "owner_id": 901,
+       "planned_effort": "1m",
+       "status": 51,
+       "title": "Acme"
+      },
+      "plan_hash": "7a01c6541f845d097d6c7e2a04ce8936c9e9dcca4c280d1d88b697fc0044db56",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     },
+     "action": "problem_task",
+     "target": 123,
+     "method": "POST",
+     "path": "problems/123/tasks",
+     "payload_json": "{\"notify_before\": 52, \"owner_id\": 901, \"planned_effort\": \"1m\", \"status\": 51, \"title\": \"Acme\"}",
+     "context_hash": "5937903917b79d6762259f74cc83332e4841b7cf03e102ad120f7e587540cc8f",
+     "inputs_json": "{\"text\": \"Acme\", \"kind\": \"task\"}"
+    }
+   },
+   {
+    "name": "task_title_required",
+    "ok": {
+     "hash": "fd9309c3dd84a9ce0a8e630ca94b536bfd64f60e76a0eef9983c20b2d350d11b",
+     "review": {
+      "action": "problem_task",
+      "method": "POST",
+      "path": "/api/_/problems/123/tasks",
+      "payload": {
+       "notify_before": 52,
+       "owner_id": 901,
+       "planned_effort": "1m",
+       "status": 51,
+       "title": "Acme"
+      },
+      "plan_hash": "fd9309c3dd84a9ce0a8e630ca94b536bfd64f60e76a0eef9983c20b2d350d11b",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     },
+     "action": "problem_task",
+     "target": 123,
+     "method": "POST",
+     "path": "problems/123/tasks",
+     "payload_json": "{\"notify_before\": 52, \"owner_id\": 901, \"planned_effort\": \"1m\", \"status\": 51, \"title\": \"Acme\"}",
+     "context_hash": "c560671ce36595dc19aae4dffc9e6a64258e9ef02697caf907d8ae0fe962b928",
+     "inputs_json": "{\"text\": \"Acme\", \"kind\": \"task\"}"
+    }
+   },
+   {
+    "name": "task_top_required_str",
+    "error": "problem task has an uncaptured required field",
+    "type": "ReviewedWriteError"
    }
   ]
  },
@@ -9770,8 +9888,7 @@
      }
     ],
     "label": "Open",
-    "error": "active runtime status choice is unavailable or ambiguous",
-    "type": "ReviewedWriteError"
+    "ok": 51
    },
    {
     "fields": [
@@ -9840,6 +9957,132 @@
     "fields": [
      {
       "name": "status"
+     }
+    ],
+    "label": "Open",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": "1a",
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": "-1",
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": "",
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": "٣",
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": "007",
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "ok": 7
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": "0",
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "ok": 0
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": 51.0,
+        "value": "Open"
+       }
+      ]
+     }
+    ],
+    "label": "Open",
+    "error": "active runtime status choice is unavailable or ambiguous",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "fields": [
+     {
+      "name": "status",
+      "choices": [
+       {
+        "id": null,
+        "value": "Open"
+       }
+      ]
      }
     ],
     "label": "Open",

@@ -2920,4 +2920,31 @@ eight records.
 
 No CLI follow-up.
 
-Still not triaged: `2b81a76` and later.
+## Ledger: `2b81a76` (library side)
+
+Triaged against `git show 2b81a76`
+(`2b81a76f4dedb7547116732f2e9c71f000be8bbd`). The workflows oracle was
+regenerated at `2b81a76`. `task_str_id` now builds a task with integer
+`status`. Appended cases: eight choice ids and six task-metadata
+variants with nested `required_for_create`, a required `workspace_id`
+and a required `title`. All of them match. The requested-items oracle
+regenerates unchanged.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `2b81a76`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `2b81a76` | 11-13 02:09 | Accept native SR parent type and string problem-task choice IDs before review | ported | fsv-api `problem_workflows`, `sr_requested_items` |
+
+Problem-task choices accept a nonnegative integer id or an ASCII digit
+string. Both are sent as a JSON integer. The required-field check uses
+`ticket_tasks::required_for_create`, which covers nested
+`field_options.required_for_create` and `"true"`, and it skips
+`CONTEXT_FIELDS` (`workspace_id`). Requested-item writes prove the
+parent with `ticket_kind::exact_ticket_type(...) == "service request"`.
+The Rust port of `test_parent_type_proof_uses_native_exact_read`
+covers seven records for edit, stage and add.
+
+No CLI follow-up.
+
+Still not triaged: commits after `2b81a76`.

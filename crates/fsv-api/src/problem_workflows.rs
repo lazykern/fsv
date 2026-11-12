@@ -222,19 +222,23 @@ fn choice(fields: &[Value], name: &str, label: &str) -> Result<i64> {
                 }
         })
         .collect();
-    match choices[..] {
+    // Native problem_task_fields serialize choice ids as digit strings; the
+    // accepted task-create wire sends the same identities as JSON integers.
+    let ident = match choices[..] {
         [one] => match one.get("id") {
-            Some(Value::Number(n)) if n.as_i64().is_some_and(|i| i >= 0) => {
-                Ok(n.as_i64().unwrap_or_default())
+            Some(Value::Number(n)) => n.as_i64().filter(|i| *i >= 0),
+            Some(Value::String(s)) if !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()) => {
+                s.parse::<i64>().ok()
             }
-            _ => Err(refused(format!(
-                "active runtime {name} choice is unavailable or ambiguous"
-            ))),
+            _ => None,
         },
-        _ => Err(refused(format!(
+        _ => None,
+    };
+    ident.ok_or_else(|| {
+        refused(format!(
             "active runtime {name} choice is unavailable or ambiguous"
-        ))),
-    }
+        ))
+    })
 }
 
 /// Port of fsv.problem_workflows.child_plan: a body-only note or a basic,
@@ -265,14 +269,13 @@ pub fn child_plan(c: &dyn Api, target: &str, kind: &str, text: &str) -> Result<P
         let payload = json!({"title": text, "owner_id": user, "status": choice(&fields, "status", "Open")?,
                              "notify_before": choice(&fields, "notify_before", "Never")?,
                              "planned_effort": "1m"});
+        // Requiredness also lives in nested field_options; the parent-provided
+        // workspace is omitted by the accepted create body.
         for field in &fields {
-            let required = ["required", "required_for_agents", "required_on_create"]
-                .iter()
-                .any(|k| field.get(*k) == Some(&Value::Bool(true)));
-            let sent = field
-                .get("name")
-                .and_then(Value::as_str)
-                .is_some_and(|n| payload.get(n).is_some());
+            let required = crate::ticket_tasks::required_for_create(field);
+            let sent = field.get("name").and_then(Value::as_str).is_some_and(|n| {
+                payload.get(n).is_some() || crate::ticket_tasks::CONTEXT_FIELDS.contains(&n)
+            });
             if required && !sent {
                 return Err(refused("problem task has an uncaptured required field"));
             }
