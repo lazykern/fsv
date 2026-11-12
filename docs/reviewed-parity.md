@@ -1,5 +1,20 @@
 # Reviewed operations and metadata freshness
 
+## Ticket note edits and deletion
+
+```sh
+fsv tickets note-edit INC-123 99001 --body 'Updated note' --dry-run --json
+fsv tickets note-edit INC-123 99001 --body 'Updated note' --yes --expect-plan FULL_HASH --json
+fsv tickets note-delete INC-123 99001 --dry-run --json
+```
+
+Only an exact note in a complete ticket conversation history is eligible.
+Review includes the prior note; the full hash binds its state and the submitted
+body. Text is escaped as plain text. Deletion is irreversible from this CLI.
+A single PUT or DELETE is journaled before sending; exact-ID independent
+readback verifies the result. Partial histories and unknown outcomes are never
+proof of deletion; inspect the ticket and journal and do not resend.
+
 ## Ticket assignment and pick-up
 
 ```sh
