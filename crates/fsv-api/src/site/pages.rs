@@ -134,7 +134,11 @@ where
                     break;
                 }
             };
-            if !parsed.path.is_empty() {
+            let mirror = {
+                let v2 = format!("/api/v2/{}", path.trim_matches('/'));
+                parsed.path.trim_end_matches('/') == v2.trim_end_matches('/')
+            };
+            if !parsed.path.is_empty() && !mirror {
                 let plain = path.trim_end_matches('/');
                 let api = format!("/api/_/{}", path.trim_matches('/'));
                 let got = parsed.path.trim_end_matches('/');
@@ -150,7 +154,21 @@ where
                 exhausted = false;
                 break;
             }
-            request.retain(|k, _| !matches!(k.as_str(), "page" | "start_token" | "cursor"));
+            if mirror {
+                // Activities publish a /api/v2 next_page_url. Only a lone
+                // start_token is followed, on the internal path.
+                let lone = following.len() == 1 && following[0].0 == "start_token";
+                if !lone {
+                    reason = "unsupported continuation endpoint".to_string();
+                    exhausted = false;
+                    break;
+                }
+                request.retain(|k, _| {
+                    !matches!(k.as_str(), "page" | "per_page" | "start_token" | "cursor")
+                });
+            } else {
+                request.retain(|k, _| !matches!(k.as_str(), "page" | "start_token" | "cursor"));
+            }
             for (k, v) in following {
                 request.insert(k, Value::String(v));
             }
@@ -367,20 +385,40 @@ mod tests {
     }
 
     #[test]
-    fn foreign_continuation_url_stops() {
+    fn activity_start_token_follows_the_internal_path() {
         let got = run(
             "changes/12/activities",
             "activities",
             json!({}),
             5,
-            vec![Ok(
-                json!({"activities": [{"id": 1}], "next_page_url": "/api/v2/changes/12/activities?start_token=acme"}),
-            )],
+            vec![
+                Ok(json!({"activities": [{"id": 2}]})),
+                Ok(
+                    json!({"activities": [{"id": 1}], "next_page_url": "/api/v2/changes/12/activities?start_token=acme"}),
+                ),
+            ],
         );
-        assert_eq!(got.rows.len(), 1);
-        assert_eq!(got.meta.get("complete"), Some(&json!(false)));
+        assert_eq!(
+            got.rows
+                .iter()
+                .filter_map(|r| r.get("id"))
+                .collect::<Vec<_>>(),
+            vec![&json!(1), &json!(2)]
+        );
+        assert_eq!(got.meta.get("complete"), Some(&json!(true)));
+        let stopped = run(
+            "changes/12/activities",
+            "activities",
+            json!({}),
+            5,
+            vec![Ok(json!({
+                "activities": [{"id": 1}],
+                "next_page_url": "/api/v2/changes/12/activities?start_token=acme&page=2"
+            }))],
+        );
         assert!(
-            got.meta
+            stopped
+                .meta
                 .get("partial")
                 .and_then(Value::as_str)
                 .unwrap_or("")

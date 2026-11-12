@@ -3227,4 +3227,19 @@ writes a code when the server returns it. The next close then blocks.
 no solution warns and does not block; after a
 `check_workaround_or_solution_added` rejection, the next close blocks.
 
-Still not triaged: commits after `233b08f`.
+## Ledger: `e449ed3` (library side)
+
+Triaged against `git show e449ed3`
+(`e449ed3ba0de3c6c379c320e55f7e50e70292583`). Activity pages that
+answer with `/api/v2/<path>?start_token=` are followed on the
+internal path. Any other query on that mirror still stops.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `e449ed3`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `e449ed3` | 11-13 03:31 | Follow the activity start_token continuation on the internal path | ported | fsv-api `site::pages` |
+
+No CLI follow-up. Change activity reads go through `collect_pages`.
+
+Still not triaged: commits after `e449ed3`.
