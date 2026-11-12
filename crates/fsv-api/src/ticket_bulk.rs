@@ -191,6 +191,8 @@ pub struct BulkPlan {
     pub ids: Vec<i64>,
     pub expected_json: String,
     pickup: Option<AssignmentPlan>,
+    /// Per-ticket property plans of `bulk status --set` (`delegate`).
+    props: Vec<properties::AnsweredPropertyPlan>,
     /// The exact `{id, subject}` of every selected ticket, sorted JSON.
     pub selected_json: String,
 }
@@ -222,8 +224,13 @@ impl BulkPlan {
     }
 }
 
-fn intent_value(ids: &[String], args: &BulkArgs<'_>, max_records: Option<i64>) -> Value {
-    json!({
+fn intent_value(
+    ids: &[String],
+    args: &BulkArgs<'_>,
+    max_records: Option<i64>,
+    answers: Option<&Map<String, Value>>,
+) -> Value {
+    let mut intent = json!({
         "action": args.action,
         "agent": args.agent,
         "group": args.group,
@@ -235,7 +242,12 @@ fn intent_value(ids: &[String], args: &BulkArgs<'_>, max_records: Option<i64>) -
         "select_all": args.select_all,
         "status": args.status,
         "where": args.where_,
-    })
+    });
+    // Bound only when used: older review hashes are unchanged.
+    if let Some(answers) = answers.filter(|a| !a.is_empty()) {
+        intent["answers"] = Value::Object(answers.clone());
+    }
+    intent
 }
 
 /// `build_plan` without `max_records`: a filtered selection is refused.
@@ -257,8 +269,37 @@ pub fn build_plan_bounded(
     args: &BulkArgs<'_>,
     max_records: Option<i64>,
 ) -> Result<BulkPlan> {
+    build_plan_with_answers(c, store, ids, args, max_records, None)
+}
+
+/// [`build_plan_bounded`] plus `answers=` (`bulk status --set`): each
+/// ticket's edit form and rules evaluate the status with these answers, and
+/// [`send`] writes one reviewed property PUT per ticket.
+pub fn build_plan_with_answers(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    ids: &[String],
+    args: &BulkArgs<'_>,
+    max_records: Option<i64>,
+    answers: Option<&Map<String, Value>>,
+) -> Result<BulkPlan> {
+    let answers = answers.filter(|a| !a.is_empty());
     let cids = selection_bounded(c, ids, args.where_, args.select_all, max_records)?;
-    let intent_json = dumps_sorted(&intent_value(ids, args, max_records));
+    let intent_json = dumps_sorted(&intent_value(ids, args, max_records, answers));
+    if let Some(answers) = answers {
+        if args.action != "status" {
+            return Err(Error::value("--set is supported by bulk status only"));
+        }
+        if answers
+            .keys()
+            .any(|k| casefold(fsv_core::pystr::strip(k)) == "status")
+        {
+            return Err(Error::value(
+                "use --status for the status; --set is for the fields its rules require",
+            ));
+        }
+    }
+    let mut delegate = Vec::new();
     if !matches!(
         args.action,
         "status" | "assign" | "pickup" | "merge" | "spam" | "unspam" | "delete"
@@ -324,8 +365,10 @@ pub fn build_plan_bounded(
                     "bulk closure needs separate prerequisites; select an ordinary runtime status",
                 ));
             }
-            let mut answers = Map::new();
-            answers.insert("status".into(), Value::String(status.to_string()));
+            // Each ticket's edit form and rules decide (e.g. a reason a status requires).
+            let mut all = Map::new();
+            all.insert("status".into(), Value::String(status.to_string()));
+            all.extend(answers.cloned().unwrap_or_default());
             let mut props = Vec::with_capacity(cids.len());
             for id in &cids {
                 props.push(properties::build_plan_with(
@@ -333,7 +376,7 @@ pub fn build_plan_bounded(
                     store,
                     &id.to_string(),
                     &PropertyArgs {
-                        answers: Some(&answers),
+                        answers: Some(&all),
                         ..PropertyArgs::default()
                     },
                     None,
@@ -348,6 +391,9 @@ pub fn build_plan_bounded(
                 return Err(refused("status metadata disagrees across selected tickets"));
             };
             let hashes = props.iter().map(|p| p.hash()).collect();
+            if answers.is_some() {
+                delegate = props;
+            }
             (hashes, json!({"status": status_id}))
         } else if args.action == "assign" {
             if !filled(args.agent) || !filled(args.group) {
@@ -405,48 +451,79 @@ pub fn build_plan_bounded(
             }
             (Vec::new(), fields)
         };
-        let expected = Value::Array(vec![fields.clone(); cids.len()]);
-        let (method, path, body) = if matches!(args.action, "status" | "assign") {
-            let mut body = fields.as_object().cloned().unwrap_or_default();
-            body.insert("ids".into(), json!(cids));
-            body.insert("reply".into(), json!({}));
-            (
-                "PUT",
-                "bulk_ticket_actions/update_multiple".to_string(),
-                Some(Value::Object(body)),
-            )
-        } else if args.action == "delete" {
-            let joined = cids
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<_>>()
-                .join(",");
-            (
-                "DELETE",
-                format!("tickets/delete_multiple?ids={}", quote_plus(&joined)),
-                None,
-            )
-        } else {
-            (
-                "POST",
-                format!("tickets/{}_multiple", args.action),
-                Some(json!({"ids": cids})),
-            )
-        };
         let context = snapshot_hash(&json!({"plans": plan_hashes, "records": baselines}))?;
-        let write = WritePlan {
-            action: format!("ticket_bulk_{}", args.action),
-            target: cids[0],
-            tenant: c.domain(),
-            method: method.into(),
-            path,
-            payload_json: match &body {
-                None => "null".into(),
-                Some(body) => dumps_sorted(body),
-            },
-            context_hash: context,
-        };
-        (write, expected, None)
+        if !delegate.is_empty() {
+            // The bulk update_multiple wire is captured for status/assignment
+            // only; rule-required answers use the captured single-ticket PUT
+            // per ticket, each hash-bound and read back independently.
+            let mut expected = Vec::with_capacity(delegate.len());
+            let mut bodies = Vec::with_capacity(delegate.len());
+            for p in &delegate {
+                let payload = p.payload().as_object().cloned().unwrap_or_default();
+                let mut sent = payload.clone();
+                sent.shift_remove("br_validation_excludes");
+                expected.push(Value::Object(sent));
+                let mut body = Map::new();
+                body.insert("id".into(), json!(p.plan.ticket_id));
+                body.extend(payload);
+                bodies.push(Value::Object(body));
+            }
+            let write = WritePlan {
+                action: "ticket_bulk_status_fields".into(),
+                target: cids[0],
+                tenant: c.domain(),
+                method: "PUT".into(),
+                path: "tickets/{id} (one per selected ticket)".into(),
+                payload_json: fsv_py::Dumps::default()
+                    .sort_keys(true)
+                    .ensure_ascii(false)
+                    .dump(&Value::Array(bodies)),
+                context_hash: context,
+            };
+            (write, Value::Array(expected), None)
+        } else {
+            let expected = Value::Array(vec![fields.clone(); cids.len()]);
+            let (method, path, body) = if matches!(args.action, "status" | "assign") {
+                let mut body = fields.as_object().cloned().unwrap_or_default();
+                body.insert("ids".into(), json!(cids));
+                body.insert("reply".into(), json!({}));
+                (
+                    "PUT",
+                    "bulk_ticket_actions/update_multiple".to_string(),
+                    Some(Value::Object(body)),
+                )
+            } else if args.action == "delete" {
+                let joined = cids
+                    .iter()
+                    .map(ToString::to_string)
+                    .collect::<Vec<_>>()
+                    .join(",");
+                (
+                    "DELETE",
+                    format!("tickets/delete_multiple?ids={}", quote_plus(&joined)),
+                    None,
+                )
+            } else {
+                (
+                    "POST",
+                    format!("tickets/{}_multiple", args.action),
+                    Some(json!({"ids": cids})),
+                )
+            };
+            let write = WritePlan {
+                action: format!("ticket_bulk_{}", args.action),
+                target: cids[0],
+                tenant: c.domain(),
+                method: method.into(),
+                path,
+                payload_json: match &body {
+                    None => "null".into(),
+                    Some(body) => dumps_sorted(body),
+                },
+                context_hash: context,
+            };
+            (write, expected, None)
+        }
     };
     let mut selected = Vec::with_capacity(cids.len());
     for cid in &cids {
@@ -465,6 +542,7 @@ pub fn build_plan_bounded(
         ids: cids,
         expected_json: dumps(&expected),
         pickup,
+        props: delegate,
         selected_json: dumps_sorted(&Value::Array(selected)),
     })
 }
@@ -480,7 +558,7 @@ fn plan_from_intent(c: &dyn Api, store: &dyn MetaStore, intent_json: &str) -> Re
     let primary = opt_str(&intent["primary"]);
     let note_primary = opt_str(&intent["note_primary"]);
     let note_secondary = opt_str(&intent["note_secondary"]);
-    build_plan_bounded(
+    build_plan_with_answers(
         c,
         store,
         &ids,
@@ -496,6 +574,58 @@ fn plan_from_intent(c: &dyn Api, store: &dyn MetaStore, intent_json: &str) -> Re
             note_secondary: note_secondary.as_deref(),
         },
         intent["max_records"].as_i64(),
+        intent["answers"].as_object(),
+    )
+}
+
+/// `_send_each`: per-ticket reviewed property writes; stops at the first
+/// failed or uncertain ticket and never retries it.
+fn send_each(
+    plan: &BulkPlan,
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    journal: &dyn Journal,
+) -> Result<Value> {
+    let action = &plan.write.action;
+    let hash = plan.write.hash();
+    let target = json!(plan.write.target);
+    journal.record_plan("started", &hash, action, Some(&target), None);
+    let mut tickets = Map::new();
+    for (index, prop) in plan.props.iter().enumerate() {
+        let id = prop.plan.ticket_id;
+        match properties::send_with(prop, c, journal, store, Some(&prop.hash()), None) {
+            Err(e) => {
+                tickets.insert(
+                    id.to_string(),
+                    json!({"verified": false, "error": e.to_string()}),
+                );
+                let rest: Vec<i64> = plan.props[index + 1..]
+                    .iter()
+                    .map(|p| p.plan.ticket_id)
+                    .collect();
+                return Ok(
+                    json!({"status": "partial", "verified": false, "plan_hash": plan.hash(),
+                    "ticket_ids": plan.ids, "tickets": tickets, "stopped_at": id,
+                    "not_attempted": rest,
+                    "warning": "Stopped at the first failed or uncertain ticket; inspect it and the journal; never replay."}),
+                );
+            }
+            Ok(result) => {
+                let kept: Map<String, Value> = ["verified", "fields", "plan_hash"]
+                    .into_iter()
+                    .filter_map(|k| result.get(k).map(|v| (k.to_string(), v.clone())))
+                    .collect();
+                tickets.insert(id.to_string(), Value::Object(kept));
+            }
+        }
+    }
+    let verified = tickets
+        .values()
+        .all(|t| t.get("verified").is_some_and(fsv_py::truthy));
+    journal.record_plan("done", &hash, action, Some(&target), None);
+    Ok(
+        json!({"status": "submitted", "verified": verified, "plan_hash": plan.hash(),
+              "ticket_ids": plan.ids, "tickets": tickets}),
     )
 }
 
@@ -578,6 +708,9 @@ pub fn send(
         ));
     }
     rebuilt(plan, c, store)?;
+    if intent.get("answers").is_some_and(fsv_py::truthy) {
+        return send_each(plan, c, store, journal);
+    }
     let reported = |result: Value| {
         let mut result = result;
         if let Value::Object(m) = &mut result {
@@ -1059,6 +1192,173 @@ mod tests {
             msg(&err),
             "exact selected subject unavailable; refusing filtered review"
         );
+    }
+
+    /// `bulk status --set` (Python 676b8bb), generated inline over the
+    /// ticket form and a Pending-needs-reason rule.
+    static SET: LazyLock<Value> = LazyLock::new(|| {
+        serde_json::from_str(include_str!("testdata/ticket_bulk_set_oracle.json")).unwrap()
+    });
+
+    fn set_api(fail_on: Option<i64>, writes: Arc<Mutex<Vec<Value>>>) -> FnApi {
+        use crate::service::testing::form_field;
+        let fields = json!([
+            form_field(
+                9000007101,
+                "status",
+                "Status",
+                "default_status",
+                1,
+                json!({"choices": [{"id": 31, "value": "Open"}, {"id": 47, "value": "Pending"},
+                                   {"id": 62, "value": "Resolved"}, {"id": 89, "value": "Closed"}]})
+            ),
+            form_field(
+                9000007103,
+                "reason",
+                "Pending Reason",
+                "custom_text",
+                3,
+                json!({})
+            ),
+        ]);
+        let rules = json!({"business_rules": [{
+            "id": 9000007107_i64, "name": "Pending needs reason", "workspace_id": 2, "module_type": "ticket",
+            "item_id": null, "deleted": false, "user_type": "both", "form_type": "both", "state": "active",
+            "rule_type": "client_side", "description": "",
+            "condition_data": {"all": [{"name": "status", "operator": "is", "value": "47", "evaluate_on": "ticket"}]},
+            "action_data": {"action": [{"name": ["customFields.reason"], "property": "mandate"}]},
+            "is_reversible": false, "is_validation": false, "updated_at": "2030-01-03T00:00:00Z"}]});
+        let mut rows: BTreeMap<i64, Value> = [71, 72]
+            .into_iter()
+            .map(|i| {
+                (
+                    i,
+                    json!({"id": i, "subject": format!("Acme {i}"), "status": 31,
+                           "custom_fields": {"reason": null}}),
+                )
+            })
+            .collect();
+        FnApi::new(move |call: &Call| {
+            let id = call
+                .path
+                .strip_prefix("tickets/")
+                .and_then(|s| s.parse::<i64>().ok());
+            match (call.method.as_str(), call.path.as_str(), id) {
+                ("ME", ..) => Ok(json!({"id": 901})),
+                ("GET", _, Some(id)) => Ok(json!({"ticket": rows[&id]})),
+                ("GET", "ticket_form_fields", _) => Ok(json!({"ticket_fields": fields})),
+                ("GET", p, _) if p.ends_with("business_rules") => Ok(rules.clone()),
+                ("PUT", _, Some(id)) => {
+                    let raw = String::from_utf8(call.raw.clone().unwrap()).unwrap();
+                    writes
+                        .lock()
+                        .unwrap()
+                        .push(json!({"method": "PUT", "id": id, "raw": raw}));
+                    if Some(id) == fail_on {
+                        return Err(fsv_core::ApiError::new(
+                            400,
+                            json!({"errors": [
+                            {"field": "status", "message": "Synthetic rejection"}]}),
+                        )
+                        .into());
+                    }
+                    let row = rows.get_mut(&id).unwrap().as_object_mut().unwrap();
+                    for (k, v) in call.body.as_ref().unwrap().as_object().unwrap() {
+                        match k.as_str() {
+                            "custom_fields" => {
+                                let cf = row.get_mut(k).unwrap().as_object_mut().unwrap();
+                                cf.extend(v.as_object().unwrap().clone());
+                            }
+                            "br_validation_excludes" => {}
+                            _ => {
+                                row.insert(k.clone(), v.clone());
+                            }
+                        }
+                    }
+                    Ok(json!({"ticket": row}))
+                }
+                _ => Err(fsv_core::ApiError::new(404, json!("missing")).into()),
+            }
+        })
+    }
+
+    /// `{"error": {type, msg}}`; `PropertyError` and `ReviewedWriteError`
+    /// are both exit-2 refusals in Rust.
+    fn error_json(e: &Error) -> Value {
+        let kind = match e {
+            Error::Value(_) => "ValueError",
+            Error::Exit { code: 2, message } if message.starts_with("ticket form validation") => {
+                "PropertyError"
+            }
+            Error::Exit { code: 2, .. } => "ReviewedWriteError",
+            other => panic!("unexpected error {other:?}"),
+        };
+        json!({"type": kind, "msg": e.to_string()})
+    }
+
+    #[test]
+    fn bulk_status_set_matches_python() {
+        let cases = SET["cases"].as_array().unwrap();
+        assert_eq!(cases.len(), 10);
+        for case in cases {
+            let name = case["name"].as_str().unwrap();
+            let writes = Arc::new(Mutex::new(Vec::new()));
+            let c = set_api(case["fail_on"].as_i64(), Arc::clone(&writes));
+            let action = case["action"].as_str().unwrap();
+            let mut bulk = args(action);
+            bulk.status = (action == "status").then(|| case["status"].as_str().unwrap());
+            let built = build_plan_with_answers(
+                &c,
+                &store(),
+                &["71".into(), "72".into()],
+                &bulk,
+                None,
+                case["answers"].as_object(),
+            );
+            let plan = match built {
+                Err(e) => {
+                    assert_eq!(json!({"error": error_json(&e)}), case["build"], "{name}");
+                    assert!(writes.lock().unwrap().is_empty(), "{name}");
+                    continue;
+                }
+                Ok(p) => p,
+            };
+            let w = &plan.write;
+            let got = json!({"write": {"action": w.action, "target": w.target, "tenant": w.tenant,
+                    "method": w.method, "path": w.path, "payload_json": w.payload_json,
+                    "context_hash": w.context_hash},
+                "write_hash": w.hash(), "intent_json": plan.intent_json, "ids": plan.ids,
+                "expected_json": plan.expected_json, "selected_json": plan.selected_json,
+                "hash": plan.hash(), "review": plan.review()});
+            assert_eq!(got, case["build"], "{name} build");
+            if let Some(want) = case.get("send") {
+                let journal = MemJournal::default();
+                let sent = send(&plan, &c, &store(), &journal, Some(&plan.hash()), false);
+                let sent = sent.map_or_else(
+                    |e| json!({"error": error_json(&e)}),
+                    |r| json!({"result": r}),
+                );
+                assert_eq!(&sent, want, "{name} send");
+                let replay = send(&plan, &c, &store(), &journal, Some(&plan.hash()), false);
+                assert_eq!(
+                    json!({"error": error_json(&replay.unwrap_err())}),
+                    case["replay"],
+                    "{name} replay"
+                );
+                let events: Vec<Value> = journal
+                    .read()
+                    .into_iter()
+                    .filter(|r| r["plan"] == json!(w.hash()))
+                    .map(|r| r["event"].clone())
+                    .collect();
+                assert_eq!(Value::Array(events), case["journal"], "{name} journal");
+            }
+            assert_eq!(
+                Value::Array(writes.lock().unwrap().clone()),
+                case["writes"],
+                "{name} writes"
+            );
+        }
     }
 
     static READBACK: LazyLock<Value> = LazyLock::new(|| {

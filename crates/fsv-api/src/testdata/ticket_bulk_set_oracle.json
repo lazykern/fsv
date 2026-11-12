@@ -1,0 +1,775 @@
+{
+ "_python": {
+  "commit": "676b8bb5349fb25fa8cb502804805d55d0e60cc1",
+  "dirty": false
+ },
+ "cases": [
+  {
+   "name": "no_set",
+   "action": "status",
+   "status": "Pending",
+   "answers": null,
+   "fail_on": null,
+   "build": {
+    "error": {
+     "type": "PropertyError",
+     "msg": "ticket form validation failed: Pending Reason is required"
+    }
+   },
+   "writes": []
+  },
+  {
+   "name": "set",
+   "action": "status",
+   "status": "Pending",
+   "answers": {
+    "Pending Reason": "Waiting on Acme vendor"
+   },
+   "fail_on": null,
+   "build": {
+    "write": {
+     "action": "ticket_bulk_status_fields",
+     "target": 71,
+     "tenant": "acme.freshservice.com",
+     "method": "PUT",
+     "path": "tickets/{id} (one per selected ticket)",
+     "payload_json": "[{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting on Acme vendor\"}, \"id\": 71, \"status\": 47}, {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting on Acme vendor\"}, \"id\": 72, \"status\": 47}]",
+     "context_hash": "f4a15b81dfd2565e50981e75e4f902dc7dd15f547200f0fe2fbaa1e1c936efe2"
+    },
+    "write_hash": "5099c63dd196317a8f7e6d5f6e0c9069f37c1ef76debe1b76b6dae7e403d2f02",
+    "intent_json": "{\"action\": \"status\", \"agent\": null, \"answers\": {\"Pending Reason\": \"Waiting on Acme vendor\"}, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Pending\", \"where\": []}",
+    "ids": [
+     71,
+     72
+    ],
+    "expected_json": "[{\"custom_fields\": {\"reason\": \"Waiting on Acme vendor\"}, \"status\": 47}, {\"custom_fields\": {\"reason\": \"Waiting on Acme vendor\"}, \"status\": 47}]",
+    "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
+    "hash": "e4549f210e9aa6f3bc6da1a195139f1b3ab72b0a1c9ad224621424de0c2244ce",
+    "review": {
+     "action": "ticket_bulk_status_fields",
+     "method": "PUT",
+     "path": "/api/_/tickets/{id} (one per selected ticket)",
+     "payload": [
+      {
+       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+       "custom_fields": {
+        "reason": "Waiting on Acme vendor"
+       },
+       "id": 71,
+       "status": 47
+      },
+      {
+       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+       "custom_fields": {
+        "reason": "Waiting on Acme vendor"
+       },
+       "id": 72,
+       "status": 47
+      }
+     ],
+     "plan_hash": "e4549f210e9aa6f3bc6da1a195139f1b3ab72b0a1c9ad224621424de0c2244ce",
+     "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
+     "ticket_ids": [
+      71,
+      72
+     ],
+     "selection": {
+      "action": "status",
+      "agent": null,
+      "answers": {
+       "Pending Reason": "Waiting on Acme vendor"
+      },
+      "group": null,
+      "ids": [
+       "71",
+       "72"
+      ],
+      "max_records": null,
+      "note_primary": null,
+      "note_secondary": null,
+      "primary": null,
+      "select_all": false,
+      "status": "Pending",
+      "where": []
+     },
+     "selected_tickets": [
+      {
+       "id": 71,
+       "subject": "Acme 71"
+      },
+      {
+       "id": 72,
+       "subject": "Acme 72"
+      }
+     ]
+    }
+   },
+   "send": {
+    "result": {
+     "status": "submitted",
+     "verified": true,
+     "plan_hash": "e4549f210e9aa6f3bc6da1a195139f1b3ab72b0a1c9ad224621424de0c2244ce",
+     "ticket_ids": [
+      71,
+      72
+     ],
+     "tickets": {
+      "71": {
+       "verified": true,
+       "fields": {
+        "custom_fields": "matched",
+        "status": "matched"
+       },
+       "plan_hash": "d786dbbcdcfb8501c2988de0fe66b2dfa8670d2975482c7ab5d8019c82c3cfa4"
+      },
+      "72": {
+       "verified": true,
+       "fields": {
+        "custom_fields": "matched",
+        "status": "matched"
+       },
+       "plan_hash": "79fab751c115bd8e715eeb0c18c6b8e960cc6b90cf5606fb69140e15c8632d79"
+      }
+     }
+    }
+   },
+   "replay": {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "bulk write was sent or outcome unknown; do not replay"
+    }
+   },
+   "journal": [
+    "started",
+    "done"
+   ],
+   "writes": [
+    {
+     "method": "PUT",
+     "id": 71,
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting on Acme vendor\"}, \"status\": 47}"
+    },
+    {
+     "method": "PUT",
+     "id": 72,
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting on Acme vendor\"}, \"status\": 47}"
+    }
+   ]
+  },
+  {
+   "name": "set_unicode",
+   "action": "status",
+   "status": "Pending",
+   "answers": {
+    "Pending Reason": "Wartet auf Acme – Δ"
+   },
+   "fail_on": null,
+   "build": {
+    "write": {
+     "action": "ticket_bulk_status_fields",
+     "target": 71,
+     "tenant": "acme.freshservice.com",
+     "method": "PUT",
+     "path": "tickets/{id} (one per selected ticket)",
+     "payload_json": "[{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Wartet auf Acme – Δ\"}, \"id\": 71, \"status\": 47}, {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Wartet auf Acme – Δ\"}, \"id\": 72, \"status\": 47}]",
+     "context_hash": "1931897576e9ea1d37f1883f367b4d98e1b452307d5773c6c0e71ad3dd111d9e"
+    },
+    "write_hash": "3e186eed4594c3dd967531db6d3a9cf7ca0d1dc1a2a03d0490e3e257594cffb2",
+    "intent_json": "{\"action\": \"status\", \"agent\": null, \"answers\": {\"Pending Reason\": \"Wartet auf Acme \\u2013 \\u0394\"}, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Pending\", \"where\": []}",
+    "ids": [
+     71,
+     72
+    ],
+    "expected_json": "[{\"custom_fields\": {\"reason\": \"Wartet auf Acme \\u2013 \\u0394\"}, \"status\": 47}, {\"custom_fields\": {\"reason\": \"Wartet auf Acme \\u2013 \\u0394\"}, \"status\": 47}]",
+    "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
+    "hash": "2442c50c6163614b099f5cc5355d2dd0f86b1d36a0cd51e7511f5ec5c9435a25",
+    "review": {
+     "action": "ticket_bulk_status_fields",
+     "method": "PUT",
+     "path": "/api/_/tickets/{id} (one per selected ticket)",
+     "payload": [
+      {
+       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+       "custom_fields": {
+        "reason": "Wartet auf Acme – Δ"
+       },
+       "id": 71,
+       "status": 47
+      },
+      {
+       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+       "custom_fields": {
+        "reason": "Wartet auf Acme – Δ"
+       },
+       "id": 72,
+       "status": 47
+      }
+     ],
+     "plan_hash": "2442c50c6163614b099f5cc5355d2dd0f86b1d36a0cd51e7511f5ec5c9435a25",
+     "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
+     "ticket_ids": [
+      71,
+      72
+     ],
+     "selection": {
+      "action": "status",
+      "agent": null,
+      "answers": {
+       "Pending Reason": "Wartet auf Acme – Δ"
+      },
+      "group": null,
+      "ids": [
+       "71",
+       "72"
+      ],
+      "max_records": null,
+      "note_primary": null,
+      "note_secondary": null,
+      "primary": null,
+      "select_all": false,
+      "status": "Pending",
+      "where": []
+     },
+     "selected_tickets": [
+      {
+       "id": 71,
+       "subject": "Acme 71"
+      },
+      {
+       "id": 72,
+       "subject": "Acme 72"
+      }
+     ]
+    }
+   },
+   "writes": []
+  },
+  {
+   "name": "set_internal_name",
+   "action": "status",
+   "status": "Pending",
+   "answers": {
+    "reason": "Waiting"
+   },
+   "fail_on": null,
+   "build": {
+    "write": {
+     "action": "ticket_bulk_status_fields",
+     "target": 71,
+     "tenant": "acme.freshservice.com",
+     "method": "PUT",
+     "path": "tickets/{id} (one per selected ticket)",
+     "payload_json": "[{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"id\": 71, \"status\": 47}, {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"id\": 72, \"status\": 47}]",
+     "context_hash": "8c0cb65840eb7b66e75e7cde935eb1557fc83c71e55911af56db1ff7ece401d4"
+    },
+    "write_hash": "41eb9ae8e926e9d71c1d5fe1ddcc16b3311e1e2a3d71a9e069805dd07373a8c1",
+    "intent_json": "{\"action\": \"status\", \"agent\": null, \"answers\": {\"reason\": \"Waiting\"}, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Pending\", \"where\": []}",
+    "ids": [
+     71,
+     72
+    ],
+    "expected_json": "[{\"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 47}, {\"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 47}]",
+    "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
+    "hash": "316e0104f1591f2e3f84f71592590083842c851c72927f2b52c9e5e5bc2d603f",
+    "review": {
+     "action": "ticket_bulk_status_fields",
+     "method": "PUT",
+     "path": "/api/_/tickets/{id} (one per selected ticket)",
+     "payload": [
+      {
+       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+       "custom_fields": {
+        "reason": "Waiting"
+       },
+       "id": 71,
+       "status": 47
+      },
+      {
+       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+       "custom_fields": {
+        "reason": "Waiting"
+       },
+       "id": 72,
+       "status": 47
+      }
+     ],
+     "plan_hash": "316e0104f1591f2e3f84f71592590083842c851c72927f2b52c9e5e5bc2d603f",
+     "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
+     "ticket_ids": [
+      71,
+      72
+     ],
+     "selection": {
+      "action": "status",
+      "agent": null,
+      "answers": {
+       "reason": "Waiting"
+      },
+      "group": null,
+      "ids": [
+       "71",
+       "72"
+      ],
+      "max_records": null,
+      "note_primary": null,
+      "note_secondary": null,
+      "primary": null,
+      "select_all": false,
+      "status": "Pending",
+      "where": []
+     },
+     "selected_tickets": [
+      {
+       "id": 71,
+       "subject": "Acme 71"
+      },
+      {
+       "id": 72,
+       "subject": "Acme 72"
+      }
+     ]
+    }
+   },
+   "writes": []
+  },
+  {
+   "name": "fail_first",
+   "action": "status",
+   "status": "Pending",
+   "answers": {
+    "Pending Reason": "Waiting"
+   },
+   "fail_on": 71,
+   "build": {
+    "write": {
+     "action": "ticket_bulk_status_fields",
+     "target": 71,
+     "tenant": "acme.freshservice.com",
+     "method": "PUT",
+     "path": "tickets/{id} (one per selected ticket)",
+     "payload_json": "[{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"id\": 71, \"status\": 47}, {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"id\": 72, \"status\": 47}]",
+     "context_hash": "8c0cb65840eb7b66e75e7cde935eb1557fc83c71e55911af56db1ff7ece401d4"
+    },
+    "write_hash": "41eb9ae8e926e9d71c1d5fe1ddcc16b3311e1e2a3d71a9e069805dd07373a8c1",
+    "intent_json": "{\"action\": \"status\", \"agent\": null, \"answers\": {\"Pending Reason\": \"Waiting\"}, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Pending\", \"where\": []}",
+    "ids": [
+     71,
+     72
+    ],
+    "expected_json": "[{\"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 47}, {\"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 47}]",
+    "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
+    "hash": "7411182a89809ec665016ea6078f4fc973abc290285d087eec52178d1467cc7d",
+    "review": {
+     "action": "ticket_bulk_status_fields",
+     "method": "PUT",
+     "path": "/api/_/tickets/{id} (one per selected ticket)",
+     "payload": [
+      {
+       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+       "custom_fields": {
+        "reason": "Waiting"
+       },
+       "id": 71,
+       "status": 47
+      },
+      {
+       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+       "custom_fields": {
+        "reason": "Waiting"
+       },
+       "id": 72,
+       "status": 47
+      }
+     ],
+     "plan_hash": "7411182a89809ec665016ea6078f4fc973abc290285d087eec52178d1467cc7d",
+     "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
+     "ticket_ids": [
+      71,
+      72
+     ],
+     "selection": {
+      "action": "status",
+      "agent": null,
+      "answers": {
+       "Pending Reason": "Waiting"
+      },
+      "group": null,
+      "ids": [
+       "71",
+       "72"
+      ],
+      "max_records": null,
+      "note_primary": null,
+      "note_secondary": null,
+      "primary": null,
+      "select_all": false,
+      "status": "Pending",
+      "where": []
+     },
+     "selected_tickets": [
+      {
+       "id": 71,
+       "subject": "Acme 71"
+      },
+      {
+       "id": 72,
+       "subject": "Acme 72"
+      }
+     ]
+    }
+   },
+   "send": {
+    "result": {
+     "status": "partial",
+     "verified": false,
+     "plan_hash": "7411182a89809ec665016ea6078f4fc973abc290285d087eec52178d1467cc7d",
+     "ticket_ids": [
+      71,
+      72
+     ],
+     "tickets": {
+      "71": {
+       "verified": false,
+       "error": "update rejected (HTTP 400); no retry"
+      }
+     },
+     "stopped_at": 71,
+     "not_attempted": [
+      72
+     ],
+     "warning": "Stopped at the first failed or uncertain ticket; inspect it and the journal; never replay."
+    }
+   },
+   "replay": {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "bulk write was sent or outcome unknown; do not replay"
+    }
+   },
+   "journal": [
+    "started"
+   ],
+   "writes": [
+    {
+     "method": "PUT",
+     "id": 71,
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 47}"
+    }
+   ]
+  },
+  {
+   "name": "fail_second",
+   "action": "status",
+   "status": "Pending",
+   "answers": {
+    "Pending Reason": "Waiting"
+   },
+   "fail_on": 72,
+   "build": {
+    "write": {
+     "action": "ticket_bulk_status_fields",
+     "target": 71,
+     "tenant": "acme.freshservice.com",
+     "method": "PUT",
+     "path": "tickets/{id} (one per selected ticket)",
+     "payload_json": "[{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"id\": 71, \"status\": 47}, {\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"id\": 72, \"status\": 47}]",
+     "context_hash": "8c0cb65840eb7b66e75e7cde935eb1557fc83c71e55911af56db1ff7ece401d4"
+    },
+    "write_hash": "41eb9ae8e926e9d71c1d5fe1ddcc16b3311e1e2a3d71a9e069805dd07373a8c1",
+    "intent_json": "{\"action\": \"status\", \"agent\": null, \"answers\": {\"Pending Reason\": \"Waiting\"}, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Pending\", \"where\": []}",
+    "ids": [
+     71,
+     72
+    ],
+    "expected_json": "[{\"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 47}, {\"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 47}]",
+    "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
+    "hash": "7411182a89809ec665016ea6078f4fc973abc290285d087eec52178d1467cc7d",
+    "review": {
+     "action": "ticket_bulk_status_fields",
+     "method": "PUT",
+     "path": "/api/_/tickets/{id} (one per selected ticket)",
+     "payload": [
+      {
+       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+       "custom_fields": {
+        "reason": "Waiting"
+       },
+       "id": 71,
+       "status": 47
+      },
+      {
+       "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+       "custom_fields": {
+        "reason": "Waiting"
+       },
+       "id": 72,
+       "status": 47
+      }
+     ],
+     "plan_hash": "7411182a89809ec665016ea6078f4fc973abc290285d087eec52178d1467cc7d",
+     "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
+     "ticket_ids": [
+      71,
+      72
+     ],
+     "selection": {
+      "action": "status",
+      "agent": null,
+      "answers": {
+       "Pending Reason": "Waiting"
+      },
+      "group": null,
+      "ids": [
+       "71",
+       "72"
+      ],
+      "max_records": null,
+      "note_primary": null,
+      "note_secondary": null,
+      "primary": null,
+      "select_all": false,
+      "status": "Pending",
+      "where": []
+     },
+     "selected_tickets": [
+      {
+       "id": 71,
+       "subject": "Acme 71"
+      },
+      {
+       "id": 72,
+       "subject": "Acme 72"
+      }
+     ]
+    }
+   },
+   "send": {
+    "result": {
+     "status": "partial",
+     "verified": false,
+     "plan_hash": "7411182a89809ec665016ea6078f4fc973abc290285d087eec52178d1467cc7d",
+     "ticket_ids": [
+      71,
+      72
+     ],
+     "tickets": {
+      "71": {
+       "verified": true,
+       "fields": {
+        "custom_fields": "matched",
+        "status": "matched"
+       },
+       "plan_hash": "1fdd22a2d8fb2b5756ee56759d549070e11ab9c3845a32e8bce2fdcf34a3e475"
+      },
+      "72": {
+       "verified": false,
+       "error": "update rejected (HTTP 400); no retry"
+      }
+     },
+     "stopped_at": 72,
+     "not_attempted": [],
+     "warning": "Stopped at the first failed or uncertain ticket; inspect it and the journal; never replay."
+    }
+   },
+   "replay": {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "bulk write was sent or outcome unknown; do not replay"
+    }
+   },
+   "journal": [
+    "started"
+   ],
+   "writes": [
+    {
+     "method": "PUT",
+     "id": 71,
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 47}"
+    },
+    {
+     "method": "PUT",
+     "id": 72,
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"status\": 47}"
+    }
+   ]
+  },
+  {
+   "name": "status_key",
+   "action": "status",
+   "status": "Pending",
+   "answers": {
+    " Status ": "Open"
+   },
+   "fail_on": null,
+   "build": {
+    "error": {
+     "type": "ValueError",
+     "msg": "use --status for the status; --set is for the fields its rules require"
+    }
+   },
+   "writes": []
+  },
+  {
+   "name": "spam_with_set",
+   "action": "spam",
+   "status": "Pending",
+   "answers": {
+    "Pending Reason": "x"
+   },
+   "fail_on": null,
+   "build": {
+    "error": {
+     "type": "ValueError",
+     "msg": "--set is supported by bulk status only"
+    }
+   },
+   "writes": []
+  },
+  {
+   "name": "empty_answers_open",
+   "action": "status",
+   "status": "Open",
+   "answers": {},
+   "fail_on": null,
+   "build": {
+    "write": {
+     "action": "ticket_bulk_status",
+     "target": 71,
+     "tenant": "acme.freshservice.com",
+     "method": "PUT",
+     "path": "bulk_ticket_actions/update_multiple",
+     "payload_json": "{\"ids\": [71, 72], \"reply\": {}, \"status\": 31}",
+     "context_hash": "fc583feb9f7f48e8e54894004649be7f350fb4f7544d648945763fc6e62327f9"
+    },
+    "write_hash": "86c4a92cf9981af3f3fcb1f52024bdc6cd8a0bd765ac5804bc5a59b9e28029b8",
+    "intent_json": "{\"action\": \"status\", \"agent\": null, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Open\", \"where\": []}",
+    "ids": [
+     71,
+     72
+    ],
+    "expected_json": "[{\"status\": 31}, {\"status\": 31}]",
+    "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
+    "hash": "8988ab142dc7e12c6e77c821dd1d8acb390634b0f3911c0af5dc8ee685d199df",
+    "review": {
+     "action": "ticket_bulk_status",
+     "method": "PUT",
+     "path": "/api/_/bulk_ticket_actions/update_multiple",
+     "payload": {
+      "ids": [
+       71,
+       72
+      ],
+      "reply": {},
+      "status": 31
+     },
+     "plan_hash": "8988ab142dc7e12c6e77c821dd1d8acb390634b0f3911c0af5dc8ee685d199df",
+     "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
+     "ticket_ids": [
+      71,
+      72
+     ],
+     "selection": {
+      "action": "status",
+      "agent": null,
+      "group": null,
+      "ids": [
+       "71",
+       "72"
+      ],
+      "max_records": null,
+      "note_primary": null,
+      "note_secondary": null,
+      "primary": null,
+      "select_all": false,
+      "status": "Open",
+      "where": []
+     },
+     "selected_tickets": [
+      {
+       "id": 71,
+       "subject": "Acme 71"
+      },
+      {
+       "id": 72,
+       "subject": "Acme 72"
+      }
+     ]
+    }
+   },
+   "writes": []
+  },
+  {
+   "name": "plain_open",
+   "action": "status",
+   "status": "Open",
+   "answers": null,
+   "fail_on": null,
+   "build": {
+    "write": {
+     "action": "ticket_bulk_status",
+     "target": 71,
+     "tenant": "acme.freshservice.com",
+     "method": "PUT",
+     "path": "bulk_ticket_actions/update_multiple",
+     "payload_json": "{\"ids\": [71, 72], \"reply\": {}, \"status\": 31}",
+     "context_hash": "fc583feb9f7f48e8e54894004649be7f350fb4f7544d648945763fc6e62327f9"
+    },
+    "write_hash": "86c4a92cf9981af3f3fcb1f52024bdc6cd8a0bd765ac5804bc5a59b9e28029b8",
+    "intent_json": "{\"action\": \"status\", \"agent\": null, \"group\": null, \"ids\": [\"71\", \"72\"], \"max_records\": null, \"note_primary\": null, \"note_secondary\": null, \"primary\": null, \"select_all\": false, \"status\": \"Open\", \"where\": []}",
+    "ids": [
+     71,
+     72
+    ],
+    "expected_json": "[{\"status\": 31}, {\"status\": 31}]",
+    "selected_json": "[{\"id\": 71, \"subject\": \"Acme 71\"}, {\"id\": 72, \"subject\": \"Acme 72\"}]",
+    "hash": "8988ab142dc7e12c6e77c821dd1d8acb390634b0f3911c0af5dc8ee685d199df",
+    "review": {
+     "action": "ticket_bulk_status",
+     "method": "PUT",
+     "path": "/api/_/bulk_ticket_actions/update_multiple",
+     "payload": {
+      "ids": [
+       71,
+       72
+      ],
+      "reply": {},
+      "status": 31
+     },
+     "plan_hash": "8988ab142dc7e12c6e77c821dd1d8acb390634b0f3911c0af5dc8ee685d199df",
+     "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
+     "ticket_ids": [
+      71,
+      72
+     ],
+     "selection": {
+      "action": "status",
+      "agent": null,
+      "group": null,
+      "ids": [
+       "71",
+       "72"
+      ],
+      "max_records": null,
+      "note_primary": null,
+      "note_secondary": null,
+      "primary": null,
+      "select_all": false,
+      "status": "Open",
+      "where": []
+     },
+     "selected_tickets": [
+      {
+       "id": 71,
+       "subject": "Acme 71"
+      },
+      {
+       "id": 72,
+       "subject": "Acme 72"
+      }
+     ]
+    }
+   },
+   "writes": []
+  }
+ ]
+}

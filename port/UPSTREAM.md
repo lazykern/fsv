@@ -3651,4 +3651,48 @@ readback mismatch keeps `transition readback mismatch; outcome unknown;
 do not resend`, which fsv-cli `tickets_close_readback_mismatch` pins.
 The `({notes})` form is held on `lib/upstream-next2-cli-strings`.
 
-Still not triaged: commits after `8a466b5`.
+## Ledger: `676b8bb` (library side)
+
+Triaged against `git show 676b8bb`
+(`676b8bb5349fb25fa8cb502804805d55d0e60cc1`).
+New `ticket_bulk::build_plan_with_answers(..., max_records, answers)`.
+`build_plan_bounded` delegates to it with `None`, and `BulkArgs` is
+unchanged. Answers are bound into the intent only when nonempty, so
+older review hashes stay the same. `--set` with any action other than
+`status` is a `ValueError`, and so is a `status` key (`use --status for
+the status; ...`). Each ticket's property plan evaluates
+`{status, **answers}`. The plan is `ticket_bulk_status_fields`,
+`PUT tickets/{id} (one per selected ticket)`, with a sorted
+non-ASCII-safe JSON list of `{id, **payload}`. Expected fields drop
+`br_validation_excludes`.
+
+`send` with answers runs `send_each`. It journals `started` on the bulk
+write hash, then sends `properties::send_with` per ticket. It stops at
+the first failure with `status: partial`, `stopped_at`,
+`not_attempted`, and the per-ticket error. The plan stays `started` and
+is never replayed. When all tickets succeed it records `done` and
+returns `submitted` with per-ticket `verified`, `fields`, and
+`plan_hash`.
+
+`testdata/ticket_bulk_set_oracle.json` is stamped inline at `676b8bb`
+(10 cases: refusal without `--set`, label and internal-name answers,
+non-ASCII answers, first and second failures, both validation errors,
+and empty answers hashing the same as none).
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `676b8bb`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `676b8bb` | 11-13 05:27 | feat: bulk status --set for rule-required answers; JSON-only stdout | partial | fsv-api (`ticket_bulk`). fsv-cli follow-ups below |
+
+CLI follow-ups:
+
+- `tickets bulk status --set FIELD=VALUE` (repeatable). Parse keys with
+  `partition("=")` and strip them; a missing `=`, an empty key, or a
+  duplicate is `--set requires unique FIELD=VALUE answers`. Call
+  `build_plan_with_answers`.
+- The selection list (`Selected ticket IDs: ...` and `  id: subject`)
+  goes to stderr only. The send result gains `selected_tickets` (the
+  plan's `selected_json`). `--json` help says stdout is always JSON.
+
+Still not triaged: commits after `676b8bb`.
