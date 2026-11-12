@@ -422,11 +422,11 @@ Recommended process: a batch cycle, not commit-chasing.
 
 ## Checklist
 
-- [ ] P0 `fsv-flows/src/change.rs:1559-1575`: `failed` only on `definite_rejection`; add a 503 test; add a PARITY entry; report upstream.
-- [ ] P0 `fsv-flows/src/change.rs:1533`: refuse to send when `started` was not persisted.
-- [ ] P1 port the 27 missing CLI paths in `UPSTREAM.md` order; triage `dbe553c..92002d7`.
+- [x] P0 `fsv-flows/src/change.rs:1559-1575`: `failed` only on `definite_rejection`; add a 503 test; add a PARITY entry; report upstream.
+- [x] P0 `fsv-flows/src/change.rs:1533`: refuse to send when `started` was not persisted.
+- [x] P1 port the 27 missing CLI paths in `UPSTREAM.md` order; triage `dbe553c..92002d7`.
 - [x] P1 make `fsv_flows::meta` re-export `fsv_api::formmeta`; unify recipient validation. (`fsv_api::recipients`; `fsv-cli/src/cmd/sr.rs` calls `fsv_api::recipients::plain_email`.)
-- [ ] P1 `fsv-core/src/yaml.rs:105`: `key_text` uses `py_str` for Bool and Null.
+- [x] P1 `fsv-core/src/yaml.rs:105`: `key_text` uses `py_str` for Bool and Null.
 - [x] P1 `fsv-cli/src/cmd/completion.rs:17`: delegate to `fsv_completion::completion_network`.
 - [ ] P1 commit the `/tmp` generators and `gen_tree.py`; stamp fixtures with the Python commit. Partial: the oracles are in `port/golden/oracles/` (`fsv_api_views/oracle.py` also writes fsv-app's `properties_change_501.json`); every generator stamps via `port/golden/provenance.py`, and the fixtures of every crate but fsv-cli/fsv-completion were regenerated at `92002d7` and are checked by each crate's `provenance_tests.rs`. Open: `gen_tree.py`, and the fsv-completion fixtures (stamped generators, not yet regenerated into the crate). Partial: fsv-cli is done. `tests/golden/gen_tree.py` regenerates `src/generated.rs` (`--check` exits 1 if stale); `cli_tree.json` and `completion_tree.json` carry `_python` (`tests/tree.rs` checks it); `cmp.py --emit`, `cases.py` and `emit_upstream.py` (which rebuilds `tests/upstream_cmds.rs` from `tests/golden/upstream/`) stamp `Python commit: <sha>` in the emitted header. Open: the five oracles in other crates.
 - [ ] P1 review rows show names (`name_for`); decide the `SendFailure` exit code; port `parseaddr` exactly or reject.
@@ -434,5 +434,5 @@ Recommended process: a batch cycle, not commit-chasing.
 - [ ] P2 `ReadOnly<B>` backend wrapper; remove the `Backend` network defaults.
 - [x] P2 split `fsv-tui/src/app.rs` along its section markers.
 - [ ] P2 coverage audit: crate-scoped evidence plus `cargo llvm-cov` execution; regenerate `COVERAGE.md`.
-- [ ] P2 fix the ARCHITECTURE graph and Error enum; prune stale PARITY lines (37-39, 94, 97, 137, 146, 246, 280-281).
+- [x] P2 fix the ARCHITECTURE graph and Error enum; prune stale PARITY lines (37-39, 94, 97, 137, 146, 246, 280-281).
 - [ ] P3 `Error::Api(Box<ApiError>)`; drop the `result_large_err` allows; delete `add_reply` and other dead code. Partial: `Error::Api` is boxed with a manual `From<ApiError>`; the crate allows are gone from fsv-core, fsv-api, fsv-flows, fsv-views and fsv-app (local allows remain where `FormError` or tungstenite's handshake error is returned). `FormError::ValueParse.raw` and `FormError::FormRule.rule_id` are boxed, which removes the fsv-forms crate allow and the local allows in fsv-api (`formmeta::find_field`, `views::load_properties`) and fsv-formui (`session.rs` ×2, `backend.rs`). Open: the fsv-cli and fsv-completion crate allows, the tungstenite-handshake local allow in `fsv-core/src/session/browser.rs`, dead code.
