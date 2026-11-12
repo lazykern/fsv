@@ -273,7 +273,7 @@ _fsv() {
                 -o)
                     compadd table json csv tsv; return 0 ;;
             esac
-            compadd -- --verbose -v -l --limit --output -o --json; return 0 ;;
+            compadd -- --verbose -v -l --limit --all --output -o --json; return 0 ;;
         "changes tasks")
             case "$prev" in
                 --output)
@@ -547,7 +547,7 @@ _fsv() {
                 -o)
                     compadd table json csv tsv; return 0 ;;
             esac
-            compadd -- --verbose -v -l --limit --output -o --json; return 0 ;;
+            compadd -- --verbose -v -l --limit --all --output -o --json; return 0 ;;
         "tickets tasks-legacy")
             case "$prev" in
                 --output)
@@ -579,7 +579,7 @@ _fsv() {
         "tickets bulk-priority")
             compadd -- --verbose -v --priority --dry-run --yes --output -o --json --expect-plan; return 0 ;;
         "tickets bulk")
-            compadd -- --verbose -v --where --select-all --max-records --status --agent --group --primary --note-primary --note-secondary --confirm-destructive --dry-run --yes --expect-plan --json; return 0 ;;
+            compadd -- --verbose -v --where --select-all --max-records --status --agent --group --primary --note-primary --note-secondary --confirm-destructive --dry-run --yes --expect-plan --set --json; return 0 ;;
         "tickets fields")
             case "$prev" in
                 --output)
@@ -743,7 +743,7 @@ _fsv() {
                 -o)
                     compadd table json csv tsv; return 0 ;;
             esac
-            compadd -- --verbose -v -l --limit --output -o --json; return 0 ;;
+            compadd -- --verbose -v -l --limit --all --output -o --json; return 0 ;;
         "problems tasks")
             case "$prev" in
                 --output)

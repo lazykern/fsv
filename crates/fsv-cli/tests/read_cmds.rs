@@ -701,16 +701,18 @@ fn change_state_table() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
-        r#"   CHN-5 flow — Standard    
-      (change_type=1)       
-┏━━━━━┳━━━━━━━━━━┳━━━━━━━━━┓
-┃  →  ┃ Status   ┃  State  ┃
-┡━━━━━╇━━━━━━━━━━╇━━━━━━━━━┩
-│  ✓  │ Open     │ passed  │
-│  ▶  │ Planning │ current │
-│  ·  │ Done     │ future  │
-└─────┴──────────┴─────────┘
+        r#"          CHN-5 flow — Standard (change_type=1)          
+┏━━━━━┳━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  →  ┃ Status   ┃  State  ┃ Next (allowed transitions) ┃
+┡━━━━━╇━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│  ✓  │ Open     │ passed  │ Planning                   │
+│  ▶  │ Planning │ current │ Done                       │
+│  ·  │ Done     │ future  │ -                          │
+└─────┴──────────┴─────────┴────────────────────────────┘
   current: Planning · past: 1 · ahead: 1
+
+Transitions from Planning:
+  → Done: no entry criteria
 
 Approval gates:
   ✓ L1: Ann Lee — approved
@@ -755,7 +757,20 @@ fn change_state_json() {
         "id": 3,
         "value": "Done"
       }
-    ]
+    ],
+    "transitions": {
+      "1": [
+        {
+          "to_state": 2
+        }
+      ],
+      "2": [
+        {
+          "to_state": 3
+        }
+      ],
+      "3": []
+    }
   }
 }
 "#
@@ -1010,6 +1025,8 @@ fn activity_limit() {
       · a b
       · c
 23:30  ?  second
+
+truncated: 1 more (showing 2 of 3); use --limit N or --all
 "#
     );
     assert_eq!(r.err, r#""#);
@@ -1020,6 +1037,63 @@ fn activity_negative_limit_json() {
     let r = run_fixture(
         "tabs",
         &["tickets", "activity", "5", "--limit", "-1", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.out, "[]\n");
+    assert_eq!(
+        r.err,
+        "truncated: 3 more (showing 0 of 3); use --limit N or --all\n"
+    );
+}
+
+#[test]
+fn activity_all_overrides_limit() {
+    let r = run_fixture(
+        "tabs",
+        &["tickets", "activity", "5", "--limit", "1", "--all"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"
+2024-03-01
+03:15  Ann [x]  Set status to Open
+      · a b
+      · c
+23:30  ?  second
+
+Unknown
+--:--  Bob  
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn activity_csv_limit_notice() {
+    let r = run_fixture(
+        "tabs",
+        &["tickets", "activity", "5", "--limit", "2", "-o", "csv"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        "day,time,actor,content\r\n2024-03-01,03:15,Ann [x],Set status to Open\r\n2024-03-01,23:30,?,second\r\n"
+    );
+    assert_eq!(
+        r.err,
+        "truncated: 1 more (showing 2 of 3); use --limit N or --all\n"
+    );
+}
+
+#[test]
+fn activity_json_limit_notice() {
+    let r = run_fixture(
+        "tabs",
+        &["tickets", "activity", "5", "--limit", "2", "--json"],
         None,
     );
     assert_eq!(r.code, 0, "{}", r.err);
@@ -1045,7 +1119,10 @@ fn activity_negative_limit_json() {
 ]
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        "truncated: 1 more (showing 2 of 3); use --limit N or --all\n"
+    );
 }
 
 #[test]

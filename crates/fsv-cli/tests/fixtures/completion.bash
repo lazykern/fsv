@@ -357,7 +357,7 @@ _fsv_complete() {
                 -o)
                     COMPREPLY=( $(compgen -W "table json csv tsv" -- "$cur") ); return 0 ;;
             esac
-            COMPREPLY=( $(compgen -W "--verbose -v -l --limit --output -o --json" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v -l --limit --all --output -o --json" -- "$cur") )
             return 0 ;;
         "changes tasks")
             case "$prev" in
@@ -630,7 +630,7 @@ _fsv_complete() {
                 -o)
                     COMPREPLY=( $(compgen -W "table json csv tsv" -- "$cur") ); return 0 ;;
             esac
-            COMPREPLY=( $(compgen -W "--verbose -v -l --limit --output -o --json" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v -l --limit --all --output -o --json" -- "$cur") )
             return 0 ;;
         "tickets tasks-legacy")
             case "$prev" in
@@ -675,7 +675,7 @@ _fsv_complete() {
             COMPREPLY=( $(compgen -W "--verbose -v --priority --dry-run --yes --output -o --json --expect-plan" -- "$cur") )
             return 0 ;;
         "tickets bulk")
-            COMPREPLY=( $(compgen -W "--verbose -v --where --select-all --max-records --status --agent --group --primary --note-primary --note-secondary --confirm-destructive --dry-run --yes --expect-plan --json" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --where --select-all --max-records --status --agent --group --primary --note-primary --note-secondary --confirm-destructive --dry-run --yes --expect-plan --set --json" -- "$cur") )
             return 0 ;;
         "tickets fields")
             case "$prev" in
@@ -848,7 +848,7 @@ _fsv_complete() {
                 -o)
                     COMPREPLY=( $(compgen -W "table json csv tsv" -- "$cur") ); return 0 ;;
             esac
-            COMPREPLY=( $(compgen -W "--verbose -v -l --limit --output -o --json" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v -l --limit --all --output -o --json" -- "$cur") )
             return 0 ;;
         "problems tasks")
             case "$prev" in

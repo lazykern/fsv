@@ -1842,6 +1842,25 @@
        "envvar": null
       },
       {
+       "name": "all_",
+       "kind": "option",
+       "opts": [
+        "--all"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "every loaded entry (overrides --limit)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
        "name": "format_",
        "kind": "option",
        "opts": [
@@ -10047,6 +10066,25 @@
        "envvar": null
       },
       {
+       "name": "all_",
+       "kind": "option",
+       "opts": [
+        "--all"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "every loaded entry (overrides --limit)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
        "name": "format_",
        "kind": "option",
        "opts": [
@@ -12034,6 +12072,25 @@
        "default": null,
        "hidden": false,
        "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "sets",
+       "kind": "option",
+       "opts": [
+        "--set"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": true,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "status only: FIELD=VALUE the status's rules require; repeatable",
        "metavar": null,
        "envvar": null
       },
@@ -17864,6 +17921,25 @@
        "default": 20,
        "hidden": false,
        "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "all_",
+       "kind": "option",
+       "opts": [
+        "--all"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "every loaded entry (overrides --limit)",
        "metavar": null,
        "envvar": null
       },

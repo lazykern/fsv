@@ -469,6 +469,7 @@ pub struct ResActivityArgs {
     #[arg(value_name = "ID_")]
     pub id_: String,
     #[arg(
+        help = "newest N entries (a 'truncated' notice reports the rest)",
         long = "limit",
         short = 'l',
         allow_hyphen_values = true,
@@ -476,6 +477,8 @@ pub struct ResActivityArgs {
         default_value_t = 20
     )]
     pub limit: i64,
+    #[arg(help = "every loaded entry (overrides --limit)", long = "all")]
+    pub all_: bool,
     #[arg(
         help = "output format",
         long = "output",
@@ -2556,7 +2559,17 @@ pub struct TicketsBulkArgs {
     pub yes: bool,
     #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
     pub expect_plan: Option<String>,
-    #[arg(long = "json")]
+    #[arg(
+        help = "status only: FIELD=VALUE the status's rules require; repeatable",
+        long = "set",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub set_: Vec<String>,
+    #[arg(
+        help = "accepted for symmetry; stdout is always JSON only (selection list goes to stderr)",
+        long = "json"
+    )]
     pub json_out: bool,
 }
 
@@ -6591,6 +6604,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
                 value_flag: false,
             },
             OptionHint {
+                id: "all_",
+                flags: &["--all"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
                 id: "format_",
                 flags: &["--output", "-o"],
                 completer: Some("complete_format"),
@@ -9183,6 +9203,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
                 value_flag: false,
             },
             OptionHint {
+                id: "all_",
+                flags: &["--all"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
                 id: "format_",
                 flags: &["--output", "-o"],
                 completer: Some("complete_format"),
@@ -9809,6 +9836,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "expect_plan",
                 flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "set_",
+                flags: &["--set"],
                 completer: None,
                 resource: None,
                 value_flag: false,
@@ -11650,6 +11684,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "limit",
                 flags: &["-l", "--limit"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "all_",
+                flags: &["--all"],
                 completer: None,
                 resource: None,
                 value_flag: false,

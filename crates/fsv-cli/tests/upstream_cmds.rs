@@ -2468,7 +2468,7 @@ fn update_reviewed_closure_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"combined resolution/closure requirements are not proven; use the web form
+        r#"update does not resolve or close tickets (combined resolution/closure requirements are not proven here); use `fsv tickets resolve ID --note TEXT` or `fsv tickets close ID` (both check runtime closure requirements and accept --set/--ack), or the web form
 "#
     );
 }
@@ -7446,7 +7446,7 @@ fn tickets_close_readback_mismatch() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"transition readback mismatch; outcome unknown; do not resend
+        r#"transition readback mismatch (status is still 62); outcome unknown; do not resend
 "#
     );
     assert_eq!(r.write_paths(), ["PUT /api/_/tickets/128"]);
@@ -19102,5 +19102,118 @@ fn sr_items_needs_expect_plan() {
         r.err,
         r#"review with --dry-run, then --yes --expect-plan FULL_HASH
 "#
+    );
+}
+
+#[test]
+fn tickets_bulk_set_not_status() {
+    let r = run_fixture(
+        "ticket_bulk",
+        &[
+            "tickets",
+            "bulk",
+            "spam",
+            "140",
+            "--set",
+            "note=x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(r.err, "--set is supported by bulk status only\n",);
+}
+
+#[test]
+fn tickets_bulk_set_missing_eq() {
+    let r = run_fixture(
+        "ticket_bulk",
+        &[
+            "tickets",
+            "bulk",
+            "status",
+            "140",
+            "--status",
+            "Open",
+            "--set",
+            "note",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(r.err, "--set requires unique FIELD=VALUE answers\n",);
+}
+
+#[test]
+fn tickets_bulk_set_empty_key() {
+    let r = run_fixture(
+        "ticket_bulk",
+        &[
+            "tickets",
+            "bulk",
+            "status",
+            "140",
+            "--status",
+            "Open",
+            "--set",
+            "=x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(r.err, "--set requires unique FIELD=VALUE answers\n",);
+}
+
+#[test]
+fn tickets_bulk_set_duplicate() {
+    let r = run_fixture(
+        "ticket_bulk",
+        &[
+            "tickets",
+            "bulk",
+            "status",
+            "140",
+            "--status",
+            "Open",
+            "--set",
+            "note=a",
+            "--set",
+            "note=b",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(r.err, "--set requires unique FIELD=VALUE answers\n",);
+}
+
+#[test]
+fn tickets_bulk_set_status_key() {
+    let r = run_fixture(
+        "ticket_bulk",
+        &[
+            "tickets",
+            "bulk",
+            "status",
+            "140",
+            "--status",
+            "Open",
+            "--set",
+            "status=Closed",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        "use --status for the status; --set is for the fields its rules require\n",
     );
 }

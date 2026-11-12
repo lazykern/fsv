@@ -428,16 +428,16 @@ fn state(a: ChangesStateArgs) -> CmdResult {
             )?;
         }
         OutputFormat::Table => {
-            let printed =
-                fsv_api::state_flow::render_flow(c.as_ref(), &change).map_err(fail_exc)?;
-            print_flow(&printed);
+            let (printed, next) = fsv_api::state_flow::render_flow_with_next(c.as_ref(), &change)
+                .map_err(fail_exc)?;
+            print_flow(&printed, next.as_deref());
         }
     }
     Ok(())
 }
 
-/// Print `state_flow.render_flow` output to the console.
-fn print_flow(printed: &[Printed]) {
+/// Print `state_flow.render_flow_with_next` output to the console.
+fn print_flow(printed: &[Printed], next: Option<&[String]>) {
     for p in printed {
         match p {
             Printed::Text(s) => out().print(s),
@@ -457,8 +457,15 @@ fn print_flow(printed: &[Printed]) {
                         .style("dim")
                         .width(7),
                 );
-                for r in rows {
-                    t.add_row(r.clone());
+                if next.is_some() {
+                    t.add_column(Column::new("Next (allowed transitions)"));
+                }
+                for (i, r) in rows.iter().enumerate() {
+                    let mut cells: Vec<String> = r.to_vec();
+                    if let Some(next) = next {
+                        cells.push(next.get(i).cloned().unwrap_or_default());
+                    }
+                    t.add_row(cells);
                 }
                 out().print_table(&t);
             }
@@ -939,6 +946,7 @@ fn change_update(
     };
     let rec = |k: &str| record.get(k).filter(|v| fsv_py::truthy(v)).cloned();
     let module_id = rec("display_id").or_else(|| rec("id")).unwrap_or(json!(id));
+    let api = c.clone();
     let deps = fsv_app::FormDeps::live(c)?;
     let fresh = a.dry_run || a.yes || !tty;
     let meta = Arc::new(deps.meta.load_meta("change", "edit", fresh, &module_id)?);
@@ -969,6 +977,20 @@ fn change_update(
     .map_err(formflow::draft_error)?;
     let resolver: Arc<dyn Resolver> = deps.resolver.clone();
     let record_map = record.as_object().cloned().unwrap_or_default();
+    // One read of the runtime state flow per command (edges, criteria, locks).
+    let flow_cache: std::cell::RefCell<Option<Value>> = std::cell::RefCell::new(None);
+    let read_flow = || -> Result<Value, Error> {
+        if let Some(flow) = flow_cache.borrow().clone() {
+            return Ok(flow);
+        }
+        let flow = fsv_api::state_flow::get_state_flow(
+            api.as_ref(),
+            record.get("state_flow_id").unwrap_or(&Value::Null),
+            record.get("workspace_id"),
+        )?;
+        *flow_cache.borrow_mut() = Some(flow.clone());
+        Ok(flow)
+    };
     let build = |d: &Draft, ack_all: bool, mt: Option<Arc<FormMeta>>| -> Result<Plan, Error> {
         let opts = change::UpdateOptions {
             resolver: Some(resolver.clone()),
@@ -976,12 +998,17 @@ fn change_update(
             status_label: None,
             hints_path: None,
         };
-        change::build_update_plan(
+        let lifecycle: Option<&dyn Fn() -> Result<Value, Error>> = record
+            .get("state_flow_id")
+            .filter(|v| fsv_py::truthy(v))
+            .map(|_| &read_flow as &dyn Fn() -> Result<Value, Error>);
+        change::build_update_plan_with_lifecycle(
             &mt.unwrap_or_else(|| meta.clone()),
             d,
             &record_map,
             id,
             &opts,
+            lifecycle,
         )
     };
     let title = format!("Edit {subject}");

@@ -528,7 +528,20 @@ pub fn activity(res: &'static Resource, a: ResActivityArgs) -> CmdResult {
         .and_then(Value::as_array)
         .cloned()
         .unwrap_or_default();
-    let acts = &all[..py_slice_end(all.len(), a.limit)];
+    let shown = if a.all_ {
+        all.len()
+    } else {
+        usize::try_from(a.limit.max(0))
+            .unwrap_or(usize::MAX)
+            .min(all.len())
+    };
+    let acts = &all[..shown];
+    let partial = td.meta.get("partial").is_some_and(fsv_py::truthy);
+    let notice = fsv_views::detail::truncation_notice(all.len(), acts.len(), partial);
+    let format = effective(a.format_, a.json_out);
+    if let Some(notice) = notice.as_deref().filter(|_| format != OutputFormat::Table) {
+        err().print(&format!("[yellow]{notice}[/]"));
+    }
     let flat: Vec<Map<String, Value>> = acts
         .iter()
         .map(|x| {
@@ -541,11 +554,7 @@ pub fn activity(res: &'static Resource, a: ResActivityArgs) -> CmdResult {
             row
         })
         .collect();
-    if emit_fmt(
-        &Value::Array(acts.to_vec()),
-        &flat,
-        effective(a.format_, a.json_out),
-    )? {
+    if emit_fmt(&Value::Array(acts.to_vec()), &flat, format)? {
         return Ok(());
     }
     let mut last_day: Option<String> = None;
@@ -574,6 +583,9 @@ pub fn activity(res: &'static Resource, a: ResActivityArgs) -> CmdResult {
                 escape(&activity_text(Some(sub)))
             ));
         }
+    }
+    if let Some(notice) = notice {
+        out().print(&format!("\n[yellow]{}[/]", escape(&notice)));
     }
     Ok(())
 }
@@ -697,15 +709,6 @@ fn py_get(x: &Value, k: &str) -> String {
 
 fn first_truthy(x: &Value, k: &str) -> Option<String> {
     x.get(k).filter(|v| fsv_py::truthy(v)).map(fsv_py::py_str)
-}
-
-/// End index of Python's `items[:n]`.
-fn py_slice_end(len: usize, n: i64) -> usize {
-    if n >= 0 {
-        usize::try_from(n).unwrap_or(usize::MAX).min(len)
-    } else {
-        len.saturating_sub(usize::try_from(n.unsigned_abs()).unwrap_or(usize::MAX))
-    }
 }
 
 fn actor_name(x: &Value) -> Value {

@@ -736,7 +736,7 @@ pub fn tasks_delete(a: TicketsTasksDeleteArgs) -> CmdResult {
         action: "delete",
         task: Some(&a.task),
         title: None,
-        status: Some("Open"),
+        status: None,
         sets: &[],
         owner: None,
         group: None,
@@ -762,8 +762,28 @@ pub fn tickets_bulk(a: TicketsBulkArgs) -> CmdResult {
             note_primary: a.note_primary.as_deref(),
             note_secondary: a.note_secondary.as_deref(),
         };
-        let plan =
-            ticket_bulk::build_plan_bounded(c.as_ref(), &store, &a.ids, &args, a.max_records)?;
+        let mut answers = Map::new();
+        for expression in &a.set_ {
+            let (key, value) = match expression.split_once('=') {
+                Some((key, value)) => (key, value),
+                None => {
+                    return Err(Error::value("--set requires unique FIELD=VALUE answers"));
+                }
+            };
+            let key = fsv_core::pystr::strip(key).to_string();
+            if key.is_empty() || answers.contains_key(&key) {
+                return Err(Error::value("--set requires unique FIELD=VALUE answers"));
+            }
+            answers.insert(key, json!(value));
+        }
+        let plan = ticket_bulk::build_plan_with_answers(
+            c.as_ref(),
+            &store,
+            &a.ids,
+            &args,
+            a.max_records,
+            (!answers.is_empty()).then_some(&answers),
+        )?;
         let ids: Vec<String> = plan.ids.iter().map(i64::to_string).collect();
         eprintln!("Selected ticket IDs: {}", ids.join(", "));
         let selected: Vec<Value> = serde_json::from_str(&plan.selected_json)?;
@@ -780,7 +800,7 @@ pub fn tickets_bulk(a: TicketsBulkArgs) -> CmdResult {
         }
         let hash = plan.hash();
         require_full_hash(a.yes, a.expect_plan.as_deref(), &hash)?;
-        let result = ticket_bulk::send(
+        let mut result = ticket_bulk::send(
             &plan,
             c.as_ref(),
             &store,
@@ -788,6 +808,12 @@ pub fn tickets_bulk(a: TicketsBulkArgs) -> CmdResult {
             Some(&hash),
             a.confirm_destructive,
         )?;
+        if let Some(obj) = result.as_object_mut() {
+            obj.insert(
+                "selected_tickets".into(),
+                serde_json::from_str(&plan.selected_json).unwrap_or(Value::Null),
+            );
+        }
         print_verified(&result)
     };
     run().map_err(refusal)
