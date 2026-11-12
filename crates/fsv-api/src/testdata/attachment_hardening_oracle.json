@@ -1,0 +1,469 @@
+{
+  "_python": {
+    "commit": "57a236e1c00d3b901ff11ae3f63043db2e8fe0bd",
+    "dirty": false
+  },
+  "identities": [
+    {
+      "name": "plain",
+      "hash": "08ecab9128e92ae5d5f0708726245a2a6e770e0d39d6ad13e93f4b0d327d0d9c",
+      "review": {
+        "action": "ticket_create_attachments",
+        "method": "POST",
+        "path": "/api/_/tickets",
+        "payload": {
+          "cc_emails": [
+            "person@example.com"
+          ],
+          "email": "jane.doe@example.com",
+          "planned_start_date": "2030-01-02T10:00:00-05:00",
+          "subject": "Acme"
+        },
+        "plan_hash": "08ecab9128e92ae5d5f0708726245a2a6e770e0d39d6ad13e93f4b0d327d0d9c",
+        "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
+        "files": [],
+        "max_attachment_size_bytes": 4096,
+        "attachment_size_limit": {
+          "max_bytes": 4096,
+          "source": "tenant form metadata (bytes)",
+          "published_bytes": "not published by the tenant",
+          "total_bytes": 0,
+          "applies_to": "total of all files in this submit"
+        },
+        "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+      }
+    },
+    {
+      "name": "guards",
+      "hash": "a0f8d6ed0be43843a7e80aa723b693c73a72f98ae3d7e884faaf81fc7114d643",
+      "review": {
+        "action": "ticket_create_attachments",
+        "method": "POST",
+        "path": "/api/_/tickets",
+        "payload": {
+          "cc_emails": [
+            "person@example.com"
+          ],
+          "email": "jane.doe@example.com",
+          "planned_start_date": "2030-01-02T10:00:00-05:00",
+          "subject": "Acme"
+        },
+        "plan_hash": "a0f8d6ed0be43843a7e80aa723b693c73a72f98ae3d7e884faaf81fc7114d643",
+        "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
+        "files": [],
+        "max_attachment_size_bytes": 4096,
+        "attachment_size_limit": {
+          "max_bytes": 4096,
+          "source": "tenant form metadata (bytes)",
+          "published_bytes": "not published by the tenant",
+          "total_bytes": 0,
+          "applies_to": "total of all files in this submit"
+        },
+        "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+      }
+    },
+    {
+      "name": "requester",
+      "hash": "3d2f798574d2eababde6456adefc4f5e39104bfeb3b74e76b8d96ffed406a035",
+      "review": {
+        "action": "ticket_create_attachments",
+        "method": "POST",
+        "path": "/api/_/tickets",
+        "payload": {
+          "cc_emails": [
+            "person@example.com"
+          ],
+          "email": "jane.doe@example.com",
+          "planned_start_date": "2030-01-02T10:00:00-05:00",
+          "subject": "Acme"
+        },
+        "plan_hash": "3d2f798574d2eababde6456adefc4f5e39104bfeb3b74e76b8d96ffed406a035",
+        "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
+        "files": [],
+        "resolved_requester_id": 81,
+        "max_attachment_size_bytes": 4096,
+        "attachment_size_limit": {
+          "max_bytes": 4096,
+          "source": "tenant form metadata (bytes)",
+          "published_bytes": "not published by the tenant",
+          "total_bytes": 0,
+          "applies_to": "total of all files in this submit"
+        },
+        "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+      }
+    },
+    {
+      "name": "both",
+      "hash": "fded731c3e8704cef273440b0e0de8cbb07e7844860b3cd9fe089ce8f727a1d3",
+      "review": {
+        "action": "ticket_create_attachments",
+        "method": "POST",
+        "path": "/api/_/tickets",
+        "payload": {
+          "cc_emails": [
+            "person@example.com"
+          ],
+          "email": "jane.doe@example.com",
+          "planned_start_date": "2030-01-02T10:00:00-05:00",
+          "subject": "Acme"
+        },
+        "plan_hash": "fded731c3e8704cef273440b0e0de8cbb07e7844860b3cd9fe089ce8f727a1d3",
+        "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
+        "files": [],
+        "resolved_requester_id": 81,
+        "max_attachment_size_bytes": 4096,
+        "attachment_size_limit": {
+          "max_bytes": 4096,
+          "source": "tenant form metadata (bytes)",
+          "published_bytes": "not published by the tenant",
+          "total_bytes": 0,
+          "applies_to": "total of all files in this submit"
+        },
+        "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+      }
+    }
+  ],
+  "readbacks": [
+    {
+      "name": "normalized",
+      "path": "tickets",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [],
+        "subject": "Acme",
+        "requester_id": 81,
+        "email": "Jane.Doe@Example.com",
+        "planned_start_date": "2030-01-02T15:00:00Z",
+        "cc_emails": [
+          "Person <PERSON@example.com>"
+        ]
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            81
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "cc_emails": "matched",
+            "email": "matched",
+            "planned_start_date": "matched",
+            "subject": "matched"
+          },
+          "verified": true
+        }
+      }
+    },
+    {
+      "name": "wrong-requester",
+      "path": "tickets",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [],
+        "subject": "Acme",
+        "requester_id": 999,
+        "email": "Jane.Doe@Example.com",
+        "planned_start_date": "2030-01-02T15:00:00Z",
+        "cc_emails": [
+          "Person <PERSON@example.com>"
+        ]
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            999
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "cc_emails": "matched",
+            "email": "mismatched",
+            "planned_start_date": "matched",
+            "subject": "matched"
+          },
+          "verified": false
+        }
+      }
+    },
+    {
+      "name": "conflicting-requester",
+      "path": "tickets",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [],
+        "subject": "Acme",
+        "requester_id": 81,
+        "email": "Jane.Doe@Example.com",
+        "planned_start_date": "2030-01-02T15:00:00Z",
+        "cc_emails": [
+          "Person <PERSON@example.com>"
+        ],
+        "requester": {
+          "id": 81,
+          "email": "wrong@example.com"
+        }
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            81,
+            81
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "cc_emails": "matched",
+            "email": "mismatched",
+            "planned_start_date": "matched",
+            "subject": "matched"
+          },
+          "verified": false
+        }
+      }
+    },
+    {
+      "name": "nested-only",
+      "path": "tickets",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [],
+        "subject": "Acme",
+        "planned_start_date": "2030-01-02T15:00:00Z",
+        "cc_emails": [
+          "Person <PERSON@example.com>"
+        ],
+        "requester": {
+          "id": 81,
+          "email": "JANE.DOE@example.com"
+        }
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            81
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "cc_emails": "matched",
+            "email": "matched",
+            "planned_start_date": "matched",
+            "subject": "matched"
+          },
+          "verified": true
+        }
+      }
+    },
+    {
+      "name": "no-requester-fields",
+      "path": "tickets",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [],
+        "subject": "Acme",
+        "planned_start_date": "2030-01-02T15:00:00Z",
+        "cc_emails": [
+          "Person <PERSON@example.com>"
+        ]
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [],
+          "attachments_verified": true,
+          "fields": {
+            "cc_emails": "matched",
+            "email": "unavailable",
+            "planned_start_date": "matched",
+            "subject": "matched"
+          },
+          "verified": false
+        }
+      }
+    },
+    {
+      "name": "bad-requester-id",
+      "path": "tickets",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [],
+        "subject": "Acme",
+        "requester_id": "x",
+        "email": "Jane.Doe@Example.com",
+        "planned_start_date": "2030-01-02T15:00:00Z",
+        "cc_emails": [
+          "Person <PERSON@example.com>"
+        ]
+      },
+      "outcome": {
+        "error": "ReviewedWriteError"
+      }
+    },
+    {
+      "name": "no-plan-requester",
+      "path": "tickets",
+      "requester": null,
+      "row": {
+        "id": 123,
+        "attachments": [],
+        "subject": "Acme",
+        "requester_id": 81,
+        "email": "Jane.Doe@Example.com",
+        "planned_start_date": "2030-01-02T15:00:00Z",
+        "cc_emails": [
+          "Person <PERSON@example.com>"
+        ]
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [],
+          "attachments_verified": true,
+          "fields": {
+            "cc_emails": "matched",
+            "email": "mismatched",
+            "planned_start_date": "matched",
+            "subject": "matched"
+          },
+          "verified": false
+        }
+      }
+    },
+    {
+      "name": "change-owner",
+      "path": "changes",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [],
+        "subject": "Acme",
+        "requester_id": 81,
+        "email": "Jane.Doe@Example.com",
+        "planned_start_date": "2030-01-02T15:00:00Z",
+        "cc_emails": [
+          "Person <PERSON@example.com>"
+        ]
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            81
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "cc_emails": "matched",
+            "email": "matched",
+            "planned_start_date": "matched",
+            "subject": "matched"
+          },
+          "verified": true
+        }
+      }
+    },
+    {
+      "name": "cc-mismatch",
+      "path": "tickets",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [],
+        "subject": "Acme",
+        "requester_id": 81,
+        "email": "Jane.Doe@Example.com",
+        "planned_start_date": "2030-01-02T15:00:00Z",
+        "cc_emails": [
+          "other@example.com"
+        ]
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            81
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "cc_emails": "mismatched",
+            "email": "matched",
+            "planned_start_date": "matched",
+            "subject": "matched"
+          },
+          "verified": false
+        }
+      }
+    },
+    {
+      "name": "instant-mismatch",
+      "path": "tickets",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [],
+        "subject": "Acme",
+        "requester_id": 81,
+        "email": "Jane.Doe@Example.com",
+        "planned_start_date": "2030-01-02T10:00:00Z",
+        "cc_emails": [
+          "Person <PERSON@example.com>"
+        ]
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            81
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "cc_emails": "matched",
+            "email": "matched",
+            "planned_start_date": "mismatched",
+            "subject": "matched"
+          },
+          "verified": false
+        }
+      }
+    }
+  ],
+  "senders": [
+    {
+      "row": null,
+      "expected": "support@example.com",
+      "state": "unavailable"
+    },
+    {
+      "row": {},
+      "expected": "support@example.com",
+      "state": "unavailable"
+    },
+    {
+      "row": {
+        "from_email": "\"Acme Support\" <SUPPORT@example.com>"
+      },
+      "expected": "support@example.com",
+      "state": "matched"
+    },
+    {
+      "row": {
+        "from_email": "other@example.com"
+      },
+      "expected": "support@example.com",
+      "state": "mismatched"
+    },
+    {
+      "row": {
+        "from_email": "support@example.com"
+      },
+      "expected": "not an email",
+      "state": "mismatched"
+    }
+  ]
+}

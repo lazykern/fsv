@@ -2692,4 +2692,60 @@ update is refused by `module_time`, and existing-project association
 is refused by `change_relationships`. The Rust tree has no
 `reviewed-parity.md`. If the CLI docs gain one, copy the table as-is.
 
-Still not triaged: `57a236e` and later.
+Moved on: `57a236e` is triaged below.
+
+## Ledger: `57a236e` (library side)
+
+Triaged against `git show 57a236e`
+(`57a236e1c00d3b901ff11ae3f63043db2e8fe0bd`). Stamped generators give
+36 strict inventory cases, attachment plan identities, ten
+initial-owner readbacks and five sender readbacks. All of them match.
+The attachments oracle was regenerated at `57a236e`. Its only changes
+are the returned owner id on the `done` journal event and the result's
+`owner_id`. The sr, module-time, change-relationship and ticket-bulk
+oracles regenerate unchanged.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `57a236e`.
+The partial is the create CLI wiring, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `57a236e` | 11-12 23:11 | Harden captured write inventory proofs attachment guards and native readbacks | partial | fsv-api `reviewed_inventory`, `attachments`, `conversations`, `change_relationships`, `module_time`, `problem_task_update`, `sr_requested_items`, `ticket_bulk`. fsv-cli follow-up below |
+
+New `reviewed_inventory::complete_inventory` checks every raw page
+before the display paginator runs. It checks row identity,
+continuation flags and tokens, page identity, page counts and totals.
+`single_page_inventory` validates a captured page without another
+read. Any failure is the one refusal "complete, consistent mutation
+inventory unavailable". Six inventories now use it: change
+relationships (plus the project single page), change and problem time
+entries (v2), problem tasks, requested items, the ticket bulk filter
+and the forward source. The forward source maps it to its own
+refusal.
+
+`AttachedPlan` gains `prior_guards` and `requester_id`. They enter the
+hash only when set, and the review shows `resolved_requester_id`. Send
+refuses when a prior guard was started or done. It journals the guards
+with the transaction, and records the returned owner id on `done`.
+The readback checks the requester id and email of an initial
+ticket/change. It also compares mail fields by address set, the sender
+by address, and planned dates and `due_by` as instants. Forward results
+add `source_conversation_id`, `source_link_verified: false` and
+`verification_scope`.
+
+Upstream quirk kept for parity: when the requester branch runs, the
+result's `attachments` lists the observed requester ids. `291e5cd`
+fixes this upstream.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`changes create` with `--max-bytes` and without `--attach-flow
+before-create` exits 2 with "--max-bytes requires the reviewed
+--attach-flow before-create transaction". The before-create attached
+plans set `requester_id` to the resolved requester. Ticket create sets
+`prior_guards` to the attachments action and wrapped hash, then
+`("ticket_create", create hash)`. Change create sets `("create", create
+hash)`, the legacy create hash when it differs, then the attachments
+action and wrapped hash.
+
+Still not triaged: `fbc54d4` and later.

@@ -131,7 +131,7 @@ fn parseaddr(value: &str) -> String {
 
 /// `ticket_conversation._email_set`. `None` means the value is not an
 /// explicit list of valid recipients.
-fn email_set(values: &Value) -> Option<BTreeSet<String>> {
+pub(crate) fn email_set(values: &Value) -> Option<BTreeSet<String>> {
     let list = values.as_array()?;
     let mut out = BTreeSet::new();
     for value in list {
@@ -148,7 +148,7 @@ fn email_set(values: &Value) -> Option<BTreeSet<String>> {
 /// `ticket_conversation._recipient_readback`. Notification and To are the
 /// same observed field. CC and BCC stay distinct: a To address does not
 /// prove a blind copy.
-fn recipient_readback(
+pub(crate) fn recipient_readback(
     row: Option<&Map<String, Value>>,
     key: &str,
     expected: &Value,
@@ -174,6 +174,20 @@ fn recipient_readback(
             "matched"
         }
         _ => "mismatched",
+    }
+}
+
+/// `ticket_conversation.sender_readback`: the observed `from_email` is the
+/// one submitted address, display name and case aside.
+pub(crate) fn sender_readback(row: Option<&Map<String, Value>>, expected: &Value) -> &'static str {
+    let Some(actual) = row.and_then(|r| r.get("from_email")) else {
+        return "unavailable";
+    };
+    let wanted = email_set(&json!([expected]));
+    if wanted.is_some() && email_set(&json!([actual])) == wanted {
+        "matched"
+    } else {
+        "mismatched"
     }
 }
 
@@ -325,17 +339,25 @@ pub fn build_plan(
 /// conversation in a complete ticket history.
 pub fn forward_source(c: &dyn Api, ticket_id: i64, conversation_id: i64) -> Result<String> {
     let conversation_id = crate::watchers::positive_id(&json!(conversation_id))?;
-    let pages = load_conversations(c, ticket_id)?;
+    let unavailable = || refused("exact forward source unavailable in complete ticket history");
+    let params = obj(json!({"include": "user,phone,feedback", "per_page": 100}));
+    let rows = match crate::reviewed_inventory::complete_inventory(
+        c,
+        &format!("tickets/{ticket_id}/conversations"),
+        "conversations",
+        Some(&params),
+        crate::reviewed_inventory::Family::Internal,
+    ) {
+        Ok(rows) => rows,
+        Err(e @ Error::Session(_)) => return Err(e),
+        Err(_) => return Err(unavailable()),
+    };
     let want = conversation_id.to_string();
-    let matches: Vec<&Value> = pages
-        .rows
+    let matches: Vec<&Value> = rows
         .iter()
         .filter(|row| py_str(row.get("id").unwrap_or(&Value::Null)) == want)
         .collect();
-    if pages.missing.is_some()
-        || pages.meta.get("partial").is_some_and(truthy)
-        || matches.len() != 1
-    {
+    if matches.len() != 1 {
         return Err(refused(
             "exact forward source unavailable in complete ticket history",
         ));
@@ -612,7 +634,9 @@ pub fn send(
         let mut fields = Map::new();
         let row = exact.and_then(|e| e.as_object());
         for (k, v) in expected {
-            let state = if matches!(
+            let state = if k == "from_email" {
+                sender_readback(row, &v)
+            } else if matches!(
                 k,
                 "to_emails" | "notify_emails" | "cc_emails" | "bcc_emails"
             ) {
@@ -657,6 +681,16 @@ pub fn send(
     }
     if closing && result["verified"] == Value::Bool(true) {
         journal.record_plan("done", &hash, &action, Some(&target), Some(&conv_id));
+    }
+    if plan.kind == "forward"
+        && let Some(source) = payload.get("conversation_id")
+    {
+        result.insert("source_conversation_id".into(), source.clone());
+        result.insert("source_link_verified".into(), json!(false));
+        result.insert(
+            "verification_scope".into(),
+            json!("delivery fields; source link is not exposed by independent readback"),
+        );
     }
     if result["verified"] != Value::Bool(true) {
         result.insert(
@@ -1218,6 +1252,38 @@ mod tests {
             ))
             .contains("only supported for forward")
         );
+    }
+
+    /// `test_formatted_sender_forward_readback`.
+    #[test]
+    fn formatted_sender_forward_readback() {
+        let c = api()
+            .ok(
+                "POST tickets/123/forward",
+                json!({"conversation": {"id": 456}}),
+            )
+            .ok(
+                "GET tickets/123/conversations",
+                json!({"conversations": [source_row(), {
+                    "id": 456,
+                    "body": "<div>Acme update</div>",
+                    "private": true,
+                    "from_email": "\"Acme Support\" <SUPPORT@example.com>",
+                    "to_emails": ["Acme Person <PERSON@example.com>"]
+                }]}),
+            );
+        let p = forward_source_plan(&c).unwrap();
+        let (j, store) = (MemJournal::default(), MemStore::default());
+        let out = send(&p, &c, &j, &store, Some(&p.hash()), true).unwrap();
+        assert_eq!(out["verified"], true, "{out}");
+        assert_eq!(out["fields"]["from_email"], "matched");
+        assert_eq!(out["source_link_verified"], false);
+        assert_eq!(out["source_conversation_id"], 901);
+        assert_eq!(
+            out["verification_scope"],
+            "delivery fields; source link is not exposed by independent readback"
+        );
+        assert_eq!(c.writes().len(), 1);
     }
 
     /// A forward whose server readback stores recipients as `to_emails`.

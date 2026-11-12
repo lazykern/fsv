@@ -50,25 +50,6 @@ fn filled(v: Option<&str>) -> bool {
     v.is_some_and(|s| !s.is_empty())
 }
 
-/// `AssociationReader.int_get`: a bad page becomes a paginator miss.
-fn association_get(c: &dyn Api, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
-    let data = match c.int_get(path, params) {
-        Ok(data) => data,
-        Err(e @ Error::Api(_)) | Err(e @ Error::Session(_)) => return Err(e),
-        Err(_) => return Err(Error::other("association page unavailable")),
-    };
-    let key = path.rsplit('/').next().unwrap_or(path);
-    let ok = data.get(key).and_then(Value::as_array).is_some_and(|rows| {
-        rows.iter().all(|row| {
-            row.is_object() && watchers::positive_id(row.get("id").unwrap_or(&Value::Null)).is_ok()
-        })
-    });
-    if !data.is_object() || !ok {
-        return Err(Error::other("unreadable association page"));
-    }
-    Ok(data)
-}
-
 /// `proxy_body`.
 pub fn proxy_body(raw: &Value) -> Result<Map<String, Value>> {
     let Some(obj) = raw.as_object() else {
@@ -144,24 +125,19 @@ pub fn inventory(c: &dyn Api, target: i64, kind: &str) -> Result<Vec<Value>> {
                 "complete single-page linked project inventory unavailable",
             ));
         }
-        rows.unwrap_or_default()
+        crate::reviewed_inventory::single_page_inventory(&Value::Object(body), key)?
     } else {
         let mut params = service::obj(json!({"per_page": 50, "page": 1}));
         if kind == "caused-incident" {
             params.insert("filter".into(), json!("associated_tickets_caused"));
         }
-        let pages = service::collect_pages(
-            |path, params| association_get(c, path, params),
+        crate::reviewed_inventory::complete_inventory(
+            c,
             &format!("changes/{target}/{key}"),
             key,
             Some(&params),
-            kind,
-            service::MAX_DETAIL_PAGES,
-        )?;
-        if pages.missing.is_some() || !pages.complete() {
-            return Err(refused("complete relationship inventory unavailable"));
-        }
-        pages.rows
+            crate::reviewed_inventory::Family::Internal,
+        )?
     };
     sorted_rows(rows)
 }

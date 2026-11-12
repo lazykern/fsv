@@ -9,8 +9,9 @@ use fsv_py::{py_str, truthy};
 
 use crate::attachments::owner_row;
 use crate::readback::{duration_seconds, same_duration, same_instant};
+use crate::reviewed_inventory::{Family, complete_inventory};
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, snapshot_hash};
+use crate::service::{Api, Journal, obj, snapshot_hash};
 use crate::ticket_time::duration;
 use crate::watchers::{positive_id, self_id};
 
@@ -21,19 +22,14 @@ pub fn inventory(c: &dyn Api, module: &str, target: i64) -> Result<Vec<Value>> {
         return Err(Error::value("unsupported time-entry module"));
     }
     let params = obj(json!({"page": 1, "per_page": 30}));
-    let pages = collect_pages(
-        |path, params| c.v2_get(path, params),
+    let rows = complete_inventory(
+        c,
         &format!("{module}/{target}/time_entries"),
         "time_entries",
         Some(&params),
-        "time entries",
-        MAX_DETAIL_PAGES,
+        Family::V2,
     )?;
-    if !pages.meta.get("complete").is_some_and(truthy) {
-        return Err(refused("complete time-entry inventory is unavailable"));
-    }
-    let mut keyed = pages
-        .rows
+    let mut keyed = rows
         .into_iter()
         .map(|row| Ok((positive_id(row.get("id").unwrap_or(&Value::Null))?, row)))
         .collect::<Result<Vec<(i64, Value)>>>()?;

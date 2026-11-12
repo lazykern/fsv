@@ -37,6 +37,7 @@ pub mod properties;
 mod query;
 pub mod readback;
 pub mod recipients;
+pub mod reviewed_inventory;
 pub mod reviewed_write;
 pub mod scenarios;
 pub mod schema;

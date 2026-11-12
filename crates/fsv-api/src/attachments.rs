@@ -325,6 +325,11 @@ pub struct AttachedPlan {
     pub limit: Option<i64>,
     pub limit_source: String,
     pub published_limit: Option<i64>,
+    /// Earlier `(action, hash)` transactions this send also guards: a
+    /// started or done one blocks it, and all are journaled with it.
+    pub prior_guards: Vec<(String, String)>,
+    /// The resolved requester an initial ticket/change readback must show.
+    pub requester_id: Option<i64>,
 }
 
 impl AttachedPlan {
@@ -334,10 +339,15 @@ impl AttachedPlan {
 
     /// Port of attachments.AttachedPlan.hash.
     pub fn hash(&self) -> String {
-        plan_hash(
-            &json!({"owner": self.base.hash(), "files": self.file_reviews(), "max_bytes": self.limit,
-                          "limit_source": self.limit_source, "published_bytes": self.published_limit}),
-        )
+        let mut identity = json!({"owner": self.base.hash(), "files": self.file_reviews(), "max_bytes": self.limit,
+                                  "limit_source": self.limit_source, "published_bytes": self.published_limit});
+        if !self.prior_guards.is_empty() {
+            identity["prior_guards"] = json!(self.prior_guards);
+        }
+        if let Some(id) = self.requester_id {
+            identity["requester_id"] = json!(id);
+        }
+        plan_hash(&identity)
     }
 
     /// Port of attachments.AttachedPlan.review.
@@ -345,6 +355,9 @@ impl AttachedPlan {
         let mut out = self.base.review();
         out.insert("plan_hash".into(), json!(self.hash()));
         out.insert("files".into(), json!(self.file_reviews()));
+        if let Some(id) = self.requester_id {
+            out.insert("resolved_requester_id".into(), json!(id));
+        }
         out.insert("max_attachment_size_bytes".into(), json!(self.limit));
         let mut limit = obj(json!({
             "max_bytes": self.limit, "source": self.limit_source,
@@ -380,6 +393,8 @@ pub fn wrap(
         limit: limit.max_bytes,
         limit_source: limit.source,
         published_limit: limit.published,
+        prior_guards: Vec::new(),
+        requester_id: None,
     })
 }
 
@@ -542,6 +557,48 @@ fn envelope<'a>(response: &'a Value, key: &str, empty: &'a Value) -> &'a Value {
     }
 }
 
+/// The `email` readback of an initial ticket/change: every observed
+/// requester id is the resolved requester and every observed email is the
+/// submitted address. Also returns the observed requester ids, which
+/// upstream `57a236e` reports as the result's `attachments`.
+fn requester_readback(
+    row: Option<&Map<String, Value>>,
+    expected: &Value,
+    requester: i64,
+) -> Result<(&'static str, Value)> {
+    let nested = row
+        .and_then(|r| r.get("requester"))
+        .and_then(Value::as_object);
+    let mut ids: Vec<&Value> = row
+        .and_then(|r| r.get("requester_id"))
+        .into_iter()
+        .collect();
+    ids.extend(nested.and_then(|n| n.get("id")));
+    let mut emails: Vec<&Value> = row.and_then(|r| r.get("email")).into_iter().collect();
+    emails.extend(nested.and_then(|n| n.get("email")));
+    let wanted = conversations::email_set(&json!([expected]));
+    let mut matched = !ids.is_empty();
+    for id in &ids {
+        if positive_id(id)? != requester {
+            matched = false;
+            break;
+        }
+    }
+    matched = matched
+        && wanted.is_some()
+        && emails
+            .iter()
+            .all(|v| conversations::email_set(&json!([v])) == wanted);
+    let state = if matched {
+        "matched"
+    } else if ids.is_empty() && emails.is_empty() {
+        "unavailable"
+    } else {
+        "mismatched"
+    };
+    Ok((state, json!(ids)))
+}
+
 /// Port of attachments.readback: the owning record carries the uploaded
 /// files and every submitted business value.
 pub fn readback(
@@ -598,6 +655,7 @@ pub fn readback(
                 )
         });
     let mut fields = Map::new();
+    let mut reported = json!(ids);
     for (key, expected) in base.payload().as_object().into_iter().flatten() {
         if IGNORED.contains(&key.as_str()) {
             continue;
@@ -607,23 +665,45 @@ pub fn readback(
             _ => key.as_str(),
         };
         let actual = row.as_ref().and_then(|r| r.get(actual_key));
-        let status = match actual {
-            _ if row.as_ref().is_none_or(|r| !r.contains_key(actual_key)) => "unavailable",
-            Some(a) => {
-                let matched = if key == "body" || key == "description" {
-                    same_text(a, expected)
-                } else {
-                    submitted_value_matches(a, expected)
-                };
-                if matched { "matched" } else { "mismatched" }
+        let status = if key == "email"
+            && (base.path == "tickets" || base.path == "changes")
+            && let Some(requester) = plan.requester_id
+        {
+            let (state, observed) = requester_readback(row.as_ref(), expected, requester)?;
+            reported = observed;
+            state
+        } else if key == "from_email" {
+            conversations::sender_readback(row.as_ref(), expected)
+        } else if matches!(
+            key.as_str(),
+            "notify_emails" | "to_emails" | "cc_emails" | "bcc_emails"
+        ) {
+            conversations::recipient_readback(row.as_ref(), key, expected)
+        } else {
+            match actual {
+                _ if row.as_ref().is_none_or(|r| !r.contains_key(actual_key)) => "unavailable",
+                Some(a) => {
+                    let matched = if key == "body" || key == "description" {
+                        same_text(a, expected)
+                    } else if matches!(
+                        key.as_str(),
+                        "planned_start_date" | "planned_end_date" | "due_by"
+                    ) && !expected.is_null()
+                    {
+                        crate::readback::same_instant(a, expected)
+                    } else {
+                        submitted_value_matches(a, expected)
+                    };
+                    if matched { "matched" } else { "mismatched" }
+                }
+                None => "unavailable",
             }
-            None => "unavailable",
         };
         fields.insert(key.clone(), json!(status));
     }
     let verified = files_match && fields.values().all(|v| v == "matched");
     Ok(obj(json!({
-        "owner_id": returned_id, "attachments": ids, "attachments_verified": files_match,
+        "owner_id": returned_id, "attachments": reported, "attachments_verified": files_match,
         "fields": fields, "verified": verified,
     })))
 }
@@ -731,6 +811,16 @@ pub fn send(
             "attachment transaction was sent or outcome unknown; do not replay",
         ));
     }
+    for (prior_action, prior_hash) in &plan.prior_guards {
+        if matches!(
+            last_event(journal, prior_action, prior_hash).as_deref(),
+            Some("started" | "done")
+        ) {
+            return Err(refused(
+                "prior attachment/create transaction was sent or outcome unknown; do not replay",
+            ));
+        }
+    }
     let paths: Vec<String> = plan.files.iter().map(|f| f.path.clone()).collect();
     if rebuild()?.hash() != hash || local_files(&paths, plan.limit)? != plan.files {
         return Err(refused(
@@ -745,6 +835,14 @@ pub fn send(
             "could not persist attachment journal; no upload attempted",
         ));
     }
+    for (prior_action, prior_hash) in &plan.prior_guards {
+        journal.record_plan("started", prior_hash, prior_action, Some(&target), None);
+        if last_event(journal, prior_action, prior_hash).as_deref() != Some("started") {
+            return Err(refused(
+                "could not persist prior create guard; no upload attempted",
+            ));
+        }
+    }
     let mut uploaded = Vec::new();
     let response = match transact(plan, c, journal, &hash, &csrf, &mut uploaded) {
         Ok(r) => r,
@@ -755,10 +853,35 @@ pub fn send(
             )));
         }
     };
-    journal.record_plan("done", &hash, action, Some(&target), None);
+    let empty = json!({});
+    let raw_owner = match plan.base.path.as_str() {
+        "tickets" => Some(envelope(&response, "ticket", &empty)),
+        "changes" => Some(envelope(&response, "change", &empty)),
+        _ => returned_note(&response),
+    };
+    let returned_owner = raw_owner
+        .filter(|r| r.is_object())
+        .and_then(|r| positive_id(r.get("id").unwrap_or(&Value::Null)).ok())
+        .map(|id| json!(id));
+    journal.record_plan(
+        "done",
+        &hash,
+        action,
+        Some(&target),
+        returned_owner.as_ref(),
+    );
+    for (prior_action, prior_hash) in &plan.prior_guards {
+        journal.record_plan(
+            "done",
+            prior_hash,
+            prior_action,
+            Some(&target),
+            returned_owner.as_ref(),
+        );
+    }
     let mut result = obj(
         json!({"status": "submitted", "plan_hash": hash, "uploaded_ids": uploaded,
-                                "verified": false}),
+                                "owner_id": returned_owner, "verified": false}),
     );
     if let Ok(extra) = readback(c, plan, &response, &uploaded) {
         result.extend(extra);

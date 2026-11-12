@@ -429,3 +429,165 @@ fn cases_match_python() {
         assert_eq!(json!(events), case["events"], "{name} events");
     }
 }
+
+mod hardening {
+    use std::sync::LazyLock;
+
+    use super::*;
+
+    static ORACLE: LazyLock<Value> = LazyLock::new(|| {
+        serde_json::from_str(include_str!("../testdata/attachment_hardening_oracle.json")).unwrap()
+    });
+
+    const PAYLOAD: &str = r#"{"cc_emails": ["person@example.com"], "email": "jane.doe@example.com", "planned_start_date": "2030-01-02T10:00:00-05:00", "subject": "Acme"}"#;
+
+    fn plan(path: &str, guards: &[(&str, &str)], requester: Option<i64>) -> AttachedPlan {
+        AttachedPlan {
+            base: WritePlan {
+                action: "ticket_create_attachments".into(),
+                target: 0,
+                tenant: "acme.freshservice.com".into(),
+                method: "POST".into(),
+                path: path.into(),
+                payload_json: PAYLOAD.into(),
+                context_hash: "synthetic".into(),
+            },
+            files: Vec::new(),
+            limit: Some(4096),
+            limit_source: METADATA_SOURCE.into(),
+            published_limit: None,
+            prior_guards: guards
+                .iter()
+                .map(|(a, h)| (a.to_string(), h.to_string()))
+                .collect(),
+            requester_id: requester,
+        }
+    }
+
+    #[test]
+    fn identities_match_python() {
+        let a = "a".repeat(64);
+        let b = "b".repeat(64);
+        let guards = [
+            ("create", a.as_str()),
+            ("ticket_create_attachments", b.as_str()),
+        ];
+        for want in ORACLE["identities"].as_array().unwrap() {
+            let name = want["name"].as_str().unwrap();
+            let p = match name {
+                "plain" => plan("tickets", &[], None),
+                "guards" => plan("tickets", &guards, None),
+                "requester" => plan("tickets", &[], Some(81)),
+                _ => plan("tickets", &guards, Some(81)),
+            };
+            assert_eq!(p.hash(), want["hash"].as_str().unwrap(), "{name}");
+            assert_eq!(Value::Object(p.review()), want["review"], "{name}");
+        }
+    }
+
+    #[test]
+    fn readbacks_match_python() {
+        for case in ORACLE["readbacks"].as_array().unwrap() {
+            let name = case["name"].as_str().unwrap();
+            let path = case["path"].as_str().unwrap().to_string();
+            let key = if path == "tickets" {
+                "ticket"
+            } else {
+                "change"
+            };
+            let row = case["row"].clone();
+            let route = format!("{path}/123");
+            let c = FnApi::new(move |call: &Call| {
+                assert_eq!(call.path, route);
+                Ok(json!({key: row.clone()}))
+            });
+            let p = plan(&path, &[], case["requester"].as_i64());
+            let got = match readback(&c, &p, &json!({key: {"id": 123}}), &[]) {
+                Ok(r) => json!({"result": r}),
+                Err(_) => json!({"error": "ReviewedWriteError"}),
+            };
+            assert_eq!(got, case["outcome"], "{name}");
+        }
+    }
+
+    #[test]
+    fn senders_match_python() {
+        for case in ORACLE["senders"].as_array().unwrap() {
+            let row = case["row"].as_object();
+            assert_eq!(
+                crate::conversations::sender_readback(row, &case["expected"]),
+                case["state"].as_str().unwrap(),
+                "{case}"
+            );
+        }
+    }
+
+    fn change_plan(
+        c: &dyn Api,
+        store: &dyn MetaStore,
+        paths: &[String],
+        guards: &[(String, String)],
+    ) -> Result<AttachedPlan> {
+        let mut p = build(c, store, paths, "change", &[], None)?;
+        p.prior_guards = guards.to_vec();
+        Ok(p)
+    }
+
+    /// `test_prior_create_guard_blocks_new_attachment_hash`.
+    #[test]
+    fn prior_create_guard_blocks_send() {
+        for event in ["started", "done"] {
+            let state = Arc::new(Mutex::new(new_state(701)));
+            state.lock().unwrap()["change"] = json!({"id": 123, "attachments": []});
+            let c = api(state.clone(), "acme.example.com");
+            let store = MemStore::default();
+            let journal = MemJournal::default();
+            let dir = tempfile::tempdir().unwrap();
+            let path = dir.path().join("acme.txt");
+            std::fs::write(&path, "Acme evidence 0\n").unwrap();
+            let paths = vec![path.to_string_lossy().into_owned()];
+            let legacy = "a".repeat(64);
+            journal.record_plan(event, &legacy, "create", Some(&json!(0)), None);
+            let guards = vec![("create".to_string(), legacy.clone())];
+            let p = change_plan(&c, &store, &paths, &guards).unwrap();
+            let rebuild = || change_plan(&c, &store, &paths, &guards);
+            let err = send(&p, &c, &journal, Some(&p.hash()), &rebuild).unwrap_err();
+            assert!(err.to_string().contains("prior attachment/create"), "{err}");
+            assert!(
+                state.lock().unwrap()["requests"]
+                    .as_array()
+                    .unwrap()
+                    .is_empty()
+            );
+        }
+    }
+
+    /// `test_new_transaction_also_persists_legacy_guard_before_upload`.
+    #[test]
+    fn prior_guard_persists_before_upload() {
+        let state = Arc::new(Mutex::new(new_state(701)));
+        state.lock().unwrap()["change"] = json!({"id": 123, "attachments": []});
+        state.lock().unwrap()["fail"] = json!("disconnect");
+        let c = api(state.clone(), "acme.example.com");
+        let store = MemStore::default();
+        let journal = MemJournal::default();
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("acme.txt");
+        std::fs::write(&path, "Acme evidence 0\n").unwrap();
+        let paths = vec![path.to_string_lossy().into_owned()];
+        let legacy = "b".repeat(64);
+        let guards = vec![("create".to_string(), legacy.clone())];
+        let p = change_plan(&c, &store, &paths, &guards).unwrap();
+        let rebuild = || change_plan(&c, &store, &paths, &guards);
+        let err = send(&p, &c, &journal, Some(&p.hash()), &rebuild).unwrap_err();
+        assert!(err.to_string().contains("outcome unknown"), "{err}");
+        assert_eq!(
+            last_event(&journal, "create", &legacy).as_deref(),
+            Some("started")
+        );
+        assert_eq!(
+            state.lock().unwrap()["requests"].as_array().unwrap().len(),
+            1
+        );
+    }
+}

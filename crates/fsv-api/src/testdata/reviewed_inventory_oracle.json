@@ -1,0 +1,1145 @@
+{
+  "_python": {
+    "commit": "57a236e1c00d3b901ff11ae3f63043db2e8fe0bd",
+    "dirty": false
+  },
+  "cases": [
+    {
+      "name": "single-page-0",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            },
+            "malformed"
+          ],
+          "has_more": false
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-1",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            },
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-2",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": true
+            }
+          ],
+          "has_more": false
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-3",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": "superscript"
+            }
+          ],
+          "has_more": false
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-4",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "meta": {
+            "total": 2
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-5",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "meta": {
+            "total": "1"
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-6",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": "false"
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-7",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "meta": "malformed"
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-8",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "meta": {
+            "has_more": true
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-9",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": true,
+          "next_page_url": null
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-10",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "next_page_url": "?page=2"
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-11",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "next_page": 2
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-12",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "meta": {
+            "page": true
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-13",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "meta": {
+            "total_pages": 2
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-14",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "meta": {
+            "total_pages": 0
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-15",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 0
+            }
+          ],
+          "has_more": false
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-16",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "meta": {
+            "page": 2
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-17",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "meta": {
+            "next_cursor": ""
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-18",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "next_cursor": "a",
+          "meta": {
+            "next_cursor": "b"
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-19",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": true,
+          "meta": {
+            "has_next": false
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-page-20",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": "72"
+            },
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "meta": {
+            "total": 2,
+            "page": 1,
+            "total_pages": 1
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "rows": [
+          {
+            "id": 71
+          },
+          {
+            "id": "72"
+          }
+        ]
+      }
+    },
+    {
+      "name": "single-page-21",
+      "pages": [
+        {
+          "rows": [],
+          "meta": {
+            "page": 1,
+            "total_pages": 0,
+            "total": 0
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "rows": []
+      }
+    },
+    {
+      "name": "single-page-22",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ]
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "rows": [
+          {
+            "id": 71
+          }
+        ]
+      }
+    },
+    {
+      "name": "conflicting-71",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": true,
+          "total": 2
+        },
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "total": 3
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 1
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 1
+          }
+        ],
+        [
+          "example",
+          {
+            "page": 2,
+            "per_page": 1
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "conflicting-72",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": true,
+          "total": 2
+        },
+        {
+          "rows": [
+            {
+              "id": 72
+            }
+          ],
+          "has_more": false,
+          "total": 3
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 1
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 1
+          }
+        ],
+        [
+          "example",
+          {
+            "page": 2,
+            "per_page": 1
+          }
+        ]
+      ],
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "multi-internal",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 72
+            }
+          ],
+          "has_more": true,
+          "meta": {
+            "total_count": 2
+          }
+        },
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "meta": {
+            "total_count": 2
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 1,
+        "query_hash": "synthetic"
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 1,
+            "query_hash": "synthetic"
+          }
+        ],
+        [
+          "example",
+          {
+            "page": 2,
+            "per_page": 1,
+            "query_hash": "synthetic"
+          }
+        ]
+      ],
+      "outcome": {
+        "rows": [
+          {
+            "id": 71
+          },
+          {
+            "id": 72
+          }
+        ]
+      }
+    },
+    {
+      "name": "multi-v2",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 72
+            }
+          ],
+          "has_more": true,
+          "meta": {
+            "total_count": 2
+          }
+        },
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "meta": {
+            "total_count": 2
+          }
+        }
+      ],
+      "params": {
+        "page": 1,
+        "per_page": 1,
+        "query_hash": "synthetic"
+      },
+      "api": "v2",
+      "requests": [
+        [
+          "example",
+          {
+            "page": 1,
+            "per_page": 1,
+            "query_hash": "synthetic"
+          }
+        ],
+        [
+          "example",
+          {
+            "page": 2,
+            "per_page": 1,
+            "query_hash": "synthetic"
+          }
+        ]
+      ],
+      "outcome": {
+        "rows": [
+          {
+            "id": 71
+          },
+          {
+            "id": 72
+          }
+        ]
+      }
+    },
+    {
+      "name": "no-page-param",
+      "pages": [
+        {
+          "rows": [
+            {
+              "id": 71
+            }
+          ],
+          "has_more": false,
+          "meta": {
+            "page": 1
+          }
+        }
+      ],
+      "params": {
+        "include": "user",
+        "per_page": 100
+      },
+      "api": "internal",
+      "requests": [
+        [
+          "example",
+          {
+            "include": "user",
+            "per_page": 100
+          }
+        ]
+      ],
+      "outcome": {
+        "rows": [
+          {
+            "id": 71
+          }
+        ]
+      }
+    },
+    {
+      "name": "single-claims-0",
+      "single": true,
+      "raw": {
+        "rows": [
+          {
+            "id": 71
+          }
+        ],
+        "meta": {
+          "total_count": 2
+        }
+      },
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-claims-1",
+      "single": true,
+      "raw": {
+        "rows": [
+          {
+            "id": 71
+          }
+        ],
+        "meta": {
+          "has_more": true
+        }
+      },
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-claims-2",
+      "single": true,
+      "raw": {
+        "rows": [
+          {
+            "id": 71
+          }
+        ],
+        "meta": {
+          "next_page_url": "?page=2"
+        }
+      },
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-claims-3",
+      "single": true,
+      "raw": {
+        "rows": [
+          {
+            "id": 71
+          }
+        ],
+        "meta": {
+          "total_pages": 2
+        }
+      },
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    },
+    {
+      "name": "single-ok-0",
+      "single": true,
+      "raw": {
+        "rows": [
+          {
+            "id": 71
+          }
+        ]
+      },
+      "outcome": {
+        "rows": [
+          {
+            "id": 71
+          }
+        ]
+      }
+    },
+    {
+      "name": "single-ok-1",
+      "single": true,
+      "raw": {
+        "rows": [],
+        "meta": {
+          "page": 1,
+          "total_pages": 0,
+          "total": 0
+        }
+      },
+      "outcome": {
+        "rows": []
+      }
+    },
+    {
+      "name": "single-ok-2",
+      "single": true,
+      "raw": {
+        "rows": [
+          {
+            "id": 9
+          },
+          {
+            "id": 3
+          }
+        ],
+        "meta": {
+          "e_signature_limit_reached": false
+        }
+      },
+      "outcome": {
+        "rows": [
+          {
+            "id": 3
+          },
+          {
+            "id": 9
+          }
+        ]
+      }
+    },
+    {
+      "name": "single-ok-3",
+      "single": true,
+      "raw": {
+        "other": []
+      },
+      "outcome": {
+        "error": "complete, consistent mutation inventory unavailable"
+      }
+    }
+  ]
+}

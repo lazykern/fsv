@@ -39,35 +39,14 @@ fn row_id(row: &Value) -> Result<i64> {
 /// `inventory`: every requested item of `target`, sorted by id.
 pub fn inventory(c: &dyn Api, target: i64) -> Result<Vec<Value>> {
     let raw = c.int_get(&format!("tickets/{target}/requested_items"), None)?;
-    let Some(rows) = raw
+    if raw
         .get("requested_items")
         .and_then(Value::as_array)
-        .cloned()
-    else {
-        return Err(refused("requested-item inventory unavailable"));
-    };
-    let empty = Value::Object(Map::new());
-    let meta = raw.get("meta").unwrap_or(&empty);
-    if ["has_more", "has_next", "next_page"]
-        .iter()
-        .any(|k| meta.get(*k).is_some_and(truthy) || raw.get(*k).is_some_and(truthy))
+        .is_none()
     {
-        return Err(refused("partial requested-item inventory"));
+        return Err(refused("requested-item inventory unavailable"));
     }
-    let mut ids = Vec::with_capacity(rows.len());
-    for row in rows.iter().filter(|r| r.is_object()) {
-        ids.push(row_id(row)?);
-    }
-    if ids.len() != rows.len() || ids.iter().collect::<BTreeSet<_>>().len() != ids.len() {
-        return Err(refused("invalid or duplicate requested-item identities"));
-    }
-    for envelope in [&raw, meta] {
-        if let Some(total) = envelope.get("total")
-            && (!is_int(total) || total.as_i64() != Some(rows.len() as i64))
-        {
-            return Err(refused("incomplete requested-item inventory"));
-        }
-    }
+    let rows = crate::reviewed_inventory::single_page_inventory(&raw, "requested_items")?;
     let target_text = target.to_string();
     if rows
         .iter()
@@ -769,19 +748,20 @@ mod tests {
 
     #[test]
     fn inventory_fails_closed() {
+        let incomplete = "complete, consistent mutation inventory unavailable";
         let cases = [
             (json!({"rows": []}), "requested-item inventory unavailable"),
             (
                 json!({"requested_items": [], "meta": {"has_more": true}}),
-                "partial requested-item inventory",
+                incomplete,
             ),
             (
                 json!({"requested_items": [{"id": 1, "ticket_id": 123}, {"id": 1, "ticket_id": 123}]}),
-                "invalid or duplicate requested-item identities",
+                incomplete,
             ),
             (
                 json!({"requested_items": [{"id": 1, "ticket_id": 123}], "total": 2}),
-                "incomplete requested-item inventory",
+                incomplete,
             ),
             (
                 json!({"requested_items": [{"id": 1, "ticket_id": 124}]}),

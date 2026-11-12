@@ -103,22 +103,15 @@ pub fn selection(
         );
         params.insert("page".into(), json!(1));
         params.insert("per_page".into(), json!(100));
-        let pages = service::collect_pages(
-            |path, params| c.int_get(path, params),
+        let rows = crate::reviewed_inventory::complete_inventory(
+            c,
             "tickets",
             "tickets",
             Some(&params),
-            "bulk selection",
-            service::MAX_DETAIL_PAGES,
+            crate::reviewed_inventory::Family::Internal,
         )?;
-        let partial = pages.meta.get("partial").is_some_and(fsv_py::truthy);
-        if !pages.complete() || partial {
-            return Err(refused(
-                "complete filtered inventory unavailable; no bulk write",
-            ));
-        }
-        let mut values = Vec::with_capacity(pages.rows.len());
-        for row in &pages.rows {
+        let mut values = Vec::with_capacity(rows.len());
+        for row in &rows {
             values.push(watchers::positive_id(
                 row.get("id").unwrap_or(&Value::Null),
             )?);
@@ -842,7 +835,7 @@ mod tests {
         let c = api(state);
         let err = build_plan(&c, &store(), &[], &bulk).unwrap_err();
         assert!(
-            msg(&err).contains("complete filtered inventory"),
+            msg(&err).contains("complete, consistent mutation inventory"),
             "{}",
             msg(&err)
         );

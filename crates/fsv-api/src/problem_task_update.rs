@@ -16,10 +16,9 @@ use crate::change_task_update::{
     reminder, value_error,
 };
 use crate::readback::{same_instant, same_text, submitted_value_matches};
+use crate::reviewed_inventory::{Family, complete_inventory};
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{
-    Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, snapshot_hash, stable_snapshot,
-};
+use crate::service::{Api, Journal, obj, snapshot_hash, stable_snapshot};
 use crate::task_status;
 use crate::tasks;
 use crate::watchers::positive_id;
@@ -51,22 +50,18 @@ fn row_id(row: &Value) -> Result<i64> {
 /// page order, with unique positive ids.
 pub fn inventory(c: &dyn Api, target: i64) -> Result<Vec<Value>> {
     let params = obj(json!({"page": 1, "per_page": 100}));
-    let pages = collect_pages(
-        |p, q| c.int_get(p, q),
+    let rows = complete_inventory(
+        c,
         &format!("problems/{target}/tasks"),
         "tasks",
         Some(&params),
-        "problem tasks",
-        MAX_DETAIL_PAGES,
+        Family::Internal,
     )?;
-    if pages.missing.is_some() || !pages.meta.get("complete").is_some_and(fsv_py::truthy) {
-        return Err(refused("complete task inventory unavailable"));
-    }
-    let ids = pages.rows.iter().map(row_id).collect::<Result<Vec<_>>>()?;
+    let ids = rows.iter().map(row_id).collect::<Result<Vec<_>>>()?;
     if ids.iter().collect::<HashSet<_>>().len() != ids.len() {
         return Err(refused("duplicate task identities"));
     }
-    Ok(pages.rows)
+    Ok(rows)
 }
 
 /// Port of `problem_task_update.fields_from`.
