@@ -186,7 +186,7 @@ pub fn create_plan(
         "description": format!("<div>{html}</div>"),
         "status": 1,
         "article_type": article_type,
-        "folder_id": folder_id.to_string(),
+        "folder_id": folder_id,
         "source": "problem",
     });
     let inputs = json!({

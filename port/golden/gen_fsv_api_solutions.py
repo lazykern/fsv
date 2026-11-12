@@ -1,4 +1,4 @@
-"""Golden solutions (Python 0719e33) for fsv-api `solutions`.
+"""Golden solutions (Python ad40a51) for fsv-api `solutions`.
 
     cd /tmp/fsv-py-0719e33 && FSV_PY_SRC=$PWD FSV_PY_COMMIT=0719e33... uv run --offline python \
         /Users/phusit.somb/lab/work/fsv-rust/port/golden/gen_fsv_api_solutions.py \

@@ -223,7 +223,7 @@ pub fn build_plan(
                 "inventory ID is not associated with this exact record",
             ));
         };
-        json!({"itam_cmdb_request_id": row["itam_cmdb_request_id"]})
+        json!({"itam_cmdb_request_id": positive_id(row.get("itam_cmdb_request_id").unwrap_or(&Value::Null))?})
     } else {
         let current: HashSet<i64> = before
             .iter()
@@ -239,8 +239,7 @@ pub fn build_plan(
         } else {
             "device_ids"
         };
-        let values: Vec<String> = ids.iter().map(|id| id.to_string()).collect();
-        json!({key: values})
+        json!({key: ids})
     };
     let context = snapshot_hash(&json!(before))?;
     Ok(WritePlan {
@@ -405,10 +404,9 @@ mod tests {
                         .into_iter()
                         .flatten()
                     {
-                        let text = fsv_py::py_str(id);
-                        let n: i64 = text.parse().unwrap();
+                        let n = id.as_i64().expect("inventory id");
                         s.rows.push(json!({
-                            "item_id": text,
+                            "item_id": n,
                             "itam_cmdb_request_id": n + 900,
                             "category": cat
                         }));

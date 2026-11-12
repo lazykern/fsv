@@ -1610,7 +1610,7 @@ pub fn with_devices(mut plan: Plan, devices: &[i64]) -> Result<Plan> {
     }
     let mut ids = Vec::with_capacity(devices.len());
     for id in devices {
-        ids.push(fsv_api::watchers::positive_id(&json!(id))?.to_string());
+        ids.push(fsv_api::watchers::positive_id(&json!(id))?);
     }
     plan.payload
         .as_mut()

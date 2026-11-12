@@ -2138,5 +2138,24 @@ Scratch goldens that pin the old contract, left unedited:
 `task_add_full_dry_run`. Their plan hashes are unchanged because the
 CLI still builds without `fields`.
 
-Still not triaged: `ad40a51`, `e173437`, `b310885`, `11e76ed`,
-`ffcab5b`, `e7c536b`.
+## Ledger: `ad40a51` (library side)
+
+Triaged against a `git archive ad40a51` export
+(`FSV_PY_COMMIT=ad40a517bc4cbdf16b0eb26acf87725f824c529c`).
+`gen_fsv_api_solutions.py` and `gen_fsv_api_integrated_assets.py`
+were regenerated at that commit. Create `device_ids`, association
+`device_ids` / `businessapp_ids`, `itam_cmdb_request_id`, and
+solution `folder_id` are JSON integers. fsv-cli does not pin the
+old hashes.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `ad40a51`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `ad40a51` | 11-12 15:50 | Serialize reviewed inventory and solution identities as JSON integers | ported | fsv-api `solutions`, `integrated_assets`; fsv-flows `change::with_devices` |
+
+`with_devices` writes integer `device_ids`. Association add writes the
+id list as integers. Removal writes `positive_id` of
+`itam_cmdb_request_id`. Solution create writes integer `folder_id`.
+
+Still not triaged: `e173437`, `b310885`, `11e76ed`, `ffcab5b`, `e7c536b`.

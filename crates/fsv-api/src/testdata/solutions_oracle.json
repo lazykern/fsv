@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "0719e3325c1252974c61081872b91b2967b760e5",
+  "commit": "ad40a517bc4cbdf16b0eb26acf87725f824c529c",
   "dirty": false
  },
  "cases": {
@@ -44,13 +44,13 @@
       "payload": {
        "article_type": 2,
        "description": "<div>Synthetic guidance</div>",
-       "folder_id": "81",
+       "folder_id": 81,
        "source": "problem",
        "status": 1,
        "title": "Acme article"
       },
       "context_hash": "d61c5a1cec7ea4f3cb410ddad182e774a3709dc1d55cbc0a37571bbc3ae1ff1b",
-      "hash": "3d6bac0c0c82b98c8038770da8216255dc9cb3a35dc4b15ed72780e6ee6732ec",
+      "hash": "d0e324f2de587311cc1e74ac3e681159a958126f6971f0e807c70846c7ec0750",
       "review": {
        "action": "solution_create",
        "method": "POST",
@@ -58,12 +58,12 @@
        "payload": {
         "article_type": 2,
         "description": "<div>Synthetic guidance</div>",
-        "folder_id": "81",
+        "folder_id": 81,
         "source": "problem",
         "status": 1,
         "title": "Acme article"
        },
-       "plan_hash": "3d6bac0c0c82b98c8038770da8216255dc9cb3a35dc4b15ed72780e6ee6732ec",
+       "plan_hash": "d0e324f2de587311cc1e74ac3e681159a958126f6971f0e807c70846c7ec0750",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -79,7 +79,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "3d6bac0c0c82b98c8038770da8216255dc9cb3a35dc4b15ed72780e6ee6732ec",
+      "plan_hash": "d0e324f2de587311cc1e74ac3e681159a958126f6971f0e807c70846c7ec0750",
       "verified": true,
       "article_id": 91,
       "fields": {
@@ -93,7 +93,7 @@
        "id": 91,
        "article_type": 2,
        "description": "<div style='font:inherit'><div>Synthetic guidance</div></div>",
-       "folder_id": "81",
+       "folder_id": 81,
        "source": "problem",
        "status": 1,
        "title": "Acme article"
@@ -111,8 +111,8 @@
       "payload": {
        "type": "link"
       },
-      "context_hash": "3def31b11c9644b3feb13080d8901517fc607fe6f57afd77c8150226030b7538",
-      "hash": "7762d2707f59dcb41446ce3e1c77665b220dc801f243dbea2ef7013a0752155e",
+      "context_hash": "d827b472a2b2b9439f960076c4ffc37851268a86e99f78e9db11472164d173ca",
+      "hash": "170052cf80c6f20fb06cec92a8a1b01d130a7aeea6197e24f5d83c1dbbcb10cc",
       "review": {
        "action": "problem_solution_link",
        "method": "PUT",
@@ -120,7 +120,7 @@
        "payload": {
         "type": "link"
        },
-       "plan_hash": "7762d2707f59dcb41446ce3e1c77665b220dc801f243dbea2ef7013a0752155e",
+       "plan_hash": "170052cf80c6f20fb06cec92a8a1b01d130a7aeea6197e24f5d83c1dbbcb10cc",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -133,14 +133,14 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "7762d2707f59dcb41446ce3e1c77665b220dc801f243dbea2ef7013a0752155e",
+      "plan_hash": "170052cf80c6f20fb06cec92a8a1b01d130a7aeea6197e24f5d83c1dbbcb10cc",
       "verified": true,
       "readback": [
        {
         "id": 91,
         "article_type": 2,
         "description": "<div style='font:inherit'><div>Synthetic guidance</div></div>",
-        "folder_id": "81",
+        "folder_id": 81,
         "source": "problem",
         "status": 1,
         "title": "Acme article"
@@ -159,8 +159,8 @@
       "payload": {
        "type": "unlink"
       },
-      "context_hash": "56f8ea26f621de589d7770a0d5320eaf434b897aee91b719e96fdaaf90342dda",
-      "hash": "5a6a410994c3a511b1cf29b15ea95ee9ae0fccf3114504e9ba330b6e6661870c",
+      "context_hash": "3348c0066f1cbed8240b8c7d05bca96d77f333a7215fa793912640c8a7f2e90e",
+      "hash": "e405a109646b54c7cf0d4087dc409a037045d572153d3355af964e459d6a25fb",
       "review": {
        "action": "problem_solution_unlink",
        "method": "PUT",
@@ -168,7 +168,7 @@
        "payload": {
         "type": "unlink"
        },
-       "plan_hash": "5a6a410994c3a511b1cf29b15ea95ee9ae0fccf3114504e9ba330b6e6661870c",
+       "plan_hash": "e405a109646b54c7cf0d4087dc409a037045d572153d3355af964e459d6a25fb",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -181,7 +181,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "5a6a410994c3a511b1cf29b15ea95ee9ae0fccf3114504e9ba330b6e6661870c",
+      "plan_hash": "e405a109646b54c7cf0d4087dc409a037045d572153d3355af964e459d6a25fb",
       "verified": true,
       "readback": []
      },
@@ -229,13 +229,13 @@
       "payload": {
        "article_type": 1,
        "description": "<div>Synthetic guidance</div>",
-       "folder_id": "81",
+       "folder_id": 81,
        "source": "problem",
        "status": 1,
        "title": "Acme article"
       },
       "context_hash": "d61c5a1cec7ea4f3cb410ddad182e774a3709dc1d55cbc0a37571bbc3ae1ff1b",
-      "hash": "9c9d5fe3264a02e4d6e3c0df21106016d90fc8e1bd2a6689738d0541ef619ed3",
+      "hash": "521223a71d0697e46be9036cf82a05f0d112fd2a4584d63e0d43d47d9970c75a",
       "review": {
        "action": "solution_create",
        "method": "POST",
@@ -243,12 +243,12 @@
        "payload": {
         "article_type": 1,
         "description": "<div>Synthetic guidance</div>",
-        "folder_id": "81",
+        "folder_id": 81,
         "source": "problem",
         "status": 1,
         "title": "Acme article"
        },
-       "plan_hash": "9c9d5fe3264a02e4d6e3c0df21106016d90fc8e1bd2a6689738d0541ef619ed3",
+       "plan_hash": "521223a71d0697e46be9036cf82a05f0d112fd2a4584d63e0d43d47d9970c75a",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -264,7 +264,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "9c9d5fe3264a02e4d6e3c0df21106016d90fc8e1bd2a6689738d0541ef619ed3",
+      "plan_hash": "521223a71d0697e46be9036cf82a05f0d112fd2a4584d63e0d43d47d9970c75a",
       "verified": true,
       "article_id": 91,
       "fields": {
@@ -278,7 +278,7 @@
        "id": 91,
        "article_type": 1,
        "description": "<div style='font:inherit'><div>Synthetic guidance</div></div>",
-       "folder_id": "81",
+       "folder_id": 81,
        "source": "problem",
        "status": 1,
        "title": "Acme article"
@@ -296,8 +296,8 @@
       "payload": {
        "type": "link"
       },
-      "context_hash": "fbe36d2f13e2f9a7442cd8a44c03ec99088e70d1ed6c7933b6e4381290c7e66e",
-      "hash": "4b44e0790830930c666117f588d4d7ce0a984fa70e30593b739706f2d4b1984a",
+      "context_hash": "e1f579c2e9b2a349b1d6e35c32cdb0d2f2c80a4f8a1c9e4dfe3f0f77f71e4540",
+      "hash": "e87f5861d1b64c336f01d0571602d3477666c6d7396f0bd90457b213d9d8ad95",
       "review": {
        "action": "problem_solution_link",
        "method": "PUT",
@@ -305,7 +305,7 @@
        "payload": {
         "type": "link"
        },
-       "plan_hash": "4b44e0790830930c666117f588d4d7ce0a984fa70e30593b739706f2d4b1984a",
+       "plan_hash": "e87f5861d1b64c336f01d0571602d3477666c6d7396f0bd90457b213d9d8ad95",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -318,14 +318,14 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "4b44e0790830930c666117f588d4d7ce0a984fa70e30593b739706f2d4b1984a",
+      "plan_hash": "e87f5861d1b64c336f01d0571602d3477666c6d7396f0bd90457b213d9d8ad95",
       "verified": true,
       "readback": [
        {
         "id": 91,
         "article_type": 1,
         "description": "<div style='font:inherit'><div>Synthetic guidance</div></div>",
-        "folder_id": "81",
+        "folder_id": 81,
         "source": "problem",
         "status": 1,
         "title": "Acme article"
@@ -344,8 +344,8 @@
       "payload": {
        "type": "unlink"
       },
-      "context_hash": "a90dd5c78efb2d12a082a6b2960f40c8f9b346292a156442c9ae424270bed68d",
-      "hash": "c0482f9ac049aa618f3d4f85c1e123d70290dccc3c3cdfc2601ddc914618b170",
+      "context_hash": "c25c2ff2a33b7882afe3e05e68c0460851d0d11db91412a849b5a4390f16a17f",
+      "hash": "6d0921eaa69693165d53ffbfb0d80aaaa51a9ded3c991d35b52345803f518de5",
       "review": {
        "action": "problem_solution_unlink",
        "method": "PUT",
@@ -353,7 +353,7 @@
        "payload": {
         "type": "unlink"
        },
-       "plan_hash": "c0482f9ac049aa618f3d4f85c1e123d70290dccc3c3cdfc2601ddc914618b170",
+       "plan_hash": "6d0921eaa69693165d53ffbfb0d80aaaa51a9ded3c991d35b52345803f518de5",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -366,7 +366,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "c0482f9ac049aa618f3d4f85c1e123d70290dccc3c3cdfc2601ddc914618b170",
+      "plan_hash": "6d0921eaa69693165d53ffbfb0d80aaaa51a9ded3c991d35b52345803f518de5",
       "verified": true,
       "readback": []
      },
@@ -404,13 +404,13 @@
       "payload": {
        "article_type": 2,
        "description": "<div>Guidance</div>",
-       "folder_id": "81",
+       "folder_id": 81,
        "source": "problem",
        "status": 1,
        "title": "Acme article"
       },
       "context_hash": "d61c5a1cec7ea4f3cb410ddad182e774a3709dc1d55cbc0a37571bbc3ae1ff1b",
-      "hash": "e0e726322a44060f4e3670c993fa872230973a6c4144675835e857fd25edc0c8",
+      "hash": "0d7e23babfc96bff26fe5f63697c04c6c94c88e010cfa8b8ce42d9f7ffb34a8e",
       "review": {
        "action": "solution_create",
        "method": "POST",
@@ -418,12 +418,12 @@
        "payload": {
         "article_type": 2,
         "description": "<div>Guidance</div>",
-        "folder_id": "81",
+        "folder_id": 81,
         "source": "problem",
         "status": 1,
         "title": "Acme article"
        },
-       "plan_hash": "e0e726322a44060f4e3670c993fa872230973a6c4144675835e857fd25edc0c8",
+       "plan_hash": "0d7e23babfc96bff26fe5f63697c04c6c94c88e010cfa8b8ce42d9f7ffb34a8e",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       },
       "inputs": {
@@ -442,7 +442,7 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "e0e726322a44060f4e3670c993fa872230973a6c4144675835e857fd25edc0c8",
+      "plan_hash": "0d7e23babfc96bff26fe5f63697c04c6c94c88e010cfa8b8ce42d9f7ffb34a8e",
       "verified": false,
       "warning": "Independent readback failed; do not resend."
      },

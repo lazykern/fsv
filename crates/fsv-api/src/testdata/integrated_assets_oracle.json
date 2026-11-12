@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "36408b25fe8f9488d664efefbd104ba5b5f02b25",
+  "commit": "ad40a517bc4cbdf16b0eb26acf87725f824c529c",
   "dirty": false
  },
  "cases": {
@@ -60,23 +60,23 @@
       "path": "tickets/23/associate-ci",
       "payload": {
        "device_ids": [
-        "81",
-        "82"
+        81,
+        82
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "8597aff489593e33caa8b505397d6c625b12aebfe95685bdf1601fbe79373e61",
+      "hash": "f250e796789f7d0e1a64feed8df4db85caa4329b2eac1c94d413b493320a9b45",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
        "path": "/api/_/tickets/23/associate-ci",
        "payload": {
         "device_ids": [
-         "81",
-         "82"
+         81,
+         82
         ]
        },
-       "plan_hash": "8597aff489593e33caa8b505397d6c625b12aebfe95685bdf1601fbe79373e61",
+       "plan_hash": "f250e796789f7d0e1a64feed8df4db85caa4329b2eac1c94d413b493320a9b45",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -84,16 +84,16 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "8597aff489593e33caa8b505397d6c625b12aebfe95685bdf1601fbe79373e61",
+      "plan_hash": "f250e796789f7d0e1a64feed8df4db85caa4329b2eac1c94d413b493320a9b45",
       "verified": true,
       "readback": [
        {
-        "item_id": "81",
+        "item_id": 81,
         "itam_cmdb_request_id": 981,
         "category": "Device"
        },
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Device"
        }
@@ -110,8 +110,8 @@
       "payload": {
        "itam_cmdb_request_id": 981
       },
-      "context_hash": "2d0e66e562c15d14a667f61c4e1a16c087ad215734b7c575a55a026b8e58aa17",
-      "hash": "c8f9a2af13094a9c922eeb9e5c82b51f1ac33622fa6003b8ef0a2950197a74d0",
+      "context_hash": "b508e8f90917808f74111f29a1ffee3af38680731aed938870af6a6c1ee33922",
+      "hash": "5c9119c7a173294c9b0e9add136ab43714947d4e81050cfd8a19fcf6fc0f1648",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -119,7 +119,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "c8f9a2af13094a9c922eeb9e5c82b51f1ac33622fa6003b8ef0a2950197a74d0",
+       "plan_hash": "5c9119c7a173294c9b0e9add136ab43714947d4e81050cfd8a19fcf6fc0f1648",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -128,11 +128,11 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "c8f9a2af13094a9c922eeb9e5c82b51f1ac33622fa6003b8ef0a2950197a74d0",
+      "plan_hash": "5c9119c7a173294c9b0e9add136ab43714947d4e81050cfd8a19fcf6fc0f1648",
       "verified": true,
       "readback": [
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Device"
        }
@@ -142,7 +142,7 @@
     {
      "rows": [
       {
-       "item_id": "82",
+       "item_id": 82,
        "itam_cmdb_request_id": 982,
        "category": "Device"
       }
@@ -206,23 +206,23 @@
       "path": "tickets/23/associate-ci",
       "payload": {
        "businessapp_ids": [
-        "81",
-        "82"
+        81,
+        82
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "0188d2792b7b236cabe32a3a976201c2ad448b79eaec67418244d5acf388674c",
+      "hash": "3e7a7157c209834fbf1b6759225ca94f2c141805f1f6f31ea201cf54acbf5435",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
        "path": "/api/_/tickets/23/associate-ci",
        "payload": {
         "businessapp_ids": [
-         "81",
-         "82"
+         81,
+         82
         ]
        },
-       "plan_hash": "0188d2792b7b236cabe32a3a976201c2ad448b79eaec67418244d5acf388674c",
+       "plan_hash": "3e7a7157c209834fbf1b6759225ca94f2c141805f1f6f31ea201cf54acbf5435",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -230,16 +230,16 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "0188d2792b7b236cabe32a3a976201c2ad448b79eaec67418244d5acf388674c",
+      "plan_hash": "3e7a7157c209834fbf1b6759225ca94f2c141805f1f6f31ea201cf54acbf5435",
       "verified": true,
       "readback": [
        {
-        "item_id": "81",
+        "item_id": 81,
         "itam_cmdb_request_id": 981,
         "category": "Business service"
        },
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Business service"
        }
@@ -256,8 +256,8 @@
       "payload": {
        "itam_cmdb_request_id": 981
       },
-      "context_hash": "cb3c58a487311722f66aff5b6c1d1391cf4091266606ccf845b271b4db8628b4",
-      "hash": "00430492d6b93ebe703189d3e80c29c18aec4b455aa387acaab91990def28204",
+      "context_hash": "2c563e97f30fe4352a1bf59473dbb1a2cd450d7391311fa1eb673fc443fbe030",
+      "hash": "c8b084564c8c08b2c30cc85b8c33e95767cadb61f02b37fedd6d52e5c5953b5d",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -265,7 +265,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "00430492d6b93ebe703189d3e80c29c18aec4b455aa387acaab91990def28204",
+       "plan_hash": "c8b084564c8c08b2c30cc85b8c33e95767cadb61f02b37fedd6d52e5c5953b5d",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -274,11 +274,11 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "00430492d6b93ebe703189d3e80c29c18aec4b455aa387acaab91990def28204",
+      "plan_hash": "c8b084564c8c08b2c30cc85b8c33e95767cadb61f02b37fedd6d52e5c5953b5d",
       "verified": true,
       "readback": [
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Business service"
        }
@@ -288,7 +288,7 @@
     {
      "rows": [
       {
-       "item_id": "82",
+       "item_id": 82,
        "itam_cmdb_request_id": 982,
        "category": "Business service"
       }
@@ -352,23 +352,23 @@
       "path": "tickets/23/associate-ci",
       "payload": {
        "device_ids": [
-        "81",
-        "82"
+        81,
+        82
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "8597aff489593e33caa8b505397d6c625b12aebfe95685bdf1601fbe79373e61",
+      "hash": "f250e796789f7d0e1a64feed8df4db85caa4329b2eac1c94d413b493320a9b45",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
        "path": "/api/_/tickets/23/associate-ci",
        "payload": {
         "device_ids": [
-         "81",
-         "82"
+         81,
+         82
         ]
        },
-       "plan_hash": "8597aff489593e33caa8b505397d6c625b12aebfe95685bdf1601fbe79373e61",
+       "plan_hash": "f250e796789f7d0e1a64feed8df4db85caa4329b2eac1c94d413b493320a9b45",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -376,16 +376,16 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "8597aff489593e33caa8b505397d6c625b12aebfe95685bdf1601fbe79373e61",
+      "plan_hash": "f250e796789f7d0e1a64feed8df4db85caa4329b2eac1c94d413b493320a9b45",
       "verified": true,
       "readback": [
        {
-        "item_id": "81",
+        "item_id": 81,
         "itam_cmdb_request_id": 981,
         "category": "Device"
        },
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Device"
        }
@@ -402,8 +402,8 @@
       "payload": {
        "itam_cmdb_request_id": 981
       },
-      "context_hash": "2d0e66e562c15d14a667f61c4e1a16c087ad215734b7c575a55a026b8e58aa17",
-      "hash": "c8f9a2af13094a9c922eeb9e5c82b51f1ac33622fa6003b8ef0a2950197a74d0",
+      "context_hash": "b508e8f90917808f74111f29a1ffee3af38680731aed938870af6a6c1ee33922",
+      "hash": "5c9119c7a173294c9b0e9add136ab43714947d4e81050cfd8a19fcf6fc0f1648",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -411,7 +411,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "c8f9a2af13094a9c922eeb9e5c82b51f1ac33622fa6003b8ef0a2950197a74d0",
+       "plan_hash": "5c9119c7a173294c9b0e9add136ab43714947d4e81050cfd8a19fcf6fc0f1648",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -420,11 +420,11 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "c8f9a2af13094a9c922eeb9e5c82b51f1ac33622fa6003b8ef0a2950197a74d0",
+      "plan_hash": "5c9119c7a173294c9b0e9add136ab43714947d4e81050cfd8a19fcf6fc0f1648",
       "verified": true,
       "readback": [
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Device"
        }
@@ -434,7 +434,7 @@
     {
      "rows": [
       {
-       "item_id": "82",
+       "item_id": 82,
        "itam_cmdb_request_id": 982,
        "category": "Device"
       }
@@ -498,23 +498,23 @@
       "path": "tickets/23/associate-ci",
       "payload": {
        "businessapp_ids": [
-        "81",
-        "82"
+        81,
+        82
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "0188d2792b7b236cabe32a3a976201c2ad448b79eaec67418244d5acf388674c",
+      "hash": "3e7a7157c209834fbf1b6759225ca94f2c141805f1f6f31ea201cf54acbf5435",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
        "path": "/api/_/tickets/23/associate-ci",
        "payload": {
         "businessapp_ids": [
-         "81",
-         "82"
+         81,
+         82
         ]
        },
-       "plan_hash": "0188d2792b7b236cabe32a3a976201c2ad448b79eaec67418244d5acf388674c",
+       "plan_hash": "3e7a7157c209834fbf1b6759225ca94f2c141805f1f6f31ea201cf54acbf5435",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -522,16 +522,16 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "0188d2792b7b236cabe32a3a976201c2ad448b79eaec67418244d5acf388674c",
+      "plan_hash": "3e7a7157c209834fbf1b6759225ca94f2c141805f1f6f31ea201cf54acbf5435",
       "verified": true,
       "readback": [
        {
-        "item_id": "81",
+        "item_id": 81,
         "itam_cmdb_request_id": 981,
         "category": "Business service"
        },
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Business service"
        }
@@ -548,8 +548,8 @@
       "payload": {
        "itam_cmdb_request_id": 981
       },
-      "context_hash": "cb3c58a487311722f66aff5b6c1d1391cf4091266606ccf845b271b4db8628b4",
-      "hash": "00430492d6b93ebe703189d3e80c29c18aec4b455aa387acaab91990def28204",
+      "context_hash": "2c563e97f30fe4352a1bf59473dbb1a2cd450d7391311fa1eb673fc443fbe030",
+      "hash": "c8b084564c8c08b2c30cc85b8c33e95767cadb61f02b37fedd6d52e5c5953b5d",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -557,7 +557,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "00430492d6b93ebe703189d3e80c29c18aec4b455aa387acaab91990def28204",
+       "plan_hash": "c8b084564c8c08b2c30cc85b8c33e95767cadb61f02b37fedd6d52e5c5953b5d",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -566,11 +566,11 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "00430492d6b93ebe703189d3e80c29c18aec4b455aa387acaab91990def28204",
+      "plan_hash": "c8b084564c8c08b2c30cc85b8c33e95767cadb61f02b37fedd6d52e5c5953b5d",
       "verified": true,
       "readback": [
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Business service"
        }
@@ -580,7 +580,7 @@
     {
      "rows": [
       {
-       "item_id": "82",
+       "item_id": 82,
        "itam_cmdb_request_id": 982,
        "category": "Business service"
       }
@@ -644,23 +644,23 @@
       "path": "problems/23/associate-ci",
       "payload": {
        "device_ids": [
-        "81",
-        "82"
+        81,
+        82
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "28a17df362d3e9d4324e15595e97fbb7fb3a51a97596a4bc46b306961562e1e2",
+      "hash": "62afa0d907bd1948cd2040e39fafdd251a2cec70257b1d76222347843014ad02",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
        "path": "/api/_/problems/23/associate-ci",
        "payload": {
         "device_ids": [
-         "81",
-         "82"
+         81,
+         82
         ]
        },
-       "plan_hash": "28a17df362d3e9d4324e15595e97fbb7fb3a51a97596a4bc46b306961562e1e2",
+       "plan_hash": "62afa0d907bd1948cd2040e39fafdd251a2cec70257b1d76222347843014ad02",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -668,16 +668,16 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "28a17df362d3e9d4324e15595e97fbb7fb3a51a97596a4bc46b306961562e1e2",
+      "plan_hash": "62afa0d907bd1948cd2040e39fafdd251a2cec70257b1d76222347843014ad02",
       "verified": true,
       "readback": [
        {
-        "item_id": "81",
+        "item_id": 81,
         "itam_cmdb_request_id": 981,
         "category": "Device"
        },
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Device"
        }
@@ -694,8 +694,8 @@
       "payload": {
        "itam_cmdb_request_id": 981
       },
-      "context_hash": "2d0e66e562c15d14a667f61c4e1a16c087ad215734b7c575a55a026b8e58aa17",
-      "hash": "194a15f898d59d5ba077241fcf34dc9208fa7fcd4120c6e6670da85a3a1095e0",
+      "context_hash": "b508e8f90917808f74111f29a1ffee3af38680731aed938870af6a6c1ee33922",
+      "hash": "b2f979fffd0fe612f5016787e813490ba22613d4965a748beb9074a308ad3620",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -703,7 +703,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "194a15f898d59d5ba077241fcf34dc9208fa7fcd4120c6e6670da85a3a1095e0",
+       "plan_hash": "b2f979fffd0fe612f5016787e813490ba22613d4965a748beb9074a308ad3620",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -712,11 +712,11 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "194a15f898d59d5ba077241fcf34dc9208fa7fcd4120c6e6670da85a3a1095e0",
+      "plan_hash": "b2f979fffd0fe612f5016787e813490ba22613d4965a748beb9074a308ad3620",
       "verified": true,
       "readback": [
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Device"
        }
@@ -726,7 +726,7 @@
     {
      "rows": [
       {
-       "item_id": "82",
+       "item_id": 82,
        "itam_cmdb_request_id": 982,
        "category": "Device"
       }
@@ -790,23 +790,23 @@
       "path": "problems/23/associate-ci",
       "payload": {
        "businessapp_ids": [
-        "81",
-        "82"
+        81,
+        82
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "5a0b714f8ee97de813d634802ac9eb1ee5e1eaffdb0d42de4236a50277006a3f",
+      "hash": "bf34b7911d7255b49c6933947950ba8696e20d919830fae99000b619f863a8e8",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
        "path": "/api/_/problems/23/associate-ci",
        "payload": {
         "businessapp_ids": [
-         "81",
-         "82"
+         81,
+         82
         ]
        },
-       "plan_hash": "5a0b714f8ee97de813d634802ac9eb1ee5e1eaffdb0d42de4236a50277006a3f",
+       "plan_hash": "bf34b7911d7255b49c6933947950ba8696e20d919830fae99000b619f863a8e8",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -814,16 +814,16 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "5a0b714f8ee97de813d634802ac9eb1ee5e1eaffdb0d42de4236a50277006a3f",
+      "plan_hash": "bf34b7911d7255b49c6933947950ba8696e20d919830fae99000b619f863a8e8",
       "verified": true,
       "readback": [
        {
-        "item_id": "81",
+        "item_id": 81,
         "itam_cmdb_request_id": 981,
         "category": "Business service"
        },
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Business service"
        }
@@ -840,8 +840,8 @@
       "payload": {
        "itam_cmdb_request_id": 981
       },
-      "context_hash": "cb3c58a487311722f66aff5b6c1d1391cf4091266606ccf845b271b4db8628b4",
-      "hash": "b81e65f26d8b83f0dfcf8d58913e70b23f35e222b4feae3e6bd931768e410ccb",
+      "context_hash": "2c563e97f30fe4352a1bf59473dbb1a2cd450d7391311fa1eb673fc443fbe030",
+      "hash": "d55d7edf8382fc98d48dc80ed94d52a707f6e040321216d50006357b1b76ebf1",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -849,7 +849,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "b81e65f26d8b83f0dfcf8d58913e70b23f35e222b4feae3e6bd931768e410ccb",
+       "plan_hash": "d55d7edf8382fc98d48dc80ed94d52a707f6e040321216d50006357b1b76ebf1",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -858,11 +858,11 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "b81e65f26d8b83f0dfcf8d58913e70b23f35e222b4feae3e6bd931768e410ccb",
+      "plan_hash": "d55d7edf8382fc98d48dc80ed94d52a707f6e040321216d50006357b1b76ebf1",
       "verified": true,
       "readback": [
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Business service"
        }
@@ -872,7 +872,7 @@
     {
      "rows": [
       {
-       "item_id": "82",
+       "item_id": 82,
        "itam_cmdb_request_id": 982,
        "category": "Business service"
       }
@@ -936,23 +936,23 @@
       "path": "changes/23/associate-ci",
       "payload": {
        "device_ids": [
-        "81",
-        "82"
+        81,
+        82
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "6795c17bf71f63875a9eda7c222f66c5c24123a6aa197c45034fa507cd98b92d",
+      "hash": "98b6a696c4a554e5c6945585e2dce407ef2425395f4eba744819304bdd20bac9",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
        "path": "/api/_/changes/23/associate-ci",
        "payload": {
         "device_ids": [
-         "81",
-         "82"
+         81,
+         82
         ]
        },
-       "plan_hash": "6795c17bf71f63875a9eda7c222f66c5c24123a6aa197c45034fa507cd98b92d",
+       "plan_hash": "98b6a696c4a554e5c6945585e2dce407ef2425395f4eba744819304bdd20bac9",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -960,16 +960,16 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "6795c17bf71f63875a9eda7c222f66c5c24123a6aa197c45034fa507cd98b92d",
+      "plan_hash": "98b6a696c4a554e5c6945585e2dce407ef2425395f4eba744819304bdd20bac9",
       "verified": true,
       "readback": [
        {
-        "item_id": "81",
+        "item_id": 81,
         "itam_cmdb_request_id": 981,
         "category": "Device"
        },
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Device"
        }
@@ -986,8 +986,8 @@
       "payload": {
        "itam_cmdb_request_id": 981
       },
-      "context_hash": "2d0e66e562c15d14a667f61c4e1a16c087ad215734b7c575a55a026b8e58aa17",
-      "hash": "bc8902438a397b9bfc8d29f7ef5edd2edc3bc0a9e45633e18664e4f0b86721e8",
+      "context_hash": "b508e8f90917808f74111f29a1ffee3af38680731aed938870af6a6c1ee33922",
+      "hash": "43349fb6cb0142bc596787d7d3512d4dd728e333385ddb04a01a35c2609798e7",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -995,7 +995,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "bc8902438a397b9bfc8d29f7ef5edd2edc3bc0a9e45633e18664e4f0b86721e8",
+       "plan_hash": "43349fb6cb0142bc596787d7d3512d4dd728e333385ddb04a01a35c2609798e7",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -1004,11 +1004,11 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "bc8902438a397b9bfc8d29f7ef5edd2edc3bc0a9e45633e18664e4f0b86721e8",
+      "plan_hash": "43349fb6cb0142bc596787d7d3512d4dd728e333385ddb04a01a35c2609798e7",
       "verified": true,
       "readback": [
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Device"
        }
@@ -1018,7 +1018,7 @@
     {
      "rows": [
       {
-       "item_id": "82",
+       "item_id": 82,
        "itam_cmdb_request_id": 982,
        "category": "Device"
       }
@@ -1082,23 +1082,23 @@
       "path": "changes/23/associate-ci",
       "payload": {
        "businessapp_ids": [
-        "81",
-        "82"
+        81,
+        82
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "ca8b0236fa0abf51cd75e2c02005a9787fdbc98618d0259179cd246cfaa745ca",
+      "hash": "ce64fbf53fdc7067c56df26e0eee166563d5c21c65f39dbfbb8e63fc702bdd26",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
        "path": "/api/_/changes/23/associate-ci",
        "payload": {
         "businessapp_ids": [
-         "81",
-         "82"
+         81,
+         82
         ]
        },
-       "plan_hash": "ca8b0236fa0abf51cd75e2c02005a9787fdbc98618d0259179cd246cfaa745ca",
+       "plan_hash": "ce64fbf53fdc7067c56df26e0eee166563d5c21c65f39dbfbb8e63fc702bdd26",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -1106,16 +1106,16 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "ca8b0236fa0abf51cd75e2c02005a9787fdbc98618d0259179cd246cfaa745ca",
+      "plan_hash": "ce64fbf53fdc7067c56df26e0eee166563d5c21c65f39dbfbb8e63fc702bdd26",
       "verified": true,
       "readback": [
        {
-        "item_id": "81",
+        "item_id": 81,
         "itam_cmdb_request_id": 981,
         "category": "Business service"
        },
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Business service"
        }
@@ -1132,8 +1132,8 @@
       "payload": {
        "itam_cmdb_request_id": 981
       },
-      "context_hash": "cb3c58a487311722f66aff5b6c1d1391cf4091266606ccf845b271b4db8628b4",
-      "hash": "2f0c20037f219b6c2e9bd11ef360c9e171a3c2c5ac069112ae4115c1a92d0424",
+      "context_hash": "2c563e97f30fe4352a1bf59473dbb1a2cd450d7391311fa1eb673fc443fbe030",
+      "hash": "e6356d23ac6cbc7bbe52df7908f5494d031d0c4af6e3f70b108c3aab32bbed08",
       "review": {
        "action": "integrated_asset_remove",
        "method": "PUT",
@@ -1141,7 +1141,7 @@
        "payload": {
         "itam_cmdb_request_id": 981
        },
-       "plan_hash": "2f0c20037f219b6c2e9bd11ef360c9e171a3c2c5ac069112ae4115c1a92d0424",
+       "plan_hash": "e6356d23ac6cbc7bbe52df7908f5494d031d0c4af6e3f70b108c3aab32bbed08",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -1150,11 +1150,11 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "2f0c20037f219b6c2e9bd11ef360c9e171a3c2c5ac069112ae4115c1a92d0424",
+      "plan_hash": "e6356d23ac6cbc7bbe52df7908f5494d031d0c4af6e3f70b108c3aab32bbed08",
       "verified": true,
       "readback": [
        {
-        "item_id": "82",
+        "item_id": 82,
         "itam_cmdb_request_id": 982,
         "category": "Business service"
        }
@@ -1164,7 +1164,7 @@
     {
      "rows": [
       {
-       "item_id": "82",
+       "item_id": 82,
        "itam_cmdb_request_id": 982,
        "category": "Business service"
       }
@@ -1485,21 +1485,21 @@
       "path": "tickets/23/associate-ci",
       "payload": {
        "device_ids": [
-        "81"
+        81
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "3127e7c2e84bc180a6103d0812b15e9c7a69e5594cea3fa793f1bbccc417858e",
+      "hash": "146b1b2d90ea79d16a82ab4ecc3638f63a0b564a4875701578227323b462618f",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
        "path": "/api/_/tickets/23/associate-ci",
        "payload": {
         "device_ids": [
-         "81"
+         81
         ]
        },
-       "plan_hash": "3127e7c2e84bc180a6103d0812b15e9c7a69e5594cea3fa793f1bbccc417858e",
+       "plan_hash": "146b1b2d90ea79d16a82ab4ecc3638f63a0b564a4875701578227323b462618f",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -1507,11 +1507,11 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "3127e7c2e84bc180a6103d0812b15e9c7a69e5594cea3fa793f1bbccc417858e",
+      "plan_hash": "146b1b2d90ea79d16a82ab4ecc3638f63a0b564a4875701578227323b462618f",
       "verified": true,
       "readback": [
        {
-        "item_id": "81",
+        "item_id": 81,
         "itam_cmdb_request_id": 981,
         "category": "Device"
        }
@@ -1557,21 +1557,21 @@
       "path": "tickets/23/associate-ci",
       "payload": {
        "device_ids": [
-        "81"
+        81
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "3127e7c2e84bc180a6103d0812b15e9c7a69e5594cea3fa793f1bbccc417858e",
+      "hash": "146b1b2d90ea79d16a82ab4ecc3638f63a0b564a4875701578227323b462618f",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
        "path": "/api/_/tickets/23/associate-ci",
        "payload": {
         "device_ids": [
-         "81"
+         81
         ]
        },
-       "plan_hash": "3127e7c2e84bc180a6103d0812b15e9c7a69e5594cea3fa793f1bbccc417858e",
+       "plan_hash": "146b1b2d90ea79d16a82ab4ecc3638f63a0b564a4875701578227323b462618f",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -1671,21 +1671,21 @@
       "path": "changes/23/associate-ci",
       "payload": {
        "device_ids": [
-        "81"
+        81
        ]
       },
       "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "hash": "7bf3be85b3fc58a0fe21343a4949918c970ac578f76bc2b5cf247d153ca5c7ae",
+      "hash": "ad0c07309f18067c11d93dcd4c9353d40cd35e1bb7b45595e7f238cde93d7b9e",
       "review": {
        "action": "integrated_asset_add",
        "method": "PUT",
        "path": "/api/_/changes/23/associate-ci",
        "payload": {
         "device_ids": [
-         "81"
+         81
         ]
        },
-       "plan_hash": "7bf3be85b3fc58a0fe21343a4949918c970ac578f76bc2b5cf247d153ca5c7ae",
+       "plan_hash": "ad0c07309f18067c11d93dcd4c9353d40cd35e1bb7b45595e7f238cde93d7b9e",
        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
       }
      }
@@ -1693,11 +1693,11 @@
     {
      "result": {
       "status": "submitted",
-      "plan_hash": "7bf3be85b3fc58a0fe21343a4949918c970ac578f76bc2b5cf247d153ca5c7ae",
+      "plan_hash": "ad0c07309f18067c11d93dcd4c9353d40cd35e1bb7b45595e7f238cde93d7b9e",
       "verified": true,
       "readback": [
        {
-        "item_id": "81",
+        "item_id": 81,
         "itam_cmdb_request_id": 981,
         "category": "Device"
        }
@@ -1709,7 +1709,7 @@
       "verified": true,
       "readback": [
        {
-        "item_id": "81",
+        "item_id": 81,
         "itam_cmdb_request_id": 981,
         "category": "Device"
        }

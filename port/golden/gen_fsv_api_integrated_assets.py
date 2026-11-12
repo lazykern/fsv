@@ -1,4 +1,4 @@
-"""Golden integrated inventory (Python 36408b2) for fsv-api `integrated_assets`.
+"""Golden integrated inventory (Python ad40a51) for fsv-api `integrated_assets`.
 
 The Rust test replays each op against a client with the same row rules.
 
