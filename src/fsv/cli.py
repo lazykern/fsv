@@ -1044,6 +1044,13 @@ def _resolve_where(c: Any, res: Resource, sch: dict[str, Any], expr: str, explai
             cond = "department_id" if name == "department" else name
             return _query_item(cond, operator, ["-1"], type_, explain, name, "(empty)")
 
+    from fsv.filter_proof import name_valued_choice
+    try:
+        named = name_valued_choice(f, raw)
+    except ValueError as exc:
+        _err(str(exc))
+    if named is not None:
+        return _query_item(name, operator, [named], type_, explain, name, named)
     if f.get("choices") or "dropdown" in ftype or ftype in ("default_status", "default_priority"):
         val = _choice_value(f, raw, type_)
         cond = "department_id" if name == "department" and type_ == "default" else name

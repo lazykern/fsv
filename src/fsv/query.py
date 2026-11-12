@@ -232,6 +232,10 @@ def _resolve_where(
         val = _choice_value(f, raw, "default")
         return _query_item("group_id", operator, [str(val)], "default", explain, name, str(val))
 
+    from fsv.filter_proof import name_valued_choice
+    named = name_valued_choice(f, raw)
+    if named is not None:
+        return _query_item(name, operator, [named], type_, explain, name, named)
     if f.get("choices") or "dropdown" in ftype or ftype in ("default_status", "default_priority"):
         val = _choice_value(f, raw, type_)
         return _query_item(name, operator, [val], type_, explain, name, str(val))

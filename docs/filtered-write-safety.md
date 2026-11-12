@@ -14,6 +14,12 @@ Free-text predicates now fail closed before listing rather than guessing another
 operator. Use explicit reviewed IDs until an accepted text-filter contract exists.
 Read lists warn on visible contradictions for supported simple predicates.
 
+Ticket type filters use the name form found in saved ticket views
+(`ticket_type is_in ["Service Request"]`). A numeric type choice ID is ignored
+by the tenant and broadens the list, so fsv resolves a label or ID to exactly
+one active runtime choice name and fails closed otherwise. Independent proof
+reads the native exact `type` key and requires any `ticket_type` echo to agree.
+
 Audit: `ticket_bulk.selection` is the only filter-to-mutation expansion in the
 source tree. All seven bulk actions, including delegated pickup and merge, pass
 through that gate. Other bulk priority/assignment/merge builders consume explicit
