@@ -1,4 +1,4 @@
-"""Golden change-task updates (Python be41032) for fsv-api `change_task_update`.
+"""Golden change-task updates (Python b310885) for fsv-api `change_task_update`.
 
     cd /tmp/fsv-py-be41032 && FSV_PY_SRC=$PWD FSV_PY_COMMIT=be41032... uv run --offline python \
         /Users/phusit.somb/lab/work/fsv-rust/port/golden/gen_fsv_api_change_task_update.py \
@@ -38,6 +38,7 @@ class Client:
         self.task = copy.deepcopy(TASK)
         self.fields = copy.deepcopy(FIELDS)
         self.persist = True
+        self.after = None
         self.writes = []
 
     def int_get(self, path, params=None):
@@ -56,6 +57,13 @@ class Client:
                 self.task["description"] = "<div style='font:inherit'>" + body["description"] + "</div>"
             if "planned_start_date" in body:
                 self.task["planned_start_date"] = "2026-12-01T10:15:00Z"
+        if self.after:
+            self.task["planned_effort"] = "2h" if self.after == "effort-mismatch" else "1h"
+            self.task.pop("notify_before", None)
+            if self.after == "reminder-mismatch":
+                self.task["notify_before"] = 0
+            if self.after == "title-missing":
+                self.task.pop("title", None)
         return {"task": body}
 
     def _get_csrf(self):
@@ -84,6 +92,8 @@ def run(ops):
                     c.task["title"] = op["task_title"]
                 if "fields" in op:
                     c.fields = op["fields"]
+                if "after" in op:
+                    c.after = op["after"]
                 out = {}
             elif kind == "build":
                 plan = flow.build_plan(c, op.get("target", 23), op.get("task", 17), op["inputs"])
@@ -124,6 +134,18 @@ CASES = {
     "missing_task": [{"op": "build", "task": 99, "inputs": {"title": "Acme revised"}}],
     "bad_title": [{"op": "build", "inputs": {"title": "  "}},
                   {"op": "build", "inputs": {"title": "Acme\nreview"}}],
+    "normalized": [{"op": "set", "after": "normalized"},
+                   {"op": "build", "inputs": {"title": "Acme revised", "planned_effort": "1h", "notify_before": "15 Minutes"}},
+                   {"op": "send"}],
+    "effort_mismatch": [{"op": "set", "after": "effort-mismatch"},
+                        {"op": "build", "inputs": {"title": "Acme revised", "planned_effort": "1h", "notify_before": "15 Minutes"}},
+                        {"op": "send"}],
+    "reminder_mismatch": [{"op": "set", "after": "reminder-mismatch"},
+                          {"op": "build", "inputs": {"title": "Acme revised", "planned_effort": "1h", "notify_before": "15 Minutes"}},
+                          {"op": "send"}],
+    "title_missing": [{"op": "set", "after": "title-missing"},
+                      {"op": "build", "inputs": {"title": "Acme revised", "planned_effort": "1h", "notify_before": "15 Minutes"}},
+                      {"op": "send"}],
 }
 
 json.dump(stamped({"cases": {name: {"ops": ops, "outputs": run(ops)} for name, ops in CASES.items()}}),

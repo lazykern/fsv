@@ -2173,4 +2173,32 @@ Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `e173437`.
 |---|---|---|---|---|
 | `e173437` | 11-12 15:54 | Accept native CAB approval_agents recipient envelopes | ported | fsv-api `approval_recipients` |
 
-Still not triaged: `b310885`, `11e76ed`, `ffcab5b`, `e7c536b`.
+## Ledger: `b310885` (library side)
+
+Triaged against a `git archive b310885` export
+(`FSV_PY_COMMIT=b31088581522be3b5c9a26a32093ae9a1e6191fa`).
+`port/golden/gen_fsv_api_change_task_update.py` was regenerated.
+Plan hashes are unchanged. Send results gained `fields_verified`.
+fsv-cli does not pin these hashes.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `b310885`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `b310885` | 11-12 15:59 | Normalize task effort readbacks and report omitted reminders as unavailable | ported | fsv-api `tasks::same_effort`, `change_task_update` |
+
+`same_effort` treats `1h` and `1h 0m` as the same duration, and `90m` as
+`1h 30m`. Create-path `compare_fields` uses it for `planned_effort`.
+Description on that path stays stripped HTML.
+
+Update-path readback uses `same_text` for description and `same_effort`
+for `planned_effort`. `verified` stays true when `notify_before` is
+`unavailable`. `fields_verified` stays false in that case. The warning
+is `Reminder absent from GET remains unverified; do not resend.` Other
+missing fields still fail verification.
+
+No new CLI flags. A `changes tasks-update` caller that prints `send`'s
+result gets `fields_verified` and that warning. The `be41032` CLI
+follow-up is unchanged.
+
+Still not triaged: `11e76ed`, `ffcab5b`, `e7c536b`.

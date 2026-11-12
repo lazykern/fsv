@@ -206,6 +206,27 @@ pub fn effort(value: Option<&str>) -> Result<Option<String>> {
     Ok(Some(format!("{}h {}m", total / 60, total % 60)))
 }
 
+/// Port of change_tasks.same_effort. The collection drops zero units
+/// (`1h` versus the submitted `1h 0m`).
+pub fn same_effort(actual: &Value, expected: &Value) -> bool {
+    let Some(actual) = actual
+        .as_str()
+        .filter(|s| !fsv_core::pystr::strip(s).is_empty())
+    else {
+        return false;
+    };
+    let Some(expected) = expected
+        .as_str()
+        .filter(|s| !fsv_core::pystr::strip(s).is_empty())
+    else {
+        return false;
+    };
+    match (effort(Some(actual)), effort(Some(expected))) {
+        (Ok(Some(got)), Ok(Some(want))) => got == want,
+        _ => false,
+    }
+}
+
 /// `_note`: plain text without unsafe control characters.
 pub fn note(value: Option<&str>) -> Result<Option<String>> {
     let Some(value) = value.filter(|v| !fsv_core::pystr::strip(v).is_empty()) else {
@@ -559,6 +580,7 @@ pub fn compare_fields(
             "planned_start_date" | "planned_end_date" => {
                 crate::readback::same_instant(observed, &expected)
             }
+            "planned_effort" => same_effort(observed, &expected),
             "description" => observed.as_str().is_some_and(|got| {
                 let want = expected.as_str().unwrap_or("");
                 fsv_core::output::strip_html(Some(got)).trim()
@@ -1136,6 +1158,16 @@ mod tests {
                 s(&["notify_before", "planned_end_date"])
             )
         );
+        let mut normalized = row.clone();
+        normalized["planned_effort"] = json!("90m");
+        let (ok, unverified, mismatched) = compare_fields(Some(&normalized), &p);
+        assert!(ok.iter().any(|k| k == "planned_effort"));
+        assert!(!mismatched.iter().any(|k| k == "planned_effort"));
+        assert!(unverified.iter().all(|k| k != "planned_effort"));
+        assert!(same_effort(&json!("90m"), &json!("1h 30m")));
+        assert!(same_effort(&json!("1h"), &json!("1h 0m")));
+        assert!(!same_effort(&json!("2h"), &json!("1h")));
+        assert!(!same_effort(&json!(90), &json!("1h 30m")));
         let got: Vec<Option<i64>> = [
             json!({"task": {"id": 5}}),
             json!({"task": {"id": "x"}, "id": 6}),

@@ -13,7 +13,7 @@ use fsv_core::resource::{CHANGES, parse_id};
 use fsv_forms::pydt::datetime_fromisoformat;
 use fsv_py::{py_str, truthy};
 
-use crate::readback::{same_instant, submitted_value_matches};
+use crate::readback::{same_instant, same_text, submitted_value_matches};
 use crate::reviewed_write::{WritePlan, execute, refused};
 use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, snapshot_hash};
 use crate::task_status;
@@ -421,14 +421,9 @@ fn verify_readback(
         let matched = if key.ends_with("_date") {
             same_instant(actual, expected)
         } else if key == "description" {
-            match (actual.as_str(), expected.as_str()) {
-                (Some(got), Some(want)) => {
-                    let got = fsv_core::output::strip_html(Some(got));
-                    let want = fsv_core::output::strip_html(Some(want));
-                    strip(&got) == strip(&want)
-                }
-                _ => false,
-            }
+            same_text(actual, expected)
+        } else if key == "planned_effort" {
+            tasks::same_effort(actual, expected)
         } else {
             submitted_value_matches(actual, expected)
         };
@@ -437,10 +432,25 @@ fn verify_readback(
             json!(if matched { "matched" } else { "mismatched" }),
         );
     }
-    let verified = !row.is_empty() && results.values().all(|v| v == "matched");
-    Ok(obj(
-        json!({"verified": verified, "fields": results, "readback": exact}),
-    ))
+    let present = !row.is_empty();
+    let fields_verified = present && results.values().all(|v| v == "matched");
+    let verified = present
+        && results
+            .iter()
+            .all(|(k, v)| v == "matched" || (k == "notify_before" && v == "unavailable"));
+    let mut out = obj(json!({
+        "verified": verified,
+        "fields_verified": fields_verified,
+        "fields": results,
+        "readback": exact,
+    }));
+    if results.get("notify_before") == Some(&json!("unavailable")) {
+        out.insert(
+            "warning".into(),
+            json!("Reminder absent from GET remains unverified; do not resend."),
+        );
+    }
+    Ok(out)
 }
 
 /// Port of change_task_update.send.
@@ -471,6 +481,7 @@ mod tests {
         task: Value,
         fields: Value,
         persist: bool,
+        after: Option<String>,
     }
 
     fn default_world() -> World {
@@ -485,6 +496,7 @@ mod tests {
                 {"name": "notify_before", "choices": [{"id": "0", "value": "Never"}, {"id": "900", "value": "15 Minutes"}]}
             ]),
             persist: true,
+            after: None,
         }
     }
 
@@ -518,6 +530,28 @@ mod tests {
                     task.insert("planned_start_date".into(), json!("2026-12-01T10:15:00Z"));
                 }
             }
+            let after = s.after.clone();
+            if let Some(after) = after.as_deref() {
+                let effort = if after == "effort-mismatch" {
+                    "2h"
+                } else {
+                    "1h"
+                };
+                s.task
+                    .as_object_mut()
+                    .unwrap()
+                    .insert("planned_effort".into(), json!(effort));
+                s.task.as_object_mut().unwrap().remove("notify_before");
+                if after == "reminder-mismatch" {
+                    s.task
+                        .as_object_mut()
+                        .unwrap()
+                        .insert("notify_before".into(), json!(0));
+                }
+                if after == "title-missing" {
+                    s.task.as_object_mut().unwrap().remove("title");
+                }
+            }
             Ok(json!({"task": body}))
         });
         api.domain = "acme.example.com".into();
@@ -529,7 +563,7 @@ mod tests {
         let oracle: Value =
             serde_json::from_str(include_str!("testdata/change_task_update_oracle.json")).unwrap();
         let cases = oracle["cases"].as_object().unwrap();
-        assert_eq!(cases.len(), 10);
+        assert_eq!(cases.len(), 14);
         for (name, case) in cases {
             let state = Arc::new(Mutex::new(default_world()));
             let c = api(state.clone());
@@ -554,6 +588,9 @@ mod tests {
                         }
                         if let Some(v) = op.get("fields") {
                             s.fields = v.clone();
+                        }
+                        if let Some(v) = op.get("after").and_then(Value::as_str) {
+                            s.after = Some(v.to_string());
                         }
                         Ok(json!({}))
                     }

@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "be410329d2f89944bd445e414738754681d2c19a",
+  "commit": "b31088581522be3b5c9a26a32093ae9a1e6191fa",
   "dirty": false
  },
  "cases": {
@@ -85,6 +85,7 @@
       "status": "submitted",
       "plan_hash": "922d4e0a52b62b91afdc870865b3ec39fbd00e3521205aa71510da3ea69fd5e8",
       "verified": true,
+      "fields_verified": true,
       "fields": {
        "description": "matched",
        "group_id": "matched",
@@ -170,6 +171,7 @@
       "status": "submitted",
       "plan_hash": "adcc0bb7378c0ab088e6f7ea4d4f8e590f49edc402d033504fd9fb842a1c8a9f",
       "verified": false,
+      "fields_verified": false,
       "fields": {
        "title": "mismatched"
       },
@@ -330,6 +332,7 @@
       "status": "submitted",
       "plan_hash": "58d3678ac912a33244c48bfca6b33563c3efdce9419a620eb203f07a1b6e4921",
       "verified": true,
+      "fields_verified": true,
       "fields": {
        "group_id": "matched",
        "owner_id": "matched"
@@ -444,6 +447,7 @@
       "status": "submitted",
       "plan_hash": "0675f3fd7a47de18d961883f009f0c59b3e07c09f09bd5ea77c92d03ab27104a",
       "verified": true,
+      "fields_verified": true,
       "fields": {
        "custom_fields": "matched"
       },
@@ -644,6 +648,342 @@
       "msg": "nonempty task title required"
      },
      "writes": 0
+    }
+   ]
+  },
+  "normalized": {
+   "ops": [
+    {
+     "op": "set",
+     "after": "normalized"
+    },
+    {
+     "op": "build",
+     "inputs": {
+      "title": "Acme revised",
+      "planned_effort": "1h",
+      "notify_before": "15 Minutes"
+     }
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "writes": 0
+    },
+    {
+     "plan": {
+      "action": "change_task_update",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "changes/23/tasks/17",
+      "payload": {
+       "notify_before": 900,
+       "planned_effort": "1h 0m",
+       "title": "Acme revised"
+      },
+      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
+      "hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "review": {
+       "action": "change_task_update",
+       "method": "PUT",
+       "path": "/api/_/changes/23/tasks/17",
+       "payload": {
+        "notify_before": 900,
+        "planned_effort": "1h 0m",
+        "title": "Acme revised"
+       },
+       "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "task_id": 17,
+      "inputs": {
+       "notify_before": "15 Minutes",
+       "planned_effort": "1h",
+       "title": "Acme revised"
+      }
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "verified": true,
+      "fields_verified": false,
+      "fields": {
+       "notify_before": "unavailable",
+       "planned_effort": "matched",
+       "title": "matched"
+      },
+      "readback": {
+       "id": 17,
+       "title": "Acme revised",
+       "owner_id": 81,
+       "group_id": 91,
+       "status": 1,
+       "planned_start_date": "2026-12-01T10:00:00Z",
+       "planned_end_date": "2026-12-01T11:00:00Z",
+       "planned_effort": "1h"
+      },
+      "warning": "Reminder absent from GET remains unverified; do not resend."
+     },
+     "writes": 1
+    }
+   ]
+  },
+  "effort_mismatch": {
+   "ops": [
+    {
+     "op": "set",
+     "after": "effort-mismatch"
+    },
+    {
+     "op": "build",
+     "inputs": {
+      "title": "Acme revised",
+      "planned_effort": "1h",
+      "notify_before": "15 Minutes"
+     }
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "writes": 0
+    },
+    {
+     "plan": {
+      "action": "change_task_update",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "changes/23/tasks/17",
+      "payload": {
+       "notify_before": 900,
+       "planned_effort": "1h 0m",
+       "title": "Acme revised"
+      },
+      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
+      "hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "review": {
+       "action": "change_task_update",
+       "method": "PUT",
+       "path": "/api/_/changes/23/tasks/17",
+       "payload": {
+        "notify_before": 900,
+        "planned_effort": "1h 0m",
+        "title": "Acme revised"
+       },
+       "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "task_id": 17,
+      "inputs": {
+       "notify_before": "15 Minutes",
+       "planned_effort": "1h",
+       "title": "Acme revised"
+      }
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "verified": false,
+      "fields_verified": false,
+      "fields": {
+       "notify_before": "unavailable",
+       "planned_effort": "mismatched",
+       "title": "matched"
+      },
+      "readback": {
+       "id": 17,
+       "title": "Acme revised",
+       "owner_id": 81,
+       "group_id": 91,
+       "status": 1,
+       "planned_start_date": "2026-12-01T10:00:00Z",
+       "planned_end_date": "2026-12-01T11:00:00Z",
+       "planned_effort": "2h"
+      },
+      "warning": "Reminder absent from GET remains unverified; do not resend."
+     },
+     "writes": 1
+    }
+   ]
+  },
+  "reminder_mismatch": {
+   "ops": [
+    {
+     "op": "set",
+     "after": "reminder-mismatch"
+    },
+    {
+     "op": "build",
+     "inputs": {
+      "title": "Acme revised",
+      "planned_effort": "1h",
+      "notify_before": "15 Minutes"
+     }
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "writes": 0
+    },
+    {
+     "plan": {
+      "action": "change_task_update",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "changes/23/tasks/17",
+      "payload": {
+       "notify_before": 900,
+       "planned_effort": "1h 0m",
+       "title": "Acme revised"
+      },
+      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
+      "hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "review": {
+       "action": "change_task_update",
+       "method": "PUT",
+       "path": "/api/_/changes/23/tasks/17",
+       "payload": {
+        "notify_before": 900,
+        "planned_effort": "1h 0m",
+        "title": "Acme revised"
+       },
+       "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "task_id": 17,
+      "inputs": {
+       "notify_before": "15 Minutes",
+       "planned_effort": "1h",
+       "title": "Acme revised"
+      }
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "verified": false,
+      "fields_verified": false,
+      "fields": {
+       "notify_before": "mismatched",
+       "planned_effort": "matched",
+       "title": "matched"
+      },
+      "readback": {
+       "id": 17,
+       "title": "Acme revised",
+       "owner_id": 81,
+       "group_id": 91,
+       "status": 1,
+       "planned_start_date": "2026-12-01T10:00:00Z",
+       "planned_end_date": "2026-12-01T11:00:00Z",
+       "planned_effort": "1h",
+       "notify_before": 0
+      },
+      "warning": "Readback was not fully verified; do not resend."
+     },
+     "writes": 1
+    }
+   ]
+  },
+  "title_missing": {
+   "ops": [
+    {
+     "op": "set",
+     "after": "title-missing"
+    },
+    {
+     "op": "build",
+     "inputs": {
+      "title": "Acme revised",
+      "planned_effort": "1h",
+      "notify_before": "15 Minutes"
+     }
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "writes": 0
+    },
+    {
+     "plan": {
+      "action": "change_task_update",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "changes/23/tasks/17",
+      "payload": {
+       "notify_before": 900,
+       "planned_effort": "1h 0m",
+       "title": "Acme revised"
+      },
+      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
+      "hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "review": {
+       "action": "change_task_update",
+       "method": "PUT",
+       "path": "/api/_/changes/23/tasks/17",
+       "payload": {
+        "notify_before": 900,
+        "planned_effort": "1h 0m",
+        "title": "Acme revised"
+       },
+       "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "task_id": 17,
+      "inputs": {
+       "notify_before": "15 Minutes",
+       "planned_effort": "1h",
+       "title": "Acme revised"
+      }
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "ec7cf3384b8d7ae6299d6c88723d95b455c6cb4acfc99f1532dbf7714c782677",
+      "verified": false,
+      "fields_verified": false,
+      "fields": {
+       "notify_before": "unavailable",
+       "planned_effort": "matched",
+       "title": "unavailable"
+      },
+      "readback": {
+       "id": 17,
+       "owner_id": 81,
+       "group_id": 91,
+       "status": 1,
+       "planned_start_date": "2026-12-01T10:00:00Z",
+       "planned_end_date": "2026-12-01T11:00:00Z",
+       "planned_effort": "1h"
+      },
+      "warning": "Reminder absent from GET remains unverified; do not resend."
+     },
+     "writes": 1
     }
    ]
   }
