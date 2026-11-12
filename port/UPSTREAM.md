@@ -1892,6 +1892,48 @@ These still pass because they refuse before the search:
 16 fn-only. Every `fsv.integrated_assets` def is covered. Missing from
 this commit: `integrated_assets_cli.finish`, `register`, `register_search`.
 
-Still not triaged: `9070409`,
-`be41032`, `0719e33`, `d870fa7`, `780c002`, `ad40a51`, `e173437`, `b310885`,
-`11e76ed`, `ffcab5b`, `e7c536b`.
+## Ledger: `9070409` (library side)
+
+Triaged against a `git archive 9070409` export
+(`FSV_PY_COMMIT=9070409b2f42c8616cd3c3c3ab43e80eeeae2a61`).
+`port/golden/gen_fsv_api_sr_approvals.py` stamps
+`crates/fsv-api/src/testdata/sr_approvals_oracle.json`.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `9070409`.
+The partial is the fsv-cli command group, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `9070409` | 11-12 14:36 | Add reviewed service request approval lifecycle | partial | fsv-api `sr_approvals`, `approval_groups`; `Client::send_once` Content-Type. fsv-cli follow-up below |
+
+### `9070409` SR approvals — partial
+
+`fsv_api::sr_approvals` ports `inventory`, `recipients`, `build_plan`, and
+`send`. Inventory reads `tickets/{id}/approval-chains` through
+`approval_groups`. Request is `POST tickets/{id}/approval-groups`. Approve
+and reject are `PUT .../approvals/{id}` with `approval_status` 1 or 2.
+Cancel and remind are bodyless PUTs and still send
+`Content-Type: application/json`. `Client::send_once` always sets that
+header (`reviewed_write.execute` at this commit).
+
+`get_change_approval_groups` stays the change wrapper. A non-positive id
+is now `record ID must be positive`. `approval_groups` accepts `changes`
+or `tickets`.
+
+### Public API for the fsv-cli owner
+
+- `fsv_api::sr_approvals::{inventory, recipients, build_plan, send, ApprovalPlan}`
+- `fsv_api::approvals::approval_groups(c, target, module)`
+
+### CLI handoff (do not edit fsv-cli here)
+
+`sr_approvals_cli.register` adds `sr approvals list|request|approve|reject|cancel|remind`.
+`list` prints `{"approval_groups": ...}`. `request` takes `--name`,
+`--message`, repeatable `--approver`, `--rule`. The other actions take
+the approval id, or the group id for `cancel`, plus `--remark` (required
+on reject). Dry-run and send go through `integrated_assets_cli.finish`.
+
+`port/fsv_coverage.py` maps `sr_approvals` to fsv-api.
+
+Still not triaged: `be41032`, `0719e33`, `d870fa7`, `780c002`, `ad40a51`,
+`e173437`, `b310885`, `11e76ed`, `ffcab5b`, `e7c536b`.

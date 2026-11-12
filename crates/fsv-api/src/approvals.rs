@@ -339,11 +339,19 @@ fn valid_record_status(status: Option<&Value>) -> bool {
     }
 }
 
-/// `get_change_approval_groups`: raw groups of complete approval chains.
-/// Permission, malformed or pagination failures are errors, never empty.
+/// `get_change_approval_groups`: change chains. See [`approval_groups`].
 pub fn get_change_approval_groups(c: &dyn Api, change_id: &Value) -> Result<Vec<Value>> {
+    approval_groups(c, change_id, "changes")
+}
+
+/// Raw groups of complete approval chains (`module` is `changes` or `tickets`).
+/// Permission, malformed or pagination failures are errors, never empty.
+pub fn approval_groups(c: &dyn Api, change_id: &Value, module: &str) -> Result<Vec<Value>> {
+    if module != "changes" && module != "tickets" {
+        return Err(Error::value("unsupported approval module"));
+    }
     let Some(cid) = positive_id(change_id) else {
-        return Err(Error::value("change ID must be positive"));
+        return Err(Error::value("record ID must be positive"));
     };
     let mut groups = Vec::new();
     let (mut seen_chains, mut seen_groups, mut seen_records) =
@@ -352,7 +360,7 @@ pub fn get_change_approval_groups(c: &dyn Api, change_id: &Value) -> Result<Vec<
     let empty = json!({});
     for page in 1..=100i64 {
         let data = c.int_get(
-            &format!("changes/{cid}/approval-chains"),
+            &format!("{module}/{cid}/approval-chains"),
             Some(obj(json!({"page": page, "per_page": 100}))),
         )?;
         if !data.is_object() || !data.get("approval_chains").is_some_and(Value::is_array) {
@@ -1507,7 +1515,7 @@ mod tests {
         );
         assert_eq!(
             err(get_change_approval_groups(&api, &json!(0))),
-            "change ID must be positive"
+            "record ID must be positive"
         );
         let one = |reply: Value| FakeApi::new().ok("GET changes/12/approval-chains", reply);
         let cases = [

@@ -144,17 +144,18 @@ impl Api for fsv_core::Client {
         csrf: &str,
     ) -> Result<Value> {
         let url = format!("{}/{}", self.tenant().api_int, path.trim_start_matches('/'));
-        let has_body = !matches!(body, Body::None);
-        let mut opts = RequestOpts {
+        let opts = RequestOpts {
             params,
             body,
             ..Default::default()
         };
-        // reviewed_write sends a bodiless DELETE without a Content-Type.
-        if has_body {
-            opts = opts.header("Content-Type", "application/json");
-        }
-        self.request(method, &url, opts.header("X-CSRF-Token", csrf))
+        // `9070409`: reviewed writes send `Content-Type` even with no body.
+        self.request(
+            method,
+            &url,
+            opts.header("Content-Type", "application/json")
+                .header("X-CSRF-Token", csrf),
+        )
     }
     fn fetch(&self, url: &str) -> Result<Response> {
         self.fetch_raw(url, true)
