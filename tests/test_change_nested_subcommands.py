@@ -54,22 +54,12 @@ def test_associations_legacy_syntax_routes_to_hidden_legacy_command(monkeypatch)
     assert calls == [(("CHN-1", None, ["SR-1"], [], True, False, False, cli.OutputFormat.table), {"pick": False})]
 
 
-def test_task_update_uses_command_local_import(monkeypatch):
+def test_task_update_retires_unproven_due_date(monkeypatch):
     import fsv.cli as cli
     import fsv.create as create
-
     calls = []
-
-    def fake_update_task(*args, **kwargs):
-        calls.append((args, kwargs))
-        return {"id": args[1], "due_date": "2026-07-21T19:00:00+07:00"}
-
-    monkeypatch.setattr(create, "update_task", fake_update_task)
-
-    result = runner.invoke(
-        cli.app,
-        ["changes", "tasks-update", "CHN-1", "172231", "--due-date", "2026-07-21T19:00:00+07:00", "--json"],
-    )
-
-    assert result.exit_code == 0
-    assert calls == [((1, 172231, {"due_date": "2026-07-21T19:00:00+07:00"}), {})]
+    monkeypatch.setattr(create, "update_task", lambda *a, **k: calls.append(a))
+    result = runner.invoke(cli.app, ["changes", "tasks-update", "CHN-1", "17", "--due-date", "2026-12-01T10:00:00Z", "--yes"])
+    assert result.exit_code == 2
+    assert "not captured" in result.output
+    assert not calls

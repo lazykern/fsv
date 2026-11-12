@@ -3474,83 +3474,39 @@ def _make_subapp(res: Resource) -> typer.Typer:
             status: Optional[str] = typer.Option(None, "--status", "-s", help="Open/Completed or status ID", autocompletion=_complete_task_status),
             title: Optional[str] = typer.Option(None, "--title", help="task title"),
             group_id: Optional[str] = typer.Option(None, "--group", "--group-id", help="group name or ID", autocompletion=completion.complete_update_group_id),
-            agent_id: Optional[str] = typer.Option(None, "--agent", "--agent-id", help="agent name/email/user ID", autocompletion=completion.complete_update_agent_id),
+            agent_id: Optional[str] = typer.Option(None, "--owner", "--agent", "--agent-id", help="agent name/email/user ID", autocompletion=completion.complete_update_agent_id),
             system: Optional[str] = typer.Option(None, "--system", help="task custom field system label or numeric ID", autocompletion=_complete_task_system),
             environment: Optional[str] = typer.Option(None, "--environment", "--env", help="task custom field environment label or numeric ID", autocompletion=_complete_task_environment),
             due_date: Optional[str] = typer.Option(None, "--due-date", help="ISO-8601 due date"),
             planned_start: Optional[str] = typer.Option(None, "--planned-start", help="ISO-8601 planned start"),
             planned_end: Optional[str] = typer.Option(None, "--planned-end", help="ISO-8601 planned end"),
             edit: bool = typer.Option(False, "--edit", "-e", help="open $EDITOR with all task fields"),
+            note: Optional[str] = typer.Option(None, "--note", help="plain text note"),
+            planned_effort: Optional[str] = typer.Option(None, "--planned-effort"),
+            notify_before: Optional[str] = typer.Option(None, "--notify-before", help="runtime label or seconds, not minutes"),
+            expected: Optional[str] = typer.Option(None, "--expect-plan"),
+            read_only: bool = typer.Option(False, "--read-only"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm status changes and reassignment"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
-            """Update a task on a change. Use --edit for full edit or flags for quick update."""
-            from fsv.create import get_task_for_edit, update_task
-            from fsv.safety import write_risks
-
-            def _task_risks(body: dict[str, Any], current: dict[str, Any] | None) -> list[str]:
-                if current is None and any(k in body for k in ("status", "owner_id", "agent_id", "group_id")):
-                    try:
-                        current = get_task_for_edit(cid, task_id)
-                    except Exception:
-                        current = None
-                return write_risks(res.name, body, current=current, kind="task",
-                                   status_label=lambda v: (status if status and not str(status).isdigit() else f"status {v}"))
-            try:
-                cid = _cid(id_, res)
-                if edit:
-                    current = get_task_for_edit(cid, task_id)
-                    body = _edit_body(current, f"Editing task {task_id} on change #{cid}", no_input)
-                    if "status" in body:
-                        body["status"] = _task_status_value(str(body["status"]))
-                    risks = _task_risks(body, current)
-                    if dry_run:
-                        emit_json({"action": "update_task", "change_id": cid, "task_id": task_id, "body": body,
-                                   **({"requires_confirmation": risks} if risks else {})})
-                        return
-                    _confirm_writes(risks, f"task {task_id} on #{cid}", yes, no_input)
-                    updated = update_task(cid, task_id, body)
-                else:
-                    body: dict[str, Any] = {}
-                    custom_fields: dict[str, Any] = {}
-                    if status is not None:
-                        body["status"] = _task_status_value(status)
-                    if title is not None:
-                        body["title"] = title
-                    if group_id is not None:
-                        body["group_id"] = int(_resolve_group(_client(), group_id))
-                    if agent_id is not None:
-                        body["owner_id"] = int(_resolve_agent(_client(), agent_id))
-                    if due_date is not None:
-                        body["due_date"] = due_date
-                    if planned_start is not None:
-                        body["planned_start_date"] = planned_start
-                    if planned_end is not None:
-                        body["planned_end_date"] = planned_end
-                    if system is not None:
-                        custom_fields["system"] = _task_choice_value(system, "system")
-                    if environment is not None:
-                        custom_fields["environment"] = _task_choice_value(environment, "environment")
-                    if custom_fields:
-                        body["custom_fields"] = custom_fields
-                    if not body:
-                        _err("nothing to update; use --edit or pass task fields")
-                        return
-                    risks = _task_risks(body, None)
-                    if dry_run:
-                        emit_json({"action": "update_task", "change_id": cid, "task_id": task_id, "body": body,
-                                   **({"requires_confirmation": risks} if risks else {})})
-                        return
-                    _confirm_writes(risks, f"task {task_id} on #{cid}", yes, no_input)
-                    updated = update_task(cid, task_id, body)
-                if json_out:
-                    emit_json(updated)
-                else:
-                    console.print(f"[green]updated[/] task {task_id} on #{cid}")
-            except (SessionError, APIError, ValueError) as e:
-                _err_exc(e)
+            from fsv import change_task_update
+            from fsv.integrated_assets_cli import finish, guard
+            def run():
+                if edit or due_date is not None:
+                    raise ValueError("--edit/--due-date are not captured task-update contracts; use explicit planned dates and reviewed flags")
+                inputs = {k: v for k, v in dict(title=title, status=status, owner=agent_id, group=group_id,
+                          note=note, planned_start=planned_start, planned_end=planned_end,
+                          planned_effort=planned_effort, notify_before=notify_before).items() if v is not None}
+                values = {k: v for k, v in dict(cf_system=system, cf_environment=environment).items() if v is not None}
+                if values:
+                    inputs["values"] = values
+                c = _client()
+                plan = change_task_update.build_plan(c, id_, task_id, inputs)
+                finish(plan, lambda: change_task_update.send(plan, c, reviewed_hash=expected),
+                       dry_run=dry_run, yes=yes, expected=expected, read_only=read_only)
+            guard(run)
 
         @sub.command("tasks-delete", help="Delete a change task.", epilog=(
             "[bold]Examples:[/bold]  fsv changes tasks-delete CHN-1234 987 --dry-run  |  fsv changes tasks-delete CHN-1234 987 --yes"

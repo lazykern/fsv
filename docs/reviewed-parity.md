@@ -581,3 +581,18 @@ not an invented remind endpoint. Independent GET verifies exact new recipients,
 decision remark history, cancellation, or a later reminder timestamp. Immutable
 approved/rejected history is not cancellable. Notifications cannot be recalled.
 Delegation remains unsupported because its write contract is unproven.
+
+
+## Change task update
+
+`changes tasks-update CHN-23 17 --title 'Acme review' --owner 81 --group 91
+--status 'In Progress' --note 'Review evidence' --planned-start 2026-12-01T09:00:00Z
+--planned-end 2026-12-01T10:00:00Z --planned-effort '1h 30m'
+--notify-before 900 --dry-run --json` reviews the captured PUT. Repeat with
+`--yes --expect-plan FULL_HASH` to send exactly once. Reminder values resolve
+against runtime metadata in **seconds**. `--owner none` clears assignment;
+`--agent` remains an owner alias. `--system`/`--environment` resolve custom
+choices through runtime metadata. Only supplied fields are updated; unchanged
+fields are not invented. Exact task GET verifies normalized dates, rich-text
+note, owner alias, duration, and custom values. Unproven editor/due-date writes
+are retired and fail closed. Task edits may notify assignees or schedule reminders.

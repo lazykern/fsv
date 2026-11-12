@@ -181,21 +181,19 @@ def test_update_edit_final_body_is_gated(monkeypatch, tmp_path):
 
 
 def test_tasks_update_flags_and_edit_gated(monkeypatch):
-    monkeypatch.setattr(cli, "_task_field_defs", lambda: [{"name": "status", "choices": [
-        {"id": 1, "value": "Open"}, {"id": 2, "value": "In Progress"}, {"id": 3, "value": "Completed"}]}])
+    from fsv import change_task_update
+    from types import SimpleNamespace
     sent = []
-    monkeypatch.setattr(create, "update_task", lambda cid, tid, body, c=None: sent.append(body) or {"id": tid})
-    monkeypatch.setattr(create, "get_task_for_edit", lambda cid, tid, c=None: {"status": 1, "owner_id": 5, "title": "t"})
-    r = runner.invoke(cli.app, ["changes", "tasks-update", "CHN-1", "7", "--status", "2"])
-    assert r.exit_code == 2 and not sent
+    monkeypatch.setattr(cli, "_client", lambda: None)
+    monkeypatch.setattr(change_task_update, "build_plan", lambda *a: SimpleNamespace(hash="a" * 64))
+    monkeypatch.setattr(change_task_update, "send", lambda *a, **k: sent.append(k) or {"verified": True})
     r = runner.invoke(cli.app, ["changes", "tasks-update", "CHN-1", "7", "--status", "2", "--yes"])
-    assert r.exit_code == 0 and sent == [{"status": 2}]
-    sent.clear()
-    monkeypatch.setattr(cli, "_edit_body", lambda data, hint, no_input=False: {**data, "owner_id": 6})
-    r = runner.invoke(cli.app, ["changes", "tasks-update", "CHN-1", "7", "--edit"])
     assert r.exit_code == 2 and not sent
+    r = runner.invoke(cli.app, ["changes", "tasks-update", "CHN-1", "7", "--status", "2", "--yes", "--expect-plan", "a" * 64])
+    assert r.exit_code == 0 and len(sent) == 1
+    sent.clear()
     r = runner.invoke(cli.app, ["changes", "tasks-update", "CHN-1", "7", "--edit", "--yes"])
-    assert r.exit_code == 0 and sent
+    assert r.exit_code == 2 and not sent
 
 
 def test_public_note_and_reply_gated_private_note_is_not(fake):
