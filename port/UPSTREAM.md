@@ -3423,5 +3423,22 @@ as a trashed record. Dry-run must call `schema::freshness_warning` and
 print the warning. `fsv {name} fields --refresh` is the command the
 warning names. Port `tests/test_problem_write_fixes.py`.
 
-Still not triaged: commits after `7fcdea4`.
+## Ledger: `140f52f` (library side)
 
+Triaged against `git show 140f52f`
+(`140f52f9c787d0bfa023678a6235e823f2821f6d`). `text_answers` binds
+`metadata_fingerprint(None, stable_snapshot(rules), stable_snapshot(item))`,
+so signed icon/attachment URLs that rotate per catalog GET no longer
+change the requested-item edit plan hash. A real metadata change still
+does. The JSON oracle was restamped at `140f52f`; its hashes are
+unchanged because that fixture has no signed URLs.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `140f52f`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `140f52f` | 11-13 04:50 | fix: stable requested-item edit plan hash across rotating signed catalog URLs | ported | fsv-api (`sr_requested_items`) |
+
+No CLI follow-up: `sr items edit --expect-plan` gets the stable hash from the library.
+
+Still not triaged: commits after `140f52f`.
