@@ -2434,3 +2434,30 @@ invalid address is `mismatched`. The new Python CLI test
 HEAD scratch of `fsv-cli` still fails the same 23 tests. No new name.
 
 Still not triaged: `98acb71` and later.
+
+## Ledger: `98acb71` through `7b7f5d2` (library side)
+
+Triaged against `git show` of each commit. None of these touch `src/fsv`
+behavior. README, `docs/index.md`, and `docs/commands.md` have no
+library port.
+
+Counts: **3 ported, 1 partial.** `port/UPSTREAM_BASE` is `7b7f5d2`.
+The partial is the workspace version, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `98acb71` | 11-12 19:25 | Refresh README for release | ported | none |
+| `0d7d929` | 11-12 19:25 | Add documentation index | ported | none |
+| `365f1a4` | 11-12 19:25 | Add command cheat sheet | ported | none |
+| `7b7f5d2` | 11-12 19:25 | Bump release version | partial | workspace version follow-up |
+
+Python `pyproject.toml` moves from `2026.05.29` to `2026.11.12`.
+The Rust workspace stays `2026.5.29`. `Cargo.lock` is not edited here.
+
+### Version follow-up
+
+Bump the workspace `version` to `2026.11.12` together with `Cargo.lock`
+when that file may change. `fsv --version` will keep printing
+`2026.5.29` until then.
+
+Still not triaged: `6ead7c9` and later.
