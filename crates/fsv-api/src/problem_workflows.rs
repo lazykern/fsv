@@ -225,13 +225,7 @@ fn choice(fields: &[Value], name: &str, label: &str) -> Result<i64> {
     // Native problem_task_fields serialize choice ids as digit strings; the
     // accepted task-create wire sends the same identities as JSON integers.
     let ident = match choices[..] {
-        [one] => match one.get("id") {
-            Some(Value::Number(n)) => n.as_i64().filter(|i| *i >= 0),
-            Some(Value::String(s)) if !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()) => {
-                s.parse::<i64>().ok()
-            }
-            _ => None,
-        },
+        [one] => crate::choice_ids::runtime_choice_id(one.get("id"), 0),
         _ => None,
     };
     ident.ok_or_else(|| {

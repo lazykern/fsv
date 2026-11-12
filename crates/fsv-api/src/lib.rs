@@ -17,6 +17,7 @@ pub mod catalog;
 pub mod change_relationships;
 pub mod change_task_delete;
 pub mod change_task_update;
+pub mod choice_ids;
 pub mod conversations;
 pub mod create;
 pub mod downloads;

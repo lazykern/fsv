@@ -79,6 +79,22 @@ fn variant(name: &str) -> (Vec<Value>, Option<Value>) {
             fs.push(json!({"name": "unknown_requirement", "required_for_closure": true}))
         }
         "rules_unavailable" => return (fs, None),
+        "string_ids" => {
+            for c in fs[0]["choices"].as_array_mut().unwrap() {
+                c["id"] = json!(fsv_py::py_str(&c["id"]));
+            }
+        }
+        bad if bad.starts_with("bad_id_") => {
+            fs[0]["choices"][1]["id"] = match bad {
+                "bad_id_sign" => json!("-47"),
+                "bad_id_alpha" => json!("47a"),
+                "bad_id_bool" => json!(true),
+                "bad_id_zero" => json!("0"),
+                "bad_id_float" => json!(47.0),
+                "bad_id_space" => json!(" 47"),
+                _ => json!("\u{664}\u{667}"),
+            }
+        }
         _ => {}
     }
     (fs, Some(rules))
@@ -170,7 +186,7 @@ fn opt_str(v: &Value) -> Option<&str> {
 #[test]
 fn cases_match_python() {
     let cases = ORACLE["cases"].as_object().unwrap();
-    assert_eq!(cases.len(), 28);
+    assert_eq!(cases.len(), 36);
     for (name, case) in cases {
         let mut row = obj(
             json!({"id": 123, "status": 31, "group_id": null, "responder_id": 9000001234_i64,

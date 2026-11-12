@@ -69,12 +69,7 @@ fn closed(c: &dyn Api, store: &dyn MetaStore, ticket: i64) -> Result<(i64, Strin
         .filter(|ch| ch.visible && casefold(&ch.label) == "closed")
         .collect();
     let id = match (fields.len(), choices.as_slice()) {
-        (1, [one]) => one
-            .id
-            .as_ref()
-            .filter(|v| v.is_i64() || v.is_u64())
-            .and_then(Value::as_i64)
-            .filter(|i| *i > 0),
+        (1, [one]) => crate::choice_ids::runtime_choice_id(one.id.as_ref(), 1),
         _ => None,
     };
     let Some(id) = id else {

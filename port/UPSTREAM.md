@@ -2947,4 +2947,28 @@ covers seven records for edit, stage and add.
 
 No CLI follow-up.
 
-Still not triaged: commits after `2b81a76`.
+## Ledger: `7acec01` (library side)
+
+Triaged against `git show 7acec01`
+(`7acec015693dd0242d358f06104c7e997ade07a3`). A stamped generator gives
+19 `runtime_choice_id` cases and eight merge Closed-status ids. The
+ticket-lifecycle oracle was regenerated at `7acec01` with eight
+appended cases: digit-string status ids (integer 47 sent, readback
+verified) and seven bad Pending id shapes, which refuse. All of them
+match. The workflows oracle regenerates unchanged.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `7acec01`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `7acec01` | 11-13 02:16 | Accept digit-string runtime choice IDs wherever a choice identity is compared | ported | fsv-api `choice_ids`, `problem_workflows`, `ticket_lifecycle`, `ticket_merge` |
+
+New `choice_ids::runtime_choice_id(value, minimum)` accepts a JSON
+integer or an ASCII digit string at least `minimum`. Booleans, signs,
+whitespace, decimals and non-ASCII digits return none. Problem-task
+choices (minimum 0), the ticket lifecycle status and the merge Closed
+status (minimum 1) use it, and send the integer.
+
+No CLI follow-up.
+
+Still not triaged: commits after `7acec01`.

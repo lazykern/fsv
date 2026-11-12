@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "7f580232e8e4ce1e5dae059115fca1bb697ef0c3",
+  "commit": "7acec015693dd0242d358f06104c7e997ade07a3",
   "dirty": false
  },
  "cases": {
@@ -2407,6 +2407,342 @@
     "started",
     "done"
    ]
+  },
+  "string_status_ids": {
+   "meta": "string_ids",
+   "ops": [
+    {
+     "op": "build",
+     "status": "Pending",
+     "answers": {
+      "reason": "Waiting for self"
+     }
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Pending",
+      "answers_json": "{\"reason\": \"Waiting for self\"}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting for self\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
+      "context_hash": "{\"metadata\": \"c9b1662d3fe82be44d834ca5fdf95370b807ef7a88cfa7a21a3a8cde29102181\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": null
+     },
+     "hash": "d720718763efc664dc4112220f4064b8f07f137fb2ff811808868186504d9442",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Pending",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "custom_fields": {
+          "reason": "Waiting for self"
+         },
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 47
+        }
+       }
+      ],
+      "plan_hash": "d720718763efc664dc4112220f4064b8f07f137fb2ff811808868186504d9442",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "ticket_id": 123,
+      "status_label": "Pending",
+      "plan_hash": "d720718763efc664dc4112220f4064b8f07f137fb2ff811808868186504d9442",
+      "verified": true
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting for self\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "custom_fields": {
+       "reason": "Waiting for self"
+      },
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 47
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 47,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "Waiting for self",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started",
+    "done"
+   ]
+  },
+  "bad_status_id_sign": {
+   "meta": "bad_id_sign",
+   "ops": [
+    {
+     "op": "build",
+     "status": "Pending",
+     "answers": {
+      "reason": "Waiting for self"
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "status must identify one visible runtime status label"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "bad_status_id_alpha": {
+   "meta": "bad_id_alpha",
+   "ops": [
+    {
+     "op": "build",
+     "status": "Pending",
+     "answers": {
+      "reason": "Waiting for self"
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "status must identify one visible runtime status label"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "bad_status_id_bool": {
+   "meta": "bad_id_bool",
+   "ops": [
+    {
+     "op": "build",
+     "status": "Pending",
+     "answers": {
+      "reason": "Waiting for self"
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "status must identify one visible runtime status label"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "bad_status_id_zero": {
+   "meta": "bad_id_zero",
+   "ops": [
+    {
+     "op": "build",
+     "status": "Pending",
+     "answers": {
+      "reason": "Waiting for self"
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "status must identify one visible runtime status label"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "bad_status_id_float": {
+   "meta": "bad_id_float",
+   "ops": [
+    {
+     "op": "build",
+     "status": "Pending",
+     "answers": {
+      "reason": "Waiting for self"
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "status must identify one visible runtime status label"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "bad_status_id_space": {
+   "meta": "bad_id_space",
+   "ops": [
+    {
+     "op": "build",
+     "status": "Pending",
+     "answers": {
+      "reason": "Waiting for self"
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "status must identify one visible runtime status label"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "bad_status_id_arabic": {
+   "meta": "bad_id_arabic",
+   "ops": [
+    {
+     "op": "build",
+     "status": "Pending",
+     "answers": {
+      "reason": "Waiting for self"
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "status must identify one visible runtime status label"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
   },
   "routing_unavailable": {
    "ops": [
