@@ -2565,3 +2565,35 @@ Unverified exits 4. `ValueError`, `PropertyError` and
 `--confirm-destructive` after the printed id list.
 
 Still not triaged: `1490984` and later.
+
+## Ledger: `1490984` (library side)
+
+Triaged against `git show 1490984`
+(`1490984417b46b641722e47b57910c195599ac95`). All ten kind/action
+plan hashes match a stamped generator. Docs in that commit describe
+the CLI only.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `1490984`.
+The partial is `changes relationships`, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `1490984` | 11-12 22:18 | Add captured change relationship writers and project proxy verification | partial | fsv-api `change_relationships`. fsv-cli follow-up below |
+
+`inventory` refuses a partial page or a project proxy that is not one
+complete page. Add and remove bind the parent change and the current
+rows. Project add creates a project; it does not link an existing one.
+A nested non-200 proxy or a readback that misses the id stays
+unverified and is not replayed.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`changes relationships list` prints `inventory` as JSON and exits 2
+on `ValueError` or `ReviewedWriteError`. `changes relationships write`
+takes kind, action, `--item`, `--project-json`, `--project-key`, and
+`--name`. Dry-run prints the review JSON. Send requires `--yes` and
+`--expect-plan` equal to the plan hash, otherwise
+`review with --dry-run, then --yes --expect-plan FULL_HASH`.
+Unverified exits 4.
+
+Still not triaged: `6c6b767` and later.

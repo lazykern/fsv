@@ -1,0 +1,106 @@
+{
+  "_python": {
+    "commit": "1490984417b46b641722e47b57910c195599ac95",
+    "dirty": false
+  },
+  "caused-incident-add": {
+    "hash": "cc74a8421ff370835804e9fe93dc85215ddbbe2cf86e7a02ba600210aeb2a98a",
+    "action": "change_relationship_caused-incident_add",
+    "method": "PUT",
+    "path": "changes/123/tickets/associate",
+    "payload": "{\"item_ids\": [71], \"module_type\": \"ticket_cause\"}",
+    "tenant": "acme.freshservice.com",
+    "target": 123,
+    "context": "{\"intent\": {\"action\": \"add\", \"item\": \"71\", \"kind\": \"caused-incident\", \"name\": null, \"project\": null, \"project_key\": null, \"target\": 123}, \"parent\": {\"id\": 123, \"subject\": \"Acme change\"}, \"rows\": []}"
+  },
+  "caused-incident-remove": {
+    "hash": "becdb472d61ef2d3bf07a4e7494939b929373d783ff653d2eb2665bc908ae6e8",
+    "action": "change_relationship_caused-incident_remove",
+    "method": "DELETE",
+    "path": "changes/123/tickets/71?module_type=ticket_cause",
+    "payload": "{\"type\": \"unlink\"}",
+    "tenant": "acme.freshservice.com",
+    "target": 123,
+    "context": "{\"intent\": {\"action\": \"remove\", \"item\": \"71\", \"kind\": \"caused-incident\", \"name\": null, \"project\": null, \"project_key\": null, \"target\": 123}, \"parent\": {\"id\": 123, \"subject\": \"Acme change\"}, \"rows\": [{\"id\": 71, \"key\": \"ACME-1\", \"name\": \"Acme task\", \"project_id\": 81}]}"
+  },
+  "problem-add": {
+    "hash": "ad6968228f70e8e47927c3279c7ebddd58cc15765552bf16b05714e088a173a1",
+    "action": "change_relationship_problem_add",
+    "method": "PUT",
+    "path": "changes/123/problems/associate",
+    "payload": "{\"item_ids\": [71], \"module_type\": \"problem\"}",
+    "tenant": "acme.freshservice.com",
+    "target": 123,
+    "context": "{\"intent\": {\"action\": \"add\", \"item\": \"71\", \"kind\": \"problem\", \"name\": null, \"project\": null, \"project_key\": null, \"target\": 123}, \"parent\": {\"id\": 123, \"subject\": \"Acme change\"}, \"rows\": []}"
+  },
+  "problem-remove": {
+    "hash": "a82874df6c4de2027d98da2aa76d328009e0612b53204ddb89a71aef6bb97395",
+    "action": "change_relationship_problem_remove",
+    "method": "DELETE",
+    "path": "changes/123/problems/71",
+    "payload": "{\"type\": \"unlink\"}",
+    "tenant": "acme.freshservice.com",
+    "target": 123,
+    "context": "{\"intent\": {\"action\": \"remove\", \"item\": \"71\", \"kind\": \"problem\", \"name\": null, \"project\": null, \"project_key\": null, \"target\": 123}, \"parent\": {\"id\": 123, \"subject\": \"Acme change\"}, \"rows\": [{\"id\": 71, \"key\": \"ACME-1\", \"name\": \"Acme task\", \"project_id\": 81}]}"
+  },
+  "release-add": {
+    "hash": "24782239e867c9f20203dae934c8a66ae795796b9381a02a3ef68786098069b1",
+    "action": "change_relationship_release_add",
+    "method": "PUT",
+    "path": "changes/123/releases/71",
+    "payload": "{\"type\": \"link\"}",
+    "tenant": "acme.freshservice.com",
+    "target": 123,
+    "context": "{\"intent\": {\"action\": \"add\", \"item\": \"71\", \"kind\": \"release\", \"name\": null, \"project\": null, \"project_key\": null, \"target\": 123}, \"parent\": {\"id\": 123, \"subject\": \"Acme change\"}, \"rows\": []}"
+  },
+  "release-remove": {
+    "hash": "14910186fe3a2a77969ac3b338b1cc3ad29900249a71b627858aba4afbac39f8",
+    "action": "change_relationship_release_remove",
+    "method": "PUT",
+    "path": "changes/123/releases/71",
+    "payload": "{\"type\": \"unlink\"}",
+    "tenant": "acme.freshservice.com",
+    "target": 123,
+    "context": "{\"intent\": {\"action\": \"remove\", \"item\": \"71\", \"kind\": \"release\", \"name\": null, \"project\": null, \"project_key\": null, \"target\": 123}, \"parent\": {\"id\": 123, \"subject\": \"Acme change\"}, \"rows\": [{\"id\": 71, \"key\": \"ACME-1\", \"name\": \"Acme task\", \"project_id\": 81}]}"
+  },
+  "project-add": {
+    "hash": "ccd08f0b2c66d1833edade27b12d0ddc40e7673269a7f41a4514e8510a3f2ff4",
+    "action": "change_relationship_project_add",
+    "method": "POST",
+    "path": "freshrelease/settings/create_fr_project",
+    "payload": "{\"meta\": {\"subject\": \"Acme project\"}, \"project\": {\"description\": \"Acme work\", \"end_date\": \"2026-01-02\", \"name\": \"Acme project\", \"owner_email\": \"person@example.com\", \"project_category\": \"1\", \"public_workspace\": \"0\", \"start_date\": \"2026-01-01\", \"user_emails\": []}, \"remote_resource_id\": \"123\", \"remote_resource_type\": \"Change\"}",
+    "tenant": "acme.freshservice.com",
+    "target": 123,
+    "context": "{\"intent\": {\"action\": \"add\", \"item\": null, \"kind\": \"project\", \"name\": null, \"project\": {\"description\": \"Acme work\", \"end_date\": \"2026-01-02\", \"name\": \"Acme project\", \"owner_email\": \"person@example.com\", \"project_category\": \"1\", \"start_date\": \"2026-01-01\"}, \"project_key\": null, \"target\": 123}, \"parent\": {\"id\": 123, \"subject\": \"Acme change\"}, \"rows\": []}"
+  },
+  "project-remove": {
+    "hash": "3abed576219d044f7cdac09a1c1137bbdf24d10740483fec8cf4c76143b51fcb",
+    "action": "change_relationship_project_remove",
+    "method": "POST",
+    "path": "freshrelease/settings/unlink_fr_project",
+    "payload": "{\"activity_data\": {\"key\": \"ACME\", \"name\": \"Acme task\"}, \"project_id\": \"81\", \"project_key\": \"ACME\", \"remote_resource_id\": \"123\", \"remote_resource_type\": \"Change\"}",
+    "tenant": "acme.freshservice.com",
+    "target": 123,
+    "context": "{\"intent\": {\"action\": \"remove\", \"item\": \"ACME\", \"kind\": \"project\", \"name\": null, \"project\": null, \"project_key\": null, \"target\": 123}, \"parent\": {\"id\": 123, \"subject\": \"Acme change\"}, \"rows\": [{\"id\": 81, \"key\": \"ACME\", \"name\": \"Acme task\", \"project_id\": 81}]}"
+  },
+  "project-task-add": {
+    "hash": "7021ac69631a96b273f819cc4d01b9a99f8f73e49d47c4265f2cf3f23c095491",
+    "action": "change_relationship_project-task_add",
+    "method": "POST",
+    "path": "freshrelease/settings/create_issue",
+    "payload": "{\"activity_data\": {\"key\": \"ACME-1\", \"name\": \"Acme task\"}, \"issue\": {\"id\": \"ACME-1\"}, \"meta\": {\"subject\": \"Acme change\"}, \"placeholder\": {\"projectId\": \"ACME\", \"resourceId\": \"123\", \"resourceType\": \"Change\"}, \"remote_resource_id\": \"123\", \"remote_resource_type\": \"Change\"}",
+    "tenant": "acme.freshservice.com",
+    "target": 123,
+    "context": "{\"intent\": {\"action\": \"add\", \"item\": \"ACME-1\", \"kind\": \"project-task\", \"name\": \"Acme task\", \"project\": null, \"project_key\": \"ACME\", \"target\": 123}, \"parent\": {\"id\": 123, \"subject\": \"Acme change\"}, \"rows\": []}"
+  },
+  "project-task-remove": {
+    "hash": "6af2f5428c37fe04440d72f4020af1f356ed0260e9f521a841185115e4e054af",
+    "action": "change_relationship_project-task_remove",
+    "method": "POST",
+    "path": "freshrelease/settings/unlink_issue",
+    "payload": "{\"activity_data\": {\"key\": \"ACME-1\", \"name\": \"Acme task\"}, \"issue_id\": \"ACME-1\", \"placeholder\": {\"projectId\": \"ACME\", \"resourceId\": \"123\", \"resourceType\": \"Change\"}}",
+    "tenant": "acme.freshservice.com",
+    "target": 123,
+    "context": "{\"intent\": {\"action\": \"remove\", \"item\": \"ACME-1\", \"kind\": \"project-task\", \"name\": null, \"project\": null, \"project_key\": \"ACME\", \"target\": 123}, \"parent\": {\"id\": 123, \"subject\": \"Acme change\"}, \"rows\": [{\"id\": 91, \"key\": \"ACME-1\", \"name\": \"Acme task\", \"project_id\": 81}]}"
+  }
+}
