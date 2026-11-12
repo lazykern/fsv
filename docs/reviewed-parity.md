@@ -1,5 +1,20 @@
 # Reviewed operations and metadata freshness
 
+## Problem incident associations
+
+```sh
+fsv problems link-incident PRB-7 INC-123 --dry-run --json
+fsv problems link-incident PRB-7 INC-123 --yes --expect-plan FULL_HASH --json
+fsv problems unlink-incident PRB-7 INC-123 --dry-run --json
+```
+
+A fresh exact problem, incident type and complete association inventory are
+required at review and checked again before sending. The unlink request uses a
+JSON body even though its method is DELETE. A single journaled request is
+followed by complete independent association readback; never resend an
+ambiguous or unverified outcome. These offline tests do not establish live
+acceptance for another tenant.
+
 ## List filter limits
 
 Date `>=` and `<=` use inclusive ranges. Strict date `>` / `<`, date

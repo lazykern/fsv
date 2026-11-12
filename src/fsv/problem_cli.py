@@ -22,6 +22,40 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
             raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
         typer.echo(json.dumps(flow.send(plan, client, reviewed_hash=expect_plan), indent=2))
 
+    def incident_action(problem: str, incident: str, unlink: bool, dry_run: bool, yes: bool, expect_plan: str | None) -> None:
+        from fsv import problem_incidents
+        from fsv.change_associations import AssociationError
+        from fsv.errors import APIError
+        try:
+            client = client_factory()
+            plan = problem_incidents.build_plan(client, problem, incident, unlink=unlink)
+            if dry_run:
+                typer.echo(json.dumps({"status": "dry_run", **plan.review(), "problem_id": plan.target,
+                                       "incident_id": incident}, indent=2))
+                return
+            if not yes or expect_plan != plan.hash:
+                raise ReviewedWriteError("review with --dry-run, then pass --yes and the full --expect-plan hash")
+            typer.echo(json.dumps(problem_incidents.send(plan, client, incident, reviewed_hash=expect_plan), indent=2))
+        except (ValueError, AssociationError, ReviewedWriteError, APIError) as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(2) from None
+
+    @app.command("link-incident", help="Review an incident association to a problem.")
+    def link_incident(problem: str = typer.Argument(..., metavar="PROBLEM"), incident: str = typer.Argument(..., metavar="INCIDENT"),
+                      dry_run: bool = typer.Option(False, "--dry-run"), yes: bool = typer.Option(False, "--yes"),
+                      expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+                      output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o"),
+                      json_out: bool = typer.Option(False, "--json")) -> None:
+        incident_action(problem, incident, False, dry_run, yes, expect_plan)
+
+    @app.command("unlink-incident", help="Review removal of a problem-incident association.")
+    def unlink_incident(problem: str = typer.Argument(..., metavar="PROBLEM"), incident: str = typer.Argument(..., metavar="INCIDENT"),
+                        dry_run: bool = typer.Option(False, "--dry-run"), yes: bool = typer.Option(False, "--yes"),
+                        expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+                        output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o"),
+                        json_out: bool = typer.Option(False, "--json")) -> None:
+        incident_action(problem, incident, True, dry_run, yes, expect_plan)
+
     @app.command("create", help="Create a problem through fresh form fields and business rules; no files.")
     def create(from_: Optional[str] = typer.Option(None, "--from", help="YAML answers draft"),
                set_: Optional[list[str]] = typer.Option(None, "--set", help="LABEL=VALUE (repeatable)"),
