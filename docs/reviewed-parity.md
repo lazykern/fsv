@@ -1,5 +1,21 @@
 # Reviewed operations and metadata freshness
 
+## Irreversible ticket merge
+
+```sh
+fsv tickets merge INC-123 INC-124 INC-125 --note-primary 'Combined records' --note-secondary 'Merged into primary' --dry-run --json
+fsv tickets merge INC-123 INC-124 INC-125 --note-primary 'Combined records' --note-secondary 'Merged into primary' --yes --expect-plan FULL_HASH --json
+```
+
+The first ticket survives. Notes are private by default; `--public-primary` or
+`--public-secondary` explicitly selects public visibility. Merge is irreversible.
+Complete ticket and conversation reads and runtime Closed status metadata are
+required before review and checked again before the single `complete_merge`
+request. The precheck endpoint is never used as a merge. Independent readback
+checks closure, moved conversation IDs, notes and the primary status; any
+missing fields or partial history leave the result unverified. Never resend an
+ambiguous merge; inspect the exact tickets and journal instead.
+
 Change legacy flags use the same form engine, business rules, changed-field
 payload, duplicate journal, and independent readback as `--set`:
 
