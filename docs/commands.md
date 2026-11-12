@@ -1,5 +1,26 @@
 # Command cheat sheet
 
+## SR requested-item writes
+
+```sh
+fsv sr items list SR-123 --json
+fsv sr items write SR-123 edit --item 901 --answers-json '{"title":"Acme request","details":"Updated details"}' --dry-run --json
+fsv sr items write SR-123 stage --item 901 --stage 2 --dry-run --json
+fsv sr items write SR-123 add --catalog-item 71 --answers-json '{"title":"Acme request","details":"Additional item"}' --dry-run --json
+fsv sr items write SR-123 remove --item 902 --dry-run --json
+```
+
+Send with `--yes --expect-plan FULL_HASH`. Answers are changed API-name plain
+text/paragraph fields only, validated through fresh catalog metadata and rules.
+Nonempty/unavailable exact-item editability restrictions fail closed.
+Only stage 2 (observed Delivered in the accepted capture) is enabled; other stage
+IDs/labels require evidence, not inference. Answer and stage writes are separate.
+Removal requires an explicitly non-parent item; add preserves the captured
+catalog display-ID string wire. Internal item IDs, catalog display IDs and
+requested-item IDs are distinct. Readback uses complete exact-ticket inventory
+and exact-item detail, checking every submitted answer and preserving other items.
+
+
 ## Change relationships
 
 ```sh
