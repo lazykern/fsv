@@ -253,7 +253,10 @@ def parse_rust_file(crate: str, path: Path, in_test: bool) -> tuple[RsFile, list
     rf.types = set(TYPE_RE.findall(text))
     for m in re.finditer(r"\bimpl\b[^{;]*?\b(?:fmt::)?Display\s+for\s+([A-Z]\w*)", text):
         rf.display_for.add(m.group(1))
-    mods: list[tuple[list[str], str, bool]] = []  # (inline mod path, name, cfg_test)
+    mods: list[tuple[list[str], str, bool, str | None]] = []  # (inline mod path, name, cfg_test, #[path])
+    # clean_rust blanks string literals, so `#[path = "…"]` values come from the raw text.
+    raw_paths = {m.group(2): m.group(1) for m in re.finditer(
+        r'#\[path\s*=\s*"([^"]+)"\](?:\s*#\[[^\]]*\])*\s*(?:pub(?:\([^)]*\))?\s+)?mod\s+(\w+)\s*;', raw)}
     # stack entries: (kind, name, test, impl, fn_index, start_offset)
     stack: list[dict] = []
     seg_start = 0
@@ -283,8 +286,15 @@ def parse_rust_file(crate: str, path: Path, in_test: bool) -> tuple[RsFile, list
                 return None
         return None
 
+    depth = 0
     for k, ch in enumerate(text):
-        if ch not in "{};":
+        if ch in "([":
+            depth += 1
+            continue
+        if ch in ")]":
+            depth = max(depth - 1, 0)
+            continue
+        if ch not in "{};" or (ch == ";" and depth):
             continue
         seg = text[seg_start:k]
         if ch == "{":
@@ -336,9 +346,14 @@ def parse_rust_file(crate: str, path: Path, in_test: bool) -> tuple[RsFile, list
             if mm:
                 path_names = [e["name"] for e in stack if e["kind"] == "mod"]
                 cfg_test = bool(re.search(r"#\[cfg\(test\)\]", seg)) or any(e["test"] for e in stack)
-                mods.append((path_names, mm.group(1), cfg_test))
+                path_attr = raw_paths.get(mm.group(1)) if "#[path" in seg and not path_names else None
+                mods.append((path_names, mm.group(1), cfg_test, path_attr))
         seg_start = k + 1
     return rf, mods
+
+
+# A `#[path]` module file -> the file that declares it (same Rust module scope).
+PATH_PARENT: dict[Path, Path] = {}
 
 
 def collect_rust(compiled: set[str] | None):
@@ -364,11 +379,15 @@ def collect_rust(compiled: set[str] | None):
             rf, mods = parse_rust_file(crate, p, test)
             files[p] = rf
             base = p.parent if p.name in ("lib.rs", "main.rs", "mod.rs") or (p.parent.name in ("tests", "bin") and p.parent.parent == crate_dir) else p.parent / p.stem
-            for inline, name, cfg_test in mods:
+            for inline, name, cfg_test, path_attr in mods:
                 d = base.joinpath(*inline)
-                for cand in (d / f"{name}.rs", d / name / "mod.rs"):
+                # `#[path]` on an out-of-line mod is relative to the declaring file's directory.
+                cands = [p.parent / path_attr] if path_attr else [d / f"{name}.rs", d / name / "mod.rs"]
+                for cand in cands:
                     if cand.exists():
                         queue.append((cand, test or cfg_test))
+                        if path_attr:
+                            PATH_PARENT[cand] = p
                         break
     counted = {c for c in (compiled or {d.name for d in CRATES.iterdir()})}
     orphans = sorted(p for p in all_rs - set(files) if p.relative_to(CRATES).parts[0] in counted and p not in BAD_ROOTS
@@ -586,9 +605,16 @@ def main() -> int:
                 argvs.append(re.findall(r'"((?:[^"\\]|\\.)*)"', m.group(1)))
 
     argv_tokens = {t for a in argvs for t in a if t and not t.startswith("-")}
+    argv_lines = [" " + " ".join(a) + " " for a in argvs]
+
+    def arm_hit(s: str) -> bool:
+        if " " not in s:
+            return s in argv_tokens
+        return any(f" {s} " in line for line in argv_lines)
+
     golden_roots: set[str] = set()
     for s, lst in arms.items():
-        if s not in argv_tokens:
+        if not arm_hit(s):
             continue
         for _path, target, _ln, block in lst:
             if target:
@@ -636,7 +662,7 @@ def main() -> int:
             if common(f.name):
                 if crate != f.crate:
                     continue
-                same = path == f.file or str(path).startswith(str(modkey) + "/")
+                same = path == f.file or str(path).startswith(str(modkey) + "/") or PATH_PARENT.get(path) == f.file
                 mentions = (f.impl and re.search(rf"\b{re.escape(f.impl)}\b", text)) or re.search(rf"\b{re.escape(stem_of(f.file))}::{re.escape(f.name)}\b", text)
                 if not (same or mentions):
                     continue
