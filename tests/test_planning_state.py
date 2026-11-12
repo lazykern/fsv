@@ -1,4 +1,4 @@
-"""Synthetic create-versus-edit boundaries: no inferred native edit contract."""
+"""Synthetic create/edit/clear boundaries and single-attempt transport."""
 import copy
 import json
 from dataclasses import replace
@@ -37,14 +37,18 @@ def test_known_empty_create_review_and_readback(target, shape):
 
 @pytest.mark.parametrize("shape", ["description", "content", "description_html", "description_text", "body"])
 @pytest.mark.parametrize("stored", ["Acme original", " ", "<div><br></div>"])
-def test_existing_content_refused_without_post(target, shape, stored):
+def test_existing_content_uses_edit_without_post(target, shape, stored):
     module, section, key = target
     c = Client(module)
     c.rows = [{"name": key, shape: stored, "files": []}]
     before = copy.deepcopy(c.rows)
-    with pytest.raises(ReviewedWriteError, match="already has content.*edit wire is not captured"):
-        planning.build_plan(c, module, 123, section, "Acme replacement")
+    plan = planning.build_plan(c, module, 123, section, "Acme replacement")
+    assert plan.method == "PUT" and plan.path.endswith("/planning-fields/" + key)
+    assert plan.review()["before"] == stored
+    assert plan.review()["operation"] == "edit"
     assert c.rows == before and not c.writes and not journal.read()
+    assert planning.send(plan, c, reviewed_hash=plan.hash)["verified"]
+    assert c.writes[0][0] == "PUT"
 
 
 @pytest.mark.parametrize("fields", [
@@ -76,22 +80,26 @@ def test_get_race_to_existing_content_never_posts(target):
     c = Client(module)
     p = planning.build_plan(c, module, 123, section, "Acme")
     c.rows = [{"name": key, "content": "Someone else's update", "files": []}]
-    with pytest.raises(ReviewedWriteError, match="already has content"):
+    with pytest.raises(ReviewedWriteError, match="changed since review"):
         planning.send(p, c, reviewed_hash=p.hash)
     assert not c.writes and not journal.read()
 
 
 @pytest.mark.parametrize("flags", [["--dry-run"], ["--yes", "--expect-plan", "0" * 64]])
-def test_cli_existing_content_is_clean_exit_two(monkeypatch, target, flags):
+def test_cli_existing_content_review_or_unreviewed_refusal(monkeypatch, target, flags):
     module, section, key = target
     c = Client(module)
     c.rows = [{"name": key, "content": "Acme original", "files": []}]
     monkeypatch.setattr(cli, "_client", lambda: c)
     result = CliRunner().invoke(cli.app, [module, "planning-text", "123", "--section", section,
                                        "--description", "Acme", *flags])
-    assert result.exit_code == 2, result.output
-    assert "native edit wire is not captured" in result.output
-    assert "no write attempted" in result.output and "Traceback" not in result.output
+    if flags == ["--dry-run"]:
+        assert result.exit_code == 0, result.output
+        assert json.loads(result.output)["operation"] == "edit"
+    else:
+        assert result.exit_code == 2, result.output
+        assert "full --expect-plan hash" in result.output
+    assert "Traceback" not in result.output
     assert not c.writes
 
 

@@ -31,11 +31,14 @@ class Client:
         return "synthetic"
 
     def _request(self, method, path, **kw):
-        payload = json.loads(kw["content"])
+        payload = json.loads(kw["content"]) if "content" in kw else None
         self.writes.append((method, path, payload))
         if self.failure:
             raise self.failure
-        self.rows = [{"name": parse_qs(urlsplit(path).query)["id"][0], "description": payload["description"], "attachments": []}]
+        key = (parse_qs(urlsplit(path).query)["id"][0] if method == "POST" else
+               urlsplit(path).path.rsplit("/", 1)[1])
+        self.rows = [] if method == "DELETE" else [
+            {"name": key, "description": payload["description"], "attachments": []}]
         return {}
 
 
@@ -132,8 +135,7 @@ def test_tui_planning_picker_editor_review_and_outcome(offline, monkeypatch, can
     assert len(c.writes) == (0 if cancel else 1)
 
 
-def test_tui_native_existing_content_preloads_but_edit_is_refused(offline, monkeypatch):
-    from fsv.tui.modals import FailureScreen
+def test_tui_native_existing_content_preloads_and_reviews_edit(offline, monkeypatch):
 
     c = Client()
     c.rows = [{"name": "acme_plan", "content": "Acme original", "files": [], "empty": False}]
@@ -152,8 +154,16 @@ def test_tui_native_existing_content_preloads_but_edit_is_refused(offline, monke
             await pilot.press("ctrl+s")
             await app.workers.wait_for_complete()
             await pilot.pause()
-            assert isinstance(app.screen, FailureScreen)
-            assert "native edit wire is not captured" in (app._write_failure or "")
+            assert isinstance(app.screen, ConfirmScreen)
+            review = json.loads(app.screen._lines[0])
+            assert review["operation"] == "edit" and review["method"] == "PUT"
+            assert review["before"] == "Acme original"
+            assert review["after"] == "Acme replacement"
             assert not c.writes
+            await pilot.press("y")
+            await app.workers.wait_for_complete()
+            await pilot.pause()
+            assert isinstance(app.screen, OutcomeScreen)
+            assert len(c.writes) == 1 and c.writes[0][0] == "PUT"
 
     asyncio.run(go())

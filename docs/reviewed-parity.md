@@ -320,14 +320,22 @@ Review, then pass `--yes --expect-plan FULL_HASH`. Change section identities
 come from fresh field metadata; problem native sections are Root Cause,
 Impact and Symptoms, with the captured semantic section keys. This is not a
 custom-field solution editor. A fresh complete planning inventory determines
-whether the section is empty before review and again before sending. Only
-known-empty sections use the captured first-write POST with `?id=SECTION`
-and a description-only body. **Editing stored text is not supported yet:**
-the native edit wire remains uncaptured, so existing content is refused with
-exit 2, not sent as a second POST or guessed PUT. Unknown text state, existing
-attachments or unavailable attachment inventories also block text-only saves.
-Whitespace/HTML is not stripped to infer emptiness; contradictory text/empty
-representations fail closed. Clearing/deleting section text is not supported.
+whether to create or edit before review and again before sending. Known-empty
+sections use the first-write POST with `?id=SECTION`; populated sections use
+PUT to `planning-fields/SECTION`. Both send a description-only body. Use
+`--clear` instead of `--description` to review a bodyless DELETE on that same
+section path:
+
+```sh
+fsv changes planning-text CHN-123 --section 'Rollout Plan' --clear --dry-run
+fsv problems planning-text PRB-123 --section 'Root Cause' --clear --dry-run
+```
+
+Clear refuses already-empty sections. Unknown text state, stored empty rows
+whose create/edit state is unproven, existing attachments or unavailable
+attachment inventories block text-only writes. Whitespace/HTML is not stripped
+to infer emptiness; contradictory text/empty representations fail closed.
+These operations delete section text, not the section definition or parent record.
 
 The review shows `operation`, `before` and `after` text alongside the exact
 wire and full hash. A changed inventory invalidates review; sends use one
@@ -338,8 +346,10 @@ In the main TUI use **a → Edit native planning/analysis text**, choose the
 section, edit the multiline text/HTML, then **Ctrl+S** to review the exact
 hash-bound save. Cancel sends nothing; results stay in the outcome screen.
 Workaround/permanent-solution/KB publishing and planning-file changes are
-not covered by this text-only workflow. Evidence is blocked wire, not an
-accepted planning-save lifecycle.
+not covered by this text-only workflow. Accepted native UI edits and clears
+were independently read back on a self-only test account; portability tests
+use synthetic fixtures. Mixed text/file writes remain unproven. The TUI edits
+text; clearing is an explicit CLI `--clear` operation, not a blank editor save.
 
 Schema reads use a seven-day cache, including legacy cache envelopes. Stale
 reads are identified internally with `stale` and `source`, warn on stderr,

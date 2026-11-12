@@ -51,7 +51,8 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
     @app.command("planning-text", help="Review a native planning/analysis text section; no files.")
     def planning(id_: str = typer.Argument(..., metavar="ID"),
                  section: str = typer.Option(..., "--section", help="exact metadata label/name; problems: Root Cause, Impact, Symptoms", autocompletion=complete_section(resource)),
-                 description: str = typer.Option(..., "--description", help="text/HTML; reviewed verbatim"),
+                 description: Optional[str] = typer.Option(None, "--description", help="text/HTML; reviewed verbatim; mutually exclusive with --clear"),
+                 clear: bool = typer.Option(False, "--clear", help="delete existing section text; refuses files or unknown state"),
                  dry_run: bool = typer.Option(False, "--dry-run"),
                  yes: bool = typer.Option(False, "--yes"),
                  output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o", help="output format (JSON only)"),
@@ -59,7 +60,7 @@ def register(app: typer.Typer, resource: Resource, client_factory: Callable[[], 
                  expect_plan: Optional[str] = typer.Option(None, "--expect-plan")) -> None:
         try:
             c = client_factory()
-            plan = planning_text.build_plan(c, resource.name, id_, section, description)
+            plan = planning_text.build_plan(c, resource.name, id_, section, description, clear=clear)
             if dry_run:
                 typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
                 return
