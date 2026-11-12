@@ -492,7 +492,7 @@ mod tests {
             clean_error(&Failure::from(Error::session(""))),
             "Session expired. Log in again."
         );
-        let api = Failure::from(Error::Api(ApiError::new(
+        let api = Failure::from(Error::from(ApiError::new(
             400,
             json!({"description": "bad   thing"}),
         )));

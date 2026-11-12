@@ -343,6 +343,7 @@ pub fn prop_value(state: &FormState, f: &Field, tz: Option<&TimeZone>) -> String
 /// be read or its rules cannot be applied. Only a session failure (while
 /// loading the rules) is an error. The result is what
 /// `fsv_views::detail::Properties` wraps in `Some`.
+#[allow(clippy::result_large_err)]
 pub fn load_properties(
     c: &Arc<dyn Api + Send + Sync>,
     store: &dyn MetaStore,

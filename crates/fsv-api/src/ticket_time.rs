@@ -524,7 +524,7 @@ mod tests {
                 m.insert("executed_at".into(), json!("2030-01-01T20:00:00Z"));
                 for (k, v) in overrides.as_object().unwrap() {
                     if k == "omit" {
-                        m.remove(v.as_str().unwrap());
+                        m.shift_remove(v.as_str().unwrap());
                     } else {
                         m.insert(k.clone(), v.clone());
                     }

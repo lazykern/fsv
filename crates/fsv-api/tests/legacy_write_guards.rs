@@ -4,8 +4,6 @@
 //! These wrappers predate reviewed plans. The tests pin no automatic replay
 //! and CSRF preparation at each caller over a real `fsv_core::Client`;
 //! transport audit rows alone are not restart guards.
-#![allow(clippy::result_large_err)]
-
 use std::sync::{Arc, Mutex};
 
 use fsv_api::{create, service};

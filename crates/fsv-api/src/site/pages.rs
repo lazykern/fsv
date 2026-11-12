@@ -7,6 +7,7 @@ use serde_json::{Map, Value, json};
 
 use fsv_core::pystr;
 
+use crate::service::py_int;
 use crate::site::list::Missing;
 
 pub const MAX_DETAIL_PAGES: i64 = 50;
@@ -159,7 +160,7 @@ where
             } else {
                 "cursor"
             };
-            request.remove("page");
+            request.shift_remove("page");
             request.insert(cursor_key.to_string(), cursor);
         } else if flag_true || per_page_full(&request, batch.len()) {
             if request.contains_key("start_token") || request.contains_key("cursor") {
@@ -194,7 +195,7 @@ where
         },
     );
     if complete {
-        meta.remove("partial");
+        meta.shift_remove("partial");
     } else {
         meta.insert(
             "partial".to_string(),
@@ -291,18 +292,6 @@ fn per_page_full(request: &Map<String, Value>, batch: usize) -> bool {
         return false;
     };
     py_int(raw).is_some_and(|n| batch as i64 >= n)
-}
-
-fn py_int(v: &Value) -> Option<i64> {
-    match v {
-        Value::Bool(b) => Some(i64::from(*b)),
-        Value::Number(n) => n
-            .as_i64()
-            .or_else(|| n.as_u64().and_then(|u| i64::try_from(u).ok()))
-            .or_else(|| n.as_f64().map(|f| f as i64)),
-        Value::String(s) => s.trim().parse().ok(),
-        _ => None,
-    }
 }
 
 #[cfg(test)]

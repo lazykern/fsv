@@ -16,7 +16,9 @@ use std::sync::Arc;
 use indexmap::IndexMap;
 use serde_json::{Map, Value as Json, json};
 
+use fsv_api::service::{Journal, PlanEvent};
 use fsv_core::error::{Error, Result};
+use fsv_core::journal::PlanStep;
 use fsv_core::review::{Review, ReviewAttachment, ReviewMessage};
 use fsv_core::safety::{RiskContext, norm, norm_value, write_risks};
 use fsv_forms::payload::encode_value;
@@ -854,7 +856,7 @@ pub fn build_create_plan(
     opts: &CreateOptions,
 ) -> Result<Plan> {
     let spec = meta.spec();
-    let mut state = meta.state("new", opts.resolver.clone(), None)?;
+    let mut state = meta.state("new", lookup(&opts.resolver), None)?;
     let Special {
         answers,
         status_raw,
@@ -1134,7 +1136,7 @@ pub fn build_update_plan(
         record,
         opts.resolver.as_deref(),
     );
-    let mut state = meta.state("edit", opts.resolver.clone(), Some(existing.clone()))?;
+    let mut state = meta.state("edit", lookup(&opts.resolver), Some(existing.clone()))?;
     let mut answers = draft.answers.clone();
     let mut errors = Vec::new();
     if let Some(html) = &draft.description_html {
@@ -1287,136 +1289,22 @@ pub fn build_update_plan(
 // ---------------------------------------------------------------------------
 // executing plans
 
-/// Optional fields of a journal plan event.
-#[derive(Clone, Copy, Default)]
-pub struct PlanRecord<'a> {
-    pub target: Option<&'a Json>,
-    pub created_id: Option<&'a Json>,
-    pub steps: Option<&'a [Json]>,
-    /// Whether the plan failed with an error (its text is never stored).
-    pub error: bool,
-}
-
-/// The write journal's plan events (`journal.read` / `record_plan` /
-/// `recent_plan`).
-pub trait PlanJournal {
-    fn read(&self) -> Vec<Json>;
-    fn record_plan(&self, event: &str, plan: &str, action: &str, extra: PlanRecord<'_>);
-    /// [`PlanJournal::record_plan`] that reports a failed write. Callers
-    /// still read the event back, so a journal that drops writes silently
-    /// is caught too.
-    fn try_record_plan(
-        &self,
-        event: &str,
-        plan: &str,
-        action: &str,
-        extra: PlanRecord<'_>,
-    ) -> Result<()> {
-        self.record_plan(event, plan, action, extra);
-        Ok(())
-    }
-    fn recent_plan(&self, plan: &str, action: &str, hours: f64) -> Option<Json>;
-}
-
-/// The on-disk journal of the current profile and tenant.
-pub struct DiskJournal;
-
-impl PlanJournal for DiskJournal {
-    fn read(&self) -> Vec<Json> {
-        fsv_core::journal::read(None)
-    }
-    fn record_plan(&self, event: &str, plan: &str, action: &str, extra: PlanRecord<'_>) {
-        let _ = self.try_record_plan(event, plan, action, extra);
-    }
-    fn try_record_plan(
-        &self,
-        event: &str,
-        plan: &str,
-        action: &str,
-        extra: PlanRecord<'_>,
-    ) -> Result<()> {
-        let steps: Option<Vec<fsv_core::journal::PlanStep>> = extra.steps.map(|s| {
-            s.iter()
-                .map(|x| fsv_core::journal::PlanStep {
-                    step: x
-                        .get("step")
-                        .and_then(Json::as_str)
-                        .unwrap_or("")
-                        .to_string(),
-                    ok: x.get("ok").is_some_and(truthy),
-                })
-                .collect()
-        });
-        let ev = fsv_core::journal::PlanEvent {
-            target: extra.target,
-            created_id: extra.created_id,
-            steps: steps.as_deref(),
-            error: extra.error,
-        };
-        fsv_core::journal::try_record_plan(event, plan, action, ev)
-    }
-    fn recent_plan(&self, plan: &str, action: &str, hours: f64) -> Option<Json> {
-        fsv_core::journal::recent_plan(plan, action, hours)
-    }
-}
-
-fn epoch_of(row: &Json) -> f64 {
-    row.get("epoch")
-        .filter(|v| truthy(v))
-        .and_then(Json::as_f64)
-        .unwrap_or(0.0)
-}
-
-/// `journal.recent_plan` over already-read rows (`cutoff`: oldest epoch).
-pub fn recent_plan_rows(rows: &[Json], plan: &str, action: &str, cutoff: f64) -> Option<Json> {
-    let kind = format!("plan:{action}");
-    let mut outcome: Vec<(String, Json)> = Vec::new();
-    let mut started: Vec<Json> = Vec::new();
-    for row in rows {
-        if row.get("plan").and_then(Json::as_str) != Some(plan)
-            || row.get("kind").and_then(Json::as_str) != Some(&kind)
-        {
-            continue;
-        }
-        if epoch_of(row) < cutoff {
-            continue;
-        }
-        if row.get("event").and_then(Json::as_str) == Some("started") {
-            started.push(row.clone());
-        } else {
-            let key = fsv_py::py_str(row.get("epoch").unwrap_or(&Json::Null));
-            match outcome.iter_mut().find(|(k, _)| *k == key) {
-                Some(slot) => slot.1 = row.clone(),
-                None => outcome.push((key, row.clone())),
-            }
-        }
-    }
-    let best = outcome
+/// `{"step", "ok"}` of each executed step, as the journal keeps them.
+fn journal_steps(steps: &[Json]) -> Vec<PlanStep> {
+    steps
         .iter()
-        .map(|(_, r)| r)
-        .filter(|r| r.get("event").and_then(Json::as_str) == Some("done"))
-        .fold(None::<&Json>, |b, r| {
-            if b.is_none_or(|b| epoch_of(r) > epoch_of(b)) {
-                Some(r)
-            } else {
-                b
-            }
-        });
-    if let Some(b) = best {
-        return Some(b.clone());
-    }
-    started
-        .iter()
-        .rev()
-        .find(|s| !outcome.iter().any(|(_, r)| epoch_of(r) >= epoch_of(s)))
-        .cloned()
+        .map(|x| PlanStep {
+            step: x
+                .get("step")
+                .and_then(Json::as_str)
+                .unwrap_or("")
+                .to_string(),
+            ok: x.get("ok").is_some_and(truthy),
+        })
+        .collect()
 }
 
-pub fn check_duplicate(
-    plan: &Plan,
-    allow_duplicate: bool,
-    journal: &dyn PlanJournal,
-) -> Result<()> {
+pub fn check_duplicate(plan: &Plan, allow_duplicate: bool, journal: &dyn Journal) -> Result<()> {
     if plan.action != "create" || allow_duplicate {
         return Ok(());
     }
@@ -1528,13 +1416,9 @@ fn upload_all(
     Ok(ids)
 }
 
-/// `400 <= status < 500 and status not in (403, 408, 429)`: the server
-/// definitely refused, so the plan may be marked `failed`.
-///
-/// mirrors `fsv_api::service::definite_rejection` (crate-private there).
-pub(crate) fn definite_rejection(err: &Error) -> Option<u16> {
-    let status = err.as_api()?.status;
-    ((400..500).contains(&status) && ![403, 408, 429].contains(&status)).then_some(status)
+/// The flow's resolver as the form state's lookup resolver.
+pub(crate) fn lookup(r: &Option<Arc<dyn Resolver>>) -> Option<Arc<dyn fsv_forms::LookupResolver>> {
+    r.clone().map(|r| r as Arc<dyn fsv_forms::LookupResolver>)
 }
 
 /// Send the plan. Fails with [`ExecError::Partial`] when the change was
@@ -1542,7 +1426,7 @@ pub(crate) fn definite_rejection(err: &Error) -> Option<u16> {
 pub fn execute(
     plan: &Plan,
     writer: &dyn ChangeWriter,
-    journal: &dyn PlanJournal,
+    journal: &dyn Journal,
     duplicate: &str,
     attach_flow: Option<&str>,
 ) -> std::result::Result<Json, ExecError> {
@@ -1556,16 +1440,19 @@ pub fn execute(
     let early = create && !paths.is_empty() && resolve_attach_flow(attach_flow)? == "before-create";
     let mut body = plan.payload.clone().unwrap_or_default();
     let target = plan.target.map(|t| json!(t));
-    fn with_target<'a>(target: Option<&'a Json>, extra: PlanRecord<'a>) -> PlanRecord<'a> {
-        PlanRecord { target, ..extra }
-    }
     let tref = target.as_ref();
+    let event = |created_id, steps, error| PlanEvent {
+        target: tref,
+        created_id,
+        steps,
+        error,
+    };
     let before = journal.read().len();
-    let written = journal.try_record_plan(
+    let written = journal.try_record_event(
         "started",
         &plan.hash,
         &plan.action,
-        with_target(tref, PlanRecord::default()),
+        event(None, None, false),
     );
     let entries = journal.read();
     let last = entries.last();
@@ -1605,23 +1492,12 @@ pub fn execute(
             // is `failed`; anything else leaves `started` so a resend needs
             // review.
             let rejected = if sending {
-                definite_rejection(&e).is_some()
+                fsv_api::service::definite_rejection(&e).is_some()
             } else {
                 matches!(e, Error::Api(_) | Error::Other(_) | Error::Session(_))
             };
             if rejected {
-                journal.record_plan(
-                    "failed",
-                    &plan.hash,
-                    &plan.action,
-                    with_target(
-                        tref,
-                        PlanRecord {
-                            error: true,
-                            ..PlanRecord::default()
-                        },
-                    ),
-                );
+                journal.record_event("failed", &plan.hash, &plan.action, event(None, None, true));
             }
             if !uploaded.is_empty() {
                 let shown: Vec<String> = uploaded
@@ -1681,36 +1557,23 @@ pub fn execute(
     if let Err(e) = after {
         let msg: String = e.to_string().chars().take(200).collect();
         steps.push(json!({"step": "after", "ok": false, "error": msg}));
-        journal.record_plan(
+        let recorded = journal_steps(&steps);
+        journal.record_event(
             "done",
             &plan.hash,
             &plan.action,
-            with_target(
-                tref,
-                PlanRecord {
-                    created_id: Some(&cid),
-                    steps: Some(&steps),
-                    error: true,
-                    ..PlanRecord::default()
-                },
-            ),
+            event(Some(&cid), Some(&recorded), true),
         );
         return Err(ExecError::Partial(Box::new(PartialFailure::new(
             cid, uploaded, steps, e,
         ))));
     }
-    journal.record_plan(
+    let recorded = journal_steps(&steps);
+    journal.record_event(
         "done",
         &plan.hash,
         &plan.action,
-        with_target(
-            tref,
-            PlanRecord {
-                created_id: Some(&cid),
-                steps: Some(&steps),
-                ..PlanRecord::default()
-            },
-        ),
+        event(Some(&cid), Some(&recorded), false),
     );
     Ok(
         json!({"id": cid, "result": result, "steps": steps, "uploaded": uploaded, "plan_hash": plan.hash}),

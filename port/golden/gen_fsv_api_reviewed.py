@@ -167,7 +167,7 @@ def properties():
                                                                "Cost Code": "new"})
     legacy = ticket_properties.build_plan(c, 123, tags=["Acme"])
     return {"full": {"hash": full.hash, "body_json": full.body_json, "answers_json": full.answers_json,
-                     "metadata_hash": full.metadata_hash},
+                     "metadata_hash": full.metadata_hash, "after_keys": list(full.review()["after"])},
             "legacy": {"hash": legacy.hash, "metadata_hash": legacy.metadata_hash}}
 
 

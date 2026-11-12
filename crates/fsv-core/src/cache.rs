@@ -303,7 +303,7 @@ mod tests {
             (json!(2), json!("F"))
         );
         let mut d = doc(&p);
-        d.remove("fetch_count");
+        d.shift_remove("fetch_count");
         write(&p, &Value::Object(d));
         update_meta(&p, false, true, None).unwrap();
         assert_eq!(doc(&p)["fetch_count"], 2, "a missing count defaults to 1");

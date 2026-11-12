@@ -458,18 +458,10 @@ fn check_duplicate_reports_done_and_started() {
     let p = plan_ok(&h);
     let j = MemJournal::default();
     check_duplicate(&p, false, &j).unwrap();
-    j.record_plan("started", &p.hash, "create", PlanRecord::default());
+    j.record_plan("started", &p.hash, "create", None, None);
     let e = check_duplicate(&p, false, &j).unwrap_err().to_string();
     assert!(e.contains("with no recorded outcome"), "{e}");
-    j.record_plan(
-        "done",
-        &p.hash,
-        "create",
-        PlanRecord {
-            created_id: Some(&json!(502)),
-            ..PlanRecord::default()
-        },
-    );
+    j.record_plan("done", &p.hash, "create", None, Some(&json!(502)));
     let e = check_duplicate(&p, false, &j).unwrap_err();
     assert_eq!(e.exit_code(), 4);
     assert!(
@@ -477,21 +469,6 @@ fn check_duplicate_reports_done_and_started() {
             .contains("was already sent at 2030-01-01T00:00:00 (created 502)")
     );
     check_duplicate(&p, true, &j).unwrap();
-}
-
-#[test]
-fn recent_plan_rows_prefers_done_and_honours_cutoff() {
-    let row = |epoch: f64, event: &str| json!({"epoch": epoch, "kind": "plan:create", "plan": "h", "event": event});
-    let rows = vec![row(1.0, "started"), row(2.0, "done"), row(3.0, "started")];
-    assert_eq!(
-        recent_plan_rows(&rows, "h", "create", 0.0).unwrap()["event"],
-        json!("done")
-    );
-    assert_eq!(
-        recent_plan_rows(&rows, "h", "create", 2.5).unwrap()["epoch"],
-        json!(3.0)
-    );
-    assert!(recent_plan_rows(&rows, "h", "update", 0.0).is_none());
 }
 
 #[test]
@@ -828,7 +805,7 @@ fn default_resolver_looks_up_people() {
 
 #[test]
 fn disk_journal_and_editor_are_wired() {
-    let _: &dyn PlanJournal = &DiskJournal;
+    let _: &dyn Journal = &fsv_api::service::DiskJournal;
     let _: fn(&str) -> Result<Draft> = editor_edit;
 }
 
@@ -846,7 +823,7 @@ impl RejectWriter {
         }
     }
     fn reject(&self) -> Error {
-        Error::Api(fsv_core::error::ApiError::new(
+        Error::from(fsv_core::error::ApiError::new(
             self.status,
             json!("rejected"),
         ))
@@ -935,14 +912,12 @@ fn execute_failed_upload_before_create_records_failed() {
 #[derive(Default)]
 struct FailingJournal(MemJournal);
 
-impl PlanJournal for FailingJournal {
+impl Journal for FailingJournal {
     fn read(&self) -> Vec<Json> {
         self.0.read()
     }
-    fn record_plan(&self, event: &str, plan: &str, action: &str, extra: PlanRecord<'_>) {
-        let _ = self.try_record_plan(event, plan, action, extra);
-    }
-    fn try_record_plan(&self, _: &str, _: &str, _: &str, _: PlanRecord<'_>) -> Result<()> {
+    fn record_plan(&self, _: &str, _: &str, _: &str, _: Option<&Json>, _: Option<&Json>) {}
+    fn try_record_event(&self, _: &str, _: &str, _: &str, _: PlanEvent<'_>) -> Result<()> {
         Err(Error::other("No space left on device"))
     }
     fn recent_plan(&self, plan: &str, action: &str, hours: f64) -> Option<Json> {
@@ -959,7 +934,7 @@ fn execute_refuses_when_started_is_not_persisted() {
         drop_writes: true,
         ..MemJournal::default()
     };
-    let journals: [&dyn PlanJournal; 2] = [&FailingJournal::default(), &dropping];
+    let journals: [&dyn Journal; 2] = [&FailingJournal::default(), &dropping];
     for j in journals {
         for plan in [&create, &update] {
             let w = FakeWriter::default();
@@ -981,7 +956,7 @@ fn execute_refuses_when_only_an_older_started_exists() {
     let h = Hints::new();
     let (p, _) = golden_create("full", &h);
     let j = MemJournal::default();
-    j.record_plan("started", &p.hash, "create", PlanRecord::default());
+    j.record_plan("started", &p.hash, "create", None, None);
     let dropping = MemJournal {
         rows: std::sync::Mutex::new(j.read()),
         drop_writes: true,

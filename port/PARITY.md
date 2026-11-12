@@ -58,15 +58,17 @@ those stay identical.
   create still journals `failed`: no change was posted. Python has the bug
   (`change_flow.py:637-640` marks every `APIError` / `RuntimeError` /
   `SessionError` failed), so a 502/504 after the server created the change
-  lets the next run create a duplicate. `fsv_flows::change::definite_rejection`
-  mirrors the crate-private `fsv_api::service::definite_rejection`; dedupe
-  once fsv-api exports it.
+  lets the next run create a duplicate. Flows and fsv-api share
+  `fsv_api::service::definite_rejection`.
 - Change execute refuses with exit 5, "could not persist the change journal;
   nothing was sent", when the `started` event fails to write or does not
-  read back as the newest row. Python sends anyway. `PlanJournal` gained
-  `try_record_plan` (default: `record_plan` then `Ok`), and `DiskJournal`
-  returns the append error from `fsv_core::journal::try_record_plan`. The
-  journal bytes do not change.
+  read back as the newest row. Python sends anyway. The one write journal,
+  `fsv_api::service::Journal`, has `try_record_event` (default: record, then
+  `Ok`); `DiskJournal` returns the append error from
+  `fsv_core::journal::try_record_plan`. The journal bytes do not change.
+  `Journal::recent_plan` defaults to `fsv_core::journal::recent_plan_rows`
+  over `read()` with Python's `hours` cutoff (a `started` counts only with no
+  later outcome).
 - Read-only notes in a change plan follow the form's visible-field order.
   Python iterates a set, so the order is not stable.
 - `create.clone_planning_fields` treats a planning row with
@@ -95,8 +97,8 @@ those stay identical.
   A plan without that detail (not built by this form) is refused with exit
   2, "the plan was not built by this form; review it again". Python cannot
   reach that case.
-- `ClientResolver.lookup` custom lookups (Python ccc3a64) are ported to both
-  `fsv_api::formmeta::ClientResolver` and `fsv_flows::meta::ClientResolver`.
+- `ClientResolver.lookup` custom lookups (Python ccc3a64) are in
+  `fsv_api::formmeta::ClientResolver` (`fsv_flows::meta` re-exports it).
   A `custom_lookup` / `custom_multi_lookup` field with a link always asks
   `lookup_choices(link, query)` first, before the user, agent or group
   autocomplete, and skips rows with no id or a truthy `deleted`. Outputs and
@@ -111,7 +113,7 @@ those stay identical.
 
 | Python | Rust | status |
 |---|---|---|
-| live wiring behind `views` reads, `formmeta.load_meta`, `create` writes, form session plan/save/send, TUI backend and pages | `fsv_app::{source, meta, writer, form, tui}` | partial. `cargo test -p fsv-app --offline` was 102 passed. Request paths, bodies and plan hashes captured from Python. `run_tui` and `run_form` need a terminal and have no tests. |
+| live wiring behind `views` reads, `formmeta.load_meta`, `create` writes, form session plan/save/send, TUI backend and pages | `fsv_app::{source, meta, writer, form, tui}` | partial. `cargo test -p fsv-app --offline` was 101 passed. Request paths, bodies and plan hashes captured from Python. `run_tui` and `run_form` need a terminal and have no tests. |
 | `tui.app._prepare_ticket_conversation` / `_send_ticket_conversation`, `_load_ticket_property_fields`, `_prepare_ticket_property` / `_send_ticket_property`, `_prepare_known_error` / `_send_known_error`, `_load_planning_sections` / `_load_planning_editor` / `_prepare_planning_text` / `_send_planning_text`, `_load_asset_candidates` | `LiveBackend::{ticket_conversation_plan, send_ticket_conversation, ticket_property_fields, ticket_property_plan, send_ticket_property, known_error_plan, send_known_error, planning_definitions, planning_row, planning_text_plan, send_planning_text, asset_candidates}` | ported. Golden: `port/golden/gen_fsv_app_tui_reviewed.py` → `src/tui/testdata/reviewed_expected.json` (reply with CC + Pending, BCC + sender reply, private note with notify, sender/BCC refusals and accepted plans, the property picker filter, answers plans and sends for subject / priority / custom text / custom dropdown / beneficiary plus the status and planned-date refusals, a tag-plan send, known-error mark, problem and change planning text, one asset search page). Plans, reviews (warnings included), hashes, request lines, bodies and results match. Planning text plans carry `before` in `ReviewPlan::raw` and rebuild a `PlanningTextPlan` (Python `92002d7`); the fixture sections start empty, since a section with text is refused. |
 | `change_cli._send`, `cli_sr._send`, `ticket_flow.send`, `_report_partial` for a form-reviewed plan; `tui.actions.failure_detail` attributes | `Submitted::send_cli`, `send_checked`, `send_confirmed`, `SendError::{report, outcome}`, `tui::forms::send_submitted` | ported. Golden: `port/golden/gen_fsv_app_send.py` (metadata changed after review: diff lines, exit 4 without a terminal, re-review and confirm in one, exit 2 when the new form needs answers; partial failure lines and exit 5; SR equivalents). |
 
@@ -144,7 +146,8 @@ those stay identical.
 | `readback.py` | `fsv_api::readback` | ported (`test_readback_normalization` duration/timestamp cases). |
 | `reviewed_write.py` | `fsv_api::reviewed_write` | ported (`WritePlan`, `execute`, `refused`). |
 | `watchers.py`, `problem_known_error.py`, `planning_text.py`, `ticket_time.py`, `bulk_priority.py` | same-stem modules | ported, no CLI. Hashes and reviews checked against `port/golden/gen_fsv_api_reviewed.py` → `src/testdata/reviewed_oracle.json`. |
-| `ticket_properties.build_plan(answers=…)`, beneficiary, rule-context reset | `properties::build_plan_with` / `send_with` → `AnsweredPropertyPlan` | ported. `PropertyPlan` (no answers) keeps its fields and hash. |
+| `ticket_properties.build_plan(answers=…)`, beneficiary, rule-context reset | `properties::build_plan_with` / `send_with` → `AnsweredPropertyPlan` | ported. `PropertyPlan` (no answers) keeps its fields and hash. The review `after` keeps the payload's key order without `br_validation_excludes` (pinned as `after_keys` from Python); serde_json map removals use `shift_remove` throughout, since `remove` is `swap_remove` under `preserve_order`. |
+| `ticket_notes._EMAIL` / `_valid_recipient` (also `change_approvals._EMAIL`, the `catalog`, `ticket_flow` and `cli_sr` plain-email checks) | `fsv_api::recipients::{EMAIL, valid_recipient, plain_email}` | ported once; notes, conversations, approvals, catalog and `fsv_flows::ticket` call it. `fsv-cli/src/cmd/sr.rs` still has a local `plain_email`. |
 | `ticket_conversation` bcc / sender / forward, CC re-check | `conversations::build_plan_mail` + `MailArgs` | ported; `build_plan` is the no-BCC/no-sender wrapper. |
 | `catalog.SendFailure` + `cli_sr.place` conversion | `catalog::SendFailure`, `Executed`, `execute_detailed` | ported; `execute` still flattens to `Error::other` with the same text. |
 | `change_approvals._run` echo before an error | `approvals::run_action_detailed` → `RunActionError { echo, error }` | ported; `run_action` unchanged. |
@@ -167,7 +170,7 @@ Gaps:
 - `Api::me` / `Api::v2_get` have erroring defaults. fsv-cli `LazyApi`, fsv-flows' testing `Api` and the fsv-views golden fake should forward them; until then watchers / ticket time through those impls fail with "signed-in agent identity is unavailable".
 - `cli._resolve_where` (labels, aliases, `Me`) is an fsv-cli function; `query.resolve_where`'s "field not found: 'x'" already matches `query.py`.
 - `1dc7ab6`'s exact-bytes/headers HTTP tests have no equivalent; fsv-api tests run on `FakeApi` / `FnApi`, which see the method, path and body but not headers. `tests/legacy_write_guards.rs` is the exception: it sees headers.
-- `create` planning-field resolution and `--duplicate` errors are `Error::value` (Python `UsageError`, `820af12`): the bare message, exit 2. Other `APIError(0, …)` sites keep `ApiError` status 0; fsv-core still renders those as `HTTP 0: …`, where Python now prints `Error: …`.
+- `create` planning-field resolution and `--duplicate` errors are `Error::value` (Python `UsageError`, `820af12`): the bare message, exit 2. Other `APIError(0, …)` sites keep `ApiError` status 0, which `fsv_core::ApiError` renders as Python does: `Error: …` (`Error <what>: …` with a request).
 
 Divergences:
 - `readback::duration_seconds`, `ticket_time::duration` and `watchers::positive_id` accept ASCII digits only; Python's `\d` / `str.isdigit` also accept other Unicode digits. Hours that overflow `i64` are an error rather than a big int.
@@ -311,10 +314,10 @@ CLI divergences:
 | Python | Rust | status |
 |---|---|---|
 | `drafts.py`, `change_flow.py`, `ticket_flow.py` | `fsv_flows` | ported. `cargo test -p fsv-flows --offline` was 88 passed. Create (10), update (5), incident (4) and draft parses match `tests/golden/flows.json` from `gen_flows.py`. Plan JSON carries `risks` and `requires_confirmation` (Python `7903e2a`); the golden tests also check its key order. |
-| `formmeta.py` cache and workspace discovery | `fsv_flows::meta` | partial. Only the pure helpers the flows call. Callers pass metadata through `MetaSource`. `MODULES` lists `problem` as in Python. `resolve_planning_definition` lists every choice (Python `820af12` dropped the cap of 12). |
+| `formmeta.py` cache and workspace discovery | `fsv_flows::meta` | ported as re-exports of `fsv_api::formmeta` (one `FormMeta`, `ClientResolver`, `Resolver`, `MetaSource`). Callers pass metadata through `MetaSource`. `MODULES` lists `problem` as in Python. `resolve_planning_definition` lists every choice (Python `820af12` dropped the cap of 12). |
 | change execute HTTP | `change::ChangeWriter` | partial. Upload, POST, PUT, attach and planning sit behind the trait. Tests use a recording fake; the live client is `fsv_app::writer::LiveWriter`. |
 
-`interactive()` and `editor_edit` are smoke-only. The `~/a.pdf` draft case is skipped unless home is `/Users/phusit.somb`, because the golden file stores the expanded path. `DiskJournal` wraps `fsv_core::journal`; tests use an in-memory journal. Change execute journal safety (see Divergences) is pinned by `execute_unknown_outcome_leaves_started` (500/502/503/504/429/408/403 on POST and PUT), `execute_definite_rejection_records_failed` (400/404/409/422), `execute_failed_upload_before_create_records_failed` and `execute_refuses_when_started_is_not_persisted` (a journal whose write errors and one that drops writes).
+`interactive()` and `editor_edit` are smoke-only. The `~/a.pdf` draft case is skipped unless home is `/Users/phusit.somb`, because the golden file stores the expanded path. Flows take `&dyn fsv_api::service::Journal` (`DiskJournal` wraps `fsv_core::journal`); tests use an in-memory journal. Change execute journal safety (see Divergences) is pinned by `execute_unknown_outcome_leaves_started` (500/502/503/504/429/408/403 on POST and PUT), `execute_definite_rejection_records_failed` (400/404/409/422), `execute_failed_upload_before_create_records_failed` and `execute_refuses_when_started_is_not_persisted` (a journal whose write errors and one that drops writes).
 
 ## fsv-py
 

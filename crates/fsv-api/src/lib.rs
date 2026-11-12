@@ -5,8 +5,6 @@
 //! owns the form-schema fetch and cache; `views` the site's read-side
 //! loaders (saved views, edit-form rules, properties).
 
-#![allow(clippy::result_large_err)]
-
 pub mod approvals;
 pub mod asset_picker;
 pub mod associations;
@@ -26,6 +24,7 @@ pub mod problem_workflows;
 pub mod properties;
 mod query;
 pub mod readback;
+pub mod recipients;
 pub mod reviewed_write;
 pub mod scenarios;
 pub mod schema;

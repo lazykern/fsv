@@ -39,7 +39,7 @@ pub trait Source {
     fn v2_get(&mut self, path: &str) -> Result<Value, FetchError>;
 }
 
-pub const MAX_DETAIL_PAGES: i64 = 50;
+pub use fsv_api::site::MAX_DETAIL_PAGES;
 pub const MAX_CONVERSATION_PAGES: i64 = 50;
 
 /// `optional_get`: any failure but an expired session is a [`Missing`].

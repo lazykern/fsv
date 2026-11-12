@@ -18,9 +18,7 @@ use fsv_api::formmeta::{DiskStore, MetaStore};
 use fsv_api::service::{Api, Journal};
 use fsv_core::review::Review;
 use fsv_core::{Client, Error, Result};
-use fsv_flows::change::{
-    self, ChangeWriter, CreateOptions, ExecError, PlanJournal, UpdateOptions, flow_exit,
-};
+use fsv_flows::change::{self, ChangeWriter, CreateOptions, ExecError, UpdateOptions, flow_exit};
 use fsv_flows::drafts::{Draft, PlanningSpec};
 use fsv_flows::meta::{
     ClientResolver, FormMeta, MetaSource, Resolver, existing_from_record, name_existing,
@@ -49,7 +47,7 @@ pub struct FormDeps {
     pub form_api: Arc<dyn FormApi>,
     pub meta: Arc<dyn MetaSource + Send + Sync>,
     pub store: Arc<dyn MetaStore + Send + Sync>,
-    pub plan_journal: Arc<dyn PlanJournal + Send + Sync>,
+    pub plan_journal: Arc<dyn fsv_api::service::Journal + Send + Sync>,
     pub journal: Arc<dyn Journal + Send + Sync>,
     pub writer: Arc<dyn ChangeWriter + Send + Sync>,
     pub resolver: Arc<ClientResolver>,
@@ -71,7 +69,7 @@ impl FormDeps {
             form_api: client,
             meta: Arc::new(LiveMeta::new(api.clone(), store.clone())),
             store,
-            plan_journal: Arc::new(change::DiskJournal),
+            plan_journal: Arc::new(fsv_api::service::DiskJournal),
             journal: Arc::new(fsv_api::service::DiskJournal),
             writer: Arc::new(LiveWriter::new(api.clone())),
             resolver: Arc::new(ClientResolver::new(api.clone())),

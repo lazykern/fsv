@@ -5,8 +5,6 @@
 //! caller-supplied [`source::Source`] (the Properties pane through an
 //! `fsv_api::service::Api`); this crate never opens a connection.
 
-#![allow(clippy::result_large_err)]
-
 pub mod detail;
 pub mod pages;
 pub mod properties;

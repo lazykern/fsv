@@ -425,14 +425,14 @@ Recommended process: a batch cycle, not commit-chasing.
 - [ ] P0 `fsv-flows/src/change.rs:1559-1575`: `failed` only on `definite_rejection`; add a 503 test; add a PARITY entry; report upstream.
 - [ ] P0 `fsv-flows/src/change.rs:1533`: refuse to send when `started` was not persisted.
 - [ ] P1 port the 27 missing CLI paths in `UPSTREAM.md` order; triage `dbe553c..92002d7`.
-- [ ] P1 make `fsv_flows::meta` re-export `fsv_api::formmeta`; unify recipient validation.
+- [x] P1 make `fsv_flows::meta` re-export `fsv_api::formmeta`; unify recipient validation. (`fsv_api::recipients`; the copy in `fsv-cli/src/cmd/sr.rs` `plain_email` is left for the fsv-cli owner.)
 - [ ] P1 `fsv-core/src/yaml.rs:105`: `key_text` uses `py_str` for Bool and Null.
 - [ ] P1 `fsv-cli/src/cmd/completion.rs:17`: delegate to `fsv_completion::completion_network`.
 - [ ] P1 commit the `/tmp` generators and `gen_tree.py`; stamp fixtures with the Python commit.
 - [ ] P1 review rows show names (`name_for`); decide the `SendFailure` exit code; port `parseaddr` exactly or reject.
-- [ ] P2 one `Journal` trait; delete `Source`, the duplicate `collect_pages`, `optional_get` and `load_views`; move `pystr` to fsv-py.
+- [ ] P2 one `Journal` trait; delete `Source`, the duplicate `collect_pages`, `optional_get` and `load_views`; move `pystr` to fsv-py. Partial: one `fsv_api::service::Journal` (flows' `PlanJournal`/`DiskJournal`/`recent_plan_rows` gone; `recent_plan` defaults to `fsv_core::journal::recent_plan_rows` with the `hours` cutoff); `service::collect_pages` is an adapter over `site::collect_pages`. Open: `Source` (fsv-cli uses `fsv_views::SessionError` and `fsv_app::ClientSource`), the fsv-views `optional_get`/`load_views` adapters, and the entity table, which needs an fsv-py edit.
 - [ ] P2 `ReadOnly<B>` backend wrapper; remove the `Backend` network defaults.
 - [x] P2 split `fsv-tui/src/app.rs` along its section markers.
 - [ ] P2 coverage audit: crate-scoped evidence plus `cargo llvm-cov` execution; regenerate `COVERAGE.md`.
 - [ ] P2 fix the ARCHITECTURE graph and Error enum; prune stale PARITY lines (37-39, 94, 97, 137, 146, 246, 280-281).
-- [ ] P3 `Error::Api(Box<ApiError>)`; drop the `result_large_err` allows; delete `add_reply` and other dead code.
+- [ ] P3 `Error::Api(Box<ApiError>)`; drop the `result_large_err` allows; delete `add_reply` and other dead code. Partial: `Error::Api` is boxed with a manual `From<ApiError>`; the crate allows are gone from fsv-core, fsv-api, fsv-flows, fsv-views and fsv-app (local allows remain where `FormError` or tungstenite's handshake error is returned). Open: the fsv-forms, fsv-cli and fsv-completion allows, `FormError` boxing, dead code.

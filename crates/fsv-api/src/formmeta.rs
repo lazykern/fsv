@@ -16,6 +16,7 @@ use fsv_core::safety::norm;
 use fsv_forms::fetch::{BusinessRulesOptions, business_rules_query, parse_business_rules};
 use fsv_forms::rules::EngineOptions;
 use fsv_forms::state::ResolverError;
+use fsv_forms::tz::TzEnv;
 use fsv_forms::{
     Field, FormError, FormSpec, FormState, Kind, LookupResolver, LookupValue, MetadataFingerprint,
     RulesEngine, StateOptions, Value, Values, metadata_fingerprint,
@@ -63,7 +64,8 @@ const PRIMARY_FLAGS: [&str; 6] = [
     "selected",
 ];
 
-fn record_key(name: &str) -> &str {
+/// `RECORD_KEYS.get(name, name)`.
+pub fn record_key(name: &str) -> &str {
     RECORD_KEYS
         .iter()
         .find(|(k, _)| *k == name)
@@ -71,7 +73,7 @@ fn record_key(name: &str) -> &str {
 }
 
 /// A FormError the CLI's form handlers catch (exit 2) or a plain error.
-pub(crate) fn form_err(e: FormError) -> Error {
+pub fn form_err(e: FormError) -> Error {
     if e.is_form_error() || e.is_value_error() {
         Error::Value(e.to_string())
     } else {
@@ -575,7 +577,11 @@ pub struct FormMeta {
     pub fetched_at: f64,
     /// `"server"` | `"cache"`.
     pub source: String,
+    /// Record display id (edit form).
     pub module_id: Json,
+    /// Time-zone environment for date-times typed without an offset
+    /// (`None`: the process).
+    pub tz_env: Option<TzEnv>,
     spec: Arc<FormSpec>,
 }
 
@@ -601,8 +607,14 @@ impl FormMeta {
             fetched_at,
             source: source.into(),
             module_id,
+            tz_env: None,
             spec: Arc::new(spec),
         })
+    }
+
+    pub fn with_tz_env(mut self, env: TzEnv) -> FormMeta {
+        self.tz_env = Some(env);
+        self
     }
 
     pub fn fields_key(&self) -> &'static str {
@@ -662,7 +674,7 @@ impl FormMeta {
         RulesEngine::new(self.spec.clone(), Some(&self.rules), opts).map_err(form_err)
     }
 
-    /// `FormState(meta.spec, meta.engine(), mode=..., existing=...)`.
+    /// `FormState(meta.spec, meta.engine(), mode=..., resolver=..., existing=...)`.
     pub fn state(
         &self,
         mode: &str,
@@ -672,9 +684,29 @@ impl FormMeta {
         let opts = StateOptions {
             resolver,
             existing,
+            tz_env: self.tz_env.clone(),
             ..StateOptions::default()
         };
         FormState::new(self.spec.clone(), Some(self.engine()?), mode, None, opts).map_err(form_err)
+    }
+}
+
+/// `load_meta(client, module, mode, fresh=..., module_id=...)` behind a seam,
+/// for flows that re-check metadata before sending.
+pub trait MetaSource {
+    fn load_meta(
+        &self,
+        module: &str,
+        mode: &str,
+        fresh: bool,
+        module_id: &Json,
+    ) -> Result<FormMeta>;
+}
+
+/// A lookup resolver that can also name ids it has seen (`name_for`).
+pub trait Resolver: LookupResolver + Send + Sync {
+    fn name_for(&self, _entity: &str, _id: &Json) -> Option<String> {
+        None
     }
 }
 
@@ -925,8 +957,7 @@ impl LookupResolver for ClientResolver {
                     .filter(|g| {
                         has(g, "id")
                             && norm(
-                                &g.get("name")
-                                    .filter(|v| !v.is_null())
+                                &first_truthy(&[g.get("name")])
                                     .map(py_str)
                                     .unwrap_or_default(),
                             )
@@ -962,6 +993,12 @@ impl LookupResolver for ClientResolver {
                 None => Ok(Vec::new()),
             },
         }
+    }
+}
+
+impl Resolver for ClientResolver {
+    fn name_for(&self, entity: &str, id: &Json) -> Option<String> {
+        ClientResolver::name_for(self, entity, id)
     }
 }
 
@@ -1033,6 +1070,7 @@ pub fn resolve_requester(
 // answers -> state
 
 /// Field by internal name or label; ambiguous labels are an error.
+#[allow(clippy::result_large_err)]
 pub fn find_field<'a>(spec: &'a FormSpec, key: &str) -> std::result::Result<&'a Field, FormError> {
     let k = fsv_core::pystr::strip(key);
     if let Some(f) = spec.get(k) {
@@ -1180,7 +1218,7 @@ pub fn name_existing(
     mut existing: Values,
     spec: &FormSpec,
     record: &Map<String, Json>,
-    resolver: Option<&ClientResolver>,
+    resolver: Option<&dyn Resolver>,
 ) -> Values {
     let fix = |f: &Field, v: &Value| -> Value {
         let Value::Lookup(lv) = v else {

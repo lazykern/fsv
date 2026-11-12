@@ -31,7 +31,7 @@ use crate::formmeta::{
     MetaStore, RULES_UNAVAILABLE_KEY, RULES_WORKSPACE_KEY, apply_answers, find_field, form_err,
     load_rules, rules_warnings,
 };
-use crate::notes::{EMAIL, valid_recipient};
+use crate::recipients::plain_email;
 use crate::service::{Api, Journal, definite_rejection, obj};
 
 pub const PER_PAGE: i64 = 30;
@@ -1068,10 +1068,6 @@ pub struct Recipients<'a> {
     pub requested_for: Option<&'a LookupValue>,
     pub cc_emails: &'a [String],
     pub cc_ids: &'a [Json],
-}
-
-fn plain_email(e: &str) -> bool {
-    valid_recipient(e) && EMAIL.is_match(e)
 }
 
 /// `build_sr_plan`: engine state, payload, uploads, review and plan hash.
@@ -2376,11 +2372,16 @@ mod tests {
         let w = want("item_meta");
         let mut as_of = m.as_of();
         assert_eq!(
-            as_of.remove("fetched_at").unwrap().as_str().unwrap().len(),
+            as_of
+                .shift_remove("fetched_at")
+                .unwrap()
+                .as_str()
+                .unwrap()
+                .len(),
             w[4]["fetched_at"].as_str().unwrap().len()
         );
         let mut w_as_of = w[4].as_object().unwrap().clone();
-        w_as_of.remove("fetched_at");
+        w_as_of.shift_remove("fetched_at");
         assert_eq!(
             json!([m.display_id(), m.name(), names, m.fingerprint().hash]),
             json!([w[0], w[1], w[2], w[3]])
@@ -2497,7 +2498,7 @@ mod tests {
         j["review"]["metadata"]
             .as_object_mut()
             .unwrap()
-            .remove("fetched_at");
+            .shift_remove("fetched_at");
         assert_eq!(
             json!([p.ok(), p.target(), p.files(), p.hash, j]),
             want("plan")

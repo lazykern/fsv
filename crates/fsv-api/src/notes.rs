@@ -1,9 +1,6 @@
 //! Reviewed ticket notes using the blocked UI contract, not the reply
 //! endpoint (`ticket_notes.py`). No accepted live write is implied.
 
-use std::sync::LazyLock;
-
-use regex::Regex;
 use serde_json::{Map, Value, json};
 
 use fsv_core::client::Body;
@@ -18,21 +15,11 @@ use crate::service::{
 const ACTION: &str = "ticket_note";
 const UNKNOWN: &str = "note outcome unknown; check the exact ticket and journal before any retry";
 
-/// `_EMAIL`: one plain address.
-pub static EMAIL: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$").expect("regex"));
-static FORMATTED_EMAIL: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^[^<>\r\n]+ <([^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+)>$").expect("regex")
-});
+pub use crate::recipients::{EMAIL, valid_recipient};
 
 /// `NoteError`: a safe user-facing failure (the CLI exits 2).
 pub(crate) fn refused(msg: impl Into<String>) -> Error {
     Error::exit(2, msg)
-}
-
-pub(crate) fn valid_recipient(value: &str) -> bool {
-    !crate::service::has_control(value, "")
-        && (EMAIL.is_match(value) || FORMATTED_EMAIL.is_match(value))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -1182,8 +1182,7 @@ triaged (`92002d7`). Advance it only when every row up to the new SHA is
 `ported`, `partial` with a named follow-up, or `wontfix` with a PARITY
 entry. Open follow-ups in the `dbe553c..92002d7` ledger below: fsv-cli
 tests and commands for `820af12` / `92002d7` / the five new fsv-api
-modules, and fsv-core
-`ApiError` display for status 0 (`Error ...`, not `HTTP 0: ...`).
+modules. (fsv-core's status-0 `ApiError` display now matches Python.)
 
 ## Ledger: `dbe553c..92002d7`
 
@@ -1234,9 +1233,9 @@ fsv-flows `resolve_planning_definition`). `testdata/create_oracle.json` is
 regenerated.
 
 Open:
-- **fsv-core**: Python `APIError` with status 0 now renders as `Error …`;
-  `fsv_core::ApiError` still prints `HTTP 0: …`. Not changed (out of scope
-  for this batch).
+- ~~**fsv-core**: status-0 `ApiError` display.~~ Done: `fsv_core::ApiError`
+  heads status 0 with `Error` (`Error: msg`, `Error creating changes: msg`),
+  checked against Python `92002d7`; `create_oracle.json` regenerated.
 - **fsv-cli**: `planning-text` must catch `APIError`/`SessionError` and exit
   with `exit_code_for` (unknown section: exit 2, not an uncaught exit 1).
   The `--section` completer: changes use `complete_planning_field_names`,

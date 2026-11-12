@@ -1,8 +1,6 @@
 //! fsv infrastructure: config, session store, HTTP client, journal, cache,
 //! YAML, terminal output.
 
-#![allow(clippy::result_large_err)]
-
 pub mod cache;
 pub mod client;
 pub mod config;

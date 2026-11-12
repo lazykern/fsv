@@ -376,7 +376,7 @@
  },
  "download_nourl": {
   "__error__": "APIError",
-  "msg": "HTTP 0: attachment has no URL: {'id': 1}"
+  "msg": "Error: attachment has no URL: {'id': 1}"
  },
  "reupload": [
   [
@@ -418,7 +418,7 @@
  ],
  "upload_bytes_noid": {
   "__error__": "APIError",
-  "msg": "HTTP 0: attachment upload returned no id: {'name': 'n.txt'}"
+  "msg": "Error: attachment upload returned no id: {'name': 'n.txt'}"
  },
  "upload_file": [
   33,
@@ -564,7 +564,7 @@
  ],
  "attach_prompt_notty": {
   "__error__": "APIError",
-  "msg": "HTTP 0: attachment already exists: a.txt; use --duplicate skip|replace|append"
+  "msg": "Error: attachment already exists: a.txt; use --duplicate skip|replace|append"
  },
  "attach_prompt_tty": [
   {
@@ -940,11 +940,11 @@
  ],
  "match_row_amb": {
   "__error__": "APIError",
-  "msg": "HTTP 0: ambiguous planning rows for 'dup'"
+  "msg": "Error: ambiguous planning rows for 'dup'"
  },
  "match_row_conflict": {
   "__error__": "APIError",
-  "msg": "HTTP 0: conflicting planning row identity for 'r1'"
+  "msg": "Error: conflicting planning row identity for 'r1'"
  },
  "planning_description": [
   "",
@@ -971,7 +971,7 @@
   null
  ],
  "prompt_duplicate": [
-  "HTTP 0: attachment already exists: a.txt; use --duplicate skip|replace|append",
+  "Error: attachment already exists: a.txt; use --duplicate skip|replace|append",
   "replace",
   "replace",
   "replace",
@@ -988,9 +988,9 @@
   "plain-1"
  ],
  "backup_name_stamp": [
-  "a.backup-20261111-195924.txt",
-  "a.backup-20261111-195924-3.txt",
-  "noext.backup-20261111-195924"
+  "a.backup-20261111-235645.txt",
+  "a.backup-20261111-235645-3.txt",
+  "noext.backup-20261111-235645"
  ],
  "choose_backup_name": [
   "mine.txt",
@@ -1034,7 +1034,7 @@
  ],
  "backup_attachment_nourl": {
   "__error__": "APIError",
-  "msg": "HTTP 0: cannot backup attachment with no URL: {'id': 1}"
+  "msg": "Error: cannot backup attachment with no URL: {'id': 1}"
  },
  "backup_attachment_fail": {
   "__error__": "APIError",
@@ -1247,19 +1247,19 @@
  },
  "upf_unavailable": {
   "__error__": "APIError",
-  "msg": "HTTP 0: planning rows unavailable; cannot safely determine the write target"
+  "msg": "Error: planning rows unavailable; cannot safely determine the write target"
  },
  "upf_unavailable_list": {
   "__error__": "APIError",
-  "msg": "HTTP 0: planning rows unavailable; cannot safely determine the write target"
+  "msg": "Error: planning rows unavailable; cannot safely determine the write target"
  },
  "upf_invalid_row": {
   "__error__": "APIError",
-  "msg": "HTTP 0: invalid planning row; cannot safely determine the write target"
+  "msg": "Error: invalid planning row; cannot safely determine the write target"
  },
  "upf_unidentified": {
   "__error__": "APIError",
-  "msg": "HTTP 0: unidentified planning row; cannot safely determine the write target"
+  "msg": "Error: unidentified planning row; cannot safely determine the write target"
  },
  "approvals": [
   [

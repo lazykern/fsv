@@ -793,7 +793,7 @@ impl Client {
     /// `/agents/me` → the `agent` object.
     pub fn me(&self) -> Result<Value> {
         match self.request("GET", &self.v2_url("agents/me"), RequestOpts::default())? {
-            Value::Object(mut m) => Ok(m.remove("agent").unwrap_or_else(|| json!({}))),
+            Value::Object(mut m) => Ok(m.shift_remove("agent").unwrap_or_else(|| json!({}))),
             other => Err(Error::other(format!(
                 "'{}' object has no attribute 'get'",
                 py_type(&other)

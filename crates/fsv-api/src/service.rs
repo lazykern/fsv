@@ -12,6 +12,7 @@ use serde_json::{Map, Value, json};
 
 use fsv_core::client::{Body, RequestOpts, Response};
 use fsv_core::error::{Error, Result};
+pub use fsv_core::journal::PlanEvent;
 use fsv_core::resource::{CHANGES, PROBLEMS, Resource, TICKETS};
 use fsv_py::{ValueExt, truthy};
 
@@ -181,29 +182,44 @@ pub trait Journal {
         let _ = (steps, error);
         self.record_plan(event, plan, action, target, created_id);
     }
+    /// `record_plan(event, plan, action, target=..., created_id=...,
+    /// steps=..., error=...)` that reports a failed write, so a caller can
+    /// refuse to send when its `started` mark was not persisted. Callers still
+    /// read the event back, so a journal that drops writes silently is caught
+    /// too.
+    fn try_record_event(
+        &self,
+        event: &str,
+        plan: &str,
+        action: &str,
+        extra: PlanEvent<'_>,
+    ) -> Result<()> {
+        match extra.steps {
+            Some(steps) => self.record_plan_steps(
+                event,
+                plan,
+                action,
+                extra.target,
+                extra.created_id,
+                steps,
+                extra.error,
+            ),
+            None => self.record_plan(event, plan, action, extra.target, extra.created_id),
+        }
+        Ok(())
+    }
+    /// [`Journal::try_record_event`] that never fails.
+    fn record_event(&self, event: &str, plan: &str, action: &str, extra: PlanEvent<'_>) {
+        let _ = self.try_record_event(event, plan, action, extra);
+    }
     /// `journal.recent_plan`: the latest `done`, or a `started` with no
     /// outcome, within `hours`.
     fn recent_plan(&self, plan: &str, action: &str, hours: f64) -> Option<Value> {
-        let _ = hours;
-        let kind = format!("plan:{action}");
-        let rows: Vec<Value> = self
-            .read()
-            .into_iter()
-            .filter(|r| {
-                r.get("kind").and_then(Value::as_str) == Some(kind.as_str())
-                    && r.get("plan").and_then(Value::as_str) == Some(plan)
-            })
-            .collect();
-        if let Some(done) = rows
-            .iter()
-            .rev()
-            .find(|r| r.get("event").and_then(Value::as_str) == Some("done"))
-        {
-            return Some(done.clone());
-        }
-        rows.last()
-            .filter(|r| r.get("event").and_then(Value::as_str) == Some("started"))
-            .cloned()
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs_f64())
+            .unwrap_or(0.0);
+        fsv_core::journal::recent_plan_rows(&self.read(), plan, action, now - hours * 3600.0)
     }
 }
 
@@ -246,6 +262,15 @@ impl Journal for DiskJournal {
             error,
         };
         fsv_core::journal::record_plan(event, plan, action, extra);
+    }
+    fn try_record_event(
+        &self,
+        event: &str,
+        plan: &str,
+        action: &str,
+        extra: PlanEvent<'_>,
+    ) -> Result<()> {
+        fsv_core::journal::try_record_plan(event, plan, action, extra)
     }
     fn recent_plan(&self, plan: &str, action: &str, hours: f64) -> Option<Value> {
         fsv_core::journal::recent_plan(plan, action, hours)
@@ -314,7 +339,7 @@ pub(crate) fn dumps_bytes(payload: &Value, ensure_ascii: bool) -> Vec<u8> {
 
 /// Python's `400 <= status < 500 and status not in (403, 408, 429)`: the
 /// server definitely refused, so the plan may be marked failed.
-pub(crate) fn definite_rejection(err: &Error) -> Option<u16> {
+pub fn definite_rejection(err: &Error) -> Option<u16> {
     let status = err.as_api()?.status;
     ((400..500).contains(&status) && ![403, 408, 429].contains(&status)).then_some(status)
 }
@@ -330,7 +355,7 @@ fn session_or_missing(err: Error, what: &str) -> std::result::Result<Missing, Er
 }
 
 /// `views.MAX_DETAIL_PAGES`.
-pub const MAX_DETAIL_PAGES: usize = 50;
+pub const MAX_DETAIL_PAGES: usize = crate::site::MAX_DETAIL_PAGES as usize;
 
 /// Rows, merged metadata and the failure of [`collect_pages`].
 #[derive(Debug, Clone, PartialEq)]
@@ -363,10 +388,6 @@ pub(crate) fn py_int(v: &Value) -> Option<i64> {
     }
 }
 
-fn int_param(map: &Map<String, Value>, key: &str, default: i64) -> i64 {
-    map.get(key).and_then(py_int).unwrap_or(default)
-}
-
 /// `views.collect_pages`: bounded internal reads that keep rows and the
 /// continuation of an interrupted history. Explicit server pagination wins
 /// over page length; continuation URLs may only add query parameters for
@@ -383,207 +404,31 @@ pub fn collect_pages<F>(
 where
     F: FnMut(&str, Option<Map<String, Value>>) -> Result<Value>,
 {
-    let origin = params.cloned().unwrap_or_default();
     let label = if what.is_empty() { key } else { what };
-    let mut request = origin.clone();
-    let mut rows: Vec<Value> = Vec::new();
-    let mut meta = Map::new();
-    let mut seen_requests: Vec<String> = Vec::new();
-    let mut seen_ids: Vec<String> = Vec::new();
-    let mut failure = None;
-    let mut reason = String::new();
-    let mut complete = false;
-    let mut pages = 0i64;
-    let mut exhausted = true;
-    let empty = Map::new();
-    for _ in 0..max_pages {
-        let mut sig: Vec<(String, String)> = request
-            .iter()
-            .map(|(k, v)| (k.clone(), fsv_py::py_str(v)))
-            .collect();
-        sig.sort();
-        let signature = format!("{sig:?}");
-        if seen_requests.contains(&signature) {
-            reason = "continuation cycle".into();
-            exhausted = false;
-            break;
-        }
-        seen_requests.push(signature);
-        let sent = if request.is_empty() {
-            None
-        } else {
-            Some(request.clone())
-        };
-        let data = match get(path, sent) {
-            Ok(d) => d,
-            Err(e) => {
-                let miss = session_or_missing(e, label)?;
-                reason = miss.note();
-                failure = Some(miss);
-                exhausted = false;
-                break;
-            }
-        };
-        let readable = match &data {
-            Value::Array(_) => true,
-            Value::Object(m) => m.get(key).is_some_and(Value::is_array),
-            _ => false,
-        };
-        if !readable {
-            reason = "unreadable page response".into();
-            failure = Some(Missing::new(label, None));
-            exhausted = false;
-            break;
-        }
-        let batch: Vec<&Value> = match &data {
-            Value::Array(a) => a.iter(),
-            _ => data[key].as_array().map(|a| a.iter()).unwrap_or_default(),
-        }
-        .filter(|r| r.is_object())
-        .collect();
-        pages += 1;
-        for row in &batch {
-            let identity = row.get("id").filter(|v| !v.is_null()).map(fsv_py::py_str);
-            match identity {
-                Some(id) if seen_ids.contains(&id) => {}
-                Some(id) => {
-                    seen_ids.push(id);
-                    rows.push((*row).clone());
-                }
-                None => rows.push((*row).clone()),
-            }
-        }
-        let raw = data.as_object().unwrap_or(&empty);
-        let page_meta = raw.get("meta").and_then(Value::as_object).unwrap_or(&empty);
-        for (k, v) in page_meta {
-            meta.insert(k.clone(), v.clone());
-        }
-        let mut flag: Option<Value> = [page_meta, raw]
-            .iter()
-            .flat_map(|s| ["has_next", "has_more"].map(|k| s.get(k)))
-            .flatten()
-            .find(|v| !v.is_null())
-            .cloned();
-        let either = |k: &str| {
-            if raw.contains_key(k) {
-                raw.get(k)
-            } else {
-                page_meta.get(k)
-            }
-        };
-        let link_present =
-            raw.contains_key("next_page_url") || page_meta.contains_key("next_page_url");
-        let link = either("next_page_url").filter(|v| truthy(v)).cloned();
-        let start = either("next_start_token").filter(|v| truthy(v)).cloned();
-        let cursor = start
-            .clone()
-            .or_else(|| either("next_cursor").filter(|v| truthy(v)).cloned());
-        if flag.is_none() && !link_present && cursor.is_none() {
-            let total = if page_meta.contains_key("total_count") {
-                page_meta.get("total_count")
-            } else {
-                page_meta.get("count")
-            };
-            if let Some(total) = total.and_then(py_int) {
-                let offset =
-                    (int_param(&origin, "page", 1) - 1) * int_param(&origin, "per_page", 0);
-                let more = offset + (rows.len() as i64) < total;
-                if more && batch.is_empty() {
-                    reason = "empty page before reported total".into();
-                    exhausted = false;
-                    break;
-                }
-                flag = Some(Value::Bool(more));
-            }
-        }
-        if flag == Some(Value::Bool(false)) || (link_present && link.is_none() && cursor.is_none())
-        {
-            complete = true;
-            exhausted = false;
-            break;
-        }
-        if let Some(link) = link {
-            let Ok(parsed) = fsv_core::pystr::urlsplit(&fsv_py::py_str(&link)) else {
-                reason = "unreadable continuation".into();
-                exhausted = false;
-                break;
-            };
-            let got = parsed.path.trim_end_matches('/');
-            if !parsed.path.is_empty()
-                && got != path.trim_end_matches('/')
-                && got != format!("/api/_/{}", path.trim_matches('/'))
-            {
-                reason = "unsupported continuation endpoint".into();
-                exhausted = false;
-                break;
-            }
-            let following = fsv_core::pystr::parse_qsl(&parsed.query, true);
-            if following.is_empty() {
-                reason = "unreadable continuation".into();
-                exhausted = false;
-                break;
-            }
-            request.retain(|k, _| !matches!(k.as_str(), "page" | "start_token" | "cursor"));
-            for (k, v) in following {
-                request.insert(k, Value::String(v));
-            }
-        } else if let Some(cursor) = cursor {
-            let cursor_key = if start.is_some() {
-                "start_token"
-            } else {
-                "cursor"
-            };
-            request.remove("page");
-            request.insert(cursor_key.into(), cursor);
-        } else if flag == Some(Value::Bool(true))
-            || request
-                .get("per_page")
-                .is_some_and(|v| truthy(v) && py_int(v).is_some_and(|n| batch.len() as i64 >= n))
-        {
-            if request.contains_key("start_token") || request.contains_key("cursor") {
-                reason = "missing continuation cursor".into();
-                exhausted = false;
-                break;
-            }
-            let next = int_param(&request, "page", 1) + 1;
-            request.insert("page".into(), json!(next));
-        } else {
-            complete = true;
-            exhausted = false;
-            break;
-        }
-    }
-    if exhausted {
-        reason = format!("page limit ({max_pages})");
-    }
-    meta.insert("loaded_count".into(), json!(rows.len()));
-    meta.insert("pages".into(), json!(pages));
-    meta.insert("complete".into(), json!(complete));
-    meta.insert("has_more".into(), json!(!complete));
-    meta.insert("has_next".into(), json!(!complete));
-    meta.insert(
-        "continuation".into(),
-        if complete {
-            Value::Null
-        } else {
-            Value::Object(request)
+    let mut session = None;
+    let got = crate::site::collect_pages(
+        path,
+        key,
+        &params.cloned().unwrap_or_default(),
+        what,
+        i64::try_from(max_pages).unwrap_or(i64::MAX),
+        |p, request| {
+            let sent = (!request.is_empty()).then(|| request.clone());
+            get(p, sent).map_err(|e| {
+                session_or_missing(e, label).unwrap_or_else(|e| {
+                    session = Some(e);
+                    Missing::new(label, None)
+                })
+            })
         },
     );
-    if complete {
-        meta.remove("partial");
-    } else {
-        meta.insert(
-            "partial".into(),
-            json!(format!(
-                "{label}: incomplete ({} loaded; {reason})",
-                rows.len()
-            )),
-        );
+    if let Some(e) = session {
+        return Err(e);
     }
     Ok(Pages {
-        rows,
-        meta,
-        missing: failure,
+        rows: got.rows,
+        meta: got.meta,
+        missing: got.failure,
     })
 }
 
@@ -674,7 +519,7 @@ pub(crate) fn obj(v: Value) -> Map<String, Value> {
 /// `data.get(key, data)` (Python leaves non-dict data as is).
 pub(crate) fn unwrap_key(data: Value, key: &str) -> Value {
     match data {
-        Value::Object(mut m) if m.contains_key(key) => m.remove(key).unwrap_or(Value::Null),
+        Value::Object(mut m) if m.contains_key(key) => m.shift_remove(key).unwrap_or(Value::Null),
         other => other,
     }
 }
@@ -1642,8 +1487,11 @@ pub(crate) mod testing {
             target: Option<&Value>,
             created_id: Option<&Value>,
         ) {
+            let epoch = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_or(0.0, |d| d.as_secs_f64());
             self.rows.lock().unwrap().push(json!({
-                "kind": format!("plan:{action}"), "event": event, "plan": plan,
+                "epoch": epoch, "kind": format!("plan:{action}"), "event": event, "plan": plan,
                 "target": target.cloned(), "created_id": created_id.cloned(),
             }));
         }

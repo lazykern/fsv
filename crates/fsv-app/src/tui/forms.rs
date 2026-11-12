@@ -57,7 +57,7 @@ pub fn session(deps: &FormDeps, req: &FormRequest) -> Result<FormSession> {
         _ => {
             let record = req.record.clone().map(|mut r| {
                 if let Some(m) = r.as_object_mut() {
-                    m.remove("_resource");
+                    m.shift_remove("_resource");
                 }
                 r
             });

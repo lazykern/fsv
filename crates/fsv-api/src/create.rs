@@ -305,7 +305,7 @@ pub fn change_template(schema: &Value, level: &str) -> Map<String, Value> {
 
 /// Flatten `custom_fields` into the record (lookups `{id, value}` become ids).
 fn flatten_custom(change: &mut Map<String, Value>) {
-    if let Some(cf) = change.remove("custom_fields")
+    if let Some(cf) = change.shift_remove("custom_fields")
         && let Value::Object(cf) = cf
     {
         for (k, v) in cf {
@@ -389,7 +389,7 @@ pub fn task_clone_body(
             .map(|(k, v)| (k.clone(), v.clone()))
             .collect();
         if cf.is_empty() {
-            out.remove("custom_fields");
+            out.shift_remove("custom_fields");
         } else {
             out.insert("custom_fields".into(), Value::Object(cf));
         }
@@ -1755,7 +1755,7 @@ pub fn update_task(
     body: &Map<String, Value>,
 ) -> Result<Value> {
     let mut payload = body.clone();
-    let cf = payload.remove("custom_fields");
+    let cf = payload.shift_remove("custom_fields");
     if let Some(cf) = cf.filter(truthy) {
         let kept: Map<String, Value> = cf
             .as_object()
@@ -2077,7 +2077,7 @@ mod tests {
             .map(|c| {
                 let mut body = c.body.clone();
                 if let Some(Value::Object(m)) = body.as_mut() {
-                    m.remove("content_updated_at");
+                    m.shift_remove("content_updated_at");
                 }
                 json!([c.method, c.path, body])
             })
@@ -2202,7 +2202,9 @@ mod tests {
             .filter(|c| c.method == "POST")
             .map(|c| {
                 let mut b = c.body.clone().unwrap();
-                b.as_object_mut().unwrap().remove("content_updated_at");
+                b.as_object_mut()
+                    .unwrap()
+                    .shift_remove("content_updated_at");
                 b
             })
             .collect();

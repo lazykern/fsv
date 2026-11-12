@@ -30,9 +30,10 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 /// fsv error (Python exception hierarchy flattened).
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    /// `APIError`: the server (or engine) rejected a request.
+    /// `APIError`: the server (or engine) rejected a request. Boxed so
+    /// `Result<T>` stays small.
     #[error("{0}")]
-    Api(#[from] ApiError),
+    Api(Box<ApiError>),
     /// `SessionError`: no session, expired session, wrong tenant.
     #[error("{0}")]
     Session(String),
@@ -127,6 +128,12 @@ impl Error {
     }
 }
 
+impl From<ApiError> for Error {
+    fn from(e: ApiError) -> Self {
+        Error::Api(Box::new(e))
+    }
+}
+
 impl From<serde_json::Error> for Error {
     fn from(e: serde_json::Error) -> Self {
         // json.JSONDecodeError is a ValueError.
@@ -174,11 +181,15 @@ impl ApiError {
     pub fn message(&self) -> String {
         let what = describe_request(self.method.as_deref(), self.target.as_deref());
         let msg = server_message(&self.body, 240);
-        let head = if what.is_empty() {
-            format!("HTTP {}", self.status)
+        // Status 0 is a local guard failure, never a real HTTP response.
+        let mut head = if self.status == 0 {
+            "Error".to_string()
         } else {
-            format!("HTTP {} {what}", self.status)
+            format!("HTTP {}", self.status)
         };
+        if !what.is_empty() {
+            head = format!("{head} {what}");
+        }
         if msg.is_empty() {
             head
         } else {
@@ -352,24 +363,24 @@ mod tests {
     #[test]
     fn exit_code_mapping() {
         assert_eq!(Error::session("x").exit_code(), 3);
-        assert_eq!(Error::Api(ApiError::new(409, "conflict")).exit_code(), 4);
+        assert_eq!(Error::from(ApiError::new(409, "conflict")).exit_code(), 4);
         assert_eq!(
-            Error::Api(ApiError::new(
+            Error::from(ApiError::new(
                 422,
                 json!({"errors": "Name has already been taken"})
             ))
             .exit_code(),
             4
         );
-        assert_eq!(Error::Api(ApiError::new(400, "bad")).exit_code(), 5);
-        assert_eq!(Error::Api(ApiError::new(503, "down")).exit_code(), 5);
+        assert_eq!(Error::from(ApiError::new(400, "bad")).exit_code(), 5);
+        assert_eq!(Error::from(ApiError::new(503, "down")).exit_code(), 5);
         assert_eq!(Error::value("bad").exit_code(), 2);
         assert_eq!(Error::other("x").exit_code(), 1);
     }
 
     #[test]
     fn wrapped_api_error_keeps_cause_code() {
-        let e = Error::Api(ApiError::new(500, "x")).context("update failed");
+        let e = Error::from(ApiError::new(500, "x")).context("update failed");
         assert_eq!(e.exit_code(), 5);
         assert_eq!(e.to_string(), "update failed");
         assert_eq!(Error::value("v").context("x").exit_code(), 1);
@@ -379,14 +390,14 @@ mod tests {
     fn exit_code_for_matches_python() {
         let codes = [
             Error::session("x").exit_code(),
-            Error::Api(ApiError::new(409, "c")).exit_code(),
-            Error::Api(ApiError::new(400, json!({"errors": "Duplicate record"}))).exit_code(),
-            Error::Api(ApiError::new(422, "Already associated")).exit_code(),
-            Error::Api(ApiError::new(404, "x")).exit_code(),
+            Error::from(ApiError::new(409, "c")).exit_code(),
+            Error::from(ApiError::new(400, json!({"errors": "Duplicate record"}))).exit_code(),
+            Error::from(ApiError::new(422, "Already associated")).exit_code(),
+            Error::from(ApiError::new(404, "x")).exit_code(),
             Error::value("v").exit_code(),
             Error::other("r").exit_code(),
             Error::session("s").context("outer").exit_code(),
-            Error::Api(ApiError::new(409, "c"))
+            Error::from(ApiError::new(409, "c"))
                 .context("outer")
                 .exit_code(),
             Error::value("v").context("outer").exit_code(),
@@ -492,5 +503,44 @@ mod tests {
         assert_eq!(e.message(), "HTTP 404 fetching ticket: gone");
         assert_eq!(e.detail(), "GET /api/v2/tickets/3\n<h1>gone</h1>");
         assert_eq!(Error::from(e).status(), Some(404));
+    }
+
+    /// `str(APIError(...))` at Python `92002d7` (`820af12`: status 0 heads with `Error`).
+    #[test]
+    fn api_error_status_zero_heads_with_error() {
+        for (status, body, req, want) in [
+            (0, json!(""), None, "Error"),
+            (0, json!("boom"), None, "Error: boom"),
+            (0, Value::Null, None, "Error"),
+            (500, json!(""), None, "HTTP 500"),
+            (500, json!("x"), None, "HTTP 500: x"),
+            (
+                0,
+                json!("boom"),
+                Some(("post", "/api/v2/changes")),
+                "Error creating changes: boom",
+            ),
+            (0, json!(""), Some(("get", "x")), "Error listing x"),
+            (
+                500,
+                json!("x"),
+                Some(("put", "/api/v2/tickets/1?a=b")),
+                "HTTP 500 updating ticket: x",
+            ),
+            (
+                500,
+                json!(""),
+                Some(("delete", "/a")),
+                "HTTP 500 deleting resource",
+            ),
+        ] {
+            let e = match req {
+                Some((m, t)) => ApiError::with_request(status, body, m, t),
+                None => ApiError::new(status, body),
+            };
+            assert_eq!(e.to_string(), want);
+        }
+        let e = ApiError::with_request(0, json!("boom"), "post", "/api/v2/changes");
+        assert_eq!(e.detail(), "POST /api/v2/changes\nboom");
     }
 }

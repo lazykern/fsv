@@ -6,9 +6,7 @@
 //! chains. Never trust a write response or replay a write.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::sync::LazyLock;
 
-use regex::Regex;
 use serde_json::{Map, Value, json};
 
 use fsv_core::client::Body;
@@ -16,6 +14,7 @@ use fsv_core::error::{Error, Result};
 use fsv_core::resource::{CHANGES, parse_id};
 
 use crate::associations::SendOpts;
+use crate::recipients::EMAIL;
 use crate::service::{
     Api, Journal, change_tab, definite_rejection, dumps_bytes, has_control, last_event, obj,
     plan_hash, positive_id,
@@ -35,9 +34,6 @@ This requests approval; it does not approve the change. Tenant workflows may als
 const ACTION_WARNING: &str = "Approval actions notify people; approval/rejection may move the change workflow. \
 Cancellation is irreversible. Review the exact tenant and identifiers.";
 const ACTION_UNKNOWN: &str = "approval action outcome unknown; inspect the change and journal before any retry; do not resubmit";
-
-static EMAIL: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$").expect("regex"));
 
 /// `ApprovalError`: a safe user-facing failure (the CLI exits 2).
 pub(crate) fn refused(msg: impl Into<String>) -> Error {

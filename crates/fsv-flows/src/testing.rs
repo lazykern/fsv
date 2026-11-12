@@ -7,12 +7,12 @@ use std::sync::{Arc, LazyLock, Mutex};
 
 use serde_json::{Map, Value as Json, json};
 
-use fsv_api::service::Api;
+use fsv_api::service::{Api, Journal, PlanEvent};
 use fsv_core::client::{Body, Response};
 use fsv_core::error::{ApiError, Error, Result};
 use fsv_forms::tz::TzEnv;
 
-use crate::change::{ChangeWriter, PlanJournal, PlanRecord, recent_plan_rows};
+use crate::change::ChangeWriter;
 use crate::meta::{ClientResolver, FormMeta, Resolver};
 
 pub const FETCHED_AT: f64 = 1900000000.0;
@@ -118,7 +118,7 @@ impl Api for FakeApi {
         if path.starts_with("tickets/") {
             return match self.ticket_read.lock().unwrap().clone() {
                 Some(v) => Ok(v),
-                None => Err(Error::Api(ApiError::new(404, json!("not found")))),
+                None => Err(Error::from(ApiError::new(404, json!("not found")))),
             };
         }
         Ok(json!({}))
@@ -213,7 +213,7 @@ impl Api for FakeApi {
             json!({"csrf": csrf, "body": doc}),
         ));
         match self.failure.lock().unwrap().clone() {
-            Some(Fail::Api(status)) => Err(Error::Api(ApiError::new(
+            Some(Fail::Api(status)) => Err(Error::from(ApiError::new(
                 status,
                 json!("do not print response body"),
             ))),
@@ -251,13 +251,34 @@ pub struct MemJournal {
     pub drop_writes: bool,
 }
 
-impl PlanJournal for MemJournal {
+impl Journal for MemJournal {
     fn read(&self) -> Vec<Json> {
         self.rows.lock().unwrap().clone()
     }
-    fn record_plan(&self, event: &str, plan: &str, action: &str, extra: PlanRecord<'_>) {
+    fn record_plan(
+        &self,
+        event: &str,
+        plan: &str,
+        action: &str,
+        target: Option<&Json>,
+        created_id: Option<&Json>,
+    ) {
+        let extra = PlanEvent {
+            target,
+            created_id,
+            ..PlanEvent::default()
+        };
+        self.record_event(event, plan, action, extra);
+    }
+    fn try_record_event(
+        &self,
+        event: &str,
+        plan: &str,
+        action: &str,
+        extra: PlanEvent<'_>,
+    ) -> Result<()> {
         if self.drop_writes {
-            return;
+            return Ok(());
         }
         let mut rows = self.rows.lock().unwrap();
         let epoch = rows.len() as f64 + 1.0;
@@ -266,15 +287,19 @@ impl PlanJournal for MemJournal {
                              "target": extra.target.cloned().unwrap_or(Json::Null),
                              "created_id": extra.created_id.cloned().unwrap_or(Json::Null)});
         if let Some(steps) = extra.steps {
-            row["steps"] = Json::Array(steps.to_vec());
+            row["steps"] = steps
+                .iter()
+                .map(|s| json!({"step": s.step, "ok": s.ok}))
+                .collect();
         }
         if extra.error {
             row["error"] = json!("details omitted");
         }
         rows.push(row);
+        Ok(())
     }
     fn recent_plan(&self, plan: &str, action: &str, _hours: f64) -> Option<Json> {
-        recent_plan_rows(&self.read(), plan, action, f64::MIN)
+        fsv_core::journal::recent_plan_rows(&self.read(), plan, action, f64::MIN)
     }
 }
 
@@ -302,7 +327,7 @@ impl ChangeWriter for FakeWriter {
             .unwrap()
             .push(("post".into(), Json::Object(body.clone())));
         if let Some(status) = self.fail_post {
-            return Err(Error::Api(ApiError::new(status, json!("rejected"))));
+            return Err(Error::from(ApiError::new(status, json!("rejected"))));
         }
         Ok(json!({"id": 900000502, "human_display_id": "CHN-502"}))
     }

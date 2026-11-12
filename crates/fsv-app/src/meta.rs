@@ -6,9 +6,9 @@ use std::sync::Arc;
 use serde_json::Value;
 
 use fsv_api::formmeta::{self, DiskStore, MetaStore};
+use fsv_api::formmeta::{FormMeta, MetaSource};
 use fsv_api::service::Api;
 use fsv_core::Result;
-use fsv_flows::meta::{FormMeta, MetaSource};
 
 /// Form metadata from the server, cached in a [`MetaStore`].
 #[derive(Clone)]
@@ -31,21 +31,6 @@ impl LiveMeta {
     }
 }
 
-/// The flows' [`FormMeta`] for a loaded `fsv_api` one (same fields, rules,
-/// workspace and provenance; the spec is rebuilt from the same fields).
-pub fn to_flows(m: formmeta::FormMeta) -> Result<FormMeta> {
-    FormMeta::new(
-        &m.module,
-        &m.form_type,
-        m.form_fields,
-        m.rules,
-        m.workspace_id,
-        m.fetched_at,
-        &m.source,
-        m.module_id,
-    )
-}
-
 impl MetaSource for LiveMeta {
     fn load_meta(
         &self,
@@ -54,14 +39,14 @@ impl MetaSource for LiveMeta {
         fresh: bool,
         module_id: &Value,
     ) -> Result<FormMeta> {
-        to_flows(formmeta::load_meta(
+        formmeta::load_meta(
             self.api.as_ref(),
             self.store.as_ref(),
             module,
             mode,
             fresh,
             module_id,
-        )?)
+        )
     }
 }
 
@@ -149,32 +134,6 @@ mod tests {
                 .collect::<Vec<_>>(),
             ["/api/_/ws/2/business_rules"]
         );
-    }
-
-    #[test]
-    fn to_flows_keeps_everything() {
-        let m = formmeta::FormMeta::new(
-            "change",
-            "new_form",
-            fields(),
-            json!({"business_rules": []}),
-            json!(2),
-            5.0,
-            "cache",
-            Value::Null,
-        )
-        .unwrap();
-        let f = to_flows(m).unwrap();
-        assert_eq!(
-            (
-                f.module.as_str(),
-                f.form_type.as_str(),
-                f.source.as_str(),
-                f.fetched_at
-            ),
-            ("change", "new_form", "cache", 5.0)
-        );
-        assert_eq!(f.raw_fields().len(), 1);
     }
 
     #[test]

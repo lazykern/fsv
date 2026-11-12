@@ -112,7 +112,7 @@ impl PropertyPlan {
 
     fn review_with(&self, hash: String) -> Map<String, Value> {
         let mut after = self.payload().as_object().cloned().unwrap_or_default();
-        after.remove("br_validation_excludes");
+        after.shift_remove("br_validation_excludes");
         obj(
             json!({"action": ACTION, "method": "PUT", "path": format!("/api/_/tickets/{}", self.ticket_id),
                    "before": self.before(), "after": after, "payload": self.payload(),
@@ -921,6 +921,9 @@ mod tests {
         assert_eq!(p.answers_json, want["answers_json"]);
         assert_eq!(p.metadata_hash, want["metadata_hash"]);
         assert_eq!(p.hash(), want["hash"]);
+        let review = p.review();
+        let after: Vec<&String> = review["after"].as_object().unwrap().keys().collect();
+        assert_eq!(json!(after), want["after_keys"]);
         let j = MemJournal::default();
         let out = send_with(
             &p,

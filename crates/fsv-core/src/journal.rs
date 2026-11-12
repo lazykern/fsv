@@ -408,17 +408,21 @@ pub fn recent_plan(plan: &str, action: &str, hours: f64) -> Option<Value> {
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_secs_f64())
         .unwrap_or(0.0);
-    let cutoff = now - hours * 3600.0;
+    recent_plan_rows(&read(None), plan, action, now - hours * 3600.0)
+}
+
+/// [`recent_plan`] over already-read rows; `cutoff` is the oldest epoch kept.
+pub fn recent_plan_rows(rows: &[Value], plan: &str, action: &str, cutoff: f64) -> Option<Value> {
     let kind = format!("plan:{action}");
-    let mut outcome: Vec<(String, Value)> = Vec::new();
-    let mut started: Vec<Value> = Vec::new();
-    for row in read(None) {
+    let mut outcome: Vec<(String, &Value)> = Vec::new();
+    let mut started: Vec<&Value> = Vec::new();
+    for row in rows {
         if row.get("plan").and_then(Value::as_str) != Some(plan)
             || row.get("kind").and_then(Value::as_str) != Some(&kind)
         {
             continue;
         }
-        if epoch_of(&row) < cutoff {
+        if epoch_of(row) < cutoff {
             continue;
         }
         if row.get("event").and_then(Value::as_str) == Some("started") {
@@ -442,12 +446,11 @@ pub fn recent_plan(plan: &str, action: &str, hours: f64) -> Option<Value> {
     if let Some(b) = best {
         return Some(b.clone());
     }
-    for s in started.iter().rev() {
-        if !outcome.iter().any(|(_, r)| epoch_of(r) >= epoch_of(s)) {
-            return Some(s.clone());
-        }
-    }
-    None
+    started
+        .iter()
+        .rev()
+        .find(|s| !outcome.iter().any(|(_, r)| epoch_of(r) >= epoch_of(s)))
+        .map(|s| (*s).clone())
 }
 
 #[cfg(test)]
@@ -499,8 +502,8 @@ mod tests {
     fn without_time(row: &Value) -> Value {
         let mut row = row.clone();
         let map = row.as_object_mut().unwrap();
-        assert!(map.remove("ts").is_some_and(|t| t.is_string()));
-        map.remove("epoch");
+        assert!(map.shift_remove("ts").is_some_and(|t| t.is_string()));
+        map.shift_remove("epoch");
         row
     }
 
@@ -797,5 +800,20 @@ mod tests {
         record_plan("done", "x", "create", PlanEvent::default());
         assert!(try_record_plan("started", "x", "create", PlanEvent::default()).is_err());
         assert!(read(None).is_empty());
+    }
+
+    #[test]
+    fn recent_plan_rows_prefers_done_and_honours_cutoff() {
+        let row = |epoch: f64, event: &str| json!({"epoch": epoch, "kind": "plan:create", "plan": "h", "event": event});
+        let rows = vec![row(1.0, "started"), row(2.0, "done"), row(3.0, "started")];
+        assert_eq!(
+            recent_plan_rows(&rows, "h", "create", 0.0).unwrap()["event"],
+            json!("done")
+        );
+        assert_eq!(
+            recent_plan_rows(&rows, "h", "create", 2.5).unwrap()["epoch"],
+            json!(3.0)
+        );
+        assert!(recent_plan_rows(&rows, "h", "update", 0.0).is_none());
     }
 }

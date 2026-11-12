@@ -1,7 +1,5 @@
 //! Live implementations of the seams the flows, views, form and TUI crates
 //! are written against, plus the entry points that wire them to a client.
-#![allow(clippy::result_large_err)]
-
 pub mod form;
 pub mod meta;
 pub mod source;

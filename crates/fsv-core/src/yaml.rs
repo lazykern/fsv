@@ -106,9 +106,7 @@ fn resolve_scalar(
 /// is `"True"`, `null:` / `~:` is `"None"`, a quoted `"true":` stays `"true"`.
 fn key_text(v: &Value) -> std::result::Result<String, String> {
     match v {
-        Value::String(_) | Value::Null | Value::Bool(_) | Value::Number(_) => {
-            Ok(fsv_py::py_str(v))
-        }
+        Value::String(_) | Value::Null | Value::Bool(_) | Value::Number(_) => Ok(fsv_py::py_str(v)),
         _ => Err("found unhashable key".into()),
     }
 }
@@ -330,7 +328,10 @@ mod tests {
             ("'null': 1", json!({"null": "1"})),
             ("!!int 7: a", json!({"7": "a"})),
             ("!!float 1: a", json!({"1.0": "a"})),
-            ("a: {false: x, Null: y}", json!({"a": {"False": "x", "None": "y"}})),
+            (
+                "a: {false: x, Null: y}",
+                json!({"a": {"False": "x", "None": "y"}}),
+            ),
             ("true: 1\nTrue: 2\n\"True\": 3", json!({"True": "3"})),
         ] {
             assert_eq!(loads(text).unwrap(), want, "{text:?}");

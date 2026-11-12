@@ -31,7 +31,7 @@ impl FakeApi {
 }
 
 fn not_found() -> Error {
-    Error::Api(ApiError::new(404, json!({})))
+    Error::from(ApiError::new(404, json!({})))
 }
 
 impl Api for FakeApi {
@@ -44,7 +44,7 @@ impl Api for FakeApi {
             return Err(not_found());
         };
         if let Some(status) = r.get("api").and_then(Value::as_u64) {
-            return Err(Error::Api(ApiError::new(status as u16, json!({}))));
+            return Err(Error::from(ApiError::new(status as u16, json!({}))));
         }
         if let Some(msg) = r.get("session").and_then(Value::as_str) {
             return Err(Error::session(msg));

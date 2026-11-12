@@ -382,6 +382,7 @@ mod tests {
                 }
                 let Some(frames) = replies.next() else { return };
                 let mut path = String::new();
+                #[allow(clippy::result_large_err)]
                 let mut ws = tungstenite::accept_hdr(
                     stream,
                     |req: &tungstenite::handshake::server::Request, resp| {

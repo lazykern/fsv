@@ -177,20 +177,25 @@
  },
  "planning": {
   "acme_plan": {
-   "hash": "01b90ffacfa32ffcadfbcde93639f378569df8e9ee4a01f2944a673b34da2454"
+   "hash": "17c0b65b9c783cfd451d191103a39b4171eb11272274e548e7670e856f2df6f0"
   },
   "problem_cause": {
-   "hash": "cfa011824430d8fd57b86ff289d2e418a02e20aad91d3a6c53feed396993fec7"
+   "hash": "648ef43948a9e57eb5c2637c7be7508d77388a4e22cf3a22dc1392f17e51a637"
   },
   "problem_impact": {
-   "hash": "3f12ee0b93f9854549c07459e158da7575a6608733f278a7cd29b5dde434df0d"
+   "hash": "18e0fcb5c7d80e6aa2dc65993567526815c968fefeb13abc570bcb2dbb67d7be"
   },
   "problem_symptom": {
-   "hash": "15b3f80f114e74b168458b3e805ed511978e3e54c6d0b40f8d61591f69e30f8c"
+   "hash": "b711f4393ec481a9bc507b544e945aed755794ea508bf0ff77b8d272502ad5ba"
   }
  },
  "properties": {
   "full": {
+   "after_keys": [
+    "custom_fields",
+    "priority",
+    "subject"
+   ],
    "answers_json": "{\"Cost Code\": \"new\", \"Priority\": \"High\", \"Subject\": \"Globex\"}",
    "body_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"cost_code\": \"new\"}, \"priority\": 73, \"subject\": \"Globex\"}",
    "hash": "047fa51124e3cc3c98634321a227b0514543dce71f3cd0b14c640a7f277a81da",

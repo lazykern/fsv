@@ -2,13 +2,13 @@
 //! (`ticket_flow.py`).
 
 use std::collections::HashSet;
-use std::sync::{Arc, LazyLock};
+use std::sync::Arc;
 
 use indexmap::IndexMap;
-use regex::Regex;
 use serde_json::{Map, Value as Json, json};
 
-use fsv_api::service::Api;
+use fsv_api::recipients::plain_email;
+use fsv_api::service::{Api, Journal};
 use fsv_core::client::Body;
 use fsv_core::error::{Error, Result};
 use fsv_core::review::Review;
@@ -16,8 +16,8 @@ use fsv_forms::{FormError, LookupValue, ModuleOptions, Value, build_ticket_paylo
 use fsv_py::truthy;
 
 use crate::change::{
-    self, Plan, PlanJournal, PlanRecord, acknowledge, auto_suffix, dropped, flow_exit, messages,
-    notes, split_special, unsent_suffix,
+    self, Plan, acknowledge, auto_suffix, dropped, flow_exit, messages, notes, split_special,
+    unsent_suffix,
 };
 use crate::drafts::Draft;
 use crate::meta::{
@@ -26,20 +26,6 @@ use crate::meta::{
 };
 
 pub const ACTION: &str = "ticket_create";
-
-static EMAIL: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$").expect("email regex"));
-static FORMATTED_EMAIL: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^[^<>\r\n]+ <([^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+)>$").expect("email regex")
-});
-
-/// `ticket_notes._valid_recipient`.
-fn valid_recipient(v: &str) -> bool {
-    if v.chars().any(|c| (c as u32) < 32 || c as u32 == 127) {
-        return false;
-    }
-    EMAIL.is_match(v) || FORMATTED_EMAIL.is_match(v)
-}
 
 /// Keyword arguments of [`build_create_plan`].
 #[derive(Clone, Default)]
@@ -56,7 +42,7 @@ pub fn build_create_plan(
     opts: &TicketOptions,
 ) -> Result<Plan> {
     let spec = meta.spec();
-    let mut state = meta.state("new", opts.resolver.clone(), None)?;
+    let mut state = meta.state("new", change::lookup(&opts.resolver), None)?;
     let sp = split_special(meta, draft);
     let mut errors = sp.errors;
     if sp
@@ -182,11 +168,7 @@ pub fn build_create_plan(
             "requester email is required; use --requester or the draft requester key".into(),
         );
     }
-    if opts
-        .cc_emails
-        .iter()
-        .any(|v| !valid_recipient(v) || !EMAIL.is_match(v))
-    {
+    if opts.cc_emails.iter().any(|v| !plain_email(v)) {
         errors.push("CC recipients must be plain email addresses".into());
     }
     let mut payload = None;
@@ -272,11 +254,7 @@ pub fn build_create_plan(
 }
 
 /// An unresolved `started` event is never overridden by `--allow-duplicate`.
-pub fn check_duplicate(
-    plan: &Plan,
-    allow_duplicate: bool,
-    journal: &dyn PlanJournal,
-) -> Result<()> {
+pub fn check_duplicate(plan: &Plan, allow_duplicate: bool, journal: &dyn Journal) -> Result<()> {
     let kind = format!("plan:{ACTION}");
     let rows: Vec<Json> = journal
         .read()
@@ -316,7 +294,7 @@ fn unknown_outcome() -> Error {
 pub fn execute(
     plan: &Plan,
     client: &dyn Api,
-    journal: &dyn PlanJournal,
+    journal: &dyn Journal,
     allow_duplicate: bool,
 ) -> Result<Json> {
     let Some(payload) = plan
@@ -330,7 +308,7 @@ pub fn execute(
     // CSRF before the started mark: it only reads.
     let csrf = client.get_csrf()?;
     let before = journal.read().len();
-    journal.record_plan("started", &plan.hash, ACTION, PlanRecord::default());
+    journal.record_plan("started", &plan.hash, ACTION, None, None);
     let entries = journal.read();
     let last = entries.last();
     if entries.len() <= before
@@ -349,10 +327,10 @@ pub fn execute(
         match client.send_once("POST", "tickets", Body::Raw(body.into_bytes()), None, &csrf) {
             Ok(r) => r,
             Err(e) => {
-                let Some(status) = change::definite_rejection(&e) else {
+                let Some(status) = fsv_api::service::definite_rejection(&e) else {
                     return Err(unknown_outcome());
                 };
-                journal.record_plan("failed", &plan.hash, ACTION, PlanRecord::default());
+                journal.record_plan("failed", &plan.hash, ACTION, None, None);
                 return Err(flow_exit(
                     5,
                     format!("incident create rejected (HTTP {status}); no automatic retry"),
@@ -375,15 +353,7 @@ pub fn execute(
             "incident create response has no ID; outcome unknown, check the server before retry",
         ));
     };
-    journal.record_plan(
-        "done",
-        &plan.hash,
-        ACTION,
-        PlanRecord {
-            created_id: Some(&cid),
-            ..PlanRecord::default()
-        },
-    );
+    journal.record_plan("done", &plan.hash, ACTION, None, Some(&cid));
     let mut out = Map::new();
     out.insert("id".into(), cid.clone());
     out.insert("result".into(), ticket.unwrap_or(Json::Null));
@@ -431,7 +401,7 @@ pub fn send(
     client: &dyn Api,
     source: &dyn MetaSource,
     rebuild: &mut dyn FnMut(Arc<FormMeta>) -> Result<Plan>,
-    journal: &dyn PlanJournal,
+    journal: &dyn Journal,
     expected: Option<&str>,
     allow_duplicate: bool,
 ) -> Result<Json> {
@@ -514,6 +484,7 @@ mod tests {
 
     #[test]
     fn valid_recipient_shapes() {
+        use fsv_api::recipients::valid_recipient;
         assert!(valid_recipient("a@example.com"));
         assert!(valid_recipient("Name <a@example.com>"));
         assert!(!valid_recipient("a@example"));
@@ -608,7 +579,7 @@ mod tests {
         let (p, _) = golden_plan("basic");
         let j = MemJournal::default();
         check_duplicate(&p, false, &j).unwrap();
-        j.record_plan("started", &p.hash, ACTION, PlanRecord::default());
+        j.record_plan("started", &p.hash, ACTION, None, None);
         assert!(
             check_duplicate(&p, true, &j)
                 .unwrap_err()

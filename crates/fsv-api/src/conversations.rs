@@ -308,7 +308,7 @@ pub fn build_plan_mail(
             if has_bcc {
                 p["bcc_emails"] = json!(mail.bcc);
                 if !has_cc && let Some(m) = p.as_object_mut() {
-                    m.remove("cc_emails");
+                    m.shift_remove("cc_emails");
                 }
             }
             if let Some(s) = sender {

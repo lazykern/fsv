@@ -155,24 +155,6 @@ impl MemJournal {
     }
 }
 
-impl fsv_flows::change::PlanJournal for MemJournal {
-    fn read(&self) -> Vec<Value> {
-        self.rows.lock().unwrap().clone()
-    }
-    fn record_plan(
-        &self,
-        event: &str,
-        plan: &str,
-        action: &str,
-        extra: fsv_flows::change::PlanRecord<'_>,
-    ) {
-        self.push(event, plan, action, extra.target, extra.created_id);
-    }
-    fn recent_plan(&self, plan: &str, action: &str, _hours: f64) -> Option<Value> {
-        fsv_flows::change::recent_plan_rows(&self.rows.lock().unwrap(), plan, action, 0.0)
-    }
-}
-
 impl fsv_api::service::Journal for MemJournal {
     fn read(&self) -> Vec<Value> {
         self.rows.lock().unwrap().clone()
@@ -188,7 +170,7 @@ impl fsv_api::service::Journal for MemJournal {
         self.push(event, plan, action, target, created_id);
     }
     fn recent_plan(&self, plan: &str, action: &str, _hours: f64) -> Option<Value> {
-        fsv_flows::change::recent_plan_rows(&self.rows.lock().unwrap(), plan, action, 0.0)
+        fsv_core::journal::recent_plan_rows(&self.rows.lock().unwrap(), plan, action, 0.0)
     }
 }
 
