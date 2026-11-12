@@ -412,6 +412,107 @@ pub fn load_forced_in(
     fetch_and_save(res, client, &cache_path(paths, domain_key, res.name), paths)
 }
 
+fn choice_labels(choices: &Value, out: &mut Vec<String>) {
+    match choices {
+        Value::Object(map) => {
+            for (key, value) in map {
+                if !out.contains(key) {
+                    out.push(key.clone());
+                }
+                if value.is_object() || value.is_array() {
+                    choice_labels(value, out);
+                }
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                match item {
+                    Value::Object(map) => {
+                        for key in ["value", "label", "name"] {
+                            if let Some(text) = map
+                                .get(key)
+                                .filter(|v| !v.is_null() && v.as_str() != Some(""))
+                            {
+                                let text = fsv_py::py_str(text);
+                                if !out.contains(&text) {
+                                    out.push(text);
+                                }
+                            }
+                        }
+                        for key in ["nested_options", "choices"] {
+                            if map.get(key).is_some_and(|v| v.is_object() || v.is_array()) {
+                                choice_labels(&map[key], out);
+                            }
+                        }
+                    }
+                    Value::Array(pair) => {
+                        for part in pair {
+                            if part.is_string() || part.is_i64() || part.is_u64() {
+                                let text = fsv_py::py_str(part);
+                                if !out.contains(&text) {
+                                    out.push(text);
+                                }
+                            }
+                        }
+                    }
+                    Value::Null | Value::Bool(_) => {}
+                    other => {
+                        let text = fsv_py::py_str(other);
+                        if !out.contains(&text) {
+                            out.push(text);
+                        }
+                    }
+                }
+            }
+        }
+        _ => {}
+    }
+}
+
+/// One form-fields GET against a cached schema. `None` when the cache is
+/// current, missing, or the check itself fails. Never blocks a write.
+pub fn freshness_warning(res: &Resource, client: &dyn Api, schema: &Value) -> Option<String> {
+    if schema.get("source").and_then(Value::as_str) != Some("cache") {
+        return None;
+    }
+    let raw = client.int_get(res.form_fields_path, None).ok()?;
+    let fresh = raw.get(res.form_fields_key)?.as_array()?;
+    let cached = schema.get("fields")?.as_array()?;
+    let mut changed = Vec::new();
+    for field in fresh {
+        let Some(name) = field.get("name").and_then(Value::as_str) else {
+            continue;
+        };
+        let Some(old) = cached
+            .iter()
+            .find(|item| item.get("name").and_then(Value::as_str) == Some(name))
+        else {
+            continue;
+        };
+        let mut have = Vec::new();
+        choice_labels(old.get("choices").unwrap_or(&Value::Null), &mut have);
+        let mut live = Vec::new();
+        choice_labels(field.get("choices").unwrap_or(&Value::Null), &mut live);
+        if live.iter().any(|label| !have.contains(label)) {
+            changed.push(name.to_string());
+        }
+    }
+    if changed.is_empty() {
+        return None;
+    }
+    let extra = if changed.len() > 5 { " ..." } else { "" };
+    let shown = changed
+        .iter()
+        .take(5)
+        .cloned()
+        .collect::<Vec<_>>()
+        .join(", ");
+    Some(format!(
+        "cached {} schema is out of date: the server has new choices for {shown}{extra}; run `fsv {} fields --refresh` (or `fsv cache clear schema`) and review again",
+        res.name, res.name
+    ))
+}
+
 #[cfg(test)]
 mod load_tests {
     //! `tests/test_schema_cache.py`, over a real client and a temp cache.

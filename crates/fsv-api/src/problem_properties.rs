@@ -101,6 +101,11 @@ pub fn build_plan(
         ));
     }
     let before_row = record(c, target)?;
+    if before_row.get("deleted") == Some(&json!(true)) {
+        return Err(refused(format!(
+            "problem {target} is deleted (in trash); restore it before updating"
+        )));
+    }
     let start = payload
         .get("planned_start_date")
         .or_else(|| before_row.get("planned_start_date"));

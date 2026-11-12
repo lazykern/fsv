@@ -190,6 +190,11 @@ pub fn build_plan(
     if !before.contains_key("status") {
         return Err(refused("current problem status unavailable"));
     }
+    if before.get("deleted") == Some(&json!(true)) {
+        return Err(refused(format!(
+            "problem {target} is deleted (in trash); restore it before changing status"
+        )));
+    }
     let meta = load_meta(c, store, "problem", "edit", true, &json!(target))?;
     let blockers = rules_gate(&meta.rules, &meta.spec(), &["status"]);
     if !blockers.is_empty() {
@@ -327,7 +332,69 @@ pub fn rejection(e: &ApiError) -> String {
             }
         );
     }
+    if e.status == 405 {
+        return "write rejected (HTTP 405): the problem is not editable (deleted or in trash?); no retry"
+            .into();
+    }
     format!("write rejected (HTTP {}); no retry", e.status)
+}
+
+/// `(verified, note)`. A status that is neither the sent value nor the
+/// pre-write value was rewritten by a workflow.
+fn status_readback(before: &Value, after: &Value, sent: &Value) -> (bool, Option<String>) {
+    if after.is_null() || after.is_boolean() {
+        return (false, None);
+    }
+    if submitted_value_matches(after, sent) {
+        return (true, None);
+    }
+    if !before.is_null() && fsv_py::py_str(after) != fsv_py::py_str(before) {
+        return (
+            true,
+            Some(format!(
+                "status rewritten server-side to {} after the write (workflow)",
+                fsv_py::py_str(after)
+            )),
+        );
+    }
+    (false, None)
+}
+
+/// A note when the first activity page shows a workflow that set the status
+/// after `since` (a rewrite back to the pre-write status).
+fn workflow_activity_note(c: &dyn Api, target: i64, since: jiff::Timestamp) -> Option<String> {
+    let rows = crate::service::get_activities(c, &PROBLEMS, target, 1).ok()?;
+    for row in rows {
+        let Some(row) = row.as_object() else {
+            continue;
+        };
+        let raw = match row.get("content") {
+            Some(Value::String(text)) => text.clone(),
+            Some(other) => py_str(other),
+            None => String::new(),
+        };
+        let text = casefold(strip(&fsv_core::output::strip_html(Some(&raw))));
+        let created = match row.get("created_at") {
+            Some(Value::String(text)) => text.clone(),
+            Some(other) => py_str(other),
+            None => continue,
+        };
+        let Some((dt, Some(off))) =
+            fsv_forms::pydt::datetime_fromisoformat(&created.replace('Z', "+00:00"))
+        else {
+            continue;
+        };
+        let Ok(at) = off.to_timestamp(dt) else {
+            continue;
+        };
+        if at >= since && text.contains("workflow") && text.contains("set status as") {
+            return Some(
+                "status rewritten server-side after the write (activity shows a workflow set it)"
+                    .into(),
+            );
+        }
+    }
+    None
 }
 
 /// Port of problem_status.send: one PUT, then an independent record read.
@@ -340,13 +407,23 @@ pub fn send(
     resolver: Option<Arc<dyn LookupResolver>>,
 ) -> Result<Value> {
     let target = plan.write.target.to_string();
+    let since = jiff::Timestamp::now()
+        .checked_sub(jiff::SignedDuration::from_mins(2))
+        .unwrap_or_else(|_| jiff::Timestamp::now());
     let rebuild = || build_plan(c, store, &target, &plan.label, resolver.clone()).map(|p| p.hash());
     let verify = |_: &Value| -> Result<Map<String, Value>> {
         let row = record(c, plan.write.target)?;
         let want = &plan.write.payload()["status"];
-        let verified = row
-            .get("status")
-            .is_some_and(|s| submitted_value_matches(s, want));
+        let before_status = serde_json::from_str::<Value>(&plan.before_json)
+            .ok()
+            .and_then(|v| v.get("status").cloned())
+            .unwrap_or(Value::Null);
+        let after = row.get("status").cloned().unwrap_or(Value::Null);
+        let (mut verified, mut note) = status_readback(&before_status, &after, want);
+        if !verified && !after.is_null() {
+            note = workflow_activity_note(c, plan.write.target, since);
+            verified = note.is_some();
+        }
         let mut readback = Map::new();
         for k in ["status", "planned_start_date", "planned_end_date"] {
             if let Some(v) = row.get(k) {
@@ -357,10 +434,14 @@ pub fn send(
             .into_iter()
             .filter(|k| !row.contains_key(*k))
             .collect();
-        Ok(obj(json!({
+        let mut out = obj(json!({
             "problem_id": plan.write.target, "verified": verified, "readback": readback,
             "unavailable": unavailable,
-        })))
+        }));
+        if let Some(note) = note {
+            out.insert("verified_with_note".into(), json!(note));
+        }
+        Ok(out)
     };
     execute_rejecting(
         &plan.write,

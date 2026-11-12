@@ -172,10 +172,17 @@ pub fn create_plan(
     let (mut top, custom) =
         module_body(&state, &[], &TOP, state.evaluated.values.get("status")).map_err(form_err)?;
     top.shift_remove("requester");
-    if top.keys().any(|k| !TOP.contains(&k.as_str())) {
-        return Err(refused(
-            "problem form needs uncaptured top-level create fields",
-        ));
+    let mut extra: Vec<&str> = top
+        .keys()
+        .filter(|k| !TOP.contains(&k.as_str()))
+        .map(String::as_str)
+        .collect();
+    extra.sort_unstable();
+    if !extra.is_empty() {
+        return Err(refused(format!(
+            "problem create sends only subject, description, status, priority, impact, requester and custom fields; uncaptured on create: {}; create first, then set them with `problems update`",
+            extra.join(", ")
+        )));
     }
     if !TOP.iter().all(|k| top.contains_key(*k)) {
         return Err(refused(

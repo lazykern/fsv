@@ -3332,4 +3332,96 @@ candidates`. `assets add` already calls `build_plan` / `send`, which now
 branch. Port `tests/test_asset_association_driver.py` and
 `tests/test_legacy_asset_association.py`.
 
-Still not triaged: commits after `58551c8`.
+## Ledger: `f5959c8` (library side)
+
+Triaged against `git show f5959c8`
+(`f5959c85cf95393860c6f59c55189e0e49649453`).
+`legacy_approvals` is the capture-based flat driver. Provenance is
+`legacy flat approvals driver: capture-based, not yet live-proven on any tenant`.
+Request is `POST {module}/{id}/approvals` with `approval_type` and
+`notified_to`. Tickets also send `email_content` from
+`GET approvals/approval_template`. Remind is a bodyless
+`PUT .../approvals/{id}/resend` and the status id must be 0. Verify
+trusts only the flat list. Cancel, approve, and reject are refused.
+Chains stay the model when `approval-chains` is not legacy.
+
+Counts: **1 partial, 0 ported.**
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `f5959c8` | 11-13 03:46 | feat: legacy flat approvals driver (capture-based, unproven) | partial | fsv-api (`legacy_approvals`) |
+
+### CLI follow-up
+
+`changes approval-request --model auto|chains|legacy` and `sr approvals
+request` must call `legacy_approvals::build_request` when the tenant is
+legacy (no `--name` / `--message`; `--approver-group` refused). Add
+`changes approval-remind` and route `sr approvals remind` the same way.
+Cancel, approve, and reject call `legacy_approvals::refuse`. Port
+`tests/test_legacy_approvals.py`.
+
+## Ledger: `d378079` (library side)
+
+Triaged against `git show d378079`
+(`d37807982e698db68898aa0aa74f0ae5ba7ef44e`). `RulesEngine::write_gate` and
+`FormState::rule_gate` block only when a rule can change a field the
+write sends, requires, or has filled. Hidden answers that the caller
+passed are refused by name. Widget mandates block; widget hide/disable
+blocks only when the aliases intersect the sent keys, otherwise a
+warning. Agent form engines set `system.portal` false. Problem create,
+problem status, problem planning, ticket properties, ticket status
+context, and ticket create consume the gate. Ticket create `sent_keys`
+adds `cc_emails` when that option is set. `LifecyclePlan.rule_warnings`
+is review-only and is not in the write hash. Ticket transition send
+still requires `matches()`; a server-side status or routing rewrite is
+not yet `verified_with_note`. `TicketOptions` has no devices field.
+
+Counts: **1 partial, 0 ported.**
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `d378079` | 11-13 04:01 | fix: model rule context and gate writes on real rule risk | partial | fsv-forms (`rules`, `state`), fsv-api, fsv-flows |
+
+### CLI follow-up
+
+Ticket create and transition reviews should print `rule_warnings`.
+Transition readback should accept a server-side status or routing
+rewrite and return `verified_with_note`. Port
+`tests/test_rule_write_gate.py`. Devices are not on `TicketOptions`.
+
+## Ledger: `7fcdea4` (library side)
+
+Triaged against `git show 7fcdea4`
+(`7fcdea40050b962d13c70c38328c6d5ea4455ae1`). Problem planning and
+problem status refuse `deleted: true` before a write. Status verify
+uses `status_readback`: a value that matches neither the sent status
+nor the pre-write status is verified with
+`status rewritten server-side to {after} after the write (workflow)`.
+When that check fails and the row still has a status, the first
+activity page can verify with
+`status rewritten server-side after the write (activity shows a workflow set it)`
+if an aware `created_at` is within the last two minutes and the content
+mentions a workflow that set the status. `since` is captured before the
+PUT. HTTP 405 from the reviewed status write is
+`write rejected (HTTP 405): the problem is not editable (deleted or in trash?); no retry`.
+Problem create names the uncaptured top-level fields and points at
+`problems update`. `schema::freshness_warning` compares cached choice
+labels to one form-fields GET and returns the refresh warning. It does
+not block.
+
+Counts: **1 partial, 0 ported.** `port/UPSTREAM_BASE` is `7fcdea4`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `7fcdea4` | 11-13 04:11 | fix: problem update/status/create write gaps and schema freshness | partial | fsv-api (`problem_properties`, `problem_status`, `problem_workflows`, `schema`) |
+
+### CLI follow-up
+
+`fsv problems update` must nest custom fields under `custom_fields`,
+refuse a deleted problem before the generic PUT, and explain HTTP 405
+as a trashed record. Dry-run must call `schema::freshness_warning` and
+print the warning. `fsv {name} fields --refresh` is the command the
+warning names. Port `tests/test_problem_write_fixes.py`.
+
+Still not triaged: commits after `7fcdea4`.
+

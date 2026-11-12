@@ -4870,7 +4870,7 @@
    },
    {
     "name": "extra_top",
-    "error": "problem form needs uncaptured top-level create fields",
+    "error": "problem create sends only subject, description, status, priority, impact, requester and custom fields; uncaptured on create: urgency; create first, then set them with `problems update`",
     "type": "ReviewedWriteError"
    },
    {
