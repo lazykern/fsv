@@ -20,6 +20,7 @@ from fsv import (bulk_priority, config, formmeta, planning_text, problem_known_e
                  ticket_conversation, ticket_properties, ticket_time, watchers)
 from fsv.errors import APIError  # noqa: E402
 from fsv.reviewed_write import WritePlan  # noqa: E402
+from provenance import stamped  # noqa: E402
 
 formmeta._save = lambda *a, **k: None
 formmeta.configured_workspace = lambda: None
@@ -229,7 +230,7 @@ def main():
         "send_failure": send_failure(),
         "merge_same_conditions": merge_same_conditions(),
     }
-    print(json.dumps(doc, indent=1, sort_keys=True, ensure_ascii=False))
+    print(json.dumps(stamped(doc), indent=1, sort_keys=True, ensure_ascii=False))
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 //! `load_properties` / `load_edit_rules` against `fsv.views` on the Acme
 //! forms (`tests/fixtures/properties_expected.json`, from
-//! `/tmp/fsv_port/properties_oracle.py`): same props, note, requests and
+//! `port/golden/oracles/fsv_port/properties_oracle.py`): same props, note, requests and
 //! cache writes.
 
 use std::cell::RefCell;

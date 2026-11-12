@@ -34,6 +34,7 @@ for name, doc in inp["schema"].items():
 
 from fsv import completion as c  # noqa: E402
 from fsv.resources import REGISTRY  # noqa: E402
+from provenance import stamped  # noqa: E402
 
 out = {}
 
@@ -114,4 +115,4 @@ for env in (None, "1", "0", "true"):
 os.environ.pop("FSV_COMPLETION_NETWORK", None)
 out["completion_network"] = rows
 
-OUT.write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
+OUT.write_text(json.dumps(stamped(out), indent=1, ensure_ascii=False) + "\n")

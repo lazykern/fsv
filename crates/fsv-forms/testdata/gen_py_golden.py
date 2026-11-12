@@ -20,6 +20,8 @@ HERE = Path(__file__).resolve().parent
 PY_ROOT = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
 sys.path.insert(0, str(PY_ROOT / "src"))
 sys.path.insert(0, str(PY_ROOT / "tests" / "forms"))
+sys.path.insert(0, str(HERE.parents[2] / "port" / "golden"))
+from provenance import stamped  # noqa: E402
 os.environ.pop("FSV_TZ", None)
 os.environ["TZ"] = "UTC"
 
@@ -62,9 +64,11 @@ def dump_acme() -> dict:
         "business_rules_listing": acme_forms.business_rules_listing(),
     }
     path = HERE / "acme.json"
-    if path.exists():  # keep the frozen ids
-        return json.loads(path.read_text())
-    path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
+    if path.exists():  # keep the frozen ids, and their commit, unless they still reproduce
+        frozen = json.loads(path.read_text())
+        if {k: v for k, v in frozen.items() if k != "_python"} != json.loads(json.dumps(data)):
+            return frozen
+    path.write_text(json.dumps(stamped(data), indent=1, ensure_ascii=False) + "\n")
     return data
 
 
@@ -894,7 +898,7 @@ def main() -> None:
         }
         for mod in EXTRA:
             golden.update(mod())
-    (HERE / "py_golden.json").write_text(json.dumps(golden, ensure_ascii=False, separators=(",", ":"), allow_nan=False) + "\n")
+    (HERE / "py_golden.json").write_text(json.dumps(stamped(golden), ensure_ascii=False, separators=(",", ":"), allow_nan=False) + "\n")
 
 
 EXTRA: list = []

@@ -21,6 +21,8 @@ pub mod value;
 pub mod yaml;
 
 #[cfg(test)]
+mod provenance_tests;
+#[cfg(test)]
 mod testenv;
 
 pub use client::{Client, get_client};

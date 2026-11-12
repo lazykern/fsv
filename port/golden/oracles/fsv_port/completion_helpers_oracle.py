@@ -1,6 +1,6 @@
 """Golden output for fsv.completion private helpers on the dynamic fixture caches.
 
-Usage: uv run python /tmp/fsv_port/completion_helpers_oracle.py <input.json> <out.json>
+Usage: uv run python port/golden/oracles/fsv_port/completion_helpers_oracle.py <input.json> <out.json>
 """
 import json
 import os
@@ -8,6 +8,9 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from provenance import stamped  # noqa: E402
 
 inp = json.loads(Path(sys.argv[1]).read_text())
 OUT = Path(sys.argv[2])
@@ -110,5 +113,5 @@ for mode in ("offline", "network"):
     users[mode] = rows
 out["remote_user_values"] = users
 
-OUT.write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
+OUT.write_text(json.dumps(stamped(out), indent=1, ensure_ascii=False) + "\n")
 print("ok")

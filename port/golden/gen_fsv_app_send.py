@@ -38,6 +38,7 @@ from fsv import client as client_mod  # noqa: E402
 from fsv.errors import exit_code_for  # noqa: E402
 from fsv.formui.session import change_session, sr_session  # noqa: E402
 from fsv.forms import LookupValue  # noqa: E402
+from provenance import stamped  # noqa: E402
 from fsv.tui import actions  # noqa: E402
 
 config.reload()
@@ -281,5 +282,5 @@ sr_failure("sr_place_422_files_cli", 422, files=True)
 sr_failure("sr_upload_500_cli", 200, upload=500, files=True)
 sr_failure("sr_place_500_files_session", 500, files=True, session=True)
 
-json.dump(out, sys.stdout, indent=1, ensure_ascii=False, default=str)
+json.dump(stamped(out), sys.stdout, indent=1, ensure_ascii=False, default=str)
 print()

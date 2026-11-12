@@ -13,6 +13,8 @@ pub mod fuzzy;
 pub mod payload;
 pub mod plan;
 #[cfg(test)]
+mod provenance_tests;
+#[cfg(test)]
 mod py_golden;
 pub mod pydt;
 pub mod pytext;

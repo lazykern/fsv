@@ -292,6 +292,9 @@ fn check_and_module_body_as_problem_create_calls_them() {
         .expect("problem_expected.json");
     let mut checks = 0;
     for (name, row) in want.as_object().unwrap() {
+        if name == "_python" {
+            continue;
+        }
         let st = payload_state(name);
         for c in row["check"].as_array().unwrap() {
             let skip: Vec<String> = serde_json::from_value(c[1].clone()).unwrap();

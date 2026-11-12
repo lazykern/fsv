@@ -20,8 +20,10 @@ import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-PY_ROOT = Path("/Users/phusit.somb/lab/work/fsv")
-sys.path.insert(0, str(PY_ROOT / "tests"))
+sys.path.insert(0, str(HERE.parents[3] / "port" / "golden"))
+from provenance import py_root, stamped  # noqa: E402
+
+sys.path.insert(0, str(py_root() / "tests"))
 os.environ.pop("FSV_TZ", None)
 
 TMP = Path(os.path.realpath(tempfile.mkdtemp(prefix="fsv-sr-golden-")))
@@ -276,5 +278,5 @@ out = {
     "resolve": RESOLVE,
 }
 
-(HERE / "sr.json").write_text(json.dumps(out, indent=1, ensure_ascii=False, default=str) + "\n")
+(HERE / "sr.json").write_text(json.dumps(stamped(out), indent=1, ensure_ascii=False, default=str) + "\n")
 print("wrote", HERE / "sr.json")

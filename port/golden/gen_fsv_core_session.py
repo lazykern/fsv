@@ -18,6 +18,7 @@ from pathlib import Path
 
 from fsv import session
 from fsv.errors import SessionError
+from provenance import stamped
 
 OUT = Path(sys.argv[1])
 out = {}
@@ -197,4 +198,4 @@ for name, scenario in SCENARIOS.items():
 out["cdp"] = rows
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
-OUT.write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
+OUT.write_text(json.dumps(stamped(out), indent=1, ensure_ascii=False) + "\n")

@@ -15,6 +15,7 @@ HERE = Path(__file__).resolve().parent
 sys.argv = [sys.argv[0], *(sys.argv[1:2] or ["."])]
 sys.path.insert(0, str(HERE))
 import gen_py_golden as G  # noqa: E402
+from provenance import stamped  # noqa: E402
 from fsv.forms import payload  # noqa: E402
 
 PROBLEM_ORDER = ("subject", "description", "status", "priority", "impact")
@@ -32,7 +33,7 @@ def main() -> None:
             "status": G.V(status),
         }
     (HERE / "problem_expected.json").write_text(
-        json.dumps(out, ensure_ascii=False, indent=1, allow_nan=False) + "\n")
+        json.dumps(stamped(out), ensure_ascii=False, indent=1, allow_nan=False) + "\n")
 
 
 main()

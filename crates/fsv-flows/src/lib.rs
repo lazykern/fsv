@@ -14,6 +14,8 @@ pub mod sr;
 pub mod ticket;
 
 #[cfg(test)]
+mod provenance_tests;
+#[cfg(test)]
 pub(crate) mod testing;
 
 pub use change::{Plan, PlanningEntry};

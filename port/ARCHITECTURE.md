@@ -283,6 +283,13 @@ too (`saved_at` etc.) so both versions read each other's files.
   Run them from the Python repo with that directory on `PYTHONPATH`
   (`fsv_oracle` scripts import `common`). They still write scratch files
   under `/tmp`, so the paths baked into the fixtures stay stable.
+  Every generator stamps its output with the Python commit through
+  `port/golden/provenance.py`: a `"_python": {"commit", "dirty"}` first
+  key in a JSON object, a sibling `<stem>.provenance.json` for a JSON list
+  or text fixture, a `Python commit:` header in generated Rust. Each crate's
+  `provenance_tests.rs` checks the fixtures it loads. Generate at a pinned
+  commit from a `git archive` export with `FSV_PY_SRC`/`FSV_PY_COMMIT` set
+  (see the `provenance.py` docstring), not the live worktree.
 
 ## Building while other agents work
 

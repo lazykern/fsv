@@ -1,6 +1,8 @@
 """Golden output for fsv-views properties (load_properties / load_edit_rules).
 
-Usage: uv run python /tmp/fsv_port/properties_oracle.py <out.json>
+Usage: uv run python port/golden/oracles/fsv_port/properties_oracle.py <out.json>
+
+The output is a list; its commit goes to the sibling `<out>.provenance.json`.
 """
 import copy
 import datetime as dt
@@ -8,7 +10,10 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, "/Users/phusit.somb/lab/work/fsv/tests")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from provenance import py_root, write_sidecar  # noqa: E402
+
+sys.path.insert(0, str(py_root() / "tests"))
 import acme_change_form as A  # noqa: E402
 
 from fsv import formmeta, views  # noqa: E402
@@ -16,7 +21,7 @@ from fsv.errors import APIError, SessionError  # noqa: E402
 from fsv.resources import REGISTRY  # noqa: E402
 
 OUT = Path(sys.argv[1])
-ACME = json.loads(Path("/Users/phusit.somb/lab/work/fsv-rust/crates/fsv-forms/testdata/acme.json").read_text())
+ACME = json.loads((Path(__file__).resolve().parents[4] / "crates/fsv-forms/testdata/acme.json").read_text())
 
 
 class Fake:
@@ -116,3 +121,4 @@ for case in CASES:
     print(case["name"], json.dumps(result)[:200])
 
 OUT.write_text(json.dumps(out, indent=1, ensure_ascii=False, default=str) + "\n")
+write_sidecar(OUT)

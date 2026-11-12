@@ -1,6 +1,8 @@
 """Golden trees/scripts for fsv-completion's walk + emitters.
 
-Usage: uv run python /tmp/fsv_port/completion_gen_oracle.py <fixtures_dir>
+Usage: uv run python port/golden/oracles/fsv_port/completion_gen_oracle.py <fixtures_dir>
+
+The emitted scripts share one `emit_expected.provenance.json`.
 """
 from __future__ import annotations
 
@@ -13,6 +15,9 @@ import typer
 
 from fsv import completion, completion_gen
 from fsv.resources import CHANGES
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from provenance import stamped, write_sidecar  # noqa: E402
 
 OUT = Path(sys.argv[1])
 PY = "/opt/fsv/bin/fsv"
@@ -94,7 +99,7 @@ trees = {
     "inherit_none": completion_gen._walk(app, ["my-fsv"]),
 }
 (OUT / "walk_expected.json").write_text(
-    json.dumps({k: dump(v) for k, v in trees.items()}, indent=1, ensure_ascii=False) + "\n"
+    json.dumps(stamped({k: dump(v) for k, v in trees.items()}), indent=1, ensure_ascii=False) + "\n"
 )
 
 completion_gen.__dict__["_sys_executable"] = PY
@@ -107,3 +112,4 @@ for shell, fn in (("fish", completion_gen._emit_fish), ("bash", completion_gen._
     text = text.replace(f"{PY} -m fsv._complete ", f"{PY} _complete ")
     (OUT / f"emit_expected.{shell}").write_text(text)
     print(shell, "dynamic calls:", n)
+write_sidecar(OUT / "emit_expected.bash")

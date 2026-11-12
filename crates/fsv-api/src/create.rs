@@ -1812,7 +1812,7 @@ mod tests {
 
     use std::sync::LazyLock;
 
-    /// Outputs of `/tmp/fsv_oracle/o_create.py` (the Python functions).
+    /// Outputs of `port/golden/oracles/fsv_oracle/o_create.py` (the Python functions).
     static ORACLE: LazyLock<Value> = LazyLock::new(|| {
         serde_json::from_str(include_str!("testdata/create_oracle.json")).unwrap()
     });

@@ -7,6 +7,7 @@ import json
 import os
 import sys
 import tempfile
+from pathlib import Path
 
 _BOOT = tempfile.mkdtemp(prefix="fsv-oracle-")
 os.environ["FSV_CONFIG_DIR"] = os.path.join(_BOOT, "config")
@@ -17,6 +18,9 @@ os.environ["TZ"] = "UTC"
 
 from fsv import config, journal  # noqa: E402
 from fsv.errors import APIError, SessionError  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from provenance import stamped  # noqa: E402
 
 config.DOMAIN = "acme.freshservice.com"
 config.API_INT = "https://acme.freshservice.com/api/_"
@@ -171,4 +175,4 @@ def dump():
             return {k: v for k, v in vars(o).items() if not k.startswith("_")}
         return repr(o)
 
-    print(json.dumps(OUT, indent=1, ensure_ascii=False, default=default, sort_keys=False))
+    print(json.dumps(stamped(OUT), indent=1, ensure_ascii=False, default=default, sort_keys=False))

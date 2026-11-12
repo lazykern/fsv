@@ -12,6 +12,7 @@ from pathlib import Path
 from fsv.forms.errors import FormError
 from fsv.forms.spec import FormSpec
 from fsv.forms.state import FormState, LookupValue
+from provenance import stamped
 
 FIELDS = [
     {"name": "requester", "label": "Requester", "field_type": "default_requester"},
@@ -50,5 +51,5 @@ for f in FIELDS:
             out = {"error": str(exc)}
         rows.append({"field": f["name"], "raw": raw, "calls": rec.calls, "out": out})
 
-Path(sys.argv[1]).write_text(json.dumps({"fields": FIELDS, "records": RECORDS, "rows": rows},
+Path(sys.argv[1]).write_text(json.dumps(stamped({"fields": FIELDS, "records": RECORDS, "rows": rows}),
                                         indent=1, ensure_ascii=False) + "\n")

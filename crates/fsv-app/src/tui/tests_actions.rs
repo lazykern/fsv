@@ -800,7 +800,8 @@ fn ticket_search_failures_and_pairs_helper() {
 
 /// `views.load_detail` ends with `load_properties(c, res, rec, sch, tz, user)`;
 /// the expected properties are Python's for the same record, schema and
-/// rules (`testdata/properties_change_501.json`).
+/// rules (`testdata/properties_change_501.json`, written by
+/// `port/golden/oracles/fsv_api_views/oracle.py`).
 #[test]
 fn detail_properties_are_the_python_form_evaluation_loaded_last() {
     let case: Value =

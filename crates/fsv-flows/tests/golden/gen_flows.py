@@ -18,8 +18,10 @@ import textwrap
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-PY_ROOT = Path("/Users/phusit.somb/lab/work/fsv")
-sys.path.insert(0, str(PY_ROOT / "tests"))
+sys.path.insert(0, str(HERE.parents[3] / "port" / "golden"))
+from provenance import py_root, stamped  # noqa: E402
+
+sys.path.insert(0, str(py_root() / "tests"))
 os.environ.pop("FSV_TZ", None)
 
 TMP = Path(tempfile.mkdtemp(prefix="fsv-flows-golden-"))
@@ -112,6 +114,12 @@ def ticket(answers: dict, cc=(), **kw) -> dict:
             "ok": plan.ok, "hash": plan.hash, "payload": plan.payload, "errors": plan.errors, "json": j}
 
 
+def unexpand(path):
+    """`~/...` for a path under HOME, so the fixture does not depend on it."""
+    home = str(Path.home())
+    return "~" + path[len(home):] if isinstance(path, str) and path.startswith(home + "/") else path
+
+
 def draft_case(text: str) -> dict:
     try:
         d = drafts.parse_template(text, Path(BASE))
@@ -119,7 +127,7 @@ def draft_case(text: str) -> dict:
         return {"text": text, "error": str(e)}
     return {"text": text, "draft": {
         "answers": d.answers, "requester": d.requester, "description_html": d.description_html,
-        "attachments": d.attachments, "planning": d.planning, "ack": d.ack, "preset": d.preset}}
+        "attachments": [unexpand(a) for a in d.attachments], "planning": d.planning, "ack": d.ack, "preset": d.preset}}
 
 
 ROUND2 = textwrap.dedent("""\
@@ -205,5 +213,5 @@ out = {
     "scalar": [[v, yamlio.scalar(v)] for v in ["Services", "a b", "x: y", ""]],
 }
 
-(HERE / "flows.json").write_text(json.dumps(out, indent=1, ensure_ascii=False, default=str) + "\n")
+(HERE / "flows.json").write_text(json.dumps(stamped(out), indent=1, ensure_ascii=False, default=str) + "\n")
 print("wrote", HERE / "flows.json")

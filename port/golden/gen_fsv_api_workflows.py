@@ -34,6 +34,7 @@ import httpx  # noqa: E402
 from fsv import (canned, config, formmeta, journal, list_preferences, private_views,  # noqa: E402
                  problem_workflows, readback, scenarios, ticket_conversation as conv)
 from fsv.client import Client  # noqa: E402
+from provenance import stamped  # noqa: E402
 
 config.reload()
 DOMAIN = "acme.freshservice.com"
@@ -902,7 +903,7 @@ def main():
     doc = {"canned": gen_canned(), "scenarios": gen_scenarios(), "private_views": gen_private_views(),
            "list_preferences": gen_list_preferences(), "problem_workflows": gen_problem_workflows(),
            "readback": gen_readback(), "planning_text": gen_planning(), "direct": gen_direct()}
-    print(json.dumps(doc, indent=1, ensure_ascii=False))
+    print(json.dumps(stamped(doc), indent=1, ensure_ascii=False))
 
 
 if __name__ == "__main__":

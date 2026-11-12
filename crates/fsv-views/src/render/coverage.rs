@@ -263,7 +263,7 @@ fn field_value_text_shapes() {
 }
 
 /// `render.strip_html` is `fsv_core::output::strip_html`; expected values
-/// from `/tmp/fsv_port/views_oracle.py`.
+/// from `port/golden/oracles/fsv_port/views_oracle.py`.
 #[test]
 fn strip_html_matches_python_render() {
     let fx: Value =

@@ -1,10 +1,13 @@
 """Golden output for fsv-views source helpers.
 
-Usage: uv run python /tmp/fsv_port/views_oracle.py <out.json>
+Usage: uv run python port/golden/oracles/fsv_port/views_oracle.py <out.json>
 """
 import json
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from provenance import stamped  # noqa: E402
 
 from fsv import render, views
 from fsv.errors import APIError, SessionError
@@ -130,8 +133,8 @@ FIELD = {"name": "a", "nested_fields": [{"name": "b", "nested_fields": [{"name":
 field_defs = [d.get("name") for d in render._requested_item_field_defs(FIELD)]
 field_defs_plain = [d.get("name") for d in render._requested_item_field_defs({"name": "solo"})]
 
-OUT.write_text(json.dumps({
+OUT.write_text(json.dumps(stamped({
     "collect_pages": collect, "load_views": load_views, "record_for_form": record_for_form,
     "strip_html": strip_html, "field_defs": {"input": FIELD, "names": field_defs, "solo": field_defs_plain},
-}, indent=1, ensure_ascii=False) + "\n")
+}), indent=1, ensure_ascii=False) + "\n")
 print("ok")

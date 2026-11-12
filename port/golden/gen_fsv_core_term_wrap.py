@@ -17,6 +17,8 @@ os.environ.pop("FORCE_COLOR", None)
 from rich.console import Console  # noqa: E402
 from rich.markup import escape  # noqa: E402
 
+from provenance import write_sidecar  # noqa: E402
+
 MARKUP = [
     "[red]error[/red]: " + escape("cannot create: Field 'Change Type' is required; Field 'Planned Start Date' is required"),
     "--no-validate: sending without the client-side required check: Field 'Impact' is required; Field 'Group' is required",
@@ -60,3 +62,4 @@ for width in (20, 60, 80):
 with open(sys.argv[1], "w", encoding="utf-8") as fh:
     json.dump(rows, fh, ensure_ascii=False, indent=1)
     fh.write("\n")
+write_sidecar(sys.argv[1])

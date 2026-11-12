@@ -13,6 +13,8 @@ pub mod source;
 
 #[cfg(test)]
 mod coverage;
+#[cfg(test)]
+mod provenance_tests;
 
 pub use detail::{
     Detail, DetailInput, Properties, TabData, load_detail, load_lifecycle, load_planning, load_tab,

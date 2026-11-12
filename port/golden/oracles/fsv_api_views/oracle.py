@@ -1,5 +1,12 @@
 """Oracle for fsv-api views/schema loaders: runs the Python functions with a
-recording fake client and dumps inputs + outputs as JSON."""
+recording fake client and dumps inputs + outputs as JSON.
+
+Usage (from the Python worktree):
+    uv run python <this file> <views_oracle.json> [<properties_change_501.json>]
+
+The first is fsv-api `src/testdata/views_oracle.json`. The second is fsv-app
+`src/tui/testdata/properties_change_501.json`: the `change_501` properties
+case with its `$ref`s resolved."""
 from __future__ import annotations
 
 import copy
@@ -8,13 +15,17 @@ import os
 import sys
 import tempfile
 import zoneinfo
+from pathlib import Path
 
 _TMP = tempfile.mkdtemp(prefix="fsv-oracle-")
 os.environ["FSV_CONFIG_DIR"] = os.path.join(_TMP, "config")
 os.environ["FSV_CACHE_DIR"] = os.path.join(_TMP, "cache")
 os.environ["FSV_NO_KEYCHAIN"] = "1"
 os.environ.pop("FSV_TZ", None)
-sys.path.insert(0, "/Users/phusit.somb/lab/work/fsv/tests")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from provenance import py_root, stamped  # noqa: E402
+
+sys.path.insert(0, str(py_root() / "tests"))
 
 import acme_views as A  # noqa: E402
 import acme_change_form as F  # noqa: E402
@@ -218,7 +229,11 @@ def dedupe(v, top=False):
     return v
 
 
+change_501 = next(p for p in out["properties"] if p["name"] == "change_501")
 out = dedupe(out, top=True)
 out["$fixtures"] = FIXTURES
-json.dump(out, open("/tmp/fsv_api_views/views_oracle.json", "w"), separators=(",", ":"), default=str)
+Path(sys.argv[1]).write_text(json.dumps(stamped(out), separators=(",", ":"), default=str))
+if len(sys.argv) > 2:
+    change_501 = {**change_501, "source": "fsv-api views_oracle.json (Python views.load_properties), case change_501"}
+    Path(sys.argv[2]).write_text(json.dumps(stamped(change_501), indent=1, ensure_ascii=False))
 print("ok")

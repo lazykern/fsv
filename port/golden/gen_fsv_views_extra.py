@@ -13,6 +13,7 @@ from pathlib import Path
 
 from fsv import render, views
 from fsv.errors import APIError, SessionError
+from provenance import stamped, write_sidecar
 
 out = {}
 
@@ -70,6 +71,7 @@ for name, result in cases.items():
 out["ticket_headers"] = rows
 
 Path(sys.argv[1]).parent.mkdir(parents=True, exist_ok=True)
-Path(sys.argv[1]).write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
+Path(sys.argv[1]).write_text(json.dumps(stamped(out), indent=1, ensure_ascii=False) + "\n")
 # strip_html is ported in fsv-core (fsv_core::output::strip_html).
 Path(sys.argv[2]).write_text(json.dumps(out["strip_html"], indent=1, ensure_ascii=False) + "\n")
+write_sidecar(sys.argv[2])

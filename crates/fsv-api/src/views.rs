@@ -448,7 +448,7 @@ mod tests {
     use super::*;
     use crate::formmeta::MemStore;
 
-    /// Outputs of `/tmp/fsv_api_views/oracle.py` (the Python functions over a
+    /// Outputs of `port/golden/oracles/fsv_api_views/oracle.py` (the Python functions over a
     /// recording fake client). `{"$ref": name}` stands for `$fixtures[name]`.
     static ORACLE: LazyLock<Json> = LazyLock::new(|| {
         let raw: Json = serde_json::from_str(include_str!("testdata/views_oracle.json")).unwrap();

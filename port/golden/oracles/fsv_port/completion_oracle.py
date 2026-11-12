@@ -1,6 +1,6 @@
 """Golden output for fsv-completion dynamic completers.
 
-Usage: uv run python /tmp/fsv_port/completion_oracle.py <input.json> <out.json>
+Usage: uv run python port/golden/oracles/fsv_port/completion_oracle.py <input.json> <out.json>
 """
 import contextlib
 import io
@@ -10,6 +10,9 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from provenance import stamped  # noqa: E402
 
 inp = json.loads(Path(sys.argv[1]).read_text())
 OUT = Path(sys.argv[2])
@@ -72,5 +75,5 @@ for mode in ("offline", "network"):
         runs.append({"argv": argv, "stdout": buf.getvalue()})
     out[mode] = {"cases": cases, "runs": runs}
 
-OUT.write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
+OUT.write_text(json.dumps(stamped(out), indent=1, ensure_ascii=False) + "\n")
 print("ok", sum(len(v["cases"]) for v in out.values()))

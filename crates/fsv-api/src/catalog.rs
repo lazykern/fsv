@@ -2008,7 +2008,7 @@ mod tests {
     use crate::service::testing::{FakeApi, MemJournal, Reply};
     use std::sync::LazyLock;
 
-    /// Outputs of `/tmp/fsv_oracle/o_catalog.py` (the Python functions).
+    /// Outputs of `port/golden/oracles/fsv_oracle/o_catalog.py` (the Python functions).
     static ORACLE: LazyLock<Json> = LazyLock::new(|| {
         serde_json::from_str(include_str!("testdata/catalog_oracle.json")).unwrap()
     });

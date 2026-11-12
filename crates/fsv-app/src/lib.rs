@@ -7,6 +7,8 @@ pub mod tui;
 pub mod writer;
 
 #[cfg(test)]
+mod provenance_tests;
+#[cfg(test)]
 pub(crate) mod testkit;
 
 pub use form::{

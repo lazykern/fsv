@@ -36,6 +36,7 @@ from fsv import ticket_conversation as conversations, ticket_properties  # noqa:
 from fsv.create import match_planning_row  # noqa: E402
 from fsv import client as client_mod  # noqa: E402
 from fsv.formmeta import load_meta  # noqa: E402
+from provenance import stamped  # noqa: E402
 
 config.reload()
 
@@ -334,5 +335,5 @@ t = Tenant()
 out["assets"] = {"result": asset_picker.candidates(t.client(), 5, "acme"), "lines": t.lines()}
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
-OUT.write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n")
+OUT.write_text(json.dumps(stamped(out), indent=2, ensure_ascii=False) + "\n")
 print(OUT)

@@ -9,6 +9,8 @@
 mod float;
 pub mod html_entities;
 mod json;
+#[cfg(test)]
+mod provenance_tests;
 mod repr;
 mod value;
 

@@ -1,4 +1,8 @@
 {
+ "_python": {
+  "commit": "92002d76b880d927e16750ab986b525ee4fa85d6",
+  "dirty": false
+ },
  "bulk_priority": {
   "acme.example.com": {
    "hash": "d5886043a8b468d5eaaddaf17cf64e34ae734582e90f4d356a393121dd98dc39",

@@ -1069,20 +1069,21 @@ mod tests {
 
     #[test]
     fn golden_draft_cases() {
+        let home = fsv_core::config::home_dir();
         for case in golden(&["drafts"]).as_array().unwrap() {
             let text = case["text"].as_str().unwrap();
-            if text.contains("~/")
-                && fsv_core::config::home_dir().to_string_lossy() != "/Users/phusit.somb"
-            {
-                continue;
+            let mut want = case["draft"].clone();
+            if let Some(files) = want["attachments"].as_array_mut() {
+                for f in files {
+                    if let Some(rest) = f.as_str().and_then(|s| s.strip_prefix("~/")) {
+                        *f = json!(home.join(rest).to_string_lossy());
+                    }
+                }
             }
             match parse_template(text, Some(Path::new(BASE))) {
                 Ok(d) => {
-                    assert_eq!(draft_json(&d), case["draft"], "{text}");
-                    assert_eq!(
-                        fsv_py::canonical(&draft_json(&d)),
-                        fsv_py::canonical(&case["draft"])
-                    );
+                    assert_eq!(draft_json(&d), want, "{text}");
+                    assert_eq!(fsv_py::canonical(&draft_json(&d)), fsv_py::canonical(&want));
                 }
                 Err(e) => assert_eq!(
                     e.to_string(),

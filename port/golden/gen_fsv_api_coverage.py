@@ -17,6 +17,7 @@ from pathlib import Path
 
 from fsv import formmeta, query, schema, views
 from fsv.resources import CHANGES, TICKETS
+from provenance import stamped
 
 RES = {"changes": CHANGES, "tickets": TICKETS}
 
@@ -413,7 +414,7 @@ def gen_misc():
             "conversation_payload": conv.payload, "property_payload": prop.payload}
 
 
-json.dump({"misc": gen_misc(), "schema": SCHEMA, "query": gen_query(), "views": gen_views(), "formmeta": gen_formmeta(), "schema_cache": gen_schema(), "schema_fetch": gen_fetch()},
+json.dump(stamped({"misc": gen_misc(), "schema": SCHEMA, "query": gen_query(), "views": gen_views(), "formmeta": gen_formmeta(), "schema_cache": gen_schema(), "schema_fetch": gen_fetch()}),
           sys.stdout, indent=1, ensure_ascii=False, default=str)
 sys.stdout.write("\n")
 os.environ.pop("_", None)

@@ -1,6 +1,6 @@
 //! `collect_pages`, `load_views` and `record_for_form` against `fsv.views`
 //! on scripted responses (`tests/fixtures/views_expected.json`, from
-//! `/tmp/fsv_port/views_oracle.py`).
+//! `port/golden/oracles/fsv_port/views_oracle.py`).
 
 use std::sync::Mutex;
 
