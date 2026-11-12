@@ -3009,4 +3009,27 @@ only.
   form. `type=Case` exits 2 before any `/api/_/tickets` read. Filtered
   bulk by type still needs the independent proof.
 
-Still not triaged: commits after `368a2d4`.
+## Ledger: `915df4c` (library side)
+
+Triaged against `git show 915df4c`
+(`915df4c5698123216b7e6a7b6827a788e1ca6dc9`). A stamped generator runs
+upstream's `wire` pytest fixture for four exact-source forward variants
+(plain, quoted source, formatted sender, delivery mismatch). It
+records eight results, because the fixture is parametrized. All of them
+match.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `915df4c`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `915df4c` | 11-13 02:29 | Report unexposed forward source-link readback as unavailable | ported | fsv-api `conversations` |
+
+Exact-source forward results add `source_link_readback: "unavailable"`
+next to `source_link_verified: false`. It is not a field check:
+`fields` has no `source_link`. A delivery mismatch still fails
+verification.
+
+No CLI follow-up. CLI goldens for `tickets forward --conversation`
+results would gain the key.
+
+Still not triaged: commits after `915df4c`.

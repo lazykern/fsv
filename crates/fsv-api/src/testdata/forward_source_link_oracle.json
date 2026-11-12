@@ -1,0 +1,168 @@
+{
+  "_python": {
+    "commit": "915df4c5698123216b7e6a7b6827a788e1ca6dc9",
+    "dirty": false
+  },
+  "cases": [
+    {
+      "verified": true,
+      "fields": {
+        "body": "matched",
+        "private": "matched",
+        "notify_emails": "matched",
+        "from_email": "matched"
+      },
+      "source_conversation_id": 901,
+      "source_link_readback": "unavailable",
+      "source_link_verified": false,
+      "verification_scope": "delivery fields; source link is not exposed by independent readback",
+      "name": "plain",
+      "extra": {},
+      "has_warning": false,
+      "posts": 1
+    },
+    {
+      "verified": true,
+      "fields": {
+        "body": "matched",
+        "private": "matched",
+        "notify_emails": "matched",
+        "from_email": "matched"
+      },
+      "source_conversation_id": 901,
+      "source_link_readback": "unavailable",
+      "source_link_verified": false,
+      "verification_scope": "delivery fields; source link is not exposed by independent readback",
+      "name": "quoted_source",
+      "extra": {
+        "quoted_text_html": "<div>Original Acme message</div>",
+        "source": 6
+      },
+      "has_warning": false,
+      "posts": 1
+    },
+    {
+      "verified": true,
+      "fields": {
+        "body": "matched",
+        "private": "matched",
+        "notify_emails": "matched",
+        "from_email": "matched"
+      },
+      "source_conversation_id": 901,
+      "source_link_readback": "unavailable",
+      "source_link_verified": false,
+      "verification_scope": "delivery fields; source link is not exposed by independent readback",
+      "name": "formatted_sender",
+      "extra": {
+        "from_email": "\"Acme Support\" <SUPPORT@example.com>",
+        "to_emails": [
+          "Acme Person <PERSON@example.com>"
+        ]
+      },
+      "has_warning": false,
+      "posts": 1
+    },
+    {
+      "verified": false,
+      "fields": {
+        "body": "matched",
+        "private": "matched",
+        "notify_emails": "mismatched",
+        "from_email": "matched"
+      },
+      "source_conversation_id": 901,
+      "source_link_readback": "unavailable",
+      "source_link_verified": false,
+      "verification_scope": "delivery fields; source link is not exposed by independent readback",
+      "name": "delivery_mismatch",
+      "extra": {
+        "to_emails": [
+          "other@example.com"
+        ]
+      },
+      "has_warning": true,
+      "posts": 1
+    },
+    {
+      "verified": true,
+      "fields": {
+        "body": "matched",
+        "private": "matched",
+        "notify_emails": "matched",
+        "from_email": "matched"
+      },
+      "source_conversation_id": 901,
+      "source_link_readback": "unavailable",
+      "source_link_verified": false,
+      "verification_scope": "delivery fields; source link is not exposed by independent readback",
+      "name": "plain",
+      "extra": {},
+      "has_warning": false,
+      "posts": 1
+    },
+    {
+      "verified": true,
+      "fields": {
+        "body": "matched",
+        "private": "matched",
+        "notify_emails": "matched",
+        "from_email": "matched"
+      },
+      "source_conversation_id": 901,
+      "source_link_readback": "unavailable",
+      "source_link_verified": false,
+      "verification_scope": "delivery fields; source link is not exposed by independent readback",
+      "name": "quoted_source",
+      "extra": {
+        "quoted_text_html": "<div>Original Acme message</div>",
+        "source": 6
+      },
+      "has_warning": false,
+      "posts": 1
+    },
+    {
+      "verified": true,
+      "fields": {
+        "body": "matched",
+        "private": "matched",
+        "notify_emails": "matched",
+        "from_email": "matched"
+      },
+      "source_conversation_id": 901,
+      "source_link_readback": "unavailable",
+      "source_link_verified": false,
+      "verification_scope": "delivery fields; source link is not exposed by independent readback",
+      "name": "formatted_sender",
+      "extra": {
+        "from_email": "\"Acme Support\" <SUPPORT@example.com>",
+        "to_emails": [
+          "Acme Person <PERSON@example.com>"
+        ]
+      },
+      "has_warning": false,
+      "posts": 1
+    },
+    {
+      "verified": false,
+      "fields": {
+        "body": "matched",
+        "private": "matched",
+        "notify_emails": "mismatched",
+        "from_email": "matched"
+      },
+      "source_conversation_id": 901,
+      "source_link_readback": "unavailable",
+      "source_link_verified": false,
+      "verification_scope": "delivery fields; source link is not exposed by independent readback",
+      "name": "delivery_mismatch",
+      "extra": {
+        "to_emails": [
+          "other@example.com"
+        ]
+      },
+      "has_warning": true,
+      "posts": 1
+    }
+  ]
+}

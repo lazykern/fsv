@@ -686,6 +686,7 @@ pub fn send(
         && let Some(source) = payload.get("conversation_id")
     {
         result.insert("source_conversation_id".into(), source.clone());
+        result.insert("source_link_readback".into(), json!("unavailable"));
         result.insert("source_link_verified".into(), json!(false));
         result.insert(
             "verification_scope".into(),
@@ -1278,12 +1279,64 @@ mod tests {
         assert_eq!(out["verified"], true, "{out}");
         assert_eq!(out["fields"]["from_email"], "matched");
         assert_eq!(out["source_link_verified"], false);
+        assert_eq!(out["source_link_readback"], "unavailable");
         assert_eq!(out["source_conversation_id"], 901);
         assert_eq!(
             out["verification_scope"],
             "delivery fields; source link is not exposed by independent readback"
         );
         assert_eq!(c.writes().len(), 1);
+    }
+
+    /// `test_unexposed_source_link_is_unavailable_not_failed` and
+    /// `test_delivery_mismatch_still_fails_with_source_unavailable`.
+    #[test]
+    fn unexposed_source_link_matches_python() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/forward_source_link_oracle.json")).unwrap();
+        let cases = oracle["cases"].as_array().unwrap();
+        assert_eq!(cases.len(), 8);
+        for case in cases {
+            let mut row = json!({
+                "id": 456,
+                "body": "<div>Acme update</div>",
+                "private": true,
+                "from_email": "support@example.com",
+                "to_emails": ["person@example.com"]
+            });
+            for (k, v) in case["extra"].as_object().unwrap() {
+                row[k] = v.clone();
+            }
+            let c = api()
+                .ok(
+                    "POST tickets/123/forward",
+                    json!({"conversation": {"id": 456}}),
+                )
+                .ok(
+                    "GET tickets/123/conversations",
+                    json!({"conversations": [source_row(), row]}),
+                );
+            let p = forward_source_plan(&c).unwrap();
+            let (j, store) = (MemJournal::default(), MemStore::default());
+            let out = send(&p, &c, &j, &store, Some(&p.hash()), true).unwrap();
+            let name = case["name"].as_str().unwrap();
+            for key in [
+                "verified",
+                "fields",
+                "source_conversation_id",
+                "source_link_readback",
+                "source_link_verified",
+                "verification_scope",
+            ] {
+                assert_eq!(out[key], case[key], "{name} {key}");
+            }
+            assert_eq!(
+                json!(out.get("warning").is_some()),
+                case["has_warning"],
+                "{name}"
+            );
+            assert_eq!(json!(c.writes().len()), case["posts"], "{name}");
+        }
     }
 
     /// A forward whose server readback stores recipients as `to_emails`.
