@@ -1029,7 +1029,8 @@ pub fn views(res: &'static Resource, a: ResViewsArgs) -> CmdResult {
     Ok(())
 }
 
-/// `_fulltext_search` (per resource).
+/// `fsv RES search QUERY`.
+/// Port of fsv.cli.search_resource, fsv.cli._fulltext_search.
 pub fn search(res: &'static Resource, a: ResSearchArgs) -> CmdResult {
     let c = client()?;
     let sort = Some(a.sort.as_str());
@@ -1568,6 +1569,32 @@ pub fn download(res: &'static Resource, a: ResDownloadArgs) -> CmdResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::testkit::{UNITS, cmd_outcome, python, tenant, with_client};
+    use crate::types::SearchSort;
+    use fsv_core::resource::CHANGES;
+
+    /// `units.json` `search_resource`: `search_resource(changes, query, 1,
+    /// json_out, relevance)` on the `units` tenant.
+    #[test]
+    fn search_matches_python() {
+        let t = tenant("units");
+        for case in UNITS["search_resource"].as_array().unwrap() {
+            let a = ResSearchArgs {
+                query: case["query"].as_str().unwrap().into(),
+                page: 1,
+                sort: SearchSort::Relevance,
+                format_: OutputFormat::Table,
+                json_out: case["json"].as_bool().unwrap(),
+                n_pages: None,
+                all_pages: false,
+            };
+            assert_eq!(
+                with_client(&t.client, || cmd_outcome(|| search(&CHANGES, a))),
+                python(&case["want"]),
+                "{case}"
+            );
+        }
+    }
 
     /// Values from `cli._where_field`, `_merge_same_conditions`,
     /// `_activity_day` and `_activity_text`.

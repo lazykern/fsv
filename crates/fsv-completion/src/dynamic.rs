@@ -946,6 +946,21 @@ mod tests {
         );
     }
 
+    /// `problems planning-text --section` names `complete_section`, which
+    /// Python's `_complete._completions` does not know: nothing is printed
+    /// (fsv 92002d7, bash and fish, tokens "", "r", "ro", "Root").
+    #[test]
+    fn complete_section_prints_nothing_like_python() {
+        for shell in ["bash", "fish"] {
+            for token in ["", "r", "ro", "Root"] {
+                assert_eq!(
+                    run(&args(&[shell, "complete_section", "-", token]), false),
+                    ""
+                );
+            }
+        }
+    }
+
     #[test]
     fn extract_flag_forms() {
         assert_eq!(

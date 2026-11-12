@@ -22,7 +22,7 @@ OUT = GOLDEN.parent / "upstream_cmds.rs"
 PARTS = ["watch", "time", "plan", "mail", "rev", "srf", "asset", "asset_hand.rs", "canned", "pv", "lp",
          "pw", "form", "tail_hand.rs", "missing"]
 # Not emitted: each is covered by a hand test in `*_hand.rs`.
-DIVERGENT = {"asset_picker_duplicate_then_bad", "asset_picker_api_error", "asset_picker_page_zero"}
+DIVERGENT = {"asset_picker_api_error", "asset_picker_page_zero"}
 
 HEADER = """//! Upstream commands ported from Python: watchers, ticket time,
 //! planning-text, mark-known-error, bulk-priority, reply --bcc/--sender,

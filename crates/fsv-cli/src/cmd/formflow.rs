@@ -14,8 +14,8 @@ use fsv_core::{Error, Result};
 use fsv_flows::change::{Plan, flow_exit};
 use fsv_flows::drafts::Draft;
 use fsv_forms::LookupValue;
-use fsv_formui::FormSession;
 use fsv_formui::kit::theme::Theme;
+use fsv_formui::{FormResult, FormSession};
 
 /// `change_cli._Requester`: --requester > draft `requester:` > config
 /// `defaults.requester` > (terminal) a prompt.
@@ -26,12 +26,19 @@ pub struct Requester<'a> {
     cache: RefCell<HashMap<String, LookupValue>>,
     prompted: RefCell<Option<String>>,
     config_key: &'static str,
+    /// `typer.prompt(text, default="", show_default=False)`.
+    line: &'a Line<'a>,
 }
 
 type Pick<'f> = dyn Fn(&[LookupValue]) -> LookupValue + 'f;
+type Line<'f> = dyn Fn(&str) -> Result<String> + 'f;
 
 fn nonempty(s: &Option<String>) -> Option<String> {
     s.clone().filter(|v| !v.is_empty())
+}
+
+fn prompt_line(text: &str) -> Result<String> {
+    term::prompt(text, Some(""), false)
 }
 
 impl<'a> Requester<'a> {
@@ -43,7 +50,13 @@ impl<'a> Requester<'a> {
             cache: RefCell::new(HashMap::new()),
             prompted: RefCell::new(None),
             config_key: "requester",
+            line: &prompt_line,
         }
+    }
+
+    #[cfg(test)]
+    fn answering(self, line: &'a Line<'a>) -> Self {
+        Requester { line, ..self }
     }
 
     /// `cli_sr._Requester`: the default is config `defaults.sr_requester`.
@@ -72,18 +85,14 @@ impl<'a> Requester<'a> {
 
     /// Port of fsv.change_cli._Requester.ask.
     pub fn ask(&self) -> Result<()> {
-        let v = term::prompt("Requester (email)", Some(""), false)?;
+        let v = (self.line)("Requester (email)")?;
         *self.prompted.borrow_mut() = Some(v).filter(|s| !s.is_empty());
         Ok(())
     }
 
     /// `cli_sr._Requester.ask`: an empty answer stops.
     pub fn ask_sr(&self) -> Result<()> {
-        let v = term::prompt(
-            "Requester (email; approvals route via their manager)",
-            Some(""),
-            false,
-        )?;
+        let v = (self.line)("Requester (email; approvals route via their manager)")?;
         let v = fsv_core::pystr::strip(&v).to_string();
         if v.is_empty() {
             return Err(flow_exit(2, "no requester given; nothing was sent"));
@@ -158,7 +167,9 @@ fn pick_one(
     Ok(None)
 }
 
-/// `_run_form`: the reviewed plan on submit, else the form's exit.
+/// The reviewed plan on submit, else the form's exit (`fsv_app::form::finish`);
+/// the theme is config `forms.theme` (`FormApp.__init__`).
+/// Port of fsv.change_cli._run_form.
 pub fn run_form(session: FormSession) -> Result<Submitted> {
     let cfg = fsv_core::config::load_config();
     let theme = cfg
@@ -167,7 +178,25 @@ pub fn run_form(session: FormSession) -> Result<Submitted> {
         .filter(|v| fsv_py::truthy(v))
         .map(|v| Theme::by_name(&fsv_py::py_str(v)))
         .unwrap_or_default();
-    fsv_app::run_form(session, theme)
+    fsv_app::form::finish(open_form(session, theme)?)
+}
+
+#[cfg(not(test))]
+fn open_form(session: FormSession, theme: Theme) -> std::io::Result<FormResult> {
+    fsv_formui::run_form(session, theme)
+}
+
+#[cfg(test)]
+type Opener = Box<dyn FnMut(FormSession, Theme) -> std::io::Result<FormResult>>;
+
+#[cfg(test)]
+thread_local! {
+    static OPEN_FORM: RefCell<Option<Opener>> = const { RefCell::new(None) };
+}
+
+#[cfg(test)]
+fn open_form(session: FormSession, theme: Theme) -> std::io::Result<FormResult> {
+    OPEN_FORM.with(|o| (o.borrow_mut().as_mut().expect("test form opener"))(session, theme))
 }
 
 /// A plan built by the CLI or reviewed in the form.
@@ -303,9 +332,9 @@ pub fn editor_abort(e: Error) -> Error {
 
 #[cfg(test)]
 mod tests {
-    use super::pick_one;
-    use fsv_forms::LookupValue;
-    use serde_json::json;
+    use super::*;
+    use crate::testkit::{UNITS, isolated, tenant};
+    use fsv_formui::Action;
 
     fn cands() -> Vec<LookupValue> {
         let mut v: Vec<LookupValue> = (1..=25)
@@ -364,5 +393,151 @@ mod tests {
             );
             assert_eq!(lines[20], "  20. Ann 20 <ann20@acme.com>");
         }
+    }
+
+    fn opt(v: &Json) -> Option<String> {
+        v.as_str().map(str::to_string)
+    }
+
+    fn lookup_json(v: &Option<LookupValue>) -> Json {
+        v.as_ref().map_or(
+            Json::Null,
+            |c| json!({"id": c.id, "display": c.display, "email": c.email, "str": c.to_string()}),
+        )
+    }
+
+    fn exit_json(e: &Error) -> Json {
+        match e {
+            Error::Exit { code, message } => json!({"exit": code, "message": message}),
+            other => json!({"error": other.to_string()}),
+        }
+    }
+
+    /// `units.json` `requester.value`: `change_cli._Requester.value` and
+    /// `cli_sr._Requester.value` over flag, draft, prompt and config.
+    #[test]
+    fn requester_value_matches_python() {
+        let env = isolated();
+        let t = tenant("units");
+        for case in UNITS["requester"]["value"].as_array().unwrap() {
+            let sr = case["sr"].as_bool().unwrap();
+            let key = if sr { "sr_requester" } else { "requester" };
+            let cfg = &case["config"];
+            env.config(if cfg.is_null() {
+                json!({})
+            } else {
+                json!({"defaults": {key: cfg}})
+            });
+            let flag = opt(&case["flag"]);
+            let r = if sr {
+                Requester::sr(&*t.client, flag, false)
+            } else {
+                Requester::new(&*t.client, flag, false)
+            };
+            *r.prompted.borrow_mut() = opt(&case["prompted"]);
+            let draft = Draft {
+                requester: opt(&case["draft"]),
+                ..Draft::default()
+            };
+            assert_eq!(r.value(&draft), opt(&case["want"]), "{case}");
+        }
+        assert!(t.requests().is_empty());
+    }
+
+    /// `units.json` `requester.ask`: `change_cli._Requester.ask` keeps the
+    /// answer as typed; an empty one is no answer.
+    #[test]
+    fn requester_ask_matches_python() {
+        let t = tenant("units");
+        for case in UNITS["requester"]["ask"].as_array().unwrap() {
+            let answer = case["answer"].as_str().unwrap();
+            let asked = RefCell::new(Vec::new());
+            let line = |text: &str| -> Result<String> {
+                asked.borrow_mut().push(text.to_string());
+                Ok(answer.to_string())
+            };
+            let r = Requester::new(&*t.client, None, false).answering(&line);
+            r.ask().unwrap();
+            assert_eq!(*r.prompted.borrow(), opt(&case["prompted"]), "{case}");
+            drop(r);
+            assert_eq!(asked.into_inner(), [case["asked"].as_str().unwrap()]);
+        }
+    }
+
+    /// `units.json` `requester.resolve`: `_Requester.resolve` twice per flag
+    /// against the requester autocomplete; only a match is cached.
+    #[test]
+    fn requester_resolve_matches_python() {
+        let _env = isolated();
+        for case in UNITS["requester"]["resolve"].as_array().unwrap() {
+            let t = tenant("units");
+            let r = Requester::new(&*t.client, opt(&case["flag"]), false);
+            for key in ["want", "again"] {
+                let (hit, problem) = r.resolve(&Draft::default()).unwrap();
+                assert_eq!(
+                    json!([lookup_json(&hit), problem]),
+                    case[key],
+                    "{key} {case}"
+                );
+            }
+            assert_eq!(json!(t.requests()), case["requests"], "{case}");
+        }
+    }
+
+    /// `units.json` `run_form`: `change_cli._run_form` over each form outcome.
+    #[test]
+    fn run_form_matches_python() {
+        let env = isolated();
+        env.config(json!({"forms": {"theme": "textual-light"}}));
+        let t = tenant("form");
+        let deps = fsv_app::FormDeps::live(t.client.clone()).unwrap();
+        let session = || {
+            fsv_app::change_session(&deps, fsv_app::ChangeForm::new(fsv_formui::FormMode::New))
+                .unwrap()
+        };
+        for case in UNITS["run_form"].as_array().unwrap() {
+            let action = match case["action"].as_str().unwrap() {
+                "save_draft" => Action::SaveDraft,
+                "cancel" => Action::Cancel,
+                _ => Action::Submit,
+            };
+            let mut s = session();
+            let plan = (!case["plan"].is_null()).then(|| s.build_plan(None).unwrap());
+            let hash = plan.as_ref().map(|p| p.hash.clone());
+            let saved_path = opt(&case["saved_path"]).map(Into::into);
+            let mut result = Some(FormResult {
+                action,
+                plan,
+                saved_path,
+                session: s,
+            });
+            OPEN_FORM.with(|o| {
+                *o.borrow_mut() = Some(Box::new(move |_, theme| {
+                    assert_eq!(theme, Theme::by_name("textual-light"));
+                    Ok(result.take().unwrap())
+                }))
+            });
+            let (got, text) = fsv_core::term::capture(|| run_form(session()));
+            let want = &case["want"];
+            match got {
+                Ok(sent) => {
+                    assert_eq!(want["ok"], "PLAN");
+                    assert_eq!(Some(sent.plan.hash), hash);
+                }
+                Err(e) => {
+                    let mut w = want.clone();
+                    let w = w.as_object_mut().unwrap();
+                    w.remove("out");
+                    w.remove("err");
+                    assert_eq!(exit_json(&e), json!(w), "{case}");
+                }
+            }
+            assert_eq!(
+                (want["out"].as_str(), want["err"].as_str()),
+                (Some(""), Some(""))
+            );
+            assert_eq!(text, "");
+        }
+        OPEN_FORM.with(|o| *o.borrow_mut() = None);
     }
 }

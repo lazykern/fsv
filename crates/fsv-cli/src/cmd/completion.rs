@@ -20,20 +20,26 @@ pub fn network_enabled() -> bool {
     fsv_completion::completion_network(env.as_deref(), &cfg)
 }
 
-fn env_shell() -> String {
-    let shell = std::env::var("SHELL").unwrap_or_default();
-    Path::new(&shell)
+fn env_var_shell() -> String {
+    std::env::var("SHELL").unwrap_or_default()
+}
+
+/// `Path($SHELL).name`.
+fn shell_name(env_shell: &str) -> String {
+    Path::new(env_shell)
         .file_name()
         .map(|n| n.to_string_lossy().into_owned())
         .unwrap_or_default()
 }
 
-/// `_completion_shell`: an explicit shell is used as given.
-fn completion_shell(shell: Option<String>) -> Result<String> {
+/// An explicit shell is used as given, else `$SHELL` (`env_shell`) when it
+/// names a supported one.
+/// Port of fsv.cli._completion_shell.
+fn completion_shell(shell: Option<String>, env_shell: &str) -> Result<String> {
     if let Some(s) = shell.filter(|s| !s.is_empty()) {
         return Ok(s);
     }
-    let s = env_shell();
+    let s = shell_name(env_shell);
     if SUPPORTED.contains(&s.as_str()) {
         return Ok(s);
     }
@@ -44,7 +50,7 @@ fn completion_shell(shell: Option<String>) -> Result<String> {
 
 /// `_shell_from_env` (typer's fallback detection; `sh` counts as bash).
 pub fn shell_from_env() -> Option<String> {
-    let s = fsv_core::pystr::casefold(&env_shell());
+    let s = fsv_core::pystr::casefold(&shell_name(&env_var_shell()));
     let s = if s == "sh" { "bash".to_string() } else { s };
     SUPPORTED.contains(&s.as_str()).then_some(s)
 }
@@ -101,14 +107,14 @@ fn install_script(shell: &str, prog: &str) -> Result<Vec<String>> {
 
 /// `fsv completion show [SHELL]`.
 pub fn show(shell: Option<String>, prog: &str) -> CmdResult {
-    let shell = completion_shell(shell)?;
+    let shell = completion_shell(shell, &env_var_shell())?;
     print!("{}", build_script(&shell, prog)?);
     Ok(())
 }
 
 /// `fsv completion install [SHELL]`.
 pub fn install(shell: Option<String>, prog: &str) -> CmdResult {
-    let shell = completion_shell(shell)?;
+    let shell = completion_shell(shell, &env_var_shell())?;
     for line in install_script(&shell, prog)? {
         out().print(&line);
     }
@@ -146,8 +152,7 @@ pub fn doctor(prog: &str) -> CmdResult {
     Ok(())
 }
 
-/// Root `--show-completion`. Port of fsv.cli._patch_typer_shell_detection
-/// (shell detection via `shell_from_env`).
+/// Root `--show-completion` (shell detection via `shell_from_env`).
 pub fn show_eager(prog: &str) -> CmdResult {
     let Some(shell) = shell_from_env() else {
         return Err(fail("could not detect shell", 1));
@@ -169,6 +174,23 @@ pub fn install_eager(prog: &str) -> CmdResult {
 
 #[cfg(test)]
 mod tests {
+    use crate::testkit::{UNITS, outcome, python};
+
+    /// `units.json` `completion_shell`: `_completion_shell(shell)` with `SHELL`
+    /// set to `env` (unset when null).
+    #[test]
+    fn completion_shell_matches_python() {
+        for case in UNITS["completion_shell"].as_array().unwrap() {
+            let shell = case["shell"].as_str().map(str::to_string);
+            let env = case["env"].as_str().unwrap_or_default();
+            assert_eq!(
+                outcome(|| super::completion_shell(shell, env)),
+                python(&case["want"]),
+                "{case}"
+            );
+        }
+    }
+
     /// Expected values from Python `completion._completion_network` on
     /// `{"completion": {"network": <json>}}`, the config `network_enabled`
     /// passes on.

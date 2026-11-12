@@ -59,9 +59,17 @@ fn respond(route: &Value) -> Response {
 /// The routed transport when `FSV_TEST_ROUTES` is set.
 pub fn transport() -> Option<Arc<MockTransport>> {
     let path = std::env::var_os("FSV_TEST_ROUTES").filter(|v| !v.is_empty())?;
-    let text = std::fs::read_to_string(&path).ok()?;
-    let routes: Vec<Value> = serde_json::from_str(&text).ok()?;
     let log = std::env::var_os("FSV_TEST_LOG").filter(|v| !v.is_empty());
+    routed(std::path::Path::new(&path), log)
+}
+
+/// The transport answering from the routes file `path`.
+pub fn routed(
+    path: &std::path::Path,
+    log: Option<std::ffi::OsString>,
+) -> Option<Arc<MockTransport>> {
+    let text = std::fs::read_to_string(path).ok()?;
+    let routes: Vec<Value> = serde_json::from_str(&text).ok()?;
     let used = std::sync::Mutex::new(vec![false; routes.len()]);
     Some(MockTransport::new(move |req| {
         if let Some(log) = &log

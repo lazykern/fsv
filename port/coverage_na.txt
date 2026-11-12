@@ -66,3 +66,14 @@ fsv.change_approval_actions.register: Typer registration only; the nested comman
 fsv.change_approvals.register: Typer registration only; the nested command is fsv-cli `changes approval-request` (clap dispatch), tested in fsv-cli tests
 fsv.change_tasks.register: Typer registration only; the nested command is fsv-cli `changes tasks-add` (clap dispatch), tested in fsv-cli tests
 fsv.ticket_notes.register: Typer registration only; the nested command is fsv-cli `tickets add-note` (clap dispatch), tested in fsv-cli tests
+fsv.bulk_priority_cli.register: Typer registration only; the nested command is fsv-cli `tickets bulk-priority` (clap dispatch), tested in fsv-cli tests
+fsv.canned_cli.register: Typer registration only; the nested commands are fsv-cli `tickets canned folders|list|show|reply` and `tickets scenarios list|show|apply` (clap dispatch), tested in fsv-cli tests
+fsv.list_preferences_cli.register: Typer registration only; the nested commands are fsv-cli `<resource> columns list|set` and `<resource> export` (clap dispatch), tested in fsv-cli tests
+fsv.planning_cli.register: Typer registration only; the nested commands are fsv-cli `problems mark-known-error` and `changes|problems planning-text` (clap dispatch), tested in fsv-cli tests
+fsv.private_view_cli.register: Typer registration only; the nested commands are fsv-cli `tickets private-views show|write` (clap dispatch), tested in fsv-cli tests
+fsv.problem_cli.register: Typer registration only; the nested commands are fsv-cli `problems create` and `problems write-child` (clap dispatch), tested in fsv-cli tests
+fsv.ticket_time_cli.register: Typer registration only; the nested commands are fsv-cli `tickets time list|write` (clap dispatch), tested in fsv-cli tests
+fsv.watcher_cli.register: Typer registration only; the nested commands are fsv-cli `tickets|changes watchers list|set` (clap dispatch), tested in fsv-cli tests
+fsv.planning_cli.complete_section: Typer in-process completer only; the generated scripts call `_complete ... complete_section`, which Python's `_complete` does not know and answers with nothing (fsv-completion `complete_section_prints_nothing_like_python`)
+fsv.__init__.main: console-script entry point (`app()`); fsv-cli `main.rs` calls `app::run`, run by every fsv-cli binary test
+fsv.cli._patch_typer_shell_detection: monkeypatches Typer's shellingham lookup; fsv-cli detects the shell only from $SHELL (`completion::shell_from_env`, the patched fallback)

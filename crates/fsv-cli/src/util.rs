@@ -91,22 +91,33 @@ pub fn no_input(local: bool) -> bool {
 }
 
 /// `sys.stdin.isatty()`. Debug builds treat `FSV_TEST_TTY=1` as a terminal
-/// so tests can script prompts through a pipe.
+/// so tests can script prompts through a pipe, and `FSV_TEST_TTY=0` as none.
 pub fn stdin_tty() -> bool {
     #[cfg(debug_assertions)]
-    if std::env::var_os("FSV_TEST_TTY").is_some_and(|v| !v.is_empty()) {
-        return true;
+    if let Some(v) = std::env::var_os("FSV_TEST_TTY").filter(|v| !v.is_empty()) {
+        return v != "0";
     }
     std::io::stdin().is_terminal()
 }
 
-/// `_interactive()`.
+/// Port of fsv.cli._interactive.
 pub fn interactive() -> bool {
     !no_input(false) && stdin_tty()
 }
 
+#[cfg(test)]
+thread_local! {
+    /// The client unit tests run commands with (`testkit::with_client`).
+    pub(crate) static TEST_CLIENT: std::cell::RefCell<Option<Arc<Client>>> =
+        const { std::cell::RefCell::new(None) };
+}
+
 /// `get_client()`: the process-wide client.
 pub fn shared_client() -> Result<Arc<Client>> {
+    #[cfg(test)]
+    if let Some(c) = TEST_CLIENT.with(|t| t.borrow().clone()) {
+        return Ok(c);
+    }
     #[cfg(debug_assertions)]
     {
         static MOCK: std::sync::OnceLock<Option<Arc<Client>>> = std::sync::OnceLock::new();
@@ -137,6 +148,10 @@ pub fn client_with_cookies(cookies: &fsv_core::session::Cookies) -> Result<Clien
 
 /// `_client()`.
 pub fn client() -> Result<Arc<Client>> {
+    #[cfg(test)]
+    if let Some(c) = TEST_CLIENT.with(|t| t.borrow().clone()) {
+        return Ok(c);
+    }
     if fsv_core::session::session_age_hours().is_none() {
         err().print("[red]error[/red]: no session; run `fsv auth login`");
         return Err(Error::exit(3, ""));
@@ -259,4 +274,41 @@ pub fn head(s: &str, n: usize) -> String {
 
 pub fn obj(pairs: Vec<(&str, Value)>) -> Map<String, Value> {
     pairs.into_iter().map(|(k, v)| (k.to_string(), v)).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testkit::{UNITS, isolated, python};
+    use serde_json::json;
+
+    /// `units.json` `flow_exit`: `_flow_exit(FlowExit(code, message))`.
+    #[test]
+    fn report_matches_python() {
+        for case in UNITS["flow_exit"].as_array().unwrap() {
+            let code = case["code"].as_i64().unwrap() as i32;
+            let message = case["message"].as_str().unwrap();
+            let (got, text) = fsv_core::term::capture(|| report(Err(Error::exit(code, message))));
+            assert_eq!(
+                json!({"exit": got, "text": text}),
+                python(&case["want"]),
+                "{case}"
+            );
+        }
+    }
+
+    /// `units.json` `interactive`: `_interactive()` under `NO_INPUT` and a
+    /// stdin terminal or not.
+    #[test]
+    fn interactive_matches_python() {
+        let env = isolated();
+        for case in UNITS["interactive"].as_array().unwrap() {
+            fsv_core::runtime::set_no_input(case["no_input"].as_bool().unwrap());
+            let tty = case["tty"].as_bool().unwrap();
+            env.set_env("FSV_TEST_TTY", Some(if tty { "1" } else { "0" }));
+            assert_eq!(json!(interactive()), case["want"], "{case}");
+        }
+        fsv_core::runtime::set_no_input(false);
+        env.set_env("FSV_TEST_TTY", None);
+    }
 }

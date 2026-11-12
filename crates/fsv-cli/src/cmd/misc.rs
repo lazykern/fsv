@@ -82,9 +82,11 @@ fn search_clean(s: &str) -> String {
     pystr::strip(&pystr::html_unescape(&stripped)).to_string()
 }
 
-/// `_search_extract`: `(type, id, title, status, group)`.
+/// `(type, id, title, status, group)`.
+type SearchRow = [String; 5];
+
 /// Port of fsv.cli._search_extract.
-pub fn search_extract(r: &Value) -> [String; 5] {
+pub fn search_extract(r: &Value) -> SearchRow {
     let rt = first_str(r, &["result_type"], "");
     let label = SEARCH_TYPE_LABEL
         .iter()

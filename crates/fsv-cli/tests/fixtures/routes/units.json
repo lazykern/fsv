@@ -1,0 +1,12 @@
+[
+ {"method": "GET", "path": "/a/dashboard", "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"},
+ {"method": "GET", "path": "/search/autocomplete/requesters", "query": {"q": "ann@acme.com"}, "json": {"results": [{"id": 51, "value": "Ann Lee", "email": "ann@acme.com", "details": "ann@acme.com"}]}},
+ {"method": "GET", "path": "/search/autocomplete/requesters", "query": {"q": "Ann"}, "json": {"results": [{"id": 51, "value": "Ann Lee", "email": "ann@acme.com", "details": "ann@acme.com"}, {"id": 54, "value": "Ann Ma", "email": "annm@acme.com", "details": "annm@acme.com"}]}},
+ {"method": "GET", "path": "/search/autocomplete/requesters", "query": {"q": "Bo"}, "json": {"results": [{"id": 52, "value": "Bo", "email": null}]}},
+ {"method": "GET", "path": "/search/autocomplete/requesters", "query": {"q": "gone@acme.com"}, "json": {"results": [{"id": 53, "value": "Gone", "email": "gone@acme.com", "deleted": true}]}},
+ {"method": "GET", "path": "/search/autocomplete/requesters", "json": {"results": []}},
+ {"method": "GET", "path": "/search/changes", "query": {"term": "acme"}, "json": {"results": [{"result_type": "itil_change", "itil_module_display_id": "CHN-5", "display_id": 5, "human_display_id": "CHN-5", "subject": "Acme <b>rollout</b>", "itil_module_status": "Open", "status": "Open", "itil_module_group": "Platform", "_group": "Platform"}], "total_entries": {"changes": 1}}},
+ {"method": "GET", "path": "/search/changes", "json": {"results": []}},
+ {"method": "GET", "path": "/search/all", "query": {"term": "acme"}, "json": {"results": [{"result_type": "itil_change", "itil_module_display_id": "CHN-5", "display_id": 5, "human_display_id": "CHN-5", "subject": "Acme <b>rollout</b>", "itil_module_status": "Open", "status": "Open", "itil_module_group": "Platform", "_group": "Platform"}]}},
+ {"method": "GET", "path": "/search/all", "json": {"results": []}}
+]

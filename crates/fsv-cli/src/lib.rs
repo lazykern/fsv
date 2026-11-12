@@ -1,8 +1,5 @@
 //! The `fsv` command line: clap tree, argv rewriting, and handlers.
 
-// `fsv_core::Error` is large and owned by fsv-core.
-#![allow(clippy::result_large_err)]
-
 mod app;
 mod cmd;
 mod filters;
@@ -12,6 +9,8 @@ mod lookup;
 #[cfg(debug_assertions)]
 mod mock;
 mod schema;
+#[cfg(test)]
+mod testkit;
 pub mod types;
 mod util;
 

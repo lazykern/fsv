@@ -4,9 +4,6 @@
 //! shell; only dynamic values (fields, saved views, groups, people) call back
 //! into `fsv _complete`.
 
-// `fsv_core::Error` is large and owned by fsv-core.
-#![allow(clippy::result_large_err)]
-
 mod dynamic;
 mod emit;
 #[cfg(test)]

@@ -139,7 +139,8 @@ static OPTION_RE: LazyLock<Regex> = LazyLock::new(|| {
 static TAG_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"<[^>]+>").expect("regex"));
 static CATEGORIES: Mutex<Option<Vec<Category>>> = Mutex::new(None);
 
-/// `_fetch_asset_categories`.
+/// The `/cmdb/items` category `<select>`, fetched once per process.
+/// Port of fsv.cli._fetch_asset_categories.
 fn fetch_asset_categories(c: &Client) -> Result<Vec<Category>, Error> {
     if let Some(cached) = CATEGORIES.lock().ok().and_then(|g| g.clone()) {
         return Ok(cached);
@@ -197,7 +198,7 @@ fn cat_name(cat: &Category) -> String {
     cat.get("name").map(fsv_py::py_str).unwrap_or_default()
 }
 
-/// `_resolve_asset_category`.
+/// Port of fsv.cli._resolve_asset_category.
 fn resolve_asset_category(value: &str, c: &Client) -> Result<Category, Error> {
     let raw = value.split_whitespace().collect::<Vec<_>>().join(" ");
     if raw.is_empty() {
@@ -294,7 +295,7 @@ fn assets_of(data: &Value) -> Vec<Value> {
         .unwrap_or_default()
 }
 
-/// `_resolve_change_asset_id`.
+/// Port of fsv.cli._resolve_change_asset_id.
 fn resolve_asset_id(
     id: i64,
     value: &str,
@@ -424,6 +425,10 @@ fn resolve_asset_ids(
 
 /// Line-prompt stand-in for prompt_toolkit's `input_dialog`; `None` on EOF.
 fn prompt_text(title: &str, text: &str, default: &str) -> Option<String> {
+    #[cfg(test)]
+    if let Some(answer) = tests::scripted_text(title, text, default) {
+        return answer;
+    }
     err().print_plain(&format!("{title}: {text}"));
     let d = (!default.is_empty()).then_some(default);
     term::prompt(title, d, d.is_some()).ok()
@@ -435,6 +440,10 @@ fn prompt_multi_select(
     text: &str,
     values: &[(String, String)],
 ) -> Option<Vec<String>> {
+    #[cfg(test)]
+    if let Some(picked) = tests::scripted_multi(title, text, values) {
+        return picked;
+    }
     err().print_plain(&format!("{title}: {text}"));
     for (i, (_, label)) in values.iter().enumerate() {
         err().print_plain(&format!("  {}. {label}", i + 1));
@@ -460,7 +469,8 @@ fn require_tty() -> CmdResult {
     Ok(())
 }
 
-/// `_prompt_asset_category`: `None` when the prompt is cancelled.
+/// `None` when the prompt is cancelled.
+/// Port of fsv.cli._prompt_asset_category.
 fn prompt_asset_category(c: &Client) -> Result<Option<Category>, Error> {
     let Some(v) = prompt_text(
         "Asset category",
@@ -473,7 +483,7 @@ fn prompt_asset_category(c: &Client) -> Result<Option<Category>, Error> {
     resolve_asset_category(if raw.is_empty() { "All assets" } else { raw }, c).map(Some)
 }
 
-/// `_pick_change_assets`.
+/// Port of fsv.cli._pick_change_assets.
 fn pick_assets(id: i64, c: &Client, category: Option<Category>) -> Result<Vec<i64>, Error> {
     require_tty()?;
     let category = match category {
@@ -587,7 +597,7 @@ fn print_categories(items: &[Category], fmt: OutputFormat) -> CmdResult {
     Ok(())
 }
 
-/// `asset_categories_resource`.
+/// Port of fsv.cli.asset_categories_resource.
 pub fn categories(fmt: OutputFormat, json_out: bool) -> CmdResult {
     let c = client()?;
     let items = fetch_asset_categories(&c).map_err(fail_exc)?;
@@ -604,7 +614,7 @@ fn confirm_or_fail(yes: bool, what: &str, question: &str) -> CmdResult {
     Ok(())
 }
 
-/// `assets_resource`.
+/// Port of fsv.cli.assets_resource.
 pub fn assets(o: AssetOpts) -> CmdResult {
     let actions = [
         o.search.is_some(),
@@ -1200,5 +1210,222 @@ mod tests {
         assert_eq!(filter_by_category(items.clone(), Some(&all)), items);
         assert_eq!(filter_by_category(items.clone(), Some(&Map::new())), items);
         assert_eq!(filter_by_category(items.clone(), None), items);
+    }
+
+    use crate::testkit::{
+        Isolated, Tenant, UNITS, cmd_outcome, isolated, outcome, python, tenant, with_client,
+    };
+    use std::cell::RefCell;
+    use std::collections::VecDeque;
+
+    /// `gen_units.py` `scripted()`: canned prompt answers and the calls made.
+    struct Script {
+        texts: VecDeque<Option<String>>,
+        picks: Option<Vec<String>>,
+        calls: Vec<Value>,
+    }
+
+    thread_local! {
+        static SCRIPT: RefCell<Option<Script>> = const { RefCell::new(None) };
+    }
+
+    pub(super) fn scripted_text(title: &str, text: &str, default: &str) -> Option<Option<String>> {
+        SCRIPT.with(|s| {
+            let mut s = s.borrow_mut();
+            let s = s.as_mut()?;
+            s.calls.push(json!(["text", title, text, default]));
+            Some(s.texts.pop_front().expect("scripted text answer"))
+        })
+    }
+
+    pub(super) fn scripted_multi(
+        title: &str,
+        text: &str,
+        values: &[(String, String)],
+    ) -> Option<Option<Vec<String>>> {
+        SCRIPT.with(|s| {
+            let mut s = s.borrow_mut();
+            let s = s.as_mut()?;
+            s.calls.push(json!(["multi", title, text, values]));
+            Some(s.picks.clone())
+        })
+    }
+
+    /// Prompts answer from `case["texts"]` / `case["picks"]` while `f` runs;
+    /// the calls made.
+    fn with_script<R>(case: &Value, f: impl FnOnce() -> R) -> (R, Value) {
+        let strings = |v: &Value| -> Vec<Option<String>> {
+            v.as_array()
+                .into_iter()
+                .flatten()
+                .map(|x| x.as_str().map(str::to_string))
+                .collect()
+        };
+        let script = Script {
+            texts: strings(&case["texts"]).into(),
+            picks: case["picks"]
+                .as_array()
+                .map(|_| strings(&case["picks"]).into_iter().flatten().collect()),
+            calls: Vec::new(),
+        };
+        SCRIPT.with(|s| *s.borrow_mut() = Some(script));
+        let r = f();
+        let calls = SCRIPT.with(|s| s.borrow_mut().take()).unwrap().calls;
+        (r, json!(calls))
+    }
+
+    fn fresh() {
+        *CATEGORIES.lock().unwrap() = None;
+    }
+
+    /// The `links` tenant with the asset-category cache cleared.
+    fn links() -> (Isolated, Tenant) {
+        let env = isolated();
+        env.config(json!({}));
+        fresh();
+        (env, tenant("links"))
+    }
+
+    fn cat(v: &Value) -> Option<Category> {
+        v.as_object().cloned()
+    }
+
+    /// `units.json` `assets.categories`.
+    #[test]
+    fn fetch_asset_categories_matches_python() {
+        let (_env, t) = links();
+        let want = &UNITS["assets"]["categories"];
+        assert_eq!(outcome(|| fetch_asset_categories(&t.client)), python(want));
+        assert_eq!(t.requests(), ["GET /cmdb/items"]);
+        assert_eq!(outcome(|| fetch_asset_categories(&t.client)), python(want));
+        assert_eq!(t.requests().len(), 1);
+    }
+
+    /// `units.json` `assets.resolve_category`.
+    #[test]
+    fn resolve_asset_category_matches_python() {
+        let (_env, t) = links();
+        for case in UNITS["assets"]["resolve_category"].as_array().unwrap() {
+            fresh();
+            let v = case["value"].as_str().unwrap();
+            assert_eq!(
+                outcome(|| resolve_asset_category(v, &t.client)),
+                python(&case["want"]),
+                "{case}"
+            );
+        }
+    }
+
+    /// `units.json` `assets.resolve_id`: change 5.
+    #[test]
+    fn resolve_asset_id_matches_python() {
+        let (_env, t) = links();
+        for case in UNITS["assets"]["resolve_id"].as_array().unwrap() {
+            let v = case["value"].as_str().unwrap();
+            let associated = case["associated"].as_bool().unwrap();
+            let category = cat(&case["category"]);
+            assert_eq!(
+                outcome(|| resolve_asset_id(5, v, &t.client, associated, category.as_ref())),
+                python(&case["want"]),
+                "{case}"
+            );
+        }
+    }
+
+    /// `units.json` `assets.resolve_ids`: change 5, no category.
+    #[test]
+    fn resolve_asset_ids_matches_python() {
+        let (_env, t) = links();
+        for case in UNITS["assets"]["resolve_ids"].as_array().unwrap() {
+            let values: Vec<String> = serde_json::from_value(case["values"].clone()).unwrap();
+            let associated = case["associated"].as_bool().unwrap();
+            assert_eq!(
+                outcome(|| resolve_asset_ids(5, &values, &t.client, associated, None)),
+                python(&case["want"]),
+                "{case}"
+            );
+        }
+    }
+
+    /// `units.json` `assets.prompt_category`.
+    #[test]
+    fn prompt_asset_category_matches_python() {
+        let (_env, t) = links();
+        for case in UNITS["assets"]["prompt_category"].as_array().unwrap() {
+            fresh();
+            let script = json!({"texts": [case["answer"]]});
+            let (got, calls) =
+                with_script(&script, || outcome(|| prompt_asset_category(&t.client)));
+            assert_eq!(got, python(&case["want"]), "{case}");
+            assert_eq!(calls, case["calls"], "{case}");
+        }
+    }
+
+    /// `units.json` `assets.pick`: change 5, stdin a terminal except `no_tty`.
+    #[test]
+    fn pick_assets_matches_python() {
+        let (env, t) = links();
+        for case in UNITS["assets"]["pick"].as_array().unwrap() {
+            fresh();
+            let tty = case["name"] != "no_tty";
+            env.set_env("FSV_TEST_TTY", Some(if tty { "1" } else { "0" }));
+            let category = cat(&case["category"]);
+            let (got, calls) =
+                with_script(case, || outcome(|| pick_assets(5, &t.client, category)));
+            assert_eq!(got, python(&case["want"]), "{case}");
+            assert_eq!(calls, case["calls"], "{case}");
+        }
+        env.set_env("FSV_TEST_TTY", None);
+    }
+
+    fn asset_opts(args: &Value) -> AssetOpts {
+        let strings = |k: &str| -> Vec<String> {
+            serde_json::from_value(args.get(k).cloned().unwrap_or(json!([]))).unwrap()
+        };
+        let text = |k: &str| args.get(k).and_then(Value::as_str).map(str::to_string);
+        let flag = |k: &str| args.get(k).and_then(Value::as_bool).unwrap_or(false);
+        AssetOpts {
+            search: text("search"),
+            add: strings("add"),
+            remove: strings("remove"),
+            dry_run: flag("dry_run"),
+            list_categories: flag("list_categories"),
+            category: text("category_name"),
+            fmt: OutputFormat::Json,
+            ..AssetOpts::new("5")
+        }
+    }
+
+    /// `units.json` `assets.assets`: `assets_resource(id_="5", format_="json", ...)`.
+    #[test]
+    fn assets_matches_python() {
+        let (_env, t) = links();
+        for case in UNITS["assets"]["assets"].as_array().unwrap() {
+            fresh();
+            let o = asset_opts(&case["args"]);
+            assert_eq!(
+                with_client(&t.client, || cmd_outcome(|| assets(o))),
+                python(&case["want"]),
+                "{case}"
+            );
+        }
+    }
+
+    /// `units.json` `assets.asset_categories`: `asset_categories_resource(format_, False)`.
+    #[test]
+    fn categories_matches_python() {
+        let (_env, t) = links();
+        for case in UNITS["assets"]["asset_categories"].as_array().unwrap() {
+            fresh();
+            let fmt = match case["format"].as_str().unwrap() {
+                "csv" => OutputFormat::Csv,
+                _ => OutputFormat::Json,
+            };
+            assert_eq!(
+                with_client(&t.client, || cmd_outcome(|| categories(fmt, false))),
+                python(&case["want"]),
+                "{case}"
+            );
+        }
     }
 }

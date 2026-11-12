@@ -1,0 +1,1227 @@
+{
+ "_python": {
+  "commit": "92002d76b880d927e16750ab986b525ee4fa85d6",
+  "dirty": false
+ },
+ "requester": {
+  "value": [
+   {
+    "sr": false,
+    "flag": "f@acme.com",
+    "draft": "d@acme.com",
+    "prompted": "p@acme.com",
+    "config": "c@acme.com",
+    "want": "f@acme.com"
+   },
+   {
+    "sr": false,
+    "flag": null,
+    "draft": "d@acme.com",
+    "prompted": "p@acme.com",
+    "config": "c@acme.com",
+    "want": "d@acme.com"
+   },
+   {
+    "sr": false,
+    "flag": "",
+    "draft": "",
+    "prompted": "p@acme.com",
+    "config": "c@acme.com",
+    "want": "p@acme.com"
+   },
+   {
+    "sr": false,
+    "flag": null,
+    "draft": null,
+    "prompted": null,
+    "config": "c@acme.com",
+    "want": "c@acme.com"
+   },
+   {
+    "sr": false,
+    "flag": null,
+    "draft": null,
+    "prompted": null,
+    "config": 0,
+    "want": null
+   },
+   {
+    "sr": false,
+    "flag": null,
+    "draft": null,
+    "prompted": null,
+    "config": 5,
+    "want": "5"
+   },
+   {
+    "sr": false,
+    "flag": null,
+    "draft": null,
+    "prompted": null,
+    "config": "",
+    "want": null
+   },
+   {
+    "sr": false,
+    "flag": null,
+    "draft": null,
+    "prompted": null,
+    "config": null,
+    "want": null
+   },
+   {
+    "sr": true,
+    "flag": "f@acme.com",
+    "draft": "d@acme.com",
+    "prompted": "p@acme.com",
+    "config": "c@acme.com",
+    "want": "f@acme.com"
+   },
+   {
+    "sr": true,
+    "flag": null,
+    "draft": "d@acme.com",
+    "prompted": "p@acme.com",
+    "config": "c@acme.com",
+    "want": "d@acme.com"
+   },
+   {
+    "sr": true,
+    "flag": "",
+    "draft": "",
+    "prompted": "p@acme.com",
+    "config": "c@acme.com",
+    "want": "p@acme.com"
+   },
+   {
+    "sr": true,
+    "flag": null,
+    "draft": null,
+    "prompted": null,
+    "config": "c@acme.com",
+    "want": "c@acme.com"
+   },
+   {
+    "sr": true,
+    "flag": null,
+    "draft": null,
+    "prompted": null,
+    "config": 0,
+    "want": null
+   },
+   {
+    "sr": true,
+    "flag": null,
+    "draft": null,
+    "prompted": null,
+    "config": 5,
+    "want": "5"
+   },
+   {
+    "sr": true,
+    "flag": null,
+    "draft": null,
+    "prompted": null,
+    "config": "",
+    "want": null
+   },
+   {
+    "sr": true,
+    "flag": null,
+    "draft": null,
+    "prompted": null,
+    "config": null,
+    "want": null
+   }
+  ],
+  "ask": [
+   {
+    "answer": "",
+    "asked": "Requester (email)",
+    "prompted": null
+   },
+   {
+    "answer": "x@acme.com",
+    "asked": "Requester (email)",
+    "prompted": "x@acme.com"
+   },
+   {
+    "answer": "  ",
+    "asked": "Requester (email)",
+    "prompted": "  "
+   }
+  ],
+  "resolve": [
+   {
+    "flag": "ann@acme.com",
+    "want": [
+     {
+      "id": 51,
+      "display": "Ann Lee",
+      "email": "ann@acme.com",
+      "str": "Ann Lee <ann@acme.com>"
+     },
+     null
+    ],
+    "again": [
+     {
+      "id": 51,
+      "display": "Ann Lee",
+      "email": "ann@acme.com",
+      "str": "Ann Lee <ann@acme.com>"
+     },
+     null
+    ],
+    "requests": [
+     "GET /search/autocomplete/requesters"
+    ]
+   },
+   {
+    "flag": "Ann",
+    "want": [
+     null,
+     "requester 'Ann': no exact match: Ann Lee <ann@acme.com>; Ann Ma <annm@acme.com>. Use the exact email address."
+    ],
+    "again": [
+     null,
+     "requester 'Ann': no exact match: Ann Lee <ann@acme.com>; Ann Ma <annm@acme.com>. Use the exact email address."
+    ],
+    "requests": [
+     "GET /search/autocomplete/requesters",
+     "GET /search/autocomplete/requesters"
+    ]
+   },
+   {
+    "flag": "Bo",
+    "want": [
+     null,
+     "requester 'Bo': several exact matches: Bo. Use the exact email address."
+    ],
+    "again": [
+     null,
+     "requester 'Bo': several exact matches: Bo. Use the exact email address."
+    ],
+    "requests": [
+     "GET /search/autocomplete/requesters",
+     "GET /search/autocomplete/requesters"
+    ]
+   },
+   {
+    "flag": "gone@acme.com",
+    "want": [
+     null,
+     "no requester matches 'gone@acme.com'; use the exact email address"
+    ],
+    "again": [
+     null,
+     "no requester matches 'gone@acme.com'; use the exact email address"
+    ],
+    "requests": [
+     "GET /search/autocomplete/requesters",
+     "GET /search/autocomplete/requesters"
+    ]
+   },
+   {
+    "flag": "nobody@acme.com",
+    "want": [
+     null,
+     "no requester matches 'nobody@acme.com'; use the exact email address"
+    ],
+    "again": [
+     null,
+     "no requester matches 'nobody@acme.com'; use the exact email address"
+    ],
+    "requests": [
+     "GET /search/autocomplete/requesters",
+     "GET /search/autocomplete/requesters"
+    ]
+   },
+   {
+    "flag": null,
+    "want": [
+     null,
+     null
+    ],
+    "again": [
+     null,
+     null
+    ],
+    "requests": []
+   }
+  ]
+ },
+ "run_form": [
+  {
+   "action": "save_draft",
+   "saved_path": "/w/d.yaml",
+   "plan": null,
+   "want": {
+    "exit": 0,
+    "message": "saved /w/d.yaml; continue later with --from /w/d.yaml (nothing was sent)",
+    "out": "",
+    "err": ""
+   }
+  },
+  {
+   "action": "save_draft",
+   "saved_path": null,
+   "plan": null,
+   "want": {
+    "exit": 0,
+    "message": "saved ; continue later with --from  (nothing was sent)",
+    "out": "",
+    "err": ""
+   }
+  },
+  {
+   "action": "cancel",
+   "saved_path": null,
+   "plan": null,
+   "want": {
+    "exit": 1,
+    "message": "cancelled; nothing was sent",
+    "out": "",
+    "err": ""
+   }
+  },
+  {
+   "action": "submit",
+   "saved_path": null,
+   "plan": null,
+   "want": {
+    "exit": 1,
+    "message": "cancelled; nothing was sent",
+    "out": "",
+    "err": ""
+   }
+  },
+  {
+   "action": "submit",
+   "saved_path": null,
+   "plan": "PLAN",
+   "want": {
+    "ok": "PLAN",
+    "out": "",
+    "err": ""
+   }
+  }
+ ],
+ "assets": {
+  "categories": {
+   "ok": [
+    {
+     "name": "All assets",
+     "filter": "all_assets",
+     "ci_type_id": ""
+    },
+    {
+     "name": "Application Portfolio",
+     "filter": "7",
+     "ci_type_id": "7"
+    },
+    {
+     "name": "Hardware & Devices",
+     "filter": "8",
+     "ci_type_id": "8"
+    },
+    {
+     "name": "Application Server",
+     "filter": "9",
+     "ci_type_id": "9"
+    }
+   ],
+   "out": "",
+   "err": ""
+  },
+  "resolve_category": [
+   {
+    "value": "all",
+    "want": {
+     "ok": {
+      "name": "All assets",
+      "filter": "all_assets",
+      "ci_type_id": ""
+     },
+     "out": "",
+     "err": ""
+    }
+   },
+   {
+    "value": "  All   Assets ",
+    "want": {
+     "ok": {
+      "name": "All assets",
+      "filter": "all_assets",
+      "ci_type_id": ""
+     },
+     "out": "",
+     "err": ""
+    }
+   },
+   {
+    "value": "application portfolio",
+    "want": {
+     "ok": {
+      "name": "Application Portfolio",
+      "filter": "7",
+      "ci_type_id": "7"
+     },
+     "out": "",
+     "err": ""
+    }
+   },
+   {
+    "value": "hardware",
+    "want": {
+     "ok": {
+      "name": "Hardware & Devices",
+      "filter": "8",
+      "ci_type_id": "8"
+     },
+     "out": "",
+     "err": ""
+    }
+   },
+   {
+    "value": "application",
+    "want": {
+     "exit": 2,
+     "out": "",
+     "err": "error: multiple asset categories match 'application': Application Portfolio, \nApplication Server\n"
+    }
+   },
+   {
+    "value": "zzz",
+    "want": {
+     "exit": 2,
+     "out": "",
+     "err": "error: unknown asset category: 'zzz'. Try --list-categories\n"
+    }
+   },
+   {
+    "value": "  ",
+    "want": {
+     "exit": 2,
+     "out": "",
+     "err": "error: empty asset category\n"
+    }
+   },
+   {
+    "value": "Server",
+    "want": {
+     "ok": {
+      "name": "Application Server",
+      "filter": "9",
+      "ci_type_id": "9"
+     },
+     "out": "",
+     "err": ""
+    }
+   }
+  ],
+  "resolve_id": [
+   {
+    "value": "44",
+    "associated": false,
+    "category": null,
+    "want": {
+     "ok": 44,
+     "out": "",
+     "err": ""
+    }
+   },
+   {
+    "value": " 46 ",
+    "associated": true,
+    "category": null,
+    "want": {
+     "ok": 46,
+     "out": "",
+     "err": ""
+    }
+   },
+   {
+    "value": "AcmeApp",
+    "associated": false,
+    "category": null,
+    "want": {
+     "ok": 44,
+     "out": "",
+     "err": ""
+    }
+   },
+   {
+    "value": "acme",
+    "associated": false,
+    "category": null,
+    "want": {
+     "exit": 2,
+     "out": "",
+     "err": "error: multiple assets match 'acme': AcmeApp [44], AcmeWeb [46]\n"
+    }
+   },
+   {
+    "value": "zzz",
+    "associated": false,
+    "category": null,
+    "want": {
+     "exit": 2,
+     "out": "",
+     "err": "error: multiple assets match 'zzz': AcmeApp [44], AcmeWeb [46]\n"
+    }
+   },
+   {
+    "value": "acmeweb",
+    "associated": false,
+    "category": null,
+    "want": {
+     "ok": 46,
+     "out": "",
+     "err": ""
+    }
+   },
+   {
+    "value": "AcmeApp",
+    "associated": true,
+    "category": null,
+    "want": {
+     "ok": 44,
+     "out": "",
+     "err": ""
+    }
+   },
+   {
+    "value": "acme",
+    "associated": true,
+    "category": null,
+    "want": {
+     "ok": 44,
+     "out": "",
+     "err": ""
+    }
+   },
+   {
+    "value": "nope",
+    "associated": true,
+    "category": null,
+    "want": {
+     "exit": 2,
+     "out": "",
+     "err": "error: asset not associated on CHN-5: 'nope'\n"
+    }
+   },
+   {
+    "value": "acme",
+    "associated": false,
+    "category": {
+     "name": "Application Portfolio",
+     "filter": "7",
+     "ci_type_id": "7"
+    },
+    "want": {
+     "ok": 44,
+     "out": "",
+     "err": ""
+    }
+   },
+   {
+    "value": "nope",
+    "associated": true,
+    "category": {
+     "name": "Application Portfolio",
+     "filter": "7",
+     "ci_type_id": "7"
+    },
+    "want": {
+     "exit": 2,
+     "out": "",
+     "err": "error: asset not associated on CHN-5 in category 'Application Portfolio': 'nope'\n"
+    }
+   },
+   {
+    "value": "zzz",
+    "associated": false,
+    "category": {
+     "name": "Application Portfolio",
+     "filter": "7",
+     "ci_type_id": "7"
+    },
+    "want": {
+     "ok": 44,
+     "out": "",
+     "err": ""
+    }
+   }
+  ],
+  "resolve_ids": [
+   {
+    "values": [
+     "44",
+     "AcmeApp",
+     " 44"
+    ],
+    "associated": false,
+    "want": {
+     "ok": [
+      44
+     ],
+     "out": "",
+     "err": ""
+    }
+   },
+   {
+    "values": [
+     "AcmeApp",
+     "zzz"
+    ],
+    "associated": false,
+    "want": {
+     "exit": 2,
+     "out": "",
+     "err": "error: multiple assets match 'zzz': AcmeApp [44], AcmeWeb [46]\n"
+    }
+   },
+   {
+    "values": [
+     "AcmeApp"
+    ],
+    "associated": true,
+    "want": {
+     "ok": [
+      44
+     ],
+     "out": "",
+     "err": ""
+    }
+   }
+  ],
+  "prompt_category": [
+   {
+    "answer": null,
+    "want": {
+     "ok": null,
+     "out": "",
+     "err": ""
+    },
+    "calls": [
+     [
+      "text",
+      "Asset category",
+      "Category for asset search. Leave empty for All assets.",
+      "All assets"
+     ]
+    ]
+   },
+   {
+    "answer": "",
+    "want": {
+     "ok": {
+      "name": "All assets",
+      "filter": "all_assets",
+      "ci_type_id": ""
+     },
+     "out": "",
+     "err": ""
+    },
+    "calls": [
+     [
+      "text",
+      "Asset category",
+      "Category for asset search. Leave empty for All assets.",
+      "All assets"
+     ]
+    ]
+   },
+   {
+    "answer": "  hardware ",
+    "want": {
+     "ok": {
+      "name": "Hardware & Devices",
+      "filter": "8",
+      "ci_type_id": "8"
+     },
+     "out": "",
+     "err": ""
+    },
+    "calls": [
+     [
+      "text",
+      "Asset category",
+      "Category for asset search. Leave empty for All assets.",
+      "All assets"
+     ]
+    ]
+   },
+   {
+    "answer": "zzz",
+    "want": {
+     "exit": 2,
+     "out": "",
+     "err": "error: unknown asset category: 'zzz'. Try --list-categories\n"
+    },
+    "calls": [
+     [
+      "text",
+      "Asset category",
+      "Category for asset search. Leave empty for All assets.",
+      "All assets"
+     ]
+    ]
+   }
+  ],
+  "pick": [
+   {
+    "name": "all",
+    "category": {
+     "name": "All assets",
+     "filter": "all_assets",
+     "ci_type_id": ""
+    },
+    "texts": [
+     "acme"
+    ],
+    "picks": [
+     "44",
+     "46"
+    ],
+    "want": {
+     "ok": [
+      44,
+      46
+     ],
+     "out": "",
+     "err": ""
+    },
+    "calls": [
+     [
+      "text",
+      "Associate assets",
+      "Search assets for CHN-5",
+      ""
+     ],
+     [
+      "multi",
+      "Associate assets",
+      "Select asset(s) for CHN-5",
+      [
+       [
+        "44",
+        "[44] AcmeApp · Application Portfolio · -"
+       ],
+       [
+        "46",
+        "[46] AcmeWeb · Application Server · HQ"
+       ]
+      ]
+     ]
+    ]
+   },
+   {
+    "name": "category",
+    "category": {
+     "name": "Application Portfolio",
+     "filter": "7",
+     "ci_type_id": "7"
+    },
+    "texts": [
+     "acme"
+    ],
+    "picks": [
+     "44"
+    ],
+    "want": {
+     "ok": [
+      44
+     ],
+     "out": "",
+     "err": ""
+    },
+    "calls": [
+     [
+      "text",
+      "Associate assets",
+      "Search assets for CHN-5\nCategory: Application Portfolio",
+      ""
+     ],
+     [
+      "multi",
+      "Associate assets",
+      "Select asset(s) for CHN-5",
+      [
+       [
+        "44",
+        "[44] AcmeApp · Application Portfolio · -"
+       ]
+      ]
+     ]
+    ]
+   },
+   {
+    "name": "prompted",
+    "category": null,
+    "texts": [
+     "",
+     "acme"
+    ],
+    "picks": [
+     "46"
+    ],
+    "want": {
+     "ok": [
+      46
+     ],
+     "out": "",
+     "err": ""
+    },
+    "calls": [
+     [
+      "text",
+      "Asset category",
+      "Category for asset search. Leave empty for All assets.",
+      "All assets"
+     ],
+     [
+      "text",
+      "Associate assets",
+      "Search assets for CHN-5",
+      ""
+     ],
+     [
+      "multi",
+      "Associate assets",
+      "Select asset(s) for CHN-5",
+      [
+       [
+        "44",
+        "[44] AcmeApp · Application Portfolio · -"
+       ],
+       [
+        "46",
+        "[46] AcmeWeb · Application Server · HQ"
+       ]
+      ]
+     ]
+    ]
+   },
+   {
+    "name": "no_category",
+    "category": null,
+    "texts": [
+     null
+    ],
+    "picks": null,
+    "want": {
+     "exit": 0,
+     "out": "",
+     "err": ""
+    },
+    "calls": [
+     [
+      "text",
+      "Asset category",
+      "Category for asset search. Leave empty for All assets.",
+      "All assets"
+     ]
+    ]
+   },
+   {
+    "name": "no_query",
+    "category": {
+     "name": "Application Portfolio",
+     "filter": "7",
+     "ci_type_id": "7"
+    },
+    "texts": [
+     null
+    ],
+    "picks": null,
+    "want": {
+     "exit": 0,
+     "out": "",
+     "err": ""
+    },
+    "calls": [
+     [
+      "text",
+      "Associate assets",
+      "Search assets for CHN-5\nCategory: Application Portfolio",
+      ""
+     ]
+    ]
+   },
+   {
+    "name": "no_pick",
+    "category": {
+     "name": "Application Portfolio",
+     "filter": "7",
+     "ci_type_id": "7"
+    },
+    "texts": [
+     "acme"
+    ],
+    "picks": null,
+    "want": {
+     "exit": 0,
+     "out": "",
+     "err": ""
+    },
+    "calls": [
+     [
+      "text",
+      "Associate assets",
+      "Search assets for CHN-5\nCategory: Application Portfolio",
+      ""
+     ],
+     [
+      "multi",
+      "Associate assets",
+      "Select asset(s) for CHN-5",
+      [
+       [
+        "44",
+        "[44] AcmeApp · Application Portfolio · -"
+       ]
+      ]
+     ]
+    ]
+   },
+   {
+    "name": "no_match",
+    "category": {
+     "name": "Application Portfolio",
+     "filter": "7",
+     "ci_type_id": "7"
+    },
+    "texts": [
+     "zzz"
+    ],
+    "picks": null,
+    "want": {
+     "exit": 0,
+     "out": "",
+     "err": ""
+    },
+    "calls": [
+     [
+      "text",
+      "Associate assets",
+      "Search assets for CHN-5\nCategory: Application Portfolio",
+      ""
+     ],
+     [
+      "multi",
+      "Associate assets",
+      "Select asset(s) for CHN-5",
+      [
+       [
+        "44",
+        "[44] AcmeApp · Application Portfolio · -"
+       ]
+      ]
+     ]
+    ]
+   },
+   {
+    "name": "no_tty",
+    "category": null,
+    "texts": [],
+    "picks": null,
+    "want": {
+     "exit": 2,
+     "out": "",
+     "err": "error: interactive picker requires TTY\n"
+    },
+    "calls": []
+   }
+  ],
+  "assets": [
+   {
+    "args": {},
+    "want": {
+     "ok": null,
+     "out": "[\n  {\n    \"config_item\": {\n      \"display_id\": 44,\n      \"name\": \"AcmeApp\",\n      \"ci_type_name\": \"Application Portfolio\",\n      \"ci_type_id\": 7,\n      \"asset_state_7\": \"In Use\",\n      \"serial_number_3\": \"S1\",\n      \"location_name\": \"BKK\"\n    },\n    \"id\": 900\n  },\n  {\n    \"config_item\": {\n      \"display_id\": 45,\n      \"name\": \"DB01\",\n      \"asset_type\": \"Hardware & Devices\",\n      \"user_name\": \"Ann\"\n    },\n    \"id\": 901\n  }\n]\n",
+     "err": ""
+    }
+   },
+   {
+    "args": {
+     "search": "acme"
+    },
+    "want": {
+     "ok": null,
+     "out": "{\n  \"assets\": [\n    {\n      \"display_id\": 44,\n      \"name\": \"AcmeApp\",\n      \"ci_type_name\": \"Application Portfolio\"\n    },\n    {\n      \"display_id\": 46,\n      \"name\": \"AcmeWeb\",\n      \"ci_type_name\": \"Application Server\",\n      \"location_name\": \"HQ\"\n    }\n  ],\n  \"meta\": {\n    \"count\": 2\n  }\n}\n",
+     "err": ""
+    }
+   },
+   {
+    "args": {
+     "search": "acme",
+     "category_name": "Application Portfolio"
+    },
+    "want": {
+     "ok": null,
+     "out": "{\n  \"assets\": [\n    {\n      \"display_id\": 44,\n      \"name\": \"AcmeApp\",\n      \"ci_type_name\": \"Application Portfolio\"\n    }\n  ],\n  \"meta\": {\n    \"count\": 2,\n    \"filtered_count\": 1,\n    \"category\": \"Application Portfolio\"\n  }\n}\n",
+     "err": ""
+    }
+   },
+   {
+    "args": {
+     "add": [
+      "AcmeApp",
+      "44"
+     ],
+     "dry_run": true
+    },
+    "want": {
+     "ok": null,
+     "out": "{\n  \"action\": \"associate_assets\",\n  \"change_id\": 5,\n  \"asset_ids\": [\n    44\n  ]\n}\n",
+     "err": ""
+    }
+   },
+   {
+    "args": {
+     "remove": [
+      "AcmeApp"
+     ],
+     "dry_run": true
+    },
+    "want": {
+     "ok": null,
+     "out": "{\n  \"action\": \"dissociate_assets\",\n  \"change_id\": 5,\n  \"asset_display_ids\": [\n    44\n  ]\n}\n",
+     "err": ""
+    }
+   },
+   {
+    "args": {
+     "list_categories": true
+    },
+    "want": {
+     "ok": null,
+     "out": "[\n  {\n    \"name\": \"All assets\",\n    \"filter\": \"all_assets\",\n    \"ci_type_id\": \"\"\n  },\n  {\n    \"name\": \"Application Portfolio\",\n    \"filter\": \"7\",\n    \"ci_type_id\": \"7\"\n  },\n  {\n    \"name\": \"Hardware & Devices\",\n    \"filter\": \"8\",\n    \"ci_type_id\": \"8\"\n  },\n  {\n    \"name\": \"Application Server\",\n    \"filter\": \"9\",\n    \"ci_type_id\": \"9\"\n  }\n]\n",
+     "err": ""
+    }
+   },
+   {
+    "args": {
+     "search": "x",
+     "add": [
+      "1"
+     ]
+    },
+    "want": {
+     "exit": 2,
+     "out": "",
+     "err": "error: choose only one action: --search, --add, --remove, --pick, or \n--list-categories\n"
+    }
+   },
+   {
+    "args": {
+     "category_name": "zzz"
+    },
+    "want": {
+     "exit": 2,
+     "out": "",
+     "err": "error: unknown asset category: 'zzz'. Try --list-categories\n"
+    }
+   }
+  ],
+  "asset_categories": [
+   {
+    "format": "json",
+    "want": {
+     "ok": null,
+     "out": "[\n  {\n    \"name\": \"All assets\",\n    \"filter\": \"all_assets\",\n    \"ci_type_id\": \"\"\n  },\n  {\n    \"name\": \"Application Portfolio\",\n    \"filter\": \"7\",\n    \"ci_type_id\": \"7\"\n  },\n  {\n    \"name\": \"Hardware & Devices\",\n    \"filter\": \"8\",\n    \"ci_type_id\": \"8\"\n  },\n  {\n    \"name\": \"Application Server\",\n    \"filter\": \"9\",\n    \"ci_type_id\": \"9\"\n  }\n]\n",
+     "err": ""
+    }
+   },
+   {
+    "format": "csv",
+    "want": {
+     "ok": null,
+     "out": "name,filter,ci_type_id\r\nAll assets,all_assets,\r\nApplication Portfolio,7,7\r\nHardware & Devices,8,8\r\nApplication Server,9,9\r\n",
+     "err": ""
+    }
+   }
+  ]
+ },
+ "flow_exit": [
+  {
+   "code": 2,
+   "message": "bad [x] <y>",
+   "want": {
+    "exit": 2,
+    "out": "",
+    "err": "error: bad [x] <y>\n"
+   }
+  },
+  {
+   "code": 0,
+   "message": "saved draft.yaml",
+   "want": {
+    "exit": 0,
+    "out": "",
+    "err": "saved draft.yaml\n"
+   }
+  },
+  {
+   "code": 3,
+   "message": "",
+   "want": {
+    "exit": 3,
+    "out": "",
+    "err": ""
+   }
+  },
+  {
+   "code": 0,
+   "message": "",
+   "want": {
+    "exit": 0,
+    "out": "",
+    "err": ""
+   }
+  },
+  {
+   "code": 1,
+   "message": "cancelled; nothing was sent",
+   "want": {
+    "exit": 1,
+    "out": "",
+    "err": "error: cancelled; nothing was sent\n"
+   }
+  }
+ ],
+ "interactive": [
+  {
+   "no_input": false,
+   "tty": true,
+   "want": true
+  },
+  {
+   "no_input": true,
+   "tty": true,
+   "want": false
+  },
+  {
+   "no_input": false,
+   "tty": false,
+   "want": false
+  }
+ ],
+ "completion_shell": [
+  {
+   "shell": "fish",
+   "env": "/bin/zsh",
+   "want": {
+    "ok": "fish",
+    "out": "",
+    "err": ""
+   }
+  },
+  {
+   "shell": "tcsh",
+   "env": null,
+   "want": {
+    "ok": "tcsh",
+    "out": "",
+    "err": ""
+   }
+  },
+  {
+   "shell": null,
+   "env": "/bin/zsh",
+   "want": {
+    "ok": "zsh",
+    "out": "",
+    "err": ""
+   }
+  },
+  {
+   "shell": null,
+   "env": "/usr/local/bin/fish",
+   "want": {
+    "ok": "fish",
+    "out": "",
+    "err": ""
+   }
+  },
+  {
+   "shell": "",
+   "env": "/bin/bash",
+   "want": {
+    "ok": "bash",
+    "out": "",
+    "err": ""
+   }
+  },
+  {
+   "shell": null,
+   "env": "/bin/sh",
+   "want": {
+    "exit": 2,
+    "out": "",
+    "err": "error: could not detect shell; pass one of: bash, zsh, fish, powershell, pwsh\n"
+   }
+  },
+  {
+   "shell": null,
+   "env": "/bin/ZSH",
+   "want": {
+    "exit": 2,
+    "out": "",
+    "err": "error: could not detect shell; pass one of: bash, zsh, fish, powershell, pwsh\n"
+   }
+  },
+  {
+   "shell": null,
+   "env": null,
+   "want": {
+    "exit": 2,
+    "out": "",
+    "err": "error: could not detect shell; pass one of: bash, zsh, fish, powershell, pwsh\n"
+   }
+  },
+  {
+   "shell": null,
+   "env": "pwsh",
+   "want": {
+    "ok": "pwsh",
+    "out": "",
+    "err": ""
+   }
+  }
+ ],
+ "refresh_cache": {
+  "title": "      cache refresh      ",
+  "rows": [
+   "│ groups        │     1 │",
+   "│ tickets       │     1 │",
+   "│ tickets views │     1 │"
+  ],
+  "files": [
+   "cache/filters/acme.freshservice.com--tickets.json",
+   "cache/groups--acme.freshservice.com.json",
+   "cache/schema/acme.freshservice.com--tickets.json"
+  ]
+ },
+ "search_resource": [
+  {
+   "query": "acme",
+   "json": true,
+   "want": {
+    "ok": null,
+    "out": "[\n  {\n    \"result_type\": \"itil_change\",\n    \"itil_module_display_id\": \"CHN-5\",\n    \"display_id\": 5,\n    \"human_display_id\": \"CHN-5\",\n    \"subject\": \"Acme <b>rollout</b>\",\n    \"itil_module_status\": \"Open\",\n    \"status\": \"Open\",\n    \"itil_module_group\": \"Platform\"\n  }\n]\n",
+    "err": ""
+   }
+  },
+  {
+   "query": "none",
+   "json": true,
+   "want": {
+    "ok": null,
+    "out": "[]\n",
+    "err": ""
+   }
+  }
+ ]
+}

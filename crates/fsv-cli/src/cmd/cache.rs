@@ -104,7 +104,14 @@ pub fn status() -> CmdResult {
     Ok(())
 }
 
+#[cfg(test)]
+static TEST_CLIENT: std::sync::Mutex<Option<Arc<Client>>> = std::sync::Mutex::new(None);
+
 fn new_client() -> Result<Arc<Client>> {
+    #[cfg(test)]
+    if let Some(c) = TEST_CLIENT.lock().ok().and_then(|g| g.clone()) {
+        return Ok(c);
+    }
     #[cfg(debug_assertions)]
     if std::env::var_os("FSV_TEST_ROUTES").is_some() {
         return crate::util::shared_client();
@@ -168,7 +175,8 @@ fn tasks() -> Vec<Task> {
 }
 
 /// `_refresh_cache(verbose=True, blocking=True)`; rows in completion order.
-/// Port of fsv.cli._refresh_cache.
+/// `fsv cache refresh` and `fsv completion refresh`.
+/// Port of fsv.cli._refresh_cache, fsv.cli.completion_refresh.
 pub fn refresh() -> CmdResult {
     let (tx, rx) = std::sync::mpsc::channel();
     std::thread::scope(|s| {
@@ -235,4 +243,52 @@ pub fn clear(a: CacheClearArgs) -> CmdResult {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testkit::{UNITS, isolated, tenant};
+
+    fn json_files(root: &Path, dir: &Path, out: &mut Vec<String>) {
+        for e in std::fs::read_dir(dir).into_iter().flatten().flatten() {
+            let p = e.path();
+            if p.is_dir() {
+                json_files(root, &p, out);
+            } else if p.extension().is_some_and(|x| x == "json") {
+                let rel = p.strip_prefix(root).unwrap();
+                if rel.components().any(|c| c.as_os_str() == "cache") {
+                    out.push(rel.to_string_lossy().into_owned());
+                }
+            }
+        }
+    }
+
+    /// `units.json` `refresh_cache`: `_refresh_cache(verbose=True,
+    /// blocking=True)` on the `auth` tenant; table rows sorted (they come in
+    /// completion order) and the cache files written.
+    #[test]
+    fn refresh_matches_python() {
+        let env = isolated();
+        env.config(json!({}));
+        let t = tenant("auth");
+        *TEST_CLIENT.lock().unwrap() = Some(t.client.clone());
+        let (r, text) = fsv_core::term::capture(refresh);
+        *TEST_CLIENT.lock().unwrap() = None;
+        r.unwrap();
+        let want = &UNITS["refresh_cache"];
+        let lines: Vec<&str> = text.lines().collect();
+        assert_eq!(json!(lines[0]), want["title"]);
+        let mut rows: Vec<&str> = lines
+            .iter()
+            .copied()
+            .filter(|l| l.starts_with('│'))
+            .collect();
+        rows.sort();
+        assert_eq!(json!(rows), want["rows"]);
+        let mut files = Vec::new();
+        json_files(env.dir.path(), env.dir.path(), &mut files);
+        files.sort();
+        assert_eq!(json!(files), want["files"]);
+    }
 }

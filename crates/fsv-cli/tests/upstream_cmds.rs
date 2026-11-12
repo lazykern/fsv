@@ -2382,6 +2382,18 @@ fn asset_picker_bad_display_id() {
 }
 
 #[test]
+fn asset_picker_duplicate_then_bad() {
+    let r = run_fixture("asset_picker", &["changes", "asset-picker", "16"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"expected a positive numeric identity
+"#
+    );
+}
+
+#[test]
 fn asset_picker_bad_target() {
     let r = run_fixture("asset_picker", &["changes", "asset-picker", "abc"], None);
     assert_eq!(r.code, 2, "{}", r.err);
@@ -2415,15 +2427,6 @@ fn asset_picker_ticket_target() {
         r#"prefix INC not valid for changes (expect CHN)
 "#
     );
-}
-
-#[test]
-#[ignore = "fsv-api asset_picker.rs candidates checks duplicates before every display_id is validated"]
-fn asset_picker_duplicate_then_bad() {
-    let r = run_fixture("asset_picker", &["changes", "asset-picker", "16"], None);
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, "");
-    assert_eq!(r.err, "expected a positive numeric identity\n");
 }
 
 #[test]
