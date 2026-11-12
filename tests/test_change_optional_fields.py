@@ -100,15 +100,21 @@ def test_group_resolution_explicit_and_exact(monkeypatch):
     assert tasks.resolve_group("acme OPERATIONS", c) == 9000004001
 
 
-@pytest.mark.parametrize("mode", ["complete", "absent", "mismatch", "different-offset"])
+@pytest.mark.parametrize("mode", ["complete", "absent", "mismatch", "different-offset", "normalized-effort", "collection-shape"])
 def test_task_optional_readback_single_attempt(monkeypatch, mode):
-    plan = tasks.build_plan(123, "Acme review", status_id=2, **OPTIONS)
+    options = {**OPTIONS, "planned_effort": "1h"} if mode == "collection-shape" else OPTIONS
+    plan = tasks.build_plan(123, "Acme review", status_id=2, **options)
     row = {"id": 9000002010, "owner_id": None, **plan.payload}
+    if mode == "collection-shape":
+        row["planned_effort"] = "1h"
+        row.pop("notify_before")
     if mode == "absent":
         row.pop("description")
         row.pop("notify_before")
     elif mode == "mismatch":
         row["planned_effort"] = "2h 0m"
+    elif mode == "normalized-effort":
+        row["planned_effort"] = "90m"
     elif mode == "different-offset":
         row["planned_start_date"] = "2026-12-05T05:00:00Z"
     inventories = iter([[], [row]])
@@ -119,8 +125,8 @@ def test_task_optional_readback_single_attempt(monkeypatch, mode):
     result = tasks.send(plan, c, reviewed_hash=plan.hash)
     assert result["identity_verified"] is True
     assert result["verified"] is (mode != "mismatch")
-    assert result["fields_verified"] is (mode in ("complete", "different-offset"))
-    assert result["unverified_fields"] == (["notify_before", "description"] if mode == "absent" else [])
+    assert result["fields_verified"] is (mode in ("complete", "different-offset", "normalized-effort"))
+    assert result["unverified_fields"] == (["notify_before", "description"] if mode == "absent" else ["notify_before"] if mode == "collection-shape" else [])
     assert result["mismatched_fields"] == (["planned_effort"] if mode == "mismatch" else [])
     if mode == "absent":
         assert "absent from GET" in result["warning"]

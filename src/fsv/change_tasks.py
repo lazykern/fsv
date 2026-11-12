@@ -124,6 +124,16 @@ def _effort(value: str | None) -> str | None:
     return f"{hours}h {minutes}m"
 
 
+def same_effort(actual: Any, expected: Any) -> bool:
+    """The collection omits zero units (1h versus the submitted 1h 0m)."""
+    if not isinstance(actual, str) or not actual.strip() or not isinstance(expected, str) or not expected.strip():
+        return False
+    try:
+        return _effort(actual) == _effort(expected)
+    except ValueError:
+        return False
+
+
 def _note(value: str | None) -> str | None:
     if value is None or not value.strip():
         return None
@@ -280,6 +290,8 @@ def _compare_fields(exact: dict[str, Any] | None, plan: TaskPlan) -> tuple[list[
             matched = _id(observed) == expected
         elif key in ("planned_start_date", "planned_end_date"):
             matched = same_instant(observed, expected)
+        elif key == "planned_effort":
+            matched = same_effort(observed, expected)
         elif key == "description":
             from fsv.render import strip_html
             matched = isinstance(observed, str) and strip_html(observed).strip() == strip_html(expected).strip()

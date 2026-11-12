@@ -6,9 +6,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 from fsv import config, journal, task_status
-from fsv.change_tasks import _date, _effort, _note, resolve_group, resolve_owner
-from fsv.readback import same_instant, submitted_value_matches
-from fsv.render import strip_html
+from fsv.change_tasks import _date, _effort, _note, resolve_group, resolve_owner, same_effort
+from fsv.readback import same_instant, same_text, submitted_value_matches
 from fsv.resources import CHANGES, parse_id
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
 from fsv.ticket_tasks import custom_values
@@ -110,10 +109,20 @@ def send(plan: TaskUpdatePlan, client: Any, *, reviewed_hash: str | None) -> dic
             if key.endswith("_date"):
                 matched = same_instant(actual, expected)
             elif key == "description":
-                matched = isinstance(actual, str) and strip_html(actual).strip() == strip_html(expected).strip()
+                matched = same_text(actual, expected)
+            elif key == "planned_effort":
+                matched = same_effort(actual, expected)
             else:
                 matched = submitted_value_matches(actual, expected)
             results[key] = "matched" if matched else "mismatched"
-        return {"verified": bool(exact) and all(v == "matched" for v in results.values()), "fields": results, "readback": exact}
+        # Reminder is deliberately absent from the task collection, not proof
+        # that the PUT failed. Other missing fields still fail verification.
+        verified = bool(exact) and all(v == "matched" or (k == "notify_before" and v == "unavailable")
+                                       for k, v in results.items())
+        result = {"verified": verified, "fields_verified": bool(exact) and all(v == "matched" for v in results.values()),
+                  "fields": results, "readback": exact}
+        if results.get("notify_before") == "unavailable":
+            result["warning"] = "Reminder absent from GET remains unverified; do not resend."
+        return result
     return execute(plan, client, reviewed_hash=reviewed_hash,
                    rebuild=lambda: build_plan(client, plan.target, plan.task_id, json.loads(plan.inputs_json)), verify=verify)

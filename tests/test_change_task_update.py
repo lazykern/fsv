@@ -48,6 +48,28 @@ def test_full_put_and_independent_normalization(wire):
     assert wire.state["writes"][0][1].endswith("changes/23/tasks/17")
 
 
+@pytest.mark.parametrize("mode", ["normalized", "effort-mismatch", "reminder-mismatch", "title-missing"])
+def test_collection_normalizes_effort_and_omits_reminder(wire, mode):
+    original = wire._request
+    def request(*args, **kwargs):
+        result = original(*args, **kwargs)
+        wire.state["task"]["planned_effort"] = "2h" if mode == "effort-mismatch" else "1h"
+        wire.state["task"].pop("notify_before", None)
+        if mode == "reminder-mismatch":
+            wire.state["task"]["notify_before"] = 0
+        if mode == "title-missing":
+            wire.state["task"].pop("title")
+        return result
+    wire._request = request
+    plan = a.build_plan(wire, 23, 17, dict(title="Acme revised", planned_effort="1h", notify_before="15 Minutes"))
+    result = a.send(plan, wire, reviewed_hash=plan.hash)
+    assert result["verified"] is (mode == "normalized")
+    assert not result["fields_verified"]
+    assert result["fields"]["notify_before"] == ("mismatched" if mode == "reminder-mismatch" else "unavailable")
+    assert result["fields"]["planned_effort"] == ("mismatched" if mode == "effort-mismatch" else "matched")
+    assert len(wire.state["writes"]) == 1
+
+
 def test_echo_not_readback_and_no_replay(wire):
     plan = a.build_plan(wire, 23, 17, {"title": "Acme revised"})
     wire.state["persist"] = False
