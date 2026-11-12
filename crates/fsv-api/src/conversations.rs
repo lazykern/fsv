@@ -107,16 +107,21 @@ fn status_inner(
         )
         .map_err(|e| Error::other(e.to_string()))?;
     let errors = state.errors().map_err(|e| Error::other(e.to_string()))?;
+    let gate = state
+        .rule_gate(&[])
+        .map_err(|e| Error::other(e.to_string()))?;
     if !state.evaluated.visible.contains(&field.api_name)
         || !errors.is_empty()
-        || !state.rules.unavailable_dependencies("edit").is_empty()
-        || state
-            .rules
-            .warnings()
-            .iter()
-            .any(|w| w.contains("unknown field") || w.contains("none was given"))
+        || !gate.blockers.is_empty()
     {
-        return Err(bad("status form rules or context unavailable"));
+        let detail = if gate.blockers.is_empty() {
+            String::new()
+        } else {
+            format!(": {}", gate.blockers.join("; "))
+        };
+        return Err(bad(&format!(
+            "status form rules or context unavailable{detail}"
+        )));
     }
     let token =
         build_br_validation_excludes(&state.evaluated, "ticket", &Value::Null, &Value::Null)
@@ -225,7 +230,7 @@ pub fn status_fields(
     label: &str,
 ) -> Result<(Map<String, Value>, String)> {
     if closing_label(label) {
-        let (payload, fingerprint, _) =
+        let (payload, fingerprint, _, _) =
             crate::ticket_lifecycle::context(c, store, cid, label, &Map::new(), None, None)?;
         return Ok((payload, fingerprint));
     }

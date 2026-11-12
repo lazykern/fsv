@@ -33,6 +33,7 @@ fn dumps(v: &Value) -> String {
 
 /// `context(client, cid, status, answers, resolution=...)`: the transition
 /// payload, the record+metadata fingerprint JSON and the runtime status label.
+#[allow(clippy::type_complexity)]
 pub fn context(
     c: &dyn Api,
     store: &dyn MetaStore,
@@ -41,7 +42,7 @@ pub fn context(
     answers: &Map<String, Value>,
     resolution: Option<&str>,
     resolver: Option<Arc<dyn LookupResolver>>,
-) -> Result<(Map<String, Value>, String, String)> {
+) -> Result<(Map<String, Value>, String, String, Vec<String>)> {
     let other = |e: fsv_forms::FormError| Error::other(e.to_string());
     let row = record(c, cid)?;
     let meta = load_meta(c, store, "ticket", "edit", true, &json!(cid))?;
@@ -113,17 +114,17 @@ pub fn context(
             .set(&f.api_name, fsv_forms::Value::from_json(value))
             .map_err(other)?;
     }
-    if !state.evaluated.visible.contains(&field.api_name)
-        || !state.rules.unavailable_dependencies("edit").is_empty()
-        || state
-            .rules
-            .warnings()
-            .iter()
-            .any(|w| w.contains("unknown field") || w.contains("none was given"))
-    {
+    if !state.evaluated.visible.contains(&field.api_name) {
         return Err(refused(
-            "ticket rules need unavailable fields or context; no write attempted",
+            "status is hidden on the ticket form; no write attempted",
         ));
+    }
+    let gate = state.rule_gate(&[]).map_err(other)?;
+    if !gate.blockers.is_empty() {
+        return Err(refused(format!(
+            "ticket rules block this transition; no write attempted: {}",
+            gate.blockers.join("; ")
+        )));
     }
     // Closure flags are separate from ordinary edit requiredness. Hidden
     // fields are not requested by the native closure form.
@@ -211,7 +212,7 @@ pub fn context(
         "record": snapshot_hash(&Value::Object(row))?,
         "metadata": meta.fingerprint().hash,
     }));
-    Ok((payload, fingerprint, choice.label.clone()))
+    Ok((payload, fingerprint, choice.label.clone(), gate.warnings))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -223,6 +224,8 @@ pub struct LifecyclePlan {
     pub payload_json: String,
     pub context_hash: String,
     pub note_html: Option<String>,
+    /// Display only. Not part of [`LifecyclePlan::hash`].
+    pub rule_warnings: Vec<String>,
 }
 
 impl LifecyclePlan {
@@ -253,10 +256,14 @@ impl LifecyclePlan {
             }}));
         }
         steps.push(json!({"method": "PUT", "path": path, "payload": payload}));
-        obj(
+        let mut out = obj(
             json!({"action": ACTION, "status_label": self.status, "steps": steps,
                    "plan_hash": self.hash(), "warning": WARNING}),
-        )
+        );
+        if !self.rule_warnings.is_empty() {
+            out.insert("rule_warnings".into(), json!(self.rule_warnings));
+        }
+        out
     }
 
     fn record_hash(&self) -> Option<Value> {
@@ -300,7 +307,7 @@ pub fn build_plan(
     };
     let empty = Map::new();
     let answers = answers.unwrap_or(&empty);
-    let (payload, fingerprint, label) =
+    let (payload, fingerprint, label, warnings) =
         context(c, store, cid, status, answers, html.as_deref(), resolver)?;
     Ok(LifecyclePlan {
         target: cid,
@@ -310,6 +317,7 @@ pub fn build_plan(
         payload_json: dumps(&Value::Object(payload)),
         context_hash: fingerprint,
         note_html: html,
+        rule_warnings: warnings,
     })
 }
 
@@ -351,7 +359,7 @@ pub fn send(
         ));
     }
     let answers = plan.answers();
-    let (payload, fingerprint, _) = context(
+    let (payload, fingerprint, _, _) = context(
         c,
         store,
         plan.target,
@@ -418,7 +426,7 @@ pub fn send(
                     ));
                 }
             }
-            let (fresh, fresh_context, _) = context(
+            let (fresh, fresh_context, _, _) = context(
                 c,
                 store,
                 plan.target,

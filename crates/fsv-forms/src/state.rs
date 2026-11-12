@@ -22,8 +22,8 @@ use crate::pytext::{
     take_chars,
 };
 use crate::rules::{
-    Conflict, Decision, EvalOptions, EvaluatedForm, Explanation, Message, RulesEngine, is_empty,
-    offered_choices,
+    Conflict, Decision, EvalOptions, EvaluatedForm, Explanation, Message, RuleGate, RulesEngine,
+    is_empty, offered_choices,
 };
 use crate::spec::{Choice, Field, FormSpec, Kind, plain_text};
 use crate::tz::{TzEnv, Zone, localize, resolve_timezone_in};
@@ -1029,6 +1029,18 @@ impl FormState {
             ));
         }
         Ok(out)
+    }
+
+    /// Write gate for this state's answers ([`RulesEngine::write_gate`]).
+    pub fn rule_gate(&self, sent_keys: &[String]) -> Result<RuleGate> {
+        let user: Vec<String> = self
+            .sources
+            .iter()
+            .filter(|(_, source)| source.as_str() == "user")
+            .map(|(name, _)| name.clone())
+            .collect();
+        self.rules
+            .write_gate(&self.mode, &self.evaluated, &user, sent_keys)
     }
 
     /// Fields holding a value that will NOT be sent because they are

@@ -722,6 +722,8 @@ impl FormMeta {
         let opts = EngineOptions {
             module: Some(self.module.clone()),
             workspace_id: (!self.workspace_id.is_null()).then(|| self.workspace_id.clone()),
+            // Agent-side forms: the portal flag is known to be false.
+            system: Some(fsv_forms::rules::agent_system_context()),
             ..EngineOptions::default()
         };
         RulesEngine::new(self.spec.clone(), Some(&self.rules), opts).map_err(form_err)

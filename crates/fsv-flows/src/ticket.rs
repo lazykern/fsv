@@ -69,7 +69,7 @@ pub fn build_create_plan(
     }
     let mut failed = HashSet::new();
     errors.extend(apply_answers(&mut state, &sp.answers, Some(&mut failed))?);
-    let warnings: Vec<String> = spec
+    let mut warnings: Vec<String> = spec
         .warnings
         .iter()
         .cloned()
@@ -127,17 +127,13 @@ pub fn build_create_plan(
     if meta.rules.get(RULES_UNAVAILABLE_KEY).is_some_and(truthy) {
         errors.push("business rules are unavailable; use the web form".into());
     }
-    if !state.rules.unavailable_dependencies("new").is_empty()
-        || state
-            .rules
-            .warnings()
-            .iter()
-            .any(|w| w.contains("unknown field") || w.contains("none was given"))
-    {
-        errors.push(
-            "business rules reference unavailable fields or context; use the web form".into(),
-        );
+    let mut sent_keys = Vec::new();
+    if !opts.cc_emails.is_empty() {
+        sent_keys.push("cc_emails".to_string());
     }
+    let gate = state.rule_gate(&sent_keys).map_err(form_err)?;
+    errors.extend(gate.blockers.iter().map(|b| format!("business rules: {b}")));
+    warnings.extend(gate.warnings.iter().map(|w| format!("business rules: {w}")));
     let sent = state.payload_values();
     for raw in meta.raw_fields() {
         if ["deleted", "is_deleted", "deprecated", "is_deprecated"]

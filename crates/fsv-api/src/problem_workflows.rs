@@ -158,10 +158,12 @@ pub fn create_plan(
     if !errors.is_empty() {
         return Err(refused(errors.join("; ")));
     }
-    if !state.rules.unavailable_dependencies("new").is_empty() {
-        return Err(refused(
-            "problem rules reference unavailable fields or context",
-        ));
+    let gate = state.rule_gate(&[]).map_err(form_err)?;
+    if !gate.blockers.is_empty() {
+        return Err(refused(format!(
+            "problem rules reference unavailable fields or context: {}",
+            gate.blockers.join("; ")
+        )));
     }
     if !state.evaluated.messages.is_empty() {
         return Err(refused("problem form has rule messages; use the web form"));

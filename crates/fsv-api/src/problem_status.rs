@@ -210,17 +210,16 @@ pub fn build_plan(
     state
         .set(&field.api_name, fsv_forms::Value::from(status_id))
         .map_err(other)?;
-    if !state.rules.unavailable_dependencies("edit").is_empty()
-        || !state.evaluated.messages.is_empty()
-        || state
-            .rules
-            .warnings()
+    let gate = state.rule_gate(&[]).map_err(other)?;
+    if !gate.blockers.is_empty() || !state.evaluated.messages.is_empty() {
+        let detail = gate
+            .blockers
             .iter()
-            .any(|w| w.contains("unknown field") || w.contains("none was given"))
-    {
-        return Err(refused(
-            "problem rules need unavailable context or acknowledgement; use web form",
-        ));
+            .map(|b| format!("; {b}"))
+            .collect::<String>();
+        return Err(refused(format!(
+            "problem rules need unavailable context or acknowledgement; use web form{detail}"
+        )));
     }
     let errors = state.errors().map_err(other)?;
     if !state.evaluated.visible.contains(&field.api_name) || !errors.is_empty() {

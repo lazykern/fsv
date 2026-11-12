@@ -243,7 +243,7 @@ fn cases_match_python() {
                         .map(|p| {
                             assert_eq!(Value::Object(p.payload()), serde_json::from_str::<Value>(&p.payload_json).unwrap());
                             let empty = Map::new();
-                            let (payload, fingerprint, label) = context(&c, &store, p.target, op["status"].as_str().unwrap(),
+                            let (payload, fingerprint, label, _) = context(&c, &store, p.target, op["status"].as_str().unwrap(),
                                 op["answers"].as_object().unwrap_or(&empty), p.note_html.as_deref(), None).unwrap();
                             assert_eq!((Value::Object(payload), &fingerprint, &label),
                                        (Value::Object(p.payload()), &p.context_hash, &p.status), "{ctx}");

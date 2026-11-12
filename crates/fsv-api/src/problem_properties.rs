@@ -152,17 +152,18 @@ pub fn build_plan(
             )));
         }
     }
-    if !state.rules.unavailable_dependencies("edit").is_empty()
-        || !state.evaluated.messages.is_empty()
-        || state
-            .rules
-            .warnings()
+    let gate = state
+        .rule_gate(&[])
+        .map_err(|e| Error::other(e.to_string()))?;
+    if !gate.blockers.is_empty() || !state.evaluated.messages.is_empty() {
+        let detail = gate
+            .blockers
             .iter()
-            .any(|w| w.contains("unknown field") || w.contains("none was given"))
-    {
-        return Err(refused(
-            "problem rules need unavailable context or acknowledgement; use the web form",
-        ));
+            .map(|b| format!("; {b}"))
+            .collect::<String>();
+        return Err(refused(format!(
+            "problem rules need unavailable context or acknowledgement; use the web form{detail}"
+        )));
     }
     let before: Map<String, Value> = payload
         .keys()

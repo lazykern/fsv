@@ -75,6 +75,27 @@ pub const CONTEXT_SOURCES: [(&str, &str); 4] = [
 pub const ENTITY_SOURCES: [(&str, &str); 1] = [("current_entity", "entity")];
 /// Action targets that are not form fields but form-level switches.
 pub const PSEUDO_TARGETS: [&str; 1] = ["attachment_ids"];
+
+/// UI widgets and the payload keys a write would send for them.
+pub const WIDGET_PAYLOAD_KEYS: &[(&str, &[&str])] = &[
+    (
+        "config_item_ids",
+        &["device_ids", "config_item_ids", "assets"],
+    ),
+    ("tags", &["tags"]),
+    ("approval_request", &["approval_request", "approvals"]),
+    ("add_child_ticket", &["child_tickets"]),
+    ("add_service_item", &["requested_items"]),
+    ("edit_service_item", &["requested_items"]),
+];
+
+/// Empty on a new record, so a condition on one is not a gap.
+const NEW_RECORD_EMPTY: &[&str] = &["tags", "approval_status", "approval_request"];
+
+/// Agent-side forms are never the self-service portal.
+pub fn agent_system_context() -> Map<String, Json> {
+    Map::from_iter([("portal".to_string(), Json::Bool(false))])
+}
 pub const EXCLUDE_KEYS: [&str; 3] = ["optional", "disabled", "hidden"];
 pub const MODELS: [&str; 2] = ["event", "replay"];
 pub const POPULATE_MODES: [&str; 2] = ["restrict", "set"];
@@ -811,6 +832,42 @@ fn mget_str(m: &Map<String, Json>, k: &str) -> String {
 
 static NULL: Json = Json::Null;
 
+/// Outcome of [`RulesEngine::write_gate`].
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct RuleGate {
+    pub blockers: Vec<String>,
+    pub warnings: Vec<String>,
+    pub unknown_rules: Vec<Json>,
+}
+
+impl RuleGate {
+    pub fn as_json(&self) -> Json {
+        json_gate(self)
+    }
+}
+
+fn json_gate(gate: &RuleGate) -> Json {
+    serde_json::json!({
+        "blockers": gate.blockers,
+        "warnings": gate.warnings,
+        "unknown_rules": gate.unknown_rules,
+    })
+}
+
+fn quoted(text: &str) -> String {
+    fsv_py::py_repr_str(text)
+}
+
+fn unique(items: Vec<String>) -> Vec<String> {
+    let mut out = Vec::new();
+    for item in items {
+        if !out.contains(&item) {
+            out.push(item);
+        }
+    }
+    out
+}
+
 impl RulesEngine {
     /// `RulesEngine(spec, rules, **options)`; `rules` is the business_rules
     /// response (object with `business_rules`) or a list of rules.
@@ -1413,6 +1470,221 @@ impl RulesEngine {
             }
         }
         problems
+    }
+
+    fn condition_gaps(&self, group: &ConditionGroup, mode: &str) -> Vec<String> {
+        let mut out = Vec::new();
+        for item in &group.items {
+            match item {
+                ConditionItem::Group(sub) => out.extend(self.condition_gaps(sub, mode)),
+                ConditionItem::Condition(c) if c.source == "form" => {
+                    let tail = c.name.rsplit('.').next().unwrap_or("");
+                    let known_empty = mode == "new" && NEW_RECORD_EMPTY.contains(&tail);
+                    if c.field.is_none() && !known_empty {
+                        out.push(format!("field {}", quoted(&c.name)));
+                    }
+                }
+                ConditionItem::Condition(c) if c.source == "entity" => {
+                    if c.field.is_none() && self.entity_value(c).is_none() {
+                        out.push(format!("current_entity {}", quoted(&c.name)));
+                    }
+                }
+                ConditionItem::Condition(c) => {
+                    let field = c.field.as_deref().unwrap_or("");
+                    let missing = self
+                        .context
+                        .source(&c.source)
+                        .is_none_or(|values| !values.contains_key(field));
+                    if missing {
+                        let shown = c.field.as_deref().unwrap_or("None");
+                        out.push(format!("{} {}", c.source, quoted(shown)));
+                    }
+                }
+            }
+        }
+        out
+    }
+
+    /// Which rule gaps block a write, and which only warn.
+    pub fn write_gate(
+        &self,
+        mode: &str,
+        evaluated: &EvaluatedForm,
+        user_fields: &[String],
+        sent_keys: &[String],
+    ) -> Result<RuleGate> {
+        let user: HashSet<&str> = user_fields.iter().map(String::as_str).collect();
+        let sent: HashSet<&str> = sent_keys.iter().map(String::as_str).collect();
+        let mut required: HashSet<String> = evaluated.required.iter().cloned().collect();
+        for field in self.spec.fields() {
+            if field.required_base {
+                required.insert(field.api_name.clone());
+            }
+        }
+        let filled: HashSet<String> = evaluated
+            .values
+            .iter()
+            .filter(|(_, value)| !is_empty(Some(value)))
+            .map(|(key, _)| key.clone())
+            .collect();
+        let mut gate = RuleGate::default();
+        for rule in self.rules_for(mode) {
+            let label = format!("rule {} {}", jstr(&rule.id), quoted(&rule.name));
+            let gaps = self.condition_gaps(&rule.condition, mode);
+            let could_match =
+                !gaps.is_empty() || self.match_group(&rule.condition, &evaluated.values)?;
+            let mut known = BTreeSet::new();
+            let mut mandates = BTreeSet::new();
+            for action in &rule.actions {
+                if matches!(action.property.as_str(), "message" | "populate") {
+                    continue;
+                }
+                let mut props = HashSet::from([action.property.as_str()]);
+                if rule.reversible
+                    && let Some(rev) = reverse_of(&action.property)
+                {
+                    props.insert(rev);
+                }
+                for target in &action.all_targets {
+                    if let Some(api) = &target.api {
+                        known.insert(api.clone());
+                        if props.contains("mandate") {
+                            mandates.insert(api.clone());
+                        }
+                        continue;
+                    }
+                    if PSEUDO_TARGETS.contains(&target.base.as_str()) {
+                        continue;
+                    }
+                    let mut aliases = HashSet::from([target.base.as_str(), target.raw.as_str()]);
+                    if let Some((_, keys)) = WIDGET_PAYLOAD_KEYS
+                        .iter()
+                        .find(|(name, _)| *name == target.base)
+                    {
+                        aliases.extend(keys.iter().copied());
+                    }
+                    if !could_match {
+                        continue;
+                    }
+                    if props.contains("mandate") {
+                        gate.blockers.push(format!(
+                            "{label}: could require {}, which is not a form field fsv fills (unavailable fields or context)",
+                            quoted(&target.raw)
+                        ));
+                    } else if props.contains("hide") || props.contains("disable") {
+                        if aliases.iter().any(|key| sent.contains(key)) {
+                            gate.blockers.push(format!(
+                                "{label}: could {} {}, which this write sends",
+                                action.property,
+                                quoted(&target.raw)
+                            ));
+                        } else {
+                            gate.warnings.push(format!(
+                                "{label}: {} on {} (not a form field; nothing fsv sends) ignored",
+                                action.property,
+                                quoted(&target.raw)
+                            ));
+                        }
+                    } else {
+                        gate.warnings.push(format!(
+                            "{label}: {} on {} (not a form field; nothing fsv sends) ignored",
+                            action.property,
+                            quoted(&target.raw)
+                        ));
+                    }
+                }
+            }
+            if !gaps.is_empty() {
+                let mut risky: Vec<String> = known
+                    .iter()
+                    .filter(|name| {
+                        user.contains(name.as_str())
+                            || required.contains(name.as_str())
+                            || filled.contains(name.as_str())
+                    })
+                    .cloned()
+                    .collect();
+                risky.sort();
+                let mut extra: Vec<String> = mandates
+                    .iter()
+                    .filter(|name| {
+                        !filled.contains(name.as_str())
+                            && !user.contains(name.as_str())
+                            && !required.contains(name.as_str())
+                    })
+                    .cloned()
+                    .collect();
+                extra.sort();
+                risky.extend(extra);
+                risky = unique(risky);
+                let what = unique(gaps).join(", ");
+                if risky.is_empty() {
+                    gate.warnings.push(format!(
+                        "{label}: unavailable fields or context ({what}); it touches no field this write sends or requires"
+                    ));
+                } else {
+                    let names = risky
+                        .iter()
+                        .map(|name| {
+                            self.spec
+                                .get(name)
+                                .map(|field| field.label.clone())
+                                .unwrap_or_else(|| name.clone())
+                        })
+                        .collect::<Vec<_>>()
+                        .join(", ");
+                    gate.blockers.push(format!(
+                        "{label}: unavailable fields or context ({what}); it could change {names}"
+                    ));
+                }
+                gate.unknown_rules.push(rule.id.clone());
+            }
+        }
+        let mut user_names: Vec<&str> = user.into_iter().collect();
+        user_names.sort_by(|a, b| {
+            let key = |n: &str| self.pos.get(n).copied().unwrap_or((1u64 << 30) as f64);
+            key(a)
+                .partial_cmp(&key(b))
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        for name in user_names {
+            if evaluated.visible.iter().any(|n| n == name) || is_empty(evaluated.values.get(name)) {
+                continue;
+            }
+            let Some(field) = self.spec.get(name) else {
+                continue;
+            };
+            if field.kind == Kind::Notice {
+                continue;
+            }
+            let why = if let Some(decision) = evaluated.decision(name, "visible") {
+                format!(
+                    "rule {} {}",
+                    jstr(&decision.rule_id),
+                    quoted(&decision.rule_name)
+                )
+            } else {
+                let parent = self
+                    .spec
+                    .section_parent(name)
+                    .map(|(field, _)| field)
+                    .or_else(|| field.parent.as_deref().and_then(|p| self.spec.get(p)));
+                match parent {
+                    Some(parent) => format!(
+                        "the form: its section/parent field {} is hidden or not on the right choice",
+                        quoted(&parent.label)
+                    ),
+                    None => "the form metadata".to_string(),
+                }
+            };
+            gate.blockers.push(format!(
+                "{}: hidden by {why}; refusing to drop the value you passed",
+                field.label
+            ));
+        }
+        gate.blockers = unique(gate.blockers);
+        gate.warnings = unique(gate.warnings);
+        Ok(gate)
     }
 
     /// Field names sorted in web form order (the replay contract).

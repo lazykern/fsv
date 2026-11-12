@@ -2042,7 +2042,7 @@
     {
      "error": {
       "type": "ReviewedWriteError",
-      "msg": "Resolution Summary: answered field is hidden"
+      "msg": "ticket rules block this transition; no write attempted: Resolution Summary: hidden by rule 9000007108 'Hide summary'; refusing to drop the value you passed"
      },
      "writes": 0
     }

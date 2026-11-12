@@ -323,16 +323,12 @@ fn evaluate(
                 .map_err(other)?;
         }
     }
-    if !state.rules.unavailable_dependencies("edit").is_empty()
-        || state
-            .rules
-            .warnings()
-            .iter()
-            .any(|w| w.contains("unknown field") || w.contains("none was given"))
-    {
-        return Err(refused(
-            "ticket business rules need unavailable fields or context; use the web form",
-        ));
+    let gate = state.rule_gate(&[]).map_err(other)?;
+    if !gate.blockers.is_empty() {
+        return Err(refused(format!(
+            "ticket business rules block this write: {}",
+            gate.blockers.join("; ")
+        )));
     }
     let problems = state.errors().map_err(other)?;
     if !problems.is_empty() {
