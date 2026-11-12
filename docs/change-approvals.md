@@ -22,13 +22,39 @@ flat approvals). fsv (`fsv.approval_model`) treats only those statuses as
 proof; 403/5xx stay "unknown" and the existing chains path keeps its own
 fail-closed checks. On a legacy tenant:
 
-* `changes approval-request`, `approval-respond`, `approval-cancel`,
-  `changes approvals --groups` and every `sr approvals` write refuse before
-  any write with `... refused: this tenant uses legacy flat approvals
-  (approval-chains answered HTTP 400); legacy flat approvals: not yet supported`.
+* `approval-respond`, `approval-cancel`, `changes approvals --groups` and
+  `sr approvals approve|reject|cancel` refuse before any write with `...
+  refused: this tenant uses legacy flat approvals (approval-chains answered
+  HTTP 400); legacy flat approvals: not yet supported` (no legacy wire was
+  captured for them).
+* `changes approval-request`, `changes approval-remind`, `sr approvals request`
+  and `sr approvals remind` use the legacy driver below.
 * Read-only listing uses the flat per-member list: `changes approvals` (without
   `--groups`), `tickets approvals`, and `sr approvals list` (which then returns
   `{"model": "legacy", "note": ..., "approvals": [...]}`).
+
+### Legacy flat-approval driver
+
+**Capture-based, not yet live-proven on any tenant.** Wires come from blocked
+web submits; their responses were never observed, so every send is a single
+journaled attempt verified only by an independent read of the flat
+`<module>/<id>/approvals` list, and is never replayed.
+
+* Change request (`approval-request --model auto|legacy`, default auto =
+  one read-only `approval-chains` GET): `POST changes/<id>/approvals`
+  `{"approval_type": <rule>, "notified_to": [agent ids]}`. `--cab` is expanded
+  client-side (`GET cabs`, `GET changes/<id>/cab-members?cab_id=`); no CAB
+  id/name and no message go on the wire, so `--name`/`--message` and
+  `--approver-group` are refused. Rules: `everyone` (1), `first-responder` (4).
+* SR/ticket request (`sr approvals request`): `POST tickets/<id>/approvals`
+  `{"approval_type": 1, "email_content": <GET approvals/approval_template>,
+  "notified_to": [requester user ids]}`.
+* Remind (`changes approval-remind`, `sr approvals remind`): bodyless
+  `PUT <module>/<id>/approvals/<approval id>/resend` on a requested record;
+  verified by `last_reminded_at` advancing.
+* Readback: new record ids must carry exactly the recipients as `member_id`;
+  raw status 0 and the rule's raw type id verify, anything else is reported
+  as unverified.
 
 ## Review and send
 

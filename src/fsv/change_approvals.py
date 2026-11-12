@@ -431,16 +431,58 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
     return result
 
 
+def _legacy_request_cli(id_: str, name: str | None, message: str | None, approver: list[str] | None,
+                        approver_group: list[str] | None, cab: list[str] | None, rule: str, dry_run: bool,
+                        yes: bool, expected: str | None, no_input: bool, json_out: bool, client: Any) -> None:
+    from fsv import legacy_approvals
+    if name or message:
+        raise ValueError("--name/--message do not apply to legacy flat approvals (no group name or message on the wire)")
+    if approver_group:
+        raise ValueError("--approver-group has no legacy flat-approval equivalent; use --cab or --approver")
+    cid = parse_id(id_, CHANGES)
+    extra, context = approval_recipients.resolve(client, cid, [], cab or [])
+    direct = resolve_approvers(approver, client) if approver else ()
+    plan = legacy_approvals.build_request(client, "changes", cid, sorted(set(direct) | set(extra)), rule=rule,
+                                          recipient_context_json=context)
+    if dry_run:
+        typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+        return
+    typer.echo(json.dumps(plan.review(), indent=2), err=True)
+    if yes:
+        if expected != plan.hash:
+            raise ApprovalError("--yes requires the full --expect-plan from a prior approval review")
+    elif no_input:
+        raise ApprovalError("sending requires --yes and --expect-plan in no-input mode")
+    elif not typer.confirm("Send this exact legacy approval request and irreversible emails?", default=False):
+        typer.echo("Cancelled; no approval request was sent.")
+        return
+    approval_recipients.validate(client, cid, context)
+    result = legacy_approvals.send(plan, client, reviewed_hash=plan.hash)
+    typer.echo(json.dumps(result, indent=2))
+    if not result.get("verified"):
+        raise typer.Exit(4)
+
+
+def _model(client: Any, cid: int, choice: str) -> str:
+    if choice not in ("auto", "chains", "legacy"):
+        raise ValueError("--model must be auto, chains or legacy")
+    if choice != "auto":
+        return choice
+    model, _ = approval_model.detect(client, "changes", cid)
+    return approval_model.LEGACY if model == approval_model.LEGACY else approval_model.CHAINS
+
+
 def register(app: typer.Typer) -> None:
     @app.command("approval-request", help="Review and REQUEST manual change approval (selected rule; sends irreversible emails).")
     def approval_request(
         id_: str = typer.Argument(..., metavar="CHANGE_ID"),
-        name: str = typer.Option(..., "--name", help="exact approval group name"),
-        message: str = typer.Option(..., "--message", help="plain text; always HTML-escaped"),
+        name: str | None = typer.Option(None, "--name", help="exact approval group name (approval chains model)"),
+        message: str | None = typer.Option(None, "--message", help="plain text; always HTML-escaped (approval chains model)"),
         approver: list[str] = typer.Option(None, "--approver", help="explicit recipient ID or exact email (repeatable)"),
         approver_group: list[str] = typer.Option(None, "--approver-group", help="expand ALL eligible users of this exact group ID/name; review recipients"),
         cab: list[str] = typer.Option(None, "--cab", "--approver-cab", help="expand ALL eligible users of this CAB ID/name; review recipients"),
-        rule: str = typer.Option("everyone", "--rule", help="everyone, anyone, majority or first-responder"),
+        rule: str = typer.Option("everyone", "--rule", help="everyone, anyone, majority or first-responder (legacy: everyone, first-responder)"),
+        model: str = typer.Option("auto", "--model", help="approval model: auto (one read-only approval-chains GET), chains or legacy"),
         dry_run: bool = typer.Option(False, "--dry-run", help="review only; emails may require read-only lookup"),
         read_only: bool = typer.Option(False, "--read-only", help="refuse approval requests"),
         yes: bool = typer.Option(False, "--yes", "-y", help="confirm the full previously reviewed --expect-plan"),
@@ -454,8 +496,18 @@ def register(app: typer.Typer) -> None:
             # Validate everything local before any email lookup.
             if not approver and not approver_group and not cab:
                 raise ValueError("provide --approver, --approver-group or --cab explicitly")
+            if model not in ("auto", "chains", "legacy"):
+                raise ValueError("--model must be auto, chains or legacy")
+            if model == "chains" and (name is None or message is None):
+                raise ValueError("--name and --message are required on the approval chains model")
+            client = get_client() if approver_group or cab or model != "chains" else None
+            if model != "chains" and _model(client, parse_id(id_, CHANGES), model) == approval_model.LEGACY:
+                _legacy_request_cli(id_, name if model == "legacy" else None, message if model == "legacy" else None,
+                                    approver, approver_group, cab, rule, dry_run, yes, expected, no_input, json_out, client)
+                return
+            if name is None or message is None:
+                raise ValueError("--name and --message are required on the approval chains model")
             build_plan(id_, name, message, approver_ids=[1], rule=rule)
-            client = get_client() if approver_group or cab else None
             extra, context = approval_recipients.resolve(client, parse_id(id_, CHANGES), approver_group or [], cab or [])
             direct = resolve_approvers(approver) if approver else ()
             plan = build_plan(id_, name, message, approver_ids=sorted(set(direct) | set(extra)), rule=rule, recipient_context_json=context)
@@ -478,6 +530,37 @@ def register(app: typer.Typer) -> None:
                 typer.echo(json.dumps(result, indent=2))
             else:
                 typer.echo(f"Approval requested on change {plan.change_id}; approval record IDs: {result['approval_ids']}; complete inventory verification: {result['verified']}; group name verified: {result['group_name_verified']}")
+        except (ValueError, ApprovalError, ReviewedWriteError) as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(2) from None
+
+    @app.command("approval-remind", help="Review a reminder for one requested approval (legacy flat approvals; capture-based).")
+    def approval_remind(
+        id_: str = typer.Argument(..., metavar="CHANGE_ID"),
+        approval_id: int = typer.Argument(..., metavar="APPROVAL_ID", min=1),
+        model: str = typer.Option("auto", "--model", help="approval model: auto, chains or legacy"),
+        dry_run: bool = typer.Option(False, "--dry-run"),
+        yes: bool = typer.Option(False, "--yes", "-y"),
+        expected: str | None = typer.Option(None, "--expect-plan"),
+        json_out: bool = typer.Option(False, "--json"),
+    ) -> None:
+        from fsv import legacy_approvals
+        try:
+            client = get_client()
+            cid = parse_id(id_, CHANGES)
+            if _model(client, cid, model) != approval_model.LEGACY:
+                raise ApprovalError("approval-remind: no change reminder wire was captured on the approval chains "
+                                    "model; use the web UI")
+            plan = legacy_approvals.build_remind(client, "changes", cid, approval_id)
+            if dry_run:
+                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                return
+            if not yes or expected != plan.hash:
+                raise ApprovalError("review with --dry-run, then --yes --expect-plan FULL_HASH")
+            result = legacy_approvals.send(plan, client, reviewed_hash=expected)
+            typer.echo(json.dumps(result, indent=2))
+            if not result.get("verified"):
+                raise typer.Exit(4)
         except (ValueError, ApprovalError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

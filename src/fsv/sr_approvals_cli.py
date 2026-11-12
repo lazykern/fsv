@@ -16,14 +16,35 @@ def register(app: typer.Typer, factory: Callable[[], Any]) -> None:
         from fsv.resources import parse_id, TICKETS
         guard(lambda: typer.echo(json.dumps(approvals.listing(factory(), parse_id(target, TICKETS)), indent=2)))
 
+    def legacy(c, target):
+        from fsv import approval_model
+        from fsv.resources import parse_id, TICKETS
+        tid = parse_id(target, TICKETS)
+        return tid, approval_model.detect(c, "tickets", tid)[0] == approval_model.LEGACY
+
+    def finish_legacy(plan, c, dry_run, yes, expected, read_only):
+        from fsv import legacy_approvals
+        finish(plan, lambda: legacy_approvals.send(plan, c, reviewed_hash=expected), dry_run=dry_run, yes=yes,
+               expected=expected, read_only=read_only)
+
     @group.command("request")
-    def request(target: str, name: str = typer.Option(..., "--name"), message: str = typer.Option(..., "--message"),
+    def request(target: str, name: str | None = typer.Option(None, "--name", help="approval group name (approval chains model)"),
+                message: str | None = typer.Option(None, "--message", help="email text (approval chains model)"),
                 approver: list[str] = typer.Option(..., "--approver"), rule: str = typer.Option("everyone", "--rule"),
                 dry_run: bool = typer.Option(False, "--dry-run"), yes: bool = typer.Option(False, "--yes", "-y"),
                 expected: str | None = typer.Option(None, "--expect-plan"), read_only: bool = typer.Option(False, "--read-only"),
                 json_out: bool = typer.Option(False, "--json")) -> None:
         def run():
             c = factory()
+            tid, is_legacy = legacy(c, target)
+            if is_legacy:
+                from fsv import legacy_approvals
+                if name or message:
+                    raise ValueError("--name/--message do not apply to legacy flat approvals; the email is the "
+                                     "tenant's approval template")
+                plan = legacy_approvals.build_request(c, "tickets", tid, approvals.recipients(c, approver), rule=rule)
+                finish_legacy(plan, c, dry_run, yes, expected, read_only)
+                return
             plan = approvals.build_plan(c, target, "request", name=name, message=message, approvers=approver, rule=rule)
             finish(plan, lambda: approvals.send(plan, c, reviewed_hash=expected), dry_run=dry_run, yes=yes, expected=expected, read_only=read_only)
         guard(run)
@@ -35,6 +56,13 @@ def register(app: typer.Typer, factory: Callable[[], Any]) -> None:
                     read_only: bool = typer.Option(False, "--read-only"), json_out: bool = typer.Option(False, "--json")) -> None:
             def run():
                 c = factory()
+                if operation == "remind":
+                    tid, is_legacy = legacy(c, target)
+                    if is_legacy:
+                        from fsv import legacy_approvals
+                        finish_legacy(legacy_approvals.build_remind(c, "tickets", tid, ident), c, dry_run, yes,
+                                      expected, read_only)
+                        return
                 plan = approvals.build_plan(c, target, operation, ident=ident, remark=remark)
                 finish(plan, lambda: approvals.send(plan, c, reviewed_hash=expected), dry_run=dry_run, yes=yes, expected=expected, read_only=read_only)
             guard(run)

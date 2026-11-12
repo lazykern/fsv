@@ -174,7 +174,7 @@ def test_approval_rule_payload_hash_readback_and_cli(monkeypatch, rule, number):
     with pytest.raises(approvals.ApprovalError, match="do not resubmit"):
         approvals.send(plan, c, reviewed_hash=plan.hash)
     monkeypatch.setattr(approvals, "get_client", lambda: pytest.fail("local rule draft network"))
-    draft = CliRunner().invoke(cli.app, ["changes", "approval-request", "CHN-123", "--name", "Acme review",
+    draft = CliRunner().invoke(cli.app, ["changes", "approval-request", "CHN-123", "--model", "chains", "--name", "Acme review",
         "--message", "Please review", "--approver", "9000003001", "--rule", rule, "--dry-run", "--json"])
     assert draft.exit_code == 0, draft.output
     assert json.loads(draft.stdout)["payload"]["approval_groups"][0]["approval_type"] == number
@@ -237,7 +237,7 @@ def test_missing_response_id_contradictory_optional_fields_unknown(monkeypatch):
 
 def test_invalid_rule_before_lookup(monkeypatch):
     monkeypatch.setattr(approvals, "get_client", lambda: pytest.fail("invalid rule lookup"))
-    result = CliRunner().invoke(cli.app, ["changes", "approval-request", "CHN-123", "--name", "Acme review",
+    result = CliRunner().invoke(cli.app, ["changes", "approval-request", "CHN-123", "--model", "chains", "--name", "Acme review",
         "--message", "Review", "--approver", "agent@example.com", "--rule", "all", "--dry-run"])
     assert result.exit_code == 2 and "rule must be" in result.output
     assert journal.read() == []

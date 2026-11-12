@@ -378,7 +378,8 @@ def test_invalid_recipients_no_io(monkeypatch, values):
         approvals.resolve_approvers(values)
 
 
-BASE = ["changes", "approval-request", "CHN-123", "--name", "Acme review", "--message", "Please review", "--approver", "9000003001"]
+# --model chains: explicit-ID reviews of the chains driver stay offline (no detection GET).
+BASE = ["changes", "approval-request", "CHN-123", "--model", "chains", "--name", "Acme review", "--message", "Please review", "--approver", "9000003001"]
 
 
 @pytest.mark.parametrize("args,input_", [(["--dry-run", "--json"], None), ([], "n\n"),
