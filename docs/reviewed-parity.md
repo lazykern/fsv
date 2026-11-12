@@ -71,7 +71,12 @@ fsv tickets tasks delete INC-123 701 --dry-run --json
 
 Send each reviewed write with `--yes --expect-plan FULL_HASH --json`. Required
 custom fields, status IDs (including custom statuses), and reminder IDs come from
-fresh `ticket_task_fields`. Unsupported custom types block rather than guess.
+fresh `ticket_task_fields`. Required means `required_for_create` (top level or in
+`field_options`, boolean or `"true"`); `required_for_closure` is not checked on
+create. `notify_before` (Never) is sent only when the metadata defines it.
+`workspace_id` comes from the parent ticket and is not sent. Custom keys are sent
+without the `cf_` prefix, like the web form. Every required field fsv cannot fill
+is listed in one error. Unsupported custom types block rather than guess.
 Deletion uses the native PUT tasks/update action, not DELETE. Complete inventory
 and metadata drift checks precede one journaled attempt; independent exact-ID
 readback compares submitted values. Missing or partial readback is unverified

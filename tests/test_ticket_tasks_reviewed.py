@@ -67,6 +67,55 @@ def add(c):
     return flow.build_plan(c, "INC-123", action="add", title="Acme task", values={"Tier": "Standard"})
 
 
+def test_missing_reminder_metadata_is_optional(api):
+    c, s, fields, _ = api
+    fields[:] = [f for f in fields if f["name"] != "notify_before"]
+    runner = CliRunner()
+    r = runner.invoke(cli.app, ["tickets", "tasks", "add", "123", "--title", "Acme task",
+                               "--set", "Tier=Standard", "--dry-run", "--json"])
+    assert r.exit_code == 0, r.output
+    assert "notify_before" not in json.loads(r.output)["payload"]
+    assert not s["writes"]
+
+
+def test_native_string_choices_and_nested_required_flags(api):
+    c, s, fields, n = api
+    fields[2]["choices"][0]["id"] = "0"
+    fields[-1].pop("field_type")
+    fields[-1].pop("required_for_create")
+    fields[-1].update(name="cf_tier", default=False, type=1003, dom_type="dropdown",
+                      field_options={"required_for_create": "true", "required_for_closure": "false"})
+    fields[-1]["choices"][0]["id"] = str(n+3)
+    fields.append({"name": "workspace_id", "default": True, "field_options": {"required_for_create": "true"}})
+    with pytest.raises(ReviewedWriteError, match="Tier"):
+        flow.build_plan(c, 123, action="add", title="Acme task")
+    plan = add(c)
+    # Same body as the accepted web create: no workspace_id, unprefixed custom key.
+    assert plan.payload == {"title": "Acme task", "status": n, "notify_before": 0, "custom_fields": {"tier": n+3}}
+    assert flow.send(plan, c, reviewed_hash=plan.hash)["verified"]
+    assert s["writes"][-1][2] == plan.payload
+
+
+def test_all_unknown_required_fields_are_listed(api):
+    c, s, fields, _ = api
+    fields.extend([{"name": "unproven_a", "label": "Acme dependency", "required": True},
+                   {"name": "unproven_b", "label": "Globex dependency", "field_options": {"required_for_create": "true"}},
+                   {"name": "closure_only", "field_options": {"required_for_closure": "true"}}])
+    with pytest.raises(ReviewedWriteError, match="Acme dependency, Globex dependency") as exc:
+        add(c)
+    assert "closure_only" not in str(exc.value)
+    assert not s["writes"]
+
+
+@pytest.mark.parametrize("choice", [True, -1, "-1", "bad", None])
+def test_present_reminder_must_be_proven(api, choice):
+    c, s, fields, _ = api
+    fields[2]["choices"][0]["id"] = choice
+    with pytest.raises(ReviewedWriteError, match="notify_before"):
+        add(c)
+    assert not s["writes"]
+
+
 def test_lifecycle_and_exact_wires(api):
     c, s, _, n = api
     plan = add(c)
