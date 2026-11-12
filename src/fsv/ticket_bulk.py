@@ -14,14 +14,23 @@ from fsv.reviewed_inventory import complete_inventory
 from fsv.watchers import positive_id
 
 
-def selection(client: Any, ids: list[str], where: list[str], select_all: bool) -> list[int]:
+def selection(client: Any, ids: list[str], where: list[str], select_all: bool, max_records: int | None = None) -> list[int]:
     if where:
         if ids or not select_all:
             raise ValueError("filters require --select-all and no explicit IDs")
-        query, _, _ = build_query_hash(client, TICKETS, where)
+        if type(max_records) is not int or not 1 <= max_records <= 50:
+            raise ValueError("filtered writes require --max-records N (1 to 50)")
+        query, clauses, _ = build_query_hash(client, TICKETS, where)
         rows = complete_inventory(client, "tickets", "tickets",
                                   {"query_hash": query, "page": 1, "per_page": 100})
+        if len(rows) > max_records:
+            raise ValueError("filtered selection exceeds --max-records; refusing the whole plan")
+        from fsv.filter_proof import matches
         values = [positive_id(r.get("id")) for r in rows]
+        for cid in values:
+            exact = ticket_properties._record(client, cid)
+            if not matches(exact, clauses):
+                raise ReviewedWriteError(f"ticket {cid} contradicts the predicate; refusing the whole filtered plan")
     else:
         if select_all:
             raise ValueError("--select-all requires an explicit filter")
@@ -38,25 +47,28 @@ class BulkPlan:
     ids: tuple[int, ...]
     expected_json: str
     delegate: Any = None
+    selected_json: str = "[]"
 
     @property
     def hash(self) -> str:
-        return journal.plan_hash({"write": self.write.hash, "selection": json.loads(self.intent_json)}) or ""
+        return journal.plan_hash({"write": self.write.hash, "selection": json.loads(self.intent_json),
+                                  "selected": json.loads(self.selected_json), "ids": list(self.ids)}) or ""
 
     def review(self) -> dict[str, Any]:
         return {**self.write.review(), "plan_hash": self.hash, "ticket_ids": list(self.ids),
-                "selection": json.loads(self.intent_json),
+                "selection": json.loads(self.intent_json), "selected_tickets": json.loads(self.selected_json),
                 "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action."}
 
 
 def build_plan(client: Any, ids: list[str], *, action: str, where: list[str] | None = None,
                select_all: bool = False, status: str | None = None, agent: str | None = None,
                group: str | None = None, primary: str | None = None,
-               note_primary: str | None = None, note_secondary: str | None = None) -> BulkPlan:
+               note_primary: str | None = None, note_secondary: str | None = None,
+               max_records: int | None = None) -> BulkPlan:
     where = where or []
-    cids = selection(client, ids, where, select_all)
+    cids = selection(client, ids, where, select_all, max_records)
     intent = dict(ids=ids, action=action, where=where, select_all=select_all, status=status,
-                  agent=agent, group=group, primary=primary, note_primary=note_primary, note_secondary=note_secondary)
+                  agent=agent, group=group, primary=primary, note_primary=note_primary, note_secondary=note_secondary, max_records=max_records)
     if action not in {"status", "assign", "pickup", "merge", "spam", "unspam", "delete"}:
         raise ValueError("unsupported bulk action")
     if (status is not None and action != "status") or ((agent or group) and action != "assign") or (
@@ -105,8 +117,16 @@ def build_plan(client: Any, ids: list[str], *, action: str, where: list[str] | N
             method, path, body = "POST", f"tickets/{action}_multiple", {"ids": cids}
         write = WritePlan("ticket_bulk_" + action, cids[0], config.DOMAIN, method, path, json.dumps(body, sort_keys=True),
                           journal.snapshot_hash({"records": baselines, "plans": [p.hash for p in props]}) or "")
-    # Bind filter intent and expanded IDs to every write, including delegates.
-    return BulkPlan(write, json.dumps(intent, sort_keys=True), tuple(cids), json.dumps(expected), delegate)
+    selected = []
+    for cid in cids:
+        row = ticket_properties._record(client, cid)
+        subject = row.get("subject")
+        if where and not isinstance(subject, str):
+            raise ReviewedWriteError("exact selected subject unavailable; refusing filtered review")
+        selected.append({"id": cid, "subject": subject})
+    # Bind filter intent, exact subjects and expanded IDs to every delegated write.
+    return BulkPlan(write, json.dumps(intent, sort_keys=True), tuple(cids), json.dumps(expected), delegate,
+                    json.dumps(selected, sort_keys=True))
 
 
 def send(plan: BulkPlan, client: Any, *, reviewed_hash: str | None, confirm_destructive: bool = False) -> dict[str, Any]:

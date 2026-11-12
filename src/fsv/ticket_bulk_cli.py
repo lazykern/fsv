@@ -15,6 +15,7 @@ def register(app, client_factory):
     def bulk(action: str, ids: Optional[list[str]] = typer.Argument(None),
              where: Optional[list[str]] = typer.Option(None, "--where"),
              select_all: bool = typer.Option(False, "--select-all"),
+             max_records: Optional[int] = typer.Option(None, "--max-records", help="Required filtered-write bound, 1 to 50."),
              status: Optional[str] = typer.Option(None, "--status"),
              agent: Optional[str] = typer.Option(None, "--agent"), group: Optional[str] = typer.Option(None, "--group"),
              primary: Optional[str] = typer.Option(None, "--primary"),
@@ -27,9 +28,11 @@ def register(app, client_factory):
         try:
             client = client_factory()
             plan = ticket_bulk.build_plan(client, list(ids or []), action=action, where=list(where or []),
-                select_all=select_all, status=status, agent=agent, group=group, primary=primary,
+                select_all=select_all, max_records=max_records, status=status, agent=agent, group=group, primary=primary,
                 note_primary=note_primary, note_secondary=note_secondary)
             typer.echo("Selected ticket IDs: " + ", ".join(map(str, plan.ids)), err=True)
+            for row in json.loads(plan.selected_json):
+                typer.echo(f"  {row['id']}: {row['subject']}", err=True)
             if dry_run:
                 typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
                 return

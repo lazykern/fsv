@@ -213,6 +213,8 @@ def _resolve_where(
     name = f.get("name") or field_text
     type_ = _field_api_type(f)
     ftype = str(f.get("field_type") or "")
+    from fsv.filter_proof import require_filterable_field
+    require_filterable_field(f)
     operator = _where_operator(op)
 
     if name == "requester":

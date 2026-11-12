@@ -30,7 +30,6 @@ def sch():
     ("cf_tier=gold", "cf_tier", ["Gold"], "custom_field", "is_in"),
     ("Count=12", "cf_count", [12], "custom_field", "is_in"),
     ("Count=-12", "cf_count", ["-12"], "custom_field", "is_in"),
-    ("Subject='Acme = ready'", "subject", ["Acme = ready"], "default", "is_in"),
     ("group=Acme Ops", "group_id", ["93"], "default", "is_in"),
     ("group_id!=93", "group_id", [93], "default", "is_not_in"),
     ("asset_id=external", "asset_id", ["external"], "default", "is_in"),

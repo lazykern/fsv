@@ -71,3 +71,19 @@ def test_supported_ranges_and_period_tokens_use_real_list_query_hash(monkeypatch
     items = json.loads(world.calls("/api/_/changes")[-1]["query_hash"])
     assert items == [{"value": "six_months", "condition": "created_at", "operator": "is_greater_than", "type": "default"}]
     assert not world.writes()
+
+@pytest.mark.parametrize("resource", [CHANGES, TICKETS, PROBLEMS])
+def test_subject_equality_has_no_guessed_choice_operator(resource):
+    fields = {"fields": [{"name": "subject", "label": "Subject", "field_type": "default_subject", "default_field": True}]}
+    with pytest.raises(ValueError, match="operator unavailable"):
+        query.build_query_hash_from_schema(None, resource, fields, ["Subject=Acme"])
+
+
+def test_read_warns_when_fake_server_ignores_status_filter(monkeypatch):
+    world = _world(monkeypatch, "acme")
+    result = CliRunner().invoke(cli.app, ["changes", "ls", "--where", "status=Closed", "--json"])
+    assert result.exit_code == 0, result.output
+    assert "contradict the requested predicate" in result.stderr
+    assert isinstance(json.loads(result.stdout), list)
+    assert not world.writes()
+

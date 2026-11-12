@@ -17,7 +17,7 @@ def api(monkeypatch, tmp_path):
     monkeypatch.setattr(config, "DOMAIN", "acme.example.com")
     monkeypatch.setattr(config, "API_INT", "https://acme.example.com/api/_")
     monkeypatch.setattr(journal, "journal_path", lambda: tmp_path / "journal")
-    s = {"rows": {i: {"id": i, "status": 2, "spam": False, "deleted": False} for i in [71, 72]},
+    s = {"rows": {i: {"id": i, "status": 2, "priority": 1, "subject": f"Acme {i}", "spam": False, "deleted": False} for i in [71, 72]},
          "writes": [], "failure": False, "omit": False, "partial": False}
     def handler(req):
         path = req.url.path.removeprefix("/api/_/")
@@ -47,7 +47,7 @@ def api(monkeypatch, tmp_path):
     c._client = httpx.Client(transport=httpx.MockTransport(handler))
     c._csrf = "synthetic"
     monkeypatch.setattr(cli, "_client", lambda: c)
-    monkeypatch.setattr(flow, "build_query_hash", lambda *a: ('[{"synthetic":true}]', [], []))
+    monkeypatch.setattr(flow, "build_query_hash", lambda *a: (json.dumps([{'condition': 'priority', 'operator': 'is_in', 'type': 'default', 'value': [1]}]), [{'condition': 'priority', 'operator': 'is_in', 'type': 'default', 'value': [1]}], []))
     def prop(client, i, answers):
         payload = {"status": 3}
         return SimpleNamespace(payload=payload, hash=journal.snapshot_hash({"row": s["rows"][i], "answers": answers}))
@@ -71,7 +71,7 @@ def api(monkeypatch, tmp_path):
 @pytest.mark.parametrize("filtered", [False, True])
 def test_exact_bulk_wire_and_per_ticket_readback(api, action, options, method, path, filtered):
     c, s = api
-    selection = {"where": ["Priority=Low"], "select_all": True} if filtered else {}
+    selection = {"where": ["Priority=Low"], "select_all": True, "max_records": 2} if filtered else {}
     p = flow.build_plan(c, [] if filtered else ["INC-72", "INC-71"], action=action, **options, **selection)
     assert p.review()["ticket_ids"] == [71, 72] and not s["writes"]
     result = flow.send(p, c, reviewed_hash=p.hash, confirm_destructive=True)
@@ -103,7 +103,7 @@ def test_destructive_confirmation_and_printed_ids(api, action):
 
 def test_filter_drift_prevents_send(api):
     c, s = api
-    p = flow.build_plan(c, [], action="spam", where=["Priority=Low"], select_all=True)
+    p = flow.build_plan(c, [], action="spam", where=["Priority=Low"], select_all=True, max_records=2)
     del s["rows"][72]
     with pytest.raises(ReviewedWriteError, match="selection"):
         flow.send(p, c, reviewed_hash=p.hash, confirm_destructive=True)
@@ -134,3 +134,38 @@ def test_invalid_selection_never_writes(api, ids, kw):
     with pytest.raises(ValueError):
         flow.build_plan(c, ids, action="spam", **kw)
     assert not s["writes"]
+
+@pytest.mark.parametrize("action", ["status", "assign", "pickup", "merge", "spam", "unspam", "delete"])
+@pytest.mark.parametrize("bad", ["contradiction", "missing", "unsupported"])
+def test_ignored_filter_blocks_every_action_before_write(api, monkeypatch, action, bad):
+    c, s = api
+    if bad == "contradiction":
+        s["rows"][72]["priority"] = 4
+    elif bad == "missing":
+        s["rows"][72].pop("priority")
+    else:
+        monkeypatch.setattr(flow, "build_query_hash", lambda *a: ("[]", [{"condition": "created_at", "operator": "custom_date"}], []))
+    with pytest.raises((ValueError, ReviewedWriteError), match="predicate|field"):
+        flow.build_plan(c, [], action=action, where=["Priority=Low"], select_all=True, max_records=2)
+    assert not s["writes"]
+
+
+@pytest.mark.parametrize("bound", [None, 0, 1, 51, True])
+def test_filtered_expansion_is_explicitly_bounded(api, bound):
+    c, s = api
+    with pytest.raises(ValueError, match="max-records"):
+        flow.build_plan(c, [], action="spam", where=["Priority=Low"], select_all=True, max_records=bound)
+    assert not s["writes"]
+
+
+def test_full_selected_subjects_and_ids_are_hash_bound(api):
+    from dataclasses import replace
+    c, s = api
+    p = flow.build_plan(c, [], action="spam", where=["Priority=Low"], select_all=True, max_records=2)
+    assert p.review()["selected_tickets"] == [{"id": 71, "subject": "Acme 71"}, {"id": 72, "subject": "Acme 72"}]
+    assert replace(p, ids=(71,)).hash != p.hash
+    s["rows"][72]["subject"] = "Globex changed"
+    with pytest.raises(ReviewedWriteError, match="selection"):
+        flow.send(p, c, reviewed_hash=p.hash, confirm_destructive=True)
+    assert not s["writes"]
+

@@ -1009,6 +1009,8 @@ def _resolve_where(c: Any, res: Resource, sch: dict[str, Any], expr: str, explai
         return _date_condition(str(name), op, raw, explain, field_text)
     type_ = _field_api_type(f)
     ftype = str(f.get("field_type") or "")
+    from fsv.filter_proof import require_filterable_field
+    require_filterable_field(f)
     operator = _where_operator(op)
     folded = raw.strip().casefold()
 
@@ -1236,6 +1238,11 @@ def list_resource(
         return items, schema_mod.load(res, c), total, more
 
     items, sch, total, more = _api(load_items)
+    if where or raw_query_hash:
+        from fsv.filter_proof import contradictions
+        bad = contradictions(items, query) if not or_grouping else []
+        if bad:
+            err.print("Warning: returned records contradict the requested predicate; do not use this list for writes. IDs: " + ", ".join(map(str, bad)), markup=False)
     me = V.current_user(c) if fmt != "json" and not json_out else {}
     tz = V.user_tz(me)
     columns = V.list_columns(res, sch, headers)
