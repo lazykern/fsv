@@ -14,6 +14,7 @@ use crate::formmeta::{
 };
 use crate::notes::{self, BodyFormat, EMAIL, note_id, returned_note, valid_recipient};
 use crate::properties::{dumps_sorted, record};
+use crate::readback::py_equal;
 use crate::service::{
     Api, Journal, definite_rejection, last_event, load_conversations, obj, plan_hash,
 };
@@ -141,6 +142,34 @@ pub fn status_context(
     }
     status_inner(c, store, cid, label)
         .map_err(|_| refused("could not resolve Pending and evaluate ticket rules from fresh metadata; no send attempted"))
+}
+
+fn closing_label(label: &str) -> bool {
+    matches!(
+        fsv_core::pystr::casefold(label).as_str(),
+        "resolved" | "closed"
+    )
+}
+
+/// `status_fields`: the nested `helpdesk_ticket` payload and its record
+/// fingerprint. Resolved/Closed use the lifecycle closure checks (routing
+/// preserved, persisted resolution required); others are Pending-only.
+pub fn status_fields(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    cid: i64,
+    label: &str,
+) -> Result<(Map<String, Value>, String)> {
+    if closing_label(label) {
+        let (payload, fingerprint, _) =
+            crate::ticket_lifecycle::context(c, store, cid, label, &Map::new(), None, None)?;
+        return Ok((payload, fingerprint));
+    }
+    let (status_id, token, record_hash) = status_context(c, store, cid, label)?;
+    Ok((
+        obj(json!({"status": status_id, "br_validation_excludes": token})),
+        record_hash,
+    ))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -323,9 +352,9 @@ pub fn build_plan_mail(
     };
     let mut record_hash = None;
     if let Some(label) = args.set_status {
-        let (status_id, token, rh) = status_context(c, store, note.ticket_id, label)?;
+        let (fields, rh) = status_fields(c, store, note.ticket_id, label)?;
         record_hash = Some(rh);
-        payload["helpdesk_ticket"] = json!({"status": status_id, "br_validation_excludes": token});
+        payload["helpdesk_ticket"] = Value::Object(fields);
     }
     Ok(ConversationPlan {
         kind: args.kind.to_string(),
@@ -377,10 +406,11 @@ pub fn send(
         crate::canned::freshen(plan, c)?;
     }
     if let Some(label) = &plan.status_label {
-        let (status_id, token, record_hash) = status_context(c, store, plan.ticket_id, label)?;
+        let (fields, record_hash) = status_fields(c, store, plan.ticket_id, label)?;
         if Some(&record_hash) != plan.record_hash.as_ref()
-            || payload.get("helpdesk_ticket")
-                != Some(&json!({"status": status_id, "br_validation_excludes": token}))
+            || !payload
+                .get("helpdesk_ticket")
+                .is_some_and(|h| py_equal(h, &Value::Object(fields)))
         {
             return Err(refused("ticket or status metadata changed; review again"));
         }
@@ -412,6 +442,7 @@ pub fn send(
     let Ok(csrf) = c.get_csrf() else {
         return Err(refused("could not prepare session; no send attempted"));
     };
+    let closing = plan.status_label.as_deref().is_some_and(closing_label);
     let target = json!(plan.ticket_id);
     journal.record_plan("started", &hash, &action, Some(&target), None);
     if last_event(journal, &action, &hash).as_deref() != Some("started") {
@@ -440,7 +471,9 @@ pub fn send(
             "response has no exact conversation ID; outcome unknown, do not resend",
         ));
     };
-    journal.record_plan("done", &hash, &action, Some(&target), Some(&conv_id));
+    if !closing {
+        journal.record_plan("done", &hash, &action, Some(&target), Some(&conv_id));
+    }
     let mut result = obj(
         json!({"status": "submitted", "conversation_id": conv_id, "ticket_id": plan.ticket_id,
                                 "plan_hash": hash, "verified": false}),
@@ -461,7 +494,14 @@ pub fn send(
             }
         } else {
             expected.push(("private", payload["private"].clone()));
-            expected.push(("notify_emails", payload["notify_emails"].clone()));
+            // Accepted internal note readback exposes notification recipients
+            // as to_emails; omission is never evidence of no recipients.
+            let recipient_key = if closing && plan.kind == "note" {
+                "to_emails"
+            } else {
+                "notify_emails"
+            };
+            expected.push((recipient_key, payload["notify_emails"].clone()));
         }
         if let Some(v) = payload.get("from_email") {
             expected.push(("from_email", v.clone()));
@@ -477,12 +517,24 @@ pub fn send(
         }
         if plan.status_label.is_some() {
             let row = record(c, plan.ticket_id)?;
+            let nested = &payload["helpdesk_ticket"];
             let state = match row.get("status") {
                 None => "unavailable",
-                Some(s) if *s == payload["helpdesk_ticket"]["status"] => "matched",
+                Some(s) if (s.is_i64() || s.is_u64()) && py_equal(s, &nested["status"]) => {
+                    "matched"
+                }
                 Some(_) => "mismatched",
             };
             fields.insert("ticket_status".into(), json!(state));
+            if closing {
+                let matched = nested
+                    .as_object()
+                    .is_some_and(|n| crate::ticket_lifecycle::matches(&row, n));
+                fields.insert(
+                    "ticket_transition".into(),
+                    json!(if matched { "matched" } else { "mismatched" }),
+                );
+            }
         }
         let complete = pages.missing.is_none() && !pages.meta.get("partial").is_some_and(truthy);
         let verified = exact.is_some() && complete && fields.values().all(|v| v == "matched");
@@ -491,6 +543,9 @@ pub fn send(
     if let Ok((fields, verified)) = readback() {
         result.insert("fields".into(), Value::Object(fields));
         result.insert("verified".into(), json!(verified));
+    }
+    if closing && result["verified"] == Value::Bool(true) {
+        journal.record_plan("done", &hash, &action, Some(&target), Some(&conv_id));
     }
     if result["verified"] != Value::Bool(true) {
         result.insert(
@@ -502,6 +557,9 @@ pub fn send(
     }
     Ok(Value::Object(result))
 }
+
+#[cfg(test)]
+mod closure_tests;
 
 #[cfg(test)]
 mod tests {

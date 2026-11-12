@@ -46,6 +46,30 @@ fn fixtures_record_their_python_commit() {
         ),
         ("views_oracle", include_str!("testdata/views_oracle.json")),
         (
+            "closure_conversation_oracle",
+            include_str!("testdata/closure_conversation_oracle.json"),
+        ),
+        (
+            "note_readback_oracle",
+            include_str!("testdata/note_readback_oracle.json"),
+        ),
+        (
+            "sr_attachments_oracle",
+            include_str!("testdata/sr_attachments_oracle.json"),
+        ),
+        (
+            "ticket_assignment_oracle",
+            include_str!("testdata/ticket_assignment_oracle.json"),
+        ),
+        (
+            "ticket_lifecycle_oracle",
+            include_str!("testdata/ticket_lifecycle_oracle.json"),
+        ),
+        (
+            "ticket_merge_oracle",
+            include_str!("testdata/ticket_merge_oracle.json"),
+        ),
+        (
             "workflows_oracle",
             include_str!("testdata/workflows_oracle.json"),
         ),

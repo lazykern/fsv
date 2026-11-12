@@ -66,6 +66,7 @@ rec("schema_fields_flat", lambda: cr._get_change_schema_fields())
 cr.load_schema = lambda res: {"fields": SCHEMA}
 
 CHANGE = {"change": {"id": 5, "display_id": 5, "subject": "S", "status": 3, "attachments": [1], "stats": {}, "updated_at": "x",
+                     "attached_risk_survey_response_status": "completed",
                      "reason_planning_fields": [], "requester_id": 9, "planning_field_definitions": [],
                      "custom_fields": {"cf_lookup": {"id": 4, "value": "Four"}, "cf_text": "t", "cf_obj": {"id": 1, "value": 2, "x": 3}}}}
 import copy

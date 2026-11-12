@@ -372,12 +372,8 @@ fn resolution(
             info.insert(k.into(), v.clone());
         }
     }
-    let html = ["resolution_notes", "resolution_notes_html"]
-        .iter()
-        .find_map(|k| record.get(*k).filter(|v| fsv_py::truthy(v)))
-        .cloned()
-        .unwrap_or(Value::String(String::new()));
-    let mut text = html_to_text(&html);
+    let html = fsv_api::readback::resolution_text(record).unwrap_or_default();
+    let mut text = html_to_text(&Value::String(html));
     if text.is_empty() {
         let data = match v2_read(src, &format!("{base}/resolution_note")) {
             Ok(data) => data,

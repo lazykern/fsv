@@ -1,0 +1,2438 @@
+{
+ "_python": {
+  "commit": "94925f46cddbea900802f9cb5cdea0563f73d2b1",
+  "dirty": false
+ },
+ "cases": {
+  "resolve_then_transition_INC": {
+   "tenant": "acme.freshservice.com",
+   "ops": [
+    {
+     "op": "build",
+     "target": "INC-123",
+     "status": "Resolved",
+     "note": "Acme fix <safe>",
+     "answers": {
+      "summary": "Globex fix"
+     }
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Resolved",
+      "answers_json": "{\"summary\": \"Globex fix\"}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"summary\": \"Globex fix\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": "<div>Acme fix &lt;safe&gt;</div>"
+     },
+     "hash": "7959ae7f2c8386239749aa3b3a87a4a2d0af1d98cc1fc36f1f4ab3af150e299e",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Resolved",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "resolution_notes": "<div>Acme fix &lt;safe&gt;</div>",
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+        }
+       },
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "custom_fields": {
+          "summary": "Globex fix"
+         },
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 62
+        }
+       }
+      ],
+      "plan_hash": "7959ae7f2c8386239749aa3b3a87a4a2d0af1d98cc1fc36f1f4ab3af150e299e",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "ticket_id": 123,
+      "status_label": "Resolved",
+      "plan_hash": "7959ae7f2c8386239749aa3b3a87a4a2d0af1d98cc1fc36f1f4ab3af150e299e",
+      "verified": true
+     },
+     "writes": 2
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition was sent or outcome unknown; inspect ticket and journal before retry"
+     },
+     "writes": 2
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"resolution_notes\": \"<div>Acme fix &lt;safe&gt;</div>\"}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "resolution_notes": "<div>Acme fix &lt;safe&gt;</div>"
+     }
+    },
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"summary\": \"Globex fix\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "custom_fields": {
+       "summary": "Globex fix"
+      },
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 62
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 62,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix &lt;safe&gt;</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Globex fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started",
+    "done"
+   ]
+  },
+  "resolve_then_transition_SR": {
+   "tenant": "globex.example.com",
+   "ops": [
+    {
+     "op": "build",
+     "target": "SR-123",
+     "status": "Resolved",
+     "note": "Acme fix <safe>",
+     "answers": {
+      "summary": "Globex fix"
+     }
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "globex.example.com",
+      "status": "Resolved",
+      "answers_json": "{\"summary\": \"Globex fix\"}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"summary\": \"Globex fix\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": "<div>Acme fix &lt;safe&gt;</div>"
+     },
+     "hash": "306bfd3855a766ff2a668257fb2c14d11fefe4e5f932222612ea95eb2439056a",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Resolved",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "resolution_notes": "<div>Acme fix &lt;safe&gt;</div>",
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+        }
+       },
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "custom_fields": {
+          "summary": "Globex fix"
+         },
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 62
+        }
+       }
+      ],
+      "plan_hash": "306bfd3855a766ff2a668257fb2c14d11fefe4e5f932222612ea95eb2439056a",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "ticket_id": 123,
+      "status_label": "Resolved",
+      "plan_hash": "306bfd3855a766ff2a668257fb2c14d11fefe4e5f932222612ea95eb2439056a",
+      "verified": true
+     },
+     "writes": 2
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition was sent or outcome unknown; inspect ticket and journal before retry"
+     },
+     "writes": 2
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"resolution_notes\": \"<div>Acme fix &lt;safe&gt;</div>\"}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "resolution_notes": "<div>Acme fix &lt;safe&gt;</div>"
+     }
+    },
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"summary\": \"Globex fix\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "custom_fields": {
+       "summary": "Globex fix"
+      },
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 62
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 62,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix &lt;safe&gt;</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Globex fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started",
+    "done"
+   ]
+  },
+  "single_Closed": {
+   "row": {
+    "resolution_notes": {
+     "notes_html": "<p>Earlier fix</p>"
+    }
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Closed",
+     "answers": {}
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Closed",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 89}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"c44ecc4638ab37e1e25ad281687ca0196cb7c49b1e65a2b2a3b9f75ea23ec181\"}",
+      "note_html": null
+     },
+     "hash": "56122c6a040423a861db945baf2f8788360476253c70201f5264ab6aa17951ca",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Closed",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 89
+        }
+       }
+      ],
+      "plan_hash": "56122c6a040423a861db945baf2f8788360476253c70201f5264ab6aa17951ca",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "ticket_id": 123,
+      "status_label": "Closed",
+      "plan_hash": "56122c6a040423a861db945baf2f8788360476253c70201f5264ab6aa17951ca",
+      "verified": true
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 89}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 89
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 89,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<p>Earlier fix</p>"
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started",
+    "done"
+   ]
+  },
+  "single_Open": {
+   "row": {
+    "resolution_notes": {
+     "notes_html": "<p>Earlier fix</p>"
+    }
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Open",
+     "answers": {}
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Open",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"c44ecc4638ab37e1e25ad281687ca0196cb7c49b1e65a2b2a3b9f75ea23ec181\"}",
+      "note_html": null
+     },
+     "hash": "ed60f129be13e655d1f2249fd2f218e3ca66b9f0ed24cae0053759b7878a1455",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Open",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 31
+        }
+       }
+      ],
+      "plan_hash": "ed60f129be13e655d1f2249fd2f218e3ca66b9f0ed24cae0053759b7878a1455",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "ticket_id": 123,
+      "status_label": "Open",
+      "plan_hash": "ed60f129be13e655d1f2249fd2f218e3ca66b9f0ed24cae0053759b7878a1455",
+      "verified": true
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 31
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<p>Earlier fix</p>"
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started",
+    "done"
+   ]
+  },
+  "single_Pending": {
+   "row": {
+    "resolution_notes": {
+     "notes_html": "<p>Earlier fix</p>"
+    }
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Pending",
+     "answers": {
+      "reason": "Waiting for self"
+     }
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Pending",
+      "answers_json": "{\"reason\": \"Waiting for self\"}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting for self\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"c44ecc4638ab37e1e25ad281687ca0196cb7c49b1e65a2b2a3b9f75ea23ec181\"}",
+      "note_html": null
+     },
+     "hash": "fcfe63ae54dcf180ad5c8cbd8a33da8bb55afd7874138338b5e6312cc651f518",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Pending",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "custom_fields": {
+          "reason": "Waiting for self"
+         },
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 47
+        }
+       }
+      ],
+      "plan_hash": "fcfe63ae54dcf180ad5c8cbd8a33da8bb55afd7874138338b5e6312cc651f518",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "ticket_id": 123,
+      "status_label": "Pending",
+      "plan_hash": "fcfe63ae54dcf180ad5c8cbd8a33da8bb55afd7874138338b5e6312cc651f518",
+      "verified": true
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting for self\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "custom_fields": {
+       "reason": "Waiting for self"
+      },
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 47
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 47,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<p>Earlier fix</p>"
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "Waiting for self",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started",
+    "done"
+   ]
+  },
+  "required_closure_Resolved": {
+   "custom": {
+    "summary": ""
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Resolved",
+     "note": "fix"
+    },
+    {
+     "op": "row",
+     "set": {
+      "custom_fields": {
+       "summary": "fix",
+       "reason": "",
+       "untouched": "keep"
+      }
+     }
+    },
+    {
+     "op": "build",
+     "status": "Resolved"
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "required fields: Resolution Summary (summary); supply --set FIELD=VALUE"
+     },
+     "writes": 0
+    },
+    {
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "a persisted resolution note is required; use tickets resolve ID --note TEXT first"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "required_closure_Closed": {
+   "custom": {
+    "summary": ""
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Closed",
+     "note": null
+    },
+    {
+     "op": "row",
+     "set": {
+      "custom_fields": {
+       "summary": "fix",
+       "reason": "",
+       "untouched": "keep"
+      }
+     }
+    },
+    {
+     "op": "build",
+     "status": "Closed"
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "required fields: Resolution Summary (summary); supply --set FIELD=VALUE"
+     },
+     "writes": 0
+    },
+    {
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "a persisted resolution note is required; use tickets resolve ID --note TEXT first"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "missing_resolution_0": {
+   "row": {
+    "resolution_notes": null
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Closed"
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "a persisted resolution note is required; use tickets resolve ID --note TEXT first"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "missing_resolution_1": {
+   "row": {
+    "resolution_notes": {
+     "notes_html": null
+    }
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Closed"
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "a persisted resolution note is required; use tickets resolve ID --note TEXT first"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": null
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "missing_resolution_2": {
+   "row": {
+    "resolution_notes": {
+     "unexpected": "fix"
+    }
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Closed"
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "a persisted resolution note is required; use tickets resolve ID --note TEXT first"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "unexpected": "fix"
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "missing_resolution_3": {
+   "row": {
+    "resolution_notes": ""
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Closed"
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "a persisted resolution note is required; use tickets resolve ID --note TEXT first"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": "",
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "resolution_alias_html": {
+   "row": {
+    "resolution_notes_html": "<p>alias</p>"
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Closed"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Closed",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 89}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"763272c2473365fb604b52c1b6509ca0b02ca7f68d9c27d78d8e2256111d90c6\"}",
+      "note_html": null
+     },
+     "hash": "18cc842d9251d5c16374b328a19fd88e35fb9dd2158032c5b49a080697d289f4",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Closed",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 89
+        }
+       }
+      ],
+      "plan_hash": "18cc842d9251d5c16374b328a19fd88e35fb9dd2158032c5b49a080697d289f4",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "ticket_id": 123,
+      "status_label": "Closed",
+      "plan_hash": "18cc842d9251d5c16374b328a19fd88e35fb9dd2158032c5b49a080697d289f4",
+      "verified": true
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 89}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 89
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 89,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    },
+    "resolution_notes_html": "<p>alias</p>"
+   },
+   "events": [
+    "started",
+    "done"
+   ]
+  },
+  "partial_bad_note": {
+   "flags": {
+    "bad_note": true
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Resolved",
+     "note": "fix"
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Resolved",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": "<div>fix</div>"
+     },
+     "hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Resolved",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "resolution_notes": "<div>fix</div>",
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+        }
+       },
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 62
+        }
+       }
+      ],
+      "plan_hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+     },
+     "writes": 1
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition was sent or outcome unknown; inspect ticket and journal before retry"
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"resolution_notes\": \"<div>fix</div>\"}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "resolution_notes": "<div>fix</div>"
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "wrong",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started"
+   ]
+  },
+  "partial_change_after_note": {
+   "flags": {
+    "change_after_note": true
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Resolved",
+     "note": "fix"
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Resolved",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": "<div>fix</div>"
+     },
+     "hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Resolved",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "resolution_notes": "<div>fix</div>",
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+        }
+       },
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 62
+        }
+       }
+      ],
+      "plan_hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+     },
+     "writes": 1
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition was sent or outcome unknown; inspect ticket and journal before retry"
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"resolution_notes\": \"<div>fix</div>\"}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "resolution_notes": "<div>fix</div>"
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": 9000005678,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>fix</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started"
+   ]
+  },
+  "partial_bad_status": {
+   "flags": {
+    "bad_status": true
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Resolved",
+     "note": "fix"
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Resolved",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": "<div>fix</div>"
+     },
+     "hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Resolved",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "resolution_notes": "<div>fix</div>",
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+        }
+       },
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 62
+        }
+       }
+      ],
+      "plan_hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition readback mismatch; outcome unknown; do not resend"
+     },
+     "writes": 2
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition was sent or outcome unknown; inspect ticket and journal before retry"
+     },
+     "writes": 2
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"resolution_notes\": \"<div>fix</div>\"}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "resolution_notes": "<div>fix</div>"
+     }
+    },
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 62
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>fix</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started"
+   ]
+  },
+  "partial_fail_first": {
+   "flags": {
+    "fail_at": 1
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Resolved",
+     "note": "fix"
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Resolved",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": "<div>fix</div>"
+     },
+     "hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Resolved",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "resolution_notes": "<div>fix</div>",
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+        }
+       },
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 62
+        }
+       }
+      ],
+      "plan_hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+     },
+     "writes": 1
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition was sent or outcome unknown; inspect ticket and journal before retry"
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"resolution_notes\": \"<div>fix</div>\"}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "resolution_notes": "<div>fix</div>"
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started"
+   ]
+  },
+  "partial_fail_second": {
+   "flags": {
+    "fail_at": 2
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Resolved",
+     "note": "fix"
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Resolved",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": "<div>fix</div>"
+     },
+     "hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Resolved",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "resolution_notes": "<div>fix</div>",
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+        }
+       },
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 62
+        }
+       }
+      ],
+      "plan_hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+     },
+     "writes": 2
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition was sent or outcome unknown; inspect ticket and journal before retry"
+     },
+     "writes": 2
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"resolution_notes\": \"<div>fix</div>\"}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "resolution_notes": "<div>fix</div>"
+     }
+    },
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 62
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>fix</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started"
+   ]
+  },
+  "stale_and_consent": {
+   "ops": [
+    {
+     "op": "build",
+     "status": "Open"
+    },
+    {
+     "op": "send",
+     "hash": "none"
+    },
+    {
+     "op": "send",
+     "hash": "prefix"
+    },
+    {
+     "op": "row",
+     "set": {
+      "subject": "changed"
+     }
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "row",
+     "pop": [
+      "subject"
+     ]
+    },
+    {
+     "op": "meta",
+     "variant": "label_changed"
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "meta",
+     "variant": "base"
+    },
+    {
+     "op": "deaf"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Open",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": null
+     },
+     "hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Open",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 31
+        }
+       }
+      ],
+      "plan_hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "cancelled",
+      "verified": false
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "tenant or full review hash changed; review again"
+     },
+     "writes": 0
+    },
+    {
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "ticket or metadata changed; review again"
+     },
+     "writes": 0
+    },
+    {
+     "writes": 0
+    },
+    {
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "ticket or metadata changed; review again"
+     },
+     "writes": 0
+    },
+    {
+     "writes": 0
+    },
+    {
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "could not persist ambiguity journal; no write attempted"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "transport_403": {
+   "flags": {
+    "put_error": 403
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Open"
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Open",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": null
+     },
+     "hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Open",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 31
+        }
+       }
+      ],
+      "plan_hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+     },
+     "writes": 1
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition was sent or outcome unknown; inspect ticket and journal before retry"
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 31
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started"
+   ]
+  },
+  "transport_429": {
+   "flags": {
+    "put_error": 429
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Open"
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Open",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": null
+     },
+     "hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Open",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 31
+        }
+       }
+      ],
+      "plan_hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+     },
+     "writes": 1
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition was sent or outcome unknown; inspect ticket and journal before retry"
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 31
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started"
+   ]
+  },
+  "transport_500": {
+   "flags": {
+    "put_error": 500
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Open"
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Open",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": null
+     },
+     "hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Open",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 31
+        }
+       }
+      ],
+      "plan_hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+     },
+     "writes": 1
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition was sent or outcome unknown; inspect ticket and journal before retry"
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 31
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started"
+   ]
+  },
+  "transport_disconnect": {
+   "flags": {
+    "put_error": "disconnect"
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Open"
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Open",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": null
+     },
+     "hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Open",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 31
+        }
+       }
+      ],
+      "plan_hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+     },
+     "writes": 1
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition was sent or outcome unknown; inspect ticket and journal before retry"
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 31
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started"
+   ]
+  },
+  "pending_reason_rule": {
+   "meta": "pending_rule",
+   "ops": [
+    {
+     "op": "build",
+     "status": "Pending"
+    },
+    {
+     "op": "build",
+     "status": "Pending",
+     "answers": {
+      "reason": "Waiting"
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "required fields: Pending Reason (reason); supply --set FIELD=VALUE"
+     },
+     "writes": 0
+    },
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Pending",
+      "answers_json": "{\"reason\": \"Waiting\"}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
+      "context_hash": "{\"metadata\": \"85b128bf8ef1ae5642c983ba0fb3e2145d568052dc66a80fd81a0c37f1e2b45c\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": null
+     },
+     "hash": "9c67100e80b49562bde769a41deeb94720fab9c691c430ceaeb0ea03d35707cf",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Pending",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "custom_fields": {
+          "reason": "Waiting"
+         },
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 47
+        }
+       }
+      ],
+      "plan_hash": "9c67100e80b49562bde769a41deeb94720fab9c691c430ceaeb0ea03d35707cf",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "hidden_closure_requirement": {
+   "meta": "pending_hide",
+   "custom": {
+    "summary": null
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Resolved",
+     "note": "fix"
+    },
+    {
+     "op": "build",
+     "status": "Resolved",
+     "note": "fix",
+     "answers": {
+      "summary": "x"
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Resolved",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcInN1bW1hcnlfOTAwMDAwNzc3XCJdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
+      "context_hash": "{\"metadata\": \"99c11d14895dfd45eea931c8c5f2ccf879bf220b05b063ee615adbbb7e6096b9\", \"record\": \"08f46d260e84c5a2a17f5d95ddaf19cd014fa82ebe5105e189481e6e8bab49d6\"}",
+      "note_html": "<div>fix</div>"
+     },
+     "hash": "cf2e3ef38ffd4f96377cd5bdd7eec9b57861928b19ca957ce0ba95c39a00ccf8",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Resolved",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "resolution_notes": "<div>fix</div>",
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcInN1bW1hcnlfOTAwMDAwNzc3XCJdIn0="
+        }
+       },
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcInN1bW1hcnlfOTAwMDAwNzc3XCJdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 62
+        }
+       }
+      ],
+      "plan_hash": "cf2e3ef38ffd4f96377cd5bdd7eec9b57861928b19ca957ce0ba95c39a00ccf8",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "Resolution Summary: answered field is hidden"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": null,
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "closure_required_extra_field_and_unavailable": {
+   "meta": "unknown_required",
+   "ops": [
+    {
+     "op": "build",
+     "status": "Resolved",
+     "note": "fix"
+    },
+    {
+     "op": "meta",
+     "variant": "rules_unavailable"
+    },
+    {
+     "op": "build",
+     "status": "Open"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Resolved",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
+      "context_hash": "{\"metadata\": \"3ca4d2c2783f50d0309d37747d7299acc782c688be8fbee5dddf09fb06b9e94e\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": "<div>fix</div>"
+     },
+     "hash": "7f586de47f5d3b05009da003d0e258d053723c5cf4ac3d942070cd0eae633ec6",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Resolved",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "resolution_notes": "<div>fix</div>",
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+        }
+       },
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 62
+        }
+       }
+      ],
+      "plan_hash": "7f586de47f5d3b05009da003d0e258d053723c5cf4ac3d942070cd0eae633ec6",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "ticket rules unavailable; no write attempted"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "argument_errors": {
+   "ops": [
+    {
+     "op": "build",
+     "target": "0",
+     "status": "Open"
+    },
+    {
+     "op": "build",
+     "status": "Closed",
+     "note": "fix"
+    },
+    {
+     "op": "build",
+     "status": "Bogus"
+    },
+    {
+     "op": "build",
+     "status": "open"
+    },
+    {
+     "op": "build",
+     "status": "Open",
+     "answers": {
+      "status": "Closed"
+     }
+    },
+    {
+     "op": "build",
+     "status": "Open",
+     "answers": {
+      "reason": "a",
+      "Pending Reason": "b"
+     }
+    },
+    {
+     "op": "build",
+     "status": "Open",
+     "answers": {
+      "nonexistent": "x"
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "ticket ID must be positive"
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "--note is supported by resolve only"
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "status must identify one visible runtime status label"
+     },
+     "writes": 0
+    },
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Open",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": null
+     },
+     "hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Open",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 31
+        }
+       }
+      ],
+      "plan_hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "Status: --set requires unique writable custom fields"
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "Pending Reason: --set requires unique writable custom fields"
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "UnknownFieldError",
+      "msg": "unknown field: 'nonexistent'"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  },
+  "routing_unavailable": {
+   "ops": [
+    {
+     "op": "row",
+     "pop": [
+      "group_id"
+     ]
+    },
+    {
+     "op": "build",
+     "status": "Open"
+    }
+   ],
+   "outputs": [
+    {
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "ticket routing field unavailable: group_id"
+     },
+     "writes": 0
+    }
+   ],
+   "puts": [],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   },
+   "events": []
+  }
+ },
+ "matches": [
+  {
+   "row": {
+    "status": 31,
+    "group_id": null
+   },
+   "payload": {
+    "status": 31,
+    "group_id": null,
+    "br_validation_excludes": "x"
+   },
+   "expected": true
+  },
+  {
+   "row": {
+    "status": true
+   },
+   "payload": {
+    "status": 1
+   },
+   "expected": false
+  },
+  {
+   "row": {
+    "status": 1.0
+   },
+   "payload": {
+    "status": 1
+   },
+   "expected": true
+  },
+  {
+   "row": {},
+   "payload": {
+    "status": 1
+   },
+   "expected": false
+  },
+  {
+   "row": {
+    "custom_fields": {
+     "a": "1",
+     "b": 2
+    }
+   },
+   "payload": {
+    "custom_fields": {
+     "a": 1
+    }
+   },
+   "expected": true
+  },
+  {
+   "row": {
+    "custom_fields": null
+   },
+   "payload": {
+    "custom_fields": {
+     "a": 1
+    }
+   },
+   "expected": false
+  }
+ ],
+ "resolution_text": [
+  {
+   "record": {
+    "resolution_notes": {
+     "notes_html": "<p>Acme fix</p>",
+     "user": {
+      "name": "Operator"
+     }
+    }
+   },
+   "expected": "<p>Acme fix</p>"
+  },
+  {
+   "record": {
+    "resolution_notes": "Globex fix"
+   },
+   "expected": "Globex fix"
+  },
+  {
+   "record": {
+    "resolution_notes": {
+     "unexpected": "not note text"
+    }
+   },
+   "expected": null
+  },
+  {
+   "record": {
+    "resolution_notes": null,
+    "resolution_notes_html": "<p>alias</p>"
+   },
+   "expected": "<p>alias</p>"
+  },
+  {
+   "record": {
+    "resolution_notes": {
+     "notes_html": 5
+    },
+    "resolution_notes_html": "<p>alias</p>"
+   },
+   "expected": "<p>alias</p>"
+  },
+  {
+   "record": {
+    "resolution_notes_html": 7
+   },
+   "expected": null
+  },
+  {
+   "record": {},
+   "expected": null
+  }
+ ]
+}

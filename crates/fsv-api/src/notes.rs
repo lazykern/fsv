@@ -270,9 +270,20 @@ pub fn send(
                 ];
                 let mut fields = Map::new();
                 for (key, value) in expected {
-                    let state = match exact.get(key) {
+                    let actual_key = if key == "notify_emails"
+                        && exact.get(key).is_none()
+                        && exact.get("to_emails").is_some()
+                    {
+                        "to_emails"
+                    } else {
+                        key
+                    };
+                    let state = match exact.get(actual_key) {
                         None => "unavailable",
-                        Some(v) if *v == value => "matched",
+                        Some(v) if key == "body" && crate::readback::same_text(v, &value) => {
+                            "matched"
+                        }
+                        Some(v) if key != "body" && *v == value => "matched",
                         Some(_) => "mismatched",
                     };
                     fields.insert(key.into(), json!(state));
@@ -367,6 +378,54 @@ mod tests {
             .is_ok()
         );
         assert!(build_plan("CHN-5", "x", false, &[], BodyFormat::Plain, T).is_err());
+    }
+
+    /// Server-normalized readback (`gen_fsv_api_note_readback.py`).
+    #[test]
+    fn normalized_readback_matches_python() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/note_readback_oracle.json")).unwrap();
+        for (name, case) in oracle.as_object().unwrap() {
+            if name == "_python" {
+                continue;
+            }
+            let mut row = json!({"id": 99001, "body": case["row_body"], "private": true});
+            match &case["recipients"] {
+                Value::Null => {}
+                Value::String(_) => {
+                    row["notify_emails"] = json!([]);
+                    row["to_emails"] = json!(["x@example.com"]);
+                }
+                r => row["to_emails"] = r.clone(),
+            }
+            let api = FakeApi::new()
+                .ok("POST tickets/123/notes", json!({"note": {"id": 99001}}))
+                .ok(
+                    "GET tickets/123/conversations",
+                    json!({"conversations": [row], "meta": {"count": 1}}),
+                );
+            let j = MemJournal::default();
+            let p = build_plan("123", "Acme & Globex", false, &[], BodyFormat::Plain, T).unwrap();
+            assert_eq!(p.hash(), case["plan_hash"], "{name}");
+            let h = p.hash();
+            let out = send(
+                &p,
+                &api,
+                &j,
+                SendOpts {
+                    reviewed_hash: Some(&h),
+                    ..Default::default()
+                },
+                false,
+            )
+            .unwrap();
+            assert_eq!(out, case["result"], "{name}");
+            assert_eq!(
+                api.writes()[0].body,
+                Some(case["requests"][0]["body"].clone()),
+                "{name}"
+            );
+        }
     }
 
     #[test]

@@ -27,8 +27,8 @@ fn with_source(row: &Map<String, Value>, source: &str) -> Value {
 }
 
 /// `_attachment_rows(record, items, [{} ...])`: record attachments, then
-/// files in requested-item file fields tagged with the field name
-/// (deduplicated by id).
+/// each requested item's general attachments (`requested item`) and the
+/// files in its file fields tagged with the field name (deduplicated by id).
 pub fn attachment_rows(record: &Value, items: &[Value]) -> Vec<Value> {
     let mut out: Vec<Value> = Vec::new();
     let mut by_id: HashMap<String, usize> = HashMap::new();
@@ -39,6 +39,16 @@ pub fn attachment_rows(record: &Value, items: &[Value]) -> Vec<Value> {
         }
     }
     for it in items {
+        for a in objects(it.get("attachments")) {
+            let key = a.get("id").filter(|v| !v.is_null()).map(py_str);
+            if key.as_ref().is_some_and(|k| by_id.contains_key(k)) {
+                continue;
+            }
+            out.push(with_source(a, "requested item"));
+            if let Some(key) = key {
+                by_id.insert(key, out.len() - 1);
+            }
+        }
         let Some(fields) = it.get("custom_fields").and_then(Value::as_object) else {
             continue;
         };
@@ -180,6 +190,24 @@ mod tests {
             compact(&json!(attachment_rows(&record, &items))),
             r#"[{"id":1,"name":"a","source":"laptop_photo"},{"name":"noid","source":"request"},{"id":8,"name":"b","attachment_url":"u","source":"laptop_photo"},{"id":9,"name":"attachment-9","source":"proof"}]"#
         );
+    }
+
+    /// Requested-item general attachments (`gen_fsv_api_sr_attachments.py`).
+    #[test]
+    fn requested_item_general_attachments_match_python() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/sr_attachments_oracle.json")).unwrap();
+        for (name, case) in oracle.as_object().unwrap() {
+            if name == "_python" {
+                continue;
+            }
+            let items = case["items"].as_array().unwrap();
+            assert_eq!(
+                json!(attachment_rows(&case["record"], items)),
+                case["rows"],
+                "{name}"
+            );
+        }
     }
 
     #[test]

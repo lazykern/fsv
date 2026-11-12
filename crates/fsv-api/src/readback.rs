@@ -70,6 +70,22 @@ pub fn py_equal(a: &Value, b: &Value) -> bool {
     }
 }
 
+/// Port of fsv.readback.resolution_text: internal details wrap `notes_html`;
+/// v2 ticket details return plain text; `resolution_notes_html` is the alias.
+pub fn resolution_text(record: &Value) -> Option<String> {
+    let mut value = record.get("resolution_notes");
+    if let Some(Value::Object(m)) = value {
+        value = m.get("notes_html");
+    }
+    if let Some(Value::String(s)) = value {
+        return Some(s.clone());
+    }
+    match record.get("resolution_notes_html") {
+        Some(Value::String(s)) => Some(s.clone()),
+        _ => None,
+    }
+}
+
 /// Port of fsv.readback.same_text: both are text and equal after rich-text
 /// wrappers, entities and whitespace are flattened (`views.one_line`).
 pub fn same_text(actual: &Value, expected: &Value) -> bool {

@@ -1,0 +1,155 @@
+{
+ "_python": {
+  "commit": "94925f46cddbea900802f9cb5cdea0563f73d2b1",
+  "dirty": false
+ },
+ "python_test": {
+  "record": {
+   "attachments": []
+  },
+  "items": [
+   {
+    "attachments": [
+     {
+      "id": 9901,
+      "name": "overview.txt",
+      "size": 11,
+      "attachment_url": "https://example.com/file"
+     },
+     {
+      "id": 9902,
+      "name": "field.txt",
+      "size": 12
+     }
+    ],
+    "custom_fields": {
+     "brief": [
+      {
+       "id": 9902,
+       "name": "field.txt",
+       "size": 12
+      }
+     ]
+    }
+   }
+  ],
+  "rows": [
+   {
+    "id": 9901,
+    "name": "overview.txt",
+    "size": 11,
+    "attachment_url": "https://example.com/file",
+    "source": "requested item"
+   },
+   {
+    "id": 9902,
+    "name": "field.txt",
+    "size": 12,
+    "source": "brief"
+   }
+  ]
+ },
+ "dedupe": {
+  "record": {
+   "attachments": [
+    {
+     "id": 1,
+     "name": "a"
+    }
+   ]
+  },
+  "items": [
+   {
+    "attachments": [
+     {
+      "id": 1,
+      "name": "dup"
+     },
+     {
+      "name": "noid"
+     },
+     "junk",
+     {
+      "id": 2,
+      "name": "b"
+     }
+    ],
+    "custom_fields": {
+     "f": [
+      {
+       "id": 2,
+       "name": "b2"
+      },
+      7
+     ]
+    }
+   },
+   {
+    "attachments": [
+     {
+      "id": 2,
+      "name": "again"
+     },
+     {
+      "id": null,
+      "name": "nullid"
+     }
+    ]
+   }
+  ],
+  "rows": [
+   {
+    "id": 1,
+    "name": "a",
+    "source": "request"
+   },
+   {
+    "name": "noid",
+    "source": "requested item"
+   },
+   {
+    "id": 2,
+    "name": "b",
+    "source": "f"
+   },
+   {
+    "id": 7,
+    "name": "attachment-7",
+    "source": "f"
+   },
+   {
+    "id": null,
+    "name": "nullid",
+    "source": "requested item"
+   }
+  ]
+ },
+ "no_general": {
+  "record": {
+   "attachments": [
+    {
+     "id": 5,
+     "name": "r"
+    }
+   ]
+  },
+  "items": [
+   {
+    "custom_fields": {
+     "f": [
+      {
+       "id": 5
+      }
+     ]
+    }
+   }
+  ],
+  "rows": [
+   {
+    "id": 5,
+    "name": "r",
+    "source": "request"
+   }
+  ]
+ }
+}

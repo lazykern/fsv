@@ -1423,3 +1423,128 @@ credits a `#[path]` test file to the file that declares it. Without that,
 name with three fns.
 
 CLI side of `e638d85` and `3432bea` landed in `c94f2f5`: `planning-text --description` optional, `--clear`, `build_plan_for`; 19 new planning goldens and 7 clone failure tests, all identical to Python `3432bea` (`emit_upstream.py`). `2956fce`'s completion matrix is replayed in `crates/fsv-completion/src/dynamic/matrix.rs`.
+
+## Ledger: `2956fce..94925f4` (library side)
+
+Triaged against Python `94925f4` (7 commits). Each commit was exported with
+`git archive` at its own SHA; the fixtures are regenerated from the
+`94925f4` export (`/tmp/fsv-regen.sh`, `FSV_PY_COMMIT=94925f4…`). Apart
+from the new oracles, every fixture changed only in its stamp. This section
+covers every crate except fsv-cli and fsv-completion. The CLI parts are
+listed per commit for the fsv-cli owner.
+
+Counts: **7 ported (library), 0 partial, 0 missing.** CLI handoff is open for
+`9ab0eaa`, `41783e2`, `f402e61`, `cc41912` and `fdbb3e9`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `9ab0eaa` | 11-12 09:15 | Add reviewed ticket resolution closure and reopen workflows | ported | fsv-api `ticket_lifecycle`, `readback::resolution_text`; fsv-views `detail` |
+| `41783e2` | 11-12 09:25 | Support reviewed replies and notes with resolved or closed status | ported | fsv-api `conversations` |
+| `f402e61` | 11-12 10:04 | feat: add reviewed irreversible ticket merge | ported | fsv-api `ticket_merge` |
+| `cc41912` | 11-12 10:11 | feat: add reviewed ticket assignment and pickup | ported | fsv-api `ticket_assignment`, `properties` |
+| `25bf9d7` | 11-12 10:22 | fix: include requested item attachments in SR reads | ported | fsv-api `downloads`; fsv-cli `sr.rs` in `1cbf7cc` |
+| `fdbb3e9` | 11-12 10:26 | fix: distinguish note identity and normalized readback | ported | fsv-api `notes` |
+| `94925f4` | 11-12 10:30 | fix: exclude server managed risk status from clones | ported | fsv-api `create` |
+
+No fsv-app or fsv-tui wiring is needed. At these commits, the Python TUI uses
+only `cli_sr._attachment_rows`, which reaches it through
+`fsv_api::downloads::attachment_rows`.
+
+### `9ab0eaa` resolution, closure and reopen — ported (library)
+
+- `fsv_api::ticket_lifecycle` is new. `context` and `build_plan` are covered,
+  along with `LifecyclePlan` (`payload`/`answers`/`hash`/`review`) and
+  `matches`. `send` makes one PUT of the sorted payload, then verifies the
+  read-back. Any failure inside the attempt becomes the UNKNOWN refusal,
+  with no resend.
+- `readback::resolution_text` is new, and fsv-views `detail::resolution`
+  uses it.
+- Generator: `gen_fsv_api_ticket_lifecycle.py` →
+  `ticket_lifecycle_oracle.json` (27 cases, `matches`, `resolution_text`).
+- Python's "unknown required field" branch can't be reached through the real
+  `load_meta`, because every raw field parses into the spec. The case
+  `closure_required_extra_field_and_unavailable` pins what Python actually
+  does.
+
+### `41783e2` replies and notes with resolved or closed status — ported (library)
+
+- `conversations::status_fields` is new. For Resolved and Closed it goes
+  through `ticket_lifecycle::context`; any other status uses the old status
+  context.
+  - It passes no resolver. Python passes `ClientResolver`, but no answers are
+    involved.
+- `build_plan_mail` and `send` now use `status_fields`.
+- A closing note records the journal "done" entry only after a verified
+  read-back.
+- The recipient key is `to_emails` for closing notes.
+- The ticket status check needs an int status and Python equality.
+- Generator: `gen_fsv_api_closure_conversation.py` →
+  `closure_conversation_oracle.json` (20 cases, in
+  `conversations/closure_tests.rs`).
+
+### `f402e61` irreversible ticket merge — ported (library)
+
+- `fsv_api::ticket_merge` is new: `build_plan`, `review`, `send` (through
+  `reviewed_write::execute`), and the `ticket_id`/`history`/`closed`
+  helpers.
+- Duplicate conversation IDs are deduplicated by
+  `service::load_conversations`, as in Python.
+- Generator: `gen_fsv_api_ticket_merge.py` → `ticket_merge_oracle.json`
+  (16 cases, plus a direct `closed`/`history` check).
+
+### `cc41912` assignment and pickup — ported (library)
+
+- `fsv_api::ticket_assignment` is new: `AssignmentArgs`, `AssignmentPlan`,
+  `build_plan` and `send`.
+- In `properties::evaluate`, a null agent or group lookup now encodes as JSON
+  `null` (unassign).
+- Generator: `gen_fsv_api_ticket_assignment.py` →
+  `ticket_assignment_oracle.json`. It has 16 cases, and a `helpers` section
+  for `_positive`, `_resolve` and `_member`.
+
+### `25bf9d7` requested-item attachments — ported
+
+- `downloads::attachment_rows` now appends requested-item general
+  attachments with source "requested item", deduplicated by id.
+- Generator: `gen_fsv_api_sr_attachments.py` → `sr_attachments_oracle.json`.
+- The fsv-cli side (`cmd/sr.rs`, which has its own `attachment_rows`)
+  landed in `1cbf7cc`.
+
+### `fdbb3e9` note identity and normalized read-back — ported (library)
+
+- `notes::send` read-back now matches `notify_emails` against `to_emails`
+  when only the latter comes back.
+- The body is compared with `readback::same_text`; every other key is
+  compared exactly.
+- Generator: `gen_fsv_api_note_readback.py` → `note_readback_oracle.json`
+  (6 cases).
+
+### `94925f4` server-managed risk status — ported
+
+- `create::READ_ONLY_FIELDS` gains `attached_risk_survey_response_status`.
+- `o_create.py` `CHANGE` carries the field, and `create_oracle.json` shows it
+  stripped.
+
+### CLI handoff (fsv-cli owner)
+
+- `ticket_lifecycle_cli.py`: `tickets resolve|close|reopen|status` with
+  `--note`, `--set`, `--dry-run`, `--yes`, `--expect-plan` → `ticket_lifecycle`.
+- `ticket_merge_cli.py`: `tickets merge` with `--note-primary`,
+  `--note-secondary`, the private flags and `--json` → `ticket_merge`.
+- `ticket_assignment_cli.py`: `tickets assign` with `--agent`, `--group`,
+  `--unassign`, and pickup → `ticket_assignment`.
+- The `cli.py` registrations for the three command groups.
+- `ticket_notes` `--set-status` help: "add and set status (Pending, Resolved
+  or Closed; runtime requirements apply)".
+- The `fdbb3e9` add-note message: "Note {id} submitted on ticket {t};
+  exact-ID read-back: {identity_verified}; all fields verified: {verified}".
+- The test `write_cmds.rs::reply_set_status_not_pending` is stale against
+  `41783e2`. `--set-status Resolved` now reads `tickets/5` for the lifecycle
+  context; the fixture has no route for it, so the test exits 1 with "HTTP 404
+  fetching ticket".
+
+`port/fsv_coverage.py` now maps `ticket_lifecycle`, `ticket_merge` and
+`ticket_assignment` to fsv-api.
+
+Next batch: `9910ddc`, `b48889a` (the CLI side is in `b09db91`), `17ada1b`,
+`c46d3b0`, `5d7d777`.

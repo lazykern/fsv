@@ -1,0 +1,292 @@
+{
+ "_python": {
+  "commit": "94925f46cddbea900802f9cb5cdea0563f73d2b1",
+  "dirty": false
+ },
+ "normalized_body_empty_to_emails": {
+  "row_body": "<div class=\"server\"><div>Acme &amp; Globex</div></div>",
+  "recipients": [],
+  "plan_hash": "eb1a00285b553b70d592ae0935fd28fd74175af33b0c48d6b5cfbac751848cdc",
+  "requests": [
+   {
+    "method": "POST",
+    "path": "/api/_/tickets/123/notes",
+    "body": {
+     "body": "<div>Acme &amp; Globex</div>",
+     "conversation_from_summary": false,
+     "private": true,
+     "notify_emails": []
+    }
+   },
+   {
+    "method": "GET",
+    "path": "/api/_/tickets/123/conversations",
+    "body": null
+   }
+  ],
+  "result": {
+   "status": "submitted",
+   "ticket_id": 123,
+   "note_id": 99001,
+   "note": {
+    "id": 99001
+   },
+   "plan_hash": "eb1a00285b553b70d592ae0935fd28fd74175af33b0c48d6b5cfbac751848cdc",
+   "verified": true,
+   "readback": {
+    "id": 99001,
+    "body": "<div class=\"server\"><div>Acme &amp; Globex</div></div>",
+    "private": true,
+    "to_emails": []
+   },
+   "identity_verified": true,
+   "fields_verified": true,
+   "readback_complete": true,
+   "fields": {
+    "body": "matched",
+    "private": "matched",
+    "notify_emails": "matched"
+   }
+  }
+ },
+ "wrong_body": {
+  "row_body": "<div>Acme &amp; Wrong</div>",
+  "recipients": [],
+  "plan_hash": "eb1a00285b553b70d592ae0935fd28fd74175af33b0c48d6b5cfbac751848cdc",
+  "requests": [
+   {
+    "method": "POST",
+    "path": "/api/_/tickets/123/notes",
+    "body": {
+     "body": "<div>Acme &amp; Globex</div>",
+     "conversation_from_summary": false,
+     "private": true,
+     "notify_emails": []
+    }
+   },
+   {
+    "method": "GET",
+    "path": "/api/_/tickets/123/conversations",
+    "body": null
+   }
+  ],
+  "result": {
+   "status": "submitted",
+   "ticket_id": 123,
+   "note_id": 99001,
+   "note": {
+    "id": 99001
+   },
+   "plan_hash": "eb1a00285b553b70d592ae0935fd28fd74175af33b0c48d6b5cfbac751848cdc",
+   "verified": false,
+   "readback": {
+    "id": 99001,
+    "body": "<div>Acme &amp; Wrong</div>",
+    "private": true,
+    "to_emails": []
+   },
+   "identity_verified": true,
+   "fields_verified": false,
+   "readback_complete": true,
+   "fields": {
+    "body": "mismatched",
+    "private": "matched",
+    "notify_emails": "matched"
+   },
+   "warning": "Read-back did not fully verify the note fields and history; do not resend."
+  }
+ },
+ "no_recipients": {
+  "row_body": "<div>Acme &amp; Globex</div>",
+  "recipients": null,
+  "plan_hash": "eb1a00285b553b70d592ae0935fd28fd74175af33b0c48d6b5cfbac751848cdc",
+  "requests": [
+   {
+    "method": "POST",
+    "path": "/api/_/tickets/123/notes",
+    "body": {
+     "body": "<div>Acme &amp; Globex</div>",
+     "conversation_from_summary": false,
+     "private": true,
+     "notify_emails": []
+    }
+   },
+   {
+    "method": "GET",
+    "path": "/api/_/tickets/123/conversations",
+    "body": null
+   }
+  ],
+  "result": {
+   "status": "submitted",
+   "ticket_id": 123,
+   "note_id": 99001,
+   "note": {
+    "id": 99001
+   },
+   "plan_hash": "eb1a00285b553b70d592ae0935fd28fd74175af33b0c48d6b5cfbac751848cdc",
+   "verified": false,
+   "readback": {
+    "id": 99001,
+    "body": "<div>Acme &amp; Globex</div>",
+    "private": true
+   },
+   "identity_verified": true,
+   "fields_verified": false,
+   "readback_complete": true,
+   "fields": {
+    "body": "matched",
+    "private": "matched",
+    "notify_emails": "unavailable"
+   },
+   "warning": "Read-back did not fully verify the note fields and history; do not resend."
+  }
+ },
+ "to_emails_mismatch": {
+  "row_body": "<div>Acme &amp; Globex</div>",
+  "recipients": [
+   "x@example.com"
+  ],
+  "plan_hash": "eb1a00285b553b70d592ae0935fd28fd74175af33b0c48d6b5cfbac751848cdc",
+  "requests": [
+   {
+    "method": "POST",
+    "path": "/api/_/tickets/123/notes",
+    "body": {
+     "body": "<div>Acme &amp; Globex</div>",
+     "conversation_from_summary": false,
+     "private": true,
+     "notify_emails": []
+    }
+   },
+   {
+    "method": "GET",
+    "path": "/api/_/tickets/123/conversations",
+    "body": null
+   }
+  ],
+  "result": {
+   "status": "submitted",
+   "ticket_id": 123,
+   "note_id": 99001,
+   "note": {
+    "id": 99001
+   },
+   "plan_hash": "eb1a00285b553b70d592ae0935fd28fd74175af33b0c48d6b5cfbac751848cdc",
+   "verified": false,
+   "readback": {
+    "id": 99001,
+    "body": "<div>Acme &amp; Globex</div>",
+    "private": true,
+    "to_emails": [
+     "x@example.com"
+    ]
+   },
+   "identity_verified": true,
+   "fields_verified": false,
+   "readback_complete": true,
+   "fields": {
+    "body": "matched",
+    "private": "matched",
+    "notify_emails": "mismatched"
+   },
+   "warning": "Read-back did not fully verify the note fields and history; do not resend."
+  }
+ },
+ "notify_emails_preferred": {
+  "row_body": "<div>Acme &amp; Globex</div>",
+  "recipients": "both",
+  "plan_hash": "eb1a00285b553b70d592ae0935fd28fd74175af33b0c48d6b5cfbac751848cdc",
+  "requests": [
+   {
+    "method": "POST",
+    "path": "/api/_/tickets/123/notes",
+    "body": {
+     "body": "<div>Acme &amp; Globex</div>",
+     "conversation_from_summary": false,
+     "private": true,
+     "notify_emails": []
+    }
+   },
+   {
+    "method": "GET",
+    "path": "/api/_/tickets/123/conversations",
+    "body": null
+   }
+  ],
+  "result": {
+   "status": "submitted",
+   "ticket_id": 123,
+   "note_id": 99001,
+   "note": {
+    "id": 99001
+   },
+   "plan_hash": "eb1a00285b553b70d592ae0935fd28fd74175af33b0c48d6b5cfbac751848cdc",
+   "verified": true,
+   "readback": {
+    "id": 99001,
+    "body": "<div>Acme &amp; Globex</div>",
+    "private": true,
+    "notify_emails": [],
+    "to_emails": [
+     "x@example.com"
+    ]
+   },
+   "identity_verified": true,
+   "fields_verified": true,
+   "readback_complete": true,
+   "fields": {
+    "body": "matched",
+    "private": "matched",
+    "notify_emails": "matched"
+   }
+  }
+ },
+ "body_not_string": {
+  "row_body": null,
+  "recipients": [],
+  "plan_hash": "eb1a00285b553b70d592ae0935fd28fd74175af33b0c48d6b5cfbac751848cdc",
+  "requests": [
+   {
+    "method": "POST",
+    "path": "/api/_/tickets/123/notes",
+    "body": {
+     "body": "<div>Acme &amp; Globex</div>",
+     "conversation_from_summary": false,
+     "private": true,
+     "notify_emails": []
+    }
+   },
+   {
+    "method": "GET",
+    "path": "/api/_/tickets/123/conversations",
+    "body": null
+   }
+  ],
+  "result": {
+   "status": "submitted",
+   "ticket_id": 123,
+   "note_id": 99001,
+   "note": {
+    "id": 99001
+   },
+   "plan_hash": "eb1a00285b553b70d592ae0935fd28fd74175af33b0c48d6b5cfbac751848cdc",
+   "verified": false,
+   "readback": {
+    "id": 99001,
+    "body": null,
+    "private": true,
+    "to_emails": []
+   },
+   "identity_verified": true,
+   "fields_verified": false,
+   "readback_complete": true,
+   "fields": {
+    "body": "mismatched",
+    "private": "matched",
+    "notify_emails": "matched"
+   },
+   "warning": "Read-back did not fully verify the note fields and history; do not resend."
+  }
+ }
+}

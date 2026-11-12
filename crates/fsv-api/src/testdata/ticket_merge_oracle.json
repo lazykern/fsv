@@ -1,0 +1,1363 @@
+{
+ "_python": {
+  "commit": "94925f46cddbea900802f9cb5cdea0563f73d2b1",
+  "dirty": false
+ },
+ "exact_wire": {
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_merge",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "merge_tickets/complete_merge",
+     "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
+     "context_hash": "{\"closed\": {\"124\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"], \"125\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 31, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 31, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 31, \"subject\": \"Acme 125\"}}}"
+    },
+    "hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+    "review": {
+     "action": "ticket_merge",
+     "method": "POST",
+     "path": "/api/_/merge_tickets/complete_merge",
+     "payload": {
+      "source": {
+       "is_private": true,
+       "note": "Secondary note",
+       "ticket_ids": [
+        124,
+        125
+       ]
+      },
+      "target": {
+       "is_private": true,
+       "note": "Primary note",
+       "ticket_id": 123
+      }
+     },
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+     "surviving_ticket": 123,
+     "merged_tickets": [
+      124,
+      125
+     ]
+    },
+    "posts": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "verified": true,
+     "surviving_ticket": 123,
+     "primary_status_unchanged": true,
+     "primary_note": true,
+     "secondaries": {
+      "124": {
+       "closed": true,
+       "conversations_moved": true,
+       "source_note": true
+      },
+      "125": {
+       "closed": true,
+       "conversations_moved": true,
+       "source_note": true
+      }
+     }
+    },
+    "posts": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "posts": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "merge_tickets/complete_merge",
+    "raw": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}"
+   }
+  ]
+ },
+ "globex_public_notes": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "secondaries": [
+     "124"
+    ],
+    "np": "Primary note",
+    "ns": "Secondary note",
+    "pp": false,
+    "ps": false
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_merge",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "POST",
+     "path": "merge_tickets/complete_merge",
+     "payload_json": "{\"source\": {\"is_private\": false, \"note\": \"Secondary note\", \"ticket_ids\": [124]}, \"target\": {\"is_private\": false, \"note\": \"Primary note\", \"ticket_id\": 123}}",
+     "context_hash": "{\"closed\": {\"124\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 31, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 31, \"subject\": \"Acme 124\"}}}"
+    },
+    "hash": "c65580ba293b5a977bd9b83c6b97a3209dd558b69009aec57f7876a43d411ddd",
+    "review": {
+     "action": "ticket_merge",
+     "method": "POST",
+     "path": "/api/_/merge_tickets/complete_merge",
+     "payload": {
+      "source": {
+       "is_private": false,
+       "note": "Secondary note",
+       "ticket_ids": [
+        124
+       ]
+      },
+      "target": {
+       "is_private": false,
+       "note": "Primary note",
+       "ticket_id": 123
+      }
+     },
+     "plan_hash": "c65580ba293b5a977bd9b83c6b97a3209dd558b69009aec57f7876a43d411ddd",
+     "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+     "surviving_ticket": 123,
+     "merged_tickets": [
+      124
+     ]
+    },
+    "posts": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "c65580ba293b5a977bd9b83c6b97a3209dd558b69009aec57f7876a43d411ddd",
+     "verified": true,
+     "surviving_ticket": 123,
+     "primary_status_unchanged": true,
+     "primary_note": true,
+     "secondaries": {
+      "124": {
+       "closed": true,
+       "conversations_moved": true,
+       "source_note": true
+      }
+     }
+    },
+    "posts": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "merge_tickets/complete_merge",
+    "raw": "{\"source\": {\"is_private\": false, \"note\": \"Secondary note\", \"ticket_ids\": [124]}, \"target\": {\"is_private\": false, \"note\": \"Primary note\", \"ticket_id\": 123}}"
+   }
+  ]
+ },
+ "stale_and_invalid": {
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "send",
+    "hash": "prefix"
+   },
+   {
+    "op": "set",
+    "subject": {
+     "124": "changed"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "build",
+    "primary": "123",
+    "secondaries": [
+     "123"
+    ]
+   },
+   {
+    "op": "build",
+    "primary": "123",
+    "secondaries": [
+     "124"
+    ],
+    "np": ""
+   },
+   {
+    "op": "build",
+    "secondaries": []
+   },
+   {
+    "op": "build",
+    "secondaries": [
+     "124",
+     "INC-124"
+    ]
+   },
+   {
+    "op": "build",
+    "primary": "0"
+   },
+   {
+    "op": "build",
+    "ns": "a\u0000b"
+   },
+   {
+    "op": "build",
+    "ns": "  "
+   },
+   {
+    "op": "send",
+    "hash": "none"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_merge",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "merge_tickets/complete_merge",
+     "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
+     "context_hash": "{\"closed\": {\"124\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"], \"125\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 31, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 31, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 31, \"subject\": \"Acme 125\"}}}"
+    },
+    "hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+    "review": {
+     "action": "ticket_merge",
+     "method": "POST",
+     "path": "/api/_/merge_tickets/complete_merge",
+     "payload": {
+      "source": {
+       "is_private": true,
+       "note": "Secondary note",
+       "ticket_ids": [
+        124,
+        125
+       ]
+      },
+      "target": {
+       "is_private": true,
+       "note": "Primary note",
+       "ticket_id": 123
+      }
+     },
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+     "surviving_ticket": 123,
+     "merged_tickets": [
+      124,
+      125
+     ]
+    },
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "tenant or full review hash changed; review again"
+    },
+    "posts": 0
+   },
+   {
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "target or metadata changed since review; review again"
+    },
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "primary and secondary tickets must be distinct"
+    },
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "both merge notes must be nonempty text"
+    },
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "at least one secondary ticket is required"
+    },
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "primary and secondary tickets must be distinct"
+    },
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "ticket ID must be positive"
+    },
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "both merge notes must be nonempty text"
+    },
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "both merge notes must be nonempty text"
+    },
+    "posts": 0
+   },
+   {
+    "result": {
+     "status": "cancelled",
+     "verified": false
+    },
+    "posts": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "incomplete_history": {
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "has_next": true
+    }
+   },
+   {
+    "op": "build"
+   }
+  ],
+  "outputs": [
+   {
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete conversation history is required; no merge attempted"
+    },
+    "posts": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "duplicate_history_ids": {
+  "ops": [
+   {
+    "op": "set",
+    "histories": {
+     "124": [
+      {
+       "id": 11
+      },
+      {
+       "id": "11"
+      }
+     ]
+    }
+   },
+   {
+    "op": "build"
+   }
+  ],
+  "outputs": [
+   {
+    "posts": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_merge",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "merge_tickets/complete_merge",
+     "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
+     "context_hash": "{\"closed\": {\"124\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"], \"125\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 31, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 31, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 31, \"subject\": \"Acme 125\"}}}"
+    },
+    "hash": "da1d70092b1d470941fd0de18ae27b15664c26caa0ec49c07b449b3bac7aa02f",
+    "review": {
+     "action": "ticket_merge",
+     "method": "POST",
+     "path": "/api/_/merge_tickets/complete_merge",
+     "payload": {
+      "source": {
+       "is_private": true,
+       "note": "Secondary note",
+       "ticket_ids": [
+        124,
+        125
+       ]
+      },
+      "target": {
+       "is_private": true,
+       "note": "Primary note",
+       "ticket_id": 123
+      }
+     },
+     "plan_hash": "da1d70092b1d470941fd0de18ae27b15664c26caa0ec49c07b449b3bac7aa02f",
+     "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+     "surviving_ticket": 123,
+     "merged_tickets": [
+      124,
+      125
+     ]
+    },
+    "posts": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "zero_history_id": {
+  "ops": [
+   {
+    "op": "set",
+    "histories": {
+     "125": [
+      {
+       "id": 0
+      }
+     ]
+    }
+   },
+   {
+    "op": "build"
+   }
+  ],
+  "outputs": [
+   {
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "conversation history lacks unique IDs; no merge attempted"
+    },
+    "posts": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "bool_history_id": {
+  "ops": [
+   {
+    "op": "set",
+    "histories": {
+     "125": [
+      {
+       "id": true
+      }
+     ]
+    }
+   },
+   {
+    "op": "build"
+   }
+  ],
+  "outputs": [
+   {
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "conversation history lacks unique IDs; no merge attempted"
+    },
+    "posts": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "no_closed_status": {
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "closed_choice": false
+    }
+   },
+   {
+    "op": "build"
+   }
+  ],
+  "outputs": [
+   {
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "a unique runtime Closed status ID is required"
+    },
+    "posts": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "ambiguous_403": {
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 403
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": null
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_merge",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "merge_tickets/complete_merge",
+     "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
+     "context_hash": "{\"closed\": {\"124\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"], \"125\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 31, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 31, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 31, \"subject\": \"Acme 125\"}}}"
+    },
+    "hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+    "review": {
+     "action": "ticket_merge",
+     "method": "POST",
+     "path": "/api/_/merge_tickets/complete_merge",
+     "payload": {
+      "source": {
+       "is_private": true,
+       "note": "Secondary note",
+       "ticket_ids": [
+        124,
+        125
+       ]
+      },
+      "target": {
+       "is_private": true,
+       "note": "Primary note",
+       "ticket_id": 123
+      }
+     },
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+     "surviving_ticket": 123,
+     "merged_tickets": [
+      124,
+      125
+     ]
+    },
+    "posts": 0
+   },
+   {
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "posts": 1
+   },
+   {
+    "posts": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "posts": 1
+   }
+  ],
+  "events": [
+   "started"
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "merge_tickets/complete_merge",
+    "raw": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}"
+   }
+  ]
+ },
+ "ambiguous_429": {
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 429
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": null
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_merge",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "merge_tickets/complete_merge",
+     "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
+     "context_hash": "{\"closed\": {\"124\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"], \"125\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 31, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 31, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 31, \"subject\": \"Acme 125\"}}}"
+    },
+    "hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+    "review": {
+     "action": "ticket_merge",
+     "method": "POST",
+     "path": "/api/_/merge_tickets/complete_merge",
+     "payload": {
+      "source": {
+       "is_private": true,
+       "note": "Secondary note",
+       "ticket_ids": [
+        124,
+        125
+       ]
+      },
+      "target": {
+       "is_private": true,
+       "note": "Primary note",
+       "ticket_id": 123
+      }
+     },
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+     "surviving_ticket": 123,
+     "merged_tickets": [
+      124,
+      125
+     ]
+    },
+    "posts": 0
+   },
+   {
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "posts": 1
+   },
+   {
+    "posts": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "posts": 1
+   }
+  ],
+  "events": [
+   "started"
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "merge_tickets/complete_merge",
+    "raw": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}"
+   }
+  ]
+ },
+ "ambiguous_500": {
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 500
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": null
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_merge",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "merge_tickets/complete_merge",
+     "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
+     "context_hash": "{\"closed\": {\"124\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"], \"125\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 31, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 31, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 31, \"subject\": \"Acme 125\"}}}"
+    },
+    "hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+    "review": {
+     "action": "ticket_merge",
+     "method": "POST",
+     "path": "/api/_/merge_tickets/complete_merge",
+     "payload": {
+      "source": {
+       "is_private": true,
+       "note": "Secondary note",
+       "ticket_ids": [
+        124,
+        125
+       ]
+      },
+      "target": {
+       "is_private": true,
+       "note": "Primary note",
+       "ticket_id": 123
+      }
+     },
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+     "surviving_ticket": 123,
+     "merged_tickets": [
+      124,
+      125
+     ]
+    },
+    "posts": 0
+   },
+   {
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "posts": 1
+   },
+   {
+    "posts": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "posts": 1
+   }
+  ],
+  "events": [
+   "started"
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "merge_tickets/complete_merge",
+    "raw": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}"
+   }
+  ]
+ },
+ "ambiguous_disconnect": {
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": "disconnect"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": null
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_merge",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "merge_tickets/complete_merge",
+     "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
+     "context_hash": "{\"closed\": {\"124\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"], \"125\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 31, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 31, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 31, \"subject\": \"Acme 125\"}}}"
+    },
+    "hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+    "review": {
+     "action": "ticket_merge",
+     "method": "POST",
+     "path": "/api/_/merge_tickets/complete_merge",
+     "payload": {
+      "source": {
+       "is_private": true,
+       "note": "Secondary note",
+       "ticket_ids": [
+        124,
+        125
+       ]
+      },
+      "target": {
+       "is_private": true,
+       "note": "Primary note",
+       "ticket_id": 123
+      }
+     },
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+     "surviving_ticket": 123,
+     "merged_tickets": [
+      124,
+      125
+     ]
+    },
+    "posts": 0
+   },
+   {
+    "posts": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "posts": 1
+   },
+   {
+    "posts": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "posts": 1
+   }
+  ],
+  "events": [
+   "started"
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "merge_tickets/complete_merge",
+    "raw": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}"
+   }
+  ]
+ },
+ "readback_status": {
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "bad_readback": "status"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_merge",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "merge_tickets/complete_merge",
+     "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
+     "context_hash": "{\"closed\": {\"124\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"], \"125\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 31, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 31, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 31, \"subject\": \"Acme 125\"}}}"
+    },
+    "hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+    "review": {
+     "action": "ticket_merge",
+     "method": "POST",
+     "path": "/api/_/merge_tickets/complete_merge",
+     "payload": {
+      "source": {
+       "is_private": true,
+       "note": "Secondary note",
+       "ticket_ids": [
+        124,
+        125
+       ]
+      },
+      "target": {
+       "is_private": true,
+       "note": "Primary note",
+       "ticket_id": 123
+      }
+     },
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+     "surviving_ticket": 123,
+     "merged_tickets": [
+      124,
+      125
+     ]
+    },
+    "posts": 0
+   },
+   {
+    "posts": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "verified": false,
+     "surviving_ticket": 123,
+     "primary_status_unchanged": true,
+     "primary_note": true,
+     "secondaries": {
+      "124": {
+       "closed": false,
+       "conversations_moved": true,
+       "source_note": true
+      },
+      "125": {
+       "closed": true,
+       "conversations_moved": true,
+       "source_note": true
+      }
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "posts": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "posts": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "merge_tickets/complete_merge",
+    "raw": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}"
+   }
+  ]
+ },
+ "readback_note": {
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "bad_readback": "note"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_merge",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "merge_tickets/complete_merge",
+     "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
+     "context_hash": "{\"closed\": {\"124\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"], \"125\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 31, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 31, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 31, \"subject\": \"Acme 125\"}}}"
+    },
+    "hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+    "review": {
+     "action": "ticket_merge",
+     "method": "POST",
+     "path": "/api/_/merge_tickets/complete_merge",
+     "payload": {
+      "source": {
+       "is_private": true,
+       "note": "Secondary note",
+       "ticket_ids": [
+        124,
+        125
+       ]
+      },
+      "target": {
+       "is_private": true,
+       "note": "Primary note",
+       "ticket_id": 123
+      }
+     },
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+     "surviving_ticket": 123,
+     "merged_tickets": [
+      124,
+      125
+     ]
+    },
+    "posts": 0
+   },
+   {
+    "posts": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "verified": false,
+     "surviving_ticket": 123,
+     "primary_status_unchanged": true,
+     "primary_note": false,
+     "secondaries": {
+      "124": {
+       "closed": true,
+       "conversations_moved": true,
+       "source_note": true
+      },
+      "125": {
+       "closed": true,
+       "conversations_moved": true,
+       "source_note": true
+      }
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "posts": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "posts": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "merge_tickets/complete_merge",
+    "raw": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}"
+   }
+  ]
+ },
+ "readback_moved": {
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "bad_readback": "moved"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_merge",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "merge_tickets/complete_merge",
+     "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
+     "context_hash": "{\"closed\": {\"124\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"], \"125\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 31, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 31, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 31, \"subject\": \"Acme 125\"}}}"
+    },
+    "hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+    "review": {
+     "action": "ticket_merge",
+     "method": "POST",
+     "path": "/api/_/merge_tickets/complete_merge",
+     "payload": {
+      "source": {
+       "is_private": true,
+       "note": "Secondary note",
+       "ticket_ids": [
+        124,
+        125
+       ]
+      },
+      "target": {
+       "is_private": true,
+       "note": "Primary note",
+       "ticket_id": 123
+      }
+     },
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+     "surviving_ticket": 123,
+     "merged_tickets": [
+      124,
+      125
+     ]
+    },
+    "posts": 0
+   },
+   {
+    "posts": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "verified": false,
+     "surviving_ticket": 123,
+     "primary_status_unchanged": true,
+     "primary_note": true,
+     "secondaries": {
+      "124": {
+       "closed": true,
+       "conversations_moved": false,
+       "source_note": true
+      },
+      "125": {
+       "closed": true,
+       "conversations_moved": true,
+       "source_note": true
+      }
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "posts": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "posts": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "merge_tickets/complete_merge",
+    "raw": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}"
+   }
+  ]
+ },
+ "readback_primary_status": {
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "bad_readback": "primary_status"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_merge",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "merge_tickets/complete_merge",
+     "payload_json": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}",
+     "context_hash": "{\"closed\": {\"124\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"], \"125\": [89, \"82ec2500b6e401b349be4c4dd03c2f234114b98af560492876bc567effee63ce\"]}, \"histories\": {\"123\": [{\"body\": \"earlier\", \"id\": 10}], \"124\": [{\"body\": \"source A\", \"id\": 11}], \"125\": [{\"body\": \"source B\", \"id\": 12}]}, \"records\": {\"123\": {\"id\": 123, \"status\": 31, \"subject\": \"Acme 123\"}, \"124\": {\"id\": 124, \"status\": 31, \"subject\": \"Acme 124\"}, \"125\": {\"id\": 125, \"status\": 31, \"subject\": \"Acme 125\"}}}"
+    },
+    "hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+    "review": {
+     "action": "ticket_merge",
+     "method": "POST",
+     "path": "/api/_/merge_tickets/complete_merge",
+     "payload": {
+      "source": {
+       "is_private": true,
+       "note": "Secondary note",
+       "ticket_ids": [
+        124,
+        125
+       ]
+      },
+      "target": {
+       "is_private": true,
+       "note": "Primary note",
+       "ticket_id": 123
+      }
+     },
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+     "surviving_ticket": 123,
+     "merged_tickets": [
+      124,
+      125
+     ]
+    },
+    "posts": 0
+   },
+   {
+    "posts": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "88e713787028d4f2b8f9de8d7470fe9a5bd2bfb21e9bec6754c9267e022ff483",
+     "verified": false,
+     "surviving_ticket": 123,
+     "primary_status_unchanged": false,
+     "primary_note": true,
+     "secondaries": {
+      "124": {
+       "closed": true,
+       "conversations_moved": true,
+       "source_note": true
+      },
+      "125": {
+       "closed": true,
+       "conversations_moved": true,
+       "source_note": true
+      }
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "posts": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "posts": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "merge_tickets/complete_merge",
+    "raw": "{\"source\": {\"is_private\": true, \"note\": \"Secondary note\", \"ticket_ids\": [124, 125]}, \"target\": {\"is_private\": true, \"note\": \"Primary note\", \"ticket_id\": 123}}"
+   }
+  ]
+ }
+}

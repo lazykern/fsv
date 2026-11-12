@@ -261,7 +261,15 @@ fn evaluate(
                 field.label
             )));
         }
-        let encoded = encode_value(&spec, field, &value, &state.evaluated.values).map_err(other)?;
+        // Clearing an optional routing lookup is a captured explicit null,
+        // not a lookup ID to resolve. Validation below still enforces rules.
+        let encoded = if value == fsv_forms::Value::Null
+            && matches!(field.kind, Kind::LookupAgent | Kind::LookupGroup)
+        {
+            Value::Null
+        } else {
+            encode_value(&spec, field, &value, &state.evaluated.values).map_err(other)?
+        };
         if is_status(field) {
             let closing = match field.choice(&value).map_err(other)? {
                 None => true,
