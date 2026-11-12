@@ -84,6 +84,32 @@ def test_exact_wire_and_returned_identity(monkeypatch, tenant, public, envelope,
         c.close()
 
 
+@pytest.mark.parametrize("body,recipients,expected", [
+    ('<div class="server"><div>Acme &amp; Globex</div></div>', [], True),
+    ('<div>Acme &amp; Wrong</div>', [], False),
+    ('<div>Acme &amp; Globex</div>', None, False),
+])
+def test_server_normalized_body_and_recipient_readback(monkeypatch, tenant, body, recipients, expected):
+    plan = notes.build_plan(123, "Acme & Globex")
+    seen = []
+    def handler(req):
+        seen.append(req.method)
+        if req.method == "POST":
+            return httpx.Response(201, json={"note": {"id": 99001}})
+        row = {"id": 99001, "body": body, "private": True}
+        if recipients is not None:
+            row["to_emails"] = recipients
+        return httpx.Response(200, json={"conversations": [row], "meta": {"count": 1}})
+    c = mock_client(monkeypatch, handler)
+    try:
+        result = notes.send(plan, c, reviewed_hash=plan.hash)
+        assert result["identity_verified"] is True
+        assert result["verified"] is expected
+        assert seen.count("POST") == 1
+    finally:
+        c.close()
+
+
 def test_notification_list_and_immutable_review():
     recipients = ["Agent Example <agent@example.com>", "reviewer@example.com"]
     plan = notes.build_plan(123, "Globex review", notify_emails=recipients)

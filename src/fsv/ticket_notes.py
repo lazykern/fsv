@@ -16,6 +16,7 @@ import typer
 from fsv import config, journal
 from fsv.client import get_client
 from fsv.errors import APIError
+from fsv.readback import same_text
 from fsv.render import strip_html
 from fsv.resources import TICKETS, parse_id
 from fsv.safety import note_risks
@@ -200,9 +201,13 @@ def send(plan: NotePlan, client: Any = None, *, reviewed_hash: str | None,
         if exact is not None:
             expected = {"body": plan.body_html, "private": not plan.public,
                         "notify_emails": list(plan.notify_emails)}
-            result["fields"] = {key: ("unavailable" if key not in exact else
-                                      "matched" if exact[key] == value else "mismatched")
-                                for key, value in expected.items()}
+            result["fields"] = {}
+            for key, value in expected.items():
+                actual_key = "to_emails" if key == "notify_emails" and key not in exact and "to_emails" in exact else key
+                actual = exact.get(actual_key)
+                match = same_text(actual, value) if key == "body" else type(actual) is type(value) and actual == value
+                result["fields"][key] = ("unavailable" if actual_key not in exact else
+                                         "matched" if match else "mismatched")
             result["fields_verified"] = all(value == "matched" for value in result["fields"].values())
             result["verified"] = result["fields_verified"] and result["readback_complete"]
         if not result["verified"]:
@@ -294,7 +299,7 @@ def register(app: typer.Typer) -> None:
             if json_out:
                 typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
             else:
-                typer.echo(f"Note {result['note_id']} submitted on ticket {plan.ticket_id}; exact-ID read-back: {result['verified']}")
+                typer.echo(f"Note {result['note_id']} submitted on ticket {plan.ticket_id}; exact-ID read-back: {result.get('identity_verified', result['verified'])}; all fields verified: {result['verified']}")
                 if result.get("warning"):
                     typer.echo(result["warning"], err=True)
         except (ValueError, NoteError) as exc:
