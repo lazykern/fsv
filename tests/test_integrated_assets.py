@@ -27,6 +27,7 @@ def client(monkeypatch, tmp_path):
             rows.clear()
         else:
             kind = "businessapp_ids" if "businessapp_ids" in payload else "device_ids"
+            assert all(type(i) is int and i > 0 for i in payload[kind])
             rows.extend({"item_id": i, "itam_cmdb_request_id": int(i) + 900, "category": "Business service" if kind == "businessapp_ids" else "Device"} for i in payload[kind])
         return {}
     return SimpleNamespace(int_get=get, _request=request, _get_csrf=lambda: "synthetic", rows=rows, calls=calls)
@@ -70,7 +71,7 @@ def test_cli_dry_run_and_replay_guard(client, monkeypatch):
     r = runner.invoke(app, ["sr", "assets", "add", "SR-23", "81", "82", "--dry-run", "--json"])
     assert r.exit_code == 0, r.output
     plan = json.loads(r.stdout)
-    assert plan["payload"] == {"device_ids": ["81", "82"]}
+    assert plan["payload"] == {"device_ids": [81, 82]}
     assert not any(c[0] == "PUT" for c in client.calls)
     r = runner.invoke(app, ["sr", "assets", "add", "SR-23", "81", "--yes", "--expect-plan", "wrong"])
     assert r.exit_code == 2

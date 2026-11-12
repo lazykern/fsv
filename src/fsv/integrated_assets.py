@@ -94,11 +94,11 @@ def build_plan(client: Any, module: str, target: str | int, ids: list[int], *, k
     if remove:
         if ids[0] not in current:
             raise ReviewedWriteError("inventory ID is not associated with this exact record")
-        payload = {"itam_cmdb_request_id": current[ids[0]]["itam_cmdb_request_id"]}
+        payload = {"itam_cmdb_request_id": positive_id(current[ids[0]]["itam_cmdb_request_id"])}
     else:
         if set(ids) & current.keys():
             raise ReviewedWriteError("requested inventory ID is already associated; omit it")
-        payload = {"businessapp_ids" if kind == "services" else "device_ids": [str(i) for i in ids]}
+        payload = {"businessapp_ids" if kind == "services" else "device_ids": ids}
     return WritePlan("integrated_asset_remove" if remove else "integrated_asset_add", target, config.DOMAIN, "PUT",
                      f"{module}/{target}/{'disassociate-ci' if remove else 'associate-ci'}", json.dumps(payload, sort_keys=True),
                      journal.snapshot_hash(before) or "")

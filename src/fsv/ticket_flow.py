@@ -76,7 +76,7 @@ def build_create_plan(meta: Any, draft: Draft, *, resolver: Any, requester: Look
             errors.extend(getattr(e, "problems", [str(e)]))
     if devices and payload is not None:
         from fsv.watchers import positive_id
-        payload["device_ids"] = [str(positive_id(i)) for i in devices]
+        payload["device_ids"] = [positive_id(i) for i in devices]
     review = Review(title="New Incident")
     review.rows.append(("Requester", str(requester) if requester else "(not set)"))
     if cc_emails and not any(not isinstance(v, str) for v in cc_emails):

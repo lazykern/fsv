@@ -60,7 +60,7 @@ def create_plan(client: Any, title: str, description: str, kind: str, *, categor
         raise ValueError("nonempty title/body and workaround or permanent type required")
     cat, dest = folder(client, category, selected_folder)
     payload = {"title": title, "description": "<div>" + html.escape(description).replace("\n", "<br>") + "</div>",
-               "status": 1, "article_type": ARTICLE_TYPES[kind], "folder_id": str(dest["id"]), "source": "problem"}
+               "status": 1, "article_type": ARTICLE_TYPES[kind], "folder_id": positive_id(dest["id"]), "source": "problem"}
     inputs = dict(title=title, description=description, kind=kind, category=category, selected_folder=selected_folder)
     return SolutionPlan("solution_create", positive_id(dest["id"]), config.DOMAIN, "POST", "solutions/articles",
                         json.dumps(payload, sort_keys=True), journal.snapshot_hash({"category": cat, "folder": dest}) or "", json.dumps(inputs, sort_keys=True))

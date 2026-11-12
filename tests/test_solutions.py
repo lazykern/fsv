@@ -43,7 +43,8 @@ def wire(monkeypatch, tmp_path):
 def test_create_then_link_then_unlink(wire, kind, type_id):
     plan = a.create_plan(wire, "Acme article", "Synthetic guidance", kind)
     assert plan.payload["article_type"] == type_id and plan.payload["status"] == 1
-    assert plan.payload["folder_id"] == "81"
+    assert type(plan.payload["folder_id"]) is int
+    assert plan.payload["folder_id"] == 81
     assert a.send_create(plan, wire, reviewed_hash=plan.hash)["verified"]
     link = a.link_plan(wire, "PRB-23", 91)
     assert link.payload == {"type": "link"}

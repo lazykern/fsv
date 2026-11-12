@@ -401,7 +401,7 @@ def build_create_plan(
 
     if devices and payload is not None:
         from fsv.watchers import positive_id
-        payload["device_ids"] = [str(positive_id(i)) for i in devices]
+        payload["device_ids"] = [positive_id(i) for i in devices]
 
     review = Review(title="New Change" + (f": {state.get('subject')}" if spec.find("subject") and state.get("subject")
                                           else ""))
