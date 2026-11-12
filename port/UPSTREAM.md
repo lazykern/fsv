@@ -2672,4 +2672,24 @@ calls `build_plan` with `{"status": "Completed"}` and delete calls
 `delete_plan`. Dry-run prints the review JSON. Send requires `--yes`
 and `--expect-plan`. Unverified exits 4.
 
-Still not triaged: `9e11155` and later.
+Moved on: `9e11155` is triaged below.
+
+## Ledger: `9e11155` (library side)
+
+Triaged against `git show 9e11155`
+(`9e1115586606501708b75086b4b01a51ac7d1ce8`). The commit only adds
+docs: a "Remaining accepted-wire blockers" table to
+`docs/commands.md` and `docs/reviewed-parity.md`. No code changed.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `9e11155`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `9e11155` | 11-12 22:42 | Document accepted-wire blockers for remaining ranked workflows | ported | none (docs only) |
+
+The library implements none of the listed blockers. Problem time
+update is refused by `module_time`, and existing-project association
+is refused by `change_relationships`. The Rust tree has no
+`reviewed-parity.md`. If the CLI docs gain one, copy the table as-is.
+
+Still not triaged: `57a236e` and later.
