@@ -3472,6 +3472,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
         from fsv.change_approval_actions import register as register_change_approval_actions
         register_change_approvals(sub)
         register_change_approval_actions(sub)
+        from fsv.change_relationships_cli import register as register_relationships
+        register_relationships(sub, lambda: _client())
 
         @sub.command("tasks-update", help="Update a change task.", epilog=(
             "[bold]Examples:[/bold]  "

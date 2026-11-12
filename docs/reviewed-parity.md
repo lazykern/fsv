@@ -1,5 +1,30 @@
 # Reviewed operations and metadata freshness
 
+## Change relationships
+
+```sh
+fsv changes relationships list CHN-123 caused-incident --json
+fsv changes relationships write CHN-123 caused-incident add --item 71 --dry-run --json
+fsv changes relationships write CHN-123 problem remove --item 81 --dry-run --json
+fsv changes relationships write CHN-123 release add --item 91 --dry-run --json
+fsv changes relationships write CHN-123 project-task add --item ACME-1 --project-key ACME --name 'Acme task' --dry-run --json
+fsv changes relationships write CHN-123 project remove --item ACME --dry-run --json
+```
+
+Kinds: `caused-incident`, `problem`, `release`, `project`, `project-task`.
+Use `write ... remove` for unlink and `list` for exact association inventories.
+Send with `--yes --expect-plan FULL_HASH`. Project proxy writes validate nested
+status/body and independent linked inventories; incomplete/multiple pages fail
+closed. Task add takes an explicit existing task key and name, not a task create.
+The project must already be linked. `project add --project-json` explicitly
+**creates and associates** a new private project; JSON requires `name`,
+`description`, `start_date`, `end_date`, `owner_email`, `project_category` text.
+It is not an existing-project link: that wire is absent and remains blocked.
+A project create is not rolled back if association/readback fails; never replay.
+Caused incidents use their own associated-caused filter, never the candidate list.
+Release unlink uses PUT, not DELETE. No maintenance-window contract is inferred.
+
+
 ## Frozen bulk ticket actions
 
 ```sh
