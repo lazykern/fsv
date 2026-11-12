@@ -350,7 +350,7 @@ pub enum Cont {
     },
     /// Ticket property, known-error, planning text and ticket conversation flows.
     Reviewed(reviewed::Step),
-    /// Read-only asset candidate search (`i`).
+    /// Device and service browse, add, and remove (`i`).
     Assets(assets::Step),
     CreateChoice,
     CatalogCategory {

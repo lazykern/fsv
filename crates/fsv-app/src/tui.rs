@@ -24,7 +24,7 @@ use fsv_api::properties::{self, AnsweredPropertyPlan, PropertyArgs, PropertyPlan
 use fsv_api::reviewed_write::WritePlan;
 use fsv_api::service::{self as svc, Api, Journal, ListArgs};
 use fsv_api::tasks::{self, TaskArgs, TaskPlan};
-use fsv_api::{QueryError, asset_picker, site};
+use fsv_api::{QueryError, asset_picker, integrated_assets, site};
 use fsv_core::{Client, Error, Result};
 use fsv_forms::Kind;
 use fsv_forms::spec::REQUESTED_FOR_TYPE;
@@ -1042,6 +1042,99 @@ impl Backend for LiveBackend {
             self.journal.as_ref(),
             Some(&plan.hash),
             self.change_schema.as_ref(),
+        )?)
+    }
+
+    /// `integrated_assets.search` page 1, as picker rows (`display_id` is
+    /// `name.id`, `name` is the label, `ci_type_name` is `type`).
+    fn inventory_search(&self, query: &str, kind: &str) -> BResult<AssetCandidates> {
+        let raw = integrated_assets::search(self.api(), query, kind, 1)?;
+        let data = raw
+            .get("data")
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let mut assets = Vec::with_capacity(data.len());
+        for row in data {
+            let name = row.get("name").cloned().unwrap_or(Value::Null);
+            let ident = name.get("id").cloned().unwrap_or(Value::Null);
+            let display_id = fsv_tui::backend::positive_id(&ident)?;
+            let mut shaped = Map::new();
+            shaped.insert("display_id".into(), json!(display_id));
+            shaped.insert(
+                "name".into(),
+                name.get("label").cloned().unwrap_or(Value::Null),
+            );
+            shaped.insert(
+                "ci_type_name".into(),
+                row.get("type").cloned().unwrap_or(Value::Null),
+            );
+            shaped.insert("inventory".into(), row);
+            assets.push(shaped);
+        }
+        Ok(AssetCandidates {
+            change_id: 0,
+            page: 1,
+            scope: "single search page; not a complete inventory".into(),
+            assets,
+            mutation: "none".into(),
+            warning: String::new(),
+        })
+    }
+
+    fn associated_inventory(
+        &self,
+        module: &str,
+        target: &Value,
+        kind: &str,
+    ) -> BResult<Vec<Value>> {
+        Ok(integrated_assets::inventory(
+            self.api(),
+            module,
+            target,
+            kind,
+        )?)
+    }
+
+    fn inventory_association_plan(
+        &self,
+        module: &str,
+        target: &Value,
+        ident: &Value,
+        kind: &str,
+        remove: bool,
+    ) -> BResult<ReviewPlan> {
+        let plan = integrated_assets::build_plan(
+            self.api(),
+            module,
+            target,
+            std::slice::from_ref(ident),
+            kind,
+            remove,
+        )?;
+        Ok(write_review(&plan))
+    }
+
+    fn send_inventory_association(
+        &self,
+        plan: &ReviewPlan,
+        module: &str,
+        ident: &Value,
+        kind: &str,
+        remove: bool,
+    ) -> BResult<Value> {
+        let write = write_plan(&plan.raw, |action| {
+            action == "integrated_asset_add" || action == "integrated_asset_remove"
+        })?;
+        Ok(integrated_assets::send(
+            &write,
+            self.api(),
+            self.journal.as_ref(),
+            module,
+            std::slice::from_ref(ident),
+            kind,
+            remove,
+            Some(&plan.hash),
         )?)
     }
 

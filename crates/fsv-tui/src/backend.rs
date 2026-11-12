@@ -520,6 +520,45 @@ pub trait Backend: Send + Sync {
     /// `asset_picker.candidates(c, req.change, req.query, page=req.page)`:
     /// one GET of `/itam/core/device/api/`; never associates.
     fn asset_candidates(&self, req: &AssetCandidatesRequest) -> BResult<AssetCandidates>;
+    /// `integrated_assets.search` page 1, shaped as picker rows.
+    fn inventory_search(&self, query: &str, kind: &str) -> BResult<AssetCandidates> {
+        let _ = (query, kind);
+        Err(Failure::unavailable("integrated inventory"))
+    }
+    /// `integrated_assets.inventory` for one ticket, problem, or change.
+    fn associated_inventory(
+        &self,
+        module: &str,
+        target: &Value,
+        kind: &str,
+    ) -> BResult<Vec<Value>> {
+        let _ = (module, target, kind);
+        Err(Failure::unavailable("integrated inventory"))
+    }
+    /// `integrated_assets.build_plan` for one device or service id.
+    fn inventory_association_plan(
+        &self,
+        module: &str,
+        target: &Value,
+        ident: &Value,
+        kind: &str,
+        remove: bool,
+    ) -> BResult<ReviewPlan> {
+        let _ = (module, target, ident, kind, remove);
+        Err(Failure::unavailable("integrated inventory"))
+    }
+    /// `integrated_assets.send` once, with the reviewed hash.
+    fn send_inventory_association(
+        &self,
+        plan: &ReviewPlan,
+        module: &str,
+        ident: &Value,
+        kind: &str,
+        remove: bool,
+    ) -> BResult<Value> {
+        let _ = (plan, module, ident, kind, remove);
+        Err(Failure::unavailable("integrated inventory"))
+    }
 
     // ── create forms ────────────────────────────────────────
     /// `import fsv.formui` succeeded; without it `N` / `e` toast
@@ -774,6 +813,37 @@ impl<B: Backend> Backend for ReadOnly<B> {
     }
     fn asset_candidates(&self, req: &AssetCandidatesRequest) -> BResult<AssetCandidates> {
         self.0.asset_candidates(req)
+    }
+    fn inventory_search(&self, query: &str, kind: &str) -> BResult<AssetCandidates> {
+        self.0.inventory_search(query, kind)
+    }
+    fn associated_inventory(
+        &self,
+        module: &str,
+        target: &Value,
+        kind: &str,
+    ) -> BResult<Vec<Value>> {
+        self.0.associated_inventory(module, target, kind)
+    }
+    fn inventory_association_plan(
+        &self,
+        _module: &str,
+        _target: &Value,
+        _ident: &Value,
+        _kind: &str,
+        _remove: bool,
+    ) -> BResult<ReviewPlan> {
+        Err(Failure::read_only("inventory associations"))
+    }
+    fn send_inventory_association(
+        &self,
+        _plan: &ReviewPlan,
+        _module: &str,
+        _ident: &Value,
+        _kind: &str,
+        _remove: bool,
+    ) -> BResult<Value> {
+        Err(Failure::read_only("inventory associations"))
     }
     fn forms_available(&self) -> bool {
         false

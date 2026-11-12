@@ -2318,3 +2318,25 @@ omitted, and no values. Dry-run, `--yes`, and `--expect-plan` stay on
 the existing reviewed-write helper. Do not add fields to `TaskArgs`.
 
 Still not triaged: `dbe1149` and later.
+
+## Ledger: `dbe1149` (library side)
+
+Triaged against `git show dbe1149`
+(`dbe1149d812a468e061bb0c1e6675a01ef790ddd`). The write itself is the
+existing `integrated_assets` plan. This commit is the TUI review around
+it. `docs/reviewed-parity.md` has no library behavior.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `dbe1149`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `dbe1149` | 11-12 18:04 | Add reviewed TUI device and service association actions | ported | fsv-tui `assets`, fsv-app `LiveBackend` |
+
+`i` on a ticket, problem, or change opens an association menu. Read-only
+mode only searches devices and does not prepare a plan. Add searches one
+integrated page and reviews the chosen id. Remove lists the associated
+rows and reviews one id. Confirm sends once through
+`integrated_assets.send`. Cancel and an empty association list do not
+write.
+
+Still not triaged: `9c8c91d` and later.

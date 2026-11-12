@@ -151,12 +151,8 @@ fn plan(review: Value, public: bool) -> ReviewPlan {
     }
 }
 
-impl Backend for Mock {
-    fn asset_candidates(&self, req: &AssetCandidatesRequest) -> BResult<AssetCandidates> {
-        self.log(format!(
-            "assets {} {:?} {}",
-            req.change, req.query, req.page
-        ));
+impl Mock {
+    fn asset_rows(&self) -> BResult<AssetCandidates> {
         if self.assets_fail {
             return Err(Failure::value("asset candidate response is unavailable"));
         }
@@ -170,7 +166,7 @@ impl Backend for Mock {
         };
         Ok(AssetCandidates {
             change_id: 1,
-            page: req.page,
+            page: 1,
             scope: "single search page; not a complete inventory".into(),
             assets: rows
                 .into_iter()
@@ -181,6 +177,22 @@ impl Backend for Mock {
                 "Selection only. Asset/CI add-remove variants remain unsupported by this picker."
                     .into(),
         })
+    }
+}
+
+impl Backend for Mock {
+    fn inventory_search(&self, query: &str, kind: &str) -> BResult<AssetCandidates> {
+        self.log(format!("assets {kind} {query:?}"));
+        self.asset_rows()
+    }
+    fn asset_candidates(&self, req: &AssetCandidatesRequest) -> BResult<AssetCandidates> {
+        self.log(format!(
+            "assets {} {:?} {}",
+            req.change, req.query, req.page
+        ));
+        let mut rows = self.asset_rows()?;
+        rows.page = req.page;
+        Ok(rows)
     }
     fn forms_available(&self) -> bool {
         self.forms
@@ -1978,7 +1990,7 @@ fn i_on_a_change_searches_page_1_and_picks_without_associating() {
             continue;
         }
         pick(&mut a, "Globex");
-        assert_eq!(m.calls("assets"), [r#"assets 1 "Globex" 1"#], "{mode}");
+        assert_eq!(m.calls("assets"), [r#"assets devices "Globex""#], "{mode}");
         if mode == "empty" {
             assert_eq!(
                 outcome(&a),
@@ -2035,11 +2047,12 @@ fn i_on_a_change_searches_page_1_and_picks_without_associating() {
 }
 
 #[test]
-fn i_needs_a_change_and_a_search_term() {
+fn i_needs_a_record_and_a_search_term() {
     let (mut a, m) = start(Mock::new(3), true);
+    a.selected = None;
     a.press("i");
     assert!(a.modals.is_empty());
-    assert!(toasts(&a).contains(&"Select a change to browse asset candidates".to_string()));
+    assert!(toasts(&a).contains(&"Select a ticket, SR, problem or change".to_string()));
     to_changes(&mut a);
     a.press("i");
     a.press("enter");
@@ -2060,6 +2073,7 @@ fn i_search_failure_opens_the_failure_screen() {
     let (mut a, m) = start(mock, false);
     to_changes(&mut a);
     a.press("i");
+    pick(&mut a, "Browse");
     pick(&mut a, "Globex");
     assert_eq!(m.calls("assets").len(), 1);
     match top(&a) {
@@ -2073,9 +2087,11 @@ fn i_search_failure_opens_the_failure_screen() {
 
 #[test]
 fn help_lists_the_asset_picker_key() {
-    assert!(fsv_tui::modals::HELP_TEXT.contains(
-        "  [cyan]i[/]            browse change asset candidates (read-only, no association)\n"
-    ));
+    assert!(
+        fsv_tui::modals::HELP_TEXT.contains(
+            "  [cyan]i[/]            browse or review device/CI and service associations\n"
+        )
+    );
 }
 
 /// `asset_picker.select`: an exact, unique positive display ID.
