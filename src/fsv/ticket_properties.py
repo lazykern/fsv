@@ -118,7 +118,12 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
             value = state.get(field.api_name)
             if field.api_name not in state.evaluated.visible:
                 raise PropertyError(f"{field.label}: answered field is hidden")
-            encoded = encode_value(meta.spec, field, value, state.evaluated.values)
+            # Clearing an optional routing lookup is a captured explicit null,
+            # not a lookup ID to resolve. Validation below still enforces rules.
+            if value is None and field.kind in {"lookup_agent", "lookup_group"}:
+                encoded = None
+            else:
+                encoded = encode_value(meta.spec, field, value, state.evaluated.values)
             if is_status(field):
                 choice = field.choice(value)
                 if choice is None or choice.label.casefold() in {"resolved", "closed"}:

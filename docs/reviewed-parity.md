@@ -1,5 +1,22 @@
 # Reviewed operations and metadata freshness
 
+## Ticket assignment and pick-up
+
+```sh
+fsv tickets assign INC-123 --unassign --dry-run --json
+fsv tickets assign INC-123 --agent agent@example.com --group 'Acme Desk' --dry-run
+fsv tickets pick-up INC-123 INC-124 --dry-run --json
+```
+
+Send a reviewed plan only with `--yes --expect-plan FULL_HASH`. Group-only
+assignment explicitly clears the previous agent. Unassignment uses a single
+`PUT tickets/ID`, never bulk update: bulk null responders can silently do
+nothing. Agent/group membership is checked from fresh bootstrap metadata on
+both sides; missing or inconsistent membership blocks assignment. Pick-up uses
+the current runtime agent and verifies every ticket independently. Rules and
+fresh records are checked again before the single request; partial or unknown
+outcomes must not be resent.
+
 ## Irreversible ticket merge
 
 ```sh

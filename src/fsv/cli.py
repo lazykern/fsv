@@ -3916,6 +3916,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
         from fsv.watcher_cli import register as register_watchers
         register_watchers(sub, res, lambda: _client())
     if res.name == "tickets":
+        from fsv.ticket_assignment_cli import register as register_assignment
+        register_assignment(sub, lambda: _client())
         from fsv.ticket_merge_cli import register as register_merge
         register_merge(sub, lambda: _client())
         from fsv.ticket_lifecycle_cli import register as register_lifecycle
