@@ -229,6 +229,7 @@ fn approval_plan(raw: &Value) -> ApprovalPlan {
             .unwrap_or_default(),
         tenant: str_at(raw, "tenant"),
         rule: str_at(raw, "rule"),
+        recipient_context_json: str_at(raw, "recipient_context_json"),
     }
 }
 

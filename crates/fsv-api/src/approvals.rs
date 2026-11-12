@@ -71,8 +71,9 @@ pub fn recipient(value: &str) -> Result<()> {
     Ok(())
 }
 
-/// `resolve_approvers`: explicit agent ids or unique active exact-email hits
-/// (the autocomplete `id` is the agent id, never `user_id`).
+/// `resolve_approvers`: explicit user ids or exact requester-autocomplete ids.
+/// Agent-profile identities are not the recipient namespace. The autocomplete
+/// `id` is used; `user_id` is not.
 pub fn resolve_approvers(c: &dyn Api, values: &[String]) -> Result<Vec<i64>> {
     if values.is_empty() {
         return Err(Error::value("at least one explicit approver is required"));
@@ -86,7 +87,7 @@ pub fn resolve_approvers(c: &dyn Api, values: &[String]) -> Result<Vec<i64>> {
             Some(id) => id,
             None => {
                 let lookup = || -> Option<i64> {
-                    let rows = c.autocomplete("agents", value, None).ok()?;
+                    let rows = c.autocomplete("requesters", value, None).ok()?;
                     let wanted = fsv_core::pystr::casefold(value);
                     let matches: Vec<&Value> = rows
                         .iter()
@@ -131,6 +132,9 @@ pub struct ApprovalPlan {
     pub approver_ids: Vec<i64>,
     pub tenant: String,
     pub rule: String,
+    /// JSON list of `{kind, id, members}` from group/CAB expansion. Empty
+    /// when the request has only explicit approvers.
+    pub recipient_context_json: String,
 }
 
 impl ApprovalPlan {
@@ -150,15 +154,27 @@ impl ApprovalPlan {
     }
 
     pub fn hash(&self) -> String {
-        plan_hash(&json!({"tenant": self.tenant, "path": self.path(), "payload": self.payload()}))
+        let mut context =
+            json!({"tenant": self.tenant, "path": self.path(), "payload": self.payload()});
+        if !self.recipient_context_json.is_empty() {
+            context["recipient_sources"] =
+                serde_json::from_str(&self.recipient_context_json).unwrap_or(Value::Null);
+        }
+        plan_hash(&context)
     }
 
     pub fn review(&self) -> Map<String, Value> {
+        let sources = if self.recipient_context_json.is_empty() {
+            json!([])
+        } else {
+            serde_json::from_str(&self.recipient_context_json).unwrap_or(json!([]))
+        };
         obj(json!({
             "action": ACTION, "tenant": self.tenant, "change_id": self.change_id,
             "method": "POST", "path": format!("/api/_/{}", self.path()), "payload": self.payload(),
             "recipients": self.approver_ids, "approval_rule": rule(&self.rule).map_or("", |r| r.2),
             "message_text": self.message, "plan_hash": self.hash(), "warning": WARNING,
+            "recipient_sources": sources,
             "verification": "Complete before/after approval record IDs, exact new recipients, requested status and exact selected rule ID. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
             "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted.",
         }))
@@ -173,6 +189,27 @@ pub fn build_plan(
     approver_ids: &[i64],
     rule_name: &str,
     tenant: &str,
+) -> Result<ApprovalPlan> {
+    build_plan_with(
+        change_id,
+        name,
+        message,
+        approver_ids,
+        rule_name,
+        tenant,
+        "",
+    )
+}
+
+/// [`build_plan`] plus the group/CAB membership bound into the hash.
+pub fn build_plan_with(
+    change_id: &str,
+    name: &str,
+    message: &str,
+    approver_ids: &[i64],
+    rule_name: &str,
+    tenant: &str,
+    recipient_context_json: &str,
 ) -> Result<ApprovalPlan> {
     let cid = parse_id(change_id, &CHANGES)?;
     if cid <= 0 {
@@ -210,6 +247,7 @@ pub fn build_plan(
         approver_ids: approver_ids.to_vec(),
         tenant: tenant.into(),
         rule: rule_name.into(),
+        recipient_context_json: recipient_context_json.into(),
     })
 }
 
@@ -558,13 +596,14 @@ pub fn send(
     journal: &dyn Journal,
     opts: SendOpts<'_>,
 ) -> Result<Value> {
-    let rebuilt = build_plan(
+    let rebuilt = build_plan_with(
         &plan.change_id.to_string(),
         &plan.name,
         &plan.message,
         &plan.approver_ids,
         &plan.rule,
         &c.domain(),
+        &plan.recipient_context_json,
     );
     if rebuilt.ok().as_ref() != Some(plan) {
         return Err(refused(
@@ -599,7 +638,11 @@ pub fn send(
             "this approval request was sent or its outcome is unknown; inspect the change and journal; do not resubmit",
         ));
     }
-    let prepared = inventory(c, plan.change_id).and_then(|rows| c.get_csrf().map(|t| (rows, t)));
+    let prepared = (|| -> Result<_> {
+        crate::approval_recipients::validate(c, plan.change_id, &plan.recipient_context_json)?;
+        let rows = inventory(c, plan.change_id)?;
+        Ok((rows, c.get_csrf()?))
+    })();
     let Ok((before_rows, csrf)) = prepared else {
         return Err(refused(
             "could not prepare a complete approval inventory/session; no approval POST was attempted",
@@ -1400,8 +1443,8 @@ mod tests {
     }
 
     #[test]
-    fn resolve_approvers_uses_agent_id() {
-        let api = FakeApi::new().ok("GET autocomplete/agents", json!([{"email": "Ann@x.io", "id": 21, "user_id": 99},
+    fn resolve_approvers_uses_requester_id() {
+        let api = FakeApi::new().ok("GET autocomplete/requesters", json!([{"email": "Ann@x.io", "id": 21, "user_id": 99},
                                                                       {"email": "old@x.io", "id": 22, "value": "Old (Deactivated)"}]));
         let s = |v: &[&str]| v.iter().map(|x| x.to_string()).collect::<Vec<_>>();
         assert_eq!(
@@ -1451,7 +1494,7 @@ mod tests {
             Value::Object(p.review()),
             json!({"action": "change_approval_request", "tenant": T, "change_id": 12, "method": "POST", "path": "/api/_/changes/12/approval-groups",
                    "payload": payload, "recipients": [7, 8], "approval_rule": "Anyone", "message_text": "Please\r\nreview <now>", "plan_hash": h,
-                   "warning": WARNING,
+                   "warning": WARNING, "recipient_sources": [],
                    "verification": "Complete before/after approval record IDs, exact new recipients, requested status and exact selected rule ID. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
                    "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted."})
         );

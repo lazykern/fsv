@@ -463,6 +463,7 @@ fn approval_requests_are_planned_from_explicit_agent_ids() {
                "payload": {"approval_groups": [{"name": "CAB", "approval_type": 2, "email_content": "<p dir=\"ltr\">please<br>look</p>", "notified_to": [3, 4]}]},
                "recipients": [3, 4], "approval_rule": "Anyone", "message_text": "please\nlook", "plan_hash": "58615d09edd54cce03218e009e6cacb622bf75a92489d29a31358a4dff3868a5",
                "warning": "Approval emails are irreversible; cancel/revoke cannot recall them. This requests approval; it does not approve the change. Tenant workflows may also notify people.",
+               "recipient_sources": [],
                "verification": "Complete before/after approval record IDs, exact new recipients, requested status and exact selected rule ID. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
                "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted."})
     );

@@ -5,6 +5,7 @@
 //! owns the form-schema fetch and cache; `views` the site's read-side
 //! loaders (saved views, edit-form rules, properties).
 
+pub mod approval_recipients;
 pub mod approvals;
 pub mod asset_picker;
 pub mod associations;

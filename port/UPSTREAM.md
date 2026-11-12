@@ -2027,5 +2027,66 @@ missing.
 
 `port/fsv_coverage.py` maps `solutions` to fsv-api.
 
-Still not triaged: `d870fa7`, `780c002`, `ad40a51`, `e173437`, `b310885`,
+## Ledger: `d870fa7` (library side)
+
+Triaged against a `git archive d870fa7` export
+(`FSV_PY_COMMIT=d870fa754623adf838f7381e8b6a5cdf836e1e1c`).
+`port/golden/gen_fsv_api_approval_recipients.py` stamps
+`crates/fsv-api/src/testdata/approval_recipients_oracle.json`.
+The individual-approver request hash
+`7f34fb9adce9ce2a92cbf6f9ff6c4239eb8cac53e6c4a70b2d1dc23496111c07`
+is unchanged. `review()` now always includes `recipient_sources`
+(`[]` when the context is empty).
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `d870fa7`.
+The partial is the fsv-cli command surface, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `d870fa7` | 11-12 14:58 | Expand reviewed group and CAB selections to eligible users | partial | fsv-api `approval_recipients`, `approvals`. fsv-cli follow-up below |
+
+### `d870fa7` approval recipients — partial
+
+`fsv_api::approval_recipients` expands a group or CAB to its eligible
+`approval_users`. Group members are paged (`per_page` 30, up to 100
+pages) and must report one stable count. CAB members are one
+`changes/{id}/cab-members` read. Bootstrap `agent_ids` are not
+recipients. The union of user ids is what `notified_to` carries.
+`resolve` returns that list plus `recipient_context_json`. Empty
+context stays `""` and does not enter the plan hash. A non-empty
+context adds `recipient_sources` to the hash. `validate` re-reads
+membership and refuses when it moved. `send` calls `validate` inside
+the same prepare path that rewrites every failure as
+`could not prepare a complete approval inventory/session; no approval POST was attempted`.
+`resolve_approvers` looks up emails through requester autocomplete.
+
+### Public API for the fsv-cli owner
+
+`fsv_api::approval_recipients::{members, resolve, validate}`.
+`approvals::build_plan` stays six arguments. `build_plan_with` adds
+`recipient_context_json`. `ApprovalPlan.recipient_context_json` is the
+stored membership. `review()` always has `recipient_sources`.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`changes approval-request` must accept optional `--approver`, plus
+`--approver-group` and `--cab` / `--approver-cab`. If none of the three
+is passed, ValueError `provide --approver, --approver-group or --cab explicitly`.
+Expand every eligible `approval_users` row (not bootstrap `agent_ids`),
+dedupe into `notified_to`, put the membership in `recipient_sources`
+and the hash, and call `validate` before send. `ReviewedWriteError`
+exits 2. `cmd/review.rs` still requires `--approver` and does not pass
+groups or cabs.
+
+Scratch goldens that now fail, left unedited:
+`approval_request_no_input` and `approval_request_send_unverified`
+(review JSON gained `recipient_sources: []`; plan hash
+`c920ebf2e43cd003d49aeff9cb60ab8811aa6820896ef977e0d8bebca81758a1`
+did not move), and `approval_request_dry_run` (email lookup now
+calls requester autocomplete, so the agents fixture misses and
+the duplicate-id check never runs).
+
+`port/fsv_coverage.py` maps `approval_recipients` to fsv-api.
+
+Still not triaged: `780c002`, `ad40a51`, `e173437`, `b310885`,
 `11e76ed`, `ffcab5b`, `e7c536b`.
