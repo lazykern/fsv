@@ -229,30 +229,42 @@ def send(plan: LifecyclePlan, client: Any, *, reviewed_hash: str | None) -> dict
                         content=json.dumps(body, sort_keys=True).encode(),
                         headers={"Content-Type": "application/json", "X-CSRF-Token": csrf})
 
+    # Phases for an explicit partial report: the note and the status are
+    # separate writes, and tenant workflows/rules can act between them.
+    phase = "start"
     try:
         if plan.note_html is not None:
             baseline = _record(client, plan.target)
             if journal.snapshot_hash(baseline) != json.loads(plan.context_hash)["record"]:
                 raise ReviewedWriteError("ticket changed before note save")
+            phase = "note_sent"
             put({"resolution_notes": plan.note_html, "br_validation_excludes": payload["br_validation_excludes"]})
             after = _record(client, plan.target)
             if not same_text(resolution_text(after), plan.note_html):
                 raise ReviewedWriteError("resolution save was not verified; transition not attempted")
+            phase = "note_saved"
             # A saved note may update timestamps/derived resolution fields, but
             # must not silently change routing, status, or existing answers.
-            for key in ("status", "group_id", "responder_id", "custom_fields"):
-                if key not in after or after[key] != baseline.get(key):
-                    raise ReviewedWriteError("ticket changed during note save; transition not attempted")
+            changed = [key for key in ("status", "group_id", "responder_id", "custom_fields")
+                       if key not in after or after[key] != baseline.get(key)]
+            if changed:
+                raise ReviewedWriteError("the ticket changed during the note save (" + ", ".join(changed) +
+                                         "), typically a tenant workflow or rule")
             fresh_payload, fresh_context, _ = context(client, plan.target, plan.status, answers, ack=ack)
             if (fresh_payload != payload or json.loads(fresh_context)["metadata"] !=
                     json.loads(plan.context_hash)["metadata"]):
-                raise ReviewedWriteError("transition requirements changed after note save")
+                raise ReviewedWriteError("transition requirements changed after the note save")
+        phase = "status_sent"
         put(payload)
         after = _record(client, plan.target)
         verified, notes = readback(before, after, payload, plan.note_html)
-    except Exception:
-        raise ReviewedWriteError("transition outcome unknown or partial; inspect ticket and journal; do not resend") from None
+    except Exception as exc:
+        raise ReviewedWriteError(_partial_report(client, plan, phase, exc)) from None
     if not verified:
+        if plan.note_html is not None and notes and notes[0].startswith("status is still"):
+            raise ReviewedWriteError(
+                f"resolution note saved; status unchanged ({_status_text(after)}): the status write was accepted but"
+                f" the ticket stayed put, held by a tenant workflow or rule. {_next_step(plan)}")
         raise ReviewedWriteError("transition readback mismatch (" + "; ".join(notes) +
                                  "); outcome unknown; do not resend")
     journal.record_plan("done", plan.hash, action=action, target=plan.target)
@@ -261,3 +273,40 @@ def send(plan: LifecyclePlan, client: Any, *, reviewed_hash: str | None) -> dict
     if notes:
         out["verified_with_note"] = notes
     return out
+
+
+def _status_text(row: Any) -> str:
+    if not isinstance(row, dict) or row.get("status") is None:
+        return "status unavailable on readback"
+    name = row.get("status_name")
+    return f"readback status {row['status']}" + (f" {name}" if isinstance(name, str) and name else "")
+
+
+def _next_step(plan: LifecyclePlan) -> str:
+    return (f"Next: inspect `fsv tickets get {plan.target}` and `fsv tickets activity {plan.target}` for the workflow/"
+            f"approval/rule entry; once it no longer holds the ticket, review the status alone with "
+            f"`fsv tickets status {plan.target} {plan.status} --dry-run` (the note is already saved). Do not resend this plan.")
+
+
+def _partial_report(client: Any, plan: LifecyclePlan, phase: str, exc: Exception) -> str:
+    """Explicit outcome for a failure between/after the two transition writes."""
+    from fsv.errors import APIError, server_message
+    try:
+        row = _record(client, plan.target)
+    except Exception:  # noqa: BLE001 - the report must not hide the original failure
+        row = None
+    status = _status_text(row)
+    reason = str(exc) if isinstance(exc, ReviewedWriteError) else ""
+    if isinstance(exc, APIError) and 400 <= exc.status < 500:
+        reason = f"HTTP {exc.status}" + (f": {server_message(exc.body)}" if server_message(exc.body) else "")
+    if phase == "note_saved":
+        return (f"resolution note saved and verified; status unchanged ({status}): transition not attempted because "
+                f"{reason or 'the ticket changed after the note save'}. {_next_step(plan)}")
+    if phase == "status_sent" and plan.note_html is not None:
+        what = f"the status write was rejected ({reason})" if reason else "the status write outcome is unknown"
+        return f"resolution note saved; {what}; {status}. {_next_step(plan)}"
+    if phase == "note_sent":
+        return (f"resolution note save outcome unknown{' (' + reason + ')' if reason else ''}; transition not attempted;"
+                f" {status}. Inspect the ticket and journal; do not resend this plan.")
+    return ("transition outcome unknown or partial" + (f" ({reason})" if reason else "") +
+            f"; {status}; inspect ticket and journal; do not resend")

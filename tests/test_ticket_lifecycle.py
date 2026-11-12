@@ -117,16 +117,28 @@ def test_missing_resolution_is_not_a_match(value):
     assert not c.writes
 
 
-@pytest.mark.parametrize("bad", ["bad_note", "change_after_note", "bad_status", "fail_first", "fail_second"])
-def test_partial_transactions_stay_started_and_never_replay(bad):
+@pytest.mark.parametrize("bad,report", [
+    ("bad_note", ["resolution note save outcome unknown", "transition not attempted"]),
+    # SR shape: a workflow/approval rewrote routing when the note saved, so the
+    # status write was never sent and the status stayed where it was.
+    ("change_after_note", ["resolution note saved and verified; status unchanged (readback status 31)",
+                           "group_id", "tickets status 123 Resolved --dry-run", "Do not resend this plan"]),
+    ("bad_status", ["resolution note saved; status unchanged (readback status 31)", "held by a tenant workflow or rule",
+                    "tickets activity 123"]),
+    ("fail_first", ["resolution note save outcome unknown (HTTP 403: synthetic rejection)"]),
+    ("fail_second", ["resolution note saved; the status write was rejected (HTTP 403: synthetic rejection)",
+                     "readback status 31"]),
+])
+def test_partial_transactions_stay_started_and_never_replay(bad, report):
     c = Client()
     if bad.startswith("fail"):
         c.fail_at = 1 if bad == "fail_first" else 2
     else:
         setattr(c, bad, True)
     p = flow.build_plan(c, 123, "Resolved", note="fix")
-    with pytest.raises(ReviewedWriteError, match="unknown|mismatch"):
+    with pytest.raises(ReviewedWriteError) as exc:
         flow.send(p, c, reviewed_hash=p.hash)
+    assert all(part in str(exc.value) for part in report), str(exc.value)
     count = len(c.writes)
     assert count == (2 if bad in {"bad_status", "fail_second"} else 1)
     assert journal.read()[-1]["event"] == "started"
