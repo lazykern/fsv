@@ -2971,4 +2971,42 @@ status (minimum 1) use it, and send the integer.
 
 No CLI follow-up.
 
-Still not triaged: commits after `7acec01`.
+## Ledger: `368a2d4` (library side)
+
+Triaged against `git show 368a2d4`
+(`368a2d4e6c0c3777b39dedcaabfe6a6847d5a743`). The filter-proof oracle
+was regenerated at `368a2d4` with three new sections: 20
+`name_valued_choice` cases, 11 `ticket_type` proofs and eight
+ticket-type query builds. All of them match. The earlier sections, the
+query-flow oracle and the ticket-bulk oracle regenerate unchanged.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `368a2d4`.
+The partial is the CLI wiring, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `368a2d4` | 11-13 02:23 | Filter ticket type by runtime choice name, not the ignored numeric ID | partial | fsv-api `filter_proof`, `query`. fsv-cli follow-up below |
+
+New `filter_proof::name_valued_choice` covers `default_ticket_type`
+fields. It resolves a label (stripped, casefolded) or a choice id to
+the one active choice name. Choices that are deleted or deactivated,
+or have a blank value, are skipped. Otherwise it refuses with "no
+unique runtime choice '<raw>' for <label or name>". `query::resolve_where`
+runs it before the generic choice branch, so the wire sends
+`ticket_type is_in ["Service Request"]`. `filter_proof::matches` proves
+a default `ticket_type` clause through `ticket_kind::exact_ticket_type`.
+It needs every clause value to be a string, and compares it casefolded
+only.
+
+### CLI handoff (do not edit fsv-cli here)
+
+- The CLI `resolve_where` (`crates/fsv-cli/src/filters.rs`) calls
+  `fsv_api::filter_proof::name_valued_choice(&field, &raw)` right
+  before its choice branch. On error it exits 2 with the message, and
+  on a name it emits `query_item(name, operator, [named], type_, ...)`.
+- Port `tests/test_ticket_type_filter.py`'s CLI cases: `tickets ls
+  --where type=Service Request` and `type=7402` both send the name
+  form. `type=Case` exits 2 before any `/api/_/tickets` read. Filtered
+  bulk by type still needs the independent proof.
+
+Still not triaged: commits after `368a2d4`.

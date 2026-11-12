@@ -1,6 +1,6 @@
 {
   "_python": {
-    "commit": "fbc54d41050d0fbc3d2f2c950cfff17a4f21c992",
+    "commit": "368a2d4e6c0c3777b39dedcaabfe6a6847d5a743",
     "dirty": false
   },
   "filterable": [
@@ -594,6 +594,712 @@
       ],
       "clauses": [],
       "ids": []
+    }
+  ],
+  "name_valued": [
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 4,
+            "value": "Service Request"
+          },
+          {
+            "id": 5,
+            "value": "Retired",
+            "deleted": true
+          }
+        ]
+      },
+      "raw": "Service Request",
+      "ok": "Service Request"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 4,
+            "value": "Service Request"
+          },
+          {
+            "id": 5,
+            "value": "Retired",
+            "deleted": true
+          }
+        ]
+      },
+      "raw": " service request ",
+      "ok": "Service Request"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 4,
+            "value": "Service Request"
+          },
+          {
+            "id": 5,
+            "value": "Retired",
+            "deleted": true
+          }
+        ]
+      },
+      "raw": "4",
+      "ok": "Service Request"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 4,
+            "value": "Service Request"
+          },
+          {
+            "id": 5,
+            "value": "Retired",
+            "deleted": true
+          }
+        ]
+      },
+      "raw": " 4 ",
+      "ok": "Service Request"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 4,
+            "value": "Service Request"
+          },
+          {
+            "id": 5,
+            "value": "Retired",
+            "deleted": true
+          }
+        ]
+      },
+      "raw": "Case",
+      "err": "no unique runtime choice 'Case' for Type"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 4,
+            "value": "Service Request"
+          },
+          {
+            "id": 5,
+            "value": "Retired",
+            "deleted": true
+          }
+        ]
+      },
+      "raw": "5",
+      "err": "no unique runtime choice '5' for Type"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 4,
+            "value": "Service Request"
+          },
+          {
+            "id": 5,
+            "value": "Retired",
+            "deleted": true
+          }
+        ]
+      },
+      "raw": "Retired",
+      "err": "no unique runtime choice 'Retired' for Type"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 4,
+            "value": "Service Request"
+          },
+          {
+            "id": 5,
+            "value": "Retired",
+            "deleted": true
+          }
+        ]
+      },
+      "raw": "9",
+      "err": "no unique runtime choice '9' for Type"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 4,
+            "value": "Service Request"
+          },
+          {
+            "id": 5,
+            "value": "Retired",
+            "deleted": true
+          }
+        ]
+      },
+      "raw": "",
+      "err": "no unique runtime choice '' for Type"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 6,
+            "value": "incident"
+          }
+        ]
+      },
+      "raw": "Incident",
+      "ok": "Incident"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 6,
+            "value": "Request"
+          }
+        ]
+      },
+      "raw": "Case",
+      "err": "no unique runtime choice 'Case' for Type"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": "Incident",
+            "value": "Request"
+          }
+        ]
+      },
+      "raw": "Incident",
+      "err": "no unique runtime choice 'Incident' for Type"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": true,
+            "value": "Incident"
+          }
+        ]
+      },
+      "raw": "True",
+      "err": "no unique runtime choice 'True' for Type"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": " "
+          },
+          {
+            "id": 4,
+            "value": 7
+          },
+          "x",
+          {
+            "id": 8,
+            "value": "Ops",
+            "deactivated": 1
+          }
+        ]
+      },
+      "raw": "3",
+      "err": "no unique runtime choice '3' for Type"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3.0,
+            "value": "Incident"
+          }
+        ]
+      },
+      "raw": "3.0",
+      "ok": "Incident"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": null,
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 4,
+            "value": "Service Request"
+          },
+          {
+            "id": 5,
+            "value": "Retired",
+            "deleted": true
+          }
+        ]
+      },
+      "raw": "Case",
+      "err": "no unique runtime choice 'Case' for ticket_type"
+    },
+    {
+      "field": {
+        "name": null,
+        "label": "",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 4,
+            "value": "Service Request"
+          },
+          {
+            "id": 5,
+            "value": "Retired",
+            "deleted": true
+          }
+        ]
+      },
+      "raw": "Case",
+      "err": "no unique runtime choice 'Case' for None"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_ticket_type",
+        "choices": null
+      },
+      "raw": "Incident",
+      "err": "no unique runtime choice 'Incident' for Type"
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": "default_status",
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 4,
+            "value": "Service Request"
+          },
+          {
+            "id": 5,
+            "value": "Retired",
+            "deleted": true
+          }
+        ]
+      },
+      "raw": "Incident",
+      "ok": null
+    },
+    {
+      "field": {
+        "name": "ticket_type",
+        "label": "Type",
+        "default_field": true,
+        "field_type": null,
+        "choices": [
+          {
+            "id": 3,
+            "value": "Incident"
+          },
+          {
+            "id": 4,
+            "value": "Service Request"
+          },
+          {
+            "id": 5,
+            "value": "Retired",
+            "deleted": true
+          }
+        ]
+      },
+      "raw": "Incident",
+      "ok": null
+    }
+  ],
+  "type_matches": [
+    {
+      "row": {
+        "type": "Service Request"
+      },
+      "clauses": [
+        {
+          "condition": "ticket_type",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            "Service Request"
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "row": {
+        "ticket_type": "Service Request"
+      },
+      "clauses": [
+        {
+          "condition": "ticket_type",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            "Service Request"
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "row": {
+        "type": "Incident"
+      },
+      "clauses": [
+        {
+          "condition": "ticket_type",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            "Service Request"
+          ]
+        }
+      ],
+      "ok": false
+    },
+    {
+      "row": {
+        "type": "Service Request",
+        "ticket_type": "Incident"
+      },
+      "clauses": [
+        {
+          "condition": "ticket_type",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            "Service Request"
+          ]
+        }
+      ],
+      "err": "predicate field unavailable in exact record: 'ticket_type'"
+    },
+    {
+      "row": {},
+      "clauses": [
+        {
+          "condition": "ticket_type",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            "Service Request"
+          ]
+        }
+      ],
+      "err": "predicate field unavailable in exact record: 'ticket_type'"
+    },
+    {
+      "row": {
+        "type": "service_request"
+      },
+      "clauses": [
+        {
+          "condition": "ticket_type",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            "service request"
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "row": {
+        "type": "service_request"
+      },
+      "clauses": [
+        {
+          "condition": "ticket_type",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            "service_request"
+          ]
+        }
+      ],
+      "ok": false
+    },
+    {
+      "row": {
+        "type": "Incident"
+      },
+      "clauses": [
+        {
+          "condition": "ticket_type",
+          "operator": "is_not_in",
+          "type": "default",
+          "value": [
+            "Service Request"
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "row": {
+        "type": "Incident"
+      },
+      "clauses": [
+        {
+          "condition": "ticket_type",
+          "operator": "is_in",
+          "type": "default",
+          "value": [
+            3
+          ]
+        }
+      ],
+      "err": "predicate cannot be independently verified for 'ticket_type'"
+    },
+    {
+      "row": {
+        "type": "Incident"
+      },
+      "clauses": [
+        {
+          "condition": "ticket_type",
+          "operator": "is_in",
+          "type": "custom_field",
+          "value": [
+            "Service Request"
+          ]
+        }
+      ],
+      "err": "predicate field unavailable in exact record: 'ticket_type'"
+    },
+    {
+      "row": {
+        "type": "Incident",
+        "custom_fields": {
+          "ticket_type": "Incident"
+        }
+      },
+      "clauses": [
+        {
+          "condition": "ticket_type",
+          "operator": "is_in",
+          "type": "custom_field",
+          "value": [
+            "Incident"
+          ]
+        }
+      ],
+      "ok": true
+    }
+  ],
+  "type_queries": [
+    {
+      "expr": "type=Service Request",
+      "ok": [
+        {
+          "value": [
+            "Service Request"
+          ],
+          "condition": "ticket_type",
+          "operator": "is_in",
+          "type": "default"
+        }
+      ]
+    },
+    {
+      "expr": "Type=service request",
+      "ok": [
+        {
+          "value": [
+            "Service Request"
+          ],
+          "condition": "ticket_type",
+          "operator": "is_in",
+          "type": "default"
+        }
+      ]
+    },
+    {
+      "expr": "ticket_type=4",
+      "ok": [
+        {
+          "value": [
+            "Service Request"
+          ],
+          "condition": "ticket_type",
+          "operator": "is_in",
+          "type": "default"
+        }
+      ]
+    },
+    {
+      "expr": "type!=Incident",
+      "ok": [
+        {
+          "value": [
+            "Incident"
+          ],
+          "condition": "ticket_type",
+          "operator": "is_not_in",
+          "type": "default"
+        }
+      ]
+    },
+    {
+      "expr": "type=Case",
+      "err": "no unique runtime choice 'Case' for Type"
+    },
+    {
+      "expr": "type=5",
+      "err": "no unique runtime choice '5' for Type"
+    },
+    {
+      "expr": "type=Retired",
+      "err": "no unique runtime choice 'Retired' for Type"
+    },
+    {
+      "expr": "type=9",
+      "err": "no unique runtime choice '9' for Type"
     }
   ]
 }

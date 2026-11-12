@@ -4,6 +4,7 @@
 use serde_json::{Map, Value};
 
 use fsv_core::error::{Error, Result};
+use fsv_core::pystr::{casefold, strip};
 use fsv_py::{py_str, truthy};
 
 use crate::QueryError;
@@ -47,6 +48,76 @@ pub fn require_filterable_field(field: &Value) -> std::result::Result<(), QueryE
         "filter operator unavailable in runtime metadata for {}; refusing an unproven filter (use explicit IDs)",
         repr(field.get("name"))
     )))
+}
+
+/// Field types whose list filter takes the choice name.
+pub const NAME_VALUED_CHOICES: [&str; 1] = ["default_ticket_type"];
+
+/// Port of `name_valued_choice`: the canonical choice name for fields
+/// whose list filter takes names. Saved ticket views filter type as
+/// `ticket_type is_in ["Service Request"]`; a numeric id is ignored by the
+/// tenant and silently returns every type. The label or id must resolve
+/// to exactly one active runtime choice name.
+pub fn name_valued_choice(
+    field: &Value,
+    raw: &str,
+) -> std::result::Result<Option<String>, QueryError> {
+    let kind = field
+        .get("field_type")
+        .filter(|v| truthy(v))
+        .map(py_str)
+        .unwrap_or_default();
+    if !NAME_VALUED_CHOICES.contains(&kind.as_str()) {
+        return Ok(None);
+    }
+    let wanted = strip(raw);
+    let folded = casefold(wanted);
+    let mut found: Vec<&str> = Vec::new();
+    for choice in field
+        .get("choices")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        let Some(choice) = choice.as_object() else {
+            continue;
+        };
+        if ["deleted", "is_deleted", "deactivated"]
+            .iter()
+            .any(|k| choice.get(*k).is_some_and(truthy))
+        {
+            continue;
+        }
+        let Some(value) = choice.get("value").and_then(Value::as_str) else {
+            continue;
+        };
+        if strip(value).is_empty() {
+            continue;
+        }
+        let by_id = choice
+            .get("id")
+            .is_some_and(|id| !id.is_null() && !id.is_boolean() && py_str(id) == wanted);
+        if casefold(strip(value)) == folded || by_id {
+            found.push(value);
+        }
+    }
+    let distinct: std::collections::BTreeSet<String> = found.iter().map(|v| casefold(v)).collect();
+    if distinct.len() != 1 {
+        let shown = field
+            .get("label")
+            .filter(|v| truthy(v))
+            .or_else(|| field.get("name"));
+        return Err(QueryError(format!(
+            "no unique runtime choice {} for {}",
+            fsv_py::py_repr_str(raw),
+            match shown {
+                Some(Value::String(s)) => s.clone(),
+                Some(other) => py_str(other),
+                None => "None".into(),
+            }
+        )));
+    }
+    Ok(found.first().map(|v| v.to_string()))
 }
 
 fn scalar(value: &Value) -> Result<String> {
@@ -97,6 +168,30 @@ pub fn matches(row: &Map<String, Value>, clauses: &[Value]) -> Result<bool> {
                 "predicate cannot be independently verified for {}",
                 repr(name)
             )));
+        }
+        if kind == Some("default") && field == "ticket_type" {
+            let Ok(actual) = crate::ticket_kind::exact_ticket_type(&Value::Object(row.clone()))
+            else {
+                return Err(Error::value(format!(
+                    "predicate field unavailable in exact record: {}",
+                    repr(name)
+                )));
+            };
+            let expected: Vec<String> = values
+                .iter()
+                .filter_map(Value::as_str)
+                .map(casefold)
+                .collect();
+            if expected.len() != values.len() {
+                return Err(Error::value(format!(
+                    "predicate cannot be independently verified for {}",
+                    repr(name)
+                )));
+            }
+            if expected.contains(&actual) != (op == "is_in") {
+                return Ok(false);
+            }
+            continue;
         }
         let source = if kind == Some("custom_field") {
             row.get("custom_fields").and_then(Value::as_object)
@@ -183,6 +278,58 @@ mod tests {
                 None => json!({"err": case["err"]}),
             };
             assert_eq!(got, want, "{} {}", case["row"], case["clauses"]);
+        }
+    }
+
+    fn ok_or_err<T: Into<Value>, E: std::fmt::Display>(r: std::result::Result<T, E>) -> Value {
+        match r {
+            Ok(v) => json!({"ok": v.into()}),
+            Err(e) => json!({"err": e.to_string()}),
+        }
+    }
+
+    fn want(case: &Value) -> Value {
+        match case.get("ok") {
+            Some(ok) => json!({"ok": ok}),
+            None => json!({"err": case["err"]}),
+        }
+    }
+
+    #[test]
+    fn name_valued_choices_match_python() {
+        assert_eq!(cases("name_valued").len(), 20);
+        for case in cases("name_valued") {
+            let got = ok_or_err(
+                name_valued_choice(&case["field"], case["raw"].as_str().unwrap()).map_err(|e| e.0),
+            );
+            assert_eq!(got, want(case), "{} {}", case["field"], case["raw"]);
+        }
+    }
+
+    #[test]
+    fn ticket_type_proof_reads_native_type() {
+        assert_eq!(cases("type_matches").len(), 11);
+        for case in cases("type_matches") {
+            let got = ok_or_err(matches(
+                case["row"].as_object().unwrap(),
+                case["clauses"].as_array().unwrap(),
+            ));
+            assert_eq!(got, want(case), "{} {}", case["row"], case["clauses"]);
+        }
+    }
+
+    #[test]
+    fn ticket_type_filters_send_choice_name() {
+        let schema = json!({"fields": [ORACLE["name_valued"][0]["field"].clone()]});
+        assert_eq!(cases("type_queries").len(), 8);
+        for case in cases("type_queries") {
+            let expr = case["expr"].as_str().unwrap().to_string();
+            let got = ok_or_err(
+                crate::query::build_query_hash_from_schema(None, "tickets", &schema, &[expr])
+                    .map(|q| serde_json::from_str::<Value>(&q.unwrap()).unwrap())
+                    .map_err(|e| e.0),
+            );
+            assert_eq!(got, want(case), "{}", case["expr"]);
         }
     }
 
