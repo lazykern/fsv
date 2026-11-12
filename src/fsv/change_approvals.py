@@ -18,6 +18,8 @@ from fsv import config, journal, views
 from fsv.client import get_client
 from fsv.errors import APIError
 from fsv.resources import CHANGES, parse_id
+from fsv import approval_recipients
+from fsv.reviewed_write import ReviewedWriteError
 
 RULES = {"everyone": (1, "Everyone"), "anyone": (2, "Anyone"),
          "majority": (3, "Majority"), "first-responder": (4, "First responder")}
@@ -48,10 +50,9 @@ def _recipient(value: str) -> None:
 
 
 def resolve_approvers(values: Sequence[str], client: Any = None) -> tuple[int, ...]:
-    """Explicit numeric agent IDs or unique active exact-email autocomplete hits.
+    """Explicit user IDs or exact requester-autocomplete IDs, as in the Users picker.
 
-    Autocomplete id is the agent ID; user_id belongs to the distinct user
-    namespace and must not be substituted for the captured notified_to IDs.
+    Agent-profile identities are not the recipient namespace.
     """
     if not isinstance(values, (list, tuple)) or not values:
         raise ValueError("at least one explicit approver is required")
@@ -63,7 +64,7 @@ def resolve_approvers(values: Sequence[str], client: Any = None) -> tuple[int, .
         if aid is None:
             try:
                 c = client if client is not None else get_client()
-                rows = c.autocomplete("agents", value)
+                rows = c.autocomplete("requesters", value)
                 if not isinstance(rows, list):
                     raise ValueError("unreadable lookup")
                 matches = [r for r in rows if isinstance(r, dict)
@@ -89,6 +90,7 @@ class ApprovalPlan:
     approver_ids: tuple[int, ...]
     tenant: str
     rule: str = "everyone"
+    recipient_context_json: str = ""
 
     @property
     def path(self) -> str:
@@ -103,18 +105,22 @@ class ApprovalPlan:
 
     @property
     def hash(self) -> str:
-        return journal.plan_hash({"tenant": self.tenant, "path": self.path, "payload": self.payload}) or ""
+        context = {"tenant": self.tenant, "path": self.path, "payload": self.payload}
+        if self.recipient_context_json:
+            context["recipient_sources"] = json.loads(self.recipient_context_json)
+        return journal.plan_hash(context) or ""
 
     def review(self) -> dict[str, Any]:
         return {"action": _ACTION, "tenant": self.tenant, "change_id": self.change_id,
                 "method": "POST", "path": f"/api/_/{self.path}", "payload": self.payload,
                 "recipients": list(self.approver_ids), "approval_rule": RULES[self.rule][1],
                 "message_text": self.message, "plan_hash": self.hash, "warning": _WARNING,
+                "recipient_sources": json.loads(self.recipient_context_json or "[]"),
                 "verification": "Complete before/after approval record IDs, exact new recipients, requested status and exact selected rule ID. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
                 "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted."}
 
 
-def build_plan(change_id: int | str, name: str, message: str, *, approver_ids: Sequence[int], rule: str = "everyone") -> ApprovalPlan:
+def build_plan(change_id: int | str, name: str, message: str, *, approver_ids: Sequence[int], rule: str = "everyone", recipient_context_json: str = "") -> ApprovalPlan:
     if isinstance(change_id, bool) or not isinstance(change_id, (int, str)):
         raise ValueError("change ID must be a positive display ID")
     cid = parse_id(str(change_id), CHANGES)
@@ -132,7 +138,7 @@ def build_plan(change_id: int | str, name: str, message: str, *, approver_ids: S
         raise ValueError("duplicate approver; specify each agent exactly once")
     if rule not in RULES:
         raise ValueError("rule must be everyone, anyone, majority or first-responder")
-    return ApprovalPlan(cid, name, message, tuple(approver_ids), config.DOMAIN, rule)
+    return ApprovalPlan(cid, name, message, tuple(approver_ids), config.DOMAIN, rule, recipient_context_json)
 
 
 class _InventoryPlan(Protocol):
@@ -304,7 +310,7 @@ def _verify_new(rows: list[dict[str, Any]], plan: ApprovalPlan) -> None:
 
 def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
          read_only: bool = False, dry_run: bool = False) -> dict[str, Any]:
-    if build_plan(plan.change_id, plan.name, plan.message, approver_ids=plan.approver_ids, rule=plan.rule) != plan:
+    if build_plan(plan.change_id, plan.name, plan.message, approver_ids=plan.approver_ids, rule=plan.rule, recipient_context_json=plan.recipient_context_json) != plan:
         raise ApprovalError("approval plan or tenant changed; review a new plan")
     if dry_run:
         return {"status": "dry_run", **plan.review()}
@@ -323,6 +329,7 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
         raise ApprovalError("this approval request was sent or its outcome is unknown; inspect the change and journal; do not resubmit")
     try:
         c = client if client is not None else get_client()
+        approval_recipients.validate(c, plan.change_id, plan.recipient_context_json)
         before_rows = _inventory(c, plan)
         before_ids = {_id(r["id"]) for r in before_rows}
         csrf = c._get_csrf()
@@ -393,7 +400,9 @@ def register(app: typer.Typer) -> None:
         id_: str = typer.Argument(..., metavar="CHANGE_ID"),
         name: str = typer.Option(..., "--name", help="exact approval group name"),
         message: str = typer.Option(..., "--message", help="plain text; always HTML-escaped"),
-        approver: list[str] = typer.Option(..., "--approver", help="explicit agent ID or exact email (repeatable; no implicit recipients)"),
+        approver: list[str] = typer.Option(None, "--approver", help="explicit recipient ID or exact email (repeatable)"),
+        approver_group: list[str] = typer.Option(None, "--approver-group", help="expand ALL eligible users of this exact group ID/name; review recipients"),
+        cab: list[str] = typer.Option(None, "--cab", "--approver-cab", help="expand ALL eligible users of this CAB ID/name; review recipients"),
         rule: str = typer.Option("everyone", "--rule", help="everyone, anyone, majority or first-responder"),
         dry_run: bool = typer.Option(False, "--dry-run", help="review only; emails may require read-only lookup"),
         read_only: bool = typer.Option(False, "--read-only", help="refuse approval requests"),
@@ -406,8 +415,13 @@ def register(app: typer.Typer) -> None:
             if read_only and not dry_run:
                 raise ApprovalError("read-only mode: no approval request was sent")
             # Validate everything local before any email lookup.
+            if not approver and not approver_group and not cab:
+                raise ValueError("provide --approver, --approver-group or --cab explicitly")
             build_plan(id_, name, message, approver_ids=[1], rule=rule)
-            plan = build_plan(id_, name, message, approver_ids=resolve_approvers(approver), rule=rule)
+            client = get_client() if approver_group or cab else None
+            extra, context = approval_recipients.resolve(client, parse_id(id_, CHANGES), approver_group or [], cab or [])
+            direct = resolve_approvers(approver) if approver else ()
+            plan = build_plan(id_, name, message, approver_ids=sorted(set(direct) | set(extra)), rule=rule, recipient_context_json=context)
             if dry_run:
                 typer.echo(json.dumps(send(plan, reviewed_hash=None, dry_run=True), indent=2))
                 return
@@ -427,6 +441,6 @@ def register(app: typer.Typer) -> None:
                 typer.echo(json.dumps(result, indent=2))
             else:
                 typer.echo(f"Approval requested on change {plan.change_id}; approval record IDs: {result['approval_ids']}; complete inventory verification: {result['verified']}; group name verified: {result['group_name_verified']}")
-        except (ValueError, ApprovalError) as exc:
+        except (ValueError, ApprovalError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

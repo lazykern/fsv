@@ -614,3 +614,18 @@ reads `articles` from the linked-solutions inventory, not an invented `solutions
 envelope. `problems status PRB-23 --to Closed` accepts persisted, nondeleted
 workaround/permanent links once analysis and runtime closure-required fields are
 satisfied; incomplete inventories still block closure.
+
+
+## Change group/CAB approvers
+
+`fsv changes approval-request CHN-23 --name 'Acme review' --message 'Review'
+--approver-group 'Acme reviewers' --cab 'Release review' --dry-run --json`
+resolves exact runtime groups/CABs and reads eligible `approval_users` from that
+change. These explicit flags select **all** eligible members; unlike opening the
+native chooser, they are not merely browsing checkboxes. Review every expanded
+recipient. Optional repeatable `--approver` adds individuals. Overlapping sources
+are deduplicated and flattened to `notified_to` user IDs; no group/CAB identity
+is sent in the create body. The full hash includes recipient-source membership,
+and a pre-send read blocks changed membership. Empty, incomplete, duplicate, or
+unavailable sources fail closed. Use `--yes --expect-plan FULL_HASH` only after
+review; email side effects cannot be undone by cancellation.

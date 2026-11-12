@@ -354,7 +354,7 @@ def test_invalid_plan(cid, name, message, ids):
         approvals.build_plan(cid, name, message, approver_ids=ids)
 
 
-def test_resolve_exact_active_agent_not_user_id(monkeypatch):
+def test_resolve_exact_active_requester_identity(monkeypatch):
     monkeypatch.setattr(approvals, "get_client", lambda: pytest.fail("implicit lookup"))
     assert approvals.resolve_approvers(["9000003001"]) == (9000003001,)
     row = {"id": 9000003001, "user_id": 9000003099, "email": "agent@example.com"}
