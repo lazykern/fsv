@@ -42,7 +42,7 @@ def columns_plan(client: Any, module: str, columns: list[str], frozen: list[str]
     payload = {"columns": {key: i + 1 for i, key in enumerate(columns)}, "frozen_columns": [*frozen, "display_id"]}
     payload["columns"]["display_id"] = payload["columns"]["ticket_subject"]
     return ListPlan("list_columns", 0, config.DOMAIN, "POST", f"{module}/headers",
-                    json.dumps(payload, sort_keys=True), journal.plan_hash(rows) or "",
+                    json.dumps(payload, sort_keys=True), journal.snapshot_hash(rows) or "",
                     json.dumps({"module": module, "columns": columns, "frozen": frozen}))
 
 
@@ -92,7 +92,7 @@ def export_plan(client: Any, module: str, view: str, fields: list[str]) -> ListP
         payload["state_filter"] = "created_at"
         if module == "changes":
             payload["advanced_data_hash"] = None
-    context = journal.plan_hash({"headers": rows, "view": row, "selection": selected.to_json()}) or ""
+    context = journal.snapshot_hash({"headers": rows, "view": row, "selection": selected.to_json()}) or ""
     return ListPlan("list_export", 0, config.DOMAIN, "POST", f"{module}/export",
                     json.dumps(payload, sort_keys=True), context,
                     json.dumps({"module": module, "view": selected.id, "fields": fields}))

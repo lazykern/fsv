@@ -42,6 +42,13 @@ def plan_hash(body: Any) -> str | None:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
+def snapshot_hash(body: Any) -> str | None:
+    """Hash stable read-side state; keep plan_hash exact for wire payloads."""
+    from fsv.reviewed_snapshot import stable_snapshot
+
+    return plan_hash(stable_snapshot(body))
+
+
 def _split_path(url: str) -> list[str]:
     path = re.sub(r"^https?://[^/]+", "", url).split("?", 1)[0].split("#", 1)[0]
     return [p if p in _PATH_SEGMENTS or _ID_SEGMENT.fullmatch(p) else "[redacted]"

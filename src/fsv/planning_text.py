@@ -7,6 +7,7 @@ from typing import Any
 from urllib.parse import parse_qs, quote, unquote, urlsplit
 
 from fsv import config, journal, schema
+from fsv.reviewed_snapshot import stable_snapshot
 from fsv.create import match_planning_row, planning_definitions, planning_server_key, resolve_planning_definition
 from fsv.readback import same_text
 from fsv.resources import CHANGES, PROBLEMS, parse_id
@@ -54,7 +55,7 @@ class PlanningTextPlan(WritePlan):
 
     @property
     def hash(self) -> str:
-        return journal.plan_hash({"wire_plan": super().hash, "before": self.before}) or ""
+        return journal.plan_hash({"wire_plan": super().hash, "before": stable_snapshot(self.before)}) or ""
 
     def review(self) -> dict[str, Any]:
         return {**super().review(), "operation": "clear" if self.method == "DELETE" else
@@ -113,7 +114,7 @@ def build_plan(client: Any, module: str, target: str | int, section: str,
     return PlanningTextPlan(f"{module}_planning_text", cid, config.DOMAIN, method, path,
                             json.dumps(None if clear else {"description": description},
                                        sort_keys=True, ensure_ascii=False),
-                            journal.plan_hash({"definitions": defs, "rows": rows}) or "", before)
+                            journal.snapshot_hash({"definitions": defs, "rows": rows}) or "", before)
 
 
 def send(plan: WritePlan, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:

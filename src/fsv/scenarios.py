@@ -20,7 +20,7 @@ def build_plan(client: Any, target: str | int, scenario_id: int) -> WritePlan:
     scenario_id = positive_id(scenario_id)
     payload = {"scenario_id": scenario_id, "ids": [target]}
     return WritePlan("ticket_scenario", target, config.DOMAIN, "PUT", "tickets/execute_scenario",
-                     json.dumps(payload, sort_keys=True), journal.plan_hash(context(client, target, scenario_id)) or "")
+                     json.dumps(payload, sort_keys=True), journal.snapshot_hash(context(client, target, scenario_id)) or "")
 
 
 def send(plan: WritePlan, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:

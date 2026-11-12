@@ -63,7 +63,7 @@ def status_context(client: Any, cid: int, label: str) -> tuple[int, str, str]:
                 any("unknown field" in w or "none was given" in w for w in state.rules.warnings)):
             raise ValueError("status form rules or context unavailable")
         token = build_br_validation_excludes(state.evaluated, "ticket")
-        return choices[0].id, token, journal.plan_hash(row) or ""
+        return choices[0].id, token, journal.snapshot_hash(row) or ""
     except Exception:
         raise ConversationError("could not resolve Pending and evaluate ticket rules from fresh metadata; no send attempted") from None
 

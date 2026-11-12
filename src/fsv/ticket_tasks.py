@@ -133,7 +133,7 @@ def build_plan(client: Any, target: str | int, *, action: str, task: str | int |
             payload["custom_fields"] = custom
     inputs = {"action": action, "task": task, "title": title, "status": status, "values": values}
     return TaskPlan("ticket_task_" + action, target, config.DOMAIN, "POST" if action == "add" else "PUT",
-                    path, json.dumps(payload, sort_keys=True), journal.plan_hash({"before": before, "fields": fields}) or "",
+                    path, json.dumps(payload, sort_keys=True), journal.snapshot_hash({"before": before, "fields": fields}) or "",
                     json.dumps(inputs, sort_keys=True))
 
 

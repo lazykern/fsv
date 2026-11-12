@@ -35,12 +35,12 @@ def build_plan(client: Any, ticket_id: str | int, note_id: str | int, *, body: s
     payload = None if body is None else {"body": note_plan(cid, body).body_html, "conversation_from_summary": False}
     return WritePlan(action, cid, config.DOMAIN, "DELETE" if body is None else "PUT",
                      f"conversations/{nid}", json.dumps(payload, sort_keys=True, ensure_ascii=False),
-                     journal.plan_hash(before) or "")
+                     journal.snapshot_hash(before) or "")
 
 
 def review(plan: WritePlan, client: Any) -> dict[str, Any]:
     before = _note(client, plan.target, int(plan.path.rsplit("/", 1)[-1]))
-    if journal.plan_hash(before) != plan.context_hash:
+    if journal.snapshot_hash(before) != plan.context_hash:
         raise ReviewedWriteError("note changed since review; review again")
     return {**plan.review(), "ticket_id": plan.target, "before": before}
 
@@ -51,7 +51,7 @@ def send(plan: WritePlan, client: Any, *, reviewed_hash: str | None) -> dict[str
     def rebuild() -> WritePlan:
         before = _note(client, plan.target, nid)
         return WritePlan(plan.action, plan.target, config.DOMAIN, plan.method, plan.path, plan.payload_json,
-                         journal.plan_hash(before) or "")
+                         journal.snapshot_hash(before) or "")
     def verify(_response: Any) -> dict[str, Any]:
         rows, meta, missing = load_conversations(client, plan.target, all_pages=True)
         complete = not missing and not meta.get("partial")

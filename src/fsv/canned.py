@@ -51,12 +51,12 @@ def reply_plan(client: Any, target: str, response_id: int, pointer: str, *, send
     raw = show(client, response_id)
     plan = build_plan(client, target, content(raw, pointer), body_format="html", sender=sender)
     return replace(plan, canned_id=response_id, canned_pointer=pointer,
-                   canned_hash=journal.plan_hash(raw))
+                   canned_hash=journal.snapshot_hash(raw))
 
 
 def freshen(plan: ConversationPlan, client: Any) -> None:
     raw = show(client, plan.canned_id)
-    if journal.plan_hash(raw) != plan.canned_hash or content(raw, plan.canned_pointer) != plan.payload["body"]:
+    if journal.snapshot_hash(raw) != plan.canned_hash or content(raw, plan.canned_pointer) != plan.payload["body"]:
         raise ConversationError("canned source changed; review again")
 
 

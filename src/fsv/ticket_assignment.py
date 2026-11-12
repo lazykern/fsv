@@ -107,7 +107,7 @@ def build_plan(client: Any, ids: Sequence[str | int], *, agent: str | None = Non
         path, body, action = "tickets/pick_up", {"ids": cids}, "ticket_pick_up"
     else:
         path, body, action = f"tickets/{cids[0]}", plans[0].payload, "ticket_assign"
-    context = journal.plan_hash({"properties": [p.hash for p in plans], "bootstrap": boot,
+    context = journal.snapshot_hash({"properties": [p.hash for p in plans], "bootstrap": boot,
                                  "pickup_agent": _positive(agent_row["id"]) if pickup and agent_row else None}) or ""
     write = WritePlan(action, cids[0], config.DOMAIN, "PUT", path, json.dumps(body, sort_keys=True), context)
     intent = {"ids": cids, "agent": agent, "group": group, "unassign": unassign, "pickup": pickup,

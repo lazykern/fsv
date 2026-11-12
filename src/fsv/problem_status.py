@@ -73,7 +73,7 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
             raise ReviewedWriteError("violated_closure_rules: missing required closure fields: " + ", ".join(missing))
     context = {"before": before, "fields": meta.form_fields, "rules": meta.rules, "closure": closure}
     return StatusPlan("problem_status", target, config.DOMAIN, "PUT", f"problems/{target}",
-                      json.dumps({"status": status_id}), journal.plan_hash(context) or "", label,
+                      json.dumps({"status": status_id}), journal.snapshot_hash(context) or "", label,
                       json.dumps(before, sort_keys=True))
 
 

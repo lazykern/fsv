@@ -50,7 +50,7 @@ def build_plan(client: Any, module: str, target: str | int, *, watch: bool) -> W
         method, path, payload = "DELETE", f"changes/{cid}/unwatch?user_id={user}", None
     context = {"self": user, "before": before, "watch": watch}
     return WritePlan(f"{module}_self_{'watch' if watch else 'unwatch'}", cid, config.DOMAIN,
-                     method, path, json.dumps(payload, sort_keys=True), journal.plan_hash(context) or "")
+                     method, path, json.dumps(payload, sort_keys=True), journal.snapshot_hash(context) or "")
 
 
 def send(plan: WritePlan, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:

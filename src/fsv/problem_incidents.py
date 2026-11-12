@@ -45,7 +45,7 @@ def build_plan(client: Any, problem: str | int, incident: str | int, *, unlink: 
         raise ReviewedWriteError("incident is already in the requested association state")
     path = f"problems/{pid}/tickets/{tid if unlink else 'associate'}"
     payload = {"type": "unlink"} if unlink else {"item_ids": [tid]}
-    context = journal.plan_hash({"problem": pr, "ticket": ticket, "inventory": rows}) or ""
+    context = journal.snapshot_hash({"problem": pr, "ticket": ticket, "inventory": rows}) or ""
     return WritePlan("problem_unlink_incident" if unlink else "problem_link_incident", pid, config.DOMAIN,
                      "DELETE" if unlink else "PUT", path, json.dumps(payload, sort_keys=True), context)
 

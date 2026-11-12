@@ -66,7 +66,7 @@ def build_plan(client: Any, source_id: int, *, action: str, name: str | None = N
                    "visibility": visibility, "query_hash": row["query_hash"], "advanced_query_hash": None,
                    "order_by": row["order_by"], "order_type": row["order_type"]}
         method, path = ("POST", "ticket_filters") if action == "create" else ("PUT", f"ticket_filters/{source_id}")
-    context = journal.plan_hash({"self": user, "source": row, "source_id": source_id}) or ""
+    context = journal.snapshot_hash({"self": user, "source": row, "source_id": source_id}) or ""
     return ViewPlan("private_view_" + action, source_id, config.DOMAIN, method, path,
                     json.dumps(payload, sort_keys=True, ensure_ascii=False), context, source_id)
 

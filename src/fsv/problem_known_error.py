@@ -22,7 +22,7 @@ def build_plan(client: Any, target: str | int) -> WritePlan:
     cid = positive_id(parse_id(str(target), PROBLEMS))
     row = record(client, cid)
     return WritePlan("problem_known_error_mark", cid, config.DOMAIN, "PUT", f"problems/{cid}",
-                     json.dumps({"known_error": True}), journal.plan_hash(row) or "")
+                     json.dumps({"known_error": True}), journal.snapshot_hash(row) or "")
 
 
 def send(plan: WritePlan, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:

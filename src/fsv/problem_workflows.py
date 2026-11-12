@@ -116,7 +116,7 @@ def child_plan(client: Any, target: str | int, *, kind: str, text: str) -> Probl
         context.update(fields=fields, self=user)
     return ProblemPlan("problem_" + kind, target, config.DOMAIN, "POST",
                        f"problems/{target}/" + ("notes" if kind == "note" else "tasks"),
-                       json.dumps(payload, sort_keys=True, ensure_ascii=False), journal.plan_hash(context) or "",
+                       json.dumps(payload, sort_keys=True, ensure_ascii=False), journal.snapshot_hash(context) or "",
                        json.dumps({"text": text, "kind": kind}))
 
 

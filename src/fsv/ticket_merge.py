@@ -5,6 +5,7 @@ import json
 from typing import Any, Sequence
 
 from fsv import config, journal
+from fsv.reviewed_snapshot import stable_snapshot
 from fsv.formmeta import is_status, load_meta
 from fsv.readback import same_text, submitted_value_matches
 from fsv.resources import TICKETS, parse_id
@@ -61,7 +62,7 @@ def build_plan(client: Any, primary: str | int, secondaries: Sequence[str | int]
     payload = {"target": {"ticket_id": target, "note": note_primary, "is_private": private_primary},
                "source": {"ticket_ids": ids, "note": note_secondary, "is_private": private_secondary}}
     return WritePlan("ticket_merge", target, config.DOMAIN, "POST", "merge_tickets/complete_merge",
-                     json.dumps(payload, sort_keys=True, ensure_ascii=False), json.dumps(context, sort_keys=True, ensure_ascii=False))
+                     json.dumps(payload, sort_keys=True, ensure_ascii=False), json.dumps(stable_snapshot(context), sort_keys=True, ensure_ascii=False))
 
 
 def review(plan: WritePlan) -> dict[str, Any]:

@@ -76,7 +76,7 @@ def build_plan(client: Any, target: str | int, *, action: str, entry_id: int | N
                 current = f"{seconds // 3600:02d}:{seconds // 60 % 60:02d}"
             payload = {"time_spent": _duration(spent if spent is not None else current),
                        "note": note if note is not None else row["note"]}
-    context = journal.plan_hash({"self": user, "entries": rows}) or ""
+    context = journal.snapshot_hash({"self": user, "entries": rows}) or ""
     return WritePlan(f"ticket_time_{action}", cid, config.DOMAIN, method, path,
                      json.dumps(payload, sort_keys=True, ensure_ascii=False), context)
 

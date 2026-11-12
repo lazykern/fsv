@@ -200,7 +200,7 @@ def conversation_plan(client: Any, target: str | int, body: str, paths: list[str
     parent = owner_row(client, "tickets", plan.ticket_id)
     raw = metadata(client, "tickets")
     base = WritePlan("ticket_" + kind + "_attachments", plan.ticket_id, config.DOMAIN, "POST", plan.path,
-                     plan.payload_json, journal.plan_hash({"parent": parent, "metadata": raw}) or "")
+                     plan.payload_json, journal.snapshot_hash({"parent": parent, "metadata": raw}) or "")
     return wrap(base, paths, raw, client=client, max_bytes=max_bytes)
 
 
@@ -210,7 +210,7 @@ def problem_note_plan(client: Any, target: str | int, body: str, paths: list[str
     plan = child_plan(client, target, kind="note", text=body)
     raw = metadata(client, "problems")
     base = WritePlan("problem_note_attachments", plan.target, config.DOMAIN, plan.method, plan.path,
-                     plan.payload_json, journal.plan_hash({"base": plan.hash, "metadata": raw}) or "")
+                     plan.payload_json, journal.snapshot_hash({"base": plan.hash, "metadata": raw}) or "")
     return wrap(base, paths, raw, client=client, max_bytes=max_bytes)
 
 
@@ -351,7 +351,7 @@ def delete_plan(client: Any, ident: int | str, owner: str, *, child: int | None 
     if ident not in {positive_id(r["id"]) for r in _rows_attachments(row)}:
         raise ReviewedWriteError("attachment not present on exact owner; orphan deletion cannot be verified")
     return WritePlan("attachment_delete", ident, config.DOMAIN, "DELETE", f"attachments/{ident}", "null",
-                     journal.plan_hash({"owner": owner, "child": child, "section": section, "row": row}) or "")
+                     journal.snapshot_hash({"owner": owner, "child": child, "section": section, "row": row}) or "")
 
 
 def delete(plan: WritePlan, client: Any, owner: str, *, reviewed_hash: str | None,

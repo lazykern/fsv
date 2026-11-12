@@ -39,6 +39,12 @@ def api(request, monkeypatch, tmp_path):
                 return httpx.Response(200, json={"attachment_settings": {"max_attachment_size_bytes": s["limit"]}})
             if path == "tickets/123/conversations":
                 rows = copy.deepcopy(s["conversations"])
+                if s.get("rotate"):
+                    s["reads"] = s.get("reads", 0) + 1
+                    for row in rows:
+                        for file in row.get("attachments", []):
+                            file.update(attachment_url=f"https://files.example.com/acme?Expires={s['reads']}&Signature=synthetic&Key-Pair-Id=key",
+                                        updated_at=str(s["reads"]))
                 if s["mismatch"] and rows:
                     rows[0]["attachments"] = []
                 return httpx.Response(200, json={"conversations": rows, "has_more": s["partial"]})
@@ -276,6 +282,25 @@ def test_cli_max_bytes_option(api, kind):
     assert r.exit_code == 0, r.output
     assert json.loads(r.output)["attachment_size_limit"]["max_bytes"] == 4096
     assert not s["writes"]
+
+
+def test_cli_delete_signed_attachment_uses_same_review_and_send_hash(api):
+    _, s, _, base = api
+    s["conversations"] = [{"id": 901, "body": "Acme note", "attachments": [{"id": base, "name": "acme.txt", "size": 12}]}]
+    s["rotate"] = True
+    runner = CliRunner()
+    args = ["attachments", "delete", str(base), "--owner", "tickets/123", "--child", "901"]
+    first = runner.invoke(cli.app, args + ["--dry-run"])
+    second = runner.invoke(cli.app, args + ["--dry-run"])
+    assert first.exit_code == second.exit_code == 0
+    hash_ = json.loads(first.output)["plan_hash"]
+    assert json.loads(second.output)["plan_hash"] == hash_
+    assert not s["writes"]
+    assert runner.invoke(cli.app, args + ["--yes", "--expect-plan", hash_[:16]]).exit_code == 2
+    sent = runner.invoke(cli.app, args + ["--yes", "--expect-plan", hash_])
+    assert sent.exit_code == 0, sent.output
+    assert json.loads(sent.output)["verified"]
+    assert s["writes"] == [("DELETE", f"attachments/{base}", None)]
 
 
 def test_unknown_upload_id_stops_owner(api):

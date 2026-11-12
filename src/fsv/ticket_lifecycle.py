@@ -80,7 +80,7 @@ def context(client: Any, cid: int, status: str, answers: dict[str, Any] | None =
         payload[key] = row[key]
     if custom:
         payload["custom_fields"] = custom
-    return payload, json.dumps({"record": journal.plan_hash(row), "metadata": meta.fingerprint.hash}, sort_keys=True), choice.label
+    return payload, json.dumps({"record": journal.snapshot_hash(row), "metadata": meta.fingerprint.hash}, sort_keys=True), choice.label
 
 
 @dataclass(frozen=True)
@@ -165,7 +165,7 @@ def send(plan: LifecyclePlan, client: Any, *, reviewed_hash: str | None) -> dict
     try:
         if plan.note_html is not None:
             baseline = _record(client, plan.target)
-            if journal.plan_hash(baseline) != json.loads(plan.context_hash)["record"]:
+            if journal.snapshot_hash(baseline) != json.loads(plan.context_hash)["record"]:
                 raise ReviewedWriteError("ticket changed before note save")
             put({"resolution_notes": plan.note_html, "br_validation_excludes": payload["br_validation_excludes"]})
             after = _record(client, plan.target)

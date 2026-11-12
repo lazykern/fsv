@@ -24,7 +24,14 @@ def api(request, monkeypatch, tmp_path):
             assert req.url.path == "/api/_/tickets/123/conversations"
             if state["partial"]:
                 return httpx.Response(403, json={"message": "denied"})
-            return httpx.Response(200, json={"conversations": copy.deepcopy(state["rows"]), "meta": {"count": len(state["rows"])}})
+            rows = copy.deepcopy(state["rows"])
+            if state.get("rotate"):
+                state["reads"] = state.get("reads", 0) + 1
+                for row in rows:
+                    for file in row.get("attachments", []):
+                        file.update(attachment_url=f"https://files.example.com/acme?Expires={state['reads']}&Signature=synthetic&Key-Pair-Id=key",
+                                    updated_at=str(state["reads"]))
+            return httpx.Response(200, json={"conversations": rows, "meta": {"count": len(rows)}})
         state["writes"].append((req.method, req.url.path, json.loads(req.content) if req.content else None))
         if state["fail"] == "disconnect":
             raise httpx.ReadError("disconnect", request=req)
@@ -99,6 +106,33 @@ def test_preflight_and_freshness_fail_closed(api):
     state["partial"] = True
     with pytest.raises(ReviewedWriteError, match="history unavailable"):
         flow.build_plan(c, 123, 99001)
+    assert not state["writes"]
+
+
+@pytest.mark.parametrize("body", [None, "New & text"])
+def test_signed_attachment_churn_survives_review_and_send(api, body):
+    c, state = api
+    state["rows"][0]["attachments"] = [{"id": 701, "name": "acme.txt", "size": 12}]
+    state["rotate"] = True
+    p = flow.build_plan(c, 123, 99001, body=body)
+    assert flow.review(p, c)["plan_hash"] == p.hash
+    assert flow.build_plan(c, 123, 99001, body=body).hash == p.hash
+    assert not state["writes"]
+    assert flow.send(p, c, reviewed_hash=p.hash)["verified"]
+    assert len(state["writes"]) == 1
+
+
+@pytest.mark.parametrize("field,value", [("body", "Changed"), ("private", False), ("attachments", [])])
+def test_signed_attachment_churn_does_not_hide_real_note_changes(api, field, value):
+    c, state = api
+    state["rows"][0]["attachments"] = [{"id": 701, "name": "acme.txt", "size": 12}]
+    state["rotate"] = True
+    p = flow.build_plan(c, 123, 99001)
+    state["rows"][0][field] = value
+    with pytest.raises(ReviewedWriteError, match="changed"):
+        flow.review(p, c)
+    with pytest.raises(ReviewedWriteError, match="changed"):
+        flow.send(p, c, reviewed_hash=p.hash)
     assert not state["writes"]
 
 

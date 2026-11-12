@@ -6,6 +6,7 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 from fsv import config, journal
+from fsv.reviewed_snapshot import stable_snapshot
 from fsv.readback import same_instant
 from fsv.change_tasks import _date
 from fsv.errors import APIError
@@ -52,7 +53,7 @@ class PropertyPlan:
     @property
     def hash(self) -> str:
         intent = {"tenant": self.tenant, "ticket_id": self.ticket_id,
-                  "payload": self.payload, "before": self.before, "record_hash": self.record_hash}
+                  "payload": self.payload, "before": stable_snapshot(self.before), "record_hash": self.record_hash}
         if self.metadata_hash:
             intent["metadata_hash"] = self.metadata_hash
         return journal.plan_hash(intent) or ""
@@ -154,7 +155,7 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
     except Exception:
         raise PropertyError("could not evaluate ticket edit form and rules; no update attempted") from None
     return PropertyPlan(cid, config.DOMAIN, json.dumps(body, sort_keys=True, ensure_ascii=False),
-                        json.dumps(before, sort_keys=True, ensure_ascii=False), journal.plan_hash(row) or "",
+                        json.dumps(before, sort_keys=True, ensure_ascii=False), journal.snapshot_hash(row) or "",
                         json.dumps(answers or {}, sort_keys=True, ensure_ascii=False),
                         meta.fingerprint.hash if answers else "")
 
