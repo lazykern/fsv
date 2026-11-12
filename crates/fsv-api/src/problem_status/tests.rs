@@ -249,3 +249,27 @@ fn cases_match_python() {
         assert_eq!(json!(journal.events()), case["events"], "{name} events");
     }
 }
+
+/// `test_workflow_activity_confirms_rewrite_back_to_prior_status` and
+/// `test_workflow_rewrite_back_to_prior_status_uses_native_activity_rows`
+/// (Python ce84f9b).
+#[test]
+fn workflow_activity_note_matches_python() {
+    let oracle: Value = serde_json::from_str(include_str!(
+        "../testdata/problem_status_activity_oracle.json"
+    ))
+    .unwrap();
+    let cases = oracle["cases"].as_array().unwrap();
+    assert_eq!(cases.len(), 12);
+    for case in cases {
+        let (dt, off) =
+            fsv_forms::pydt::datetime_fromisoformat(case["since"].as_str().unwrap()).unwrap();
+        let since = off.unwrap().to_timestamp(dt).unwrap();
+        let got = workflow_note(
+            case["rows"].as_array().unwrap(),
+            since,
+            case["requested"].as_str(),
+        );
+        assert_eq!(json!(got), case["expected"], "{}", case["name"]);
+    }
+}

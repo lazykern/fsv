@@ -3492,4 +3492,34 @@ transition results. Apply the strings patch and update the
 goldens. Port the d699b8c tests in `tests/test_ticket_lifecycle.py` and
 `tests/test_ticket_properties.py`.
 
-Still not triaged: commits after `d699b8c`.
+## Ledger: `ce84f9b` (library side)
+
+Triaged against `git show ce84f9b`
+(`ce84f9b4050708b42a94b03fa3860dcfc8190181`). The problem status
+activity check reads native rows: the workflow row carries the status it
+set in `sub_contents`. With the plan label, the first activity page must
+show this write's own `set status as <label>` entry (not a workflow row,
+compared casefolded with whitespace normalized), and a workflow row that
+set a status no older than that entry. The note names the requested
+label, the rewritten label, and the workflow actor (`workflow` when
+unnamed). Otherwise the readback stays unverified. Rows before `since`
+or without an aware `created_at` do not count.
+
+`problem_status_activity_oracle.json` is stamped `ce84f9b`, generated
+by an inline `uv run python -` over `problem_status.workflow_activity_note`
+(12 cases: legacy content rows, native rows, wrong label, stale workflow,
+outside the window, workflow without a status, anonymous actor, naive or
+junk rows).
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `ce84f9b`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `ce84f9b` | 11-13 05:02 | fix: verify problem status rewrites back to the prior status from activity | ported | fsv-api (`problem_status`) |
+
+### CLI follow-up
+
+`problems status` already prints `verified_with_note`. Port the
+`test_problem_status.py` send case with an activities route.
+
+Still not triaged: commits after `ce84f9b`.

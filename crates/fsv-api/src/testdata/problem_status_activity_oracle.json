@@ -1,0 +1,305 @@
+{
+ "_python": {
+  "commit": "ce84f9b4050708b42a94b03fa3860dcfc8190181",
+  "dirty": false
+ },
+ "cases": [
+  {
+   "name": "legacy_content",
+   "rows": [
+    {
+     "created_at": "2030-01-01T00:01:00Z",
+     "content": "executed <a>Acme status workflow</a> (Workflow), set status as <b>Monitor</b>"
+    }
+   ],
+   "since": "2030-01-01T00:00:00+00:00",
+   "requested": null,
+   "expected": "status rewritten server-side after the write (activity shows a workflow set it)"
+  },
+  {
+   "name": "legacy_old",
+   "rows": [
+    {
+     "created_at": "2029-12-31T23:00:00Z",
+     "content": "executed <a>Acme status workflow</a> (Workflow), set status as <b>Monitor</b>"
+    }
+   ],
+   "since": "2030-01-01T00:00:00+00:00",
+   "requested": null,
+   "expected": null
+  },
+  {
+   "name": "legacy_other",
+   "rows": [
+    {
+     "created_at": "2030-01-01T00:01:00Z",
+     "content": "set priority as <b>Low</b>"
+    }
+   ],
+   "since": "2030-01-01T00:00:00+00:00",
+   "requested": null,
+   "expected": null
+  },
+  {
+   "name": "native",
+   "rows": [
+    {
+     "actor": {
+      "id": 0,
+      "name": "Problem Workflow",
+      "is_agent_deleted": false
+     },
+     "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed (any to any)</b>  event",
+     "sub_contents": [
+      "set status as <b>Monitor</b>",
+      "<b>Workflow Ends</b>"
+     ],
+     "created_at": "2030-01-01T00:01:01Z"
+    },
+    {
+     "actor": {
+      "id": 9000001,
+      "name": "Acme Agent",
+      "is_agent": true
+     },
+     "content": "set status as  <b>Resolve</b> , set planned end date as  <b>Thu, 2 Jan  4:30 PM</b>",
+     "sub_contents": null,
+     "created_at": "2030-01-01T00:01:00Z"
+    }
+   ],
+   "since": "2030-01-01T00:00:00+00:00",
+   "requested": "Resolve",
+   "expected": "status set to Resolve by this write, then rewritten server-side to Monitor by a workflow (Problem Workflow) per the activity log"
+  },
+  {
+   "name": "native_no_requested",
+   "rows": [
+    {
+     "actor": {
+      "id": 0,
+      "name": "Problem Workflow",
+      "is_agent_deleted": false
+     },
+     "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed (any to any)</b>  event",
+     "sub_contents": [
+      "set status as <b>Monitor</b>",
+      "<b>Workflow Ends</b>"
+     ],
+     "created_at": "2030-01-01T00:01:01Z"
+    },
+    {
+     "actor": {
+      "id": 9000001,
+      "name": "Acme Agent",
+      "is_agent": true
+     },
+     "content": "set status as  <b>Resolve</b> , set planned end date as  <b>Thu, 2 Jan  4:30 PM</b>",
+     "sub_contents": null,
+     "created_at": "2030-01-01T00:01:00Z"
+    }
+   ],
+   "since": "2030-01-01T00:00:00+00:00",
+   "requested": null,
+   "expected": "status rewritten server-side after the write (activity shows a workflow set it)"
+  },
+  {
+   "name": "native_other_label",
+   "rows": [
+    {
+     "actor": {
+      "id": 0,
+      "name": "Problem Workflow",
+      "is_agent_deleted": false
+     },
+     "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed (any to any)</b>  event",
+     "sub_contents": [
+      "set status as <b>Monitor</b>",
+      "<b>Workflow Ends</b>"
+     ],
+     "created_at": "2030-01-01T00:01:01Z"
+    },
+    {
+     "actor": {
+      "id": 9000001,
+      "name": "Acme Agent",
+      "is_agent": true
+     },
+     "content": "set status as  <b>Resolve</b> , set planned end date as  <b>Thu, 2 Jan  4:30 PM</b>",
+     "sub_contents": null,
+     "created_at": "2030-01-01T00:01:00Z"
+    }
+   ],
+   "since": "2030-01-01T00:00:00+00:00",
+   "requested": "Closed",
+   "expected": null
+  },
+  {
+   "name": "native_case_space",
+   "rows": [
+    {
+     "actor": {
+      "id": 0,
+      "name": "Problem Workflow",
+      "is_agent_deleted": false
+     },
+     "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed (any to any)</b>  event",
+     "sub_contents": [
+      "set status as <b>Monitor</b>",
+      "<b>Workflow Ends</b>"
+     ],
+     "created_at": "2030-01-01T00:01:01Z"
+    },
+    {
+     "actor": {
+      "id": 9000001,
+      "name": "Acme Agent",
+      "is_agent": true
+     },
+     "content": "set status as  <b>In  Progress</b> , set planned end date as  <b>Thu, 2 Jan  4:30 PM</b>",
+     "sub_contents": null,
+     "created_at": "2030-01-01T00:01:00Z"
+    }
+   ],
+   "since": "2030-01-01T00:00:00+00:00",
+   "requested": "in progress",
+   "expected": "status set to in progress by this write, then rewritten server-side to Monitor by a workflow (Problem Workflow) per the activity log"
+  },
+  {
+   "name": "stale_workflow",
+   "rows": [
+    {
+     "actor": {
+      "id": 0,
+      "name": "Problem Workflow",
+      "is_agent_deleted": false
+     },
+     "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed (any to any)</b>  event",
+     "sub_contents": [
+      "set status as <b>Monitor</b>",
+      "<b>Workflow Ends</b>"
+     ],
+     "created_at": "2030-01-01T00:01:00Z"
+    },
+    {
+     "actor": {
+      "id": 9000001,
+      "name": "Acme Agent",
+      "is_agent": true
+     },
+     "content": "set status as  <b>Resolve</b> , set planned end date as  <b>Thu, 2 Jan  4:30 PM</b>",
+     "sub_contents": null,
+     "created_at": "2030-01-01T00:02:00Z"
+    }
+   ],
+   "since": "2030-01-01T00:00:00+00:00",
+   "requested": "Resolve",
+   "expected": null
+  },
+  {
+   "name": "before_window",
+   "rows": [
+    {
+     "actor": {
+      "id": 0,
+      "name": "Problem Workflow",
+      "is_agent_deleted": false
+     },
+     "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed (any to any)</b>  event",
+     "sub_contents": [
+      "set status as <b>Monitor</b>",
+      "<b>Workflow Ends</b>"
+     ],
+     "created_at": "2029-12-31T00:01:01Z"
+    },
+    {
+     "actor": {
+      "id": 9000001,
+      "name": "Acme Agent",
+      "is_agent": true
+     },
+     "content": "set status as  <b>Resolve</b> , set planned end date as  <b>Thu, 2 Jan  4:30 PM</b>",
+     "sub_contents": null,
+     "created_at": "2029-12-31T00:01:00Z"
+    }
+   ],
+   "since": "2030-01-01T00:00:00+00:00",
+   "requested": "Resolve",
+   "expected": null
+  },
+  {
+   "name": "workflow_no_status",
+   "rows": [
+    {
+     "actor": {
+      "id": 0,
+      "name": "Problem Workflow",
+      "is_agent_deleted": false
+     },
+     "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed (any to any)</b>  event",
+     "sub_contents": [
+      "send email to <b>requester</b>",
+      "<b>Workflow Ends</b>"
+     ],
+     "created_at": "2030-01-01T00:01:01Z"
+    },
+    {
+     "actor": {
+      "id": 9000001,
+      "name": "Acme Agent",
+      "is_agent": true
+     },
+     "content": "set status as  <b>Resolve</b> , set planned end date as  <b>Thu, 2 Jan  4:30 PM</b>",
+     "sub_contents": null,
+     "created_at": "2030-01-01T00:01:00Z"
+    }
+   ],
+   "since": "2030-01-01T00:00:00+00:00",
+   "requested": "Resolve",
+   "expected": null
+  },
+  {
+   "name": "anonymous_actor",
+   "rows": [
+    {
+     "actor": null,
+     "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed (any to any)</b>  event",
+     "sub_contents": [
+      "set status as <b>Monitor</b>",
+      "<b>Workflow Ends</b>"
+     ],
+     "created_at": "2030-01-01T00:01:01Z"
+    },
+    {
+     "actor": {
+      "id": 9000001,
+      "name": "Acme Agent",
+      "is_agent": true
+     },
+     "content": "set status as  <b>Resolve</b> , set planned end date as  <b>Thu, 2 Jan  4:30 PM</b>",
+     "sub_contents": null,
+     "created_at": "2030-01-01T00:01:00Z"
+    }
+   ],
+   "since": "2030-01-01T00:00:00+00:00",
+   "requested": "Resolve",
+   "expected": "status set to Resolve by this write, then rewritten server-side to Monitor by a workflow (workflow) per the activity log"
+  },
+  {
+   "name": "naive_and_junk",
+   "rows": [
+    {
+     "created_at": "2030-01-01T00:01:00",
+     "content": "executed <a>Acme status workflow</a> (Workflow), set status as <b>Monitor</b>"
+    },
+    "x",
+    {
+     "created_at": null,
+     "content": "executed <a>Acme status workflow</a> (Workflow), set status as <b>Monitor</b>"
+    }
+   ],
+   "since": "2030-01-01T00:00:00+00:00",
+   "requested": null,
+   "expected": null
+  }
+ ]
+}

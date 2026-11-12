@@ -360,25 +360,22 @@ fn status_readback(before: &Value, after: &Value, sent: &Value) -> (bool, Option
     (false, None)
 }
 
-/// A note when the first activity page shows a workflow that set the status
-/// after `since` (a rewrite back to the pre-write status).
-fn workflow_activity_note(c: &dyn Api, target: i64, since: jiff::Timestamp) -> Option<String> {
-    let rows = crate::service::get_activities(c, &PROBLEMS, target, 1).ok()?;
+/// `(created_at, content text, sub_contents text, actor name)` of the
+/// activity rows with an aware `created_at`.
+fn activity_rows(rows: &[Value]) -> Vec<(jiff::Timestamp, String, String, String)> {
+    let html = |v: &Value| {
+        let raw = match v {
+            Value::String(s) => s.clone(),
+            other => py_str(other),
+        };
+        fsv_core::output::strip_html(Some(&raw))
+    };
+    let mut out = Vec::new();
     for row in rows {
         let Some(row) = row.as_object() else {
             continue;
         };
-        let raw = match row.get("content") {
-            Some(Value::String(text)) => text.clone(),
-            Some(other) => py_str(other),
-            None => String::new(),
-        };
-        let text = casefold(strip(&fsv_core::output::strip_html(Some(&raw))));
-        let created = match row.get("created_at") {
-            Some(Value::String(text)) => text.clone(),
-            Some(other) => py_str(other),
-            None => continue,
-        };
+        let created = row.get("created_at").map_or("None".to_string(), py_str);
         let Some((dt, Some(off))) =
             fsv_forms::pydt::datetime_fromisoformat(&created.replace('Z', "+00:00"))
         else {
@@ -387,14 +384,98 @@ fn workflow_activity_note(c: &dyn Api, target: i64, since: jiff::Timestamp) -> O
         let Ok(at) = off.to_timestamp(dt) else {
             continue;
         };
-        if at >= since && text.contains("workflow") && text.contains("set status as") {
+        let sub = match row.get("sub_contents") {
+            Some(Value::Array(subs)) => subs
+                .iter()
+                .filter(|s| s.is_string())
+                .map(html)
+                .collect::<Vec<_>>()
+                .join(" , "),
+            _ => String::new(),
+        };
+        let content = row
+            .get("content")
+            .filter(|v| truthy(v))
+            .map_or(String::new(), html);
+        let actor = row
+            .get("actor")
+            .and_then(Value::as_object)
+            .and_then(|a| a.get("name"))
+            .filter(|v| truthy(v))
+            .map_or(String::new(), py_str);
+        out.push((at, content, sub, actor));
+    }
+    out
+}
+
+/// The label after `set status as` in whitespace-normalized text.
+fn set_status(text: &str) -> Option<String> {
+    static SET_STATUS: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
+        regex::Regex::new(r"set status as\s*(.+?)\s*(?:,|$)").expect("regex")
+    });
+    let joined = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    SET_STATUS
+        .captures(&joined)
+        .map(|m| m[1].trim().to_string())
+}
+
+/// A note when the activity rows show a workflow that set the status after
+/// the write (for example back to the pre-write status). With `requested`,
+/// the rows must also show this write's own `set status as <requested>`
+/// entry, and the workflow entry must not be older than it.
+fn workflow_note(
+    rows: &[Value],
+    since: jiff::Timestamp,
+    requested: Option<&str>,
+) -> Option<String> {
+    let rows: Vec<_> = activity_rows(rows)
+        .into_iter()
+        .filter(|r| r.0 >= since)
+        .collect();
+    let mut written = None;
+    if let Some(requested) = requested {
+        let want = casefold(&requested.split_whitespace().collect::<Vec<_>>().join(" "));
+        written = rows
+            .iter()
+            .filter(|(_, text, _, _)| {
+                !casefold(text).contains("workflow")
+                    && casefold(&set_status(text).unwrap_or_default()) == want
+            })
+            .map(|r| r.0)
+            .max();
+        written?;
+    }
+    for (at, text, sub, actor) in &rows {
+        if !casefold(text).contains("workflow") || written.is_some_and(|w| *at < w) {
+            continue;
+        }
+        let Some(label) = set_status(sub).or_else(|| set_status(text)) else {
+            continue;
+        };
+        let Some(requested) = requested else {
             return Some(
                 "status rewritten server-side after the write (activity shows a workflow set it)"
                     .into(),
             );
-        }
+        };
+        let actor = if actor.is_empty() { "workflow" } else { actor };
+        return Some(format!(
+            "status set to {requested} by this write, then rewritten server-side to {label} by a workflow ({actor}) per the activity log"
+        ));
     }
     None
+}
+
+/// [`workflow_note`] over the first problem activity page; a failed read
+/// is no evidence.
+fn workflow_activity_note(
+    c: &dyn Api,
+    target: i64,
+    since: jiff::Timestamp,
+    requested: Option<&str>,
+) -> Option<String> {
+    let rows = crate::service::get_activities(c, &PROBLEMS, target, 1).ok()?;
+    workflow_note(&rows, since, requested)
 }
 
 /// Port of problem_status.send: one PUT, then an independent record read.
@@ -421,7 +502,7 @@ pub fn send(
         let after = row.get("status").cloned().unwrap_or(Value::Null);
         let (mut verified, mut note) = status_readback(&before_status, &after, want);
         if !verified && !after.is_null() {
-            note = workflow_activity_note(c, plan.write.target, since);
+            note = workflow_activity_note(c, plan.write.target, since, Some(&plan.label));
             verified = note.is_some();
         }
         let mut readback = Map::new();
