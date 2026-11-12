@@ -9,7 +9,7 @@ use serde_json::{Value as Json, json};
 use fsv_api::service::Api;
 use fsv_app::Submitted;
 use fsv_core::review::Review;
-use fsv_core::term::{self, Console, err, escape};
+use fsv_core::term::{self, Console, err};
 use fsv_core::{Error, Result};
 use fsv_flows::change::{Plan, flow_exit};
 use fsv_flows::drafts::Draft;
@@ -104,7 +104,9 @@ impl<'a> Requester<'a> {
         let cancelled = Cell::new(false);
         let failed: RefCell<Option<Error>> = RefCell::new(None);
         let pick = |cands: &[LookupValue]| -> LookupValue {
-            match pick_one(cands) {
+            match pick_one(cands, |text, default| {
+                term::prompt_int(text, Some(default), true)
+            }) {
                 Ok(Some(c)) => c,
                 Ok(None) => {
                     cancelled.set(true);
@@ -135,14 +137,21 @@ impl<'a> Requester<'a> {
     }
 }
 
-/// `change_cli._pick`; `None`: cancelled.
-fn pick_one(cands: &[LookupValue]) -> Result<Option<LookupValue>> {
+/// Port of fsv.change_cli._pick
+///
+/// `ask(text, default)` is `typer.prompt(text, type=int, default=default)`.
+/// `None`: cancelled (Python's `FlowExit(2, "no requester chosen")`, raised
+/// by the caller). Candidates go through Rich markup unescaped, as in Python.
+fn pick_one(
+    cands: &[LookupValue],
+    ask: impl FnOnce(&str, i64) -> Result<i64>,
+) -> Result<Option<LookupValue>> {
     let shown = &cands[..cands.len().min(20)];
     err().print("several requesters match; candidates:");
     for (i, c) in shown.iter().enumerate() {
-        err().print(&format!("  {}. {}", i + 1, escape(&c.to_string())));
+        err().print(&format!("  {}. {}", i + 1, c));
     }
-    let n = term::prompt_int("Pick a number (0 to cancel)", Some(0), true)?;
+    let n = ask("Pick a number (0 to cancel)", 0)?;
     if n >= 1 && (n as usize) <= shown.len() {
         return Ok(Some(shown[n as usize - 1].clone()));
     }
@@ -289,5 +298,71 @@ pub fn editor_abort(e: Error) -> Error {
     match e {
         Error::EditorAbort(m) => flow_exit(1, m),
         other => other,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::pick_one;
+    use fsv_forms::LookupValue;
+    use serde_json::json;
+
+    fn cands() -> Vec<LookupValue> {
+        let mut v: Vec<LookupValue> = (1..=25)
+            .map(|i| LookupValue {
+                id: json!(i),
+                display: format!("Ann {i}"),
+                email: Some(format!("ann{i}@acme.com")),
+            })
+            .collect();
+        v[1] = LookupValue {
+            id: json!(2),
+            display: "[b]Bo[/b]".into(),
+            email: None,
+        };
+        v[2] = LookupValue {
+            id: json!(3),
+            display: String::new(),
+            email: None,
+        };
+        v
+    }
+
+    /// Expected values from Python `change_cli._pick` with `typer.prompt`
+    /// patched to answer `n`, on the same 25 candidates.
+    #[test]
+    fn pick_one_matches_python() {
+        let cands = cands();
+        for (n, want) in [
+            (3, Some(3)),
+            (1, Some(1)),
+            (20, Some(20)),
+            (0, None),
+            (21, None),
+            (-1, None),
+        ] {
+            let mut asked = None;
+            let (got, text) = fsv_core::term::capture(|| {
+                pick_one(&cands, |t, d| {
+                    asked = Some((t.to_string(), d));
+                    Ok(n)
+                })
+                .unwrap()
+            });
+            assert_eq!(asked, Some(("Pick a number (0 to cancel)".to_string(), 0)));
+            assert_eq!(got.map(|c| c.id), want.map(|i| json!(i)), "n={n}");
+            let lines: Vec<&str> = text.lines().collect();
+            assert_eq!(lines.len(), 21);
+            assert_eq!(
+                lines[..4],
+                [
+                    "several requesters match; candidates:",
+                    "  1. Ann 1 <ann1@acme.com>",
+                    "  2. Bo",
+                    "  3. 3",
+                ]
+            );
+            assert_eq!(lines[20], "  20. Ann 20 <ann20@acme.com>");
+        }
     }
 }

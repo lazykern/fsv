@@ -138,18 +138,48 @@ _fsv() {
             compadd -- --verbose -v --dry-run --yes -y --expect-plan --read-only --json; return 0 ;;
         "changes associations pick")
             compadd -- --verbose -v --dry-run --yes -y --expect-plan --read-only --json; return 0 ;;
+        "changes columns list")
+            compadd -- --verbose -v --output -o --json; return 0 ;;
+        "changes columns set")
+            compadd -- --verbose -v --column --freeze --dry-run --yes --expect-plan --output -o --json; return 0 ;;
         "changes watchers list")
             compadd -- --verbose -v --output -o --json; return 0 ;;
         "changes watchers set")
             compadd -- --verbose -v --watch --unwatch --dry-run --yes --output -o --json --expect-plan; return 0 ;;
+        "tickets columns list")
+            compadd -- --verbose -v --output -o --json; return 0 ;;
+        "tickets columns set")
+            compadd -- --verbose -v --column --freeze --dry-run --yes --expect-plan --output -o --json; return 0 ;;
         "tickets watchers list")
             compadd -- --verbose -v --output -o --json; return 0 ;;
         "tickets watchers set")
             compadd -- --verbose -v --watch --unwatch --dry-run --yes --output -o --json --expect-plan; return 0 ;;
+        "tickets private-views show")
+            compadd -- --verbose -v --output -o --json; return 0 ;;
+        "tickets private-views write")
+            compadd -- --verbose -v --name --dry-run --yes --expect-plan --output -o --json; return 0 ;;
+        "tickets canned folders")
+            compadd -- --verbose -v --output -o --json; return 0 ;;
+        "tickets canned list")
+            compadd -- --verbose -v --folder --output -o --json; return 0 ;;
+        "tickets canned show")
+            compadd -- --verbose -v --output -o --json; return 0 ;;
+        "tickets canned reply")
+            compadd -- --verbose -v --response --content-pointer --sender --dry-run --yes --expect-plan --output -o --json; return 0 ;;
+        "tickets scenarios list")
+            compadd -- --verbose -v --output -o --json; return 0 ;;
+        "tickets scenarios show")
+            compadd -- --verbose -v --output -o --json; return 0 ;;
+        "tickets scenarios apply")
+            compadd -- --verbose -v --scenario --dry-run --yes --expect-plan --output -o --json; return 0 ;;
         "tickets time list")
             compadd -- --verbose -v --output -o --json; return 0 ;;
         "tickets time write")
             compadd -- --verbose -v --entry --spent --executed-at --note --dry-run --yes --output -o --json --expect-plan; return 0 ;;
+        "problems columns list")
+            compadd -- --verbose -v --output -o --json; return 0 ;;
+        "problems columns set")
+            compadd -- --verbose -v --column --freeze --dry-run --yes --expect-plan --output -o --json; return 0 ;;
         "auth login")
             case "$prev" in
                 --store)
@@ -297,7 +327,16 @@ _fsv() {
                     compadd table json csv tsv; return 0 ;;
             esac
             compadd -- --verbose -v --output -o --json; return 0 ;;
+        "changes export")
+            compadd -- --verbose -v --view --field --dry-run --yes --expect-plan --output -o --json; return 0 ;;
+        "changes asset-picker")
+            compadd -- --verbose -v --search --page --select --output -o --json; return 0 ;;
         "changes planning-text")
+            case "$prev" in
+                --section)
+                    local _vals; _vals=($( FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete zsh complete_planning_field_names changes "$cur" ))
+                    compadd -a _vals; return 0 ;;
+            esac
             compadd -- --verbose -v --section --description --dry-run --yes --output -o --json --expect-plan; return 0 ;;
         "changes fields")
             case "$prev" in
@@ -432,6 +471,8 @@ _fsv() {
             compadd -- legacy ls search add remove pick categories --verbose -v; return 0 ;;
         "changes associations")
             compadd -- legacy ls search add remove pick --verbose -v; return 0 ;;
+        "changes columns")
+            compadd -- list set --verbose -v; return 0 ;;
         "changes watchers")
             compadd -- list set --verbose -v; return 0 ;;
         "tickets ls")
@@ -486,6 +527,8 @@ _fsv() {
                     compadd table json csv tsv; return 0 ;;
             esac
             compadd -- --verbose -v --output -o --json; return 0 ;;
+        "tickets export")
+            compadd -- --verbose -v --view --field --dry-run --yes --expect-plan --output -o --json; return 0 ;;
         "tickets bulk-priority")
             compadd -- --verbose -v --priority --dry-run --yes --output -o --json --expect-plan; return 0 ;;
         "tickets fields")
@@ -592,8 +635,16 @@ _fsv() {
             compadd -- --verbose -v --cc --bcc --sender --set-status --expect-plan --dry-run --yes -y --no-input; return 0 ;;
         "tickets forward")
             compadd -- --verbose -v --to --sender --output -o --json --dry-run --yes --expect-plan; return 0 ;;
+        "tickets columns")
+            compadd -- list set --verbose -v; return 0 ;;
         "tickets watchers")
             compadd -- list set --verbose -v; return 0 ;;
+        "tickets private-views")
+            compadd -- show write --verbose -v; return 0 ;;
+        "tickets canned")
+            compadd -- folders list show reply --verbose -v; return 0 ;;
+        "tickets scenarios")
+            compadd -- list show apply --verbose -v; return 0 ;;
         "tickets time")
             compadd -- list write --verbose -v; return 0 ;;
         "problems ls")
@@ -648,9 +699,20 @@ _fsv() {
                     compadd table json csv tsv; return 0 ;;
             esac
             compadd -- --verbose -v --output -o --json; return 0 ;;
+        "problems export")
+            compadd -- --verbose -v --view --field --dry-run --yes --expect-plan --output -o --json; return 0 ;;
+        "problems create")
+            compadd -- --verbose -v --from --set --requester --dry-run --yes --expect-plan --output -o --json; return 0 ;;
+        "problems write-child")
+            compadd -- --verbose -v --dry-run --yes --expect-plan --output -o --json; return 0 ;;
         "problems mark-known-error")
             compadd -- --verbose -v --dry-run --yes --output -o --json --expect-plan; return 0 ;;
         "problems planning-text")
+            case "$prev" in
+                --section)
+                    local _vals; _vals=($( FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete zsh complete_section - "$cur" ))
+                    compadd -a _vals; return 0 ;;
+            esac
             compadd -- --verbose -v --section --description --dry-run --yes --output -o --json --expect-plan; return 0 ;;
         "problems fields")
             case "$prev" in
@@ -734,6 +796,8 @@ _fsv() {
             compadd -- --verbose -v --page -p --per-page -n --output -o --json --all -a --npages -N; return 0 ;;
         "problems add-note")
             compadd -- --verbose -v --public --dry-run --yes -y --no-input; return 0 ;;
+        "problems columns")
+            compadd -- list set --verbose -v; return 0 ;;
         "form explain")
             compadd -- --verbose -v --set --from --preset --id --all --output -o; return 0 ;;
         "form fields")
@@ -777,11 +841,11 @@ _fsv() {
         "journal")
             compadd -- ls tail path --verbose -v; return 0 ;;
         "changes")
-            compadd -- ls get activity tasks tasks-add approval-request approval-respond approval-cancel tasks-update tasks-delete approvals state planning-text fields lookup views search url update download clone create notes add-note assets associations watchers --verbose -v; return 0 ;;
+            compadd -- ls get activity tasks tasks-add approval-request approval-respond approval-cancel tasks-update tasks-delete approvals state export asset-picker planning-text fields lookup views search url update download clone create notes add-note assets associations columns watchers --verbose -v; return 0 ;;
         "tickets")
-            compadd -- ls get activity tasks bulk-priority fields lookup views search url add-note create approvals associations update download conversations reply forward watchers time --verbose -v; return 0 ;;
+            compadd -- ls get activity tasks export bulk-priority fields lookup views search url add-note create approvals associations update download conversations reply forward columns watchers private-views canned scenarios time --verbose -v; return 0 ;;
         "problems")
-            compadd -- ls get activity tasks mark-known-error planning-text fields lookup views search url update download notes add-note --verbose -v; return 0 ;;
+            compadd -- ls get activity tasks export create write-child mark-known-error planning-text fields lookup views search url update download notes add-note columns --verbose -v; return 0 ;;
         "form")
             compadd -- explain fields dump diff --verbose -v; return 0 ;;
         "sr")

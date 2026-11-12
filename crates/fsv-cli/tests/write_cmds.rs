@@ -1610,11 +1610,11 @@ fn update_planning_unknown() {
         &["changes", "update", "5", "--planning", "nope", "--dry-run"],
         None,
     );
-    assert_eq!(r.code, 5, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: HTTP 0: planning field not found: 'nope'; choices: Rollout plan, Backout plan
+        r#"error: planning field not found: 'nope'; choices: Rollout plan, Backout plan
 "#
     );
 }

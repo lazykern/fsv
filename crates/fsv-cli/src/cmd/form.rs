@@ -20,16 +20,9 @@ fn form_fail(msg: &str) -> Error {
     fail(&escape(msg), 2)
 }
 
-/// `formmeta.module_name`.
-fn module(text: &str) -> Result<&'static str> {
-    match text.trim().to_lowercase().trim_end_matches('s') {
-        "change" => Ok("change"),
-        "ticket" => Ok("ticket"),
-        _ => Err(form_fail(&format!(
-            "unsupported form {}; supported: changes, tickets",
-            fsv_py::py_repr_str(text)
-        ))),
-    }
+/// `form_cli._module`.
+fn module(text: &str) -> Result<String> {
+    formmeta::module_name(text).map_err(|e| form_fail(&e.to_string()))
 }
 
 pub fn dispatch(sub: &str, m: &ArgMatches) -> CmdResult {
@@ -49,7 +42,7 @@ fn dump(a: FormDumpArgs) -> CmdResult {
         return Err(form_fail("--mode must be new or edit"));
     }
     let c = client()?;
-    let meta = load(&c, module, &a.mode, true, &Value::Null)?;
+    let meta = load(&c, &module, &a.mode, true, &Value::Null)?;
     let snap = json!({
         "fsv_form_snapshot": SNAPSHOT_VERSION,
         "module": module,
@@ -217,7 +210,7 @@ fn explain(a: FormExplainArgs) -> CmdResult {
     });
     let meta = load(
         &c,
-        module,
+        &module,
         if edit { "edit" } else { "new" },
         false,
         &module_id,
@@ -354,7 +347,7 @@ fn explain(a: FormExplainArgs) -> CmdResult {
 fn fields(a: FormFieldsArgs) -> CmdResult {
     let module = module(&a.module)?;
     let c = client()?;
-    let meta = load(&c, module, "new", false, &Value::Null)?;
+    let meta = load(&c, &module, "new", false, &Value::Null)?;
     note_rules(&meta);
     let spec = meta.spec();
     let state = meta.state("new", None, None).map_err(guard)?;

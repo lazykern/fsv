@@ -414,10 +414,10 @@ Missing:
   (`create.rs:1013-1142`).
 - **fsv-cli** (done; `cmd/reviewed.rs`, goldens in `tests/upstream_cmds.rs`,
   fixture `planning.json`): `fsv {changes,problems} planning-text ID --section S
-  --description D [--dry-run] [--yes] [--expect-plan]`. At `dbe553c` an
-  unknown section is an uncaught `APIError` (exit 1). Python `10c3281`…`92002d7`
-  change `planning_cli`/`planning_text` (error handling, `--section`
-  completers, create-only plans); see "Ledger: `dbe553c..92002d7`".
+  --description D [--dry-run] [--yes] [--expect-plan]`, at `92002d7`: an
+  `APIError`/`SessionError` prints `str(exc)` with `exit_code_for` (unknown
+  section: exit 2), the `--section` completers are per module, and a section
+  with text is refused (see "Ledger: `dbe553c..92002d7`").
 - **fsv-app**: done. `planning_definitions`, `planning_row`
   (`create::match_planning_row` on `inventory`), `planning_text_plan`,
   `send_planning_text`; `LiveBackend::with_change_schema` injects the change
@@ -632,9 +632,9 @@ fsv-tui needs no new work beyond test updates.
 6. **fsv-completion** (after the fsv-cli tree) — done
    - Re-dump `completion_tree.json` (`crates/fsv-cli/tests/golden/dump_completion.py`)
      and the bash/zsh/fish goldens for the new commands and flags. None of
-     the new options has a Python completer. Done from Python `dbe553c`;
-     the dumpers skip the not-yet-ported paths listed in
-     `crates/fsv-cli/tests/golden/not_ported.py`.
+     the new options has a Python completer. Re-dumped from Python
+     `92002d7` with every path (`crates/fsv-cli/tests/golden/not_ported.py`
+     is empty).
 7. **fsv-tui** (tests only)
    - `273ffde`: a ticket non-terminal status plan now has a risk.
 
@@ -649,13 +649,13 @@ plus the working tree at triage time. That tree already has untracked
 `planning_text.rs`, and `Api::me()` (`service.rs:68`). Every new
 command below builds on `reviewed_write::{WritePlan, execute}`.
 
-Counts: **0 ported, 3 partial, 0 missing.** (fsv-api half landed after triage.)
+Counts: **3 ported, 0 partial, 0 missing.**
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `07c85d0` | 11-12 04:50 | feat(tickets): add source-bound canned replies and reviewed scenarios | partial | fsv-api done (`canned.rs`, `scenarios.rs`, `conversations.rs` canned fields); fsv-cli, fsv-completion |
-| `2a03036` | 11-12 04:57 | feat(views): add guarded private ticket-view lifecycle | partial | fsv-api done (`private_views.rs`); fsv-cli, fsv-completion |
-| `6797301` | 11-12 05:04 | feat(problems): add form-backed create and reviewed note and task workflows | partial | fsv-api done (`formmeta.rs` problem module, `problem_workflows.rs`), fsv-forms done; fsv-cli (`form explain` any module, `problems create`, `write-child`), fsv-completion |
+| `07c85d0` | 11-12 04:50 | feat(tickets): add source-bound canned replies and reviewed scenarios | ported | fsv-api (`canned.rs`, `scenarios.rs`, `conversations.rs` canned fields), fsv-cli (`cmd/native.rs`), fsv-completion |
+| `2a03036` | 11-12 04:57 | feat(views): add guarded private ticket-view lifecycle | ported | fsv-api (`private_views.rs`), fsv-cli (`cmd/native.rs`), fsv-completion |
+| `6797301` | 11-12 05:04 | feat(problems): add form-backed create and reviewed note and task workflows | ported | fsv-api (`formmeta.rs` problem module, `problem_workflows.rs`), fsv-forms, fsv-cli (`form` on problems, `problems create`, `write-child`), fsv-completion |
 
 Python uncommitted after `6797301` (**untriaged, uncommitted**):
 `src/fsv/list_preferences.py`, `src/fsv/list_preferences_cli.py`,
@@ -671,12 +671,13 @@ New Python modules with no Rust counterpart: `canned.py`, `canned_cli.py`,
 `problem_workflows.py`, `problem_cli.py` (and the uncommitted
 `list_preferences.py`, `list_preferences_cli.py`).
 
-### `07c85d0` feat(tickets): add source-bound canned replies and reviewed scenarios — partial (fsv-api done)
+### `07c85d0` feat(tickets): add source-bound canned replies and reviewed scenarios — ported
 
 **Status:** fsv-api is ported: `canned.rs`, `scenarios.rs` and the canned
 fields on `ConversationPlan`, checked against
-`port/golden/gen_fsv_api_workflows.py`. The fsv-cli and fsv-completion items
-below are still open. The notes below are as triaged.
+`port/golden/gen_fsv_api_workflows.py`. fsv-cli (`cmd/native.rs`, goldens on
+fixture `canned` in `tests/upstream_cmds.rs`) and fsv-completion are ported
+at Python `92002d7`. The notes below are as triaged.
 
 Rust has no `canned_response*` or `scenario_automations` route, and
 `ConversationPlan` (`crates/fsv-api/src/conversations.rs:142`) has no canned
@@ -744,10 +745,11 @@ fields. Canned replies always pass `sender`, so they need the sender half of
   The scenario write is `{"scenario_id": 703, "ids": [123]}`.
   `::test_legacy_conversation_hash_is_unchanged` pins the old hash.
 
-### `2a03036` feat(views): add guarded private ticket-view lifecycle — partial (fsv-api done)
+### `2a03036` feat(views): add guarded private ticket-view lifecycle — ported
 
 **Status:** fsv-api `private_views.rs` is ported and checked against
-`gen_fsv_api_workflows.py`; fsv-cli and fsv-completion are open.
+`gen_fsv_api_workflows.py`. fsv-cli (`cmd/native.rs`, fixture
+`private_views`) and fsv-completion are ported at Python `92002d7`.
 
 Nothing in Rust (`ticket_filters` appears only as `filters_path` in
 `crates/fsv-core/src/resource.rs:63`).
@@ -797,15 +799,15 @@ Nothing in Rust (`ticket_filters` appears only as `filters_path` in
   `["POST","PUT","DELETE"]`, the clone is id 702, and the payload has no
   `user_id`/`default`.
 
-### `6797301` feat(problems): add form-backed create and reviewed note and task workflows — partial (fsv-api done)
+### `6797301` feat(problems): add form-backed create and reviewed note and task workflows — ported
 
 **Status:** fsv-api `problem_workflows.rs` and the formmeta `problem` module
 are ported and checked against `gen_fsv_api_workflows.py`. fsv-flows
-`meta::MODULES` lists `problem` too. Open for **fsv-cli**: `cmd/form.rs`
-still prints "unsupported form …; supported: changes, tickets"; fsv-api now
-says "…; supported: changes, tickets, problems". The tests that pin the old
-text (`tests/read_cmds.rs`, `tests/exit_codes.rs`) need the new one. Also
-`problems create`, `write-child` and fsv-completion.
+`meta::MODULES` lists `problem` too. fsv-cli is ported at Python `92002d7`:
+`cmd/form.rs` uses `formmeta::module_name` (`form dump|fields|explain
+problems`), `problems create` and `write-child` are in `cmd/native.rs`
+(fixture `problem_flows`), and `read_cmds.rs` `form_explain_unsupported` /
+`exit_codes.rs` pin the three-module message. fsv-completion is re-dumped.
 
 Rust formmeta knows only change/ticket (`crates/fsv-api/src/formmeta.rs:28`,
 message `:87`). `form explain ID` hardcodes changes
@@ -864,11 +866,8 @@ Rust has no `problems create`.
     equality. Result `{"{key}_id", "fields", "verified"}`.
 - ~~**fsv-cli** `form.rs`: `explain ID` uses the module's resource
   (`REGISTRY[mod+"s"]`, its `api_path` and `item_key`), not CHANGES; the
-  `isdigit` shortcut is gone.~~ Done for change and ticket
-  (`form_explain_ticket_record`, `form_explain_change_display_id`).
-  Still to do with problems: the `form_explain_unsupported` golden
-  (`crates/fsv-cli/tests/read_cmds.rs:3620`, which uses `problems`) and the
-  message at `form.rs:30`.
+  `isdigit` shortcut is gone.~~ Done (`form_explain_ticket_record`,
+  `form_explain_change_display_id`, `form_explain_problem_record`).
 - **fsv-cli**: `fsv problems create --requester R [--from YAML] [--set
   LABEL=VALUE…] [--dry-run] [--yes] [--expect-plan]` ("Create a problem
   through fresh form fields and business rules; no files."). It uses
@@ -915,22 +914,23 @@ work in progress from another agent: `reviewed_write.rs`, `watchers.rs`
 `watchers::positive_id`. Python had no uncommitted source changes at
 triage time.
 
-Counts: **1 ported, 2 partial, 0 missing.** (fsv-api half landed after triage.)
+Counts: **2 ported, 1 partial, 0 missing.**
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `6b7073a` | 11-12 05:11 | feat(lists): add reviewed native columns and scoped export requests | partial | fsv-api done (`list_preferences.rs`); fsv-cli, fsv-completion |
-| `53c678e` | 11-12 05:17 | feat(assets): add read-only CLI and TUI candidate pickers | partial | fsv-api `asset_picker.rs`, fsv-tui and fsv-app `LiveBackend::asset_candidates` done; fsv-cli, fsv-completion |
+| `6b7073a` | 11-12 05:11 | feat(lists): add reviewed native columns and scoped export requests | ported | fsv-api (`list_preferences.rs`), fsv-cli (`cmd/native.rs`), fsv-completion |
+| `53c678e` | 11-12 05:17 | feat(assets): add read-only CLI and TUI candidate pickers | partial | fsv-api `asset_picker.rs`, fsv-tui and fsv-app `LiveBackend::asset_candidates`, fsv-cli `changes asset-picker`, fsv-completion done; open: fsv-api `candidates` validates ids after the duplicate check |
 | `dbe553c` | 11-12 05:23 | test(legacy): cover mutation callers through offline HTTP transports | ported | fsv-api `tests/legacy_write_guards.rs` |
 
 New Python modules with no Rust counterpart: `list_preferences.py`,
 `list_preferences_cli.py`, `asset_picker.py`, `asset_picker_cli.py`.
 
-### `6b7073a` feat(lists): add reviewed native columns and scoped export requests — partial (fsv-api done)
+### `6b7073a` feat(lists): add reviewed native columns and scoped export requests — ported
 
 **Status:** fsv-api `list_preferences.rs` is ported and checked against
-`gen_fsv_api_workflows.py` for tickets, changes and problems. fsv-cli and
-fsv-completion are open.
+`gen_fsv_api_workflows.py` for tickets, changes and problems. fsv-cli
+(`cmd/native.rs`, fixture `list_prefs` on all three modules) and
+fsv-completion are ported at Python `92002d7`.
 
 Rust reads `tickets/headers` only for display (`crates/fsv-views/src/source.rs:61`).
 It has no `{module}/headers` POST and no `{module}/export`. The pieces it can
@@ -1023,7 +1023,12 @@ and `Resource::{filters_path, item_key}` (`crates/fsv-core/src/resource.rs`;
   - Header drift blocks the write. When the preference fields are missing,
     `ticket_subject` is `"unavailable"`.
 
-### `53c678e` feat(assets): add read-only CLI and TUI candidate pickers — partial (fsv-api, fsv-tui, fsv-app done)
+### `53c678e` feat(assets): add read-only CLI and TUI candidate pickers — partial (fsv-api ordering open)
+
+**Status:** fsv-cli `cmd::reviewed::asset_picker` (fixture `asset_picker`)
+and fsv-completion are ported at Python `92002d7`. Open in fsv-api:
+`asset_picker.rs` `candidates` checks duplicates before every display id is
+validated (PARITY fsv-cli divergence; ignored `asset_picker_duplicate_then_bad`).
 
 `fsv_api::create::search_assets_for_change` exists
 (`crates/fsv-api/src/create.rs:1594`, GET `assets-to-associate`) and is used
@@ -1180,9 +1185,8 @@ fsv-formui work in this range.
 `port/UPSTREAM_BASE` holds the last Python commit whose range is fully
 triaged (`92002d7`). Advance it only when every row up to the new SHA is
 `ported`, `partial` with a named follow-up, or `wontfix` with a PARITY
-entry. Open follow-ups in the `dbe553c..92002d7` ledger below: fsv-cli
-tests and commands for `820af12` / `92002d7` / the five new fsv-api
-modules. (fsv-core's status-0 `ApiError` display now matches Python.)
+entry. Open follow-up: fsv-api `asset_picker.rs` validation order
+(`53c678e`). (fsv-core's status-0 `ApiError` display now matches Python.)
 
 ## Ledger: `dbe553c..92002d7`
 
@@ -1191,15 +1195,15 @@ fsv-flows and fsv-app parts are ported in the working tree; expected values
 come from `port/golden/gen_fsv_api_workflows.py` (sections
 `planning_text`, `problem_*`) and `gen_fsv_app_tui_reviewed.py`.
 
-Counts: **3 ported, 2 partial, 0 missing.**
+Counts: **5 ported, 0 partial, 0 missing.**
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
 | `10c3281` | 11-12 05:35 | fix(planning): verify normalized native section content | ported | fsv-api `planning_text` (`section_content`, `readback::same_text`) |
 | `ed6e644` | 11-12 05:40 | fix(problems): display native analysis sections in get output | ported | fsv-api `site::detail::{planning_rows, change_planning_defs}`, fsv-views `detail::load_planning(…, module)` |
 | `44e3e83` | 11-12 05:44 | fix(problems): verify submitted custom fields after server normalization | ported | fsv-api `problem_workflows`, `readback::{submitted_value_matches, decimal}` |
-| `820af12` | 11-12 05:50 | fix(cli): render planning validation as clean usage errors | partial | fsv-api `create.rs` and fsv-flows `change.rs` done; fsv-cli, fsv-core open |
-| `92002d7` | 11-12 06:17 | Guard native planning text creates against existing content | partial | fsv-api `planning_text`, fsv-app `tui`, fsv-tui done; fsv-cli open |
+| `820af12` | 11-12 05:50 | fix(cli): render planning validation as clean usage errors | ported | fsv-api `create.rs`, fsv-flows `change.rs`, fsv-core status-0 `ApiError`, fsv-cli `planning-text` errors and `--section` completers |
+| `92002d7` | 11-12 06:17 | Guard native planning text creates against existing content | ported | fsv-api `planning_text`, fsv-app `tui`, fsv-tui, fsv-cli goldens |
 
 ### `10c3281` fix(planning): verify normalized native section content — ported
 
@@ -1224,7 +1228,7 @@ through `readback::submitted_value_matches`; nulls, booleans, missing keys
 and list order stay strict. The description is compared with `same_text`. `decimal()` now follows Python
 `Decimal()`: strips surrounding whitespace and removes underscores.
 
-### `820af12` fix(cli): render planning validation as clean usage errors — partial
+### `820af12` fix(cli): render planning validation as clean usage errors — ported
 
 Done: `create.rs` raises a usage error (`Error::value`, exit 2) with the bare
 message for `--duplicate must be one of …`, "ambiguous planning field …" and
@@ -1232,22 +1236,19 @@ message for `--duplicate must be one of …`, "ambiguous planning field …" and
 fsv-flows `resolve_planning_definition`). `testdata/create_oracle.json` is
 regenerated.
 
-Open:
-- ~~**fsv-core**: status-0 `ApiError` display.~~ Done: `fsv_core::ApiError`
-  heads status 0 with `Error` (`Error: msg`, `Error creating changes: msg`),
-  checked against Python `92002d7`; `create_oracle.json` regenerated.
-- **fsv-cli**: `planning-text` must catch `APIError`/`SessionError` and exit
-  with `exit_code_for` (unknown section: exit 2, not an uncaught exit 1).
-  The `--section` completer: changes use `complete_planning_field_names`,
-  problems use `PROBLEM_SECTIONS`.
-- **fsv-cli tests** that pin the old text/exit codes:
-  `tests/read_cmds.rs` `download_change_named_planning`,
-  `download_change_unknown_planning`; `tests/write_cmds.rs`
-  `update_planning_unknown` (expect exit 2 and the bare message, no `HTTP 0:`);
-  `tests/upstream_cmds.rs` `planning_text_unknown_section_is_uncaught`
-  (exit 2).
+Also done:
+- **fsv-core**: `fsv_core::ApiError` heads status 0 with `Error` (`Error:
+  msg`, `Error creating changes: msg`), checked against Python `92002d7`;
+  `create_oracle.json` regenerated.
+- **fsv-cli**: `planning-text` catches `APIError`/`SessionError` and exits
+  with `exit_code_for` (unknown section: exit 2). The `--section` hints:
+  changes use `complete_planning_field_names`, problems `complete_section`.
+- **fsv-cli tests** re-captured from Python `92002d7`: `read_cmds.rs`
+  `download_change_named_planning`, `download_change_unknown_planning`;
+  `write_cmds.rs` `update_planning_unknown`; `upstream_cmds.rs`
+  `change_planning_text_unknown_section`, `…_api_error`.
 
-### `92002d7` Guard native planning text creates against existing content — partial
+### `92002d7` Guard native planning text creates against existing content — ported
 
 Done: `planning_text::build_plan` returns `PlanningTextPlan { plan, before }`
 and refuses when the section already has text ("planning section already has
@@ -1263,9 +1264,6 @@ carries `before` through `ReviewPlan::raw`. fsv-tui `load_planning_editor`
 and failures come from Python `FsvApp._load_planning_editor` at `92002d7`
 (`load_planning_editor_starts_from_editable_content`).
 
-Open:
-- **fsv-cli**: the call sites compile unchanged, but the fixtures in
-  `tests/upstream_cmds.rs` (`change_planning_text_dry_run`,
-  `change_planning_text_send`, `problem_planning_text_dry_run`,
-  `problem_planning_text_send`) give the section existing text, so they now
-  refuse with exit 2. They need empty sections and the new review keys.
+Also done: **fsv-cli**. `planning.json` gives the created sections no text
+and `upstream_cmds.rs` pins the new review keys plus the refusal on a section
+with text (`…_existing_refused`).

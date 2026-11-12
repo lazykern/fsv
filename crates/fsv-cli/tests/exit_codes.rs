@@ -128,7 +128,7 @@ fn form_module_is_checked_first() {
     assert_eq!(r.code, 2);
     assert!(
         r.err
-            .contains("unsupported form 'nope'; supported: changes, tickets"),
+            .contains("unsupported form 'nope'; supported: changes, tickets, problems"),
         "{}",
         r.err
     );

@@ -536,11 +536,11 @@ fn download_change_named_planning() {
         ],
         None,
     );
-    assert_eq!(r.code, 5, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: HTTP 0: planning field not found: 'rollout'; choices: Rollout plan, Backout plan
+        r#"error: planning field not found: 'rollout'; choices: Rollout plan, Backout plan
 "#
     );
 }
@@ -552,11 +552,11 @@ fn download_change_unknown_planning() {
         &["changes", "download", "5", "--planning", "nope"],
         None,
     );
-    assert_eq!(r.code, 5, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: HTTP 0: planning field not found: 'nope'; choices: Rollout plan, Backout plan
+        r#"error: planning field not found: 'nope'; choices: Rollout plan, Backout plan
 "#
     );
 }
@@ -3618,12 +3618,12 @@ message Tell the payments on-call before you start (rule Payments heads-up)
 
 #[test]
 fn form_explain_unsupported() {
-    let r = run_fixture("form", &["form", "explain", "problems"], None);
+    let r = run_fixture("form", &["form", "explain", "assets"], None);
     assert_eq!(r.code, 2, "{}", r.err);
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: unsupported form 'problems'; supported: changes, tickets
+        r#"error: unsupported form 'assets'; supported: changes, tickets, problems
 "#
     );
 }

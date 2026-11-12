@@ -1773,6 +1773,144 @@
      "path": [
       "fsv",
       "changes",
+      "export"
+     ],
+     "help": "",
+     "params": [
+      {
+       "flags": [
+        "--verbose",
+        "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--view"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--field"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--dry-run"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--yes"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--expect-plan"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--output",
+        "-o"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--json"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      }
+     ],
+     "subcommands": []
+    },
+    {
+     "path": [
+      "fsv",
+      "changes",
+      "asset-picker"
+     ],
+     "help": "",
+     "params": [
+      {
+       "flags": [
+        "--verbose",
+        "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--search"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--page"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--select"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--output",
+        "-o"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--json"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      }
+     ],
+     "subcommands": []
+    },
+    {
+     "path": [
+      "fsv",
+      "changes",
       "planning-text"
      ],
      "help": "",
@@ -1790,9 +1928,9 @@
        "flags": [
         "--section"
        ],
-       "kind": "freeform",
-       "completer": null,
-       "resource": null
+       "kind": "dynamic",
+       "completer": "complete_planning_field_names",
+       "resource": "changes"
       },
       {
        "flags": [
@@ -3692,6 +3830,143 @@
      "path": [
       "fsv",
       "changes",
+      "columns"
+     ],
+     "help": "",
+     "params": [
+      {
+       "flags": [
+        "--verbose",
+        "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      }
+     ],
+     "subcommands": [
+      {
+       "path": [
+        "fsv",
+        "changes",
+        "columns",
+        "list"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      },
+      {
+       "path": [
+        "fsv",
+        "changes",
+        "columns",
+        "set"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--column"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--freeze"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--dry-run"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--yes"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--expect-plan"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      }
+     ]
+    },
+    {
+     "path": [
+      "fsv",
+      "changes",
       "watchers"
      ],
      "help": "",
@@ -4125,6 +4400,83 @@
        ],
        "kind": "static",
        "completer": "complete_format",
+       "resource": null
+      },
+      {
+       "flags": [
+        "--json"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      }
+     ],
+     "subcommands": []
+    },
+    {
+     "path": [
+      "fsv",
+      "tickets",
+      "export"
+     ],
+     "help": "",
+     "params": [
+      {
+       "flags": [
+        "--verbose",
+        "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--view"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--field"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--dry-run"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--yes"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--expect-plan"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--output",
+        "-o"
+       ],
+       "kind": "freeform",
+       "completer": null,
        "resource": null
       },
       {
@@ -5239,6 +5591,143 @@
      "path": [
       "fsv",
       "tickets",
+      "columns"
+     ],
+     "help": "",
+     "params": [
+      {
+       "flags": [
+        "--verbose",
+        "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      }
+     ],
+     "subcommands": [
+      {
+       "path": [
+        "fsv",
+        "tickets",
+        "columns",
+        "list"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      },
+      {
+       "path": [
+        "fsv",
+        "tickets",
+        "columns",
+        "set"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--column"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--freeze"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--dry-run"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--yes"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--expect-plan"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      }
+     ]
+    },
+    {
+     "path": [
+      "fsv",
+      "tickets",
       "watchers"
      ],
      "help": "",
@@ -5357,6 +5846,531 @@
           "--expect-plan"
          ],
          "kind": "freeform",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      }
+     ]
+    },
+    {
+     "path": [
+      "fsv",
+      "tickets",
+      "private-views"
+     ],
+     "help": "",
+     "params": [
+      {
+       "flags": [
+        "--verbose",
+        "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      }
+     ],
+     "subcommands": [
+      {
+       "path": [
+        "fsv",
+        "tickets",
+        "private-views",
+        "show"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      },
+      {
+       "path": [
+        "fsv",
+        "tickets",
+        "private-views",
+        "write"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--name"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--dry-run"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--yes"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--expect-plan"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      }
+     ]
+    },
+    {
+     "path": [
+      "fsv",
+      "tickets",
+      "canned"
+     ],
+     "help": "",
+     "params": [
+      {
+       "flags": [
+        "--verbose",
+        "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      }
+     ],
+     "subcommands": [
+      {
+       "path": [
+        "fsv",
+        "tickets",
+        "canned",
+        "folders"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      },
+      {
+       "path": [
+        "fsv",
+        "tickets",
+        "canned",
+        "list"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--folder"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      },
+      {
+       "path": [
+        "fsv",
+        "tickets",
+        "canned",
+        "show"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      },
+      {
+       "path": [
+        "fsv",
+        "tickets",
+        "canned",
+        "reply"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--response"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--content-pointer"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--sender"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--dry-run"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--yes"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--expect-plan"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      }
+     ]
+    },
+    {
+     "path": [
+      "fsv",
+      "tickets",
+      "scenarios"
+     ],
+     "help": "",
+     "params": [
+      {
+       "flags": [
+        "--verbose",
+        "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      }
+     ],
+     "subcommands": [
+      {
+       "path": [
+        "fsv",
+        "tickets",
+        "scenarios",
+        "list"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      },
+      {
+       "path": [
+        "fsv",
+        "tickets",
+        "scenarios",
+        "show"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      },
+      {
+       "path": [
+        "fsv",
+        "tickets",
+        "scenarios",
+        "apply"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--scenario"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--dry-run"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--yes"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--expect-plan"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
          "completer": null,
          "resource": null
         }
@@ -5842,6 +6856,229 @@
      "path": [
       "fsv",
       "problems",
+      "export"
+     ],
+     "help": "",
+     "params": [
+      {
+       "flags": [
+        "--verbose",
+        "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--view"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--field"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--dry-run"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--yes"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--expect-plan"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--output",
+        "-o"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--json"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      }
+     ],
+     "subcommands": []
+    },
+    {
+     "path": [
+      "fsv",
+      "problems",
+      "create"
+     ],
+     "help": "",
+     "params": [
+      {
+       "flags": [
+        "--verbose",
+        "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--from"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--set"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--requester"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--dry-run"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--yes"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--expect-plan"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--output",
+        "-o"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--json"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      }
+     ],
+     "subcommands": []
+    },
+    {
+     "path": [
+      "fsv",
+      "problems",
+      "write-child"
+     ],
+     "help": "",
+     "params": [
+      {
+       "flags": [
+        "--verbose",
+        "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--dry-run"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--yes"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--expect-plan"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--output",
+        "-o"
+       ],
+       "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--json"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      }
+     ],
+     "subcommands": []
+    },
+    {
+     "path": [
+      "fsv",
+      "problems",
       "mark-known-error"
      ],
      "help": "",
@@ -5920,8 +7157,8 @@
        "flags": [
         "--section"
        ],
-       "kind": "freeform",
-       "completer": null,
+       "kind": "dynamic",
+       "completer": "complete_section",
        "resource": null
       },
       {
@@ -6567,6 +7804,143 @@
       }
      ],
      "subcommands": []
+    },
+    {
+     "path": [
+      "fsv",
+      "problems",
+      "columns"
+     ],
+     "help": "",
+     "params": [
+      {
+       "flags": [
+        "--verbose",
+        "-v"
+       ],
+       "kind": "boolean",
+       "completer": null,
+       "resource": null
+      }
+     ],
+     "subcommands": [
+      {
+       "path": [
+        "fsv",
+        "problems",
+        "columns",
+        "list"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      },
+      {
+       "path": [
+        "fsv",
+        "problems",
+        "columns",
+        "set"
+       ],
+       "help": "",
+       "params": [
+        {
+         "flags": [
+          "--verbose",
+          "-v"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--column"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--freeze"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--dry-run"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--yes"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--expect-plan"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--output",
+          "-o"
+         ],
+         "kind": "freeform",
+         "completer": null,
+         "resource": null
+        },
+        {
+         "flags": [
+          "--json"
+         ],
+         "kind": "boolean",
+         "completer": null,
+         "resource": null
+        }
+       ],
+       "subcommands": []
+      }
+     ]
     }
    ]
   },

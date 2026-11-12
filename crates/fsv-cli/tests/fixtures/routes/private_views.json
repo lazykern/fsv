@@ -1,0 +1,563 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/v2/agents/me",
+  "json": {
+   "agent": {
+    "id": 9,
+    "first_name": "Ann",
+    "last_name": "Lee",
+    "email": "ann@acme.com"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/701",
+  "json": {
+   "ticket_filter": {
+    "id": 701,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/702",
+  "json": {
+   "ticket_filter": {
+    "id": 702,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Globex clone",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/ticket_filters",
+  "status": 201,
+  "json": {
+   "ticket_filter": {
+    "id": 702
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/703",
+  "json": {
+   "ticket_filter": {
+    "id": 703,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/703",
+  "json": {
+   "ticket_filter": {
+    "id": 703,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/703",
+  "json": {
+   "ticket_filter": {
+    "id": 703,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Globex renamed",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/ticket_filters/703",
+  "json": {
+   "ticket_filter": {
+    "id": 703
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/704",
+  "json": {
+   "ticket_filter": {
+    "id": 704,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/704",
+  "json": {
+   "ticket_filter": {
+    "id": 704,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/704",
+  "status": 404,
+  "text": "<html>Not found</html>"
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/ticket_filters/704",
+  "status": 204
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters",
+  "query": {
+   "page": "1"
+  },
+  "json": {
+   "ticket_filters": [
+    {
+     "id": 701,
+     "user_id": 9,
+     "default": false,
+     "visibility": 81,
+     "visibility_name": "Me",
+     "name": "Acme source",
+     "workspace_id": 17,
+     "query_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "42"
+       ]
+      }
+     ],
+     "advanced_query_hash": null,
+     "order_by": "created_at",
+     "order_type": "desc"
+    },
+    {
+     "id": 703,
+     "user_id": 9,
+     "default": false,
+     "visibility": 81,
+     "visibility_name": "Me",
+     "name": "Acme source",
+     "workspace_id": 17,
+     "query_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "42"
+       ]
+      }
+     ],
+     "advanced_query_hash": null,
+     "order_by": "created_at",
+     "order_type": "desc"
+    }
+   ],
+   "has_more": false
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/705",
+  "json": {
+   "ticket_filter": {
+    "id": 705,
+    "user_id": 9,
+    "default": true,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/706",
+  "json": {
+   "ticket_filter": {
+    "id": 706,
+    "user_id": 12,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/707",
+  "json": {
+   "ticket_filter": {
+    "id": 707,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "All agents",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/708",
+  "json": {
+   "ticket_filter": {
+    "id": 708,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "updated_at",
+    "order_type": "desc"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/709",
+  "json": {
+   "ticket_filter": {
+    "id": 709,
+    "user_id": 9,
+    "default": false,
+    "visibility": {
+     "id": 81,
+     "label": " Only Me "
+    },
+    "visibility_name": "Me",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/710",
+  "json": {
+   "ticket_filter": {
+    "id": 710,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": {
+     "x": 1
+    },
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/711",
+  "json": {
+   "ticket_filter": {
+    "id": 712,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/713",
+  "json": {
+   "ticket_filter": {
+    "id": 713,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": null,
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/714",
+  "json": {
+   "ticket_filter": {
+    "id": 714,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+       "42"
+      ]
+     }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc",
+    "system": true
+   }
+  }
+ }
+]

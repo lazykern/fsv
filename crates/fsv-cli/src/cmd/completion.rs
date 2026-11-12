@@ -15,16 +15,9 @@ const SUPPORTED: &[&str] = &["bash", "zsh", "fish", "powershell", "pwsh"];
 
 /// `completion._completion_network`.
 pub fn network_enabled() -> bool {
-    if std::env::var("FSV_COMPLETION_NETWORK").is_ok_and(|v| v == "1") {
-        return true;
-    }
-    let cfg = crate::cmd::config::read_config();
-    match cfg.get("completion").and_then(|c| c.get("network")) {
-        Some(serde_json::Value::String(s)) => matches!(s.as_str(), "on" | "true" | "1"),
-        Some(serde_json::Value::Bool(b)) => *b,
-        Some(serde_json::Value::Number(n)) => n.as_i64() == Some(1),
-        _ => false,
-    }
+    let env = std::env::var("FSV_COMPLETION_NETWORK").ok();
+    let cfg = serde_json::Value::Object(crate::cmd::config::read_config());
+    fsv_completion::completion_network(env.as_deref(), &cfg)
 }
 
 fn env_shell() -> String {
@@ -172,4 +165,58 @@ pub fn install_eager(prog: &str) -> CmdResult {
         out().print(&line);
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    /// Expected values from Python `completion._completion_network` on
+    /// `{"completion": {"network": <json>}}`, the config `network_enabled`
+    /// passes on.
+    #[test]
+    fn network_truthiness_matches_python() {
+        let cases = [
+            ("1", true),
+            ("1.0", true),
+            ("1e0", true),
+            ("100e-2", true),
+            ("1.0000000000000001", true),
+            ("true", true),
+            (r#""true""#, true),
+            (r#""1""#, true),
+            (r#""on""#, true),
+            (r#""yes""#, false),
+            (r#""True""#, false),
+            (r#""ON""#, false),
+            (r#""1.0""#, false),
+            (r#""0""#, false),
+            (r#""off""#, false),
+            (r#""""#, false),
+            ("0", false),
+            ("0.0", false),
+            ("2", false),
+            ("1.5", false),
+            ("-1", false),
+            ("null", false),
+            ("false", false),
+            ("[1]", false),
+            (r#"{"a":1}"#, false),
+        ];
+        for (raw, want) in cases {
+            let v: serde_json::Value = serde_json::from_str(raw).unwrap();
+            let cfg = serde_json::json!({"completion": {"network": v}});
+            assert_eq!(
+                fsv_completion::completion_network(None, &cfg),
+                want,
+                "{raw}"
+            );
+        }
+        let off = serde_json::json!({"completion": {"network": 0}});
+        for (env, want) in [("1", true), ("true", false), ("0", false), ("", false)] {
+            assert_eq!(
+                fsv_completion::completion_network(Some(env), &off),
+                want,
+                "{env:?}"
+            );
+        }
+    }
 }

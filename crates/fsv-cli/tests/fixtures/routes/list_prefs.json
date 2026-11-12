@@ -1,0 +1,688 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/headers",
+  "once": true,
+  "json": {
+   "headers": [
+    {
+     "name": "ticket_subject",
+     "label": "Acme subject",
+     "position": 1,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "requester",
+     "label": "Acme requester",
+     "position": 2,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "status",
+     "label": "Acme state",
+     "position": 3,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "priority",
+     "label": "Acme priority",
+     "position": 4,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "display_id",
+     "label": "Acme ID",
+     "position": 5,
+     "selected": true,
+     "frozen": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/headers",
+  "once": true,
+  "json": {
+   "headers": [
+    {
+     "name": "ticket_subject",
+     "label": "Acme subject",
+     "position": 1,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "requester",
+     "label": "Acme requester",
+     "position": 2,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "status",
+     "label": "Acme state",
+     "position": 3,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "priority",
+     "label": "Acme priority",
+     "position": 4,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "display_id",
+     "label": "Acme ID",
+     "position": 5,
+     "selected": true,
+     "frozen": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/headers",
+  "json": {
+   "headers": [
+    {
+     "name": "ticket_subject",
+     "label": "Acme subject",
+     "position": 1,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "requester",
+     "label": "Acme requester",
+     "position": null,
+     "selected": false,
+     "frozen": false
+    },
+    {
+     "name": "status",
+     "label": "Acme state",
+     "position": 2,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "priority",
+     "label": "Acme priority",
+     "position": null,
+     "selected": false,
+     "frozen": false
+    },
+    {
+     "name": "display_id",
+     "label": "Acme ID",
+     "position": 1,
+     "selected": true,
+     "frozen": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets/headers",
+  "json": {
+   "ok": true
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets/export",
+  "status": 204
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters",
+  "json": {
+   "filters": [
+    {
+     "id": 701,
+     "name": "Acme queue",
+     "query_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "value": [
+        "47"
+       ],
+       "type": "default"
+      }
+     ],
+     "advanced_query_hash": null
+    },
+    {
+     "id": 702,
+     "name": "Acme advanced",
+     "query_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "value": [
+        "47"
+       ],
+       "type": "default"
+      }
+     ],
+     "advanced_query_hash": {
+      "x": 1
+     }
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/701",
+  "json": {
+   "ticket_filter": {
+    "id": 701,
+    "name": "Acme queue",
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "value": [
+       "47"
+      ],
+      "type": "default"
+     }
+    ],
+    "advanced_query_hash": null
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/702",
+  "json": {
+   "ticket_filter": {
+    "id": 702,
+    "name": "Acme advanced",
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "value": [
+       "47"
+      ],
+      "type": "default"
+     }
+    ],
+    "advanced_query_hash": {
+     "x": 1
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/headers",
+  "once": true,
+  "json": {
+   "headers": [
+    {
+     "name": "ticket_subject",
+     "label": "Acme subject",
+     "position": 1,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "requester",
+     "label": "Acme requester",
+     "position": 2,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "status",
+     "label": "Acme state",
+     "position": 3,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "priority",
+     "label": "Acme priority",
+     "position": 4,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "display_id",
+     "label": "Acme ID",
+     "position": 5,
+     "selected": true,
+     "frozen": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/headers",
+  "once": true,
+  "json": {
+   "headers": [
+    {
+     "name": "ticket_subject",
+     "label": "Acme subject",
+     "position": 1,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "requester",
+     "label": "Acme requester",
+     "position": 2,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "status",
+     "label": "Acme state",
+     "position": 3,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "priority",
+     "label": "Acme priority",
+     "position": 4,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "display_id",
+     "label": "Acme ID",
+     "position": 5,
+     "selected": true,
+     "frozen": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/headers",
+  "json": {
+   "headers": [
+    {
+     "name": "ticket_subject",
+     "label": "Acme subject",
+     "position": 1,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "requester",
+     "label": "Acme requester",
+     "position": 2,
+     "selected": true,
+     "frozen": true
+    },
+    {
+     "name": "status",
+     "label": "Acme state",
+     "position": 3,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "priority",
+     "label": "Acme priority",
+     "position": null,
+     "selected": false,
+     "frozen": false
+    },
+    {
+     "name": "display_id",
+     "label": "Acme ID",
+     "position": 1,
+     "selected": true,
+     "frozen": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/changes/headers",
+  "json": {
+   "ok": true
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/changes/export",
+  "status": 204
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change-filters",
+  "json": {
+   "filters": [
+    {
+     "id": 701,
+     "name": "Acme queue",
+     "query_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "value": [
+        "47"
+       ],
+       "type": "default"
+      }
+     ],
+     "advanced_query_hash": null
+    },
+    {
+     "id": 702,
+     "name": "Acme advanced",
+     "query_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "value": [
+        "47"
+       ],
+       "type": "default"
+      }
+     ],
+     "advanced_query_hash": {
+      "x": 1
+     }
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change-filters/701",
+  "json": {
+   "change_filter": {
+    "id": 701,
+    "name": "Acme queue",
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "value": [
+       "47"
+      ],
+      "type": "default"
+     }
+    ],
+    "advanced_query_hash": null
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change-filters/702",
+  "json": {
+   "change_filter": {
+    "id": 702,
+    "name": "Acme advanced",
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "value": [
+       "47"
+      ],
+      "type": "default"
+     }
+    ],
+    "advanced_query_hash": {
+     "x": 1
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/headers",
+  "once": true,
+  "json": {
+   "headers": [
+    {
+     "name": "ticket_subject",
+     "label": "Acme subject",
+     "position": 1,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "requester",
+     "label": "Acme requester",
+     "position": 2,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "status",
+     "label": "Acme state",
+     "position": 3,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "priority",
+     "label": "Acme priority",
+     "position": 4,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "display_id",
+     "label": "Acme ID",
+     "position": 5,
+     "selected": true,
+     "frozen": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/headers",
+  "once": true,
+  "json": {
+   "headers": [
+    {
+     "name": "ticket_subject",
+     "label": "Acme subject",
+     "position": 1,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "requester",
+     "label": "Acme requester",
+     "position": 2,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "status",
+     "label": "Acme state",
+     "position": 3,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "priority",
+     "label": "Acme priority",
+     "position": 4,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "display_id",
+     "label": "Acme ID",
+     "position": 5,
+     "selected": true,
+     "frozen": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/headers",
+  "json": {
+   "headers": [
+    {
+     "name": "ticket_subject",
+     "label": "Acme subject",
+     "position": 1,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "requester",
+     "label": "Acme requester",
+     "position": 2,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "status",
+     "label": "Acme state",
+     "position": 3,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "priority",
+     "label": "Acme priority",
+     "position": 4,
+     "selected": true,
+     "frozen": false
+    },
+    {
+     "name": "display_id",
+     "label": "Acme ID",
+     "position": 5,
+     "selected": true,
+     "frozen": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/problems/headers",
+  "json": {
+   "ok": true
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/problems/export",
+  "status": 204
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problem-filters",
+  "json": {
+   "filters": [
+    {
+     "id": 701,
+     "name": "Acme queue",
+     "query_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "value": [
+        "47"
+       ],
+       "type": "default"
+      }
+     ],
+     "advanced_query_hash": null
+    },
+    {
+     "id": 702,
+     "name": "Acme advanced",
+     "query_hash": [
+      {
+       "condition": "status",
+       "operator": "is_in",
+       "value": [
+        "47"
+       ],
+       "type": "default"
+      }
+     ],
+     "advanced_query_hash": {
+      "x": 1
+     }
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problem-filters/701",
+  "json": {
+   "problem_filter": {
+    "id": 701,
+    "name": "Acme queue",
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "value": [
+       "47"
+      ],
+      "type": "default"
+     }
+    ],
+    "advanced_query_hash": null
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problem-filters/702",
+  "json": {
+   "problem_filter": {
+    "id": 702,
+    "name": "Acme advanced",
+    "query_hash": [
+     {
+      "condition": "status",
+      "operator": "is_in",
+      "value": [
+       "47"
+      ],
+      "type": "default"
+     }
+    ],
+    "advanced_query_hash": {
+     "x": 1
+    }
+   }
+  }
+ }
+]

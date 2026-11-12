@@ -11,6 +11,7 @@ pub mod formflow;
 pub mod journal;
 pub mod links;
 pub mod misc;
+pub mod native;
 pub mod resource;
 pub mod review;
 pub mod reviewed;
@@ -91,10 +92,25 @@ fn resource_dispatch(res: &'static Resource, sub: &str, m: &ArgMatches) -> CmdRe
         "watchers list" => reviewed::watchers_list(res, parse(m)?),
         "watchers set" => reviewed::watchers_set(res, parse(m)?),
         "planning-text" => reviewed::planning_text(res, parse(m)?),
+        "asset-picker" => reviewed::asset_picker(parse(m)?),
         "mark-known-error" => reviewed::mark_known_error(parse(m)?),
         "time list" => reviewed::time_list(parse(m)?),
         "time write" => reviewed::time_write(parse(m)?),
         "bulk-priority" => reviewed::bulk_priority(parse(m)?),
+        "canned folders" => native::canned_folders(parse(m)?),
+        "canned list" => native::canned_list(parse(m)?),
+        "canned show" => native::canned_show(parse(m)?),
+        "canned reply" => native::canned_reply(parse(m)?),
+        "scenarios list" => native::scenarios_list(parse(m)?),
+        "scenarios show" => native::scenarios_show(parse(m)?),
+        "scenarios apply" => native::scenarios_apply(parse(m)?),
+        "private-views show" => native::private_views_show(parse(m)?),
+        "private-views write" => native::private_views_write(parse(m)?),
+        "columns list" => native::columns_list(res, parse(m)?),
+        "columns set" => native::columns_set(res, parse(m)?),
+        "export" => native::export(res, parse(m)?),
+        "create" if res.name == "problems" => native::problems_create(parse(m)?),
+        "write-child" => native::problems_write_child(parse(m)?),
         _ if res.name == "changes" => changes::dispatch(sub, m),
         _ => tickets::dispatch(sub, m),
     }

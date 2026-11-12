@@ -8,7 +8,9 @@ use serde_json::{Map, Value, json};
 
 use fsv_api::formmeta::{ClientResolver, DiskStore};
 use fsv_api::service::{Api, DiskJournal};
-use fsv_api::{bulk_priority, planning_text, problem_known_error, ticket_time, watchers};
+use fsv_api::{
+    asset_picker, bulk_priority, planning_text, problem_known_error, ticket_time, watchers,
+};
 use fsv_core::resource::{Resource, TICKETS, parse_id};
 use fsv_core::{Error, Result};
 
@@ -51,7 +53,7 @@ pub(crate) fn refusal(e: Error) -> Error {
 
 /// `typer.BadParameter(msg)` raised from a command body: Typer's rich usage
 /// error (usage line, help hint, then an "Error" panel as wide as stderr).
-fn bad_parameter(usage: &str, msg: &str) -> Error {
+pub(crate) fn bad_parameter(usage: &str, msg: &str) -> Error {
     let path = fsv_core::runtime::command_path().unwrap_or_else(|| "fsv".into());
     let width = fsv_core::term::err().width().max(12);
     let inner = width - 4;
@@ -148,9 +150,9 @@ pub fn time_write(a: TicketsTimeWriteArgs) -> CmdResult {
 }
 
 pub fn planning_text(res: &'static Resource, a: PlanningTextArgs) -> CmdResult {
-    let c = client()?;
     let schema = &planning_text::live_change_schema;
     let run = || -> Result<()> {
+        let c = client()?;
         let plan = planning_text::build_plan(
             c.as_ref(),
             res.name,
@@ -167,6 +169,25 @@ pub fn planning_text(res: &'static Resource, a: PlanningTextArgs) -> CmdResult {
         require_review(a.yes, a.expect_plan.as_deref(), &hash)?;
         let result = planning_text::send(&plan, c.as_ref(), &DiskJournal, Some(&hash), schema)?;
         println!("{}", dumps(&result));
+        Ok(())
+    };
+    run().map_err(|e| match e {
+        Error::Api(_) | Error::Session(_) => plain_fail(&e.to_string(), e.exit_code()),
+        other => refusal(other),
+    })
+}
+
+/// Port of fsv.asset_picker_cli.register's `asset-picker`: one read-only search page.
+pub fn asset_picker(a: ChangesAssetPickerArgs) -> CmdResult {
+    let run = || -> Result<()> {
+        let c = client()?;
+        let result = asset_picker::candidates(c.as_ref(), &json!(a.target), &a.search, a.page)?;
+        let mut out = result.to_json();
+        if let Some(n) = a.select {
+            let row = asset_picker::select(&result, &json!(n))?;
+            out["selected"] = Value::Object(row.clone());
+        }
+        println!("{}", dumps(&out));
         Ok(())
     };
     run().map_err(refusal)

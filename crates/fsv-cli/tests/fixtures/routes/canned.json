@@ -1,0 +1,127 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/canned_response_folders",
+  "json": {
+   "canned_response_folders": [
+    {
+     "id": 702,
+     "name": "Acme caf\u00e9"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/canned_response_folders/702/canned_responses",
+  "json": {
+   "canned_responses": [
+    {
+     "id": 701,
+     "title": "Thanks"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/canned_responses/701",
+  "json": {
+   "canned_response": {
+    "id": 701,
+    "title": "Thanks",
+    "content": "<div>Acme response</div>",
+    "meta": {
+     "note": 7
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/canned_responses/705",
+  "json": {
+   "canned_response": {
+    "id": 705,
+    "content": "Hi {{name}}"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/canned_responses/706",
+  "status": 404,
+  "json": {
+   "errors": [
+    "not found"
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/scenario_automations",
+  "json": {
+   "scenario_automations": [
+    {
+     "id": 703,
+     "name": "Globex"
+    },
+    {
+     "id": 704,
+     "name": "Dup A"
+    },
+    {
+     "id": 704,
+     "name": "Dup B"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/5",
+  "json": {
+   "ticket": {
+    "id": 5,
+    "subject": "Acme VPN",
+    "status": 2
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets/5/reply",
+  "json": {
+   "conversation": {
+    "id": 900
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/5/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 900,
+     "body": "<div>Acme response</div>",
+     "full_text": "<div>Acme response</div>",
+     "from_email": "support@acme.com",
+     "cc_emails": [],
+     "private": false
+    }
+   ],
+   "has_more": false
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/execute_scenario",
+  "status": 204
+ }
+]

@@ -1,9 +1,11 @@
-//! Upstream commands ported from Python dbe553c: watchers, ticket time,
-//! planning-text, mark-known-error, bulk-priority, reply --bcc/--sender,
-//! forward, update --reviewed with --set answers, and the SR send-failure
-//! report. Expected output was captured from Python dbe553c on the same routes
-//! (`FSV_PY_SRC=<dbe553c>/src tests/golden/cmp.py --emit`); one-shot routes
-//! serve the record before the write and the changed record after it.
+//! Upstream commands ported from Python (base `92002d7`): watchers, ticket
+//! time, planning-text, mark-known-error, bulk-priority, reply --bcc/--sender,
+//! forward, update --reviewed with --set answers, the SR send-failure report,
+//! the change asset picker, canned replies and scenarios, private ticket
+//! views, list columns and exports, and problem create and child writes.
+//! Expected output was captured from Python on the same routes
+//! (`tests/golden/cmp.py --emit`); one-shot routes serve the record before
+//! the write and the changed record after it.
 
 mod common;
 use common::run_fixture;
@@ -719,8 +721,11 @@ fn change_planning_text_dry_run() {
   "payload": {
     "description": "<p>Globex rollout</p>"
   },
-  "plan_hash": "e23e5ef7b5321bac81420f9a326219875da3e0411b020a69745f3f08a16f68d0",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "c24b210f056a6adac79499f156f6426d9cfd567548dd5d76f467cb5ddeca1ee0",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "operation": "create",
+  "before": "",
+  "after": "<p>Globex rollout</p>"
 }
 "#
     );
@@ -741,7 +746,7 @@ fn change_planning_text_send() {
             "<p>Globex rollout</p>",
             "--yes",
             "--expect-plan",
-            "e23e5ef7b5321bac81420f9a326219875da3e0411b020a69745f3f08a16f68d0",
+            "c24b210f056a6adac79499f156f6426d9cfd567548dd5d76f467cb5ddeca1ee0",
         ],
         None,
     );
@@ -750,7 +755,7 @@ fn change_planning_text_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "e23e5ef7b5321bac81420f9a326219875da3e0411b020a69745f3f08a16f68d0",
+  "plan_hash": "c24b210f056a6adac79499f156f6426d9cfd567548dd5d76f467cb5ddeca1ee0",
   "verified": true,
   "section": "acme_plan",
   "description": "matched"
@@ -812,6 +817,81 @@ fn change_planning_text_empty_refused() {
 }
 
 #[test]
+fn change_planning_text_existing_refused() {
+    let r = run_fixture(
+        "planning",
+        &[
+            "changes",
+            "planning-text",
+            "14",
+            "--section",
+            "Rollout Plan",
+            "--description",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"planning section already has content; native edit wire is not captured; use the web editor (no write attempted)
+"#
+    );
+}
+
+#[test]
+fn change_planning_text_unknown_section() {
+    let r = run_fixture(
+        "planning",
+        &[
+            "changes",
+            "planning-text",
+            "12",
+            "--section",
+            "nope",
+            "--description",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"planning field not found: 'nope'; choices: Rollout Plan, Backout Plan
+"#
+    );
+}
+
+#[test]
+fn change_planning_text_api_error() {
+    let r = run_fixture(
+        "planning",
+        &[
+            "changes",
+            "planning-text",
+            "15",
+            "--section",
+            "Rollout Plan",
+            "--description",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 5, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"HTTP 500 listing planning-fields: boom
+"#
+    );
+}
+
+#[test]
 fn problem_planning_text_dry_run() {
     let r = run_fixture(
         "planning",
@@ -838,8 +918,11 @@ fn problem_planning_text_dry_run() {
   "payload": {
     "description": "Acme DNS outage"
   },
-  "plan_hash": "61f95b4f9910f200b3cdba6a2379e2e352b5013c4064dbece9fa80adcf6e4ddb",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "plan_hash": "9b08b333071d53755058fcef4d3167fbbc93eea205000470bf7785782c5f2173",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "operation": "create",
+  "before": "",
+  "after": "Acme DNS outage"
 }
 "#
     );
@@ -860,7 +943,7 @@ fn problem_planning_text_send() {
             "Acme DNS outage",
             "--yes",
             "--expect-plan",
-            "61f95b4f9910f200b3cdba6a2379e2e352b5013c4064dbece9fa80adcf6e4ddb",
+            "9b08b333071d53755058fcef4d3167fbbc93eea205000470bf7785782c5f2173",
         ],
         None,
     );
@@ -869,7 +952,7 @@ fn problem_planning_text_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "61f95b4f9910f200b3cdba6a2379e2e352b5013c4064dbece9fa80adcf6e4ddb",
+  "plan_hash": "9b08b333071d53755058fcef4d3167fbbc93eea205000470bf7785782c5f2173",
   "verified": true,
   "section": "problem_cause",
   "description": "matched"
@@ -2049,7 +2132,3437 @@ error: place-request failed: HTTP 500; the outcome is unknown: check `fsv journa
 }
 
 #[test]
-#[ignore = "fsv-api properties.rs:115 removes br_validation_excludes with swap_remove, reordering `after`"]
+fn asset_picker_page() {
+    let r = run_fixture("asset_picker", &["changes", "asset-picker", "12"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "change_id": 12,
+  "page": 1,
+  "scope": "single search page; not a complete inventory",
+  "assets": [
+    {
+      "id": 9000007701,
+      "display_id": 701,
+      "name": "Acme Caf\u00e9 web",
+      "ci_type_name": "Server"
+    },
+    {
+      "id": 9000007702,
+      "display_id": 702,
+      "name": "Acme API",
+      "ci_type_name": "Server"
+    }
+  ],
+  "mutation": "none",
+  "warning": "Selection only. Asset/CI add-remove variants remain unsupported by this picker."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn asset_picker_display_id_target() {
+    let r = run_fixture(
+        "asset_picker",
+        &["changes", "asset-picker", "CHN-12", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "change_id": 12,
+  "page": 1,
+  "scope": "single search page; not a complete inventory",
+  "assets": [
+    {
+      "id": 9000007701,
+      "display_id": 701,
+      "name": "Acme Caf\u00e9 web",
+      "ci_type_name": "Server"
+    },
+    {
+      "id": 9000007702,
+      "display_id": 702,
+      "name": "Acme API",
+      "ci_type_name": "Server"
+    }
+  ],
+  "mutation": "none",
+  "warning": "Selection only. Asset/CI add-remove variants remain unsupported by this picker."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn asset_picker_search_page_2() {
+    let r = run_fixture(
+        "asset_picker",
+        &[
+            "changes",
+            "asset-picker",
+            "12",
+            "--search",
+            "Globex",
+            "--page",
+            "2",
+            "-o",
+            "json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "change_id": 12,
+  "page": 2,
+  "scope": "single search page; not a complete inventory",
+  "assets": [
+    {
+      "id": 9000007703,
+      "display_id": 703,
+      "name": "Globex DB",
+      "ci_type_name": "Server"
+    }
+  ],
+  "mutation": "none",
+  "warning": "Selection only. Asset/CI add-remove variants remain unsupported by this picker."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn asset_picker_select() {
+    let r = run_fixture(
+        "asset_picker",
+        &["changes", "asset-picker", "12", "--select", "702"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "change_id": 12,
+  "page": 1,
+  "scope": "single search page; not a complete inventory",
+  "assets": [
+    {
+      "id": 9000007701,
+      "display_id": 701,
+      "name": "Acme Caf\u00e9 web",
+      "ci_type_name": "Server"
+    },
+    {
+      "id": 9000007702,
+      "display_id": 702,
+      "name": "Acme API",
+      "ci_type_name": "Server"
+    }
+  ],
+  "mutation": "none",
+  "warning": "Selection only. Asset/CI add-remove variants remain unsupported by this picker.",
+  "selected": {
+    "id": 9000007702,
+    "display_id": 702,
+    "name": "Acme API",
+    "ci_type_name": "Server"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn asset_picker_select_missing() {
+    let r = run_fixture(
+        "asset_picker",
+        &["changes", "asset-picker", "12", "--select", "999"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"exact asset display ID is not unique on this search page
+"#
+    );
+}
+
+#[test]
+fn asset_picker_empty_page() {
+    let r = run_fixture("asset_picker", &["changes", "asset-picker", "18"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "change_id": 18,
+  "page": 1,
+  "scope": "single search page; not a complete inventory",
+  "assets": [],
+  "mutation": "none",
+  "warning": "Selection only. Asset/CI add-remove variants remain unsupported by this picker."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn asset_picker_empty_select() {
+    let r = run_fixture(
+        "asset_picker",
+        &["changes", "asset-picker", "18", "--select", "1"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"exact asset display ID is not unique on this search page
+"#
+    );
+}
+
+#[test]
+fn asset_picker_duplicate_display_ids() {
+    let r = run_fixture("asset_picker", &["changes", "asset-picker", "13"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"duplicate asset display identities; selection is ambiguous
+"#
+    );
+}
+
+#[test]
+fn asset_picker_rows_not_list() {
+    let r = run_fixture("asset_picker", &["changes", "asset-picker", "14"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"asset candidate response is unavailable
+"#
+    );
+}
+
+#[test]
+fn asset_picker_row_not_object() {
+    let r = run_fixture("asset_picker", &["changes", "asset-picker", "19"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"asset candidate response is unavailable
+"#
+    );
+}
+
+#[test]
+fn asset_picker_bad_display_id() {
+    let r = run_fixture("asset_picker", &["changes", "asset-picker", "15"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"expected a positive numeric identity
+"#
+    );
+}
+
+#[test]
+fn asset_picker_bad_target() {
+    let r = run_fixture("asset_picker", &["changes", "asset-picker", "abc"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"invalid id: abc
+"#
+    );
+}
+
+#[test]
+fn asset_picker_zero_target() {
+    let r = run_fixture("asset_picker", &["changes", "asset-picker", "0"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"expected a positive numeric identity
+"#
+    );
+}
+
+#[test]
+fn asset_picker_ticket_target() {
+    let r = run_fixture("asset_picker", &["changes", "asset-picker", "INC-12"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"prefix INC not valid for changes (expect CHN)
+"#
+    );
+}
+
+#[test]
+#[ignore = "fsv-api asset_picker.rs candidates checks duplicates before every display_id is validated"]
+fn asset_picker_duplicate_then_bad() {
+    let r = run_fixture("asset_picker", &["changes", "asset-picker", "16"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert_eq!(r.err, "expected a positive numeric identity\n");
+}
+
+#[test]
+fn asset_picker_api_error_is_uncaught() {
+    // Python leaves APIError uncaught (traceback, exit 1).
+    let r = run_fixture("asset_picker", &["changes", "asset-picker", "17"], None);
+    assert_eq!(r.code, 1, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert!(
+        r.err.contains("HTTP 500 listing assets-to-associate: boom"),
+        "{}",
+        r.err
+    );
+}
+
+#[test]
+fn asset_picker_page_must_be_positive() {
+    // Click's `min=1` range error; clap's text differs.
+    let r = run_fixture(
+        "asset_picker",
+        &["changes", "asset-picker", "12", "--page", "0"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert!(r.requests.is_empty());
+}
+#[test]
+fn canned_folders() {
+    let r = run_fixture("canned", &["tickets", "canned", "folders"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "canned_response_folders": [
+    {
+      "id": 702,
+      "name": "Acme caf\u00e9"
+    }
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn canned_list() {
+    let r = run_fixture(
+        "canned",
+        &["tickets", "canned", "list", "--folder", "702", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "canned_responses": [
+    {
+      "id": 701,
+      "title": "Thanks"
+    }
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn canned_show() {
+    let r = run_fixture(
+        "canned",
+        &["tickets", "canned", "show", "701", "-o", "json"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "canned_response": {
+    "id": 701,
+    "title": "Thanks",
+    "content": "<div>Acme response</div>",
+    "meta": {
+      "note": 7
+    }
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn canned_reply_dry_run() {
+    let r = run_fixture(
+        "canned",
+        &[
+            "tickets",
+            "canned",
+            "reply",
+            "INC-5",
+            "--response",
+            "701",
+            "--content-pointer",
+            "/canned_response/content",
+            "--sender",
+            "support@acme.com",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_reply",
+  "method": "POST",
+  "path": "/api/_/tickets/5/reply",
+  "payload": {
+    "body": "<div>Acme response</div>",
+    "cc_emails": [],
+    "conversation_from_summary": false,
+    "freddy_message_id": null,
+    "from_email": "support@acme.com",
+    "full_text": "<div>Acme response</div>",
+    "translate_reply": false
+  },
+  "status_label": null,
+  "plan_hash": "0b42cf4872bd8fa5b3592c1d34220179affeeffeadac93979894532555bda78b",
+  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration.",
+  "source": {
+    "id": 701,
+    "hash": "f136a71f4682d335d1cff7e3510f7e17a3a3c0be74155646755b18ebedfe2573"
+  },
+  "insertion": "Literal selected HTML only; no attachments, signatures or placeholder expansion."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn canned_reply_send() {
+    let r = run_fixture(
+        "canned",
+        &[
+            "tickets",
+            "canned",
+            "reply",
+            "INC-5",
+            "--response",
+            "701",
+            "--content-pointer",
+            "/canned_response/content",
+            "--sender",
+            "support@acme.com",
+            "--yes",
+            "--expect-plan",
+            "0b42cf4872bd8fa5b3592c1d34220179affeeffeadac93979894532555bda78b",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "conversation_id": 900,
+  "ticket_id": 5,
+  "plan_hash": "0b42cf4872bd8fa5b3592c1d34220179affeeffeadac93979894532555bda78b",
+  "verified": true,
+  "fields": {
+    "body": "matched",
+    "cc_emails": "matched",
+    "from_email": "matched"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/5/reply"]);
+}
+
+#[test]
+fn canned_reply_needs_hash() {
+    let r = run_fixture(
+        "canned",
+        &[
+            "tickets",
+            "canned",
+            "reply",
+            "5",
+            "--response",
+            "701",
+            "--content-pointer",
+            "/canned_response/content",
+            "--sender",
+            "support@acme.com",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn canned_reply_pointer_without_slash() {
+    let r = run_fixture(
+        "canned",
+        &[
+            "tickets",
+            "canned",
+            "reply",
+            "5",
+            "--response",
+            "701",
+            "--content-pointer",
+            "canned_response/content",
+            "--sender",
+            "support@acme.com",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"content pointer must start with /; inspect canned show first
+"#
+    );
+}
+
+#[test]
+fn canned_reply_pointer_bad_escape() {
+    let r = run_fixture(
+        "canned",
+        &[
+            "tickets",
+            "canned",
+            "reply",
+            "5",
+            "--response",
+            "701",
+            "--content-pointer",
+            "/canned_response/~2",
+            "--sender",
+            "support@acme.com",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"invalid JSON pointer escape
+"#
+    );
+}
+
+#[test]
+fn canned_reply_pointer_missing() {
+    let r = run_fixture(
+        "canned",
+        &[
+            "tickets",
+            "canned",
+            "reply",
+            "5",
+            "--response",
+            "701",
+            "--content-pointer",
+            "/canned_response/body",
+            "--sender",
+            "support@acme.com",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"content pointer does not identify a source field
+"#
+    );
+}
+
+#[test]
+fn canned_reply_pointer_not_text() {
+    let r = run_fixture(
+        "canned",
+        &[
+            "tickets",
+            "canned",
+            "reply",
+            "5",
+            "--response",
+            "701",
+            "--content-pointer",
+            "/canned_response/meta",
+            "--sender",
+            "support@acme.com",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"selected canned content must be nonempty text/HTML
+"#
+    );
+}
+
+#[test]
+fn canned_reply_placeholder_refused() {
+    let r = run_fixture(
+        "canned",
+        &[
+            "tickets",
+            "canned",
+            "reply",
+            "5",
+            "--response",
+            "705",
+            "--content-pointer",
+            "/canned_response/content",
+            "--sender",
+            "support@acme.com",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"unresolved canned placeholders require the web editor
+"#
+    );
+}
+
+#[test]
+fn canned_reply_sender_not_plain() {
+    let r = run_fixture(
+        "canned",
+        &[
+            "tickets",
+            "canned",
+            "reply",
+            "5",
+            "--response",
+            "701",
+            "--content-pointer",
+            "/canned_response/content",
+            "--sender",
+            "Support <support@acme.com>",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"sender must be a plain configured support email address
+"#
+    );
+}
+
+#[test]
+fn scenarios_list() {
+    let r = run_fixture("canned", &["tickets", "scenarios", "list"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "scenario_automations": [
+    {
+      "id": 703,
+      "name": "Globex"
+    },
+    {
+      "id": 704,
+      "name": "Dup A"
+    },
+    {
+      "id": 704,
+      "name": "Dup B"
+    }
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn scenarios_show() {
+    let r = run_fixture("canned", &["tickets", "scenarios", "show", "703"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "id": 703,
+  "name": "Globex"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn scenarios_show_ambiguous() {
+    let r = run_fixture("canned", &["tickets", "scenarios", "show", "704"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"Usage: fsv tickets scenarios show [OPTIONS] ID_
+Try 'fsv tickets scenarios show -h' for help.
+╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Invalid value: scenario identity is missing or ambiguous in this inventory                                                                                                                           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+"#
+    );
+}
+
+#[test]
+fn scenarios_show_missing() {
+    let r = run_fixture("canned", &["tickets", "scenarios", "show", "999"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"Usage: fsv tickets scenarios show [OPTIONS] ID_
+Try 'fsv tickets scenarios show -h' for help.
+╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Invalid value: scenario identity is missing or ambiguous in this inventory                                                                                                                           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+"#
+    );
+}
+
+#[test]
+fn scenarios_apply_dry_run() {
+    let r = run_fixture(
+        "canned",
+        &[
+            "tickets",
+            "scenarios",
+            "apply",
+            "INC-5",
+            "--scenario",
+            "703",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_scenario",
+  "method": "PUT",
+  "path": "/api/_/tickets/execute_scenario",
+  "payload": {
+    "ids": [
+      5
+    ],
+    "scenario_id": 703
+  },
+  "plan_hash": "4726ade70372c6d6530c4707815a9c37b17b26a6a42868313d3d31715d35d81b",
+  "warning": "Native automation may send mail or change records. No complete side-effect verification contract is captured.",
+  "definition": {
+    "id": 703,
+    "name": "Globex"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn scenarios_apply_send() {
+    let r = run_fixture(
+        "canned",
+        &[
+            "tickets",
+            "scenarios",
+            "apply",
+            "5",
+            "--scenario",
+            "703",
+            "--yes",
+            "--expect-plan",
+            "4726ade70372c6d6530c4707815a9c37b17b26a6a42868313d3d31715d35d81b",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "4726ade70372c6d6530c4707815a9c37b17b26a6a42868313d3d31715d35d81b",
+  "verified": false,
+  "ticket_id": 5,
+  "identity_verified": true,
+  "warning": "Exact ticket was read back; scenario side effects (including mail/workflows) are unverified. Do not resend."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/execute_scenario"]);
+}
+
+#[test]
+fn scenarios_apply_wrong_hash() {
+    let r = run_fixture(
+        "canned",
+        &[
+            "tickets",
+            "scenarios",
+            "apply",
+            "5",
+            "--scenario",
+            "703",
+            "--yes",
+            "--expect-plan",
+            "abc",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn scenarios_apply_ambiguous() {
+    let r = run_fixture(
+        "canned",
+        &[
+            "tickets",
+            "scenarios",
+            "apply",
+            "5",
+            "--scenario",
+            "704",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"scenario identity is missing or ambiguous in this inventory
+"#
+    );
+}
+
+#[test]
+fn pv_show() {
+    let r = run_fixture(
+        "private_views",
+        &["tickets", "private-views", "show", "701"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "id": 701,
+  "user_id": 9,
+  "default": false,
+  "visibility": 81,
+  "visibility_name": "Me",
+  "name": "Acme source",
+  "workspace_id": 17,
+  "query_hash": [
+    {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+        "42"
+      ]
+    }
+  ],
+  "advanced_query_hash": null,
+  "order_by": "created_at",
+  "order_type": "desc"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn pv_show_json_flag() {
+    let r = run_fixture(
+        "private_views",
+        &["tickets", "private-views", "show", "702", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "id": 702,
+  "user_id": 9,
+  "default": false,
+  "visibility": 81,
+  "visibility_name": "Me",
+  "name": "Globex clone",
+  "workspace_id": 17,
+  "query_hash": [
+    {
+      "condition": "status",
+      "operator": "is_in",
+      "type": "default",
+      "value": [
+        "42"
+      ]
+    }
+  ],
+  "advanced_query_hash": null,
+  "order_by": "created_at",
+  "order_type": "desc"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn pv_create_dry_run() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "701",
+            "create",
+            "--name",
+            "Globex",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "private_view_create",
+  "method": "POST",
+  "path": "/api/_/ticket_filters",
+  "payload": {
+    "advanced_query_hash": null,
+    "name": "Globex",
+    "order_by": "created_at",
+    "order_type": "desc",
+    "query_hash": [
+      {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+          "42"
+        ]
+      }
+    ],
+    "visibility": 81,
+    "workspace_id": 17
+  },
+  "plan_hash": "f2279611eb0365ec3f3c99e4061b2013038ad7c5c7825901ba7c92aac04cb010",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn pv_edit_dry_run() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "703",
+            "edit",
+            "--name",
+            "Globex renamed",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "private_view_edit",
+  "method": "PUT",
+  "path": "/api/_/ticket_filters/703",
+  "payload": {
+    "advanced_query_hash": null,
+    "name": "Globex renamed",
+    "order_by": "created_at",
+    "order_type": "desc",
+    "query_hash": [
+      {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+          "42"
+        ]
+      }
+    ],
+    "visibility": 81,
+    "workspace_id": 17
+  },
+  "plan_hash": "af7255ec8f4d3148c71b7c83bde4811a8c75d6afda269d5347645bbe18795817",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn pv_delete_dry_run() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "704",
+            "delete",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "private_view_delete",
+  "method": "DELETE",
+  "path": "/api/_/ticket_filters/704",
+  "payload": null,
+  "plan_hash": "8d0d36217062692720ca0a02bad6de70f3885c0177d88a76ee2e36bb33404f3b",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn pv_object_label_dry_run() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "709",
+            "create",
+            "--name",
+            "Only",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "private_view_create",
+  "method": "POST",
+  "path": "/api/_/ticket_filters",
+  "payload": {
+    "advanced_query_hash": null,
+    "name": "Only",
+    "order_by": "created_at",
+    "order_type": "desc",
+    "query_hash": [
+      {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+          "42"
+        ]
+      }
+    ],
+    "visibility": 81,
+    "workspace_id": 17
+  },
+  "plan_hash": "e5413d712d79190ed9f407b9e68c6905df579832cab501cbb78a89b4bf14055e",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn pv_needs_yes() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "701",
+            "create",
+            "--name",
+            "Globex",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn pv_wrong_hash() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "701",
+            "create",
+            "--name",
+            "Globex",
+            "--yes",
+            "--expect-plan",
+            "abc",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn pv_unsupported_action() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "701",
+            "rename",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"unsupported saved-view action
+"#
+    );
+}
+
+#[test]
+fn pv_delete_with_name() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "704",
+            "delete",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"delete does not accept a name
+"#
+    );
+}
+
+#[test]
+fn pv_create_without_name() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "701",
+            "create",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"create/edit requires a nonempty --name
+"#
+    );
+}
+
+#[test]
+fn pv_create_blank_name() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "701",
+            "create",
+            "--name",
+            "  ",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"create/edit requires a nonempty --name
+"#
+    );
+}
+
+#[test]
+fn pv_refuses_default() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "705",
+            "create",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"only self-owned, explicitly non-default private views are supported
+"#
+    );
+}
+
+#[test]
+fn pv_refuses_other_owner() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "706",
+            "create",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"only self-owned, explicitly non-default private views are supported
+"#
+    );
+}
+
+#[test]
+fn pv_refuses_visibility_name() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "707",
+            "create",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"named private visibility metadata is unavailable; numeric visibility alone is not proof
+"#
+    );
+}
+
+#[test]
+fn pv_refuses_order() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "708",
+            "create",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"only captured created-at descending views are supported
+"#
+    );
+}
+
+#[test]
+fn pv_refuses_advanced_query() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "710",
+            "create",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"only the captured ordinary query-hash subset is supported
+"#
+    );
+}
+
+#[test]
+fn pv_refuses_id_mismatch() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "711",
+            "create",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"exact saved-view identity is unavailable
+"#
+    );
+}
+
+#[test]
+fn pv_refuses_null_visibility_name() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "713",
+            "create",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"named private visibility metadata is unavailable; numeric visibility alone is not proof
+"#
+    );
+}
+
+#[test]
+fn pv_refuses_system() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "714",
+            "create",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"only self-owned, explicitly non-default private views are supported
+"#
+    );
+}
+
+#[test]
+fn pv_create_send() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "701",
+            "create",
+            "--name",
+            "Globex",
+            "--yes",
+            "--expect-plan",
+            "f2279611eb0365ec3f3c99e4061b2013038ad7c5c7825901ba7c92aac04cb010",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "f2279611eb0365ec3f3c99e4061b2013038ad7c5c7825901ba7c92aac04cb010",
+  "verified": false,
+  "view_id": 702,
+  "fields": {
+    "advanced_query_hash": "matched",
+    "name": "mismatched",
+    "order_by": "matched",
+    "order_type": "matched",
+    "query_hash": "matched",
+    "visibility": "matched",
+    "workspace_id": "matched"
+  },
+  "warning": "Readback was not fully verified; do not resend."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/ticket_filters"]);
+}
+
+#[test]
+fn pv_edit_send() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "703",
+            "edit",
+            "--name",
+            "Globex renamed",
+            "--yes",
+            "--expect-plan",
+            "af7255ec8f4d3148c71b7c83bde4811a8c75d6afda269d5347645bbe18795817",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "af7255ec8f4d3148c71b7c83bde4811a8c75d6afda269d5347645bbe18795817",
+  "verified": true,
+  "view_id": 703,
+  "fields": {
+    "advanced_query_hash": "matched",
+    "name": "matched",
+    "order_by": "matched",
+    "order_type": "matched",
+    "query_hash": "matched",
+    "visibility": "matched",
+    "workspace_id": "matched"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/ticket_filters/703"]);
+}
+
+#[test]
+fn pv_edit_send_mismatch() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "703",
+            "edit",
+            "--name",
+            "Globex_renamed",
+            "--yes",
+            "--expect-plan",
+            "2c8884374517a2291e001c5ca542943f754217ea5e94e2f9f26d7d5235b661b5",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "2c8884374517a2291e001c5ca542943f754217ea5e94e2f9f26d7d5235b661b5",
+  "verified": false,
+  "view_id": 703,
+  "fields": {
+    "advanced_query_hash": "matched",
+    "name": "mismatched",
+    "order_by": "matched",
+    "order_type": "matched",
+    "query_hash": "matched",
+    "visibility": "matched",
+    "workspace_id": "matched"
+  },
+  "warning": "Readback was not fully verified; do not resend."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/ticket_filters/703"]);
+}
+
+#[test]
+fn pv_delete_send() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "704",
+            "delete",
+            "--yes",
+            "--expect-plan",
+            "8d0d36217062692720ca0a02bad6de70f3885c0177d88a76ee2e36bb33404f3b",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "8d0d36217062692720ca0a02bad6de70f3885c0177d88a76ee2e36bb33404f3b",
+  "verified": true,
+  "view_id": 704
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["DELETE /api/_/ticket_filters/704"]);
+}
+
+#[test]
+fn tickets_columns_list() {
+    let r = run_fixture("list_prefs", &["tickets", "columns", "list"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"[
+  {
+    "name": "ticket_subject",
+    "label": "Acme subject",
+    "position": 1,
+    "selected": true,
+    "frozen": false
+  },
+  {
+    "name": "requester",
+    "label": "Acme requester",
+    "position": 2,
+    "selected": true,
+    "frozen": false
+  },
+  {
+    "name": "status",
+    "label": "Acme state",
+    "position": 3,
+    "selected": true,
+    "frozen": false
+  },
+  {
+    "name": "priority",
+    "label": "Acme priority",
+    "position": 4,
+    "selected": true,
+    "frozen": false
+  },
+  {
+    "name": "display_id",
+    "label": "Acme ID",
+    "position": 5,
+    "selected": true,
+    "frozen": true
+  }
+]
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_columns_set_dry_run() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "status",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "list_columns",
+  "method": "POST",
+  "path": "/api/_/tickets/headers",
+  "payload": {
+    "columns": {
+      "display_id": 1,
+      "status": 2,
+      "ticket_subject": 1
+    },
+    "frozen_columns": [
+      "display_id"
+    ]
+  },
+  "plan_hash": "dfa7e59748090f63ce098e3d242a154f26cd10c352c4c8fcf07bbd5834a2fb54",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_columns_set_send() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "status",
+            "--yes",
+            "--expect-plan",
+            "dfa7e59748090f63ce098e3d242a154f26cd10c352c4c8fcf07bbd5834a2fb54",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "dfa7e59748090f63ce098e3d242a154f26cd10c352c4c8fcf07bbd5834a2fb54",
+  "verified": true,
+  "fields": {
+    "display_id": "matched",
+    "status": "matched",
+    "ticket_subject": "matched"
+  },
+  "unverified_omissions": []
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/headers"]);
+}
+
+#[test]
+fn tickets_columns_set_needs_hash() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "status",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn tickets_export_dry_run() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "export",
+            "--view",
+            "Acme queue",
+            "--field",
+            "subject",
+            "--field",
+            "status_name",
+            "--field",
+            "display_id",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "list_export",
+  "method": "POST",
+  "path": "/api/_/tickets/export",
+  "payload": {
+    "advanced_data_hash": null,
+    "custom_fields": {},
+    "data_hash": [
+      {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+          "47"
+        ]
+      }
+    ],
+    "date_filter": 30,
+    "export_fields": {
+      "display_id": "Acme ID",
+      "status_name": "Acme state",
+      "subject": "Acme subject"
+    },
+    "format": "csv",
+    "selected_filter_view": {
+      "id": "701",
+      "is_additional_filters_applied": false,
+      "name": "Acme queue"
+    },
+    "ticket_state_filter": "created_at"
+  },
+  "plan_hash": "8d40b150f5aca4efb14583eb29cb46703b5497d1786ffbf1f0261ee154871e32",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_export_send() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "export",
+            "--view",
+            "Acme queue",
+            "--field",
+            "subject",
+            "--field",
+            "status_name",
+            "--field",
+            "display_id",
+            "--yes",
+            "--expect-plan",
+            "8d40b150f5aca4efb14583eb29cb46703b5497d1786ffbf1f0261ee154871e32",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "8d40b150f5aca4efb14583eb29cb46703b5497d1786ffbf1f0261ee154871e32",
+  "verified": false,
+  "source_readback": true,
+  "job": "unavailable",
+  "download": "unavailable",
+  "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/export"]);
+}
+
+#[test]
+fn changes_columns_list() {
+    let r = run_fixture("list_prefs", &["changes", "columns", "list"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"[
+  {
+    "name": "ticket_subject",
+    "label": "Acme subject",
+    "position": 1,
+    "selected": true,
+    "frozen": false
+  },
+  {
+    "name": "requester",
+    "label": "Acme requester",
+    "position": 2,
+    "selected": true,
+    "frozen": false
+  },
+  {
+    "name": "status",
+    "label": "Acme state",
+    "position": 3,
+    "selected": true,
+    "frozen": false
+  },
+  {
+    "name": "priority",
+    "label": "Acme priority",
+    "position": 4,
+    "selected": true,
+    "frozen": false
+  },
+  {
+    "name": "display_id",
+    "label": "Acme ID",
+    "position": 5,
+    "selected": true,
+    "frozen": true
+  }
+]
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn changes_columns_set_dry_run() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "changes",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "requester",
+            "--column",
+            "status",
+            "--freeze",
+            "requester",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "list_columns",
+  "method": "POST",
+  "path": "/api/_/changes/headers",
+  "payload": {
+    "columns": {
+      "display_id": 1,
+      "requester": 2,
+      "status": 3,
+      "ticket_subject": 1
+    },
+    "frozen_columns": [
+      "requester",
+      "display_id"
+    ]
+  },
+  "plan_hash": "a8b00903cbf7a14e987baff6b8042698e2f72f429b331bd756f382d38856c2fe",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn changes_columns_set_send() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "changes",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "requester",
+            "--column",
+            "status",
+            "--freeze",
+            "requester",
+            "--yes",
+            "--expect-plan",
+            "a8b00903cbf7a14e987baff6b8042698e2f72f429b331bd756f382d38856c2fe",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "a8b00903cbf7a14e987baff6b8042698e2f72f429b331bd756f382d38856c2fe",
+  "verified": true,
+  "fields": {
+    "display_id": "matched",
+    "requester": "matched",
+    "status": "matched",
+    "ticket_subject": "matched"
+  },
+  "unverified_omissions": []
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/changes/headers"]);
+}
+
+#[test]
+fn changes_columns_set_needs_hash() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "changes",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "requester",
+            "--column",
+            "status",
+            "--freeze",
+            "requester",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn changes_export_dry_run() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "changes",
+            "export",
+            "--view",
+            "Acme queue",
+            "--field",
+            "subject",
+            "--field",
+            "status_name",
+            "--field",
+            "display_id",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "list_export",
+  "method": "POST",
+  "path": "/api/_/changes/export",
+  "payload": {
+    "advanced_data_hash": null,
+    "custom_fields": {},
+    "data_hash": [
+      {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+          "47"
+        ]
+      }
+    ],
+    "date_filter": 30,
+    "export_fields": {
+      "display_id": "Acme ID",
+      "status_name": "Acme state",
+      "subject": "Acme subject"
+    },
+    "format": "csv",
+    "state_filter": "created_at"
+  },
+  "plan_hash": "724d390aea5fd89f52addbd0542798bcd6132f345697453bae7383cd2d9e7e89",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn changes_export_send() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "changes",
+            "export",
+            "--view",
+            "Acme queue",
+            "--field",
+            "subject",
+            "--field",
+            "status_name",
+            "--field",
+            "display_id",
+            "--yes",
+            "--expect-plan",
+            "724d390aea5fd89f52addbd0542798bcd6132f345697453bae7383cd2d9e7e89",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "724d390aea5fd89f52addbd0542798bcd6132f345697453bae7383cd2d9e7e89",
+  "verified": false,
+  "source_readback": true,
+  "job": "unavailable",
+  "download": "unavailable",
+  "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/changes/export"]);
+}
+
+#[test]
+fn problems_columns_list() {
+    let r = run_fixture("list_prefs", &["problems", "columns", "list"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"[
+  {
+    "name": "ticket_subject",
+    "label": "Acme subject",
+    "position": 1,
+    "selected": true,
+    "frozen": false
+  },
+  {
+    "name": "requester",
+    "label": "Acme requester",
+    "position": 2,
+    "selected": true,
+    "frozen": false
+  },
+  {
+    "name": "status",
+    "label": "Acme state",
+    "position": 3,
+    "selected": true,
+    "frozen": false
+  },
+  {
+    "name": "priority",
+    "label": "Acme priority",
+    "position": 4,
+    "selected": true,
+    "frozen": false
+  },
+  {
+    "name": "display_id",
+    "label": "Acme ID",
+    "position": 5,
+    "selected": true,
+    "frozen": true
+  }
+]
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problems_columns_set_dry_run() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "problems",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "status",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "list_columns",
+  "method": "POST",
+  "path": "/api/_/problems/headers",
+  "payload": {
+    "columns": {
+      "display_id": 1,
+      "status": 2,
+      "ticket_subject": 1
+    },
+    "frozen_columns": [
+      "display_id"
+    ]
+  },
+  "plan_hash": "87152724fa035261a560ce41df1cfaf9add1265591b4269d584ed600af1742fc",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problems_columns_set_send() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "problems",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "status",
+            "--yes",
+            "--expect-plan",
+            "87152724fa035261a560ce41df1cfaf9add1265591b4269d584ed600af1742fc",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "87152724fa035261a560ce41df1cfaf9add1265591b4269d584ed600af1742fc",
+  "verified": false,
+  "fields": {
+    "display_id": "mismatched",
+    "status": "mismatched",
+    "ticket_subject": "matched"
+  },
+  "unverified_omissions": [
+    "requester",
+    "priority"
+  ],
+  "warning": "Readback was not fully verified; do not resend."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/problems/headers"]);
+}
+
+#[test]
+fn problems_columns_set_needs_hash() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "problems",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "status",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn problems_export_dry_run() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "problems",
+            "export",
+            "--view",
+            "Acme queue",
+            "--field",
+            "subject",
+            "--field",
+            "status_name",
+            "--field",
+            "display_id",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "list_export",
+  "method": "POST",
+  "path": "/api/_/problems/export",
+  "payload": {
+    "custom_fields": {},
+    "data_hash": [
+      {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+          "47"
+        ]
+      }
+    ],
+    "date_filter": 30,
+    "export_fields": {
+      "display_id": "Acme ID",
+      "status_name": "Acme state",
+      "subject": "Acme subject"
+    },
+    "format": "csv",
+    "state_filter": "created_at"
+  },
+  "plan_hash": "96634ff8a9e6f5eb960f4e8027a6be90f83a0c78d534ec8b44a7657733d366f3",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problems_export_send() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "problems",
+            "export",
+            "--view",
+            "Acme queue",
+            "--field",
+            "subject",
+            "--field",
+            "status_name",
+            "--field",
+            "display_id",
+            "--yes",
+            "--expect-plan",
+            "96634ff8a9e6f5eb960f4e8027a6be90f83a0c78d534ec8b44a7657733d366f3",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "96634ff8a9e6f5eb960f4e8027a6be90f83a0c78d534ec8b44a7657733d366f3",
+  "verified": false,
+  "source_readback": true,
+  "job": "unavailable",
+  "download": "unavailable",
+  "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/problems/export"]);
+}
+
+#[test]
+fn columns_set_display_id() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "display_id",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"choose unique exact runtime column names; display_id is anchored automatically
+"#
+    );
+}
+
+#[test]
+fn columns_set_needs_subject() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "columns",
+            "set",
+            "--column",
+            "status",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"captured preference contract requires ticket_subject
+"#
+    );
+}
+
+#[test]
+fn columns_set_duplicate() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "ticket_subject",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"choose unique exact runtime column names; display_id is anchored automatically
+"#
+    );
+}
+
+#[test]
+fn columns_set_unknown() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "nope",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"choose unique exact runtime column names; display_id is anchored automatically
+"#
+    );
+}
+
+#[test]
+fn columns_set_ticket_freeze() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "requester",
+            "--freeze",
+            "requester",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"only change requester freezing plus the automatic display_id anchor is captured
+"#
+    );
+}
+
+#[test]
+fn columns_set_freeze_unselected() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "changes",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--freeze",
+            "requester",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"frozen columns must be unique selected columns
+"#
+    );
+}
+
+#[test]
+fn columns_set_freeze_other() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "changes",
+            "columns",
+            "set",
+            "--column",
+            "ticket_subject",
+            "--column",
+            "status",
+            "--freeze",
+            "status",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"only change requester freezing plus the automatic display_id anchor is captured
+"#
+    );
+}
+
+#[test]
+fn export_ticket_owner_refused() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "export",
+            "--view",
+            "701",
+            "--field",
+            "owner",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"select unique captured export field keys
+"#
+    );
+}
+
+#[test]
+fn export_duplicate_field() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "export",
+            "--view",
+            "701",
+            "--field",
+            "subject",
+            "--field",
+            "subject",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"select unique captured export field keys
+"#
+    );
+}
+
+#[test]
+fn export_label_unavailable() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "problems",
+            "export",
+            "--view",
+            "701",
+            "--field",
+            "department_name",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"runtime export-field label is unavailable for department_name
+"#
+    );
+}
+
+#[test]
+fn export_unknown_view() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "changes",
+            "export",
+            "--view",
+            "Nope",
+            "--field",
+            "subject",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"no view named 'Nope'; views: 'Acme queue', 'Acme advanced'
+"#
+    );
+}
+
+#[test]
+fn export_advanced_view() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "changes",
+            "export",
+            "--view",
+            "702",
+            "--field",
+            "subject",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"only ordinary saved-view queries have a captured export contract
+"#
+    );
+}
+
+#[test]
+fn export_ambiguous_view() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "export",
+            "--view",
+            "Acme",
+            "--field",
+            "subject",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"view 'Acme' is ambiguous: 'Acme queue', 'Acme advanced'
+"#
+    );
+}
+
+#[test]
+fn problem_create_dry_run() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "create",
+            "--requester",
+            "ann@acme.com",
+            "--set",
+            "Subject=Acme problem",
+            "--set",
+            "Description=Acme details",
+            "--set",
+            "Status=Open",
+            "--set",
+            "Priority=Low",
+            "--set",
+            "Impact=Low",
+            "--set",
+            "Acme count=7",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "problem_create",
+  "method": "POST",
+  "path": "/api/_/problems",
+  "payload": {
+    "custom_fields": {
+      "acme_count": 7
+    },
+    "description": "<div>Acme details</div>",
+    "email": "ann@acme.com",
+    "impact": 43,
+    "priority": 42,
+    "status": 41,
+    "subject": "Acme problem"
+  },
+  "plan_hash": "5baf2437f0de8ce64f064102eaab12d22a3510bd78c6ac6fe588bb0f761ca236",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problem_create_send() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "create",
+            "--requester",
+            "ann@acme.com",
+            "--set",
+            "Subject=Acme problem",
+            "--set",
+            "Description=Acme details",
+            "--set",
+            "Status=Open",
+            "--set",
+            "Priority=Low",
+            "--set",
+            "Impact=Low",
+            "--set",
+            "Acme count=7",
+            "--yes",
+            "--expect-plan",
+            "5baf2437f0de8ce64f064102eaab12d22a3510bd78c6ac6fe588bb0f761ca236",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "5baf2437f0de8ce64f064102eaab12d22a3510bd78c6ac6fe588bb0f761ca236",
+  "verified": true,
+  "problem_id": 456,
+  "fields": {
+    "custom_fields": "matched",
+    "description": "matched",
+    "email": "matched",
+    "impact": "matched",
+    "priority": "matched",
+    "status": "matched",
+    "subject": "matched"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/problems"]);
+}
+
+#[test]
+fn problem_create_needs_hash() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "create",
+            "--requester",
+            "ann@acme.com",
+            "--set",
+            "Subject=Acme problem",
+            "--set",
+            "Description=Acme details",
+            "--set",
+            "Status=Open",
+            "--set",
+            "Priority=Low",
+            "--set",
+            "Impact=Low",
+            "--set",
+            "Acme count=7",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn problem_create_requester_answer() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "create",
+            "--requester",
+            "ann@acme.com",
+            "--set",
+            "Subject=Acme problem",
+            "--set",
+            "Description=Acme details",
+            "--set",
+            "Status=Open",
+            "--set",
+            "Priority=Low",
+            "--set",
+            "Impact=Low",
+            "--set",
+            "Acme count=7",
+            "--set",
+            "Requester=ann@acme.com",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"requester answers are not allowed; use --requester
+"#
+    );
+}
+
+#[test]
+fn problem_create_missing_subject() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "create",
+            "--requester",
+            "ann@acme.com",
+            "--set",
+            "Status=Open",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"Subject is required; Description is required
+"#
+    );
+}
+
+#[test]
+fn problem_create_unknown_label() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "create",
+            "--requester",
+            "ann@acme.com",
+            "--set",
+            "Subject=Acme problem",
+            "--set",
+            "Description=Acme details",
+            "--set",
+            "Status=Open",
+            "--set",
+            "Priority=Low",
+            "--set",
+            "Impact=Low",
+            "--set",
+            "Acme count=7",
+            "--set",
+            "Nope=1",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"unknown field: 'Nope'
+"#
+    );
+}
+
+#[test]
+fn problem_note_dry_run() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "write-child",
+            "PRB-123",
+            "note",
+            "Acme",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "problem_note",
+  "method": "POST",
+  "path": "/api/_/problems/123/notes",
+  "payload": {
+    "body": "Acme"
+  },
+  "plan_hash": "d4e8552a8fd24b5316f03803e693a6e5f171ddef5218e39ba9e6eed406a6d7b6",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problem_task_dry_run() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "write-child",
+            "123",
+            "task",
+            "Acme",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "problem_task",
+  "method": "POST",
+  "path": "/api/_/problems/123/tasks",
+  "payload": {
+    "notify_before": 52,
+    "owner_id": 9,
+    "planned_effort": "1m",
+    "status": 51,
+    "title": "Acme"
+  },
+  "plan_hash": "c5c3e5fa8ec3fe6ac947470dd990b8d31ebaba64595dea542f2b7b5ffcd3f7fe",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problem_note_send() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "write-child",
+            "PRB-123",
+            "note",
+            "Acme",
+            "--yes",
+            "--expect-plan",
+            "d4e8552a8fd24b5316f03803e693a6e5f171ddef5218e39ba9e6eed406a6d7b6",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "d4e8552a8fd24b5316f03803e693a6e5f171ddef5218e39ba9e6eed406a6d7b6",
+  "verified": true,
+  "note_id": 456,
+  "fields": {
+    "body": "matched"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/problems/123/notes"]);
+}
+
+#[test]
+fn problem_task_send() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "write-child",
+            "123",
+            "task",
+            "Acme",
+            "--yes",
+            "--expect-plan",
+            "c5c3e5fa8ec3fe6ac947470dd990b8d31ebaba64595dea542f2b7b5ffcd3f7fe",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "c5c3e5fa8ec3fe6ac947470dd990b8d31ebaba64595dea542f2b7b5ffcd3f7fe",
+  "verified": true,
+  "task_id": 456,
+  "fields": {
+    "notify_before": "matched",
+    "owner_id": "matched",
+    "planned_effort": "matched",
+    "status": "matched",
+    "title": "matched"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/problems/123/tasks"]);
+}
+
+#[test]
+fn problem_note_send_mismatch() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "write-child",
+            "123",
+            "note",
+            "Other",
+            "--yes",
+            "--expect-plan",
+            "ed23c5dca4c8b43cc57f520bb06b700326f8fcc1d156d90d4b80cb4482f635c9",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "ed23c5dca4c8b43cc57f520bb06b700326f8fcc1d156d90d4b80cb4482f635c9",
+  "verified": false,
+  "note_id": 456,
+  "fields": {
+    "body": "mismatched"
+  },
+  "warning": "Readback was not fully verified; do not resend."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/problems/123/notes"]);
+}
+
+#[test]
+fn problem_child_bad_kind() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "write-child",
+            "123",
+            "comment",
+            "Acme",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"unsupported problem child kind
+"#
+    );
+}
+
+#[test]
+fn problem_child_blank_text() {
+    let r = run_fixture(
+        "problem_flows",
+        &["problems", "write-child", "123", "note", "  ", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"nonempty text is required
+"#
+    );
+}
+
+#[test]
+fn problem_child_bad_target() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "write-child",
+            "CHN-123",
+            "note",
+            "Acme",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"prefix CHN not valid for problems (expect PRB)
+"#
+    );
+}
+
+#[test]
+fn problem_child_identity_mismatch() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "problems",
+            "write-child",
+            "124",
+            "note",
+            "Acme",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"exact problem identity is unavailable
+"#
+    );
+}
+
+#[test]
+fn problem_child_needs_yes() {
+    let r = run_fixture(
+        "problem_flows",
+        &["problems", "write-child", "123", "note", "Acme"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn form_fields_problems() {
+    let r = run_fixture("problem_flows", &["form", "fields", "problems"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"         problem form fields (web order; state on a new form)          
+┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━┓
+┃ Label       ┃ Name        ┃ Type         ┃ On load           ┃ Help ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━┩
+│ Subject     │ subject     │ text         │ visible, required │      │
+│ Description │ description │ richtext     │ visible, required │      │
+│ Requester   │ requester   │ lookup_user  │ visible, required │      │
+│ Status      │ status      │ dropdown (1) │ visible, required │      │
+│ Priority    │ priority    │ dropdown (1) │ visible, required │      │
+│ Impact      │ impact      │ dropdown (1) │ visible, required │      │
+│ Acme count  │ acme_count  │ number       │ visible           │      │
+└─────────────┴─────────────┴──────────────┴───────────────────┴──────┘
+choices: fsv form fields changes --choices LABEL
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn form_fields_problems_choices() {
+    let r = run_fixture(
+        "problem_flows",
+        &["form", "fields", "problems", "--choices", "Status"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#" Status (status): 1 
+      choices       
+┏━━━━━━━━┳━━━━━━━━━┓
+┃ Choice ┃ Meaning ┃
+┡━━━━━━━━╇━━━━━━━━━┩
+│ Open   │         │
+└────────┴─────────┘
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn form_explain_problems() {
+    let r = run_fixture("problem_flows", &["form", "explain", "problems"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"                    problem form (new)                     
+┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Field       ┃ State             ┃ Value ┃ Why           ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ Subject     │ visible, required │       │ form metadata │
+│ Description │ visible, required │       │ form metadata │
+│ Requester   │ visible, required │       │ form metadata │
+│ Status      │ visible, required │ Open  │ form metadata │
+│ Priority    │ visible, required │ Low   │ form metadata │
+│ Impact      │ visible, required │ Low   │ form metadata │
+│ Acme count  │ visible           │       │ form metadata │
+└─────────────┴───────────────────┴───────┴───────────────┘
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn form_explain_problem_record() {
+    let r = run_fixture(
+        "problem_flows",
+        &[
+            "form",
+            "explain",
+            "problems",
+            "--id",
+            "PRB-123",
+            "--set",
+            "Status=Open",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"                    problem form (edit)                    
+┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Field       ┃ State             ┃ Value ┃ Why           ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ Subject     │ visible, required │ Acme  │ form metadata │
+│ Description │ visible, required │       │ form metadata │
+│ Requester   │ visible, required │       │ form metadata │
+│ Status      │ visible, required │ Open  │ form metadata │
+│ Priority    │ visible, required │       │ form metadata │
+│ Impact      │ visible, required │       │ form metadata │
+│ Acme count  │ visible           │       │ form metadata │
+└─────────────┴───────────────────┴───────┴───────────────┘
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn form_unsupported_lists_problems() {
+    let r = run_fixture("problem_flows", &["form", "dump", "nope"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: unsupported form 'nope'; supported: changes, tickets, problems
+"#
+    );
+}
+
+#[test]
+fn canned_show_api_error_is_uncaught() {
+    // Python leaves APIError uncaught (traceback, exit 1).
+    let r = run_fixture("canned", &["tickets", "canned", "show", "706"], None);
+    assert_eq!(r.code, 1, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert!(
+        r.err
+            .contains("HTTP 404 fetching canned response: not found"),
+        "{}",
+        r.err
+    );
+}
+
+#[test]
+fn private_view_show_refusal_is_uncaught() {
+    // `show` has no `try`: ReviewedWriteError is a traceback (exit 1), not exit 2.
+    let r = run_fixture(
+        "private_views",
+        &["tickets", "private-views", "show", "711"],
+        None,
+    );
+    assert_eq!(r.code, 1, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert!(
+        r.err.contains("exact saved-view identity is unavailable"),
+        "{}",
+        r.err
+    );
+}
+
+#[test]
+fn columns_list_api_error_is_uncaught() {
+    let r = run_fixture("private_views", &["problems", "columns", "list"], None);
+    assert_eq!(r.code, 1, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert!(r.err.contains("HTTP 404 listing headers"), "{}", r.err);
+}
+
+#[test]
+fn form_dump_problems() {
+    // `taken_at` is the clock, so compare the rest of Python's snapshot.
+    let r = run_fixture("problem_flows", &["form", "dump", "problems"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    let v: serde_json::Value = serde_json::from_str(&r.out).unwrap();
+    let keys: Vec<&str> = v.as_object().unwrap().keys().map(String::as_str).collect();
+    assert_eq!(
+        keys,
+        [
+            "fsv_form_snapshot",
+            "module",
+            "form_type",
+            "workspace_id",
+            "taken_at",
+            "fields",
+            "business_rules"
+        ]
+    );
+    assert_eq!(v["module"], "problem");
+    assert_eq!(v["form_type"], "new_form");
+    assert_eq!(v["workspace_id"], serde_json::Value::Null);
+    assert_eq!(v["fields"].as_array().unwrap().len(), 7);
+}
+
+#[test]
+fn problem_create_requires_requester() {
+    // Click's missing-option panel; clap's text differs.
+    let r = run_fixture("problem_flows", &["problems", "create", "--dry-run"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert!(r.requests.is_empty());
+}
+
+#[test]
 fn update_reviewed_multi_field_dry_run() {
     let r = run_fixture(
         "ticket_reviewed",
@@ -2094,29 +5607,4 @@ fn json_only_output_rejects_other_formats() {
     );
     assert_eq!(r.code, 2, "{}", r.err);
     assert!(r.requests.is_empty());
-}
-
-#[test]
-fn planning_text_unknown_section_is_uncaught() {
-    let r = run_fixture(
-        "planning",
-        &[
-            "changes",
-            "planning-text",
-            "12",
-            "--section",
-            "nope",
-            "--description",
-            "x",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 1, "{}", r.err);
-    assert!(
-        r.err
-            .contains("planning field not found: 'nope'; choices: Rollout Plan, Backout Plan"),
-        "{}",
-        r.err
-    );
 }

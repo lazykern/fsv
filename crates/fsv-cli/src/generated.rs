@@ -2324,6 +2324,318 @@ pub struct TicketsBulkPriorityArgs {
     pub expect_plan: Option<String>,
 }
 
+// fsv tickets canned folders, fsv tickets scenarios list, fsv <res> columns list
+#[derive(Args, Debug, Clone)]
+pub struct JsonOnlyArgs {
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets canned show, fsv tickets scenarios show, fsv tickets private-views show
+#[derive(Args, Debug, Clone)]
+pub struct PositiveIdArgs {
+    #[arg(value_name = "ID_", value_parser = clap::value_parser!(i64).range(1..))]
+    pub id_: i64,
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets canned list
+#[derive(Args, Debug, Clone)]
+pub struct TicketsCannedListArgs {
+    #[arg(long = "folder", value_name = "INTEGER RANGE", value_parser = clap::value_parser!(i64).range(1..))]
+    pub folder: i64,
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets canned reply
+#[derive(Args, Debug, Clone)]
+pub struct TicketsCannedReplyArgs {
+    #[arg(value_name = "TICKET")]
+    pub target: String,
+    #[arg(long = "response", value_name = "INTEGER RANGE", value_parser = clap::value_parser!(i64).range(1..))]
+    pub response: i64,
+    #[arg(
+        help = "JSON pointer from show; no automatic template expansion",
+        long = "content-pointer",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub content_pointer: String,
+    #[arg(
+        help = "explicit configured support mailbox",
+        long = "sender",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub sender: String,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes")]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets scenarios apply
+#[derive(Args, Debug, Clone)]
+pub struct TicketsScenariosApplyArgs {
+    #[arg(value_name = "TICKET")]
+    pub target: String,
+    #[arg(long = "scenario", value_name = "INTEGER RANGE", value_parser = clap::value_parser!(i64).range(1..))]
+    pub scenario_id: i64,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes")]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets private-views write
+#[derive(Args, Debug, Clone)]
+pub struct TicketsPrivateViewsWriteArgs {
+    #[arg(value_name = "SOURCE_VIEW", value_parser = clap::value_parser!(i64).range(1..))]
+    pub id_: i64,
+    #[arg(
+        help = "create (clone source) | edit (rename) | delete",
+        value_name = "ACTION"
+    )]
+    pub action: String,
+    #[arg(long = "name", allow_hyphen_values = true, value_name = "TEXT")]
+    pub name: Option<String>,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes")]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets columns set, fsv changes columns set, fsv problems columns set
+#[derive(Args, Debug, Clone)]
+pub struct ColumnsSetArgs {
+    #[arg(
+        help = "exact runtime column name, in desired order (repeatable)",
+        long = "column",
+        required = true,
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub column: Vec<String>,
+    #[arg(
+        help = "captured change requester freeze only; display_id is automatic",
+        long = "freeze",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub freeze: Vec<String>,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes")]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv tickets export, fsv changes export, fsv problems export
+#[derive(Args, Debug, Clone)]
+pub struct ResExportArgs {
+    #[arg(
+        help = "saved view ID or unique name",
+        long = "view",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub view: String,
+    #[arg(
+        help = "captured export field key (repeatable)",
+        long = "field",
+        required = true,
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub field: Vec<String>,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes")]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv problems create
+#[derive(Args, Debug, Clone)]
+pub struct ProblemsCreateArgs {
+    #[arg(
+        help = "YAML answers draft",
+        long = "from",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub from_: Option<String>,
+    #[arg(
+        help = "LABEL=VALUE (repeatable)",
+        long = "set",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub set_: Vec<String>,
+    #[arg(
+        help = "exact requester email/name lookup",
+        long = "requester",
+        allow_hyphen_values = true,
+        value_name = "TEXT"
+    )]
+    pub requester: String,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes")]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv problems write-child
+#[derive(Args, Debug, Clone)]
+pub struct ProblemsWriteChildArgs {
+    #[arg(value_name = "PROBLEM")]
+    pub target: String,
+    #[arg(help = "note | task", value_name = "KIND")]
+    pub kind: String,
+    #[arg(help = "note body HTML/text or task title", value_name = "TEXT")]
+    pub text: String,
+    #[arg(long = "dry-run")]
+    pub dry_run: bool,
+    #[arg(long = "yes")]
+    pub yes: bool,
+    #[arg(long = "expect-plan", allow_hyphen_values = true, value_name = "TEXT")]
+    pub expect_plan: Option<String>,
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
+// fsv changes asset-picker
+#[derive(Args, Debug, Clone)]
+pub struct ChangesAssetPickerArgs {
+    #[arg(value_name = "CHANGE")]
+    pub target: String,
+    #[arg(
+        long = "search",
+        allow_hyphen_values = true,
+        value_name = "TEXT",
+        default_value = ""
+    )]
+    pub search: String,
+    #[arg(long = "page", value_name = "INTEGER RANGE", default_value_t = 1, value_parser = clap::value_parser!(i64).range(1..))]
+    pub page: i64,
+    #[arg(help = "exact display ID from this page, not internal ID", long = "select", value_name = "INTEGER RANGE", value_parser = clap::value_parser!(i64).range(1..))]
+    pub select: Option<i64>,
+    #[arg(
+        long = "output",
+        short = 'o',
+        allow_hyphen_values = true,
+        value_enum,
+        default_value = "json"
+    )]
+    pub output: ReviewOutput,
+    #[arg(long = "json")]
+    pub json_out: bool,
+}
+
 // fsv changes planning-text, fsv problems planning-text
 #[derive(Args, Debug, Clone)]
 pub struct PlanningTextArgs {
@@ -2723,6 +3035,59 @@ fn watchers_group() -> Command {
         ))
 }
 
+fn columns_group() -> Command {
+    Command::new("columns")
+        .about("Inspect/set native list columns (shared account preferences may be affected).")
+        .subcommand(JsonOnlyArgs::augment_args(
+            Command::new("list").arg(global_verbose()),
+        ))
+        .subcommand(ColumnsSetArgs::augment_args(
+            Command::new("set").arg(global_verbose()),
+        ))
+}
+
+fn private_views_group() -> Command {
+    Command::new("private-views")
+        .about(
+            "Private ticket views: clone, rename or delete an exact self-owned non-default view.",
+        )
+        .subcommand(PositiveIdArgs::augment_args(
+            Command::new("show").arg(global_verbose()),
+        ))
+        .subcommand(TicketsPrivateViewsWriteArgs::augment_args(
+            Command::new("write").arg(global_verbose()),
+        ))
+}
+
+fn canned_group() -> Command {
+    Command::new("canned")
+        .about("Read canned responses and insert selected literal HTML into a reviewed reply.")
+        .subcommand(JsonOnlyArgs::augment_args(
+            Command::new("folders").arg(global_verbose()),
+        ))
+        .subcommand(TicketsCannedListArgs::augment_args(
+            Command::new("list").arg(global_verbose()),
+        ))
+        .subcommand(PositiveIdArgs::augment_args(
+            Command::new("show").arg(global_verbose()),
+        ))
+        .subcommand(TicketsCannedReplyArgs::augment_args(
+            Command::new("reply").arg(global_verbose()),
+        ))
+}
+
+fn scenarios_group() -> Command {
+    Command::new("scenarios")
+        .about("Read/review native scenarios. Execution side effects remain unverified.")
+        .subcommand(JsonOnlyArgs::augment_args(Command::new("list").arg(global_verbose())))
+        .subcommand(PositiveIdArgs::augment_args(Command::new("show").arg(global_verbose())))
+        .subcommand(TicketsScenariosApplyArgs::augment_args(
+            Command::new("apply")
+                .about("Review native scenario execution on one ticket; may send mail or trigger workflows, not just insert reply text.")
+                .arg(global_verbose()),
+        ))
+}
+
 // The full command tree (without the shared settings `crate::app` applies).
 pub fn build() -> Command {
     let root = Command::new("fsv")
@@ -2784,6 +3149,8 @@ pub fn build() -> Command {
             .subcommand(ChangesTasksDeleteArgs::augment_args(Command::new("tasks-delete") .about("Delete a change task.") .after_help("Examples: fsv changes tasks-delete CHN-1234 987 --dry-run | fsv changes tasks-delete CHN-1234 987 --yes").arg(global_verbose())))
             .subcommand(ChangesApprovalsArgs::augment_args(Command::new("approvals") .about("List change approvals.") .after_help("Examples: fsv changes approvals CHN-1234 | fsv changes approvals CHN-1234 --json").arg(global_verbose())))
             .subcommand(ChangesStateArgs::augment_args(Command::new("state") .about("Approval lifecycle state flow.") .after_help("Examples: fsv changes state CHN-1234 | fsv changes state CHN-1234 --json").arg(global_verbose())))
+            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review a native CSV/30-day export request; may email data, job/download contract is unknown.").arg(global_verbose())))
+            .subcommand(ChangesAssetPickerArgs::augment_args(Command::new("asset-picker") .about("Search/select a change asset candidate without associating it (read-only).").arg(global_verbose())))
             .subcommand(PlanningTextArgs::augment_args(Command::new("planning-text") .about("Review a native planning/analysis text section; no files.").arg(global_verbose())))
             .subcommand(ResFieldsArgs::augment_args(Command::new("fields") .about("List discoverable change fields.") .after_help("Examples: fsv changes fields | fsv changes fields --required | fsv changes fields --choices status | fsv changes fields --custom").arg(global_verbose())))
             .subcommand(ResLookupArgs::augment_args(Command::new("lookup") .about("Look up users, groups, or field choices.") .after_help("Examples: fsv changes lookup requester me@example.com | fsv changes lookup group desk").arg(global_verbose())))
@@ -2815,6 +3182,7 @@ pub fn build() -> Command {
                 .subcommand(ChangesAssociationsAddArgs::augment_args(Command::new("add") .about("Associate ticket(s) to change.") .after_help("Examples: fsv changes associations add CHN-1234 SR-123 --dry-run | fsv changes associations add CHN-1234 SR-123 --yes --expect-plan FULL_HASH").arg(global_verbose())))
                 .subcommand(ChangesAssociationsRemoveArgs::augment_args(Command::new("remove") .about("Dissociate ticket(s) from change.") .after_help("Examples: fsv changes associations remove CHN-1234 SR-123 --dry-run | fsv changes associations remove CHN-1234 SR-123 --yes --expect-plan FULL_HASH").arg(global_verbose())))
                 .subcommand(ChangesAssociationsPickArgs::augment_args(Command::new("pick") .about("Interactively pick ticket(s) to associate.") .after_help("Examples: fsv changes associations pick CHN-1234 --yes --expect-plan FULL_HASH | fsv changes associations pick CHN-1234 --dry-run").arg(global_verbose()))))
+            .subcommand(columns_group())
             .subcommand(watchers_group()))
         .subcommand(Command::new("tickets")
             .about("tickets commands")
@@ -2823,6 +3191,7 @@ pub fn build() -> Command {
             .subcommand(ResGetArgs::augment_args(Command::new("get") .about("Show one ticket.") .after_help("Examples: fsv tickets get INC-1234 | fsv tickets get INC-1234 --tab activity | fsv tickets get INC-1234 --all-tabs | fsv tickets get INC-1234 --json").arg(global_verbose())).mut_arg("tab", |a| a.help("show one tab of the page: related|tasks|assets|associations|approvals|activity|resolution (only tabs the server shows)")))
             .subcommand(ResActivityArgs::augment_args(Command::new("activity") .about("List ticket activity.") .after_help("Examples: fsv tickets activity INC-1234 | fsv tickets activity INC-1234 -l 50 --json").arg(global_verbose())))
             .subcommand(ResTasksArgs::augment_args(Command::new("tasks") .about("List ticket tasks.") .after_help("Examples: fsv tickets tasks INC-1234 | fsv tickets tasks INC-1234 --json").arg(global_verbose())))
+            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review a native CSV/30-day export request; may email data, job/download contract is unknown.").arg(global_verbose())))
             .subcommand(TicketsBulkPriorityArgs::augment_args(Command::new("bulk-priority") .about("Review priority for explicit ticket IDs; no filter/all-pages expansion.").arg(global_verbose())))
             .subcommand(ResFieldsArgs::augment_args(Command::new("fields") .about("List discoverable ticket fields.") .after_help("Examples: fsv tickets fields | fsv tickets fields --required | fsv tickets fields --choices status | fsv tickets fields --custom").arg(global_verbose())))
             .subcommand(ResLookupArgs::augment_args(Command::new("lookup") .about("Look up users, groups, or field choices.") .after_help("Examples: fsv tickets lookup requester me@example.com | fsv tickets lookup group desk").arg(global_verbose())))
@@ -2838,7 +3207,11 @@ pub fn build() -> Command {
             .subcommand(TicketsConversationsArgs::augment_args(Command::new("conversations") .about("List ticket conversations/replies.") .after_help("Examples: fsv tickets conversations INC-1234 | fsv tickets conversations INC-1234 --json").arg(global_verbose())))
             .subcommand(TicketsReplyArgs::augment_args(Command::new("reply") .about("Add a ticket reply.") .after_help("Note: Reply sends a public response; for reviewed ticket notes use add-note (docs/ticket-notes.md). Examples: fsv tickets reply INC-1234 'Working on this'").arg(global_verbose())))
             .subcommand(TicketsForwardArgs::augment_args(Command::new("forward") .about("Review and forward a whole ticket (not an individual conversation).").arg(global_verbose())))
+            .subcommand(columns_group())
             .subcommand(watchers_group())
+            .subcommand(private_views_group())
+            .subcommand(canned_group())
+            .subcommand(scenarios_group())
             .subcommand(Command::new("time")
                 .about("Reviewed self-owned, nonbillable manual time entries.")
                 .subcommand(ReviewedListArgs::augment_args(Command::new("list").arg(global_verbose())))
@@ -2850,6 +3223,9 @@ pub fn build() -> Command {
             .subcommand(ResGetArgs::augment_args(Command::new("get") .about("Show one problem.") .after_help("Examples: fsv problems get PRB-1234 | fsv problems get PRB-1234 --tab activity | fsv problems get PRB-1234 --all-tabs | fsv problems get PRB-1234 --json").arg(global_verbose())).mut_arg("tab", |a| a.help("show one tab of the page: notes|tasks|assets|associations|activity (only tabs the server shows)")))
             .subcommand(ResActivityArgs::augment_args(Command::new("activity") .about("List problem activity.") .after_help("Examples: fsv problems activity PRB-1234 | fsv problems activity PRB-1234 -l 50 --json").arg(global_verbose())))
             .subcommand(ResTasksArgs::augment_args(Command::new("tasks") .about("List problem tasks.") .after_help("Examples: fsv problems tasks PRB-1234 | fsv problems tasks PRB-1234 --json").arg(global_verbose())))
+            .subcommand(ResExportArgs::augment_args(Command::new("export") .about("Review a native CSV/30-day export request; may email data, job/download contract is unknown.").arg(global_verbose())))
+            .subcommand(ProblemsCreateArgs::augment_args(Command::new("create") .about("Create a problem through fresh form fields and business rules; no files.").arg(global_verbose())))
+            .subcommand(ProblemsWriteChildArgs::augment_args(Command::new("write-child") .about("Review a body-only note or basic self-owned one-minute task; note visibility is not proven.").arg(global_verbose())))
             .subcommand(ProblemsMarkKnownErrorArgs::augment_args(Command::new("mark-known-error") .about("Review marking a problem as a known error; no reversal wire is proven.").arg(global_verbose())))
             .subcommand(PlanningTextArgs::augment_args(Command::new("planning-text") .about("Review a native planning/analysis text section; no files.").arg(global_verbose())))
             .subcommand(ResFieldsArgs::augment_args(Command::new("fields") .about("List discoverable problem fields.") .after_help("Examples: fsv problems fields | fsv problems fields --required | fsv problems fields --choices status | fsv problems fields --custom").arg(global_verbose())))
@@ -2860,7 +3236,8 @@ pub fn build() -> Command {
             .subcommand(ResUpdateArgs::augment_args(Command::new("update") .about("Update problem fields.") .after_help("Examples: fsv problems update PRB-1234 --status 'In Progress' | fsv problems update PRB-1234 --priority High --dry-run | fsv problems update PRB-1234 --status Closed --yes").arg(global_verbose())))
             .subcommand(ResDownloadArgs::augment_args(Command::new("download") .about("Download problem attachments.") .after_help("Examples: fsv problems download PRB-1234 | fsv problems download PRB-1234 --all --dir ./evidence").arg(global_verbose())).mut_arg("threads", |a| a.help("download attachments from notes").long("notes").alias(None).short(None).short_alias(None)))
             .subcommand(ResNotesArgs::augment_args(Command::new("notes") .about("List problem notes.") .after_help("Examples: fsv problems notes PRB-1234 | fsv problems notes PRB-1234 --json").arg(global_verbose())))
-            .subcommand(ResAddNoteArgs::augment_args(Command::new("add-note") .about("Add problem note.") .after_help("Note: Changes/problems use add-note; ticket notes have a separate reviewed flow (docs/ticket-notes.md). Examples: fsv problems add-note PRB-1234 'Checked deployment evidence' | fsv problems add-note PRB-1234 'Visible update' --public").arg(global_verbose()))))
+            .subcommand(ResAddNoteArgs::augment_args(Command::new("add-note") .about("Add problem note.") .after_help("Note: Changes/problems use add-note; ticket notes have a separate reviewed flow (docs/ticket-notes.md). Examples: fsv problems add-note PRB-1234 'Checked deployment evidence' | fsv problems add-note PRB-1234 'Visible update' --public").arg(global_verbose())))
+            .subcommand(columns_group()))
         .subcommand(Command::new("form")
             .about("inspect form fields and business rules (explain, fields, dump, diff)")
             .subcommand(FormExplainArgs::augment_args(Command::new("explain") .about("Why each field is visible, required or hidden, by rule.") .after_help("Examples: fsv form explain changes --set 'Change Type=Emergency' | fsv form explain changes --from change.yaml | fsv form explain changes --id CHN-12 --set 'Stage=Live'").arg(global_verbose())))
@@ -2912,6 +3289,8 @@ pub const LEAVES: &[(&str, &str)] = &[
     ("changes tasks-delete", "ChangesTasksDeleteArgs"),
     ("changes approvals", "ChangesApprovalsArgs"),
     ("changes state", "ChangesStateArgs"),
+    ("changes export", "ResExportArgs"),
+    ("changes asset-picker", "ChangesAssetPickerArgs"),
     ("changes planning-text", "PlanningTextArgs"),
     ("changes fields", "ResFieldsArgs"),
     ("changes lookup", "ResLookupArgs"),
@@ -2952,6 +3331,7 @@ pub const LEAVES: &[(&str, &str)] = &[
     ("tickets get", "ResGetArgs"),
     ("tickets activity", "ResActivityArgs"),
     ("tickets tasks", "ResTasksArgs"),
+    ("tickets export", "ResExportArgs"),
     ("tickets bulk-priority", "TicketsBulkPriorityArgs"),
     ("tickets fields", "ResFieldsArgs"),
     ("tickets lookup", "ResLookupArgs"),
@@ -2975,6 +3355,9 @@ pub const LEAVES: &[(&str, &str)] = &[
     ("problems get", "ResGetArgs"),
     ("problems activity", "ResActivityArgs"),
     ("problems tasks", "ResTasksArgs"),
+    ("problems export", "ResExportArgs"),
+    ("problems create", "ProblemsCreateArgs"),
+    ("problems write-child", "ProblemsWriteChildArgs"),
     ("problems mark-known-error", "ProblemsMarkKnownErrorArgs"),
     ("problems planning-text", "PlanningTextArgs"),
     ("problems fields", "ResFieldsArgs"),
@@ -2994,6 +3377,24 @@ pub const LEAVES: &[(&str, &str)] = &[
     ("sr fields", "SrFieldsArgs"),
     ("sr create", "SrCreateArgs"),
     ("sr get", "SrGetArgs"),
+    ("changes columns list", "JsonOnlyArgs"),
+    ("tickets columns list", "JsonOnlyArgs"),
+    ("problems columns list", "JsonOnlyArgs"),
+    ("changes columns set", "ColumnsSetArgs"),
+    ("tickets columns set", "ColumnsSetArgs"),
+    ("problems columns set", "ColumnsSetArgs"),
+    ("tickets private-views show", "PositiveIdArgs"),
+    (
+        "tickets private-views write",
+        "TicketsPrivateViewsWriteArgs",
+    ),
+    ("tickets canned folders", "JsonOnlyArgs"),
+    ("tickets canned list", "TicketsCannedListArgs"),
+    ("tickets canned show", "PositiveIdArgs"),
+    ("tickets canned reply", "TicketsCannedReplyArgs"),
+    ("tickets scenarios list", "JsonOnlyArgs"),
+    ("tickets scenarios show", "PositiveIdArgs"),
+    ("tickets scenarios apply", "TicketsScenariosApplyArgs"),
 ];
 
 // Completion metadata clap cannot hold: the callback docstring line and
@@ -3944,14 +4345,55 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
         ],
     ),
     (
+        "fsv changes asset-picker",
+        "",
+        &[
+            OptionHint {
+                id: "search",
+                flags: &["--search"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "page",
+                flags: &["--page"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "select",
+                flags: &["--select"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
         "fsv changes planning-text",
         "",
         &[
             OptionHint {
                 id: "section",
                 flags: &["--section"],
-                completer: None,
-                resource: None,
+                completer: Some("complete_planning_field_names"),
+                resource: Some("changes"),
                 value_flag: false,
             },
             OptionHint {
@@ -6678,7 +7120,7 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "section",
                 flags: &["--section"],
-                completer: None,
+                completer: Some("complete_section"),
                 resource: None,
                 value_flag: false,
             },
@@ -7417,6 +7859,784 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "output",
                 flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv changes export",
+        "",
+        &[
+            OptionHint {
+                id: "view",
+                flags: &["--view"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "field",
+                flags: &["--field"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv changes columns list",
+        "",
+        &[
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv changes columns set",
+        "",
+        &[
+            OptionHint {
+                id: "column",
+                flags: &["--column"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "freeze",
+                flags: &["--freeze"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets export",
+        "",
+        &[
+            OptionHint {
+                id: "view",
+                flags: &["--view"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "field",
+                flags: &["--field"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets columns list",
+        "",
+        &[
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets columns set",
+        "",
+        &[
+            OptionHint {
+                id: "column",
+                flags: &["--column"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "freeze",
+                flags: &["--freeze"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets private-views show",
+        "",
+        &[
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets private-views write",
+        "",
+        &[
+            OptionHint {
+                id: "name",
+                flags: &["--name"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets canned folders",
+        "",
+        &[
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets canned list",
+        "",
+        &[
+            OptionHint {
+                id: "folder",
+                flags: &["--folder"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets canned show",
+        "",
+        &[
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets canned reply",
+        "",
+        &[
+            OptionHint {
+                id: "response",
+                flags: &["--response"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "content_pointer",
+                flags: &["--content-pointer"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "sender",
+                flags: &["--sender"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets scenarios list",
+        "",
+        &[
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets scenarios show",
+        "",
+        &[
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv tickets scenarios apply",
+        "",
+        &[
+            OptionHint {
+                id: "scenario_id",
+                flags: &["--scenario"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv problems export",
+        "",
+        &[
+            OptionHint {
+                id: "view",
+                flags: &["--view"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "field",
+                flags: &["--field"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv problems create",
+        "",
+        &[
+            OptionHint {
+                id: "from_",
+                flags: &["--from"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "set_",
+                flags: &["--set"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "requester",
+                flags: &["--requester"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv problems write-child",
+        "",
+        &[
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv problems columns list",
+        "",
+        &[
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+        ],
+    ),
+    (
+        "fsv problems columns set",
+        "",
+        &[
+            OptionHint {
+                id: "column",
+                flags: &["--column"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "freeze",
+                flags: &["--freeze"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "dry_run",
+                flags: &["--dry-run"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "yes",
+                flags: &["--yes"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "expect_plan",
+                flags: &["--expect-plan"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "output",
+                flags: &["--output", "-o"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "json_out",
+                flags: &["--json"],
                 completer: None,
                 resource: None,
                 value_flag: false,

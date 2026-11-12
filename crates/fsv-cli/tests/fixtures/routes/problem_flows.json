@@ -1,0 +1,282 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/v2/agents/me",
+  "json": {
+   "agent": {
+    "id": 9,
+    "first_name": "Ann",
+    "last_name": "Lee",
+    "email": "ann@acme.com"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problem_form_fields",
+  "json": {
+   "problem_fields": [
+    {
+     "id": 501,
+     "name": "subject",
+     "label": "Subject",
+     "field_type": "default_subject",
+     "required": true,
+     "position": 1
+    },
+    {
+     "id": 502,
+     "name": "description",
+     "label": "Description",
+     "field_type": "default_description",
+     "required": true,
+     "position": 2
+    },
+    {
+     "id": 503,
+     "name": "requester",
+     "label": "Requester",
+     "field_type": "default_requester",
+     "required": true,
+     "position": 3
+    },
+    {
+     "id": 510,
+     "name": "status",
+     "label": "Status",
+     "field_type": "default_status",
+     "required": true,
+     "choices": [
+      {
+       "id": 41,
+       "value": "Open"
+      }
+     ],
+     "position": 4
+    },
+    {
+     "id": 511,
+     "name": "priority",
+     "label": "Priority",
+     "field_type": "default_priority",
+     "required": true,
+     "choices": [
+      {
+       "id": 42,
+       "value": "Low"
+      }
+     ],
+     "position": 5
+    },
+    {
+     "id": 512,
+     "name": "impact",
+     "label": "Impact",
+     "field_type": "default_impact",
+     "required": true,
+     "choices": [
+      {
+       "id": 43,
+       "value": "Low"
+      }
+     ],
+     "position": 6
+    },
+    {
+     "id": 601,
+     "name": "acme_count",
+     "label": "Acme count",
+     "field_type": "custom_number",
+     "required": false,
+     "position": 7
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problem_task_fields",
+  "json": {
+   "problem_task_fields": [
+    {
+     "name": "status",
+     "choices": [
+      {
+       "id": 51,
+       "value": "Open"
+      }
+     ]
+    },
+    {
+     "name": "notify_before",
+     "choices": [
+      {
+       "id": 52,
+       "value": "Never"
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/business_rules",
+  "json": {
+   "business_rules": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/requesters",
+  "json": {
+   "results": [
+    {
+     "id": 51,
+     "value": "Ann Lee",
+     "email": "ann@acme.com",
+     "details": "ann@acme.com"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/123",
+  "json": {
+   "problem": {
+    "id": 123,
+    "subject": "Acme"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/124",
+  "json": {
+   "problem": {
+    "id": 999,
+    "subject": "Other"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/456",
+  "json": {
+   "problem": {
+    "id": 456,
+    "subject": "Acme problem",
+    "description": "<div>Acme details</div>",
+    "status": 41,
+    "priority": 42,
+    "impact": 43,
+    "custom_fields": {
+     "acme_count": "7"
+    },
+    "email": "ann@acme.com"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/123/notes",
+  "once": true,
+  "json": {
+   "notes": [],
+   "has_more": false
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/123/notes",
+  "once": true,
+  "json": {
+   "notes": [],
+   "has_more": false
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/123/notes",
+  "json": {
+   "notes": [
+    {
+     "id": 456,
+     "body": "Acme"
+    }
+   ],
+   "has_more": false
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/123/tasks",
+  "once": true,
+  "json": {
+   "tasks": [],
+   "has_more": false
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/123/tasks",
+  "once": true,
+  "json": {
+   "tasks": [],
+   "has_more": false
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/123/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 456,
+     "title": "Acme",
+     "owner_id": 9,
+     "status": 51,
+     "notify_before": 52,
+     "planned_effort": "1m"
+    }
+   ],
+   "has_more": false
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/problems",
+  "status": 201,
+  "json": {
+   "problem": {
+    "id": 456
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/problems/123/notes",
+  "status": 201,
+  "json": {
+   "note": {
+    "id": 456
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/problems/123/tasks",
+  "status": 201,
+  "json": {
+   "task": {
+    "id": 456
+   }
+  }
+ }
+]
