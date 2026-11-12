@@ -1,6 +1,6 @@
-"""Reviewed change-task CREATE from a blocked UI request, not a live response.
+"""Reviewed change-task creation with runtime required-field preflight.
 
-The response contract is unobserved. Never replay a POST to recover an ID.
+Accepted native request and task envelopes; never replay POST to recover an ID.
 """
 from __future__ import annotations
 
@@ -146,6 +146,8 @@ class TaskPlan:
     planned_start: str | None = None
     planned_end: str | None = None
     planned_effort: str | None = None
+    custom_fields_json: str = "{}"
+    fields_json: str = ""
 
     @property
     def path(self) -> str:
@@ -153,7 +155,13 @@ class TaskPlan:
 
     @property
     def payload(self) -> dict[str, Any]:
-        body = {"title": self.title, "status": self.status_id, "notify_before": NOTIFY_BEFORE[self.notify_before]}
+        seconds = NOTIFY_BEFORE[self.notify_before]
+        if self.fields_json:
+            fields = json.loads(self.fields_json)
+            if any(f.get("name") == "notify_before" for f in fields):
+                from fsv.change_task_update import reminder
+                seconds = reminder(self.notify_before, fields)
+        body = {"title": self.title, "status": self.status_id, "notify_before": seconds}
         if self.note is not None:
             text = html.escape(self.note.replace("\r\n", "\n").replace("\r", "\n")).replace("\n", "<br>")
             body["description"] = f"<div><p>{text}</p></div>"
@@ -163,12 +171,17 @@ class TaskPlan:
                 body[key] = value
         if self.owner_id is not None:
             body["owner_id"] = self.owner_id
+        custom = json.loads(self.custom_fields_json)
+        if custom:
+            body["custom_fields"] = custom
         return body
 
     @property
     def hash(self) -> str:
         # Preserve existing default-plan hashes so old started/done guards survive.
         body = {"tenant": self.tenant, "path": self.path, "payload": self.payload}
+        if self.fields_json:
+            body["metadata"] = journal.snapshot_hash(json.loads(self.fields_json))
         if self.status_label not in ("Open", "In Progress"):
             body["status_label"] = self.status_label
         return journal.plan_hash(body) or ""
@@ -180,14 +193,38 @@ class TaskPlan:
                 "note_text": self.note,
                 "plan_hash": self.hash,
                 "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-                "contract": "Blocked request captured; accepted response unobserved. Blank optional fields omitted."}
+                "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."}
+
+
+def validate_required(fields: list[dict[str, Any]], payload: dict[str, Any]) -> None:
+    from fsv.ticket_tasks import required_for_create, CONTEXT_FIELDS
+    custom = payload.get("custom_fields", {})
+    missing = []
+    for field in fields:
+        name = str(field.get("name"))
+        if not required_for_create(field) or name in CONTEXT_FIELDS:
+            continue
+        key = name.removeprefix("cf_") if field.get("default") is False else name
+        value = payload.get(name, custom.get(key))
+        if value is None or value == "" or value == []:
+            missing.append(str(field.get("label") or name))
+    if missing:
+        raise TaskError("required task fields missing: " + ", ".join(missing))
+
+
+def runtime_fields() -> list[dict[str, Any]]:
+    try:
+        return task_status.fields_from(get_client())
+    except Exception:
+        raise TaskError("runtime task field metadata unavailable; no POST attempted") from None
 
 
 def build_plan(change_id: int | str, title: str, *, owner_id: int | None = None,
                group_id: int | None = None, status: str = "Open", status_id: int | None = None,
                note: str | None = None, notify_before: str = "Never",
                planned_start: str | None = None, planned_end: str | None = None,
-               planned_effort: str | None = None) -> TaskPlan:
+               planned_effort: str | None = None, custom_fields: dict[str, Any] | None = None,
+               fields: list[dict[str, Any]] | None = None) -> TaskPlan:
     if isinstance(change_id, bool) or not isinstance(change_id, (int, str)):
         raise ValueError("change ID must be a positive display ID")
     cid = parse_id(str(change_id), CHANGES)
@@ -209,8 +246,12 @@ def build_plan(change_id: int | str, title: str, *, owner_id: int | None = None,
     start, end = _date(planned_start), _date(planned_end)
     if start and end and datetime.fromisoformat(end) < datetime.fromisoformat(start):
         raise ValueError("planned end must not precede planned start")
-    return TaskPlan(cid, title, owner_id, config.DOMAIN, group_id, label, status_id,
-                    _note(note), reminder, start, end, _effort(planned_effort))
+    plan = TaskPlan(cid, title, owner_id, config.DOMAIN, group_id, label, status_id,
+                    _note(note), reminder, start, end, _effort(planned_effort),
+                    json.dumps(custom_fields or {}, sort_keys=True), json.dumps(fields, sort_keys=True) if fields is not None else "")
+    if fields is not None:
+        validate_required(fields, plan.payload)
+    return plan
 
 
 def _inventory(client: Any, plan: TaskPlan) -> list[dict[str, Any]]:
@@ -239,6 +280,12 @@ def _compare_fields(exact: dict[str, Any] | None, plan: TaskPlan) -> tuple[list[
             matched = _id(observed) == expected
         elif key in ("planned_start_date", "planned_end_date"):
             matched = same_instant(observed, expected)
+        elif key == "description":
+            from fsv.render import strip_html
+            matched = isinstance(observed, str) and strip_html(observed).strip() == strip_html(expected).strip()
+        elif key == "custom_fields":
+            from fsv.readback import submitted_value_matches
+            matched = submitted_value_matches(observed, expected)
         else:
             matched = type(observed) is type(expected) and observed == expected
         (verified_fields if matched else mismatched_fields).append(key)
@@ -264,7 +311,8 @@ def send(plan: TaskPlan, client: Any = None, *, reviewed_hash: str | None,
     if build_plan(plan.change_id, plan.title, owner_id=plan.owner_id, group_id=plan.group_id,
                   status=plan.status_label, status_id=plan.status_id, note=plan.note,
                   notify_before=plan.notify_before, planned_start=plan.planned_start,
-                  planned_end=plan.planned_end, planned_effort=plan.planned_effort) != plan:
+                  planned_end=plan.planned_end, planned_effort=plan.planned_effort,
+                  custom_fields=json.loads(plan.custom_fields_json), fields=json.loads(plan.fields_json) if plan.fields_json else None) != plan:
         raise TaskError("task plan or tenant changed; review a new plan")
     if dry_run:
         return {"status": "dry_run", **plan.review()}
@@ -276,11 +324,19 @@ def send(plan: TaskPlan, client: Any = None, *, reviewed_hash: str | None,
         raise TaskError("task review hash does not match; review the exact task again")
     if not plan.tenant:
         raise TaskError("configure a tenant before creating a task")
-    events = [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}" and r.get("plan") == plan.hash]
-    if events and events[-1].get("event") in ("started", "done"):
+    from dataclasses import replace
+    legacy_hash = replace(plan, fields_json="").hash
+    events = [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}" and r.get("plan") in {plan.hash, legacy_hash}]
+    latest = {r.get("plan"): r.get("event") for r in events}
+    if any(value in ("started", "done") for value in latest.values()):
         raise TaskError("this task was sent or its outcome is unknown; inspect the change and journal; do not resubmit")
     try:
         c = client if client is not None else get_client()
+        if plan.fields_json:
+            fresh = task_status.fields_from(c)
+            if journal.snapshot_hash(fresh) != journal.snapshot_hash(json.loads(plan.fields_json)):
+                raise TaskError("task metadata changed since review; review again")
+            validate_required(fresh, plan.payload)
         before = {_id(row["id"]) for row in _inventory(c, plan)}
         csrf = c._get_csrf()
     except Exception:
@@ -341,6 +397,9 @@ def register(app: typer.Typer) -> None:
         title: str = typer.Option(..., "--title", help="exact task title to review"),
         owner: str | None = typer.Option(None, "--owner", help="explicit user ID or exact agent email; default none, no implicit self"),
         group: str | None = typer.Option(None, "--group", help="positive group ID or exact group name"),
+        values: list[str] = typer.Option(None, "--set", help="runtime custom field NAME=VALUE (repeatable)"),
+        system: str | None = typer.Option(None, "--system", help="runtime System choice label/ID"),
+        environment: str | None = typer.Option(None, "--environment", "--env", help="runtime Environment choice label/ID"),
         status: str = typer.Option("Open", "--status", help="exact active runtime status label or ID (including the default Open)"),
         note: str | None = typer.Option(None, "--note", help="plain text, HTML-escaped"),
         notify_before: str = typer.Option("Never", "--notify-before", help="Never, 15 Minutes, 30 Minutes, 45 Minutes, 1 Hour, 2 Hours"),
@@ -363,8 +422,24 @@ def register(app: typer.Typer) -> None:
             # Validate local inputs before resolving any remote values.
             status_label(status)
             build_plan(id_, title, status_id=1, **options)
+            from fsv.ticket_tasks import custom_values
+            fields = runtime_fields()
+            raw_values = {}
+            for item in values or []:
+                if "=" not in item:
+                    raise ValueError("--set requires NAME=VALUE")
+                key, value = item.split("=", 1)
+                if key in raw_values:
+                    raise ValueError("duplicate custom field assignment")
+                raw_values[key] = value
+            for key, value in (("cf_system", system), ("cf_environment", environment)):
+                if value is not None:
+                    if key in raw_values:
+                        raise ValueError("duplicate custom field assignment")
+                    raw_values[key] = value
+            custom = custom_values(fields, raw_values)
             plan = build_plan(id_, title, owner_id=resolve_owner(owner), group_id=resolve_group(group),
-                              status=status, status_id=resolve_status(status), **options)
+                              status=status, status_id=resolve_status(status), custom_fields=custom, fields=fields, **options)
             if dry_run:
                 typer.echo(json.dumps(send(plan, reviewed_hash=None, dry_run=True), indent=2))
                 return

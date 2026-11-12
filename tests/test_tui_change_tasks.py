@@ -14,6 +14,7 @@ from test_tui_integration import offline  # noqa: F401
 @pytest.mark.parametrize("owner_mode,cancel", [("none", False), ("none", True), ("explicit", False), ("explicit", True)])
 def test_main_tui_task_review(offline, monkeypatch, owner_mode, cancel):
     monkeypatch.setattr(change_tasks, "resolve_status", lambda value, client=None: 1)
+    monkeypatch.setattr(change_tasks, "runtime_fields", lambda: [])
     calls, refresh = [], []
     def send(plan, **kw):
         calls.append((plan, kw))
@@ -110,6 +111,7 @@ def test_read_only_blocks_menu_composition_review_and_sender(offline, monkeypatc
 
 def test_tui_all_optional_fields_review_and_hash(offline, monkeypatch):
     monkeypatch.setattr(change_tasks, "resolve_status", lambda value, client=None: {"Open": 1, "In Progress": 2}[value])
+    monkeypatch.setattr(change_tasks, "runtime_fields", lambda: [])
     monkeypatch.setattr(change_tasks, "send", lambda *a, **k: pytest.fail("review/cancel sent task"))
     async def go():
         app = FsvApp()
@@ -147,7 +149,7 @@ def test_tui_all_optional_fields_review_and_hash(offline, monkeypatch):
                 "planned_end_date": "2026-12-06T00:00:00+00:00", "planned_effort": "1h 30m"}
             assert review["plan_hash"] == change_tasks.build_plan(123, "Globex task", status_id=2, group_id=9000004001,
                 status="In Progress", note="<literal> & check", notify_before="45 Minutes",
-                planned_start="2026-12-05T00:00Z", planned_end="2026-12-06T00:00Z", planned_effort="01:30").hash
+                planned_start="2026-12-05T00:00Z", planned_end="2026-12-06T00:00Z", planned_effort="01:30", fields=[]).hash
             await pilot.press("escape")
     asyncio.run(go())
     assert journal.read() == []

@@ -2629,7 +2629,8 @@ class FsvApp(App):
             owner_id = change_tasks.resolve_owner(owner)
             plan = change_tasks.build_plan(cid, title, owner_id=owner_id,
                                            group_id=change_tasks.resolve_group(group), status=status,
-                                           status_id=change_tasks.resolve_status(status), **values)
+                                           status_id=change_tasks.resolve_status(status),
+                                           fields=change_tasks.runtime_fields(), **values)
             self.call_from_thread(self._review_change_task, item, plan)
         except Exception as exc:
             self.call_from_thread(self._show_failure, actions.failure_detail(exc))

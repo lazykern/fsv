@@ -629,3 +629,23 @@ is sent in the create body. The full hash includes recipient-source membership,
 and a pre-send read blocks changed membership. Empty, incomplete, duplicate, or
 unavailable sources fail closed. Use `--yes --expect-plan FULL_HASH` only after
 review; email side effects cannot be undone by cancellation.
+
+
+## Required task fields
+
+Change task creation now reads nested `field_options.required_for_create`
+(including string `"true"`), validates required custom fields and planned dates,
+and binds fresh metadata to its review hash. Parent-provided workspace is not
+invented in the task payload. Supply repeatable `--set FIELD=VALUE`, or
+`--system`/`--environment`, plus required `--planned-start`/`--planned-end` dates.
+Custom choice IDs resolve from runtime field metadata; `cf_` names become native
+`custom_fields` keys. The TUI create path also preflights required fields and
+blocks unsupported custom inputs rather than submitting an incomplete task.
+
+Read-only trial dry-runs reproduced the change bug: the previous CLI emitted a
+valid-looking plan while omitting two required custom fields and both planned
+dates. The fixed dry-run blocks those omissions; supplying metadata-resolved
+values produces a plan. Ticket task creation already blocked its required custom
+field; its existing `tickets tasks add --set FIELD=VALUE` succeeds in dry-run when
+provided. Both checks exercised the real client with non-GET requests disabled;
+no live task was created or updated.

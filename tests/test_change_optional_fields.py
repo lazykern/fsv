@@ -133,6 +133,7 @@ def test_task_optional_readback_single_attempt(monkeypatch, mode):
 
 def test_cli_all_optional_fields_local_review(monkeypatch):
     monkeypatch.setattr(tasks, "resolve_status", lambda value, client=None: {"Open": 1, "In Progress": 2}[value])
+    monkeypatch.setattr(tasks, "runtime_fields", lambda: [])
     result = CliRunner().invoke(cli.app, ["changes", "tasks-add", "CHN-123", "--title", "Acme review",
         "--group", "9000004001", "--status", "In Progress", "--note", "<literal>",
         "--notify-before", "2 Hours", "--planned-start", "2026-12-05T00:00-05:00",
@@ -209,7 +210,7 @@ def test_cli_status_metadata_and_local_validation_before_lookup(monkeypatch, lab
     result = runner.invoke(cli.app, base)
     assert result.exit_code == 0, result.output
     assert json.loads(result.stdout)["payload"]["status"] == 87
-    assert len(calls) == 1 and journal.read() == []
+    assert len(calls) == 2 and journal.read() == []
 
 
 def test_missing_response_id_contradictory_optional_fields_unknown(monkeypatch):
