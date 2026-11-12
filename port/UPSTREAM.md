@@ -3305,4 +3305,27 @@ Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `5b99bc5`.
 `fsv tickets --where` / `--query-hash` and `fsv changes --where` must
 surface these library errors. Port `tests/test_list_filter_surface.py`.
 
-Still not triaged: commits after `5b99bc5`.
+## Ledger: `58551c8` (library side)
+
+Triaged against `git show 58551c8`
+(`58551c8a29ba09bde62fdfd351d8921ee8028a48`). `driver` probes
+`associated-cis` then the legacy asset list (404 is absent; any other
+error propagates). `listing`, `legacy_inventory`, `legacy_candidates`,
+and `legacy_plan` cover the captured legacy add. Removal is refused.
+`build_plan` / `send` use the legacy plan when the tenant is not
+integrated. Verification reads the legacy list only.
+
+Counts: **1 partial, 0 ported.** `port/UPSTREAM_BASE` is `58551c8`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `58551c8` | 11-13 03:46 | feat: asset association driver by endpoint probing + legacy add + candidates | partial | fsv-api (`integrated_assets`) |
+
+### CLI follow-up
+
+`assets list` must print `listing` (driver name included). Add `assets
+candidates`. `assets add` already calls `build_plan` / `send`, which now
+branch. Port `tests/test_asset_association_driver.py` and
+`tests/test_legacy_asset_association.py`.
+
+Still not triaged: commits after `58551c8`.
