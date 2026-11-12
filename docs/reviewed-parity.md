@@ -565,3 +565,19 @@ separate reviewed mutation UX rather than turning candidate selection into a wri
 Incident and change creation accept repeatable `--device INVENTORY_ID`. The
 `device_ids` array is included in the exact reviewed create payload and hash;
 independent association readback is reported as `device_verification`.
+
+
+## Service-request approvals
+
+`fsv sr approvals list SR-23 --json` reads complete nested chains. `request`
+requires `--name`, `--message`, repeatable `--approver USER_ID_OR_EMAIL` and an
+optional `--rule everyone|anyone|majority|first-responder`. Emails resolve through
+requester autocomplete, not agent-profile IDs. `approve|reject|remind SR-23 ID`
+use an approval-record ID; `cancel SR-23 ID` uses the approval-group ID. Reject
+requires `--remark`. Every write requires dry-run review then
+`--yes --expect-plan FULL_HASH`; review binds complete approval history.
+Bodyless cancel/reminder requests retain JSON media type; reminder uses `resend`,
+not an invented remind endpoint. Independent GET verifies exact new recipients,
+decision remark history, cancellation, or a later reminder timestamp. Immutable
+approved/rejected history is not cancellable. Notifications cannot be recalled.
+Delegation remains unsupported because its write contract is unproven.

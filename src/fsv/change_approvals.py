@@ -182,14 +182,16 @@ def _inventory(client: Any, plan: _InventoryPlan) -> list[dict[str, Any]]:
     return tab.data
 
 
-def get_change_approval_groups(change_id: int, c: Any = None) -> list[dict[str, Any]]:
+def get_change_approval_groups(change_id: int, c: Any = None, *, module: str = "changes") -> list[dict[str, Any]]:
     """Read complete approval chains, returning raw groups with their record identities.
 
     Never turn permission, malformed response or pagination failures into an empty
     inventory. Unknown pagination contracts fail closed instead of guessing URLs.
     """
+    if module not in {"changes", "tickets"}:
+        raise ValueError("unsupported approval module")
     if _id(change_id) is None:
-        raise ValueError("change ID must be positive")
+        raise ValueError("record ID must be positive")
     c = c if c is not None else get_client()
     groups: list[dict[str, Any]] = []
     seen_chains: set[int] = set()
@@ -197,7 +199,7 @@ def get_change_approval_groups(change_id: int, c: Any = None) -> list[dict[str, 
     seen_records: set[int] = set()
     totals: set[int] = set()
     for page in range(1, 101):
-        data = c.int_get(f"changes/{change_id}/approval-chains",
+        data = c.int_get(f"{module}/{change_id}/approval-chains",
                          params={"page": page, "per_page": 100})
         if not isinstance(data, dict) or not isinstance(data.get("approval_chains"), list):
             raise ApprovalError("approval chains inventory is unreadable")

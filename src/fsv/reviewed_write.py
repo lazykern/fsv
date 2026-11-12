@@ -63,7 +63,7 @@ def execute(plan: WritePlan, client: Any, *, reviewed_hash: str | None,
     events = [e for e in journal.read() if e.get("kind") == "plan:" + plan.action and e.get("plan") == plan.hash]
     if not events or events[-1].get("event") != "started":
         raise ReviewedWriteError("could not persist ambiguity journal; no write attempted")
-    kwargs: dict[str, Any] = {"headers": {"X-CSRF-Token": csrf}}
+    kwargs: dict[str, Any] = {"headers": {"X-CSRF-Token": csrf, "Content-Type": "application/json"}}
     if plan.payload is not None:
         kwargs["content"] = plan.payload_json.encode("utf-8")
         kwargs["headers"]["Content-Type"] = "application/json"
