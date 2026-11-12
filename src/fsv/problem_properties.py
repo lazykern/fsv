@@ -84,9 +84,10 @@ def build_plan(client: Any, target: str | int, *, planned_start: str | None = No
             raise ReviewedWriteError(f"{field.label}: hidden on the problem form")
         if field.api_name in state.evaluated.disabled:
             raise ReviewedWriteError(f"{field.label}: locked by a problem form rule")
-    if (state.rules.unavailable_dependencies("edit") or state.evaluated.messages or
-            any("unknown field" in w or "none was given" in w for w in state.rules.warnings)):
-        raise ReviewedWriteError("problem rules need unavailable context or acknowledgement; use the web form")
+    gate = state.rule_gate()
+    if gate.blockers or state.evaluated.messages:
+        raise ReviewedWriteError("problem rules need unavailable context or acknowledgement; use the web form"
+                                 + ("".join("; " + b for b in gate.blockers)))
     before = {k: before_row.get(k) for k in payload}
     context = {"before": before, "fields": meta.form_fields, "rules": meta.rules}
     return PlanningPlan("problem_planning", target, config.DOMAIN, "PUT", f"problems/{target}",

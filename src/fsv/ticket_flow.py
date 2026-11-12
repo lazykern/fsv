@@ -52,9 +52,12 @@ def build_create_plan(meta: Any, draft: Draft, *, resolver: Any, requester: Look
     # are visible/required. Static checks are not a safe substitute.
     if meta.rules.get(RULES_UNAVAILABLE_KEY):
         errors.append("business rules are unavailable; use the web form")
-    if (state.rules.unavailable_dependencies("new")
-            or any("unknown field" in w or "none was given" in w for w in state.rules.warnings)):
-        errors.append("business rules reference unavailable fields or context; use the web form")
+    sent_keys = {"device_ids"} if devices else set()
+    if cc_emails:
+        sent_keys.add("cc_emails")
+    gate = state.rule_gate(sent_keys)
+    errors.extend("business rules: " + b for b in gate.blockers)
+    warnings.extend("business rules: " + w for w in gate.warnings)
     for raw in meta.raw_fields:
         if any(raw.get(k) is True for k in ("deleted", "is_deleted", "deprecated", "is_deprecated")):
             field = spec.find(str(raw.get("name") or ""))

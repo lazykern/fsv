@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field as dc_field
 from typing import Any
 
 from fsv import config, journal
@@ -18,8 +18,9 @@ from fsv.ticket_properties import _record
 
 
 def context(client: Any, cid: int, status: str, answers: dict[str, Any] | None = None,
-            *, resolution: str | None = None) -> tuple[dict[str, Any], str, str]:
-    row = _record(client, cid)
+            *, resolution: str | None = None, row: dict[str, Any] | None = None,
+            warnings_out: list[str] | None = None) -> tuple[dict[str, Any], str, str]:
+    row = _record(client, cid) if row is None else row
     meta = load_meta(client, "ticket", "edit", fresh=True, module_id=cid)
     if meta.rules.get(RULES_UNAVAILABLE_KEY):
         raise ReviewedWriteError("ticket rules unavailable; no write attempted")
@@ -45,9 +46,13 @@ def context(client: Any, cid: int, status: str, answers: dict[str, Any] | None =
             raise ReviewedWriteError(f"{f.label}: --set requires unique writable custom fields")
         seen.add(f.api_name)
         state.set(f.api_name, value)
-    if field.api_name not in state.evaluated.visible or state.rules.unavailable_dependencies("edit") or any(
-            "unknown field" in w or "none was given" in w for w in state.rules.warnings):
-        raise ReviewedWriteError("ticket rules need unavailable fields or context; no write attempted")
+    if field.api_name not in state.evaluated.visible:
+        raise ReviewedWriteError("status is hidden on the ticket form; no write attempted")
+    gate = state.rule_gate()
+    if gate.blockers:
+        raise ReviewedWriteError("ticket rules block this transition; no write attempted: " + "; ".join(gate.blockers))
+    if warnings_out is not None:
+        warnings_out.extend(gate.warnings)
     # Closure flags are separate from ordinary edit requiredness. Hidden fields
     # are not requested by the native closure form; conditional rules still run.
     required = set(state.evaluated.required)
@@ -94,6 +99,8 @@ class LifecyclePlan:
     payload_json: str
     context_hash: str
     note_html: str | None
+    # display only: not part of the plan identity (keeps journal hashes stable)
+    rule_warnings: tuple[str, ...] = dc_field(default=(), compare=False)
 
     @property
     def payload(self) -> dict[str, Any]:
@@ -101,7 +108,7 @@ class LifecyclePlan:
 
     @property
     def hash(self) -> str:
-        return journal.plan_hash(self.__dict__) or ""
+        return journal.plan_hash({k: v for k, v in self.__dict__.items() if k != "rule_warnings"}) or ""
 
     def review(self) -> dict[str, Any]:
         steps = []
@@ -110,8 +117,11 @@ class LifecyclePlan:
                           "payload": {"resolution_notes": self.note_html,
                                       "br_validation_excludes": self.payload["br_validation_excludes"]}})
         steps.append({"method": "PUT", "path": f"/api/_/tickets/{self.target}", "payload": self.payload})
-        return {"action": "ticket_transition", "status_label": self.status, "steps": steps,
+        out = {"action": "ticket_transition", "status_label": self.status, "steps": steps,
                 "plan_hash": self.hash, "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."}
+        if self.rule_warnings:
+            out["rule_warnings"] = list(self.rule_warnings)
+        return out
 
 
 def build_plan(client: Any, target: str | int, status: str, *, note: str | None = None,
@@ -122,9 +132,42 @@ def build_plan(client: Any, target: str | int, status: str, *, note: str | None 
     if note is not None and status.casefold() != "resolved":
         raise ValueError("--note is supported by resolve only")
     html = note_plan(cid, note).body_html if note is not None else None
-    payload, fingerprint, label = context(client, cid, status, answers, resolution=html)
+    warnings: list[str] = []
+    payload, fingerprint, label = context(client, cid, status, answers, resolution=html, warnings_out=warnings)
     return LifecyclePlan(cid, config.DOMAIN, label, json.dumps(answers or {}, sort_keys=True),
-                         json.dumps(payload, sort_keys=True), fingerprint, html)
+                         json.dumps(payload, sort_keys=True), fingerprint, html, tuple(warnings))
+
+
+def readback(before: dict[str, Any] | None, row: dict[str, Any], payload: dict[str, Any],
+             note_html: str | None) -> tuple[bool, list[str]]:
+    """(verified, notes) for a transition readback.
+
+    The status and the resolution note decide the outcome. Server-side
+    workflows may rewrite routing, custom fields or even the status right
+    after the write: a change away from the pre-write status is accepted as
+    verified with a note naming each rewritten key. An unchanged status (or
+    a lost note) is a mismatch.
+    """
+    notes: list[str] = []
+    if note_html is not None and not same_text(resolution_text(row), note_html):
+        return False, ["resolution note not found on readback"]
+    want, got = payload.get("status"), row.get("status")
+    if got is None or isinstance(got, bool):
+        return False, ["status missing on readback"]
+    if str(got) != str(want):
+        prior = (before or {}).get("status")
+        if prior is None or str(got) == str(prior):
+            return False, [f"status is still {got}"]
+        notes.append(f"status rewritten server-side to {got} after the write (workflow)")
+    for key, value in payload.items():
+        if key in ("status", "br_validation_excludes"):
+            continue
+        actual = row.get(key)
+        same = submitted_value_matches(actual, value) if key == "custom_fields" else (
+            key in row and type(actual) is not bool and actual == value)
+        if not same:
+            notes.append(f"{key} differs on readback (server-side workflow or normalization)")
+    return True, notes
 
 
 def matches(row: dict[str, Any], payload: dict[str, Any]) -> bool:
@@ -150,7 +193,9 @@ def send(plan: LifecyclePlan, client: Any, *, reviewed_hash: str | None) -> dict
     if events and events[-1].get("event") in {"started", "done"}:
         raise ReviewedWriteError("transition was sent or outcome unknown; inspect ticket and journal before retry")
     answers = json.loads(plan.answers_json)
-    payload, fingerprint, _ = context(client, plan.target, plan.status, answers, resolution=plan.note_html)
+    before = _record(client, plan.target)
+    payload, fingerprint, _ = context(client, plan.target, plan.status, answers, resolution=plan.note_html,
+                                      row=before)
     if fingerprint != plan.context_hash or payload != plan.payload:
         raise ReviewedWriteError("ticket or metadata changed; review again")
     csrf = client._get_csrf()
@@ -184,11 +229,15 @@ def send(plan: LifecyclePlan, client: Any, *, reviewed_hash: str | None) -> dict
                 raise ReviewedWriteError("transition requirements changed after note save")
         put(payload)
         after = _record(client, plan.target)
-        verified = matches(after, payload) and (plan.note_html is None or same_text(resolution_text(after), plan.note_html))
+        verified, notes = readback(before, after, payload, plan.note_html)
     except Exception:
         raise ReviewedWriteError("transition outcome unknown or partial; inspect ticket and journal; do not resend") from None
     if not verified:
-        raise ReviewedWriteError("transition readback mismatch; outcome unknown; do not resend")
+        raise ReviewedWriteError("transition readback mismatch (" + "; ".join(notes) +
+                                 "); outcome unknown; do not resend")
     journal.record_plan("done", plan.hash, action=action, target=plan.target)
-    return {"status": "submitted", "ticket_id": plan.target, "status_label": plan.status,
-            "plan_hash": plan.hash, "verified": True}
+    out = {"status": "submitted", "ticket_id": plan.target, "status_label": plan.status,
+           "plan_hash": plan.hash, "verified": True}
+    if notes:
+        out["verified_with_note"] = notes
+    return out

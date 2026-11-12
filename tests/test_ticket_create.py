@@ -48,7 +48,7 @@ class Client:
 
 
 def draft():
-    return Draft(answers={"Subject": "Service unavailable", "Description": "Please help", "Cloud Only": "Yes", "Stage": "Live", "Legacy Flag": True})
+    return Draft(answers={"Subject": "Service unavailable", "Description": "Please help", "Cloud Only": "Yes", "Stage": "Live"})
 
 
 def plan(m=None, d=None, who=WHO):
@@ -71,6 +71,12 @@ def test_wire_payload_metadata_rules_and_hidden():
     assert decode_br_validation_excludes(p.payload["br_validation_excludes"])["hidden"] == [
         f"legacy_flag_{a.ACCOUNT}", f"staging_start_{a.ACCOUNT}", f"staging_end_{a.ACCOUNT}"]
     assert len(p.hash) == 64
+
+
+def test_answer_hidden_by_rule_is_refused_not_dropped():
+    p = plan(d=Draft(answers={**draft().answers, "Legacy Flag": True}))
+    assert not p.ok
+    assert any("Legacy Flag: hidden by rule 9000004103" in e and "refusing to drop" in e for e in p.errors)
 
 
 def test_required_identity_and_dynamic_validation():
@@ -152,15 +158,21 @@ def test_cli_dry_run_and_review_hash(monkeypatch):
     assert len(c.writes) == 1
 
 
-def test_missing_rule_context_and_unknown_target_fail_closed():
+def test_portal_is_modeled_and_unknown_targets_warn_or_block():
+    # agent-side forms know portal=false; a hide of a non-field target the
+    # write does not send only warns, a mandate of one blocks
     m = meta()
     m.rules["business_rules"].append(a._rule(9000004990, "Portal condition",
-        {"all": [{"name": "portal", "evaluate_on": "system", "operator": "is", "value": "42"}]},
+        {"all": [{"name": "portal", "evaluate_on": "system", "operator": "is", "value": "false"}]},
         [a._a("hide", ["customFields.unknown_field"])]))
     m.rules["business_rules"][-1]["module_type"] = "ticket"
     p = plan(m)
-    assert not p.ok and any("unavailable fields or context" in e for e in p.errors)
-    assert not p.hash
+    assert p.ok, p.errors
+    assert any("rule 9000004990" in w and "unknown_field" in w for w in p.review.warnings)
+    m.rules["business_rules"][-1]["action_data"]["action"] = [a._a("mandate", ["customFields.unknown_field"])]
+    p = plan(m)
+    assert not p.ok and not p.hash
+    assert any("rule 9000004990" in e and "unavailable fields or context" in e for e in p.errors)
 
 
 @pytest.mark.parametrize("tenant", ["Acme", "Globex"])
@@ -217,8 +229,12 @@ def test_unknown_condition_and_target_independently_fail_closed(tenant):
         r["module_type"] = "ticket"
         m.rules["business_rules"].append(r)
         p = plan(m)
-        assert not p.ok and not p.hash
-        assert any("unavailable fields or context" in e for e in p.errors)
+        if unknown == "condition":  # could hide priority, which the write sends
+            assert not p.ok and not p.hash
+            assert any("rule 9000004992" in e and "unavailable fields or context" in e for e in p.errors)
+        else:  # hiding an unknown target changes nothing fsv sends
+            assert p.ok, p.errors
+            assert any("rule 9000004992" in w for w in p.review.warnings)
 
 
 def test_ticket_token_preserves_answer_event_order():

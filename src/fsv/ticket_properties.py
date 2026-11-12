@@ -144,8 +144,9 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
             field = meta.spec.find(key)
             if field is not None:
                 state.set(field.api_name, value)
-        if state.rules.unavailable_dependencies("edit") or any("unknown field" in w or "none was given" in w for w in state.rules.warnings):
-            raise PropertyError("ticket business rules need unavailable fields or context; use the web form")
+        gate = state.rule_gate()
+        if gate.blockers:
+            raise PropertyError("ticket business rules block this write: " + "; ".join(gate.blockers))
         problems = state.errors()
         if problems:
             raise PropertyError("ticket form validation failed: " + "; ".join(problems))

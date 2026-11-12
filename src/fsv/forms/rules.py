@@ -66,6 +66,20 @@ ENTITY_SOURCES: dict[str, str] = {"current_entity": "entity"}
 SUPPORTED_EVALUATE_ON = FORM_SOURCES | frozenset(CONTEXT_SOURCES) | frozenset(ENTITY_SOURCES)
 # Action targets that are not form fields but form-level switches.
 PSEUDO_TARGETS = frozenset({"attachment_ids"})  # general request attachments (SR)
+# Rule targets that are UI widgets rather than form fields, mapped to the
+# payload keys that would carry them; a hide of one blocks a write sending them.
+WIDGET_PAYLOAD_KEYS: dict[str, set[str]] = {
+    "config_item_ids": {"device_ids", "config_item_ids", "assets"},
+    "tags": {"tags"},
+    "approval_request": {"approval_request", "approvals"},
+    "add_child_ticket": {"child_tickets"},
+    "add_service_item": {"requested_items"},
+    "edit_service_item": {"requested_items"},
+}
+# Record state that is not a form field but is known to be empty on a new record.
+NEW_RECORD_EMPTY = frozenset({"tags", "approval_status", "approval_request"})
+# fsv fills agent-side forms, never the self-service portal.
+AGENT_SYSTEM_CONTEXT: Mapping[str, Any] = {"portal": False}
 _REVERSE = {"show": "hide", "hide": "show", "mandate": "unmandate", "unmandate": "mandate", "disable": "enable",
             "enable": "disable", "populate": "restore"}
 _KIND = {"show": "visible", "hide": "visible", "mandate": "required", "unmandate": "required",
@@ -237,6 +251,19 @@ class Conflict:
     def describe(self) -> str:
         rules = "; ".join(f"{d.action} by {d.rule_name!r} (id {d.rule_id})" for d in self.decisions)
         return f"{self.field}.{self.property}: {rules} -> {self.winner.action} wins ({self.winner.rule_name!r})"
+
+
+@dataclass
+class RuleGate:
+    """Outcome of :meth:`RulesEngine.write_gate`."""
+
+    blockers: list[str] = dc_field(default_factory=list)
+    warnings: list[str] = dc_field(default_factory=list)
+    unknown_rules: list[Any] = dc_field(default_factory=list)
+
+    def as_json(self) -> dict[str, Any]:
+        return {"blockers": list(self.blockers), "warnings": list(self.warnings),
+                "unknown_rules": list(self.unknown_rules)}
 
 
 @dataclass(frozen=True)
@@ -690,6 +717,104 @@ class RulesEngine:
                     if target.api is None and target.base not in PSEUDO_TARGETS:
                         add(f"rule {rule.name!r}: unknown action field {target.raw!r}")
         return problems
+
+    def _condition_gaps(self, group: ConditionGroup, mode: str) -> list[str]:
+        """Condition dependencies of one rule that cannot be evaluated."""
+        out: list[str] = []
+        for c in group.items:
+            if isinstance(c, ConditionGroup):
+                out.extend(self._condition_gaps(c, mode))
+            elif c.source == "form":
+                if c.field is None and not (mode == "new" and c.name.split(".")[-1] in NEW_RECORD_EMPTY):
+                    out.append(f"field {c.name!r}")
+            elif c.source == "entity":
+                if c.field is None and self._entity_lookup(c)[0] is False:
+                    out.append(f"current_entity {c.name!r}")
+            else:
+                values = getattr(self.context, c.source, None)
+                if values is None or c.field not in values:
+                    out.append(f"{c.source} {c.field!r}")
+        return out
+
+    def write_gate(self, mode: str, evaluated: EvaluatedForm, user_fields: Iterable[str] = (),
+                   sent_keys: Iterable[str] = ()) -> RuleGate:
+        """Decide which rule gaps block a write and which only warn.
+
+        A rule whose condition cannot be evaluated is *unknown*. It blocks
+        only when it could hide, disable or require a field the user sets
+        or that is required (or could require a field nobody fills);
+        otherwise it is a warning naming the rule id. An action on a
+        target that is not a form field (a UI widget such as tags or the
+        associated-items panel) blocks when it could hide something the
+        write sends (``sent_keys``) or require something fsv cannot fill.
+        User answers a rule hid are refused, never dropped silently.
+        Writes must treat ``blockers`` as fatal and show ``warnings``.
+        """
+        user = set(user_fields)
+        sent = set(sent_keys)
+        required = set(evaluated.required) | {f.api_name for f in self.spec.fields if f.required_base}
+        filled = {k for k, v in evaluated.values.items() if not is_empty(v)}
+        gate = RuleGate()
+        for rule in self.rules_for(mode):
+            label = f"rule {rule.id} {rule.name!r}"
+            gaps = self._condition_gaps(rule.condition, mode)
+            could_match = bool(gaps) or self._match_group(rule.condition, evaluated.values)
+            known: set[str] = set()
+            mandates: set[str] = set()
+            for action in rule.actions:
+                if action.property in ("message", "populate"):
+                    continue
+                props = {action.property}
+                if rule.reversible:
+                    props.add(_REVERSE.get(action.property, action.property))
+                for target in action.all_targets:
+                    if target.api is not None:
+                        known.add(target.api)
+                        if "mandate" in props:
+                            mandates.add(target.api)
+                        continue
+                    if target.base in PSEUDO_TARGETS:
+                        continue
+                    aliases = {target.base, target.raw} | WIDGET_PAYLOAD_KEYS.get(target.base, set())
+                    if not could_match:
+                        continue
+                    if "mandate" in props:
+                        gate.blockers.append(f"{label}: could require {target.raw!r}, which is not a form field fsv "
+                                            "fills (unavailable fields or context)")
+                    elif props & {"hide", "disable"} and aliases & sent:
+                        gate.blockers.append(f"{label}: could {action.property} {target.raw!r}, which this write sends")
+                    else:
+                        gate.warnings.append(f"{label}: {action.property} on {target.raw!r} (not a form field; "
+                                             "nothing fsv sends) ignored")
+            if gaps:
+                # fields this write sends (answers and defaults) or must fill
+                risky = sorted(known & (user | required | filled)) + sorted(mandates - filled - user - required)
+                what = ", ".join(dict.fromkeys(gaps))
+                if risky:
+                    names = ", ".join(self.spec.by_name[n].label for n in dict.fromkeys(risky))
+                    gate.blockers.append(f"{label}: unavailable fields or context ({what}); it could change {names}")
+                else:
+                    gate.warnings.append(f"{label}: unavailable fields or context ({what}); it touches no field "
+                                         "this write sends or requires")
+                gate.unknown_rules.append(rule.id)
+        for name in sorted(user, key=lambda n: self._pos.get(n, 1 << 30)):
+            if name in evaluated._vis or is_empty(evaluated.values.get(name)):
+                continue
+            f = self.spec.by_name.get(name)
+            if f is None or f.kind == "notice":
+                continue
+            d = evaluated.decision(name, "visible")
+            if d is not None:
+                why = f"rule {d.rule_id} {d.rule_name!r}"
+            else:
+                sec = self.spec.section_parent(name)
+                parent = sec[0] if sec is not None else self.spec.by_name.get(f.parent or "")
+                why = (f"the form: its section/parent field {parent.label!r} is hidden or not on the right choice"
+                       if parent is not None else "the form metadata")
+            gate.blockers.append(f"{f.label}: hidden by {why}; refusing to drop the value you passed")
+        gate.blockers = list(dict.fromkeys(gate.blockers))
+        gate.warnings = list(dict.fromkeys(gate.warnings))
+        return gate
 
     def position_order(self, names: Iterable[str]) -> list[str]:
         """Field names sorted in web form order (the replay contract)."""

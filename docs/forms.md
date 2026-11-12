@@ -260,7 +260,27 @@ arguments) decides which rules apply:
   loaded, not the live answers: `RuleContext.entity` when given, else the
   evaluation's load values (`base`). A condition on a record attribute that
   is not a form field (e.g. `requested_catalog_items`) and is missing from
-  the record is reported by `unavailable_dependencies()`, so writes block.
+  the record is reported by `unavailable_dependencies()`.
+* Writes use `RulesEngine.write_gate()` (`FormState.rule_gate()`), which
+  models what runtime metadata knows and blocks only on real risk:
+  - `FormMeta.engine()` sets `system={"portal": false}`: fsv fills the
+    agent-side form. `current_user` reads the runtime profile (groups,
+    departments); a missing key is still unknown.
+  - On a new record, `tags`, `approval_status` and `approval_request`
+    conditions see empty values.
+  - A rule whose condition cannot be evaluated is *unknown*. It blocks
+    when its actions could hide, disable or require a field the write sends
+    (answers and defaults) or that is required, or could require an empty
+    field; otherwise it is a warning naming the rule id.
+  - Actions on UI widgets that are not form fields (`tags`,
+    `approval_request`, `config_item_ids`, `add_child_ticket`,
+    `add_service_item`, `edit_service_item`) warn, unless the rule could
+    require one or hide one that the write sends (for example devices
+    sent as `device_ids`).
+  - An answer you passed that the rules hide is refused with the hiding
+    rule's id; it is never dropped silently.
+  Warnings appear in the review and in `--json` (`warnings`, or
+  `rule_warnings` for ticket transitions).
 * The `enable` action clears a rule-disabled field; a reversible `enable`
   that stops matching disables it again (`enable` <-> `disable`).
 * Duplicate rule ids: the endpoint returns a reversible and a

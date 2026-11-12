@@ -102,9 +102,10 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
     state = FormState(meta.spec, meta.engine(), mode="edit", existing=existing_from_record(meta.spec, before), resolver=ClientResolver(client))
     field = meta.spec.field("status")
     state.set(field.api_name, status_id)
-    if (state.rules.unavailable_dependencies("edit") or state.evaluated.messages or
-            any("unknown field" in w or "none was given" in w for w in state.rules.warnings)):
-        raise ReviewedWriteError("problem rules need unavailable context or acknowledgement; use web form")
+    gate = state.rule_gate()
+    if gate.blockers or state.evaluated.messages:
+        raise ReviewedWriteError("problem rules need unavailable context or acknowledgement; use web form"
+                                 + ("".join("; " + b for b in gate.blockers)))
     if field.api_name not in state.evaluated.visible or state.errors():
         raise ReviewedWriteError("problem form validation failed: " + "; ".join(state.errors()))
     closure = {}

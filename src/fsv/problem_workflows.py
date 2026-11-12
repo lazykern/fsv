@@ -70,8 +70,9 @@ def create_plan(client: Any, answers: dict[str, Any], requester: str) -> Problem
     errors = apply_answers(state, answers)
     if errors:
         raise ReviewedWriteError("; ".join(errors))
-    if state.rules.unavailable_dependencies("new"):
-        raise ReviewedWriteError("problem rules reference unavailable fields or context")
+    gate = state.rule_gate()
+    if gate.blockers:
+        raise ReviewedWriteError("problem rules reference unavailable fields or context: " + "; ".join(gate.blockers))
     if state.evaluated.messages:
         raise ReviewedWriteError("problem form has rule messages; use the web form")
     _check(state, False, skip=(fields[0].api_name,))

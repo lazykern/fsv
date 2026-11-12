@@ -33,6 +33,7 @@ from typing import Any, Callable, Mapping, Sequence
 
 from fsv import cache, config
 from fsv.errors import APIError
+from fsv.forms.rules import AGENT_SYSTEM_CONTEXT
 from fsv.forms import (
     Field,
     FormError,
@@ -462,7 +463,9 @@ class FormMeta:
         return self._spec
 
     def engine(self) -> RulesEngine:
-        return RulesEngine(self.spec, self.rules, module=self.module, workspace_id=self.workspace_id)
+        # fsv fills the agent-side form: the portal flag is known to be false
+        return RulesEngine(self.spec, self.rules, module=self.module, workspace_id=self.workspace_id,
+                           system=dict(AGENT_SYSTEM_CONTEXT))
 
 
 def load_meta(client: Any, module: str = "change", mode: str = "new", *, fresh: bool = False,

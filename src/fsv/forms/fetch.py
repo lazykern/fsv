@@ -11,7 +11,8 @@ the web uses::
     q = business_rules_query("ticket", workspace_id=2)
     data = http_get(q.url())          # caller's HTTP client
     rules = parse_business_rules(data)
-    engine = RulesEngine(spec, rules.raw, context=RuleContext(module="ticket", user=rules.user))
+    engine = RulesEngine(spec, rules.raw, context=RuleContext(module="ticket", user=rules.user,
+                                                                             system={"portal": False}))
 
 Two response shapes exist:
 

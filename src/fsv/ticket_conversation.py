@@ -89,10 +89,10 @@ def status_context(client: Any, cid: int, label: str) -> tuple[int, str, str]:
         if len(choices) != 1 or not isinstance(choices[0].id, int) or isinstance(choices[0].id, bool) or choices[0].id <= 0:
             raise ValueError("status choice not unique")
         state.set(field.api_name, choices[0].value)
-        if (field.api_name not in state.evaluated.visible or state.errors() or
-                state.rules.unavailable_dependencies("edit") or
-                any("unknown field" in w or "none was given" in w for w in state.rules.warnings)):
-            raise ValueError("status form rules or context unavailable")
+        gate = state.rule_gate()
+        if field.api_name not in state.evaluated.visible or state.errors() or gate.blockers:
+            raise ValueError("status form rules or context unavailable" +
+                             (": " + "; ".join(gate.blockers) if gate.blockers else ""))
         token = build_br_validation_excludes(state.evaluated, "ticket")
         return choices[0].id, token, journal.snapshot_hash(row) or ""
     except Exception:

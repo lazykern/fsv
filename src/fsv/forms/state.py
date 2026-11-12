@@ -14,7 +14,7 @@ import datetime as dt
 import os
 import re
 from dataclasses import dataclass, field as dc_field
-from typing import Any, Mapping, Protocol, Sequence
+from typing import Any, Iterable, Mapping, Protocol, Sequence
 from fsv.forms.errors import AmbiguousLookupError, FieldDisabledError, ValueParseError
 from fsv.forms.rules import (
     Conflict,
@@ -467,6 +467,11 @@ class FormState:
             out.append(f"{f.label}: {_display(self.spec, f, v, self.evaluated.values)!r} is not offered any more; "
                        f"the choices are limited{by} to: {', '.join(opts) or '(none)'}")
         return out
+
+    def rule_gate(self, sent_keys: Iterable[str] = ()) -> Any:
+        """Write gate for this state's answers (:meth:`RulesEngine.write_gate`)."""
+        user = [k for k, s in self.sources.items() if s == "user"]
+        return self.rules.write_gate(self.mode, self.evaluated, user, sent_keys)
 
     def dropped(self) -> list[tuple[Field, Any, Decision | None]]:
         """Fields holding a value that will NOT be sent because they are

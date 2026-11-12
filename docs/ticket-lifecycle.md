@@ -32,4 +32,6 @@ Close and status transitions to Resolved/Closed require an already persisted non
 
 Each step uses a single lower-level request without automatic CSRF-refresh replay. A timeout, rejection, incomplete readback or interruption may leave the note saved but the status unchanged. The journal remains `started` and blocks identical resubmission. Inspect the ticket and journal before preparing a different recovery plan; never blindly resend. Workflow and email side effects are tenant-controlled and are not rolled back by reopening.
 
+Readback checks the status and the resolution note. A workflow that rewrites routing or custom fields right after the write, or moves the status on from the requested one (anything but the pre-write status), is reported as verified with a note (`verified_with_note`) that names each rewritten key. An unchanged status or a missing note is still a mismatch.
+
 Internal detail responses can wrap resolution text in `resolution_notes.notes_html`; v2 responses may return plain text. Verification and resolution-tab display share the same extraction and normalize HTML only for comparison, never for reviewed payloads or hashes. Synthetic offline fixtures test different status IDs; accepted live evidence is kept privately, outside this repository.
