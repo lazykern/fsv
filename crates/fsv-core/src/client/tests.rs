@@ -927,6 +927,54 @@ fn check_response_mapping() {
 }
 
 #[test]
+fn blank_json_body_is_null_and_bad_json_still_fails() {
+    let json_ct = |status, body: &[u8]| {
+        Ok(Response::new(status)
+            .with_header("content-type", "application/json")
+            .with_body(body.to_vec()))
+    };
+    let h = harness(MockTransport::queue(vec![
+        json_ct(200, b""),
+        json_ct(204, b""),
+        json_ct(200, b" \n"),
+        json_ct(200, b"null"),
+        json_ct(200, br#"{"success":true}"#),
+        json_ct(200, br#"{"problem":{"id":23}}"#),
+        json_ct(200, b"{broken"),
+        json_ct(400, b""),
+        json_ct(500, b""),
+    ]));
+    let url = "https://acme.freshservice.com/api/_/problems/23/solutions/91";
+    let take = || {
+        h.client
+            .request_inner("PUT", url, &RequestOpts::default())
+            .1
+    };
+    for _ in 0..4 {
+        assert_eq!(take().unwrap(), Value::Null);
+    }
+    assert_eq!(take().unwrap(), json!({"success": true}));
+    assert_eq!(take().unwrap(), json!({"problem": {"id": 23}}));
+    assert!(take().is_err());
+    assert_eq!(
+        h.client
+            .request_inner("PUT", url, &RequestOpts::default())
+            .1
+            .unwrap_err()
+            .status(),
+        Some(400)
+    );
+    assert_eq!(
+        h.client
+            .request_inner("PUT", url, &RequestOpts::default())
+            .1
+            .unwrap_err()
+            .status(),
+        Some(500)
+    );
+}
+
+#[test]
 fn request_and_request_inner_journal_writes_only() {
     let h = harness(MockTransport::queue(vec![
         ok_json(json!({"a": 1})),

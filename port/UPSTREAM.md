@@ -2227,4 +2227,22 @@ No new CLI flags. `build_sr_plan` / `execute` / `duplicate_check` pick
 this up for any caller that already passes a requester with
 `requested_for` or CC.
 
-Still not triaged: `ffcab5b`, `e7c536b`.
+## Ledger: `ffcab5b` (library side)
+
+Triaged against `git show ffcab5b`
+(`ffcab5b1b47a3dc7f445b3cc8fd5c6e1c4d7b8eb`). The change is in
+`Client._request_inner`: a blank body is `None` before JSON parsing.
+`fsv-core` `request_inner` returns JSON null for that body. Non-empty
+malformed JSON and HTTP 400/500 still fail. No plan hash moved.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `ffcab5b`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `ffcab5b` | 11-12 16:15 | Parse bodyless solution unlink success before independent readback | ported | fsv-core `client` |
+
+A 200 or 204 labeled `application/json` with an empty or whitespace
+body is null, same as a JSON `null` body. Unlink readback still decides
+whether the article is gone. No CLI flag change.
+
+Still not triaged: `e7c536b`.

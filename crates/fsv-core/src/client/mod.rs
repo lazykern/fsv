@@ -469,7 +469,8 @@ impl Client {
     }
 
     /// `_request`: send, map status, journal writes, persist a rotated
-    /// `fw-session-id`. Returns JSON for `application/json`, else the text.
+    /// `fw-session-id`. A blank body is JSON null. Other
+    /// `application/json` bodies are parsed. Anything else is text.
     pub fn request(&self, method: &str, url: &str, opts: RequestOpts) -> Result<Value> {
         let upper = method.to_uppercase();
         let (status, result) = self.request_inner(method, url, &opts);
@@ -513,12 +514,22 @@ impl Client {
             return (status, Err(e));
         }
         self.track_fw_session();
-        let result = if r.content_type().starts_with("application/json") {
+        // A bodyless 200/204 may still be labeled JSON. Readback decides
+        // the remote outcome. `bytes.strip()` empty is Python `None`.
+        let result = if Self::blank_http_body(&r.body) {
+            Ok(Value::Null)
+        } else if r.content_type().starts_with("application/json") {
             r.json_value()
         } else {
             Ok(Value::String(r.text()))
         };
         (status, result)
+    }
+
+    /// Python `not r.content.strip()` on a `bytes` body.
+    fn blank_http_body(body: &[u8]) -> bool {
+        body.iter()
+            .all(|b| matches!(b, b' ' | b'\t' | b'\n' | b'\r' | 0x0b | 0x0c))
     }
 
     /// Current `fw-session-id`; with duplicates (host vs dotted domain) the tenant-host one wins.
