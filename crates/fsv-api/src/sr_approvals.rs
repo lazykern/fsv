@@ -38,6 +38,20 @@ pub fn inventory(c: &dyn Api, target: i64) -> Result<Vec<Value>> {
     approvals::approval_groups(c, &json!(target), "tickets")
 }
 
+/// Read-only list on either model: chain groups, or the flat approvals list.
+pub fn listing(c: &dyn Api, target: i64) -> Result<Value> {
+    let (model, status) = crate::approval_model::detect(c, "tickets", target)?;
+    if model != crate::approval_model::LEGACY {
+        return Ok(json!({"approval_groups": inventory(c, target)?}));
+    }
+    let rows = crate::service::get_ticket_approvals(c, &TICKETS, target)?;
+    Ok(json!({
+        "model": "legacy",
+        "note": crate::approval_model::describe(status),
+        "approvals": rows,
+    }))
+}
+
 /// Explicit requester ids, or one active exact-email autocomplete hit.
 pub fn recipients(c: &dyn Api, values: &[Value]) -> Result<Vec<i64>> {
     let mut ids = Vec::new();
@@ -120,6 +134,12 @@ pub fn build_plan(
     if operation == "reject" && fsv_core::pystr::strip(remark).is_empty() {
         return Err(Error::value("reject requires a nonempty --remark"));
     }
+    crate::approval_model::require_chains(
+        c,
+        "tickets",
+        target,
+        &format!("sr approvals {operation}"),
+    )?;
     let before = inventory(c, target)?;
     let mut path = format!("tickets/{target}");
     let payload = if operation == "request" {

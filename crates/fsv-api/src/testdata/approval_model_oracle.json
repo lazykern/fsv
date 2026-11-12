@@ -1,0 +1,20 @@
+{
+ "_python": {
+  "commit": "5711a5a81f314b658bbb7f0846253d4e10bdff69",
+  "dirty": false
+ },
+ "describe": {
+  "400": "this tenant uses legacy flat approvals (approval-chains answered HTTP 400)",
+  "404": "this tenant uses legacy flat approvals (approval-chains answered HTTP 404)",
+  "none": "this tenant uses legacy flat approvals (approval-chains answered HTTP ?)"
+ },
+ "not_supported": "legacy flat approvals: not yet supported",
+ "groups_400": "approval groups unavailable: this tenant uses legacy flat approvals (approval-chains answered HTTP 400); legacy flat approvals: not yet supported (list the flat records without --groups)",
+ "refusals": {
+  "approval-request": "approval-request refused: this tenant uses legacy flat approvals (approval-chains answered HTTP 400); legacy flat approvals: not yet supported",
+  "approval-cancel": "approval-cancel refused: this tenant uses legacy flat approvals (approval-chains answered HTTP 404); legacy flat approvals: not yet supported",
+  "approve": "approval-respond --approve refused: this tenant uses legacy flat approvals (approval-chains answered HTTP 400); legacy flat approvals: not yet supported",
+  "reject": "approval-respond --reject refused: this tenant uses legacy flat approvals (approval-chains answered HTTP 404); legacy flat approvals: not yet supported",
+  "sr_cancel": "sr approvals cancel refused: this tenant uses legacy flat approvals (approval-chains answered HTTP 404); legacy flat approvals: not yet supported"
+ }
+}

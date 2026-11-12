@@ -3127,4 +3127,38 @@ upstream CLI cases:
   "rules are unavailable and this write depends on them" and writes nothing.
 - `problems status` with rules HTTP 500 does the same in the dry-run JSON.
 
-Still not triaged: commits after `60ac0a7`.
+## Ledger: `5711a5a` (library side)
+
+Triaged against `git show 5711a5a`
+(`5711a5a81f314b658bbb7f0846253d4e10bdff69`). A stamped run records the
+legacy-model sentences. 400 and 404 from `approval-chains` are the
+legacy flat model. 403 and 5xx stay unknown and keep the chains path.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `5711a5a`.
+The partial is the SR list command, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `5711a5a` | 11-13 03:10 | Detect the approval model and refuse chains-only actions on legacy tenants | partial | fsv-api `approval_model`, `approvals`, `sr_approvals` |
+
+`detect` is one read-only GET. `require_chains` refuses a proven legacy
+tenant before any write. Change approval request and cancel map the
+page-1 400/404 into "approval-request refused" / "approval-cancel
+refused". Approve and reject probe before the PUT
+(`approval-respond --approve` / `--reject`). `--groups` says
+"approval groups unavailable" and points at the flat list. A 403 or
+5xx is still the generic chains failure, and the write path continues.
+`sr_approvals::listing` returns chain groups, or
+`{model: legacy, note, approvals}` from the flat list.
+
+### CLI handoff (do not edit fsv-cli here)
+
+- `sr approvals list` must print `sr_approvals::listing`, not
+  `{"approval_groups": inventory(...)}`.
+- `changes approvals --groups`, `approval-request`, `approval-respond`
+  and `approval-cancel` already return these errors. A legacy
+  `approval-cancel --dry-run` exits 2 and writes nothing.
+- Port `tests/test_approval_model.py` (legacy 400/404, unknown 403,
+  SR writes, SR list fallback, groups vs flat list).
+
+Still not triaged: commits after `5711a5a`.

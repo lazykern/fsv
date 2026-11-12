@@ -6,6 +6,7 @@
 //! loaders (saved views, edit-form rules, properties).
 
 pub mod agent_lookup;
+pub mod approval_model;
 pub mod approval_recipients;
 pub mod approvals;
 pub mod asset_picker;

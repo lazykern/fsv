@@ -397,10 +397,16 @@ pub fn approval_groups(c: &dyn Api, change_id: &Value, module: &str) -> Result<V
     let mut totals: BTreeSet<i64> = BTreeSet::new();
     let empty = json!({});
     for page in 1..=100i64 {
-        let data = c.int_get(
+        let data = match c.int_get(
             &format!("{module}/{cid}/approval-chains"),
             Some(obj(json!({"page": page, "per_page": 100}))),
-        )?;
+        ) {
+            Ok(data) => data,
+            Err(Error::Api(e)) if page == 1 && matches!(e.status, 400 | 404) => {
+                return Err(crate::approval_model::groups_unavailable(e.status));
+            }
+            Err(e) => return Err(e),
+        };
         if !data.is_object() || !data.get("approval_chains").is_some_and(Value::is_array) {
             return Err(refused("approval chains inventory is unreadable"));
         }
@@ -649,7 +655,18 @@ pub fn send(
         ));
     };
     let before_ids = row_ids(&before_rows);
-    let before_groups = get_change_approval_groups(c, &json!(plan.change_id)).ok();
+    let before_groups = match get_change_approval_groups(c, &json!(plan.change_id)) {
+        Ok(groups) => Some(groups),
+        Err(e) => {
+            if let Some(status) = crate::approval_model::groups_status(&e) {
+                return Err(crate::approval_model::refusal(
+                    "approval-request",
+                    Some(status),
+                ));
+            }
+            None
+        }
+    };
     let target = json!(plan.change_id);
     journal.record_plan("started", &hash, ACTION, Some(&target), None);
     if last_event(journal, ACTION, &hash).as_deref() != Some("started") {
@@ -876,8 +893,20 @@ pub fn requested(status: &Value) -> bool {
 
 /// `_cancel_group`: the target group from complete chains, with a requested record.
 pub fn cancel_group(c: &dyn Api, plan: &ActionPlan) -> Result<Value> {
-    let groups = get_change_approval_groups(c, &json!(plan.change_id))
-        .map_err(|_| refused("could not read complete approval chains; no cancel PUT attempted"))?;
+    let groups = match get_change_approval_groups(c, &json!(plan.change_id)) {
+        Ok(groups) => groups,
+        Err(e) => {
+            if let Some(status) = crate::approval_model::groups_status(&e) {
+                return Err(crate::approval_model::refusal(
+                    "approval-cancel",
+                    Some(status),
+                ));
+            }
+            return Err(refused(
+                "could not read complete approval chains; no cancel PUT attempted",
+            ));
+        }
+    };
     let Some(group) = groups
         .into_iter()
         .find(|g| id_at(g, "id") == Some(plan.target_id))
@@ -1034,6 +1063,14 @@ pub fn send_action(
         return Err(refused(
             "this approval action was sent or its outcome is unknown; inspect the change and journal; do not resubmit",
         ));
+    }
+    if !plan.cancel() {
+        let command = match plan.operation.as_str() {
+            "approve" => "approval-respond --approve",
+            "reject" => "approval-respond --reject",
+            other => other,
+        };
+        crate::approval_model::require_chains(c, "changes", plan.change_id, command)?;
     }
     let generic = "could not prepare complete approvals inventory/session with the exact requested record; no approval PUT attempted";
     let (before_rows, before, before_status, member_id) = if plan.cancel() {
@@ -1704,12 +1741,14 @@ mod tests {
         };
         let j = MemJournal::default();
         let api = FakeApi::new()
+            .on("GET changes/12/approval-chains", Reply::Status(403))
             .ok("GET changes/12/approvals", json!([row(1, 5)]))
             .ok("POST changes/12/approval-groups", json!({}));
         assert_eq!(err(send(&e, &api, &j, opts)), UNKNOWN);
         assert_eq!(j.events(), ["started"]);
         let j = MemJournal::default();
         let api = FakeApi::new()
+            .on("GET changes/12/approval-chains", Reply::Status(403))
             .ok("GET changes/12/approvals", json!([]))
             .on("POST changes/12/approval-groups", Reply::Status(400));
         assert_eq!(
@@ -1899,8 +1938,15 @@ mod tests {
             "approval group has no requested approval records; no cancel PUT attempted"
         );
         assert_eq!(
-            err(cancel_group(&FakeApi::new(), &c)),
+            err(cancel_group(
+                &FakeApi::new().on("GET changes/12/approval-chains", Reply::Status(403)),
+                &c
+            )),
             "could not read complete approval chains; no cancel PUT attempted"
+        );
+        assert_eq!(
+            err(cancel_group(&FakeApi::new(), &c)),
+            "approval-cancel refused: this tenant uses legacy flat approvals (approval-chains answered HTTP 404); legacy flat approvals: not yet supported"
         );
         let before_status = json!([{"approval_id": 1, "member_id": 7, "status": req()}]);
         assert_eq!(
@@ -1945,6 +1991,7 @@ mod tests {
         let j = MemJournal::default();
         let approved = json!({"id": 1, "name": "approved"});
         let api = FakeApi::new()
+            .on("GET changes/12/approval-chains", Reply::Status(403))
             .ok("GET changes/12/approvals", json!([row(101, 7)]))
             .ok(
                 "GET changes/12/approvals",
@@ -1971,6 +2018,7 @@ mod tests {
         assert_eq!(sent, json!({"approval_status": 1, "remark": "fine"}));
 
         let api = FakeApi::new()
+            .on("GET changes/12/approval-chains", Reply::Status(403))
             .ok("GET changes/12/approvals", json!([row(101, 7)]))
             .ok(
                 "GET changes/12/approvals",
@@ -2004,6 +2052,7 @@ mod tests {
         };
         let j = MemJournal::default();
         let api = FakeApi::new()
+            .on("GET changes/12/approval-chains", Reply::Status(403))
             .ok("GET changes/12/approvals", json!([row(101, 7)]))
             .ok(
                 "GET changes/12/approvals",
@@ -2016,16 +2065,19 @@ mod tests {
             .ok("PUT changes/12/approvals/101", json!({}));
         assert_eq!(err(send_action(&p, &api, &j, opts)), ACTION_UNKNOWN);
         assert_eq!(j.events(), ["started"]);
-        let api = FakeApi::new().ok(
-            "GET changes/12/approvals",
-            json!([with(row(101, 7), "status", json!(1))]),
-        );
+        let api = FakeApi::new()
+            .on("GET changes/12/approval-chains", Reply::Status(403))
+            .ok(
+                "GET changes/12/approvals",
+                json!([with(row(101, 7), "status", json!(1))]),
+            );
         assert_eq!(
             err(send_action(&p, &api, &MemJournal::default(), opts)),
             "could not prepare complete approvals inventory/session with the exact requested record; no approval PUT attempted"
         );
         let j = MemJournal::default();
         let api = FakeApi::new()
+            .on("GET changes/12/approval-chains", Reply::Status(403))
             .ok("GET changes/12/approvals", json!([row(101, 7)]))
             .on("PUT changes/12/approvals/101", Reply::Status(409));
         assert_eq!(
@@ -2065,7 +2117,7 @@ mod tests {
         assert_eq!(
             err(send_action(
                 &cn(),
-                &none,
+                &FakeApi::new().on("GET changes/12/approval-chains", Reply::Status(500)),
                 &MemJournal::default(),
                 SendOpts {
                     reviewed_hash: Some(CN_HASH),
@@ -2205,6 +2257,7 @@ mod tests {
         );
 
         let api = FakeApi::new()
+            .on("GET changes/12/approval-chains", Reply::Status(403))
             .ok("GET changes/12/approvals", json!([row(101, 7)]))
             .ok(
                 "GET changes/12/approvals",
