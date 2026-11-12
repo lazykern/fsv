@@ -1262,7 +1262,8 @@ def load_tab(c: Any, res: Resource, record: Mapping[str, Any], name: str) -> Tab
     if name == "resolution_notes":
         stats = record.get("stats") or {}
         info = {k: stats.get(k) for k in ("resolved_at", "closed_at") if stats.get(k)}
-        text = html_to_text(record.get("resolution_notes") or record.get("resolution_notes_html") or "")
+        from fsv.readback import resolution_text
+        text = html_to_text(resolution_text(dict(record)) or "")
         if not text:
             try:
                 data = c.v2_get(f"{base}/resolution_note")

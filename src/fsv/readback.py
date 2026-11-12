@@ -14,6 +14,17 @@ def same_text(actual: Any, expected: Any) -> bool:
     return isinstance(actual, str) and isinstance(expected, str) and one_line(actual) == one_line(expected)
 
 
+def resolution_text(record: dict[str, Any]) -> str | None:
+    """Internal details wrap notes_html; v2 ticket details return plain text."""
+    value = record.get("resolution_notes")
+    if isinstance(value, dict):
+        value = value.get("notes_html")
+    if isinstance(value, str):
+        return value
+    alias = record.get("resolution_notes_html")
+    return alias if isinstance(alias, str) else None
+
+
 def submitted_value_matches(actual: Any, expected: Any) -> bool:
     """Compare submitted keys only, allowing canonical scalar wire normalization.
 
