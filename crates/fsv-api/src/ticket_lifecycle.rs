@@ -705,9 +705,10 @@ pub fn send(
                     next_step(plan)
                 )));
             }
-            return Err(refused(
-                "transition readback mismatch; outcome unknown; do not resend",
-            ));
+            return Err(refused(format!(
+                "transition readback mismatch ({}); outcome unknown; do not resend",
+                notes.join("; ")
+            )));
         }
         Ok((true, notes, _)) => notes,
     };

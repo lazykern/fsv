@@ -304,7 +304,7 @@ fn evaluate(
             };
             if closing {
                 return Err(refused(
-                    "combined resolution/closure requirements are not proven; use the web form",
+                    "update does not resolve or close tickets (combined resolution/closure requirements are not proven here); use `fsv tickets resolve ID --note TEXT` or `fsv tickets close ID` (both check runtime closure requirements and accept --set/--ack), or the web form",
                 ));
             }
         }

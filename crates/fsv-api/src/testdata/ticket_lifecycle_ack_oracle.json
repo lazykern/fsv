@@ -298,6 +298,96 @@
     "done"
    ]
   },
+  "workflow_status_back_to_prior": {
+   "flags": {
+    "rewrite_status": 31
+   },
+   "ops": [
+    {
+     "op": "build",
+     "status": "Pending",
+     "answers": {
+      "reason": "Waiting"
+     }
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Pending",
+      "answers_json": "{\"reason\": \"Waiting\"}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
+      "note_html": null,
+      "rule_warnings": []
+     },
+     "hash": "59d5f66c4dc3e6c3128ef7b89eb787eec6f6b12144f574b8ba833d97b1a88620",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Pending",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "custom_fields": {
+          "reason": "Waiting"
+         },
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 47
+        }
+       }
+      ],
+      "plan_hash": "59d5f66c4dc3e6c3128ef7b89eb787eec6f6b12144f574b8ba833d97b1a88620",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "transition readback mismatch (status is still 31); outcome unknown; do not resend"
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "custom_fields": {
+       "reason": "Waiting"
+      },
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 47
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "Waiting",
+     "untouched": "keep"
+    }
+   },
+   "events": [
+    "started"
+   ]
+  },
   "workflow_routing_rewrite": {
    "flags": {
     "rewrite_group": 9000005678

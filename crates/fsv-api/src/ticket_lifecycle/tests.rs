@@ -218,7 +218,7 @@ fn cases_match_python() {
 #[test]
 fn ack_and_workflow_rewrites_match_python() {
     let cases = ACK_ORACLE["cases"].as_object().unwrap();
-    assert_eq!(cases.len(), 4);
+    assert_eq!(cases.len(), 5);
     replay(cases);
     for case in ACK_ORACLE["readback"].as_array().unwrap() {
         let (ok, notes) = readback(

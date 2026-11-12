@@ -302,6 +302,8 @@ ACK_CASES = {
                                               "ack": True}, S]},
     "workflow_status_rewrite": {"flags": {"rewrite_status": 62}, "ops": [
         {**B, "status": "Pending", "answers": {"reason": "Waiting"}}, S]},
+    "workflow_status_back_to_prior": {"flags": {"rewrite_status": 31}, "ops": [
+        {**B, "status": "Pending", "answers": {"reason": "Waiting"}}, S]},
     "workflow_routing_rewrite": {"flags": {"rewrite_group": 9000005678}, "ops": [{**B, "status": "Open"}, S]},
 }
 NOTE = "<div>Fixed by restarting the Acme service</div>"
