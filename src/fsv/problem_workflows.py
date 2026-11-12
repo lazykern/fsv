@@ -146,6 +146,26 @@ def child_plan(client: Any, target: str | int, *, kind: str, text: str) -> Probl
                        json.dumps({"text": text, "kind": kind}))
 
 
+def _requester_identity(client: Any, row: dict[str, Any], requester: str, email: str) -> str:
+    """matched / mismatched / unavailable for the created problem's requester
+    when the readback has no top-level email: nested requester email, else id."""
+    nested = row.get("requester")
+    if not isinstance(nested, dict):
+        nested = {}
+    if isinstance(nested.get("email"), str) and nested["email"].strip():
+        return "matched" if nested["email"].strip().casefold() == email.casefold() else "mismatched"
+    actual = row.get("requester_id", nested.get("id"))
+    if actual is None or isinstance(actual, bool):
+        return "unavailable"
+    try:
+        person = resolve_requester(client, requester)
+    except Exception:
+        return "unavailable"
+    if person.id is None or str(person.email or "").casefold() != email.casefold():
+        return "unavailable"
+    return "matched" if str(actual) == str(person.id) else "mismatched"
+
+
 def send(plan: ProblemPlan, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:
     inputs = json.loads(plan.inputs_json)
     create = plan.action == "problem_create"
@@ -172,7 +192,14 @@ def send(plan: ProblemPlan, client: Any, *, reviewed_hash: str | None) -> dict[s
         fields = {k: "unavailable" if row is None or k not in row else
                   "matched" if matches(k, row[k], value) else "mismatched"
                   for k, value in plan.payload.items()}
+        exempt = set()
+        if create and row is not None and fields.get("email") == "unavailable":
+            # Native problem reads omit the requester email; prove the
+            # requester by identity instead. Email stays "unavailable".
+            fields["requester"] = _requester_identity(client, row, inputs["requester"], plan.payload["email"])
+            if fields["requester"] == "matched":
+                exempt.add("email")
         return {key + "_id": exact_id, "fields": fields,
-                "verified": row is not None and all(v == "matched" for v in fields.values())}
+                "verified": row is not None and all(v == "matched" for k, v in fields.items() if k not in exempt)}
 
     return execute(plan, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=verify)

@@ -274,3 +274,24 @@ def test_native_task_metadata_fails_closed_without_write(wire, variant):
     with pytest.raises(ReviewedWriteError):
         flow.child_plan(wire["client"], "PRB-123", kind="task", text="Acme")
     assert not wire["writes"]
+
+
+@pytest.mark.parametrize("readback,expected,verified", [
+    # Real problem reads: no top-level email, requester_id identifies the person.
+    ({"requester_id": 901}, "matched", True),
+    ({"requester_id": 902}, "mismatched", False),
+    ({"requester": {"id": 901, "email": "PERSON@example.com", "name": "Acme Operator"}}, "matched", True),
+    ({"requester": {"id": 901, "email": "other@example.com"}}, "mismatched", False),
+    ({}, "unavailable", False),
+])
+def test_create_requester_identity_when_email_is_not_read_back(wire, readback, expected, verified):
+    plan = create(wire)
+    def normalize(row):
+        row.pop("email", None)
+        row.update(readback)
+    wire["normalize"] = normalize
+    result = flow.send(plan, wire["client"], reviewed_hash=plan.hash)
+    assert result["fields"]["email"] == "unavailable"  # never reported as mismatched
+    assert result["fields"]["requester"] == expected
+    assert result["verified"] is verified
+    assert len(wire["writes"]) == 1
