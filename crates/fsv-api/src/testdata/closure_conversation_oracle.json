@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "8f156c08ec19b91dc42656707ee229f0b38112e0",
+  "commit": "922817f958cd142404f48efc2933e508beacd2bc",
   "dirty": false
  },
  "closure_acme_note_Resolved": {
@@ -828,15 +828,14 @@
      "conversation_id": 9000000123,
      "ticket_id": 123,
      "plan_hash": "76364bb5d45f924e7a42a01d625b03d882ccc69be5ca193ffba548d36cf532db",
-     "verified": false,
+     "verified": true,
      "fields": {
       "body": "matched",
       "private": "matched",
-      "to_emails": "unavailable",
+      "to_emails": "matched",
       "ticket_status": "matched",
       "ticket_transition": "matched"
-     },
-     "warning": "Conversation or ticket fields were not fully verified on read-back; do not resend."
+     }
     },
     "posts": 1
    },
@@ -849,7 +848,8 @@
    }
   ],
   "events": [
-   "started"
+   "started",
+   "done"
   ],
   "writes": [
    {

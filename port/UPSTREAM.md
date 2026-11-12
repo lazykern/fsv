@@ -2409,3 +2409,28 @@ HEAD scratch of `fsv-cli` against this library still fails the same 23
 tests. No new name. The update-hash move is not pinned by those goldens.
 
 Still not triaged: `922817f` and later.
+
+## Ledger: `922817f` (library side)
+
+Triaged against a `git archive 922817f` export
+(`FSV_PY_COMMIT=922817f958cd142404f48efc2933e508beacd2bc`).
+`port/golden/gen_fsv_api_closure_conversation.py` stamps
+`crates/fsv-api/src/testdata/closure_conversation_oracle.json`.
+Only `ambiguous_to_emails` moved: popping `to_emails` still leaves
+`notify_emails`, and that alias now verifies.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `922817f`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `922817f` | 11-12 18:57 | Fix conversation recipient readback verification | ported | fsv-api `conversations` |
+
+`notify_emails` and `to_emails` are one observed field. CC and BCC stay
+distinct. Comparison is the set of parsed, casefolded addresses, so
+order, case, display names, and duplicates still match. A missing key
+on both aliases is `unavailable`. A non-list, a non-string, or an
+invalid address is `mismatched`. The new Python CLI test
+`test_forward_cli_with_native_to_emails_readback` calls this send.
+HEAD scratch of `fsv-cli` still fails the same 23 tests. No new name.
+
+Still not triaged: `98acb71` and later.

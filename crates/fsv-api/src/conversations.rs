@@ -1,6 +1,8 @@
 //! Reviewed reply or note-with-status from blocked UI submissions
 //! (`ticket_conversation.py`).
 
+use std::collections::BTreeSet;
+
 use serde_json::{Map, Value, json};
 
 use fsv_core::client::Body;
@@ -125,6 +127,54 @@ fn status_inner(
 /// `email.utils.parseaddr(value)[1]`.
 fn parseaddr(value: &str) -> String {
     crate::email_addr::parseaddr(value).1
+}
+
+/// `ticket_conversation._email_set`. `None` means the value is not an
+/// explicit list of valid recipients.
+fn email_set(values: &Value) -> Option<BTreeSet<String>> {
+    let list = values.as_array()?;
+    let mut out = BTreeSet::new();
+    for value in list {
+        let text = value.as_str()?;
+        let trimmed = text.trim();
+        if !crate::recipients::valid_recipient(trimmed) {
+            return None;
+        }
+        out.insert(fsv_core::pystr::casefold(&parseaddr(trimmed)));
+    }
+    Some(out)
+}
+
+/// `ticket_conversation._recipient_readback`. Notification and To are the
+/// same observed field. CC and BCC stay distinct: a To address does not
+/// prove a blind copy.
+fn recipient_readback(
+    row: Option<&Map<String, Value>>,
+    key: &str,
+    expected: &Value,
+) -> &'static str {
+    let notify = key == "notify_emails" || key == "to_emails";
+    let present: Vec<&Value> = match row {
+        Some(row) if notify => ["notify_emails", "to_emails"]
+            .into_iter()
+            .filter_map(|name| row.get(name))
+            .collect(),
+        Some(row) => row.get(key).into_iter().collect(),
+        None => Vec::new(),
+    };
+    if present.is_empty() {
+        return "unavailable";
+    }
+    match email_set(expected) {
+        Some(wanted)
+            if present
+                .iter()
+                .all(|value| email_set(value) == Some(wanted.clone())) =>
+        {
+            "matched"
+        }
+        _ => "mismatched",
+    }
 }
 
 /// `status_context`: the Pending status id, its business-rule token and the
@@ -494,8 +544,8 @@ pub fn send(
             }
         } else {
             expected.push(("private", payload["private"].clone()));
-            // Accepted internal note readback exposes notification recipients
-            // as to_emails; omission is never evidence of no recipients.
+            // Keep the closure field label. Either observed notification
+            // representation can satisfy it.
             let recipient_key = if closing && plan.kind == "note" {
                 "to_emails"
             } else {
@@ -507,11 +557,19 @@ pub fn send(
             expected.push(("from_email", v.clone()));
         }
         let mut fields = Map::new();
+        let row = exact.and_then(|e| e.as_object());
         for (k, v) in expected {
-            let state = match exact.and_then(|e| e.get(k)) {
-                None => "unavailable",
-                Some(got) if *got == v => "matched",
-                Some(_) => "mismatched",
+            let state = if matches!(
+                k,
+                "to_emails" | "notify_emails" | "cc_emails" | "bcc_emails"
+            ) {
+                recipient_readback(row, k, &v)
+            } else {
+                match row.and_then(|r| r.get(k)) {
+                    None => "unavailable",
+                    Some(got) if *got == v => "matched",
+                    Some(_) => "mismatched",
+                }
             };
             fields.insert(k.into(), json!(state));
         }
@@ -946,6 +1004,127 @@ mod tests {
             assert_eq!(c.writes().len(), 1);
             assert!(c.gets().contains(&"autocomplete/requesters".to_string()));
         }
+    }
+
+    /// `test_email_sets_allow_order_case_and_duplicates_but_not_invalid_data`
+    /// and the alias rows from `test_recipient_readback_http`.
+    #[test]
+    fn recipient_readback_matches_python() {
+        let row = Map::from_iter([(
+            "bcc_emails".into(),
+            json!([
+                "SECOND@example.com",
+                "Person <person@example.com>",
+                "PERSON@example.com"
+            ]),
+        )]);
+        assert_eq!(
+            recipient_readback(
+                Some(&row),
+                "bcc_emails",
+                &json!(["person@example.com", "second@example.com"])
+            ),
+            "matched"
+        );
+        assert_eq!(
+            recipient_readback(
+                Some(&Map::from_iter([(
+                    "bcc_emails".into(),
+                    json!(["not-an-email"])
+                )])),
+                "bcc_emails",
+                &json!([])
+            ),
+            "mismatched"
+        );
+        assert_eq!(
+            recipient_readback(
+                Some(&Map::from_iter([("bcc_emails".into(), json!([]))])),
+                "bcc_emails",
+                &json!([])
+            ),
+            "matched"
+        );
+        assert_eq!(
+            recipient_readback(Some(&Map::new()), "bcc_emails", &json!([])),
+            "unavailable"
+        );
+        let forward = Map::from_iter([(
+            "to_emails".into(),
+            json!(["SECOND@example.com", "Person <PERSON@example.com>"]),
+        )]);
+        assert_eq!(
+            recipient_readback(
+                Some(&forward),
+                "notify_emails",
+                &json!(["person@example.com", "second@example.com"])
+            ),
+            "matched"
+        );
+        let disagree = Map::from_iter([
+            (
+                "to_emails".into(),
+                json!(["person@example.com", "second@example.com"]),
+            ),
+            ("notify_emails".into(), json!(["wrong@example.com"])),
+        ]);
+        assert_eq!(
+            recipient_readback(
+                Some(&disagree),
+                "notify_emails",
+                &json!(["person@example.com", "second@example.com"])
+            ),
+            "mismatched"
+        );
+        assert_eq!(
+            recipient_readback(
+                Some(&Map::from_iter([(
+                    "cc_emails".into(),
+                    json!(["person@example.com", "second@example.com"])
+                )])),
+                "notify_emails",
+                &json!(["person@example.com", "second@example.com"])
+            ),
+            "unavailable"
+        );
+        assert_eq!(
+            recipient_readback(
+                Some(&Map::from_iter([(
+                    "to_emails".into(),
+                    json!(["person@example.com"])
+                )])),
+                "bcc_emails",
+                &json!(["person@example.com"])
+            ),
+            "unavailable"
+        );
+    }
+
+    /// A forward whose server readback stores recipients as `to_emails`.
+    #[test]
+    fn forward_to_emails_readback_verifies() {
+        let to = vec!["person@example.com".to_string()];
+        let p = mail_plan(&api(), "forward", "support@example.com", &to).unwrap();
+        let c = api()
+            .ok(
+                &format!("POST {}", p.path()),
+                json!({"conversation": {"id": 456}}),
+            )
+            .ok(
+                "GET tickets/123/conversations",
+                json!({"conversations": [{
+                    "id": 456,
+                    "body": "<div>Acme update</div>",
+                    "private": true,
+                    "from_email": "support@example.com",
+                    "to_emails": ["Person <PERSON@example.com>"]
+                }]}),
+            );
+        let (j, store) = (MemJournal::default(), MemStore::default());
+        let out = send(&p, &c, &j, &store, Some(&p.hash()), true).unwrap();
+        assert_eq!(out["fields"]["notify_emails"], "matched");
+        assert_eq!(out["verified"], true, "{out}");
+        assert_eq!(c.writes().len(), 1);
     }
 
     /// `test_bcc_missing_readback_is_unavailable_not_verified`.
