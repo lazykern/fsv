@@ -770,6 +770,7 @@ impl Client {
     }
 
     /// POST the Freshworks session heartbeat. Best-effort; `false` on any failure.
+    #[cfg(feature = "keepalive")]
     pub fn keepalive(&self) -> bool {
         let Some(fw_session_id) = self.state().fw_session_id.clone() else {
             return false;

@@ -27,6 +27,10 @@ fn fixtures_record_their_python_commit() {
             "reviewed_expected",
             include_str!("tui/testdata/reviewed_expected.json"),
         ),
+        (
+            "form_lookup",
+            include_str!("form/testdata/form_lookup.json"),
+        ),
     ] {
         assert_stamped(name, text);
     }

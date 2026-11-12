@@ -1454,10 +1454,11 @@ impl SendFailure {
             Error::Aborted => "Abort".into(),
             Error::Other(_) | Error::Context { .. } => "RuntimeError".into(),
         };
-        Error::exit(
-            self.cause.exit_code(),
-            format!("{} failed: {detail}; {what}", self.step),
-        )
+        let code = match &self.cause {
+            Error::Exit { .. } => fsv_core::error::EXIT_OTHER,
+            other => other.exit_code(),
+        };
+        Error::exit(code, format!("{} failed: {detail}; {what}", self.step))
     }
 }
 
@@ -2913,6 +2914,7 @@ mod tests {
                 vec![],
                 Error::other("response has no exact request ID; outcome unknown"),
             ),
+            ("place-request", vec![], Error::exit(4, "changed")),
         ];
         for ((step, uploaded, cause), want) in cases
             .into_iter()

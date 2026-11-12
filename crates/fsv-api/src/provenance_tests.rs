@@ -37,6 +37,10 @@ fn fixtures_record_their_python_commit() {
             include_str!("testdata/query_flow_oracle.json"),
         ),
         (
+            "parseaddr_oracle",
+            include_str!("testdata/parseaddr_oracle.json"),
+        ),
+        (
             "reviewed_oracle",
             include_str!("testdata/reviewed_oracle.json"),
         ),

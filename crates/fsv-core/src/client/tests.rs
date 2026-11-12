@@ -503,6 +503,7 @@ fn pagination_follows_link_header() {
     assert_eq!(h.client.v2_get_paginated("changes", None, 2).count(), 2);
 }
 
+#[cfg(feature = "keepalive")]
 #[test]
 fn keepalive_posts_to_fw_domain() {
     let h = harness(MockTransport::new(|r| {

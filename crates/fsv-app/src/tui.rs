@@ -30,7 +30,7 @@ use fsv_forms::Kind;
 use fsv_forms::spec::REQUESTED_FOR_TYPE;
 use fsv_tui::backend::{
     AssetCandidates, AssetCandidatesRequest, BResult, ConversationRequest, DetailPage, Failure,
-    FormRequest, FormView, Item, ListRequest, Missing, PropertyField, Res, ReviewPlan,
+    FormRequest, FormView, Item, ListRequest, Missing, PropertyField, ReadOnly, Res, ReviewPlan,
     SearchResult, TabData, TabInfo, View,
 };
 use fsv_tui::{Backend, BasicPages, Pages};
@@ -789,10 +789,6 @@ impl Backend for LiveBackend {
         Ok(svc::add_note(self.api(), res, id_of(id)?, body, public)?)
     }
 
-    fn add_reply(&self, res: Res, id: &Value, body: &str) -> BResult<Value> {
-        Ok(svc::add_reply(self.api(), res, id_of(id)?, body)?)
-    }
-
     /// `ticket_notes.build_plan(id, body, public=..., notify_emails=[], body_format="plain")`.
     fn ticket_note_plan(&self, ticket_id: &Value, body: &str, public: bool) -> BResult<ReviewPlan> {
         let p = notes::build_plan(
@@ -1482,7 +1478,13 @@ impl Pages for LivePages {
 pub fn run_tui(read_only: bool) -> Result<()> {
     let backend = LiveBackend::live(fsv_core::get_client()?);
     let pages = Arc::new(backend.pages());
-    fsv_tui::launch(read_only, Arc::new(backend), pages)?;
+    let read_only = fsv_tui::actions::resolve_read_only(read_only, &backend.read_only_setting());
+    let backend: Arc<dyn Backend> = if read_only {
+        Arc::new(ReadOnly(backend))
+    } else {
+        Arc::new(backend)
+    };
+    fsv_tui::launch(read_only, backend, pages)?;
     Ok(())
 }
 

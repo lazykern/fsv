@@ -119,18 +119,12 @@ impl fsv_formui::Resolver for FormResolver {
     }
 }
 
-/// A form answer as the flows' drafts hold it (`Value::from_json` reads it
-/// back): a lookup becomes its id (else its email or display text), dates
-/// their ISO text.
+/// A form answer as the flows' drafts hold it (`Value::from_answer` reads it
+/// back): a lookup keeps its id, display and email, dates become their ISO
+/// text.
 pub fn answer_json(v: &Value) -> Json {
     match v {
-        Value::Lookup(l) if !l.id.is_null() => l.id.clone(),
-        Value::Lookup(l) => json!(
-            l.email
-                .clone()
-                .filter(|e| !e.is_empty())
-                .unwrap_or_else(|| l.display.clone())
-        ),
+        Value::Lookup(l) => Value::lookup_answer(l),
         Value::List(items) => Json::Array(items.iter().map(answer_json).collect()),
         other => other.to_json().unwrap_or(Json::Null),
     }

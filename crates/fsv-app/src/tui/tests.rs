@@ -50,7 +50,6 @@ fn route(c: &Call) -> Option<Response> {
         ("POST", "changes/5/notes") | ("POST", "tickets/12/notes") => {
             ok(json!({"note": {"id": 1}}))
         }
-        ("POST", "tickets/12/reply") => ok(json!({"conversation": {"id": 2}})),
         _ => None,
     }
 }
@@ -305,10 +304,6 @@ fn record_writes_use_the_service_calls() {
         b.add_note(&TICKETS, &json!(12), "hi", true).unwrap(),
         json!({"id": 1})
     );
-    assert_eq!(
-        b.add_reply(&TICKETS, &json!(12), "yo").unwrap(),
-        json!({"id": 2})
-    );
     let got: Vec<(String, Value)> = t
         .calls()
         .iter()
@@ -325,10 +320,6 @@ fn record_writes_use_the_service_calls() {
             (
                 "POST /api/_/tickets/12/notes".to_string(),
                 json!({"body": "hi"})
-            ),
-            (
-                "POST /api/_/tickets/12/reply".to_string(),
-                json!({"body": "yo"})
             ),
         ]
     );
@@ -393,6 +384,61 @@ fn ticket_notes_review_then_send_once_and_read_back() {
         ..plan
     };
     assert!(b.send_ticket_note(&tampered, false, false).is_err());
+}
+
+/// `ReadOnly` refuses each write before the network; reads go through.
+#[test]
+fn read_only_backend_never_writes() {
+    let t = tenant(route);
+    let ro = ReadOnly(backend(&t));
+    let plan = ReviewPlan {
+        review: json!({}),
+        hash: "0".repeat(64),
+        public: false,
+        target_id: json!(5),
+        raw: Value::Null,
+    };
+    let (c, k, body) = (json!(5), json!(9), Map::new());
+    let refused: Vec<(&str, BResult<Value>)> = vec![
+        ("update_item", ro.update_item(&CHANGES, &c, &body)),
+        ("add_note", ro.add_note(&CHANGES, &c, "hi", false)),
+        ("send_ticket_note", ro.send_ticket_note(&plan, true, false)),
+        ("send_change_task", ro.send_change_task(&plan, false)),
+        ("send_association", ro.send_association(&plan)),
+        ("send_approval", ro.send_approval(&plan, false)),
+        (
+            "update_task",
+            ro.update_task(&c, &k, &body).map(|_| Value::Null),
+        ),
+        ("delete_task", ro.delete_task(&c, &k).map(|_| Value::Null)),
+        ("send_ticket_property", ro.send_ticket_property(&plan)),
+        ("send_known_error", ro.send_known_error(&plan)),
+        ("send_planning_text", ro.send_planning_text(&plan)),
+        (
+            "send_ticket_conversation",
+            ro.send_ticket_conversation(&plan, true),
+        ),
+        (
+            "open_form",
+            ro.open_form(&FormRequest {
+                mode: "new".into(),
+                item: None,
+                record: None,
+            })
+            .map(|_| Value::Null),
+        ),
+    ];
+    for (name, r) in refused {
+        let e = r.expect_err(name).to_string();
+        assert!(
+            e.starts_with("read-only mode: writes are disabled"),
+            "{name}: {e}"
+        );
+    }
+    assert!(!ro.forms_available());
+    assert_eq!(lines(&t), Vec::<String>::new());
+    assert_eq!(ro.ticket_headers().unwrap(), [json!({"name": "subject"})]);
+    assert_eq!(lines(&t), ["GET /api/_/tickets/headers"]);
 }
 
 #[test]

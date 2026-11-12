@@ -328,10 +328,6 @@ impl Backend for Mock {
         self.log(format!("note {} {id} {body} public={public}", res.name));
         Ok(json!({}))
     }
-    fn add_reply(&self, res: Res, id: &Value, body: &str) -> BResult<Value> {
-        self.log(format!("reply {} {id} {body}", res.name));
-        Ok(json!({}))
-    }
     fn ticket_note_plan(&self, ticket_id: &Value, body: &str, public: bool) -> BResult<ReviewPlan> {
         self.log(format!("ticket-note-plan {ticket_id} {body} {public}"));
         Ok(plan(json!({"body": body}), public))
@@ -486,6 +482,20 @@ impl Backend for Mock {
         self.log(format!("conversation-send {} {public_confirmed}", p.hash));
         Ok(json!({"conversation_id": 456, "verified": !self.unverified}))
     }
+    fsv_tui::backend_stubs!(
+        ticket_headers,
+        view_settings,
+        remote_user_values,
+        lookup_choices,
+        change_task_plan,
+        send_change_task,
+        search_change_tickets,
+        task_for_edit,
+        association_plan,
+        send_association,
+        update_task,
+        delete_task
+    );
 }
 
 fn start(mock: Mock, read_only: bool) -> (App, Arc<Mock>) {

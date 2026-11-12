@@ -14,6 +14,7 @@ pub mod catalog;
 pub mod conversations;
 pub mod create;
 pub mod downloads;
+pub mod email_addr;
 pub mod formmeta;
 pub mod list_preferences;
 pub mod notes;

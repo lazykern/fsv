@@ -233,7 +233,6 @@ pub enum Cont {
         item: Item,
         body: String,
         public: bool,
-        reply: bool,
     },
     TicketNoteReviewed {
         plan: ReviewPlan,
@@ -712,7 +711,6 @@ const TASK_FIELDS: [(&str, &str); 7] = [
 enum WriteKind {
     Status(Value, String),
     Note(String, bool),
-    Reply(String),
 }
 
 /// What a list worker needs from the app, captured on the UI thread.

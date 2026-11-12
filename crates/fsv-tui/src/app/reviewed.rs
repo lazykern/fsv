@@ -652,6 +652,45 @@ mod tests {
             }
             Ok(json!({"verified": false}))
         }
+        crate::backend_stubs!(
+            load_schema,
+            current_user,
+            load_views,
+            ticket_headers,
+            view_settings,
+            build_query_hash,
+            list_page,
+            search_items,
+            load_detail,
+            load_tab,
+            remote_user_values,
+            lookup_choices,
+            update_item,
+            add_note,
+            ticket_note_plan,
+            send_ticket_note,
+            change_task_plan,
+            send_change_task,
+            search_change_tickets,
+            download_choices,
+            download,
+            task_for_edit,
+            association_plan,
+            send_association,
+            approval_request_plan,
+            approval_targets,
+            approval_action_plan,
+            send_approval,
+            update_task,
+            delete_task,
+            ticket_property_fields,
+            ticket_property_plan,
+            known_error_plan,
+            planning_definitions,
+            asset_candidates,
+            open_form,
+            catalog
+        );
     }
 
     fn app(w: Writes, read_only: bool) -> (App, Arc<Writes>) {

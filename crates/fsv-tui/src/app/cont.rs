@@ -45,36 +45,18 @@ impl App {
                     self.review_ticket_note(item, body, public);
                     return;
                 }
-                let plan = actions::note_plan(public, reply);
+                let plan = actions::note_plan(public, false);
                 let mut lines = plan.lines.clone();
                 lines.push(String::new());
                 lines.push(format!("> {body}"));
                 self.push(
                     Modal::confirm(&plan.title, lines),
-                    Cont::NoteConfirmed {
-                        item,
-                        body,
-                        public,
-                        reply,
-                    },
+                    Cont::NoteConfirmed { item, body, public },
                 );
             }
-            (
-                Cont::NoteConfirmed {
-                    item,
-                    body,
-                    public,
-                    reply,
-                },
-                R::Bool(true),
-            ) => self.do_write(
-                if reply {
-                    WriteKind::Reply(body)
-                } else {
-                    WriteKind::Note(body, public)
-                },
-                item,
-            ),
+            (Cont::NoteConfirmed { item, body, public }, R::Bool(true)) => {
+                self.do_write(WriteKind::Note(body, public), item)
+            }
             (Cont::TicketNoteReviewed { plan }, R::Bool(true)) => {
                 if plan.public {
                     let lines = vec![

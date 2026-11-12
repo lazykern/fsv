@@ -182,6 +182,40 @@ impl Backend for Mock {
         }
         Ok(json!({"verified": true}))
     }
+    fsv_tui::backend_stubs!(
+        current_user,
+        load_views,
+        ticket_headers,
+        view_settings,
+        build_query_hash,
+        search_items,
+        remote_user_values,
+        lookup_choices,
+        update_item,
+        add_note,
+        ticket_note_plan,
+        send_ticket_note,
+        download_choices,
+        download,
+        approval_request_plan,
+        approval_targets,
+        approval_action_plan,
+        send_approval,
+        ticket_property_fields,
+        ticket_property_plan,
+        send_ticket_property,
+        known_error_plan,
+        send_known_error,
+        planning_definitions,
+        planning_row,
+        planning_text_plan,
+        send_planning_text,
+        ticket_conversation_plan,
+        send_ticket_conversation,
+        asset_candidates,
+        open_form,
+        catalog
+    );
 }
 
 fn change_app() -> (App, Arc<Mock>) {

@@ -320,10 +320,6 @@ pub fn apply_note(
     b.add_note(res, item_id, body, public)
 }
 
-pub fn apply_reply(b: &dyn Backend, res: Res, item_id: &Value, body: &str) -> BResult<Value> {
-    b.add_reply(res, item_id, body)
-}
-
 /// One helper invocation, with no fallback or write retry here. Link and
 /// unlink send only when `reviewed` equals a freshly built plan.
 pub fn apply_change_action(
@@ -663,10 +659,6 @@ mod tests {
             self.log(format!("note {} {id} {body} {public}", res.name));
             Ok(json!({}))
         }
-        fn add_reply(&self, res: Res, id: &Value, body: &str) -> BResult<Value> {
-            self.log(format!("reply {} {id} {body}", res.name));
-            Ok(json!({}))
-        }
         fn update_task(&self, c: &Value, t: &Value, body: &Map<String, Value>) -> BResult<()> {
             self.log(format!(
                 "task-update {c} {t} {}",
@@ -700,6 +692,44 @@ mod tests {
             self.log(format!("download {} {destination}", attachment["id"]));
             Ok(json!({"status": "downloaded"}))
         }
+        crate::backend_stubs!(
+            load_schema,
+            current_user,
+            load_views,
+            ticket_headers,
+            view_settings,
+            build_query_hash,
+            list_page,
+            search_items,
+            load_detail,
+            load_tab,
+            remote_user_values,
+            lookup_choices,
+            ticket_note_plan,
+            send_ticket_note,
+            change_task_plan,
+            send_change_task,
+            search_change_tickets,
+            task_for_edit,
+            approval_request_plan,
+            approval_targets,
+            approval_action_plan,
+            send_approval,
+            ticket_property_fields,
+            ticket_property_plan,
+            send_ticket_property,
+            known_error_plan,
+            send_known_error,
+            planning_definitions,
+            planning_row,
+            planning_text_plan,
+            send_planning_text,
+            ticket_conversation_plan,
+            send_ticket_conversation,
+            asset_candidates,
+            open_form,
+            catalog
+        );
     }
 
     fn plan(hash: &str) -> ReviewPlan {
@@ -713,20 +743,15 @@ mod tests {
     }
 
     #[test]
-    fn apply_status_note_reply_send_once() {
+    fn apply_status_note_send_once() {
         let b = Rec::default();
         apply_status(&b, &CHANGES, &json!(7), &json!(4)).unwrap();
         apply_note(&b, &CHANGES, &json!(7), "hi", true).unwrap();
-        apply_reply(&b, &TICKETS, &json!(3), "yo").unwrap();
         let err = apply_note(&b, &TICKETS, &json!(3), "x", false).unwrap_err();
         assert!(err.to_string().contains("reviewed ticket-note sender"));
         assert_eq!(
             b.calls(),
-            vec![
-                "update changes 7 {\"status\":4}",
-                "note changes 7 hi true",
-                "reply tickets 3 yo"
-            ]
+            vec!["update changes 7 {\"status\":4}", "note changes 7 hi true"]
         );
     }
 

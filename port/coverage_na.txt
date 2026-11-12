@@ -77,3 +77,5 @@ fsv.watcher_cli.register: Typer registration only; the nested commands are fsv-c
 fsv.planning_cli.complete_section: Typer in-process completer only; the generated scripts call `_complete ... complete_section`, which Python's `_complete` does not know and answers with nothing (fsv-completion `complete_section_prints_nothing_like_python`)
 fsv.__init__.main: console-script entry point (`app()`); fsv-cli `main.rs` calls `app::run`, run by every fsv-cli binary test
 fsv.cli._patch_typer_shell_detection: monkeypatches Typer's shellingham lookup; fsv-cli detects the shell only from $SHELL (`completion::shell_from_env`, the patched fallback)
+fsv.tui.actions.apply_reply: unreachable in the TUI (plain ticket replies go through send_ticket_conversation; replies are tickets-only); deleted with Backend::add_reply, fsv_api::service::add_reply remains for the CLI
+fsv.tui.app._form_session: the TUI only asks Backend::open_form; the session is built in fsv_app::LiveBackend::open_form (fsv-tui cannot depend on fsv-app), covered by fsv-app form and tui tests

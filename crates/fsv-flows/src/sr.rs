@@ -19,8 +19,9 @@ use fsv_forms::{Field, FormSpec, Kind, Value};
 use fsv_py::{py_repr_str, py_str};
 
 use crate::drafts::{
-    Draft, MAX_CHOICES_SHOWN, abspath, draft_from_data, expanduser, kind_text, kv, label_unique,
-    one_line, parse_sets, preset_path_in, presets_dir, relpath, strerror, value_for_yaml,
+    Draft, MAX_CHOICES_SHOWN, abspath, answer_kv, draft_from_data, expanduser, kind_text, kv,
+    label_unique, one_line, parse_sets, preset_path_in, presets_dir, relpath, strerror,
+    value_for_yaml,
 };
 use crate::meta::form_err;
 
@@ -418,14 +419,14 @@ pub fn render_sr_template(plan: &SRPlan, opts: &SrTemplateOptions<'_>) -> Result
                 lines.push(
                     "  # not a field on this item: fix the label or delete the line".to_string(),
                 );
-                lines.push(kv(k, Some(v)));
+                lines.push(answer_kv(k, v));
                 shown = true;
             }
             Some(f) if !ev.visible.contains(&f.api_name) && f.kind != Kind::Notice => {
                 lines.push(
                     "  # hidden now (its section's choice is not selected): not sent".to_string(),
                 );
-                lines.push(kv(k, Some(v)));
+                lines.push(answer_kv(k, v));
                 shown = true;
             }
             Some(_) => {}

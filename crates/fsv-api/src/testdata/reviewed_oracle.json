@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "3432beaa8719b988eb99a257b347f7b4338982eb",
+  "commit": "92d76ffe7750176451215bd8dca723fd7304625f",
   "dirty": false
  },
  "bulk_priority": {
@@ -257,6 +257,12 @@
    "code": 1,
    "display": "place-request failed: response has no exact request ID; outcome unknown. Uploaded attachment ids: none",
    "message": "place-request failed: RuntimeError; the outcome is unknown: check `fsv journal tail` and the requester's requests before retrying",
+   "note": null
+  },
+  {
+   "code": 1,
+   "display": "place-request failed: changed. Uploaded attachment ids: none",
+   "message": "place-request failed: FlowExit; the outcome is unknown: check `fsv journal tail` and the requester's requests before retrying",
    "note": null
   }
  ],

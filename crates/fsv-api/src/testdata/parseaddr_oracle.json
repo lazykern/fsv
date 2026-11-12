@@ -1,0 +1,388 @@
+{
+ "_python": {
+  "commit": "92d76ffe7750176451215bd8dca723fd7304625f",
+  "dirty": false
+ },
+ "cases": [
+  {
+   "input": "",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": " ",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "person@example.com",
+   "name": "",
+   "email": "person@example.com"
+  },
+  {
+   "input": "  person@example.com  ",
+   "name": "",
+   "email": "person@example.com"
+  },
+  {
+   "input": "Acme User <person@example.com>",
+   "name": "Acme User",
+   "email": "person@example.com"
+  },
+  {
+   "input": "<person@example.com>",
+   "name": "",
+   "email": "person@example.com"
+  },
+  {
+   "input": "< person@example.com >",
+   "name": "",
+   "email": "person@example.com"
+  },
+  {
+   "input": "\"Acme, User\" <person@example.com>",
+   "name": "Acme, User",
+   "email": "person@example.com"
+  },
+  {
+   "input": "\"Acme \\\"Q\\\" User\" <person@example.com>",
+   "name": "Acme \"Q\" User",
+   "email": "person@example.com"
+  },
+  {
+   "input": "\"quoted local\"@example.com",
+   "name": "",
+   "email": "\"quoted local\"@example.com"
+  },
+  {
+   "input": "\"a\\\\b\"@example.com",
+   "name": "",
+   "email": "\"a\\\\b\"@example.com"
+  },
+  {
+   "input": "\"a.b\"@example.com",
+   "name": "",
+   "email": "\"a.b\"@example.com"
+  },
+  {
+   "input": "person(comment)@example.com",
+   "name": "comment comment",
+   "email": "person@example.com"
+  },
+  {
+   "input": "person@example.com (Acme User)",
+   "name": "Acme User",
+   "email": "person@example.com"
+  },
+  {
+   "input": "(lead) person@example.com",
+   "name": "lead",
+   "email": "person@example.com"
+  },
+  {
+   "input": "Acme (c1) User (c2) <p@example.com>",
+   "name": "Acme User (c1 c2)",
+   "email": "p@example.com"
+  },
+  {
+   "input": "Acme <p@example.com> (trailing)",
+   "name": "Acme",
+   "email": "p@example.com"
+  },
+  {
+   "input": "(nested (deep) comment) p@example.com",
+   "name": "nested deep comment",
+   "email": "p@example.com"
+  },
+  {
+   "input": "(unclosed p@example.com",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "p@example.com)",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "\"(not a comment)\" <p@example.com>",
+   "name": "(not a comment)",
+   "email": "p@example.com"
+  },
+  {
+   "input": "a <b@x.io> <c@x.io>",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "<a@x.io><b@x.io>",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "a@x.io, b@x.io",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "Acme <a@x.io>, Bee <b@x.io>",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "a@x.io b@x.io",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "alice@example.com <bob@example.com>",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "group: a@x.io, b@x.io;",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "group: a@x.io;",
+   "name": "",
+   "email": "a@x.io"
+  },
+  {
+   "input": "group:;",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "empty group: ;",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "Undisclosed recipients:;",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "<@route1,@route2:person@example.com>",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "<@route:person@example.com>",
+   "name": "",
+   "email": "person@example.com"
+  },
+  {
+   "input": "person@[127.0.0.1]",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "person@[127.0.0.1",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "person@example.com@evil.com",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "person@",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "@example.com",
+   "name": "",
+   "email": "@example.com"
+  },
+  {
+   "input": "person",
+   "name": "",
+   "email": "person"
+  },
+  {
+   "input": "Acme User",
+   "name": "",
+   "email": "Acme"
+  },
+  {
+   "input": "first.last@example.com",
+   "name": "",
+   "email": "first.last@example.com"
+  },
+  {
+   "input": "first . last @ example . com",
+   "name": "",
+   "email": "first.last@example.com"
+  },
+  {
+   "input": "first..last@example.com",
+   "name": "",
+   "email": "first..last@example.com"
+  },
+  {
+   "input": ".lead@example.com",
+   "name": "",
+   "email": ".lead@example.com"
+  },
+  {
+   "input": "trail.@example.com",
+   "name": "",
+   "email": "trail.@example.com"
+  },
+  {
+   "input": "Ünïcødé <ü@exämple.com>",
+   "name": "Ünïcødé",
+   "email": "ü@exämple.com"
+  },
+  {
+   "input": "ü@exämple.com",
+   "name": "",
+   "email": "ü@exämple.com"
+  },
+  {
+   "input": "tab\tname <t@x.io>",
+   "name": "tab name",
+   "email": "t@x.io"
+  },
+  {
+   "input": "line\r\nfold <f@x.io>",
+   "name": "line fold",
+   "email": "f@x.io"
+  },
+  {
+   "input": "a\\@b@x.io",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "\"unterminated <q@x.io>",
+   "name": "",
+   "email": "unterminated <q@x.io>"
+  },
+  {
+   "input": "<unterminated@x.io",
+   "name": "",
+   "email": "unterminated@x.io"
+  },
+  {
+   "input": "unterminated@x.io>",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "Name <>",
+   "name": "Name",
+   "email": ""
+  },
+  {
+   "input": "<>",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "\"\" <e@x.io>",
+   "name": "",
+   "email": "e@x.io"
+  },
+  {
+   "input": ",",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": ";",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": ":",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "a@x.io,",
+   "name": "",
+   "email": "a@x.io"
+  },
+  {
+   "input": ",a@x.io",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "Acme User <person@example.com",
+   "name": "Acme User",
+   "email": "person@example.com"
+  },
+  {
+   "input": "Acme. User <p@x.io>",
+   "name": "Acme. User",
+   "email": "p@x.io"
+  },
+  {
+   "input": "A.B. C <p@x.io>",
+   "name": "A.B. C",
+   "email": "p@x.io"
+  },
+  {
+   "input": "p@x.io;",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "p@x.io:",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "x <p@x.io> y",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "\\",
+   "name": "",
+   "email": "\\"
+  },
+  {
+   "input": "a\\",
+   "name": "",
+   "email": "a\\"
+  },
+  {
+   "input": "(a\\)) p@x.io",
+   "name": "a)",
+   "email": "p@x.io"
+  },
+  {
+   "input": "\"a\\",
+   "name": "",
+   "email": "a"
+  },
+  {
+   "input": "p@x.io (",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "[x] <p@x.io>",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "p@x.io [x]",
+   "name": "",
+   "email": ""
+  },
+  {
+   "input": "p@sub.[1.2.3.4]",
+   "name": "",
+   "email": ""
+  }
+ ]
+}

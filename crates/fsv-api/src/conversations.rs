@@ -121,13 +121,9 @@ fn status_inner(
     Ok((id, token, plan_hash(&Value::Object(row))))
 }
 
-/// `email.utils.parseaddr(value)[1]` for `Name <addr>` / bare addresses.
+/// `email.utils.parseaddr(value)[1]`.
 fn parseaddr(value: &str) -> String {
-    let v = value.trim();
-    match (v.rfind('<'), v.ends_with('>')) {
-        (Some(at), true) => v[at + 1..v.len() - 1].trim().to_string(),
-        _ => v.to_string(),
-    }
+    crate::email_addr::parseaddr(value).1
 }
 
 /// `status_context`: the Pending status id, its business-rule token and the

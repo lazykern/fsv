@@ -167,9 +167,9 @@ other.
 
 ### Dead code (P3)
 
-- `Backend::add_reply` and the "Confirm reply" path are unreachable (`PARITY.md:303`). Delete them from the trait and from `LiveBackend`.
-- `Client::keepalive` was ported on purpose and has no caller. Keep it behind `#[cfg(feature = "keepalive")]` or delete it.
-- `safety::status_closes`: Python keeps it, but it decides nothing. Mark it `#[doc(hidden)]` or delete it.
+- `Backend::add_reply` and the "Confirm reply" path are unreachable (`PARITY.md:303`). Delete them from the trait and from `LiveBackend`. Done.
+- `Client::keepalive` was ported on purpose and has no caller. Keep it behind `#[cfg(feature = "keepalive")]` or delete it. Done: feature-gated with its test.
+- `safety::status_closes`: Python keeps it, but it decides nothing. Mark it `#[doc(hidden)]` or delete it. Done: `#[doc(hidden)]`.
 - `Journal::record_plan_steps` drops steps in its default. Once the trait is unified it is not needed.
 
 ### Large files (P2)
@@ -280,7 +280,7 @@ flow would then write. **Fix:** in `fsv_app::run_tui`
 `LiveBackend` in a `ReadOnly<B>` that returns
 `Failure("read-only mode: …")` from every write method and
 `forms_available() = false`. This has no user-visible difference and costs
-about 60 lines.
+about 60 lines. Done: `fsv_tui::backend::ReadOnly`, wired in `run_tui`.
 
 ---
 
@@ -429,10 +429,10 @@ Recommended process: a batch cycle, not commit-chasing.
 - [x] P1 `fsv-core/src/yaml.rs:105`: `key_text` uses `py_str` for Bool and Null.
 - [x] P1 `fsv-cli/src/cmd/completion.rs:17`: delegate to `fsv_completion::completion_network`.
 - [ ] P1 commit the `/tmp` generators and `gen_tree.py`; stamp fixtures with the Python commit. Partial: the oracles are in `port/golden/oracles/` (`fsv_api_views/oracle.py` also writes fsv-app's `properties_change_501.json`); every generator stamps via `port/golden/provenance.py`, and the fixtures of every crate but fsv-cli/fsv-completion were regenerated at `92002d7` and are checked by each crate's `provenance_tests.rs`. Open: `gen_tree.py`, and the fsv-completion fixtures (stamped generators, not yet regenerated into the crate). Partial: fsv-cli is done. `tests/golden/gen_tree.py` regenerates `src/generated.rs` (`--check` exits 1 if stale); `cli_tree.json` and `completion_tree.json` carry `_python` (`tests/tree.rs` checks it); `cmp.py --emit`, `cases.py` and `emit_upstream.py` (which rebuilds `tests/upstream_cmds.rs` from `tests/golden/upstream/`) stamp `Python commit: <sha>` in the emitted header. Open: the five oracles in other crates.
-- [ ] P1 review rows show names (`name_for`); decide the `SendFailure` exit code; port `parseaddr` exactly or reject.
+- [x] P1 review rows show names (`name_for`); decide the `SendFailure` exit code; port `parseaddr` exactly or reject. Done: form-picked lookups travel as `Value::lookup_answer` and come back through `Value::from_answer` (review rows, saved drafts and kept hidden/unknown lines show names; golden `gen_fsv_app_form_lookup.py`); `SendFailure::into_error` gives 1 for an `Exit` cause like `exit_code_for` (no README row argues otherwise; `send_failure` golden gained a `FlowExit` case); `fsv_api::email_addr::parseaddr` ports Python 3.12's strict `parseaddr`/`AddrlistClass` (golden `gen_fsv_api_parseaddr.py`, 76 inputs).
 - [ ] P2 one `Journal` trait; delete `Source`, the duplicate `collect_pages`, `optional_get` and `load_views`; move `pystr` to fsv-py. Partial: one `fsv_api::service::Journal` (flows' `PlanJournal`/`DiskJournal`/`recent_plan_rows` gone; `recent_plan` defaults to `fsv_core::journal::recent_plan_rows` with the `hours` cutoff); `service::collect_pages` is an adapter over `site::collect_pages`. fsv-views reads through `&dyn Api` (`FetchError::from(fsv_core::Error)` is the `optional_get` ladder, `AssociationReader` is an `Api` wrapper, the test fakes are `Mutex`ed `Api`s) and `fsv_app::ClientSource` implements `Api`; the HTML5 entity table is one generated `fsv_py::html_entities` used by fsv-core and fsv-forms. Open: `Source` stays as a one-method adapter (`fn api(&self) -> &dyn Api`, blanket over every `Api`) taken only by `load_detail`/`load_tab`, because fsv-cli passes `&mut src` (with `&dyn Api` parameters clippy's `unnecessary_mut_passed` fails fsv-cli); once `fsv-cli/src/cmd/resource.rs` passes `&src` (or `c.as_ref()`), both take `&dyn Api` and `Source`/`ClientSource` go. Also open: the fsv-views `optional_get`/`load_views` adapters and the other `pystr` helpers duplicated in fsv-forms.
-- [ ] P2 `ReadOnly<B>` backend wrapper; remove the `Backend` network defaults.
+- [x] P2 `ReadOnly<B>` backend wrapper; remove the `Backend` network defaults. Done: `fsv_tui::backend::ReadOnly` refuses the 13 write methods (and `forms_available`) before any request; `run_tui` wraps `LiveBackend` when read-only resolves true (test `read_only_backend_never_writes`). The 44 network methods are required; test doubles list their stubs with `backend_stubs!`.
 - [x] P2 split `fsv-tui/src/app.rs` along its section markers.
 - [ ] P2 coverage audit: crate-scoped evidence plus `cargo llvm-cov` execution; regenerate `COVERAGE.md`.
 - [x] P2 fix the ARCHITECTURE graph and Error enum; prune stale PARITY lines (37-39, 94, 97, 137, 146, 246, 280-281).
-- [ ] P3 `Error::Api(Box<ApiError>)`; drop the `result_large_err` allows; delete `add_reply` and other dead code. Partial: `Error::Api` is boxed with a manual `From<ApiError>`; the crate allows are gone from fsv-core, fsv-api, fsv-flows, fsv-views and fsv-app (local allows remain where `FormError` or tungstenite's handshake error is returned). `FormError::ValueParse.raw` and `FormError::FormRule.rule_id` are boxed, which removes the fsv-forms crate allow and the local allows in fsv-api (`formmeta::find_field`, `views::load_properties`) and fsv-formui (`session.rs` ×2, `backend.rs`). Open: the fsv-cli and fsv-completion crate allows, the tungstenite-handshake local allow in `fsv-core/src/session/browser.rs`, dead code.
+- [ ] P3 `Error::Api(Box<ApiError>)`; drop the `result_large_err` allows; delete `add_reply` and other dead code. Partial: `Error::Api` is boxed with a manual `From<ApiError>`; the crate allows are gone from fsv-core, fsv-api, fsv-flows, fsv-views and fsv-app (local allows remain where `FormError` or tungstenite's handshake error is returned). `FormError::ValueParse.raw` and `FormError::FormRule.rule_id` are boxed, which removes the fsv-forms crate allow and the local allows in fsv-api (`formmeta::find_field`, `views::load_properties`) and fsv-formui (`session.rs` ×2, `backend.rs`). Open: the fsv-cli and fsv-completion crate allows, the tungstenite-handshake local allow in `fsv-core/src/session/browser.rs`. Done (dead code): `Backend::add_reply`, `actions::apply_reply` and the Confirm-reply write path are deleted (n/a line for `fsv.tui.actions.apply_reply`); `Client::keepalive` is behind fsv-core's `keepalive` feature; `safety::status_closes` is `#[doc(hidden)]`. `Journal::record_plan_steps` is still open.

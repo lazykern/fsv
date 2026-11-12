@@ -895,7 +895,7 @@ pub fn build_create_plan(
             .filter(|r| !r.is_null() && r.as_str() != Some("")),
         status_field,
     ) {
-        match state.parse_field(sf, &Value::from_json(raw)) {
+        match state.parse_field(sf, &Value::from_answer(raw)) {
             Ok(v) => status_value = v,
             Err(e) if e.is_form_error() => errors.push(e.to_string()),
             Err(e) => return Err(form_err(e)),

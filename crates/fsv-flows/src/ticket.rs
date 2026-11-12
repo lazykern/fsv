@@ -92,7 +92,7 @@ pub fn build_create_plan(
     {
         match sf.filter(|_| sf_visible) {
             None => errors.push("status is not visible on this form".into()),
-            Some(f) => match state.parse_field(f, &Value::from_json(raw)) {
+            Some(f) => match state.parse_field(f, &Value::from_answer(raw)) {
                 Ok(v) => {
                     status = v;
                     if status != default {

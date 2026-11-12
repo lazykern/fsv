@@ -1,11 +1,11 @@
 //! Service seams the TUI calls (`fsv.service`, `fsv.views` loaders,
 //! `fsv.pages` renderers, writers, config).
 //!
-//! fsv-api has no loaders or writers yet and fsv-views / fsv-formui are
-//! stubs, so the TUI binds to these traits. Every method has a default that
-//! reports the feature as unavailable; workers turn that into a toast or a
-//! failure screen, never a panic. A real implementation lives with the
-//! binary once the service crates land; tests substitute recorders.
+//! The TUI binds to these traits; `fsv_app::LiveBackend` implements them
+//! over the service crates and tests substitute recorders. Network methods
+//! have no defaults (test doubles opt into stubs with [`backend_stubs!`]);
+//! a failure becomes a toast or a failure screen, never a panic.
+//! [`ReadOnly`] refuses every write at the backend.
 
 use std::fmt;
 use std::time::Duration;
@@ -35,6 +35,12 @@ impl Failure {
     pub fn unavailable(what: &str) -> Failure {
         Failure::from(Error::other(format!(
             "{what} is not available in this build"
+        )))
+    }
+
+    pub fn read_only(what: &str) -> Failure {
+        Failure::from(Error::other(format!(
+            "read-only mode: writes are disabled ({what})"
         )))
     }
 
@@ -372,47 +378,27 @@ pub trait Backend: Send + Sync {
     }
 
     // ── loaders ─────────────────────────────────────────────
-    fn load_schema(&self, res: Res) -> BResult<Value> {
-        Err(Failure::unavailable("schema loading"))
-    }
-    fn current_user(&self) -> BResult<Value> {
-        Ok(Value::Null)
-    }
+    fn load_schema(&self, res: Res) -> BResult<Value>;
+    fn current_user(&self) -> BResult<Value>;
     fn user_tz(&self, me: &Value) -> Option<TimeZone> {
         None
     }
-    fn load_views(&self, res: Res) -> BResult<Vec<View>> {
-        Ok(Vec::new())
-    }
-    fn ticket_headers(&self) -> BResult<Vec<Value>> {
-        Ok(Vec::new())
-    }
-    fn view_settings(&self, res: Res, view: &View) -> BResult<Value> {
-        Ok(Value::Null)
-    }
+    fn load_views(&self, res: Res) -> BResult<Vec<View>>;
+    fn ticket_headers(&self) -> BResult<Vec<Value>>;
+    fn view_settings(&self, res: Res, view: &View) -> BResult<Value>;
     /// `query.build_query_hash_from_schema`; a `Value` error is a filter error.
-    fn build_query_hash(&self, res: Res, schema: &Value, filters: &[String]) -> BResult<String> {
-        Err(Failure::unavailable("filtering"))
-    }
+    fn build_query_hash(&self, res: Res, schema: &Value, filters: &[String]) -> BResult<String>;
     /// `service.list_page` → `(items, raw response)`.
-    fn list_page(&self, req: &ListRequest) -> BResult<(Vec<Value>, Value)> {
-        Err(Failure::unavailable("record lists"))
-    }
+    fn list_page(&self, req: &ListRequest) -> BResult<(Vec<Value>, Value)>;
     fn search_items(
         &self,
         term: &str,
         entity: Option<&str>,
         sort: &str,
         page: i64,
-    ) -> BResult<SearchResult> {
-        Err(Failure::unavailable("search"))
-    }
-    fn load_detail(&self, res: Res, id: &Value, schema: Option<&Value>) -> BResult<DetailPage> {
-        Err(Failure::unavailable("record details"))
-    }
-    fn load_tab(&self, res: Res, record: &Value, tab: &str) -> BResult<TabData> {
-        Err(Failure::unavailable("detail tabs"))
-    }
+    ) -> BResult<SearchResult>;
+    fn load_detail(&self, res: Res, id: &Value, schema: Option<&Value>) -> BResult<DetailPage>;
+    fn load_tab(&self, res: Res, record: &Value, tab: &str) -> BResult<TabData>;
 
     // ── filter completion ───────────────────────────────────
     fn completion_network(&self) -> bool {
@@ -422,34 +408,19 @@ pub trait Backend: Send + Sync {
         Vec::new()
     }
     /// `completion._remote_user_values(kind, prefix)` values.
-    fn remote_user_values(&self, kind: &str, prefix: &str) -> BResult<Vec<String>> {
-        Ok(Vec::new())
-    }
-    fn lookup_choices(&self, link: &str, prefix: &str) -> BResult<Vec<Value>> {
-        Ok(Vec::new())
-    }
+    fn remote_user_values(&self, kind: &str, prefix: &str) -> BResult<Vec<String>>;
+    fn lookup_choices(&self, link: &str, prefix: &str) -> BResult<Vec<Value>>;
 
     // ── writes ──────────────────────────────────────────────
-    fn update_item(&self, res: Res, id: &Value, body: &Map<String, Value>) -> BResult<Value> {
-        Err(Failure::unavailable("record updates"))
-    }
-    fn add_note(&self, res: Res, id: &Value, body: &str, public: bool) -> BResult<Value> {
-        Err(Failure::unavailable("notes"))
-    }
-    fn add_reply(&self, res: Res, id: &Value, body: &str) -> BResult<Value> {
-        Err(Failure::unavailable("replies"))
-    }
-    fn ticket_note_plan(&self, ticket_id: &Value, body: &str, public: bool) -> BResult<ReviewPlan> {
-        Err(Failure::unavailable("ticket notes"))
-    }
+    fn update_item(&self, res: Res, id: &Value, body: &Map<String, Value>) -> BResult<Value>;
+    fn add_note(&self, res: Res, id: &Value, body: &str, public: bool) -> BResult<Value>;
+    fn ticket_note_plan(&self, ticket_id: &Value, body: &str, public: bool) -> BResult<ReviewPlan>;
     fn send_ticket_note(
         &self,
         plan: &ReviewPlan,
         public_confirmed: bool,
         read_only: bool,
-    ) -> BResult<Value> {
-        Err(Failure::unavailable("ticket notes"))
-    }
+    ) -> BResult<Value>;
     /// `change_tasks.build_plan` after resolving owner, group and status.
     fn change_task_plan(
         &self,
@@ -457,37 +428,21 @@ pub trait Backend: Send + Sync {
         title: &str,
         owner: Option<&str>,
         options: &[(String, String)],
-    ) -> BResult<ReviewPlan> {
-        Err(Failure::unavailable("change tasks"))
-    }
-    fn send_change_task(&self, plan: &ReviewPlan, read_only: bool) -> BResult<Value> {
-        Err(Failure::unavailable("change tasks"))
-    }
-    fn search_change_tickets(&self, query: &str) -> BResult<Vec<Value>> {
-        Err(Failure::unavailable("ticket search"))
-    }
+    ) -> BResult<ReviewPlan>;
+    fn send_change_task(&self, plan: &ReviewPlan, read_only: bool) -> BResult<Value>;
+    fn search_change_tickets(&self, query: &str) -> BResult<Vec<Value>>;
     /// `actions.download_choices` → `(rows, warnings)`.
-    fn download_choices(&self, item: &Item) -> BResult<(Vec<Value>, Vec<String>)> {
-        Err(Failure::unavailable("attachment downloads"))
-    }
-    fn download(&self, attachment: &Value, destination: &str) -> BResult<Value> {
-        Err(Failure::unavailable("attachment downloads"))
-    }
+    fn download_choices(&self, item: &Item) -> BResult<(Vec<Value>, Vec<String>)>;
+    fn download(&self, attachment: &Value, destination: &str) -> BResult<Value>;
     /// `create.get_task_for_edit` plus `task_status.fields_from`.
-    fn task_for_edit(&self, change_id: &Value, task_id: &Value) -> BResult<(Value, Vec<Value>)> {
-        Err(Failure::unavailable("task editing"))
-    }
+    fn task_for_edit(&self, change_id: &Value, task_id: &Value) -> BResult<(Value, Vec<Value>)>;
     fn association_plan(
         &self,
         change_id: &Value,
         ticket_ids: &[Value],
         unlink: bool,
-    ) -> BResult<ReviewPlan> {
-        Err(Failure::unavailable("associations"))
-    }
-    fn send_association(&self, plan: &ReviewPlan) -> BResult<Value> {
-        Err(Failure::unavailable("associations"))
-    }
+    ) -> BResult<ReviewPlan>;
+    fn send_association(&self, plan: &ReviewPlan) -> BResult<Value>;
     /// `change_approvals.resolve_approvers` + `build_plan` (a request plan).
     fn approval_request_plan(
         &self,
@@ -496,13 +451,9 @@ pub trait Backend: Send + Sync {
         message: &str,
         recipients: &[String],
         rule: &str,
-    ) -> BResult<ReviewPlan> {
-        Err(Failure::unavailable("approval requests"))
-    }
+    ) -> BResult<ReviewPlan>;
     /// `approval-respond` → approval records; otherwise approval groups.
-    fn approval_targets(&self, kind: &str, change_id: &Value) -> BResult<Vec<Value>> {
-        Err(Failure::unavailable("approval inventory"))
-    }
+    fn approval_targets(&self, kind: &str, change_id: &Value) -> BResult<Vec<Value>>;
     /// `change_approval_actions.build_plan` (approve / reject / cancel).
     fn approval_action_plan(
         &self,
@@ -510,60 +461,38 @@ pub trait Backend: Send + Sync {
         target_id: &Value,
         operation: &str,
         remark: Option<&str>,
-    ) -> BResult<ReviewPlan> {
-        Err(Failure::unavailable("approval actions"))
-    }
+    ) -> BResult<ReviewPlan>;
     /// Sends a request or action plan once; the result carries `verified`.
-    fn send_approval(&self, plan: &ReviewPlan, read_only: bool) -> BResult<Value> {
-        Err(Failure::unavailable("approval actions"))
-    }
+    fn send_approval(&self, plan: &ReviewPlan, read_only: bool) -> BResult<Value>;
     fn update_task(
         &self,
         change_id: &Value,
         task_id: &Value,
         body: &Map<String, Value>,
-    ) -> BResult<()> {
-        Err(Failure::unavailable("task updates"))
-    }
-    fn delete_task(&self, change_id: &Value, task_id: &Value) -> BResult<()> {
-        Err(Failure::unavailable("task deletes"))
-    }
+    ) -> BResult<()>;
+    fn delete_task(&self, change_id: &Value, task_id: &Value) -> BResult<()>;
 
     // ── reviewed single-purpose writes ──────────────────────
     /// `load_meta("ticket", "edit", fresh=True, module_id=ticket_id)` filtered
     /// to the fields `e` offers on a ticket.
-    fn ticket_property_fields(&self, ticket_id: &Value) -> BResult<Vec<PropertyField>> {
-        Err(Failure::unavailable("ticket property edits"))
-    }
+    fn ticket_property_fields(&self, ticket_id: &Value) -> BResult<Vec<PropertyField>>;
     /// `ticket_properties.build_plan(ticket_id, answers={name: value})`.
     fn ticket_property_plan(
         &self,
         ticket_id: &Value,
         name: &str,
         value: &Value,
-    ) -> BResult<ReviewPlan> {
-        Err(Failure::unavailable("ticket property edits"))
-    }
+    ) -> BResult<ReviewPlan>;
     /// `ticket_properties.send(plan, reviewed_hash=plan.hash)`.
-    fn send_ticket_property(&self, plan: &ReviewPlan) -> BResult<Value> {
-        Err(Failure::unavailable("ticket property edits"))
-    }
+    fn send_ticket_property(&self, plan: &ReviewPlan) -> BResult<Value>;
     /// `problem_known_error.build_plan(problem_id)`.
-    fn known_error_plan(&self, problem_id: &Value) -> BResult<ReviewPlan> {
-        Err(Failure::unavailable("known-error marks"))
-    }
+    fn known_error_plan(&self, problem_id: &Value) -> BResult<ReviewPlan>;
     /// `problem_known_error.send(plan, reviewed_hash=plan.hash)`.
-    fn send_known_error(&self, plan: &ReviewPlan) -> BResult<Value> {
-        Err(Failure::unavailable("known-error marks"))
-    }
+    fn send_known_error(&self, plan: &ReviewPlan) -> BResult<Value>;
     /// `planning_text.definitions(module)`; `module` is `changes` or `problems`.
-    fn planning_definitions(&self, module: &str) -> BResult<Vec<Value>> {
-        Err(Failure::unavailable("planning text"))
-    }
+    fn planning_definitions(&self, module: &str) -> BResult<Vec<Value>>;
     /// `match_planning_row({"name": section}, planning_text.inventory(module, id))`.
-    fn planning_row(&self, module: &str, id: &Value, section: &str) -> BResult<Option<Value>> {
-        Err(Failure::unavailable("planning text"))
-    }
+    fn planning_row(&self, module: &str, id: &Value, section: &str) -> BResult<Option<Value>>;
     /// `planning_text.build_plan(module, id, section, description)`.
     fn planning_text_plan(
         &self,
@@ -571,13 +500,9 @@ pub trait Backend: Send + Sync {
         id: &Value,
         section: &str,
         description: &str,
-    ) -> BResult<ReviewPlan> {
-        Err(Failure::unavailable("planning text"))
-    }
+    ) -> BResult<ReviewPlan>;
     /// `planning_text.send(plan, reviewed_hash=plan.hash)`.
-    fn send_planning_text(&self, plan: &ReviewPlan) -> BResult<Value> {
-        Err(Failure::unavailable("planning text"))
-    }
+    fn send_planning_text(&self, plan: &ReviewPlan) -> BResult<Value>;
     /// `ticket_conversation.recipients` for cc / notify / bcc, then
     /// `build_plan`. `raw` must be the plan's payload: the TUI reads
     /// `private` from it to decide on the public-consent step.
@@ -586,24 +511,15 @@ pub trait Backend: Send + Sync {
         ticket_id: &Value,
         body: &str,
         req: &ConversationRequest,
-    ) -> BResult<ReviewPlan> {
-        Err(Failure::unavailable("ticket conversations"))
-    }
+    ) -> BResult<ReviewPlan>;
     /// `ticket_conversation.send(plan, reviewed_hash=plan.hash, public_confirmed=...)`.
-    fn send_ticket_conversation(
-        &self,
-        plan: &ReviewPlan,
-        public_confirmed: bool,
-    ) -> BResult<Value> {
-        Err(Failure::unavailable("ticket conversations"))
-    }
+    fn send_ticket_conversation(&self, plan: &ReviewPlan, public_confirmed: bool)
+    -> BResult<Value>;
 
     // ── read-only pickers ───────────────────────────────────
     /// `asset_picker.candidates(c, req.change, req.query, page=req.page)`:
     /// one GET of `assets-to-associate`; never associates.
-    fn asset_candidates(&self, req: &AssetCandidatesRequest) -> BResult<AssetCandidates> {
-        Err(Failure::unavailable("asset candidates"))
-    }
+    fn asset_candidates(&self, req: &AssetCandidatesRequest) -> BResult<AssetCandidates>;
 
     // ── create forms ────────────────────────────────────────
     /// `import fsv.formui` succeeded; without it `N` / `e` toast
@@ -613,12 +529,8 @@ pub trait Backend: Send + Sync {
     }
     /// `_form_session` / `ticket_session` / `sr_session` wrapped in a
     /// `FormScreen` (runs on a worker).
-    fn open_form(&self, req: &FormRequest) -> BResult<Box<dyn FormView>> {
-        Err(Failure::unavailable("the form UI"))
-    }
-    fn catalog(&self) -> BResult<(Vec<Value>, Vec<Value>)> {
-        Err(Failure::unavailable("service catalog"))
-    }
+    fn open_form(&self, req: &FormRequest) -> BResult<Box<dyn FormView>>;
+    fn catalog(&self) -> BResult<(Vec<Value>, Vec<Value>)>;
     fn resolve_category(&self, categories: &[Value], text: &str) -> Vec<Value> {
         categories
             .iter()
@@ -636,6 +548,583 @@ pub trait Backend: Send + Sync {
                 .collect(),
         }
     }
+}
+
+/// A backend that refuses every write: the reads go to `B`, each write
+/// method fails with "read-only mode: …" before reaching it, and forms
+/// are unavailable. `fsv_app::run_tui` wraps its backend in it when
+/// read-only mode is on, so a missed UI check cannot write.
+pub struct ReadOnly<B>(pub B);
+
+impl<B: Backend> Backend for ReadOnly<B> {
+    fn read_only_setting(&self) -> Value {
+        self.0.read_only_setting()
+    }
+    fn default_where(&self, entity: &str) -> Vec<String> {
+        self.0.default_where(entity)
+    }
+    fn load_filter_history(&self) -> Vec<String> {
+        self.0.load_filter_history()
+    }
+    fn save_filter_history(&self, history: &[String]) {
+        self.0.save_filter_history(history)
+    }
+    fn copy_to_clipboard(&self, text: &str) -> Result<(), String> {
+        self.0.copy_to_clipboard(text)
+    }
+    fn open_url(&self, url: &str) -> bool {
+        self.0.open_url(url)
+    }
+    fn item_url(&self, res: Res, id: &Value) -> String {
+        self.0.item_url(res, id)
+    }
+    fn load_schema(&self, res: Res) -> BResult<Value> {
+        self.0.load_schema(res)
+    }
+    fn current_user(&self) -> BResult<Value> {
+        self.0.current_user()
+    }
+    fn user_tz(&self, me: &Value) -> Option<TimeZone> {
+        self.0.user_tz(me)
+    }
+    fn load_views(&self, res: Res) -> BResult<Vec<View>> {
+        self.0.load_views(res)
+    }
+    fn ticket_headers(&self) -> BResult<Vec<Value>> {
+        self.0.ticket_headers()
+    }
+    fn view_settings(&self, res: Res, view: &View) -> BResult<Value> {
+        self.0.view_settings(res, view)
+    }
+    fn build_query_hash(&self, res: Res, schema: &Value, filters: &[String]) -> BResult<String> {
+        self.0.build_query_hash(res, schema, filters)
+    }
+    fn list_page(&self, req: &ListRequest) -> BResult<(Vec<Value>, Value)> {
+        self.0.list_page(req)
+    }
+    fn search_items(
+        &self,
+        term: &str,
+        entity: Option<&str>,
+        sort: &str,
+        page: i64,
+    ) -> BResult<SearchResult> {
+        self.0.search_items(term, entity, sort, page)
+    }
+    fn load_detail(&self, res: Res, id: &Value, schema: Option<&Value>) -> BResult<DetailPage> {
+        self.0.load_detail(res, id, schema)
+    }
+    fn load_tab(&self, res: Res, record: &Value, tab: &str) -> BResult<TabData> {
+        self.0.load_tab(res, record, tab)
+    }
+    fn completion_network(&self) -> bool {
+        self.0.completion_network()
+    }
+    fn cached_group_names(&self) -> Vec<String> {
+        self.0.cached_group_names()
+    }
+    fn remote_user_values(&self, kind: &str, prefix: &str) -> BResult<Vec<String>> {
+        self.0.remote_user_values(kind, prefix)
+    }
+    fn lookup_choices(&self, link: &str, prefix: &str) -> BResult<Vec<Value>> {
+        self.0.lookup_choices(link, prefix)
+    }
+    fn update_item(&self, _res: Res, _id: &Value, _body: &Map<String, Value>) -> BResult<Value> {
+        Err(Failure::read_only("record updates"))
+    }
+    fn add_note(&self, _res: Res, _id: &Value, _body: &str, _public: bool) -> BResult<Value> {
+        Err(Failure::read_only("notes"))
+    }
+    fn ticket_note_plan(&self, ticket_id: &Value, body: &str, public: bool) -> BResult<ReviewPlan> {
+        self.0.ticket_note_plan(ticket_id, body, public)
+    }
+    fn send_ticket_note(
+        &self,
+        _plan: &ReviewPlan,
+        _public_confirmed: bool,
+        _read_only: bool,
+    ) -> BResult<Value> {
+        Err(Failure::read_only("ticket notes"))
+    }
+    fn change_task_plan(
+        &self,
+        change_id: &Value,
+        title: &str,
+        owner: Option<&str>,
+        options: &[(String, String)],
+    ) -> BResult<ReviewPlan> {
+        self.0.change_task_plan(change_id, title, owner, options)
+    }
+    fn send_change_task(&self, _plan: &ReviewPlan, _read_only: bool) -> BResult<Value> {
+        Err(Failure::read_only("change tasks"))
+    }
+    fn search_change_tickets(&self, query: &str) -> BResult<Vec<Value>> {
+        self.0.search_change_tickets(query)
+    }
+    fn download_choices(&self, item: &Item) -> BResult<(Vec<Value>, Vec<String>)> {
+        self.0.download_choices(item)
+    }
+    fn download(&self, attachment: &Value, destination: &str) -> BResult<Value> {
+        self.0.download(attachment, destination)
+    }
+    fn task_for_edit(&self, change_id: &Value, task_id: &Value) -> BResult<(Value, Vec<Value>)> {
+        self.0.task_for_edit(change_id, task_id)
+    }
+    fn association_plan(
+        &self,
+        change_id: &Value,
+        ticket_ids: &[Value],
+        unlink: bool,
+    ) -> BResult<ReviewPlan> {
+        self.0.association_plan(change_id, ticket_ids, unlink)
+    }
+    fn send_association(&self, _plan: &ReviewPlan) -> BResult<Value> {
+        Err(Failure::read_only("associations"))
+    }
+    fn approval_request_plan(
+        &self,
+        change_id: &Value,
+        name: &str,
+        message: &str,
+        recipients: &[String],
+        rule: &str,
+    ) -> BResult<ReviewPlan> {
+        self.0
+            .approval_request_plan(change_id, name, message, recipients, rule)
+    }
+    fn approval_targets(&self, kind: &str, change_id: &Value) -> BResult<Vec<Value>> {
+        self.0.approval_targets(kind, change_id)
+    }
+    fn approval_action_plan(
+        &self,
+        change_id: &Value,
+        target_id: &Value,
+        operation: &str,
+        remark: Option<&str>,
+    ) -> BResult<ReviewPlan> {
+        self.0
+            .approval_action_plan(change_id, target_id, operation, remark)
+    }
+    fn send_approval(&self, _plan: &ReviewPlan, _read_only: bool) -> BResult<Value> {
+        Err(Failure::read_only("approvals"))
+    }
+    fn update_task(
+        &self,
+        _change_id: &Value,
+        _task_id: &Value,
+        _body: &Map<String, Value>,
+    ) -> BResult<()> {
+        Err(Failure::read_only("task updates"))
+    }
+    fn delete_task(&self, _change_id: &Value, _task_id: &Value) -> BResult<()> {
+        Err(Failure::read_only("task deletes"))
+    }
+    fn ticket_property_fields(&self, ticket_id: &Value) -> BResult<Vec<PropertyField>> {
+        self.0.ticket_property_fields(ticket_id)
+    }
+    fn ticket_property_plan(
+        &self,
+        ticket_id: &Value,
+        name: &str,
+        value: &Value,
+    ) -> BResult<ReviewPlan> {
+        self.0.ticket_property_plan(ticket_id, name, value)
+    }
+    fn send_ticket_property(&self, _plan: &ReviewPlan) -> BResult<Value> {
+        Err(Failure::read_only("ticket property edits"))
+    }
+    fn known_error_plan(&self, problem_id: &Value) -> BResult<ReviewPlan> {
+        self.0.known_error_plan(problem_id)
+    }
+    fn send_known_error(&self, _plan: &ReviewPlan) -> BResult<Value> {
+        Err(Failure::read_only("known-error marks"))
+    }
+    fn planning_definitions(&self, module: &str) -> BResult<Vec<Value>> {
+        self.0.planning_definitions(module)
+    }
+    fn planning_row(&self, module: &str, id: &Value, section: &str) -> BResult<Option<Value>> {
+        self.0.planning_row(module, id, section)
+    }
+    fn planning_text_plan(
+        &self,
+        module: &str,
+        id: &Value,
+        section: &str,
+        description: &str,
+    ) -> BResult<ReviewPlan> {
+        self.0.planning_text_plan(module, id, section, description)
+    }
+    fn send_planning_text(&self, _plan: &ReviewPlan) -> BResult<Value> {
+        Err(Failure::read_only("planning text"))
+    }
+    fn ticket_conversation_plan(
+        &self,
+        ticket_id: &Value,
+        body: &str,
+        req: &ConversationRequest,
+    ) -> BResult<ReviewPlan> {
+        self.0.ticket_conversation_plan(ticket_id, body, req)
+    }
+    fn send_ticket_conversation(
+        &self,
+        _plan: &ReviewPlan,
+        _public_confirmed: bool,
+    ) -> BResult<Value> {
+        Err(Failure::read_only("ticket conversations"))
+    }
+    fn asset_candidates(&self, req: &AssetCandidatesRequest) -> BResult<AssetCandidates> {
+        self.0.asset_candidates(req)
+    }
+    fn forms_available(&self) -> bool {
+        false
+    }
+    fn open_form(&self, _req: &FormRequest) -> BResult<Box<dyn FormView>> {
+        Err(Failure::read_only("forms"))
+    }
+    fn catalog(&self) -> BResult<(Vec<Value>, Vec<Value>)> {
+        self.0.catalog()
+    }
+    fn resolve_category(&self, categories: &[Value], text: &str) -> Vec<Value> {
+        self.0.resolve_category(categories, text)
+    }
+    fn filter_catalog_items(&self, items: &[Value], category_ids: Option<&[Value]>) -> Vec<Value> {
+        self.0.filter_catalog_items(items, category_ids)
+    }
+}
+
+/// Stub bodies for test doubles: `backend_stubs!(list_page, load_detail)`
+/// inside an `impl Backend` writes those methods as "unavailable" (or
+/// empty) answers. Real backends implement every network method.
+#[doc(hidden)]
+#[macro_export]
+macro_rules! backend_stubs {
+    (@one load_schema) => {
+        #[allow(unused_variables)]
+        fn load_schema(&self, res: $crate::backend::Res) -> $crate::backend::BResult<::serde_json::Value> {
+            Err($crate::backend::Failure::unavailable("schema loading"))
+        }
+    };
+    (@one current_user) => {
+        #[allow(unused_variables)]
+        fn current_user(&self) -> $crate::backend::BResult<::serde_json::Value> {
+            Ok(::serde_json::Value::Null)
+        }
+    };
+    (@one load_views) => {
+        #[allow(unused_variables)]
+        fn load_views(&self, res: $crate::backend::Res) -> $crate::backend::BResult<Vec<$crate::backend::View>> {
+            Ok(Vec::new())
+        }
+    };
+    (@one ticket_headers) => {
+        #[allow(unused_variables)]
+        fn ticket_headers(&self) -> $crate::backend::BResult<Vec<::serde_json::Value>> {
+            Ok(Vec::new())
+        }
+    };
+    (@one view_settings) => {
+        #[allow(unused_variables)]
+        fn view_settings(&self, res: $crate::backend::Res, view: &$crate::backend::View) -> $crate::backend::BResult<::serde_json::Value> {
+            Ok(::serde_json::Value::Null)
+        }
+    };
+    (@one build_query_hash) => {
+        #[allow(unused_variables)]
+        fn build_query_hash(&self, res: $crate::backend::Res, schema: &::serde_json::Value, filters: &[String]) -> $crate::backend::BResult<String> {
+            Err($crate::backend::Failure::unavailable("filtering"))
+        }
+    };
+    (@one list_page) => {
+        #[allow(unused_variables)]
+        fn list_page(&self, req: &$crate::backend::ListRequest) -> $crate::backend::BResult<(Vec<::serde_json::Value>, ::serde_json::Value)> {
+            Err($crate::backend::Failure::unavailable("record lists"))
+        }
+    };
+    (@one search_items) => {
+        #[allow(unused_variables)]
+        fn search_items(
+            &self,
+            term: &str,
+            entity: Option<&str>,
+            sort: &str,
+            page: i64,
+        ) -> $crate::backend::BResult<$crate::backend::SearchResult> {
+            Err($crate::backend::Failure::unavailable("search"))
+        }
+    };
+    (@one load_detail) => {
+        #[allow(unused_variables)]
+        fn load_detail(&self, res: $crate::backend::Res, id: &::serde_json::Value, schema: Option<&::serde_json::Value>) -> $crate::backend::BResult<$crate::backend::DetailPage> {
+            Err($crate::backend::Failure::unavailable("record details"))
+        }
+    };
+    (@one load_tab) => {
+        #[allow(unused_variables)]
+        fn load_tab(&self, res: $crate::backend::Res, record: &::serde_json::Value, tab: &str) -> $crate::backend::BResult<$crate::backend::TabData> {
+            Err($crate::backend::Failure::unavailable("detail tabs"))
+        }
+    };
+    (@one remote_user_values) => {
+        #[allow(unused_variables)]
+        fn remote_user_values(&self, kind: &str, prefix: &str) -> $crate::backend::BResult<Vec<String>> {
+            Ok(Vec::new())
+        }
+    };
+    (@one lookup_choices) => {
+        #[allow(unused_variables)]
+        fn lookup_choices(&self, link: &str, prefix: &str) -> $crate::backend::BResult<Vec<::serde_json::Value>> {
+            Ok(Vec::new())
+        }
+    };
+    (@one update_item) => {
+        #[allow(unused_variables)]
+        fn update_item(&self, res: $crate::backend::Res, id: &::serde_json::Value, body: &::serde_json::Map<String, ::serde_json::Value>) -> $crate::backend::BResult<::serde_json::Value> {
+            Err($crate::backend::Failure::unavailable("record updates"))
+        }
+    };
+    (@one add_note) => {
+        #[allow(unused_variables)]
+        fn add_note(&self, res: $crate::backend::Res, id: &::serde_json::Value, body: &str, public: bool) -> $crate::backend::BResult<::serde_json::Value> {
+            Err($crate::backend::Failure::unavailable("notes"))
+        }
+    };
+    (@one ticket_note_plan) => {
+        #[allow(unused_variables)]
+        fn ticket_note_plan(&self, ticket_id: &::serde_json::Value, body: &str, public: bool) -> $crate::backend::BResult<$crate::backend::ReviewPlan> {
+            Err($crate::backend::Failure::unavailable("ticket notes"))
+        }
+    };
+    (@one send_ticket_note) => {
+        #[allow(unused_variables)]
+        fn send_ticket_note(
+            &self,
+            plan: &$crate::backend::ReviewPlan,
+            public_confirmed: bool,
+            read_only: bool,
+        ) -> $crate::backend::BResult<::serde_json::Value> {
+            Err($crate::backend::Failure::unavailable("ticket notes"))
+        }
+    };
+    (@one change_task_plan) => {
+        #[allow(unused_variables)]
+        fn change_task_plan(
+            &self,
+            change_id: &::serde_json::Value,
+            title: &str,
+            owner: Option<&str>,
+            options: &[(String, String)],
+        ) -> $crate::backend::BResult<$crate::backend::ReviewPlan> {
+            Err($crate::backend::Failure::unavailable("change tasks"))
+        }
+    };
+    (@one send_change_task) => {
+        #[allow(unused_variables)]
+        fn send_change_task(&self, plan: &$crate::backend::ReviewPlan, read_only: bool) -> $crate::backend::BResult<::serde_json::Value> {
+            Err($crate::backend::Failure::unavailable("change tasks"))
+        }
+    };
+    (@one search_change_tickets) => {
+        #[allow(unused_variables)]
+        fn search_change_tickets(&self, query: &str) -> $crate::backend::BResult<Vec<::serde_json::Value>> {
+            Err($crate::backend::Failure::unavailable("ticket search"))
+        }
+    };
+    (@one download_choices) => {
+        #[allow(unused_variables)]
+        fn download_choices(&self, item: &$crate::backend::Item) -> $crate::backend::BResult<(Vec<::serde_json::Value>, Vec<String>)> {
+            Err($crate::backend::Failure::unavailable("attachment downloads"))
+        }
+    };
+    (@one download) => {
+        #[allow(unused_variables)]
+        fn download(&self, attachment: &::serde_json::Value, destination: &str) -> $crate::backend::BResult<::serde_json::Value> {
+            Err($crate::backend::Failure::unavailable("attachment downloads"))
+        }
+    };
+    (@one task_for_edit) => {
+        #[allow(unused_variables)]
+        fn task_for_edit(&self, change_id: &::serde_json::Value, task_id: &::serde_json::Value) -> $crate::backend::BResult<(::serde_json::Value, Vec<::serde_json::Value>)> {
+            Err($crate::backend::Failure::unavailable("task editing"))
+        }
+    };
+    (@one association_plan) => {
+        #[allow(unused_variables)]
+        fn association_plan(
+            &self,
+            change_id: &::serde_json::Value,
+            ticket_ids: &[::serde_json::Value],
+            unlink: bool,
+        ) -> $crate::backend::BResult<$crate::backend::ReviewPlan> {
+            Err($crate::backend::Failure::unavailable("associations"))
+        }
+    };
+    (@one send_association) => {
+        #[allow(unused_variables)]
+        fn send_association(&self, plan: &$crate::backend::ReviewPlan) -> $crate::backend::BResult<::serde_json::Value> {
+            Err($crate::backend::Failure::unavailable("associations"))
+        }
+    };
+    (@one approval_request_plan) => {
+        #[allow(unused_variables)]
+        fn approval_request_plan(
+            &self,
+            change_id: &::serde_json::Value,
+            name: &str,
+            message: &str,
+            recipients: &[String],
+            rule: &str,
+        ) -> $crate::backend::BResult<$crate::backend::ReviewPlan> {
+            Err($crate::backend::Failure::unavailable("approval requests"))
+        }
+    };
+    (@one approval_targets) => {
+        #[allow(unused_variables)]
+        fn approval_targets(&self, kind: &str, change_id: &::serde_json::Value) -> $crate::backend::BResult<Vec<::serde_json::Value>> {
+            Err($crate::backend::Failure::unavailable("approval inventory"))
+        }
+    };
+    (@one approval_action_plan) => {
+        #[allow(unused_variables)]
+        fn approval_action_plan(
+            &self,
+            change_id: &::serde_json::Value,
+            target_id: &::serde_json::Value,
+            operation: &str,
+            remark: Option<&str>,
+        ) -> $crate::backend::BResult<$crate::backend::ReviewPlan> {
+            Err($crate::backend::Failure::unavailable("approval actions"))
+        }
+    };
+    (@one send_approval) => {
+        #[allow(unused_variables)]
+        fn send_approval(&self, plan: &$crate::backend::ReviewPlan, read_only: bool) -> $crate::backend::BResult<::serde_json::Value> {
+            Err($crate::backend::Failure::unavailable("approval actions"))
+        }
+    };
+    (@one update_task) => {
+        #[allow(unused_variables)]
+        fn update_task(
+            &self,
+            change_id: &::serde_json::Value,
+            task_id: &::serde_json::Value,
+            body: &::serde_json::Map<String, ::serde_json::Value>,
+        ) -> $crate::backend::BResult<()> {
+            Err($crate::backend::Failure::unavailable("task updates"))
+        }
+    };
+    (@one delete_task) => {
+        #[allow(unused_variables)]
+        fn delete_task(&self, change_id: &::serde_json::Value, task_id: &::serde_json::Value) -> $crate::backend::BResult<()> {
+            Err($crate::backend::Failure::unavailable("task deletes"))
+        }
+    };
+    (@one ticket_property_fields) => {
+        #[allow(unused_variables)]
+        fn ticket_property_fields(&self, ticket_id: &::serde_json::Value) -> $crate::backend::BResult<Vec<$crate::backend::PropertyField>> {
+            Err($crate::backend::Failure::unavailable("ticket property edits"))
+        }
+    };
+    (@one ticket_property_plan) => {
+        #[allow(unused_variables)]
+        fn ticket_property_plan(
+            &self,
+            ticket_id: &::serde_json::Value,
+            name: &str,
+            value: &::serde_json::Value,
+        ) -> $crate::backend::BResult<$crate::backend::ReviewPlan> {
+            Err($crate::backend::Failure::unavailable("ticket property edits"))
+        }
+    };
+    (@one send_ticket_property) => {
+        #[allow(unused_variables)]
+        fn send_ticket_property(&self, plan: &$crate::backend::ReviewPlan) -> $crate::backend::BResult<::serde_json::Value> {
+            Err($crate::backend::Failure::unavailable("ticket property edits"))
+        }
+    };
+    (@one known_error_plan) => {
+        #[allow(unused_variables)]
+        fn known_error_plan(&self, problem_id: &::serde_json::Value) -> $crate::backend::BResult<$crate::backend::ReviewPlan> {
+            Err($crate::backend::Failure::unavailable("known-error marks"))
+        }
+    };
+    (@one send_known_error) => {
+        #[allow(unused_variables)]
+        fn send_known_error(&self, plan: &$crate::backend::ReviewPlan) -> $crate::backend::BResult<::serde_json::Value> {
+            Err($crate::backend::Failure::unavailable("known-error marks"))
+        }
+    };
+    (@one planning_definitions) => {
+        #[allow(unused_variables)]
+        fn planning_definitions(&self, module: &str) -> $crate::backend::BResult<Vec<::serde_json::Value>> {
+            Err($crate::backend::Failure::unavailable("planning text"))
+        }
+    };
+    (@one planning_row) => {
+        #[allow(unused_variables)]
+        fn planning_row(&self, module: &str, id: &::serde_json::Value, section: &str) -> $crate::backend::BResult<Option<::serde_json::Value>> {
+            Err($crate::backend::Failure::unavailable("planning text"))
+        }
+    };
+    (@one planning_text_plan) => {
+        #[allow(unused_variables)]
+        fn planning_text_plan(
+            &self,
+            module: &str,
+            id: &::serde_json::Value,
+            section: &str,
+            description: &str,
+        ) -> $crate::backend::BResult<$crate::backend::ReviewPlan> {
+            Err($crate::backend::Failure::unavailable("planning text"))
+        }
+    };
+    (@one send_planning_text) => {
+        #[allow(unused_variables)]
+        fn send_planning_text(&self, plan: &$crate::backend::ReviewPlan) -> $crate::backend::BResult<::serde_json::Value> {
+            Err($crate::backend::Failure::unavailable("planning text"))
+        }
+    };
+    (@one ticket_conversation_plan) => {
+        #[allow(unused_variables)]
+        fn ticket_conversation_plan(
+            &self,
+            ticket_id: &::serde_json::Value,
+            body: &str,
+            req: &$crate::backend::ConversationRequest,
+        ) -> $crate::backend::BResult<$crate::backend::ReviewPlan> {
+            Err($crate::backend::Failure::unavailable("ticket conversations"))
+        }
+    };
+    (@one send_ticket_conversation) => {
+        #[allow(unused_variables)]
+        fn send_ticket_conversation(
+            &self,
+            plan: &$crate::backend::ReviewPlan,
+            public_confirmed: bool,
+        ) -> $crate::backend::BResult<::serde_json::Value> {
+            Err($crate::backend::Failure::unavailable("ticket conversations"))
+        }
+    };
+    (@one asset_candidates) => {
+        #[allow(unused_variables)]
+        fn asset_candidates(&self, req: &$crate::backend::AssetCandidatesRequest) -> $crate::backend::BResult<$crate::backend::AssetCandidates> {
+            Err($crate::backend::Failure::unavailable("asset candidates"))
+        }
+    };
+    (@one open_form) => {
+        #[allow(unused_variables)]
+        fn open_form(&self, req: &$crate::backend::FormRequest) -> $crate::backend::BResult<Box<dyn $crate::backend::FormView>> {
+            Err($crate::backend::Failure::unavailable("the form UI"))
+        }
+    };
+    (@one catalog) => {
+        #[allow(unused_variables)]
+        fn catalog(&self) -> $crate::backend::BResult<(Vec<::serde_json::Value>, Vec<::serde_json::Value>)> {
+            Err($crate::backend::Failure::unavailable("service catalog"))
+        }
+    };
+    ($($name:ident),* $(,)?) => {
+        $( $crate::backend_stubs!(@one $name); )*
+    };
 }
 
 /// `pages.py` renderers (markup strings) the TUI shows for a loaded page.
@@ -748,5 +1237,138 @@ impl Pages for BasicPages {
             format!("  {n} {}", escape(&data.label))
         });
         out
+    }
+}
+
+#[cfg(test)]
+mod read_only_tests {
+    use super::*;
+    use fsv_core::resource::{CHANGES, TICKETS};
+    use serde_json::json;
+    use std::sync::Mutex;
+
+    /// Records reads; its writes would succeed, so a refusal can only come
+    /// from `ReadOnly`.
+    #[derive(Default)]
+    struct Inner {
+        log: Mutex<Vec<String>>,
+    }
+
+    impl Backend for Inner {
+        fn load_detail(&self, res: Res, id: &Value, _: Option<&Value>) -> BResult<DetailPage> {
+            self.log
+                .lock()
+                .unwrap()
+                .push(format!("detail {} {id}", res.name));
+            Ok(DetailPage {
+                res,
+                record: json!({"id": id}),
+                tabs: Vec::new(),
+                badge: String::new(),
+                due: String::new(),
+                tz: None,
+                schema: None,
+                extra: Value::Null,
+            })
+        }
+        fn add_note(&self, _: Res, _: &Value, _: &str, _: bool) -> BResult<Value> {
+            self.log.lock().unwrap().push("note".into());
+            Ok(json!({}))
+        }
+        fn send_ticket_note(&self, _: &ReviewPlan, _: bool, _: bool) -> BResult<Value> {
+            self.log.lock().unwrap().push("ticket-note".into());
+            Ok(json!({}))
+        }
+        fn send_change_task(&self, _: &ReviewPlan, _: bool) -> BResult<Value> {
+            self.log.lock().unwrap().push("task".into());
+            Ok(json!({}))
+        }
+        fn send_approval(&self, _: &ReviewPlan, _: bool) -> BResult<Value> {
+            self.log.lock().unwrap().push("approval".into());
+            Ok(json!({}))
+        }
+        fn forms_available(&self) -> bool {
+            true
+        }
+        crate::backend_stubs!(
+            load_schema,
+            current_user,
+            load_views,
+            ticket_headers,
+            view_settings,
+            build_query_hash,
+            list_page,
+            search_items,
+            load_tab,
+            remote_user_values,
+            lookup_choices,
+            update_item,
+            ticket_note_plan,
+            change_task_plan,
+            search_change_tickets,
+            download_choices,
+            download,
+            task_for_edit,
+            association_plan,
+            send_association,
+            approval_request_plan,
+            approval_targets,
+            approval_action_plan,
+            update_task,
+            delete_task,
+            ticket_property_fields,
+            ticket_property_plan,
+            send_ticket_property,
+            known_error_plan,
+            send_known_error,
+            planning_definitions,
+            planning_row,
+            planning_text_plan,
+            send_planning_text,
+            ticket_conversation_plan,
+            send_ticket_conversation,
+            asset_candidates,
+            open_form,
+            catalog
+        );
+    }
+
+    #[test]
+    fn read_only_refuses_writes_and_passes_reads() {
+        let ro = ReadOnly(Inner::default());
+        let plan = ReviewPlan {
+            review: json!({}),
+            hash: "h".into(),
+            public: false,
+            target_id: json!(1),
+            raw: Value::Null,
+        };
+        let refused = [
+            ro.add_note(&CHANGES, &json!(1), "x", false).unwrap_err(),
+            ro.send_ticket_note(&plan, true, false).unwrap_err(),
+            ro.send_change_task(&plan, false).unwrap_err(),
+            ro.send_approval(&plan, false).unwrap_err(),
+            ro.update_item(&CHANGES, &json!(1), &Map::new())
+                .unwrap_err(),
+            ro.open_form(&FormRequest {
+                mode: "new".into(),
+                item: None,
+                record: None,
+            })
+            .err()
+            .unwrap(),
+        ];
+        for e in refused {
+            assert!(
+                e.to_string()
+                    .starts_with("read-only mode: writes are disabled ("),
+                "{e}"
+            );
+        }
+        assert!(!ro.forms_available());
+        assert!(ro.0.log.lock().unwrap().is_empty());
+        let page = ro.load_detail(&TICKETS, &json!(7), None).unwrap();
+        assert_eq!(page.record, json!({"id": 7}));
+        assert_eq!(*ro.0.log.lock().unwrap(), ["detail tickets 7"]);
     }
 }

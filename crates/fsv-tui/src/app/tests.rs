@@ -243,10 +243,6 @@ impl Backend for Mock {
         self.fail("write")?;
         Ok(json!({}))
     }
-    fn add_reply(&self, res: Res, id: &Value, body: &str) -> BResult<Value> {
-        self.log(format!("reply {} {id} {body}", res.name));
-        Ok(json!({}))
-    }
     fn ticket_note_plan(&self, ticket_id: &Value, body: &str, public: bool) -> BResult<ReviewPlan> {
         self.log(format!("ticket-note-plan {ticket_id} {body} {public}"));
         self.fail("ticket-note")?;
@@ -357,6 +353,24 @@ impl Backend for Mock {
             vec![json!({"id": 1, "name": "Hardware"}), json!({"id": 2})],
         ))
     }
+    crate::backend_stubs!(
+        send_ticket_note,
+        download,
+        send_approval,
+        ticket_property_fields,
+        ticket_property_plan,
+        send_ticket_property,
+        known_error_plan,
+        send_known_error,
+        planning_definitions,
+        planning_row,
+        planning_text_plan,
+        send_planning_text,
+        ticket_conversation_plan,
+        send_ticket_conversation,
+        asset_candidates,
+        open_form
+    );
 }
 
 struct TestPages;
@@ -1459,9 +1473,6 @@ fn do_write_messages_and_failures() {
     a.do_write(WriteKind::Note("n2".into(), false), c.clone());
     a.settle();
     assert_eq!(last_toast(&a), "Private note added");
-    a.do_write(WriteKind::Reply("r".into()), c);
-    a.settle();
-    assert_eq!(last_toast(&a), "Reply sent");
     assert_eq!(m.calls("note").len(), 2);
 
     let mut mock = Mock::new(1);
@@ -2091,7 +2102,54 @@ fn handle_key_routes_modal_inputs_then_main_keys() {
 #[test]
 fn backend_trait_defaults_are_unavailable_not_panics() {
     struct Bare;
-    impl Backend for Bare {}
+    impl Backend for Bare {
+        crate::backend_stubs!(
+            load_schema,
+            current_user,
+            load_views,
+            ticket_headers,
+            view_settings,
+            build_query_hash,
+            list_page,
+            search_items,
+            load_detail,
+            load_tab,
+            remote_user_values,
+            lookup_choices,
+            update_item,
+            add_note,
+            ticket_note_plan,
+            send_ticket_note,
+            change_task_plan,
+            send_change_task,
+            search_change_tickets,
+            download_choices,
+            download,
+            task_for_edit,
+            association_plan,
+            send_association,
+            approval_request_plan,
+            approval_targets,
+            approval_action_plan,
+            send_approval,
+            update_task,
+            delete_task,
+            ticket_property_fields,
+            ticket_property_plan,
+            send_ticket_property,
+            known_error_plan,
+            send_known_error,
+            planning_definitions,
+            planning_row,
+            planning_text_plan,
+            send_planning_text,
+            ticket_conversation_plan,
+            send_ticket_conversation,
+            asset_candidates,
+            open_form,
+            catalog
+        );
+    }
     let b = Bare;
     assert!(!b.completion_network());
     assert!(b.user_tz(&json!({"time_zone": "Bangkok"})).is_none());
@@ -2113,7 +2171,54 @@ fn backend_trait_defaults_are_unavailable_not_panics() {
 #[test]
 fn reviewed_write_defaults_are_unavailable() {
     struct Bare;
-    impl Backend for Bare {}
+    impl Backend for Bare {
+        crate::backend_stubs!(
+            load_schema,
+            current_user,
+            load_views,
+            ticket_headers,
+            view_settings,
+            build_query_hash,
+            list_page,
+            search_items,
+            load_detail,
+            load_tab,
+            remote_user_values,
+            lookup_choices,
+            update_item,
+            add_note,
+            ticket_note_plan,
+            send_ticket_note,
+            change_task_plan,
+            send_change_task,
+            search_change_tickets,
+            download_choices,
+            download,
+            task_for_edit,
+            association_plan,
+            send_association,
+            approval_request_plan,
+            approval_targets,
+            approval_action_plan,
+            send_approval,
+            update_task,
+            delete_task,
+            ticket_property_fields,
+            ticket_property_plan,
+            send_ticket_property,
+            known_error_plan,
+            send_known_error,
+            planning_definitions,
+            planning_row,
+            planning_text_plan,
+            send_planning_text,
+            ticket_conversation_plan,
+            send_ticket_conversation,
+            asset_candidates,
+            open_form,
+            catalog
+        );
+    }
     let p = plan(json!({}));
     let msgs = [
         Bare.ticket_property_fields(&json!(1))

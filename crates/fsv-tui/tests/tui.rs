@@ -118,6 +118,43 @@ impl Backend for Mock {
     ) -> BResult<Value> {
         Err(Failure::unavailable("notes"))
     }
+    fsv_tui::backend_stubs!(
+        view_settings,
+        search_items,
+        load_tab,
+        remote_user_values,
+        lookup_choices,
+        ticket_note_plan,
+        send_ticket_note,
+        change_task_plan,
+        send_change_task,
+        search_change_tickets,
+        download_choices,
+        download,
+        task_for_edit,
+        association_plan,
+        send_association,
+        approval_request_plan,
+        approval_targets,
+        approval_action_plan,
+        send_approval,
+        update_task,
+        delete_task,
+        ticket_property_fields,
+        ticket_property_plan,
+        send_ticket_property,
+        known_error_plan,
+        send_known_error,
+        planning_definitions,
+        planning_row,
+        planning_text_plan,
+        send_planning_text,
+        ticket_conversation_plan,
+        send_ticket_conversation,
+        asset_candidates,
+        open_form,
+        catalog
+    );
 }
 
 fn app(read_only: bool) -> (App, Arc<Mock>) {

@@ -10,6 +10,9 @@ use serde_json::{Map, Number, Value as Json};
 use crate::pydt::{DateTimeValue, date_iso};
 use crate::pytext::{casefold, squash_ws};
 
+/// The one key of a [`Value::lookup_answer`] object.
+pub const LOOKUP_ANSWER_KEY: &str = "__fsv_lookup__";
+
 /// A resolved person/group/agent (or other lookup record).
 #[derive(Clone, Debug, PartialEq)]
 pub struct LookupValue {
@@ -220,6 +223,35 @@ impl Value {
             Json::String(s) => Value::Str(s.clone()),
             Json::Array(a) => Value::List(a.iter().map(Value::from_json).collect()),
             Json::Object(_) => Value::Json(v.clone()),
+        }
+    }
+
+    /// A form-picked lookup as a JSON draft answer. Python's form draft holds
+    /// the `LookupValue` itself, so its display and email survive into the
+    /// plan; [`Value::from_answer`] reads this back.
+    pub fn lookup_answer(lv: &LookupValue) -> Json {
+        let mut m = Map::new();
+        m.insert(
+            LOOKUP_ANSWER_KEY.into(),
+            serde_json::json!({"id": lv.id, "display": lv.display, "email": lv.email}),
+        );
+        Json::Object(m)
+    }
+
+    /// A draft answer: [`Value::from_json`], except that a
+    /// [`Value::lookup_answer`] object (also inside a list) is that lookup.
+    pub fn from_answer(v: &Json) -> Self {
+        match v {
+            Json::Array(a) => Value::List(a.iter().map(Value::from_answer).collect()),
+            Json::Object(m) if m.len() == 1 => match m.get(LOOKUP_ANSWER_KEY) {
+                Some(Json::Object(l)) => Value::Lookup(LookupValue {
+                    id: l.get("id").cloned().unwrap_or(Json::Null),
+                    display: l.get("display").and_then(Json::as_str).unwrap_or("").into(),
+                    email: l.get("email").and_then(Json::as_str).map(str::to_string),
+                }),
+                _ => Value::from_json(v),
+            },
+            _ => Value::from_json(v),
         }
     }
 

@@ -176,6 +176,7 @@ def send_failure():
     """`catalog.SendFailure` text plus `cli_sr.place`'s conversion, copied
     from its `except cat.SendFailure` block."""
     from fsv import catalog as cat
+    from fsv.change_flow import FlowExit
     from fsv.errors import SessionError, exit_code_for
     cases = [("upload", [], RuntimeError("boom")),
              ("upload", [{"id": 9, "name": "a.txt"}], ValueError("bad")),
@@ -184,7 +185,8 @@ def send_failure():
              ("place-request", [], APIError(403, "denied")),
              ("place-request", [], APIError(500, "x")),
              ("place-request", [], SessionError("expired")),
-             ("place-request", [], RuntimeError("response has no exact request ID; outcome unknown"))]
+             ("place-request", [], RuntimeError("response has no exact request ID; outcome unknown")),
+             ("place-request", [], FlowExit(4, "changed"))]
     out = []
     for step, up, error in cases:
         e = cat.SendFailure(step, up, error)

@@ -126,9 +126,6 @@ impl App {
             let outcome = match &kind {
                 WriteKind::Status(new_id, label) => actions::apply_status(b, res, &id, new_id)
                     .map(|_| format!("Status set to {label}")),
-                WriteKind::Reply(body) => {
-                    actions::apply_reply(b, res, &id, body).map(|_| "Reply sent".to_string())
-                }
                 WriteKind::Note(body, public) => actions::apply_note(b, res, &id, body, *public)
                     .map(|_| {
                         if *public {

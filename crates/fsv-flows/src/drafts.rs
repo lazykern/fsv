@@ -822,11 +822,11 @@ pub fn render_template(state: &FormState, opts: &TemplateOptions<'_>) -> Result<
     }
     for (k, v) in opts.hidden.into_iter().flatten() {
         lines.push("  # hidden by a rule now: not sent; kept in case it reappears".to_string());
-        lines.push(kv(k, Some(v)));
+        lines.push(answer_kv(k, v));
     }
     for (k, v) in opts.unknown.into_iter().flatten() {
         lines.push("  # not a field on this form: fix the label or delete the line".to_string());
-        lines.push(kv(k, Some(v)));
+        lines.push(answer_kv(k, v));
     }
     if !shown_any && opts.unknown.is_none_or(Map::is_empty) && opts.hidden.is_none_or(Map::is_empty)
     {
@@ -917,6 +917,35 @@ pub fn kv(k: &str, v: Option<&Json>) -> String {
                 format!("  {key}: {}", yaml::scalar(other))
             }
         }
+    }
+}
+
+/// [`kv`] for a kept draft answer: a form-picked lookup is written as
+/// `str(LookupValue)`, as Python's `_kv` does.
+pub fn answer_kv(k: &str, v: &Json) -> String {
+    let lookup_item = |x: &Value| match x {
+        Value::Lookup(lv) => Some(yaml::scalar_str(&lv.to_string())),
+        _ => None,
+    };
+    match Value::from_answer(v) {
+        Value::Lookup(lv) => kv(k, Some(&Json::String(lv.to_string()))),
+        Value::List(items) if items.iter().any(|x| lookup_item(x).is_some()) => {
+            let Json::Array(raw) = v else {
+                return kv(k, Some(v));
+            };
+            let parts: Vec<String> = items
+                .iter()
+                .zip(raw)
+                .map(|(x, r)| {
+                    lookup_item(x).unwrap_or_else(|| {
+                        let one = yaml::flow_list(std::slice::from_ref(r));
+                        one[1..one.len() - 1].to_string()
+                    })
+                })
+                .collect();
+            format!("  {}: [{}]", yaml::key(k), parts.join(", "))
+        }
+        _ => kv(k, Some(v)),
     }
 }
 

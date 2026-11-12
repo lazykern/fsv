@@ -16,7 +16,7 @@ those stay identical.
   glyphs, Rich number/URL highlighting and `:emoji:` substitution may differ.
 - Click prompt abort prints `Aborted!`. `_err_exc` prints `Aborted.`
 - No Windows Credential Manager backend. Windows defaults to `file`, as Python does.
-- `keepalive()` is ported and still has no caller.
+- `keepalive()` is ported and still has no caller, as in Python. It is behind fsv-core's `keepalive` feature (`cargo test -p fsv-core --features keepalive` runs its test).
 - `fsv cache clear views` deletes the cache under `CACHE_DIR/filters`.
   Python deletes `CONFIG_DIR/filters` and leaves the views cache in place.
   No test asserts the wrong directory. The command's help says it clears
@@ -117,7 +117,7 @@ those stay identical.
 | `tui.app._prepare_ticket_conversation` / `_send_ticket_conversation`, `_load_ticket_property_fields`, `_prepare_ticket_property` / `_send_ticket_property`, `_prepare_known_error` / `_send_known_error`, `_load_planning_sections` / `_load_planning_editor` / `_prepare_planning_text` / `_send_planning_text`, `_load_asset_candidates` | `LiveBackend::{ticket_conversation_plan, send_ticket_conversation, ticket_property_fields, ticket_property_plan, send_ticket_property, known_error_plan, send_known_error, planning_definitions, planning_row, planning_text_plan, send_planning_text, asset_candidates}` | ported. Golden: `port/golden/gen_fsv_app_tui_reviewed.py` → `src/tui/testdata/reviewed_expected.json` (reply with CC + Pending, BCC + sender reply, private note with notify, sender/BCC refusals and accepted plans, the property picker filter, answers plans and sends for subject / priority / custom text / custom dropdown / beneficiary plus the status and planned-date refusals, a tag-plan send, known-error mark, problem and change planning text, one asset search page). Plans, reviews (warnings included), hashes, request lines, bodies and results match. Planning text plans carry `before` in `ReviewPlan::raw` and rebuild a `PlanningTextPlan` (Python `92002d7`); a section with stored text plans a PUT edit (`changes_edit`, Python `e638d85`). |
 | `change_cli._send`, `cli_sr._send`, `ticket_flow.send`, `_report_partial` for a form-reviewed plan; `tui.actions.failure_detail` attributes | `Submitted::send_cli`, `send_checked`, `send_confirmed`, `SendError::{report, outcome}`, `tui::forms::send_submitted` | ported. Golden: `port/golden/gen_fsv_app_send.py` (metadata changed after review: diff lines, exit 4 without a terminal, re-review and confirm in one, exit 2 when the new form needs answers; partial failure lines and exit 5; SR equivalents). |
 
-- Form review rows can show lookup ids where Python shows names. `fsv_flows` drafts hold JSON answers.
+- Form-picked lookups reach the flows' JSON drafts as `Value::lookup_answer` objects, which `Value::from_answer` reads back as the `LookupValue`, so review rows, saved drafts and kept hidden/unknown lines show names as Python does. Golden: `port/golden/gen_fsv_app_form_lookup.py` → `src/form/testdata/form_lookup.json`.
 - Service-request drafts save through `fsv_flows::sr::save_sr_draft` from the reviewed plan, with no separate requested-for. The file bytes match Python's `render_sr_template` for the same plan.
 - `run_tui` takes a schema loader argument because `schema::load` and saved-view loading live in `fsv-cli`, which `fsv-app` cannot depend on.
 - Directory lookups that hit an expired session surface as a query error, because `fsv_api::QueryError` does not carry the session flag.
@@ -175,9 +175,9 @@ Gaps:
 
 Divergences:
 - `readback::duration_seconds` accepts ASCII digits only; Python's `\d` also accepts other Unicode digits. Hours that overflow `i64` are an error rather than a big int. `ticket_time::duration` and `watchers::positive_id` take Unicode decimal digits as Python does (`positive_id("१२")` is 12; `"²"` is `int()`'s `ValueError`), but an id past `i64` is refused where Python returns the big int. fsv-tui's local `backend::positive_id` is still ASCII-only.
-- `conversations::parseaddr` is a simplified `email.utils.parseaddr`: the address inside the last `<…>`, else the trimmed value. Quoted local parts and comments are not parsed.
+- `conversations::parseaddr` uses `email_addr::parseaddr`, a port of Python 3.12's strict `email.utils.parseaddr` (`AddrlistClass`, parenthesis and domain-literal checks, one address only). Golden: `port/golden/gen_fsv_api_parseaddr.py` → `src/testdata/parseaddr_oracle.json` (76 inputs: quoted local parts, comments, several `<>`, groups, routes, malformed values).
 - `merge_same_conditions` turns a truthy non-iterable `value` (a number or `true`) into a one-item list; Python raises `TypeError` there.
-- `SendFailure::into_error` names the Python type of the cause from the `fsv_core::Error` variant (`Other`/`Context` → `RuntimeError`, `Io` → `OSError`, `Exit` → `FlowExit`), and takes the exit code from `Error::exit_code`, which for an `Exit` cause is its own code (Python's `exit_code_for` gives 1).
+- `SendFailure::into_error` names the Python type of the cause from the `fsv_core::Error` variant (`Other`/`Context` → `RuntimeError`, `Io` → `OSError`, `Exit` → `FlowExit`), and takes the exit code from `Error::exit_code`, except that an `Exit` cause gives 1, as Python's `exit_code_for` does for a `FlowExit` (golden `send_failure` in `reviewed_oracle.json`).
 ## fsv-views
 
 | Python | Rust | status |
@@ -339,7 +339,8 @@ CLI divergences:
 - `launch` needs a terminal. Its loop is `fsv_tui::run(terminal, app, next_event)`, tested with `TestBackend` and scripted events.
 - The key-hint row advertises `gw`, which does nothing. Copied from Python; Python does the same.
 - Help dialog is clipped on 36-row terminals and does not scroll.
-- Plain ticket replies (`r`, Ctrl+S) go through `ticket_conversation_plan` / `send_ticket_conversation`, as in Python. `Backend::add_reply` and the "Confirm reply" path are now unreachable, because `can_reply` is tickets-only. They are kept so `LiveBackend` keeps compiling.
+- Plain ticket replies (`r`, Ctrl+S) go through `ticket_conversation_plan` / `send_ticket_conversation`, as in Python. `Backend::add_reply`, `actions::apply_reply` and the "Confirm reply" write path were unreachable (`can_reply` is tickets-only) and are deleted; `fsv_api::service::add_reply` stays for the CLI.
+- Read-only mode is also enforced at the backend: `fsv_app::run_tui` wraps `LiveBackend` in `fsv_tui::backend::ReadOnly`, whose write methods fail with `read-only mode: writes are disabled (…)` before any request and whose `forms_available()` is false. Python gates read-only only in the UI; nothing changes for the user. The `Backend` network methods have no defaults; test doubles opt into stubs with `backend_stubs!`.
 - Python marks these workers `exclusive=True`, so a second press cancels the first. Rust runs both, like the other TUI workers (see the stale-generation divergence). The same holds for `_load_asset_inventory` (`group="asset-inventory"`).
 - Asset picker: Python calls `asset_picker.select` inside the picker callback, outside the worker's `try`, so a failure there would be an unhandled exception. Rust shows the failure screen `"Asset search unavailable: {exc}"` instead. It is unreachable in practice, because `candidates` already rejects duplicate display IDs. `AssetCandidates::select` and `backend::positive_id` port `asset_picker.select` and `watchers.positive_id` locally; fsv-api now has `asset_picker::select` too.
 - Asset picker failures are pushed as a plain `FailureScreen`, as in Python: they do not set the `!` "last write failure".

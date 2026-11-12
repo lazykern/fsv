@@ -1,0 +1,43 @@
+{
+ "_python": {
+  "commit": "92d76ffe7750176451215bd8dca723fd7304625f",
+  "dirty": false
+ },
+ "errors": [],
+ "rows": [
+  [
+   "Requester",
+   "Jane Doe <jane@example.com>"
+  ],
+  [
+   "Subject",
+   "Deploy"
+  ],
+  [
+   "Group",
+   "Ops"
+  ],
+  [
+   "Agent",
+   "Ann Agent <ann@example.com>"
+  ]
+ ],
+ "payload": {
+  "subject": "Deploy",
+  "group_id": 4,
+  "agent_id": 7,
+  "custom_fields": {},
+  "email": "Jane Doe <jane@example.com>",
+  "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+ },
+ "hash": "e69abbaa063d6da322b835f2bca276267ffeb9a0adbc4f21f2ef2cdb90ada1f0",
+ "draft": "# fsv change draft (saved)\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester: jane@example.com\nanswers:\n  # REQUIRED · text\n  Subject: Deploy\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # optional · lookup (name or email)\n  Group: Ops\n  # optional · lookup (name or email)\n  Agent: ann@example.com\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+ "kv": {
+  "both": "  both: Ann Agent <ann@example.com>",
+  "display": "  display: Ops",
+  "email": "  email: x@y.io",
+  "id": "  id: 12",
+  "colon": "  colon: \"Team: A\"",
+  "list": "  list: [Ops, Ann Agent <ann@example.com>, 3, \"a, b\"]"
+ }
+}

@@ -1284,7 +1284,7 @@ pub fn apply_answers(
         }
     }
     for name in state.rules.position_order(resolved.keys()) {
-        match state.set(&name, Value::from_json(&resolved[&name])) {
+        match state.set(&name, Value::from_answer(&resolved[&name])) {
             Ok(_) => {}
             Err(e) if e.is_form_error() => {
                 errors.push(e.to_string());

@@ -372,6 +372,86 @@ fn save_draft_writes_the_change_template() {
     assert_eq!(text, want);
 }
 
+fn lookup_route(c: &Call) -> Option<Response> {
+    let p = c.path.strip_prefix("/api/_/").unwrap_or(&c.path);
+    match (c.method.as_str(), p) {
+        ("GET", "change_form_fields") => ok(json!({"change_fields": [
+            field(1, "subject", "Subject", "default_subject", true, true),
+            field(2, "requester", "Requester", "default_requester", true, true),
+            field(3, "group_id", "Group", "default_group", false, true),
+            field(4, "agent_id", "Agent", "default_agent", false, true),
+        ]})),
+        _ => route(c),
+    }
+}
+
+/// Picked lookups keep their names into the review rows and the saved
+/// draft (`gen_fsv_app_form_lookup.py`).
+#[test]
+fn picked_lookups_show_their_names() {
+    let want: Json = serde_json::from_str(include_str!("testdata/form_lookup.json")).unwrap();
+    let (t, j) = (tenant(lookup_route), Arc::new(MemJournal::default()));
+    let o = ChangeForm {
+        requester: Some(jane()),
+        ..ChangeForm::new(FormMode::New)
+    };
+    let mut s = change_session(&deps(&t, &j), o).unwrap();
+    set(&mut s, "subject", "Deploy");
+    s.set("group_id", Value::Lookup(LookupValue::new(4, "Ops", None)));
+    s.set(
+        "agent_id",
+        Value::Lookup(LookupValue::new(7, "Ann Agent", Some("ann@example.com"))),
+    );
+    let plan = s.build_plan(None).unwrap();
+    assert_eq!(json!(plan.errors), want["errors"]);
+    let rows: Vec<Json> = plan
+        .review
+        .rows
+        .iter()
+        .map(|(a, b)| json!([a, b]))
+        .collect();
+    assert_eq!(Json::Array(rows), want["rows"]);
+    assert_eq!(plan.payload.as_ref(), Some(&want["payload"]));
+    assert_eq!(json!(plan.hash), want["hash"]);
+    let path = t.dir.path().join("change-draft.yaml");
+    let saved = s.save_draft(&path.to_string_lossy(), Some(&plan)).unwrap();
+    assert_eq!(
+        json!(std::fs::read_to_string(saved).unwrap()),
+        want["draft"]
+    );
+    let ann = LookupValue::new(7, "Ann Agent", Some("ann@example.com"));
+    let ops = LookupValue::new(4, "Ops", None);
+    let kv = [
+        ("both", Value::lookup_answer(&ann)),
+        ("display", Value::lookup_answer(&ops)),
+        (
+            "email",
+            Value::lookup_answer(&LookupValue::new(Json::Null, "", Some("x@y.io"))),
+        ),
+        ("id", Value::lookup_answer(&LookupValue::id(12))),
+        (
+            "colon",
+            Value::lookup_answer(&LookupValue::new(5, "Team: A", None)),
+        ),
+        (
+            "list",
+            json!([
+                Value::lookup_answer(&ops),
+                Value::lookup_answer(&ann),
+                3,
+                "a, b"
+            ]),
+        ),
+    ];
+    for (k, v) in kv {
+        assert_eq!(
+            json!(fsv_flows::drafts::answer_kv(k, &v)),
+            want["kv"][k],
+            "{k}"
+        );
+    }
+}
+
 /// `FormSession.save_draft` for a service request (`render_sr_template`
 /// with paths relative to the file's folder), captured from Python.
 #[test]
@@ -492,23 +572,20 @@ fn live_form_backend_builds_directly() {
 
 #[test]
 fn answers_become_draft_json() {
-    assert_eq!(answer_json(&Value::Lookup(jane())), json!(9));
-    assert_eq!(
-        answer_json(&Value::Lookup(LookupValue::new(
-            Json::Null,
-            "Jane",
-            Some("j@x.io")
-        ))),
-        json!("j@x.io")
-    );
+    let jane_json =
+        json!({"__fsv_lookup__": {"id": 9, "display": "Jane Doe", "email": "jane@example.com"}});
+    assert_eq!(answer_json(&Value::Lookup(jane())), jane_json);
     assert_eq!(
         answer_json(&Value::Lookup(LookupValue::new(Json::Null, "Jane", None))),
-        json!("Jane")
+        json!({"__fsv_lookup__": {"id": null, "display": "Jane", "email": null}})
     );
     assert_eq!(
         answer_json(&Value::list([Value::Lookup(jane()), Value::Int(3)])),
-        json!([9, 3])
+        json!([jane_json, 3])
     );
+    let back = Value::from_answer(&json!([jane_json, 3]));
+    assert_eq!(back.as_list().unwrap()[0], Value::Lookup(jane()));
+    assert_eq!(back.as_list().unwrap()[1], Value::Int(3));
     assert_eq!(
         answer_json(&Value::Date(jiff::civil::date(2026, 11, 12))),
         json!("2026-11-12")
@@ -536,6 +613,7 @@ fn drafts_map_field_by_field() {
             description_html: None,
         },
     );
+    let ops = Value::lookup_answer(&LookupValue::new(4, "Ops", None));
     let f = flows_draft(&d);
     assert_eq!(
         (
@@ -545,7 +623,7 @@ fn drafts_map_field_by_field() {
             f.ack.clone()
         ),
         (
-            Some(&json!(4)),
+            Some(&ops),
             Some("j@x.io"),
             vec!["/a".to_string()],
             vec!["r".to_string()]
@@ -561,7 +639,7 @@ fn drafts_map_field_by_field() {
     let s = sr_draft(&d);
     assert_eq!(
         (s.answers.get("group"), s.description_html.as_deref()),
-        (Some(&json!(4)), Some("<p>d</p>"))
+        (Some(&ops), Some("<p>d</p>"))
     );
     assert_eq!(
         s.planning["Rollout plan"],

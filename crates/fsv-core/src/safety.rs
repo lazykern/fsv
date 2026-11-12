@@ -68,7 +68,9 @@ pub fn is_open_label(label: &str) -> bool {
 }
 
 /// `Some(true)`: the status closes/resolves the record; `Some(false)`: known
-/// open; `None`: unknown (e.g. a localized or custom label).
+/// open; `None`: unknown (e.g. a localized or custom label). Python keeps
+/// it, but `write_risks` no longer asks it.
+#[doc(hidden)]
 pub fn status_closes(resource: &str, value: &Value, label: &str) -> Option<bool> {
     if is_terminal_label(label)
         || terminal_status_ids(resource).contains(&fsv_py::py_str(value).as_str())
