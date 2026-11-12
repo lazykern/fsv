@@ -1,5 +1,27 @@
 # Command cheat sheet
 
+## Frozen bulk ticket actions
+
+```sh
+fsv tickets bulk status INC-123 INC-124 --status Pending --dry-run --json
+fsv tickets bulk assign INC-123 INC-124 --agent agent@example.com --group 'Acme Desk' --dry-run --json
+fsv tickets bulk pickup INC-123 INC-124 --dry-run --json
+fsv tickets bulk merge INC-123 INC-124 --primary INC-123 --note-primary Combined --note-secondary Merged --dry-run --json
+fsv tickets bulk spam INC-123 INC-124 --dry-run --json
+fsv tickets bulk unspam INC-123 INC-124 --dry-run --json
+fsv tickets bulk delete --where 'Priority=Low' --select-all --dry-run --json
+```
+
+Send with `--yes --expect-plan FULL_HASH`. Spam and delete additionally require
+`--confirm-destructive`; every invocation prints the exact ID list on stderr.
+Filtered selection uses the supported list-query builder, complete pagination,
+and at most 100 unique IDs; it expands to explicit IDs, not an unproven native
+all-pages mutation flag. Rebuild checks selection/metadata/records before send.
+No chunking, ambiguous retry, null assignment or bulk closure. Group and agent
+must both be supplied for the accepted assignment variant. Pickup and merge
+reuse their existing reviewed planners, durable guards and independent readback.
+
+
 ## Exact-conversation forward
 
 `fsv tickets forward INC-123 'Acme update' --conversation 901 --to user@example.com
