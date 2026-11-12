@@ -2631,4 +2631,45 @@ ACTION` takes `--item`, `--catalog-item`, `--answers-json` and
 `--expect-plan`. `ValueError` and `ReviewedWriteError` exit 2;
 unverified exits 4.
 
-Still not triaged: `51cd544` and later.
+Moved on: `51cd544` is triaged below.
+
+## Ledger: `51cd544` (library side)
+
+Triaged against `git show 51cd544`
+(`51cd54476acf11ab6e5701d4edf338683b5fd0d1`). A stamped generator
+gives the change time create, update and delete flow, the problem time
+create and delete flow, problem task full update, completion and
+delete, two unverified readbacks and twelve refusals. All of them
+match. Docs in that commit describe the CLI only.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `51cd544`.
+The partial is the time and task CLI, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `51cd544` | 11-12 22:35 | Add captured change time CRUD and problem task lifecycle | partial | fsv-api `module_time`, `problem_task_update`. fsv-cli follow-up below |
+
+`module_time` reads entries through the v2 API and binds the parent
+row. Create defaults `billable` to true. Problems allow create and
+delete only. Update and delete need a self-owned entry with a boolean
+`billable` and a stopped timer. `problem_task_update` verifies against
+the native task GET, which carries the reminder and `owner_id`.
+Completion must be a status-only write, and clearing a field or a null
+owner/group is refused. Task delete is a PUT to `tasks/update`. It
+passes when the task is gone, or listed once with `deleted: true`,
+and every other task is unchanged. The `FnApi` test double now routes
+`v2_get` as method `V2`.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`changes time list|write` and `problems time list|write` call
+`module_time`. `write ID ACTION` takes `--entry`, `--spent`,
+`--executed-at`, `--note` and `--billable/--non-billable`.
+`problems task-write PRB TASK ACTION` takes `--title`, `--status`,
+`--owner`, `--group`, `--note`, `--due-date`, `--planned-start`,
+`--planned-end`, `--planned-effort` and `--notify-before`. Completion
+calls `build_plan` with `{"status": "Completed"}` and delete calls
+`delete_plan`. Dry-run prints the review JSON. Send requires `--yes`
+and `--expect-plan`. Unverified exits 4.
+
+Still not triaged: `9e11155` and later.

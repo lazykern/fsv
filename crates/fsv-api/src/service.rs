@@ -1561,6 +1561,9 @@ pub(crate) mod testing {
         fn me(&self) -> Result<Value> {
             self.call("ME", "agents/me", None, None, None)
         }
+        fn v2_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
+            self.call("V2", path, params, None, None)
+        }
     }
 
     /// A journal that never persists (`record_plan` is a no-op).

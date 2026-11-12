@@ -1,0 +1,427 @@
+{
+  "_python": {
+    "commit": "51cd54476acf11ab6e5701d4edf338683b5fd0d1",
+    "dirty": false
+  },
+  "time-changes": {
+    "steps": [
+      {
+        "plan": {
+          "hash": "515e1fa6955c84e7dbbd558fd6955d93dade7feb16b24da6868c94f91ffaa349",
+          "action": "changes_time_create",
+          "method": "POST",
+          "path": "changes/123/time_entries",
+          "payload": "{\"agent_id\": 901, \"billable\": true, \"executed_at\": \"2026-01-01T09:00:00+00:00\", \"note\": \"Acme work\", \"time_spent\": \"00:01\", \"timer_running\": false}",
+          "tenant": "acme.freshservice.com",
+          "target": 123,
+          "context": "9949e058b20eb4695cae4c3ae1cb8df281e09185524cf49534d2c087a03c09e9"
+        },
+        "result": {
+          "verified": true,
+          "entry_id": 456,
+          "fields": {
+            "agent_id": "matched",
+            "billable": "matched",
+            "executed_at": "matched",
+            "note": "matched",
+            "time_spent": "matched",
+            "timer_running": "matched"
+          }
+        }
+      },
+      {
+        "plan": {
+          "hash": "5073f60d54b1b2c4c1aad9723e47a7d3b76c30389b364d2ab2ae76d8650d3fd8",
+          "action": "changes_time_update",
+          "method": "PUT",
+          "path": "changes/123/time_entries/456",
+          "payload": "{\"billable\": false, \"note\": \"Updated\", \"time_spent\": \"00:02\"}",
+          "tenant": "acme.freshservice.com",
+          "target": 123,
+          "context": "818d306d877b0049cf7ab7a4ea41679f5cf45c64e9722cfc013d82a6944f5417"
+        },
+        "result": {
+          "verified": true,
+          "entry_id": 456,
+          "fields": {
+            "billable": "matched",
+            "note": "matched",
+            "time_spent": "matched"
+          }
+        }
+      },
+      {
+        "plan": {
+          "hash": "d6eaa4e8d5ffcc234f7760fe154ab53fe970c6b9d42efe2c638e18082bc11299",
+          "action": "changes_time_delete",
+          "method": "DELETE",
+          "path": "changes/123/time_entries/456",
+          "payload": "null",
+          "tenant": "acme.freshservice.com",
+          "target": 123,
+          "context": "82b8992e2b29323170fc88393d97a2a1cb7f65ff1290a7e4c7c8f6388dc73639"
+        },
+        "result": {
+          "verified": true,
+          "entry_id": 456
+        }
+      }
+    ],
+    "writes": [
+      [
+        "POST",
+        "changes/123/time_entries",
+        {
+          "agent_id": 901,
+          "billable": true,
+          "executed_at": "2026-01-01T09:00:00+00:00",
+          "note": "Acme work",
+          "time_spent": "00:01",
+          "timer_running": false
+        }
+      ],
+      [
+        "PUT",
+        "changes/123/time_entries/456",
+        {
+          "billable": false,
+          "note": "Updated",
+          "time_spent": "00:02"
+        }
+      ],
+      [
+        "DELETE",
+        "changes/123/time_entries/456",
+        null
+      ]
+    ]
+  },
+  "time-problems": {
+    "steps": [
+      {
+        "plan": {
+          "hash": "727b256f659afe6e0f887e4bbee512f57b931d2bfd830fedeeb26134105c9c87",
+          "action": "problems_time_create",
+          "method": "POST",
+          "path": "problems/123/time_entries",
+          "payload": "{\"agent_id\": 901, \"billable\": true, \"executed_at\": \"2026-01-01T09:00:00+00:00\", \"note\": \"Acme work\", \"time_spent\": \"00:01\", \"timer_running\": false}",
+          "tenant": "acme.freshservice.com",
+          "target": 123,
+          "context": "9949e058b20eb4695cae4c3ae1cb8df281e09185524cf49534d2c087a03c09e9"
+        },
+        "result": {
+          "verified": true,
+          "entry_id": 456,
+          "fields": {
+            "agent_id": "matched",
+            "billable": "matched",
+            "executed_at": "matched",
+            "note": "matched",
+            "time_spent": "matched",
+            "timer_running": "matched"
+          }
+        }
+      },
+      {
+        "plan": {
+          "hash": "6b53924ae05d69b37ca890af96109f9b4e5dfc91a9de353cfaf2b82dc35dfd79",
+          "action": "problems_time_delete",
+          "method": "DELETE",
+          "path": "problems/123/time_entries/456",
+          "payload": "null",
+          "tenant": "acme.freshservice.com",
+          "target": 123,
+          "context": "818d306d877b0049cf7ab7a4ea41679f5cf45c64e9722cfc013d82a6944f5417"
+        },
+        "result": {
+          "verified": true,
+          "entry_id": 456
+        }
+      }
+    ],
+    "writes": [
+      [
+        "POST",
+        "problems/123/time_entries",
+        {
+          "agent_id": 901,
+          "billable": true,
+          "executed_at": "2026-01-01T09:00:00+00:00",
+          "note": "Acme work",
+          "time_spent": "00:01",
+          "timer_running": false
+        }
+      ],
+      [
+        "DELETE",
+        "problems/123/time_entries/456",
+        null
+      ]
+    ]
+  },
+  "time-missing": {
+    "plan": {
+      "hash": "515e1fa6955c84e7dbbd558fd6955d93dade7feb16b24da6868c94f91ffaa349",
+      "action": "changes_time_create",
+      "method": "POST",
+      "path": "changes/123/time_entries",
+      "payload": "{\"agent_id\": 901, \"billable\": true, \"executed_at\": \"2026-01-01T09:00:00+00:00\", \"note\": \"Acme work\", \"time_spent\": \"00:01\", \"timer_running\": false}",
+      "tenant": "acme.freshservice.com",
+      "target": 123,
+      "context": "9949e058b20eb4695cae4c3ae1cb8df281e09185524cf49534d2c087a03c09e9"
+    },
+    "result": {
+      "verified": false,
+      "entry_id": 456,
+      "fields": {
+        "agent_id": "matched",
+        "billable": "matched",
+        "executed_at": "matched",
+        "note": "matched",
+        "time_spent": "unavailable",
+        "timer_running": "matched"
+      },
+      "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": [
+      [
+        "POST",
+        "changes/123/time_entries",
+        {
+          "agent_id": 901,
+          "billable": true,
+          "executed_at": "2026-01-01T09:00:00+00:00",
+          "note": "Acme work",
+          "time_spent": "00:01",
+          "timer_running": false
+        }
+      ]
+    ]
+  },
+  "task-full": {
+    "plan": {
+      "hash": "2f296897eccf898d4e0045139393799a35ecfc08248bd37024108fa67e7cb13b",
+      "action": "problem_task_update",
+      "method": "PUT",
+      "path": "problems/123/tasks/71",
+      "payload": "{\"description\": \"<div>Acme task note</div>\", \"due_date\": \"2026-01-03T09:00:00+00:00\", \"group_id\": 81, \"notify_before\": 900, \"owner_id\": 901, \"planned_effort\": \"1h 30m\", \"planned_end_date\": \"2026-01-02T10:30:00+00:00\", \"planned_start_date\": \"2026-01-02T09:00:00+00:00\", \"status\": 2, \"title\": \"Acme updated\"}",
+      "tenant": "acme.freshservice.com",
+      "target": 123,
+      "context": "db86d54e044d1a19e2acfdf946c217d30c3d827e7272917ad55cd38a8bda0c0e"
+    },
+    "inputs": "{\"due_date\": \"2026-01-03T09:00:00Z\", \"group\": \"81\", \"note\": \"Acme task note\", \"notify_before\": \"15 Minutes\", \"owner\": \"901\", \"planned_effort\": \"1h30m\", \"planned_end\": \"2026-01-02T10:30:00Z\", \"planned_start\": \"2026-01-02T09:00:00Z\", \"status\": \"In Progress\", \"title\": \"Acme updated\"}",
+    "result": {
+      "verified": true,
+      "fields_verified": true,
+      "fields": {
+        "description": "matched",
+        "due_date": "matched",
+        "group_id": "matched",
+        "notify_before": "matched",
+        "owner_id": "matched",
+        "planned_effort": "matched",
+        "planned_end_date": "matched",
+        "planned_start_date": "matched",
+        "status": "matched",
+        "title": "matched"
+      },
+      "readback": {
+        "id": 71,
+        "title": "Acme updated",
+        "status": 2,
+        "taskable_display_id": 123,
+        "taskable_type": "Itil::Problem",
+        "owner_id": 901,
+        "group_id": 81,
+        "notify_before": 900,
+        "planned_start_date": "2026-01-02T09:00:00+00:00",
+        "planned_end_date": "2026-01-02T10:30:00+00:00",
+        "custom_fields": {},
+        "description": "<div>Acme task note</div>",
+        "due_date": "2026-01-03T09:00:00+00:00",
+        "planned_effort": "1h 30m"
+      },
+      "warning": "Task completion may rewrite planned dates and stop OLA timers; inspect the exact readback. Never resend."
+    },
+    "writes": [
+      [
+        "PUT",
+        "problems/123/tasks/71",
+        {
+          "description": "<div>Acme task note</div>",
+          "due_date": "2026-01-03T09:00:00+00:00",
+          "group_id": 81,
+          "notify_before": 900,
+          "owner_id": 901,
+          "planned_effort": "1h 30m",
+          "planned_end_date": "2026-01-02T10:30:00+00:00",
+          "planned_start_date": "2026-01-02T09:00:00+00:00",
+          "status": 2,
+          "title": "Acme updated"
+        }
+      ]
+    ]
+  },
+  "task-complete": {
+    "plan": {
+      "hash": "c0d0deda4d50e8833a1951e9b3c313a9c13868e27dd6ac1bf21d576f40e81f28",
+      "action": "problem_task_update",
+      "method": "PUT",
+      "path": "problems/123/tasks/71",
+      "payload": "{\"status\": 3}",
+      "tenant": "acme.freshservice.com",
+      "target": 123,
+      "context": "db86d54e044d1a19e2acfdf946c217d30c3d827e7272917ad55cd38a8bda0c0e"
+    },
+    "inputs": "{\"status\": \"Completed\"}",
+    "result": {
+      "verified": true,
+      "fields_verified": true,
+      "fields": {
+        "status": "matched"
+      },
+      "readback": {
+        "id": 71,
+        "title": "Acme task",
+        "status": 3,
+        "taskable_display_id": 123,
+        "taskable_type": "Itil::Problem",
+        "owner_id": 901,
+        "group_id": 81,
+        "notify_before": 0,
+        "planned_start_date": "2026-01-01T09:00:00Z",
+        "planned_end_date": "2026-01-01T09:15:00Z",
+        "custom_fields": {},
+        "closed_at": "2026-01-01T09:15:00Z"
+      },
+      "warning": "Task completion may rewrite planned dates and stop OLA timers; inspect the exact readback. Never resend."
+    },
+    "writes": [
+      [
+        "PUT",
+        "problems/123/tasks/71",
+        {
+          "status": 3
+        }
+      ]
+    ]
+  },
+  "task-delete": {
+    "plan": {
+      "hash": "20f5f0cda2b61c24b83b214c9b1a84034e15134e9a7071757013042fcbf44a51",
+      "action": "problem_task_delete",
+      "method": "PUT",
+      "path": "problems/123/tasks/update",
+      "payload": "{\"action\": \"delete\", \"id\": \"71\"}",
+      "tenant": "acme.freshservice.com",
+      "target": 123,
+      "context": "{\"parent\": {\"id\": 123, \"subject\": \"Acme work\"}, \"rows\": [{\"agent_id\": 901, \"custom_fields\": {}, \"group_id\": 81, \"id\": 71, \"planned_end_date\": \"2026-01-02T10:00:00+00:00\", \"planned_start_date\": \"2026-01-02T09:00:00+00:00\", \"status\": 1, \"taskable_display_id\": 123, \"taskable_type\": \"Itil::Problem\", \"title\": \"Acme task\"}], \"task\": {\"custom_fields\": {}, \"group_id\": 81, \"id\": 71, \"notify_before\": 0, \"owner_id\": 901, \"planned_end_date\": \"2026-01-02T10:00:00+00:00\", \"planned_start_date\": \"2026-01-02T09:00:00+00:00\", \"status\": 1, \"taskable_display_id\": 123, \"taskable_type\": \"Itil::Problem\", \"title\": \"Acme task\"}}"
+    },
+    "result": {
+      "verified": true,
+      "task_id": 71
+    },
+    "writes": [
+      [
+        "PUT",
+        "problems/123/tasks/update",
+        {
+          "action": "delete",
+          "id": "71"
+        }
+      ]
+    ]
+  },
+  "task-missing": {
+    "plan": {
+      "hash": "fbd870101ecd57079bf435a4be72b4465114f874c9d0007003325d61cce4ca34",
+      "action": "problem_task_update",
+      "method": "PUT",
+      "path": "problems/123/tasks/71",
+      "payload": "{\"notify_before\": 900}",
+      "tenant": "acme.freshservice.com",
+      "target": 123,
+      "context": "db86d54e044d1a19e2acfdf946c217d30c3d827e7272917ad55cd38a8bda0c0e"
+    },
+    "inputs": "{\"notify_before\": \"15 Minutes\"}",
+    "result": {
+      "verified": false,
+      "fields_verified": false,
+      "fields": {
+        "notify_before": "unavailable"
+      },
+      "readback": {
+        "id": 71,
+        "title": "Acme task",
+        "status": 1,
+        "taskable_display_id": 123,
+        "taskable_type": "Itil::Problem",
+        "owner_id": 901,
+        "group_id": 81,
+        "planned_start_date": "2026-01-02T09:00:00+00:00",
+        "planned_end_date": "2026-01-02T10:00:00+00:00",
+        "custom_fields": {}
+      },
+      "warning": "Task completion may rewrite planned dates and stop OLA timers; inspect the exact readback. Never resend."
+    },
+    "writes": [
+      [
+        "PUT",
+        "problems/123/tasks/71",
+        {
+          "notify_before": 900
+        }
+      ]
+    ]
+  },
+  "refusals": {
+    "other_owner": {
+      "kind": "ReviewedWriteError",
+      "message": "exact self-owned manual entry is unavailable"
+    },
+    "running": {
+      "kind": "ReviewedWriteError",
+      "message": "exact self-owned manual entry is unavailable"
+    },
+    "problem_update": {
+      "kind": "ValueError",
+      "message": "problem time update has no captured accepted wire; only create/delete"
+    },
+    "bad_spent": {
+      "kind": "ValueError",
+      "message": "manual time must be a positive HH:MM duration"
+    },
+    "naive_when": {
+      "kind": "ValueError",
+      "message": "planned dates require ISO-8601 date/time with explicit offset, whole seconds (no host timezone inferred)"
+    },
+    "delete_billable": {
+      "kind": "ValueError",
+      "message": "delete does not accept time or note changes"
+    },
+    "combined_completion": {
+      "kind": "ReviewedWriteError",
+      "message": "captured completion is a separate status-only write"
+    },
+    "closure_missing": {
+      "kind": "ReviewedWriteError",
+      "message": "required closure task fields missing: Closure answer"
+    },
+    "null_owner": {
+      "kind": "ReviewedWriteError",
+      "message": "null owner/group update is not captured"
+    },
+    "unsupported": {
+      "kind": "ValueError",
+      "message": "provide captured task fields; unsupported fields cannot be sent"
+    },
+    "end_before_start": {
+      "kind": "ValueError",
+      "message": "planned end must not precede start"
+    },
+    "delete_missing": {
+      "kind": "ReviewedWriteError",
+      "message": "exact problem task unavailable"
+    }
+  }
+}

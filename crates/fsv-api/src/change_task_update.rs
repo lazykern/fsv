@@ -44,7 +44,7 @@ fn dumps(v: &Value) -> String {
     fsv_py::Dumps::default().sort_keys(true).dump(v)
 }
 
-fn value_error(e: crate::QueryError) -> Error {
+pub(crate) fn value_error(e: crate::QueryError) -> Error {
     Error::value(e.0)
 }
 
@@ -149,7 +149,7 @@ pub fn reminder(value: &Value, fields: &[Value]) -> Result<i64> {
     })
 }
 
-fn assign_party(c: &dyn Api, key: &str, value: &Value) -> Result<Value> {
+pub(crate) fn assign_party(c: &dyn Api, key: &str, value: &Value) -> Result<Value> {
     if value.as_str() == Some("none") {
         return Ok(Value::Null);
     }
@@ -172,7 +172,7 @@ fn assign_party(c: &dyn Api, key: &str, value: &Value) -> Result<Value> {
     })
 }
 
-fn planned_date(value: &Value) -> Result<Value> {
+pub(crate) fn planned_date(value: &Value) -> Result<Value> {
     let Some(text) = value.as_str() else {
         return Err(Error::value(
             "planned dates require ISO-8601 date/time with explicit offset, whole seconds (no host timezone inferred)",
@@ -184,7 +184,7 @@ fn planned_date(value: &Value) -> Result<Value> {
     })
 }
 
-fn planned_effort(value: &Value) -> Result<Value> {
+pub(crate) fn planned_effort(value: &Value) -> Result<Value> {
     let Some(text) = value.as_str() else {
         return Err(Error::value(
             "planned effort must be duration text (1h30m) or HH:MM (01:30)",
@@ -198,7 +198,7 @@ fn planned_effort(value: &Value) -> Result<Value> {
 
 /// Aware instant, or `None` when the value is missing. A non-text or naive
 /// value is the error `datetime.fromisoformat` / comparison would raise.
-fn instant(value: &Value) -> Result<Option<jiff::Timestamp>> {
+pub(crate) fn instant(value: &Value) -> Result<Option<jiff::Timestamp>> {
     if !truthy(value) {
         return Ok(None);
     }
@@ -219,7 +219,7 @@ fn instant(value: &Value) -> Result<Option<jiff::Timestamp>> {
         .map_err(|e| Error::value(e.to_string()))
 }
 
-fn picked(payload: &Map<String, Value>, before: &Value, key: &str) -> Value {
+pub(crate) fn picked(payload: &Map<String, Value>, before: &Value, key: &str) -> Value {
     payload
         .get(key)
         .cloned()
@@ -250,7 +250,7 @@ fn required_for_closure(field: &Value) -> bool {
     }
 }
 
-fn closure_missing(
+pub(crate) fn closure_missing(
     payload: &Map<String, Value>,
     before: &Value,
     fields: &[Value],
