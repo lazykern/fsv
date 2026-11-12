@@ -226,10 +226,11 @@ def _rows_attachments(row: Any) -> list[dict[str, Any]]:
 
 def readback(client: Any, plan: AttachedPlan, response: Any, ids: list[int]) -> dict[str, Any]:
     base = plan.base
-    if base.path == "tickets":
-        raw = response.get("ticket", response) if isinstance(response, dict) else {}
+    if base.path in {"tickets", "changes"}:
+        key = "ticket" if base.path == "tickets" else "change"
+        raw = response.get(key, response) if isinstance(response, dict) else {}
         returned_id = positive_id(raw.get("id"))
-        row = owner_row(client, "tickets", returned_id)
+        row = owner_row(client, base.path, returned_id)
     elif base.path.startswith("problems/"):
         from fsv.problem_workflows import inventory
         raw = response.get("note", response) if isinstance(response, dict) else {}

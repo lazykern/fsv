@@ -20,7 +20,7 @@ def api(request, monkeypatch, tmp_path):
     monkeypatch.setattr(config, "API_INT", f"https://{domain}/api/_")
     monkeypatch.setattr(journal, "journal_path", lambda: tmp_path / "journal")
     s = {"writes": [], "uploads": {}, "notes": [], "conversations": [], "ticket": {"id": 123, "attachments": []},
-         "problem": {"id": 123, "attachments": []}, "limit": 4096, "fail": None, "fail_step": "upload", "mismatch": False,
+         "change": {"id": 123, "attachments": []}, "problem": {"id": 123, "attachments": []}, "limit": 4096, "fail": None, "fail_step": "upload", "mismatch": False,
          "missing_id": False, "partial": False, "page": None, "page_status": 200}
     files = [tmp_path / "acme.txt", tmp_path / "globex.txt"]
     for i, file in enumerate(files):
@@ -52,6 +52,8 @@ def api(request, monkeypatch, tmp_path):
                 return httpx.Response(200, json={"notes": copy.deepcopy(s["notes"]), "has_more": s["partial"]})
             if path == "tickets/123":
                 return httpx.Response(200, json={"ticket": copy.deepcopy(s["ticket"])})
+            if path == "changes/123":
+                return httpx.Response(200, json={"change": copy.deepcopy(s["change"])})
             if path == "problems/123":
                 return httpx.Response(200, json={"problem": copy.deepcopy(s["problem"])})
             raise AssertionError(path)
@@ -74,6 +76,9 @@ def api(request, monkeypatch, tmp_path):
             s["uploads"][ident] = {"id": ident, "name": body["content_file_name"], "size": str(len(data)), "content_type": body["content_content_type"]+";charset=utf-8"}
             return httpx.Response(200, json={} if s["missing_id"] else s["uploads"][ident])
         attachments = [copy.deepcopy(s["uploads"][i]) for i in body["attachments"]]
+        if path == "changes":
+            s["change"] = {"id": 123, **body, "attachments": attachments}
+            return httpx.Response(201, json={"change": {"id": 123}})
         if path == "tickets":
             s["ticket"] = {"id": 123, **body, "attachments": attachments}
             return httpx.Response(201, json={"ticket": {"id": 123}})
@@ -99,17 +104,17 @@ def api(request, monkeypatch, tmp_path):
 def builder(c, paths, kind):
     if kind == "problem":
         return lambda: flow.problem_note_plan(c, "PRB-123", "Acme evidence", paths)
-    if kind == "create":
+    if kind in {"create", "change"}:
         def build():
             raw = flow.metadata(c, "tickets")
-            base = WritePlan("ticket_create_attachments", 0, config.DOMAIN, "POST", "tickets", json.dumps({"subject": "Acme incident"}), journal.plan_hash(raw))
+            base = WritePlan("ticket_create_attachments", 0, config.DOMAIN, "POST", "changes" if kind == "change" else "tickets", json.dumps({"subject": "Acme incident"}), journal.plan_hash(raw))
             return flow.wrap(base, paths, raw, client=c)
         return build
     return lambda: flow.conversation_plan(c, "INC-123", "Acme evidence", paths, kind=kind,
                                          sender="support@example.com" if kind == "reply" else None)
 
 
-@pytest.mark.parametrize("kind", ["note", "reply", "problem", "create"])
+@pytest.mark.parametrize("kind", ["note", "reply", "problem", "create", "change"])
 def test_native_two_step_and_normalized_readback(api, kind):
     c, s, paths, base = api
     build = builder(c, paths, kind)
@@ -176,7 +181,7 @@ def test_conflicting_metadata_byte_limits_block(api):
         flow.resolve_limit(c, raw)
 
 
-@pytest.mark.parametrize("kind", ["note", "reply", "problem", "create"])
+@pytest.mark.parametrize("kind", ["note", "reply", "problem", "create", "change"])
 def test_published_page_limit_is_mib_per_submit(api, kind):
     c, s, paths, _ = api
     s.update(limit=None, page=["40"])

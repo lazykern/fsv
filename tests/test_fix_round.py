@@ -197,15 +197,12 @@ def test_attach_flow_default_is_after_create(fake, tmp_path):
     assert ("PUT", "changes/900000502") in order
 
 
-def test_attach_flow_before_create_sends_ids_in_the_body(fake, tmp_path):
+def test_attach_flow_before_create_requires_published_limit_and_full_review(fake, tmp_path):
     p = _draft_with_file(tmp_path)
     r = run("changes", "create", "--from", str(p), "--yes", "--attach-flow", "before-create")
-    assert r.exit_code == 0, r.output
-    writes = fake.writes()
-    assert writes[0][:2] == ("POST", "attachments")
-    post = next(b for m, path, b in writes if path == "changes")
-    assert post["attachments"] == [9000005001]
-    assert not any(m == "PUT" for m, _, _ in writes)
+    assert r.exit_code == 2, r.output
+    assert "no upload" in r.output
+    assert not fake.writes()
 
 
 def test_attach_flow_from_config_and_validation(fake, tmp_path, monkeypatch):

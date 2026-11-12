@@ -224,6 +224,7 @@ def create_command(
     portal_url: str,
     attach_flow: str | None = None,
     devices: list[int] | None = None,
+    max_bytes: int | None = None,
 ) -> None:
     from fsv.editor import EditorAbort
 
@@ -300,6 +301,31 @@ def create_command(
             plan = build(draft)
     except EditorAbort as e:
         raise _abort_editor(e) from None
+
+    if draft.attachments and attach_flow == "before-create":
+        from fsv import attachments, config, journal
+        from fsv.attachments_cli import finish
+        from fsv.reviewed_write import ReviewedWriteError, WritePlan
+        import json
+        if draft.planning or devices or session is not None:
+            raise FlowExit(2, "initial attachments cannot combine with planning, devices or interactive forms")
+        def attached(current):
+            if not current.ok:
+                raise ReviewedWriteError("cannot attach to incomplete change plan: " + "; ".join(current.errors))
+            raw = client.int_get("change_form_fields")
+            base = WritePlan("change_create_attachments", 0, config.DOMAIN, "POST", "changes",
+                             json.dumps(current.payload, sort_keys=True),
+                             journal.plan_hash({"plan": current.hash, "metadata": raw}) or "")
+            return attachments.wrap(base, draft.attachments, raw, client=client, max_bytes=max_bytes)
+        def rebuild_attached():
+            fresh = load_meta(client, "change", "new", fresh=True)
+            return attached(build(draft, ack, fresh))
+        try:
+            finish(attached(plan), client, dry_run=dry_run, yes=yes, expected=expect_plan,
+                   rebuild=rebuild_attached)
+        except ReviewedWriteError as exc:
+            raise FlowExit(2, str(exc)) from None
+        return
 
     if dry_run:
         _print_plan(plan, as_json=as_json)

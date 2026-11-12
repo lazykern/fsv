@@ -1,5 +1,18 @@
 # Command cheat sheet
 
+## Accepted initial attachment scope
+
+`tickets reply`, `tickets add-note` and `tickets create --attach FILE --max-bytes N`
+use hash-bound two-step uploads and exact owning-record readback.
+`changes create --attach FILE --attach-flow before-create --max-bytes N` uses
+the same durable transaction. Review with `--dry-run --json`; send with
+`--yes --expect-plan FULL_HASH`. No replay after an uncertain upload or send.
+Initial change attachments cannot combine with devices/planning in this path.
+Inline image uploads remain blocked: the accepted ledger records the response
+and final image HTML but omits the upload request body/media type. A null capture
+is not proof of a bodyless upload; no multipart contract is invented.
+
+
 Examples use synthetic IDs and names. Replace them with values from your account. Commands that change data are shown with `--dry-run`; it may still read account data. Check each plan and copy its full `plan_hash` before adding `--yes --expect-plan FULL_HASH` to the same command. Some operations need additional account-specific fields or confirmations; see their help. Never send these examples unchanged.
 
 ## Session, configuration, and discovery
