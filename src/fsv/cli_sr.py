@@ -790,8 +790,7 @@ def create_cmd(
 
 def _attachment_rows(ticket: dict[str, Any], items: list[dict[str, Any]],
                      labels: list[dict[str, str]]) -> list[dict[str, Any]]:
-    """Ticket attachments plus files in requested-item file fields, each
-    tagged with where it came from (deduplicated by id)."""
+    """Ticket, requested-item general and file-field attachments, deduplicated by id."""
     out: list[dict[str, Any]] = []
     by_id: dict[str, dict[str, Any]] = {}
     for a in ticket.get("attachments") or []:
@@ -802,6 +801,16 @@ def _attachment_rows(ticket: dict[str, Any], items: list[dict[str, Any]],
                 by_id[str(a["id"])] = row
     for idx, it in enumerate(items):
         lab = labels[idx]
+        for a in it.get("attachments") or []:
+            if not isinstance(a, dict):
+                continue
+            key = str(a["id"]) if a.get("id") is not None else None
+            if key is not None and key in by_id:
+                continue
+            row = {**a, "source": "requested item"}
+            out.append(row)
+            if key is not None:
+                by_id[key] = row
         for name, v in (it.get("custom_fields") or {}).items():
             if not cat.is_file_value(v):
                 continue

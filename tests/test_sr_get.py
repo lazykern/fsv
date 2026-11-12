@@ -63,6 +63,18 @@ def test_table_and_attachment_sources(fake):
         "deck.pptx": "Overview deck (.pptx)", "../escape.sh": "request", "brief.pdf": "request"}
 
 
+def test_requested_item_general_attachments_and_deduplication():
+    general = {"id": 9901, "name": "overview.txt", "size": 11, "attachment_url": "https://example.com/file"}
+    field = {"id": 9902, "name": "field.txt", "size": 12}
+    rows = cli_sr._attachment_rows(
+        {"attachments": []},
+        [{"attachments": [general, field], "custom_fields": {"brief": [field]}}],
+        [{"brief": "Brief"}],
+    )
+    assert [(r["id"], r["source"]) for r in rows] == [(9901, "requested item"), (9902, "Brief")]
+    assert rows[0]["attachment_url"] == "https://example.com/file"
+
+
 def test_download_is_safe_and_reports_rejections(fake, tmp_path):
     out = tmp_path / "ref"
     r = run("get", "SR-123", "--download", str(out), "-o", "json")
