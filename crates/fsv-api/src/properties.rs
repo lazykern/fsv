@@ -1040,7 +1040,7 @@ mod tests {
                 "SR-123",
                 &answers(&[("Requested For", "person@example.com")])
             )),
-            "ticket business rules need unavailable fields or context; use the web form"
+            "ticket business rules block this write: rule 9000000006 'Acme rule': unavailable fields or context (requested_for 'department_id'); it could change Subject"
         );
         assert!(c.writes().is_empty());
     }
