@@ -154,7 +154,13 @@ pub fn text_answers(
     {
         return Err(refused("requested-item answer is hidden"));
     }
-    Ok(meta.fingerprint().hash)
+    // Catalog reads carry signed icon/attachment URLs that rotate per GET.
+    Ok(fsv_forms::plan::metadata_fingerprint(
+        None,
+        Some(&stable_snapshot(&meta.rules)?),
+        Some(&stable_snapshot(&meta.item)?),
+    )
+    .hash)
 }
 
 /// Keywords of [`build_plan`].
@@ -444,6 +450,8 @@ mod tests {
         rules_fail: bool,
         fail: bool,
         kind_fields: Option<Value>,
+        rotate: bool,
+        signed: usize,
     }
 
     fn world() -> World {
@@ -484,8 +492,17 @@ mod tests {
                     }
                     return Ok(json!({"business_rules": []}));
                 }
-                if path == "catalog/service-items/71" {
+                if path == "catalog/service-items/71" && !s.rotate {
                     return Ok(json!({"service_item": item()}));
+                }
+                if path == "catalog/service-items/71" {
+                    s.signed += 1;
+                    let mut signed = item();
+                    signed["icon_url"] = json!(format!(
+                        "https://cdn.example.com/icons/71.png?X-Amz-Date=2026{:04}&X-Amz-Signature=sig{}&X-Amz-Expires=300",
+                        s.signed, s.signed
+                    ));
+                    return Ok(json!({ "service_item": signed }));
                 }
                 if path == "tickets/123/requested_items" {
                     return Ok(json!({"requested_items": s.rows.clone(),
@@ -662,6 +679,27 @@ mod tests {
         let err = send(&plan, &c, &store, &journal, Some(&plan.hash())).unwrap_err();
         assert!(err.to_string().contains("was sent"), "{err}");
         (plan, result, writes(&c))
+    }
+
+    /// `test_edit_plan_hash_stable_across_rotating_signed_catalog_urls`.
+    #[test]
+    fn edit_plan_hash_stable_across_rotating_signed_catalog_urls() {
+        let state = Arc::new(Mutex::new(World {
+            rotate: true,
+            ..world()
+        }));
+        let c = api(Arc::clone(&state));
+        let store = MemStore::default();
+        let answers = edit_answers();
+        let first = build_plan(&c, &store, "SR-123", &args("edit", &answers)).unwrap();
+        let second =
+            build_plan(&c, &MemStore::default(), "SR-123", &args("edit", &answers)).unwrap();
+        assert!(state.lock().unwrap().signed >= 2);
+        assert_eq!(first.hash(), second.hash());
+        state.lock().unwrap().rows[0]["item"]["custom_fields"][0]["label"] = json!("Renamed");
+        let renamed =
+            build_plan(&c, &MemStore::default(), "SR-123", &args("edit", &answers)).unwrap();
+        assert_ne!(renamed.hash(), first.hash());
     }
 
     #[test]
