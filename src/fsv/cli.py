@@ -2609,6 +2609,33 @@ def url_resource(res: Resource, id_: str) -> None:
     console.print(f"https://{config.require_domain()}/a/{res.api_path}/{cid}")
 
 
+def _problem_planning_update(id_: str, planned_start: Optional[str], planned_end: Optional[str],
+                             planned_effort: Optional[str], dry_run: bool, yes: bool, expect_plan: Optional[str],
+                             *others: Any) -> None:
+    """Problem planned dates/effort: one reviewed PUT of only these keys."""
+    import json
+    from fsv import problem_properties
+    from fsv.reviewed_write import ReviewedWriteError
+    if any(o for o in others):
+        _err("problem planned dates/effort are reviewed on their own; send other fields separately")
+    try:
+        c = _client()
+        plan = problem_properties.build_plan(c, id_, planned_start=planned_start, planned_end=planned_end,
+                                             planned_effort=planned_effort)
+        if dry_run:
+            typer.echo(json.dumps({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
+            return
+        if not yes or expect_plan != plan.hash:
+            raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
+        result = problem_properties.send(plan, c, reviewed_hash=expect_plan)
+        typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+        if not result.get("verified"):
+            raise typer.Exit(4)
+    except (ValueError, ReviewedWriteError, APIError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(2) from None
+
+
 def update_resource(
     res: Resource,
     id_: str,
@@ -4293,8 +4320,9 @@ def _make_subapp(res: Resource) -> typer.Typer:
             group_id: Optional[str] = typer.Option(None, "--group", "--group-id", help="group name or ID", autocompletion=completion.complete_update_group_id),
             set_: Optional[List[str]] = typer.Option(None, "--set", help="set FIELD=VALUE (repeatable)", autocompletion=completion.complete_set(res)),
             tag: Optional[List[str]] = typer.Option(None, "--tag", help="tickets only: replace all tags with these values (repeatable)"),
-            planned_start: Optional[str] = typer.Option(None, "--planned-start", help="tickets only: ISO date/time with explicit UTC offset"),
-            planned_end: Optional[str] = typer.Option(None, "--planned-end", help="tickets only: ISO date/time with explicit UTC offset"),
+            planned_start: Optional[str] = typer.Option(None, "--planned-start", help="tickets and problems: ISO date/time with explicit UTC offset"),
+            planned_end: Optional[str] = typer.Option(None, "--planned-end", help="tickets and problems: ISO date/time with explicit UTC offset"),
+            planned_effort: Optional[str] = typer.Option(None, "--planned-effort", help="problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field"),
             reviewed: bool = typer.Option(False, "--reviewed", help="tickets only: evaluate --set and core flags as a hash-bound property plan"),
             expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full reviewed hash for ticket property update"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
@@ -4303,6 +4331,12 @@ def _make_subapp(res: Resource) -> typer.Typer:
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Update basic fields."""
+            if res == PROBLEMS and (planned_start is not None or planned_end is not None or planned_effort is not None):
+                _problem_planning_update(id_, planned_start, planned_end, planned_effort, dry_run, yes, expect_plan,
+                                         status, priority, agent_id, group_id, set_, tag, reviewed)
+                return
+            if planned_effort is not None:
+                _err("--planned-effort is supported only for problems")
             if reviewed or tag or planned_start is not None or planned_end is not None:
                 import json
                 from fsv.ticket_properties import PropertyError, build_plan, send
