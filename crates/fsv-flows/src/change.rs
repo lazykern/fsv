@@ -1138,6 +1138,37 @@ pub fn build_update_plan(
     target: i64,
     opts: &UpdateOptions<'_>,
 ) -> Result<Plan> {
+    build_update_plan_with_lifecycle(meta, draft, record, target, opts, None)
+}
+
+/// Python class name of `err` (`type(exc).__name__`).
+fn py_class(err: &fsv_core::Error) -> String {
+    use fsv_core::Error as E;
+    match err {
+        E::Api(_) => "APIError".into(),
+        E::Session(_) => "SessionError".into(),
+        E::Value(_) => "ValueError".into(),
+        E::Exit { .. } => "FlowExit".into(),
+        E::EditorAbort(_) => "EditorAbort".into(),
+        E::Http { kind, .. } => kind.clone(),
+        E::Other(_) => "RuntimeError".into(),
+        E::Io(_) => "OSError".into(),
+        E::Aborted => "Abort".into(),
+        E::Context { source, .. } => py_class(source),
+    }
+}
+
+/// [`build_update_plan`] with a runtime state-flow read (`lifecycle=`):
+/// when the body is nonempty, disallowed edges, unmet entry criteria and
+/// locked fields refuse before sending ([`fsv_api::change_lifecycle::precheck`]).
+pub fn build_update_plan_with_lifecycle(
+    meta: &Arc<FormMeta>,
+    draft: &Draft,
+    record: &Map<String, Json>,
+    target: i64,
+    opts: &UpdateOptions<'_>,
+    lifecycle: Option<&dyn Fn() -> Result<Json>>,
+) -> Result<Plan> {
     let spec = meta.spec();
     let existing = name_existing(
         existing_from_record(&spec, record),
@@ -1164,7 +1195,7 @@ pub fn build_update_plan(
         .collect();
     let mut failed = HashSet::new();
     errors.extend(apply_answers(&mut state, &answers, Some(&mut failed))?);
-    let warnings: Vec<String> = spec
+    let mut warnings: Vec<String> = spec
         .warnings
         .iter()
         .cloned()
@@ -1236,6 +1267,26 @@ pub fn build_update_plan(
     let files = plan_files(draft, &planning);
     problems.extend(perr);
     problems.extend(file_errors(&all_paths(&files)));
+    if let Some(read) = lifecycle.filter(|_| !body.is_empty()) {
+        let label = |name: &str| -> String {
+            [name, name.strip_suffix("_id").unwrap_or(name)]
+                .into_iter()
+                .find_map(|n| spec.find(n))
+                .map_or_else(|| name.to_string(), |f| format!("{} ({name})", f.label))
+        };
+        match read() {
+            Err(exc) => warnings.push(format!(
+                "lifecycle pre-check unavailable ({}); the server decides edges and criteria",
+                py_class(&exc)
+            )),
+            Ok(flow) => {
+                let (lerr, lwarn) =
+                    fsv_api::change_lifecycle::precheck(&flow, record, &body, &label);
+                problems.extend(lerr);
+                warnings.extend(lwarn);
+            }
+        }
+    }
 
     let sf = spec.fields().iter().find(|f| is_status(f));
     let default_label = |v: &Json| -> String {

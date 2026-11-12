@@ -1,0 +1,532 @@
+{
+ "_python": {
+  "commit": "7530df641ece233fbd3f79c43934b503a6a730db",
+  "dirty": false
+ },
+ "flow": {
+  "state_list": [
+   {
+    "id": 1,
+    "value": "Open"
+   },
+   {
+    "id": 2,
+    "value": "Planning"
+   },
+   {
+    "id": 3,
+    "value": "Approval"
+   },
+   {
+    "id": 4,
+    "value": "Closed"
+   },
+   "junk"
+  ],
+  "transitions": {
+   "1": [
+    {
+     "to_state": 2,
+     "entry_criteria": [
+      {
+       "name": "planned_start_date",
+       "operator": "is_not",
+       "value": ""
+      }
+     ]
+    },
+    {
+     "to_state": 4,
+     "entry_criteria": [
+      {
+       "fields": {
+        "9": {
+         "name": "customFields.cab_ref",
+         "operator": "is_not",
+         "value": null
+        },
+        "10": {
+         "name": "",
+         "operator": "is"
+        },
+        "11": "x"
+       }
+      }
+     ]
+    }
+   ],
+   "2": [
+    {
+     "to_state": 3,
+     "entry_criteria": [
+      {
+       "name": "risk",
+       "operator": "is",
+       "value": 2
+      },
+      {
+       "name": "impact",
+       "operator": "is_not",
+       "value": 1
+      },
+      {
+       "name": "planned_end_date",
+       "operator": "greater_than",
+       "value": "2026-01-01"
+      },
+      {
+       "name": "group_id",
+       "operator": "is",
+       "value": 7
+      }
+     ]
+    },
+    "junk"
+   ],
+   "3": [],
+   "5": null
+  },
+  "state_properties": {
+   "field_lock_config": {
+    "2": [
+     {
+      "1": "status",
+      "2": "department"
+     },
+     {
+      "3": "customFields.cab_ref"
+     }
+    ],
+    "3": [
+     {
+      "1": "planned_start_date"
+     }
+    ],
+    "4": "bad"
+   }
+  }
+ },
+ "precheck": [
+  {
+   "name": "no_status",
+   "record": {
+    "status": 1
+   },
+   "body": {
+    "subject": "x"
+   },
+   "expected": [
+    [],
+    []
+   ]
+  },
+  {
+   "name": "same_status",
+   "record": {
+    "status": 1
+   },
+   "body": {
+    "status": 1
+   },
+   "expected": [
+    [],
+    []
+   ]
+  },
+  {
+   "name": "same_status_text",
+   "record": {
+    "status": 1
+   },
+   "body": {
+    "status": "1"
+   },
+   "expected": [
+    [],
+    []
+   ]
+  },
+  {
+   "name": "criterion_unmet",
+   "record": {
+    "status": 1
+   },
+   "body": {
+    "status": 2
+   },
+   "expected": [
+    [],
+    [
+     "entry criterion for Open → Planning not pre-checked: planned_start_date must be set"
+    ]
+   ]
+  },
+  {
+   "name": "criterion_met_body",
+   "record": {
+    "status": 1
+   },
+   "body": {
+    "status": 2,
+    "planned_start_date": "2026-02-01"
+   },
+   "expected": [
+    [],
+    []
+   ]
+  },
+  {
+   "name": "criterion_met_record",
+   "record": {
+    "status": 1,
+    "planned_start_date": "2026-02-01"
+   },
+   "body": {
+    "status": 2
+   },
+   "expected": [
+    [],
+    []
+   ]
+  },
+  {
+   "name": "criterion_empty_list",
+   "record": {
+    "status": 1,
+    "planned_start_date": []
+   },
+   "body": {
+    "status": 2
+   },
+   "expected": [
+    [
+     "entry criterion for Open → Planning not met: planned_start_date must be set; supply it with --set"
+    ],
+    []
+   ]
+  },
+  {
+   "name": "custom_unknown",
+   "record": {
+    "status": 1
+   },
+   "body": {
+    "status": 4
+   },
+   "expected": [
+    [],
+    [
+     "entry criterion for Open → Closed not pre-checked: cab_ref must be set"
+    ]
+   ]
+  },
+  {
+   "name": "custom_record",
+   "record": {
+    "status": 1,
+    "custom_fields": {
+     "cab_ref": "CAB-1"
+    }
+   },
+   "body": {
+    "status": 4
+   },
+   "expected": [
+    [],
+    []
+   ]
+  },
+  {
+   "name": "custom_body_empty",
+   "record": {
+    "status": 1,
+    "custom_fields": {
+     "cab_ref": "CAB-1"
+    }
+   },
+   "body": {
+    "status": 4,
+    "custom_fields": {
+     "cab_ref": ""
+    }
+   },
+   "expected": [
+    [
+     "entry criterion for Open → Closed not met: cab_ref must be set; supply it with --set"
+    ],
+    []
+   ]
+  },
+  {
+   "name": "not_allowed",
+   "record": {
+    "status": 1
+   },
+   "body": {
+    "status": 3
+   },
+   "expected": [
+    [
+     "Open → Approval is not an allowed lifecycle transition (allowed from Open: Planning, Closed)"
+    ],
+    []
+   ]
+  },
+  {
+   "name": "none_allowed",
+   "record": {
+    "status": 3
+   },
+   "body": {
+    "status": 1
+   },
+   "expected": [
+    [
+     "Approval → Open is not an allowed lifecycle transition (allowed from Approval: none)"
+    ],
+    []
+   ]
+  },
+  {
+   "name": "unknown_from",
+   "record": {
+    "status": 9
+   },
+   "body": {
+    "status": 1
+   },
+   "expected": [
+    [],
+    [
+     "lifecycle transitions from 9 unavailable; the edge 9 → Open was not pre-checked"
+    ]
+   ]
+  },
+  {
+   "name": "null_edges",
+   "record": {
+    "status": 5
+   },
+   "body": {
+    "status": 1
+   },
+   "expected": [
+    [
+     "5 → Open is not an allowed lifecycle transition (allowed from 5: none)"
+    ],
+    []
+   ]
+  },
+  {
+   "name": "is_and_is_not",
+   "record": {
+    "status": 2,
+    "risk": 2,
+    "impact": 1,
+    "planned_end_date": "x"
+   },
+   "body": {
+    "status": 3
+   },
+   "expected": [
+    [
+     "locked in lifecycle state Planning: status (field lock); the server rejects this write",
+     "entry criterion for Planning → Approval not met: impact is not 1; supply it with --set"
+    ],
+    [
+     "entry criterion for Planning → Approval not pre-checked: planned_end_date greater than '2026-01-01'",
+     "entry criterion for Planning → Approval not pre-checked: group_id is 7"
+    ]
+   ]
+  },
+  {
+   "name": "is_mismatch",
+   "record": {
+    "status": 2,
+    "risk": "3",
+    "impact": 2,
+    "group_id": null
+   },
+   "body": {
+    "status": 3
+   },
+   "expected": [
+    [
+     "locked in lifecycle state Planning: status (field lock); the server rejects this write",
+     "entry criterion for Planning → Approval not met: risk is 2",
+     "entry criterion for Planning → Approval not met: group_id is 7"
+    ],
+    [
+     "entry criterion for Planning → Approval not pre-checked: planned_end_date greater than '2026-01-01'"
+    ]
+   ]
+  },
+  {
+   "name": "locked",
+   "record": {
+    "status": 2
+   },
+   "body": {
+    "status": 3,
+    "department_id": 4,
+    "custom_fields": {
+     "cab_ref": "x",
+     "other": 1
+    },
+    "br_validation_excludes": [
+     1
+    ]
+   },
+   "expected": [
+    [
+     "locked in lifecycle state Planning: cab_ref, department, status (field lock); the server rejects this write"
+    ],
+    [
+     "entry criterion for Planning → Approval not pre-checked: risk is 2",
+     "entry criterion for Planning → Approval not pre-checked: impact is not 1",
+     "entry criterion for Planning → Approval not pre-checked: planned_end_date greater than '2026-01-01'",
+     "entry criterion for Planning → Approval not pre-checked: group_id is 7"
+    ]
+   ]
+  },
+  {
+   "name": "locked_status_id",
+   "record": {
+    "status": 3
+   },
+   "body": {
+    "planned_start_date": "x",
+    "status": 3
+   },
+   "expected": [
+    [
+     "locked in lifecycle state Approval: planned_start_date (field lock); the server rejects this write"
+    ],
+    []
+   ]
+  },
+  {
+   "name": "no_record_status",
+   "record": {},
+   "body": {
+    "status": 1
+   },
+   "expected": [
+    [],
+    [
+     "lifecycle transitions from None unavailable; the edge None → Open was not pre-checked"
+    ]
+   ]
+  },
+  {
+   "name": "float_bool",
+   "record": {
+    "status": 2,
+    "risk": 2.0,
+    "impact": true
+   },
+   "body": {
+    "status": 3
+   },
+   "expected": [
+    [
+     "locked in lifecycle state Planning: status (field lock); the server rejects this write",
+     "entry criterion for Planning → Approval not met: risk is 2"
+    ],
+    [
+     "entry criterion for Planning → Approval not pre-checked: planned_end_date greater than '2026-01-01'",
+     "entry criterion for Planning → Approval not pre-checked: group_id is 7"
+    ]
+   ]
+  }
+ ],
+ "outgoing": [
+  {
+   "state": 1,
+   "expected": [
+    [
+     "Planning",
+     [
+      "planned_start_date must be set"
+     ]
+    ],
+    [
+     "Closed",
+     [
+      "cab_ref must be set"
+     ]
+    ]
+   ]
+  },
+  {
+   "state": "2",
+   "expected": [
+    [
+     "Approval",
+     [
+      "risk is 2",
+      "impact is not 1",
+      "planned_end_date greater than '2026-01-01'",
+      "group_id is 7"
+     ]
+    ]
+   ]
+  },
+  {
+   "state": 3,
+   "expected": []
+  },
+  {
+   "state": 4,
+   "expected": []
+  },
+  {
+   "state": 5,
+   "expected": []
+  },
+  {
+   "state": 9,
+   "expected": []
+  },
+  {
+   "state": null,
+   "expected": []
+  }
+ ],
+ "locks": [
+  {
+   "state": 1,
+   "expected": []
+  },
+  {
+   "state": "2",
+   "expected": [
+    "status",
+    "department",
+    "customFields.cab_ref"
+   ]
+  },
+  {
+   "state": 3,
+   "expected": [
+    "planned_start_date"
+   ]
+  },
+  {
+   "state": 4,
+   "expected": []
+  },
+  {
+   "state": 5,
+   "expected": []
+  },
+  {
+   "state": 9,
+   "expected": []
+  },
+  {
+   "state": null,
+   "expected": []
+  }
+ ]
+}

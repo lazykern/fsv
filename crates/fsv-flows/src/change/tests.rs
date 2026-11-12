@@ -167,6 +167,46 @@ fn golden_create_plans() {
     }
 }
 
+/// `build_update_plan(lifecycle=...)` (Python 7530df6); a `null` flow is a
+/// failed read.
+#[test]
+fn golden_update_lifecycle_plans() {
+    let _cfg = config_guard(None);
+    let h = Hints::new();
+    for (case, g) in golden(&["update_lifecycle"]).as_object().unwrap() {
+        let d = Draft {
+            answers: g["answers"].as_object().unwrap().clone(),
+            ..Draft::default()
+        };
+        let opts = UpdateOptions {
+            resolver: resolver_arc(),
+            hints_path: Some(h.path()),
+            ..UpdateOptions::default()
+        };
+        let reads = std::cell::Cell::new(0);
+        let read = || -> Result<Json> {
+            reads.set(reads.get() + 1);
+            match &g["flow"] {
+                Json::Null => Err(fsv_core::Error::Api(Box::new(
+                    fsv_core::error::ApiError::new(503, "unavailable"),
+                ))),
+                flow => Ok(flow.clone()),
+            }
+        };
+        let p = build_update_plan_with_lifecycle(
+            &edit_meta(),
+            &d,
+            &record_of(g),
+            501,
+            &opts,
+            Some(&read),
+        )
+        .unwrap();
+        assert_eq!(json!(reads.get()), g["lifecycle_reads"], "{case} reads");
+        check(&p, g, "Update change 501", case);
+    }
+}
+
 #[test]
 fn golden_update_plans() {
     let _cfg = config_guard(None);

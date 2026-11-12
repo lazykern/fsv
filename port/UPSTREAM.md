@@ -3546,4 +3546,66 @@ Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `8ceb0e6`.
 
 No CLI follow-up: `problems create` prints the library result.
 
-Still not triaged: commits after `8ceb0e6`.
+## Ledger: `7530df6` (library side)
+
+Triaged against `git show 7530df6`
+(`7530df641ece233fbd3f79c43934b503a6a730db`).
+
+New `fsv_api::change_lifecycle` ports `change_lifecycle.py`:
+`state_names`, `criteria` (both entry-criteria shapes), `locks`,
+`describe`, `precheck` and `outgoing`. `precheck` returns errors for
+locked fields, disallowed edges and unmet criteria it can evaluate
+(`is`, `is_not`, "must be set"). Criteria it cannot evaluate become
+warnings. `testdata/change_lifecycle_oracle.json` is stamped inline at
+`7530df6` (20 precheck cases, 7 outgoing and lock states).
+
+fsv-flows gained `change::build_update_plan_with_lifecycle(...,
+lifecycle)`. `build_update_plan` delegates to it with `None`. When the
+body is nonempty, it reads the flow once, labels names as
+`{label} ({name})`, and adds the precheck errors and warnings. A failed
+read warns `lifecycle pre-check unavailable ({Python class}); the server
+decides edges and criteria`. `gen_flows.py` gained `update_lifecycle`
+(7 cases, read counts included). `flows.json` is restamped at
+`7530df6`, and its existing sections are byte-identical.
+
+The default `reviewed_write::execute` 4xx refusal now names the server
+reason: `write rejected (HTTP {s}): {server_message}; no retry`. An empty
+reason keeps the short form. Callbacks that supply their own rejection
+text (for example `problem_status`) keep it. Oracles regenerated at
+`7530df6`: `problem_incidents`, `ticket_note_mutation`, `ticket_tasks`,
+`workflows`, and `change_delete` (the inline script). Only the refusal
+text changed in each, plus one earlier drift in `ticket_tasks`, noted
+next.
+
+`ticket_tasks` now follows the `9c8c91d` status default. `add` and
+`status` default to `Open`. `delete` (and `update` without a status)
+binds `status: null` in `inputs_json`. `build_plan` passes no status on
+`delete`.
+
+`state_flow::render_flow_with_next` returns the printed lines plus the
+`Next (allowed transitions)` cell per row, or `None` when the flow has
+no transitions. `render_flow` delegates and drops the column. Both print
+`Transitions from {current}:` (with criteria, or `no entry criteria`,
+or `none (final state or no transition defined)`) and
+`Locked in {current}: ...`. `gen_fsv_api_query_flow_matrix.py` gained
+`transitions` (7 cases). `query_flow_oracle.json` is restamped at
+`7530df6`, and its existing sections are unchanged.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `7530df6`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `7530df6` | 11-13 05:15 | fix: pre-check change lifecycle edges, entry criteria and field locks | partial | fsv-api (`change_lifecycle`, `reviewed_write`, `state_flow`, `ticket_tasks`), fsv-flows (`change`). fsv-cli follow-ups below |
+
+CLI follow-ups:
+
+- `changes update` calls `build_update_plan_with_lifecycle` with a
+  closure that reads `get_state_flow(state_flow_id, workspace_id)` once
+  per command, only when the record has a `state_flow_id`.
+- `changes state` table output uses `render_flow_with_next` and adds the
+  `Next (allowed transitions)` column when it is `Some`.
+- `tickets tasks delete` passes `status: None` to
+  `build_plan_assigned`, so delete plans bind `status: null` the way
+  Python does.
+
+Still not triaged: commits after `7530df6`.

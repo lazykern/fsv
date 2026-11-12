@@ -131,6 +131,7 @@ fn cases_match_python() {
                     let target = op.get("target").map_or("INC-123".to_string(), py_str);
                     let built = args(op);
                     let status = match op.get("status") {
+                        None if built.action == "delete" => None,
                         None => Some(built.status.clone()),
                         Some(Value::Null) => None,
                         Some(Value::String(s)) => Some(s.clone()),

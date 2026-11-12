@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "4626e1203103bb75bb764625345b6c0c0a4652e7",
+  "commit": "7530df641ece233fbd3f79c43934b503a6a730db",
   "dirty": false
  },
  "lifecycle_21": {
@@ -130,7 +130,7 @@
      "path": "tickets/123/tasks/update",
      "payload_json": "{\"action\": \"delete\", \"id\": \"701\"}",
      "context_hash": "0c07e3a4affb47e9de7c69f4258d02ba5269b7f0edbc90731f88fd926c22f2ff",
-     "inputs_json": "{\"action\": \"delete\", \"status\": \"Open\", \"task\": 701, \"title\": null, \"values\": null}"
+     "inputs_json": "{\"action\": \"delete\", \"status\": null, \"task\": 701, \"title\": null, \"values\": null}"
     },
     "hash": "5912f00fbf2e30be190d9233a0f25dcd481aaf17b9437c336200061d306d63f6",
     "review": {
@@ -611,14 +611,14 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write rejected (HTTP 422); no retry"
+     "msg": "write rejected (HTTP 422): failure; no retry"
     },
     "writes": 1
    },
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write rejected (HTTP 422); no retry"
+     "msg": "write rejected (HTTP 422): failure; no retry"
     },
     "writes": 2
    }
@@ -1042,7 +1042,7 @@
      "path": "tickets/123/tasks/update",
      "payload_json": "{\"action\": \"delete\", \"id\": \"701\"}",
      "context_hash": "23e37485432ede58e39cd48a226c010a49bf59206cab0200e1a7f8ed21f7440b",
-     "inputs_json": "{\"action\": \"delete\", \"status\": \"Open\", \"task\": 701, \"title\": null, \"values\": null}"
+     "inputs_json": "{\"action\": \"delete\", \"status\": null, \"task\": 701, \"title\": null, \"values\": null}"
     },
     "hash": "155ea8e9f636ddd58f01ba2682d6388cef0c9faa240ffaa62a8ea0d5fb6d26e2",
     "review": {
@@ -1523,14 +1523,14 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write rejected (HTTP 422); no retry"
+     "msg": "write rejected (HTTP 422): failure; no retry"
     },
     "writes": 1
    },
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write rejected (HTTP 422); no retry"
+     "msg": "write rejected (HTTP 422): failure; no retry"
     },
     "writes": 2
    }
@@ -2396,7 +2396,7 @@
      "path": "tickets/123/tasks/update",
      "payload_json": "{\"action\": \"delete\", \"id\": \"3\"}",
      "context_hash": "86c7844a20cd428638cc6583626adf1a88dc5d452e7724108f3f20a03d00b3bc",
-     "inputs_json": "{\"action\": \"delete\", \"status\": \"Open\", \"task\": \"003\", \"title\": null, \"values\": null}"
+     "inputs_json": "{\"action\": \"delete\", \"status\": null, \"task\": \"003\", \"title\": null, \"values\": null}"
     },
     "hash": "a4be95a3d9b650cbed6986d1a6cdb6a7cb48c5c799d30cb2ba88300e121acf04",
     "review": {

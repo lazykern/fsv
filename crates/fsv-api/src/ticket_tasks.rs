@@ -277,13 +277,16 @@ pub fn reminder(fields: &[Value]) -> Result<i64> {
 
 /// Port of ticket_tasks.build_plan: `add` (POST), `status` (PUT of the
 /// task) or `delete` (PUT `update`), bound to the inventory and metadata.
-/// `status` is always sent. Owner and group stay unset.
+/// `status` is sent except on `delete`, which binds no status. Owner and
+/// group stay unset.
 pub fn build_plan(c: &dyn Api, target: &str, args: &TaskArgs) -> Result<TaskPlan> {
-    build_plan_assigned(c, target, args, None, None, Some(&args.status))
+    let status = (args.action != "delete").then_some(args.status.as_str());
+    build_plan_assigned(c, target, args, None, None, status)
 }
 
 /// [`build_plan`] plus optional owner, group, and a status that can be
-/// omitted. `status == None` leaves status out of the payload (`update`).
+/// omitted. `status == None` leaves status out of the payload (`update`,
+/// `delete`); `add` and `status` default it to `Open`.
 pub fn build_plan_assigned(
     c: &dyn Api,
     target: &str,
@@ -297,6 +300,7 @@ pub fn build_plan_assigned(
     if !matches!(action, "add" | "update" | "status" | "delete") {
         return Err(Error::value("unknown task action"));
     }
+    let status = status.or(matches!(action, "add" | "status").then_some("Open"));
     let before = inventory(c, target)?;
     let fields = fields_from(c)?;
     let tid = if action == "add" {

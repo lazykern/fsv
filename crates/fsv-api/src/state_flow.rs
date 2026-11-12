@@ -76,19 +76,35 @@ fn flow_of(c: &dyn Api, change: &Value) -> Result<Value> {
 
 /// `render_flow`: the whole flow with the current position, then approval gates.
 pub fn render_flow(c: &dyn Api, change: &Value) -> Result<Vec<Printed>> {
+    render_flow_with_next(c, change).map(|(out, _)| out)
+}
+
+/// [`render_flow`] plus the table's fourth column, `Next (allowed
+/// transitions)`, one markup cell per row. `None` when the flow has no
+/// transitions (the table keeps three columns).
+pub fn render_flow_with_next(
+    c: &dyn Api,
+    change: &Value,
+) -> Result<(Vec<Printed>, Option<Vec<String>>)> {
+    use crate::change_lifecycle::{locks, outgoing, plain_label};
     let mut out = Vec::new();
     if change.get_truthy("state_flow_id").is_none() {
         out.push(Printed::Text(
             "[yellow]no state_flow_id on this change[/]".into(),
         ));
-        return Ok(out);
+        return Ok((out, None));
     }
     let flow = flow_of(c, change)?;
     let state_list = flow.list_or_empty("state_list");
     if state_list.is_empty() {
         out.push(Printed::Text("[yellow]empty state_list[/]".into()));
-        return Ok(out);
+        return Ok((out, None));
     }
+    let has_edges = flow
+        .get("transitions")
+        .and_then(Value::as_object)
+        .is_some_and(|t| !t.is_empty());
+    let mut next = has_edges.then(Vec::new);
     let current = change.get("status").cloned().unwrap_or(Value::Null);
     let current_name = change
         .get_truthy("status_name")
@@ -134,6 +150,14 @@ pub fn render_flow(c: &dyn Api, change: &Value) -> Result<Vec<Printed>> {
             ]
         };
         rows.push(row);
+        if let Some(next) = next.as_mut() {
+            let names: Vec<String> = outgoing(&flow, &sid, &plain_label)
+                .into_iter()
+                .map(|(n, _)| n)
+                .collect();
+            let joined = names.join(", ");
+            next.push(escape(if joined.is_empty() { "-" } else { &joined }));
+        }
     }
     out.push(Printed::Table {
         title: format!("{hid} flow — [bold]{flow_name}[/] (change_type={change_type})"),
@@ -149,6 +173,38 @@ pub fn render_flow(c: &dyn Api, change: &Value) -> Result<Vec<Printed>> {
         "  current: [bold yellow]{current_name}[/] · past: {} · ahead: {ahead}",
         traversal.len()
     )));
+    if has_edges {
+        out.push(Printed::Blank);
+        out.push(Printed::Text(format!(
+            "[bold]Transitions from {}:[/]",
+            escape(&current_name)
+        )));
+        let edges = outgoing(&flow, &current, &plain_label);
+        for (name, criteria) in &edges {
+            let tail = if criteria.is_empty() {
+                ": no entry criteria".to_string()
+            } else {
+                format!(": {}", escape(&criteria.join("; ")))
+            };
+            out.push(Printed::Text(format!("  → {}{tail}", escape(name))));
+        }
+        if edges.is_empty() {
+            out.push(Printed::Text(
+                "  none (final state or no transition defined)".into(),
+            ));
+        }
+    }
+    let locked: std::collections::BTreeSet<String> = locks(&flow, &current)
+        .iter()
+        .map(|n| n.strip_prefix("customFields.").unwrap_or(n).to_string())
+        .collect();
+    if !locked.is_empty() {
+        out.push(Printed::Text(format!(
+            "[bold]Locked in {}:[/] {}",
+            escape(&current_name),
+            escape(&locked.into_iter().collect::<Vec<_>>().join(", "))
+        )));
+    }
     let approvals = try_get_approvals(c, change.get("id").unwrap_or(&Value::Null));
     if !approvals.is_empty() {
         out.push(Printed::Blank);
@@ -179,7 +235,7 @@ pub fn render_flow(c: &dyn Api, change: &Value) -> Result<Vec<Printed>> {
             )));
         }
     }
-    Ok(out)
+    Ok((out, next))
 }
 
 /// The states within `context` of the current one: `(lo, hi, cur_idx)`.

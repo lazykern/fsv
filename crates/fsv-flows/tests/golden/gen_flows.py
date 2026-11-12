@@ -120,6 +120,39 @@ def update(answers: dict, **over) -> dict:
     return {"answers": answers, "record": rec, **plan_out(plan, "Update change 501")}
 
 
+LIFECYCLE_FLOW = {
+    "state_list": [{"id": 1, "value": "Open"}, {"id": 2, "value": "Planning"}, {"id": 3, "value": "Closed"}],
+    "transitions": {
+        "1": [{"to_state": 2, "entry_criteria": [
+            {"name": "planned_start_date", "operator": "is_not", "value": ""},
+            {"fields": {"7": {"name": "customFields.cab_ref", "operator": "is_not", "value": None}}},
+            {"name": "risk", "operator": "is", "value": 2}]}],
+        "2": [{"to_state": 3, "entry_criteria": []}],
+    },
+    "state_properties": {"field_lock_config": {"1": [{"1": "subject", "2": "customFields.notify_ops"}]}},
+}
+
+
+def update_lifecycle(answers: dict, flow_data=LIFECYCLE_FLOW, **over) -> dict:
+    """``build_update_plan(lifecycle=...)``; ``flow_data`` None raises APIError."""
+    from fsv.errors import APIError
+
+    calls = []
+
+    def lifecycle():
+        calls.append(1)
+        if flow_data is None:
+            raise APIError(503, "unavailable")
+        return flow_data
+
+    d = drafts.Draft(answers=answers)
+    rec = A.record(**over)
+    plan = flow.build_update_plan(meta(form_type="edit_form", module_id=501), d, rec, 501, resolver=resolver(),
+                                  lifecycle=lifecycle)
+    return {"answers": answers, "record": rec, "flow": flow_data, "lifecycle_reads": len(calls),
+            **plan_out(plan, "Update change 501")}
+
+
 def ticket(answers: dict, cc=(), **kw) -> dict:
     d = drafts.Draft(answers=answers, **kw)
     plan = ticket_flow.build_create_plan(meta("ticket"), d, resolver=None, requester=JANE, cc_emails=tuple(cc))
@@ -182,6 +215,15 @@ out = {
         "downtime": update({"Downtime Window": ""}),
         "nothing": update({"Subject": "Billing: rotate keys"}),
         "dates": update({"Planned Start Date": "2030-11-26 21:00", "Agent": "Alex Kim", "Group": "Platform Ops"}),
+    },
+    "update_lifecycle": {
+        "locked": update_lifecycle({"Subject": "Billing: rotate all keys", "Services": "Billing"}),
+        "edge_criteria": update_lifecycle({"Status": "Planning"}),
+        "edge_criteria_lock": update_lifecycle({"Status": "Planning", "Notify Ops Team": "Yes"}),
+        "not_allowed": update_lifecycle({"Status": "Closed"}),
+        "from_planning": update_lifecycle({"Status": "Closed"}, status=2),
+        "read_failure": update_lifecycle({"Status": "Planning"}, flow_data=None),
+        "nothing": update_lifecycle({"Subject": "Billing: rotate keys"}, flow_data=None),
     },
     "ticket": {
         "basic": ticket({"Subject": "Example", "Description": "Help", "Cloud Only": "Yes", "Stage": "Live",

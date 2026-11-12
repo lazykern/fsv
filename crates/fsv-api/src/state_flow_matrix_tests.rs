@@ -134,6 +134,46 @@ fn full_flow_displays_current_visited_future_and_approval_statuses() {
     assert_eq!(reads(&c), case["calls"]);
 }
 
+/// Python 7530df6: the Next column, transitions from the current state and
+/// its field locks.
+#[test]
+fn full_flow_shows_transitions_criteria_and_locks() {
+    let cases = sf()["transitions"].as_array().unwrap();
+    assert_eq!(cases.len(), 7);
+    for case in cases {
+        let name = case["case"].as_str().unwrap();
+        let c = flow_env(case["flow"].clone(), None);
+        let (out, next) = render_flow_with_next(&c, &case["change"]).unwrap();
+        let got: Vec<Value> = out
+            .iter()
+            .map(|p| match p {
+                Printed::Table { title, rows } => {
+                    let rows: Vec<Vec<String>> = rows
+                        .iter()
+                        .enumerate()
+                        .map(|(i, r)| {
+                            let mut row = r.to_vec();
+                            row.extend(next.as_ref().map(|n| n[i].clone()));
+                            row
+                        })
+                        .collect();
+                    json!({"table": title, "rows": rows})
+                }
+                other => printed(std::slice::from_ref(other))[0].clone(),
+            })
+            .collect();
+        assert_eq!(Value::Array(got), case["printed"], "{name}");
+        assert_eq!(
+            printed(&render_flow(&c, &case["change"]).unwrap())
+                .as_array()
+                .unwrap()
+                .len(),
+            case["printed"].as_array().unwrap().len(),
+            "{name}"
+        );
+    }
+}
+
 #[test]
 fn context_windows_clip_without_losing_current_state() {
     for case in sf()["windows"].as_array().unwrap() {

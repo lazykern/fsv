@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "fbc54d41050d0fbc3d2f2c950cfff17a4f21c992",
+  "commit": "7530df641ece233fbd3f79c43934b503a6a730db",
   "dirty": false
  },
  "query": {
@@ -1295,6 +1295,1140 @@
    "approvals": [],
    "printed": [],
    "status": 403
-  }
+  },
+  "transitions": [
+   {
+    "case": "edges",
+    "flow": {
+     "name": "Acme release",
+     "state_list": [
+      {
+       "id": 1,
+       "value": "Phase 1"
+      },
+      {
+       "id": 2,
+       "value": "Phase 2"
+      },
+      {
+       "id": 3,
+       "value": "Phase 3"
+      },
+      {
+       "id": 4,
+       "value": "Phase 4"
+      },
+      {
+       "id": 5,
+       "value": "Phase 5"
+      },
+      {
+       "id": 6,
+       "value": "Phase 6"
+      },
+      {
+       "id": 7,
+       "value": "Phase 7"
+      }
+     ],
+     "transitions": {
+      "3": [
+       {
+        "to_state": 4,
+        "entry_criteria": []
+       }
+      ],
+      "4": [
+       {
+        "to_state": 5,
+        "entry_criteria": [
+         {
+          "name": "planned_start_date",
+          "operator": "is_not",
+          "value": ""
+         }
+        ]
+       },
+       {
+        "to_state": 7,
+        "entry_criteria": [
+         {
+          "fields": {
+           "9": {
+            "name": "customFields.cab_[ref]",
+            "operator": "is",
+            "value": "[yes]"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "5": [
+       {
+        "to_state": 6
+       }
+      ],
+      "6": [
+       {
+        "to_state": 7,
+        "entry_criteria": [
+         {
+          "name": "risk",
+          "operator": "is",
+          "value": 2
+         }
+        ]
+       }
+      ]
+     },
+     "state_properties": {
+      "field_lock_config": {
+       "4": [
+        {
+         "1": "status",
+         "2": "customFields.cab_[ref]"
+        },
+        {
+         "3": "status"
+        }
+       ],
+       "7": [
+        {
+         "1": "subject"
+        }
+       ]
+      }
+     }
+    },
+    "change": {
+     "id": 123,
+     "human_display_id": "CHN-123",
+     "state_flow_id": 51,
+     "workspace_id": 17,
+     "status": 4,
+     "status_name": "Phase 4",
+     "state_traversal": [
+      1,
+      2,
+      3
+     ],
+     "change_type": 2
+    },
+    "printed": [
+     {
+      "table": "CHN-123 flow — [bold]Acme release[/] (change_type=2)",
+      "rows": [
+       [
+        "[green]✓[/]",
+        "[green]Phase 1[/]",
+        "[green]passed[/]",
+        "-"
+       ],
+       [
+        "[green]✓[/]",
+        "[green]Phase 2[/]",
+        "[green]passed[/]",
+        "-"
+       ],
+       [
+        "[green]✓[/]",
+        "[green]Phase 3[/]",
+        "[green]passed[/]",
+        "Phase 4"
+       ],
+       [
+        "[bold yellow]▶[/]",
+        "[bold yellow]Phase 4[/]",
+        "[bold yellow]current[/]",
+        "Phase 5, Phase 7"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 5[/]",
+        "[dim]future[/]",
+        "Phase 6"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 6[/]",
+        "[dim]future[/]",
+        "Phase 7"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 7[/]",
+        "[dim]future[/]",
+        "-"
+       ]
+      ]
+     },
+     {
+      "text": "  current: [bold yellow]Phase 4[/] · past: 3 · ahead: 3"
+     },
+     {
+      "blank": true
+     },
+     {
+      "text": "[bold]Transitions from Phase 4:[/]"
+     },
+     {
+      "text": "  → Phase 5: planned_start_date must be set"
+     },
+     {
+      "text": "  → Phase 7: cab_\\[ref] is '\\[yes]'"
+     },
+     {
+      "text": "[bold]Locked in Phase 4:[/] cab_\\[ref], status"
+     },
+     {
+      "blank": true
+     },
+     {
+      "text": "[bold]Approval gates:[/]"
+     },
+     {
+      "text": "  ✓ L1: Alex Acme — approved"
+     },
+     {
+      "text": "  ✗ L2: 72 — rejected"
+     },
+     {
+      "text": "  ◷ L3: 73 — ?"
+     }
+    ]
+   },
+   {
+    "case": "no_criteria",
+    "flow": {
+     "name": "Acme release",
+     "state_list": [
+      {
+       "id": 1,
+       "value": "Phase 1"
+      },
+      {
+       "id": 2,
+       "value": "Phase 2"
+      },
+      {
+       "id": 3,
+       "value": "Phase 3"
+      },
+      {
+       "id": 4,
+       "value": "Phase 4"
+      },
+      {
+       "id": 5,
+       "value": "Phase 5"
+      },
+      {
+       "id": 6,
+       "value": "Phase 6"
+      },
+      {
+       "id": 7,
+       "value": "Phase 7"
+      }
+     ],
+     "transitions": {
+      "3": [
+       {
+        "to_state": 4,
+        "entry_criteria": []
+       }
+      ],
+      "4": [
+       {
+        "to_state": 5,
+        "entry_criteria": [
+         {
+          "name": "planned_start_date",
+          "operator": "is_not",
+          "value": ""
+         }
+        ]
+       },
+       {
+        "to_state": 7,
+        "entry_criteria": [
+         {
+          "fields": {
+           "9": {
+            "name": "customFields.cab_[ref]",
+            "operator": "is",
+            "value": "[yes]"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "5": [
+       {
+        "to_state": 6
+       }
+      ],
+      "6": [
+       {
+        "to_state": 7,
+        "entry_criteria": [
+         {
+          "name": "risk",
+          "operator": "is",
+          "value": 2
+         }
+        ]
+       }
+      ]
+     }
+    },
+    "change": {
+     "id": 123,
+     "human_display_id": "CHN-123",
+     "state_flow_id": 51,
+     "workspace_id": 17,
+     "status": 3,
+     "status_name": "Phase 3",
+     "state_traversal": [
+      1,
+      2,
+      3
+     ],
+     "change_type": 2
+    },
+    "printed": [
+     {
+      "table": "CHN-123 flow — [bold]Acme release[/] (change_type=2)",
+      "rows": [
+       [
+        "[green]✓[/]",
+        "[green]Phase 1[/]",
+        "[green]passed[/]",
+        "-"
+       ],
+       [
+        "[green]✓[/]",
+        "[green]Phase 2[/]",
+        "[green]passed[/]",
+        "-"
+       ],
+       [
+        "[bold yellow]▶[/]",
+        "[bold yellow]Phase 3[/]",
+        "[bold yellow]current[/]",
+        "Phase 4"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 4[/]",
+        "[dim]future[/]",
+        "Phase 5, Phase 7"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 5[/]",
+        "[dim]future[/]",
+        "Phase 6"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 6[/]",
+        "[dim]future[/]",
+        "Phase 7"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 7[/]",
+        "[dim]future[/]",
+        "-"
+       ]
+      ]
+     },
+     {
+      "text": "  current: [bold yellow]Phase 3[/] · past: 3 · ahead: 3"
+     },
+     {
+      "blank": true
+     },
+     {
+      "text": "[bold]Transitions from Phase 3:[/]"
+     },
+     {
+      "text": "  → Phase 4: no entry criteria"
+     },
+     {
+      "blank": true
+     },
+     {
+      "text": "[bold]Approval gates:[/]"
+     },
+     {
+      "text": "  ✓ L1: Alex Acme — approved"
+     },
+     {
+      "text": "  ✗ L2: 72 — rejected"
+     },
+     {
+      "text": "  ◷ L3: 73 — ?"
+     }
+    ]
+   },
+   {
+    "case": "final",
+    "flow": {
+     "name": "Acme release",
+     "state_list": [
+      {
+       "id": 1,
+       "value": "Phase 1"
+      },
+      {
+       "id": 2,
+       "value": "Phase 2"
+      },
+      {
+       "id": 3,
+       "value": "Phase 3"
+      },
+      {
+       "id": 4,
+       "value": "Phase 4"
+      },
+      {
+       "id": 5,
+       "value": "Phase 5"
+      },
+      {
+       "id": 6,
+       "value": "Phase 6"
+      },
+      {
+       "id": 7,
+       "value": "Phase 7"
+      }
+     ],
+     "transitions": {
+      "3": [
+       {
+        "to_state": 4,
+        "entry_criteria": []
+       }
+      ],
+      "4": [
+       {
+        "to_state": 5,
+        "entry_criteria": [
+         {
+          "name": "planned_start_date",
+          "operator": "is_not",
+          "value": ""
+         }
+        ]
+       },
+       {
+        "to_state": 7,
+        "entry_criteria": [
+         {
+          "fields": {
+           "9": {
+            "name": "customFields.cab_[ref]",
+            "operator": "is",
+            "value": "[yes]"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "5": [
+       {
+        "to_state": 6
+       }
+      ],
+      "6": [
+       {
+        "to_state": 7,
+        "entry_criteria": [
+         {
+          "name": "risk",
+          "operator": "is",
+          "value": 2
+         }
+        ]
+       }
+      ]
+     },
+     "state_properties": {
+      "field_lock_config": {
+       "4": [
+        {
+         "1": "status",
+         "2": "customFields.cab_[ref]"
+        },
+        {
+         "3": "status"
+        }
+       ],
+       "7": [
+        {
+         "1": "subject"
+        }
+       ]
+      }
+     }
+    },
+    "change": {
+     "id": 123,
+     "human_display_id": "CHN-123",
+     "state_flow_id": 51,
+     "workspace_id": 17,
+     "status": 7,
+     "status_name": "Phase 7",
+     "state_traversal": [
+      1,
+      2,
+      3
+     ],
+     "change_type": 2
+    },
+    "printed": [
+     {
+      "table": "CHN-123 flow — [bold]Acme release[/] (change_type=2)",
+      "rows": [
+       [
+        "[green]✓[/]",
+        "[green]Phase 1[/]",
+        "[green]passed[/]",
+        "-"
+       ],
+       [
+        "[green]✓[/]",
+        "[green]Phase 2[/]",
+        "[green]passed[/]",
+        "-"
+       ],
+       [
+        "[green]✓[/]",
+        "[green]Phase 3[/]",
+        "[green]passed[/]",
+        "Phase 4"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 4[/]",
+        "[dim]future[/]",
+        "Phase 5, Phase 7"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 5[/]",
+        "[dim]future[/]",
+        "Phase 6"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 6[/]",
+        "[dim]future[/]",
+        "Phase 7"
+       ],
+       [
+        "[bold yellow]▶[/]",
+        "[bold yellow]Phase 7[/]",
+        "[bold yellow]current[/]",
+        "-"
+       ]
+      ]
+     },
+     {
+      "text": "  current: [bold yellow]Phase 7[/] · past: 3 · ahead: 3"
+     },
+     {
+      "blank": true
+     },
+     {
+      "text": "[bold]Transitions from Phase 7:[/]"
+     },
+     {
+      "text": "  none (final state or no transition defined)"
+     },
+     {
+      "text": "[bold]Locked in Phase 7:[/] subject"
+     },
+     {
+      "blank": true
+     },
+     {
+      "text": "[bold]Approval gates:[/]"
+     },
+     {
+      "text": "  ✓ L1: Alex Acme — approved"
+     },
+     {
+      "text": "  ✗ L2: 72 — rejected"
+     },
+     {
+      "text": "  ◷ L3: 73 — ?"
+     }
+    ]
+   },
+   {
+    "case": "locks_only",
+    "flow": {
+     "name": "Acme release",
+     "state_list": [
+      {
+       "id": 1,
+       "value": "Phase 1"
+      },
+      {
+       "id": 2,
+       "value": "Phase 2"
+      },
+      {
+       "id": 3,
+       "value": "Phase 3"
+      },
+      {
+       "id": 4,
+       "value": "Phase 4"
+      },
+      {
+       "id": 5,
+       "value": "Phase 5"
+      },
+      {
+       "id": 6,
+       "value": "Phase 6"
+      },
+      {
+       "id": 7,
+       "value": "Phase 7"
+      }
+     ],
+     "state_properties": {
+      "field_lock_config": {
+       "4": [
+        {
+         "1": "status",
+         "2": "customFields.cab_[ref]"
+        },
+        {
+         "3": "status"
+        }
+       ],
+       "7": [
+        {
+         "1": "subject"
+        }
+       ]
+      }
+     }
+    },
+    "change": {
+     "id": 123,
+     "human_display_id": "CHN-123",
+     "state_flow_id": 51,
+     "workspace_id": 17,
+     "status": 4,
+     "status_name": "Phase 4",
+     "state_traversal": [
+      1,
+      2,
+      3
+     ],
+     "change_type": 2
+    },
+    "printed": [
+     {
+      "table": "CHN-123 flow — [bold]Acme release[/] (change_type=2)",
+      "rows": [
+       [
+        "[green]✓[/]",
+        "[green]Phase 1[/]",
+        "[green]passed[/]"
+       ],
+       [
+        "[green]✓[/]",
+        "[green]Phase 2[/]",
+        "[green]passed[/]"
+       ],
+       [
+        "[green]✓[/]",
+        "[green]Phase 3[/]",
+        "[green]passed[/]"
+       ],
+       [
+        "[bold yellow]▶[/]",
+        "[bold yellow]Phase 4[/]",
+        "[bold yellow]current[/]"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 5[/]",
+        "[dim]future[/]"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 6[/]",
+        "[dim]future[/]"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 7[/]",
+        "[dim]future[/]"
+       ]
+      ]
+     },
+     {
+      "text": "  current: [bold yellow]Phase 4[/] · past: 3 · ahead: 3"
+     },
+     {
+      "text": "[bold]Locked in Phase 4:[/] cab_\\[ref], status"
+     },
+     {
+      "blank": true
+     },
+     {
+      "text": "[bold]Approval gates:[/]"
+     },
+     {
+      "text": "  ✓ L1: Alex Acme — approved"
+     },
+     {
+      "text": "  ✗ L2: 72 — rejected"
+     },
+     {
+      "text": "  ◷ L3: 73 — ?"
+     }
+    ]
+   },
+   {
+    "case": "empty_transitions",
+    "flow": {
+     "name": "Acme release",
+     "state_list": [
+      {
+       "id": 1,
+       "value": "Phase 1"
+      },
+      {
+       "id": 2,
+       "value": "Phase 2"
+      },
+      {
+       "id": 3,
+       "value": "Phase 3"
+      },
+      {
+       "id": 4,
+       "value": "Phase 4"
+      },
+      {
+       "id": 5,
+       "value": "Phase 5"
+      },
+      {
+       "id": 6,
+       "value": "Phase 6"
+      },
+      {
+       "id": 7,
+       "value": "Phase 7"
+      }
+     ],
+     "transitions": {},
+     "state_properties": {
+      "field_lock_config": {
+       "4": [
+        {
+         "1": "status",
+         "2": "customFields.cab_[ref]"
+        },
+        {
+         "3": "status"
+        }
+       ],
+       "7": [
+        {
+         "1": "subject"
+        }
+       ]
+      }
+     }
+    },
+    "change": {
+     "id": 123,
+     "human_display_id": "CHN-123",
+     "state_flow_id": 51,
+     "workspace_id": 17,
+     "status": 4,
+     "status_name": "Phase 4",
+     "state_traversal": [
+      1,
+      2,
+      3
+     ],
+     "change_type": 2
+    },
+    "printed": [
+     {
+      "table": "CHN-123 flow — [bold]Acme release[/] (change_type=2)",
+      "rows": [
+       [
+        "[green]✓[/]",
+        "[green]Phase 1[/]",
+        "[green]passed[/]"
+       ],
+       [
+        "[green]✓[/]",
+        "[green]Phase 2[/]",
+        "[green]passed[/]"
+       ],
+       [
+        "[green]✓[/]",
+        "[green]Phase 3[/]",
+        "[green]passed[/]"
+       ],
+       [
+        "[bold yellow]▶[/]",
+        "[bold yellow]Phase 4[/]",
+        "[bold yellow]current[/]"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 5[/]",
+        "[dim]future[/]"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 6[/]",
+        "[dim]future[/]"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 7[/]",
+        "[dim]future[/]"
+       ]
+      ]
+     },
+     {
+      "text": "  current: [bold yellow]Phase 4[/] · past: 3 · ahead: 3"
+     },
+     {
+      "text": "[bold]Locked in Phase 4:[/] cab_\\[ref], status"
+     },
+     {
+      "blank": true
+     },
+     {
+      "text": "[bold]Approval gates:[/]"
+     },
+     {
+      "text": "  ✓ L1: Alex Acme — approved"
+     },
+     {
+      "text": "  ✗ L2: 72 — rejected"
+     },
+     {
+      "text": "  ◷ L3: 73 — ?"
+     }
+    ]
+   },
+   {
+    "case": "bad_transitions",
+    "flow": {
+     "name": "Acme release",
+     "state_list": [
+      {
+       "id": 1,
+       "value": "Phase 1"
+      },
+      {
+       "id": 2,
+       "value": "Phase 2"
+      },
+      {
+       "id": 3,
+       "value": "Phase 3"
+      },
+      {
+       "id": 4,
+       "value": "Phase 4"
+      },
+      {
+       "id": 5,
+       "value": "Phase 5"
+      },
+      {
+       "id": 6,
+       "value": "Phase 6"
+      },
+      {
+       "id": 7,
+       "value": "Phase 7"
+      }
+     ],
+     "transitions": [
+      1
+     ]
+    },
+    "change": {
+     "id": 123,
+     "human_display_id": "CHN-123",
+     "state_flow_id": 51,
+     "workspace_id": 17,
+     "status": 4,
+     "status_name": "Phase 4",
+     "state_traversal": [
+      1,
+      2,
+      3
+     ],
+     "change_type": 2
+    },
+    "printed": [
+     {
+      "table": "CHN-123 flow — [bold]Acme release[/] (change_type=2)",
+      "rows": [
+       [
+        "[green]✓[/]",
+        "[green]Phase 1[/]",
+        "[green]passed[/]"
+       ],
+       [
+        "[green]✓[/]",
+        "[green]Phase 2[/]",
+        "[green]passed[/]"
+       ],
+       [
+        "[green]✓[/]",
+        "[green]Phase 3[/]",
+        "[green]passed[/]"
+       ],
+       [
+        "[bold yellow]▶[/]",
+        "[bold yellow]Phase 4[/]",
+        "[bold yellow]current[/]"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 5[/]",
+        "[dim]future[/]"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 6[/]",
+        "[dim]future[/]"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 7[/]",
+        "[dim]future[/]"
+       ]
+      ]
+     },
+     {
+      "text": "  current: [bold yellow]Phase 4[/] · past: 3 · ahead: 3"
+     },
+     {
+      "blank": true
+     },
+     {
+      "text": "[bold]Approval gates:[/]"
+     },
+     {
+      "text": "  ✓ L1: Alex Acme — approved"
+     },
+     {
+      "text": "  ✗ L2: 72 — rejected"
+     },
+     {
+      "text": "  ◷ L3: 73 — ?"
+     }
+    ]
+   },
+   {
+    "case": "escaped",
+    "flow": {
+     "name": "Acme release",
+     "state_list": [
+      {
+       "id": 1,
+       "value": "Phase 1"
+      },
+      {
+       "id": 2,
+       "value": "Phase 2"
+      },
+      {
+       "id": 3,
+       "value": "Phase 3"
+      },
+      {
+       "id": 4,
+       "value": "Phase 4"
+      },
+      {
+       "id": 5,
+       "value": "Build [acme]"
+      },
+      {
+       "id": 6,
+       "value": "Phase 6"
+      },
+      {
+       "id": 7,
+       "value": "Phase 7"
+      }
+     ],
+     "transitions": {
+      "3": [
+       {
+        "to_state": 4,
+        "entry_criteria": []
+       }
+      ],
+      "4": [
+       {
+        "to_state": 5,
+        "entry_criteria": [
+         {
+          "name": "planned_start_date",
+          "operator": "is_not",
+          "value": ""
+         }
+        ]
+       },
+       {
+        "to_state": 7,
+        "entry_criteria": [
+         {
+          "fields": {
+           "9": {
+            "name": "customFields.cab_[ref]",
+            "operator": "is",
+            "value": "[yes]"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "5": [
+       {
+        "to_state": 6
+       }
+      ],
+      "6": [
+       {
+        "to_state": 7,
+        "entry_criteria": [
+         {
+          "name": "risk",
+          "operator": "is",
+          "value": 2
+         }
+        ]
+       }
+      ]
+     }
+    },
+    "change": {
+     "id": 123,
+     "human_display_id": "CHN-123",
+     "state_flow_id": 51,
+     "workspace_id": 17,
+     "status": 4,
+     "status_name": "Phase [b]4",
+     "state_traversal": [
+      1,
+      2,
+      3
+     ],
+     "change_type": 2
+    },
+    "printed": [
+     {
+      "table": "CHN-123 flow — [bold]Acme release[/] (change_type=2)",
+      "rows": [
+       [
+        "[green]✓[/]",
+        "[green]Phase 1[/]",
+        "[green]passed[/]",
+        "-"
+       ],
+       [
+        "[green]✓[/]",
+        "[green]Phase 2[/]",
+        "[green]passed[/]",
+        "-"
+       ],
+       [
+        "[green]✓[/]",
+        "[green]Phase 3[/]",
+        "[green]passed[/]",
+        "Phase 4"
+       ],
+       [
+        "[bold yellow]▶[/]",
+        "[bold yellow]Phase 4[/]",
+        "[bold yellow]current[/]",
+        "Build \\[acme], Phase 7"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Build [acme][/]",
+        "[dim]future[/]",
+        "Phase 6"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 6[/]",
+        "[dim]future[/]",
+        "Phase 7"
+       ],
+       [
+        "[dim]·[/]",
+        "[dim]Phase 7[/]",
+        "[dim]future[/]",
+        "-"
+       ]
+      ]
+     },
+     {
+      "text": "  current: [bold yellow]Phase [b]4[/] · past: 3 · ahead: 3"
+     },
+     {
+      "blank": true
+     },
+     {
+      "text": "[bold]Transitions from Phase \\[b]4:[/]"
+     },
+     {
+      "text": "  → Build \\[acme]: planned_start_date must be set"
+     },
+     {
+      "text": "  → Phase 7: cab_\\[ref] is '\\[yes]'"
+     },
+     {
+      "blank": true
+     },
+     {
+      "text": "[bold]Approval gates:[/]"
+     },
+     {
+      "text": "  ✓ L1: Alex Acme — approved"
+     },
+     {
+      "text": "  ✗ L2: 72 — rejected"
+     },
+     {
+      "text": "  ◷ L3: 73 — ?"
+     }
+    ]
+   }
+  ]
  }
 }

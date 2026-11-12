@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "8f156c08ec19b91dc42656707ee229f0b38112e0",
+  "commit": "7530df641ece233fbd3f79c43934b503a6a730db",
   "dirty": false
  },
  "edit_acme": {
@@ -485,14 +485,14 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write rejected (HTTP 400); no retry"
+     "msg": "write rejected (HTTP 400): failure; no retry"
     },
     "writes": 1
    },
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write rejected (HTTP 400); no retry"
+     "msg": "write rejected (HTTP 400): failure; no retry"
     },
     "writes": 2
    }
@@ -569,14 +569,14 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write rejected (HTTP 404); no retry"
+     "msg": "write rejected (HTTP 404): failure; no retry"
     },
     "writes": 1
    },
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write rejected (HTTP 404); no retry"
+     "msg": "write rejected (HTTP 404): failure; no retry"
     },
     "writes": 2
    }
@@ -1468,14 +1468,14 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write rejected (HTTP 400); no retry"
+     "msg": "write rejected (HTTP 400): failure; no retry"
     },
     "writes": 1
    },
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write rejected (HTTP 400); no retry"
+     "msg": "write rejected (HTTP 400): failure; no retry"
     },
     "writes": 2
    }
@@ -1552,14 +1552,14 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write rejected (HTTP 404); no retry"
+     "msg": "write rejected (HTTP 404): failure; no retry"
     },
     "writes": 1
    },
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write rejected (HTTP 404); no retry"
+     "msg": "write rejected (HTTP 404): failure; no retry"
     },
     "writes": 2
    }

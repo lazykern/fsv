@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "8ceb0e652cca2d8a63005860d1313169dd3ad968",
+  "commit": "7530df641ece233fbd3f79c43934b503a6a730db",
   "dirty": false
  },
  "canned": {
@@ -535,7 +535,7 @@
    ]
   },
   "fail_422": {
-   "error": "write rejected (HTTP 422); no retry",
+   "error": "write rejected (HTTP 422): synthetic; no retry",
    "type": "ReviewedWriteError",
    "calls": [
     [

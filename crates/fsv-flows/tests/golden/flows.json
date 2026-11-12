@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "9c8c91d8a10c52bd57a015e6591a8bea11c16b59",
+  "commit": "7530df641ece233fbd3f79c43934b503a6a730db",
   "dirty": false
  },
  "base_dir": "/work/drafts",
@@ -2864,6 +2864,995 @@
    },
    "template": "# Update change 501\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent: alex.kim@example.com\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T21:00+09:00\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
    "plan_text": "update plan 965e2186ef09b73c"
+  }
+ },
+ "update_lifecycle": {
+  "locked": {
+   "answers": {
+    "Subject": "Billing: rotate all keys",
+    "Services": "Billing"
+   },
+   "record": {
+    "id": 900000501,
+    "human_display_id": "CHN-501",
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "requester_id": 9000007001,
+    "change_type": 1,
+    "priority": 2,
+    "impact": 1,
+    "risk": 1,
+    "status": 1,
+    "group_id": 9000009001,
+    "agent_id": null,
+    "planned_start_date": "2030-11-26T12:00:00Z",
+    "planned_end_date": "2030-11-26T15:00:00Z",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live",
+     "services": [
+      "Billing"
+     ],
+     "notify_ops": "No",
+     "downtime_window": "22:00 - 22:30",
+     "reviewer": null,
+     "legacy_flag": false,
+     "staging_start": null,
+     "staging_end": null
+    }
+   },
+   "flow": {
+    "state_list": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "transitions": {
+     "1": [
+      {
+       "to_state": 2,
+       "entry_criteria": [
+        {
+         "name": "planned_start_date",
+         "operator": "is_not",
+         "value": ""
+        },
+        {
+         "fields": {
+          "7": {
+           "name": "customFields.cab_ref",
+           "operator": "is_not",
+           "value": null
+          }
+         }
+        },
+        {
+         "name": "risk",
+         "operator": "is",
+         "value": 2
+        }
+       ]
+      }
+     ],
+     "2": [
+      {
+       "to_state": 3,
+       "entry_criteria": []
+      }
+     ]
+    },
+    "state_properties": {
+     "field_lock_config": {
+      "1": [
+       {
+        "1": "subject",
+        "2": "customFields.notify_ops"
+       }
+      ]
+     }
+    }
+   },
+   "lifecycle_reads": 1,
+   "ok": false,
+   "hash": "",
+   "payload": {
+    "subject": "Billing: rotate all keys"
+   },
+   "errors": [
+    "locked in lifecycle state Open: Subject (subject) (field lock); the server rejects this write"
+   ],
+   "risks": [],
+   "json": {
+    "plan_hash": null,
+    "action": "update",
+    "target": 501,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "Update change 501",
+     "rows": [],
+     "changes": [
+      {
+       "label": "Subject",
+       "old": "Billing: rotate keys",
+       "new": "Billing: rotate all keys"
+      }
+     ],
+     "notify": [
+      "ops is notified"
+     ],
+     "messages": [],
+     "dropped": [
+      "Legacy Flag = No (hidden by rule 'Hide legacy flag')"
+     ],
+     "notes": [
+      "Stage: choices limited to Live by rule 'Cloud only: yes'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [
+      "locked in lifecycle state Open: Subject (subject) (field lock); the server rejects this write"
+     ],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "risks": [],
+    "requires_confirmation": false,
+    "errors": [
+     "locked in lifecycle state Open: Subject (subject) (field lock); the server rejects this write"
+    ]
+   },
+   "template": "# Update change 501\n# ERROR: locked in lifecycle state Open: Subject (subject) (field lock); the server rejects this write\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate all keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "update plan (incomplete)"
+  },
+  "edge_criteria": {
+   "answers": {
+    "Status": "Planning"
+   },
+   "record": {
+    "id": 900000501,
+    "human_display_id": "CHN-501",
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "requester_id": 9000007001,
+    "change_type": 1,
+    "priority": 2,
+    "impact": 1,
+    "risk": 1,
+    "status": 1,
+    "group_id": 9000009001,
+    "agent_id": null,
+    "planned_start_date": "2030-11-26T12:00:00Z",
+    "planned_end_date": "2030-11-26T15:00:00Z",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live",
+     "services": [
+      "Billing"
+     ],
+     "notify_ops": "No",
+     "downtime_window": "22:00 - 22:30",
+     "reviewer": null,
+     "legacy_flag": false,
+     "staging_start": null,
+     "staging_end": null
+    }
+   },
+   "flow": {
+    "state_list": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "transitions": {
+     "1": [
+      {
+       "to_state": 2,
+       "entry_criteria": [
+        {
+         "name": "planned_start_date",
+         "operator": "is_not",
+         "value": ""
+        },
+        {
+         "fields": {
+          "7": {
+           "name": "customFields.cab_ref",
+           "operator": "is_not",
+           "value": null
+          }
+         }
+        },
+        {
+         "name": "risk",
+         "operator": "is",
+         "value": 2
+        }
+       ]
+      }
+     ],
+     "2": [
+      {
+       "to_state": 3,
+       "entry_criteria": []
+      }
+     ]
+    },
+    "state_properties": {
+     "field_lock_config": {
+      "1": [
+       {
+        "1": "subject",
+        "2": "customFields.notify_ops"
+       }
+      ]
+     }
+    }
+   },
+   "lifecycle_reads": 1,
+   "ok": false,
+   "hash": "",
+   "payload": {
+    "status": 2
+   },
+   "errors": [
+    "entry criterion for Open → Planning not met: Risk (risk) is 2"
+   ],
+   "risks": [
+    "change status -> Planning"
+   ],
+   "json": {
+    "plan_hash": null,
+    "action": "update",
+    "target": 501,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "Update change 501",
+     "rows": [],
+     "changes": [
+      {
+       "label": "Status",
+       "old": "Open",
+       "new": "Planning"
+      }
+     ],
+     "notify": [
+      "ops is notified"
+     ],
+     "messages": [],
+     "dropped": [
+      "Legacy Flag = No (hidden by rule 'Hide legacy flag')"
+     ],
+     "notes": [
+      "Stage: choices limited to Live by rule 'Cloud only: yes'"
+     ],
+     "attachments": [],
+     "risks": [
+      "change status -> Planning"
+     ],
+     "errors": [
+      "entry criterion for Open → Planning not met: Risk (risk) is 2"
+     ],
+     "warnings": [
+      "entry criterion for Open → Planning not pre-checked: customFields.cab_ref must be set",
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "entry criterion for Open → Planning not pre-checked: customFields.cab_ref must be set",
+     "hints: unknown field 'Nope Field'"
+    ],
+    "risks": [
+     "change status -> Planning"
+    ],
+    "requires_confirmation": true,
+    "errors": [
+     "entry criterion for Open → Planning not met: Risk (risk) is 2"
+    ]
+   },
+   "template": "# Update change 501\n# ERROR: entry criterion for Open → Planning not met: Risk (risk) is 2\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "update plan (incomplete)"
+  },
+  "edge_criteria_lock": {
+   "answers": {
+    "Status": "Planning",
+    "Notify Ops Team": "Yes"
+   },
+   "record": {
+    "id": 900000501,
+    "human_display_id": "CHN-501",
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "requester_id": 9000007001,
+    "change_type": 1,
+    "priority": 2,
+    "impact": 1,
+    "risk": 1,
+    "status": 1,
+    "group_id": 9000009001,
+    "agent_id": null,
+    "planned_start_date": "2030-11-26T12:00:00Z",
+    "planned_end_date": "2030-11-26T15:00:00Z",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live",
+     "services": [
+      "Billing"
+     ],
+     "notify_ops": "No",
+     "downtime_window": "22:00 - 22:30",
+     "reviewer": null,
+     "legacy_flag": false,
+     "staging_start": null,
+     "staging_end": null
+    }
+   },
+   "flow": {
+    "state_list": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "transitions": {
+     "1": [
+      {
+       "to_state": 2,
+       "entry_criteria": [
+        {
+         "name": "planned_start_date",
+         "operator": "is_not",
+         "value": ""
+        },
+        {
+         "fields": {
+          "7": {
+           "name": "customFields.cab_ref",
+           "operator": "is_not",
+           "value": null
+          }
+         }
+        },
+        {
+         "name": "risk",
+         "operator": "is",
+         "value": 2
+        }
+       ]
+      }
+     ],
+     "2": [
+      {
+       "to_state": 3,
+       "entry_criteria": []
+      }
+     ]
+    },
+    "state_properties": {
+     "field_lock_config": {
+      "1": [
+       {
+        "1": "subject",
+        "2": "customFields.notify_ops"
+       }
+      ]
+     }
+    }
+   },
+   "lifecycle_reads": 1,
+   "ok": false,
+   "hash": "",
+   "payload": {
+    "status": 2,
+    "custom_fields": {
+     "notify_ops": "Yes"
+    }
+   },
+   "errors": [
+    "locked in lifecycle state Open: Notify Ops Team (notify_ops) (field lock); the server rejects this write",
+    "entry criterion for Open → Planning not met: Risk (risk) is 2"
+   ],
+   "risks": [
+    "change status -> Planning"
+   ],
+   "json": {
+    "plan_hash": null,
+    "action": "update",
+    "target": 501,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "Update change 501",
+     "rows": [],
+     "changes": [
+      {
+       "label": "Notify Ops Team",
+       "old": "No",
+       "new": "Yes"
+      },
+      {
+       "label": "Status",
+       "old": "Open",
+       "new": "Planning"
+      }
+     ],
+     "notify": [
+      "ops is notified"
+     ],
+     "messages": [],
+     "dropped": [
+      "Legacy Flag = No (hidden by rule 'Hide legacy flag')"
+     ],
+     "notes": [
+      "Stage: choices limited to Live by rule 'Cloud only: yes'"
+     ],
+     "attachments": [],
+     "risks": [
+      "change status -> Planning"
+     ],
+     "errors": [
+      "locked in lifecycle state Open: Notify Ops Team (notify_ops) (field lock); the server rejects this write",
+      "entry criterion for Open → Planning not met: Risk (risk) is 2"
+     ],
+     "warnings": [
+      "entry criterion for Open → Planning not pre-checked: customFields.cab_ref must be set",
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "entry criterion for Open → Planning not pre-checked: customFields.cab_ref must be set",
+     "hints: unknown field 'Nope Field'"
+    ],
+    "risks": [
+     "change status -> Planning"
+    ],
+    "requires_confirmation": true,
+    "errors": [
+     "locked in lifecycle state Open: Notify Ops Team (notify_ops) (field lock); the server rejects this write",
+     "entry criterion for Open → Planning not met: Risk (risk) is 2"
+    ]
+   },
+   "template": "# Update change 501\n# ERROR: locked in lifecycle state Open: Notify Ops Team (notify_ops) (field lock); the server rejects this write\n# ERROR: entry criterion for Open → Planning not met: Risk (risk) is 2\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: Yes\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "update plan (incomplete)"
+  },
+  "not_allowed": {
+   "answers": {
+    "Status": "Closed"
+   },
+   "record": {
+    "id": 900000501,
+    "human_display_id": "CHN-501",
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "requester_id": 9000007001,
+    "change_type": 1,
+    "priority": 2,
+    "impact": 1,
+    "risk": 1,
+    "status": 1,
+    "group_id": 9000009001,
+    "agent_id": null,
+    "planned_start_date": "2030-11-26T12:00:00Z",
+    "planned_end_date": "2030-11-26T15:00:00Z",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live",
+     "services": [
+      "Billing"
+     ],
+     "notify_ops": "No",
+     "downtime_window": "22:00 - 22:30",
+     "reviewer": null,
+     "legacy_flag": false,
+     "staging_start": null,
+     "staging_end": null
+    }
+   },
+   "flow": {
+    "state_list": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "transitions": {
+     "1": [
+      {
+       "to_state": 2,
+       "entry_criteria": [
+        {
+         "name": "planned_start_date",
+         "operator": "is_not",
+         "value": ""
+        },
+        {
+         "fields": {
+          "7": {
+           "name": "customFields.cab_ref",
+           "operator": "is_not",
+           "value": null
+          }
+         }
+        },
+        {
+         "name": "risk",
+         "operator": "is",
+         "value": 2
+        }
+       ]
+      }
+     ],
+     "2": [
+      {
+       "to_state": 3,
+       "entry_criteria": []
+      }
+     ]
+    },
+    "state_properties": {
+     "field_lock_config": {
+      "1": [
+       {
+        "1": "subject",
+        "2": "customFields.notify_ops"
+       }
+      ]
+     }
+    }
+   },
+   "lifecycle_reads": 1,
+   "ok": false,
+   "hash": "",
+   "payload": {
+    "status": 3
+   },
+   "errors": [
+    "Open → Closed is not an allowed lifecycle transition (allowed from Open: Planning)"
+   ],
+   "risks": [
+    "change status -> Closed"
+   ],
+   "json": {
+    "plan_hash": null,
+    "action": "update",
+    "target": 501,
+    "payload": null,
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "Update change 501",
+     "rows": [],
+     "changes": [
+      {
+       "label": "Status",
+       "old": "Open",
+       "new": "Closed"
+      }
+     ],
+     "notify": [
+      "ops is notified"
+     ],
+     "messages": [],
+     "dropped": [
+      "Legacy Flag = No (hidden by rule 'Hide legacy flag')"
+     ],
+     "notes": [
+      "Stage: choices limited to Live by rule 'Cloud only: yes'"
+     ],
+     "attachments": [],
+     "risks": [
+      "change status -> Closed"
+     ],
+     "errors": [
+      "Open → Closed is not an allowed lifecycle transition (allowed from Open: Planning)"
+     ],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "risks": [
+     "change status -> Closed"
+    ],
+    "requires_confirmation": true,
+    "errors": [
+     "Open → Closed is not an allowed lifecycle transition (allowed from Open: Planning)"
+    ]
+   },
+   "template": "# Update change 501\n# ERROR: Open → Closed is not an allowed lifecycle transition (allowed from Open: Planning)\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "update plan (incomplete)"
+  },
+  "from_planning": {
+   "answers": {
+    "Status": "Closed"
+   },
+   "record": {
+    "id": 900000501,
+    "human_display_id": "CHN-501",
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "requester_id": 9000007001,
+    "change_type": 1,
+    "priority": 2,
+    "impact": 1,
+    "risk": 1,
+    "status": 2,
+    "group_id": 9000009001,
+    "agent_id": null,
+    "planned_start_date": "2030-11-26T12:00:00Z",
+    "planned_end_date": "2030-11-26T15:00:00Z",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live",
+     "services": [
+      "Billing"
+     ],
+     "notify_ops": "No",
+     "downtime_window": "22:00 - 22:30",
+     "reviewer": null,
+     "legacy_flag": false,
+     "staging_start": null,
+     "staging_end": null
+    }
+   },
+   "flow": {
+    "state_list": [
+     {
+      "id": 1,
+      "value": "Open"
+     },
+     {
+      "id": 2,
+      "value": "Planning"
+     },
+     {
+      "id": 3,
+      "value": "Closed"
+     }
+    ],
+    "transitions": {
+     "1": [
+      {
+       "to_state": 2,
+       "entry_criteria": [
+        {
+         "name": "planned_start_date",
+         "operator": "is_not",
+         "value": ""
+        },
+        {
+         "fields": {
+          "7": {
+           "name": "customFields.cab_ref",
+           "operator": "is_not",
+           "value": null
+          }
+         }
+        },
+        {
+         "name": "risk",
+         "operator": "is",
+         "value": 2
+        }
+       ]
+      }
+     ],
+     "2": [
+      {
+       "to_state": 3,
+       "entry_criteria": []
+      }
+     ]
+    },
+    "state_properties": {
+     "field_lock_config": {
+      "1": [
+       {
+        "1": "subject",
+        "2": "customFields.notify_ops"
+       }
+      ]
+     }
+    }
+   },
+   "lifecycle_reads": 1,
+   "ok": true,
+   "hash": "8f61a973d4971755a48ce81897339464a52fb760a2c30a2f04fc30405e53e193",
+   "payload": {
+    "status": 3
+   },
+   "errors": [],
+   "risks": [
+    "change status -> Closed"
+   ],
+   "json": {
+    "plan_hash": "8f61a973d4971755a48ce81897339464a52fb760a2c30a2f04fc30405e53e193",
+    "action": "update",
+    "target": 501,
+    "payload": {
+     "status": 3
+    },
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "Update change 501",
+     "rows": [],
+     "changes": [
+      {
+       "label": "Status",
+       "old": "Planning",
+       "new": "Closed"
+      }
+     ],
+     "notify": [
+      "ops is notified"
+     ],
+     "messages": [],
+     "dropped": [
+      "Legacy Flag = No (hidden by rule 'Hide legacy flag')"
+     ],
+     "notes": [
+      "Stage: choices limited to Live by rule 'Cloud only: yes'"
+     ],
+     "attachments": [],
+     "risks": [
+      "change status -> Closed"
+     ],
+     "errors": [],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": "8f61a973d4971755a48ce81897339464a52fb760a2c30a2f04fc30405e53e193"
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "risks": [
+     "change status -> Closed"
+    ],
+    "requires_confirmation": true,
+    "errors": []
+   },
+   "template": "# Update change 501\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "update plan 8f61a973d4971755"
+  },
+  "read_failure": {
+   "answers": {
+    "Status": "Planning"
+   },
+   "record": {
+    "id": 900000501,
+    "human_display_id": "CHN-501",
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "requester_id": 9000007001,
+    "change_type": 1,
+    "priority": 2,
+    "impact": 1,
+    "risk": 1,
+    "status": 1,
+    "group_id": 9000009001,
+    "agent_id": null,
+    "planned_start_date": "2030-11-26T12:00:00Z",
+    "planned_end_date": "2030-11-26T15:00:00Z",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live",
+     "services": [
+      "Billing"
+     ],
+     "notify_ops": "No",
+     "downtime_window": "22:00 - 22:30",
+     "reviewer": null,
+     "legacy_flag": false,
+     "staging_start": null,
+     "staging_end": null
+    }
+   },
+   "flow": null,
+   "lifecycle_reads": 1,
+   "ok": true,
+   "hash": "6a166f1a86642ca7392a63d046d899594e5375fd3b88003e8f177464f01e7cd4",
+   "payload": {
+    "status": 2
+   },
+   "errors": [],
+   "risks": [
+    "change status -> Planning"
+   ],
+   "json": {
+    "plan_hash": "6a166f1a86642ca7392a63d046d899594e5375fd3b88003e8f177464f01e7cd4",
+    "action": "update",
+    "target": 501,
+    "payload": {
+     "status": 2
+    },
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "Update change 501",
+     "rows": [],
+     "changes": [
+      {
+       "label": "Status",
+       "old": "Open",
+       "new": "Planning"
+      }
+     ],
+     "notify": [
+      "ops is notified"
+     ],
+     "messages": [],
+     "dropped": [
+      "Legacy Flag = No (hidden by rule 'Hide legacy flag')"
+     ],
+     "notes": [
+      "Stage: choices limited to Live by rule 'Cloud only: yes'"
+     ],
+     "attachments": [],
+     "risks": [
+      "change status -> Planning"
+     ],
+     "errors": [],
+     "warnings": [
+      "lifecycle pre-check unavailable (APIError); the server decides edges and criteria",
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": "6a166f1a86642ca7392a63d046d899594e5375fd3b88003e8f177464f01e7cd4"
+    },
+    "warnings": [
+     "lifecycle pre-check unavailable (APIError); the server decides edges and criteria",
+     "hints: unknown field 'Nope Field'"
+    ],
+    "risks": [
+     "change status -> Planning"
+    ],
+    "requires_confirmation": true,
+    "errors": []
+   },
+   "template": "# Update change 501\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "update plan 6a166f1a86642ca7"
+  },
+  "nothing": {
+   "answers": {
+    "Subject": "Billing: rotate keys"
+   },
+   "record": {
+    "id": 900000501,
+    "human_display_id": "CHN-501",
+    "subject": "Billing: rotate keys",
+    "description": "<p>Rotate keys.</p>",
+    "requester_id": 9000007001,
+    "change_type": 1,
+    "priority": 2,
+    "impact": 1,
+    "risk": 1,
+    "status": 1,
+    "group_id": 9000009001,
+    "agent_id": null,
+    "planned_start_date": "2030-11-26T12:00:00Z",
+    "planned_end_date": "2030-11-26T15:00:00Z",
+    "custom_fields": {
+     "cloud_only": "Yes",
+     "stage": "Live",
+     "services": [
+      "Billing"
+     ],
+     "notify_ops": "No",
+     "downtime_window": "22:00 - 22:30",
+     "reviewer": null,
+     "legacy_flag": false,
+     "staging_start": null,
+     "staging_end": null
+    }
+   },
+   "flow": null,
+   "lifecycle_reads": 0,
+   "ok": true,
+   "hash": "",
+   "payload": {},
+   "errors": [],
+   "risks": [],
+   "json": {
+    "plan_hash": null,
+    "action": "update",
+    "target": 501,
+    "payload": {},
+    "after": {
+     "attachments": [],
+     "planning": []
+    },
+    "review": {
+     "title": "Update change 501",
+     "rows": [],
+     "changes": [],
+     "notify": [
+      "ops is notified"
+     ],
+     "messages": [],
+     "dropped": [
+      "Legacy Flag = No (hidden by rule 'Hide legacy flag')"
+     ],
+     "notes": [
+      "Stage: choices limited to Live by rule 'Cloud only: yes'"
+     ],
+     "attachments": [],
+     "risks": [],
+     "errors": [],
+     "warnings": [
+      "hints: unknown field 'Nope Field'"
+     ],
+     "plan_hash": ""
+    },
+    "warnings": [
+     "hints: unknown field 'Nope Field'"
+    ],
+    "risks": [],
+    "requires_confirmation": false,
+    "errors": []
+   },
+   "template": "# Update change 501\n# Fill in values after the colons. Lines starting with # are ignored.\n# Fields appear and disappear with your answers, like the web form; after\n# saving, new required fields are added and the file reopens if needed.\n# Full choice lists: fsv form fields changes --choices LABEL\n# Save and close to continue; close without changes to abort.\n\n# REQUIRED · email or exact name of the requester\nrequester:\nanswers:\n  # optional · lookup (name or email) · The user this change is for, if not the requester (shown in fsv only: not sent yet).\n  Request for:\n  # REQUIRED · text\n  # e.g. Service: objective\n  Subject: \"Billing: rotate keys\"\n  # REQUIRED · dropdown\n  # choices: Normal | Standard | Emergency\n  Change Type: Normal\n  # REQUIRED · dropdown · Only the cloud team performs this change\n  # choices: Yes | No\n  Cloud Only: Yes\n  # optional · dropdown · only option allowed by rule Cloud only: yes\n  # choices: Live\n  Stage: Live\n  # optional · multi-select (list)\n  # choices: Billing | Search | Reports | Ledger | Mail | Chat | Docs | Wiki | Pager | Auth | Queue | Cache | … (14 total; fsv form fields changes --choices Services)\n  Services: [Billing]\n  # optional · dropdown\n  # choices: Yes | No\n  Notify Ops Team: No\n  # optional · lookup (name or email)\n  Reviewer:\n  # REQUIRED · text\n  # e.g. 22:00 - 22:30\n  Downtime Window: 22:00 - 22:30\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High | Urgent\n  #   Low — Can wait\n  #   Medium — Planned work\n  #   High — Revenue at risk\n  #   Urgent — Outage\n  Priority: Medium\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Impact: Low\n  # REQUIRED · dropdown\n  # choices: Low | Medium | High\n  Risk: Low\n  # optional · lookup (name or email)\n  Group: Platform Ops\n  # optional · lookup (name or email)\n  Agent:\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned Start Date: 2030-11-26T12:00:00Z\n  # REQUIRED · date-time (YYYY-MM-DD HH:MM, optional +HH:MM)\n  Planned End Date: 2030-11-26T15:00:00Z\n\n# REQUIRED · Description · Markdown (or use description_html for raw HTML)\ndescription_html: |-\n  <p>Rotate keys.</p>\n\n# Files to attach after the change is created (uploaded only after you confirm)\nattachments: []\n# planning:            # planning field label -> files\n#   Rollout Plan: [rollout.xlsx]\n",
+   "plan_text": "update plan (incomplete)"
   }
  },
  "ticket": {

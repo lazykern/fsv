@@ -1,6 +1,6 @@
 {
   "_python": {
-    "commit": "bf6576c26e6c4afb89be7b22e00033c600bae8d9",
+    "commit": "7530df641ece233fbd3f79c43934b503a6a730db",
     "dirty": false
   },
   "cases": [
@@ -178,7 +178,7 @@
     },
     {
       "name": "422",
-      "err": "write rejected (HTTP 422); no retry",
+      "err": "write rejected (HTTP 422): synthetic; no retry",
       "replay": null,
       "writes": 1
     },

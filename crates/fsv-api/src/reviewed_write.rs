@@ -150,7 +150,17 @@ pub fn execute_rejecting(
                 journal.record_plan("failed", &hash, &plan.action, Some(&target), None);
                 return Err(refused(match (rejection, e.as_api()) {
                     (Some(word), Some(api)) => word(api),
-                    _ => format!("write rejected (HTTP {status}); no retry"),
+                    (_, api) => {
+                        let reason = api.map_or_else(String::new, |a| {
+                            fsv_core::error::server_message(&a.body, 240)
+                        });
+                        let reason = if reason.is_empty() {
+                            reason
+                        } else {
+                            format!(": {reason}")
+                        };
+                        format!("write rejected (HTTP {status}){reason}; no retry")
+                    }
                 }));
             }
             return Err(refused(UNKNOWN));
@@ -281,7 +291,7 @@ mod tests {
         let j = MemJournal::default();
         assert_eq!(
             err(execute(&p, &c, &j, Some(&h), &same, &unverified)),
-            "write rejected (HTTP 422); no retry"
+            "write rejected (HTTP 422): nope; no retry"
         );
         assert_eq!(j.events(), ["started", "failed"]);
         let d = WritePlan {

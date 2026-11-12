@@ -1,5 +1,5 @@
 """Expected values for the fsv-api query and state-flow matrices (Python
-`bd6f6bd`: `tests/test_query_matrix.py`, `tests/test_strict_filter_contract.py`, `tests/test_state_flow_render.py`).
+`bd6f6bd`: `tests/test_query_matrix.py`, `tests/test_strict_filter_contract.py`, `tests/test_state_flow_render.py`; transitions and locks 7530df6).
 
 Each case runs the Python test's inputs through `fsv.query` /
 `fsv.state_flow` with the same fakes. Renderers print into a recording
@@ -167,7 +167,7 @@ class Rec:
     def __init__(self):
         self.printed = []
 
-    def print(self, *args):
+    def print(self, *args, **kw):
         if not args:
             self.printed.append({"blank": True})
         elif isinstance(args[0], Table):
@@ -293,6 +293,34 @@ def gen_flow():
     state_flow.get_client = lambda: SimpleNamespace(int_get=denied)
     out["denied"] = {"approvals": state_flow._try_get_approvals(123, SimpleNamespace(int_get=denied)),
                      **render(state_flow.render_flow, copy.deepcopy(CHANGE))}
+
+    # 7530df6: allowed transitions, entry criteria and field locks.
+    transitions = []
+    edges = {
+        "3": [{"to_state": 4, "entry_criteria": []}],
+        "4": [{"to_state": 5, "entry_criteria": [{"name": "planned_start_date", "operator": "is_not", "value": ""}]},
+              {"to_state": 7, "entry_criteria": [{"fields": {"9": {"name": "customFields.cab_[ref]", "operator": "is",
+                                                                     "value": "[yes]"}}}]}],
+        "5": [{"to_state": 6}], "6": [{"to_state": 7, "entry_criteria": [{"name": "risk", "operator": "is", "value": 2}]}],
+    }
+    lock = {"field_lock_config": {"4": [{"1": "status", "2": "customFields.cab_[ref]"}, {"3": "status"}], "7": [{"1": "subject"}]}}
+    for case, status, extra in [
+        ("edges", 4, {"transitions": edges, "state_properties": lock}),
+        ("no_criteria", 3, {"transitions": edges}),
+        ("final", 7, {"transitions": edges, "state_properties": lock}),
+        ("locks_only", 4, {"state_properties": lock}),
+        ("empty_transitions", 4, {"transitions": {}, "state_properties": lock}),
+        ("bad_transitions", 4, {"transitions": [1]}),
+        ("escaped", 4, {"transitions": edges}),
+    ]:
+        flow, change, calls = flow_env()
+        flow.update(copy.deepcopy(extra))
+        change["status"], change["status_name"] = status, f"Phase {status}"
+        if case == "escaped":
+            flow["state_list"][4]["value"] = "Build [acme]"
+            change["status_name"] = "Phase [b]4"
+        transitions.append({"case": case, "flow": flow, "change": change, **render(state_flow.render_flow, change)})
+    out["transitions"] = transitions
     return out
 
 
