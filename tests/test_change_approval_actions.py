@@ -47,6 +47,8 @@ def test_exact_single_put_and_named_decision(monkeypatch, tenant, operation, rem
                                "updated_at": "2026-01-01T01:00:00Z",
                                "data": remark or ""}]
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):  # approval-model probe: chains tenant
+            return httpx.Response(200, json={"approval_chains": []})
         seen.append(req)
         if req.method == "PUT":
             return httpx.Response(200, json={"status": "not trusted"})
@@ -83,6 +85,8 @@ def test_exact_single_put_and_named_decision(monkeypatch, tenant, operation, rem
 def test_raw_changed_status_no_invented_mapping(monkeypatch, status):
     seen = []
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):  # approval-model probe: chains tenant
+            return httpx.Response(200, json={"approval_chains": []})
         seen.append(req)
         if req.method == "PUT":
             return httpx.Response(200, json={})
@@ -136,6 +140,8 @@ def test_ambiguous_readback_blocks_duplicate(monkeypatch, case):
     elif case in ("boolean-id", "zero-id"):
         after[0]["status"]["id"] = True if case == "boolean-id" else 0
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):  # approval-model probe: chains tenant
+            return httpx.Response(200, json={"approval_chains": []})
         seen.append(req)
         if req.method == "PUT":
             return httpx.Response(200, json={"status": {"id": 1, "name": "approved"}})
@@ -162,6 +168,8 @@ def test_ambiguous_readback_blocks_duplicate(monkeypatch, case):
 def test_no_replay_on_write_failure(monkeypatch, failure):
     seen = []
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):  # approval-model probe: chains tenant
+            return httpx.Response(200, json={"approval_chains": []})
         seen.append(req)
         if req.method == "GET":
             return httpx.Response(200, json=rows())
@@ -203,6 +211,8 @@ def test_preparation_fail_closed(monkeypatch, case):
     elif case == "wrong-change":
         data[0]["change_id"] = 999
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):  # approval-model probe: chains tenant
+            return httpx.Response(200, json={"approval_chains": []})
         seen.append(req)
         assert req.method == "GET"
         meta = {"partial": True} if case == "partial" else {"total_count": 99} if case == "total" else {}
@@ -358,6 +368,8 @@ def test_cli_actual_reviewed_send(monkeypatch, json_out, operation):
     review = json.loads(draft.stdout)
     seen = []
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):  # approval-model probe: chains tenant
+            return httpx.Response(200, json={"approval_chains": []})
         seen.append(req)
         if req.method == "PUT":
             return httpx.Response(200, json={})
@@ -386,6 +398,8 @@ def test_cli_actual_reviewed_send(monkeypatch, json_out, operation):
 def test_paginated_inventory(monkeypatch, complete):
     seen, written = [], False
     def handler(req):
+        if req.url.path.endswith("/approval-chains"):  # approval-model probe: chains tenant
+            return httpx.Response(200, json={"approval_chains": []})
         nonlocal written
         seen.append(req)
         if req.method == "PUT":

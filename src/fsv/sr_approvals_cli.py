@@ -14,7 +14,7 @@ def register(app: typer.Typer, factory: Callable[[], Any]) -> None:
     @group.command("list")
     def listing(target: str, json_out: bool = typer.Option(False, "--json")) -> None:
         from fsv.resources import parse_id, TICKETS
-        guard(lambda: typer.echo(json.dumps({"approval_groups": approvals.inventory(factory(), parse_id(target, TICKETS))}, indent=2)))
+        guard(lambda: typer.echo(json.dumps(approvals.listing(factory(), parse_id(target, TICKETS)), indent=2)))
 
     @group.command("request")
     def request(target: str, name: str = typer.Option(..., "--name"), message: str = typer.Option(..., "--message"),

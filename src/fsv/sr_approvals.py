@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
-from fsv import config, journal
+from fsv import approval_model, config, journal
 from fsv.change_approvals import RULES, ApprovalError, get_change_approval_groups
 from fsv.resources import TICKETS, parse_id
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
@@ -23,6 +23,18 @@ def inventory(client: Any, target: int) -> list[dict[str, Any]]:
         return get_change_approval_groups(target, client, module="tickets")
     except ApprovalError as exc:
         raise ReviewedWriteError(str(exc)) from None
+
+
+def listing(client: Any, target: int) -> dict[str, Any]:
+    """Read-only list on either approval model: chain groups when the tenant
+    has them, else the flat per-member approvals list (``tickets approvals``)."""
+    model, status = approval_model.detect(client, "tickets", target)
+    if model != approval_model.LEGACY:
+        return {"approval_groups": inventory(client, target)}
+    from fsv import service
+    from fsv.resources import TICKETS as _T
+    return {"model": "legacy", "note": approval_model.describe(status),
+            "approvals": service.get_ticket_approvals(_T, target, client=client)}
 
 
 def recipients(client: Any, values: list[str]) -> list[int]:
@@ -58,6 +70,7 @@ def build_plan(client: Any, target: str | int, operation: str, *, ident: int | N
         raise ValueError("unsupported approval action; delegation is unproven")
     if operation == "reject" and not remark.strip():
         raise ValueError("reject requires a nonempty --remark")
+    approval_model.require_chains(client, "tickets", target, f"sr approvals {operation}")
     before = inventory(client, target)
     path = f"tickets/{target}"
     if operation == "request":

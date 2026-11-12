@@ -12,7 +12,8 @@ from typing import Any
 import typer
 
 from fsv import config, journal
-from fsv.change_approvals import ApprovalError, _id, _inventory, get_change_approval_groups
+from fsv.change_approvals import (ApprovalError, LegacyChainsError, _id, _inventory, _require_chains,
+                                  get_change_approval_groups)
 from fsv.client import get_client
 from fsv.errors import APIError
 from fsv.resources import CHANGES, parse_id
@@ -20,6 +21,8 @@ from fsv.resources import CHANGES, parse_id
 _WARNING = ("Approval actions notify people; approval/rejection may move the change workflow. "
             "Cancellation is irreversible. Review the exact tenant and identifiers.")
 _UNKNOWN = "approval action outcome unknown; inspect the change and journal before any retry; do not resubmit"
+# The decision/cancel wires were proven on the chains model only.
+_COMMAND = {"approve": "approval-respond --approve", "reject": "approval-respond --reject", "cancel": "approval-cancel"}
 
 
 @dataclass(frozen=True)
@@ -109,6 +112,8 @@ def _requested(status: Any) -> bool:
 def _cancel_group(client: Any, plan: ActionPlan) -> dict[str, Any]:
     try:
         groups = get_change_approval_groups(plan.change_id, client)
+    except LegacyChainsError as exc:
+        raise exc.refusal("approval-cancel") from None
     except Exception:
         raise ApprovalError("could not read complete approval chains; no cancel PUT attempted") from None
     group = next((g for g in groups if _id(g["id"]) == plan.target_id), None)
@@ -167,8 +172,10 @@ def send(plan: ActionPlan, client: Any = None, *, reviewed_hash: str | None,
     prior = events()
     if prior and prior[-1].get("event") in ("started", "done"):
         raise ApprovalError("this approval action was sent or its outcome is unknown; inspect the change and journal; do not resubmit")
+    c = client if client is not None else get_client()
+    if plan.operation != "cancel":  # cancel reads the chains itself (_cancel_group)
+        _require_chains(c, plan.change_id, _COMMAND[plan.operation])
     try:
-        c = client if client is not None else get_client()
         if plan.operation == "cancel":
             before = _cancel_group(c, plan)
             before_rows = before["approvals"]

@@ -18,7 +18,7 @@ from fsv import config, journal, views
 from fsv.client import get_client
 from fsv.errors import APIError
 from fsv.resources import CHANGES, parse_id
-from fsv import approval_recipients
+from fsv import approval_model, approval_recipients
 from fsv.reviewed_write import ReviewedWriteError
 
 RULES = {"everyone": (1, "Everyone"), "anyone": (2, "Anyone"),
@@ -32,6 +32,17 @@ _EMAIL = re.compile(r"[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+\Z")
 
 class ApprovalError(RuntimeError):
     """Safe user-facing failure without raw session or response details."""
+
+
+class LegacyChainsError(ApprovalError):
+    """approval-chains answered 400/404: the tenant runs legacy flat approvals."""
+
+    def __init__(self, status: int | None, message: str) -> None:
+        super().__init__(message)
+        self.status = status
+
+    def refusal(self, action: str) -> ApprovalError:
+        return ApprovalError(f"{action} refused: {approval_model.describe(self.status)}; {approval_model.NOT_SUPPORTED}")
 
 
 def _id(value: Any) -> int | None:
@@ -205,8 +216,14 @@ def get_change_approval_groups(change_id: int, c: Any = None, *, module: str = "
     seen_records: set[int] = set()
     totals: set[int] = set()
     for page in range(1, 101):
-        data = c.int_get(f"{module}/{change_id}/approval-chains",
-                         params={"page": page, "per_page": 100})
+        try:
+            data = c.int_get(f"{module}/{change_id}/approval-chains",
+                             params={"page": page, "per_page": 100})
+        except APIError as exc:
+            if page == 1 and approval_model.is_absent(exc):
+                raise LegacyChainsError(exc.status, f"approval groups unavailable: {approval_model.describe(exc.status)}; "
+                                    f"{approval_model.NOT_SUPPORTED} (list the flat records without --groups)") from None
+            raise
         if not isinstance(data, dict) or not isinstance(data.get("approval_chains"), list):
             raise ApprovalError("approval chains inventory is unreadable")
         more = False
@@ -308,6 +325,13 @@ def _verify_new(rows: list[dict[str, Any]], plan: ApprovalPlan) -> None:
         raise ApprovalError("new approval records do not exactly match the recipients")
 
 
+def _require_chains(client: Any, change_id: int, action: str) -> None:
+    try:
+        approval_model.require_chains(client, "changes", change_id, action)
+    except approval_model.LegacyApprovalsError as exc:
+        raise ApprovalError(str(exc)) from None
+
+
 def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
          read_only: bool = False, dry_run: bool = False) -> dict[str, Any]:
     if build_plan(plan.change_id, plan.name, plan.message, approver_ids=plan.approver_ids, rule=plan.rule, recipient_context_json=plan.recipient_context_json) != plan:
@@ -327,8 +351,8 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
     prior = events()
     if prior and prior[-1].get("event") in ("started", "done"):
         raise ApprovalError("this approval request was sent or its outcome is unknown; inspect the change and journal; do not resubmit")
+    c = client if client is not None else get_client()
     try:
-        c = client if client is not None else get_client()
         approval_recipients.validate(c, plan.change_id, plan.recipient_context_json)
         before_rows = _inventory(c, plan)
         before_ids = {_id(r["id"]) for r in before_rows}
@@ -339,6 +363,8 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
     # established complete per-record verification path.
     try:
         before_groups = get_change_approval_groups(plan.change_id, c)
+    except LegacyChainsError as exc:
+        raise exc.refusal("approval-request") from None
     except Exception:
         before_groups = None
     journal.record_plan("started", plan.hash, action=_ACTION, target=plan.change_id)

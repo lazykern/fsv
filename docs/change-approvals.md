@@ -14,6 +14,22 @@ recipients, requester substitution, fuzzy names, recipient groups, HTML input,
 attachments or revoke operations are supported by `approval-request`. Reviewed
 individual decisions and reviewed group cancellation are described below.
 
+## Approval model detection
+
+Tenants without the parallel-approvals feature answer
+`GET /api/_/<changes|tickets>/<id>/approval-chains` with 400 or 404 (legacy
+flat approvals). fsv (`fsv.approval_model`) treats only those statuses as
+proof; 403/5xx stay "unknown" and the existing chains path keeps its own
+fail-closed checks. On a legacy tenant:
+
+* `changes approval-request`, `approval-respond`, `approval-cancel`,
+  `changes approvals --groups` and every `sr approvals` write refuse before
+  any write with `... refused: this tenant uses legacy flat approvals
+  (approval-chains answered HTTP 400); legacy flat approvals: not yet supported`.
+* Read-only listing uses the flat per-member list: `changes approvals` (without
+  `--groups`), `tickets approvals`, and `sr approvals list` (which then returns
+  `{"model": "legacy", "note": ..., "approvals": [...]}`).
+
 ## Review and send
 
 All examples use invented identifiers. First review without sending:
