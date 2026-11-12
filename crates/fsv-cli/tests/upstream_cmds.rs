@@ -15,7 +15,7 @@
 //! Expected output was captured from
 //! Python on the same routes (`tests/golden/emit_upstream.py`); one-shot
 //! routes serve the record before the write and the changed record after it.
-//! Python commit: 291e5cdd665690ed86dede4c1dbbfa5044cba1c1
+//! Python commit: 915df4c5698123216b7e6a7b6827a788e1ca6dc9
 
 mod common;
 use common::{run_files, run_fixture};
@@ -2183,6 +2183,7 @@ fn forward_conversation_send() {
     "from_email": "matched"
   },
   "source_conversation_id": 900,
+  "source_link_readback": "unavailable",
   "source_link_verified": false,
   "verification_scope": "delivery fields; source link is not exposed by independent readback"
 }
@@ -2671,7 +2672,8 @@ fn bulk_priority_send_verifies() {
   "tickets": {
     "5": "matched",
     "6": "matched"
-  }
+  },
+  "readback_attempts": 1
 }
 "#
     );
@@ -2710,6 +2712,7 @@ fn bulk_priority_unverified_exits_1() {
     "5": "matched",
     "7": "mismatched"
   },
+  "readback_attempts": 4,
   "warning": "Readback was not fully verified; do not resend."
 }
 "#
@@ -7652,7 +7655,8 @@ fn tickets_merge_send() {
       "conversations_moved": true,
       "source_note": true
     }
-  }
+  },
+  "readback_attempts": 1
 }
 "#
     );
@@ -7705,6 +7709,7 @@ fn tickets_merge_readback_unverified() {
       "source_note": true
     }
   },
+  "readback_attempts": 4,
   "warning": "Readback was not fully verified; do not resend."
 }
 "#
@@ -7987,7 +7992,8 @@ fn tickets_assign_unassign_send() {
     "123": {
       "responder_id": "matched"
     }
-  }
+  },
+  "readback_attempts": 1
 }
 "#
     );
@@ -8063,7 +8069,8 @@ fn tickets_assign_agent_send() {
     "124": {
       "responder_id": "matched"
     }
-  }
+  },
+  "readback_attempts": 1
 }
 "#
     );
@@ -8264,6 +8271,7 @@ fn tickets_assign_readback_unverified() {
       "responder_id": "mismatched"
     }
   },
+  "readback_attempts": 4,
   "warning": "Readback was not fully verified; do not resend."
 }
 "#
@@ -8342,7 +8350,8 @@ fn tickets_pick_up_send() {
     "125": {
       "responder_id": "matched"
     }
-  }
+  },
+  "readback_attempts": 1
 }
 "#
     );
@@ -10647,6 +10656,179 @@ fn where_unfilterable_subject() {
     assert_eq!(
         r.err,
         r#"error: field not found: Subject; filter by a label shown on the form (Agent, Count, Department, Due Date, Environment, Group, Note, Priority, Requester, Status) or see `fsv tickets fields`
+"#
+    );
+}
+
+#[test]
+fn ls_type_name_sends_choice_name() {
+    let r = run_fixture(
+        "where_type",
+        &["tickets", "ls", "--where", "type=Service Request", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"[
+  {
+    "id": 1,
+    "display_id": 1,
+    "subject": "Item 1",
+    "status": 2,
+    "priority": 1,
+    "group_id": 7,
+    "responder_id": 99,
+    "requester": {
+      "name": "Ann"
+    },
+    "created_at": "2024-03-01T10:00:00Z",
+    "updated_at": "2024-03-02T10:00:00Z",
+    "due_by": "2024-03-05T10:00:00Z"
+  },
+  {
+    "id": 2,
+    "display_id": 2,
+    "subject": "Second [x]",
+    "status": 4,
+    "priority": 1,
+    "group_id": 7,
+    "responder_id": 99,
+    "requester": {
+      "name": "Ann"
+    },
+    "created_at": "2024-03-01T10:00:00Z",
+    "updated_at": "2024-03-02T10:00:00Z",
+    "due_by": "2024-03-05T10:00:00Z"
+  }
+]
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn ls_type_id_sends_choice_name() {
+    let r = run_fixture(
+        "where_type",
+        &["tickets", "ls", "--where", "type=7402", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"[
+  {
+    "id": 1,
+    "display_id": 1,
+    "subject": "Item 1",
+    "status": 2,
+    "priority": 1,
+    "group_id": 7,
+    "responder_id": 99,
+    "requester": {
+      "name": "Ann"
+    },
+    "created_at": "2024-03-01T10:00:00Z",
+    "updated_at": "2024-03-02T10:00:00Z",
+    "due_by": "2024-03-05T10:00:00Z"
+  },
+  {
+    "id": 2,
+    "display_id": 2,
+    "subject": "Second [x]",
+    "status": 4,
+    "priority": 1,
+    "group_id": 7,
+    "responder_id": 99,
+    "requester": {
+      "name": "Ann"
+    },
+    "created_at": "2024-03-01T10:00:00Z",
+    "updated_at": "2024-03-02T10:00:00Z",
+    "due_by": "2024-03-05T10:00:00Z"
+  }
+]
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn ls_type_not_equal_sends_name() {
+    let r = run_fixture(
+        "where_type",
+        &["tickets", "ls", "--where", "type!=Incident", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"[
+  {
+    "id": 1,
+    "display_id": 1,
+    "subject": "Item 1",
+    "status": 2,
+    "priority": 1,
+    "group_id": 7,
+    "responder_id": 99,
+    "requester": {
+      "name": "Ann"
+    },
+    "created_at": "2024-03-01T10:00:00Z",
+    "updated_at": "2024-03-02T10:00:00Z",
+    "due_by": "2024-03-05T10:00:00Z"
+  },
+  {
+    "id": 2,
+    "display_id": 2,
+    "subject": "Second [x]",
+    "status": 4,
+    "priority": 1,
+    "group_id": 7,
+    "responder_id": 99,
+    "requester": {
+      "name": "Ann"
+    },
+    "created_at": "2024-03-01T10:00:00Z",
+    "updated_at": "2024-03-02T10:00:00Z",
+    "due_by": "2024-03-05T10:00:00Z"
+  }
+]
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn ls_type_unknown_never_lists() {
+    let r = run_fixture(
+        "where_type",
+        &["tickets", "ls", "--where", "type=Case", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: no unique runtime choice 'Case' for Type
+"#
+    );
+}
+
+#[test]
+fn ls_type_retired_never_lists() {
+    let r = run_fixture(
+        "where_type",
+        &["tickets", "ls", "--where", "type=Retired", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: no unique runtime choice 'Retired' for Type
 "#
     );
 }
@@ -14054,6 +14236,524 @@ fn tickets_bulk_filter_with_ids_refused() {
     assert_eq!(
         r.err,
         r#"filters require --select-all and no explicit IDs
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_subject_filter_acme_status_dry_run() {
+    let r = run_fixture(
+        "ticket_bulk_filter",
+        &[
+            "tickets",
+            "bulk",
+            "status",
+            "--where",
+            "Subject=Acme rollout",
+            "--select-all",
+            "--max-records",
+            "5",
+            "--status",
+            "Open",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_subject_filter_acme_status_send() {
+    let r = run_fixture(
+        "ticket_bulk_filter",
+        &[
+            "tickets",
+            "bulk",
+            "status",
+            "--where",
+            "Subject=Acme rollout",
+            "--select-all",
+            "--max-records",
+            "5",
+            "--status",
+            "Open",
+            "--yes",
+            "--expect-plan",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_subject_filter_acme_spam_dry_run() {
+    let r = run_fixture(
+        "ticket_bulk_filter",
+        &[
+            "tickets",
+            "bulk",
+            "spam",
+            "--where",
+            "Subject=Acme rollout",
+            "--select-all",
+            "--max-records",
+            "5",
+            "--confirm-destructive",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_subject_filter_acme_spam_send() {
+    let r = run_fixture(
+        "ticket_bulk_filter",
+        &[
+            "tickets",
+            "bulk",
+            "spam",
+            "--where",
+            "Subject=Acme rollout",
+            "--select-all",
+            "--max-records",
+            "5",
+            "--confirm-destructive",
+            "--yes",
+            "--expect-plan",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_subject_filter_acme_delete_dry_run() {
+    let r = run_fixture(
+        "ticket_bulk_filter",
+        &[
+            "tickets",
+            "bulk",
+            "delete",
+            "--where",
+            "Subject=Acme rollout",
+            "--select-all",
+            "--max-records",
+            "5",
+            "--confirm-destructive",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_subject_filter_acme_delete_send() {
+    let r = run_fixture(
+        "ticket_bulk_filter",
+        &[
+            "tickets",
+            "bulk",
+            "delete",
+            "--where",
+            "Subject=Acme rollout",
+            "--select-all",
+            "--max-records",
+            "5",
+            "--confirm-destructive",
+            "--yes",
+            "--expect-plan",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_subject_filter_globex_status_dry_run() {
+    let r = run_fixture(
+        "ticket_bulk_filter_globex",
+        &[
+            "tickets",
+            "bulk",
+            "status",
+            "--where",
+            "Subject=Acme rollout",
+            "--select-all",
+            "--max-records",
+            "5",
+            "--status",
+            "Open",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_subject_filter_globex_status_send() {
+    let r = run_fixture(
+        "ticket_bulk_filter_globex",
+        &[
+            "tickets",
+            "bulk",
+            "status",
+            "--where",
+            "Subject=Acme rollout",
+            "--select-all",
+            "--max-records",
+            "5",
+            "--status",
+            "Open",
+            "--yes",
+            "--expect-plan",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_subject_filter_globex_spam_dry_run() {
+    let r = run_fixture(
+        "ticket_bulk_filter_globex",
+        &[
+            "tickets",
+            "bulk",
+            "spam",
+            "--where",
+            "Subject=Acme rollout",
+            "--select-all",
+            "--max-records",
+            "5",
+            "--confirm-destructive",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_subject_filter_globex_spam_send() {
+    let r = run_fixture(
+        "ticket_bulk_filter_globex",
+        &[
+            "tickets",
+            "bulk",
+            "spam",
+            "--where",
+            "Subject=Acme rollout",
+            "--select-all",
+            "--max-records",
+            "5",
+            "--confirm-destructive",
+            "--yes",
+            "--expect-plan",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_subject_filter_globex_delete_dry_run() {
+    let r = run_fixture(
+        "ticket_bulk_filter_globex",
+        &[
+            "tickets",
+            "bulk",
+            "delete",
+            "--where",
+            "Subject=Acme rollout",
+            "--select-all",
+            "--max-records",
+            "5",
+            "--confirm-destructive",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_subject_filter_globex_delete_send() {
+    let r = run_fixture(
+        "ticket_bulk_filter_globex",
+        &[
+            "tickets",
+            "bulk",
+            "delete",
+            "--where",
+            "Subject=Acme rollout",
+            "--select-all",
+            "--max-records",
+            "5",
+            "--confirm-destructive",
+            "--yes",
+            "--expect-plan",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filter operator unavailable in runtime metadata for 'subject'; refusing an unproven filter (use explicit IDs)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_filtered_bound_missing() {
+    let r = run_fixture(
+        "ticket_bulk_filter",
+        &[
+            "tickets",
+            "bulk",
+            "spam",
+            "--where",
+            "status=Open",
+            "--select-all",
+            "--confirm-destructive",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filtered writes require --max-records N (1 to 50)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_filtered_bound_zero() {
+    let r = run_fixture(
+        "ticket_bulk_filter",
+        &[
+            "tickets",
+            "bulk",
+            "spam",
+            "--where",
+            "status=Open",
+            "--select-all",
+            "--max-records",
+            "0",
+            "--confirm-destructive",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filtered writes require --max-records N (1 to 50)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_filtered_bound_fifty_one() {
+    let r = run_fixture(
+        "ticket_bulk_filter",
+        &[
+            "tickets",
+            "bulk",
+            "spam",
+            "--where",
+            "status=Open",
+            "--select-all",
+            "--max-records",
+            "51",
+            "--confirm-destructive",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"filtered writes require --max-records N (1 to 50)
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_server_ignores_filter_acme() {
+    let r = run_fixture(
+        "ticket_bulk_filter",
+        &[
+            "tickets",
+            "bulk",
+            "spam",
+            "--where",
+            "status=Closed",
+            "--select-all",
+            "--max-records",
+            "50",
+            "--confirm-destructive",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"ticket 140 contradicts the predicate; refusing the whole filtered plan
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_server_ignores_filter_globex() {
+    let r = run_fixture(
+        "ticket_bulk_filter_globex",
+        &[
+            "tickets",
+            "bulk",
+            "spam",
+            "--where",
+            "status=Geloest",
+            "--select-all",
+            "--max-records",
+            "50",
+            "--confirm-destructive",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"ticket 140 contradicts the predicate; refusing the whole filtered plan
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_type_filter_needs_independent_proof() {
+    let r = run_fixture(
+        "ticket_bulk_filter",
+        &[
+            "tickets",
+            "bulk",
+            "spam",
+            "--where",
+            "type=Service Request",
+            "--select-all",
+            "--max-records",
+            "50",
+            "--confirm-destructive",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"predicate field unavailable in exact record: 'ticket_type'
 "#
     );
 }

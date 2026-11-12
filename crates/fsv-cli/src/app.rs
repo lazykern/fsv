@@ -234,7 +234,15 @@ pub fn run(argv: Vec<String>) -> i32 {
         return 0;
     }
     fsv_core::runtime::set_command_path(Some(&format!("{prog} {}", path.join(" "))));
-    report(cmd::dispatch(&path.join(" "), m, &prog))
+    let run = || cmd::dispatch(&path.join(" "), m, &prog);
+    // Canned routes answer instantly, so an unverified bulk, assignment,
+    // merge or priority send must not sleep through the bounded readback
+    // (Python's tests patch `readback._sleep` the same way).
+    #[cfg(debug_assertions)]
+    if std::env::var_os("FSV_TEST_ROUTES").is_some_and(|v| !v.is_empty()) {
+        return report(fsv_api::readback::with_readback_sleep(|_| {}, run));
+    }
+    report(run())
 }
 
 fn clap_error(e: clap::Error) -> i32 {

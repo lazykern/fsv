@@ -1,0 +1,311 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/140",
+  "json": {
+   "ticket": {
+    "id": 140,
+    "human_display_id": "INC-140",
+    "subject": "Acme ticket 140",
+    "status": 2,
+    "spam": false,
+    "deleted": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/141",
+  "json": {
+   "ticket": {
+    "id": 141,
+    "human_display_id": "INC-141",
+    "subject": "Acme ticket 141",
+    "status": 2,
+    "spam": false,
+    "deleted": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/142",
+  "json": {
+   "ticket": {
+    "id": 142,
+    "human_display_id": "INC-142",
+    "subject": "Acme ticket 142",
+    "status": 2,
+    "spam": true,
+    "deleted": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/142",
+  "json": {
+   "ticket": {
+    "id": 142,
+    "human_display_id": "INC-142",
+    "subject": "Acme ticket 142",
+    "status": 2,
+    "spam": true,
+    "deleted": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/142",
+  "json": {
+   "ticket": {
+    "id": 142,
+    "human_display_id": "INC-142",
+    "subject": "Acme ticket 142",
+    "status": 2,
+    "spam": true,
+    "deleted": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/142",
+  "json": {
+   "ticket": {
+    "id": 142,
+    "human_display_id": "INC-142",
+    "subject": "Acme ticket 142",
+    "status": 2,
+    "spam": false,
+    "deleted": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/143",
+  "json": {
+   "ticket": {
+    "id": 143,
+    "human_display_id": "INC-143",
+    "subject": "Acme ticket 143",
+    "status": 2,
+    "spam": true,
+    "deleted": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/143",
+  "json": {
+   "ticket": {
+    "id": 143,
+    "human_display_id": "INC-143",
+    "subject": "Acme ticket 143",
+    "status": 2,
+    "spam": true,
+    "deleted": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/143",
+  "json": {
+   "ticket": {
+    "id": 143,
+    "human_display_id": "INC-143",
+    "subject": "Acme ticket 143",
+    "status": 2,
+    "spam": true,
+    "deleted": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/143",
+  "json": {
+   "ticket": {
+    "id": 143,
+    "human_display_id": "INC-143",
+    "subject": "Acme ticket 143",
+    "status": 2,
+    "spam": true,
+    "deleted": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/144",
+  "json": {
+   "ticket": {
+    "id": 144,
+    "human_display_id": "INC-144",
+    "subject": "Acme ticket 144",
+    "status": 2,
+    "spam": false,
+    "deleted": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/144",
+  "json": {
+   "ticket": {
+    "id": 144,
+    "human_display_id": "INC-144",
+    "subject": "Acme ticket 144",
+    "status": 2,
+    "spam": false,
+    "deleted": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/144",
+  "json": {
+   "ticket": {
+    "id": 144,
+    "human_display_id": "INC-144",
+    "subject": "Acme ticket 144",
+    "status": 2,
+    "spam": false,
+    "deleted": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/144",
+  "json": {
+   "ticket": {
+    "id": 144,
+    "human_display_id": "INC-144",
+    "subject": "Acme ticket 144",
+    "status": 2,
+    "spam": true,
+    "deleted": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/145",
+  "json": {
+   "ticket": {
+    "id": 145,
+    "subject": "Acme no flags"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/v2/ticket_form_fields",
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets",
+  "json": {
+   "tickets": [
+    {
+     "id": 140,
+     "subject": "Globex Ticket 140",
+     "status": 2
+    },
+    {
+     "id": 141,
+     "subject": "Globex Ticket 141",
+     "status": 2
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets/unspam_multiple",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets/spam_multiple",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_form_fields",
+  "json": {
+   "ticket_fields": [
+    {
+     "name": "status",
+     "label": "Status",
+     "field_type": "default_status",
+     "default_field": true,
+     "choices": [
+      {
+       "id": 2,
+       "value": "Offen"
+      },
+      {
+       "id": 6,
+       "value": "Geloest"
+      }
+     ]
+    },
+    {
+     "name": "subject",
+     "label": "Subject",
+     "field_type": "default_subject",
+     "default_field": true
+    },
+    {
+     "name": "ticket_type",
+     "label": "Type",
+     "field_type": "default_ticket_type",
+     "default_field": true,
+     "choices": [
+      {
+       "id": 3,
+       "value": "Incident"
+      },
+      {
+       "id": 7402,
+       "value": "Service Request"
+      },
+      {
+       "id": 5,
+       "value": "Retired",
+       "deleted": true
+      }
+     ]
+    }
+   ]
+  }
+ }
+]

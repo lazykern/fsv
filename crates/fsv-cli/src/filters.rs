@@ -475,6 +475,20 @@ pub fn resolve_where(
             ));
         }
     }
+    // Ticket type filters take the runtime choice name, never the numeric ID.
+    if let Some(named) = fsv_api::filter_proof::name_valued_choice(&f, &raw)
+        .map_err(|e| fsv_core::Error::value(e.0))?
+    {
+        return Ok(query_item(
+            &name,
+            operator,
+            json!([named.clone()]),
+            type_,
+            explain,
+            &name,
+            &named,
+        ));
+    }
     if has_choices
         || ftype.contains("dropdown")
         || ftype == "default_status"

@@ -9,5 +9,10 @@
  {"name": "where_strict_period_le_refused", "fixture": "where", "args": ["tickets", "ls", "--where", "created<=today", "--debug"]},
  {"name": "where_strict_period_label_le_refused", "fixture": "where", "args": ["tickets", "ls", "--where", "Created<=Last 6 months", "--debug"]},
  {"name": "where_contradiction_warning", "fixture": "where", "args": ["tickets", "ls", "--where", "status=Resolved", "--json"]},
- {"name": "where_unfilterable_subject", "fixture": "where", "args": ["tickets", "ls", "--where", "Subject=x", "--debug"]}
+ {"name": "where_unfilterable_subject", "fixture": "where", "args": ["tickets", "ls", "--where", "Subject=x", "--debug"]},
+ {"name": "ls_type_name_sends_choice_name", "fixture": "where_type", "args": ["tickets", "ls", "--where", "type=Service Request", "--json"]},
+ {"name": "ls_type_id_sends_choice_name", "fixture": "where_type", "args": ["tickets", "ls", "--where", "type=7402", "--json"]},
+ {"name": "ls_type_not_equal_sends_name", "fixture": "where_type", "args": ["tickets", "ls", "--where", "type!=Incident", "--json"]},
+ {"name": "ls_type_unknown_never_lists", "fixture": "where_type", "args": ["tickets", "ls", "--where", "type=Case", "--json"]},
+ {"name": "ls_type_retired_never_lists", "fixture": "where_type", "args": ["tickets", "ls", "--where", "type=Retired", "--json"]}
 ]
