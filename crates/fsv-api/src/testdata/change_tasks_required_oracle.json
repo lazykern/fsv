@@ -1,0 +1,112 @@
+{
+  "_python": {
+    "commit": "780c002ec61d25dbc465c54027312fc8bcef6d19",
+    "dirty": false
+  },
+  "fields": [
+    {
+      "name": "title",
+      "label": "Title",
+      "default": true,
+      "field_options": {
+        "required_for_create": "true"
+      }
+    },
+    {
+      "name": "workspace_id",
+      "label": "Workspace",
+      "default": true,
+      "field_options": {
+        "required_for_create": "true"
+      }
+    },
+    {
+      "name": "cf_system",
+      "label": "System",
+      "default": false,
+      "field_options": {
+        "required_for_create": "true"
+      },
+      "choices": [
+        {
+          "id": "17",
+          "value": "Acme"
+        }
+      ]
+    },
+    {
+      "name": "cf_environment",
+      "label": "Environment",
+      "default": false,
+      "field_options": {
+        "required_for_create": "true"
+      },
+      "choices": [
+        {
+          "id": "29",
+          "value": "Test"
+        }
+      ]
+    },
+    {
+      "name": "planned_start_date",
+      "label": "Planned Start",
+      "default": true,
+      "field_options": {
+        "required_for_create": "true"
+      }
+    },
+    {
+      "name": "planned_end_date",
+      "label": "Planned End",
+      "default": true,
+      "field_options": {
+        "required_for_create": "true"
+      }
+    },
+    {
+      "name": "status",
+      "choices": [
+        {
+          "id": "7",
+          "value": "Open"
+        }
+      ]
+    },
+    {
+      "name": "notify_before",
+      "choices": [
+        {
+          "id": "0",
+          "value": "Never"
+        }
+      ]
+    }
+  ],
+  "missing": {
+    "error": {
+      "type": "TaskError",
+      "msg": "required task fields missing: System, Environment, Planned Start, Planned End"
+    }
+  },
+  "bound": {
+    "hash": "6f86c6be8f2b4f6686db339cdcf6d00b9134fcdfcadab91494e719a3a14296fa",
+    "payload": {
+      "title": "Acme",
+      "status": 7,
+      "notify_before": 0,
+      "planned_start_date": "2026-12-01T10:00:00+00:00",
+      "planned_end_date": "2026-12-01T11:00:00+00:00",
+      "custom_fields": {
+        "environment": 29,
+        "system": 17
+      }
+    },
+    "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted.",
+    "fields_json": "[{\"default\": true, \"field_options\": {\"required_for_create\": \"true\"}, \"label\": \"Title\", \"name\": \"title\"}, {\"default\": true, \"field_options\": {\"required_for_create\": \"true\"}, \"label\": \"Workspace\", \"name\": \"workspace_id\"}, {\"choices\": [{\"id\": \"17\", \"value\": \"Acme\"}], \"default\": false, \"field_options\": {\"required_for_create\": \"true\"}, \"label\": \"System\", \"name\": \"cf_system\"}, {\"choices\": [{\"id\": \"29\", \"value\": \"Test\"}], \"default\": false, \"field_options\": {\"required_for_create\": \"true\"}, \"label\": \"Environment\", \"name\": \"cf_environment\"}, {\"default\": true, \"field_options\": {\"required_for_create\": \"true\"}, \"label\": \"Planned Start\", \"name\": \"planned_start_date\"}, {\"default\": true, \"field_options\": {\"required_for_create\": \"true\"}, \"label\": \"Planned End\", \"name\": \"planned_end_date\"}, {\"choices\": [{\"id\": \"7\", \"value\": \"Open\"}], \"name\": \"status\"}, {\"choices\": [{\"id\": \"0\", \"value\": \"Never\"}], \"name\": \"notify_before\"}]",
+    "custom_fields_json": "{\"environment\": 29, \"system\": 17}"
+  },
+  "changed_hash": "1402bc34e98833a5543f86f0389f5bc2c5ff87dcb4c1b01b34f622ce439c2711",
+  "bare_hash": "585b535b37f678f2c98de8829fa9b15a3dc066b6642300babcd4a22c2fe54a8a",
+  "empty_fields_hash": "5f6a8c1d80d727bbf3a7023a3a7031dbdf390761b249f4e47d4976ba665920dc"
+}

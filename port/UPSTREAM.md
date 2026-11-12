@@ -2088,5 +2088,55 @@ the duplicate-id check never runs).
 
 `port/fsv_coverage.py` maps `approval_recipients` to fsv-api.
 
-Still not triaged: `780c002`, `ad40a51`, `e173437`, `b310885`,
-`11e76ed`, `ffcab5b`, `e7c536b`.
+## Ledger: `780c002` (library side)
+
+Triaged against a `git archive 780c002` export
+(`FSV_PY_COMMIT=780c002ec61d25dbc465c54027312fc8bcef6d19`).
+`port/golden/gen_fsv_api_change_tasks_required.py` stamps
+`crates/fsv-api/src/testdata/change_tasks_required_oracle.json`.
+A plan built without `fields` keeps its hash. `fields=[]` binds
+metadata and moves the hash. The review contract text changed for
+every plan.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `780c002`.
+The partial is the fsv-cli command surface, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `780c002` | 11-12 15:13 | Preflight runtime required change task fields and expose custom values | partial | fsv-api `tasks`. fsv-cli follow-up below |
+
+### `780c002` change task required fields — partial
+
+`validate_required` refuses a create whose runtime
+`required_for_create` fields are blank, skipping `workspace_id`.
+Custom values go on the payload as `custom_fields`. When the field
+list contains `notify_before`, the seconds come from the runtime
+choice. The hash gains `metadata` only when `fields_json` is set.
+`send` also refuses when a legacy plan (the same plan with
+`fields_json` cleared) is already `started` or `done`. A metadata
+change on send is swallowed into the prepare failure. Description
+readback uses `strip_html`. Custom fields use
+`submitted_value_matches`.
+
+### Public API for the fsv-cli owner
+
+`tasks::build_plan` is unchanged. Set `TaskArgs.custom_fields` and
+`TaskArgs.fields`, or call `build_plan_ex`. `runtime_fields(c)` reads
+`change_task_fields`. `validate_required(fields, payload)`.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`changes tasks-add` must take repeatable `--set NAME=VALUE`,
+`--system`, and `--environment` / `--env`. Load `runtime_fields`
+before the real plan. Map those flags through `ticket_tasks::custom_values`.
+Pass the field list into the plan so the hash binds metadata. The
+review contract is now `Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted.`
+
+Scratch goldens that pin the old contract, left unedited:
+`task_add_dry_run`, `task_add_no_input`, `task_add_confirm_eof`,
+`task_add_hash_mismatch`, `task_add_send_unverified`,
+`task_add_full_dry_run`. Their plan hashes are unchanged because the
+CLI still builds without `fields`.
+
+Still not triaged: `ad40a51`, `e173437`, `b310885`, `11e76ed`,
+`ffcab5b`, `e7c536b`.

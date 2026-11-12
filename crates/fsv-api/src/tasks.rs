@@ -1,5 +1,6 @@
-//! Reviewed change-task CREATE from a blocked UI request (`change_tasks.py`).
-//! The response contract is unobserved: never replay a POST to recover an id.
+//! Reviewed change-task creation with runtime required-field preflight
+//! (`change_tasks.py`). Accepted native request and task envelopes; never
+//! replay a POST to recover an id.
 
 use std::collections::BTreeSet;
 use std::sync::LazyLock;
@@ -232,6 +233,10 @@ pub struct TaskPlan {
     pub planned_start: Option<String>,
     pub planned_end: Option<String>,
     pub planned_effort: Option<String>,
+    /// `json.dumps(custom_fields or {}, sort_keys=True)`.
+    pub custom_fields_json: String,
+    /// `json.dumps(fields, sort_keys=True)` when fields were supplied, else `""`.
+    pub fields_json: String,
 }
 
 impl TaskPlan {
@@ -239,11 +244,27 @@ impl TaskPlan {
         format!("changes/{}/tasks", self.change_id)
     }
 
-    pub fn payload(&self) -> Map<String, Value> {
-        let notify = NOTIFY_BEFORE
+    fn notify_seconds(&self) -> Result<i64> {
+        let static_id = NOTIFY_BEFORE
             .iter()
             .find(|(k, _)| *k == self.notify_before)
             .map_or(0, |(_, v)| *v);
+        if self.fields_json.is_empty() {
+            return Ok(static_id);
+        }
+        let fields: Vec<Value> = serde_json::from_str(&self.fields_json).unwrap_or_default();
+        if fields
+            .iter()
+            .any(|f| f.get("name") == Some(&json!("notify_before")))
+        {
+            crate::change_task_update::reminder(&json!(self.notify_before), &fields)
+        } else {
+            Ok(static_id)
+        }
+    }
+
+    pub fn payload(&self) -> Map<String, Value> {
+        let notify = self.notify_seconds().unwrap_or(0);
         let mut body =
             obj(json!({"title": self.title, "status": self.status_id, "notify_before": notify}));
         if let Some(n) = &self.note {
@@ -267,13 +288,29 @@ impl TaskPlan {
         if let Some(o) = self.owner_id {
             body.insert("owner_id".into(), json!(o));
         }
+        if let Ok(custom) = serde_json::from_str::<Map<String, Value>>(&self.custom_fields_json)
+            && !custom.is_empty()
+        {
+            body.insert("custom_fields".into(), Value::Object(custom));
+        }
         body
     }
 
     /// Default-status plans keep their historical hash (no `status_label`).
+    /// Field metadata is bound only when `fields_json` is set, so an empty
+    /// context keeps the old hash.
     pub fn hash(&self) -> String {
         let mut body =
             obj(json!({"tenant": self.tenant, "path": self.path(), "payload": self.payload()}));
+        if !self.fields_json.is_empty() {
+            let fields: Value = serde_json::from_str(&self.fields_json).unwrap_or(Value::Null);
+            if let Some(meta) = fsv_core::journal::snapshot_hash(Some(&fields))
+                .ok()
+                .flatten()
+            {
+                body.insert("metadata".into(), json!(meta));
+            }
+        }
         if !["Open", "In Progress"].contains(&self.status_label.as_str()) {
             body.insert("status_label".into(), json!(self.status_label));
         }
@@ -287,7 +324,7 @@ impl TaskPlan {
             "owner": self.owner_id, "status_label": self.status_label, "reminder": self.notify_before,
             "note_text": self.note, "plan_hash": self.hash(),
             "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-            "contract": "Blocked request captured; accepted response unobserved. Blank optional fields omitted.",
+            "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted.",
         }))
     }
 }
@@ -304,6 +341,8 @@ pub struct TaskArgs<'a> {
     pub planned_start: Option<&'a str>,
     pub planned_end: Option<&'a str>,
     pub planned_effort: Option<&'a str>,
+    pub custom_fields: Option<&'a Map<String, Value>>,
+    pub fields: Option<&'a [Value]>,
 }
 
 impl Default for TaskArgs<'_> {
@@ -318,8 +357,72 @@ impl Default for TaskArgs<'_> {
             planned_start: None,
             planned_end: None,
             planned_effort: None,
+            custom_fields: None,
+            fields: None,
         }
     }
+}
+
+fn dumps(v: &Value) -> String {
+    fsv_py::Dumps::default().sort_keys(true).dump(v)
+}
+
+/// Port of change_tasks.runtime_fields. Any lookup failure is `TaskError`.
+pub fn runtime_fields(c: &dyn Api) -> Result<Vec<Value>> {
+    let loaded = (|| -> Result<Vec<Value>> {
+        let data = c.int_get(
+            "change_task_fields",
+            Some(obj(json!({"include_deleted_choices": "true"}))),
+        )?;
+        crate::task_status::fields_from_payload(&data).map_err(|e| Error::value(e.to_string()))
+    })();
+    loaded.map_err(|_| refused("runtime task field metadata unavailable; no POST attempted"))
+}
+
+/// Port of change_tasks.validate_required. `TaskError`, exit 2.
+pub fn validate_required(fields: &[Value], payload: &Map<String, Value>) -> Result<()> {
+    let empty = Map::new();
+    let custom = payload
+        .get("custom_fields")
+        .and_then(Value::as_object)
+        .unwrap_or(&empty);
+    let mut missing = Vec::new();
+    for field in fields {
+        let name = field
+            .get("name")
+            .map(fsv_py::py_str)
+            .unwrap_or_else(|| "None".into());
+        if !crate::ticket_tasks::required_for_create(field)
+            || crate::ticket_tasks::CONTEXT_FIELDS.contains(&name.as_str())
+        {
+            continue;
+        }
+        let key = if field.get("default") == Some(&json!(false)) {
+            name.strip_prefix("cf_").unwrap_or(&name).to_string()
+        } else {
+            name.clone()
+        };
+        let value = payload.get(&name).or_else(|| custom.get(&key));
+        if value.is_none()
+            || value == Some(&Value::Null)
+            || value == Some(&json!(""))
+            || value == Some(&json!([]))
+        {
+            let label = field
+                .get("label")
+                .map(fsv_py::py_str)
+                .filter(|s| !s.is_empty())
+                .unwrap_or(name);
+            missing.push(label);
+        }
+    }
+    if !missing.is_empty() {
+        return Err(refused(format!(
+            "required task fields missing: {}",
+            missing.join(", ")
+        )));
+    }
+    Ok(())
 }
 
 /// `build_plan`: pure local validation.
@@ -328,6 +431,26 @@ pub fn build_plan(
     title: &str,
     args: &TaskArgs<'_>,
     tenant: &str,
+) -> Result<TaskPlan> {
+    build_plan_ex(
+        change_id,
+        title,
+        args,
+        tenant,
+        args.custom_fields,
+        args.fields,
+    )
+}
+
+/// [`build_plan`] plus runtime custom values and the field metadata bound
+/// into the hash. `fields == None` leaves `fields_json` empty.
+pub fn build_plan_ex(
+    change_id: &str,
+    title: &str,
+    args: &TaskArgs<'_>,
+    tenant: &str,
+    custom_fields: Option<&Map<String, Value>>,
+    fields: Option<&[Value]>,
 ) -> Result<TaskPlan> {
     let cid = parse_id(change_id, &CHANGES)?;
     if cid <= 0 {
@@ -364,7 +487,7 @@ pub fn build_plan(
     {
         return Err(Error::value("planned end must not precede planned start"));
     }
-    Ok(TaskPlan {
+    let plan = TaskPlan {
         change_id: cid,
         title: title.into(),
         owner_id: args.owner_id,
@@ -377,7 +500,16 @@ pub fn build_plan(
         planned_start: start,
         planned_end: end,
         planned_effort: effort(args.planned_effort)?,
-    })
+        custom_fields_json: dumps(&Value::Object(custom_fields.cloned().unwrap_or_default())),
+        fields_json: fields
+            .map(|f| dumps(&Value::Array(f.to_vec())))
+            .unwrap_or_default(),
+    };
+    plan.notify_seconds()?;
+    if let Some(fields) = fields {
+        validate_required(fields, &plan.payload())?;
+    }
+    Ok(plan)
 }
 
 /// `_inventory`: the complete task list of the plan's change.
@@ -427,6 +559,12 @@ pub fn compare_fields(
             "planned_start_date" | "planned_end_date" => {
                 crate::readback::same_instant(observed, &expected)
             }
+            "description" => observed.as_str().is_some_and(|got| {
+                let want = expected.as_str().unwrap_or("");
+                fsv_core::output::strip_html(Some(got)).trim()
+                    == fsv_core::output::strip_html(Some(want)).trim()
+            }),
+            "custom_fields" => crate::readback::submitted_value_matches(observed, &expected),
             _ => *observed == expected,
         };
         if matched {
@@ -460,6 +598,8 @@ fn args_of(plan: &TaskPlan) -> TaskArgs<'_> {
         planned_start: plan.planned_start.as_deref(),
         planned_end: plan.planned_end.as_deref(),
         planned_effort: plan.planned_effort.as_deref(),
+        custom_fields: None,
+        fields: None,
     }
 }
 
@@ -471,11 +611,24 @@ pub fn send(
     journal: &dyn Journal,
     opts: SendOpts<'_>,
 ) -> Result<Value> {
-    let rebuilt = build_plan(
+    let custom: Map<String, Value> =
+        serde_json::from_str(&plan.custom_fields_json).unwrap_or_default();
+    let fields: Vec<Value> = if plan.fields_json.is_empty() {
+        Vec::new()
+    } else {
+        serde_json::from_str(&plan.fields_json).unwrap_or_default()
+    };
+    let rebuilt = build_plan_ex(
         &plan.change_id.to_string(),
         &plan.title,
         &args_of(plan),
         &c.domain(),
+        Some(&custom),
+        if plan.fields_json.is_empty() {
+            None
+        } else {
+            Some(fields.as_slice())
+        },
     );
     if rebuilt.ok().as_ref() != Some(plan) {
         return Err(refused("task plan or tenant changed; review a new plan"));
@@ -500,15 +653,39 @@ pub fn send(
     if plan.tenant.is_empty() {
         return Err(refused("configure a tenant before creating a task"));
     }
-    if matches!(
-        last_event(journal, ACTION, &hash).as_deref(),
-        Some("started" | "done")
-    ) {
+    let mut legacy = plan.clone();
+    legacy.fields_json.clear();
+    let legacy_hash = legacy.hash();
+    if [hash.as_str(), legacy_hash.as_str()].iter().any(|h| {
+        matches!(
+            last_event(journal, ACTION, h).as_deref(),
+            Some("started" | "done")
+        )
+    }) {
         return Err(refused(
             "this task was sent or its outcome is unknown; inspect the change and journal; do not resubmit",
         ));
     }
-    let prepared = inventory(c, plan).and_then(|rows| c.get_csrf().map(|t| (rows, t)));
+    let prepared = (|| -> Result<_> {
+        if !plan.fields_json.is_empty() {
+            let fresh = runtime_fields(c)?;
+            let stored: Value = serde_json::from_str(&plan.fields_json).unwrap_or(Value::Null);
+            let fresh_hash = fsv_core::journal::snapshot_hash(Some(&Value::Array(fresh.clone())))
+                .ok()
+                .flatten();
+            let stored_hash = fsv_core::journal::snapshot_hash(Some(&stored))
+                .ok()
+                .flatten();
+            if fresh_hash != stored_hash || fresh_hash.is_none() {
+                return Err(refused(
+                    "could not prepare a complete task inventory/session; no task POST was attempted",
+                ));
+            }
+            validate_required(&fresh, &plan.payload())?;
+        }
+        let rows = inventory(c, plan)?;
+        Ok((rows, c.get_csrf()?))
+    })();
     let Ok((before_rows, csrf)) = prepared else {
         return Err(refused(
             "could not prepare a complete task inventory/session; no task POST was attempted",
@@ -635,6 +812,8 @@ mod tests {
             planned_start: Some("2026-01-02T03:00:00Z"),
             planned_end: Some("2026-01-02T05:00:00+01:00"),
             planned_effort: Some("90m"),
+            custom_fields: None,
+            fields: None,
         };
         build_plan("CHN-12", "Review", &args, T).unwrap()
     }
@@ -816,7 +995,7 @@ mod tests {
             json!({"action": "change_task_create", "tenant": T, "change_id": 12, "method": "POST", "path": "/api/_/changes/12/tasks",
                    "payload": payload, "owner": 7, "status_label": "Done", "reminder": "1 Hour", "note_text": "x < y\r\nz", "plan_hash": h,
                    "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-                   "contract": "Blocked request captured; accepted response unobserved. Blank optional fields omitted."})
+                   "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."})
         );
         let d = default_plan();
         assert_eq!(
@@ -1094,6 +1273,102 @@ mod tests {
         assert_eq!(
             err(send(&d, &none, &j, opts)),
             "could not prepare a complete task inventory/session; no task POST was attempted"
+        );
+    }
+
+    #[test]
+    fn required_fields_match_python() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/change_tasks_required_oracle.json"))
+                .unwrap();
+        let fields = oracle["fields"].as_array().unwrap();
+        let tenant = "acme.example.com";
+        let missing = build_plan(
+            "23",
+            "Acme",
+            &TaskArgs {
+                status_id: Some(7),
+                fields: Some(fields),
+                ..Default::default()
+            },
+            tenant,
+        )
+        .unwrap_err();
+        assert_eq!(
+            missing.to_string(),
+            oracle["missing"]["error"]["msg"].as_str().unwrap()
+        );
+        assert!(matches!(missing, Error::Exit { code: 2, .. }));
+        let custom = obj(json!({"environment": 29, "system": 17}));
+        let bound = build_plan(
+            "23",
+            "Acme",
+            &TaskArgs {
+                status_id: Some(7),
+                planned_start: Some("2026-12-01T10:00:00Z"),
+                planned_end: Some("2026-12-01T11:00:00Z"),
+                custom_fields: Some(&custom),
+                fields: Some(fields),
+                ..Default::default()
+            },
+            tenant,
+        )
+        .unwrap();
+        assert_eq!(bound.hash(), oracle["bound"]["hash"].as_str().unwrap());
+        assert_eq!(Value::Object(bound.payload()), oracle["bound"]["payload"]);
+        assert_eq!(bound.review()["contract"], oracle["bound"]["contract"]);
+        let mut changed = fields.clone();
+        changed[2]["choices"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({"id": "31", "value": "Globex"}));
+        let other = build_plan(
+            "23",
+            "Acme",
+            &TaskArgs {
+                status_id: Some(7),
+                planned_start: Some("2026-12-01T10:00:00Z"),
+                planned_end: Some("2026-12-01T11:00:00Z"),
+                custom_fields: Some(&custom),
+                fields: Some(&changed),
+                ..Default::default()
+            },
+            tenant,
+        )
+        .unwrap();
+        assert_eq!(other.hash(), oracle["changed_hash"].as_str().unwrap());
+        assert_ne!(other.hash(), bound.hash());
+        let bare = build_plan(
+            "23",
+            "Acme",
+            &TaskArgs {
+                status_id: Some(7),
+                ..Default::default()
+            },
+            tenant,
+        )
+        .unwrap();
+        assert_eq!(bare.hash(), oracle["bare_hash"].as_str().unwrap());
+        let empty: Vec<Value> = Vec::new();
+        let empty_plan = build_plan(
+            "23",
+            "Acme",
+            &TaskArgs {
+                status_id: Some(7),
+                fields: Some(&empty),
+                ..Default::default()
+            },
+            tenant,
+        )
+        .unwrap();
+        assert_eq!(
+            empty_plan.hash(),
+            oracle["empty_fields_hash"].as_str().unwrap()
+        );
+        let api = FakeApi::new().ok("GET change_task_fields", json!({}));
+        assert_eq!(
+            err(runtime_fields(&api)),
+            "runtime task field metadata unavailable; no POST attempted"
         );
     }
 }

@@ -507,7 +507,8 @@ fn task_raw(p: &TaskPlan) -> Value {
     json!({"kind": "change_task", "change_id": p.change_id, "title": p.title, "owner_id": p.owner_id,
            "tenant": p.tenant, "group_id": p.group_id, "status_label": p.status_label, "status_id": p.status_id,
            "note": p.note, "notify_before": p.notify_before, "planned_start": p.planned_start,
-           "planned_end": p.planned_end, "planned_effort": p.planned_effort})
+           "planned_end": p.planned_end, "planned_effort": p.planned_effort,
+           "custom_fields_json": p.custom_fields_json, "fields_json": p.fields_json})
 }
 
 fn opt_str(raw: &Value, key: &str) -> Option<String> {
@@ -528,6 +529,12 @@ fn task_plan(raw: &Value) -> TaskPlan {
         planned_start: opt_str(raw, "planned_start"),
         planned_end: opt_str(raw, "planned_end"),
         planned_effort: opt_str(raw, "planned_effort"),
+        custom_fields_json: raw
+            .get("custom_fields_json")
+            .and_then(Value::as_str)
+            .unwrap_or("{}")
+            .to_string(),
+        fields_json: str_at(raw, "fields_json"),
     }
 }
 
