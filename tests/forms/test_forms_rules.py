@@ -240,3 +240,49 @@ def test_rules_accept_plain_list(change_spec: FormSpec) -> None:
     eng = RulesEngine(change_spec, acme_forms.change_rules()["business_rules"])
     assert eng.rules
     assert RulesEngine(change_spec, None).rules == []
+
+
+def _entity_rule(rid: int, cond: dict, actions: list, *, reversible: bool = False, form_type: str = "edit_form") -> dict:
+    return {"id": rid, "name": f"Entity rule {rid}", "module_type": "change", "state": "active",
+            "rule_type": "client_side", "form_type": form_type, "user_type": "both", "is_reversible": reversible,
+            "condition_data": {"all": [cond]}, "action_data": {"action": actions}}
+
+
+def test_current_entity_reads_the_saved_record_not_live_answers(change_spec: FormSpec) -> None:
+    # production shape: {"name": "status", "value": ["3"], "operator": "is", "evaluate_on": "current_entity"}
+    rule = _entity_rule(80, {"name": "status", "operator": "is", "value": ["3"], "evaluate_on": "current_entity"},
+                        [{"name": ["downtime"], "property": "disable"}])
+    eng = RulesEngine(change_spec, _with_rule(rule), module="change")  # strict: no UnsupportedRuleError
+    saved = {**BASE, "status": "Approval"}
+    e = eng.evaluate({"status": "Open"}, "edit", base=saved)
+    assert "downtime" in e.disabled  # the record is in status 3, whatever the form now says
+    e = eng.evaluate({"status": "Approval"}, "edit", base={**BASE, "status": "Open"})
+    assert "downtime" not in e.disabled  # live answer 3 does not count: the saved record is Open
+    assert eng.unavailable_dependencies("edit") == [] or all("current_entity" not in d for d in eng.unavailable_dependencies("edit"))
+
+
+def test_current_entity_includes_and_non_form_record_fields(change_spec: FormSpec) -> None:
+    from fsv.forms.rules import RuleContext
+    rule = _entity_rule(81, {"name": "requested_catalog_items", "operator": "includes", "value": ["700", "701"],
+                             "evaluate_on": "current_entity"}, [{"name": ["subject"], "property": "hide"}])
+    eng = RulesEngine(change_spec, _with_rule(rule), context=RuleContext(
+        module="change", entity={"requested_catalog_items": ["701"]}))
+    assert not eng.evaluate(dict(BASE), "edit", base=dict(BASE)).is_visible("subject")
+    # no record context for a non-form field: writes must see the gap
+    eng = RulesEngine(change_spec, _with_rule(rule), module="change")
+    eng.evaluate(dict(BASE), "edit", base=dict(BASE))
+    assert any("current_entity" in d and "requested_catalog_items" in d for d in eng.unavailable_dependencies("edit"))
+
+
+def test_enable_action_and_its_reverse(change_spec: FormSpec) -> None:
+    disable = _entity_rule(82, {"name": "status", "operator": "is", "value": ["1"], "evaluate_on": "change"},
+                           [{"name": ["downtime"], "property": "disable"}], form_type="both")
+    enable = _entity_rule(83, {"name": "status", "operator": "includes", "value": ["2", "3"],
+                               "evaluate_on": "current_entity"},
+                          [{"name": ["downtime"], "property": "enable"}], reversible=True)
+    data = _with_rule(disable)
+    data["business_rules"].append(enable)
+    eng = RulesEngine(change_spec, data, module="change")
+    assert "downtime" not in eng.evaluate({"status": "Open"}, "edit", base={**BASE, "status": "Planning"}).disabled
+    # reversible enable that does not match disables (enable <-> disable)
+    assert "downtime" in eng.evaluate({"status": "Planning"}, "edit", base={**BASE, "status": "Open"}).disabled

@@ -51,7 +51,7 @@ from fsv.forms.errors import FormRuleError, UnsupportedRuleError
 from fsv.forms.spec import CHOICE_KINDS, CUSTOM_PREFIXES, Choice, Field, FormSpec, norm
 
 SUPPORTED_OPERATORS = frozenset({"is", "is_not", "includes", "does_not_include", "selected", "not_selected"})
-SUPPORTED_ACTIONS = frozenset({"show", "hide", "mandate", "unmandate", "populate", "disable", "message"})
+SUPPORTED_ACTIONS = frozenset({"show", "hide", "mandate", "unmandate", "populate", "disable", "enable", "message"})
 # ``evaluate_on`` values that read a form field (the module's own name) ...
 FORM_SOURCES = frozenset({"change", "ticket", "problem", "release", "service_request", "form"})
 # ... and those that read a person record from the rule context.
@@ -59,11 +59,15 @@ USER_SOURCES: dict[str, str] = {"current_user": "user", "requester": "requester"
 # ... and those that read the context's ``system`` mapping (e.g. ``portal``:
 # the id of the portal the form is opened in).
 CONTEXT_SOURCES: dict[str, str] = {**USER_SOURCES, "system": "system"}
-SUPPORTED_EVALUATE_ON = FORM_SOURCES | frozenset(CONTEXT_SOURCES)
+# ... and the saved record the edit form was opened on (``current_entity``):
+# its values as loaded, not the live form answers. They come from
+# ``RuleContext.entity`` or, when that is absent, the load values (``base``).
+ENTITY_SOURCES: dict[str, str] = {"current_entity": "entity"}
+SUPPORTED_EVALUATE_ON = FORM_SOURCES | frozenset(CONTEXT_SOURCES) | frozenset(ENTITY_SOURCES)
 # Action targets that are not form fields but form-level switches.
 PSEUDO_TARGETS = frozenset({"attachment_ids"})  # general request attachments (SR)
 _REVERSE = {"show": "hide", "hide": "show", "mandate": "unmandate", "unmandate": "mandate", "disable": "enable",
-            "populate": "restore"}
+            "enable": "disable", "populate": "restore"}
 _KIND = {"show": "visible", "hide": "visible", "mandate": "required", "unmandate": "required",
          "disable": "disabled", "enable": "disabled"}
 _POSITIVE = frozenset({"show", "mandate", "disable"})
@@ -123,6 +127,9 @@ class RuleContext:
     requester: Mapping[str, Any] | None = None
     requested_for: Mapping[str, Any] | None = None
     system: Mapping[str, Any] | None = None
+    # the saved record (``evaluate_on: "current_entity"``); ``None``: use the
+    # evaluation's load values
+    entity: Mapping[str, Any] | None = None
 
     def workspaces(self) -> set[str] | None:
         if self.workspace_id is None:
@@ -138,7 +145,7 @@ class Condition:
     field: str | None  # API name (None if unknown or not a form field)
     operator: str
     values: tuple[str, ...] = ()
-    source: str = "form"  # "form" | "user" | "requester" | "requested_for" | "system"
+    source: str = "form"  # "form" | "entity" | "user" | "requester" | "requested_for" | "system"
 
 
 @dataclass(frozen=True)
@@ -462,6 +469,7 @@ class RulesEngine:
         self.unsupported: list[str] = []
         self.skipped: list[str] = []
         self.duplicates: list[Any] = []
+        self._entity: Mapping[str, Any] | None = context.entity
         self.rules: list[Rule] = self._load(rules)
         order = spec.ordered()
         n = len(order)
@@ -594,6 +602,9 @@ class RulesEngine:
             raw_name = str(c.get("name") or "")
             val = c.get("value")
             vals = tuple(str(v) for v in val) if isinstance(val, (list, tuple)) else (() if val is None else (str(val),))
+            if ev_key in ENTITY_SOURCES:
+                items.append(Condition(raw_name, self.spec.resolve_name(raw_name), op, vals, ENTITY_SOURCES[ev_key]))
+                continue
             if ev_key in CONTEXT_SOURCES:
                 attr = raw_name.split(".")[-1]
                 items.append(Condition(raw_name, attr, op, vals, CONTEXT_SOURCES[ev_key]))
@@ -664,6 +675,9 @@ class RulesEngine:
                 elif condition.source == "form":
                     if condition.field is None:
                         add(f"rule {rule.name!r}: unknown condition field {condition.name!r}")
+                elif condition.source == "entity":
+                    if condition.field is None and self._entity_lookup(condition)[0] is False:
+                        add(f"rule {rule.name!r}: unavailable record (current_entity) field {condition.name!r}")
                 else:
                     values = getattr(self.context, condition.source, None)
                     if values is None or condition.field not in values:
@@ -706,6 +720,9 @@ class RulesEngine:
             raise ValueError(f"model must be one of {MODELS}")
         rules = self.rules_for(mode)
         base = {k: v for k, v in (base or {}).items() if not is_empty(v)}
+        if self.context.entity is None:
+            # current_entity reads the record as loaded, never the live answers
+            self._entity = dict(base) if mode == "edit" else {}
         if model == "replay":
             user = dict(base)
             user.update(values)  # an empty answer clears a load value
@@ -1051,8 +1068,24 @@ class RulesEngine:
                 self.warnings.append(msg)
         return person
 
+    def _entity_lookup(self, c: Condition) -> tuple[bool, Any]:
+        """(found, value) of a ``current_entity`` condition in the record."""
+        entity = self._entity or {}
+        names = [c.field, c.name, c.name.split(".")[-1]]
+        for n in names:
+            if n and n in entity:
+                return True, entity[n]
+        return False, None
+
     def _match(self, c: Condition, eff: Mapping[str, Any]) -> bool:
-        if c.source != "form":
+        if c.source == "entity":
+            if self._entity is None:
+                msg = "rules read the saved record (current_entity) but none was given; their conditions see empty values"
+                if msg not in self.warnings:
+                    self.warnings.append(msg)
+            v = self._entity_lookup(c)[1]
+            f = self.spec.by_name.get(c.field) if c.field else None
+        elif c.source != "form":
             person = self._person(c.source) or {}
             v = person.get(c.field or "")
             f = None

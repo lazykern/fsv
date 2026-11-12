@@ -244,6 +244,13 @@ arguments) decides which rules apply:
   `"system"` reads `RuleContext.system` (e.g. `{"portal": <portal id>}`,
   the portal the form is opened in). A missing record makes those
   conditions see empty values (with a warning).
+* `evaluate_on: "current_entity"` (edit forms) reads the saved record as
+  loaded, not the live answers: `RuleContext.entity` when given, else the
+  evaluation's load values (`base`). A condition on a record attribute that
+  is not a form field (e.g. `requested_catalog_items`) and is missing from
+  the record is reported by `unavailable_dependencies()`, so writes block.
+* The `enable` action clears a rule-disabled field; a reversible `enable`
+  that stops matching disables it again (`enable` <-> `disable`).
 * Duplicate rule ids: the endpoint returns a reversible and a
   non-reversible entry for many ids, with different action lists. The
   default `dedupe="exact"` drops only identical copies; both entries are
