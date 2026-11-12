@@ -20,11 +20,21 @@ def _strip_quotes(value: str) -> str:
 
 
 def _parse_where(expr: str) -> tuple[str, str, str]:
-    m = re.match(r"^(.+?)(>=|<=|!=|~=|=|>|<)(.*)$", expr.strip())
+    if not isinstance(expr, str) or any(ord(c) < 32 for c in expr):
+        raise ValueError("invalid filter; controls and multiline expressions are not supported")
+    m = re.fullmatch(r"([^<>=!~]+?)(>=|<=|!=|~=|=|>|<)(.*)", expr.strip())
     if not m:
-        raise ValueError(f"invalid filter {expr!r}; expected FIELD=VALUE")
+        raise ValueError(f"invalid filter {expr!r}; expected FIELD followed by = != >= <= > < or ~=")
     field, op, value = m.groups()
-    return field.strip(), op, _strip_quotes(value)
+    field, value = field.strip(), value.strip()
+    if not field or not value:
+        raise ValueError("invalid filter; field and value are required (quote literal empty text)")
+    if value[0] in ("\"", "'"):
+        if len(value) < 2 or value[-1] != value[0]:
+            raise ValueError("invalid filter; unterminated quoted value")
+    elif value[0] in "<>=!~":
+        raise ValueError("invalid filter operator sequence; quote a literal value starting with an operator")
+    return field, op, _strip_quotes(value)
 
 
 def _field_api_type(f: dict[str, Any]) -> str:
@@ -147,7 +157,7 @@ def _where_operator(op: str) -> str:
         raise ValueError(f"operator {op!r} not supported for this field; use = or !=")
     if op == "~=":
         raise ValueError("operator ~= (contains) not supported; use = or !=")
-    return "is_in"
+    raise ValueError(f"unknown filter operator {op!r}; no equality fallback")
 
 
 def _query_item(

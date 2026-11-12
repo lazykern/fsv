@@ -94,10 +94,22 @@ acceptance for another tenant.
 
 ## List filter limits
 
-Date `>=` and `<=` use inclusive ranges. Strict date `>` / `<`, date
-`!=`, and contains (`~=`) are refused rather than silently broadened or
-encoded with an unproven server operator. Use an inclusive bound only when it
-matches the intended query.
+Date `>=` and `<=` use inclusive ranges in the actual list `query_hash`.
+Strict date `>` / `<`, date `!=`, numeric inequalities and contains (`~=`)
+remain refused: the reviewed query builders have no proven exact wire for those
+operations. They are never broadened to inclusive/equality filters or sent as
+invented operator names. The captured relative-period token wire
+(`Created=Last 6 months` → `is_greater_than: six_months`) is **not** evidence for
+strict comparisons to a calendar date, arbitrary numeric inequalities, or
+contains. Relative periods support `=` / `>=` only; inverse periods fail closed.
+
+CLI and shared builders use the same strict expression grammar. Malformed
+operators (`==`, `=>`, `<>`, `~~=`), missing fields/values, controls and unmatched
+quotes are rejected, with no default-to-equality operator fallback. Quote literal
+values beginning with an operator, e.g. `--where "Subject='=Acme'"`. Unsupported
+filters stop before any list request; offline two-tenant HTTP tests assert the
+exact supported range/period query hashes and absence of broadened requests.
+Use an inclusive bound only when it matches the intended query.
 
 ## Ticket note edits and deletion
 

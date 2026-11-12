@@ -768,11 +768,11 @@ def _strip_quotes(value: str) -> str:
 
 
 def _parse_where(expr: str) -> tuple[str, str, str]:
-    m = re.match(r"^(.+?)(>=|<=|!=|~=|=|>|<)(.*)$", expr.strip())
-    if not m:
-        _err(f"invalid --where {expr!r}; expected FIELD=VALUE")
-    field, op, value = m.groups()
-    return field.strip(), op, _strip_quotes(value)
+    from fsv.query import _parse_where as parse_where
+    try:
+        return parse_where(expr)
+    except ValueError as exc:
+        _err(str(exc))
 
 
 def _where_field(expr: str) -> str:
@@ -909,7 +909,7 @@ def _where_operator(op: str) -> str:
         _err(f"operator {op!r} not supported; inequalities only work for date fields (created_at, updated_at, etc.). Use = or !=")
     if op == "~=":
         _err(f"operator ~= (contains) not supported; use = or !=")
-    return "is_in"
+    _err(f"unknown filter operator {op!r}; no equality fallback")
 
 
 def _query_item(condition: str, operator: str, value: Any, type_: str, explain: list[dict[str, Any]], field: str, raw: str) -> dict[str, Any]:
@@ -943,7 +943,9 @@ def _date_condition(field_name: str, op: str, raw: str, explain: list[dict[str, 
     if op in (">", "<", "!="):
         _err(f"date operator {op!r} is not supported; use =, >= or <= (inclusive)")
     token = _WHERE_PERIODS.get(raw.strip().casefold(), raw.strip() if raw.strip() in _PERIOD_TOKENS else None)
-    if token and op in ("=", ">="):
+    if token:
+        if op not in ("=", ">="):
+            _err("relative date periods support only = or >=; no inverse period wire is proven")
         return _query_item(field_name, "is_greater_than", token, "default", explain, shown, raw)
     if op == ">=":
         value: Any = {"from": raw}
