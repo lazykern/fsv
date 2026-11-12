@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "8f156c08ec19b91dc42656707ee229f0b38112e0",
+  "commit": "6ead7c9904717101a61dba9a518b674f559286b6",
   "dirty": false
  },
  "two_step_note_acme": {
@@ -612,6 +612,156 @@
    {
     "method": "POST",
     "path": "tickets",
+    "raw": "{\"subject\": \"Acme incident\", \"attachments\": [701, 702]}"
+   }
+  ]
+ },
+ "two_step_change_acme": {
+  "tenant": "acme.example.com",
+  "base": 701,
+  "ops": [
+   {
+    "op": "build",
+    "kind": "change"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "base": {
+      "action": "ticket_create_attachments",
+      "target": 0,
+      "tenant": "acme.example.com",
+      "method": "POST",
+      "path": "changes",
+      "payload_json": "{\"subject\": \"Acme incident\"}",
+      "context_hash": "a2aa44af023b13ffd920a8c1ffdfd5f8c9d82aed6be2a2f6e7deaee81b2bee88"
+     },
+     "files": [
+      {
+       "name": "acme.txt",
+       "size": 16,
+       "content_type": "text/plain",
+       "sha256": "3cc714b2407a6ae8a16701a75a47021b0e7a1bf7cad73a945ea6c706e8748d10"
+      },
+      {
+       "name": "globex.txt",
+       "size": 16,
+       "content_type": "text/plain",
+       "sha256": "ce5a4c27d2d32ed43a1db8a23f606f505dabf0c63059da2f17f516809172f3dc"
+      }
+     ],
+     "limit": 4096,
+     "limit_source": "tenant form metadata (bytes)",
+     "published_limit": 4096,
+     "hash": "476d4d3b69e2b262e5fda71dfcc23666791f687732c53027ef6620f460405721",
+     "review": {
+      "action": "ticket_create_attachments",
+      "method": "POST",
+      "path": "/api/_/changes",
+      "payload": {
+       "subject": "Acme incident"
+      },
+      "plan_hash": "476d4d3b69e2b262e5fda71dfcc23666791f687732c53027ef6620f460405721",
+      "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
+      "files": [
+       {
+        "name": "acme.txt",
+        "size": 16,
+        "content_type": "text/plain",
+        "sha256": "3cc714b2407a6ae8a16701a75a47021b0e7a1bf7cad73a945ea6c706e8748d10"
+       },
+       {
+        "name": "globex.txt",
+        "size": 16,
+        "content_type": "text/plain",
+        "sha256": "ce5a4c27d2d32ed43a1db8a23f606f505dabf0c63059da2f17f516809172f3dc"
+       }
+      ],
+      "max_attachment_size_bytes": 4096,
+      "attachment_size_limit": {
+       "max_bytes": 4096,
+       "source": "tenant form metadata (bytes)",
+       "published_bytes": 4096,
+       "total_bytes": 32,
+       "applies_to": "total of all files in this submit"
+      },
+      "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+     }
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "476d4d3b69e2b262e5fda71dfcc23666791f687732c53027ef6620f460405721",
+     "uploaded_ids": [
+      701,
+      702
+     ],
+     "verified": true,
+     "owner_id": 123,
+     "attachments": [
+      701,
+      702
+     ],
+     "attachments_verified": true,
+     "fields": {
+      "subject": "matched"
+     }
+    },
+    "writes": 3
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "attachment transaction was sent or outcome unknown; do not replay"
+    },
+    "writes": 3
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_create_attachments",
+    "started",
+    null
+   ],
+   [
+    "plan:ticket_create_attachments_upload",
+    "uploaded",
+    701
+   ],
+   [
+    "plan:ticket_create_attachments_upload",
+    "uploaded",
+    702
+   ],
+   [
+    "plan:ticket_create_attachments",
+    "done",
+    null
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "attachments",
+    "raw": "{\"content\": \"data:text/plain;base64,QWNtZSBldmlkZW5jZSAwCg==\", \"content_file_name\": \"acme.txt\", \"content_file_size\": 16, \"content_content_type\": \"text/plain\"}"
+   },
+   {
+    "method": "POST",
+    "path": "attachments",
+    "raw": "{\"content\": \"data:text/plain;base64,QWNtZSBldmlkZW5jZSAxCg==\", \"content_file_name\": \"globex.txt\", \"content_file_size\": 16, \"content_content_type\": \"text/plain\"}"
+   },
+   {
+    "method": "POST",
+    "path": "changes",
     "raw": "{\"subject\": \"Acme incident\", \"attachments\": [701, 702]}"
    }
   ]
@@ -3166,6 +3316,156 @@
    {
     "method": "POST",
     "path": "tickets",
+    "raw": "{\"subject\": \"Acme incident\", \"attachments\": [801, 802]}"
+   }
+  ]
+ },
+ "two_step_change_globex": {
+  "tenant": "globex.example.com",
+  "base": 801,
+  "ops": [
+   {
+    "op": "build",
+    "kind": "change"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "base": {
+      "action": "ticket_create_attachments",
+      "target": 0,
+      "tenant": "globex.example.com",
+      "method": "POST",
+      "path": "changes",
+      "payload_json": "{\"subject\": \"Acme incident\"}",
+      "context_hash": "a2aa44af023b13ffd920a8c1ffdfd5f8c9d82aed6be2a2f6e7deaee81b2bee88"
+     },
+     "files": [
+      {
+       "name": "acme.txt",
+       "size": 16,
+       "content_type": "text/plain",
+       "sha256": "3cc714b2407a6ae8a16701a75a47021b0e7a1bf7cad73a945ea6c706e8748d10"
+      },
+      {
+       "name": "globex.txt",
+       "size": 16,
+       "content_type": "text/plain",
+       "sha256": "ce5a4c27d2d32ed43a1db8a23f606f505dabf0c63059da2f17f516809172f3dc"
+      }
+     ],
+     "limit": 4096,
+     "limit_source": "tenant form metadata (bytes)",
+     "published_limit": 4096,
+     "hash": "83e785a985345deab46f6494714aeb85262bdfe4924f990d2b2daf69c4200850",
+     "review": {
+      "action": "ticket_create_attachments",
+      "method": "POST",
+      "path": "/api/_/changes",
+      "payload": {
+       "subject": "Acme incident"
+      },
+      "plan_hash": "83e785a985345deab46f6494714aeb85262bdfe4924f990d2b2daf69c4200850",
+      "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
+      "files": [
+       {
+        "name": "acme.txt",
+        "size": 16,
+        "content_type": "text/plain",
+        "sha256": "3cc714b2407a6ae8a16701a75a47021b0e7a1bf7cad73a945ea6c706e8748d10"
+       },
+       {
+        "name": "globex.txt",
+        "size": 16,
+        "content_type": "text/plain",
+        "sha256": "ce5a4c27d2d32ed43a1db8a23f606f505dabf0c63059da2f17f516809172f3dc"
+       }
+      ],
+      "max_attachment_size_bytes": 4096,
+      "attachment_size_limit": {
+       "max_bytes": 4096,
+       "source": "tenant form metadata (bytes)",
+       "published_bytes": 4096,
+       "total_bytes": 32,
+       "applies_to": "total of all files in this submit"
+      },
+      "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+     }
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "83e785a985345deab46f6494714aeb85262bdfe4924f990d2b2daf69c4200850",
+     "uploaded_ids": [
+      801,
+      802
+     ],
+     "verified": true,
+     "owner_id": 123,
+     "attachments": [
+      801,
+      802
+     ],
+     "attachments_verified": true,
+     "fields": {
+      "subject": "matched"
+     }
+    },
+    "writes": 3
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "attachment transaction was sent or outcome unknown; do not replay"
+    },
+    "writes": 3
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_create_attachments",
+    "started",
+    null
+   ],
+   [
+    "plan:ticket_create_attachments_upload",
+    "uploaded",
+    801
+   ],
+   [
+    "plan:ticket_create_attachments_upload",
+    "uploaded",
+    802
+   ],
+   [
+    "plan:ticket_create_attachments",
+    "done",
+    null
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "attachments",
+    "raw": "{\"content\": \"data:text/plain;base64,QWNtZSBldmlkZW5jZSAwCg==\", \"content_file_name\": \"acme.txt\", \"content_file_size\": 16, \"content_content_type\": \"text/plain\"}"
+   },
+   {
+    "method": "POST",
+    "path": "attachments",
+    "raw": "{\"content\": \"data:text/plain;base64,QWNtZSBldmlkZW5jZSAxCg==\", \"content_file_name\": \"globex.txt\", \"content_file_size\": 16, \"content_content_type\": \"text/plain\"}"
+   },
+   {
+    "method": "POST",
+    "path": "changes",
     "raw": "{\"subject\": \"Acme incident\", \"attachments\": [801, 802]}"
    }
   ]
@@ -7589,6 +7889,156 @@
    {
     "method": "POST",
     "path": "tickets",
+    "raw": "{\"subject\": \"Acme incident\", \"attachments\": [701, 702]}"
+   }
+  ]
+ },
+ "page_change": {
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "limit": null,
+     "page": [
+      "40"
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "kind": "change"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "base": {
+      "action": "ticket_create_attachments",
+      "target": 0,
+      "tenant": "acme.example.com",
+      "method": "POST",
+      "path": "changes",
+      "payload_json": "{\"subject\": \"Acme incident\"}",
+      "context_hash": "de4dbe1add52abd601cce02641193199005faea74f848985adea61ebc07ef8ab"
+     },
+     "files": [
+      {
+       "name": "acme.txt",
+       "size": 16,
+       "content_type": "text/plain",
+       "sha256": "3cc714b2407a6ae8a16701a75a47021b0e7a1bf7cad73a945ea6c706e8748d10"
+      },
+      {
+       "name": "globex.txt",
+       "size": 16,
+       "content_type": "text/plain",
+       "sha256": "ce5a4c27d2d32ed43a1db8a23f606f505dabf0c63059da2f17f516809172f3dc"
+      }
+     ],
+     "limit": 41943040,
+     "limit_source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
+     "published_limit": 41943040,
+     "hash": "f7a4c22fb1e686f001a172bb2ea1c8c28dc922f9c25c0bc6816804036b4dfe20",
+     "review": {
+      "action": "ticket_create_attachments",
+      "method": "POST",
+      "path": "/api/_/changes",
+      "payload": {
+       "subject": "Acme incident"
+      },
+      "plan_hash": "f7a4c22fb1e686f001a172bb2ea1c8c28dc922f9c25c0bc6816804036b4dfe20",
+      "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction.",
+      "files": [
+       {
+        "name": "acme.txt",
+        "size": 16,
+        "content_type": "text/plain",
+        "sha256": "3cc714b2407a6ae8a16701a75a47021b0e7a1bf7cad73a945ea6c706e8748d10"
+       },
+       {
+        "name": "globex.txt",
+        "size": 16,
+        "content_type": "text/plain",
+        "sha256": "ce5a4c27d2d32ed43a1db8a23f606f505dabf0c63059da2f17f516809172f3dc"
+       }
+      ],
+      "max_attachment_size_bytes": 41943040,
+      "attachment_size_limit": {
+       "max_bytes": 41943040,
+       "source": "tenant agent page MAX_ATTACHMENT_LIMIT (MiB, total per submit)",
+       "published_bytes": 41943040,
+       "total_bytes": 32,
+       "applies_to": "total of all files in this submit"
+      },
+      "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments"
+     }
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "f7a4c22fb1e686f001a172bb2ea1c8c28dc922f9c25c0bc6816804036b4dfe20",
+     "uploaded_ids": [
+      701,
+      702
+     ],
+     "verified": true,
+     "owner_id": 123,
+     "attachments": [
+      701,
+      702
+     ],
+     "attachments_verified": true,
+     "fields": {
+      "subject": "matched"
+     }
+    },
+    "writes": 3
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_create_attachments",
+    "started",
+    null
+   ],
+   [
+    "plan:ticket_create_attachments_upload",
+    "uploaded",
+    701
+   ],
+   [
+    "plan:ticket_create_attachments_upload",
+    "uploaded",
+    702
+   ],
+   [
+    "plan:ticket_create_attachments",
+    "done",
+    null
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "attachments",
+    "raw": "{\"content\": \"data:text/plain;base64,QWNtZSBldmlkZW5jZSAwCg==\", \"content_file_name\": \"acme.txt\", \"content_file_size\": 16, \"content_content_type\": \"text/plain\"}"
+   },
+   {
+    "method": "POST",
+    "path": "attachments",
+    "raw": "{\"content\": \"data:text/plain;base64,QWNtZSBldmlkZW5jZSAxCg==\", \"content_file_name\": \"globex.txt\", \"content_file_size\": 16, \"content_content_type\": \"text/plain\"}"
+   },
+   {
+    "method": "POST",
+    "path": "changes",
     "raw": "{\"subject\": \"Acme incident\", \"attachments\": [701, 702]}"
    }
   ]

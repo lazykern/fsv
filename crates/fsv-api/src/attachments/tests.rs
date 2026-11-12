@@ -17,6 +17,7 @@ const FILES: [(&str, &str); 2] = [
 
 fn new_state(base: i64) -> Value {
     json!({"uploads": {}, "notes": [], "conversations": [], "ticket": {"id": 123, "attachments": []},
+           "change": null,
            "problem": {"id": 123, "attachments": []}, "limit": 4096, "meta": null, "fail": null,
            "fail_step": "upload", "mismatch": false, "missing_id": false, "partial": false, "base": base,
            "planning": [], "requests": [], "page": null, "page_status": 200, "page_html": null})
@@ -49,6 +50,12 @@ fn read(s: &mut Value, path: &str) -> Result<Value> {
         }
         "problems/123/notes" => json!({"notes": s["notes"], "has_more": s["partial"]}),
         "tickets/123" => json!({"ticket": s["ticket"]}),
+        "changes/123" => {
+            if s["change"].is_null() {
+                return Err(ApiError::new(404, json!({"error": "unexpected"})).into());
+            }
+            json!({"change": s["change"]})
+        }
         "problems/123" => json!({"problem": s["problem"]}),
         "problems/123/planning-fields" => json!({"problem_planning_fields": s["planning"]}),
         _ => return Err(ApiError::new(404, json!({"error": "unexpected"})).into()),
@@ -111,12 +118,17 @@ fn write(s: &mut Value, call: &Call) -> Result<Value> {
         .iter()
         .map(|i| s["uploads"][i.to_string()].clone())
         .collect();
-    if path == "tickets" {
+    if path == "tickets" || path == "changes" {
         let mut row = obj(json!({"id": 123}));
         row.extend(body.as_object().unwrap().clone());
         row.insert("attachments".into(), json!(attachments));
-        s["ticket"] = Value::Object(row);
-        return Ok(json!({"ticket": {"id": 123}}));
+        let key = if path == "tickets" {
+            "ticket"
+        } else {
+            "change"
+        };
+        s[key] = Value::Object(row);
+        return Ok(json!({key: {"id": 123}}));
     }
     let mut row = obj(json!({"id": 901}));
     row.extend(body.as_object().unwrap().clone());
@@ -181,14 +193,18 @@ fn build(
 ) -> Result<AttachedPlan> {
     match kind {
         "problem" => problem_note_plan(c, "PRB-123", "Acme evidence", paths, max_bytes),
-        "create" => {
+        "create" | "change" => {
             let raw = metadata(c, "tickets")?;
             let base = WritePlan {
                 action: "ticket_create_attachments".into(),
                 target: 0,
                 tenant: c.domain(),
                 method: "POST".into(),
-                path: "tickets".into(),
+                path: if kind == "change" {
+                    "changes".into()
+                } else {
+                    "tickets".into()
+                },
                 payload_json: fsv_py::Dumps::default().dump(&json!({"subject": "Acme incident"})),
                 context_hash: plan_hash(&raw),
             };
@@ -226,7 +242,7 @@ fn cases_match_python() {
     let oracle: Value =
         serde_json::from_str(include_str!("../testdata/attachments_oracle.json")).unwrap();
     let cases = oracle.as_object().unwrap();
-    assert_eq!(cases.len(), 64);
+    assert_eq!(cases.len(), 67);
     for (name, case) in cases {
         if name == "_python" {
             continue;

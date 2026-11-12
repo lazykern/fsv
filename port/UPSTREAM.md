@@ -2461,3 +2461,40 @@ when that file may change. `fsv --version` will keep printing
 `2026.5.29` until then.
 
 Still not triaged: `6ead7c9` and later.
+
+## Ledger: `6ead7c9` (library side)
+
+Triaged against a `git archive 6ead7c9` export
+(`FSV_PY_COMMIT=6ead7c9904717101a61dba9a518b674f559286b6`).
+`port/golden/gen_fsv_api_attachments.py` stamps
+`crates/fsv-api/src/testdata/attachments_oracle.json`. Existing cases
+are unchanged. New cases: `two_step_change_acme`,
+`two_step_change_globex`, and `page_change`.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `6ead7c9`.
+The partial is the change-create CLI, named below. `docs/commands.md`
+and `docs/reviewed-parity.md` have no library behavior.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `6ead7c9` | 11-12 21:55 | Review initial change attachment transactions and document inline capture boundary | partial | fsv-api `attachments`. fsv-cli follow-up below |
+
+`attachments::readback` treats a `changes` create like a ticket create.
+The response envelope is `change`, and the owner row is
+`GET changes/{id}`. A change create verifies from that row. Ticket,
+problem, and conversation readback stay as they were.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`changes create` should take `--max-bytes` and pass it into the
+before-create attachment plan. When the draft has attachments and
+`--attach-flow before-create`, build `attachments::wrap` around the
+change create plan and finish it with the reviewed-write helper.
+Refuse that combination when the draft also has planning, devices, or
+an interactive form:
+`initial attachments cannot combine with planning, devices or interactive forms`.
+A before-create run that cannot prove the published byte limit exits 2
+with `no upload` and sends nothing.
+HEAD scratch of `fsv-cli` still fails the same 23 tests. No new name.
+
+Still not triaged: `550fe8c` and later.

@@ -558,9 +558,14 @@ pub fn readback(
         }
         positive_id(raw.get("id").unwrap_or(&Value::Null))
     };
-    let (returned_id, row) = if base.path == "tickets" {
-        let returned_id = id_of(envelope(response, "ticket", &empty))?;
-        (returned_id, Some(owner_row(c, "tickets", returned_id)?))
+    let (returned_id, row) = if base.path == "tickets" || base.path == "changes" {
+        let key = if base.path == "tickets" {
+            "ticket"
+        } else {
+            "change"
+        };
+        let returned_id = id_of(envelope(response, key, &empty))?;
+        (returned_id, Some(owner_row(c, &base.path, returned_id)?))
     } else if base.path.starts_with("problems/") {
         let returned_id = id_of(envelope(response, "note", &empty))?;
         let rows = crate::problem_workflows::inventory(c, base.target, "notes")?;

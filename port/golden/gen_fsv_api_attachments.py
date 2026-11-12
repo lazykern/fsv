@@ -40,6 +40,7 @@ FILES = {"acme.txt": "Acme evidence 0\n", "globex.txt": "Acme evidence 1\n"}
 
 def new_state(base):
     return {"uploads": {}, "notes": [], "conversations": [], "ticket": {"id": 123, "attachments": []},
+            "change": None,
             "problem": {"id": 123, "attachments": []}, "limit": 4096, "meta": None, "fail": None,
             "fail_step": "upload", "mismatch": False, "missing_id": False, "partial": False, "base": base,
             "planning": [], "requests": [], "page": None, "page_status": 200, "page_html": None}
@@ -76,6 +77,10 @@ def handler_for(s):
                 return httpx.Response(200, json={"notes": copy.deepcopy(s["notes"]), "has_more": s["partial"]})
             if path == "tickets/123":
                 return httpx.Response(200, json={"ticket": copy.deepcopy(s["ticket"])})
+            if path == "changes/123":
+                if s["change"] is None:
+                    return httpx.Response(404, json={"error": "unexpected"})
+                return httpx.Response(200, json={"change": copy.deepcopy(s["change"])})
             if path == "problems/123":
                 return httpx.Response(200, json={"problem": copy.deepcopy(s["problem"])})
             if path == "problems/123/planning-fields":
@@ -103,6 +108,9 @@ def handler_for(s):
         if path == "tickets":
             s["ticket"] = {"id": 123, **body, "attachments": attachments}
             return httpx.Response(201, json={"ticket": {"id": 123}})
+        if path == "changes":
+            s["change"] = {"id": 123, **body, "attachments": attachments}
+            return httpx.Response(201, json={"change": {"id": 123}})
         row = {"id": 901, **body, "attachments": attachments, "body": "<div>Acme evidence</div>"}
         if path == "problems/123/notes":
             s["notes"].append(row)
@@ -129,10 +137,11 @@ def client(handler):
 def builder(c, paths, kind, notify=(), max_bytes=None):
     if kind == "problem":
         return lambda: flow.problem_note_plan(c, "PRB-123", "Acme evidence", paths, max_bytes=max_bytes)
-    if kind == "create":
+    if kind in {"create", "change"}:
         def build():
             raw = flow.metadata(c, "tickets")
-            base = WritePlan("ticket_create_attachments", 0, config.DOMAIN, "POST", "tickets",
+            base = WritePlan("ticket_create_attachments", 0, config.DOMAIN, "POST",
+                             "changes" if kind == "change" else "tickets",
                              json.dumps({"subject": "Acme incident"}), journal.plan_hash(raw))
             return flow.wrap(base, paths, raw, client=c, max_bytes=max_bytes)
         return build
@@ -205,7 +214,7 @@ S = {"op": "send"}
 CASES = {}
 for tenant, base in [("acme.example.com", 701), ("globex.example.com", 801)]:
     t = tenant.split(".")[0]
-    for kind in ["note", "reply", "problem", "create"]:
+    for kind in ["note", "reply", "problem", "create", "change"]:
         CASES[f"two_step_{kind}_{t}"] = {"tenant": tenant, "base": base, "ops": [{"op": "build", "kind": kind}, S, S]}
     for failure in [403, 429, 500, "disconnect", 400]:
         for step in ["upload", "owner"]:
@@ -280,7 +289,7 @@ CASES["delete_refusals"] = {"ops": [
     {"op": "delete_build", "ident": 55, "owner": "problems/123", "section": "problem_impact"},
     {"op": "set", "state": {"partial": True}},
     {"op": "delete_build", "ident": 701, "owner": "tickets/123", "child": 901}]}
-for kind in ["note", "reply", "problem", "create"]:
+for kind in ["note", "reply", "problem", "create", "change"]:
     CASES[f"page_{kind}"] = {"ops": [{"op": "set", "state": {"limit": None, "page": ["40"]}},
                                      {"op": "build", "kind": kind}, S]}
 CASES["page_total"] = {"ops": [{"op": "set", "state": {"limit": None, "page": ["0.00002"]}},
