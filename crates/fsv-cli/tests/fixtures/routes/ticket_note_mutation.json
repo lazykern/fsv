@@ -1,0 +1,365 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 500,
+     "body": "<div>Acme opening</div>",
+     "body_text": "<div>Acme opening</div>",
+     "source": 0,
+     "private": false,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    },
+    {
+     "id": 501,
+     "body": "<div>Acme draft</div>",
+     "body_text": "<div>Acme draft</div>",
+     "source": 2,
+     "private": true,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 500,
+     "body": "<div>Acme opening</div>",
+     "body_text": "<div>Acme opening</div>",
+     "source": 0,
+     "private": false,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    },
+    {
+     "id": 501,
+     "body": "<div>Acme draft</div>",
+     "body_text": "<div>Acme draft</div>",
+     "source": 2,
+     "private": true,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 500,
+     "body": "<div>Acme opening</div>",
+     "body_text": "<div>Acme opening</div>",
+     "source": 0,
+     "private": false,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    },
+    {
+     "id": 501,
+     "body": "<div>Globex final</div>",
+     "body_text": "<div>Globex final</div>",
+     "source": 2,
+     "private": true,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 500,
+     "body": "<div>Acme opening</div>",
+     "body_text": "<div>Acme opening</div>",
+     "source": 0,
+     "private": false,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    },
+    {
+     "id": 502,
+     "body": "<div>Acme stale</div>",
+     "body_text": "<div>Acme stale</div>",
+     "source": 2,
+     "private": true,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 500,
+     "body": "<div>Acme opening</div>",
+     "body_text": "<div>Acme opening</div>",
+     "source": 0,
+     "private": false,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    },
+    {
+     "id": 502,
+     "body": "<div>Acme stale</div>",
+     "body_text": "<div>Acme stale</div>",
+     "source": 2,
+     "private": true,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 500,
+     "body": "<div>Acme opening</div>",
+     "body_text": "<div>Acme opening</div>",
+     "source": 0,
+     "private": false,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 500,
+     "body": "<div>Acme opening</div>",
+     "body_text": "<div>Acme opening</div>",
+     "source": 0,
+     "private": false,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 500,
+     "body": "<div>Acme opening</div>",
+     "body_text": "<div>Acme opening</div>",
+     "source": 0,
+     "private": false,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 500,
+     "body": "<div>Acme opening</div>",
+     "body_text": "<div>Acme opening</div>",
+     "source": 0,
+     "private": false,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/126/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 500,
+     "body": "<div>Acme opening</div>",
+     "body_text": "<div>Acme opening</div>",
+     "source": 0,
+     "private": false,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    },
+    {
+     "id": 503,
+     "body": "<div>Acme draft</div>",
+     "body_text": "<div>Acme draft</div>",
+     "source": 2,
+     "private": true,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/126/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 500,
+     "body": "<div>Acme opening</div>",
+     "body_text": "<div>Acme opening</div>",
+     "source": 0,
+     "private": false,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    },
+    {
+     "id": 503,
+     "body": "<div>Acme draft</div>",
+     "body_text": "<div>Acme draft</div>",
+     "source": 2,
+     "private": true,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/126/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 500,
+     "body": "<div>Acme opening</div>",
+     "body_text": "<div>Acme opening</div>",
+     "source": 0,
+     "private": false,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    },
+    {
+     "id": 503,
+     "body": "<div>Acme draft</div>",
+     "body_text": "<div>Acme draft</div>",
+     "source": 2,
+     "private": true,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/conversations/501",
+  "status": 200,
+  "json": {
+   "conversation": {
+    "id": 501,
+    "body": "<div>Globex final</div>",
+    "body_text": "<div>Globex final</div>",
+    "source": 2,
+    "private": true,
+    "user_id": 9000001234,
+    "created_at": "2030-01-01T00:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/conversations/502",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/conversations/503",
+  "status": 200,
+  "json": {
+   "conversation": {
+    "id": 503,
+    "body": "<div>Acme draft</div>",
+    "body_text": "<div>Acme draft</div>",
+    "source": 2,
+    "private": true,
+    "user_id": 9000001234,
+    "created_at": "2030-01-01T00:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

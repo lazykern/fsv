@@ -1,0 +1,205 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7",
+  "json": {
+   "problem": {
+    "id": 7,
+    "human_display_id": "PRB-7",
+    "subject": "Acme problem 7"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/8",
+  "json": {
+   "problem": {
+    "id": 8,
+    "human_display_id": "PRB-8",
+    "subject": "Acme problem 8"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/9",
+  "json": {
+   "problem": {
+    "id": 9,
+    "human_display_id": "PRB-9",
+    "subject": "Acme problem 9"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "type": "Incident",
+    "human_display_id": "INC-123",
+    "subject": "Acme 123"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124",
+  "json": {
+   "ticket": {
+    "id": 124,
+    "type": "Incident",
+    "human_display_id": "INC-124",
+    "subject": "Acme 124"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125",
+  "json": {
+   "ticket": {
+    "id": 125,
+    "type": "Service Request",
+    "human_display_id": "SR-125",
+    "subject": "Acme 125"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7/tickets",
+  "json": {
+   "tickets": [],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7/tickets",
+  "json": {
+   "tickets": [],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7/tickets",
+  "json": {
+   "tickets": [
+    {
+     "id": 123,
+     "subject": "Acme 123"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/8/tickets",
+  "json": {
+   "tickets": [
+    {
+     "id": 124,
+     "subject": "Acme 124"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/8/tickets",
+  "json": {
+   "tickets": [
+    {
+     "id": 124,
+     "subject": "Acme 124"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/8/tickets",
+  "json": {
+   "tickets": [],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/9/tickets",
+  "json": {
+   "tickets": [],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/9/tickets",
+  "json": {
+   "tickets": [],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/9/tickets",
+  "json": {
+   "tickets": [],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/7/tickets/associate",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/problems/8/tickets/124",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/9/tickets/associate",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

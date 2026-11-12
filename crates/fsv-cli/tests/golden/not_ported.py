@@ -16,4 +16,15 @@ NOT_PORTED: set[str] = {
     # cc41912 ticket_assignment_cli
     "fsv tickets assign",
     "fsv tickets pick-up",
+    # 9910ddc ticket_note_mutation_cli
+    "fsv tickets note-edit",
+    "fsv tickets note-delete",
+    # 17ada1b problem_cli incident associations
+    "fsv problems link-incident",
+    "fsv problems unlink-incident",
+    # 5d7d777 problem_cli status lifecycle
+    "fsv problems status",
+    # c46d3b0 turns the "fsv tickets tasks" leaf into a group; the leaf's
+    # behaviour moves to this hidden path.
+    "fsv tickets tasks-legacy",
 }

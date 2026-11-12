@@ -1,0 +1,457 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 901,
+     "title": "Acme check",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 901,
+     "title": "Acme check",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 901,
+     "title": "Acme check",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 901,
+     "title": "Acme check",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    },
+    {
+     "id": 902,
+     "title": "Acme rollback check",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {
+      "cf_area": "Network"
+     }
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 903,
+     "title": "Acme verify",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 903,
+     "title": "Acme verify",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 903,
+     "title": "Acme verify",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 903,
+     "title": "Acme verify",
+     "status": 3,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 904,
+     "title": "Acme cleanup",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    },
+    {
+     "id": 905,
+     "title": "Acme notify",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 904,
+     "title": "Acme cleanup",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    },
+    {
+     "id": 905,
+     "title": "Acme notify",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 904,
+     "title": "Acme cleanup",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    },
+    {
+     "id": 905,
+     "title": "Acme notify",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 905,
+     "title": "Acme notify",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/126/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 906,
+     "title": "Acme verify",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/126/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 906,
+     "title": "Acme verify",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/126/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 906,
+     "title": "Acme verify",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/126/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 906,
+     "title": "Acme verify",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_task_fields",
+  "json": {
+   "ticket_task_fields": [
+    {
+     "name": "title",
+     "label": "Title",
+     "field_type": "default_title",
+     "required": true
+    },
+    {
+     "name": "status",
+     "label": "Status",
+     "field_type": "default_status",
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "In Progress"
+      },
+      {
+       "id": 3,
+       "value": "Completed"
+      }
+     ]
+    },
+    {
+     "name": "notify_before",
+     "label": "Notify Before",
+     "field_type": "default_notify_before",
+     "choices": [
+      {
+       "id": 0,
+       "value": "Never"
+      },
+      {
+       "id": 900,
+       "value": "15 minutes"
+      }
+     ]
+    },
+    {
+     "name": "cf_area",
+     "label": "Area",
+     "field_type": "custom_text",
+     "custom": true
+    },
+    {
+     "name": "cf_tier",
+     "label": "Tier",
+     "field_type": "custom_dropdown",
+     "custom": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Gold"
+      },
+      {
+       "id": 2,
+       "value": "Silver"
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets/123/tasks",
+  "status": 200,
+  "json": {
+   "task": {
+    "id": 902,
+    "title": "Acme rollback check",
+    "status": 1,
+    "notify_before": 0,
+    "custom_fields": {
+     "cf_area": "Network"
+    }
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/124/tasks/903",
+  "status": 200,
+  "json": {
+   "task": {
+    "id": 903,
+    "title": "Acme verify",
+    "status": 3,
+    "notify_before": 0,
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/125/tasks/update",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/126/tasks/906",
+  "status": 200,
+  "json": {
+   "task": {
+    "id": 906,
+    "title": "Acme verify",
+    "status": 1,
+    "notify_before": 0,
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

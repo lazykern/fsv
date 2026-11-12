@@ -1,0 +1,446 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7",
+  "json": {
+   "problem": {
+    "id": 7,
+    "human_display_id": "PRB-7",
+    "subject": "Acme problem 7",
+    "status": 1,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7",
+  "json": {
+   "problem": {
+    "id": 7,
+    "human_display_id": "PRB-7",
+    "subject": "Acme problem 7",
+    "status": 1,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7",
+  "json": {
+   "problem": {
+    "id": 7,
+    "human_display_id": "PRB-7",
+    "subject": "Acme problem 7",
+    "status": 2,
+    "planned_start_date": "2030-01-02T00:00:00Z",
+    "planned_end_date": "2030-01-03T00:00:00Z",
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/8",
+  "json": {
+   "problem": {
+    "id": 8,
+    "human_display_id": "PRB-8",
+    "subject": "Acme problem 8",
+    "status": 2,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/8",
+  "json": {
+   "problem": {
+    "id": 8,
+    "human_display_id": "PRB-8",
+    "subject": "Acme problem 8",
+    "status": 2,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/8",
+  "json": {
+   "problem": {
+    "id": 8,
+    "human_display_id": "PRB-8",
+    "subject": "Acme problem 8",
+    "status": 3,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/8/planning-fields",
+  "json": {
+   "problem_planning_fields": [
+    {
+     "name": "problem_cause",
+     "description": "<p>Acme problem_cause</p>"
+    },
+    {
+     "name": "problem_impact",
+     "description": "<p>Acme problem_impact</p>"
+    },
+    {
+     "name": "problem_symptom",
+     "description": "<p>Acme problem_symptom</p>"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/8/solutions",
+  "json": {
+   "solutions": [
+    {
+     "id": 61,
+     "title": "Acme workaround"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/9",
+  "json": {
+   "problem": {
+    "id": 9,
+    "human_display_id": "PRB-9",
+    "subject": "Acme problem 9",
+    "status": 2,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/9/planning-fields",
+  "json": {
+   "problem_planning_fields": [
+    {
+     "name": "problem_cause",
+     "description": ""
+    },
+    {
+     "name": "problem_impact",
+     "description": ""
+    },
+    {
+     "name": "problem_symptom",
+     "description": ""
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/9/solutions",
+  "json": {
+   "solutions": [],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/10",
+  "json": {
+   "problem": {
+    "id": 10,
+    "human_display_id": "PRB-10",
+    "subject": "Acme problem 10",
+    "status": 2,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "custom_fields": {
+     "cf_owner_note": ""
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/10/planning-fields",
+  "json": {
+   "problem_planning_fields": [
+    {
+     "name": "problem_cause",
+     "description": "<p>Acme problem_cause</p>"
+    },
+    {
+     "name": "problem_impact",
+     "description": "<p>Acme problem_impact</p>"
+    },
+    {
+     "name": "problem_symptom",
+     "description": "<p>Acme problem_symptom</p>"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/10/solutions",
+  "json": {
+   "solutions": [
+    {
+     "id": 62,
+     "title": "Acme fix"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/11",
+  "json": {
+   "problem": {
+    "id": 11,
+    "human_display_id": "PRB-11",
+    "subject": "Acme problem 11",
+    "status": 1,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/11",
+  "json": {
+   "problem": {
+    "id": 11,
+    "human_display_id": "PRB-11",
+    "subject": "Acme problem 11",
+    "status": 1,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/11",
+  "json": {
+   "problem": {
+    "id": 11,
+    "human_display_id": "PRB-11",
+    "subject": "Acme problem 11",
+    "status": 1,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/7",
+  "status": 200,
+  "json": {
+   "problem": {
+    "id": 7,
+    "human_display_id": "PRB-7",
+    "subject": "Acme problem 7",
+    "status": 2,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/8",
+  "status": 422,
+  "json": {
+   "errors": [
+    {
+     "code": "violated_closure_rules",
+     "description": {
+      "check_analysis_completed": true,
+      "check_workaround_or_solution_added": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/11",
+  "status": 200,
+  "json": {
+   "problem": {
+    "id": 11,
+    "human_display_id": "PRB-11",
+    "subject": "Acme problem 11",
+    "status": 1,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problem_form_fields",
+  "json": {
+   "problem_fields": [
+    {
+     "id": 9000009001,
+     "name": "subject",
+     "label": "Subject",
+     "description": "",
+     "field_type": "default_subject",
+     "required": false,
+     "required_for_closure": false,
+     "position": 1,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000009002,
+     "name": "status",
+     "label": "Status",
+     "description": "",
+     "field_type": "default_status",
+     "required": false,
+     "required_for_closure": false,
+     "position": 2,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "Change Requested"
+      },
+      {
+       "id": 3,
+       "value": "Closed"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000009003,
+     "name": "cf_owner_note",
+     "label": "Owner Note",
+     "description": "",
+     "field_type": "custom_text",
+     "required": false,
+     "required_for_closure": true,
+     "position": 3,
+     "default_field": false,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/business_rules",
+  "json": {
+   "business_rules": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

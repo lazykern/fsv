@@ -190,19 +190,61 @@ fn where_period_token_lt() {
         &["tickets", "ls", "--where", "created<today", "--debug"],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"                         query                          
-┏━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━┓
-┃ field   ┃ condition  ┃ operator    ┃ type    ┃ value ┃
-┡━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━┩
-│ created │ created_at │ custom_date │ default │ today │
-└─────────┴────────────┴─────────────┴─────────┴───────┘
-api: internal /api/_/ with query_hash (1 conditions, AND)
+        r.err,
+        r#"error: date operator '<' is not supported; use =, >= or <= (inclusive)
 "#
     );
-    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn where_date_strict_gt_rejected() {
+    let r = run_fixture(
+        "where",
+        &["tickets", "ls", "--where", "Created>2026-01-01", "--debug"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: date operator '>' is not supported; use =, >= or <= (inclusive)
+"#
+    );
+}
+
+#[test]
+fn where_date_period_gt_rejected() {
+    let r = run_fixture(
+        "where",
+        &["tickets", "ls", "--where", "created>today", "--debug"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: date operator '>' is not supported; use =, >= or <= (inclusive)
+"#
+    );
+}
+
+#[test]
+fn where_change_date_lt_rejected() {
+    let r = run_fixture(
+        "where",
+        &["changes", "ls", "--where", "created<2026-01-01", "--debug"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: date operator '<' is not supported; use =, >= or <= (inclusive)
+"#
+    );
 }
 
 #[test]
@@ -249,19 +291,13 @@ fn where_date_not_equal() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"                             query                              
-┏━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━┓
-┃ field      ┃ condition  ┃ operator    ┃ type    ┃ value      ┃
-┡━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━┩
-│ updated_at │ updated_at │ custom_date │ default │ 2026-01-01 │
-└────────────┴────────────┴─────────────┴─────────┴────────────┘
-api: internal /api/_/ with query_hash (1 conditions, AND)
+        r.err,
+        r#"error: date operator '!=' is not supported; use =, >= or <= (inclusive)
 "#
     );
-    assert_eq!(r.err, r#""#);
 }
 
 #[test]
@@ -275,7 +311,7 @@ fn where_date_contains_rejected() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: unsupported date operator '~='; use = != >= <= > <
+        r#"error: unsupported date operator '~='; use = >= <=
 "#
     );
 }

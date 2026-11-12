@@ -154,11 +154,17 @@ pub fn date_condition(
     explain: &mut Vec<Explain>,
     shown: &str,
 ) -> Result<Value> {
+    if matches!(op, ">" | "<" | "!=") {
+        return Err(usage(&format!(
+            "date operator {} is not supported; use =, >= or <= (inclusive)",
+            py_repr_str(op)
+        )));
+    }
     let trimmed = pystr::strip(raw);
     let token = lookup_in(PERIODS, &pystr::casefold(trimmed))
         .or_else(|| is_period_token(trimmed).then_some(trimmed));
     if let Some(token) = token
-        && matches!(op, "=" | ">" | ">=")
+        && matches!(op, "=" | ">=")
     {
         return Ok(query_item(
             field_name,
@@ -171,12 +177,12 @@ pub fn date_condition(
         ));
     }
     let value = match op {
-        ">" | ">=" => json!({"from": raw}),
-        "<" | "<=" => json!({"to": raw}),
-        "=" | "!=" => json!({"from": raw, "to": raw}),
+        ">=" => json!({"from": raw}),
+        "<=" => json!({"to": raw}),
+        "=" => json!({"from": raw, "to": raw}),
         _ => {
             return Err(usage(&format!(
-                "unsupported date operator {}; use = != >= <= > <",
+                "unsupported date operator {}; use = >= <=",
                 py_repr_str(op)
             )));
         }
@@ -550,7 +556,7 @@ mod tests {
         let mut ex = Vec::new();
         let a = date_condition("created_at", "<=", "last 7 days", &mut ex, "Created").unwrap();
         let b = date_condition("due_by", "=", "Five_minutes", &mut ex, "due").unwrap();
-        let c = date_condition("due_by", ">", "five_minutes", &mut ex, "due").unwrap();
+        let c = date_condition("due_by", ">=", "five_minutes", &mut ex, "due").unwrap();
         assert_eq!(
             a,
             json!({"value": {"to": "last 7 days"}, "condition": "created_at", "operator": "custom_date", "type": "default"})
