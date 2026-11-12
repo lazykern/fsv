@@ -382,14 +382,12 @@ available in read-only mode and issues GETs only. Empty results and duplicate
 identities are handled without manufacturing candidates. Both interfaces label
 the result as a single page, not a complete CMDB inventory.
 
-Selection **does not associate** an asset/CI. No eligible asset/service fixture
-was present in the scoped browser evidence, so broader add/remove contracts and
-TUI sends remain blocked. Existing legacy association helpers are not upgraded
-or certified by this picker. Similarly, problem/ticket task edit/complete/delete
-cannot be inferred from captured task creation; broader change task fields need
-method-specific evidence beyond the prior title update/delete scope. No new
-maintenance writer or guessed optional payload keys were added. Offline Pilot
-search/select/cancel tests do not constitute a live browser or accepted send.
+Read-only selection **does not associate** an asset/CI. In writable mode the
+`i` menu separately offers reviewed integrated device/CI and business-service
+add/remove on tickets, SRs, problems and changes (see Integrated inventory below).
+Physical-asset mutations and legacy association helpers are not enabled by this
+picker. Task contracts remain method-specific; no maintenance writer or guessed
+optional payload keys are added. Offline Pilot tests are not accepted live sends.
 
 ## Legacy-write transport coverage and residual safety debt
 
@@ -565,8 +563,15 @@ reviewed PUT; removal accepts exactly one inventory ID and resolves its exact
 `--yes --expect-plan FULL_HASH`. Use `--kind services` for business services.
 `changes ci-list|ci-add|ci-remove` are aliases. The legacy nested search alias
 and `changes asset-picker` now read integrated Devices, not `assets-to-associate`.
-The TUI `i` picker remains explicitly read-only; extending it safely needs a
-separate reviewed mutation UX rather than turning candidate selection into a write.
+The TUI `i` menu keeps read-only browsing separate from explicit add/remove.
+Choose devices/CI or business services; add searches one page, while remove
+reads the exact parent's complete associated inventory. Selection prepares the
+same CLI plan/hash, never sends. Inspect the exact PUT/payload/hash and confirm
+with **y**. Cancel sends nothing. One journaled attempt is independently read
+back; unknown/unverified outcomes remain visible with no retry action. Read-only
+mode exposes browsing only and blocks preparation and sends. Legacy physical
+assets remain unsupported. Pilot/MockTransport tests cover every parent/kind,
+cancellation, single send, readback, and refused replay after disconnect.
 
 Incident and change creation accept repeatable `--device INVENTORY_ID`. The
 `device_ids` array is included in the exact reviewed create payload and hash;

@@ -113,7 +113,7 @@ class HelpScreen(ModalScreen[None]):
   [cyan]gt/gp/gc[/]     jump to tickets/problems/changes
   [cyan]1-9[/]          switch detail tab (the tabs the web shows for the item)
   [cyan]v[/]            pick a saved view by name (the list opens with the default view)
-  [cyan]i[/]            browse change asset candidates (read-only, no association)
+  [cyan]i[/]            browse or review device/CI and service associations
   [cyan]\\[][/cyan]         resize list/detail pane
 
 [bold]Search[/]
@@ -2276,18 +2276,46 @@ class FsvApp(App):
     # ── Write actions ───────────────────────────────────────
 
     def _asset_inventory_prompt(self) -> None:
-        if not self._selected or self._selected.get("_resource", TICKETS) != CHANGES:
-            self.notify("Select a change to browse asset candidates", severity="warning")
+        if not self._selected or self._selected.get("_resource", TICKETS).name not in {"tickets", "changes", "problems"}:
+            self.notify("Select a ticket, SR, problem or change", severity="warning")
             return
         item = dict(self._selected)
-        self.push_screen(ValueScreen("Read-only asset search — selection does not associate"),
-                         lambda query: self._load_asset_inventory(item, query) if query is not None else None)
+        if self.read_only:
+            self._asset_search_prompt(item)
+            return
+        def picked(value):
+            if value is None:
+                return
+            action, kind = value.split(":")
+            if action == "remove":
+                self._load_associated_inventory(item, kind)
+            else:
+                self._asset_search_prompt(item, kind, action == "add")
+        self.push_screen(ChoiceScreen([
+            ("browse:devices", "Browse devices/CI — no association"),
+            ("add:devices", "Add device/CI — review before sending"),
+            ("remove:devices", "Remove associated device/CI — review before sending"),
+            ("add:services", "Add business service — review before sending"),
+            ("remove:services", "Remove associated business service — review before sending"),
+        ], "Inventory associations"), picked)
+
+    def _asset_search_prompt(self, item: dict, kind: str = "devices", add: bool = False) -> None:
+        if add and self.read_only:
+            return
+        title = f"Search {kind} — selection prepares review, not a send" if add else "Read-only asset search — selection does not associate"
+        self.push_screen(ValueScreen(title), lambda query: self._load_asset_inventory(
+            item, query, kind, add) if query is not None else None)
 
     @work(thread=True, exclusive=True, group="asset-inventory")
-    def _load_asset_inventory(self, item: dict, query: str) -> None:
-        from fsv import asset_picker
+    def _load_asset_inventory(self, item: dict, query: str, kind: str = "devices", add: bool = False) -> None:
+        from fsv import asset_picker, integrated_assets
+        if add and self.read_only:
+            return
         try:
-            result = asset_picker.candidates(get_client(), item.get("display_id") or item["id"], query)
+            raw = integrated_assets.search(get_client(), query, kind=kind)
+            result = {"assets": [{"display_id": int(row["name"]["id"]), "name": row["name"].get("label"),
+                                  "ci_type_name": row.get("type"), "inventory": row} for row in raw["data"]],
+                      "scope": "single search page; not a complete inventory", "mutation": "none"}
             choices = [(row["display_id"], f"[{row['display_id']}] {row.get('name') or '-'} — {row.get('ci_type_name') or '-'}")
                        for row in result["assets"]]
             def pick():
@@ -2297,12 +2325,63 @@ class FsvApp(App):
                 def selected(value):
                     if value is not None:
                         row = asset_picker.select(result, value)
-                        self.push_screen(OutcomeScreen("Selected asset — no association", json.dumps(
-                            {"selected": row, "scope": result["scope"], "mutation": "none"}, indent=2)))
-                self.push_screen(ChoiceScreen(choices, "Asset candidates — page 1 only; read-only"), selected)
+                        if add:
+                            self._prepare_inventory_association(item, kind, row["display_id"], False)
+                        else:
+                            self.push_screen(OutcomeScreen("Selected asset — no association", json.dumps(
+                                {"selected": row, "scope": result["scope"], "mutation": "none"}, indent=2)))
+                self.push_screen(ChoiceScreen(choices, "Asset candidates — page 1 only; " +
+                                             ("selection prepares review" if add else "read-only")), selected)
             self.call_from_thread(pick)
         except Exception as exc:
             self.call_from_thread(self.push_screen, FailureScreen("Asset search unavailable: " + str(exc)))
+
+    @work(thread=True, exclusive=True, group="asset-inventory")
+    def _load_associated_inventory(self, item: dict, kind: str) -> None:
+        from fsv import integrated_assets
+        if self.read_only:
+            return
+        try:
+            rows = integrated_assets.inventory(get_client(), item.get("_resource", TICKETS).name,
+                                               item.get("display_id") or item["id"], kind)
+            def pick():
+                if not rows:
+                    self.push_screen(OutcomeScreen("Associated inventory", "No associated items. Nothing sent."))
+                    return
+                choices = [(row["item_id"], f"[{row['item_id']}] {row.get('name') or row.get('item_name') or kind}") for row in rows]
+                self.push_screen(ChoiceScreen(choices, "Remove exact associated item — selection prepares review"),
+                                 lambda value: self._prepare_inventory_association(item, kind, value, True)
+                                 if value is not None else None)
+            self.call_from_thread(pick)
+        except Exception as exc:
+            self.call_from_thread(self.push_screen, FailureScreen("Association inventory unavailable: " + str(exc)))
+
+    @work(thread=True, exclusive=True, group="asset-review")
+    def _prepare_inventory_association(self, item: dict, kind: str, ident: int, remove: bool) -> None:
+        from fsv import integrated_assets
+        if self.read_only:
+            return
+        try:
+            module = item.get("_resource", TICKETS).name
+            plan = integrated_assets.build_plan(get_client(), module, item.get("display_id") or item["id"],
+                                                [ident], kind=kind, remove=remove)
+            def review():
+                self.push_screen(ConfirmScreen("Review exact inventory association", [json.dumps(plan.review(), indent=2)]),
+                                 lambda ok: self._send_inventory_association(plan, module, kind, ident, remove) if ok else None)
+            self.call_from_thread(review)
+        except Exception as exc:
+            self.call_from_thread(self.push_screen, FailureScreen("Association review blocked: " + str(exc)))
+
+    @work(thread=True, exclusive=True, group="write")
+    def _send_inventory_association(self, plan: Any, module: str, kind: str, ident: int, remove: bool) -> None:
+        from fsv import integrated_assets
+        if self.read_only:
+            return
+        try:
+            result = integrated_assets.send(plan, get_client(), module, [ident], kind=kind, remove=remove, reviewed_hash=plan.hash)
+            self.call_from_thread(self.push_screen, OutcomeScreen("Inventory association outcome — do not resend", json.dumps(result, indent=2)))
+        except Exception as exc:
+            self.call_from_thread(self.push_screen, FailureScreen(actions.failure_detail(exc)))
 
     def _action_menu(self) -> None:
         if self.read_only:
