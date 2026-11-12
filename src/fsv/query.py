@@ -176,10 +176,40 @@ def _query_item(
     return {"value": value, "condition": condition, "operator": operator, "type": type_}
 
 
+# List filters a module's list endpoint is proven to ignore: the ticket list
+# answers ``approval_status`` with 206 + ``meta.search_error`` and returns
+# UNFILTERED rows. Refuse them instead of showing a silently broadened list.
+UNSUPPORTED_LIST_FILTERS = {"tickets": frozenset({"approval_status"})}
+
+
+def refuse_unsupported_filter(res: Any, condition: Any) -> None:
+    if str(condition) in UNSUPPORTED_LIST_FILTERS.get(getattr(res, "name", ""), ()):
+        raise ValueError(f"{condition} is not a {res.name} list filter (the server ignores it and returns "
+                         "unfiltered rows); read approval_status per record instead (e.g. `get`)")
+
+
+def _check_raw_query(res: Any, items: Any) -> None:
+    for item in items if isinstance(items, list) else [items]:
+        if isinstance(item, dict):
+            if "condition" in item:
+                refuse_unsupported_filter(res, item.get("condition"))
+            for key in ("any", "all"):
+                if key in item:
+                    _check_raw_query(res, item[key])
+
+
 def _resolve_where(
     c: Any, res: Any, sch: dict[str, Any], expr: str, explain: list[dict[str, Any]]
 ) -> dict[str, Any]:
     field_text, op, raw = _parse_where(expr)
+    refuse_unsupported_filter(res, field_text)
+    if field_text == "approval_status" and getattr(res, "name", "") == "changes":
+        # Proven read-only on the change list: query_hash approval_status is_in ["<n>"].
+        # Values are raw platform numbers; no name mapping is inferred.
+        if op not in ("=", "!=") or not _isdigit(raw):
+            raise ValueError("approval_status takes a numeric value with = or != (e.g. approval_status=0)")
+        return _query_item("approval_status", "is_in" if op == "=" else "is_not_in", [raw], "default",
+                           explain, field_text, raw)
     pseudo_dates = {"created_at", "updated_at", "due_by", "planned_start_date", "planned_end_date"}
     if field_text in pseudo_dates:
         # Custom date ranges are inclusive; never silently turn strict bounds
@@ -211,6 +241,7 @@ def _resolve_where(
     if not f:
         raise ValueError(f"field not found: {field_text!r}")
     name = f.get("name") or field_text
+    refuse_unsupported_filter(res, name)
     type_ = _field_api_type(f)
     ftype = str(f.get("field_type") or "")
     from fsv.filter_proof import require_filterable_field
@@ -314,7 +345,9 @@ def build_query_hash(
     query: list[dict[str, Any]] = []
     explain: list[dict[str, Any]] = []
     if raw:
-        query.extend(_load_query_hash(raw))
+        loaded = _load_query_hash(raw)
+        _check_raw_query(res, loaded)
+        query.extend(loaded)
         explain.append({"field": "query_hash", "condition": "raw", "operator": "raw", "type": "raw", "value": raw})
     if where:
         sch = schema_mod.load(res, c)

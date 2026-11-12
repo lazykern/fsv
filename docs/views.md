@@ -46,6 +46,11 @@ fsv changes ls --where status=Open            # internal names still work
 * `--debug` prints the conditions sent to the server.
 * Filters replace the default view; combine them with `--view NAME` to
   narrow a view.
+* `approval_status` is a change list filter only (`--where approval_status=0`,
+  raw platform numbers). The ticket list ignores it (206 `search_error`,
+  unfiltered rows), so fsv refuses it for tickets, in `--where` and in a raw
+  `--query-hash`; read the value per record instead. Any filtered list answer
+  marked `search_error` is refused rather than shown.
 
 ## Detail pages
 

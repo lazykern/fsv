@@ -28,6 +28,12 @@ def list_page(
     params = _list_params(resource, page, per_page, filter_name, order_by, order_type, query_hash, or_grouping)
     data = c.int_get(resource.api_path, params=params)
     data = data if isinstance(data, dict) else {}
+    meta = data.get("meta")
+    if query_hash and isinstance(meta, dict) and meta.get("search_error"):
+        # The server ignored the filter (206 + search_error) and returned
+        # unfiltered rows: never show them as the filtered list.
+        raise ValueError(f"the {resource.name} list rejected the filter (search_error) and returned unfiltered "
+                         "rows; nothing shown")
     items = data.get(resource.list_key, []) or []
     for item in items:
         item["_resource"] = resource
@@ -90,6 +96,10 @@ def list_items(
             if resource.name in ("changes", "tickets"):
                 params["advanced_query_hash"] = ""
     data = c.int_get(resource.api_path, params=params)
+    meta = data.get("meta") if isinstance(data, dict) else None
+    if query_hash and isinstance(meta, dict) and meta.get("search_error"):
+        raise ValueError(f"the {resource.name} list rejected the filter (search_error) and returned unfiltered "
+                         "rows; nothing shown")
     items = data.get(resource.list_key, [])
     total = (data.get("meta") or {}).get("total_count") or data.get("total") or len(items)
     for item in items:
