@@ -97,6 +97,37 @@ def test_workflow_activity_confirms_rewrite_back_to_prior_status():
     assert problem_status.workflow_activity_note(ActivityClient([other]), 7, since) is None
 
 
+def _native_activity(write_at, workflow_at, requested="Resolve", rewritten="Monitor"):
+    # Real envelope: agent row then a workflow row whose status is in sub_contents.
+    return [
+        {"actor": {"id": 0, "name": "Problem Workflow", "is_agent_deleted": False},
+         "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed (any to any)</b>  event",
+         "sub_contents": [f"set status as <b>{rewritten}</b>", "<b>Workflow Ends</b>"], "created_at": workflow_at},
+        {"actor": {"id": 9000001, "name": "Acme Agent", "is_agent": True},
+         "content": f"set status as  <b>{requested}</b> , set planned end date as  <b>Thu, 2 Jan  4:30 PM</b>",
+         "sub_contents": None, "created_at": write_at},
+    ]
+
+
+def test_workflow_rewrite_back_to_prior_status_uses_native_activity_rows():
+    since = dt.datetime(2030, 1, 1, tzinfo=dt.timezone.utc)
+    rows = _native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z")
+    note = problem_status.workflow_activity_note(ActivityClient(rows), 7, since, "Resolve")
+    assert note and "Resolve" in note and "Monitor" in note and "Problem Workflow" in note
+    # No entry for this write: the readback stays unverified.
+    assert problem_status.workflow_activity_note(ActivityClient(rows), 7, since, "Closed") is None
+    # Workflow entry older than the write is not evidence.
+    stale = _native_activity("2030-01-01T00:02:00Z", "2030-01-01T00:01:00Z")
+    assert problem_status.workflow_activity_note(ActivityClient(stale), 7, since, "Resolve") is None
+    # Entries before the write window do not count.
+    old = _native_activity("2029-12-31T00:01:00Z", "2029-12-31T00:01:01Z")
+    assert problem_status.workflow_activity_note(ActivityClient(old), 7, since, "Resolve") is None
+    # A workflow row that did not set a status is not a rewrite.
+    noset = _native_activity("2030-01-01T00:01:00Z", "2030-01-01T00:01:01Z")
+    noset[0]["sub_contents"] = ["send email to <b>requester</b>", "<b>Workflow Ends</b>"]
+    assert problem_status.workflow_activity_note(ActivityClient(noset), 7, since, "Resolve") is None
+
+
 class FieldsClient:
     def __init__(self, fields):
         self.fields = fields

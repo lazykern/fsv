@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -144,23 +145,68 @@ def status_readback(before: Any, after: Any, sent: Any) -> tuple[bool, str | Non
     return False, None
 
 
-def workflow_activity_note(client: Any, target: int, since: dt.datetime) -> str | None:
-    """A note when the first activity page shows a workflow that set the
-    status after ``since`` (a rewrite back to the pre-write status)."""
-    from fsv import service
-    from fsv.resources import PROBLEMS
-    try:
-        rows = service.get_activities(PROBLEMS, target, client=client)
-    except Exception:
-        return None
+_SET_STATUS = re.compile(r"set status as\s*(.+?)\s*(?:,|$)")
+
+
+def _activity_rows(rows: Any) -> list[tuple[dt.datetime, str, str, str]]:
+    """(created_at, content text, sub_contents text, actor name) for parseable rows."""
+    out = []
     for row in rows if isinstance(rows, list) else []:
-        text = strip_html(str(row.get("content") or "")).casefold() if isinstance(row, dict) else ""
+        if not isinstance(row, dict):
+            continue
         try:
             at = dt.datetime.fromisoformat(str(row.get("created_at")).replace("Z", "+00:00"))
         except (TypeError, ValueError):
             continue
-        if at.tzinfo is not None and at >= since and "workflow" in text and "set status as" in text:
+        if at.tzinfo is None:
+            continue
+        subs = row.get("sub_contents")
+        sub = " , ".join(strip_html(str(s)) for s in subs if isinstance(s, str)) if isinstance(subs, list) else ""
+        actor = row.get("actor") if isinstance(row.get("actor"), dict) else {}
+        out.append((at, strip_html(str(row.get("content") or "")), sub, str(actor.get("name") or "")))
+    return out
+
+
+def _set_status(text: str) -> str | None:
+    found = _SET_STATUS.search(" ".join(text.split()))
+    return found.group(1).strip() if found else None
+
+
+def workflow_activity_note(client: Any, target: int, since: dt.datetime, requested: str | None = None) -> str | None:
+    """A note when the first activity page shows a workflow that set the
+    status after the write (for example back to the pre-write status).
+
+    Native rows: the agent write is ``set status as <b>LABEL</b>``; the
+    workflow run is ``executed <a>NAME</a> workflow from ... event`` with the
+    status it set in ``sub_contents``. With ``requested``, the activity must
+    also show this write's own status entry, and the workflow entry must not
+    be older than it; otherwise the readback stays unverified.
+    """
+    from fsv import service
+    from fsv.resources import PROBLEMS
+    try:
+        rows = _activity_rows(service.get_activities(PROBLEMS, target, client=client))
+    except Exception:
+        return None
+    rows = [r for r in rows if r[0] >= since]
+    written = None
+    if requested is not None:
+        want = " ".join(requested.split()).casefold()
+        mine = [at for at, text, _sub, _actor in rows
+                if "workflow" not in text.casefold() and (_set_status(text) or "").casefold() == want]
+        if not mine:
+            return None
+        written = max(mine)
+    for at, text, sub, actor in rows:
+        if "workflow" not in text.casefold() or (written is not None and at < written):
+            continue
+        label = _set_status(sub) or _set_status(text)
+        if label is None:
+            continue
+        if requested is None:
             return "status rewritten server-side after the write (activity shows a workflow set it)"
+        return (f"status set to {requested} by this write, then rewritten server-side to {label} "
+                f"by a workflow ({actor or 'workflow'}) per the activity log")
     return None
 
 
@@ -186,7 +232,7 @@ def send(plan: StatusPlan, client: Any, *, reviewed_hash: str | None) -> dict[st
         verified, note = status_readback(json.loads(plan.before_json).get("status"), row.get("status"),
                                          plan.payload["status"])
         if not verified and row.get("status") is not None:
-            note = workflow_activity_note(client, plan.target, since)
+            note = workflow_activity_note(client, plan.target, since, plan.label)
             verified = note is not None
         out = {"problem_id": plan.target, "verified": verified,
                "readback": {k: row[k] for k in ("status", "planned_start_date", "planned_end_date") if k in row},

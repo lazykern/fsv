@@ -47,6 +47,8 @@ def api(request, monkeypatch, tmp_path):
                     page = int(req.url.params.get("page", 1))
                     return httpx.Response(200, json=copy.deepcopy(s["solution_pages"][page - 1]))
                 return httpx.Response(200, json={"articles": copy.deepcopy(s["solutions"]), "has_more": s["partial"]})
+            if path == "problems/123/activities":
+                return httpx.Response(200, json={"activities": copy.deepcopy(s.get("activities", []))})
             assert path == "problems/123"
             return httpx.Response(200, json={"problem": copy.deepcopy(s["row"])})
         body = json.loads(req.content)
@@ -210,3 +212,23 @@ def test_rules_500_degrades_to_warning_in_review_and_json(api):
     assert out.exit_code == 0, out.output
     assert "rules unavailable" in json.loads(out.output)["warnings"][0]
     assert not s["writes"]
+
+
+@pytest.mark.parametrize("evidence", [True, False])
+def test_workflow_rewrite_to_the_prior_status_uses_activity_evidence(api, evidence):
+    import datetime as dt
+    c, s, _fields, n = api
+    plan = flow.build_plan(c, 123, "Resolve")
+    s["mismatch"] = True  # a tenant workflow put the status straight back to Open
+    now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    if evidence:
+        s["activities"] = [
+            {"actor": {"id": 0, "name": "Problem Workflow", "is_agent_deleted": False},
+             "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed</b>  event",
+             "sub_contents": ["set status as <b>Open</b>", "<b>Workflow Ends</b>"], "created_at": now},
+            {"actor": {"id": 9000001, "name": "Acme Agent", "is_agent": True},
+             "content": "set status as  <b>Resolve</b>", "sub_contents": None, "created_at": now}]
+    result = flow.send(plan, c, reviewed_hash=plan.hash)
+    assert len(s["writes"]) == 1 and s["row"]["status"] == n
+    assert result["verified"] is evidence
+    assert ("rewritten server-side to Open" in result.get("verified_with_note", "")) is evidence
