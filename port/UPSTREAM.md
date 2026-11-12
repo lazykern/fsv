@@ -1275,14 +1275,14 @@ Triaged against Python `3432bea` (2 commits; `src` is identical at
 `e638d85` and `3432bea`). Every fixture outside fsv-cli and fsv-completion
 is regenerated from a `git archive 3432bea` export and stamped with it.
 
-Counts: **0 ported, 2 partial, 0 missing.**
+Counts: **2 ported, 0 partial, 0 missing.**
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `e638d85` | 11-12 08:15 | Support reviewed native planning text edits and clears | partial (fsv-cli `--clear`) | fsv-api `planning_text`, fsv-app `tui`, fsv-tui test docs |
-| `3432bea` | 11-12 08:26 | Test clone partial failures and attachment transport errors offline | partial (fsv-cli clone cases) | fsv-api `create` tests, `FnApi::with_fetch` |
+| `e638d85` | 11-12 08:15 | Support reviewed native planning text edits and clears | ported | fsv-api `planning_text`, fsv-app `tui`, fsv-tui test docs, fsv-cli `planning-text --clear` |
+| `3432bea` | 11-12 08:26 | Test clone partial failures and attachment transport errors offline | ported | fsv-api `create` tests, `FnApi::with_fetch`, fsv-cli `clone_*` tests |
 
-### `e638d85` Support reviewed native planning text edits and clears — partial
+### `e638d85` Support reviewed native planning text edits and clears — ported
 
 Done in fsv-api: `planning_text::build_plan_for(c, module, target, section,
 description: Option<&str>, clear, schema)`. `build_plan` stays as the
@@ -1366,12 +1366,12 @@ commits add tests only. `92d76ff` comes before `2956fce`, so the base pin
 stops at `92d76ff`. The new fixture is generated from a `git archive
 92d76ff` export; the other fixtures keep their `3432bea` stamp (same `src`).
 
-Counts: **1 ported, 0 partial, 1 untriaged (assigned).**
+Counts: **2 ported, 0 partial, 0 untriaged.**
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
 | `92d76ff` | 11-12 08:31 | Exercise query ambiguity and lifecycle rendering matrices offline | ported | fsv-api `query`, `state_flow` (tests), `query::resolve_group` |
-| `2956fce` | 11-12 08:36 | Cover cached completion branches and thin subprocess protocol | untriaged (fsv-completion owner) | fsv-completion |
+| `2956fce` | 11-12 08:36 | Cover cached completion branches and thin subprocess protocol | ported | fsv-completion `dynamic/matrix.rs` (20 scenarios, 121 cases from Python 2956fce) |
 
 ### `92d76ff` Exercise query ambiguity and lifecycle rendering matrices offline — ported
 
@@ -1421,3 +1421,5 @@ No behavior mismatch was found. No case is CLI-only.
 credits a `#[path]` test file to the file that declares it. Without that,
 `query::resolve_group` showed as fn-only, because `resolve_group` is a common
 name with three fns.
+
+CLI side of `e638d85` and `3432bea` landed in `c94f2f5`: `planning-text --description` optional, `--clear`, `build_plan_for`; 19 new planning goldens and 7 clone failure tests, all identical to Python `3432bea` (`emit_upstream.py`). `2956fce`'s completion matrix is replayed in `crates/fsv-completion/src/dynamic/matrix.rs`.
