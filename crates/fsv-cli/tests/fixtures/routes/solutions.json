@@ -1,0 +1,264 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/categories",
+  "json": {
+   "categories": [
+    {
+     "id": 201,
+     "name": "Acme KB",
+     "default_category": true
+    },
+    {
+     "id": 202,
+     "name": "Globex KB",
+     "default_category": false
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/folders",
+  "query": {
+   "category_id": "201"
+  },
+  "json": {
+   "folders": [
+    {
+     "id": 301,
+     "name": "Runbooks",
+     "category_id": 201,
+     "default_folder": true
+    },
+    {
+     "id": 302,
+     "name": "Archive",
+     "category_id": 201,
+     "default_folder": false
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/folders",
+  "query": {
+   "category_id": "202"
+  },
+  "json": {
+   "folders": [
+    {
+     "id": 303,
+     "name": "Shared",
+     "category_id": 202
+    },
+    {
+     "id": 304,
+     "name": "Shared 2",
+     "category_id": 202
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/solutions/articles",
+  "status": 200,
+  "json": {
+   "article": {
+    "id": 501
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/501",
+  "json": {
+   "article": {
+    "id": 501,
+    "title": "Acme VPN workaround",
+    "description": "<div>Restart the Acme VPN client</div>",
+    "status": 1,
+    "article_type": 2,
+    "folder_id": 301
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/502",
+  "json": {
+   "article": {
+    "id": 502,
+    "title": "Acme fix",
+    "description": "<div>Acme fix</div>",
+    "status": 1,
+    "article_type": 1,
+    "folder_id": 301
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/503",
+  "json": {
+   "article": {
+    "id": 503,
+    "title": "Acme FAQ",
+    "description": "<div>Acme FAQ</div>",
+    "status": 1,
+    "article_type": 3,
+    "folder_id": 301
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/solutions/articles/504",
+  "json": {
+   "article": {
+    "id": 504,
+    "title": "Acme old fix",
+    "description": "<div>Acme old fix</div>",
+    "status": 1,
+    "article_type": 2,
+    "folder_id": 301
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/20",
+  "json": {
+   "problem": {
+    "id": 20,
+    "human_display_id": "PRB-20",
+    "subject": "Acme problem 20",
+    "status": 1
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/21",
+  "json": {
+   "problem": {
+    "id": 21,
+    "human_display_id": "PRB-21",
+    "subject": "Acme problem 21",
+    "status": 1
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/20/solutions",
+  "json": {
+   "articles": [],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/20/solutions",
+  "json": {
+   "articles": [],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/20/solutions",
+  "json": {
+   "articles": [
+    {
+     "id": 502,
+     "article_type": 1
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/21/solutions",
+  "json": {
+   "articles": [
+    {
+     "id": 504,
+     "article_type": 2
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/21/solutions",
+  "json": {
+   "articles": [
+    {
+     "id": 504,
+     "article_type": 2
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/21/solutions",
+  "json": {
+   "articles": [
+    {
+     "id": 504,
+     "article_type": 2
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/20/solutions/502",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/21/solutions/504",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

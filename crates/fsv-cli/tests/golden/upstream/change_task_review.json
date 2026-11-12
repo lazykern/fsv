@@ -1,0 +1,19 @@
+[
+ {"name": "changes_tasks_update_dry_run", "fixture": "change_task_review", "args": ["changes", "tasks-update", "CHN-5", "3", "--title", "Acme patch v2", "--owner", "bo@acme.com", "--group", "DBA", "--dry-run"]},
+ {"name": "changes_tasks_update_send", "fixture": "change_task_review", "hash_from": ["changes", "tasks-update", "5", "3", "--title", "Acme patch v2", "--owner", "bo@acme.com", "--group", "DBA", "--dry-run"], "args": ["changes", "tasks-update", "5", "3", "--title", "Acme patch v2", "--owner", "bo@acme.com", "--group", "DBA", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "changes_tasks_update_needs_expect_plan", "fixture": "change_task_review", "args": ["changes", "tasks-update", "5", "3", "--title", "Acme patch v2", "--yes"]},
+ {"name": "changes_tasks_update_read_only", "fixture": "change_task_review", "args": ["changes", "tasks-update", "5", "3", "--title", "Acme patch v2", "--read-only"]},
+ {"name": "changes_tasks_update_complete_send_unverified", "fixture": "change_task_review", "hash_from": ["changes", "tasks-update", "7", "8", "--status", "Completed", "--dry-run"], "args": ["changes", "tasks-update", "7", "8", "--status", "Completed", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "changes_tasks_update_reminder_dry_run", "fixture": "change_task_review", "args": ["changes", "tasks-update", "9", "11", "--notify-before", "15 Minutes", "--dry-run"]},
+ {"name": "changes_tasks_update_system_dry_run", "fixture": "change_task_review", "args": ["changes", "tasks-update", "9", "11", "--system", "SAP", "--dry-run"]},
+ {"name": "changes_tasks_update_unknown_status", "fixture": "change_task_review", "args": ["changes", "tasks-update", "5", "3", "--status", "Bogus", "--dry-run"]},
+ {"name": "changes_tasks_update_unknown_task", "fixture": "change_task_review", "args": ["changes", "tasks-update", "5", "99", "--title", "x", "--dry-run"]},
+ {"name": "changes_tasks_update_no_changes", "fixture": "change_task_review", "args": ["changes", "tasks-update", "5", "3", "--dry-run"]},
+ {"name": "changes_tasks_update_due_date_refused", "fixture": "change_task_review", "args": ["changes", "tasks-update", "5", "3", "--due-date", "2030-01-02", "--dry-run"]},
+ {"name": "changes_tasks_update_unknown_owner", "fixture": "change_task_review", "args": ["changes", "tasks-update", "5", "3", "--owner", "zed@acme.com", "--dry-run"]},
+ {"name": "changes_tasks_delete_dry_run", "fixture": "change_task_review", "args": ["changes", "tasks-delete", "CHN-6", "5", "--dry-run"]},
+ {"name": "changes_tasks_delete_send", "fixture": "change_task_review", "hash_from": ["changes", "tasks-delete", "6", "5", "--dry-run"], "args": ["changes", "tasks-delete", "6", "5", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "changes_tasks_delete_send_unverified", "fixture": "change_task_review", "hash_from": ["changes", "tasks-delete", "8", "6", "--dry-run"], "args": ["changes", "tasks-delete", "8", "6", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "changes_tasks_delete_needs_expect_plan", "fixture": "change_task_review", "args": ["changes", "tasks-delete", "6", "5", "--yes"]},
+ {"name": "changes_tasks_delete_unknown_task", "fixture": "change_task_review", "args": ["changes", "tasks-delete", "6", "99", "--dry-run"]}
+]

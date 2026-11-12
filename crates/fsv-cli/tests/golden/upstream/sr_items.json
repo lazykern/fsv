@@ -1,0 +1,15 @@
+[
+ {"name": "sr_items_list", "fixture": "sr_items", "args": ["sr", "items", "list", "SR-150"]},
+ {"name": "sr_items_stage_dry_run", "fixture": "sr_items", "args": ["sr", "items", "write", "151", "stage", "--item", "1511", "--stage", "2", "--dry-run"]},
+ {"name": "sr_items_stage_send", "fixture": "sr_items", "hash_from": ["sr", "items", "write", "151", "stage", "--item", "1511", "--stage", "2", "--dry-run"], "args": ["sr", "items", "write", "151", "stage", "--item", "1511", "--stage", "2", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "sr_items_stage_other_refused", "fixture": "sr_items", "args": ["sr", "items", "write", "151", "stage", "--item", "1511", "--stage", "3", "--dry-run"]},
+ {"name": "sr_items_remove_dry_run", "fixture": "sr_items", "args": ["sr", "items", "write", "152", "remove", "--item", "1522", "--dry-run"]},
+ {"name": "sr_items_remove_send_unverified", "fixture": "sr_items", "hash_from": ["sr", "items", "write", "152", "remove", "--item", "1522", "--dry-run"], "args": ["sr", "items", "write", "152", "remove", "--item", "1522", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "sr_items_remove_parent_refused", "fixture": "sr_items", "args": ["sr", "items", "write", "150", "remove", "--item", "1501", "--dry-run"]},
+ {"name": "sr_items_unknown_item", "fixture": "sr_items", "args": ["sr", "items", "write", "150", "remove", "--item", "1599", "--dry-run"]},
+ {"name": "sr_items_not_service_request", "fixture": "sr_items", "args": ["sr", "items", "write", "153", "stage", "--item", "1", "--stage", "2", "--dry-run"]},
+ {"name": "sr_items_bad_action", "fixture": "sr_items", "args": ["sr", "items", "write", "150", "approve", "--item", "1502", "--dry-run"]},
+ {"name": "sr_items_add_bad_catalog_id", "fixture": "sr_items", "args": ["sr", "items", "write", "150", "add", "--catalog-item", "x77", "--answers-json", "{\"title\": \"T\"}", "--dry-run"]},
+ {"name": "sr_items_answers_not_object", "fixture": "sr_items", "args": ["sr", "items", "write", "150", "edit", "--item", "1502", "--answers-json", "[1]", "--dry-run"]},
+ {"name": "sr_items_needs_expect_plan", "fixture": "sr_items", "args": ["sr", "items", "write", "151", "stage", "--item", "1511", "--stage", "2", "--yes"]}
+]

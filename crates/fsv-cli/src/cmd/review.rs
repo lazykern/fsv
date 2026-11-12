@@ -2,12 +2,15 @@
 //! (`change_approvals.py`), `approval-respond`/`approval-cancel`
 //! (`change_approval_actions.py`).
 
-use serde_json::{Value, json};
+use std::collections::BTreeSet;
+
+use serde_json::{Map, Value, json};
 
 use fsv_api::associations::SendOpts;
 use fsv_api::service::{Api, DiskJournal};
-use fsv_api::{approvals, tasks};
+use fsv_api::{approval_recipients, approvals, tasks, ticket_tasks};
 use fsv_core::Error;
+use fsv_core::resource::{CHANGES, parse_id};
 use fsv_core::term;
 
 use crate::generated::*;
@@ -63,9 +66,31 @@ fn tasks_add_inner(a: ChangesTasksAddArgs) -> CmdResult {
         };
         tasks::build_plan(&a.id_, &a.title, &probe, &tenant)?;
     }
+    let fields = tasks::runtime_fields(&c)?;
+    let mut raw_values = Map::new();
+    for item in &a.values {
+        let Some((key, val)) = item.split_once('=') else {
+            return Err(value("--set requires NAME=VALUE"));
+        };
+        if raw_values.contains_key(key) {
+            return Err(value("duplicate custom field assignment"));
+        }
+        raw_values.insert(key.into(), json!(val));
+    }
+    for (key, val) in [("cf_system", &a.system), ("cf_environment", &a.environment)] {
+        if let Some(val) = val {
+            if raw_values.contains_key(key) {
+                return Err(value("duplicate custom field assignment"));
+            }
+            raw_values.insert(key.into(), json!(val));
+        }
+    }
+    let custom = ticket_tasks::custom_values(&fields, &raw_values)?;
     args.owner_id = tasks::resolve_owner(&c, a.owner.as_deref())?;
     args.group_id = tasks::resolve_group(&c, a.group.as_deref())?;
     args.status_id = Some(tasks::resolve_status(&c, &a.status)?);
+    args.custom_fields = Some(&custom);
+    args.fields = Some(&fields);
     let plan = tasks::build_plan(&a.id_, &a.title, &args, &tenant)?;
     let journal = DiskJournal;
     if a.dry_run {
@@ -126,11 +151,24 @@ fn approval_request_inner(a: ChangesApprovalRequestArgs) -> CmdResult {
     if a.read_only && !a.dry_run {
         return Err(value("read-only mode: no approval request was sent"));
     }
+    if a.approver.is_empty() && a.approver_group.is_empty() && a.cab.is_empty() {
+        return Err(value(
+            "provide --approver, --approver-group or --cab explicitly",
+        ));
+    }
     let c = LazyApi::default();
     let tenant = c.domain();
     approvals::build_plan(&a.id_, &a.name, &a.message, &[1], &a.rule, &tenant)?;
-    let ids = approvals::resolve_approvers(&c, &a.approver)?;
-    let plan = approvals::build_plan(&a.id_, &a.name, &a.message, &ids, &a.rule, &tenant)?;
+    let target = parse_id(&a.id_, &CHANGES)?;
+    let (extra, context) = approval_recipients::resolve(&c, target, &a.approver_group, &a.cab)?;
+    let mut ids: BTreeSet<i64> = extra.into_iter().collect();
+    if !a.approver.is_empty() {
+        ids.extend(approvals::resolve_approvers(&c, &a.approver)?);
+    }
+    let ids: Vec<i64> = ids.into_iter().collect();
+    let plan = approvals::build_plan_with(
+        &a.id_, &a.name, &a.message, &ids, &a.rule, &tenant, &context,
+    )?;
     let journal = DiskJournal;
     if a.dry_run {
         let opts = SendOpts {

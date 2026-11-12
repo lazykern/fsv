@@ -1,0 +1,337 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"><script>window.MAX_ATTACHMENT_LIMIT = 1;</script></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_form_fields",
+  "json": {
+   "ticket_fields": [
+    {
+     "name": "subject",
+     "label": "Subject"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problem_form_fields",
+  "json": {
+   "problem_fields": [
+    {
+     "name": "subject",
+     "label": "Subject"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/5",
+  "json": {
+   "ticket": {
+    "id": 5,
+    "subject": "Acme VPN",
+    "attachments": [
+     {
+      "id": 61,
+      "name": "old.txt",
+      "size": 3
+     }
+    ]
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/5/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 950,
+     "body": "<div>see attached</div>",
+     "private": false,
+     "from_email": "support@acme.com",
+     "attachments": [
+      {
+       "id": 11,
+       "name": "notes.txt",
+       "size": 11
+      }
+     ]
+    },
+    {
+     "id": 951,
+     "body": "<div>noted</div>",
+     "private": true,
+     "attachments": [
+      {
+       "id": 11,
+       "name": "notes.txt",
+       "size": 11
+      }
+     ]
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7",
+  "json": {
+   "problem": {
+    "id": 7,
+    "subject": "Acme outage"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5",
+  "json": {
+   "change": {
+    "id": 5,
+    "subject": "Acme patch",
+    "attachments": []
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7/notes",
+  "json": {
+   "notes": [],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7/notes",
+  "json": {
+   "notes": [],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7/notes",
+  "json": {
+   "notes": [
+    {
+     "id": 77,
+     "body": "<div>root cause</div>",
+     "attachments": [
+      {
+       "id": 11,
+       "name": "notes.txt",
+       "size": 11
+      }
+     ]
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/6",
+  "json": {
+   "ticket": {
+    "id": 6,
+    "attachments": [
+     {
+      "id": 62,
+      "name": "a.txt",
+      "size": 1
+     }
+    ]
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/6",
+  "json": {
+   "ticket": {
+    "id": 6,
+    "attachments": [
+     {
+      "id": 62,
+      "name": "a.txt",
+      "size": 1
+     }
+    ]
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/6",
+  "json": {
+   "ticket": {
+    "id": 6,
+    "attachments": [
+     {
+      "id": 62,
+      "name": "a.txt",
+      "size": 1
+     }
+    ]
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/6",
+  "json": {
+   "ticket": {
+    "id": 6,
+    "attachments": []
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/8",
+  "json": {
+   "ticket": {
+    "id": 8,
+    "attachments": [
+     {
+      "id": 63,
+      "name": "b.txt",
+      "size": 1
+     }
+    ]
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/8",
+  "json": {
+   "ticket": {
+    "id": 8,
+    "attachments": [
+     {
+      "id": 63,
+      "name": "b.txt",
+      "size": 1
+     }
+    ]
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/8",
+  "json": {
+   "ticket": {
+    "id": 8,
+    "attachments": [
+     {
+      "id": 63,
+      "name": "b.txt",
+      "size": 1
+     }
+    ]
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/8",
+  "json": {
+   "ticket": {
+    "id": 8,
+    "attachments": [
+     {
+      "id": 63,
+      "name": "b.txt",
+      "size": 1
+     }
+    ]
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/attachments",
+  "status": 200,
+  "json": {
+   "id": 11
+  },
+  "once": true
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/attachments",
+  "status": 200,
+  "json": {
+   "id": 12
+  },
+  "once": true
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets/5/reply",
+  "status": 200,
+  "json": {
+   "conversation": {
+    "id": 950
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets/5/notes",
+  "status": 200,
+  "json": {
+   "conversation": {
+    "id": 951
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/problems/7/notes",
+  "status": 200,
+  "json": {
+   "note": {
+    "id": 77
+   }
+  }
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/attachments/62",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/attachments/63",
+  "status": 200,
+  "json": {}
+ }
+]

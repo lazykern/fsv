@@ -1,0 +1,287 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/150",
+  "json": {
+   "ticket": {
+    "id": 150,
+    "ticket_type": "Service Request",
+    "subject": "Acme request 150"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/151",
+  "json": {
+   "ticket": {
+    "id": 151,
+    "ticket_type": "Service Request",
+    "subject": "Acme request 151"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/152",
+  "json": {
+   "ticket": {
+    "id": 152,
+    "ticket_type": "Service Request",
+    "subject": "Acme request 152"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/153",
+  "json": {
+   "ticket": {
+    "id": 153,
+    "ticket_type": "Incident"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/150/requested_items",
+  "json": {
+   "requested_items": [
+    {
+     "id": 1501,
+     "ticket_id": 150,
+     "is_parent": true,
+     "stage": {
+      "id": 1,
+      "name": "Stage 1"
+     },
+     "item": {
+      "id": 4400001,
+      "display_id": 77,
+      "name": "Feature Request"
+     },
+     "quantity": 1
+    },
+    {
+     "id": 1502,
+     "ticket_id": 150,
+     "is_parent": false,
+     "stage": {
+      "id": 1,
+      "name": "Stage 1"
+     },
+     "item": {
+      "id": 4400001,
+      "display_id": 77,
+      "name": "Feature Request"
+     },
+     "quantity": 1
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/151/requested_items",
+  "json": {
+   "requested_items": [
+    {
+     "id": 1511,
+     "ticket_id": 151,
+     "is_parent": false,
+     "stage": {
+      "id": 1,
+      "name": "Stage 1"
+     },
+     "item": {
+      "id": 4400001,
+      "display_id": 77,
+      "name": "Feature Request"
+     },
+     "quantity": 1
+    }
+   ]
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/151/requested_items",
+  "json": {
+   "requested_items": [
+    {
+     "id": 1511,
+     "ticket_id": 151,
+     "is_parent": false,
+     "stage": {
+      "id": 1,
+      "name": "Stage 1"
+     },
+     "item": {
+      "id": 4400001,
+      "display_id": 77,
+      "name": "Feature Request"
+     },
+     "quantity": 1
+    }
+   ]
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/151/requested_items",
+  "json": {
+   "requested_items": [
+    {
+     "id": 1511,
+     "ticket_id": 151,
+     "is_parent": false,
+     "stage": {
+      "id": 2,
+      "name": "Stage 2"
+     },
+     "item": {
+      "id": 4400001,
+      "display_id": 77,
+      "name": "Feature Request"
+     },
+     "quantity": 1
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/152/requested_items",
+  "json": {
+   "requested_items": [
+    {
+     "id": 1521,
+     "ticket_id": 152,
+     "is_parent": true,
+     "stage": {
+      "id": 1,
+      "name": "Stage 1"
+     },
+     "item": {
+      "id": 4400001,
+      "display_id": 77,
+      "name": "Feature Request"
+     },
+     "quantity": 1
+    },
+    {
+     "id": 1522,
+     "ticket_id": 152,
+     "is_parent": false,
+     "stage": {
+      "id": 1,
+      "name": "Stage 1"
+     },
+     "item": {
+      "id": 4400001,
+      "display_id": 77,
+      "name": "Feature Request"
+     },
+     "quantity": 1
+    }
+   ]
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/152/requested_items",
+  "json": {
+   "requested_items": [
+    {
+     "id": 1521,
+     "ticket_id": 152,
+     "is_parent": true,
+     "stage": {
+      "id": 1,
+      "name": "Stage 1"
+     },
+     "item": {
+      "id": 4400001,
+      "display_id": 77,
+      "name": "Feature Request"
+     },
+     "quantity": 1
+    },
+    {
+     "id": 1522,
+     "ticket_id": 152,
+     "is_parent": false,
+     "stage": {
+      "id": 1,
+      "name": "Stage 1"
+     },
+     "item": {
+      "id": 4400001,
+      "display_id": 77,
+      "name": "Feature Request"
+     },
+     "quantity": 1
+    }
+   ]
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/152/requested_items",
+  "json": {
+   "requested_items": [
+    {
+     "id": 1521,
+     "ticket_id": 152,
+     "is_parent": true,
+     "stage": {
+      "id": 1,
+      "name": "Stage 1"
+     },
+     "item": {
+      "id": 4400001,
+      "display_id": 77,
+      "name": "Feature Request"
+     },
+     "quantity": 1
+    },
+    {
+     "id": 1522,
+     "ticket_id": 152,
+     "is_parent": false,
+     "stage": {
+      "id": 1,
+      "name": "Stage 1"
+     },
+     "item": {
+      "id": 4400001,
+      "display_id": 77,
+      "name": "Feature Request"
+     },
+     "quantity": 1
+    }
+   ]
+  }
+ },
+ {
+  "method": "PATCH",
+  "path": "/api/_/tickets/151/requested_items/1511/update_stage",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/tickets/152/requested_items/1522",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

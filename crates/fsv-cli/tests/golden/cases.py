@@ -2,12 +2,14 @@
 """Run golden cases through cmp.py. Usage: cases.py CASEFILE.json EMIT_TO [only-name...]
 
 Each case: {"name", "fixture", "args", "opts"?: [...], "hash_from"?: [dry-run args]}
+(an "opts" `--files DIR` is relative to this directory)
 "{HASH}" in args is replaced with the Python dry run's plan_hash. Cases whose
 outputs differ are reported and not emitted. FSV_RS_BIN, FSV_PY_REPO and
 FSV_PY_SRC are passed on to cmp.py.
 """
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -18,8 +20,13 @@ ROUTES = os.path.join(GOLDEN, "../fixtures/routes")
 PY = os.environ.get("FSV_PY_REPO", "/Users/phusit.somb/lab/work/fsv")
 
 
-def py_hash(fixture, args):
+def py_hash(fixture, args, files=None):
     h = tempfile.mkdtemp()
+    work = os.path.join(h, "work")
+    if files:
+        shutil.copytree(files, work)
+    else:
+        os.makedirs(work)
     cfg = os.path.join(h, "config")
     os.makedirs(cfg)
     json.dump({"domain": "acme.freshservice.com"}, open(os.path.join(cfg, "config.json"), "w"))
@@ -33,7 +40,7 @@ def py_hash(fixture, args):
         env["PYTHONPATH"] = os.environ["FSV_PY_SRC"]
     p = subprocess.run([os.path.join(PY, ".venv/bin/python"), os.path.join(GOLDEN, "run_py.py"),
                         os.path.join(ROUTES, fixture + ".json"), os.path.join(h, "log"), "--", *args],
-                       cwd=h, env=env, capture_output=True, text=True)
+                       cwd=work, env=env, capture_output=True, text=True)
     try:
         return json.loads(p.stdout)["plan_hash"]
     except Exception:
@@ -47,11 +54,16 @@ def run(case_file, emit_to, only=()):
         if only and c["name"] not in only:
             continue
         args = c["args"]
+        opts = list(c.get("opts", []))
+        files = None
+        if "--files" in opts:
+            i = opts.index("--files") + 1
+            files = opts[i] = os.path.join(GOLDEN, opts[i])
         if "hash_from" in c:
-            hsh = py_hash(c["fixture"], c["hash_from"])
+            hsh = py_hash(c["fixture"], c["hash_from"], files)
             args = [a.replace("{HASH}", hsh) for a in args]
         cmd = [sys.executable, os.path.join(GOLDEN, "cmp.py"), os.path.join(ROUTES, c["fixture"] + ".json"),
-               *c.get("opts", []), "--emit", c["name"], "--", *args]
+               *opts, "--emit", c["name"], "--", *args]
         p = subprocess.run(cmd, env={**os.environ, "EMIT_TO": emit_to}, capture_output=True, text=True)
         first = p.stdout.splitlines()[0] if p.stdout else p.stderr
         print(f"{c['name']}: {first}")

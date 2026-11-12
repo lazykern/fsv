@@ -1,0 +1,16 @@
+[
+ {"name": "sr_approvals_list", "fixture": "sr_approvals", "args": ["sr", "approvals", "list", "SR-130"]},
+ {"name": "sr_approvals_request_dry_run", "fixture": "sr_approvals", "args": ["sr", "approvals", "request", "131", "--name", "Acme release", "--message", "Please review", "--approver", "33", "--approver", "bo@acme.com", "--dry-run"]},
+ {"name": "sr_approvals_request_send", "fixture": "sr_approvals", "hash_from": ["sr", "approvals", "request", "131", "--name", "Acme release", "--message", "Please review", "--approver", "33", "--approver", "bo@acme.com", "--dry-run"], "args": ["sr", "approvals", "request", "131", "--name", "Acme release", "--message", "Please review", "--approver", "33", "--approver", "bo@acme.com", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "sr_approvals_request_deactivated_refused", "fixture": "sr_approvals", "args": ["sr", "approvals", "request", "131", "--name", "Acme release", "--message", "Please review", "--approver", "old@acme.com", "--dry-run"]},
+ {"name": "sr_approvals_request_bad_rule", "fixture": "sr_approvals", "args": ["sr", "approvals", "request", "131", "--name", "Acme release", "--message", "Please review", "--approver", "33", "--rule", "most", "--dry-run"]},
+ {"name": "sr_approvals_request_needs_expect_plan", "fixture": "sr_approvals", "args": ["sr", "approvals", "request", "131", "--name", "Acme release", "--message", "Please review", "--approver", "33", "--yes"]},
+ {"name": "sr_approvals_approve_dry_run", "fixture": "sr_approvals", "args": ["sr", "approvals", "approve", "132", "401", "--remark", "Acme ok", "--dry-run"]},
+ {"name": "sr_approvals_approve_send", "fixture": "sr_approvals", "hash_from": ["sr", "approvals", "approve", "132", "401", "--remark", "Acme ok", "--dry-run"], "args": ["sr", "approvals", "approve", "132", "401", "--remark", "Acme ok", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "sr_approvals_approve_not_requested_refused", "fixture": "sr_approvals", "args": ["sr", "approvals", "approve", "130", "403", "--dry-run"]},
+ {"name": "sr_approvals_reject_needs_remark", "fixture": "sr_approvals", "args": ["sr", "approvals", "reject", "130", "402", "--dry-run"]},
+ {"name": "sr_approvals_cancel_dry_run", "fixture": "sr_approvals", "args": ["sr", "approvals", "cancel", "130", "40", "--dry-run"]},
+ {"name": "sr_approvals_remind_send_unverified", "fixture": "sr_approvals", "hash_from": ["sr", "approvals", "remind", "133", "402", "--dry-run"], "args": ["sr", "approvals", "remind", "133", "402", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "sr_approvals_approve_read_only", "fixture": "sr_approvals", "args": ["sr", "approvals", "approve", "130", "401", "--read-only"]},
+ {"name": "sr_approvals_unknown_record", "fixture": "sr_approvals", "args": ["sr", "approvals", "approve", "130", "999", "--dry-run"]}
+]

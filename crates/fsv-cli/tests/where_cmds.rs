@@ -770,21 +770,13 @@ fn where_number_and_text() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"                          query                           
-┏━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━┓
-┃ field    ┃ condition ┃ operator ┃ type         ┃ value ┃
-┡━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━┩
-│ cf_count │ cf_count  │ is_in    │ custom_field │ 5     │
-│ cf_count │ cf_count  │ is_in    │ custom_field │ x     │
-│ cf_note  │ cf_note   │ is_in    │ custom_field │ hi    │
-└──────────┴───────────┴──────────┴──────────────┴───────┘
-api: internal /api/_/ with query_hash (2 conditions, AND)
+        r.err,
+        r#"error: filter operator unavailable in runtime metadata for 'cf_note'; refusing an unproven filter (use explicit IDs)
 "#
     );
-    assert_eq!(r.err, r#""#);
 }
 
 #[test]
@@ -877,7 +869,7 @@ fn where_unparsable() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: invalid --where 'bad'; expected FIELD=VALUE
+        r#"error: invalid filter 'bad'; expected FIELD followed by = != >= <= > < or ~=
 "#
     );
 }

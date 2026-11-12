@@ -1,0 +1,459 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/problem_task_fields",
+  "json": {
+   "problem_task_fields": [
+    {
+     "name": "status",
+     "label": "Status",
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "In Progress"
+      },
+      {
+       "id": 3,
+       "value": "Completed"
+      }
+     ]
+    },
+    {
+     "name": "notify_before",
+     "label": "Notify before",
+     "choices": [
+      {
+       "id": 0,
+       "value": "Never"
+      },
+      {
+       "id": 900,
+       "value": "15 Minutes"
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/agents",
+  "json": {
+   "results": [
+    {
+     "id": "bo@acme.com",
+     "user_id": 133,
+     "email": "bo@acme.com",
+     "value": "Bo Kim"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/bootstrap/agents_groups",
+  "json": {
+   "groups": [
+    {
+     "id": 4,
+     "name": "Ops"
+    },
+    {
+     "id": 5,
+     "name": "DBA"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/80",
+  "json": {
+   "problem": {
+    "id": 80,
+    "subject": "Acme problem 80"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/81",
+  "json": {
+   "problem": {
+    "id": 81,
+    "subject": "Acme problem 81"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/82",
+  "json": {
+   "problem": {
+    "id": 82,
+    "subject": "Acme problem 82"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/83",
+  "json": {
+   "problem": {
+    "id": 83,
+    "subject": "Acme problem 83"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/80/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 801,
+     "title": "Acme fix",
+     "status": 1,
+     "taskable_display_id": 80,
+     "taskable_type": "Itil::Problem",
+     "owner_id": 131,
+     "group_id": 4,
+     "notify_before": 0,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/80/tasks/801",
+  "json": {
+   "task": {
+    "id": 801,
+    "title": "Acme fix",
+    "status": 1,
+    "taskable_display_id": 80,
+    "taskable_type": "Itil::Problem",
+    "owner_id": 131,
+    "group_id": 4,
+    "notify_before": 0,
+    "planned_start_date": "2030-01-01T09:00:00Z",
+    "planned_end_date": "2030-01-01T10:00:00Z",
+    "planned_effort": "1h",
+    "description": "<div>Acme</div>",
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/80/tasks/801",
+  "json": {
+   "task": {
+    "id": 801,
+    "title": "Acme fix",
+    "status": 1,
+    "taskable_display_id": 80,
+    "taskable_type": "Itil::Problem",
+    "owner_id": 131,
+    "group_id": 4,
+    "notify_before": 0,
+    "planned_start_date": "2030-01-01T09:00:00Z",
+    "planned_end_date": "2030-01-01T10:00:00Z",
+    "planned_effort": "1h",
+    "description": "<div>Acme</div>",
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/80/tasks/801",
+  "json": {
+   "task": {
+    "id": 801,
+    "title": "Acme fix v2",
+    "status": 1,
+    "taskable_display_id": 80,
+    "taskable_type": "Itil::Problem",
+    "owner_id": 133,
+    "group_id": 4,
+    "notify_before": 0,
+    "planned_start_date": "2030-01-01T09:00:00Z",
+    "planned_end_date": "2030-01-01T10:00:00Z",
+    "planned_effort": "1h",
+    "description": "<div>Acme</div>",
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/81/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 811,
+     "title": "Acme fix",
+     "status": 1,
+     "taskable_display_id": 81,
+     "taskable_type": "Itil::Problem",
+     "owner_id": 131,
+     "group_id": 4,
+     "notify_before": 0,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/81/tasks/811",
+  "json": {
+   "task": {
+    "id": 811,
+    "title": "Acme fix",
+    "status": 1,
+    "taskable_display_id": 81,
+    "taskable_type": "Itil::Problem",
+    "owner_id": 131,
+    "group_id": 4,
+    "notify_before": 0,
+    "planned_start_date": "2030-01-01T09:00:00Z",
+    "planned_end_date": "2030-01-01T10:00:00Z",
+    "planned_effort": "1h",
+    "description": "<div>Acme</div>",
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/82/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 821,
+     "title": "Acme fix",
+     "status": 1,
+     "taskable_display_id": 82,
+     "taskable_type": "Itil::Problem",
+     "owner_id": 131,
+     "group_id": 4,
+     "notify_before": 0,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    },
+    {
+     "id": 822,
+     "title": "Acme fix",
+     "status": 1,
+     "taskable_display_id": 82,
+     "taskable_type": "Itil::Problem",
+     "owner_id": 131,
+     "group_id": 4,
+     "notify_before": 0,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/82/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 821,
+     "title": "Acme fix",
+     "status": 1,
+     "taskable_display_id": 82,
+     "taskable_type": "Itil::Problem",
+     "owner_id": 131,
+     "group_id": 4,
+     "notify_before": 0,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    },
+    {
+     "id": 822,
+     "title": "Acme fix",
+     "status": 1,
+     "taskable_display_id": 82,
+     "taskable_type": "Itil::Problem",
+     "owner_id": 131,
+     "group_id": 4,
+     "notify_before": 0,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/82/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 822,
+     "title": "Acme fix",
+     "status": 1,
+     "taskable_display_id": 82,
+     "taskable_type": "Itil::Problem",
+     "owner_id": 131,
+     "group_id": 4,
+     "notify_before": 0,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/82/tasks/821",
+  "json": {
+   "task": {
+    "id": 821,
+    "title": "Acme fix",
+    "status": 1,
+    "taskable_display_id": 82,
+    "taskable_type": "Itil::Problem",
+    "owner_id": 131,
+    "group_id": 4,
+    "notify_before": 0,
+    "planned_start_date": "2030-01-01T09:00:00Z",
+    "planned_end_date": "2030-01-01T10:00:00Z",
+    "planned_effort": "1h",
+    "description": "<div>Acme</div>",
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/83/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 831,
+     "title": "Acme fix",
+     "status": 1,
+     "taskable_display_id": 83,
+     "taskable_type": "Itil::Problem",
+     "owner_id": 131,
+     "group_id": 4,
+     "notify_before": 0,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/83/tasks/831",
+  "json": {
+   "task": {
+    "id": 831,
+    "title": "Acme fix",
+    "status": 1,
+    "taskable_display_id": 99,
+    "taskable_type": "Itil::Problem",
+    "owner_id": 131,
+    "group_id": 4,
+    "notify_before": 0,
+    "planned_start_date": "2030-01-01T09:00:00Z",
+    "planned_end_date": "2030-01-01T10:00:00Z",
+    "planned_effort": "1h",
+    "description": "<div>Acme</div>",
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/80/tasks/801",
+  "status": 200,
+  "json": {
+   "task": {
+    "id": 801
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/81/tasks/811",
+  "status": 200,
+  "json": {
+   "task": {
+    "id": 811
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/82/tasks/update",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

@@ -1,0 +1,308 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/127/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 910,
+     "title": "Acme check",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/127/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 910,
+     "title": "Acme check",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/127/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 910,
+     "title": "Acme check",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/127/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 910,
+     "title": "Acme check",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    },
+    {
+     "id": 911,
+     "title": "Acme handover",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {},
+     "owner_id": 133,
+     "group_id": 5
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/128/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 912,
+     "title": "Acme old",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/128/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 912,
+     "title": "Acme old",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/128/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 912,
+     "title": "Acme old",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/128/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 912,
+     "title": "Acme new",
+     "status": 1,
+     "notify_before": 0,
+     "custom_fields": {},
+     "owner_id": 133
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_task_fields",
+  "json": {
+   "ticket_task_fields": [
+    {
+     "name": "title",
+     "label": "Title",
+     "field_type": "default_title",
+     "required": true
+    },
+    {
+     "name": "status",
+     "label": "Status",
+     "field_type": "default_status",
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "In Progress"
+      },
+      {
+       "id": 3,
+       "value": "Completed"
+      }
+     ]
+    },
+    {
+     "name": "notify_before",
+     "label": "Notify Before",
+     "field_type": "default_notify_before",
+     "choices": [
+      {
+       "id": 0,
+       "value": "Never"
+      },
+      {
+       "id": 900,
+       "value": "15 minutes"
+      }
+     ]
+    },
+    {
+     "name": "cf_area",
+     "label": "Area",
+     "field_type": "custom_text",
+     "custom": true
+    },
+    {
+     "name": "cf_tier",
+     "label": "Tier",
+     "field_type": "custom_dropdown",
+     "custom": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Gold"
+      },
+      {
+       "id": 2,
+       "value": "Silver"
+      }
+     ]
+    },
+    {
+     "name": "owner_id",
+     "label": "Owner",
+     "field_type": "default_owner"
+    },
+    {
+     "name": "group_id",
+     "label": "Group",
+     "field_type": "default_group"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/agents",
+  "json": {
+   "results": [
+    {
+     "id": "bo@acme.com",
+     "user_id": 133,
+     "email": "bo@acme.com",
+     "value": "Bo Kim"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/bootstrap/agents_groups",
+  "json": {
+   "groups": [
+    {
+     "id": 4,
+     "name": "Ops"
+    },
+    {
+     "id": 5,
+     "name": "DBA"
+    }
+   ]
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets/127/tasks",
+  "status": 200,
+  "json": {
+   "task": {
+    "id": 911,
+    "title": "Acme handover",
+    "status": 1,
+    "notify_before": 0,
+    "custom_fields": {},
+    "owner_id": 133,
+    "group_id": 5
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/128/tasks/912",
+  "status": 200,
+  "json": {
+   "task": {
+    "id": 912,
+    "title": "Acme new",
+    "status": 1,
+    "notify_before": 0,
+    "custom_fields": {},
+    "owner_id": 133
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

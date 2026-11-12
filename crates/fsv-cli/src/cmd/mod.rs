@@ -1,5 +1,6 @@
 //! Command handlers, dispatched by command path.
 
+pub mod attachments;
 pub mod auth;
 pub mod cache;
 pub mod changes;
@@ -8,6 +9,7 @@ pub mod config;
 pub mod download;
 pub mod form;
 pub mod formflow;
+pub mod inventory;
 pub mod journal;
 pub mod links;
 pub mod misc;
@@ -65,13 +67,26 @@ pub fn dispatch(path: &str, m: &ArgMatches, prog: &str) -> CmdResult {
         "journal ls" => journal::ls(parse(m)?),
         "journal tail" => journal::tail(parse(m)?),
         "journal path" => journal::path(),
+        "attachments delete" => attachments::delete(parse(m)?),
+        "assets search" => {
+            let a: AssetsSearchArgs = parse(m)?;
+            inventory::search(&a.query, &a.kind, a.page)
+        }
+        "solutions create" => inventory::solutions_create(parse(m)?),
+        "sr items list" => reviewed::sr_items_list(parse(m)?),
+        "sr items write" => reviewed::sr_items_write(parse(m)?),
         _ if path.starts_with("form ") => form::dispatch(sub, m),
-        _ if path.starts_with("sr ") => sr::dispatch(sub, m),
+        _ if path.starts_with("sr ") => {
+            inventory::dispatch("sr", sub, m).unwrap_or_else(|| sr::dispatch(sub, m))
+        }
         _ => resource_dispatch(res, sub, m),
     }
 }
 
 fn resource_dispatch(res: &'static Resource, sub: &str, m: &ArgMatches) -> CmdResult {
+    if let Some(r) = inventory::dispatch(res.name, sub, m) {
+        return r;
+    }
     match sub {
         "ls" => resource::ls(res, parse(m)?),
         "get" => resource::get(res, parse(m)?),
@@ -94,9 +109,22 @@ fn resource_dispatch(res: &'static Resource, sub: &str, m: &ArgMatches) -> CmdRe
         "planning-text" => reviewed::planning_text(res, parse(m)?),
         "asset-picker" => reviewed::asset_picker(parse(m)?),
         "mark-known-error" => reviewed::mark_known_error(parse(m)?),
+        "time list" if res.name == "changes" => {
+            reviewed::module_time_list("changes", &parse::<ChangesTimeListArgs>(m)?.id_)
+        }
+        "time list" if res.name == "problems" => {
+            reviewed::module_time_list("problems", &parse::<ProblemsTimeListArgs>(m)?.id_)
+        }
+        "time write" if res.name == "changes" => reviewed::changes_time_write(parse(m)?),
+        "time write" if res.name == "problems" => reviewed::problems_time_write(parse(m)?),
         "time list" => reviewed::time_list(parse(m)?),
         "time write" => reviewed::time_write(parse(m)?),
+        "task-write" => reviewed::problem_task_write(parse(m)?),
         "bulk-priority" => reviewed::bulk_priority(parse(m)?),
+        "bulk" => reviewed::tickets_bulk(parse(m)?),
+        "relationships list" => reviewed::relationships_list(parse(m)?),
+        "relationships write" => reviewed::relationships_write(parse(m)?),
+        "status" if res.name == "problems" => reviewed::problem_status(parse(m)?),
         "status" => reviewed::status(parse(m)?),
         "resolve" => reviewed::resolve(parse(m)?),
         "close" => reviewed::close(parse(m)?),
@@ -104,6 +132,17 @@ fn resource_dispatch(res: &'static Resource, sub: &str, m: &ArgMatches) -> CmdRe
         "merge" => reviewed::merge(parse(m)?),
         "assign" => reviewed::assign(parse(m)?),
         "pick-up" => reviewed::pick_up(parse(m)?),
+        "note-edit" => reviewed::note_edit(parse(m)?),
+        "note-delete" => reviewed::note_delete(parse(m)?),
+        "tasks list" => reviewed::tasks_list(parse(m)?),
+        "tasks add" => reviewed::tasks_add(parse(m)?),
+        "tasks update" => reviewed::tasks_update(parse(m)?),
+        "tasks status" => reviewed::tasks_status(parse(m)?),
+        "tasks delete" => reviewed::tasks_delete(parse(m)?),
+        "tasks-legacy" => resource::tasks(res, parse(m)?),
+        "link-incident" => reviewed::link_incident(parse(m)?),
+        "unlink-incident" => reviewed::unlink_incident(parse(m)?),
+        "note" => attachments::problems_note(parse(m)?),
         "canned folders" => native::canned_folders(parse(m)?),
         "canned list" => native::canned_list(parse(m)?),
         "canned show" => native::canned_show(parse(m)?),

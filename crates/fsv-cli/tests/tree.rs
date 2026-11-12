@@ -105,7 +105,7 @@ fn tree_matches_python() {
     let mut problems = Vec::new();
     walk(&tree, &cmd, &mut seen, &mut problems);
     assert!(problems.is_empty(), "{}", problems.join("\n"));
-    assert_eq!(seen.len(), 159);
+    assert_eq!(seen.len(), 217);
 }
 
 /// The dumps record the Python commit they came from (`tests/golden/pyrev.py`).
@@ -135,9 +135,17 @@ fn every_command_path_is_reachable() {
     }
     let mut all = vec![];
     paths(&fsv_cli::command(), "fsv", &mut all);
-    assert_eq!(all.len(), 158);
+    assert_eq!(all.len(), 216);
     for p in [
         "fsv changes assets legacy",
+        "fsv changes relationships write",
+        "fsv tickets bulk",
+        "fsv sr approvals remind",
+        "fsv solutions create",
+        "fsv changes time write",
+        "fsv problems time list",
+        "fsv problems task-write",
+        "fsv sr items write",
         "fsv changes approval-request",
         "fsv sr get",
         "fsv form diff",
@@ -156,5 +164,8 @@ fn rewrite_moves_root_flags_and_routes_legacy() {
     assert!(notice.is_none());
     let (args, notice) = fsv_cli::rewrite(&root, &s(&["changes", "assets", "5"]));
     assert_eq!(args, s(&["changes", "assets", "legacy", "5"]));
+    assert!(notice.is_none());
+    let (args, notice) = fsv_cli::rewrite(&root, &s(&["changes", "associations", "5"]));
+    assert_eq!(args, s(&["changes", "associations", "legacy", "5"]));
     assert!(notice.is_some());
 }

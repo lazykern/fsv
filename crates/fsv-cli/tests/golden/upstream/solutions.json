@@ -1,0 +1,16 @@
+[
+ {"name": "solutions_create_dry_run", "fixture": "solutions", "args": ["solutions", "create", "--title", "Acme VPN workaround", "--body", "Restart the Acme VPN client", "--type", "workaround", "--dry-run"]},
+ {"name": "solutions_create_send", "fixture": "solutions", "hash_from": ["solutions", "create", "--title", "Acme VPN workaround", "--body", "Restart the Acme VPN client", "--type", "workaround", "--dry-run"], "args": ["solutions", "create", "--title", "Acme VPN workaround", "--body", "Restart the Acme VPN client", "--type", "workaround", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "solutions_create_named_folder", "fixture": "solutions", "args": ["solutions", "create", "--title", "Acme fix", "--body", "x", "--type", "permanent", "--category", "Acme KB", "--folder", "Archive", "--dry-run"]},
+ {"name": "solutions_create_ambiguous_folder", "fixture": "solutions", "args": ["solutions", "create", "--title", "Acme fix", "--body", "x", "--type", "permanent", "--category", "202", "--dry-run"]},
+ {"name": "solutions_create_bad_type", "fixture": "solutions", "args": ["solutions", "create", "--title", "Acme fix", "--body", "x", "--type", "faq", "--dry-run"]},
+ {"name": "solutions_create_unknown_category", "fixture": "solutions", "args": ["solutions", "create", "--title", "Acme fix", "--body", "x", "--type", "permanent", "--category", "Initech", "--dry-run"]},
+ {"name": "solutions_create_read_only", "fixture": "solutions", "args": ["solutions", "create", "--title", "Acme fix", "--body", "x", "--type", "permanent", "--read-only"]},
+ {"name": "solutions_create_needs_expect_plan", "fixture": "solutions", "args": ["solutions", "create", "--title", "Acme fix", "--body", "x", "--type", "permanent", "--yes"]},
+ {"name": "problems_link_solution_dry_run", "fixture": "solutions", "args": ["problems", "link-solution", "PRB-20", "502", "--dry-run"]},
+ {"name": "problems_link_solution_send", "fixture": "solutions", "hash_from": ["problems", "link-solution", "20", "502", "--dry-run"], "args": ["problems", "link-solution", "20", "502", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "problems_link_solution_faq_refused", "fixture": "solutions", "args": ["problems", "link-solution", "20", "503", "--dry-run"]},
+ {"name": "problems_link_solution_present_refused", "fixture": "solutions", "args": ["problems", "link-solution", "21", "504", "--dry-run"]},
+ {"name": "problems_unlink_solution_send_unverified", "fixture": "solutions", "hash_from": ["problems", "unlink-solution", "21", "504", "--dry-run"], "args": ["problems", "unlink-solution", "21", "504", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "problems_unlink_solution_absent_refused", "fixture": "solutions", "args": ["problems", "unlink-solution", "20", "502", "--dry-run"]}
+]

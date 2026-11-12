@@ -20,7 +20,10 @@ from pyrev import python_rev, stamp
 GOLDEN = pathlib.Path(__file__).resolve().parent
 OUT = GOLDEN.parent / "upstream_cmds.rs"
 PARTS = ["watch", "time", "plan", "mail", "rev", "srf", "asset", "asset_hand.rs", "canned", "pv", "lp",
-         "pw", "form", "tail_hand.rs", "missing", "clone", "lifecycle", "merge", "assign", "set_status", "note_send"]
+         "pw", "form", "tail_hand.rs", "missing", "clone", "lifecycle", "merge", "assign", "set_status", "note_send",
+         "note_mutation", "problem_incidents", "problem_status", "ticket_tasks", "where_strict", "attach",
+         "integrated_assets", "sr_approvals", "solutions", "ticket_bulk", "change_relationships",
+         "change_task_review", "module_time", "problem_tasks", "sr_items"]
 # Not emitted: each is covered by a hand test in `*_hand.rs`.
 DIVERGENT = {"asset_picker_api_error", "asset_picker_page_zero"}
 
@@ -31,14 +34,20 @@ HEADER = """//! Upstream commands ported from Python: watchers, ticket time,
 //! views, list columns and exports, problem create and child writes,
 //! Click's missing-parameter errors, change clones that fail part-way, and
 //! ticket status transitions, merges, assignment and pick-up, closing
-//! replies and notes (`--set-status`), and the add-note send report.
+//! replies and notes (`--set-status`), the add-note send report, note
+//! edit/delete, problem incident links and status, reviewed ticket tasks,
+//! strict `--where`, attachments (uploads, before-create, delete), forward
+//! `--conversation`, integrated assets, SR approvals, solutions, ticket bulk
+//! actions (filtered with `--max-records`), change relationships, reviewed
+//! change task update/delete, change and problem time entries, problem
+//! task writes and SR requested items.
 //! Expected output was captured from
 //! Python on the same routes (`tests/golden/emit_upstream.py`); one-shot
 //! routes serve the record before the write and the changed record after it.
 //! {stamp}
 
 mod common;
-use common::run_fixture;
+use common::{run_files, run_fixture};
 """
 
 

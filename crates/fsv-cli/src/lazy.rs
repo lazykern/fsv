@@ -81,6 +81,9 @@ impl Api for LazyApi {
     fn fetch(&self, url: &str) -> Result<Response> {
         Api::fetch(self.get()?.as_ref(), url)
     }
+    fn page(&self, path: &str) -> Result<Response> {
+        Api::page(self.get()?.as_ref(), path)
+    }
     fn domain(&self) -> String {
         fsv_core::config::domain()
     }
@@ -94,5 +97,8 @@ impl Api for LazyApi {
     }
     fn v2_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
         Api::v2_get(self.get()?.as_ref(), path, params)
+    }
+    fn absolute_get(&self, url: &str, params: Option<Map<String, Value>>) -> Result<Value> {
+        Api::absolute_get(self.get()?.as_ref(), url, params)
     }
 }

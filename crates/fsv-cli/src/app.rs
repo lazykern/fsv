@@ -103,11 +103,11 @@ pub fn rewrite(root: &Command, args: &[String]) -> (Vec<String>, Option<&'static
                 && current.find_subcommand(token).is_none()
                 && resource::parse_id(token, &CHANGES).is_ok()
             {
-                notice = Some(if path.last() == Some(&"assets") {
-                    "[yellow]deprecated[/]: use `fsv changes assets <ls|search|add|remove|pick|categories> ...`"
-                } else {
-                    "[yellow]deprecated[/]: use `fsv changes associations <ls|search|add|remove|pick> ...`"
-                });
+                if path.last() == Some(&"associations") {
+                    notice = Some(
+                        "[yellow]deprecated[/]: use `fsv changes associations <ls|search|add|remove|pick> ...`",
+                    );
+                }
                 kept.push("legacy".into());
                 current = current.find_subcommand("legacy").unwrap_or(current);
             }
@@ -141,7 +141,7 @@ pub fn rewrite(root: &Command, args: &[String]) -> (Vec<String>, Option<&'static
             started = true;
             current = sub;
             path.push(sub.get_name());
-            legacy_check = path == ["changes", "assets"] || path == ["changes", "associations"];
+            legacy_check = matches!(path[..], [_, "assets"] | ["changes", "associations"]);
         }
         kept.push(token.clone());
     }
@@ -346,17 +346,17 @@ mod tests {
     }
 
     /// Port of fsv.cli.ChangeLegacyGroup.parse_args: an ID after
-    /// `changes assets|associations` routes to the hidden `legacy` group.
+    /// `<module> assets` or `changes associations` routes to the hidden
+    /// `legacy` command; only associations print a group-level notice.
     #[test]
     fn rewrite_routes_legacy_change_ids() {
         let root = command();
-        let (args, notice) = rewrite(&root, &argv(&["changes", "assets", "CHN-5", "ls"]));
-        assert_eq!(args, argv(&["changes", "assets", "legacy", "CHN-5", "ls"]));
-        assert!(
-            notice
-                .unwrap()
-                .contains("fsv changes assets <ls|search|add|remove|pick|categories>")
-        );
+        let (args, notice) = rewrite(&root, &argv(&["changes", "assets", "CHN-5"]));
+        assert_eq!(args, argv(&["changes", "assets", "legacy", "CHN-5"]));
+        assert_eq!(notice, None);
+        let (args, notice) = rewrite(&root, &argv(&["tickets", "assets", "5"]));
+        assert_eq!(args, argv(&["tickets", "assets", "legacy", "5"]));
+        assert_eq!(notice, None);
         let (args, notice) = rewrite(&root, &argv(&["changes", "associations", "12", "ls"]));
         assert_eq!(
             args,

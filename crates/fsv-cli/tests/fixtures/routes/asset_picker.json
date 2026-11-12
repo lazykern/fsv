@@ -1,193 +1,24 @@
 [
- {
-  "method": "GET",
-  "path": "/api/_/assets-to-associate",
-  "query": {
-   "entity": "change",
-   "entity_id": "12",
-   "page": "2",
-   "search_term": "Globex"
-  },
-  "json": {
-   "assets": [
-    {
-     "id": 9000007703,
-     "display_id": 703,
-     "name": "Globex DB",
-     "ci_type_name": "Server"
-    }
-   ],
-   "meta": {
-    "count": 1
-   }
-  }
- },
- {
-  "method": "GET",
-  "path": "/api/_/assets-to-associate",
-  "query": {
-   "entity": "change",
-   "entity_id": "12",
-   "page": "1"
-  },
-  "json": {
-   "assets": [
-    {
-     "id": 9000007701,
-     "display_id": 701,
-     "name": "Acme Caf\u00e9 web",
-     "ci_type_name": "Server"
-    },
-    {
-     "id": 9000007702,
-     "display_id": 702,
-     "name": "Acme API",
-     "ci_type_name": "Server"
-    }
-   ],
-   "meta": {
-    "count": 2
-   }
-  }
- },
- {
-  "method": "GET",
-  "path": "/api/_/assets-to-associate",
-  "query": {
-   "entity": "change",
-   "entity_id": "13"
-  },
-  "json": {
-   "assets": [
-    {
-     "id": 9000007701,
-     "display_id": 701,
-     "name": "A",
-     "ci_type_name": "Server"
-    },
-    {
-     "id": 9000007701,
-     "display_id": 701,
-     "name": "B",
-     "ci_type_name": "Server"
-    }
-   ]
-  }
- },
- {
-  "method": "GET",
-  "path": "/api/_/assets-to-associate",
-  "query": {
-   "entity": "change",
-   "entity_id": "14"
-  },
-  "json": {
-   "assets": {
-    "701": {
-     "id": 9000007701,
-     "display_id": 701,
-     "name": "A",
-     "ci_type_name": "Server"
-    }
-   }
-  }
- },
- {
-  "method": "GET",
-  "path": "/api/_/assets-to-associate",
-  "query": {
-   "entity": "change",
-   "entity_id": "15"
-  },
-  "json": {
-   "assets": [
-    {
-     "id": 9000007701,
-     "display_id": 701,
-     "name": "A",
-     "ci_type_name": "Server"
-    },
-    {
-     "id": 9000007999,
-     "display_id": "x",
-     "name": "B",
-     "ci_type_name": "Server"
-    }
-   ]
-  }
- },
- {
-  "method": "GET",
-  "path": "/api/_/assets-to-associate",
-  "query": {
-   "entity": "change",
-   "entity_id": "16"
-  },
-  "json": {
-   "assets": [
-    {
-     "id": 9000007701,
-     "display_id": 701,
-     "name": "A",
-     "ci_type_name": "Server"
-    },
-    {
-     "id": 9000007701,
-     "display_id": 701,
-     "name": "B",
-     "ci_type_name": "Server"
-    },
-    {
-     "id": 9000007999,
-     "display_id": "bad",
-     "name": "C",
-     "ci_type_name": "Server"
-    }
-   ]
-  }
- },
- {
-  "method": "GET",
-  "path": "/api/_/assets-to-associate",
-  "query": {
-   "entity": "change",
-   "entity_id": "17"
-  },
-  "json": {
-   "errors": [
-    "boom"
-   ]
-  },
-  "status": 500
- },
- {
-  "method": "GET",
-  "path": "/api/_/assets-to-associate",
-  "query": {
-   "entity": "change",
-   "entity_id": "18"
-  },
-  "json": {
-   "assets": []
-  }
- },
- {
-  "method": "GET",
-  "path": "/api/_/assets-to-associate",
-  "query": {
-   "entity": "change",
-   "entity_id": "19"
-  },
-  "json": {
-   "assets": [
-    {
-     "id": 9000007701,
-     "display_id": 701,
-     "name": "A",
-     "ci_type_name": "Server"
-    },
-    "oops"
-   ]
-  }
- }
+  {"method": "GET", "path": "/itam/core/device/api/", "query": {"q": "Globex", "page": "2", "page_size": "50"},
+   "json": {"data": [{"name": {"id": 703, "label": "Globex DB"}, "type": "Server", "device_pk": 703}], "total_rows": 3, "page": 2}},
+  {"method": "GET", "path": "/itam/core/device/api/", "query": {"q": "empty"},
+   "json": {"data": [], "total_rows": 0, "page": 1}},
+  {"method": "GET", "path": "/itam/core/device/api/", "query": {"q": "dup"},
+   "json": {"data": [{"name": {"id": 701, "label": "A"}, "type": "Server"}, {"name": {"id": 701, "label": "B"}, "type": "Server"}], "total_rows": 2, "page": 1}},
+  {"method": "GET", "path": "/itam/core/device/api/", "query": {"q": "notlist"},
+   "json": {"data": {"701": {"name": {"id": 701, "label": "A"}, "type": "Server"}}, "total_rows": 1, "page": 1}},
+  {"method": "GET", "path": "/itam/core/device/api/", "query": {"q": "notobj"},
+   "json": {"data": [{"name": {"id": 701, "label": "A"}, "type": "Server"}, "oops"], "total_rows": 2, "page": 1}},
+  {"method": "GET", "path": "/itam/core/device/api/", "query": {"q": "bad"},
+   "json": {"data": [{"name": {"id": 701, "label": "A"}, "type": "Server"}, {"name": {"id": "x", "label": "B"}, "type": "Server"}], "total_rows": 2, "page": 1}},
+  {"method": "GET", "path": "/itam/core/device/api/", "query": {"q": "dupbad"},
+   "json": {"data": [{"name": {"id": 701, "label": "A"}, "type": "Server"}, {"name": {"id": 701, "label": "B"}, "type": "Server"}, {"name": {"id": "bad", "label": "C"}, "type": "Server"}], "total_rows": 3, "page": 1}},
+  {"method": "GET", "path": "/itam/core/device/api/", "query": {"q": "pk"},
+   "json": {"data": [{"name": {"id": 701, "label": "A"}, "type": "Server", "device_pk": 702}], "total_rows": 1, "page": 1}},
+  {"method": "GET", "path": "/itam/core/device/api/", "query": {"q": "pages"},
+   "json": {"data": [{"name": {"id": 701, "label": "A"}, "type": "Server"}], "total_rows": 1, "page": 3}},
+  {"method": "GET", "path": "/itam/core/device/api/", "query": {"q": "boom"}, "status": 500,
+   "json": {"errors": ["boom"]}},
+  {"method": "GET", "path": "/itam/core/device/api/", "query": {"q": "", "page": "1", "page_size": "50", "order": ""},
+   "json": {"data": [{"name": {"id": 701, "label": "Acme Café web"}, "type": "Server", "device_pk": 701}, {"name": {"id": 702, "label": "Acme API"}, "type": "Server", "device_pk": 702}], "total_rows": 2, "page": 1}}
 ]

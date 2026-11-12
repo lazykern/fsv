@@ -1,0 +1,13 @@
+[
+ {"name": "where_strict_operator_sequence", "fixture": "where", "args": ["tickets", "ls", "--where", "status==Open", "--debug"]},
+ {"name": "where_strict_no_field", "fixture": "where", "args": ["tickets", "ls", "--where", "=Open", "--debug"]},
+ {"name": "where_strict_empty_value", "fixture": "where", "args": ["tickets", "ls", "--where", "status= ", "--debug"]},
+ {"name": "where_strict_unterminated_quote", "fixture": "where", "args": ["tickets", "ls", "--where", "status='Open", "--debug"]},
+ {"name": "where_strict_bang_without_equals", "fixture": "where", "args": ["tickets", "ls", "--where", "status!Open", "--debug"]},
+ {"name": "where_strict_control_character", "fixture": "where", "args": ["tickets", "ls", "--where", "status=Op\ten", "--debug"]},
+ {"name": "where_strict_quoted_operator_value", "fixture": "where", "args": ["tickets", "ls", "--where", "Note='=x'", "--debug"]},
+ {"name": "where_strict_period_le_refused", "fixture": "where", "args": ["tickets", "ls", "--where", "created<=today", "--debug"]},
+ {"name": "where_strict_period_label_le_refused", "fixture": "where", "args": ["tickets", "ls", "--where", "Created<=Last 6 months", "--debug"]},
+ {"name": "where_contradiction_warning", "fixture": "where", "args": ["tickets", "ls", "--where", "status=Resolved", "--json"]},
+ {"name": "where_unfilterable_subject", "fixture": "where", "args": ["tickets", "ls", "--where", "Subject=x", "--debug"]}
+]

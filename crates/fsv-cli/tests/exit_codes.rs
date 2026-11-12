@@ -114,15 +114,6 @@ fn bad_id_exits_2() {
 }
 
 #[test]
-fn task_delete_dry_run_is_local() {
-    let r = fsv(&["changes", "tasks-delete", "CHN-1", "2", "--dry-run"]);
-    assert_eq!(r.code, 0, "{}", r.err);
-    let v: serde_json::Value = serde_json::from_str(&r.out).unwrap();
-    assert_eq!(v["change_id"], 1);
-    assert_eq!(v["task_id"], 2);
-}
-
-#[test]
 fn form_module_is_checked_first() {
     let r = fsv(&["form", "dump", "nope"]);
     assert_eq!(r.code, 2);
@@ -146,17 +137,6 @@ fn ticket_note_dry_run_is_local() {
     let v: serde_json::Value = serde_json::from_str(&r.out).unwrap();
     assert_eq!(v["status"], "dry_run");
     assert_eq!(v["ticket_id"], 5);
-}
-
-#[test]
-fn legacy_assets_route_prints_notice() {
-    let r = fsv(&["changes", "assets", "5"]);
-    assert_eq!(r.code, 3);
-    assert!(
-        r.err.contains("deprecated: use `fsv changes assets"),
-        "{}",
-        r.err
-    );
 }
 
 #[test]

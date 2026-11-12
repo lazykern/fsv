@@ -2,10 +2,14 @@
 #[test]
 fn asset_picker_api_error_is_uncaught() {
     // Python leaves APIError uncaught (traceback, exit 1).
-    let r = run_fixture("asset_picker", &["changes", "asset-picker", "17"], None);
+    let r = run_fixture(
+        "asset_picker",
+        &["changes", "asset-picker", "12", "--search", "boom"],
+        None,
+    );
     assert_eq!(r.code, 1, "{}", r.err);
     assert_eq!(r.out, "");
-    assert!(r.err.contains("HTTP 500 listing assets-to-associate: boom"), "{}", r.err);
+    assert!(r.err.contains("HTTP 500 listing device: boom"), "{}", r.err);
 }
 
 #[test]

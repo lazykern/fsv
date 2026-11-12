@@ -1,0 +1,21 @@
+[
+ {"name": "changes_relationships_list_problems", "fixture": "change_relationships", "args": ["changes", "relationships", "list", "CHN-50", "problem"]},
+ {"name": "changes_relationships_list_projects", "fixture": "change_relationships", "args": ["changes", "relationships", "list", "52", "project"]},
+ {"name": "changes_relationships_list_proxy_refused", "fixture": "change_relationships", "args": ["changes", "relationships", "list", "53", "project"]},
+ {"name": "changes_relationships_list_bad_kind", "fixture": "change_relationships", "args": ["changes", "relationships", "list", "50", "assets"]},
+ {"name": "changes_relationships_add_problem_dry_run", "fixture": "change_relationships", "args": ["changes", "relationships", "write", "50", "problem", "add", "--item", "71", "--dry-run"]},
+ {"name": "changes_relationships_add_problem_send", "fixture": "change_relationships", "hash_from": ["changes", "relationships", "write", "50", "problem", "add", "--item", "71", "--dry-run"], "args": ["changes", "relationships", "write", "50", "problem", "add", "--item", "71", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "changes_relationships_add_problem_needs_expect_plan", "fixture": "change_relationships", "args": ["changes", "relationships", "write", "50", "problem", "add", "--item", "71", "--yes"]},
+ {"name": "changes_relationships_add_present_refused", "fixture": "change_relationships", "args": ["changes", "relationships", "write", "50", "problem", "add", "--item", "70", "--dry-run"]},
+ {"name": "changes_relationships_add_candidate_mismatch", "fixture": "change_relationships", "args": ["changes", "relationships", "write", "50", "problem", "add", "--item", "73", "--dry-run"]},
+ {"name": "changes_relationships_remove_send_unverified", "fixture": "change_relationships", "hash_from": ["changes", "relationships", "write", "51", "problem", "remove", "--item", "72", "--dry-run"], "args": ["changes", "relationships", "write", "51", "problem", "remove", "--item", "72", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "changes_relationships_project_options_refused", "fixture": "change_relationships", "args": ["changes", "relationships", "write", "50", "problem", "add", "--item", "71", "--project-key", "ACME", "--dry-run"]},
+ {"name": "changes_relationships_bad_action", "fixture": "change_relationships", "args": ["changes", "relationships", "write", "50", "problem", "link", "--item", "71", "--dry-run"]},
+ {"name": "changes_relationships_project_add_existing_refused", "fixture": "change_relationships", "args": ["changes", "relationships", "write", "52", "project", "add", "--item", "ACME", "--dry-run"]},
+ {"name": "changes_relationships_project_add_incomplete", "fixture": "change_relationships", "args": ["changes", "relationships", "write", "52", "project", "add", "--project-json", "{\"name\": \"Acme\"}", "--dry-run"]},
+ {"name": "changes_relationships_project_remove_dry_run", "fixture": "change_relationships", "args": ["changes", "relationships", "write", "52", "project", "remove", "--item", "ACME", "--dry-run"]},
+ {"name": "changes_relationships_task_bad_key", "fixture": "change_relationships", "args": ["changes", "relationships", "write", "52", "project-task", "add", "--item", "ACME-2", "--project-key", "acme", "--dry-run"]},
+ {"name": "changes_relationships_task_add_dry_run", "fixture": "change_relationships", "args": ["changes", "relationships", "write", "52", "project-task", "add", "--item", "ACME-2", "--project-key", "ACME", "--name", "Acme step 2", "--dry-run"]},
+ {"name": "changes_relationships_task_remove_dry_run", "fixture": "change_relationships", "args": ["changes", "relationships", "write", "52", "project-task", "remove", "--item", "ACME-1", "--project-key", "ACME", "--dry-run"]},
+ {"name": "changes_relationships_list_tasks", "fixture": "change_relationships", "args": ["changes", "relationships", "list", "52", "project-task"]}
+]

@@ -263,6 +263,16 @@ fn list_resource(res: &'static Resource, a: &ResLsArgs, where_: &[String]) -> Cm
         (items, total, more)
     };
     let sch = schema::load(res, &c, false).map_err(fail_exc)?;
+    if (!where_.is_empty() || raw.is_some()) && !a.or_grouping {
+        let bad = fsv_api::filter_proof::contradictions(&items, &query);
+        if !bad.is_empty() {
+            let ids: Vec<String> = bad.iter().map(fsv_py::py_str).collect();
+            err().print(&escape(&format!(
+                "Warning: returned records contradict the requested predicate; do not use this list for writes. IDs: {}",
+                ids.join(", ")
+            )));
+        }
+    }
     let me = if matches!(fmt, OutputFormat::Json) {
         json!({})
     } else {

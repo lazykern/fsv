@@ -4,6 +4,7 @@ use clap::ArgMatches;
 use serde_json::{Map, Value, json};
 
 use fsv_api::associations::SendOpts;
+use fsv_api::attachments::{self, ConversationAttach};
 use fsv_api::conversations::{self, ConversationArgs};
 use fsv_api::formmeta::DiskStore;
 use fsv_api::notes::{self, BodyFormat};
@@ -12,6 +13,7 @@ use fsv_core::resource::{CHANGES, PROBLEMS, TICKETS};
 use fsv_core::term::{Column, Table, err, escape, out};
 use fsv_core::{Error, Result, config, term};
 
+use crate::cmd::attachments::finish;
 use crate::cmd::changes::form_tty;
 use crate::cmd::{formflow, parse, resource};
 use crate::generated::*;
@@ -304,6 +306,39 @@ pub fn add_note(a: TicketsAddNoteArgs) -> CmdResult {
 }
 
 fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
+    if !a.attach.is_empty() {
+        if a.read_only && !a.dry_run {
+            return Err(Error::exit(2, "read-only mode: no upload attempted"));
+        }
+        if a.set_status.is_some() {
+            return Err(Error::exit(2, "combined attachment/status wire not proven"));
+        }
+        if a.public && !a.confirm_public && !a.dry_run {
+            return Err(Error::exit(2, "public note requires --confirm-public"));
+        }
+        let c = crate::util::shared_client()?;
+        let store = DiskStore::current();
+        let args = ConversationAttach {
+            kind: "note",
+            public: a.public,
+            html_body: a.html_body,
+            notify: &a.notify,
+            max_bytes: a.max_bytes,
+            ..Default::default()
+        };
+        let rebuild = || {
+            attachments::conversation_plan(c.as_ref(), &store, &a.id_, &a.body, &a.attach, &args)
+        };
+        let expected = a.expected.as_deref();
+        return finish(
+            &rebuild()?,
+            c.as_ref(),
+            a.dry_run,
+            a.yes,
+            expected,
+            &rebuild,
+        );
+    }
     if a.set_status.is_some() {
         if a.read_only && !a.dry_run {
             return Err(Error::exit(2, "read-only mode: no note was sent"));
@@ -477,6 +512,9 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
 }
 
 fn reply(a: TicketsReplyArgs) -> CmdResult {
+    if !a.attach.is_empty() {
+        return reply_attached(&a).map_err(crate::cmd::reviewed::refusal);
+    }
     if a.cc.is_empty()
         && a.bcc.is_empty()
         && a.sender.is_none()
@@ -487,6 +525,36 @@ fn reply(a: TicketsReplyArgs) -> CmdResult {
     }
     let c = client()?;
     reply_reviewed(&a, &c).map_err(note_error)
+}
+
+/// `tickets reply --attach`: one reviewed two-step reply, without
+/// recipients or a status change.
+fn reply_attached(a: &TicketsReplyArgs) -> Result<()> {
+    if !a.cc.is_empty() || !a.bcc.is_empty() || a.set_status.is_some() {
+        return Err(Error::exit(
+            2,
+            "combined attachment/recipient/status variant not proven",
+        ));
+    }
+    let c = client()?;
+    let store = DiskStore::current();
+    let args = ConversationAttach {
+        kind: "reply",
+        sender: a.sender.as_deref(),
+        max_bytes: a.max_bytes,
+        ..Default::default()
+    };
+    let rebuild =
+        || attachments::conversation_plan(c.as_ref(), &store, &a.id_, &a.body, &a.attach, &args);
+    let expected = a.expect_plan.as_deref();
+    finish(
+        &rebuild()?,
+        c.as_ref(),
+        a.dry_run,
+        a.yes,
+        expected,
+        &rebuild,
+    )
 }
 
 fn reply_reviewed(a: &TicketsReplyArgs, c: &fsv_core::Client) -> Result<()> {
@@ -538,7 +606,8 @@ fn reply_reviewed(a: &TicketsReplyArgs, c: &fsv_core::Client) -> Result<()> {
     Ok(())
 }
 
-/// `tickets forward`: a whole-ticket forward, JSON review only.
+/// `tickets forward`: a whole-ticket or exact-conversation forward, JSON
+/// review only.
 fn forward(a: TicketsForwardArgs) -> CmdResult {
     use crate::cmd::reviewed::{dumps, print_dry_run, refusal, require_review};
     let c = client()?;
@@ -554,8 +623,20 @@ fn forward(a: TicketsForwardArgs) -> CmdResult {
             bcc: &[],
             sender: Some(&a.sender),
         };
-        let plan =
-            conversations::build_plan_mail(c.as_ref(), &store, &a.id_, &a.body, &args, &mail)?;
+        let plan = match a.conversation {
+            Some(id) => conversations::build_plan_forward_source(
+                c.as_ref(),
+                &store,
+                &a.id_,
+                &a.body,
+                &args,
+                &mail,
+                id,
+            )?,
+            None => {
+                conversations::build_plan_mail(c.as_ref(), &store, &a.id_, &a.body, &args, &mail)?
+            }
+        };
         if a.dry_run {
             print_dry_run(plan.review());
             return Ok(());
@@ -581,6 +662,12 @@ fn create(a: TicketsCreateArgs) -> CmdResult {
         return Err(Error::exit(
             2,
             "pass --from or --set, or open the interactive form in a terminal",
+        ));
+    }
+    if !a.attach.is_empty() && (form || template_only || a.allow_duplicate) {
+        return Err(Error::exit(
+            2,
+            "--attach requires explicit form answers and does not allow duplicate override",
         ));
     }
     if (form || template_only) && !a.cc.is_empty() {
@@ -635,7 +722,8 @@ fn ticket_create(
             ack_all,
             cc_emails: a.cc.clone(),
         };
-        let mut plan = ticket::build_create_plan(&m.unwrap_or_else(|| meta.clone()), d, &opts)?;
+        let plan = ticket::build_create_plan(&m.unwrap_or_else(|| meta.clone()), d, &opts)?;
+        let mut plan = ticket::with_devices(plan, &a.device)?;
         if let Some(p) = problem {
             plan.errors.insert(0, p);
             plan.hash.clear();
@@ -675,6 +763,59 @@ fn ticket_create(
     } else {
         Reviewed::Flow(Box::new(build(&draft, a.ack, None)?))
     };
+
+    if let (false, Reviewed::Flow(p)) = (a.attach.is_empty(), &plan) {
+        let api = deps.api.as_ref();
+        let attached = |current: &Plan| -> Result<attachments::AttachedPlan> {
+            let blocking = current.review.blocking_unacked();
+            let Some(payload) = current.payload.as_ref().filter(|_| current.ok()) else {
+                return Err(incomplete(&current.errors));
+            };
+            if !blocking.is_empty() {
+                return Err(incomplete(&current.errors));
+            }
+            let raw = attachments::metadata(api, "tickets")?;
+            let context = fsv_core::journal::plan_hash(Some(&json!({
+                "plan": current.hash, "fields": current.meta.form_fields,
+                "rules": current.meta.rules, "metadata": raw,
+            })))
+            .unwrap_or_default();
+            let base = fsv_api::reviewed_write::WritePlan {
+                action: "ticket_create_attachments".into(),
+                target: 0,
+                tenant: config::domain(),
+                method: "POST".into(),
+                path: "tickets".into(),
+                payload_json: fsv_py::Dumps::default()
+                    .sort_keys(true)
+                    .dump(&Value::Object(payload.clone())),
+                context_hash: context,
+            };
+            let action = base.action.clone();
+            let mut wrapped = attachments::wrap(base, &a.attach, &raw, api, a.max_bytes)?;
+            let wrapped_hash = wrapped.hash();
+            wrapped.requester_id = current
+                .requester
+                .as_ref()
+                .map(|r| fsv_api::watchers::positive_id(&r.id))
+                .transpose()?;
+            wrapped.prior_guards = vec![
+                (action, wrapped_hash),
+                ("ticket_create".into(), current.hash.clone()),
+            ];
+            Ok(wrapped)
+        };
+        let ack_now = a.ack || !p.state.acknowledged.is_empty();
+        let rebuild = || -> Result<attachments::AttachedPlan> {
+            let fresh = Arc::new(deps.meta.load_meta("ticket", "new", true, &Value::Null)?);
+            attached(&build(&p.draft, ack_now, Some(fresh))?)
+        };
+        let expected = a.expect_plan.as_deref();
+        return finish(&attached(p)?, api, a.dry, a.yes, expected, &rebuild).map_err(|e| match e {
+            Error::Exit { code: 2, message } if !message.is_empty() => flow_exit(2, message),
+            other => other,
+        });
+    }
 
     if a.dry {
         ticket_print_plan(&plan, as_json);
@@ -754,6 +895,9 @@ fn ticket_create(
         if let Some(v) = result.get("verification") {
             o.insert("verification".into(), v.clone());
         }
+        if let Some(v) = result.get("device_verification") {
+            o.insert("device_verification".into(), v.clone());
+        }
         println!("{}", fsv_py::Dumps::default().dump(&Value::Object(o)));
     } else {
         out().print(&format!(
@@ -769,6 +913,16 @@ fn ticket_create(
         }
     }
     Ok(())
+}
+
+fn incomplete(errors: &[String]) -> Error {
+    Error::exit(
+        2,
+        format!(
+            "cannot attach to incomplete incident plan: {}",
+            errors.join("; ")
+        ),
+    )
 }
 
 /// `ticket_cli.print_plan`.

@@ -1,0 +1,235 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/changes/50",
+  "json": {
+   "change": {
+    "id": 50,
+    "subject": "Acme change 50"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/51",
+  "json": {
+   "change": {
+    "id": 51,
+    "subject": "Acme change 51"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/52",
+  "json": {
+   "change": {
+    "id": 52,
+    "subject": "Acme change 52"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/53",
+  "json": {
+   "change": {
+    "id": 53,
+    "subject": "Acme change 53"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/50/problems",
+  "json": {
+   "problems": [
+    {
+     "id": 70,
+     "subject": "Acme problem 70"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/50/problems",
+  "json": {
+   "problems": [
+    {
+     "id": 70,
+     "subject": "Acme problem 70"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/50/problems",
+  "json": {
+   "problems": [
+    {
+     "id": 70,
+     "subject": "Acme problem 70"
+    },
+    {
+     "id": 71,
+     "subject": "Acme problem 71"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/51/problems",
+  "json": {
+   "problems": [
+    {
+     "id": 72,
+     "subject": "Acme problem 72"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/51/problems",
+  "json": {
+   "problems": [
+    {
+     "id": 72,
+     "subject": "Acme problem 72"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/51/problems",
+  "json": {
+   "problems": [
+    {
+     "id": 72,
+     "subject": "Acme problem 72"
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/71",
+  "json": {
+   "problem": {
+    "id": 71
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/73",
+  "json": {
+   "problem": {
+    "id": 74
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/freshrelease/settings/fetch_linked_fr_projects",
+  "query": {
+   "placeholder[resourceId]": "52"
+  },
+  "json": {
+   "status": 200,
+   "body": {
+    "projects": [
+     {
+      "id": 9,
+      "key": "ACME",
+      "name": "Acme rollout"
+     }
+    ],
+    "meta": {
+     "page": 1,
+     "total_pages": 1,
+     "total": 1
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/freshrelease/settings/linked_issues",
+  "query": {
+   "placeholder[resourceId]": "52"
+  },
+  "json": {
+   "status": 200,
+   "body": {
+    "issues": [
+     {
+      "id": 91,
+      "key": "ACME-1",
+      "name": "Acme step 1",
+      "project_id": 9
+     }
+    ],
+    "meta": {
+     "page": 1,
+     "total_pages": 1,
+     "total": 1
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/freshrelease/settings/fetch_linked_fr_projects",
+  "query": {
+   "placeholder[resourceId]": "53"
+  },
+  "json": {
+   "status": 500,
+   "body": {}
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/50/problems/associate",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/changes/51/problems/72",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

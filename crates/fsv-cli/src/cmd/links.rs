@@ -1,6 +1,7 @@
-//! `changes assets ...` and `changes associations ...`
-//! (`cli.assets_resource`, `asset_categories_resource`,
-//! `change_associations_resource`).
+//! `changes associations ...` (`change_associations_resource`), plus
+//! `cli.assets_resource` and `asset_categories_resource`: Python keeps both
+//! but no command registers them, so only the unit tests reach them here.
+#![allow(dead_code)]
 
 use std::sync::{LazyLock, Mutex};
 

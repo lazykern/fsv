@@ -129,10 +129,11 @@
   "method": "GET",
   "path": "/api/_/problems/8/solutions",
   "json": {
-   "solutions": [
+   "articles": [
     {
      "id": 61,
-     "title": "Acme workaround"
+     "title": "Acme workaround",
+     "article_type": 1
     }
    ],
    "meta": {
@@ -181,7 +182,7 @@
   "method": "GET",
   "path": "/api/_/problems/9/solutions",
   "json": {
-   "solutions": [],
+   "articles": [],
    "meta": {
     "has_next": false
    }
@@ -228,10 +229,11 @@
   "method": "GET",
   "path": "/api/_/problems/10/solutions",
   "json": {
-   "solutions": [
+   "articles": [
     {
      "id": 62,
-     "title": "Acme fix"
+     "title": "Acme fix",
+     "article_type": 2
     }
    ],
    "meta": {

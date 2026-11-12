@@ -190,7 +190,7 @@ pub fn export(res: &'static Resource, a: ResExportArgs) -> CmdResult {
     run().map_err(refusal)
 }
 
-fn finish_problem(
+pub(crate) fn finish_problem(
     c: &Arc<fsv_core::Client>,
     plan: problem_workflows::ProblemPlan,
     dry_run: bool,

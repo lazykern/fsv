@@ -803,207 +803,6 @@ fn change_state_csv() {
 }
 
 #[test]
-fn asset_categories_table() {
-    let r = run_fixture("links", &["changes", "assets", "categories"], None);
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"           Asset categories           
-┏━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
-┃ Name                  ┃ CI Type ID ┃
-┡━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━┩
-│ All assets            │ -          │
-│ Application Portfolio │ 7          │
-│ Hardware & Devices    │ 8          │
-│ Application Server    │ 9          │
-└───────────────────────┴────────────┘
-"#
-    );
-    assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn asset_categories_csv() {
-    let r = run_fixture(
-        "links",
-        &["changes", "assets", "categories", "-o", "csv"],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        "name,filter,ci_type_id\r\nAll assets,all_assets,\r\nApplication Portfolio,7,7\r\nHardware & Devices,8,8\r\nApplication Server,9,9\r\n"
-    );
-    assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn assets_ls_table() {
-    let r = run_fixture("links", &["changes", "assets", "ls", "5"], None);
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"                                    Assets                                     
-┏━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━┓
-┃ ID ┃ Name    ┃ Type                  ┃ Used By ┃ Location ┃ State  ┃ Serial ┃
-┡━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━┩
-│ 44 │ AcmeApp │ Application Portfolio │ -       │ BKK      │ In Use │ S1     │
-│ 45 │ DB01    │ Hardware & Devices    │ Ann     │ -        │ -      │ -      │
-└────┴─────────┴───────────────────────┴─────────┴──────────┴────────┴────────┘
-"#
-    );
-    assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn assets_ls_ambiguous_category() {
-    let r = run_fixture(
-        "links",
-        &[
-            "changes",
-            "assets",
-            "ls",
-            "5",
-            "--category",
-            "app portfolio",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"error: unknown asset category: 'app portfolio'. Try --list-categories
-"#
-    );
-}
-
-#[test]
-fn assets_ls_category_prefix_ambiguous() {
-    let r = run_fixture(
-        "links",
-        &["changes", "assets", "ls", "5", "--category", "application"],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"error: multiple asset categories match 'application': Application Portfolio, Application Server
-"#
-    );
-}
-
-#[test]
-fn assets_ls_category_json() {
-    let r = run_fixture(
-        "links",
-        &[
-            "changes",
-            "assets",
-            "ls",
-            "5",
-            "--category",
-            "hardware",
-            "--json",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"[
-  {
-    "config_item": {
-      "display_id": 45,
-      "name": "DB01",
-      "asset_type": "Hardware & Devices",
-      "user_name": "Ann"
-    },
-    "id": 901
-  }
-]
-"#
-    );
-    assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn assets_search_table() {
-    let r = run_fixture("links", &["changes", "assets", "search", "5", "acme"], None);
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"                                    Assets                                    
-┏━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━┳━━━━━━━━┓
-┃ ID ┃ Name    ┃ Type                  ┃ Used By ┃ Location ┃ State ┃ Serial ┃
-┡━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━╇━━━━━━━━┩
-│ 44 │ AcmeApp │ Application Portfolio │ -       │ -        │ -     │ -      │
-│ 46 │ AcmeWeb │ Application Server    │ -       │ HQ       │ -     │ -      │
-└────┴─────────┴───────────────────────┴─────────┴──────────┴───────┴────────┘
-"#
-    );
-    assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn assets_search_category_json() {
-    let r = run_fixture(
-        "links",
-        &[
-            "changes",
-            "assets",
-            "search",
-            "5",
-            "acme",
-            "--category",
-            "Application Server",
-            "--json",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "assets": [
-    {
-      "display_id": 46,
-      "name": "AcmeWeb",
-      "ci_type_name": "Application Server",
-      "location_name": "HQ"
-    }
-  ],
-  "meta": {
-    "count": 2,
-    "filtered_count": 1,
-    "category": "Application Server"
-  }
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn assets_legacy_two_actions() {
-    let r = run_fixture(
-        "links",
-        &[
-            "changes", "assets", "legacy", "5", "--search", "a", "--add", "b",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"error: choose only one action: --search, --add, --remove, --pick, or --list-categories
-"#
-    );
-}
-
-#[test]
 fn associations_ls_table() {
     let r = run_fixture("links", &["changes", "associations", "ls", "5"], None);
     assert_eq!(r.code, 0, "{}", r.err);
@@ -1274,7 +1073,7 @@ fn activity_forbidden() {
 
 #[test]
 fn tasks_ticket_table() {
-    let r = run_fixture("tabs", &["tickets", "tasks", "5"], None);
+    let r = run_fixture("tabs", &["tickets", "tasks-legacy", "5"], None);
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
@@ -1291,7 +1090,7 @@ fn tasks_ticket_table() {
 
 #[test]
 fn tasks_ticket_tsv() {
-    let r = run_fixture("tabs", &["tickets", "tasks", "5", "-o", "tsv"], None);
+    let r = run_fixture("tabs", &["tickets", "tasks-legacy", "5", "-o", "tsv"], None);
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
@@ -2103,7 +1902,8 @@ fn ls_where_filtered() {
     );
     assert_eq!(
         r.err,
-        r#"2 rows
+        r#"Warning: returned records contradict the requested predicate; do not use this list for writes. IDs: 2
+2 rows
 "#
     );
 }

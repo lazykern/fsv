@@ -1,0 +1,341 @@
+//! Integrated inventory (`integrated_assets_cli`), service-request approvals
+//! (`sr_approvals_cli`) and draft solutions (`solutions_cli`). All share
+//! `integrated_assets_cli.finish` and `guard`.
+
+use serde_json::{Map, Value, json};
+
+use fsv_api::service::DiskJournal;
+use fsv_api::{integrated_assets as assets, solutions, sr_approvals};
+use fsv_core::resource::{TICKETS, parse_id};
+use fsv_core::{Error, Result};
+
+use crate::cmd::reviewed::{dumps, print_dry_run};
+use crate::generated::*;
+use crate::lazy::LazyApi;
+use crate::util::{CmdResult, plain_fail, uncaught};
+
+/// `--dry-run`, `--yes`, `--expect-plan`, `--read-only`.
+struct Flags {
+    dry_run: bool,
+    yes: bool,
+    expected: Option<String>,
+    read_only: bool,
+}
+
+macro_rules! flags {
+    ($a:expr) => {
+        Flags {
+            dry_run: $a.dry_run,
+            yes: $a.yes,
+            expected: $a.expected.clone(),
+            read_only: $a.read_only,
+        }
+    };
+}
+
+macro_rules! action {
+    ($m:expr, $t:ty, $op:expr) => {
+        match crate::cmd::parse::<$t>($m) {
+            Ok(a) => approvals_action(&a.target, $op, a.ident, &a.remark, flags!(a)),
+            Err(e) => Err(e),
+        }
+    };
+}
+
+/// `guard`: `ValueError`, `ReviewedWriteError`, `APIError` and
+/// `SessionError` print their message and exit 2.
+pub(crate) fn guard(r: Result<()>) -> CmdResult {
+    r.map_err(|e| match e {
+        Error::Value(m) | Error::Session(m) => plain_fail(&m, 2),
+        Error::Exit { code: 2, message } if !message.is_empty() => plain_fail(&message, 2),
+        Error::Api(_) => plain_fail(&e.to_string(), 2),
+        other => uncaught(other),
+    })
+}
+
+/// `finish`: dry-run review, or send only with `--yes` and the exact hash.
+pub(crate) fn finish(
+    review: Map<String, Value>,
+    hash: &str,
+    send: impl FnOnce() -> Result<Value>,
+    dry_run: bool,
+    yes: bool,
+    expected: Option<&str>,
+    read_only: bool,
+) -> Result<()> {
+    if dry_run {
+        print_dry_run(review);
+        return Ok(());
+    }
+    if read_only {
+        return Err(Error::value("read-only mode; no write attempted"));
+    }
+    if !yes || expected != Some(hash) {
+        return Err(Error::value(
+            "review with --dry-run, then --yes --expect-plan FULL_HASH",
+        ));
+    }
+    println!("{}", dumps(&send()?));
+    Ok(())
+}
+
+/// `assets search QUERY` (top level and `changes assets search`).
+pub fn search(query: &str, kind: &str, page: i64) -> CmdResult {
+    let c = LazyApi::default();
+    guard(assets::search(&c, query, kind, page).map(|v| println!("{}", dumps(&v))))
+}
+
+/// `MODULE assets list|ls TARGET`.
+pub fn listing(module: &str, target: &str, kind: &str) -> CmdResult {
+    let c = LazyApi::default();
+    guard(
+        assets::inventory(&c, module, &json!(target), kind)
+            .map(|rows| println!("{}", dumps(&json!({"data": rows, "complete": true})))),
+    )
+}
+
+/// `changes assets legacy TARGET [--search Q]`.
+pub fn legacy(target: &str, search_: Option<&str>) -> CmdResult {
+    eprintln!("deprecated: use assets search or assets list");
+    match search_ {
+        None => listing("changes", target, "devices"),
+        Some(q) => search(q, "devices", 1),
+    }
+}
+
+/// Flags of `assets add|remove`.
+pub struct Mutate<'a> {
+    pub target: &'a str,
+    pub ids: &'a [i64],
+    pub kind: &'a str,
+    pub dry_run: bool,
+    pub yes: bool,
+    pub expected: Option<&'a str>,
+    pub read_only: bool,
+}
+
+/// `MODULE assets add|remove TARGET IDS...`.
+pub fn mutate(module: &str, remove: bool, a: Mutate<'_>) -> CmdResult {
+    let run = || -> Result<()> {
+        let c = LazyApi::default();
+        let ids: Vec<Value> = a.ids.iter().map(|i| json!(i)).collect();
+        let plan = assets::build_plan(&c, module, &json!(a.target), &ids, a.kind, remove)?;
+        let hash = plan.hash();
+        finish(
+            plan.review(),
+            &hash,
+            || {
+                assets::send(
+                    &plan,
+                    &c,
+                    &DiskJournal,
+                    module,
+                    &ids,
+                    a.kind,
+                    remove,
+                    a.expected,
+                )
+            },
+            a.dry_run,
+            a.yes,
+            a.expected,
+            a.read_only,
+        )
+    };
+    guard(run())
+}
+
+/// Dispatch `assets ...`, `ci-*` and `approvals ...` below a module.
+pub fn dispatch(module: &str, sub: &str, m: &clap::ArgMatches) -> Option<CmdResult> {
+    use crate::cmd::parse;
+    macro_rules! list {
+        ($t:ty) => {{
+            let a: $t = match parse(m) {
+                Ok(a) => a,
+                Err(e) => return Some(Err(e)),
+            };
+            listing(module, &a.target, &a.kind)
+        }};
+    }
+    macro_rules! write {
+        ($t:ty, $remove:expr) => {{
+            let a: $t = match parse(m) {
+                Ok(a) => a,
+                Err(e) => return Some(Err(e)),
+            };
+            mutate(
+                module,
+                $remove,
+                Mutate {
+                    target: &a.target,
+                    ids: &a.ids,
+                    kind: &a.kind,
+                    dry_run: a.dry_run,
+                    yes: a.yes,
+                    expected: a.expected.as_deref(),
+                    read_only: a.read_only,
+                },
+            )
+        }};
+    }
+    Some(match (module, sub) {
+        ("changes", "assets list") => list!(ChangesAssetsListArgs),
+        ("changes", "assets ls") => list!(ChangesAssetsLsArgs),
+        ("changes", "ci-list") => list!(ChangesCiListArgs),
+        ("changes", "assets add") => write!(ChangesAssetsAddArgs, false),
+        ("changes", "ci-add") => write!(ChangesCiAddArgs, false),
+        ("changes", "assets remove") => write!(ChangesAssetsRemoveArgs, true),
+        ("changes", "ci-remove") => write!(ChangesCiRemoveArgs, true),
+        ("changes", "assets legacy") => match parse::<ChangesAssetsLegacyArgs>(m) {
+            Ok(a) => legacy(&a.target, a.search.as_deref()),
+            Err(e) => Err(e),
+        },
+        ("changes", "assets search") => match parse::<ChangesAssetsSearchArgs>(m) {
+            Ok(a) => search(&a.query, &a.kind, a.page),
+            Err(e) => Err(e),
+        },
+        ("tickets", "assets list") => list!(TicketsAssetsListArgs),
+        ("tickets", "assets ls") => list!(TicketsAssetsLsArgs),
+        ("tickets", "assets add") => write!(TicketsAssetsAddArgs, false),
+        ("tickets", "assets remove") => write!(TicketsAssetsRemoveArgs, true),
+        ("problems", "assets list") => list!(ProblemsAssetsListArgs),
+        ("problems", "assets ls") => list!(ProblemsAssetsLsArgs),
+        ("problems", "assets add") => write!(ProblemsAssetsAddArgs, false),
+        ("problems", "assets remove") => write!(ProblemsAssetsRemoveArgs, true),
+        ("sr", "assets list") => list!(SrAssetsListArgs),
+        ("sr", "assets ls") => list!(SrAssetsLsArgs),
+        ("sr", "assets add") => write!(SrAssetsAddArgs, false),
+        ("sr", "assets remove") => write!(SrAssetsRemoveArgs, true),
+        ("sr", "approvals list") => match parse::<SrApprovalsListArgs>(m) {
+            Ok(a) => approvals_list(&a.target),
+            Err(e) => Err(e),
+        },
+        ("sr", "approvals request") => match parse::<SrApprovalsRequestArgs>(m) {
+            Ok(a) => approvals_request(a),
+            Err(e) => Err(e),
+        },
+        ("sr", "approvals approve") => action!(m, SrApprovalsApproveArgs, "approve"),
+        ("sr", "approvals reject") => action!(m, SrApprovalsRejectArgs, "reject"),
+        ("sr", "approvals cancel") => action!(m, SrApprovalsCancelArgs, "cancel"),
+        ("sr", "approvals remind") => action!(m, SrApprovalsRemindArgs, "remind"),
+        ("problems", "link-solution") => match parse::<ProblemsLinkSolutionArgs>(m) {
+            Ok(a) => link_solution(&a.target, a.article, false, flags!(a)),
+            Err(e) => Err(e),
+        },
+        ("problems", "unlink-solution") => match parse::<ProblemsUnlinkSolutionArgs>(m) {
+            Ok(a) => link_solution(&a.target, a.article, true, flags!(a)),
+            Err(e) => Err(e),
+        },
+        _ => return None,
+    })
+}
+
+/// `sr approvals list TARGET`.
+fn approvals_list(target: &str) -> CmdResult {
+    let c = LazyApi::default();
+    guard(
+        parse_id(target, &TICKETS)
+            .and_then(|id| sr_approvals::inventory(&c, id))
+            .map(|rows| println!("{}", dumps(&json!({"approval_groups": rows})))),
+    )
+}
+
+fn approvals_finish(c: &LazyApi, plan: sr_approvals::ApprovalPlan, f: Flags) -> Result<()> {
+    let hash = plan.hash();
+    finish(
+        plan.review(),
+        &hash,
+        || sr_approvals::send(&plan, c, &DiskJournal, f.expected.as_deref()),
+        f.dry_run,
+        f.yes,
+        f.expected.as_deref(),
+        f.read_only,
+    )
+}
+
+/// `sr approvals request TARGET --name --message --approver...`.
+fn approvals_request(a: SrApprovalsRequestArgs) -> CmdResult {
+    let run = || -> Result<()> {
+        let c = LazyApi::default();
+        let approvers: Vec<Value> = a.approver.iter().map(|s| json!(s)).collect();
+        let plan = sr_approvals::build_plan(
+            &c,
+            &json!(a.target),
+            "request",
+            None,
+            Some(&a.name),
+            Some(&a.message),
+            Some(&approvers),
+            &a.rule,
+            "",
+        )?;
+        approvals_finish(&c, plan, flags!(a))
+    };
+    guard(run())
+}
+
+/// `sr approvals approve|reject|cancel|remind TARGET ID`.
+fn approvals_action(target: &str, op: &str, ident: i64, remark: &str, f: Flags) -> CmdResult {
+    let run = || -> Result<()> {
+        let c = LazyApi::default();
+        let plan = sr_approvals::build_plan(
+            &c,
+            &json!(target),
+            op,
+            Some(&json!(ident)),
+            None,
+            None,
+            None,
+            "everyone",
+            remark,
+        )?;
+        approvals_finish(&c, plan, f)
+    };
+    guard(run())
+}
+
+/// `solutions create --title --body --type [--category] [--folder]`.
+pub fn solutions_create(a: SolutionsCreateArgs) -> CmdResult {
+    let run = || -> Result<()> {
+        let c = LazyApi::default();
+        let plan = solutions::create_plan(
+            &c,
+            &a.title,
+            &a.body,
+            &a.kind,
+            a.category.as_deref(),
+            a.folder.as_deref(),
+        )?;
+        let hash = plan.hash();
+        let f = flags!(a);
+        finish(
+            plan.review(),
+            &hash,
+            || solutions::send_create(&plan, &c, &DiskJournal, f.expected.as_deref()),
+            f.dry_run,
+            f.yes,
+            f.expected.as_deref(),
+            f.read_only,
+        )
+    };
+    guard(run())
+}
+
+/// `problems link-solution|unlink-solution TARGET ARTICLE`.
+fn link_solution(target: &str, article: i64, unlink: bool, f: Flags) -> CmdResult {
+    let run = || -> Result<()> {
+        let c = LazyApi::default();
+        let plan = solutions::link_plan(&c, &json!(target), &json!(article), unlink)?;
+        let hash = plan.hash();
+        finish(
+            plan.review(),
+            &hash,
+            || solutions::send_link(&plan, &c, &DiskJournal, f.expected.as_deref()),
+            f.dry_run,
+            f.yes,
+            f.expected.as_deref(),
+            f.read_only,
+        )
+    };
+    guard(run())
+}

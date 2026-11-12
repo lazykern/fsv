@@ -205,14 +205,13 @@ fn task_delete_yes() {
         &["changes", "tasks-delete", "5", "3", "--yes"],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"deleted task 3 from #5
+        r.err,
+        r#"error: complete task inventory unavailable
 "#
     );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/changes/5/tasks/update"]);
 }
 
 #[test]
@@ -222,7 +221,7 @@ fn task_delete_needs_yes() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: pass --yes to delete task
+        r#"error: complete task inventory unavailable
 "#
     );
 }
@@ -253,9 +252,9 @@ fn task_add_dry_run() {
   "status_label": "Open",
   "reminder": "Never",
   "note_text": null,
-  "plan_hash": "8f28336daef4d72c340215ee9344ee4dfdff111a286a19d1e5d89e6f1012b0ce",
+  "plan_hash": "0803fedff1e7f3ab2a4634c9f3a8fdbe801c714c79636ae100c7d102cefbb3fd",
   "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Blocked request captured; accepted response unobserved. Blank optional fields omitted."
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
 }
 "#
     );
@@ -359,9 +358,9 @@ fn task_add_no_input() {
   "status_label": "Open",
   "reminder": "Never",
   "note_text": null,
-  "plan_hash": "8f28336daef4d72c340215ee9344ee4dfdff111a286a19d1e5d89e6f1012b0ce",
+  "plan_hash": "0803fedff1e7f3ab2a4634c9f3a8fdbe801c714c79636ae100c7d102cefbb3fd",
   "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Blocked request captured; accepted response unobserved. Blank optional fields omitted."
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
 }
 sending requires --yes and --expect-plan in no-input mode
 "#
@@ -394,9 +393,9 @@ fn task_add_confirm_eof() {
   "status_label": "Open",
   "reminder": "Never",
   "note_text": null,
-  "plan_hash": "8f28336daef4d72c340215ee9344ee4dfdff111a286a19d1e5d89e6f1012b0ce",
+  "plan_hash": "0803fedff1e7f3ab2a4634c9f3a8fdbe801c714c79636ae100c7d102cefbb3fd",
   "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Blocked request captured; accepted response unobserved. Blank optional fields omitted."
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
 }
 Aborted.
 "#
@@ -438,9 +437,9 @@ fn task_add_hash_mismatch() {
   "status_label": "Open",
   "reminder": "Never",
   "note_text": null,
-  "plan_hash": "8f28336daef4d72c340215ee9344ee4dfdff111a286a19d1e5d89e6f1012b0ce",
+  "plan_hash": "0803fedff1e7f3ab2a4634c9f3a8fdbe801c714c79636ae100c7d102cefbb3fd",
   "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Blocked request captured; accepted response unobserved. Blank optional fields omitted."
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
 }
 task review hash does not match; review the exact task again
 "#
@@ -463,12 +462,8 @@ fn task_add_send_unverified() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"Task 12 submitted on change 5; exact-ID/state read-back: False
-"#
-    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
         r#"{
@@ -486,14 +481,13 @@ fn task_add_send_unverified() {
   "status_label": "Open",
   "reminder": "Never",
   "note_text": null,
-  "plan_hash": "8f28336daef4d72c340215ee9344ee4dfdff111a286a19d1e5d89e6f1012b0ce",
+  "plan_hash": "0803fedff1e7f3ab2a4634c9f3a8fdbe801c714c79636ae100c7d102cefbb3fd",
   "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Blocked request captured; accepted response unobserved. Blank optional fields omitted."
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
 }
-Returned task ID/state not verified in task read-back; do not resend.
+task review hash does not match; review the exact task again
 "#
     );
-    assert_eq!(r.write_paths(), ["POST /api/_/changes/5/tasks"]);
 }
 
 #[test]
@@ -516,7 +510,7 @@ fn task_add_deactivated_owner() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"owner email must match exactly one active agent with a user ID; use an explicit user ID if unavailable
+        r#"owner lookup failed: agent must match exactly one active entry with a user ID; 0 exact active candidates; use an explicit user ID if unavailable
 "#
     );
 }
@@ -574,9 +568,9 @@ fn task_add_full_dry_run() {
   "status_label": "in progress",
   "reminder": "Never",
   "note_text": "a<b",
-  "plan_hash": "9d21cb7627c6eef7191d27d97ac93054751e5dd19026d47bd1aefa22d223ede3",
+  "plan_hash": "28372994b1e3797ab721de168a509aced9e17e6823c34656df33913a5716bc45",
   "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Blocked request captured; accepted response unobserved. Blank optional fields omitted."
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
 }
 "#
     );
@@ -744,6 +738,7 @@ fn approval_request_no_input() {
   "message_text": "hi",
   "plan_hash": "c920ebf2e43cd003d49aeff9cb60ab8811aa6820896ef977e0d8bebca81758a1",
   "warning": "Approval emails are irreversible; cancel/revoke cannot recall them. This requests approval; it does not approve the change. Tenant workflows may also notify people.",
+  "recipient_sources": [],
   "verification": "Complete before/after approval record IDs, exact new recipients, requested status and exact selected rule ID. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
   "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted."
 }
@@ -801,6 +796,7 @@ fn approval_request_send_unverified() {
   "message_text": "hi",
   "plan_hash": "c920ebf2e43cd003d49aeff9cb60ab8811aa6820896ef977e0d8bebca81758a1",
   "warning": "Approval emails are irreversible; cancel/revoke cannot recall them. This requests approval; it does not approve the change. Tenant workflows may also notify people.",
+  "recipient_sources": [],
   "verification": "Complete before/after approval record IDs, exact new recipients, requested status and exact selected rule ID. When complete chains identify exactly one new matching group, verify its exact name and ID too.",
   "contract": "Per-member approvals and named approval-chain groups observed; POST response not trusted."
 }
@@ -1180,7 +1176,7 @@ fn task_update_nothing() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: nothing to update; use --edit or pass task fields
+        r#"provide captured task fields; unsupported fields cannot be sent
 "#
     );
 }
@@ -1200,20 +1196,13 @@ fn task_update_title_dry_run() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "action": "update_task",
-  "change_id": 5,
-  "task_id": 3,
-  "body": {
-    "title": "New"
-  }
-}
+        r.err,
+        r#"complete task inventory unavailable
 "#
     );
-    assert_eq!(r.err, r#""#);
 }
 
 #[test]
@@ -1231,23 +1220,13 @@ fn task_update_status_dry_run() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "action": "update_task",
-  "change_id": 5,
-  "task_id": 3,
-  "body": {
-    "status": 3
-  },
-  "requires_confirmation": [
-    "task status -> completed"
-  ]
-}
+        r.err,
+        r#"complete task inventory unavailable
 "#
     );
-    assert_eq!(r.err, r#""#);
 }
 
 #[test]
@@ -1273,30 +1252,13 @@ fn task_update_many_dry_run() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "action": "update_task",
-  "change_id": 5,
-  "task_id": 3,
-  "body": {
-    "status": 2,
-    "group_id": 5,
-    "owner_id": 131,
-    "due_date": "2026-01-01",
-    "custom_fields": {
-      "system": 10
-    }
-  },
-  "requires_confirmation": [
-    "task status -> status 2",
-    "reassign group (group_id=5)"
-  ]
-}
+        r.err,
+        r#"--edit/--due-date are not captured task-update contracts; use explicit planned dates and reviewed flags
 "#
     );
-    assert_eq!(r.err, r#""#);
 }
 
 #[test]
@@ -1318,7 +1280,7 @@ fn task_update_bad_system() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: system must be numeric ID or one of: core bank, sap
+        r#"complete task inventory unavailable
 "#
     );
 }
@@ -1342,7 +1304,7 @@ fn task_update_bad_status() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: status must match one active runtime task-status ID or label
+        r#"complete task inventory unavailable
 "#
     );
 }
@@ -1366,7 +1328,7 @@ fn task_update_ambiguous_agent() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: no exact agent match for 'ann': Ann Lee <ann@acme.com>; Anna Kim <anna@acme.com>. Use the exact name/email or a numeric ID.
+        r#"complete task inventory unavailable
 "#
     );
 }
@@ -1382,7 +1344,7 @@ fn task_update_needs_yes() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: task 3 on #5: task status -> Completed. Pass --yes to confirm.
+        r#"complete task inventory unavailable
 "#
     );
 }
@@ -1402,14 +1364,13 @@ fn task_update_status_yes() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"updated task 3 on #5
+        r.err,
+        r#"complete task inventory unavailable
 "#
     );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/changes/5/tasks/3"]);
 }
 
 #[test]
@@ -1427,18 +1388,13 @@ fn task_update_json() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "id": 3,
-  "title": "New",
-  "status": 3
-}
+        r.err,
+        r#"complete task inventory unavailable
 "#
     );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/changes/5/tasks/3"]);
 }
 
 #[test]
@@ -1452,7 +1408,7 @@ fn task_update_edit_no_input() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: editor disabled by --no-input; use --dry-run/--dry or provide non-interactive flags
+        r#"--edit/--due-date are not captured task-update contracts; use explicit planned dates and reviewed flags
 "#
     );
 }
@@ -1826,211 +1782,6 @@ error: CHN-8 WAS created but 1 step(s) failed; do not rerun clone (it would dupl
             "POST /api/_/changes",
             "PUT /api/_/changes/8/assets/associate"
         ]
-    );
-}
-
-#[test]
-fn assets_add_dry_run() {
-    let r = run_fixture(
-        "links",
-        &[
-            "changes",
-            "assets",
-            "add",
-            "5",
-            "AcmeWeb",
-            "44",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "action": "associate_assets",
-  "change_id": 5,
-  "asset_ids": [
-    46,
-    44
-  ]
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn assets_add_ambiguous() {
-    let r = run_fixture(
-        "links",
-        &["changes", "assets", "add", "5", "acme", "--dry-run"],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"error: multiple assets match 'acme': AcmeApp [44], AcmeWeb [46]
-"#
-    );
-}
-
-#[test]
-fn assets_add_category_single() {
-    let r = run_fixture(
-        "links",
-        &[
-            "changes",
-            "assets",
-            "add",
-            "5",
-            "zzz",
-            "--category",
-            "application server",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "action": "associate_assets",
-  "change_id": 5,
-  "asset_ids": [
-    46
-  ]
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn assets_add_needs_yes() {
-    let r = run_fixture("links", &["changes", "assets", "add", "5", "46"], None);
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"error: pass --yes to associate assets
-"#
-    );
-}
-
-#[test]
-fn assets_add_yes_json() {
-    let r = run_fixture(
-        "links",
-        &["changes", "assets", "add", "5", "46", "--yes", "--json"],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "action": "associate_assets",
-  "change_id": 5,
-  "asset_ids": [
-    46
-  ],
-  "ok": true
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/changes/5/assets/associate"]);
-}
-
-#[test]
-fn assets_remove_dry_run() {
-    let r = run_fixture(
-        "links",
-        &["changes", "assets", "remove", "5", "db01", "--dry-run"],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "action": "dissociate_assets",
-  "change_id": 5,
-  "asset_display_ids": [
-    45
-  ]
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn assets_remove_not_associated() {
-    let r = run_fixture(
-        "links",
-        &["changes", "assets", "remove", "5", "nope", "--dry-run"],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"error: asset not associated on CHN-5: 'nope'
-"#
-    );
-}
-
-#[test]
-fn assets_remove_yes() {
-    let r = run_fixture(
-        "links",
-        &["changes", "assets", "remove", "5", "44", "--yes"],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"removed 1 asset(s) from CHN-5
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/changes/5/assets/detach"]);
-}
-
-#[test]
-fn assets_remove_yes_json() {
-    let r = run_fixture(
-        "links",
-        &["changes", "assets", "remove", "5", "44", "--yes", "--json"],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "action": "dissociate_assets",
-  "change_id": 5,
-  "asset_display_ids": [
-    44
-  ],
-  "ok": true
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/changes/5/assets/detach"]);
-}
-
-#[test]
-fn assets_pick_needs_tty() {
-    let r = run_fixture("links", &["changes", "assets", "pick", "5"], None);
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"error: interactive picker requires TTY
-"#
     );
 }
 

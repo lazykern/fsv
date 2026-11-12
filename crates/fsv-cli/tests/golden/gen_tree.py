@@ -35,7 +35,7 @@ SHARED = {
     "ResLsArgs": per_res("ls"),
     "ResGetArgs": per_res("get"),
     "ResActivityArgs": per_res("activity"),
-    "ResTasksArgs": per_res("tasks"),
+    "ResTasksArgs": per_res("tasks", "changes", "problems") + ["tickets tasks-legacy"],
     "ResExportArgs": per_res("export"),
     "PlanningTextArgs": per_res("planning-text", "changes", "problems"),
     "ResFieldsArgs": per_res("fields"),
@@ -71,7 +71,8 @@ GROUP_FNS = {
 }
 
 # Python's completion generator treats this boolean as taking a value.
-VALUE_FLAG = {("fsv changes update", "backup_replaced")}
+VALUE_FLAG = {("fsv changes update", "backup_replaced"), ("fsv changes time write", "billable"),
+              ("fsv problems time write", "billable")}
 
 KEYWORDS = {"where", "type", "match", "ref", "self", "move", "loop", "fn", "use", "mod", "impl", "in"}
 
@@ -121,14 +122,18 @@ def field(p, name=None, long=None, shorts=None, aliases=None, overrides=None, un
     t, default = p["type"], p["default"]
     if p["kind"] == "argument":
         a.append(f"value_name = {rs(p['metavar'] or name.upper())}")
-        if t == "integer range":
+        if p["nargs"] == -1:
+            a += ["num_args = 1..", "required = true"] if p["required"] else ["num_args = 0.."]
+            if t in ("integer", "integer range"):
+                a.append("value_parser = clap::value_parser!(i64)" + (int_range(p) if t == "integer range" else ""))
+                ty = "Vec<i64>"
+            else:
+                ty = "Vec<String>"
+        elif t == "integer range":
             a.append("value_parser = clap::value_parser!(i64)" + int_range(p))
             ty = "i64"
         elif t == "integer":
             ty = "i64"
-        elif p["nargs"] == -1:
-            a += ["num_args = 1..", "required = true"]
-            ty = "Vec<String>"
         elif p["required"]:
             ty = "String"
         elif default is None:
@@ -153,7 +158,11 @@ def field(p, name=None, long=None, shorts=None, aliases=None, overrides=None, un
             a.append(f"default_value = {rs(str(default))}")
         elif t in ("integer", "integer range"):
             a.append(f"value_name = {rs(p['metavar'] or t.upper())}")
-            if p["required"]:
+            if p["multiple"]:
+                if p["required"]:
+                    a.append("required = true")
+                ty = "Vec<i64>"
+            elif p["required"]:
                 ty = "i64"
             elif default is None:
                 ty = "Option<i64>"

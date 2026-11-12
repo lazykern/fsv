@@ -1,0 +1,656 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 3,
+     "title": "Acme patch",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    },
+    {
+     "id": 4,
+     "title": "Acme verify",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 3,
+     "title": "Acme patch",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    },
+    {
+     "id": 4,
+     "title": "Acme verify",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 3,
+     "title": "Acme patch v2",
+     "status": 1,
+     "owner_id": 133,
+     "group_id": 5,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    },
+    {
+     "id": 4,
+     "title": "Acme verify",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/7/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 8,
+     "title": "Acme close",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {
+      "signoff": "Acme ok"
+     }
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/7/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 8,
+     "title": "Acme close",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {
+      "signoff": "Acme ok"
+     }
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/7/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 8,
+     "title": "Acme close",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {
+      "signoff": "Acme ok"
+     }
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/9/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 11,
+     "title": "Acme remind",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/9/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 11,
+     "title": "Acme remind",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/9/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 11,
+     "title": "Acme remind",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/6/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 5,
+     "title": "Acme drop",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    },
+    {
+     "id": 7,
+     "title": "Acme keep",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/6/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 5,
+     "title": "Acme drop",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    },
+    {
+     "id": 7,
+     "title": "Acme keep",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/6/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 5,
+     "title": "Acme drop",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    },
+    {
+     "id": 7,
+     "title": "Acme keep",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/6/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 7,
+     "title": "Acme keep",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/8/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 6,
+     "title": "Acme stuck",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/8/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 6,
+     "title": "Acme stuck",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/8/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 6,
+     "title": "Acme stuck",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/8/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 6,
+     "title": "Acme stuck",
+     "status": 1,
+     "owner_id": 131,
+     "group_id": 4,
+     "planned_start_date": "2030-01-01T09:00:00Z",
+     "planned_end_date": "2030-01-01T10:00:00Z",
+     "planned_effort": "1h",
+     "description": "<div>Acme</div>",
+     "custom_fields": {}
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change_task_fields",
+  "json": {
+   "change_task_fields": [
+    {
+     "name": "status",
+     "label": "Status",
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "In Progress"
+      },
+      {
+       "id": 3,
+       "value": "Completed"
+      }
+     ]
+    },
+    {
+     "name": "notify_before",
+     "label": "Notify before",
+     "choices": [
+      {
+       "id": 0,
+       "value": "Never"
+      },
+      {
+       "id": 900,
+       "value": "15 Minutes"
+      }
+     ]
+    },
+    {
+     "name": "cf_system",
+     "label": "System",
+     "default": false,
+     "field_type": "custom_dropdown",
+     "choices": [
+      {
+       "id": 10,
+       "value": "SAP"
+      },
+      {
+       "id": 11,
+       "value": "Core Bank"
+      }
+     ]
+    },
+    {
+     "name": "cf_signoff",
+     "label": "Sign-off",
+     "default": false,
+     "field_type": "custom_text",
+     "required_for_closure": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/agents",
+  "json": {
+   "results": [
+    {
+     "id": "ann@acme.com",
+     "user_id": 131,
+     "email": "ann@acme.com",
+     "value": "Ann Lee"
+    },
+    {
+     "id": "bo@acme.com",
+     "user_id": 133,
+     "email": "bo@acme.com",
+     "value": "Bo Kim"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/bootstrap/agents_groups",
+  "json": {
+   "groups": [
+    {
+     "id": 4,
+     "name": "Ops"
+    },
+    {
+     "id": 5,
+     "name": "DBA"
+    }
+   ]
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/5/tasks/3",
+  "status": 200,
+  "json": {
+   "task": {
+    "id": 3,
+    "title": "Acme patch v2",
+    "status": 1,
+    "owner_id": 131,
+    "group_id": 4,
+    "planned_start_date": "2030-01-01T09:00:00Z",
+    "planned_end_date": "2030-01-01T10:00:00Z",
+    "planned_effort": "1h",
+    "description": "<div>Acme</div>",
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/7/tasks/8",
+  "status": 200,
+  "json": {
+   "task": {
+    "id": 8,
+    "title": "Acme close",
+    "status": 3,
+    "owner_id": 131,
+    "group_id": 4,
+    "planned_start_date": "2030-01-01T09:00:00Z",
+    "planned_end_date": "2030-01-01T10:00:00Z",
+    "planned_effort": "1h",
+    "description": "<div>Acme</div>",
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/9/tasks/11",
+  "status": 200,
+  "json": {
+   "task": {
+    "id": 11,
+    "title": "Acme remind",
+    "status": 1,
+    "owner_id": 131,
+    "group_id": 4,
+    "planned_start_date": "2030-01-01T09:00:00Z",
+    "planned_end_date": "2030-01-01T10:00:00Z",
+    "planned_effort": "1h",
+    "description": "<div>Acme</div>",
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/6/tasks/update",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/8/tasks/update",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

@@ -169,7 +169,11 @@ if emit and same_out:
             writes.append(f'"{m} {url.split("acme.freshservice.com", 1)[1].split("?")[0]}"')
     stdin_arg = f"Some({json.dumps(stdin)})" if stdin else "None"
     steps = ", ".join("&[" + ", ".join(json.dumps(x) for x in a) + "]" for a in pre)
-    if tty or extra_env:
+    if files:
+        assert not (tty or extra_env or pre), "--files runs one step without options"
+        rel = os.path.relpath(files, os.path.join(os.path.dirname(os.path.abspath(__file__)), "../fixtures/files"))
+        call = f'    let r = run_files("{fixture}", {json.dumps(rel)}, &[{argl}], {stdin_arg});'
+    elif tty or extra_env:
         envl = ", ".join(f"({json.dumps(k)}, {json.dumps(v)})" for k, v in extra_env)
         call = (f'    let r = run_with("{fixture}", &[{steps}], &[{argl}], {stdin_arg}, '
                 f'Opts {{ tty: {"true" if tty else "false"}, env: &[{envl}] }});')

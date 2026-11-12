@@ -27,76 +27,17 @@ _fsv_complete() {
         "config defaults clear")
             COMPREPLY=( $(compgen -W "--verbose -v" -- "$cur") )
             return 0 ;;
-        "changes assets legacy")
-            case "$prev" in
-                --output)
-                    COMPREPLY=( $(compgen -W "table json csv tsv" -- "$cur") ); return 0 ;;
-                -o)
-                    COMPREPLY=( $(compgen -W "table json csv tsv" -- "$cur") ); return 0 ;;
-                --search)
-                    COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash _complete_asset_search_for_change - "$cur") ); return 0 ;;
-                -q)
-                    COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash _complete_asset_search_for_change - "$cur") ); return 0 ;;
-                --add)
-                    COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash _complete_asset_id_for_change - "$cur") ); return 0 ;;
-                --remove)
-                    COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash _complete_associated_asset_for_change - "$cur") ); return 0 ;;
-                --category)
-                    COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash _complete_asset_category - "$cur") ); return 0 ;;
-            esac
-            COMPREPLY=( $(compgen -W "--verbose -v --search -q --add --remove --page -p --per-page -n --category --list-categories --pick --dry-run --yes -y --output -o --json" -- "$cur") )
+        "changes relationships list")
+            COMPREPLY=( $(compgen -W "--verbose -v --json" -- "$cur") )
             return 0 ;;
-        "changes assets ls")
-            case "$prev" in
-                --output)
-                    COMPREPLY=( $(compgen -W "table json csv tsv" -- "$cur") ); return 0 ;;
-                -o)
-                    COMPREPLY=( $(compgen -W "table json csv tsv" -- "$cur") ); return 0 ;;
-                --category)
-                    COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash _complete_asset_category - "$cur") ); return 0 ;;
-            esac
-            COMPREPLY=( $(compgen -W "--verbose -v --page -p --per-page -n --category --output -o --json" -- "$cur") )
+        "changes relationships write")
+            COMPREPLY=( $(compgen -W "--verbose -v --item --project-json --project-key --name --dry-run --yes --expect-plan --json" -- "$cur") )
             return 0 ;;
-        "changes assets search")
-            case "$prev" in
-                --output)
-                    COMPREPLY=( $(compgen -W "table json csv tsv" -- "$cur") ); return 0 ;;
-                -o)
-                    COMPREPLY=( $(compgen -W "table json csv tsv" -- "$cur") ); return 0 ;;
-                --category)
-                    COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash _complete_asset_category - "$cur") ); return 0 ;;
-            esac
-            COMPREPLY=( $(compgen -W "--verbose -v --page -p --per-page -n --category --output -o --json" -- "$cur") )
-            return 0 ;;
-        "changes assets add")
-            case "$prev" in
-                --category)
-                    COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash _complete_asset_category - "$cur") ); return 0 ;;
-            esac
-            COMPREPLY=( $(compgen -W "--verbose -v --category --dry-run --yes -y --json" -- "$cur") )
-            return 0 ;;
-        "changes assets remove")
-            case "$prev" in
-                --category)
-                    COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash _complete_asset_category - "$cur") ); return 0 ;;
-            esac
-            COMPREPLY=( $(compgen -W "--verbose -v --category --dry-run --yes -y --json" -- "$cur") )
-            return 0 ;;
-        "changes assets pick")
-            case "$prev" in
-                --category)
-                    COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash _complete_asset_category - "$cur") ); return 0 ;;
-            esac
-            COMPREPLY=( $(compgen -W "--verbose -v --category --dry-run --yes -y --json" -- "$cur") )
-            return 0 ;;
-        "changes assets categories")
-            case "$prev" in
-                --output)
-                    COMPREPLY=( $(compgen -W "table json csv tsv" -- "$cur") ); return 0 ;;
-                -o)
-                    COMPREPLY=( $(compgen -W "table json csv tsv" -- "$cur") ); return 0 ;;
-            esac
+        "changes time list")
             COMPREPLY=( $(compgen -W "--verbose -v --output -o --json" -- "$cur") )
+            return 0 ;;
+        "changes time write")
+            COMPREPLY=( $(compgen -W "--verbose -v --entry --spent --executed-at --note --billable --non-billable --dry-run --yes --output -o --json --expect-plan" -- "$cur") )
             return 0 ;;
         "changes associations legacy")
             case "$prev" in
@@ -142,6 +83,24 @@ _fsv_complete() {
         "changes associations pick")
             COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
             return 0 ;;
+        "changes assets ls")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --json" -- "$cur") )
+            return 0 ;;
+        "changes assets list")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --json" -- "$cur") )
+            return 0 ;;
+        "changes assets legacy")
+            COMPREPLY=( $(compgen -W "--verbose -v --search --json" -- "$cur") )
+            return 0 ;;
+        "changes assets add")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "changes assets remove")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "changes assets search")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --page --json" -- "$cur") )
+            return 0 ;;
         "changes columns list")
             COMPREPLY=( $(compgen -W "--verbose -v --output -o --json" -- "$cur") )
             return 0 ;;
@@ -154,6 +113,18 @@ _fsv_complete() {
         "changes watchers set")
             COMPREPLY=( $(compgen -W "--verbose -v --watch --unwatch --dry-run --yes --output -o --json --expect-plan" -- "$cur") )
             return 0 ;;
+        "tickets assets ls")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --json" -- "$cur") )
+            return 0 ;;
+        "tickets assets list")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --json" -- "$cur") )
+            return 0 ;;
+        "tickets assets add")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "tickets assets remove")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
         "tickets columns list")
             COMPREPLY=( $(compgen -W "--verbose -v --output -o --json" -- "$cur") )
             return 0 ;;
@@ -165,6 +136,21 @@ _fsv_complete() {
             return 0 ;;
         "tickets watchers set")
             COMPREPLY=( $(compgen -W "--verbose -v --watch --unwatch --dry-run --yes --output -o --json --expect-plan" -- "$cur") )
+            return 0 ;;
+        "tickets tasks list")
+            COMPREPLY=( $(compgen -W "--verbose -v --json" -- "$cur") )
+            return 0 ;;
+        "tickets tasks add")
+            COMPREPLY=( $(compgen -W "--verbose -v --title --status --owner --group --set --dry-run --yes --expect-plan --json" -- "$cur") )
+            return 0 ;;
+        "tickets tasks update")
+            COMPREPLY=( $(compgen -W "--verbose -v --title --owner --group --dry-run --yes --expect-plan --json" -- "$cur") )
+            return 0 ;;
+        "tickets tasks status")
+            COMPREPLY=( $(compgen -W "--verbose -v --to --dry-run --yes --expect-plan --json" -- "$cur") )
+            return 0 ;;
+        "tickets tasks delete")
+            COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes --expect-plan --json" -- "$cur") )
             return 0 ;;
         "tickets private-views show")
             COMPREPLY=( $(compgen -W "--verbose -v --output -o --json" -- "$cur") )
@@ -199,11 +185,65 @@ _fsv_complete() {
         "tickets time write")
             COMPREPLY=( $(compgen -W "--verbose -v --entry --spent --executed-at --note --dry-run --yes --output -o --json --expect-plan" -- "$cur") )
             return 0 ;;
+        "problems assets ls")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --json" -- "$cur") )
+            return 0 ;;
+        "problems assets list")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --json" -- "$cur") )
+            return 0 ;;
+        "problems assets add")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "problems assets remove")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
         "problems columns list")
             COMPREPLY=( $(compgen -W "--verbose -v --output -o --json" -- "$cur") )
             return 0 ;;
         "problems columns set")
             COMPREPLY=( $(compgen -W "--verbose -v --column --freeze --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
+            return 0 ;;
+        "problems time list")
+            COMPREPLY=( $(compgen -W "--verbose -v --output -o --json" -- "$cur") )
+            return 0 ;;
+        "problems time write")
+            COMPREPLY=( $(compgen -W "--verbose -v --entry --spent --executed-at --note --billable --non-billable --dry-run --yes --output -o --json --expect-plan" -- "$cur") )
+            return 0 ;;
+        "sr assets ls")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --json" -- "$cur") )
+            return 0 ;;
+        "sr assets list")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --json" -- "$cur") )
+            return 0 ;;
+        "sr assets add")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "sr assets remove")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "sr approvals list")
+            COMPREPLY=( $(compgen -W "--verbose -v --json" -- "$cur") )
+            return 0 ;;
+        "sr approvals request")
+            COMPREPLY=( $(compgen -W "--verbose -v --name --message --approver --rule --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "sr approvals approve")
+            COMPREPLY=( $(compgen -W "--verbose -v --remark --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "sr approvals reject")
+            COMPREPLY=( $(compgen -W "--verbose -v --remark --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "sr approvals cancel")
+            COMPREPLY=( $(compgen -W "--verbose -v --remark --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "sr approvals remind")
+            COMPREPLY=( $(compgen -W "--verbose -v --remark --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "sr items list")
+            COMPREPLY=( $(compgen -W "--verbose -v --json" -- "$cur") )
+            return 0 ;;
+        "sr items write")
+            COMPREPLY=( $(compgen -W "--verbose -v --item --catalog-item --answers-json --stage --dry-run --yes --expect-plan --json" -- "$cur") )
             return 0 ;;
         "auth login")
             case "$prev" in
@@ -217,6 +257,12 @@ _fsv_complete() {
             return 0 ;;
         "auth status")
             COMPREPLY=( $(compgen -W "--verbose -v" -- "$cur") )
+            return 0 ;;
+        "assets search")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --page --json" -- "$cur") )
+            return 0 ;;
+        "solutions create")
+            COMPREPLY=( $(compgen -W "--verbose -v --title --body --type --category --folder --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
             return 0 ;;
         "completion show")
             COMPREPLY=( $(compgen -W "--verbose -v" -- "$cur") )
@@ -311,10 +357,10 @@ _fsv_complete() {
             COMPREPLY=( $(compgen -W "--verbose -v --output -o --json" -- "$cur") )
             return 0 ;;
         "changes tasks-add")
-            COMPREPLY=( $(compgen -W "--verbose -v --title --owner --group --status --note --notify-before --planned-start --planned-end --planned-effort --dry-run --read-only --yes -y --expect-plan --no-input --json" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --title --owner --group --set --system --environment --env --status --note --notify-before --planned-start --planned-end --planned-effort --dry-run --read-only --yes -y --expect-plan --no-input --json" -- "$cur") )
             return 0 ;;
         "changes approval-request")
-            COMPREPLY=( $(compgen -W "--verbose -v --name --message --approver --rule --dry-run --read-only --yes -y --expect-plan --no-input --json" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --name --message --approver --approver-group --cab --approver-cab --rule --dry-run --read-only --yes -y --expect-plan --no-input --json" -- "$cur") )
             return 0 ;;
         "changes approval-respond")
             COMPREPLY=( $(compgen -W "--verbose -v --approve --reject --remark --dry-run --read-only --yes -y --expect-plan --no-input --json" -- "$cur") )
@@ -332,6 +378,8 @@ _fsv_complete() {
                     COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash complete_update_group_id - "$cur") ); return 0 ;;
                 --group-id)
                     COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash complete_update_group_id - "$cur") ); return 0 ;;
+                --owner)
+                    COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash complete_update_agent_id - "$cur") ); return 0 ;;
                 --agent)
                     COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash complete_update_agent_id - "$cur") ); return 0 ;;
                 --agent-id)
@@ -343,10 +391,10 @@ _fsv_complete() {
                 --env)
                     COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash _complete_task_custom_field - "$cur") ); return 0 ;;
             esac
-            COMPREPLY=( $(compgen -W "--verbose -v --status -s --title --group --group-id --agent --agent-id --system --environment --env --due-date --planned-start --planned-end --edit -e --dry-run --yes -y --json --no-input" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --status -s --title --group --group-id --owner --agent --agent-id --system --environment --env --due-date --planned-start --planned-end --edit -e --note --planned-effort --notify-before --expect-plan --read-only --dry-run --yes -y --json --no-input" -- "$cur") )
             return 0 ;;
         "changes tasks-delete")
-            COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes -y" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes -y --expect-plan --json" -- "$cur") )
             return 0 ;;
         "changes approvals")
             case "$prev" in
@@ -365,6 +413,15 @@ _fsv_complete() {
                     COMPREPLY=( $(compgen -W "table json csv tsv" -- "$cur") ); return 0 ;;
             esac
             COMPREPLY=( $(compgen -W "--verbose -v --output -o --json" -- "$cur") )
+            return 0 ;;
+        "changes ci-add")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "changes ci-remove")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "changes ci-list")
+            COMPREPLY=( $(compgen -W "--verbose -v --kind --json" -- "$cur") )
             return 0 ;;
         "changes export")
             COMPREPLY=( $(compgen -W "--verbose -v --view --field --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
@@ -484,7 +541,7 @@ _fsv_complete() {
                 --group-id)
                     COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash complete_update_group_id - "$cur") ); return 0 ;;
             esac
-            COMPREPLY=( $(compgen -W "--verbose -v --from --set --preset --edit -e --requester --attach -a --attach-flow --dry-run --output -o --json --yes -y --expect-plan --allow-duplicate --ack --no-input --subject --description --desc --status -s --priority -p --agent --agent-id --group --group-id --no-validate --optional -O --all" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --device --from --set --preset --edit -e --requester --attach -a --max-bytes --attach-flow --dry-run --output -o --json --yes -y --expect-plan --allow-duplicate --ack --no-input --subject --description --desc --status -s --priority -p --agent --agent-id --group --group-id --no-validate --optional -O --all" -- "$cur") )
             return 0 ;;
         "changes notes")
             case "$prev" in
@@ -498,11 +555,17 @@ _fsv_complete() {
         "changes add-note")
             COMPREPLY=( $(compgen -W "--verbose -v --public --dry-run --yes -y --no-input" -- "$cur") )
             return 0 ;;
-        "changes assets")
-            COMPREPLY=( $(compgen -W "legacy ls search add remove pick categories --verbose -v" -- "$cur") )
+        "changes relationships")
+            COMPREPLY=( $(compgen -W "list write --verbose -v" -- "$cur") )
+            return 0 ;;
+        "changes time")
+            COMPREPLY=( $(compgen -W "list write --verbose -v" -- "$cur") )
             return 0 ;;
         "changes associations")
             COMPREPLY=( $(compgen -W "legacy ls search add remove pick --verbose -v" -- "$cur") )
+            return 0 ;;
+        "changes assets")
+            COMPREPLY=( $(compgen -W "ls list legacy add remove search --verbose -v" -- "$cur") )
             return 0 ;;
         "changes columns")
             COMPREPLY=( $(compgen -W "list set --verbose -v" -- "$cur") )
@@ -551,7 +614,7 @@ _fsv_complete() {
             esac
             COMPREPLY=( $(compgen -W "--verbose -v -l --limit --output -o --json" -- "$cur") )
             return 0 ;;
-        "tickets tasks")
+        "tickets tasks-legacy")
             case "$prev" in
                 --output)
                     COMPREPLY=( $(compgen -W "table json csv tsv" -- "$cur") ); return 0 ;;
@@ -562,6 +625,12 @@ _fsv_complete() {
             return 0 ;;
         "tickets export")
             COMPREPLY=( $(compgen -W "--verbose -v --view --field --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
+            return 0 ;;
+        "tickets note-edit")
+            COMPREPLY=( $(compgen -W "--verbose -v --body --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
+            return 0 ;;
+        "tickets note-delete")
+            COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
             return 0 ;;
         "tickets assign")
             COMPREPLY=( $(compgen -W "--verbose -v --agent --group --unassign --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
@@ -586,6 +655,9 @@ _fsv_complete() {
             return 0 ;;
         "tickets bulk-priority")
             COMPREPLY=( $(compgen -W "--verbose -v --priority --dry-run --yes --output -o --json --expect-plan" -- "$cur") )
+            return 0 ;;
+        "tickets bulk")
+            COMPREPLY=( $(compgen -W "--verbose -v --where --select-all --max-records --status --agent --group --primary --note-primary --note-secondary --confirm-destructive --dry-run --yes --expect-plan --json" -- "$cur") )
             return 0 ;;
         "tickets fields")
             case "$prev" in
@@ -631,10 +703,10 @@ _fsv_complete() {
             COMPREPLY=( $(compgen -W "--verbose -v" -- "$cur") )
             return 0 ;;
         "tickets add-note")
-            COMPREPLY=( $(compgen -W "--verbose -v --body -b --public --confirm-public --html --notify-email --set-status --dry-run --read-only --yes -y --expect-plan --no-input --json" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --body -b --public --confirm-public --html --notify-email --attach --max-bytes --set-status --dry-run --read-only --yes -y --expect-plan --no-input --json" -- "$cur") )
             return 0 ;;
         "tickets create")
-            COMPREPLY=( $(compgen -W "--verbose -v --from --set --preset --edit -e --requester --cc --dry-run --output -o --json --yes -y --expect-plan --allow-duplicate --ack --no-input" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --device --from --set --preset --edit -e --requester --cc --attach --max-bytes --dry-run --output -o --json --yes -y --expect-plan --allow-duplicate --ack --no-input" -- "$cur") )
             return 0 ;;
         "tickets approvals")
             case "$prev" in
@@ -690,16 +762,22 @@ _fsv_complete() {
             COMPREPLY=( $(compgen -W "--verbose -v --page -p --per-page -n --output -o --json --all -a --npages -N" -- "$cur") )
             return 0 ;;
         "tickets reply")
-            COMPREPLY=( $(compgen -W "--verbose -v --cc --bcc --sender --set-status --expect-plan --dry-run --yes -y --no-input" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --cc --bcc --attach --max-bytes --json --sender --set-status --expect-plan --dry-run --yes -y --no-input" -- "$cur") )
             return 0 ;;
         "tickets forward")
-            COMPREPLY=( $(compgen -W "--verbose -v --to --sender --output -o --json --dry-run --yes --expect-plan" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --conversation --to --sender --output -o --json --dry-run --yes --expect-plan" -- "$cur") )
+            return 0 ;;
+        "tickets assets")
+            COMPREPLY=( $(compgen -W "ls list add remove --verbose -v" -- "$cur") )
             return 0 ;;
         "tickets columns")
             COMPREPLY=( $(compgen -W "list set --verbose -v" -- "$cur") )
             return 0 ;;
         "tickets watchers")
             COMPREPLY=( $(compgen -W "list set --verbose -v" -- "$cur") )
+            return 0 ;;
+        "tickets tasks")
+            COMPREPLY=( $(compgen -W "list add update status delete --verbose -v" -- "$cur") )
             return 0 ;;
         "tickets private-views")
             COMPREPLY=( $(compgen -W "show write --verbose -v" -- "$cur") )
@@ -766,11 +844,32 @@ _fsv_complete() {
         "problems export")
             COMPREPLY=( $(compgen -W "--verbose -v --view --field --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
             return 0 ;;
+        "problems task-write")
+            COMPREPLY=( $(compgen -W "--verbose -v --title --status --owner --group --note --due-date --planned-start --planned-end --planned-effort --notify-before --dry-run --yes --expect-plan --json" -- "$cur") )
+            return 0 ;;
+        "problems link-incident")
+            COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
+            return 0 ;;
+        "problems unlink-incident")
+            COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
+            return 0 ;;
+        "problems note")
+            COMPREPLY=( $(compgen -W "--verbose -v --body --attach --max-bytes --dry-run --yes --expect-plan --json" -- "$cur") )
+            return 0 ;;
+        "problems status")
+            COMPREPLY=( $(compgen -W "--verbose -v --to --dry-run --yes --expect-plan --json" -- "$cur") )
+            return 0 ;;
         "problems create")
             COMPREPLY=( $(compgen -W "--verbose -v --from --set --requester --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
             return 0 ;;
         "problems write-child")
             COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
+            return 0 ;;
+        "problems link-solution")
+            COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
+            return 0 ;;
+        "problems unlink-solution")
+            COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes -y --expect-plan --read-only --json" -- "$cur") )
             return 0 ;;
         "problems mark-known-error")
             COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes --output -o --json --expect-plan" -- "$cur") )
@@ -863,8 +962,17 @@ _fsv_complete() {
         "problems add-note")
             COMPREPLY=( $(compgen -W "--verbose -v --public --dry-run --yes -y --no-input" -- "$cur") )
             return 0 ;;
+        "problems assets")
+            COMPREPLY=( $(compgen -W "ls list add remove --verbose -v" -- "$cur") )
+            return 0 ;;
         "problems columns")
             COMPREPLY=( $(compgen -W "list set --verbose -v" -- "$cur") )
+            return 0 ;;
+        "problems time")
+            COMPREPLY=( $(compgen -W "list write --verbose -v" -- "$cur") )
+            return 0 ;;
+        "attachments delete")
+            COMPREPLY=( $(compgen -W "--verbose -v --owner --child --section --dry-run --yes --expect-plan --json" -- "$cur") )
             return 0 ;;
         "form explain")
             COMPREPLY=( $(compgen -W "--verbose -v --set --from --preset --id --all --output -o" -- "$cur") )
@@ -890,6 +998,15 @@ _fsv_complete() {
         "sr get")
             COMPREPLY=( $(compgen -W "--verbose -v --items --attachments --download --force --output -o" -- "$cur") )
             return 0 ;;
+        "sr assets")
+            COMPREPLY=( $(compgen -W "ls list add remove --verbose -v" -- "$cur") )
+            return 0 ;;
+        "sr approvals")
+            COMPREPLY=( $(compgen -W "list request approve reject cancel remind --verbose -v" -- "$cur") )
+            return 0 ;;
+        "sr items")
+            COMPREPLY=( $(compgen -W "list write --verbose -v" -- "$cur") )
+            return 0 ;;
         "help")
             COMPREPLY=( $(compgen -W "--verbose -v" -- "$cur") )
             return 0 ;;
@@ -913,6 +1030,12 @@ _fsv_complete() {
         "auth")
             COMPREPLY=( $(compgen -W "login logout status --verbose -v" -- "$cur") )
             return 0 ;;
+        "assets")
+            COMPREPLY=( $(compgen -W "search --verbose -v" -- "$cur") )
+            return 0 ;;
+        "solutions")
+            COMPREPLY=( $(compgen -W "create --verbose -v" -- "$cur") )
+            return 0 ;;
         "completion")
             COMPREPLY=( $(compgen -W "show install refresh doctor --verbose -v" -- "$cur") )
             return 0 ;;
@@ -926,22 +1049,25 @@ _fsv_complete() {
             COMPREPLY=( $(compgen -W "ls tail path --verbose -v" -- "$cur") )
             return 0 ;;
         "changes")
-            COMPREPLY=( $(compgen -W "ls get activity tasks tasks-add approval-request approval-respond approval-cancel tasks-update tasks-delete approvals state export asset-picker planning-text fields lookup views search url update download clone create notes add-note assets associations columns watchers --verbose -v" -- "$cur") )
+            COMPREPLY=( $(compgen -W "ls get activity tasks tasks-add approval-request approval-respond approval-cancel tasks-update tasks-delete approvals state ci-add ci-remove ci-list export asset-picker planning-text fields lookup views search url update download clone create notes add-note relationships time associations assets columns watchers --verbose -v" -- "$cur") )
             return 0 ;;
         "tickets")
-            COMPREPLY=( $(compgen -W "ls get activity tasks export assign pick-up merge resolve close reopen status bulk-priority fields lookup views search url add-note create approvals associations update download conversations reply forward columns watchers private-views canned scenarios time --verbose -v" -- "$cur") )
+            COMPREPLY=( $(compgen -W "ls get activity tasks-legacy export note-edit note-delete assign pick-up merge resolve close reopen status bulk-priority bulk fields lookup views search url add-note create approvals associations update download conversations reply forward assets columns watchers tasks private-views canned scenarios time --verbose -v" -- "$cur") )
             return 0 ;;
         "problems")
-            COMPREPLY=( $(compgen -W "ls get activity tasks export create write-child mark-known-error planning-text fields lookup views search url update download notes add-note columns --verbose -v" -- "$cur") )
+            COMPREPLY=( $(compgen -W "ls get activity tasks export task-write link-incident unlink-incident note status create write-child link-solution unlink-solution mark-known-error planning-text fields lookup views search url update download notes add-note assets columns time --verbose -v" -- "$cur") )
+            return 0 ;;
+        "attachments")
+            COMPREPLY=( $(compgen -W "delete --verbose -v" -- "$cur") )
             return 0 ;;
         "form")
             COMPREPLY=( $(compgen -W "explain fields dump diff --verbose -v" -- "$cur") )
             return 0 ;;
         "sr")
-            COMPREPLY=( $(compgen -W "catalog fields create get --verbose -v" -- "$cur") )
+            COMPREPLY=( $(compgen -W "catalog fields create get assets approvals items --verbose -v" -- "$cur") )
             return 0 ;;
         "")
-            COMPREPLY=( $(compgen -W "help search setup tui auth completion config cache journal changes tickets problems form sr --no-input --verbose -v --version -V" -- "$cur") )
+            COMPREPLY=( $(compgen -W "help search setup tui auth assets solutions completion config cache journal changes tickets problems attachments form sr --no-input --verbose -v --version -V" -- "$cur") )
             return 0 ;;
     esac
 }

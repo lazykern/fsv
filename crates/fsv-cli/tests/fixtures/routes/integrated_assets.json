@@ -1,0 +1,404 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 701,
+     "itam_cmdb_request_id": 9001,
+     "name": "Acme laptop",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 701,
+     "itam_cmdb_request_id": 9001,
+     "name": "Acme laptop",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 701,
+     "itam_cmdb_request_id": 9001,
+     "name": "Acme laptop",
+     "category": "Device"
+    },
+    {
+     "item_id": 702,
+     "itam_cmdb_request_id": 9002,
+     "name": "Acme router",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 2,
+    "total_pages": 1
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/associated-cis",
+  "query": {
+   "association_type": "services"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 801,
+     "itam_cmdb_request_id": 9101,
+     "name": "Acme payroll",
+     "category": "Business service"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/associated-cis",
+  "query": {
+   "association_type": "services"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 801,
+     "itam_cmdb_request_id": 9101,
+     "name": "Acme payroll",
+     "category": "Business service"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/associated-cis",
+  "query": {
+   "association_type": "services"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 801,
+     "itam_cmdb_request_id": 9101,
+     "name": "Acme payroll",
+     "category": "Business service"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 701,
+     "itam_cmdb_request_id": 9001,
+     "name": "Acme laptop",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 701,
+     "itam_cmdb_request_id": 9001,
+     "name": "Acme laptop",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [],
+   "meta": {
+    "total_count": 0,
+    "total_pages": 0
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 703,
+     "itam_cmdb_request_id": 9003,
+     "name": "Acme db",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 703,
+     "itam_cmdb_request_id": 9003,
+     "name": "Acme db",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/5/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 703,
+     "itam_cmdb_request_id": 9003,
+     "name": "Acme db",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 704,
+     "itam_cmdb_request_id": 9004,
+     "name": "Acme printer",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 704,
+     "itam_cmdb_request_id": 9004,
+     "name": "Acme printer",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 704,
+     "itam_cmdb_request_id": 9004,
+     "name": "Acme printer",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125/associated-cis",
+  "json": {
+   "data": [
+    {
+     "item_id": 705,
+     "itam_cmdb_request_id": 9005,
+     "category": "Hardware"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/itam/core/device/api/",
+  "query": {
+   "q": "acme"
+  },
+  "json": {
+   "data": [
+    {
+     "name": {
+      "id": 702,
+      "label": "Acme router"
+     },
+     "type": "Router",
+     "device_pk": 702
+    }
+   ],
+   "total_rows": 1,
+   "page": 1
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/itam/core/businessservice/api/",
+  "json": {
+   "data": [
+    {
+     "name": {
+      "id": 801,
+      "label": "Acme payroll"
+     },
+     "businessservice_pk": 801
+    }
+   ],
+   "total_rows": 4,
+   "page": 2
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/123/associate-ci",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/7/disassociate-ci",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/5/associate-ci",
+  "status": 200,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

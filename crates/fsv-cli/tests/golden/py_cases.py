@@ -18,11 +18,16 @@ def main():
         if only and c["name"] not in only:
             continue
         args = c["args"]
+        opts = list(c.get("opts", []))
+        files = None
+        if "--files" in opts:
+            i = opts.index("--files") + 1
+            files = opts[i] = os.path.join(GOLDEN, opts[i])
         if "hash_from" in c:
-            hsh = py_hash(c["fixture"], c["hash_from"])
+            hsh = py_hash(c["fixture"], c["hash_from"], files)
             args = [a.replace("{HASH}", hsh) for a in args]
         cmd = [sys.executable, os.path.join(GOLDEN, "cmp.py"), os.path.join(ROUTES, c["fixture"] + ".json"),
-               *c.get("opts", []), "--py-only", "--", *args]
+               *opts, "--py-only", "--", *args]
         p = subprocess.run(cmd, capture_output=True, text=True)
         print(f"===== {c['name']}\n{p.stdout}{p.stderr}")
 

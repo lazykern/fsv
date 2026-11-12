@@ -56,6 +56,26 @@
  },
  {
   "method": "GET",
+  "path": "/search/autocomplete/requesters",
+  "json": {
+   "results": [
+    {
+     "id": 31,
+     "user_id": 131,
+     "email": "ann@acme.com",
+     "value": "Ann"
+    },
+    {
+     "id": 32,
+     "user_id": 132,
+     "email": "bob@acme.com",
+     "value": "Bob (Deactivated)"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
   "path": "/api/_/bootstrap/agents_groups",
   "json": {
    "groups": [

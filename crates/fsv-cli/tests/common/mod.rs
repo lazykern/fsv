@@ -80,6 +80,24 @@ pub fn run_steps(name: &str, pre: &[&[&str]], args: &[&str], stdin: Option<&str>
     run_with(name, pre, args, stdin, Opts::default())
 }
 
+/// `run_fixture` with the files of `tests/fixtures/files/FILES` copied
+/// into the working directory (`cmp.py --files`).
+pub fn run_files(name: &str, files: &str, args: &[&str], stdin: Option<&str>) -> Run {
+    let mut env = Env::new(fixture(name));
+    let work = env.home().join("work");
+    std::fs::create_dir_all(&work).unwrap();
+    let src = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/files")
+        .join(files);
+    for entry in std::fs::read_dir(&src).unwrap() {
+        let entry = entry.unwrap();
+        std::fs::copy(entry.path(), work.join(entry.file_name())).unwrap();
+    }
+    env.cwd = Some(work);
+    env.stdin = stdin.map(str::to_string);
+    env.run(args)
+}
+
 /// Extra process settings for [`run_with`].
 #[derive(Default)]
 pub struct Opts<'a> {

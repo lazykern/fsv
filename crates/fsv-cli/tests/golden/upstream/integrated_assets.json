@@ -1,0 +1,23 @@
+[
+ {"name": "assets_search_devices", "fixture": "integrated_assets", "args": ["assets", "search", "acme"]},
+ {"name": "assets_search_services_page", "fixture": "integrated_assets", "args": ["assets", "search", "--kind", "services", "--page", "2"]},
+ {"name": "assets_search_bad_kind", "fixture": "integrated_assets", "args": ["assets", "search", "acme", "--kind", "printers"]},
+ {"name": "changes_assets_search_devices", "fixture": "integrated_assets", "args": ["changes", "assets", "search", "acme"]},
+ {"name": "tickets_assets_list", "fixture": "integrated_assets", "args": ["tickets", "assets", "list", "INC-123"]},
+ {"name": "tickets_assets_ls_services", "fixture": "integrated_assets", "args": ["tickets", "assets", "ls", "123", "--kind", "services"]},
+ {"name": "tickets_assets_list_unproven_category", "fixture": "integrated_assets", "args": ["tickets", "assets", "list", "125"]},
+ {"name": "sr_assets_list", "fixture": "integrated_assets", "args": ["sr", "assets", "list", "SR-124"]},
+ {"name": "changes_assets_list", "fixture": "integrated_assets", "args": ["changes", "assets", "list", "CHN-5"]},
+ {"name": "changes_assets_legacy", "fixture": "integrated_assets", "args": ["changes", "assets", "legacy", "5", "--search", "acme"]},
+ {"name": "changes_assets_bare_id_legacy_route", "fixture": "integrated_assets", "args": ["changes", "assets", "5"]},
+ {"name": "tickets_assets_add_dry_run", "fixture": "integrated_assets", "args": ["tickets", "assets", "add", "123", "702", "--dry-run"]},
+ {"name": "tickets_assets_add_needs_expect_plan", "fixture": "integrated_assets", "args": ["tickets", "assets", "add", "123", "702", "--yes"]},
+ {"name": "tickets_assets_add_read_only", "fixture": "integrated_assets", "args": ["tickets", "assets", "add", "123", "702", "--read-only"]},
+ {"name": "tickets_assets_add_send", "fixture": "integrated_assets", "hash_from": ["tickets", "assets", "add", "123", "702", "--dry-run"], "args": ["tickets", "assets", "add", "123", "702", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "tickets_assets_add_present_refused", "fixture": "integrated_assets", "args": ["tickets", "assets", "add", "123", "701", "--dry-run"]},
+ {"name": "problems_assets_remove_dry_run", "fixture": "integrated_assets", "args": ["problems", "assets", "remove", "PRB-7", "701", "--dry-run"]},
+ {"name": "problems_assets_remove_send", "fixture": "integrated_assets", "hash_from": ["problems", "assets", "remove", "7", "701", "--dry-run"], "args": ["problems", "assets", "remove", "7", "701", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "problems_assets_remove_absent_refused", "fixture": "integrated_assets", "args": ["problems", "assets", "remove", "7", "799", "--dry-run"]},
+ {"name": "changes_assets_add_send_unverified", "fixture": "integrated_assets", "hash_from": ["changes", "assets", "add", "5", "702", "--dry-run"], "args": ["changes", "assets", "add", "5", "702", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "changes_assets_add_wrong_hash", "fixture": "integrated_assets", "args": ["changes", "assets", "add", "5", "702", "--yes", "--expect-plan", "0000"]}
+]

@@ -5,15 +5,18 @@ use std::io::IsTerminal;
 use clap::ArgMatches;
 use serde_json::{Map, Value, json};
 
+use fsv_api::attachments;
 use fsv_api::create::{DuplicateOpts, StdinPrompter};
+use fsv_api::service::DiskJournal;
 use fsv_api::state_flow::Printed;
+use fsv_api::{change_task_delete, change_task_update};
 use fsv_core::Error;
 use fsv_core::output::emit_json;
 use fsv_core::resource::CHANGES;
-use fsv_core::safety::{self, RiskContext};
+use fsv_core::safety;
 use fsv_core::term::{self, Column, Justify, Table, err, out};
 
-use crate::cmd::links::{self, AssetOpts, AssocOpts};
+use crate::cmd::links::{self, AssocOpts};
 use crate::cmd::parse;
 use crate::generated::*;
 use std::sync::Arc;
@@ -43,67 +46,6 @@ pub fn dispatch(sub: &str, m: &ArgMatches) -> CmdResult {
         "state" => state(parse(m)?),
         "clone" => clone(parse(m)?),
         "create" => create(parse(m)?),
-        "assets legacy" => assets_legacy(parse(m)?),
-        "assets ls" => {
-            let a: ChangesAssetsLsArgs = parse(m)?;
-            links::assets(AssetOpts {
-                page: a.page,
-                per_page: a.per_page,
-                category: a.category,
-                fmt: a.format_,
-                json_out: a.json_out,
-                ..AssetOpts::new(&a.id_)
-            })
-        }
-        "assets search" => {
-            let a: ChangesAssetsSearchArgs = parse(m)?;
-            links::assets(AssetOpts {
-                search: Some(a.query),
-                page: a.page,
-                per_page: a.per_page,
-                category: a.category,
-                fmt: a.format_,
-                json_out: a.json_out,
-                ..AssetOpts::new(&a.id_)
-            })
-        }
-        "assets add" => {
-            let a: ChangesAssetsAddArgs = parse(m)?;
-            links::assets(AssetOpts {
-                add: a.assets_,
-                category: a.category,
-                dry_run: a.dry_run,
-                yes: a.yes,
-                json_out: a.json_out,
-                ..AssetOpts::new(&a.id_)
-            })
-        }
-        "assets remove" => {
-            let a: ChangesAssetsRemoveArgs = parse(m)?;
-            links::assets(AssetOpts {
-                remove: a.assets_,
-                category: a.category,
-                dry_run: a.dry_run,
-                yes: a.yes,
-                json_out: a.json_out,
-                ..AssetOpts::new(&a.id_)
-            })
-        }
-        "assets pick" => {
-            let a: ChangesAssetsPickArgs = parse(m)?;
-            links::assets(AssetOpts {
-                pick: true,
-                category: a.category,
-                dry_run: a.dry_run,
-                yes: a.yes,
-                json_out: a.json_out,
-                ..AssetOpts::new(&a.id_)
-            })
-        }
-        "assets categories" => {
-            let a: ChangesAssetsCategoriesArgs = parse(m)?;
-            links::categories(a.format_, a.json_out)
-        }
         "associations legacy" => {
             let a: ChangesAssociationsLegacyArgs = parse(m)?;
             links::associations(AssocOpts {
@@ -216,243 +158,92 @@ pub fn resolve_attach_flow(opt: Option<&str>) -> Result<String, Error> {
     Ok(value)
 }
 
+const ATTACH_COMBINATION: &str =
+    "initial attachments cannot combine with planning, devices or interactive forms";
+
+const UNVERIFIED_UPDATE: &str = "Change update readback unverified; do not resend";
+
+/// `changes tasks-update`: a reviewed write of the captured task-update
+/// inputs (`change_task_update`).
 fn tasks_update(a: ChangesTasksUpdateArgs) -> CmdResult {
-    let id = cid(&a.id_, &CHANGES)?;
-    let task_id = a.task_id;
-    let status_opt = a.status.clone();
-    let task_risks = |body: &Map<String, Value>, current: Option<Map<String, Value>>| {
-        let current = current.or_else(|| {
-            ["status", "owner_id", "agent_id", "group_id"]
-                .iter()
-                .any(|k| body.contains_key(*k))
-                .then(|| {
-                    let c = crate::util::shared_client().ok()?;
-                    fsv_api::create::get_task_for_edit(c.as_ref(), id, task_id).ok()
-                })
-                .flatten()
-        });
-        let label = |v: &Value| match status_opt.as_deref() {
-            Some(s) if !s.is_empty() && !is_digits(s) => s.to_string(),
-            _ => format!("status {}", fsv_py::py_str(v)),
-        };
-        safety::write_risks(
-            CHANGES.name,
-            body,
-            &RiskContext {
-                current: current.as_ref(),
-                status_label: Some(&label),
-                kind: "task",
-            },
-        )
-    };
-    let (body, risks) = if a.edit {
-        let c = client()?;
-        let current =
-            fsv_api::create::get_task_for_edit(c.as_ref(), id, task_id).map_err(fail_exc)?;
-        let hint = format!("Editing task {task_id} on change #{id}");
-        let mut body = edit_body(&Value::Object(current.clone()), &hint, a.no_input)?;
-        if let Some(st) = body.get("status").cloned() {
-            body.insert(
-                "status".into(),
-                json!(task_status_value(&fsv_py::py_str(&st)).map_err(fail_exc)?),
-            );
+    use crate::cmd::inventory::{finish, guard};
+    let run = || -> Result<(), Error> {
+        if a.edit || a.due_date.is_some() {
+            return Err(Error::value(
+                "--edit/--due-date are not captured task-update contracts; use explicit planned dates and reviewed flags",
+            ));
         }
-        let risks = task_risks(&body, Some(current));
-        (body, risks)
-    } else {
-        let mut body = Map::new();
-        let mut custom = Map::new();
-        if let Some(st) = &a.status {
-            body.insert(
-                "status".into(),
-                json!(task_status_value(st).map_err(fail_exc)?),
-            );
-        }
-        if let Some(t) = &a.title {
-            body.insert("title".into(), json!(t));
-        }
-        if let Some(g) = &a.group_id {
-            let c = client()?;
-            let gid = crate::lookup::resolve_group(c.as_ref(), g).map_err(fail_exc)?;
-            body.insert("group_id".into(), py_int(&gid)?);
-        }
-        if let Some(ag) = &a.agent_id {
-            let c = client()?;
-            let uid = crate::lookup::resolve_agent(c.as_ref(), ag).map_err(fail_exc)?;
-            body.insert("owner_id".into(), py_int(&uid)?);
-        }
+        let mut inputs = Map::new();
         for (key, v) in [
-            ("due_date", &a.due_date),
-            ("planned_start_date", &a.planned_start),
-            ("planned_end_date", &a.planned_end),
+            ("title", &a.title),
+            ("status", &a.status),
+            ("owner", &a.agent_id),
+            ("group", &a.group_id),
+            ("note", &a.note),
+            ("planned_start", &a.planned_start),
+            ("planned_end", &a.planned_end),
+            ("planned_effort", &a.planned_effort),
+            ("notify_before", &a.notify_before),
         ] {
             if let Some(v) = v {
-                body.insert(key.into(), json!(v));
+                inputs.insert(key.into(), json!(v));
             }
         }
-        if let Some(v) = &a.system {
-            custom.insert(
-                "system".into(),
-                json!(task_choice_value(v, "system").map_err(fail_exc)?),
-            );
-        }
-        if let Some(v) = &a.environment {
-            custom.insert(
-                "environment".into(),
-                json!(task_choice_value(v, "environment").map_err(fail_exc)?),
-            );
-        }
-        if !custom.is_empty() {
-            body.insert("custom_fields".into(), Value::Object(custom));
-        }
-        if body.is_empty() {
-            return Err(usage("nothing to update; use --edit or pass task fields"));
-        }
-        let risks = task_risks(&body, None);
-        (body, risks)
-    };
-    if a.dry_run {
-        let mut out =
-            json!({"action": "update_task", "change_id": id, "task_id": task_id, "body": body});
-        if !risks.is_empty() {
-            out["requires_confirmation"] = json!(risks);
-        }
-        emit_json(&out);
-        return Ok(());
-    }
-    confirm_writes(
-        &risks,
-        &format!("task {task_id} on #{id}"),
-        a.yes,
-        a.no_input,
-    )?;
-    let c = client()?;
-    let updated = fsv_api::create::update_task(c.as_ref(), id, task_id, &body).map_err(fail_exc)?;
-    if a.json_out {
-        emit_json(&updated);
-    } else {
-        out().print(&format!("[green]updated[/] task {task_id} on #{id}"));
-    }
-    Ok(())
-}
-
-fn is_digits(s: &str) -> bool {
-    !s.is_empty() && s.chars().all(|c| c.is_ascii_digit())
-}
-
-/// Python `int(text)` of a resolved ID.
-fn py_int(text: &str) -> Result<Value, Error> {
-    fsv_core::pystr::parse_decimal(text.trim())
-        .map(|n| json!(n))
-        .ok_or_else(|| {
-            fail_exc(Error::value(format!(
-                "invalid literal for int() with base 10: {}",
-                fsv_py::py_repr_str(text)
-            )))
-        })
-}
-
-/// `_task_field_defs`: runtime task fields, or nothing on any failure.
-fn task_field_defs() -> Vec<Value> {
-    let Ok(c) = crate::util::shared_client() else {
-        return Vec::new();
-    };
-    let Ok(data) = c.int_get(
-        "change_task_fields",
-        Some(crate::util::obj(vec![(
-            "include_deleted_choices",
-            json!("true"),
-        )])),
-    ) else {
-        return Vec::new();
-    };
-    ["change_task_fields", "task_fields", "fields"]
-        .iter()
-        .find_map(|k| data.get(*k).and_then(Value::as_array).cloned())
-        .unwrap_or_default()
-}
-
-/// `_task_status_value`.
-fn task_status_value(value: &str) -> Result<i64, Error> {
-    let fields = task_field_defs();
-    fsv_api::resolve(value, &fields)
-        .map(|r| r.0)
-        .map_err(|e| Error::value(e.to_string()))
-}
-
-/// `_task_choice_value`.
-fn task_choice_value(value: &str, field: &str) -> Result<i64, Error> {
-    let raw = fsv_core::pystr::strip(value);
-    if is_digits(raw) {
-        return py_int(raw).map(|v| v.as_i64().unwrap_or(0));
-    }
-    let mut mapping: std::collections::BTreeMap<String, i64> = Default::default();
-    let cf = format!("cf_{field}");
-    if let Some(item) = task_field_defs().into_iter().find(|i| {
-        let n = i
-            .get("name")
-            .filter(|v| fsv_py::truthy(v))
-            .map(fsv_py::py_str)
-            .unwrap_or_default();
-        n == field || n == cf
-    }) {
-        for choice in item
-            .get("choices")
-            .and_then(Value::as_array)
-            .into_iter()
-            .flatten()
-        {
-            let cid = choice
-                .get("id")
-                .filter(|v| fsv_py::truthy(v))
-                .or_else(|| choice.get("display_id"));
-            let label = first_str(choice, &["value", "label", "name"], "");
-            if let Some(cid) = cid.filter(|v| !v.is_null())
-                && !label.is_empty()
-            {
-                let n = fsv_core::pystr::parse_decimal(fsv_py::py_str(cid).trim()).unwrap_or(0);
-                mapping.insert(fsv_core::pystr::casefold(&label), n);
+        let mut values = Map::new();
+        for (key, v) in [("cf_system", &a.system), ("cf_environment", &a.environment)] {
+            if let Some(v) = v {
+                values.insert(key.into(), json!(v));
             }
         }
-    }
-    let key = fsv_core::pystr::casefold(raw);
-    match mapping.get(&key) {
-        Some(v) => Ok(*v),
-        None if !mapping.is_empty() => {
-            let names: Vec<&str> = mapping.keys().map(String::as_str).collect();
-            Err(Error::value(format!(
-                "{field} must be numeric ID or one of: {}",
-                names.join(", ")
-            )))
+        if !values.is_empty() {
+            inputs.insert("values".into(), Value::Object(values));
         }
-        None => Err(Error::value(format!("{field} must be numeric ID"))),
-    }
+        let c = crate::lazy::LazyApi::default();
+        let plan = change_task_update::build_plan(&c, &json!(a.id_), &json!(a.task_id), &inputs)?;
+        let hash = plan.hash();
+        let expected = a.expected.as_deref();
+        finish(
+            plan.review(),
+            &hash,
+            || change_task_update::send(&plan, &c, &DiskJournal, expected),
+            a.dry_run,
+            a.yes,
+            expected,
+            a.read_only,
+        )
+    };
+    guard(run())
 }
 
+/// `changes tasks-delete`: reviewed delete of one exact task.
 fn tasks_delete(a: ChangesTasksDeleteArgs) -> CmdResult {
-    let id = cid(&a.id_, &CHANGES)?;
-    if a.dry_run {
-        emit_json(&json!({"action": "delete_task", "change_id": id, "task_id": a.task_id}));
-        return Ok(());
-    }
-    if !a.yes {
-        if no_input(false) || !stdin_tty() {
-            return Err(usage("pass --yes to delete task"));
+    let run = || -> Result<(), Error> {
+        let c = crate::lazy::LazyApi::default();
+        let plan = change_task_delete::build_plan(&c, &json!(a.id_), &json!(a.task_id))?;
+        if a.dry_run {
+            let mut out = Map::new();
+            out.insert("status".into(), json!("dry_run"));
+            out.extend(plan.review());
+            emit_json(&Value::Object(out));
+            return Ok(());
         }
-        term::confirm(
-            &format!(
-                "Delete task {} from {}?",
-                a.task_id,
-                format_cid(id, &CHANGES)
-            ),
-            Some(false),
-            true,
-        )?;
-    }
-    let c = crate::util::shared_client().map_err(fail_exc)?;
-    fsv_api::create::delete_task(c.as_ref(), id, a.task_id).map_err(fail_exc)?;
-    out().print(&format!("[green]deleted[/] task {} from #{id}", a.task_id));
-    Ok(())
+        let hash = plan.hash();
+        if !a.yes || a.expect_plan.as_deref() != Some(hash.as_str()) {
+            return Err(Error::value(
+                "review with --dry-run, then --yes --expect-plan FULL_HASH",
+            ));
+        }
+        let result = change_task_delete::send(&plan, &c, &DiskJournal, Some(&hash))?;
+        emit_json(&result);
+        if !result.get("verified").is_some_and(fsv_py::truthy) {
+            return Err(Error::exit(4, ""));
+        }
+        Ok(())
+    };
+    run().map_err(|e| match e {
+        Error::Value(m) => usage(&m),
+        other => fail_exc(other),
+    })
 }
 
 fn approvals(a: ChangesApprovalsArgs) -> CmdResult {
@@ -778,6 +569,12 @@ fn create(mut a: ChangesCreateArgs) -> CmdResult {
     }
     let tty = interactive() && !no_input(a.no_input);
     let attach_flow = resolve_attach_flow(a.attach_flow.as_deref())?;
+    if a.max_bytes.is_some() && attach_flow != "before-create" {
+        return Err(flow_exit(
+            2,
+            "--max-bytes requires the reviewed --attach-flow before-create transaction",
+        ));
+    }
     let legacy = [
         &a.subject,
         &a.description,
@@ -882,7 +679,8 @@ fn change_create(a: &ChangesCreateArgs, c: Arc<fsv_core::Client>, m: CreateModes
             allow_incomplete: a.no_validate,
             hints_path: None,
         };
-        let mut plan = change::build_create_plan(&mt.unwrap_or_else(|| meta.clone()), d, &opts)?;
+        let plan = change::build_create_plan(&mt.unwrap_or_else(|| meta.clone()), d, &opts)?;
+        let mut plan = change::with_devices(plan, &a.device)?;
         if let Some(p) = problem {
             let mut errors = vec![p];
             errors.extend(
@@ -939,6 +737,80 @@ fn change_create(a: &ChangesCreateArgs, c: Arc<fsv_core::Client>, m: CreateModes
     } else {
         Reviewed::Flow(Box::new(build(&draft, a.ack, None)?))
     };
+
+    let (attached_draft, planning) = match &plan {
+        Reviewed::Flow(p) => (
+            !p.draft.attachments.is_empty(),
+            !p.draft.planning.is_empty(),
+        ),
+        Reviewed::Form(s) => formflow::carried::<Plan>(&s.plan).map_or((false, false), |p| {
+            (
+                !p.draft.attachments.is_empty(),
+                !p.draft.planning.is_empty(),
+            )
+        }),
+    };
+    if attached_draft && m.attach_flow == "before-create" {
+        let Reviewed::Flow(p) = &plan else {
+            return Err(flow_exit(2, ATTACH_COMBINATION));
+        };
+        if planning || !a.device.is_empty() {
+            return Err(flow_exit(2, ATTACH_COMBINATION));
+        }
+        let api = deps.api.as_ref();
+        let attached = |current: &Plan| -> Result<attachments::AttachedPlan, Error> {
+            if !current.ok() {
+                return Err(Error::value(format!(
+                    "cannot attach to incomplete change plan: {}",
+                    current.errors.join("; ")
+                )));
+            }
+            let raw = api.int_get("change_form_fields", None)?;
+            let payload = current.payload.clone().map_or(Value::Null, Value::Object);
+            let base = fsv_api::reviewed_write::WritePlan {
+                action: "change_create_attachments".into(),
+                target: 0,
+                tenant: fsv_core::config::domain(),
+                method: "POST".into(),
+                path: "changes".into(),
+                payload_json: fsv_py::Dumps::default().sort_keys(true).dump(&payload),
+                context_hash: fsv_core::journal::plan_hash(Some(
+                    &json!({"plan": current.hash, "metadata": raw}),
+                ))
+                .unwrap_or_default(),
+            };
+            let action = base.action.clone();
+            let mut wrapped =
+                attachments::wrap(base, &current.draft.attachments, &raw, api, a.max_bytes)?;
+            let wrapped_hash = wrapped.hash();
+            wrapped.requester_id = current
+                .requester
+                .as_ref()
+                .map(|r| fsv_api::watchers::positive_id(&r.id))
+                .transpose()?;
+            let mut guards: Vec<(String, String)> = Vec::new();
+            for value in [&current.hash, &current.legacy_hash] {
+                if !value.is_empty() && !guards.iter().any(|(_, h)| h == value) {
+                    guards.push(("create".into(), value.clone()));
+                }
+            }
+            guards.push((action, wrapped_hash));
+            wrapped.prior_guards = guards;
+            Ok(wrapped)
+        };
+        let rebuild = || -> Result<attachments::AttachedPlan, Error> {
+            let fresh = Arc::new(deps.meta.load_meta("change", "new", true, &Value::Null)?);
+            attached(&build(&p.draft, a.ack, Some(fresh))?)
+        };
+        let expected = a.expect_plan.as_deref();
+        let run = || {
+            crate::cmd::attachments::finish(&attached(p)?, api, a.dry, a.yes, expected, &rebuild)
+        };
+        return run().map_err(|e| match e {
+            Error::Value(message) => flow_exit(2, message),
+            other => other,
+        });
+    }
 
     if a.dry {
         print_change_plan(&plan, as_json, "create", None);
@@ -1179,6 +1051,7 @@ fn change_update(
         .and_then(Value::as_array)
         .cloned()
         .unwrap_or_default();
+    let verified = result.get("verified").is_some_and(fsv_py::truthy);
     if a.json_out {
         let mut o = Map::new();
         o.insert(
@@ -1190,8 +1063,26 @@ fn change_update(
             result.get("plan_hash").cloned().unwrap_or(Value::Null),
         );
         o.insert("steps".into(), Value::Array(steps));
+        o.insert(
+            "verified".into(),
+            result.get("verified").cloned().unwrap_or(json!(false)),
+        );
+        o.insert(
+            "fields".into(),
+            result.get("fields").cloned().unwrap_or_else(|| json!({})),
+        );
+        o.insert(
+            "warning".into(),
+            result.get("warning").cloned().unwrap_or(Value::Null),
+        );
         println!("{}", formflow::pretty(&Value::Object(o)));
+        if !verified {
+            return Err(flow_exit(4, UNVERIFIED_UPDATE));
+        }
         return Ok(());
+    }
+    if !verified {
+        return Err(flow_exit(4, UNVERIFIED_UPDATE));
     }
     out().print(&format!("[green]updated[/] {subject}"));
     print_steps(&steps);
@@ -1410,6 +1301,9 @@ fn report_created(result: &Value, as_json: bool) -> CmdResult {
         o.insert("plan_hash".into(), get("plan_hash"));
         o.insert("steps".into(), Value::Array(steps));
         o.insert("uploaded".into(), get("uploaded"));
+        if let Some(v) = result.get("device_verification") {
+            o.insert("device_verification".into(), v.clone());
+        }
         println!("{}", formflow::pretty(&Value::Object(o)));
         return Ok(());
     }
@@ -1625,22 +1519,4 @@ fn joined(v: Option<&Value>) -> String {
 /// `changes download`.
 pub fn download(a: ChangesDownloadArgs) -> CmdResult {
     crate::cmd::download::changes(a)
-}
-
-fn assets_legacy(a: ChangesAssetsLegacyArgs) -> CmdResult {
-    links::assets(AssetOpts {
-        search: a.search,
-        add: a.add,
-        remove: a.remove,
-        page: a.page,
-        per_page: a.per_page,
-        dry_run: a.dry_run,
-        yes: a.yes,
-        json_out: a.json_out,
-        fmt: a.format_,
-        pick: a.pick,
-        category: a.category,
-        list_categories: a.list_categories,
-        ..AssetOpts::new(&a.id_)
-    })
 }

@@ -4,9 +4,6 @@
 //! ("Agents", "Created"), periods ("Last 6 months"), `me` and empty values
 //! are accepted here only.
 
-use std::sync::LazyLock;
-
-use regex::Regex;
 use serde_json::{Map, Value, json};
 
 use fsv_api::Explain;
@@ -96,20 +93,53 @@ fn strip_quotes(value: &str) -> &str {
     }
 }
 
-/// Port of fsv.cli._parse_where: `(field, operator, value)`.
+/// Port of fsv.cli._parse_where, which is `query._parse_where`'s strict
+/// grammar: the field is the text before the first operator character,
+/// and controls, an empty field or value, an unterminated quote or a value
+/// starting with an operator character are refused.
 pub fn parse_where(expr: &str) -> Result<(String, String, String)> {
-    static RE: LazyLock<Regex> =
-        LazyLock::new(|| Regex::new(r"^(.+?)(>=|<=|!=|~=|=|>|<)(.*)$").expect("regex"));
-    let Some(m) = RE.captures(pystr::strip(expr)) else {
-        return Err(usage(&format!(
-            "invalid --where {}; expected FIELD=VALUE",
+    if expr.chars().any(|ch| (ch as u32) < 32) {
+        return Err(usage(
+            "invalid filter; controls and multiline expressions are not supported",
+        ));
+    }
+    let invalid = || {
+        usage(&format!(
+            "invalid filter {}; expected FIELD followed by = != >= <= > < or ~=",
             py_repr_str(expr)
-        )));
+        ))
     };
+    let text = pystr::strip(expr);
+    let start = text.find(['<', '>', '=', '!', '~']).ok_or_else(invalid)?;
+    if start == 0 {
+        return Err(invalid());
+    }
+    let rest = &text[start..];
+    let op = [">=", "<=", "!=", "~=", "=", ">", "<"]
+        .into_iter()
+        .find(|op| rest.starts_with(op))
+        .ok_or_else(invalid)?;
+    let field = pystr::strip(&text[..start]);
+    let value = pystr::strip(&rest[op.len()..]);
+    if field.is_empty() || value.is_empty() {
+        return Err(usage(
+            "invalid filter; field and value are required (quote literal empty text)",
+        ));
+    }
+    let first = value.chars().next().unwrap_or_default();
+    if first == '"' || first == '\'' {
+        if value.chars().count() < 2 || !value.ends_with(first) {
+            return Err(usage("invalid filter; unterminated quoted value"));
+        }
+    } else if "<>=!~".contains(first) {
+        return Err(usage(
+            "invalid filter operator sequence; quote a literal value starting with an operator",
+        ));
+    }
     Ok((
-        pystr::strip(&m[1]).to_string(),
-        m[2].to_string(),
-        strip_quotes(&m[3]).to_string(),
+        field.to_string(),
+        op.to_string(),
+        strip_quotes(value).to_string(),
     ))
 }
 
@@ -122,7 +152,11 @@ fn where_operator(op: &str) -> Result<&'static str> {
             py_repr_str(op)
         ))),
         "~=" => Err(usage("operator ~= (contains) not supported; use = or !=")),
-        _ => Ok("is_in"),
+        "=" => Ok("is_in"),
+        _ => Err(usage(&format!(
+            "unknown filter operator {}; no equality fallback",
+            py_repr_str(op)
+        ))),
     }
 }
 
@@ -163,9 +197,12 @@ pub fn date_condition(
     let trimmed = pystr::strip(raw);
     let token = lookup_in(PERIODS, &pystr::casefold(trimmed))
         .or_else(|| is_period_token(trimmed).then_some(trimmed));
-    if let Some(token) = token
-        && matches!(op, "=" | ">=")
-    {
+    if let Some(token) = token {
+        if !matches!(op, "=" | ">=") {
+            return Err(usage(
+                "relative date periods support only = or >=; no inverse period wire is proven",
+            ));
+        }
         return Ok(query_item(
             field_name,
             "is_greater_than",
@@ -298,6 +335,7 @@ pub fn resolve_where(
         "custom_field"
     };
     let ftype = lookup::s_or(&f, "field_type");
+    fsv_api::filter_proof::require_filterable_field(&f).map_err(|e| fsv_core::Error::value(e.0))?;
     let operator = where_operator(&op)?;
     let folded = pystr::casefold(pystr::strip(&raw));
     let has_choices = f.get("choices").is_some_and(fsv_py::truthy);
@@ -545,21 +583,22 @@ mod tests {
     }
 
     #[test]
-    fn strip_quotes_needs_a_matching_pair() {
-        assert_eq!(strip_quotes("\"x"), "\"x");
-        assert_eq!(strip_quotes("'y'"), "y");
-        assert_eq!(strip_quotes("\""), "\"");
+    fn parse_where_is_strict() {
+        for bad in ["=x", "a=", "a==b", "a='b", "a\n=b"] {
+            assert!(parse_where(bad).is_err(), "{bad}");
+        }
     }
 
     #[test]
     fn date_condition_periods_and_ranges() {
         let mut ex = Vec::new();
-        let a = date_condition("created_at", "<=", "last 7 days", &mut ex, "Created").unwrap();
+        assert!(date_condition("created_at", "<=", "last 7 days", &mut ex, "Created").is_err());
+        let a = date_condition("created_at", "<=", "2026-01-31", &mut ex, "Created").unwrap();
         let b = date_condition("due_by", "=", "Five_minutes", &mut ex, "due").unwrap();
         let c = date_condition("due_by", ">=", "five_minutes", &mut ex, "due").unwrap();
         assert_eq!(
             a,
-            json!({"value": {"to": "last 7 days"}, "condition": "created_at", "operator": "custom_date", "type": "default"})
+            json!({"value": {"to": "2026-01-31"}, "condition": "created_at", "operator": "custom_date", "type": "default"})
         );
         assert_eq!(
             b,
@@ -572,7 +611,7 @@ mod tests {
         assert_eq!(
             ex,
             [
-                row("Created", "created_at", "custom_date", "last 7 days"),
+                row("Created", "created_at", "custom_date", "2026-01-31"),
                 row("due", "due_by", "custom_date", "Five_minutes"),
                 row("due", "due_by", "is_greater_than", "five_minutes"),
             ]

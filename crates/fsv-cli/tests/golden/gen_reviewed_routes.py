@@ -173,15 +173,15 @@ def problems(rejected=False):
     # 8 closable: analysis filled, one solution
     routes += reads("/api/_/problems/8", prb(8, 2), prb(8, 3), PROBLEM_BEFORE_READS)
     routes += [fixed("/api/_/problems/8/planning-fields", analysis(True)),
-               fixed("/api/_/problems/8/solutions", {"solutions": [{"id": 61, "title": "Acme workaround"}], "meta": PAGE})]
+               fixed("/api/_/problems/8/solutions", {"articles": [{"id": 61, "title": "Acme workaround", "article_type": 1}], "meta": PAGE})]
     # 9 analysis empty, no solution
     routes += [fixed("/api/_/problems/9", prb(9, 2)),
                fixed("/api/_/problems/9/planning-fields", analysis(False)),
-               fixed("/api/_/problems/9/solutions", {"solutions": [], "meta": PAGE})]
+               fixed("/api/_/problems/9/solutions", {"articles": [], "meta": PAGE})]
     # 10 closure-required field empty
     routes += [fixed("/api/_/problems/10", prb(10, 2, custom_fields={"cf_owner_note": ""})),
                fixed("/api/_/problems/10/planning-fields", analysis(True)),
-               fixed("/api/_/problems/10/solutions", {"solutions": [{"id": 62, "title": "Acme fix"}], "meta": PAGE})]
+               fixed("/api/_/problems/10/solutions", {"articles": [{"id": 62, "title": "Acme fix", "article_type": 2}], "meta": PAGE})]
     # 11 transition accepted but the readback keeps the old status
     routes += reads("/api/_/problems/11", prb(11, 1), prb(11, 1), PROBLEM_BEFORE_READS)
     closure_rejection = {"errors": [{"code": "violated_closure_rules", "description": {

@@ -1,0 +1,19 @@
+[
+ {"name": "changes_time_list", "fixture": "module_time", "args": ["changes", "time", "list", "CHN-60"]},
+ {"name": "problems_time_list", "fixture": "module_time", "args": ["problems", "time", "list", "PRB-63"]},
+ {"name": "changes_time_create_dry_run", "fixture": "module_time", "args": ["changes", "time", "write", "60", "create", "--spent", "00:45", "--executed-at", "2030-01-02T09:00:00+07:00", "--note", "Acme deploy", "--dry-run"]},
+ {"name": "changes_time_create_send", "fixture": "module_time", "hash_from": ["changes", "time", "write", "60", "create", "--spent", "00:45", "--executed-at", "2030-01-02T09:00:00+07:00", "--note", "Acme deploy", "--dry-run"], "args": ["changes", "time", "write", "60", "create", "--spent", "00:45", "--executed-at", "2030-01-02T09:00:00+07:00", "--note", "Acme deploy", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "changes_time_create_needs_offset", "fixture": "module_time", "args": ["changes", "time", "write", "60", "create", "--spent", "00:45", "--executed-at", "2030-01-02T09:00:00", "--dry-run"]},
+ {"name": "changes_time_create_bad_duration", "fixture": "module_time", "args": ["changes", "time", "write", "60", "create", "--spent", "00:00", "--executed-at", "2030-01-02T09:00:00+07:00", "--dry-run"]},
+ {"name": "changes_time_create_missing_spent", "fixture": "module_time", "args": ["changes", "time", "write", "60", "create", "--executed-at", "2030-01-02T09:00:00+07:00", "--dry-run"]},
+ {"name": "changes_time_update_note_dry_run", "fixture": "module_time", "args": ["changes", "time", "write", "61", "update", "--entry", "72", "--note", "Acme review", "--non-billable", "--dry-run"]},
+ {"name": "changes_time_update_send_unverified", "fixture": "module_time", "hash_from": ["changes", "time", "write", "61", "update", "--entry", "72", "--note", "Acme review", "--dry-run"], "args": ["changes", "time", "write", "61", "update", "--entry", "72", "--note", "Acme review", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "changes_time_update_other_agent_refused", "fixture": "module_time", "args": ["changes", "time", "write", "61", "update", "--entry", "74", "--note", "x", "--dry-run"]},
+ {"name": "changes_time_update_nothing", "fixture": "module_time", "args": ["changes", "time", "write", "61", "update", "--entry", "72", "--dry-run"]},
+ {"name": "changes_time_delete_send", "fixture": "module_time", "hash_from": ["changes", "time", "write", "62", "delete", "--entry", "73", "--dry-run"], "args": ["changes", "time", "write", "62", "delete", "--entry", "73", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "changes_time_delete_with_note_refused", "fixture": "module_time", "args": ["changes", "time", "write", "62", "delete", "--entry", "73", "--note", "x", "--dry-run"]},
+ {"name": "changes_time_needs_expect_plan", "fixture": "module_time", "args": ["changes", "time", "write", "62", "delete", "--entry", "73", "--yes"]},
+ {"name": "changes_time_bad_action", "fixture": "module_time", "args": ["changes", "time", "write", "60", "edit", "--dry-run"]},
+ {"name": "problems_time_update_refused", "fixture": "module_time", "args": ["problems", "time", "write", "63", "update", "--entry", "75", "--note", "x", "--dry-run"]},
+ {"name": "problems_time_delete_send", "fixture": "module_time", "hash_from": ["problems", "time", "write", "64", "delete", "--entry", "76", "--dry-run"], "args": ["problems", "time", "write", "64", "delete", "--entry", "76", "--yes", "--expect-plan", "{HASH}"]}
+]

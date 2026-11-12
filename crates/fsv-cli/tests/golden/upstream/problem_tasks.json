@@ -1,0 +1,19 @@
+[
+ {"name": "problems_task_update_dry_run", "fixture": "problem_tasks", "args": ["problems", "task-write", "PRB-80", "801", "update", "--title", "Acme fix v2", "--owner", "bo@acme.com", "--dry-run"]},
+ {"name": "problems_task_update_send", "fixture": "problem_tasks", "hash_from": ["problems", "task-write", "80", "801", "update", "--title", "Acme fix v2", "--owner", "bo@acme.com", "--dry-run"], "args": ["problems", "task-write", "80", "801", "update", "--title", "Acme fix v2", "--owner", "bo@acme.com", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "problems_task_update_note_dates_dry_run", "fixture": "problem_tasks", "args": ["problems", "task-write", "80", "801", "update", "--note", "line 1\nline <2>", "--planned-start", "2030-01-01T10:00:00+07:00", "--planned-end", "2030-01-01T12:00:00+07:00", "--notify-before", "15 Minutes", "--group", "DBA", "--dry-run"]},
+ {"name": "problems_task_update_end_before_start", "fixture": "problem_tasks", "args": ["problems", "task-write", "80", "801", "update", "--planned-end", "2029-12-31T00:00:00Z", "--dry-run"]},
+ {"name": "problems_task_update_owner_none_refused", "fixture": "problem_tasks", "args": ["problems", "task-write", "80", "801", "update", "--owner", "none", "--dry-run"]},
+ {"name": "problems_task_update_nothing", "fixture": "problem_tasks", "args": ["problems", "task-write", "80", "801", "update", "--dry-run"]},
+ {"name": "problems_task_update_unknown_status", "fixture": "problem_tasks", "args": ["problems", "task-write", "80", "801", "update", "--status", "Bogus", "--dry-run"]},
+ {"name": "problems_task_complete_dry_run", "fixture": "problem_tasks", "args": ["problems", "task-write", "81", "811", "complete", "--dry-run"]},
+ {"name": "problems_task_complete_send_unverified", "fixture": "problem_tasks", "hash_from": ["problems", "task-write", "81", "811", "complete", "--dry-run"], "args": ["problems", "task-write", "81", "811", "complete", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "problems_task_complete_with_fields_refused", "fixture": "problem_tasks", "args": ["problems", "task-write", "81", "811", "complete", "--title", "x", "--dry-run"]},
+ {"name": "problems_task_update_with_completed_status_and_title", "fixture": "problem_tasks", "args": ["problems", "task-write", "81", "811", "update", "--status", "Completed", "--title", "x", "--dry-run"]},
+ {"name": "problems_task_delete_dry_run", "fixture": "problem_tasks", "args": ["problems", "task-write", "82", "821", "delete", "--dry-run"]},
+ {"name": "problems_task_delete_send", "fixture": "problem_tasks", "hash_from": ["problems", "task-write", "82", "821", "delete", "--dry-run"], "args": ["problems", "task-write", "82", "821", "delete", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "problems_task_delete_unknown", "fixture": "problem_tasks", "args": ["problems", "task-write", "82", "829", "delete", "--dry-run"]},
+ {"name": "problems_task_wrong_parent_refused", "fixture": "problem_tasks", "args": ["problems", "task-write", "83", "831", "update", "--title", "x", "--dry-run"]},
+ {"name": "problems_task_bad_action", "fixture": "problem_tasks", "args": ["problems", "task-write", "80", "801", "close", "--dry-run"]},
+ {"name": "problems_task_needs_expect_plan", "fixture": "problem_tasks", "args": ["problems", "task-write", "80", "801", "update", "--title", "x", "--yes"]}
+]

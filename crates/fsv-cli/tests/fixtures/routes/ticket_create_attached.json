@@ -1,0 +1,362 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_form_fields",
+  "json": {
+   "ticket_fields": [
+    {
+     "id": 9000007001,
+     "name": "requester",
+     "label": "Requester",
+     "field_type": "default_requester",
+     "position": 1,
+     "default_field": true,
+     "required_for_agents": true,
+     "displayed_to_agents": true,
+     "choices": [],
+     "nested_fields": [],
+     "sections": [],
+     "belongs_to_section": false,
+     "lookup_config": null
+    },
+    {
+     "id": 9000007002,
+     "name": "subject",
+     "label": "Subject",
+     "field_type": "default_subject",
+     "position": 2,
+     "default_field": true,
+     "required_for_agents": false,
+     "displayed_to_agents": true,
+     "choices": [],
+     "nested_fields": [],
+     "sections": [],
+     "belongs_to_section": false,
+     "lookup_config": null
+    },
+    {
+     "id": 9000007003,
+     "name": "symptom",
+     "label": "Symptom",
+     "field_type": "nested_field",
+     "position": 3,
+     "default_field": false,
+     "required_for_agents": false,
+     "displayed_to_agents": true,
+     "choices": [
+      {
+       "id": 9000007101,
+       "display_id": 1,
+       "value": "Cannot log in",
+       "label": "Cannot log in",
+       "nested_options": [
+        {
+         "id": 9000007102,
+         "display_id": 2,
+         "value": "VPN",
+         "label": "VPN",
+         "nested_options": []
+        },
+        {
+         "id": 9000007103,
+         "display_id": 3,
+         "value": "Mail",
+         "label": "Mail",
+         "nested_options": []
+        }
+       ]
+      },
+      {
+       "id": 9000007104,
+       "display_id": 4,
+       "value": "Slow",
+       "label": "Slow",
+       "nested_options": [
+        {
+         "id": 9000007105,
+         "display_id": 5,
+         "value": "Laptop",
+         "label": "Laptop",
+         "nested_options": []
+        }
+       ]
+      },
+      {
+       "id": 9000007106,
+       "display_id": 6,
+       "value": "Other",
+       "label": "Other",
+       "nested_options": []
+      }
+     ],
+     "nested_fields": [
+      {
+       "name": "symptom_system",
+       "id": 9000007201,
+       "label": "System",
+       "level": 2
+      }
+     ],
+     "sections": [],
+     "belongs_to_section": false,
+     "lookup_config": null
+    },
+    {
+     "id": 9000007004,
+     "name": "priority",
+     "label": "Priority",
+     "field_type": "default_priority",
+     "position": 4,
+     "default_field": true,
+     "required_for_agents": false,
+     "displayed_to_agents": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Low"
+      },
+      {
+       "id": 2,
+       "value": "Medium"
+      }
+     ],
+     "nested_fields": [],
+     "sections": [],
+     "belongs_to_section": false,
+     "lookup_config": null
+    },
+    {
+     "id": 9000007005,
+     "name": "request_item",
+     "label": "Request Item",
+     "field_type": "custom_dropdown",
+     "position": 5,
+     "default_field": false,
+     "required_for_agents": false,
+     "displayed_to_agents": true,
+     "choices": [
+      {
+       "id": 9000007301,
+       "display_id": 31,
+       "value": "Access",
+       "label": "Access"
+      },
+      {
+       "id": 9000007302,
+       "display_id": 32,
+       "value": "Delivery",
+       "label": "Delivery"
+      }
+     ],
+     "nested_fields": [],
+     "sections": [
+      {
+       "id": 9000007401,
+       "label": "Delivery",
+       "choice_ids": [
+        9000007302
+       ],
+       "ticket_field_ids": [
+        9000007006
+       ]
+      }
+     ],
+     "belongs_to_section": false,
+     "lookup_config": null
+    },
+    {
+     "id": 9000007006,
+     "name": "delivery_team",
+     "label": "Delivery Team",
+     "field_type": "nested_field",
+     "position": 6,
+     "default_field": false,
+     "required_for_agents": true,
+     "displayed_to_agents": true,
+     "choices": [
+      {
+       "id": 9000007501,
+       "display_id": 51,
+       "value": "Apps",
+       "label": "Apps",
+       "nested_options": [
+        {
+         "id": 9000007502,
+         "display_id": 52,
+         "value": "Web",
+         "label": "Web",
+         "nested_options": []
+        }
+       ]
+      }
+     ],
+     "nested_fields": [
+      {
+       "name": "delivery_squad",
+       "id": 9000007202,
+       "label": "Squad",
+       "level": 2
+      }
+     ],
+     "sections": [],
+     "belongs_to_section": true,
+     "lookup_config": null
+    },
+    {
+     "id": 9000007007,
+     "name": "orphan_note",
+     "label": "Orphan Note",
+     "field_type": "custom_text",
+     "position": 7,
+     "default_field": false,
+     "required_for_agents": false,
+     "displayed_to_agents": true,
+     "choices": [],
+     "nested_fields": [],
+     "sections": [],
+     "belongs_to_section": true,
+     "lookup_config": null
+    },
+    {
+     "id": 9000007008,
+     "name": "attachment_check",
+     "label": "Attachment Check",
+     "field_type": "custom_dropdown",
+     "position": 8,
+     "default_field": false,
+     "required_for_agents": false,
+     "displayed_to_agents": true,
+     "choices": [
+      {
+       "id": 9000007601,
+       "display_id": 61,
+       "value": "Yes",
+       "label": "Yes"
+      },
+      {
+       "id": 9000007602,
+       "display_id": 62,
+       "value": "No",
+       "label": "No"
+      }
+     ],
+     "nested_fields": [],
+     "sections": [],
+     "belongs_to_section": false,
+     "lookup_config": null
+    },
+    {
+     "id": 9000007009,
+     "name": "owner",
+     "label": "Owner",
+     "field_type": "custom_lookup",
+     "position": 9,
+     "default_field": false,
+     "required_for_agents": false,
+     "displayed_to_agents": true,
+     "choices": [],
+     "nested_fields": [],
+     "sections": [],
+     "belongs_to_section": false,
+     "lookup_config": {
+      "data_source": 5,
+      "link": "/lookup_choices?field_name=owner_900000888&module=ticket"
+     }
+    },
+    {
+     "id": 9000007010,
+     "name": "description",
+     "label": "Description",
+     "field_type": "default_description",
+     "position": 10,
+     "default_field": true,
+     "required_for_agents": false,
+     "displayed_to_agents": true,
+     "choices": [],
+     "nested_fields": [],
+     "sections": [],
+     "belongs_to_section": false,
+     "lookup_config": null
+    }
+   ],
+   "meta": {}
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/business_rules",
+  "json": {
+   "business_rules": [],
+   "user": {
+    "first_name": "Robin",
+    "last_name": "Desk",
+    "email": "robin.desk@example.com",
+    "time_zone": "UTC"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/requesters",
+  "json": {
+   "results": [
+    {
+     "id": 51,
+     "value": "Ann Lee",
+     "email": "ann@acme.com",
+     "details": "ann@acme.com"
+    },
+    {
+     "id": 52,
+     "value": "Ann Lee",
+     "email": "ann2@acme.com"
+    }
+   ]
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets",
+  "json": {
+   "ticket": {
+    "id": 777,
+    "display_id": 777,
+    "subject": "Hello"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"><script>window.MAX_ATTACHMENT_LIMIT = 1;</script></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/777",
+  "json": {
+   "ticket": {
+    "id": 777,
+    "display_id": 777,
+    "subject": "Hello",
+    "priority": 2,
+    "requester_id": 51,
+    "attachments": [
+     {
+      "id": 11,
+      "name": "notes.txt",
+      "size": 11
+     }
+    ]
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/attachments",
+  "status": 200,
+  "json": {
+   "id": 11
+  },
+  "once": true
+ }
+]

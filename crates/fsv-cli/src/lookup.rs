@@ -2,10 +2,11 @@
 
 use serde_json::{Map, Value, json};
 
+use fsv_api::agent_lookup;
 use fsv_core::resource::Resource;
 use fsv_core::safety::{self, RiskContext};
 use fsv_core::term::{self, err};
-use fsv_core::{Client, Result, pystr};
+use fsv_core::{Client, Error, Result, pystr};
 
 use crate::util::{interactive, usage};
 
@@ -230,6 +231,16 @@ pub fn resolve_requester(c: &Client, value: &str) -> Result<(Value, String)> {
 pub fn resolve_agent(c: &Client, value: &str) -> Result<String> {
     if is_digits(value) {
         return Ok(value.to_string());
+    }
+    if agent_lookup::is_email(value) {
+        let exact = c
+            .autocomplete("agents", value, None)
+            .map_err(|_| Error::value("could not resolve agent; lookup unavailable"))
+            .and_then(|rows| agent_lookup::exact_agent_id(&rows, value, false));
+        return match exact {
+            Ok(id) => Ok(id.to_string()),
+            Err(e) => Err(usage(&e.to_string())),
+        };
     }
     let rows = c.autocomplete("agents", value, None)?;
     let item = pick_lookup("agent", value, &rows, &["value", "id", "email", "details"])?;
