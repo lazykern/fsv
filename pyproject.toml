@@ -1,6 +1,6 @@
 [project]
 name = "fsv"
-version = "2026.05.29"
+version = "2026.11.12"
 description = "Freshservice CLI"
 readme = "README.md"
 authors = [

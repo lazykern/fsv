@@ -201,7 +201,7 @@ wheels = [
 
 [[package]]
 name = "fsv"
-version = "2026.5.29"
+version = "2026.11.12"
 source = { editable = "." }
 dependencies = [
     { name = "argon2-cffi" },
