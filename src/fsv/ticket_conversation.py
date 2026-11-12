@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from email.utils import parseaddr
 from typing import Any, Literal
 
 from fsv import config, journal
@@ -17,6 +18,29 @@ from fsv.views import load_conversations
 
 class ConversationError(RuntimeError):
     pass
+
+
+def _email_set(values: Any) -> set[str] | None:
+    """Normalize explicit arrays without accepting malformed or omitted values."""
+    if not isinstance(values, list):
+        return None
+    normalized = set()
+    for value in values:
+        if not isinstance(value, str) or not _valid_recipient(value.strip()):
+            return None
+        normalized.add(parseaddr(value.strip())[1].casefold())
+    return normalized
+
+
+def _recipient_readback(row: dict[str, Any] | None, key: str, expected: Any) -> str:
+    # Notification/To are the same observed field for notes and forwards. CC
+    # and BCC remain distinct: a To address cannot prove a blind copy was sent.
+    aliases = ("notify_emails", "to_emails") if key in ("notify_emails", "to_emails") else (key,)
+    present = [row[name] for name in aliases if row is not None and name in row]
+    if not present:
+        return "unavailable"
+    wanted = _email_set(expected)
+    return "matched" if wanted is not None and all(_email_set(value) == wanted for value in present) else "mismatched"
 
 
 def recipients(client: Any, emails: list[str]) -> tuple[str, ...]:
@@ -182,7 +206,6 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
             raise ConversationError("ticket or status metadata changed; review again")
     # Reconfirm formatted CC recipients without silently changing reviewed bytes.
     if payload.get("cc_emails"):
-        from email.utils import parseaddr
         emails = [parseaddr(value)[1] for value in payload["cc_emails"]]
         if recipients(client, emails) != tuple(payload["cc_emails"]):
             raise ConversationError("CC recipient identity changed; review again")
@@ -229,14 +252,15 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
                 expected["bcc_emails"] = payload["bcc_emails"]
         else:
             expected.update(private=payload["private"])
-            # Accepted internal note readback exposes notification recipients as
-            # to_emails, not notify_emails. Require the explicit array; omission
-            # is never evidence that no notification recipients were used.
+            # Keep the existing closure field label while accepting either
+            # observed notification-recipient representation.
             recipient_key = "to_emails" if closing and plan.kind == "note" else "notify_emails"
             expected[recipient_key] = payload["notify_emails"]
         if "from_email" in payload:
             expected["from_email"] = payload["from_email"]
-        fields = {k: ("unavailable" if exact is None or k not in exact else
+        fields = {k: (_recipient_readback(exact, k, v)
+                      if k in {"to_emails", "notify_emails", "cc_emails", "bcc_emails"} else
+                      "unavailable" if exact is None or k not in exact else
                       "matched" if exact[k] == v else "mismatched") for k, v in expected.items()}
         if plan.status_label is not None:
             row = _record(client, plan.ticket_id)

@@ -24,7 +24,7 @@ def wire(request, monkeypatch):
         fields=[{"id": fid, "name": "subject", "label": "Subject", "field_type": "default_subject", "position": 1},
                 {"id": fid + 1, "name": "status", "label": "Status", "field_type": "default_status", "position": 2,
                  "choices": [{"id": opened, "value": "Open"}, {"id": pending, "value": "Pending"}]}],
-        conv_id=cid + 9000000000, conversation=None, conv_readback=None,
+        conv_id=cid + 9000000000, conversation=None, conv_readback=None, conv_transform=None,
         lookup_name=domain.split(".")[0].title() + " Operator")
 
     def handler(req):
@@ -40,13 +40,13 @@ def wire(request, monkeypatch):
                 w.row.update(payload)
                 return httpx.Response(200, json={"ticket": {"id": cid}})
             w.conversation = {"id": w.conv_id, "body": payload["body"]}
-            for key in ("cc_emails", "bcc_emails", "private", "notify_emails", "from_email"):
+            for key in ("cc_emails", "bcc_emails", "private", "from_email"):
                 if key in payload:
                     w.conversation[key] = payload[key]
+            if "notify_emails" in payload:
+                w.conversation["to_emails"] = payload["notify_emails"]
             if "helpdesk_ticket" in payload:
                 w.row["status"] = payload["helpdesk_ticket"]["status"]
-                if "private" in payload:
-                    w.conversation["to_emails"] = payload.get("notify_emails", [])
             return httpx.Response(200, json={"conversation": {"id": w.conv_id}})
         if path == "ticket_form_fields":
             return httpx.Response(200, json={"ticket_fields": w.fields})
@@ -57,6 +57,8 @@ def wire(request, monkeypatch):
                 "email": req.url.params.get("q")} ]})
         if path == f"tickets/{cid}/conversations":
             conversation = dict(w.conversation) if w.conversation else None
+            if conversation and w.conv_transform:
+                w.conv_transform(conversation)
             if conversation and w.conv_readback == "wrong-id":
                 conversation["id"] += 1
             elif conversation and w.conv_readback:
