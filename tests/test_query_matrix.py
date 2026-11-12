@@ -48,6 +48,7 @@ def test_schema_filters_produce_exact_wire_items(sch, expression, condition, val
     *[("status" + op + "47", "not supported") for op in (">", "<", ">=", "<=")],
     *[("group_id" + op + "93", "ID fields") for op in (">", "<", ">=", "<=", "~=")],
     ("created_at!=2026-01-01", "not supported for date"),
+    *[("created_at" + op + "2026-01-01", "strict date operator") for op in (">", "<")],
     ("created_at~=2026", "unsupported date operator"),
 ])
 def test_invalid_filter_fails_locally_with_actionable_message(sch, expression, message):
@@ -56,7 +57,7 @@ def test_invalid_filter_fails_locally_with_actionable_message(sch, expression, m
 
 
 @pytest.mark.parametrize("field", ["created_at", "updated_at", "due_by", "planned_start_date", "planned_end_date"])
-@pytest.mark.parametrize("lower,upper", [(">", "<"), (">=", "<=")])
+@pytest.mark.parametrize("lower,upper", [(">=", "<=")])
 def test_date_bounds_are_inclusive_merged_and_do_not_erase_other_fields(sch, field, lower, upper):
     result = json.loads(query.build_query_hash_from_schema(None, CHANGES, sch, [
         f"{field}{lower}2026-01-01", "status=47", f"{field}{upper}2026-12-31"]))

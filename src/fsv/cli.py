@@ -940,17 +940,19 @@ _WHERE_EMPTY = {"(empty)", "empty", "unassigned", "(none)", "none", "-"}
 
 
 def _date_condition(field_name: str, op: str, raw: str, explain: list[dict[str, Any]], shown: str) -> dict[str, Any]:
+    if op in (">", "<", "!="):
+        _err(f"date operator {op!r} is not supported; use =, >= or <= (inclusive)")
     token = _WHERE_PERIODS.get(raw.strip().casefold(), raw.strip() if raw.strip() in _PERIOD_TOKENS else None)
-    if token and op in ("=", ">", ">="):
+    if token and op in ("=", ">="):
         return _query_item(field_name, "is_greater_than", token, "default", explain, shown, raw)
-    if op in (">", ">="):
+    if op == ">=":
         value: Any = {"from": raw}
-    elif op in ("<", "<="):
+    elif op == "<=":
         value = {"to": raw}
-    elif op in ("=", "!="):
+    elif op == "=":
         value = {"from": raw, "to": raw}
     else:
-        _err(f"unsupported date operator {op!r}; use = != >= <= > <")
+        _err(f"unsupported date operator {op!r}; use = >= <=")
     return _query_item(field_name, "custom_date", value, "default", explain, shown, raw)
 
 

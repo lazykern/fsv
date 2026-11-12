@@ -19,9 +19,20 @@ def test_date_not_equal_is_rejected_with_clear_error():
 
 def test_date_bounds_are_inclusive_and_merge():
     assert _where("created_at>=2026-01-01")["value"] == {"from": "2026-01-01"}
-    assert _where("created_at>2026-01-01")["value"] == {"from": "2026-01-01"}  # inclusive, documented
-    assert _where("created_at<2026-02-01")["value"] == {"to": "2026-02-01"}
+    assert _where("created_at<=2026-02-01")["value"] == {"to": "2026-02-01"}
+    for op in (">", "<"):
+        with pytest.raises(ValueError, match="strict date operator"):
+            _where(f"created_at{op}2026-01-01")
     assert _where("created_at=2026-01-01")["value"] == {"from": "2026-01-01", "to": "2026-01-01"}
+
+
+@pytest.mark.parametrize("op", [">", "<", "!="])
+def test_cli_date_aliases_refuse_unproven_operators(op):
+    import typer
+    from fsv import cli
+    from fsv.resources import CHANGES
+    with pytest.raises(typer.Exit):
+        cli._resolve_where(None, CHANGES, {"fields": []}, f"Created{op}2026-01-01", [])
 
 
 def test_isdigit_is_ascii_only():

@@ -1,5 +1,12 @@
 # Reviewed operations and metadata freshness
 
+## List filter limits
+
+Date `>=` and `<=` use inclusive ranges. Strict date `>` / `<`, date
+`!=`, and contains (`~=`) are refused rather than silently broadened or
+encoded with an unproven server operator. Use an inclusive bound only when it
+matches the intended query.
+
 ## Ticket note edits and deletion
 
 ```sh

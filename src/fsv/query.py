@@ -169,11 +169,13 @@ def _resolve_where(
     field_text, op, raw = _parse_where(expr)
     pseudo_dates = {"created_at", "updated_at", "due_by", "planned_start_date", "planned_end_date"}
     if field_text in pseudo_dates:
-        # Note: Freshservice date ranges are inclusive on both ends, so `>`
-        # behaves like `>=` and `<` like `<=` (a strict bound can't be expressed).
-        if op in (">", ">="):
+        # Custom date ranges are inclusive; never silently turn strict bounds
+        # into inclusive ones without a proven server operator.
+        if op in (">", "<"):
+            raise ValueError(f"strict date operator {op!r} is not supported; use >= or <= for inclusive bounds")
+        if op == ">=":
             value: Any = {"from": raw}
-        elif op in ("<", "<="):
+        elif op == "<=":
             value = {"to": raw}
         elif op == "!=":
             raise ValueError(
@@ -183,7 +185,7 @@ def _resolve_where(
         elif op == "=":
             value = {"from": raw, "to": raw}
         else:
-            raise ValueError(f"unsupported date operator {op!r}; use = != >= <= > <")
+            raise ValueError(f"unsupported date operator {op!r}; use = >= <=")
         return _query_item(field_text, "custom_date", value, "default", explain, field_text, raw)
     if field_text.endswith("_id"):
         if op in (">", "<", ">=", "<=", "~="):
