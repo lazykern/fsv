@@ -1,0 +1,407 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problem_form_fields",
+  "json": {
+   "problem_fields": [
+    {
+     "id": 9000009001,
+     "name": "subject",
+     "label": "Subject",
+     "description": "",
+     "field_type": "default_subject",
+     "required": false,
+     "required_for_closure": false,
+     "position": 1,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000009002,
+     "name": "status",
+     "label": "Status",
+     "description": "",
+     "field_type": "default_status",
+     "required": false,
+     "required_for_closure": false,
+     "position": 2,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      },
+      {
+       "id": 2,
+       "value": "Change Requested"
+      },
+      {
+       "id": 3,
+       "value": "Closed"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000009003,
+     "name": "cf_owner_note",
+     "label": "Owner Note",
+     "description": "",
+     "field_type": "custom_text",
+     "required": false,
+     "required_for_closure": true,
+     "position": 3,
+     "default_field": false,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000009101,
+     "name": "planned_start_date",
+     "label": "Planned Start Date",
+     "description": "",
+     "field_type": "default_planned_start_date",
+     "required": false,
+     "required_for_closure": false,
+     "position": 11,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000009102,
+     "name": "planned_end_date",
+     "label": "Planned End Date",
+     "description": "",
+     "field_type": "default_planned_end_date",
+     "required": false,
+     "required_for_closure": false,
+     "position": 12,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000009103,
+     "name": "planned_effort",
+     "label": "Planned Effort",
+     "description": "",
+     "field_type": "default_planned_effort",
+     "required": false,
+     "required_for_closure": false,
+     "position": 13,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/business_rules",
+  "json": {
+   "business_rules": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/71",
+  "json": {
+   "problem": {
+    "id": 71,
+    "human_display_id": "PRB-71",
+    "subject": "Acme problem 71",
+    "status": 1,
+    "deleted": false,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "planned_effort": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/71",
+  "json": {
+   "problem": {
+    "id": 71,
+    "human_display_id": "PRB-71",
+    "subject": "Acme problem 71",
+    "status": 1,
+    "deleted": false,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "planned_effort": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/71",
+  "json": {
+   "problem": {
+    "id": 71,
+    "human_display_id": "PRB-71",
+    "subject": "Acme problem 71",
+    "status": 1,
+    "deleted": false,
+    "planned_start_date": "2030-01-02T09:00:00Z",
+    "planned_end_date": "2030-01-03T17:00:00Z",
+    "planned_effort": "1h 30m",
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/72",
+  "json": {
+   "problem": {
+    "id": 72,
+    "human_display_id": "PRB-72",
+    "subject": "Acme problem 72",
+    "status": 1,
+    "deleted": true,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "planned_effort": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/73",
+  "json": {
+   "problem": {
+    "id": 73,
+    "human_display_id": "PRB-73",
+    "subject": "Acme problem 73",
+    "status": 1,
+    "deleted": false,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "planned_effort": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/74",
+  "json": {
+   "problem": {
+    "id": 74,
+    "human_display_id": "PRB-74",
+    "subject": "Acme problem 74",
+    "status": 1,
+    "deleted": false,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "planned_effort": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/76",
+  "json": {
+   "problem": {
+    "id": 76,
+    "human_display_id": "PRB-76",
+    "subject": "Acme problem 76",
+    "status": 1,
+    "deleted": false,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "planned_effort": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/76",
+  "json": {
+   "problem": {
+    "id": 76,
+    "human_display_id": "PRB-76",
+    "subject": "Acme problem 76",
+    "status": 1,
+    "deleted": false,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "planned_effort": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/76",
+  "json": {
+   "problem": {
+    "id": 76,
+    "human_display_id": "PRB-76",
+    "subject": "Acme problem 76",
+    "status": 1,
+    "deleted": false,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "planned_effort": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/71",
+  "json": {
+   "problem": {
+    "id": 71,
+    "human_display_id": "PRB-71",
+    "subject": "Acme problem 71",
+    "status": 1,
+    "deleted": false,
+    "planned_start_date": "2030-01-02T09:00:00Z",
+    "planned_end_date": "2030-01-03T17:00:00Z",
+    "planned_effort": "1h 30m",
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/76",
+  "json": {
+   "problem": {
+    "id": 76,
+    "human_display_id": "PRB-76",
+    "subject": "Acme problem 76",
+    "status": 1,
+    "deleted": false,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "planned_effort": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme owner"
+    }
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/73",
+  "status": 405,
+  "json": {
+   "errors": "method not allowed"
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/problems/74",
+  "json": {
+   "problem": {
+    "id": 74,
+    "human_display_id": "PRB-74",
+    "subject": "Acme problem 74",
+    "status": 2,
+    "deleted": false,
+    "planned_start_date": null,
+    "planned_end_date": null,
+    "planned_effort": null,
+    "custom_fields": {
+     "cf_owner_note": "Acme new owner"
+    }
+   }
+  }
+ }
+]

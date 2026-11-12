@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "3432beaa8719b988eb99a257b347f7b4338982eb",
+  "commit": "7fcdea40050b962d13c70c38328c6d5ea4455ae1",
   "dirty": false
  },
  "requester": {
@@ -1201,7 +1201,7 @@
   "files": [
    "cache/filters/acme.freshservice.com--tickets.json",
    "cache/groups--acme.freshservice.com.json",
-   "cache/schema/acme.freshservice.com--tickets.json"
+   "cache/schema/acme.freshservice.com--wsauto--tickets.json"
   ]
  },
  "search_resource": [

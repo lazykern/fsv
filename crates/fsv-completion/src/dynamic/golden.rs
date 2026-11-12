@@ -40,7 +40,9 @@ pub(super) fn fixture_cache() {
         let cache = dir.path().join("cache");
         for (name, doc) in inp["schema"].as_object().expect("schema") {
             put(
-                &cache.join("schema").join(format!("default--{name}.json")),
+                &cache
+                    .join("schema")
+                    .join(format!("default--wsauto--{name}.json")),
                 doc,
             );
         }

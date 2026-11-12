@@ -213,6 +213,19 @@ pub fn emit_dry_run_as(
     risks: &[String],
     display_id: Option<String>,
 ) {
+    emit_dry_run_full(res, cid, body, action, risks, display_id, &[]);
+}
+
+/// `_emit_dry_run(..., display_id=..., warnings=...)`.
+pub fn emit_dry_run_full(
+    res: &Resource,
+    cid: i64,
+    body: Value,
+    action: &str,
+    risks: &[String],
+    display_id: Option<String>,
+    warnings: &[String],
+) {
     let mut out = Map::new();
     out.insert("dry_run".into(), json!(true));
     out.insert("action".into(), json!(action));
@@ -223,6 +236,9 @@ pub fn emit_dry_run_as(
     out.insert("body".into(), body);
     if !risks.is_empty() {
         out.insert("requires_confirmation".into(), json!(risks));
+    }
+    if !warnings.is_empty() {
+        out.insert("warnings".into(), json!(warnings));
     }
     fsv_core::output::emit_json(&Value::Object(out));
 }

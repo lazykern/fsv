@@ -40,6 +40,8 @@ pub fn dispatch(sub: &str, m: &ArgMatches) -> CmdResult {
         "approval-request" => crate::cmd::review::approval_request(parse(m)?),
         "approval-respond" => crate::cmd::review::approval_respond(parse(m)?),
         "approval-cancel" => crate::cmd::review::approval_cancel(parse(m)?),
+        "approval-remind" => crate::cmd::review::approval_remind(parse(m)?),
+        "delete" => change_delete(parse(m)?),
         "tasks-update" => tasks_update(parse(m)?),
         "tasks-delete" => tasks_delete(parse(m)?),
         "approvals" => approvals(parse(m)?),
@@ -242,6 +244,44 @@ fn tasks_delete(a: ChangesTasksDeleteArgs) -> CmdResult {
     };
     run().map_err(|e| match e {
         Error::Value(m) => usage(&m),
+        other => fail_exc(other),
+    })
+}
+
+/// `changes delete`: reviewed, destructive soft delete of one exact change.
+fn change_delete(a: ChangesDeleteArgs) -> CmdResult {
+    let run = || -> Result<(), Error> {
+        let c = crate::lazy::LazyApi::default();
+        let plan = fsv_api::change_delete::build_plan(&c, &a.id_)?;
+        if a.dry_run {
+            let mut out = Map::new();
+            out.insert("status".into(), json!("dry_run"));
+            out.extend(fsv_api::change_delete::review(&plan, &c)?);
+            emit_json(&Value::Object(out));
+            return Ok(());
+        }
+        let hash = plan.hash();
+        if !a.yes || a.expect_plan.as_deref() != Some(hash.as_str()) {
+            return Err(Error::value(
+                "review with --dry-run, then --confirm-destructive --yes --expect-plan FULL_HASH",
+            ));
+        }
+        let result = fsv_api::change_delete::send(
+            &plan,
+            &c,
+            &DiskJournal,
+            a.expect_plan.as_deref(),
+            a.confirm_destructive,
+        )?;
+        emit_json(&result);
+        if !result.get("verified").is_some_and(fsv_py::truthy) {
+            return Err(Error::exit(4, ""));
+        }
+        Ok(())
+    };
+    run().map_err(|e| match e {
+        Error::Value(m) => usage(&m),
+        Error::Exit { code: 2, message } if !message.is_empty() => usage(&message),
         other => fail_exc(other),
     })
 }

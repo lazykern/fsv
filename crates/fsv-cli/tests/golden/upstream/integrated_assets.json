@@ -19,5 +19,18 @@
  {"name": "problems_assets_remove_send", "fixture": "integrated_assets", "hash_from": ["problems", "assets", "remove", "7", "701", "--dry-run"], "args": ["problems", "assets", "remove", "7", "701", "--yes", "--expect-plan", "{HASH}"]},
  {"name": "problems_assets_remove_absent_refused", "fixture": "integrated_assets", "args": ["problems", "assets", "remove", "7", "799", "--dry-run"]},
  {"name": "changes_assets_add_send_unverified", "fixture": "integrated_assets", "hash_from": ["changes", "assets", "add", "5", "702", "--dry-run"], "args": ["changes", "assets", "add", "5", "702", "--yes", "--expect-plan", "{HASH}"]},
- {"name": "changes_assets_add_wrong_hash", "fixture": "integrated_assets", "args": ["changes", "assets", "add", "5", "702", "--yes", "--expect-plan", "0000"]}
+ {"name": "changes_assets_add_wrong_hash", "fixture": "integrated_assets", "args": ["changes", "assets", "add", "5", "702", "--yes", "--expect-plan", "0000"]},
+ {"name": "tickets_assets_list_legacy_driver", "fixture": "legacy_assets", "args": ["tickets", "assets", "list", "INC-151"]},
+ {"name": "tickets_assets_list_legacy_services_refused", "fixture": "legacy_assets", "args": ["tickets", "assets", "list", "151", "--kind", "services"]},
+ {"name": "tickets_assets_list_no_driver", "fixture": "legacy_assets", "args": ["tickets", "assets", "list", "152"]},
+ {"name": "changes_assets_list_legacy_driver", "fixture": "legacy_assets", "args": ["changes", "assets", "list", "CHN-51"]},
+ {"name": "problems_assets_list_no_driver", "fixture": "legacy_assets", "args": ["problems", "assets", "list", "61"]},
+ {"name": "tickets_assets_candidates", "fixture": "legacy_assets", "args": ["tickets", "assets", "candidates", "151"]},
+ {"name": "changes_assets_candidates", "fixture": "legacy_assets", "args": ["changes", "assets", "candidates", "51", "--json"]},
+ {"name": "sr_assets_candidates", "fixture": "legacy_assets", "args": ["sr", "assets", "candidates", "151"]},
+ {"name": "problems_assets_candidates_refused", "fixture": "legacy_assets", "args": ["problems", "assets", "candidates", "61"]},
+ {"name": "tickets_assets_add_legacy_dry_run", "fixture": "legacy_assets", "args": ["tickets", "assets", "add", "151", "3002", "--dry-run"]},
+ {"name": "tickets_assets_add_legacy_present_refused", "fixture": "legacy_assets", "args": ["tickets", "assets", "add", "151", "3001", "--dry-run"]},
+ {"name": "tickets_assets_add_legacy_not_offered", "fixture": "legacy_assets", "args": ["tickets", "assets", "add", "151", "3999", "--dry-run"]},
+ {"name": "tickets_assets_remove_legacy_refused", "fixture": "legacy_assets", "args": ["tickets", "assets", "remove", "151", "3001", "--dry-run"]}
 ]

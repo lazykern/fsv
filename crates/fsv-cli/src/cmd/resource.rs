@@ -4,7 +4,7 @@ use serde_json::{Map, Value, json};
 
 use fsv_api::service;
 use fsv_api::site::{SavedView, default_view, parse_saved_views};
-use fsv_core::resource::{Resource, TICKETS};
+use fsv_core::resource::{PROBLEMS, Resource, TICKETS};
 use fsv_core::safety;
 use fsv_core::term::{Column, Justify, Table, err, escape, out};
 use fsv_core::{Error, Result, config, pystr};
@@ -12,8 +12,8 @@ use fsv_core::{Error, Result, config, pystr};
 use crate::generated::*;
 use crate::types::{OutputFormat, effective};
 use crate::util::{
-    CmdResult, cid, client, confirm_writes, emit_dry_run, emit_dry_run_as, emit_fmt, fail_exc,
-    first_str, format_cid, head, obj, plain_fail, uncaught, usage,
+    CmdResult, cid, client, confirm_writes, emit_dry_run, emit_fmt, fail_exc, first_str,
+    format_cid, head, obj, plain_fail, uncaught, usage,
 };
 use crate::{filters, lookup, schema};
 
@@ -1357,6 +1357,14 @@ pub fn reply(
 
 /// Generic `update` (tickets, problems).
 pub fn update(res: &'static Resource, a: ResUpdateArgs) -> CmdResult {
+    if res.name == PROBLEMS.name
+        && (a.planned_start.is_some() || a.planned_end.is_some() || a.planned_effort.is_some())
+    {
+        return problem_planning_update(&a);
+    }
+    if a.planned_effort.is_some() {
+        return Err(usage("--planned-effort is supported only for problems"));
+    }
     if a.reviewed || !a.tag.is_empty() || a.planned_start.is_some() || a.planned_end.is_some() {
         return ticket_properties(res, &a).map_err(|e| match e {
             Error::Value(m) => plain_fail(&m, 2),
@@ -1370,6 +1378,71 @@ pub fn update(res: &'static Resource, a: ResUpdateArgs) -> CmdResult {
         ));
     }
     update_resource(res, &a)
+}
+
+/// `_problem_planning_update`: one reviewed PUT of only the planned keys.
+fn problem_planning_update(a: &ResUpdateArgs) -> CmdResult {
+    let others = a.status.is_some()
+        || a.priority.is_some()
+        || a.agent_id.is_some()
+        || a.group_id.is_some()
+        || !a.set_.is_empty()
+        || !a.tag.is_empty()
+        || a.reviewed;
+    if others {
+        return Err(usage(
+            "problem planned dates/effort are reviewed on their own; send other fields separately",
+        ));
+    }
+    let run = || -> Result<(), Error> {
+        let c = client()?;
+        let store = fsv_api::formmeta::DiskStore::current();
+        let plan = fsv_api::problem_properties::build_plan(
+            c.as_ref(),
+            &store,
+            &a.id_,
+            a.planned_start.as_deref(),
+            a.planned_end.as_deref(),
+            a.planned_effort.as_deref(),
+        )?;
+        let pretty = |v: &Value| {
+            fsv_py::Dumps::default()
+                .indent(2)
+                .ensure_ascii(false)
+                .dump(v)
+        };
+        if a.dry_run {
+            let mut out = Map::new();
+            out.insert("status".into(), json!("dry_run"));
+            out.extend(plan.review());
+            println!("{}", pretty(&Value::Object(out)));
+            return Ok(());
+        }
+        let hash = plan.write.hash();
+        if !a.yes || a.expect_plan.as_deref() != Some(hash.as_str()) {
+            return Err(Error::value(
+                "review with --dry-run, then --yes --expect-plan FULL_HASH",
+            ));
+        }
+        let result = fsv_api::problem_properties::send(
+            &plan,
+            c.as_ref(),
+            &store,
+            &fsv_api::service::DiskJournal,
+            a.expect_plan.as_deref(),
+        )?;
+        println!("{}", pretty(&result));
+        if !result.get("verified").is_some_and(fsv_py::truthy) {
+            return Err(Error::exit(4, ""));
+        }
+        Ok(())
+    };
+    run().map_err(|e| match e {
+        Error::Value(m) => plain_fail(&m, 2),
+        Error::Exit { code: 2, message } if !message.is_empty() => plain_fail(&message, 2),
+        e @ Error::Api(_) => plain_fail(&e.to_string(), 2),
+        other => uncaught(other),
+    })
 }
 
 /// `--set` and the core flags as property answers (field name or label -> value).
@@ -1476,6 +1549,24 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
     let id = cid(&a.id_, res)?;
     let c = client()?;
     let sch = schema::load(res, &c, false).map_err(fail_exc)?;
+    let stale_warning = if a.dry_run {
+        fsv_api::schema::freshness_warning(res, c.as_ref(), &sch)
+    } else {
+        None
+    };
+    if let Some(w) = &stale_warning {
+        err().print(&format!("[yellow]warning[/yellow]: {w}"));
+    }
+    if res.name == PROBLEMS.name {
+        let row = c.int_get(&format!("{}/{id}", res.api_path), None).ok();
+        let row = row.map(|r| r.get(res.item_key).cloned().unwrap_or(r));
+        if row.as_ref().and_then(|r| r.get("deleted")) == Some(&Value::Bool(true)) {
+            return Err(usage(&format!(
+                "{} is deleted (in trash); restore it before updating",
+                format_cid(id, res)
+            )));
+        }
+    }
     let mut body = Map::new();
     if let Some(s) = &a.status {
         body.insert(
@@ -1519,7 +1610,7 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
             Some(d) => fsv_py::truthy(d),
             None => ftype.starts_with("default_"),
         };
-        if res.name == TICKETS.name && !is_default {
+        if (res.name == TICKETS.name || res.name == PROBLEMS.name) && !is_default {
             let cf = body.entry("custom_fields").or_insert_with(|| json!({}));
             if let Value::Object(m) = cf {
                 m.insert(k, v);
@@ -1555,11 +1646,33 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
                 _ => format!("tickets/{id}"),
             }
         });
-        emit_dry_run_as(res, id, Value::Object(body), "update", &risks, display_id);
+        let warnings: Vec<String> = stale_warning.into_iter().collect();
+        crate::util::emit_dry_run_full(
+            res,
+            id,
+            Value::Object(body),
+            "update",
+            &risks,
+            display_id,
+            &warnings,
+        );
         return Ok(());
     }
     confirm_writes(&risks, &format_cid(id, res), a.yes, a.no_input)?;
-    let item = service::update_item(c.as_ref(), res, id, &Value::Object(body)).map_err(fail_exc)?;
+    let item = service::update_item(c.as_ref(), res, id, &Value::Object(body))
+        .map_err(|e| match e.as_api() {
+            Some(api) if api.status == 405 => Error::from(fsv_core::ApiError::with_request(
+                405,
+                json!(format!(
+                    "{} is not editable (deleted or in trash?); nothing was changed",
+                    format_cid(id, res)
+                )),
+                "PUT",
+                format!("{}/{id}", res.api_path),
+            )),
+            _ => e,
+        })
+        .map_err(fail_exc)?;
     if a.json_out {
         fsv_core::output::emit_json(&item);
         return Ok(());

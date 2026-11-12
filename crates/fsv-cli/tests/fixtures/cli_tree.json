@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "915df4c5698123216b7e6a7b6827a788e1ca6dc9",
+  "commit": "7fcdea40050b962d13c70c38328c6d5ea4455ae1",
   "dirty": false
  },
  "path": "fsv",
@@ -2115,9 +2115,9 @@
        "multiple": false,
        "nargs": 1,
        "is_flag": false,
-       "default": "Open",
+       "default": null,
        "hidden": false,
-       "help": "exact active runtime status label or ID (including the default Open)",
+       "help": "exact active runtime status label or ID (default: the form's first active status)",
        "metavar": null,
        "envvar": null
       },
@@ -2153,9 +2153,9 @@
        "multiple": false,
        "nargs": 1,
        "is_flag": false,
-       "default": "Never",
+       "default": null,
        "hidden": false,
-       "help": "Never, 15 Minutes, 30 Minutes, 45 Minutes, 1 Hour, 2 Hours",
+       "help": "runtime reminder label or seconds (default: the form's first choice)",
        "metavar": null,
        "envvar": null
       },
@@ -2369,13 +2369,13 @@
        "secondary_opts": [],
        "type": "text",
        "choices": null,
-       "required": true,
+       "required": false,
        "multiple": false,
        "nargs": 1,
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "exact approval group name",
+       "help": "exact approval group name (approval chains model)",
        "metavar": null,
        "envvar": null
       },
@@ -2388,13 +2388,13 @@
        "secondary_opts": [],
        "type": "text",
        "choices": null,
-       "required": true,
+       "required": false,
        "multiple": false,
        "nargs": 1,
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "plain text; always HTML-escaped",
+       "help": "plain text; always HTML-escaped (approval chains model)",
        "metavar": null,
        "envvar": null
       },
@@ -2471,7 +2471,26 @@
        "is_flag": false,
        "default": "everyone",
        "hidden": false,
-       "help": "everyone, anyone, majority or first-responder",
+       "help": "everyone, anyone, majority or first-responder (legacy: everyone, first-responder)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "model",
+       "kind": "option",
+       "opts": [
+        "--model"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": "auto",
+       "hidden": false,
+       "help": "approval model: auto (one read-only approval-chains GET), chains or legacy",
        "metavar": null,
        "envvar": null
       },
@@ -2587,6 +2606,152 @@
        "default": false,
        "hidden": false,
        "help": "emit structured result",
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv changes approval-remind",
+     "help": "Review a reminder for one requested approval (legacy flat approvals; capture-based).",
+     "epilog": null,
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "id_",
+       "kind": "argument",
+       "opts": [
+        "id_"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "CHANGE_ID",
+       "envvar": null
+      },
+      {
+       "name": "approval_id",
+       "kind": "argument",
+       "opts": [
+        "approval_id"
+       ],
+       "secondary_opts": [],
+       "type": "integer range",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "APPROVAL_ID",
+       "envvar": null,
+       "min": 1,
+       "max": null
+      },
+      {
+       "name": "model",
+       "kind": "option",
+       "opts": [
+        "--model"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": "auto",
+       "hidden": false,
+       "help": "approval model: auto, chains or legacy",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes",
+        "-y"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expected",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
        "metavar": null,
        "envvar": null
       }
@@ -2949,6 +3114,131 @@
        "nargs": 1,
        "is_flag": true,
        "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "json_out",
+       "kind": "option",
+       "opts": [
+        "--json"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": null,
+       "metavar": null,
+       "envvar": null
+      }
+     ],
+     "commands": []
+    },
+    {
+     "path": "fsv changes delete",
+     "help": "Soft-delete one exact change (reviewed, destructive).",
+     "epilog": "[bold]Examples:[/bold]  fsv changes delete CHN-1234 --dry-run  |  fsv changes delete CHN-1234 --confirm-destructive --yes --expect-plan FULL_HASH",
+     "hidden": false,
+     "group": false,
+     "params": [
+      {
+       "name": "id_",
+       "kind": "argument",
+       "opts": [
+        "id_"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": true,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": null,
+       "metavar": "CHANGE_ID",
+       "envvar": null
+      },
+      {
+       "name": "dry_run",
+       "kind": "option",
+       "opts": [
+        "--dry-run"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "print the exact target without deleting",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "yes",
+       "kind": "option",
+       "opts": [
+        "--yes",
+        "-y"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "confirm deletion",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "confirm_destructive",
+       "kind": "option",
+       "opts": [
+        "--confirm-destructive"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "required destructive acknowledgement",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "expect_plan",
+       "kind": "option",
+       "opts": [
+        "--expect-plan"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
        "hidden": false,
        "help": null,
        "metavar": null,
@@ -8274,6 +8564,54 @@
        "commands": []
       },
       {
+       "path": "fsv changes assets candidates",
+       "help": "Assets the web offers to associate (legacy asset association driver).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "target",
+         "kind": "argument",
+         "opts": [
+          "target"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
        "path": "fsv changes assets legacy",
        "help": "",
        "epilog": null,
@@ -13188,7 +13526,7 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "tickets only: ISO date/time with explicit UTC offset",
+       "help": "tickets and problems: ISO date/time with explicit UTC offset",
        "metavar": null,
        "envvar": null
       },
@@ -13207,7 +13545,26 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "tickets only: ISO date/time with explicit UTC offset",
+       "help": "tickets and problems: ISO date/time with explicit UTC offset",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "planned_effort",
+       "kind": "option",
+       "opts": [
+        "--planned-effort"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field",
        "metavar": null,
        "envvar": null
       },
@@ -14226,6 +14583,54 @@
          "nargs": 1,
          "is_flag": false,
          "default": "devices",
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv tickets assets candidates",
+       "help": "Assets the web offers to associate (legacy asset association driver).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "target",
+         "kind": "argument",
+         "opts": [
+          "target"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
          "hidden": false,
          "help": null,
          "metavar": null,
@@ -20251,7 +20656,7 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "tickets only: ISO date/time with explicit UTC offset",
+       "help": "tickets and problems: ISO date/time with explicit UTC offset",
        "metavar": null,
        "envvar": null
       },
@@ -20270,7 +20675,26 @@
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "tickets only: ISO date/time with explicit UTC offset",
+       "help": "tickets and problems: ISO date/time with explicit UTC offset",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "planned_effort",
+       "kind": "option",
+       "opts": [
+        "--planned-effort"
+       ],
+       "secondary_opts": [],
+       "type": "text",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": false,
+       "default": null,
+       "hidden": false,
+       "help": "problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field",
        "metavar": null,
        "envvar": null
       },
@@ -20949,6 +21373,54 @@
          "nargs": 1,
          "is_flag": false,
          "default": "devices",
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
+       "path": "fsv problems assets candidates",
+       "help": "Assets the web offers to associate (legacy asset association driver).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "target",
+         "kind": "argument",
+         "opts": [
+          "target"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
          "hidden": false,
          "help": null,
          "metavar": null,
@@ -23095,6 +23567,54 @@
        "commands": []
       },
       {
+       "path": "fsv sr assets candidates",
+       "help": "Assets the web offers to associate (legacy asset association driver).",
+       "epilog": null,
+       "hidden": false,
+       "group": false,
+       "params": [
+        {
+         "name": "target",
+         "kind": "argument",
+         "opts": [
+          "target"
+         ],
+         "secondary_opts": [],
+         "type": "text",
+         "choices": null,
+         "required": true,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": false,
+         "default": null,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        },
+        {
+         "name": "json_out",
+         "kind": "option",
+         "opts": [
+          "--json"
+         ],
+         "secondary_opts": [],
+         "type": "boolean",
+         "choices": null,
+         "required": false,
+         "multiple": false,
+         "nargs": 1,
+         "is_flag": true,
+         "default": false,
+         "hidden": false,
+         "help": null,
+         "metavar": null,
+         "envvar": null
+        }
+       ],
+       "commands": []
+      },
+      {
        "path": "fsv sr assets add",
        "help": "",
        "epilog": null,
@@ -23513,13 +24033,13 @@
          "secondary_opts": [],
          "type": "text",
          "choices": null,
-         "required": true,
+         "required": false,
          "multiple": false,
          "nargs": 1,
          "is_flag": false,
          "default": null,
          "hidden": false,
-         "help": null,
+         "help": "approval group name (approval chains model)",
          "metavar": null,
          "envvar": null
         },
@@ -23532,13 +24052,13 @@
          "secondary_opts": [],
          "type": "text",
          "choices": null,
-         "required": true,
+         "required": false,
          "multiple": false,
          "nargs": 1,
          "is_flag": false,
          "default": null,
          "hidden": false,
-         "help": null,
+         "help": "email text (approval chains model)",
          "metavar": null,
          "envvar": null
         },

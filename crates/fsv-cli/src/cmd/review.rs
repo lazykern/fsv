@@ -6,9 +6,10 @@ use std::collections::BTreeSet;
 
 use serde_json::{Map, Value, json};
 
+use fsv_api::approval_model::{CHAINS, LEGACY};
 use fsv_api::associations::SendOpts;
 use fsv_api::service::{Api, DiskJournal};
-use fsv_api::{approval_recipients, approvals, tasks, ticket_tasks};
+use fsv_api::{approval_recipients, approvals, legacy_approvals, tasks, ticket_tasks};
 use fsv_core::Error;
 use fsv_core::resource::{CHANGES, parse_id};
 use fsv_core::term;
@@ -48,25 +49,25 @@ fn tasks_add_inner(a: ChangesTasksAddArgs) -> CmdResult {
     }
     let c = LazyApi::default();
     let tenant = c.domain();
+    if let Some(status) = &a.status {
+        tasks::status_label(status)?;
+    }
+    check_task_inputs(&a)?;
+    let fields = tasks::runtime_fields(&c)?;
+    let status = match &a.status {
+        Some(s) => s.clone(),
+        None => tasks::default_status(&fields)?,
+    };
+    let reminder = tasks::runtime_reminder_label(a.notify_before.as_deref(), &fields)?;
     let mut args = tasks::TaskArgs {
-        status: &a.status,
-        status_id: Some(1),
+        status: &status,
         note: a.note.as_deref(),
-        notify_before: &a.notify_before,
+        notify_before: &reminder,
         planned_start: a.planned_start.as_deref(),
         planned_end: a.planned_end.as_deref(),
         planned_effort: a.planned_effort.as_deref(),
         ..Default::default()
     };
-    tasks::status_label(&a.status)?;
-    {
-        let probe = tasks::TaskArgs {
-            status: "Open",
-            ..args.clone()
-        };
-        tasks::build_plan(&a.id_, &a.title, &probe, &tenant)?;
-    }
-    let fields = tasks::runtime_fields(&c)?;
     let mut raw_values = Map::new();
     for item in &a.values {
         let Some((key, val)) = item.split_once('=') else {
@@ -88,7 +89,7 @@ fn tasks_add_inner(a: ChangesTasksAddArgs) -> CmdResult {
     let custom = ticket_tasks::custom_values(&fields, &raw_values)?;
     args.owner_id = tasks::resolve_owner(&c, a.owner.as_deref())?;
     args.group_id = tasks::resolve_group(&c, a.group.as_deref())?;
-    args.status_id = Some(tasks::resolve_status(&c, &a.status)?);
+    args.status_id = Some(tasks::resolve_status(&c, &status)?);
     args.custom_fields = Some(&custom);
     args.fields = Some(&fields);
     let plan = tasks::build_plan(&a.id_, &a.title, &args, &tenant)?;
@@ -143,6 +144,35 @@ fn tasks_add_inner(a: ChangesTasksAddArgs) -> CmdResult {
     Ok(())
 }
 
+/// Port of change_tasks.check_inputs: local checks before any remote lookup;
+/// status and reminder need runtime metadata.
+fn check_task_inputs(a: &ChangesTasksAddArgs) -> Result<(), Error> {
+    if parse_id(&a.id_, &CHANGES)? <= 0 {
+        return Err(value("change ID must be a positive display ID"));
+    }
+    if fsv_core::pystr::strip(&a.title).is_empty()
+        || a.title.chars().any(|c| (c as u32) < 32 || c as u32 == 127)
+    {
+        return Err(value(
+            "task title must be nonempty text without control characters",
+        ));
+    }
+    let instant = |v: &Option<String>| -> Result<Option<jiff::Timestamp>, Error> {
+        Ok(tasks::date(v.as_deref())?.and_then(|s| {
+            let (dt, off) = fsv_forms::pydt::datetime_fromisoformat(&s)?;
+            off?.to_timestamp(dt).ok()
+        }))
+    };
+    if let (Some(start), Some(end)) = (instant(&a.planned_start)?, instant(&a.planned_end)?)
+        && end < start
+    {
+        return Err(value("planned end must not precede planned start"));
+    }
+    tasks::note(a.note.as_deref())?;
+    tasks::effort(a.planned_effort.as_deref())?;
+    Ok(())
+}
+
 pub fn approval_request(a: ChangesApprovalRequestArgs) -> CmdResult {
     approval_request_inner(a).map_err(refused)
 }
@@ -156,9 +186,25 @@ fn approval_request_inner(a: ChangesApprovalRequestArgs) -> CmdResult {
             "provide --approver, --approver-group or --cab explicitly",
         ));
     }
+    if !matches!(a.model.as_str(), "auto" | "chains" | "legacy") {
+        return Err(value("--model must be auto, chains or legacy"));
+    }
+    if a.model == "chains" && (a.name.is_none() || a.message.is_none()) {
+        return Err(value(
+            "--name and --message are required on the approval chains model",
+        ));
+    }
     let c = LazyApi::default();
+    if a.model != "chains" && approval_model(&c, parse_id(&a.id_, &CHANGES)?, &a.model)? == LEGACY {
+        return legacy_request(&c, &a);
+    }
+    let (Some(name), Some(message)) = (a.name.clone(), a.message.clone()) else {
+        return Err(value(
+            "--name and --message are required on the approval chains model",
+        ));
+    };
     let tenant = c.domain();
-    approvals::build_plan(&a.id_, &a.name, &a.message, &[1], &a.rule, &tenant)?;
+    approvals::build_plan(&a.id_, &name, &message, &[1], &a.rule, &tenant)?;
     let target = parse_id(&a.id_, &CHANGES)?;
     let (extra, context) = approval_recipients::resolve(&c, target, &a.approver_group, &a.cab)?;
     let mut ids: BTreeSet<i64> = extra.into_iter().collect();
@@ -166,9 +212,8 @@ fn approval_request_inner(a: ChangesApprovalRequestArgs) -> CmdResult {
         ids.extend(approvals::resolve_approvers(&c, &a.approver)?);
     }
     let ids: Vec<i64> = ids.into_iter().collect();
-    let plan = approvals::build_plan_with(
-        &a.id_, &a.name, &a.message, &ids, &a.rule, &tenant, &context,
-    )?;
+    let plan =
+        approvals::build_plan_with(&a.id_, &name, &message, &ids, &a.rule, &tenant, &context)?;
     let journal = DiskJournal;
     if a.dry_run {
         let opts = SendOpts {
@@ -218,6 +263,102 @@ fn approval_request_inner(a: ChangesApprovalRequestArgs) -> CmdResult {
         );
     }
     Ok(())
+}
+
+/// Port of change_approvals._model: `auto` is one read-only approval-chains GET.
+fn approval_model(c: &LazyApi, cid: i64, choice: &str) -> Result<&'static str, Error> {
+    if !matches!(choice, "auto" | "chains" | "legacy") {
+        return Err(value("--model must be auto, chains or legacy"));
+    }
+    match choice {
+        "chains" => Ok(CHAINS),
+        "legacy" => Ok(LEGACY),
+        _ => {
+            let (model, _) = fsv_api::approval_model::detect(c, "changes", cid)?;
+            Ok(if model == LEGACY { LEGACY } else { CHAINS })
+        }
+    }
+}
+
+/// Port of change_approvals._legacy_request_cli. `--model auto` never
+/// forwards `--name`/`--message`.
+fn legacy_request(c: &LazyApi, a: &ChangesApprovalRequestArgs) -> CmdResult {
+    let explicit = a.model == "legacy";
+    let given = |v: &Option<String>| explicit && v.as_deref().is_some_and(|s| !s.is_empty());
+    if given(&a.name) || given(&a.message) {
+        return Err(value(
+            "--name/--message do not apply to legacy flat approvals (no group name or message on the wire)",
+        ));
+    }
+    if !a.approver_group.is_empty() {
+        return Err(value(
+            "--approver-group has no legacy flat-approval equivalent; use --cab or --approver",
+        ));
+    }
+    let cid = parse_id(&a.id_, &CHANGES)?;
+    let (extra, context) = approval_recipients::resolve(c, cid, &[], &a.cab)?;
+    let mut ids: BTreeSet<i64> = extra.into_iter().collect();
+    if !a.approver.is_empty() {
+        ids.extend(approvals::resolve_approvers(c, &a.approver)?);
+    }
+    let ids: Vec<i64> = ids.into_iter().collect();
+    let plan = legacy_approvals::build_request(c, "changes", cid, &ids, &a.rule, &context)?;
+    if a.dry_run {
+        let mut out = Map::new();
+        out.insert("status".into(), json!("dry_run"));
+        out.extend(plan.review());
+        println!("{}", indent2(&Value::Object(out)));
+        return Ok(());
+    }
+    eprintln!("{}", indent2(&Value::Object(plan.review())));
+    let hash = plan.hash();
+    if a.yes {
+        if a.expected.as_deref() != Some(hash.as_str()) {
+            return Err(value(
+                "--yes requires the full --expect-plan from a prior approval review",
+            ));
+        }
+    } else if a.no_input {
+        return Err(value(
+            "sending requires --yes and --expect-plan in no-input mode",
+        ));
+    } else if !confirm("Send this exact legacy approval request and irreversible emails?")? {
+        println!("Cancelled; no approval request was sent.");
+        return Ok(());
+    }
+    approval_recipients::validate(c, cid, &context)?;
+    let result = legacy_approvals::send(&plan, c, &DiskJournal, Some(&hash))?;
+    crate::cmd::reviewed::print_verified(&result)
+}
+
+/// `changes approval-remind CHANGE_ID APPROVAL_ID` (legacy flat approvals).
+pub fn approval_remind(a: ChangesApprovalRemindArgs) -> CmdResult {
+    let run = || -> CmdResult {
+        let c = LazyApi::default();
+        let cid = parse_id(&a.id_, &CHANGES)?;
+        if approval_model(&c, cid, &a.model)? != LEGACY {
+            return Err(value(
+                "approval-remind: no change reminder wire was captured on the approval chains model; use the web UI",
+            ));
+        }
+        let plan = legacy_approvals::build_remind(&c, "changes", cid, a.approval_id)?;
+        if a.dry_run {
+            let mut out = Map::new();
+            out.insert("status".into(), json!("dry_run"));
+            out.extend(plan.review());
+            println!("{}", indent2(&Value::Object(out)));
+            return Ok(());
+        }
+        let hash = plan.hash();
+        if !a.yes || a.expected.as_deref() != Some(hash.as_str()) {
+            return Err(value(
+                "review with --dry-run, then --yes --expect-plan FULL_HASH",
+            ));
+        }
+        let result = legacy_approvals::send(&plan, &c, &DiskJournal, a.expected.as_deref())?;
+        crate::cmd::reviewed::print_verified(&result)
+    };
+    run().map_err(refused)
 }
 
 struct ActionArgs {

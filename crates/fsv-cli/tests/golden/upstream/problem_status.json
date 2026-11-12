@@ -22,5 +22,22 @@
   "args": ["problems", "status", "7", "--to", "Bogus", "--dry-run"]},
  {"name": "problems_status_readback_unverified", "fixture": "problem_status",
   "hash_from": ["problems", "status", "11", "--to", "Change Requested", "--dry-run"],
-  "args": ["problems", "status", "11", "--to", "Change Requested", "--yes", "--expect-plan", "{HASH}"]}
+  "args": ["problems", "status", "11", "--to", "Change Requested", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "problems_update_planned_dry_run", "fixture": "problem_update", "args": ["problems", "update", "PRB-71", "--planned-start", "2030-01-02T09:00:00+00:00", "--planned-end", "2030-01-03T17:00:00Z", "--planned-effort", "1h30m", "--dry-run"]},
+ {"name": "problems_update_planned_send", "fixture": "problem_update", "hash_from": ["problems", "update", "71", "--planned-start", "2030-01-02T09:00:00+00:00", "--planned-end", "2030-01-03T17:00:00Z", "--planned-effort", "01:30", "--dry-run"], "args": ["problems", "update", "71", "--planned-start", "2030-01-02T09:00:00+00:00", "--planned-end", "2030-01-03T17:00:00Z", "--planned-effort", "01:30", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "problems_update_planned_send_unverified", "fixture": "problem_update", "hash_from": ["problems", "update", "76", "--planned-effort", "2h", "--dry-run"], "args": ["problems", "update", "76", "--planned-effort", "2h", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "problems_update_planned_needs_expect_plan", "fixture": "problem_update", "args": ["problems", "update", "71", "--planned-effort", "2h", "--yes"]},
+ {"name": "problems_update_planned_with_other_fields", "fixture": "problem_update", "args": ["problems", "update", "71", "--planned-effort", "2h", "--status", "Closed", "--dry-run"]},
+ {"name": "problems_update_planned_end_before_start", "fixture": "problem_update", "args": ["problems", "update", "71", "--planned-start", "2030-01-03T00:00:00Z", "--planned-end", "2030-01-02T00:00:00Z", "--dry-run"]},
+ {"name": "problems_update_planned_deleted_refused", "fixture": "problem_update", "args": ["problems", "update", "72", "--planned-effort", "2h", "--dry-run"]},
+ {"name": "problems_update_planned_rules_unavailable", "fixture": "problem_update_rules500", "args": ["problems", "update", "71", "--planned-effort", "2h", "--dry-run"]},
+ {"name": "tickets_update_planned_effort_refused", "fixture": "problem_update", "args": ["tickets", "update", "5", "--planned-effort", "2h", "--dry-run"]},
+ {"name": "problems_update_custom_field_dry_run", "fixture": "problem_update", "args": ["problems", "update", "74", "--status", "Change Requested", "--set", "cf_owner_note=Acme new owner", "--dry-run"]},
+ {"name": "problems_update_custom_field_send", "fixture": "problem_update", "args": ["problems", "update", "74", "--set", "Owner Note=Acme new owner", "--yes", "--json"]},
+ {"name": "problems_update_deleted_refused", "fixture": "problem_update", "args": ["problems", "update", "72", "--status", "Closed", "--yes"]},
+ {"name": "problems_update_not_editable_405", "fixture": "problem_update", "args": ["problems", "update", "73", "--set", "cf_owner_note=x", "--yes"]},
+ {"name": "problem_create_rules_unavailable_dry_run", "args": ["problems", "create", "--requester", "ann@acme.com", "--set", "Subject=Acme problem", "--set", "Description=Acme details", "--set", "Status=Open", "--set", "Priority=Low", "--set", "Impact=Low", "--set", "Acme count=7", "--dry-run"], "fixture": "problem_flows_rules500"},
+ {"name": "problem_create_rules_unavailable_send", "hash_from": ["problems", "create", "--requester", "ann@acme.com", "--set", "Subject=Acme problem", "--set", "Description=Acme details", "--set", "Status=Open", "--set", "Priority=Low", "--set", "Impact=Low", "--set", "Acme count=7", "--dry-run"], "args": ["problems", "create", "--requester", "ann@acme.com", "--set", "Subject=Acme problem", "--set", "Description=Acme details", "--set", "Status=Open", "--set", "Priority=Low", "--set", "Impact=Low", "--set", "Acme count=7", "--yes", "--expect-plan", "{HASH}"], "fixture": "problem_flows_rules500"},
+ {"name": "problems_status_dry_run_rules_unavailable", "fixture": "problem_status_rules500", "args": ["problems", "status", "PRB-7", "--to", "Change Requested", "--dry-run"]},
+ {"name": "problems_status_needs_expect_plan_rules_unavailable", "fixture": "problem_status_rules500", "args": ["problems", "status", "7", "--to", "Change Requested", "--yes"]}
 ]

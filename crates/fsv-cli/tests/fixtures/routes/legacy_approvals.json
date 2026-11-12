@@ -1,0 +1,279 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/41/approval-chains",
+  "status": 404,
+  "json": {
+   "errors": "not found"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/41/approvals",
+  "once": true,
+  "json": {
+   "approvals": [
+    {
+     "id": 501,
+     "member_id": 7,
+     "level_id": 1,
+     "status": {
+      "id": 0,
+      "name": "requested"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": "2026-11-01T09:00:00Z"
+    },
+    {
+     "id": 502,
+     "member_id": 8,
+     "level_id": 1,
+     "status": {
+      "id": 1,
+      "name": "approved"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": null
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/41/approvals",
+  "once": true,
+  "json": {
+   "approvals": [
+    {
+     "id": 501,
+     "member_id": 7,
+     "level_id": 1,
+     "status": {
+      "id": 0,
+      "name": "requested"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": "2026-11-01T09:00:00Z"
+    },
+    {
+     "id": 502,
+     "member_id": 8,
+     "level_id": 1,
+     "status": {
+      "id": 1,
+      "name": "approved"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": null
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/41/approvals",
+  "json": {
+   "approvals": [
+    {
+     "id": 501,
+     "member_id": 7,
+     "level_id": 1,
+     "status": {
+      "id": 0,
+      "name": "requested"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": "2026-11-01T10:00:00Z"
+    },
+    {
+     "id": 502,
+     "member_id": 8,
+     "level_id": 1,
+     "status": {
+      "id": 1,
+      "name": "approved"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": null
+    },
+    {
+     "id": 503,
+     "member_id": 9,
+     "level_id": 1,
+     "status": {
+      "id": 0,
+      "name": "requested"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": null
+    }
+   ]
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/changes/41/approvals",
+  "json": {}
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/41/approvals/501/resend",
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/42/approval-chains",
+  "json": {
+   "approval_chains": [],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/141/approval-chains",
+  "status": 400,
+  "json": {
+   "errors": "approval chains not enabled"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/141/approvals",
+  "once": true,
+  "json": {
+   "approvals": [
+    {
+     "id": 601,
+     "member_id": 33,
+     "level_id": 1,
+     "status": {
+      "id": 0,
+      "name": "requested"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": null
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/141/approvals",
+  "once": true,
+  "json": {
+   "approvals": [
+    {
+     "id": 601,
+     "member_id": 33,
+     "level_id": 1,
+     "status": {
+      "id": 0,
+      "name": "requested"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": null
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/141/approvals",
+  "json": {
+   "approvals": [
+    {
+     "id": 601,
+     "member_id": 33,
+     "level_id": 1,
+     "status": {
+      "id": 0,
+      "name": "requested"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": "2026-11-02T08:00:00Z"
+    },
+    {
+     "id": 602,
+     "member_id": 34,
+     "level_id": 1,
+     "status": {
+      "id": 0,
+      "name": "requested"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": null
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/approvals/approval_template",
+  "json": {
+   "approval_template": "<p>Please approve {{ticket.subject}}</p>"
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets/141/approvals",
+  "json": {}
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/141/approvals/601/resend",
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/requesters",
+  "json": {
+   "results": [
+    {
+     "id": 34,
+     "email": "cy@acme.com",
+     "value": "Cy Acme"
+    }
+   ]
+  }
+ }
+]

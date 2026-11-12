@@ -15,5 +15,14 @@
  {"name": "changes_tasks_delete_send", "fixture": "change_task_review", "hash_from": ["changes", "tasks-delete", "6", "5", "--dry-run"], "args": ["changes", "tasks-delete", "6", "5", "--yes", "--expect-plan", "{HASH}"]},
  {"name": "changes_tasks_delete_send_unverified", "fixture": "change_task_review", "hash_from": ["changes", "tasks-delete", "8", "6", "--dry-run"], "args": ["changes", "tasks-delete", "8", "6", "--yes", "--expect-plan", "{HASH}"]},
  {"name": "changes_tasks_delete_needs_expect_plan", "fixture": "change_task_review", "args": ["changes", "tasks-delete", "6", "5", "--yes"]},
- {"name": "changes_tasks_delete_unknown_task", "fixture": "change_task_review", "args": ["changes", "tasks-delete", "6", "99", "--dry-run"]}
+ {"name": "changes_tasks_delete_unknown_task", "fixture": "change_task_review", "args": ["changes", "tasks-delete", "6", "99", "--dry-run"]},
+ {"name": "changes_delete_dry_run", "fixture": "change_delete", "args": ["changes", "delete", "CHN-21", "--dry-run"]},
+ {"name": "changes_delete_send", "fixture": "change_delete", "hash_from": ["changes", "delete", "21", "--dry-run"], "args": ["changes", "delete", "21", "--confirm-destructive", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "changes_delete_send_unverified", "fixture": "change_delete", "hash_from": ["changes", "delete", "22", "--dry-run"], "args": ["changes", "delete", "22", "--confirm-destructive", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "changes_delete_needs_confirm_destructive", "fixture": "change_delete", "hash_from": ["changes", "delete", "21", "--dry-run"], "args": ["changes", "delete", "21", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "changes_delete_needs_expect_plan", "fixture": "change_delete", "args": ["changes", "delete", "21", "--confirm-destructive", "--yes"]},
+ {"name": "changes_delete_wrong_hash", "fixture": "change_delete", "args": ["changes", "delete", "21", "--confirm-destructive", "--yes", "--expect-plan", "0000"]},
+ {"name": "changes_delete_already_deleted_refused", "fixture": "change_delete", "args": ["changes", "delete", "23", "--dry-run"]},
+ {"name": "changes_delete_missing_refused", "fixture": "change_delete", "args": ["changes", "delete", "24", "--dry-run"]},
+ {"name": "changes_delete_bad_id", "fixture": "change_delete", "args": ["changes", "delete", "INC-21", "--dry-run"]}
 ]

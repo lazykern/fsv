@@ -15,7 +15,7 @@
 //! Expected output was captured from
 //! Python on the same routes (`tests/golden/emit_upstream.py`); one-shot
 //! routes serve the record before the write and the changed record after it.
-//! Python commit: 915df4c5698123216b7e6a7b6827a788e1ca6dc9
+//! Python commit: 7fcdea40050b962d13c70c38328c6d5ea4455ae1
 
 mod common;
 use common::{run_files, run_fixture};
@@ -9493,7 +9493,7 @@ fn problems_status_close_dry_run() {
   "payload": {
     "status": 3
   },
-  "plan_hash": "eb44b4be9a557fbbad39f224b5df273e5f200a664a64da08167335ecef4eed81",
+  "plan_hash": "2e3389e436dc56373dfab815125e119b35c9da3c85bcda2c57aa49d0e62d79b9",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "to": "Closed",
   "before": {
@@ -9526,7 +9526,7 @@ fn problems_status_close_send() {
             "closed",
             "--yes",
             "--expect-plan",
-            "eb44b4be9a557fbbad39f224b5df273e5f200a664a64da08167335ecef4eed81",
+            "2e3389e436dc56373dfab815125e119b35c9da3c85bcda2c57aa49d0e62d79b9",
         ],
         None,
     );
@@ -9535,7 +9535,7 @@ fn problems_status_close_send() {
         r.out,
         r#"{
   "status": "submitted",
-  "plan_hash": "eb44b4be9a557fbbad39f224b5df273e5f200a664a64da08167335ecef4eed81",
+  "plan_hash": "2e3389e436dc56373dfab815125e119b35c9da3c85bcda2c57aa49d0e62d79b9",
   "verified": true,
   "problem_id": 8,
   "readback": {
@@ -9563,7 +9563,7 @@ fn problems_status_close_rejected_by_server() {
             "closed",
             "--yes",
             "--expect-plan",
-            "eb44b4be9a557fbbad39f224b5df273e5f200a664a64da08167335ecef4eed81",
+            "2e3389e436dc56373dfab815125e119b35c9da3c85bcda2c57aa49d0e62d79b9",
         ],
         None,
     );
@@ -9588,7 +9588,7 @@ fn problems_status_close_missing_analysis_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"violated_closure_rules: missing Root Cause, Impact, Symptoms, linked workaround / solution
+        r#"violated_closure_rules: missing Root Cause, Impact, Symptoms
 "#
     );
 }
@@ -9661,6 +9661,586 @@ fn problems_status_readback_unverified() {
     );
     assert_eq!(r.err, r#""#);
     assert_eq!(r.write_paths(), ["PUT /api/_/problems/11"]);
+}
+
+#[test]
+fn problems_update_planned_dry_run() {
+    let r = run_fixture(
+        "problem_update",
+        &[
+            "problems",
+            "update",
+            "PRB-71",
+            "--planned-start",
+            "2030-01-02T09:00:00+00:00",
+            "--planned-end",
+            "2030-01-03T17:00:00Z",
+            "--planned-effort",
+            "1h30m",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "problem_planning",
+  "method": "PUT",
+  "path": "/api/_/problems/71",
+  "payload": {
+    "planned_effort": "1h 30m",
+    "planned_end_date": "2030-01-03T17:00:00+00:00",
+    "planned_start_date": "2030-01-02T09:00:00+00:00"
+  },
+  "plan_hash": "7f055221c7526683c96032d787164d89d2ec00e4a299c296258066f9470e7bd4",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "before": {
+    "planned_effort": null,
+    "planned_end_date": null,
+    "planned_start_date": null
+  },
+  "after": {
+    "planned_effort": "1h 30m",
+    "planned_end_date": "2030-01-03T17:00:00+00:00",
+    "planned_start_date": "2030-01-02T09:00:00+00:00"
+  },
+  "side_effects": "Tenant workflows may react to planning changes."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problems_update_planned_send() {
+    let r = run_fixture(
+        "problem_update",
+        &[
+            "problems",
+            "update",
+            "71",
+            "--planned-start",
+            "2030-01-02T09:00:00+00:00",
+            "--planned-end",
+            "2030-01-03T17:00:00Z",
+            "--planned-effort",
+            "01:30",
+            "--yes",
+            "--expect-plan",
+            "7f055221c7526683c96032d787164d89d2ec00e4a299c296258066f9470e7bd4",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "7f055221c7526683c96032d787164d89d2ec00e4a299c296258066f9470e7bd4",
+  "verified": true,
+  "problem_id": 71,
+  "fields": {
+    "planned_effort": "matched",
+    "planned_end_date": "matched",
+    "planned_start_date": "matched"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/problems/71"]);
+}
+
+#[test]
+fn problems_update_planned_send_unverified() {
+    let r = run_fixture(
+        "problem_update",
+        &[
+            "problems",
+            "update",
+            "76",
+            "--planned-effort",
+            "2h",
+            "--yes",
+            "--expect-plan",
+            "b0017b921cd5cae4f4c4a882d384729fa20177b302c1529e9aadc4b00134626f",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 4, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "b0017b921cd5cae4f4c4a882d384729fa20177b302c1529e9aadc4b00134626f",
+  "verified": false,
+  "problem_id": 76,
+  "fields": {
+    "planned_effort": "mismatched"
+  },
+  "warning": "Readback was not fully verified; do not resend."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/problems/76"]);
+}
+
+#[test]
+fn problems_update_planned_needs_expect_plan() {
+    let r = run_fixture(
+        "problem_update",
+        &[
+            "problems",
+            "update",
+            "71",
+            "--planned-effort",
+            "2h",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then --yes --expect-plan FULL_HASH
+"#
+    );
+}
+
+#[test]
+fn problems_update_planned_with_other_fields() {
+    let r = run_fixture(
+        "problem_update",
+        &[
+            "problems",
+            "update",
+            "71",
+            "--planned-effort",
+            "2h",
+            "--status",
+            "Closed",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: problem planned dates/effort are reviewed on their own; send other fields separately
+"#
+    );
+}
+
+#[test]
+fn problems_update_planned_end_before_start() {
+    let r = run_fixture(
+        "problem_update",
+        &[
+            "problems",
+            "update",
+            "71",
+            "--planned-start",
+            "2030-01-03T00:00:00Z",
+            "--planned-end",
+            "2030-01-02T00:00:00Z",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"planned end must not precede planned start
+"#
+    );
+}
+
+#[test]
+fn problems_update_planned_deleted_refused() {
+    let r = run_fixture(
+        "problem_update",
+        &[
+            "problems",
+            "update",
+            "72",
+            "--planned-effort",
+            "2h",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"problem 72 is deleted (in trash); restore it before updating
+"#
+    );
+}
+
+#[test]
+fn problems_update_planned_rules_unavailable() {
+    let r = run_fixture(
+        "problem_update_rules500",
+        &[
+            "problems",
+            "update",
+            "71",
+            "--planned-effort",
+            "2h",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "problem_planning",
+  "method": "PUT",
+  "path": "/api/_/problems/71",
+  "payload": {
+    "planned_effort": "2h 0m"
+  },
+  "plan_hash": "850aebf59aca79bb9cdf94424c45f6c431c86e4b720dc2edecca4b6295c7b292",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "before": {
+    "planned_effort": null
+  },
+  "after": {
+    "planned_effort": "2h 0m"
+  },
+  "side_effects": "Tenant workflows may react to planning changes.",
+  "warnings": [
+    "rules unavailable (the workspace-less path answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_update_planned_effort_refused() {
+    let r = run_fixture(
+        "problem_update",
+        &[
+            "tickets",
+            "update",
+            "5",
+            "--planned-effort",
+            "2h",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: --planned-effort is supported only for problems
+"#
+    );
+}
+
+#[test]
+fn problems_update_custom_field_dry_run() {
+    let r = run_fixture(
+        "problem_update",
+        &[
+            "problems",
+            "update",
+            "74",
+            "--status",
+            "Change Requested",
+            "--set",
+            "cf_owner_note=Acme new owner",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "dry_run": true,
+  "action": "update",
+  "id": "PRB-74",
+  "body": {
+    "status": 2,
+    "custom_fields": {
+      "cf_owner_note": "Acme new owner"
+    }
+  },
+  "requires_confirmation": [
+    "problem status -> Change Requested (status semantics and workflows require confirmation)"
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problems_update_custom_field_send() {
+    let r = run_fixture(
+        "problem_update",
+        &[
+            "problems",
+            "update",
+            "74",
+            "--set",
+            "Owner Note=Acme new owner",
+            "--yes",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "id": 74,
+  "human_display_id": "PRB-74",
+  "subject": "Acme problem 74",
+  "status": 2,
+  "deleted": false,
+  "planned_start_date": null,
+  "planned_end_date": null,
+  "planned_effort": null,
+  "custom_fields": {
+    "cf_owner_note": "Acme new owner"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/problems/74"]);
+}
+
+#[test]
+fn problems_update_deleted_refused() {
+    let r = run_fixture(
+        "problem_update",
+        &["problems", "update", "72", "--status", "Closed", "--yes"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: PRB-72 is deleted (in trash); restore it before updating
+"#
+    );
+}
+
+#[test]
+fn problems_update_not_editable_405() {
+    let r = run_fixture(
+        "problem_update",
+        &[
+            "problems",
+            "update",
+            "73",
+            "--set",
+            "cf_owner_note=x",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 5, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: HTTP 405 updating problem: PRB-73 is not editable (deleted or in trash?); nothing was changed
+"#
+    );
+    assert_eq!(r.write_paths(), ["PUT /api/_/problems/73"]);
+}
+
+#[test]
+fn problem_create_rules_unavailable_dry_run() {
+    let r = run_fixture(
+        "problem_flows_rules500",
+        &[
+            "problems",
+            "create",
+            "--requester",
+            "ann@acme.com",
+            "--set",
+            "Subject=Acme problem",
+            "--set",
+            "Description=Acme details",
+            "--set",
+            "Status=Open",
+            "--set",
+            "Priority=Low",
+            "--set",
+            "Impact=Low",
+            "--set",
+            "Acme count=7",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "problem_create",
+  "method": "POST",
+  "path": "/api/_/problems",
+  "payload": {
+    "custom_fields": {
+      "acme_count": 7
+    },
+    "description": "<div>Acme details</div>",
+    "email": "ann@acme.com",
+    "impact": 43,
+    "priority": 42,
+    "status": 41,
+    "subject": "Acme problem"
+  },
+  "plan_hash": "adc6cd21127a0c145263da19ed8a9908920811d35ee02a0714456b9aedcc280b",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "warnings": [
+    "rules unavailable (the workspace-less path answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problem_create_rules_unavailable_send() {
+    let r = run_fixture(
+        "problem_flows_rules500",
+        &[
+            "problems",
+            "create",
+            "--requester",
+            "ann@acme.com",
+            "--set",
+            "Subject=Acme problem",
+            "--set",
+            "Description=Acme details",
+            "--set",
+            "Status=Open",
+            "--set",
+            "Priority=Low",
+            "--set",
+            "Impact=Low",
+            "--set",
+            "Acme count=7",
+            "--yes",
+            "--expect-plan",
+            "adc6cd21127a0c145263da19ed8a9908920811d35ee02a0714456b9aedcc280b",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "adc6cd21127a0c145263da19ed8a9908920811d35ee02a0714456b9aedcc280b",
+  "verified": true,
+  "problem_id": 456,
+  "fields": {
+    "custom_fields": "matched",
+    "description": "matched",
+    "email": "matched",
+    "impact": "matched",
+    "priority": "matched",
+    "status": "matched",
+    "subject": "matched"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/problems"]);
+}
+
+#[test]
+fn problems_status_dry_run_rules_unavailable() {
+    let r = run_fixture(
+        "problem_status_rules500",
+        &[
+            "problems",
+            "status",
+            "PRB-7",
+            "--to",
+            "Change Requested",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "problem_status",
+  "method": "PUT",
+  "path": "/api/_/problems/7",
+  "payload": {
+    "status": 2
+  },
+  "plan_hash": "70a9d47607069930b1f910c99fd2f99bc4dd047f09fc26615c60431456d44e60",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "to": "Change Requested",
+  "before": {
+    "custom_fields": {
+      "cf_owner_note": "Acme owner"
+    },
+    "human_display_id": "PRB-7",
+    "id": 7,
+    "planned_end_date": null,
+    "planned_start_date": null,
+    "status": 1,
+    "subject": "Acme problem 7"
+  },
+  "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+  "warnings": [
+    "rules unavailable (the workspace-less path answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problems_status_needs_expect_plan_rules_unavailable() {
+    let r = run_fixture(
+        "problem_status_rules500",
+        &[
+            "problems",
+            "status",
+            "7",
+            "--to",
+            "Change Requested",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then --yes --expect-plan FULL_HASH
+"#
+    );
 }
 
 #[test]
@@ -10829,6 +11409,59 @@ fn ls_type_retired_never_lists() {
     assert_eq!(
         r.err,
         r#"error: no unique runtime choice 'Retired' for Type
+"#
+    );
+}
+
+#[test]
+fn where_tickets_search_error() {
+    let r = run_fixture(
+        "where_search_error",
+        &["tickets", "ls", "--where", "status=Open"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: the tickets list rejected the filter (search_error) and returned unfiltered rows; nothing shown
+"#
+    );
+}
+
+#[test]
+fn where_changes_search_error() {
+    let r = run_fixture(
+        "where_search_error",
+        &["changes", "ls", "--where", "status=Open"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: the changes list rejected the filter (search_error) and returned unfiltered rows; nothing shown
+"#
+    );
+}
+
+#[test]
+fn where_tickets_raw_search_error() {
+    let r = run_fixture(
+        "where_search_error",
+        &[
+            "tickets",
+            "ls",
+            "--query-hash",
+            "[{\"condition\":\"approval_status\",\"operator\":\"is_in\",\"value\":[\"0\"],\"type\":\"default\"}]",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: the tickets list rejected the filter (search_error) and returned unfiltered rows; nothing shown
 "#
     );
 }
@@ -12257,7 +12890,8 @@ fn tickets_assets_list() {
       "category": "Device"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "integrated"
 }
 "#
     );
@@ -12283,7 +12917,8 @@ fn tickets_assets_ls_services() {
       "category": "Business service"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "integrated"
 }
 "#
     );
@@ -12325,7 +12960,8 @@ fn sr_assets_list() {
       "category": "Device"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "integrated"
 }
 "#
     );
@@ -12351,7 +12987,8 @@ fn changes_assets_list() {
       "category": "Device"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "integrated"
 }
 "#
     );
@@ -12408,7 +13045,8 @@ fn changes_assets_bare_id_legacy_route() {
       "category": "Device"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "integrated"
 }
 "#
     );
@@ -12480,50 +13118,6 @@ fn tickets_assets_add_read_only() {
 }
 
 #[test]
-fn tickets_assets_add_send() {
-    let r = run_fixture(
-        "integrated_assets",
-        &[
-            "tickets",
-            "assets",
-            "add",
-            "123",
-            "702",
-            "--yes",
-            "--expect-plan",
-            "d19e0c8c13b1527ecd0172384defc5bfdd140554dfef9af321df2e5bcd9e3dd7",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "d19e0c8c13b1527ecd0172384defc5bfdd140554dfef9af321df2e5bcd9e3dd7",
-  "verified": true,
-  "readback": [
-    {
-      "item_id": 701,
-      "itam_cmdb_request_id": 9001,
-      "name": "Acme laptop",
-      "category": "Device"
-    },
-    {
-      "item_id": 702,
-      "itam_cmdb_request_id": 9002,
-      "name": "Acme router",
-      "category": "Device"
-    }
-  ]
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/123/associate-ci"]);
-}
-
-#[test]
 fn tickets_assets_add_present_refused() {
     let r = run_fixture(
         "integrated_assets",
@@ -12563,37 +13157,6 @@ fn problems_assets_remove_dry_run() {
 "#
     );
     assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn problems_assets_remove_send() {
-    let r = run_fixture(
-        "integrated_assets",
-        &[
-            "problems",
-            "assets",
-            "remove",
-            "7",
-            "701",
-            "--yes",
-            "--expect-plan",
-            "0618c43448bada19366f3f2275b1f0cf575c2c265292786c8ea1da18e2380b43",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "0618c43448bada19366f3f2275b1f0cf575c2c265292786c8ea1da18e2380b43",
-  "verified": true,
-  "readback": []
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/problems/7/disassociate-ci"]);
 }
 
 #[test]
@@ -12674,6 +13237,353 @@ fn changes_assets_add_wrong_hash() {
         r#"review with --dry-run, then --yes --expect-plan FULL_HASH
 "#
     );
+}
+
+#[test]
+fn tickets_assets_list_legacy_driver() {
+    let r = run_fixture(
+        "legacy_assets",
+        &["tickets", "assets", "list", "INC-151"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "data": [
+    {
+      "config_item": {
+        "display_id": 3001,
+        "name": "Acme laptop 1"
+      }
+    }
+  ],
+  "complete": true,
+  "driver": "legacy"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_assets_list_legacy_services_refused() {
+    let r = run_fixture(
+        "legacy_assets",
+        &["tickets", "assets", "list", "151", "--kind", "services"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"the legacy asset association list has no business services; use the web UI
+"#
+    );
+}
+
+#[test]
+fn tickets_assets_list_no_driver() {
+    let r = run_fixture("legacy_assets", &["tickets", "assets", "list", "152"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"no asset association endpoint found for tickets 152 (associated-cis and the legacy asset list both answered 404); nothing read or sent
+"#
+    );
+}
+
+#[test]
+fn changes_assets_list_legacy_driver() {
+    let r = run_fixture(
+        "legacy_assets",
+        &["changes", "assets", "list", "CHN-51"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "data": [
+    {
+      "config_item": {
+        "display_id": 4001,
+        "name": "Acme router A"
+      }
+    },
+    {
+      "config_item": {
+        "display_id": 4002,
+        "name": "Acme router B"
+      }
+    }
+  ],
+  "complete": true,
+  "driver": "legacy"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problems_assets_list_no_driver() {
+    let r = run_fixture("legacy_assets", &["problems", "assets", "list", "61"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"no asset association endpoint found for problems 61 (associated-cis and the legacy asset list both answered 404); nothing read or sent
+"#
+    );
+}
+
+#[test]
+fn tickets_assets_candidates() {
+    let r = run_fixture(
+        "legacy_assets",
+        &["tickets", "assets", "candidates", "151"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "data": [
+    {
+      "display_id": 3001,
+      "name": "Acme laptop 1"
+    },
+    {
+      "display_id": 3002,
+      "name": "Acme laptop 2"
+    }
+  ],
+  "complete": true
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn changes_assets_candidates() {
+    let r = run_fixture(
+        "legacy_assets",
+        &["changes", "assets", "candidates", "51", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "data": [
+    {
+      "display_id": 4003,
+      "name": "Acme router C"
+    }
+  ],
+  "complete": true
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn sr_assets_candidates() {
+    let r = run_fixture(
+        "legacy_assets",
+        &["sr", "assets", "candidates", "151"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "data": [
+    {
+      "display_id": 3001,
+      "name": "Acme laptop 1"
+    },
+    {
+      "display_id": 3002,
+      "name": "Acme laptop 2"
+    }
+  ],
+  "complete": true
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problems_assets_candidates_refused() {
+    let r = run_fixture(
+        "legacy_assets",
+        &["problems", "assets", "candidates", "61"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"no legacy asset association for this module
+"#
+    );
+}
+
+#[test]
+fn tickets_assets_add_legacy_dry_run() {
+    let r = run_fixture(
+        "legacy_assets",
+        &["tickets", "assets", "add", "151", "3002", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "legacy_asset_add",
+  "method": "PUT",
+  "path": "/api/_/tickets/151/associate_assets",
+  "payload": {
+    "item_ids": [
+      3002
+    ]
+  },
+  "plan_hash": "bc387ef9c51c23eed5bba351a9b635e3287bcc4137ae6d5a2a0be223b1fdc5a8",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_assets_add_legacy_present_refused() {
+    let r = run_fixture(
+        "legacy_assets",
+        &["tickets", "assets", "add", "151", "3001", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"requested asset is already associated; omit it
+"#
+    );
+}
+
+#[test]
+fn tickets_assets_add_legacy_not_offered() {
+    let r = run_fixture(
+        "legacy_assets",
+        &["tickets", "assets", "add", "151", "3999", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"asset display ID is not among the assets the web offers for this record (assets-to-associate); nothing sent
+"#
+    );
+}
+
+#[test]
+fn tickets_assets_remove_legacy_refused() {
+    let r = run_fixture(
+        "legacy_assets",
+        &["tickets", "assets", "remove", "151", "3001", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"removing a legacy asset association has no captured wire; use the web UI; nothing sent
+"#
+    );
+}
+
+#[test]
+fn tickets_assets_add_send() {
+    let r = run_fixture(
+        "integrated_assets",
+        &[
+            "tickets",
+            "assets",
+            "add",
+            "123",
+            "702",
+            "--yes",
+            "--expect-plan",
+            "d19e0c8c13b1527ecd0172384defc5bfdd140554dfef9af321df2e5bcd9e3dd7",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "d19e0c8c13b1527ecd0172384defc5bfdd140554dfef9af321df2e5bcd9e3dd7",
+  "verified": true,
+  "readback": [
+    {
+      "item_id": 701,
+      "itam_cmdb_request_id": 9001,
+      "name": "Acme laptop",
+      "category": "Device"
+    },
+    {
+      "item_id": 702,
+      "itam_cmdb_request_id": 9002,
+      "name": "Acme router",
+      "category": "Device"
+    }
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/123/associate-ci"]);
+}
+
+#[test]
+fn problems_assets_remove_send() {
+    let r = run_fixture(
+        "integrated_assets",
+        &[
+            "problems",
+            "assets",
+            "remove",
+            "7",
+            "701",
+            "--yes",
+            "--expect-plan",
+            "0618c43448bada19366f3f2275b1f0cf575c2c265292786c8ea1da18e2380b43",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "0618c43448bada19366f3f2275b1f0cf575c2c265292786c8ea1da18e2380b43",
+  "verified": true,
+  "readback": []
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/problems/7/disassociate-ci"]);
 }
 
 #[test]
@@ -12777,73 +13687,6 @@ fn sr_approvals_request_dry_run() {
 "#
     );
     assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn sr_approvals_request_send() {
-    let r = run_fixture(
-        "sr_approvals",
-        &[
-            "sr",
-            "approvals",
-            "request",
-            "131",
-            "--name",
-            "Acme release",
-            "--message",
-            "Please review",
-            "--approver",
-            "33",
-            "--approver",
-            "bo@acme.com",
-            "--yes",
-            "--expect-plan",
-            "75b567e5683325df96708d71a0e88cdb2cded3002d885521564e994ebd9e7a5f",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "75b567e5683325df96708d71a0e88cdb2cded3002d885521564e994ebd9e7a5f",
-  "verified": true,
-  "readback": [
-    {
-      "id": 41,
-      "name": "Acme release",
-      "approval_type": 1,
-      "approval_status": 0,
-      "approvals": [
-        {
-          "id": 411,
-          "member_id": 33,
-          "status": {
-            "id": 0,
-            "name": "requested"
-          },
-          "last_reminded_at": null,
-          "remark": []
-        },
-        {
-          "id": 412,
-          "member_id": 34,
-          "status": {
-            "id": 0,
-            "name": "requested"
-          },
-          "last_reminded_at": null,
-          "remark": []
-        }
-      ]
-    }
-  ]
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["POST /api/_/tickets/131/approval-groups"]);
 }
 
 #[test]
@@ -12966,53 +13809,6 @@ fn sr_approvals_approve_dry_run() {
 "#
     );
     assert_eq!(r.err, r#""#);
-}
-
-#[test]
-fn sr_approvals_approve_send() {
-    let r = run_fixture(
-        "sr_approvals",
-        &[
-            "sr",
-            "approvals",
-            "approve",
-            "132",
-            "401",
-            "--remark",
-            "Acme ok",
-            "--yes",
-            "--expect-plan",
-            "8b92b7dca6c615da81c833754e4b2e3645c3f5a0a7b8c66d26b0ec786d15d39a",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "8b92b7dca6c615da81c833754e4b2e3645c3f5a0a7b8c66d26b0ec786d15d39a",
-  "verified": true,
-  "readback": {
-    "id": 401,
-    "member_id": 31,
-    "status": {
-      "id": 1,
-      "name": "approved"
-    },
-    "last_reminded_at": null,
-    "remark": [
-      {
-        "status": 1,
-        "data": "Acme ok"
-      }
-    ]
-  }
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/132/approvals/401"]);
 }
 
 #[test]
@@ -13145,6 +13941,860 @@ fn sr_approvals_unknown_record() {
         r#"exact approval/group ID unavailable
 "#
     );
+}
+
+#[test]
+fn changes_legacy_approval_request_dry_run() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "changes",
+            "approval-request",
+            "41",
+            "--approver",
+            "9",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "legacy_approval_request_changes",
+  "method": "POST",
+  "path": "/api/_/changes/41/approvals",
+  "payload": {
+    "approval_type": 1,
+    "notified_to": [
+      9
+    ]
+  },
+  "plan_hash": "916110e317f45641553de1847f1942866f64325835be99d9593013f01e3d77dd",
+  "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
+  "driver": "legacy",
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
+  "operation": "request",
+  "recipient_sources": [],
+  "recipients": [
+    9
+  ],
+  "rule": "everyone",
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn changes_legacy_approval_request_send() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "changes",
+            "approval-request",
+            "41",
+            "--approver",
+            "9",
+            "--yes",
+            "--expect-plan",
+            "916110e317f45641553de1847f1942866f64325835be99d9593013f01e3d77dd",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "916110e317f45641553de1847f1942866f64325835be99d9593013f01e3d77dd",
+  "verified": true,
+  "approval_ids": [
+    503
+  ],
+  "readback": [
+    {
+      "id": 503,
+      "member_id": 9,
+      "level_id": 1,
+      "status": {
+        "id": 0,
+        "name": "requested"
+      },
+      "type": {
+        "id": 1,
+        "name": "everyone"
+      },
+      "last_reminded_at": null
+    }
+  ],
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant"
+}
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"{
+  "action": "legacy_approval_request_changes",
+  "method": "POST",
+  "path": "/api/_/changes/41/approvals",
+  "payload": {
+    "approval_type": 1,
+    "notified_to": [
+      9
+    ]
+  },
+  "plan_hash": "916110e317f45641553de1847f1942866f64325835be99d9593013f01e3d77dd",
+  "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
+  "driver": "legacy",
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
+  "operation": "request",
+  "recipient_sources": [],
+  "recipients": [
+    9
+  ],
+  "rule": "everyone",
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+}
+"#
+    );
+    assert_eq!(r.write_paths(), ["POST /api/_/changes/41/approvals"]);
+}
+
+#[test]
+fn changes_legacy_approval_request_no_input() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "changes",
+            "approval-request",
+            "41",
+            "--approver",
+            "9",
+            "--no-input",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"{
+  "action": "legacy_approval_request_changes",
+  "method": "POST",
+  "path": "/api/_/changes/41/approvals",
+  "payload": {
+    "approval_type": 1,
+    "notified_to": [
+      9
+    ]
+  },
+  "plan_hash": "916110e317f45641553de1847f1942866f64325835be99d9593013f01e3d77dd",
+  "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
+  "driver": "legacy",
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
+  "operation": "request",
+  "recipient_sources": [],
+  "recipients": [
+    9
+  ],
+  "rule": "everyone",
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+}
+sending requires --yes and --expect-plan in no-input mode
+"#
+    );
+}
+
+#[test]
+fn changes_legacy_approval_request_name_refused() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "changes",
+            "approval-request",
+            "41",
+            "--model",
+            "legacy",
+            "--name",
+            "CAB",
+            "--message",
+            "hi",
+            "--approver",
+            "9",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"--name/--message do not apply to legacy flat approvals (no group name or message on the wire)
+"#
+    );
+}
+
+#[test]
+fn changes_legacy_approval_request_auto_ignores_name() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "changes",
+            "approval-request",
+            "41",
+            "--name",
+            "CAB",
+            "--message",
+            "hi",
+            "--approver",
+            "9",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "legacy_approval_request_changes",
+  "method": "POST",
+  "path": "/api/_/changes/41/approvals",
+  "payload": {
+    "approval_type": 1,
+    "notified_to": [
+      9
+    ]
+  },
+  "plan_hash": "916110e317f45641553de1847f1942866f64325835be99d9593013f01e3d77dd",
+  "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
+  "driver": "legacy",
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
+  "operation": "request",
+  "recipient_sources": [],
+  "recipients": [
+    9
+  ],
+  "rule": "everyone",
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn changes_legacy_approval_request_group_refused() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "changes",
+            "approval-request",
+            "41",
+            "--approver-group",
+            "Ops",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"--approver-group has no legacy flat-approval equivalent; use --cab or --approver
+"#
+    );
+}
+
+#[test]
+fn changes_legacy_approval_request_bad_rule() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "changes",
+            "approval-request",
+            "41",
+            "--approver",
+            "9",
+            "--rule",
+            "majority",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"legacy approvals support only the observed rules: everyone, first-responder
+"#
+    );
+}
+
+#[test]
+fn changes_approval_request_bad_model() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "changes",
+            "approval-request",
+            "41",
+            "--approver",
+            "9",
+            "--model",
+            "flat",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"--model must be auto, chains or legacy
+"#
+    );
+}
+
+#[test]
+fn changes_approval_request_chains_needs_name() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "changes",
+            "approval-request",
+            "41",
+            "--approver",
+            "9",
+            "--model",
+            "chains",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"--name and --message are required on the approval chains model
+"#
+    );
+}
+
+#[test]
+fn changes_approval_request_auto_chains_needs_name() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "changes",
+            "approval-request",
+            "42",
+            "--approver",
+            "9",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"--name and --message are required on the approval chains model
+"#
+    );
+}
+
+#[test]
+fn changes_approval_remind_dry_run() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &["changes", "approval-remind", "41", "501", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "legacy_approval_remind_changes",
+  "method": "PUT",
+  "path": "/api/_/changes/41/approvals/501/resend",
+  "payload": null,
+  "plan_hash": "7b3ef6dac6f92c414b23ee7774b47d87f96a7393aa5fd2c6c0f977c836641ea5",
+  "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
+  "driver": "legacy",
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
+  "approval_id": 501,
+  "operation": "remind",
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn changes_approval_remind_send() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "changes",
+            "approval-remind",
+            "41",
+            "501",
+            "--yes",
+            "--expect-plan",
+            "7b3ef6dac6f92c414b23ee7774b47d87f96a7393aa5fd2c6c0f977c836641ea5",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "7b3ef6dac6f92c414b23ee7774b47d87f96a7393aa5fd2c6c0f977c836641ea5",
+  "verified": true,
+  "readback": {
+    "id": 501,
+    "member_id": 7,
+    "level_id": 1,
+    "status": {
+      "id": 0,
+      "name": "requested"
+    },
+    "type": {
+      "id": 1,
+      "name": "everyone"
+    },
+    "last_reminded_at": "2026-11-01T10:00:00Z"
+  },
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.write_paths(),
+        ["PUT /api/_/changes/41/approvals/501/resend"]
+    );
+}
+
+#[test]
+fn changes_approval_remind_needs_expect_plan() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &["changes", "approval-remind", "41", "501", "--yes"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then --yes --expect-plan FULL_HASH
+"#
+    );
+}
+
+#[test]
+fn changes_approval_remind_not_requested() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &["changes", "approval-remind", "41", "502", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"only a requested approval (raw status 0) can be reminded
+"#
+    );
+}
+
+#[test]
+fn changes_approval_remind_chains_refused() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &["changes", "approval-remind", "42", "501", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"approval-remind: no change reminder wire was captured on the approval chains model; use the web UI
+"#
+    );
+}
+
+#[test]
+fn sr_legacy_approvals_list() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &["sr", "approvals", "list", "SR-141"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "model": "legacy",
+  "note": "this tenant uses legacy flat approvals (approval-chains answered HTTP 400)",
+  "approvals": [
+    {
+      "id": 601,
+      "member_id": 33,
+      "level_id": 1,
+      "status": {
+        "id": 0,
+        "name": "requested"
+      },
+      "type": {
+        "id": 1,
+        "name": "everyone"
+      },
+      "last_reminded_at": null
+    }
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn sr_legacy_approvals_request_dry_run() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "sr",
+            "approvals",
+            "request",
+            "141",
+            "--approver",
+            "cy@acme.com",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "legacy_approval_request_tickets",
+  "method": "POST",
+  "path": "/api/_/tickets/141/approvals",
+  "payload": {
+    "approval_type": 1,
+    "email_content": "<p>Please approve {{ticket.subject}}</p>",
+    "notified_to": [
+      34
+    ]
+  },
+  "plan_hash": "7c7e0d7275ea20e44a54f90a013ac20c47559bd1e6c3fc45f6c69a5aa8d02f68",
+  "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
+  "driver": "legacy",
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
+  "operation": "request",
+  "recipient_sources": [],
+  "recipients": [
+    34
+  ],
+  "rule": "everyone",
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn sr_legacy_approvals_request_send() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "sr",
+            "approvals",
+            "request",
+            "141",
+            "--approver",
+            "cy@acme.com",
+            "--yes",
+            "--expect-plan",
+            "7c7e0d7275ea20e44a54f90a013ac20c47559bd1e6c3fc45f6c69a5aa8d02f68",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "7c7e0d7275ea20e44a54f90a013ac20c47559bd1e6c3fc45f6c69a5aa8d02f68",
+  "verified": true,
+  "approval_ids": [
+    602
+  ],
+  "readback": [
+    {
+      "id": 602,
+      "member_id": 34,
+      "level_id": 1,
+      "status": {
+        "id": 0,
+        "name": "requested"
+      },
+      "type": {
+        "id": 1,
+        "name": "everyone"
+      },
+      "last_reminded_at": null
+    }
+  ],
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/141/approvals"]);
+}
+
+#[test]
+fn sr_legacy_approvals_request_name_refused() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "sr",
+            "approvals",
+            "request",
+            "141",
+            "--name",
+            "x",
+            "--approver",
+            "34",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"--name/--message do not apply to legacy flat approvals; the email is the tenant's approval template
+"#
+    );
+}
+
+#[test]
+fn sr_legacy_approvals_remind_dry_run() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &["sr", "approvals", "remind", "141", "601", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "legacy_approval_remind_tickets",
+  "method": "PUT",
+  "path": "/api/_/tickets/141/approvals/601/resend",
+  "payload": null,
+  "plan_hash": "bdb9974790129a90841ad2654ac206ba7877ee5e134bbdd9c19dcd919e17d763",
+  "warning": "Approval emails are irreversible and cannot be recalled (no legacy cancel). Single-attempt write; an unknown outcome must be inspected, never resent.",
+  "driver": "legacy",
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant",
+  "approval_id": 601,
+  "operation": "remind",
+  "verification": "Independent read of the flat approvals list only; the write response is not trusted."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn sr_legacy_approvals_remind_send() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &[
+            "sr",
+            "approvals",
+            "remind",
+            "141",
+            "601",
+            "--yes",
+            "--expect-plan",
+            "bdb9974790129a90841ad2654ac206ba7877ee5e134bbdd9c19dcd919e17d763",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "bdb9974790129a90841ad2654ac206ba7877ee5e134bbdd9c19dcd919e17d763",
+  "verified": true,
+  "readback": {
+    "id": 601,
+    "member_id": 33,
+    "level_id": 1,
+    "status": {
+      "id": 0,
+      "name": "requested"
+    },
+    "type": {
+      "id": 1,
+      "name": "everyone"
+    },
+    "last_reminded_at": "2026-11-02T08:00:00Z"
+  },
+  "provenance": "legacy flat approvals driver: capture-based, not yet live-proven on any tenant"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.write_paths(),
+        ["PUT /api/_/tickets/141/approvals/601/resend"]
+    );
+}
+
+#[test]
+fn sr_legacy_approvals_approve_refused() {
+    let r = run_fixture(
+        "legacy_approvals",
+        &["sr", "approvals", "approve", "141", "601", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"sr approvals approve refused: this tenant uses legacy flat approvals (approval-chains answered HTTP 400); legacy flat approvals: not yet supported
+"#
+    );
+}
+
+#[test]
+fn sr_approvals_request_send() {
+    let r = run_fixture(
+        "sr_approvals",
+        &[
+            "sr",
+            "approvals",
+            "request",
+            "131",
+            "--name",
+            "Acme release",
+            "--message",
+            "Please review",
+            "--approver",
+            "33",
+            "--approver",
+            "bo@acme.com",
+            "--yes",
+            "--expect-plan",
+            "75b567e5683325df96708d71a0e88cdb2cded3002d885521564e994ebd9e7a5f",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "75b567e5683325df96708d71a0e88cdb2cded3002d885521564e994ebd9e7a5f",
+  "verified": true,
+  "readback": [
+    {
+      "id": 41,
+      "name": "Acme release",
+      "approval_type": 1,
+      "approval_status": 0,
+      "approvals": [
+        {
+          "id": 411,
+          "member_id": 33,
+          "status": {
+            "id": 0,
+            "name": "requested"
+          },
+          "last_reminded_at": null,
+          "remark": []
+        },
+        {
+          "id": 412,
+          "member_id": 34,
+          "status": {
+            "id": 0,
+            "name": "requested"
+          },
+          "last_reminded_at": null,
+          "remark": []
+        }
+      ]
+    }
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/131/approval-groups"]);
+}
+
+#[test]
+fn sr_approvals_approve_send() {
+    let r = run_fixture(
+        "sr_approvals",
+        &[
+            "sr",
+            "approvals",
+            "approve",
+            "132",
+            "401",
+            "--remark",
+            "Acme ok",
+            "--yes",
+            "--expect-plan",
+            "8b92b7dca6c615da81c833754e4b2e3645c3f5a0a7b8c66d26b0ec786d15d39a",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "8b92b7dca6c615da81c833754e4b2e3645c3f5a0a7b8c66d26b0ec786d15d39a",
+  "verified": true,
+  "readback": {
+    "id": 401,
+    "member_id": 31,
+    "status": {
+      "id": 1,
+      "name": "approved"
+    },
+    "last_reminded_at": null,
+    "remark": [
+      {
+        "status": 1,
+        "data": "Acme ok"
+      }
+    ]
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/132/approvals/401"]);
 }
 
 #[test]
@@ -15842,6 +17492,212 @@ fn changes_tasks_delete_unknown_task() {
     assert_eq!(
         r.err,
         r#"error: exact task unavailable
+"#
+    );
+}
+
+#[test]
+fn changes_delete_dry_run() {
+    let r = run_fixture(
+        "change_delete",
+        &["changes", "delete", "CHN-21", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "change_delete",
+  "method": "DELETE",
+  "path": "/api/_/changes/21",
+  "payload": null,
+  "plan_hash": "8ba6069294d932fb4174863a44ad873fdcb249181e7f1b9928dd60e4e2d1a248",
+  "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
+  "change_id": 21,
+  "subject": "Acme firewall rollout"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn changes_delete_send() {
+    let r = run_fixture(
+        "change_delete",
+        &[
+            "changes",
+            "delete",
+            "21",
+            "--confirm-destructive",
+            "--yes",
+            "--expect-plan",
+            "8ba6069294d932fb4174863a44ad873fdcb249181e7f1b9928dd60e4e2d1a248",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "8ba6069294d932fb4174863a44ad873fdcb249181e7f1b9928dd60e4e2d1a248",
+  "verified": true,
+  "change_id": 21,
+  "fields": {
+    "deleted": "matched"
+  },
+  "readback_attempts": 1
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["DELETE /api/_/changes/21"]);
+}
+
+#[test]
+fn changes_delete_send_unverified() {
+    let r = run_fixture(
+        "change_delete",
+        &[
+            "changes",
+            "delete",
+            "22",
+            "--confirm-destructive",
+            "--yes",
+            "--expect-plan",
+            "36b8f62c3eb1ab5beb1124cacc8d011a69ea65c0f89516bb71447497f06a1a0c",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 4, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "36b8f62c3eb1ab5beb1124cacc8d011a69ea65c0f89516bb71447497f06a1a0c",
+  "verified": false,
+  "change_id": 22,
+  "fields": {
+    "deleted": "mismatched"
+  },
+  "readback_attempts": 4,
+  "warning": "Readback was not fully verified; do not resend."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["DELETE /api/_/changes/22"]);
+}
+
+#[test]
+fn changes_delete_needs_confirm_destructive() {
+    let r = run_fixture(
+        "change_delete",
+        &[
+            "changes",
+            "delete",
+            "21",
+            "--yes",
+            "--expect-plan",
+            "8ba6069294d932fb4174863a44ad873fdcb249181e7f1b9928dd60e4e2d1a248",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: change delete requires --confirm-destructive after inspecting the review
+"#
+    );
+}
+
+#[test]
+fn changes_delete_needs_expect_plan() {
+    let r = run_fixture(
+        "change_delete",
+        &["changes", "delete", "21", "--confirm-destructive", "--yes"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: review with --dry-run, then --confirm-destructive --yes --expect-plan FULL_HASH
+"#
+    );
+}
+
+#[test]
+fn changes_delete_wrong_hash() {
+    let r = run_fixture(
+        "change_delete",
+        &[
+            "changes",
+            "delete",
+            "21",
+            "--confirm-destructive",
+            "--yes",
+            "--expect-plan",
+            "0000",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: review with --dry-run, then --confirm-destructive --yes --expect-plan FULL_HASH
+"#
+    );
+}
+
+#[test]
+fn changes_delete_already_deleted_refused() {
+    let r = run_fixture(
+        "change_delete",
+        &["changes", "delete", "23", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: change must be readable with deleted:false before deletion
+"#
+    );
+}
+
+#[test]
+fn changes_delete_missing_refused() {
+    let r = run_fixture(
+        "change_delete",
+        &["changes", "delete", "24", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 5, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: HTTP 404 fetching change: not found
+"#
+    );
+}
+
+#[test]
+fn changes_delete_bad_id() {
+    let r = run_fixture(
+        "change_delete",
+        &["changes", "delete", "INC-21", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: prefix INC not valid for changes (expect CHN)
 "#
     );
 }

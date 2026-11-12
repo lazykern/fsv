@@ -1,0 +1,412 @@
+[
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/agents",
+  "query": {
+   "q": "Bob Ray"
+  },
+  "json": {
+   "results": [
+    {
+     "id": 41,
+     "user_id": 141,
+     "email": "bob@acme.com",
+     "value": "Bob Ray"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/agents",
+  "query": {
+   "q": "nouid"
+  },
+  "json": {
+   "results": [
+    {
+     "id": 42,
+     "email": "x@acme.com",
+     "value": "nouid"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/agents",
+  "json": {
+   "results": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/requesters",
+  "query": {
+   "q": "sue@acme.com"
+  },
+  "json": {
+   "results": [
+    {
+     "id": 51,
+     "value": "Sue Park",
+     "email": "sue@acme.com"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/search/autocomplete/requesters",
+  "json": {
+   "results": [
+    {
+     "id": 52,
+     "value": "Ann Lee",
+     "email": "ann@acme.com"
+    },
+    {
+     "id": 53,
+     "value": "Ann Lee",
+     "email": "ann2@acme.com"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_form_fields",
+  "json": {
+   "ticket_fields": [
+    {
+     "name": "status",
+     "label": "Status",
+     "field_type": "default_status",
+     "default_field": true,
+     "choices": [
+      {
+       "id": 2,
+       "value": "Open"
+      },
+      {
+       "id": 4,
+       "value": "Resolved"
+      }
+     ]
+    },
+    {
+     "name": "priority",
+     "label": "Priority",
+     "field_type": "default_priority",
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Low"
+      },
+      {
+       "id": 2,
+       "value": "Medium"
+      }
+     ]
+    },
+    {
+     "name": "requester",
+     "label": "Requester",
+     "field_type": "default_requester",
+     "default_field": true
+    },
+    {
+     "name": "agent",
+     "label": "Agent",
+     "field_type": "default_agent",
+     "default_field": true
+    },
+    {
+     "name": "group",
+     "label": "Group",
+     "field_type": "default_group",
+     "default_field": true
+    },
+    {
+     "name": "department",
+     "label": "Department",
+     "field_type": "default_department",
+     "default_field": true,
+     "choices": [
+      {
+       "id": 21,
+       "value": "IT"
+      },
+      {
+       "id": 22,
+       "value": "None"
+      }
+     ]
+    },
+    {
+     "name": "cf_env",
+     "label": "Environment",
+     "field_type": "custom_dropdown",
+     "default_field": false,
+     "choices": [
+      {
+       "id": 11,
+       "value": "Prod"
+      },
+      {
+       "id": 12,
+       "value": "UAT"
+      }
+     ]
+    },
+    {
+     "name": "cf_count",
+     "label": "Count",
+     "field_type": "custom_number",
+     "default_field": false
+    },
+    {
+     "name": "cf_note",
+     "label": "Note",
+     "field_type": "custom_text",
+     "default_field": false
+    },
+    {
+     "name": "due_by",
+     "label": "Due Date",
+     "field_type": "default_due_by",
+     "default_field": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/v2/ticket_form_fields",
+  "status": 403,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/bootstrap/agents_groups",
+  "json": {
+   "groups": [
+    {
+     "id": 7,
+     "name": "Ops"
+    },
+    {
+     "id": 8,
+     "name": "Ops Night"
+    },
+    {
+     "id": 9,
+     "name": "DBA"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/v2/agents/me",
+  "json": {
+   "agent": {
+    "id": 99,
+    "first_name": "Me",
+    "last_name": "Agent",
+    "time_zone": "Bangkok"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters",
+  "json": {
+   "ticket_filters": [
+    {
+     "id": "new_and_my_open",
+     "name": "Open in my groups",
+     "default": true
+    },
+    {
+     "id": 101,
+     "name": "My Saved",
+     "user_id": 99,
+     "order_by": "priority",
+     "order_type": "asc"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_filters/101",
+  "json": {
+   "ticket_filter": {
+    "id": 101,
+    "order_by": "priority",
+    "order_type": "asc"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/headers",
+  "json": {
+   "headers": [
+    {
+     "name": "subject",
+     "label": "Subject"
+    },
+    {
+     "name": "status",
+     "label": "Status"
+    },
+    {
+     "name": "priority",
+     "label": "Priority"
+    },
+    {
+     "name": "group_id",
+     "label": "Group"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets",
+  "query": {
+   "page": "2"
+  },
+  "json": {
+   "tickets": [
+    {
+     "id": 3,
+     "display_id": 3,
+     "subject": "Item 3",
+     "status": 2,
+     "priority": 1,
+     "group_id": 7,
+     "responder_id": 99,
+     "requester": {
+      "name": "Ann"
+     },
+     "created_at": "2024-03-01T10:00:00Z",
+     "updated_at": "2024-03-02T10:00:00Z",
+     "due_by": "2024-03-05T10:00:00Z"
+    }
+   ],
+   "meta": {
+    "total_count": 3
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets",
+  "json": {
+   "tickets": [
+    {
+     "id": 1,
+     "display_id": 1,
+     "subject": "Item 1",
+     "status": 2,
+     "priority": 1,
+     "group_id": 7,
+     "responder_id": 99,
+     "requester": {
+      "name": "Ann"
+     },
+     "created_at": "2024-03-01T10:00:00Z",
+     "updated_at": "2024-03-02T10:00:00Z",
+     "due_by": "2024-03-05T10:00:00Z"
+    },
+    {
+     "id": 2,
+     "display_id": 2,
+     "subject": "Second [x]",
+     "status": 4,
+     "priority": 1,
+     "group_id": 7,
+     "responder_id": 99,
+     "requester": {
+      "name": "Ann"
+     },
+     "created_at": "2024-03-01T10:00:00Z",
+     "updated_at": "2024-03-02T10:00:00Z",
+     "due_by": "2024-03-05T10:00:00Z"
+    }
+   ],
+   "meta": {
+    "total_count": 3,
+    "search_error": true
+   }
+  },
+  "status": 206
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change-filters",
+  "status": 403,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes",
+  "json": {
+   "changes": [
+    {
+     "id": 4,
+     "display_id": 4,
+     "subject": "Chg",
+     "status": 1,
+     "created_at": "2024-03-01T10:00:00Z"
+    }
+   ],
+   "meta": {
+    "count": 1,
+    "search_error": true
+   }
+  },
+  "status": 206
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/change_form_fields",
+  "json": {
+   "change_fields": [
+    {
+     "name": "status",
+     "label": "Status",
+     "field_type": "default_status",
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Open"
+      }
+     ]
+    },
+    {
+     "name": "agent",
+     "label": "Agent",
+     "field_type": "default_agent",
+     "default_field": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/v2/change_form_fields",
+  "status": 403,
+  "json": {}
+ }
+]

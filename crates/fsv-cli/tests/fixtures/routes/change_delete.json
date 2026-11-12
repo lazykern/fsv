@@ -1,0 +1,97 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/21",
+  "json": {
+   "change": {
+    "id": 21,
+    "display_id": 21,
+    "subject": "Acme firewall rollout",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/21",
+  "json": {
+   "change": {
+    "id": 21,
+    "display_id": 21,
+    "subject": "Acme firewall rollout",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/21",
+  "json": {
+   "change": {
+    "id": 21,
+    "display_id": 21,
+    "subject": "Acme firewall rollout",
+    "deleted": true,
+    "status": 1,
+    "updated_at": "2026-11-01T10:05:00Z"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/22",
+  "json": {
+   "change": {
+    "id": 22,
+    "display_id": 22,
+    "subject": "Acme DNS cutover",
+    "deleted": false,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/23",
+  "json": {
+   "change": {
+    "id": 23,
+    "display_id": 23,
+    "subject": "Acme old change",
+    "deleted": true,
+    "status": 1,
+    "updated_at": "2026-11-01T10:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/24",
+  "status": 404,
+  "json": {
+   "errors": "not found"
+  }
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/changes/21",
+  "status": 204
+ },
+ {
+  "method": "DELETE",
+  "path": "/api/_/changes/22",
+  "status": 204
+ }
+]

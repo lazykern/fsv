@@ -1,0 +1,145 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/151/associated-cis",
+  "status": 404,
+  "json": {
+   "errors": "not found"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/151/associated_assets",
+  "json": {
+   "associated_assets": [
+    {
+     "config_item": {
+      "display_id": 3001,
+      "name": "Acme laptop 1"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/151",
+  "json": {
+   "ticket": {
+    "id": 151,
+    "display_id": 151,
+    "subject": "Acme laptop swap",
+    "requester_id": 77
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/assets-to-associate",
+  "query": {
+   "entity": "ticket"
+  },
+  "json": {
+   "assets": [
+    {
+     "display_id": 3001,
+     "name": "Acme laptop 1"
+    },
+    {
+     "display_id": 3002,
+     "name": "Acme laptop 2"
+    }
+   ],
+   "meta": {
+    "total_count": 2
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/51/associated-cis",
+  "status": 404,
+  "json": {
+   "errors": "not found"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/51/assets",
+  "json": {
+   "associated_assets": [
+    {
+     "config_item": {
+      "display_id": 4002,
+      "name": "Acme router B"
+     }
+    },
+    {
+     "config_item": {
+      "display_id": 4001,
+      "name": "Acme router A"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/51",
+  "json": {
+   "change": {
+    "id": 51,
+    "display_id": 51,
+    "subject": "Acme router change",
+    "requester_id": 78
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/assets-to-associate",
+  "query": {
+   "entity": "change"
+  },
+  "json": {
+   "assets": [
+    {
+     "display_id": 4003,
+     "name": "Acme router C"
+    }
+   ],
+   "meta": {
+    "total_count": 1
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/61/associated-cis",
+  "status": 404,
+  "json": {
+   "errors": "not found"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/152/associated-cis",
+  "status": 404,
+  "json": {
+   "errors": "not found"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/152/associated_assets",
+  "status": 404,
+  "json": {
+   "errors": "not found"
+  }
+ }
+]

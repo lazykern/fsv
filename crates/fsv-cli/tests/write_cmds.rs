@@ -227,41 +227,6 @@ fn task_delete_needs_yes() {
 }
 
 #[test]
-fn task_add_dry_run() {
-    let r = run_fixture(
-        "review",
-        &["changes", "tasks-add", "5", "--title", "Do it", "--dry-run"],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "dry_run",
-  "action": "change_task_create",
-  "tenant": "acme.freshservice.com",
-  "change_id": 5,
-  "method": "POST",
-  "path": "/api/_/changes/5/tasks",
-  "payload": {
-    "title": "Do it",
-    "status": 1,
-    "notify_before": 0
-  },
-  "owner": null,
-  "status_label": "Open",
-  "reminder": "Never",
-  "note_text": null,
-  "plan_hash": "0803fedff1e7f3ab2a4634c9f3a8fdbe801c714c79636ae100c7d102cefbb3fd",
-  "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
-}
-
-#[test]
 fn task_add_status_deleted() {
     let r = run_fixture(
         "review",
@@ -326,171 +291,6 @@ fn task_add_read_only() {
 }
 
 #[test]
-fn task_add_no_input() {
-    let r = run_fixture(
-        "review",
-        &[
-            "changes",
-            "tasks-add",
-            "5",
-            "--title",
-            "Do it",
-            "--no-input",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"{
-  "action": "change_task_create",
-  "tenant": "acme.freshservice.com",
-  "change_id": 5,
-  "method": "POST",
-  "path": "/api/_/changes/5/tasks",
-  "payload": {
-    "title": "Do it",
-    "status": 1,
-    "notify_before": 0
-  },
-  "owner": null,
-  "status_label": "Open",
-  "reminder": "Never",
-  "note_text": null,
-  "plan_hash": "0803fedff1e7f3ab2a4634c9f3a8fdbe801c714c79636ae100c7d102cefbb3fd",
-  "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
-}
-sending requires --yes and --expect-plan in no-input mode
-"#
-    );
-}
-
-#[test]
-fn task_add_confirm_eof() {
-    let r = run_fixture(
-        "review",
-        &["changes", "tasks-add", "5", "--title", "Do it"],
-        None,
-    );
-    assert_eq!(r.code, 1, "{}", r.err);
-    assert_eq!(r.out, r#"Create this exact reviewed task? [y/N]: "#);
-    assert_eq!(
-        r.err,
-        r#"{
-  "action": "change_task_create",
-  "tenant": "acme.freshservice.com",
-  "change_id": 5,
-  "method": "POST",
-  "path": "/api/_/changes/5/tasks",
-  "payload": {
-    "title": "Do it",
-    "status": 1,
-    "notify_before": 0
-  },
-  "owner": null,
-  "status_label": "Open",
-  "reminder": "Never",
-  "note_text": null,
-  "plan_hash": "0803fedff1e7f3ab2a4634c9f3a8fdbe801c714c79636ae100c7d102cefbb3fd",
-  "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
-}
-Aborted.
-"#
-    );
-}
-
-#[test]
-fn task_add_hash_mismatch() {
-    let r = run_fixture(
-        "review",
-        &[
-            "changes",
-            "tasks-add",
-            "5",
-            "--title",
-            "Do it",
-            "--yes",
-            "--expect-plan",
-            "x",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"{
-  "action": "change_task_create",
-  "tenant": "acme.freshservice.com",
-  "change_id": 5,
-  "method": "POST",
-  "path": "/api/_/changes/5/tasks",
-  "payload": {
-    "title": "Do it",
-    "status": 1,
-    "notify_before": 0
-  },
-  "owner": null,
-  "status_label": "Open",
-  "reminder": "Never",
-  "note_text": null,
-  "plan_hash": "0803fedff1e7f3ab2a4634c9f3a8fdbe801c714c79636ae100c7d102cefbb3fd",
-  "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
-}
-task review hash does not match; review the exact task again
-"#
-    );
-}
-
-#[test]
-fn task_add_send_unverified() {
-    let r = run_fixture(
-        "review",
-        &[
-            "changes",
-            "tasks-add",
-            "5",
-            "--title",
-            "Do it",
-            "--yes",
-            "--expect-plan",
-            "8f28336daef4d72c340215ee9344ee4dfdff111a286a19d1e5d89e6f1012b0ce",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"{
-  "action": "change_task_create",
-  "tenant": "acme.freshservice.com",
-  "change_id": 5,
-  "method": "POST",
-  "path": "/api/_/changes/5/tasks",
-  "payload": {
-    "title": "Do it",
-    "status": 1,
-    "notify_before": 0
-  },
-  "owner": null,
-  "status_label": "Open",
-  "reminder": "Never",
-  "note_text": null,
-  "plan_hash": "0803fedff1e7f3ab2a4634c9f3a8fdbe801c714c79636ae100c7d102cefbb3fd",
-  "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
-}
-task review hash does not match; review the exact task again
-"#
-    );
-}
-
-#[test]
 fn task_add_deactivated_owner() {
     let r = run_fixture(
         "review",
@@ -513,68 +313,6 @@ fn task_add_deactivated_owner() {
         r#"owner lookup failed: agent must match exactly one active entry with a user ID; 0 exact active candidates; use an explicit user ID if unavailable
 "#
     );
-}
-
-#[test]
-fn task_add_full_dry_run() {
-    let r = run_fixture(
-        "review",
-        &[
-            "changes",
-            "tasks-add",
-            "5",
-            "--title",
-            "Do it",
-            "--owner",
-            "ann@acme.com",
-            "--group",
-            "Ops",
-            "--status",
-            "in progress",
-            "--note",
-            "a<b",
-            "--planned-start",
-            "2026-01-01T10:00:00+07:00",
-            "--planned-end",
-            "2026-01-01T12:00:00+07:00",
-            "--planned-effort",
-            "1h30m",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 0, "{}", r.err);
-    assert_eq!(
-        r.out,
-        r#"{
-  "status": "dry_run",
-  "action": "change_task_create",
-  "tenant": "acme.freshservice.com",
-  "change_id": 5,
-  "method": "POST",
-  "path": "/api/_/changes/5/tasks",
-  "payload": {
-    "title": "Do it",
-    "status": 2,
-    "notify_before": 0,
-    "description": "<div><p>a&lt;b</p></div>",
-    "group_id": 4,
-    "planned_start_date": "2026-01-01T10:00:00+07:00",
-    "planned_end_date": "2026-01-01T12:00:00+07:00",
-    "planned_effort": "1h 30m",
-    "owner_id": 131
-  },
-  "owner": 131,
-  "status_label": "in progress",
-  "reminder": "Never",
-  "note_text": "a<b",
-  "plan_hash": "28372994b1e3797ab721de168a509aced9e17e6823c34656df33913a5716bc45",
-  "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
-  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
-}
-"#
-    );
-    assert_eq!(r.err, r#""#);
 }
 
 #[test]
@@ -3373,6 +3111,273 @@ fn sr_create_unknown_item() {
     assert_eq!(
         r.err,
         r#"error: HTTP 404 fetching service-item: no route
+"#
+    );
+}
+
+#[test]
+fn task_add_dry_run() {
+    let r = run_fixture(
+        "review",
+        &["changes", "tasks-add", "5", "--title", "Do it", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "change_task_create",
+  "tenant": "acme.freshservice.com",
+  "change_id": 5,
+  "method": "POST",
+  "path": "/api/_/changes/5/tasks",
+  "payload": {
+    "title": "Do it",
+    "status": 1,
+    "notify_before": 0
+  },
+  "owner": null,
+  "status_label": "Open",
+  "reminder": "Never",
+  "note_text": null,
+  "plan_hash": "e573da33f86de86b3d13fb3b6324dc267cbc30cc32b2b3ff5aba4f7651944855",
+  "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn task_add_send_unverified() {
+    let r = run_fixture(
+        "review",
+        &[
+            "changes",
+            "tasks-add",
+            "5",
+            "--title",
+            "Do it",
+            "--yes",
+            "--expect-plan",
+            "e573da33f86de86b3d13fb3b6324dc267cbc30cc32b2b3ff5aba4f7651944855",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"Task 12 submitted on change 5; exact-ID/state read-back: False
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"{
+  "action": "change_task_create",
+  "tenant": "acme.freshservice.com",
+  "change_id": 5,
+  "method": "POST",
+  "path": "/api/_/changes/5/tasks",
+  "payload": {
+    "title": "Do it",
+    "status": 1,
+    "notify_before": 0
+  },
+  "owner": null,
+  "status_label": "Open",
+  "reminder": "Never",
+  "note_text": null,
+  "plan_hash": "e573da33f86de86b3d13fb3b6324dc267cbc30cc32b2b3ff5aba4f7651944855",
+  "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
+}
+Returned task ID/state not verified in task read-back; do not resend.
+"#
+    );
+    assert_eq!(r.write_paths(), ["POST /api/_/changes/5/tasks"]);
+}
+
+#[test]
+fn task_add_no_input() {
+    let r = run_fixture(
+        "review",
+        &[
+            "changes",
+            "tasks-add",
+            "5",
+            "--title",
+            "Do it",
+            "--no-input",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"{
+  "action": "change_task_create",
+  "tenant": "acme.freshservice.com",
+  "change_id": 5,
+  "method": "POST",
+  "path": "/api/_/changes/5/tasks",
+  "payload": {
+    "title": "Do it",
+    "status": 1,
+    "notify_before": 0
+  },
+  "owner": null,
+  "status_label": "Open",
+  "reminder": "Never",
+  "note_text": null,
+  "plan_hash": "e573da33f86de86b3d13fb3b6324dc267cbc30cc32b2b3ff5aba4f7651944855",
+  "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
+}
+sending requires --yes and --expect-plan in no-input mode
+"#
+    );
+}
+
+#[test]
+fn task_add_full_dry_run() {
+    let r = run_fixture(
+        "review",
+        &[
+            "changes",
+            "tasks-add",
+            "5",
+            "--title",
+            "Do it",
+            "--owner",
+            "ann@acme.com",
+            "--group",
+            "Ops",
+            "--status",
+            "in progress",
+            "--note",
+            "a<b",
+            "--planned-start",
+            "2026-01-01T10:00:00+07:00",
+            "--planned-end",
+            "2026-01-01T12:00:00+07:00",
+            "--planned-effort",
+            "1h30m",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "change_task_create",
+  "tenant": "acme.freshservice.com",
+  "change_id": 5,
+  "method": "POST",
+  "path": "/api/_/changes/5/tasks",
+  "payload": {
+    "title": "Do it",
+    "status": 2,
+    "notify_before": 0,
+    "description": "<div><p>a&lt;b</p></div>",
+    "group_id": 4,
+    "planned_start_date": "2026-01-01T10:00:00+07:00",
+    "planned_end_date": "2026-01-01T12:00:00+07:00",
+    "planned_effort": "1h 30m",
+    "owner_id": 131
+  },
+  "owner": 131,
+  "status_label": "in progress",
+  "reminder": "Never",
+  "note_text": "a<b",
+  "plan_hash": "abc4854f90323e85658952e202991baba9c2065c1018232780807e0fe9eac346",
+  "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn task_add_hash_mismatch() {
+    let r = run_fixture(
+        "review",
+        &[
+            "changes",
+            "tasks-add",
+            "5",
+            "--title",
+            "Do it",
+            "--yes",
+            "--expect-plan",
+            "x",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"{
+  "action": "change_task_create",
+  "tenant": "acme.freshservice.com",
+  "change_id": 5,
+  "method": "POST",
+  "path": "/api/_/changes/5/tasks",
+  "payload": {
+    "title": "Do it",
+    "status": 1,
+    "notify_before": 0
+  },
+  "owner": null,
+  "status_label": "Open",
+  "reminder": "Never",
+  "note_text": null,
+  "plan_hash": "e573da33f86de86b3d13fb3b6324dc267cbc30cc32b2b3ff5aba4f7651944855",
+  "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
+}
+task review hash does not match; review the exact task again
+"#
+    );
+}
+
+#[test]
+fn task_add_confirm_eof() {
+    let r = run_fixture(
+        "review",
+        &["changes", "tasks-add", "5", "--title", "Do it"],
+        None,
+    );
+    assert_eq!(r.code, 1, "{}", r.err);
+    assert_eq!(r.out, r#"Create this exact reviewed task? [y/N]: "#);
+    assert_eq!(
+        r.err,
+        r#"{
+  "action": "change_task_create",
+  "tenant": "acme.freshservice.com",
+  "change_id": 5,
+  "method": "POST",
+  "path": "/api/_/changes/5/tasks",
+  "payload": {
+    "title": "Do it",
+    "status": 1,
+    "notify_before": 0
+  },
+  "owner": null,
+  "status_label": "Open",
+  "reminder": "Never",
+  "note_text": null,
+  "plan_hash": "e573da33f86de86b3d13fb3b6324dc267cbc30cc32b2b3ff5aba4f7651944855",
+  "warning": "Task creation/assignment may notify people or trigger tenant workflows. Never is a reminder setting, not a no-notification guarantee.",
+  "contract": "Accepted native create/task envelope. Runtime required_for_create custom fields and dates validated; blank optional fields omitted."
+}
+Aborted.
 "#
     );
 }

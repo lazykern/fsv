@@ -76,6 +76,8 @@ _fsv() {
             compadd -- --verbose -v --kind --json; return 0 ;;
         "changes assets list")
             compadd -- --verbose -v --kind --json; return 0 ;;
+        "changes assets candidates")
+            compadd -- --verbose -v --json; return 0 ;;
         "changes assets legacy")
             compadd -- --verbose -v --search --json; return 0 ;;
         "changes assets add")
@@ -96,6 +98,8 @@ _fsv() {
             compadd -- --verbose -v --kind --json; return 0 ;;
         "tickets assets list")
             compadd -- --verbose -v --kind --json; return 0 ;;
+        "tickets assets candidates")
+            compadd -- --verbose -v --json; return 0 ;;
         "tickets assets add")
             compadd -- --verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json; return 0 ;;
         "tickets assets remove")
@@ -144,6 +148,8 @@ _fsv() {
             compadd -- --verbose -v --kind --json; return 0 ;;
         "problems assets list")
             compadd -- --verbose -v --kind --json; return 0 ;;
+        "problems assets candidates")
+            compadd -- --verbose -v --json; return 0 ;;
         "problems assets add")
             compadd -- --verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json; return 0 ;;
         "problems assets remove")
@@ -160,6 +166,8 @@ _fsv() {
             compadd -- --verbose -v --kind --json; return 0 ;;
         "sr assets list")
             compadd -- --verbose -v --kind --json; return 0 ;;
+        "sr assets candidates")
+            compadd -- --verbose -v --json; return 0 ;;
         "sr assets add")
             compadd -- --verbose -v --kind --dry-run --yes -y --expect-plan --read-only --json; return 0 ;;
         "sr assets remove")
@@ -277,11 +285,15 @@ _fsv() {
         "changes tasks-add")
             compadd -- --verbose -v --title --owner --group --set --system --environment --env --status --note --notify-before --planned-start --planned-end --planned-effort --dry-run --read-only --yes -y --expect-plan --no-input --json; return 0 ;;
         "changes approval-request")
-            compadd -- --verbose -v --name --message --approver --approver-group --cab --approver-cab --rule --dry-run --read-only --yes -y --expect-plan --no-input --json; return 0 ;;
+            compadd -- --verbose -v --name --message --approver --approver-group --cab --approver-cab --rule --model --dry-run --read-only --yes -y --expect-plan --no-input --json; return 0 ;;
+        "changes approval-remind")
+            compadd -- --verbose -v --model --dry-run --yes -y --expect-plan --json; return 0 ;;
         "changes approval-respond")
             compadd -- --verbose -v --approve --reject --remark --dry-run --read-only --yes -y --expect-plan --no-input --json; return 0 ;;
         "changes approval-cancel")
             compadd -- --verbose -v --dry-run --read-only --yes -y --expect-plan --no-input --json; return 0 ;;
+        "changes delete")
+            compadd -- --verbose -v --dry-run --yes -y --confirm-destructive --expect-plan --json; return 0 ;;
         "changes tasks-update")
             case "$prev" in
                 --status)
@@ -487,7 +499,7 @@ _fsv() {
         "changes associations")
             compadd -- legacy ls search add remove pick --verbose -v; return 0 ;;
         "changes assets")
-            compadd -- ls list legacy add remove search --verbose -v; return 0 ;;
+            compadd -- ls list candidates legacy add remove search --verbose -v; return 0 ;;
         "changes columns")
             compadd -- list set --verbose -v; return 0 ;;
         "changes watchers")
@@ -657,7 +669,7 @@ _fsv() {
                     local _vals; _vals=($( FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete zsh complete_set tickets "$cur" ))
                     compadd -a _vals; return 0 ;;
             esac
-            compadd -- --verbose -v --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --reviewed --expect-plan --dry-run --yes -y --json --no-input; return 0 ;;
+            compadd -- --verbose -v --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --reviewed --expect-plan --dry-run --yes -y --json --no-input; return 0 ;;
         "tickets download")
             compadd -- --verbose -v --attachments --main-attachments --conversations --description-attachments --all --dir --out --force --json; return 0 ;;
         "tickets conversations")
@@ -673,7 +685,7 @@ _fsv() {
         "tickets forward")
             compadd -- --verbose -v --conversation --to --sender --output -o --json --dry-run --yes --expect-plan; return 0 ;;
         "tickets assets")
-            compadd -- ls list add remove --verbose -v; return 0 ;;
+            compadd -- ls list candidates add remove --verbose -v; return 0 ;;
         "tickets columns")
             compadd -- list set --verbose -v; return 0 ;;
         "tickets watchers")
@@ -838,7 +850,7 @@ _fsv() {
                     local _vals; _vals=($( FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete zsh complete_set problems "$cur" ))
                     compadd -a _vals; return 0 ;;
             esac
-            compadd -- --verbose -v --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --reviewed --expect-plan --dry-run --yes -y --json --no-input; return 0 ;;
+            compadd -- --verbose -v --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --reviewed --expect-plan --dry-run --yes -y --json --no-input; return 0 ;;
         "problems download")
             compadd -- --verbose -v --attachments --main-attachments --notes --description-attachments --all --dir --out --force --json; return 0 ;;
         "problems notes")
@@ -852,7 +864,7 @@ _fsv() {
         "problems add-note")
             compadd -- --verbose -v --public --dry-run --yes -y --no-input; return 0 ;;
         "problems assets")
-            compadd -- ls list add remove --verbose -v; return 0 ;;
+            compadd -- ls list candidates add remove --verbose -v; return 0 ;;
         "problems columns")
             compadd -- list set --verbose -v; return 0 ;;
         "problems time")
@@ -876,7 +888,7 @@ _fsv() {
         "sr get")
             compadd -- --verbose -v --items --attachments --download --force --output -o; return 0 ;;
         "sr assets")
-            compadd -- ls list add remove --verbose -v; return 0 ;;
+            compadd -- ls list candidates add remove --verbose -v; return 0 ;;
         "sr approvals")
             compadd -- list request approve reject cancel remind --verbose -v; return 0 ;;
         "sr items")
@@ -912,7 +924,7 @@ _fsv() {
         "journal")
             compadd -- ls tail path --verbose -v; return 0 ;;
         "changes")
-            compadd -- ls get activity tasks tasks-add approval-request approval-respond approval-cancel tasks-update tasks-delete approvals state ci-add ci-remove ci-list export asset-picker planning-text fields lookup views search url update download clone create notes add-note relationships time associations assets columns watchers --verbose -v; return 0 ;;
+            compadd -- ls get activity tasks tasks-add approval-request approval-remind approval-respond approval-cancel delete tasks-update tasks-delete approvals state ci-add ci-remove ci-list export asset-picker planning-text fields lookup views search url update download clone create notes add-note relationships time associations assets columns watchers --verbose -v; return 0 ;;
         "tickets")
             compadd -- ls get activity tasks-legacy export note-edit note-delete assign pick-up merge resolve close reopen status bulk-priority bulk fields lookup views search url add-note create approvals associations update download conversations reply forward assets columns watchers tasks private-views canned scenarios time --verbose -v; return 0 ;;
         "problems")

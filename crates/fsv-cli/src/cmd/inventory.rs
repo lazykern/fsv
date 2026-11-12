@@ -5,7 +5,9 @@
 use serde_json::{Map, Value, json};
 
 use fsv_api::service::DiskJournal;
-use fsv_api::{integrated_assets as assets, solutions, sr_approvals};
+use fsv_api::{
+    approval_model, integrated_assets as assets, legacy_approvals, solutions, sr_approvals,
+};
 use fsv_core::resource::{TICKETS, parse_id};
 use fsv_core::{Error, Result};
 
@@ -88,8 +90,14 @@ pub fn search(query: &str, kind: &str, page: i64) -> CmdResult {
 /// `MODULE assets list|ls TARGET`.
 pub fn listing(module: &str, target: &str, kind: &str) -> CmdResult {
     let c = LazyApi::default();
+    guard(assets::listing(&c, module, &json!(target), kind).map(|v| println!("{}", dumps(&v))))
+}
+
+/// `MODULE assets candidates TARGET`.
+pub fn candidates(module: &str, target: &str) -> CmdResult {
+    let c = LazyApi::default();
     guard(
-        assets::inventory(&c, module, &json!(target), kind)
+        assets::legacy_candidates(&c, module, &json!(target))
             .map(|rows| println!("{}", dumps(&json!({"data": rows, "complete": true})))),
     )
 }
@@ -157,6 +165,15 @@ pub fn dispatch(module: &str, sub: &str, m: &clap::ArgMatches) -> Option<CmdResu
             listing(module, &a.target, &a.kind)
         }};
     }
+    macro_rules! candidates {
+        ($t:ty) => {{
+            let a: $t = match parse(m) {
+                Ok(a) => a,
+                Err(e) => return Some(Err(e)),
+            };
+            candidates(module, &a.target)
+        }};
+    }
     macro_rules! write {
         ($t:ty, $remove:expr) => {{
             let a: $t = match parse(m) {
@@ -182,6 +199,10 @@ pub fn dispatch(module: &str, sub: &str, m: &clap::ArgMatches) -> Option<CmdResu
         ("changes", "assets list") => list!(ChangesAssetsListArgs),
         ("changes", "assets ls") => list!(ChangesAssetsLsArgs),
         ("changes", "ci-list") => list!(ChangesCiListArgs),
+        ("changes", "assets candidates") => candidates!(ChangesAssetsCandidatesArgs),
+        ("tickets", "assets candidates") => candidates!(TicketsAssetsCandidatesArgs),
+        ("problems", "assets candidates") => candidates!(ProblemsAssetsCandidatesArgs),
+        ("sr", "assets candidates") => candidates!(SrAssetsCandidatesArgs),
         ("changes", "assets add") => write!(ChangesAssetsAddArgs, false),
         ("changes", "ci-add") => write!(ChangesCiAddArgs, false),
         ("changes", "assets remove") => write!(ChangesAssetsRemoveArgs, true),
@@ -235,8 +256,8 @@ fn approvals_list(target: &str) -> CmdResult {
     let c = LazyApi::default();
     guard(
         parse_id(target, &TICKETS)
-            .and_then(|id| sr_approvals::inventory(&c, id))
-            .map(|rows| println!("{}", dumps(&json!({"approval_groups": rows})))),
+            .and_then(|id| sr_approvals::listing(&c, id))
+            .map(|v| println!("{}", dumps(&v))),
     )
 }
 
@@ -253,18 +274,52 @@ fn approvals_finish(c: &LazyApi, plan: sr_approvals::ApprovalPlan, f: Flags) -> 
     )
 }
 
-/// `sr approvals request TARGET --name --message --approver...`.
+/// `sr_approvals_cli.legacy`: the ticket ID and whether the tenant uses
+/// legacy flat approvals (one read-only approval-chains GET).
+fn legacy_target(c: &LazyApi, target: &str) -> Result<(i64, bool)> {
+    let tid = parse_id(target, &TICKETS)?;
+    let (model, _) = approval_model::detect(c, "tickets", tid)?;
+    Ok((tid, model == approval_model::LEGACY))
+}
+
+fn legacy_finish(c: &LazyApi, plan: legacy_approvals::LegacyPlan, f: Flags) -> Result<()> {
+    let hash = plan.hash();
+    finish(
+        plan.review(),
+        &hash,
+        || legacy_approvals::send(&plan, c, &DiskJournal, f.expected.as_deref()),
+        f.dry_run,
+        f.yes,
+        f.expected.as_deref(),
+        f.read_only,
+    )
+}
+
+/// `sr approvals request TARGET [--name --message] --approver...`.
 fn approvals_request(a: SrApprovalsRequestArgs) -> CmdResult {
     let run = || -> Result<()> {
         let c = LazyApi::default();
         let approvers: Vec<Value> = a.approver.iter().map(|s| json!(s)).collect();
+        let (tid, is_legacy) = legacy_target(&c, &a.target)?;
+        if is_legacy {
+            if a.name.as_deref().is_some_and(|s| !s.is_empty())
+                || a.message.as_deref().is_some_and(|s| !s.is_empty())
+            {
+                return Err(Error::value(
+                    "--name/--message do not apply to legacy flat approvals; the email is the tenant's approval template",
+                ));
+            }
+            let ids = sr_approvals::recipients(&c, &approvers)?;
+            let plan = legacy_approvals::build_request(&c, "tickets", tid, &ids, &a.rule, "")?;
+            return legacy_finish(&c, plan, flags!(a));
+        }
         let plan = sr_approvals::build_plan(
             &c,
             &json!(a.target),
             "request",
             None,
-            Some(&a.name),
-            Some(&a.message),
+            a.name.as_deref(),
+            a.message.as_deref(),
             Some(&approvers),
             &a.rule,
             "",
@@ -278,6 +333,13 @@ fn approvals_request(a: SrApprovalsRequestArgs) -> CmdResult {
 fn approvals_action(target: &str, op: &str, ident: i64, remark: &str, f: Flags) -> CmdResult {
     let run = || -> Result<()> {
         let c = LazyApi::default();
+        if op == "remind" {
+            let (tid, is_legacy) = legacy_target(&c, target)?;
+            if is_legacy {
+                let plan = legacy_approvals::build_remind(&c, "tickets", tid, ident)?;
+                return legacy_finish(&c, plan, f);
+            }
+        }
         let plan = sr_approvals::build_plan(
             &c,
             &json!(target),

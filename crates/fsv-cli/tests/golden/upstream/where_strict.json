@@ -14,5 +14,8 @@
  {"name": "ls_type_id_sends_choice_name", "fixture": "where_type", "args": ["tickets", "ls", "--where", "type=7402", "--json"]},
  {"name": "ls_type_not_equal_sends_name", "fixture": "where_type", "args": ["tickets", "ls", "--where", "type!=Incident", "--json"]},
  {"name": "ls_type_unknown_never_lists", "fixture": "where_type", "args": ["tickets", "ls", "--where", "type=Case", "--json"]},
- {"name": "ls_type_retired_never_lists", "fixture": "where_type", "args": ["tickets", "ls", "--where", "type=Retired", "--json"]}
+ {"name": "ls_type_retired_never_lists", "fixture": "where_type", "args": ["tickets", "ls", "--where", "type=Retired", "--json"]},
+ {"name": "where_tickets_search_error", "fixture": "where_search_error", "args": ["tickets", "ls", "--where", "status=Open"]},
+ {"name": "where_changes_search_error", "fixture": "where_search_error", "args": ["changes", "ls", "--where", "status=Open"]},
+ {"name": "where_tickets_raw_search_error", "fixture": "where_search_error", "args": ["tickets", "ls", "--query-hash", "[{\"condition\":\"approval_status\",\"operator\":\"is_in\",\"value\":[\"0\"],\"type\":\"default\"}]"]}
 ]
