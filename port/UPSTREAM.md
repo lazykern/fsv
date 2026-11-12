@@ -37,8 +37,8 @@ Counts: **30 ported, 2 partial, 0 missing.** (fsv-api half of `f761a01`…`4d778
 | `fcd5db4` | 11-12 01:36 | fix(sr): guard ambiguous outcomes and recipient identity | ported | fsv-api `catalog.rs:847`, `:1444`, `:1499`, `:1547`, `:1573-1611`, `:1685`; fsv-cli `sr.rs:330`; fsv-app `form.rs:463` |
 | `eeda2a6` | 11-12 01:44 | fix(tickets): verify incident CC after creation | ported | fsv-flows `ticket.rs:395-426`; fsv-cli `tickets.rs:696-706` |
 | `7575578` | 11-12 01:48 | fix(writes): reject control characters in recipients | ported | fsv-flows `ticket.rs:188`; fsv-api `catalog.rs:1073`; fsv-cli `sr.rs:80` |
-| `92a660a` | 11-12 02:01 | fix(tui): handle download filename collisions | ported | fsv-tui `app.rs:3389-3420`; fsv-cli `sr.rs:1030-1038`; fsv-api `downloads.rs:142` |
-| `1eedd9b` | 11-12 02:09 | feat(tui): add reviewed change approval actions | ported | fsv-tui `app.rs:2894-2918`, `:3168-3200`, `modals.rs:462`; fsv-app `tui.rs:1012-1066` |
+| `92a660a` | 11-12 02:01 | fix(tui): handle download filename collisions | ported | fsv-tui `app/writes.rs:407-455`; fsv-cli `sr.rs:1030-1038`; fsv-api `downloads.rs:142` |
+| `1eedd9b` | 11-12 02:09 | feat(tui): add reviewed change approval actions | ported | fsv-tui `app/cont.rs:355-397`, `app/writes.rs:181-184, 355-405`, `modals.rs:462`; fsv-app `tui.rs:1012-1066` |
 | `b83231c` | 11-12 02:14 | fix(tickets): nest custom fields in update payloads | ported | fsv-cli `resource.rs:1461-1466` |
 | `fd060d7` | 11-12 02:20 | fix(tickets): show actual identity in update previews | ported | fsv-cli `resource.rs:1486-1501` |
 | `42b561f` | 11-12 02:27 | fix(sr): accept requested-for in catalog drafts | ported | fsv-flows `sr.rs:27-120`, `:314`; fsv-cli `sr.rs:406` |
@@ -367,7 +367,7 @@ New `ticket_time.py` / `ticket_time_cli.py`. Depends on `reviewed_write`,
 
 Ported in fsv-tui: Ctrl+O option menu, `ConversationRequest` with
 cc/notify/bcc/sender/Pending, plain ticket replies routed to the reviewed
-path (`crates/fsv-tui/src/app/reviewed.rs:479-585`, `app.rs:2567-2580`,
+path (`crates/fsv-tui/src/app/reviewed.rs:480-575`, `app/cont.rs:34-47`,
 `modals.rs:210-259`).
 
 Missing:
@@ -432,7 +432,7 @@ Missing:
 (`properties.rs:189-300`). fsv-app can now call `build_plan_with`.
 
 Ported in fsv-tui: `e` on a ticket opens the property picker → value/choice →
-review → outcome (`reviewed.rs:305-357`, `app.rs:3737`).
+review → outcome (`reviewed.rs:307-360`, `app/forms.rs:23-24`).
 
 Missing:
 
@@ -455,7 +455,7 @@ Missing:
 **fsv-api ported:** `problem_known_error.rs`.
 
 Ported in fsv-tui: `a` → "Mark as known error", review, outcome
-(`reviewed.rs:356-392`, `app.rs:3184-3197`).
+(`reviewed.rs:362-396`, `app/writes.rs:197, 210`).
 
 Missing:
 
@@ -1029,7 +1029,7 @@ and `Resource::{filters_path, item_key}` (`crates/fsv-core/src/resource.rs`;
 (`crates/fsv-api/src/create.rs:1594`, GET `assets-to-associate`) and is used
 by `links` (`crates/fsv-cli/src/cmd/links.rs:257`). Nothing wraps it as a
 read-only picker. In the Rust TUI, `i` is unbound
-(`crates/fsv-tui/src/app.rs:2474` dispatches `v`), and the Backend has no
+(then `app.rs:2474` dispatched `v`; now `crates/fsv-tui/src/app/key_handler.rs:159` binds `i`), and the Backend has no
 asset search.
 
 - **fsv-api** new `asset_picker.rs`:
@@ -1178,12 +1178,12 @@ fsv-formui work in this range.
 ## Base pin
 
 `port/UPSTREAM_BASE` holds the last Python commit whose range is fully
-triaged (`dbe553c`). Advance it only when every row up to the new SHA is
+triaged (`92002d7`). Advance it only when every row up to the new SHA is
 `ported`, `partial` with a named follow-up, or `wontfix` with a PARITY
-entry. Untriaged after the base: `10c3281`, `ed6e644`, `44e3e83`,
-`820af12` (fsv-api owner), `92002d7` (planning-text create guard, fsv-api).
-`820af12` changes `str(APIError(status=0))` from `HTTP 0: ...` to
-`Error: ...`; `crates/fsv-api/src/testdata/create_oracle.json` predates it.
+entry. Open follow-ups in the `dbe553c..92002d7` ledger below: fsv-cli
+tests and commands for `820af12` / `92002d7` / the five new fsv-api
+modules, and fsv-core
+`ApiError` display for status 0 (`Error ...`, not `HTTP 0: ...`).
 
 ## Ledger: `dbe553c..92002d7`
 
@@ -1200,7 +1200,7 @@ Counts: **3 ported, 2 partial, 0 missing.**
 | `ed6e644` | 11-12 05:40 | fix(problems): display native analysis sections in get output | ported | fsv-api `site::detail::{planning_rows, change_planning_defs}`, fsv-views `detail::load_planning(…, module)` |
 | `44e3e83` | 11-12 05:44 | fix(problems): verify submitted custom fields after server normalization | ported | fsv-api `problem_workflows`, `readback::{submitted_value_matches, decimal}` |
 | `820af12` | 11-12 05:50 | fix(cli): render planning validation as clean usage errors | partial | fsv-api `create.rs` and fsv-flows `change.rs` done; fsv-cli, fsv-core open |
-| `92002d7` | 11-12 06:17 | Guard native planning text creates against existing content | partial | fsv-api `planning_text`, fsv-app `tui` done; fsv-tui, fsv-cli open |
+| `92002d7` | 11-12 06:17 | Guard native planning text creates against existing content | partial | fsv-api `planning_text`, fsv-app `tui`, fsv-tui done; fsv-cli open |
 
 ### `10c3281` fix(planning): verify normalized native section content — ported
 
@@ -1258,12 +1258,13 @@ attempted)") or when attachments are present or unknown. The plan hash is
 `operation: "create"`, `before`, `after`, `plan_hash`. `send` takes
 `&PlanningTextPlan` and goes through `reviewed_write::execute_as`.
 `editable_content` gives the TUI's starting text. fsv-app `LiveBackend`
-carries `before` through `ReviewPlan::raw`.
+carries `before` through `ReviewPlan::raw`. fsv-tui `load_planning_editor`
+(`app/reviewed.rs:426`) starts from it through `site::planning_editable_content`
+(a local copy of the same checks without the `site` feature); expected editor text
+and failures come from Python `FsvApp._load_planning_editor` at `92002d7`
+(`load_planning_editor_starts_from_editable_content`).
 
 Open:
-- **fsv-tui**: `load_planning_editor` must start from
-  `planning_text::editable_content` (refusing as Python does) instead of the
-  row description.
 - **fsv-cli**: the call sites compile unchanged, but the fixtures in
   `tests/upstream_cmds.rs` (`change_planning_text_dry_run`,
   `change_planning_text_send`, `problem_planning_text_dry_run`,

@@ -1778,7 +1778,7 @@ fn a_planning_text_refuses_attachments_and_empty_metadata() {
     a.press("enter");
     a.settle();
     assert!(matches!(top(&a), Some(Modal::Failure(_))));
-    assert!(screen(&a).contains("Planning text/attachment preservation is unavailable"));
+    assert!(screen(&a).contains("planning attachments are present or unavailable"));
 
     let (mut b, _) = start(
         Mock {

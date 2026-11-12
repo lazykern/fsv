@@ -310,7 +310,7 @@ These are fine, but correct the record:
 
 - **`Client::send_once` with no `Content-Type` on a bodiless request (`PARITY.md:146`).** This matches Python: `reviewed_write.py:65-68` adds `Content-Type` only with a payload, and `_int_request` always adds it, as Rust's `int_request` does. It is parity, not a divergence. Move it out of Divergences so a reviewer does not think a header changed.
 - **`FSV_COMPLETION_NETWORK=1` "is a new env switch" (`PARITY.md:246`).** False. Python `completion.py:36` reads it. Delete the line.
-- **"TUI workers do not drop stale generations" (`PARITY.md:37-39`).** This contradicts `ARCHITECTURE.md:86-88`. In practice Rust keeps Python's own guards (`pending_detail_key`, `list_epoch`, search seq; `fsv-tui/src/app.rs:1007-1031, 1298`), so the user-visible risk is the same as Python with `exclusive=True` workers. Make the docs agree: either implement the `(gen, Result)` drop in `spawn`, or edit ARCHITECTURE to "Python's staleness guards only".
+- **"TUI workers do not drop stale generations" (`PARITY.md:37-39`).** This contradicts `ARCHITECTURE.md:86-88`. In practice Rust keeps Python's own guards (`pending_detail_key`, `list_epoch`, search seq; `fsv-tui/src/app/list.rs:55-80`, `app/detail.rs:25`), so the user-visible risk is the same as Python with `exclusive=True` workers. Make the docs agree: either implement the `(gen, Result)` drop in `spawn`, or edit ARCHITECTURE to "Python's staleness guards only".
 
 Regressions to fix:
 
@@ -432,7 +432,7 @@ Recommended process: a batch cycle, not commit-chasing.
 - [ ] P1 review rows show names (`name_for`); decide the `SendFailure` exit code; port `parseaddr` exactly or reject.
 - [ ] P2 one `Journal` trait; delete `Source`, the duplicate `collect_pages`, `optional_get` and `load_views`; move `pystr` to fsv-py.
 - [ ] P2 `ReadOnly<B>` backend wrapper; remove the `Backend` network defaults.
-- [ ] P2 split `fsv-tui/src/app.rs` along its section markers.
+- [x] P2 split `fsv-tui/src/app.rs` along its section markers.
 - [ ] P2 coverage audit: crate-scoped evidence plus `cargo llvm-cov` execution; regenerate `COVERAGE.md`.
 - [ ] P2 fix the ARCHITECTURE graph and Error enum; prune stale PARITY lines (37-39, 94, 97, 137, 146, 246, 280-281).
 - [ ] P3 `Error::Api(Box<ApiError>)`; drop the `result_large_err` allows; delete `add_reply` and other dead code.

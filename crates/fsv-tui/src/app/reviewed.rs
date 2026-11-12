@@ -12,6 +12,7 @@ use super::{App, Cont, Msg, Ui};
 use crate::actions;
 use crate::backend::{BResult, ConversationRequest, Failure, Item, PropertyField, Res, ReviewPlan};
 use crate::modals::{Modal, ModalResult, NoteModal};
+use crate::site;
 
 pub const PROPERTY_PICKER: &str = "Edit ticket/SR property — one field per review";
 pub const PROPERTY_VALUE_SUFFIX: &str =
@@ -175,17 +176,6 @@ fn review_ticket_conversation(item: Item, plan: ReviewPlan, reply: bool) -> Msg 
         ),
         Step::ConversationReviewed { item, plan, public },
     )])
-}
-
-/// `match_planning_row` found a row whose text or attachments cannot be
-/// carried over unchanged.
-fn planning_row_unsafe(row: &Value) -> bool {
-    let Some(o) = row.as_object().filter(|o| !o.is_empty()) else {
-        return false;
-    };
-    !o.contains_key("description")
-        || o.get("attachments").is_some_and(truthy)
-        || !o.contains_key("attachments")
 }
 
 /// `(str(d.get("name") or d["id"]), str(d.get("label") or d.get("name")))`.
@@ -429,29 +419,24 @@ impl App {
         });
     }
 
-    /// `_load_planning_editor`: refuses a section whose text or attachments
-    /// would not survive the save.
+    /// `_load_planning_editor`: the editor starts from
+    /// `planning_text.editable_content(row)`, which refuses a section whose
+    /// text or file inventory is not proven.
     /// Port of fsv.tui.app.FsvApp._load_planning_editor.
     fn load_planning_editor(&mut self, item: Item, section: String) {
         if self.read_only {
             return;
         }
         self.spawn(move |b| {
-            let row = match b.planning_row(item.res.name, &item.ref_id(), &section) {
+            let before = match b
+                .planning_row(item.res.name, &item.ref_id(), &section)
+                .and_then(|row| site::planning_editable_content(row.as_ref()))
+            {
                 Err(e) => return failure(&e),
-                Ok(row) => row,
-            };
-            if row.as_ref().is_some_and(planning_row_unsafe) {
-                return failure(&Failure::value(
-                    "Planning text/attachment preservation is unavailable",
-                ));
-            }
-            let initial = match row.as_ref().and_then(|r| r.get("description")) {
-                None | Some(Value::Null) => String::new(),
-                Some(v) => py_str(v),
+                Ok(before) => before,
             };
             Msg::Ui(vec![push(
-                Modal::Note(NoteModal::planning(&section, &initial)),
+                Modal::Note(NoteModal::planning(&section, &before)),
                 Step::PlanningEdited { item, section },
             )])
         });
@@ -787,20 +772,14 @@ mod tests {
     #[test]
     fn planning_editor_then_review() {
         let change = Item::new(&CHANGES, json!({"id": 11, "display_id": 11}));
-        let (mut a, w) = app(
-            Writes {
-                row: Some(json!({"description": "old", "attachments": []})),
-                ..Default::default()
-            },
-            false,
-        );
+        let (mut a, w) = app(Writes::default(), false);
         a.load_planning_editor(change.clone(), "acme_plan".into());
         a.settle();
         assert_eq!(calls(&w), ["row changes 11 acme_plan"]);
         match top(&a) {
             Modal::Note(n) => {
                 assert!(n.planning);
-                assert_eq!((n.target.as_str(), n.text.value()), ("acme_plan", "old"));
+                assert_eq!((n.target.as_str(), n.text.value()), ("acme_plan", ""));
             }
             m => panic!("not a note: {m:?}"),
         }
@@ -814,25 +793,6 @@ mod tests {
                 assert_eq!(c.lines, ["{\n  \"section\": \"acme_plan\"\n}"]);
             }
             m => panic!("not a confirm: {m:?}"),
-        }
-
-        let (mut a, _) = app(
-            Writes {
-                row: Some(json!({"description": "old"})),
-                ..Default::default()
-            },
-            false,
-        );
-        a.load_planning_editor(change, "acme_plan".into());
-        a.settle();
-        match top(&a) {
-            Modal::Failure(f) => {
-                assert_eq!(
-                    f.message,
-                    "Planning text/attachment preservation is unavailable\nNo automatic retry. Check the exact record and journal before another send; outcome may be unknown."
-                )
-            }
-            m => panic!("not a failure: {m:?}"),
         }
     }
 
@@ -936,16 +896,74 @@ mod tests {
         );
     }
 
+    /// `_load_planning_editor` at upstream 92002d7: the editor text, or the
+    /// failure screen, Python's `FsvApp` shows for each matched row.
     #[test]
-    fn planning_row_unsafe_needs_description_and_empty_attachments() {
-        assert!(!planning_row_unsafe(&json!({})));
-        assert!(!planning_row_unsafe(
-            &json!({"description": "x", "attachments": []})
-        ));
-        assert!(planning_row_unsafe(&json!({"attachments": []})));
-        assert!(planning_row_unsafe(&json!({"description": "x"})));
-        assert!(planning_row_unsafe(
-            &json!({"description": "x", "attachments": [{"id": 1}]})
-        ));
+    fn load_planning_editor_starts_from_editable_content() {
+        const RETRY: &str = "\nNo automatic retry. Check the exact record and journal before another send; outcome may be unknown.";
+        let files =
+            "planning attachments are present or unavailable; text-only preservation is not proven";
+        let text = "planning text state is unavailable; no write attempted";
+        let cases: [(Value, Result<&str, &str>); 9] = [
+            (
+                json!({"name": "acme_plan", "content": "", "files": [], "empty": true}),
+                Ok(""),
+            ),
+            (
+                json!({"name": "acme_plan", "content": "Acme original", "files": [], "empty": false}),
+                Ok("Acme original"),
+            ),
+            (
+                json!({"name": "acme_plan", "description": "old", "attachments": []}),
+                Ok("old"),
+            ),
+            (
+                json!({"name": "acme_plan", "description": "old"}),
+                Err(files),
+            ),
+            (
+                json!({"name": "acme_plan", "description": "old", "attachments": [{"id": 1}]}),
+                Err(files),
+            ),
+            (
+                json!({"name": "acme_plan", "description": "old", "attachments": [], "files": [{"id": 2}]}),
+                Err(files),
+            ),
+            (json!({"name": "acme_plan", "attachments": []}), Err(text)),
+            (
+                json!({"name": "acme_plan", "description": null, "attachments": []}),
+                Err(text),
+            ),
+            (
+                json!({"name": "acme_plan", "content": "ok", "description": 5, "files": []}),
+                Err(text),
+            ),
+        ];
+        let change = Item::new(&CHANGES, json!({"id": 11, "display_id": 11}));
+        for (row, want) in cases {
+            let (mut a, _) = app(
+                Writes {
+                    row: Some(row.clone()),
+                    ..Default::default()
+                },
+                false,
+            );
+            a.load_planning_editor(change.clone(), "acme_plan".into());
+            a.settle();
+            match (top(&a), want) {
+                (Modal::Note(n), Ok(text)) => {
+                    assert!(n.planning);
+                    assert_eq!(
+                        (n.target.as_str(), n.text.value()),
+                        ("acme_plan", text),
+                        "{row}"
+                    );
+                }
+                (Modal::Failure(f), Err(msg)) => {
+                    assert_eq!(f.message, format!("{msg}{RETRY}"), "{row}")
+                }
+                (m, want) => panic!("{row}: {m:?}, want {want:?}"),
+            }
+        }
     }
 }

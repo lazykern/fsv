@@ -4,7 +4,7 @@
 use jiff::tz::TimeZone;
 use serde_json::{Map, Value};
 
-use crate::backend::{Res, View};
+use crate::backend::{Failure, Res, View};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Column {
@@ -47,6 +47,51 @@ pub fn approval_rules() -> Vec<(&'static str, &'static str)> {
         ("majority", "Majority"),
         ("first-responder", "First responder"),
     ]
+}
+
+/// `planning_text.editable_content(row)`: the planning editor's starting
+/// text, refused unless the row's text and empty file inventory are proven.
+#[cfg(feature = "site")]
+pub fn planning_editable_content(row: Option<&Value>) -> Result<String, Failure> {
+    fsv_api::planning_text::editable_content(row).map_err(Failure::from)
+}
+
+#[cfg(not(feature = "site"))]
+pub fn planning_editable_content(row: Option<&Value>) -> Result<String, Failure> {
+    const TEXT_KEYS: [&str; 5] = [
+        "description",
+        "content",
+        "description_html",
+        "description_text",
+        "body",
+    ];
+    let Some(r) = row else {
+        return Ok(String::new());
+    };
+    let inventories: Vec<&Value> = ["attachments", "files"]
+        .iter()
+        .filter_map(|k| r.get(*k))
+        .collect();
+    if inventories.is_empty() || inventories.iter().any(|v| **v != Value::Array(vec![])) {
+        return Err(Failure::value(
+            "planning attachments are present or unavailable; text-only preservation is not proven",
+        ));
+    }
+    let content = TEXT_KEYS
+        .iter()
+        .find_map(|k| r.get(*k).and_then(Value::as_str));
+    match content {
+        Some(c)
+            if TEXT_KEYS
+                .iter()
+                .all(|k| r.get(*k).is_none_or(Value::is_string)) =>
+        {
+            Ok(c.to_string())
+        }
+        _ => Err(Failure::value(
+            "planning text state is unavailable; no write attempted",
+        )),
+    }
 }
 
 #[cfg(feature = "site")]
