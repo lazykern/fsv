@@ -3284,4 +3284,25 @@ Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `02bdf27`.
 
 No CLI follow-up beyond the runtime status/reminder handoff on `a6262dc`.
 
-Still not triaged: commits after `02bdf27`.
+## Ledger: `5b99bc5` (library side)
+
+Triaged against `git show 5b99bc5`
+(`5b99bc50081b0ffa28d414e3145d721a1550b9b0`). `resolve_where` and
+`build_query_hash` refuse `approval_status` on tickets, including a
+raw `query_hash`. Changes keep numeric `approval_status=N` /
+`approval_status!=N` as `is_in` / `is_not_in` of the digit string.
+`list_page` and `list_items` refuse a truthy `meta.search_error` when a
+query hash was sent.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `5b99bc5`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `5b99bc5` | 11-13 03:37 | Refuse approval_status as a ticket list filter; keep it for changes | ported | fsv-api (`query`, `service`) |
+
+### CLI follow-up
+
+`fsv tickets --where` / `--query-hash` and `fsv changes --where` must
+surface these library errors. Port `tests/test_list_filter_surface.py`.
+
+Still not triaged: commits after `5b99bc5`.

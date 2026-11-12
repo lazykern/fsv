@@ -75,7 +75,9 @@ pub fn build_query_hash(
     let mut query = Vec::new();
     let mut explain = Vec::new();
     if let Some(raw) = raw.filter(|s| !s.is_empty()) {
-        query.extend(load_query_hash(raw)?);
+        let loaded = load_query_hash(raw)?;
+        check_raw_query(resource, &Value::Array(loaded.clone()))?;
+        query.extend(loaded);
         explain.push(Explain {
             field: "query_hash".into(),
             condition: "raw".into(),
@@ -103,6 +105,36 @@ pub fn build_query_hash(
     Ok((Some(dump(&payload)), query, explain))
 }
 
+fn refuse_unsupported_filter(resource: &str, condition: &str) -> Result<(), QueryError> {
+    if resource == "tickets" && condition == "approval_status" {
+        return Err(QueryError(format!(
+            "{condition} is not a {resource} list filter (the server ignores it and returns unfiltered rows); read approval_status per record instead (e.g. `get`)"
+        )));
+    }
+    Ok(())
+}
+
+fn check_raw_query(resource: &str, items: &Value) -> Result<(), QueryError> {
+    let rows = items
+        .as_array()
+        .map(|a| a.as_slice())
+        .unwrap_or(std::slice::from_ref(items));
+    for item in rows {
+        let Some(obj) = item.as_object() else {
+            continue;
+        };
+        if let Some(condition) = obj.get("condition").and_then(Value::as_str) {
+            refuse_unsupported_filter(resource, condition)?;
+        }
+        for key in ["any", "all"] {
+            if let Some(nested) = obj.get(key) {
+                check_raw_query(resource, nested)?;
+            }
+        }
+    }
+    Ok(())
+}
+
 pub fn resolve_where(
     dir: Option<&dyn Directory>,
     resource: &str,
@@ -111,6 +143,28 @@ pub fn resolve_where(
     explain: &mut Vec<Explain>,
 ) -> Result<(Value, ()), QueryError> {
     let (field_text, op, raw) = parse_where(expr)?;
+    refuse_unsupported_filter(resource, &field_text)?;
+    if field_text == "approval_status" && resource == "changes" {
+        if !matches!(op.as_str(), "=" | "!=") || !ascii_digits(&raw) {
+            return Err(QueryError(
+                "approval_status takes a numeric value with = or != (e.g. approval_status=0)"
+                    .into(),
+            ));
+        }
+        let operator = if op == "=" { "is_in" } else { "is_not_in" };
+        return Ok((
+            query_item(
+                "approval_status",
+                operator,
+                json!([raw]),
+                "default",
+                explain,
+                &field_text,
+                &raw,
+            ),
+            (),
+        ));
+    }
     if DATE_FIELDS.contains(&field_text.as_str()) {
         let value = match op.as_str() {
             ">" | "<" => {
@@ -183,6 +237,7 @@ pub fn resolve_where(
         .and_then(Value::as_str)
         .unwrap_or(&field_text)
         .to_string();
+    refuse_unsupported_filter(resource, &name)?;
     let type_ = field_api_type(&field);
     let ftype = field
         .get("field_type")
@@ -1163,5 +1218,32 @@ mod tests {
             outcome(resolve_agent(Some(&ambiguous), "agent@example.com"))["err"],
             oracle["cases"]["query_ambiguous"]["msg"]
         );
+    }
+
+    #[test]
+    fn approval_status_is_refused_for_tickets_and_kept_for_changes() {
+        let mut explain = Vec::new();
+        let err = resolve_where(
+            None,
+            "tickets",
+            &json!({}),
+            "approval_status=0",
+            &mut explain,
+        )
+        .unwrap_err();
+        assert!(err.0.contains("is not a tickets list filter"));
+        let (item, _) = resolve_where(
+            None,
+            "changes",
+            &json!({}),
+            "approval_status=0",
+            &mut explain,
+        )
+        .unwrap();
+        assert_eq!(item["operator"], "is_in");
+        assert_eq!(item["value"], json!(["0"]));
+        let raw = r#"[{"condition":"approval_status","operator":"is_in","value":["0"]}]"#;
+        let err = build_query_hash(None, "tickets", None, &[], Some(raw), false).unwrap_err();
+        assert!(err.0.contains("is not a tickets list filter"));
     }
 }

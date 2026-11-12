@@ -648,6 +648,22 @@ fn list_params(resource: &Resource, a: &ListArgs<'_>, fallback_desc: bool) -> Ma
     p
 }
 
+fn search_error(resource: &Resource, args: &ListArgs<'_>, data: &Value) -> Result<()> {
+    let rejected = args.query_hash.is_some()
+        && data
+            .get("meta")
+            .and_then(Value::as_object)
+            .and_then(|m| m.get("search_error"))
+            .is_some_and(truthy);
+    if rejected {
+        return Err(Error::value(format!(
+            "the {} list rejected the filter (search_error) and returned unfiltered rows; nothing shown",
+            resource.name
+        )));
+    }
+    Ok(())
+}
+
 /// `list_page`: one list page as the web requests it, `(items, raw response)`.
 pub fn list_page(
     c: &dyn Api,
@@ -656,6 +672,7 @@ pub fn list_page(
 ) -> Result<(Vec<Value>, Value)> {
     let data = c.int_get(resource.api_path, Some(list_params(resource, args, true)))?;
     let data = if data.is_object() { data } else { json!({}) };
+    search_error(resource, args, &data)?;
     let items = data
         .list_or_empty(resource.list_key)
         .iter()
@@ -671,6 +688,7 @@ pub fn list_items(
     args: &ListArgs<'_>,
 ) -> Result<(Vec<Value>, i64)> {
     let data = c.int_get(resource.api_path, Some(list_params(resource, args, false)))?;
+    search_error(resource, args, &data)?;
     let items: Vec<Value> = rows_at(&data, resource.list_key)
         .into_iter()
         .map(|i| tag(i, resource))
