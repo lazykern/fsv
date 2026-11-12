@@ -1,0 +1,1771 @@
+{
+ "_python": {
+  "commit": "36408b25fe8f9488d664efefbd104ba5b5f02b25",
+  "dirty": false
+ },
+ "cases": {
+  "link_tickets_devices": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "tickets",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "devices"
+    },
+    {
+     "op": "send",
+     "module": "tickets",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "devices"
+    },
+    {
+     "op": "build",
+     "module": "tickets",
+     "ids": [
+      81
+     ],
+     "kind": "devices",
+     "remove": true
+    },
+    {
+     "op": "set",
+     "unlink": true
+    },
+    {
+     "op": "send",
+     "module": "tickets",
+     "ids": [
+      81
+     ],
+     "kind": "devices",
+     "remove": true
+    },
+    {
+     "op": "rows"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "integrated_asset_add",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "tickets/23/associate-ci",
+      "payload": {
+       "device_ids": [
+        "81",
+        "82"
+       ]
+      },
+      "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "hash": "8597aff489593e33caa8b505397d6c625b12aebfe95685bdf1601fbe79373e61",
+      "review": {
+       "action": "integrated_asset_add",
+       "method": "PUT",
+       "path": "/api/_/tickets/23/associate-ci",
+       "payload": {
+        "device_ids": [
+         "81",
+         "82"
+        ]
+       },
+       "plan_hash": "8597aff489593e33caa8b505397d6c625b12aebfe95685bdf1601fbe79373e61",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "8597aff489593e33caa8b505397d6c625b12aebfe95685bdf1601fbe79373e61",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "81",
+        "itam_cmdb_request_id": 981,
+        "category": "Device"
+       },
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Device"
+       }
+      ]
+     }
+    },
+    {
+     "plan": {
+      "action": "integrated_asset_remove",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "tickets/23/disassociate-ci",
+      "payload": {
+       "itam_cmdb_request_id": 981
+      },
+      "context_hash": "2d0e66e562c15d14a667f61c4e1a16c087ad215734b7c575a55a026b8e58aa17",
+      "hash": "c8f9a2af13094a9c922eeb9e5c82b51f1ac33622fa6003b8ef0a2950197a74d0",
+      "review": {
+       "action": "integrated_asset_remove",
+       "method": "PUT",
+       "path": "/api/_/tickets/23/disassociate-ci",
+       "payload": {
+        "itam_cmdb_request_id": 981
+       },
+       "plan_hash": "c8f9a2af13094a9c922eeb9e5c82b51f1ac33622fa6003b8ef0a2950197a74d0",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {},
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "c8f9a2af13094a9c922eeb9e5c82b51f1ac33622fa6003b8ef0a2950197a74d0",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Device"
+       }
+      ]
+     }
+    },
+    {
+     "rows": [
+      {
+       "item_id": "82",
+       "itam_cmdb_request_id": 982,
+       "category": "Device"
+      }
+     ]
+    }
+   ]
+  },
+  "link_tickets_services": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "tickets",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "services"
+    },
+    {
+     "op": "send",
+     "module": "tickets",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "services"
+    },
+    {
+     "op": "build",
+     "module": "tickets",
+     "ids": [
+      81
+     ],
+     "kind": "services",
+     "remove": true
+    },
+    {
+     "op": "set",
+     "unlink": true
+    },
+    {
+     "op": "send",
+     "module": "tickets",
+     "ids": [
+      81
+     ],
+     "kind": "services",
+     "remove": true
+    },
+    {
+     "op": "rows"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "integrated_asset_add",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "tickets/23/associate-ci",
+      "payload": {
+       "businessapp_ids": [
+        "81",
+        "82"
+       ]
+      },
+      "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "hash": "0188d2792b7b236cabe32a3a976201c2ad448b79eaec67418244d5acf388674c",
+      "review": {
+       "action": "integrated_asset_add",
+       "method": "PUT",
+       "path": "/api/_/tickets/23/associate-ci",
+       "payload": {
+        "businessapp_ids": [
+         "81",
+         "82"
+        ]
+       },
+       "plan_hash": "0188d2792b7b236cabe32a3a976201c2ad448b79eaec67418244d5acf388674c",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "0188d2792b7b236cabe32a3a976201c2ad448b79eaec67418244d5acf388674c",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "81",
+        "itam_cmdb_request_id": 981,
+        "category": "Business service"
+       },
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Business service"
+       }
+      ]
+     }
+    },
+    {
+     "plan": {
+      "action": "integrated_asset_remove",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "tickets/23/disassociate-ci",
+      "payload": {
+       "itam_cmdb_request_id": 981
+      },
+      "context_hash": "cb3c58a487311722f66aff5b6c1d1391cf4091266606ccf845b271b4db8628b4",
+      "hash": "00430492d6b93ebe703189d3e80c29c18aec4b455aa387acaab91990def28204",
+      "review": {
+       "action": "integrated_asset_remove",
+       "method": "PUT",
+       "path": "/api/_/tickets/23/disassociate-ci",
+       "payload": {
+        "itam_cmdb_request_id": 981
+       },
+       "plan_hash": "00430492d6b93ebe703189d3e80c29c18aec4b455aa387acaab91990def28204",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {},
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "00430492d6b93ebe703189d3e80c29c18aec4b455aa387acaab91990def28204",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Business service"
+       }
+      ]
+     }
+    },
+    {
+     "rows": [
+      {
+       "item_id": "82",
+       "itam_cmdb_request_id": 982,
+       "category": "Business service"
+      }
+     ]
+    }
+   ]
+  },
+  "link_sr_devices": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "sr",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "devices"
+    },
+    {
+     "op": "send",
+     "module": "sr",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "devices"
+    },
+    {
+     "op": "build",
+     "module": "sr",
+     "ids": [
+      81
+     ],
+     "kind": "devices",
+     "remove": true
+    },
+    {
+     "op": "set",
+     "unlink": true
+    },
+    {
+     "op": "send",
+     "module": "sr",
+     "ids": [
+      81
+     ],
+     "kind": "devices",
+     "remove": true
+    },
+    {
+     "op": "rows"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "integrated_asset_add",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "tickets/23/associate-ci",
+      "payload": {
+       "device_ids": [
+        "81",
+        "82"
+       ]
+      },
+      "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "hash": "8597aff489593e33caa8b505397d6c625b12aebfe95685bdf1601fbe79373e61",
+      "review": {
+       "action": "integrated_asset_add",
+       "method": "PUT",
+       "path": "/api/_/tickets/23/associate-ci",
+       "payload": {
+        "device_ids": [
+         "81",
+         "82"
+        ]
+       },
+       "plan_hash": "8597aff489593e33caa8b505397d6c625b12aebfe95685bdf1601fbe79373e61",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "8597aff489593e33caa8b505397d6c625b12aebfe95685bdf1601fbe79373e61",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "81",
+        "itam_cmdb_request_id": 981,
+        "category": "Device"
+       },
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Device"
+       }
+      ]
+     }
+    },
+    {
+     "plan": {
+      "action": "integrated_asset_remove",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "tickets/23/disassociate-ci",
+      "payload": {
+       "itam_cmdb_request_id": 981
+      },
+      "context_hash": "2d0e66e562c15d14a667f61c4e1a16c087ad215734b7c575a55a026b8e58aa17",
+      "hash": "c8f9a2af13094a9c922eeb9e5c82b51f1ac33622fa6003b8ef0a2950197a74d0",
+      "review": {
+       "action": "integrated_asset_remove",
+       "method": "PUT",
+       "path": "/api/_/tickets/23/disassociate-ci",
+       "payload": {
+        "itam_cmdb_request_id": 981
+       },
+       "plan_hash": "c8f9a2af13094a9c922eeb9e5c82b51f1ac33622fa6003b8ef0a2950197a74d0",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {},
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "c8f9a2af13094a9c922eeb9e5c82b51f1ac33622fa6003b8ef0a2950197a74d0",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Device"
+       }
+      ]
+     }
+    },
+    {
+     "rows": [
+      {
+       "item_id": "82",
+       "itam_cmdb_request_id": 982,
+       "category": "Device"
+      }
+     ]
+    }
+   ]
+  },
+  "link_sr_services": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "sr",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "services"
+    },
+    {
+     "op": "send",
+     "module": "sr",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "services"
+    },
+    {
+     "op": "build",
+     "module": "sr",
+     "ids": [
+      81
+     ],
+     "kind": "services",
+     "remove": true
+    },
+    {
+     "op": "set",
+     "unlink": true
+    },
+    {
+     "op": "send",
+     "module": "sr",
+     "ids": [
+      81
+     ],
+     "kind": "services",
+     "remove": true
+    },
+    {
+     "op": "rows"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "integrated_asset_add",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "tickets/23/associate-ci",
+      "payload": {
+       "businessapp_ids": [
+        "81",
+        "82"
+       ]
+      },
+      "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "hash": "0188d2792b7b236cabe32a3a976201c2ad448b79eaec67418244d5acf388674c",
+      "review": {
+       "action": "integrated_asset_add",
+       "method": "PUT",
+       "path": "/api/_/tickets/23/associate-ci",
+       "payload": {
+        "businessapp_ids": [
+         "81",
+         "82"
+        ]
+       },
+       "plan_hash": "0188d2792b7b236cabe32a3a976201c2ad448b79eaec67418244d5acf388674c",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "0188d2792b7b236cabe32a3a976201c2ad448b79eaec67418244d5acf388674c",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "81",
+        "itam_cmdb_request_id": 981,
+        "category": "Business service"
+       },
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Business service"
+       }
+      ]
+     }
+    },
+    {
+     "plan": {
+      "action": "integrated_asset_remove",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "tickets/23/disassociate-ci",
+      "payload": {
+       "itam_cmdb_request_id": 981
+      },
+      "context_hash": "cb3c58a487311722f66aff5b6c1d1391cf4091266606ccf845b271b4db8628b4",
+      "hash": "00430492d6b93ebe703189d3e80c29c18aec4b455aa387acaab91990def28204",
+      "review": {
+       "action": "integrated_asset_remove",
+       "method": "PUT",
+       "path": "/api/_/tickets/23/disassociate-ci",
+       "payload": {
+        "itam_cmdb_request_id": 981
+       },
+       "plan_hash": "00430492d6b93ebe703189d3e80c29c18aec4b455aa387acaab91990def28204",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {},
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "00430492d6b93ebe703189d3e80c29c18aec4b455aa387acaab91990def28204",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Business service"
+       }
+      ]
+     }
+    },
+    {
+     "rows": [
+      {
+       "item_id": "82",
+       "itam_cmdb_request_id": 982,
+       "category": "Business service"
+      }
+     ]
+    }
+   ]
+  },
+  "link_problems_devices": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "problems",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "devices"
+    },
+    {
+     "op": "send",
+     "module": "problems",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "devices"
+    },
+    {
+     "op": "build",
+     "module": "problems",
+     "ids": [
+      81
+     ],
+     "kind": "devices",
+     "remove": true
+    },
+    {
+     "op": "set",
+     "unlink": true
+    },
+    {
+     "op": "send",
+     "module": "problems",
+     "ids": [
+      81
+     ],
+     "kind": "devices",
+     "remove": true
+    },
+    {
+     "op": "rows"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "integrated_asset_add",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "problems/23/associate-ci",
+      "payload": {
+       "device_ids": [
+        "81",
+        "82"
+       ]
+      },
+      "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "hash": "28a17df362d3e9d4324e15595e97fbb7fb3a51a97596a4bc46b306961562e1e2",
+      "review": {
+       "action": "integrated_asset_add",
+       "method": "PUT",
+       "path": "/api/_/problems/23/associate-ci",
+       "payload": {
+        "device_ids": [
+         "81",
+         "82"
+        ]
+       },
+       "plan_hash": "28a17df362d3e9d4324e15595e97fbb7fb3a51a97596a4bc46b306961562e1e2",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "28a17df362d3e9d4324e15595e97fbb7fb3a51a97596a4bc46b306961562e1e2",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "81",
+        "itam_cmdb_request_id": 981,
+        "category": "Device"
+       },
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Device"
+       }
+      ]
+     }
+    },
+    {
+     "plan": {
+      "action": "integrated_asset_remove",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "problems/23/disassociate-ci",
+      "payload": {
+       "itam_cmdb_request_id": 981
+      },
+      "context_hash": "2d0e66e562c15d14a667f61c4e1a16c087ad215734b7c575a55a026b8e58aa17",
+      "hash": "194a15f898d59d5ba077241fcf34dc9208fa7fcd4120c6e6670da85a3a1095e0",
+      "review": {
+       "action": "integrated_asset_remove",
+       "method": "PUT",
+       "path": "/api/_/problems/23/disassociate-ci",
+       "payload": {
+        "itam_cmdb_request_id": 981
+       },
+       "plan_hash": "194a15f898d59d5ba077241fcf34dc9208fa7fcd4120c6e6670da85a3a1095e0",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {},
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "194a15f898d59d5ba077241fcf34dc9208fa7fcd4120c6e6670da85a3a1095e0",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Device"
+       }
+      ]
+     }
+    },
+    {
+     "rows": [
+      {
+       "item_id": "82",
+       "itam_cmdb_request_id": 982,
+       "category": "Device"
+      }
+     ]
+    }
+   ]
+  },
+  "link_problems_services": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "problems",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "services"
+    },
+    {
+     "op": "send",
+     "module": "problems",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "services"
+    },
+    {
+     "op": "build",
+     "module": "problems",
+     "ids": [
+      81
+     ],
+     "kind": "services",
+     "remove": true
+    },
+    {
+     "op": "set",
+     "unlink": true
+    },
+    {
+     "op": "send",
+     "module": "problems",
+     "ids": [
+      81
+     ],
+     "kind": "services",
+     "remove": true
+    },
+    {
+     "op": "rows"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "integrated_asset_add",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "problems/23/associate-ci",
+      "payload": {
+       "businessapp_ids": [
+        "81",
+        "82"
+       ]
+      },
+      "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "hash": "5a0b714f8ee97de813d634802ac9eb1ee5e1eaffdb0d42de4236a50277006a3f",
+      "review": {
+       "action": "integrated_asset_add",
+       "method": "PUT",
+       "path": "/api/_/problems/23/associate-ci",
+       "payload": {
+        "businessapp_ids": [
+         "81",
+         "82"
+        ]
+       },
+       "plan_hash": "5a0b714f8ee97de813d634802ac9eb1ee5e1eaffdb0d42de4236a50277006a3f",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "5a0b714f8ee97de813d634802ac9eb1ee5e1eaffdb0d42de4236a50277006a3f",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "81",
+        "itam_cmdb_request_id": 981,
+        "category": "Business service"
+       },
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Business service"
+       }
+      ]
+     }
+    },
+    {
+     "plan": {
+      "action": "integrated_asset_remove",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "problems/23/disassociate-ci",
+      "payload": {
+       "itam_cmdb_request_id": 981
+      },
+      "context_hash": "cb3c58a487311722f66aff5b6c1d1391cf4091266606ccf845b271b4db8628b4",
+      "hash": "b81e65f26d8b83f0dfcf8d58913e70b23f35e222b4feae3e6bd931768e410ccb",
+      "review": {
+       "action": "integrated_asset_remove",
+       "method": "PUT",
+       "path": "/api/_/problems/23/disassociate-ci",
+       "payload": {
+        "itam_cmdb_request_id": 981
+       },
+       "plan_hash": "b81e65f26d8b83f0dfcf8d58913e70b23f35e222b4feae3e6bd931768e410ccb",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {},
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "b81e65f26d8b83f0dfcf8d58913e70b23f35e222b4feae3e6bd931768e410ccb",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Business service"
+       }
+      ]
+     }
+    },
+    {
+     "rows": [
+      {
+       "item_id": "82",
+       "itam_cmdb_request_id": 982,
+       "category": "Business service"
+      }
+     ]
+    }
+   ]
+  },
+  "link_changes_devices": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "changes",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "devices"
+    },
+    {
+     "op": "send",
+     "module": "changes",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "devices"
+    },
+    {
+     "op": "build",
+     "module": "changes",
+     "ids": [
+      81
+     ],
+     "kind": "devices",
+     "remove": true
+    },
+    {
+     "op": "set",
+     "unlink": true
+    },
+    {
+     "op": "send",
+     "module": "changes",
+     "ids": [
+      81
+     ],
+     "kind": "devices",
+     "remove": true
+    },
+    {
+     "op": "rows"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "integrated_asset_add",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "changes/23/associate-ci",
+      "payload": {
+       "device_ids": [
+        "81",
+        "82"
+       ]
+      },
+      "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "hash": "6795c17bf71f63875a9eda7c222f66c5c24123a6aa197c45034fa507cd98b92d",
+      "review": {
+       "action": "integrated_asset_add",
+       "method": "PUT",
+       "path": "/api/_/changes/23/associate-ci",
+       "payload": {
+        "device_ids": [
+         "81",
+         "82"
+        ]
+       },
+       "plan_hash": "6795c17bf71f63875a9eda7c222f66c5c24123a6aa197c45034fa507cd98b92d",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "6795c17bf71f63875a9eda7c222f66c5c24123a6aa197c45034fa507cd98b92d",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "81",
+        "itam_cmdb_request_id": 981,
+        "category": "Device"
+       },
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Device"
+       }
+      ]
+     }
+    },
+    {
+     "plan": {
+      "action": "integrated_asset_remove",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "changes/23/disassociate-ci",
+      "payload": {
+       "itam_cmdb_request_id": 981
+      },
+      "context_hash": "2d0e66e562c15d14a667f61c4e1a16c087ad215734b7c575a55a026b8e58aa17",
+      "hash": "bc8902438a397b9bfc8d29f7ef5edd2edc3bc0a9e45633e18664e4f0b86721e8",
+      "review": {
+       "action": "integrated_asset_remove",
+       "method": "PUT",
+       "path": "/api/_/changes/23/disassociate-ci",
+       "payload": {
+        "itam_cmdb_request_id": 981
+       },
+       "plan_hash": "bc8902438a397b9bfc8d29f7ef5edd2edc3bc0a9e45633e18664e4f0b86721e8",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {},
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "bc8902438a397b9bfc8d29f7ef5edd2edc3bc0a9e45633e18664e4f0b86721e8",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Device"
+       }
+      ]
+     }
+    },
+    {
+     "rows": [
+      {
+       "item_id": "82",
+       "itam_cmdb_request_id": 982,
+       "category": "Device"
+      }
+     ]
+    }
+   ]
+  },
+  "link_changes_services": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "changes",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "services"
+    },
+    {
+     "op": "send",
+     "module": "changes",
+     "ids": [
+      81,
+      82
+     ],
+     "kind": "services"
+    },
+    {
+     "op": "build",
+     "module": "changes",
+     "ids": [
+      81
+     ],
+     "kind": "services",
+     "remove": true
+    },
+    {
+     "op": "set",
+     "unlink": true
+    },
+    {
+     "op": "send",
+     "module": "changes",
+     "ids": [
+      81
+     ],
+     "kind": "services",
+     "remove": true
+    },
+    {
+     "op": "rows"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "integrated_asset_add",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "changes/23/associate-ci",
+      "payload": {
+       "businessapp_ids": [
+        "81",
+        "82"
+       ]
+      },
+      "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "hash": "ca8b0236fa0abf51cd75e2c02005a9787fdbc98618d0259179cd246cfaa745ca",
+      "review": {
+       "action": "integrated_asset_add",
+       "method": "PUT",
+       "path": "/api/_/changes/23/associate-ci",
+       "payload": {
+        "businessapp_ids": [
+         "81",
+         "82"
+        ]
+       },
+       "plan_hash": "ca8b0236fa0abf51cd75e2c02005a9787fdbc98618d0259179cd246cfaa745ca",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "ca8b0236fa0abf51cd75e2c02005a9787fdbc98618d0259179cd246cfaa745ca",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "81",
+        "itam_cmdb_request_id": 981,
+        "category": "Business service"
+       },
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Business service"
+       }
+      ]
+     }
+    },
+    {
+     "plan": {
+      "action": "integrated_asset_remove",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "changes/23/disassociate-ci",
+      "payload": {
+       "itam_cmdb_request_id": 981
+      },
+      "context_hash": "cb3c58a487311722f66aff5b6c1d1391cf4091266606ccf845b271b4db8628b4",
+      "hash": "2f0c20037f219b6c2e9bd11ef360c9e171a3c2c5ac069112ae4115c1a92d0424",
+      "review": {
+       "action": "integrated_asset_remove",
+       "method": "PUT",
+       "path": "/api/_/changes/23/disassociate-ci",
+       "payload": {
+        "itam_cmdb_request_id": 981
+       },
+       "plan_hash": "2f0c20037f219b6c2e9bd11ef360c9e171a3c2c5ac069112ae4115c1a92d0424",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {},
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "2f0c20037f219b6c2e9bd11ef360c9e171a3c2c5ac069112ae4115c1a92d0424",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "82",
+        "itam_cmdb_request_id": 982,
+        "category": "Business service"
+       }
+      ]
+     }
+    },
+    {
+     "rows": [
+      {
+       "item_id": "82",
+       "itam_cmdb_request_id": 982,
+       "category": "Business service"
+      }
+     ]
+    }
+   ]
+  },
+  "search": {
+   "ops": [
+    {
+     "op": "search",
+     "q": "Acme"
+    }
+   ],
+   "outputs": [
+    {
+     "result": {
+      "page": 1,
+      "error": null,
+      "total_rows": 1,
+      "data": [
+       {
+        "device_pk": 81,
+        "name": {
+         "id": 81,
+         "label": "Acme"
+        }
+       }
+      ],
+      "kind": "devices",
+      "complete": true
+     }
+    }
+   ]
+  },
+  "search_page": {
+   "ops": [
+    {
+     "op": "search",
+     "page": 2
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "integrated inventory pagination unavailable"
+     }
+    }
+   ]
+  },
+  "search_kind": {
+   "ops": [
+    {
+     "op": "search",
+     "kind": "printers"
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "choose devices, assets or services and a positive page"
+     }
+    }
+   ]
+  },
+  "search_page0": {
+   "ops": [
+    {
+     "op": "search",
+     "page": 0
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "choose devices, assets or services and a positive page"
+     }
+    }
+   ]
+  },
+  "search_error": {
+   "ops": [
+    {
+     "op": "set",
+     "search": {
+      "page": 1,
+      "error": "down",
+      "total_rows": 0,
+      "data": []
+     }
+    },
+    {
+     "op": "search"
+    }
+   ],
+   "outputs": [
+    {},
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "integrated inventory unavailable"
+     }
+    }
+   ]
+  },
+  "search_conflict": {
+   "ops": [
+    {
+     "op": "set",
+     "search": {
+      "page": 1,
+      "error": null,
+      "total_rows": 1,
+      "data": [
+       {
+        "device_pk": 82,
+        "name": {
+         "id": 81,
+         "label": "Acme"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "op": "search"
+    }
+   ],
+   "outputs": [
+    {},
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "conflicting inventory identities"
+     }
+    }
+   ]
+  },
+  "search_duplicate": {
+   "ops": [
+    {
+     "op": "set",
+     "search": {
+      "page": 1,
+      "error": null,
+      "total_rows": 2,
+      "data": [
+       {
+        "device_pk": 81,
+        "name": {
+         "id": 81
+        }
+       },
+       {
+        "device_pk": 81,
+        "name": {
+         "id": 81
+        }
+       }
+      ]
+     }
+    },
+    {
+     "op": "search"
+    }
+   ],
+   "outputs": [
+    {},
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "invalid inventory totals or duplicate identities"
+     }
+    }
+   ]
+  },
+  "search_short_total": {
+   "ops": [
+    {
+     "op": "set",
+     "search": {
+      "page": 1,
+      "error": null,
+      "total_rows": 0,
+      "data": [
+       {
+        "name": {
+         "id": 81
+        }
+       }
+      ]
+     }
+    },
+    {
+     "op": "search"
+    }
+   ],
+   "outputs": [
+    {},
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "invalid inventory totals or duplicate identities"
+     }
+    }
+   ]
+  },
+  "bad_module": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "assets",
+     "ids": [
+      81
+     ]
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "unsupported association module"
+     }
+    }
+   ]
+  },
+  "empty_ids": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "tickets",
+     "ids": []
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "provide distinct inventory IDs; removal accepts exactly one ID"
+     }
+    }
+   ]
+  },
+  "assets_kind": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "tickets",
+     "ids": [
+      81
+     ],
+     "kind": "assets"
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "association kind must be devices or services; physical asset writes are unproven"
+     }
+    }
+   ]
+  },
+  "remove_missing": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "tickets",
+     "ids": [
+      81
+     ],
+     "remove": true
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "inventory ID is not associated with this exact record"
+     }
+    }
+   ]
+  },
+  "already": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "tickets",
+     "ids": [
+      81
+     ]
+    },
+    {
+     "op": "send",
+     "module": "tickets",
+     "ids": [
+      81
+     ]
+    },
+    {
+     "op": "build",
+     "module": "tickets",
+     "ids": [
+      81
+     ]
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "integrated_asset_add",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "tickets/23/associate-ci",
+      "payload": {
+       "device_ids": [
+        "81"
+       ]
+      },
+      "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "hash": "3127e7c2e84bc180a6103d0812b15e9c7a69e5594cea3fa793f1bbccc417858e",
+      "review": {
+       "action": "integrated_asset_add",
+       "method": "PUT",
+       "path": "/api/_/tickets/23/associate-ci",
+       "payload": {
+        "device_ids": [
+         "81"
+        ]
+       },
+       "plan_hash": "3127e7c2e84bc180a6103d0812b15e9c7a69e5594cea3fa793f1bbccc417858e",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "3127e7c2e84bc180a6103d0812b15e9c7a69e5594cea3fa793f1bbccc417858e",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "81",
+        "itam_cmdb_request_id": 981,
+        "category": "Device"
+       }
+      ]
+     }
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "requested inventory ID is already associated; omit it"
+     }
+    }
+   ]
+  },
+  "wrong_hash": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "tickets",
+     "ids": [
+      81
+     ]
+    },
+    {
+     "op": "send",
+     "module": "tickets",
+     "ids": [
+      81
+     ],
+     "hash": "wrong"
+    },
+    {
+     "op": "rows"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "integrated_asset_add",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "tickets/23/associate-ci",
+      "payload": {
+       "device_ids": [
+        "81"
+       ]
+      },
+      "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "hash": "3127e7c2e84bc180a6103d0812b15e9c7a69e5594cea3fa793f1bbccc417858e",
+      "review": {
+       "action": "integrated_asset_add",
+       "method": "PUT",
+       "path": "/api/_/tickets/23/associate-ci",
+       "payload": {
+        "device_ids": [
+         "81"
+        ]
+       },
+       "plan_hash": "3127e7c2e84bc180a6103d0812b15e9c7a69e5594cea3fa793f1bbccc417858e",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "tenant or full review hash changed; review again"
+     }
+    },
+    {
+     "rows": []
+    }
+   ]
+  },
+  "incomplete": {
+   "ops": [
+    {
+     "op": "set",
+     "inventory": {
+      "data": [],
+      "meta": {
+       "total_count": 1,
+       "total_pages": 1
+      }
+     }
+    },
+    {
+     "op": "build",
+     "module": "tickets",
+     "ids": [
+      81
+     ]
+    }
+   ],
+   "outputs": [
+    {},
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "association inventory total mismatch"
+     }
+    }
+   ]
+  },
+  "verify_empty": {
+   "ops": [
+    {
+     "op": "verify",
+     "module": "changes",
+     "devices": [
+      "81"
+     ]
+    }
+   ],
+   "outputs": [
+    {
+     "result": {
+      "verified": false,
+      "readback": [],
+      "warning": "Create-time devices not independently verified; do not resend."
+     }
+    }
+   ]
+  },
+  "verify_linked": {
+   "ops": [
+    {
+     "op": "build",
+     "module": "changes",
+     "ids": [
+      81
+     ]
+    },
+    {
+     "op": "send",
+     "module": "changes",
+     "ids": [
+      81
+     ]
+    },
+    {
+     "op": "verify",
+     "module": "changes",
+     "devices": [
+      "81"
+     ]
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "integrated_asset_add",
+      "target": 23,
+      "tenant": "acme.freshservice.com",
+      "method": "PUT",
+      "path": "changes/23/associate-ci",
+      "payload": {
+       "device_ids": [
+        "81"
+       ]
+      },
+      "context_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "hash": "7bf3be85b3fc58a0fe21343a4949918c970ac578f76bc2b5cf247d153ca5c7ae",
+      "review": {
+       "action": "integrated_asset_add",
+       "method": "PUT",
+       "path": "/api/_/changes/23/associate-ci",
+       "payload": {
+        "device_ids": [
+         "81"
+        ]
+       },
+       "plan_hash": "7bf3be85b3fc58a0fe21343a4949918c970ac578f76bc2b5cf247d153ca5c7ae",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      }
+     }
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "7bf3be85b3fc58a0fe21343a4949918c970ac578f76bc2b5cf247d153ca5c7ae",
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "81",
+        "itam_cmdb_request_id": 981,
+        "category": "Device"
+       }
+      ]
+     }
+    },
+    {
+     "result": {
+      "verified": true,
+      "readback": [
+       {
+        "item_id": "81",
+        "itam_cmdb_request_id": 981,
+        "category": "Device"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "mapped_device": {
+   "ops": [
+    {
+     "op": "set",
+     "search": {
+      "page": 1,
+      "error": null,
+      "total_rows": 1,
+      "data": [
+       {
+        "device_pk": 81,
+        "name": {
+         "id": 81,
+         "label": "Acme"
+        },
+        "type": "Computer"
+       }
+      ]
+     }
+    },
+    {
+     "op": "search",
+     "q": "Globex",
+     "page": 1
+    }
+   ],
+   "outputs": [
+    {},
+    {
+     "result": {
+      "page": 1,
+      "error": null,
+      "total_rows": 1,
+      "data": [
+       {
+        "device_pk": 81,
+        "name": {
+         "id": 81,
+         "label": "Acme"
+        },
+        "type": "Computer"
+       }
+      ],
+      "kind": "devices",
+      "complete": true
+     }
+    }
+   ]
+  }
+ }
+}

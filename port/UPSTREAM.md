@@ -1808,6 +1808,90 @@ conversation body is `(empty)` even when files are attached. PARITY's
 
 `port/fsv_coverage.py` maps `reviewed_snapshot` to fsv-core.
 
-Next batch (not triaged): `36408b2`, `9070409`, `be41032`, `0719e33`,
-`d870fa7`, `780c002`, `ad40a51`, `e173437`, `b310885`, `11e76ed`, `ffcab5b`,
-`e7c536b`.
+## Ledger: `36408b2` (library side)
+
+Triaged against a `git archive 36408b2` export
+(`FSV_PY_COMMIT=36408b25fe8f9488d664efefbd104ba5b5f02b25`).
+`port/golden/gen_fsv_api_integrated_assets.py` stamps
+`crates/fsv-api/src/testdata/integrated_assets_oracle.json`. The TUI
+asset block in `reviewed_expected.json` was regenerated from the same
+export; the rest of that fixture is unchanged apart from the stamp.
+This section covers every crate except fsv-cli and fsv-completion.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `36408b2`.
+The partial is the fsv-cli half, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `36408b2` | 11-12 14:31 | Use integrated inventory for reviewed CI and service associations | partial | fsv-api `integrated_assets`, `asset_picker`, `Api::absolute_get`; fsv-flows `with_devices`; fsv-app `LiveWriter::associated_devices`. fsv-cli follow-up below |
+
+### `36408b2` integrated inventory — partial
+
+`fsv_api::integrated_assets` ports `search`, `inventory`, `build_plan`,
+`send`, and `verify_devices`. Search is `GET https://{domain}/itam/core/{family}/api/`
+with `order`, `page`, `page_size=50`, `q`. Association reads are
+`GET {module}/{id}/associated-cis`. Add sends decimal-string
+`device_ids` or `businessapp_ids`. Remove sends the current
+`itam_cmdb_request_id`. `sr` is the tickets wire. `search_assets_for_change`
+stays; only the picker stopped calling it.
+
+`asset_picker::candidates` checks the change id, then searches devices.
+Each row is `display_id`, `name`, `ci_type_name`, and `inventory`.
+
+Create-time devices are not a field on `CreateOptions` or `TicketOptions`
+(fsv-cli builds those as struct literals). `fsv_flows::change::with_devices`
+and `fsv_flows::ticket::with_devices` insert `device_ids` and rehash.
+After a successful create, a truthy `device_ids` adds `device_verification`.
+`ChangeWriter::associated_devices` fails closed unless the writer reads
+inventory. `LiveWriter` reads change devices. Ticket create reads through
+`integrated_assets::inventory`.
+
+`Api::absolute_get` defaults to `absolute request is unavailable: {url}`.
+`Client`, `FakeApi`, and `FnApi` implement it.
+
+### Public API for the fsv-cli owner
+
+- `fsv_api::integrated_assets::{target_id, search, inventory, build_plan, send, verify_devices, verification}`
+- `fsv_flows::change::with_devices(plan, &[i64]) -> Result<Plan>` and
+  `fsv_flows::ticket::with_devices`. Call after `build_create_plan` where
+  Python passes `devices=`.
+- `Api::absolute_get(&self, url, params) -> Result<Value>`. `LazyApi` must
+  forward it to `Client::request("GET", url, params)` or asset search and
+  the ITAM commands fail closed.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`integrated_assets_cli.register(app, "sr", factory)` adds `sr assets`
+`list` / hidden `ls` / `add` / `remove`. `search`, hidden `legacy`, and
+the `ci-add` / `ci-remove` / `ci-list` aliases are registered only when
+the module is `changes`, and this commit does not call `register` for
+changes. JSON create output includes `device_verification` when the
+result has it.
+
+Scratch tree (`git archive HEAD` plus this library diff, fsv-cli left at
+HEAD): `cargo test -p fsv-cli --offline` is 545 passed, 13 failed. All 13
+are asset-picker tests whose fixture still serves
+`GET /api/_/assets-to-associate`. The library now requests
+`GET /itam/core/device/api/` and the failure is `HTTP 404 listing device`.
+Do not edit fsv-cli. Failing tests:
+
+`asset_picker_api_error_is_uncaught`, `asset_picker_bad_display_id`,
+`asset_picker_display_id_target`, `asset_picker_duplicate_display_ids`,
+`asset_picker_duplicate_then_bad`, `asset_picker_empty_page`,
+`asset_picker_empty_select`, `asset_picker_page`,
+`asset_picker_row_not_object`, `asset_picker_rows_not_list`,
+`asset_picker_search_page_2`, `asset_picker_select`,
+`asset_picker_select_missing`.
+
+These still pass because they refuse before the search:
+`asset_picker_bad_target`, `asset_picker_page_must_be_positive`,
+`asset_picker_ticket_target`, `asset_picker_zero_target`.
+
+`port/fsv_coverage.py` maps `integrated_assets` to fsv-api. Audit
+(`/tmp/cov.md`, live Python tree): 1777 rows, 1552 covered, 45 missing,
+16 fn-only. Every `fsv.integrated_assets` def is covered. Missing from
+this commit: `integrated_assets_cli.finish`, `register`, `register_search`.
+
+Still not triaged: `9070409`,
+`be41032`, `0719e33`, `d870fa7`, `780c002`, `ad40a51`, `e173437`, `b310885`,
+`11e76ed`, `ffcab5b`, `e7c536b`.

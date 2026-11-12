@@ -86,6 +86,15 @@ impl ChangeWriter for LiveWriter {
         .map(|_| ())
     }
 
+    fn associated_devices(&self, target: i64) -> Result<Vec<Json>> {
+        fsv_api::integrated_assets::inventory(
+            self.api.as_ref(),
+            "changes",
+            &Json::from(target),
+            "devices",
+        )
+    }
+
     fn update_planning_field(&self, change_id_v: &Json, req: &PlanningUpdate<'_>) -> Result<()> {
         let label = Some(req.label).filter(|l| !l.is_empty());
         create::update_planning_field(

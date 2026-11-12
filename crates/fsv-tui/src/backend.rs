@@ -518,7 +518,7 @@ pub trait Backend: Send + Sync {
 
     // ── read-only pickers ───────────────────────────────────
     /// `asset_picker.candidates(c, req.change, req.query, page=req.page)`:
-    /// one GET of `assets-to-associate`; never associates.
+    /// one GET of `/itam/core/device/api/`; never associates.
     fn asset_candidates(&self, req: &AssetCandidatesRequest) -> BResult<AssetCandidates>;
 
     // ── create forms ────────────────────────────────────────

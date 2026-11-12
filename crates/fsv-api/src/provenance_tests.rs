@@ -93,6 +93,10 @@ fn fixtures_record_their_python_commit() {
             "ticket_tasks_oracle",
             include_str!("testdata/ticket_tasks_oracle.json"),
         ),
+        (
+            "integrated_assets_oracle",
+            include_str!("testdata/integrated_assets_oracle.json"),
+        ),
     ] {
         assert_stamped(name, text);
     }

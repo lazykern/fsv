@@ -80,6 +80,15 @@ pub trait Api: Sync {
         let _ = params;
         Err(Error::other(format!("v2 API is unavailable: {path}")))
     }
+    /// `Client._request("GET", url, params=)` for a host outside `/api/_/`
+    /// (integrated ITAM). The default has none; `fsv-cli`'s `LazyApi` must
+    /// forward it.
+    fn absolute_get(&self, url: &str, params: Option<Map<String, Value>>) -> Result<Value> {
+        let _ = params;
+        Err(Error::other(format!(
+            "absolute request is unavailable: {url}"
+        )))
+    }
 }
 
 impl Api for fsv_core::Client {
@@ -169,6 +178,16 @@ impl Api for fsv_core::Client {
     }
     fn v2_get(&self, path: &str, params: Option<Map<String, Value>>) -> Result<Value> {
         fsv_core::Client::v2_get(self, path, params)
+    }
+    fn absolute_get(&self, url: &str, params: Option<Map<String, Value>>) -> Result<Value> {
+        self.request(
+            "GET",
+            url,
+            RequestOpts {
+                params,
+                ..RequestOpts::default()
+            },
+        )
     }
 }
 
@@ -1353,6 +1372,9 @@ pub(crate) mod testing {
                 _ => Response::new(404),
             })
         }
+        fn absolute_get(&self, url: &str, params: Option<Map<String, Value>>) -> Result<Value> {
+            self.call("GET", url, params, None, None)
+        }
         fn domain(&self) -> String {
             "acme.freshservice.com".into()
         }
@@ -1528,6 +1550,9 @@ pub(crate) mod testing {
                 raw: None,
             });
             fetch(url)
+        }
+        fn absolute_get(&self, url: &str, params: Option<Map<String, Value>>) -> Result<Value> {
+            self.call("GET", url, params, None, None)
         }
         fn domain(&self) -> String {
             self.domain.clone()

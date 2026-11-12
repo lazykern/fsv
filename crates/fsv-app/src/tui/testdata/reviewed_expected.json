@@ -1,6 +1,6 @@
 {
   "_python": {
-    "commit": "8f156c08ec19b91dc42656707ee229f0b38112e0",
+    "commit": "36408b25fe8f9488d664efefbd104ba5b5f02b25",
     "dirty": false
   },
   "fields": [
@@ -1229,18 +1229,36 @@
       "assets": [
         {
           "display_id": 7,
-          "name": "Acme DB"
+          "name": "Acme DB",
+          "ci_type_name": "Computer",
+          "inventory": {
+            "device_pk": 7,
+            "name": {
+              "id": 7,
+              "label": "Acme DB"
+            },
+            "type": "Computer"
+          }
         },
         {
           "display_id": 8,
-          "name": "Globex"
+          "name": "Globex",
+          "ci_type_name": "Computer",
+          "inventory": {
+            "device_pk": 8,
+            "name": {
+              "id": 8,
+              "label": "Globex"
+            },
+            "type": "Computer"
+          }
         }
       ],
       "mutation": "none",
       "warning": "Selection only. Asset/CI add-remove variants remain unsupported by this picker."
     },
     "lines": [
-      "GET /api/_/assets-to-associate?entity=change&entity_id=5&include_meta=true&page=1&per_page=30&search_term=acme"
+      "GET /itam/core/device/api/?order=&page=1&page_size=50&q=acme"
     ]
   }
 }

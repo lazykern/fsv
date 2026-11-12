@@ -70,7 +70,11 @@ impl Tenant {
             .requests()
             .iter()
             .map(Call::of)
-            .filter(|c| c.path.starts_with("/api/") || c.path.starts_with("/search/"))
+            .filter(|c| {
+                c.path.starts_with("/api/")
+                    || c.path.starts_with("/search/")
+                    || c.path.starts_with("/itam/")
+            })
             .collect()
     }
 

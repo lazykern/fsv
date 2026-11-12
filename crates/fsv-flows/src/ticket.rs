@@ -392,7 +392,23 @@ pub fn execute(
         }
         out.insert("verification".into(), Json::Object(v));
     }
+    if let Some(devices) = payload
+        .get("device_ids")
+        .filter(|v| truthy(v))
+        .and_then(Json::as_array)
+    {
+        let rows = fsv_api::integrated_assets::inventory(client, "tickets", &cid, "devices");
+        out.insert(
+            "device_verification".into(),
+            Json::Object(fsv_api::integrated_assets::verification(rows, devices)),
+        );
+    }
     Ok(Json::Object(out))
+}
+
+/// [`change::with_devices`] for an incident plan.
+pub fn with_devices(plan: Plan, devices: &[i64]) -> Result<Plan> {
+    change::with_devices(plan, devices)
 }
 
 #[allow(clippy::too_many_arguments)]

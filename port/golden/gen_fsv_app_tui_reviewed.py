@@ -80,7 +80,10 @@ PLANNING = {
     "problems/77": [{"name": "problem_cause", "label": "Root Cause", "description": "", "attachments": []}],
     "changes/5": [{"name": "rollout_plan", "label": "Rollout Plan", "description": "", "attachments": []}],
 }
-ASSETS = [{"display_id": 7, "name": "Acme DB"}, {"display_id": 8, "name": "Globex"}]
+DEVICES = [
+    {"device_pk": 7, "name": {"id": 7, "label": "Acme DB"}, "type": "Computer"},
+    {"device_pk": 8, "name": {"id": 8, "label": "Globex"}, "type": "Computer"},
+]
 ROW = {"id": 123, "subject": "Test", "status": 2, "priority": 1, "tags": ["old"],
        "planned_start_date": None, "planned_end_date": None, "requested_for_id": None,
        "custom_fields": {"cost_code": None, "region": None}}
@@ -149,8 +152,9 @@ class Tenant:
                     if row["name"] == req.url.params["id"]:
                         row["description"] = body["description"]
                 return httpx.Response(200, json={"planning_field": {"id": 1}})
-        if req.method == "GET" and p == "assets-to-associate":
-            return httpx.Response(200, json={"assets": ASSETS})
+        if req.method == "GET" and p.startswith("/itam/core/") and p.endswith("/api/"):
+            return httpx.Response(200, json={"page": int(req.url.params.get("page", 1)), "error": None,
+                                             "total_rows": len(DEVICES), "data": DEVICES})
         return httpx.Response(404, json={"description": "not found"})
 
     def client(self):

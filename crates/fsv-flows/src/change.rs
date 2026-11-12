@@ -1396,6 +1396,13 @@ pub trait ChangeWriter {
         duplicate: &str,
     ) -> Result<()>;
     fn update_planning_field(&self, change_id: &Json, req: &PlanningUpdate<'_>) -> Result<()>;
+    /// Associated devices of a change (`integrated_assets.inventory`). The
+    /// default fails closed so create-time device checks stay unverified
+    /// until the writer can read the tenant.
+    fn associated_devices(&self, target: i64) -> Result<Vec<Json>> {
+        let _ = target;
+        Err(Error::other("association inventory unavailable"))
+    }
 }
 
 fn basename(p: &str) -> String {
@@ -1575,9 +1582,51 @@ pub fn execute(
         &plan.action,
         event(Some(&cid), Some(&recorded), false),
     );
-    Ok(
-        json!({"id": cid, "result": result, "steps": steps, "uploaded": uploaded, "plan_hash": plan.hash}),
-    )
+    let mut outcome = json!({"id": cid, "result": result, "steps": steps, "uploaded": uploaded, "plan_hash": plan.hash});
+    if body.get("device_ids").is_some_and(fsv_py::truthy) {
+        let devices = body
+            .get("device_ids")
+            .and_then(Json::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let rows =
+            fsv_api::watchers::positive_id(&cid).and_then(|id| writer.associated_devices(id));
+        outcome["device_verification"] =
+            Json::Object(fsv_api::integrated_assets::verification(rows, &devices));
+    }
+    Ok(outcome)
+}
+
+/// Put create-time device ids on a plan and recompute its hash. Empty
+/// `devices`, or a plan with no payload, is unchanged. Call this where
+/// Python passes `devices=` into `build_create_plan` (fsv-cli still calls
+/// the plain builder).
+pub fn with_devices(mut plan: Plan, devices: &[i64]) -> Result<Plan> {
+    if devices.is_empty() {
+        return Ok(plan);
+    }
+    if plan.payload.is_none() {
+        return Ok(plan);
+    }
+    let mut ids = Vec::with_capacity(devices.len());
+    for id in devices {
+        ids.push(fsv_api::watchers::positive_id(&json!(id))?.to_string());
+    }
+    plan.payload
+        .as_mut()
+        .unwrap()
+        .insert("device_ids".into(), json!(ids));
+    if plan.errors.is_empty() {
+        let body = plan.payload.clone().unwrap_or_default();
+        plan.hash = hash(
+            &Json::Object(body),
+            &plan.files,
+            &plan.planning,
+            plan.target,
+        )?;
+        plan.review.plan_hash = plan.hash.clone();
+    }
+    Ok(plan)
 }
 
 /// What changed between two plans (rows, payload keys).

@@ -130,9 +130,15 @@ fn ticket_tenant_with(planning: Value) -> Tenant {
                 }
                 ok(json!({"planning_field": {"id": 1}}))
             }
-            ("GET", "assets-to-associate") => {
-                ok(json!({"assets": PY["assets"]["result"]["assets"]}))
-            }
+            ("GET", p) if p.contains("/itam/core/") && p.ends_with("/api/") => ok(json!({
+                "page": 1,
+                "error": null,
+                "total_rows": 2,
+                "data": [
+                    {"device_pk": 7, "name": {"id": 7, "label": "Acme DB"}, "type": "Computer"},
+                    {"device_pk": 8, "name": {"id": 8, "label": "Globex"}, "type": "Computer"}
+                ]
+            })),
             _ => None,
         }
     })

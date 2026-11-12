@@ -17,6 +17,7 @@ pub mod create;
 pub mod downloads;
 pub mod email_addr;
 pub mod formmeta;
+pub mod integrated_assets;
 pub mod list_preferences;
 pub mod notes;
 pub mod planning_text;
