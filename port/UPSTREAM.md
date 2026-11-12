@@ -2596,4 +2596,39 @@ takes kind, action, `--item`, `--project-json`, `--project-key`, and
 `review with --dry-run, then --yes --expect-plan FULL_HASH`.
 Unverified exits 4.
 
-Still not triaged: `6c6b767` and later.
+Moved on: `6c6b767` is triaged below.
+
+## Ledger: `6c6b767` (library side)
+
+Triaged against `git show 6c6b767`
+(`6c6b767efbc1924bc0f4f66e88988bc92b769f38`). A stamped generator
+gives the edit, stage, add and remove plans, the wires, the readback
+results and eight refusals. All of them match. Docs in that commit
+describe the CLI only.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `6c6b767`.
+The partial is `sr items`, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `6c6b767` | 11-12 22:26 | Add reviewed requested-item answers stage and item lifecycle | partial | fsv-api `sr_requested_items`. fsv-cli follow-up below |
+
+The parent must be a service request. `inventory` refuses a partial,
+duplicate, short or foreign list. Answers must be plain text or
+paragraph fields. They are checked against the catalog item rules and
+the form state, and the plan binds the metadata fingerprint. Edit also
+needs empty `hidden_req_item_fields` and `non_editable_item_fields`.
+Stage accepts only 2 (Delivered). Remove accepts only a row whose
+`is_parent` is false. `build_plan` and `send` take a `MetaStore`
+for the item metadata. A readback that misses an answer stays
+unverified and is not replayed.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`sr items list SR` prints `inventory` as JSON. `sr items write SR
+ACTION` takes `--item`, `--catalog-item`, `--answers-json` and
+`--stage`. Dry-run prints the review JSON. Send requires `--yes` and
+`--expect-plan`. `ValueError` and `ReviewedWriteError` exit 2;
+unverified exits 4.
+
+Still not triaged: `51cd544` and later.

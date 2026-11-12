@@ -43,6 +43,7 @@ pub mod site;
 pub mod solutions;
 pub mod sr_approvals;
 pub mod sr_recipient_readback;
+pub mod sr_requested_items;
 pub mod state_flow;
 mod task_status;
 pub mod tasks;

@@ -1,0 +1,185 @@
+{
+  "_python": {
+    "commit": "6c6b767efbc1924bc0f4f66e88988bc92b769f38",
+    "dirty": false
+  },
+  "edit": {
+    "plan": {
+      "hash": "a77c4d5b7e31e8965da339d9fd5acbd223421cf3f3ab6495bb1d186bbd26fd5e",
+      "action": "sr_requested_item_edit",
+      "method": "PUT",
+      "path": "tickets/123/requested_items/901",
+      "payload": "{\"custom_fields\": {\"details\": \"Updated details\", \"title\": \"Acme edited\"}}",
+      "tenant": "acme.freshservice.com",
+      "target": 123,
+      "context": "{\"detail\": {\"business_rules\": {\"hidden_req_item_fields\": {\"901\": []}, \"non_editable_item_fields\": {\"901\": []}}, \"requested_item\": {\"custom_fields\": {\"details\": \"Original details\", \"title\": \"Original\"}, \"id\": 901, \"item\": {\"custom_fields\": [{\"field_options\": {}, \"field_type\": \"custom_text\", \"id\": 1, \"label\": \"Title\", \"name\": \"title\", \"position\": 1, \"required\": true, \"type\": 1001}, {\"field_options\": {}, \"field_type\": \"custom_paragraph\", \"id\": 2, \"label\": \"Details\", \"name\": \"details\", \"position\": 2, \"required\": false, \"type\": 1008}], \"description\": \"Acme item\"}, \"item_id\": 71}}, \"intent\": {\"action\": \"edit\", \"answers\": {\"details\": \"Updated details\", \"title\": \"Acme edited\"}, \"catalog_item\": null, \"item\": 901, \"stage\": null, \"target\": 123}, \"metadata\": \"e9c894f6c643c589c660b874489a65d8359e5f1c51046c31feb185c82ea30762\", \"parent\": {\"id\": 123, \"ticket_type\": \"Service Request\"}, \"rows\": [{\"id\": 901, \"is_parent\": true, \"item\": {\"custom_fields\": [{\"field_options\": {}, \"field_type\": \"custom_text\", \"id\": 1, \"label\": \"Title\", \"name\": \"title\", \"position\": 1, \"required\": true, \"type\": 1001}, {\"field_options\": {}, \"field_type\": \"custom_paragraph\", \"id\": 2, \"label\": \"Details\", \"name\": \"details\", \"position\": 2, \"required\": false, \"type\": 1008}], \"display_id\": 71, \"id\": 801, \"name\": \"Acme service\", \"workspace_id\": 2}, \"item_id\": 801, \"stage\": {\"id\": 1, \"name\": \"Requested\"}, \"ticket_id\": 123}]}"
+    },
+    "writes": [
+      [
+        "PUT",
+        "tickets/123/requested_items/901",
+        {
+          "custom_fields": {
+            "details": "Updated details",
+            "title": "Acme edited"
+          }
+        }
+      ]
+    ],
+    "result": {
+      "item_id": 901,
+      "fields": {
+        "details": "matched",
+        "title": "matched"
+      },
+      "verified": true
+    }
+  },
+  "stage": {
+    "plan": {
+      "hash": "cfc5e9b658805bec0966cee2bfe9e84cb4cfeee2afd21945bb3e7b23af22c5a0",
+      "action": "sr_requested_item_stage",
+      "method": "PATCH",
+      "path": "tickets/123/requested_items/901/update_stage",
+      "payload": "{\"stage\": 2}",
+      "tenant": "acme.freshservice.com",
+      "target": 123,
+      "context": "{\"detail\": null, \"intent\": {\"action\": \"stage\", \"answers\": null, \"catalog_item\": null, \"item\": 901, \"stage\": 2, \"target\": 123}, \"metadata\": null, \"parent\": {\"id\": 123, \"ticket_type\": \"Service Request\"}, \"rows\": [{\"id\": 901, \"is_parent\": true, \"item\": {\"custom_fields\": [{\"field_options\": {}, \"field_type\": \"custom_text\", \"id\": 1, \"label\": \"Title\", \"name\": \"title\", \"position\": 1, \"required\": true, \"type\": 1001}, {\"field_options\": {}, \"field_type\": \"custom_paragraph\", \"id\": 2, \"label\": \"Details\", \"name\": \"details\", \"position\": 2, \"required\": false, \"type\": 1008}], \"display_id\": 71, \"id\": 801, \"name\": \"Acme service\", \"workspace_id\": 2}, \"item_id\": 801, \"stage\": {\"id\": 1, \"name\": \"Requested\"}, \"ticket_id\": 123}]}"
+    },
+    "writes": [
+      [
+        "PATCH",
+        "tickets/123/requested_items/901/update_stage",
+        {
+          "stage": 2
+        }
+      ]
+    ],
+    "result": {
+      "item_id": 901,
+      "verified": true
+    }
+  },
+  "add": {
+    "plan": {
+      "hash": "3b9a0700fa56a15dd35ac713938b626a5d0e0b1920976ce85ee80a239f4683a2",
+      "action": "sr_requested_item_add",
+      "method": "POST",
+      "path": "tickets/123/requested_items",
+      "payload": "{\"custom_fields\": {\"details\": \"Additional item\", \"title\": \"Acme request\"}, \"item_id\": \"71\"}",
+      "tenant": "acme.freshservice.com",
+      "target": 123,
+      "context": "{\"detail\": null, \"intent\": {\"action\": \"add\", \"answers\": {\"details\": \"Additional item\", \"title\": \"Acme request\"}, \"catalog_item\": \"71\", \"item\": null, \"stage\": null, \"target\": 123}, \"metadata\": \"e9c894f6c643c589c660b874489a65d8359e5f1c51046c31feb185c82ea30762\", \"parent\": {\"id\": 123, \"ticket_type\": \"Service Request\"}, \"rows\": [{\"id\": 901, \"is_parent\": true, \"item\": {\"custom_fields\": [{\"field_options\": {}, \"field_type\": \"custom_text\", \"id\": 1, \"label\": \"Title\", \"name\": \"title\", \"position\": 1, \"required\": true, \"type\": 1001}, {\"field_options\": {}, \"field_type\": \"custom_paragraph\", \"id\": 2, \"label\": \"Details\", \"name\": \"details\", \"position\": 2, \"required\": false, \"type\": 1008}], \"display_id\": 71, \"id\": 801, \"name\": \"Acme service\", \"workspace_id\": 2}, \"item_id\": 801, \"stage\": {\"id\": 1, \"name\": \"Requested\"}, \"ticket_id\": 123}]}"
+    },
+    "writes": [
+      [
+        "POST",
+        "tickets/123/requested_items",
+        {
+          "custom_fields": {
+            "details": "Additional item",
+            "title": "Acme request"
+          },
+          "item_id": "71"
+        }
+      ]
+    ],
+    "result": {
+      "item_id": 902,
+      "fields": {
+        "details": "matched",
+        "title": "matched"
+      },
+      "verified": true
+    }
+  },
+  "remove": {
+    "plan": {
+      "hash": "7e6508630ea3d88280dbf88679065177b16634062ad6e3c68acd027987e7afc1",
+      "action": "sr_requested_item_remove",
+      "method": "DELETE",
+      "path": "tickets/123/requested_items/902",
+      "payload": "null",
+      "tenant": "acme.freshservice.com",
+      "target": 123,
+      "context": "{\"detail\": null, \"intent\": {\"action\": \"remove\", \"answers\": null, \"catalog_item\": null, \"item\": 902, \"stage\": null, \"target\": 123}, \"metadata\": null, \"parent\": {\"id\": 123, \"ticket_type\": \"Service Request\"}, \"rows\": [{\"id\": 901, \"is_parent\": true, \"item\": {\"custom_fields\": [{\"field_options\": {}, \"field_type\": \"custom_text\", \"id\": 1, \"label\": \"Title\", \"name\": \"title\", \"position\": 1, \"required\": true, \"type\": 1001}, {\"field_options\": {}, \"field_type\": \"custom_paragraph\", \"id\": 2, \"label\": \"Details\", \"name\": \"details\", \"position\": 2, \"required\": false, \"type\": 1008}], \"display_id\": 71, \"id\": 801, \"name\": \"Acme service\", \"workspace_id\": 2}, \"item_id\": 801, \"stage\": {\"id\": 1, \"name\": \"Requested\"}, \"ticket_id\": 123}, {\"id\": 902, \"is_parent\": false, \"item\": {\"custom_fields\": [{\"field_options\": {}, \"field_type\": \"custom_text\", \"id\": 1, \"label\": \"Title\", \"name\": \"title\", \"position\": 1, \"required\": true, \"type\": 1001}, {\"field_options\": {}, \"field_type\": \"custom_paragraph\", \"id\": 2, \"label\": \"Details\", \"name\": \"details\", \"position\": 2, \"required\": false, \"type\": 1008}], \"display_id\": 71, \"id\": 801, \"name\": \"Acme service\", \"workspace_id\": 2}, \"item_id\": 801, \"stage\": {\"id\": 1, \"name\": \"Requested\"}, \"ticket_id\": 123}]}"
+    },
+    "writes": [
+      [
+        "DELETE",
+        "tickets/123/requested_items/902",
+        null
+      ]
+    ],
+    "result": {
+      "item_id": 902,
+      "verified": true
+    }
+  },
+  "edit-missing": {
+    "plan": {
+      "hash": "a77c4d5b7e31e8965da339d9fd5acbd223421cf3f3ab6495bb1d186bbd26fd5e",
+      "action": "sr_requested_item_edit",
+      "method": "PUT",
+      "path": "tickets/123/requested_items/901",
+      "payload": "{\"custom_fields\": {\"details\": \"Updated details\", \"title\": \"Acme edited\"}}",
+      "tenant": "acme.freshservice.com",
+      "target": 123,
+      "context": "{\"detail\": {\"business_rules\": {\"hidden_req_item_fields\": {\"901\": []}, \"non_editable_item_fields\": {\"901\": []}}, \"requested_item\": {\"custom_fields\": {\"details\": \"Original details\", \"title\": \"Original\"}, \"id\": 901, \"item\": {\"custom_fields\": [{\"field_options\": {}, \"field_type\": \"custom_text\", \"id\": 1, \"label\": \"Title\", \"name\": \"title\", \"position\": 1, \"required\": true, \"type\": 1001}, {\"field_options\": {}, \"field_type\": \"custom_paragraph\", \"id\": 2, \"label\": \"Details\", \"name\": \"details\", \"position\": 2, \"required\": false, \"type\": 1008}], \"description\": \"Acme item\"}, \"item_id\": 71}}, \"intent\": {\"action\": \"edit\", \"answers\": {\"details\": \"Updated details\", \"title\": \"Acme edited\"}, \"catalog_item\": null, \"item\": 901, \"stage\": null, \"target\": 123}, \"metadata\": \"e9c894f6c643c589c660b874489a65d8359e5f1c51046c31feb185c82ea30762\", \"parent\": {\"id\": 123, \"ticket_type\": \"Service Request\"}, \"rows\": [{\"id\": 901, \"is_parent\": true, \"item\": {\"custom_fields\": [{\"field_options\": {}, \"field_type\": \"custom_text\", \"id\": 1, \"label\": \"Title\", \"name\": \"title\", \"position\": 1, \"required\": true, \"type\": 1001}, {\"field_options\": {}, \"field_type\": \"custom_paragraph\", \"id\": 2, \"label\": \"Details\", \"name\": \"details\", \"position\": 2, \"required\": false, \"type\": 1008}], \"display_id\": 71, \"id\": 801, \"name\": \"Acme service\", \"workspace_id\": 2}, \"item_id\": 801, \"stage\": {\"id\": 1, \"name\": \"Requested\"}, \"ticket_id\": 123}]}"
+    },
+    "writes": [
+      [
+        "PUT",
+        "tickets/123/requested_items/901",
+        {
+          "custom_fields": {
+            "details": "Updated details",
+            "title": "Acme edited"
+          }
+        }
+      ]
+    ],
+    "result": {
+      "item_id": 901,
+      "fields": {
+        "details": "unavailable",
+        "title": "matched"
+      },
+      "verified": false
+    }
+  },
+  "refusals": {
+    "blocked": {
+      "kind": "ReviewedWriteError",
+      "message": "nonempty or unavailable item editability restrictions require a new capture"
+    },
+    "rules_fail": {
+      "kind": "ReviewedWriteError",
+      "message": "requested-item validation failed: business rules are unavailable; use the web form"
+    },
+    "parent_remove": {
+      "kind": "ReviewedWriteError",
+      "message": "only an explicitly non-parent item may be removed, without answer/stage edits"
+    },
+    "stage_3": {
+      "kind": "ValueError",
+      "message": "only captured stage 2 (observed Delivered) is supported; no combined answer update"
+    },
+    "hidden_type": {
+      "kind": "ReviewedWriteError",
+      "message": "only captured plain text/paragraph answer types are supported"
+    },
+    "blank": {
+      "kind": "ValueError",
+      "message": "requested-item answers must be nonempty text"
+    },
+    "add_bad": {
+      "kind": "ValueError",
+      "message": "add needs an exact positive catalog display ID as text, answers, and no existing item/stage"
+    },
+    "bad_action": {
+      "kind": "ValueError",
+      "message": "unsupported requested-item action"
+    }
+  }
+}
