@@ -230,6 +230,8 @@ def create_command(
 
     tty = flow.interactive() and not no_input
     attach_flow = flow.resolve_attach_flow(attach_flow)
+    if max_bytes is not None and attach_flow != "before-create":
+        raise FlowExit(2, "--max-bytes requires the reviewed --attach-flow before-create transaction")
     legacy = {k: v for k, v in legacy.items() if v is not None}
     has_input = bool(from_file or sets or preset or legacy or attach)
     template_only = False
@@ -316,7 +318,13 @@ def create_command(
             base = WritePlan("change_create_attachments", 0, config.DOMAIN, "POST", "changes",
                              json.dumps(current.payload, sort_keys=True),
                              journal.plan_hash({"plan": current.hash, "metadata": raw}) or "")
-            return attachments.wrap(base, draft.attachments, raw, client=client, max_bytes=max_bytes)
+            from dataclasses import replace
+            guards = tuple(("create", value) for value in dict.fromkeys(
+                [current.hash, getattr(current, "legacy_hash", None)]) if value)
+            from fsv.watchers import positive_id
+            wrapped = attachments.wrap(base, draft.attachments, raw, client=client, max_bytes=max_bytes)
+            return replace(wrapped, requester_id=positive_id(current.requester.id),
+                           prior_guards=guards + ((base.action, wrapped.hash),))
         def rebuild_attached():
             fresh = load_meta(client, "change", "new", fresh=True)
             return attached(build(draft, ack, fresh))

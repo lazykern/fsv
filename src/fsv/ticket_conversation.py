@@ -43,6 +43,13 @@ def _recipient_readback(row: dict[str, Any] | None, key: str, expected: Any) -> 
     return "matched" if wanted is not None and all(_email_set(value) == wanted for value in present) else "mismatched"
 
 
+def sender_readback(row: dict[str, Any] | None, expected: str) -> str:
+    if row is None or "from_email" not in row:
+        return "unavailable"
+    wanted, actual = _email_set([expected]), _email_set([row["from_email"]])
+    return "matched" if wanted is not None and actual == wanted else "mismatched"
+
+
 def recipients(client: Any, emails: list[str]) -> tuple[str, ...]:
     """Resolve each bare email to exactly one non-deleted user via the UI lookup."""
     from fsv.ticket_notes import _EMAIL
@@ -143,9 +150,15 @@ class ConversationPlan:
 def forward_source(client: Any, ticket_id: int, conversation_id: int) -> str:
     from fsv.watchers import positive_id
     conversation_id = positive_id(conversation_id)
-    rows, meta, missing = load_conversations(client, ticket_id, all_pages=True)
+    from fsv.reviewed_inventory import complete_inventory
+    from fsv.reviewed_write import ReviewedWriteError
+    try:
+        rows = complete_inventory(client, f"tickets/{ticket_id}/conversations", "conversations",
+                                  {"include": "user,phone,feedback", "per_page": 100})
+    except ReviewedWriteError:
+        raise ConversationError("exact forward source unavailable in complete ticket history") from None
     matches = [r for r in rows if str(r.get("id")) == str(conversation_id)]
-    if missing or meta.get("partial") or len(matches) != 1:
+    if len(matches) != 1:
         raise ConversationError("exact forward source unavailable in complete ticket history")
     return journal.snapshot_hash(matches[0]) or ""
 
@@ -277,7 +290,8 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
             expected[recipient_key] = payload["notify_emails"]
         if "from_email" in payload:
             expected["from_email"] = payload["from_email"]
-        fields = {k: (_recipient_readback(exact, k, v)
+        fields = {k: (sender_readback(exact, v) if k == "from_email" else
+                      _recipient_readback(exact, k, v)
                       if k in {"to_emails", "notify_emails", "cc_emails", "bcc_emails"} else
                       "unavailable" if exact is None or k not in exact else
                       "matched" if exact[k] == v else "mismatched") for k, v in expected.items()}
@@ -294,6 +308,10 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
         pass
     if closing and result["verified"]:
         journal.record_plan("done", plan.hash, action=action, target=plan.ticket_id, created_id=conv_id)
+    if plan.kind == "forward" and "conversation_id" in payload:
+        result["source_conversation_id"] = payload["conversation_id"]
+        result["source_link_verified"] = False
+        result["verification_scope"] = "delivery fields; source link is not exposed by independent readback"
     if not result["verified"]:
         result["warning"] = "Conversation or ticket fields were not fully verified on read-back; do not resend."
     return result

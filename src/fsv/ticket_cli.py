@@ -93,7 +93,11 @@ def create_command(client_factory: Callable[[], Any], *, from_file: str | None, 
                                              "rules": current.meta.rules, "metadata": raw}) or ""
                 base = WritePlan("ticket_create_attachments", 0, config.DOMAIN, "POST", "tickets",
                                  json.dumps(current.payload, sort_keys=True), context)
-                return attachments.wrap(base, list(attach), raw, client=client, max_bytes=max_bytes)
+                from dataclasses import replace
+                from fsv.watchers import positive_id
+                wrapped = attachments.wrap(base, list(attach), raw, client=client, max_bytes=max_bytes)
+                return replace(wrapped, requester_id=positive_id(current.requester.id),
+                               prior_guards=((base.action, wrapped.hash), ("ticket_create", current.hash)))
             def rebuild_attached():
                 fresh = load_meta(client, "ticket", "new", fresh=True)
                 return attached(build(plan.draft, ack or bool(plan.state.acknowledged), fresh))

@@ -9,12 +9,11 @@ from urllib.parse import urlencode
 
 from fsv import config, journal
 from fsv.attachments import owner_row
-from fsv.change_associations import AssociationReader
 from fsv.resources import CHANGES, parse_id
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
 from fsv.reviewed_snapshot import stable_snapshot
 from fsv.ticket_notes import _EMAIL
-from fsv.views import collect_pages
+from fsv.reviewed_inventory import complete_inventory, single_page_inventory
 from fsv.watchers import positive_id
 
 KINDS = {"caused-incident": ("tickets", "ticket_cause"), "problem": ("problems", "problem"),
@@ -39,13 +38,12 @@ def inventory(client: Any, target: int, kind: str) -> list[dict]:
         rows, meta = body.get(key), body.get("meta")
         if not isinstance(rows, list) or not isinstance(meta, dict) or meta.get("page") != 1 or meta.get("total_pages") not in (0, 1) or type(meta.get("total")) is not int or meta["total"] != len(rows):
             raise ReviewedWriteError("complete single-page linked project inventory unavailable")
+        rows = single_page_inventory(body, key)
     else:
         params = {"per_page": 50, "page": 1}
         if kind == "caused-incident":
             params["filter"] = "associated_tickets_caused"
-        rows, meta, missing = collect_pages(AssociationReader(client), f"changes/{target}/{key}", key, params, what=kind)
-        if missing or not meta.get("complete"):
-            raise ReviewedWriteError("complete relationship inventory unavailable")
+        rows = complete_inventory(client, f"changes/{target}/{key}", key, params)
     identities = [positive_id(r.get("id")) for r in rows if isinstance(r, dict)]
     if len(identities) != len(rows) or len(identities) != len(set(identities)):
         raise ReviewedWriteError("relationship inventory has invalid or duplicate IDs")

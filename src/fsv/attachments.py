@@ -156,11 +156,18 @@ class AttachedPlan:
     limit: int | None
     limit_source: str = METADATA_SOURCE
     published_limit: int | None = None
+    prior_guards: tuple[tuple[str, str], ...] = ()
+    requester_id: int | None = None
 
     @property
     def hash(self) -> str:
-        return journal.plan_hash({"owner": self.base.hash, "files": [f.review() for f in self.files], "max_bytes": self.limit,
-                                  "limit_source": self.limit_source, "published_bytes": self.published_limit}) or ""
+        identity = {"owner": self.base.hash, "files": [f.review() for f in self.files], "max_bytes": self.limit,
+                    "limit_source": self.limit_source, "published_bytes": self.published_limit}
+        if self.prior_guards:
+            identity["prior_guards"] = self.prior_guards
+        if self.requester_id is not None:
+            identity["requester_id"] = self.requester_id
+        return journal.plan_hash(identity) or ""
 
     def review(self) -> dict[str, Any]:
         published = NOT_PUBLISHED if self.published_limit is None else self.published_limit
@@ -169,6 +176,7 @@ class AttachedPlan:
         if self.limit is None:
             limit["note"] = "the tenant publishes no attachment size limit; pass --max-bytes N to set one before sending"
         return {**self.base.review(), "plan_hash": self.hash, "files": [f.review() for f in self.files],
+                **({"resolved_requester_id": self.requester_id} if self.requester_id is not None else {}),
                 "max_attachment_size_bytes": self.limit, "attachment_size_limit": limit, "upload": "POST /api/_/attachments, JSON base64 data URI, once per file; returned IDs become owning payload attachments",
                 "warning": "Uploads and owning write are not atomic. A failed/unknown step may leave orphan uploads. Inspect journal and owner; never replay the transaction."}
 
@@ -258,8 +266,28 @@ def readback(client: Any, plan: AttachedPlan, response: Any, ids: list[int]) -> 
             continue
         actual_key = "to_emails" if key == "notify_emails" and row is not None and key not in row else key
         actual = row.get(actual_key) if row is not None else None
-        match = same_text(actual, expected) if key in {"body", "description"} else submitted_value_matches(actual, expected)
-        fields[key] = "unavailable" if row is None or actual_key not in row else "matched" if match else "mismatched"
+        if key == "email" and base.path in {"tickets", "changes"} and plan.requester_id is not None:
+            from fsv.ticket_conversation import _email_set
+            nested = row.get("requester", {}) if isinstance(row, dict) else {}
+            ids = [row["requester_id"]] if isinstance(row, dict) and "requester_id" in row else []
+            if isinstance(nested, dict) and "id" in nested:
+                ids.append(nested["id"])
+            emails = [row["email"]] if isinstance(row, dict) and "email" in row else []
+            if isinstance(nested, dict) and "email" in nested:
+                emails.append(nested["email"])
+            expected_email = _email_set([expected])
+            matched = bool(ids) and all(positive_id(i) == plan.requester_id for i in ids)
+            matched = matched and expected_email is not None and all(_email_set([v]) == expected_email for v in emails)
+            fields[key] = "matched" if matched else "mismatched" if ids or emails else "unavailable"
+        elif key in {"notify_emails", "to_emails", "cc_emails", "bcc_emails", "from_email"}:
+            from fsv.ticket_conversation import _recipient_readback, sender_readback
+            fields[key] = sender_readback(row, expected) if key == "from_email" else _recipient_readback(row, key, expected)
+        else:
+            from fsv.readback import same_instant
+            match = (same_text(actual, expected) if key in {"body", "description"} else
+                     same_instant(actual, expected) if key in {"planned_start_date", "planned_end_date", "due_by"} and expected is not None else
+                     submitted_value_matches(actual, expected))
+            fields[key] = "unavailable" if row is None or actual_key not in row else "matched" if match else "mismatched"
     return {"owner_id": returned_id, "attachments": ids, "attachments_verified": files_match,
             "fields": fields, "verified": files_match and all(v == "matched" for v in fields.values())}
 
@@ -276,6 +304,10 @@ def send(plan: AttachedPlan, client: Any, *, reviewed_hash: str | None,
     events = [e for e in journal.read() if e.get("kind") == "plan:" + action and e.get("plan") == plan.hash]
     if events and events[-1].get("event") in {"started", "done"}:
         raise ReviewedWriteError("attachment transaction was sent or outcome unknown; do not replay")
+    for prior_action, prior_hash in plan.prior_guards:
+        previous = [e for e in journal.read() if e.get("kind") == "plan:" + prior_action and e.get("plan") == prior_hash]
+        if previous and previous[-1].get("event") in {"started", "done"}:
+            raise ReviewedWriteError("prior attachment/create transaction was sent or outcome unknown; do not replay")
     if rebuild().hash != plan.hash or local_files([f.path for f in plan.files], plan.limit) != plan.files:
         raise ReviewedWriteError("owner, metadata or attachment bytes changed; review again")
     csrf = client._get_csrf()
@@ -283,6 +315,11 @@ def send(plan: AttachedPlan, client: Any, *, reviewed_hash: str | None,
     events = [e for e in journal.read() if e.get("kind") == "plan:" + action and e.get("plan") == plan.hash]
     if not events or events[-1].get("event") != "started":
         raise ReviewedWriteError("could not persist attachment journal; no upload attempted")
+    for prior_action, prior_hash in plan.prior_guards:
+        journal.record_plan("started", prior_hash, action=prior_action, target=plan.base.target)
+        previous = [e for e in journal.read() if e.get("kind") == "plan:" + prior_action and e.get("plan") == prior_hash]
+        if not previous or previous[-1].get("event") != "started":
+            raise ReviewedWriteError("could not persist prior create guard; no upload attempted")
     headers = {"Content-Type": "application/json", "X-CSRF-Token": csrf}
     uploaded = []
     try:
@@ -305,8 +342,18 @@ def send(plan: AttachedPlan, client: Any, *, reviewed_hash: str | None,
         response = client._request(plan.base.method, f"{config.API_INT}/{plan.base.path}", content=json.dumps(body).encode(), headers=headers)
     except Exception:
         raise ReviewedWriteError("attachment transaction failed or outcome unknown; uploaded IDs: " + json.dumps(uploaded) + "; inspect owner and journal, do not replay") from None
-    journal.record_plan("done", plan.hash, action=action, target=plan.base.target)
-    result = {"status": "submitted", "plan_hash": plan.hash, "uploaded_ids": uploaded, "verified": False}
+    # Persist an exact returned owner identity even when later readback fails.
+    raw_owner = (response.get("ticket" if plan.base.path == "tickets" else "change", response)
+                 if plan.base.path in {"tickets", "changes"} and isinstance(response, dict) else _returned_note(response))
+    try:
+        returned_owner = positive_id(raw_owner.get("id") if isinstance(raw_owner, dict) else None)
+    except ReviewedWriteError:
+        returned_owner = None
+    journal.record_plan("done", plan.hash, action=action, target=plan.base.target, created_id=returned_owner)
+    for prior_action, prior_hash in plan.prior_guards:
+        journal.record_plan("done", prior_hash, action=prior_action, target=plan.base.target, created_id=returned_owner)
+    result = {"status": "submitted", "plan_hash": plan.hash, "uploaded_ids": uploaded,
+              "owner_id": returned_owner, "verified": False}
     try:
         result.update(readback(client, plan, response, uploaded))
     except Exception:

@@ -13,7 +13,7 @@ from fsv.resources import PROBLEMS, parse_id
 from fsv.attachments import owner_row
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
 from fsv.reviewed_snapshot import stable_snapshot
-from fsv.views import collect_pages
+from fsv.reviewed_inventory import complete_inventory
 from fsv.watchers import positive_id
 
 
@@ -24,9 +24,7 @@ class TaskUpdatePlan(WritePlan):
 
 
 def inventory(client: Any, target: int) -> list[dict[str, Any]]:
-    rows, meta, missing = collect_pages(client, f"problems/{target}/tasks", "tasks", {"page": 1, "per_page": 100}, what="problem tasks")
-    if missing or not meta.get("complete"):
-        raise ReviewedWriteError("complete task inventory unavailable")
+    rows = complete_inventory(client, f"problems/{target}/tasks", "tasks", {"page": 1, "per_page": 100})
     ids = [positive_id(r.get("id")) for r in rows]
     if len(set(ids)) != len(ids):
         raise ReviewedWriteError("duplicate task identities")

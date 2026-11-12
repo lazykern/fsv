@@ -11,6 +11,7 @@ from fsv.forms import FormState
 from fsv.readback import submitted_value_matches
 from fsv.resources import TICKETS, parse_id
 from fsv.reviewed_snapshot import stable_snapshot
+from fsv.reviewed_inventory import single_page_inventory
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
 from fsv.watchers import positive_id
 
@@ -19,16 +20,7 @@ def inventory(client: Any, target: int) -> list[dict]:
     raw = client.int_get(f"tickets/{target}/requested_items")
     if not isinstance(raw, dict) or not isinstance(raw.get("requested_items"), list):
         raise ReviewedWriteError("requested-item inventory unavailable")
-    rows = raw["requested_items"]
-    meta = raw.get("meta", {})
-    if any(meta.get(k) or raw.get(k) for k in ("has_more", "has_next", "next_page")):
-        raise ReviewedWriteError("partial requested-item inventory")
-    ids = [positive_id(r.get("id")) for r in rows if isinstance(r, dict)]
-    if len(ids) != len(rows) or len(set(ids)) != len(ids):
-        raise ReviewedWriteError("invalid or duplicate requested-item identities")
-    for envelope in (raw, meta):
-        if "total" in envelope and (type(envelope["total"]) is not int or envelope["total"] != len(rows)):
-            raise ReviewedWriteError("incomplete requested-item inventory")
+    rows = single_page_inventory(raw, "requested_items")
     if any(str(r.get("ticket_id")) != str(target) for r in rows):
         raise ReviewedWriteError("requested item belongs to a different or unavailable ticket")
     return sorted(rows, key=lambda r: positive_id(r["id"]))

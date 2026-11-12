@@ -10,7 +10,7 @@ from fsv import config, journal, ticket_assignment, ticket_merge, ticket_propert
 from fsv.query import build_query_hash
 from fsv.resources import TICKETS, parse_id
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
-from fsv.views import collect_pages
+from fsv.reviewed_inventory import complete_inventory
 from fsv.watchers import positive_id
 
 
@@ -19,10 +19,8 @@ def selection(client: Any, ids: list[str], where: list[str], select_all: bool) -
         if ids or not select_all:
             raise ValueError("filters require --select-all and no explicit IDs")
         query, _, _ = build_query_hash(client, TICKETS, where)
-        rows, meta, _ = collect_pages(client, "tickets", "tickets",
-                                      {"query_hash": query, "page": 1, "per_page": 100}, what="bulk selection")
-        if not meta.get("complete") or meta.get("partial"):
-            raise ReviewedWriteError("complete filtered inventory unavailable; no bulk write")
+        rows = complete_inventory(client, "tickets", "tickets",
+                                  {"query_hash": query, "page": 1, "per_page": 100})
         values = [positive_id(r.get("id")) for r in rows]
     else:
         if select_all:

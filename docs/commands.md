@@ -1,5 +1,23 @@
 # Command cheat sheet
 
+## Captured-write verification boundaries
+
+New bulk/relationship/time/task/requested-item inventories validate raw pages before the display
+paginator can discard malformed rows or deduplicate identities. Duplicate IDs,
+conflicting totals, invalid continuation flags and incomplete histories block
+both authorization and verification. Initial-owner readback checks the hash-bound resolved requester ID when the
+server exposes requester_id rather than echoing email; conflicting exposed
+requester representations fail verification. Submitted dates use semantic instant
+comparison, and returned owner IDs are journaled before independent readback.
+Explicit sender readback compares the
+email identity (the server can add a display name), not configured-mailbox
+ownership. Recipient aliases must agree when simultaneously exposed.
+Initial change uploads retain prior create-hash ambiguity guards without an
+expiry/bypass; uncertain older transactions cannot be retried by upgrading the
+review format. `changes create --max-bytes` requires `--attach-flow before-create`
+rather than silently ignoring a limit on the legacy after-create route.
+
+
 ## Remaining accepted-wire blockers
 
 The supplied capability ledgers do not establish the following writes. These are
@@ -129,7 +147,8 @@ wire with an integer `conversation_id`. The source must exist exactly once in a
 complete history; source edits invalidate the review. Send using
 `--yes --expect-plan FULL_HASH`. Source selection is bound to the review; returned
 conversations do not expose source identity, so readback verifies delivery fields,
-not an independently returned source link. No attachment/CC/BCC/status combinations.
+not an independently returned source link (`source_link_verified: false` is
+reported separately). No attachment/CC/BCC/status combinations.
 
 
 ## Accepted initial attachment scope

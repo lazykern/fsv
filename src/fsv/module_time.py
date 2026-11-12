@@ -11,20 +11,15 @@ from fsv.resources import CHANGES, PROBLEMS, parse_id
 from fsv.attachments import owner_row
 from fsv.readback import duration_seconds, same_duration, same_instant
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
-from fsv.views import collect_pages
+from fsv.reviewed_inventory import complete_inventory
 from fsv.watchers import positive_id, self_id
 
 
 def inventory(client: Any, module: str, target: int) -> list[dict[str, Any]]:
     if module not in {"changes", "problems"}:
         raise ValueError("unsupported time-entry module")
-    class Reader:
-        def int_get(self, path, params=None):
-            return client.v2_get(path, params)
-    rows, meta, _ = collect_pages(Reader(), f"{module}/{target}/time_entries", "time_entries",
-                                  {"page": 1, "per_page": 30}, what="time entries")
-    if not meta.get("complete"):
-        raise ReviewedWriteError("complete time-entry inventory is unavailable")
+    rows = complete_inventory(client, f"{module}/{target}/time_entries", "time_entries",
+                              {"page": 1, "per_page": 30}, api="v2")
     ids = [positive_id(row.get("id")) for row in rows]
     if len(ids) != len(set(ids)):
         raise ReviewedWriteError("time-entry inventory contains duplicate identities")

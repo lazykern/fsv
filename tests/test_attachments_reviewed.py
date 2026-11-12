@@ -76,12 +76,12 @@ def api(request, monkeypatch, tmp_path):
             s["uploads"][ident] = {"id": ident, "name": body["content_file_name"], "size": str(len(data)), "content_type": body["content_content_type"]+";charset=utf-8"}
             return httpx.Response(200, json={} if s["missing_id"] else s["uploads"][ident])
         attachments = [copy.deepcopy(s["uploads"][i]) for i in body["attachments"]]
-        if path == "changes":
-            s["change"] = {"id": 123, **body, "attachments": attachments}
-            return httpx.Response(201, json={"change": {"id": 123}})
-        if path == "tickets":
-            s["ticket"] = {"id": 123, **body, "attachments": attachments}
-            return httpx.Response(201, json={"ticket": {"id": 123}})
+        if path in {"changes", "tickets"}:
+            from test_ticket_create import WHO
+            key = "change" if path == "changes" else "ticket"
+            s[key] = {"id": 123, "requester_id": WHO.id, **body, "attachments": attachments}
+            s[key].pop("email", None)  # Native exact owner exposes requester_id, not submitted email.
+            return httpx.Response(201, json={key: {"id": 123}})
         row = {"id": 901, **body, "attachments": attachments, "body": "<div>Acme evidence</div>"}
         if path == "problems/123/notes":
             s["notes"].append(row)
