@@ -37,6 +37,7 @@ The supplied capability ledgers do not establish the following writes. These are
 | Approval delegation/group editing and uncaptured recipient kinds | No accepted mutation and exact approval-chain readback. |
 | Combined BCC+CC/status, forward files/CC/BCC/status, cloud inserts | Existing separate variants do not prove these combinations. |
 | Problem time update, running timers/other owners/date edits | Only problem create/delete and change manual CRUD are established here. |
+| Project deletion (`projects delete`) | The recorded `DELETE /projects/{id}` with an exact-name confirmation body omitted its host, authentication and media type, and fsv has no independent exact project readback for an unlinked project. Not implemented. `changes delete` is implemented from the accepted bodyless `DELETE /api/_/changes/{id}` with exact `deleted:true` readback. |
 | General task custom updates, ticket-task due/reminder/effort variants | Problem optional-field evidence is not a ticket-task contract; generic custom fields are not enabled. |
 
 New scope stays CLI-only; no main-TUI parity, notification suppression, physical

@@ -3491,6 +3491,37 @@ def _make_subapp(res: Resource) -> typer.Typer:
         from fsv.module_time_cli import register as register_change_time
         register_change_time(sub, lambda: _client(), "changes")
 
+        @sub.command("delete", help="Soft-delete one exact change (reviewed, destructive).", epilog=(
+            "[bold]Examples:[/bold]  fsv changes delete CHN-1234 --dry-run  |  "
+            "fsv changes delete CHN-1234 --confirm-destructive --yes --expect-plan FULL_HASH"
+        ))
+        def change_delete_cmd(
+            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
+            dry_run: bool = typer.Option(False, "--dry-run", help="print the exact target without deleting"),
+            yes: bool = typer.Option(False, "--yes", "-y", help="confirm deletion"),
+            confirm_destructive: bool = typer.Option(False, "--confirm-destructive", help="required destructive acknowledgement"),
+            expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+            json_out: bool = typer.Option(False, "--json"),
+        ) -> None:
+            from fsv import change_delete
+            from fsv.reviewed_write import ReviewedWriteError
+            try:
+                c = _client()
+                plan = change_delete.build_plan(c, id_)
+                if dry_run:
+                    emit_json({"status": "dry_run", **change_delete.review(plan, c)})
+                    return
+                if not yes or expect_plan != plan.hash:
+                    raise ReviewedWriteError("review with --dry-run, then --confirm-destructive --yes --expect-plan FULL_HASH")
+                result = change_delete.send(plan, c, reviewed_hash=expect_plan, confirm_destructive=confirm_destructive)
+                emit_json(result)
+                if not result.get("verified"):
+                    raise typer.Exit(4)
+            except (ValueError, ReviewedWriteError) as exc:
+                _err(str(exc))
+            except (SessionError, APIError) as e:
+                _err_exc(e)
+
         @sub.command("tasks-update", help="Update a change task.", epilog=(
             "[bold]Examples:[/bold]  "
             "fsv changes tasks-update CHN-1234 987 --status Completed --dry-run  |  "
