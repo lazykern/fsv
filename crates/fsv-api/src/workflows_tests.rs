@@ -772,6 +772,13 @@ fn problem_handle(s: &mut Value, method: &str, path: &str, body: Option<&Value>)
             if s["writes"] != 0 && s["readback"] == "missing" {
                 row.as_object_mut().unwrap().shift_remove("email");
             }
+            if s["writes"] != 0
+                && let Some(identity) = s.get("identity").and_then(Value::as_object)
+            {
+                let row = row.as_object_mut().unwrap();
+                row.shift_remove("email");
+                row.extend(identity.clone());
+            }
             return R::J(json!({"problem": row}));
         }
         return R::S(404);
@@ -877,6 +884,19 @@ fn problem_create_send_and_custom_readback() {
             s["omit_id"] = json!(readback == "no-id");
         });
         check(&problem_send(&w, &p), &want["create"][readback], readback);
+    }
+
+    let cases = want["create_requester_identity"].as_array().unwrap();
+    assert_eq!(cases.len(), 5);
+    for case in cases {
+        let w = problem_wire();
+        let p = create(&w, &answers(), "person@example.com").unwrap();
+        w.set(|s| s["identity"] = case["readback"].clone());
+        check(
+            &problem_send(&w, &p),
+            case,
+            &format!("identity {}", case["readback"]),
+        );
     }
 
     let w = problem_wire();

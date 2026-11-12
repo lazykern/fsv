@@ -595,6 +595,23 @@ def gen_problem_workflows():
         state["readback"], state["omit_id"] = readback, readback == "no-id"
         out["create"][readback] = sent(w, 0, lambda: problem_workflows.send(p, c, reviewed_hash=p.hash))
 
+    # 8ceb0e6: native reads omit the email; the requester is proven by identity.
+    out["create_requester_identity"] = []
+    for readback in [{"requester_id": 901}, {"requester_id": 902},
+                     {"requester": {"id": 901, "email": "PERSON@example.com", "name": "Acme Operator"}},
+                     {"requester": {"id": 901, "email": "other@example.com"}}, {}]:
+        reset()
+        w, state = problem_wire()
+        c = w.client()
+        p = problem_workflows.create_plan(c, ANSWERS, "person@example.com")
+
+        def normalize(row, readback=readback):
+            row.pop("email", None)
+            row.update(readback)
+        state["normalize"] = normalize
+        out["create_requester_identity"].append(
+            {"readback": readback, **sent(w, 0, lambda: problem_workflows.send(p, c, reviewed_hash=p.hash))})
+
     reset()
     w, state = problem_wire()
     c = w.client()

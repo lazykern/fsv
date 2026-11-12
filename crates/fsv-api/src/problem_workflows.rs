@@ -319,6 +319,54 @@ pub fn child_plan(c: &dyn Api, target: &str, kind: &str, text: &str) -> Result<P
 
 /// Port of fsv.problem_workflows.send: rebuilt from the plan's inputs, then
 /// every payload key read back from the created record.
+/// `matched` / `mismatched` / `unavailable` for the created problem's
+/// requester when the readback has no top-level email: the nested
+/// requester email, else the requester id against the resolved person.
+fn requester_identity(
+    c: &dyn Api,
+    row: &Map<String, Value>,
+    requester: &str,
+    email: &str,
+) -> &'static str {
+    let nested = row.get("requester").and_then(Value::as_object);
+    if let Some(got) = nested
+        .and_then(|n| n.get("email"))
+        .and_then(Value::as_str)
+        .map(fsv_core::pystr::strip)
+        .filter(|s| !s.is_empty())
+    {
+        return if fsv_core::pystr::casefold(got) == fsv_core::pystr::casefold(email) {
+            "matched"
+        } else {
+            "mismatched"
+        };
+    }
+    let actual = match row.get("requester_id") {
+        Some(v) => v.clone(),
+        None => nested
+            .and_then(|n| n.get("id"))
+            .cloned()
+            .unwrap_or(Value::Null),
+    };
+    if actual.is_null() || actual.is_boolean() {
+        return "unavailable";
+    }
+    let Ok(person) = resolve_requester(c, requester, None) else {
+        return "unavailable";
+    };
+    if person.id.is_null()
+        || fsv_core::pystr::casefold(person.email.as_deref().unwrap_or_default())
+            != fsv_core::pystr::casefold(email)
+    {
+        return "unavailable";
+    }
+    if py_str(&actual) == py_str(&person.id) {
+        "matched"
+    } else {
+        "mismatched"
+    }
+}
+
 pub fn send(
     plan: &ProblemPlan,
     c: &dyn Api,
@@ -389,7 +437,28 @@ pub fn send(
             };
             fields.insert(k.clone(), json!(state));
         }
-        let verified = row.is_some() && fields.values().all(|v| v == "matched");
+        let mut exempt = None;
+        if let Some(Value::Object(r)) = row.as_ref().filter(|_| create)
+            && fields.get("email") == Some(&json!("unavailable"))
+        {
+            // Native problem reads omit the requester email; prove the
+            // requester by identity instead. Email stays "unavailable".
+            let email = plan
+                .payload()
+                .get("email")
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_string();
+            let state = requester_identity(c, r, &text("requester"), &email);
+            fields.insert("requester".into(), json!(state));
+            if state == "matched" {
+                exempt = Some("email");
+            }
+        }
+        let verified = row.is_some()
+            && fields
+                .iter()
+                .all(|(k, v)| Some(k.as_str()) == exempt || v == "matched");
         Ok(obj(
             json!({format!("{key}_id"): exact_id, "fields": fields, "verified": verified}),
         ))

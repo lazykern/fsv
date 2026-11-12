@@ -3522,4 +3522,28 @@ Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `ce84f9b`.
 `problems status` already prints `verified_with_note`. Port the
 `test_problem_status.py` send case with an activities route.
 
-Still not triaged: commits after `ce84f9b`.
+## Ledger: `8ceb0e6` (library side)
+
+Triaged against `git show 8ceb0e6`
+(`8ceb0e652cca2d8a63005860d1313169dd3ad968`). When the created
+problem readback has no top-level `email`, `problem_workflows::send`
+adds `fields.requester`. It uses the nested requester email (stripped,
+casefolded), else `requester_id` (or the nested id) against the
+re-resolved requester. A matched identity exempts `email`, which stays
+`unavailable`. An id or email mismatch still fails. A failed lookup is
+`unavailable`.
+
+`gen_fsv_api_workflows.py` gained `create_requester_identity` (the five
+readbacks of the Python test). `workflows_oracle.json` is restamped at
+`8ceb0e6`; the existing `create.missing` case now reports
+`requester: unavailable`.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `8ceb0e6`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `8ceb0e6` | 11-13 05:08 | fix: problem create verifies requester identity when email is not read back | ported | fsv-api (`problem_workflows`) |
+
+No CLI follow-up: `problems create` prints the library result.
+
+Still not triaged: commits after `8ceb0e6`.

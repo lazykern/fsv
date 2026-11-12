@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "60ac0a7013ff0d939b6eebc09b8d8966f81ab3d5",
+  "commit": "8ceb0e652cca2d8a63005860d1313169dd3ad968",
   "dirty": false
  },
  "canned": {
@@ -3692,7 +3692,8 @@
       "impact": "matched",
       "priority": "matched",
       "status": "matched",
-      "subject": "matched"
+      "subject": "matched",
+      "requester": "unavailable"
      },
      "warning": "Readback was not fully verified; do not resend."
     },
@@ -4690,6 +4691,326 @@
     ]
    }
   },
+  "create_requester_identity": [
+   {
+    "readback": {
+     "requester_id": 901
+    },
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
+     "verified": true,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "matched",
+      "description": "matched",
+      "email": "unavailable",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched",
+      "requester": "matched"
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {},
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   {
+    "readback": {
+     "requester_id": 902
+    },
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
+     "verified": false,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "matched",
+      "description": "matched",
+      "email": "unavailable",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched",
+      "requester": "mismatched"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {},
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   {
+    "readback": {
+     "requester": {
+      "id": 901,
+      "email": "PERSON@example.com",
+      "name": "Acme Operator"
+     }
+    },
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
+     "verified": true,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "matched",
+      "description": "matched",
+      "email": "unavailable",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched",
+      "requester": "matched"
+     }
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {},
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   {
+    "readback": {
+     "requester": {
+      "id": 901,
+      "email": "other@example.com"
+     }
+    },
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
+     "verified": false,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "matched",
+      "description": "matched",
+      "email": "unavailable",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched",
+      "requester": "mismatched"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {},
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   },
+   {
+    "readback": {},
+    "ok": {
+     "status": "submitted",
+     "plan_hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
+     "verified": false,
+     "problem_id": 456,
+     "fields": {
+      "custom_fields": "matched",
+      "description": "matched",
+      "email": "unavailable",
+      "impact": "matched",
+      "priority": "matched",
+      "status": "matched",
+      "subject": "matched",
+      "requester": "unavailable"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "calls": [
+     [
+      "GET",
+      "problem_form_fields",
+      null
+     ],
+     [
+      "GET",
+      "ws/17/business_rules",
+      null
+     ],
+     [
+      "GET",
+      "autocomplete/requesters",
+      null
+     ],
+     [
+      "POST",
+      "problems",
+      {
+       "custom_fields": {},
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      }
+     ],
+     [
+      "GET",
+      "problems/456",
+      null
+     ]
+    ],
+    "events": [
+     "started",
+     "done"
+    ]
+   }
+  ],
   "create_drift": {
    "error": "target or metadata changed since review; review again",
    "type": "ReviewedWriteError",
