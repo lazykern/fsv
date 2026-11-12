@@ -36,7 +36,8 @@ def api(monkeypatch, tmp_path):
                     assert req.url.params["filter"] == "associated_tickets_caused"
                 return httpx.Response(200, json={key: copy.deepcopy(s["rows"][kind]), "meta": {"has_next": s["partial"]}})
             module, ident = path.split("/")
-            return httpx.Response(200, json={module[:-1]: {"id": int(ident), "ticket_type": "Incident"}})
+            # Native exact ticket reads expose ``type``, not the form/echo ``ticket_type``.
+            return httpx.Response(200, json={module[:-1]: {"id": int(ident), **s.get("kind_fields", {"type": "Incident"})}})
         body = json.loads(req.content) if req.content else None
         s["writes"].append((req.method, path, body, dict(req.url.params)))
         if s["failure"]:
@@ -147,4 +148,21 @@ def test_relationship_cli_review(api):
     assert r.exit_code == 0, r.output
     p = json.loads(r.stdout)
     assert p["method"] == "PUT" and p["payload"] == {"type": "link"}
+    assert not s["writes"]
+
+
+@pytest.mark.parametrize("fields,allowed", [
+    ({"type": "Incident"}, True), ({"ticket_type": "Incident"}, True),
+    ({"type": "Incident", "ticket_type": "incident"}, True),
+    ({"type": "Service Request"}, False), ({"type": "Incident", "ticket_type": "Service Request"}, False),
+    ({}, False), ({"type": ""}, False), ({"type": 1}, False)])
+def test_caused_incident_type_proof_uses_native_exact_read(api, fields, allowed):
+    c, s = api
+    s["kind_fields"] = fields
+    if allowed:
+        plan = flow.build_plan(c, "CHN-123", kind="caused-incident", action="add", item="71")
+        assert plan.payload == {"item_ids": [71], "module_type": "ticket_cause"}
+    else:
+        with pytest.raises(ReviewedWriteError, match="incident|ticket type"):
+            flow.build_plan(c, "CHN-123", kind="caused-incident", action="add", item="71")
     assert not s["writes"]

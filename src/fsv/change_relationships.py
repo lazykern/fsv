@@ -118,7 +118,8 @@ def build_plan(client: Any, target: str | int, *, kind: str, action: str,
             raise ReviewedWriteError("relationship already present or removal target absent")
         if kind == "caused-incident" and action == "add":
             record = owner_row(client, "tickets", ident)
-            if str(record.get("ticket_type", "")).casefold() != "incident":
+            from fsv.ticket_kind import exact_ticket_type
+            if exact_ticket_type(record) != "incident":
                 raise ReviewedWriteError("caused relationship requires a proven incident")
         elif action == "add":
             raw = client.int_get(f"{key}/{ident}")
