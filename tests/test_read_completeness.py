@@ -159,7 +159,29 @@ def test_count_continues_short_page_without_boolean():
 
 def test_continuation_never_switches_endpoint():
     c = History([{'activities': [{'id': 1}],
-                  'next_page_url': '/api/v2/changes/12/activities?start_token=acme'}])
+                  'next_page_url': '/api/v2/changes/99/activities?start_token=acme'}])
     rows, meta, _ = views.collect_pages(c, 'changes/12/activities', 'activities')
     assert rows and not meta['complete'] and len(c.calls) == 1
     assert 'unsupported continuation endpoint' in meta['partial']
+
+
+def test_activity_v2_next_page_url_continues_on_the_internal_path_with_start_token():
+    # Proven by read-only GETs: the public next_page_url path is 404 for the
+    # session; the same start_token on the internal path returns the next page,
+    # and the last page has no next_page_url.
+    c = History([{'activities': [{'content': 'a'}] * 13,
+                  'next_page_url': 'https://acme.example.com/api/v2/changes/12/activities?start_token=900001'},
+                 {'activities': [{'content': 'b'}] * 7,
+                  'next_page_url': 'https://acme.example.com/api/v2/changes/12/activities?start_token=900002'},
+                 {'activities': [{'content': 'c'}] * 6}])
+    rows, meta, _ = views.collect_pages(c, 'changes/12/activities', 'activities', {'page': 1, 'per_page': 30})
+    assert len(rows) == 26 and meta['complete'] and 'partial' not in meta
+    assert [call[1] if len(call) > 1 else None for call in c.calls][1:] == [{'start_token': '900001'},
+                                                                            {'start_token': '900002'}]
+
+
+def test_v2_mirror_with_other_query_keys_is_not_followed():
+    c = History([{'activities': [{'id': 1}],
+                  'next_page_url': '/api/v2/changes/12/activities?start_token=acme&page=2'}])
+    rows, meta, _ = views.collect_pages(c, 'changes/12/activities', 'activities')
+    assert not meta['complete'] and 'unsupported continuation endpoint' in meta['partial']

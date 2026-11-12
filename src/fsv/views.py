@@ -1001,15 +1001,26 @@ def collect_pages(c: Any, path: str, key: str, params: Mapping[str, Any] | None 
             break
         if link:
             parsed = urlsplit(str(link))
-            if parsed.path and parsed.path.rstrip("/") not in (path.rstrip("/"), f"/api/_/{path.strip('/')}"):
+            mirror = parsed.path.rstrip("/") == f"/api/v2/{path.strip('/')}"
+            if parsed.path and not mirror and parsed.path.rstrip("/") not in (path.rstrip("/"), f"/api/_/{path.strip('/')}"):
                 reason = "unsupported continuation endpoint"
                 break
             following = dict(parse_qsl(parsed.query, keep_blank_values=True))
             if not following:
                 reason = "unreadable continuation"
                 break
-            # A cursor replaces any earlier cursor/page, while filters survive.
-            request = {k: v for k, v in request.items() if k not in ("page", "start_token", "cursor")}
+            if mirror:
+                # Activities answer with a public-API next_page_url whose
+                # /api/v2 path is 404 for the session; the same start_token on
+                # the internal path is the proven continuation (no next_page_url
+                # on the last page). Only a lone start_token is followed.
+                if set(following) != {"start_token"}:
+                    reason = "unsupported continuation endpoint"
+                    break
+                request = {k: v for k, v in request.items() if k not in ("page", "per_page", "start_token", "cursor")}
+            else:
+                # A cursor replaces any earlier cursor/page, while filters survive.
+                request = {k: v for k, v in request.items() if k not in ("page", "start_token", "cursor")}
             request.update(following)
         elif cursor:
             cursor_key = "start_token" if raw.get("next_start_token", page_meta.get("next_start_token")) else "cursor"
