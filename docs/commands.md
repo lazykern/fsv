@@ -1,5 +1,31 @@
 # Command cheat sheet
 
+## Remaining accepted-wire blockers
+
+The supplied capability ledgers do not establish the following writes. These are
+**not implemented**, not guessed from public APIs, metadata choices, or usage:
+
+| Remaining scope | Evidence boundary / required capture |
+| --- | --- |
+| Ticket/SR closure with planned dates and conditional required answers | No accepted combined closure/date/branch submission plus matching rule metadata and exact-record readback. Standalone lifecycle/property writes do not establish this combination. |
+| Alert-to-incident actions or alert association add/remove | Usage proves attached alerts, not a manual action contract. Need exact inventory, alert/incident identity joins, accepted mutation and independent readback. |
+| Arbitrary custom person/lookup branches and unsupported field kinds | Need accepted lookup resolution and exact branch create/update payload/readback; no fallback opaque IDs. |
+| Inline-image upload on replies/notes | Successful upload response and final HTML are recorded, but upload request body/media type were omitted. No bodyless or multipart upload is assumed. |
+| Existing-project association | The accepted project add is create-and-associate only. Existing-project linking needs its own wire. Project-task add/remove and project unlink are separately implemented. |
+| Native ticket/change templates | Empty native inventories; a local preset is not native application evidence. |
+| Reply-all, editable reply To, alternate sender configuration | No accepted variant in the supplied fixtures. Explicit CLI sender remains user-asserted, not mailbox discovery. |
+| Maintenance/window create or association | Matching response was empty; backend/window controls did not yield an accepted association. A matching POST is not a write contract. |
+| Native clone count/options | No native clone control or accepted options/count payload. Existing local clone utilities are not certified by these captures. |
+| Approval delegation/group editing and uncaptured recipient kinds | No accepted mutation and exact approval-chain readback. |
+| Combined BCC+CC/status, forward files/CC/BCC/status, cloud inserts | Existing separate variants do not prove these combinations. |
+| Problem time update, running timers/other owners/date edits | Only problem create/delete and change manual CRUD are established here. |
+| General task custom updates, ticket-task due/reminder/effort variants | Problem optional-field evidence is not a ticket-task contract; generic custom fields are not enabled. |
+
+New scope stays CLI-only; no main-TUI parity, notification suppression, physical
+inline-storage deletion, native all-pages bulk flag, or live-tenant certification
+is claimed. Tests use synthetic offline transports; no live writes are required.
+
+
 ## Change/problem time and problem-task writes
 
 ```sh
