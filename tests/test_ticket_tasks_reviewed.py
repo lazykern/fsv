@@ -96,6 +96,15 @@ def test_native_string_choices_and_nested_required_flags(api):
     assert s["writes"][-1][2] == plan.payload
 
 
+def test_unoffered_custom_choice_names_field_and_choices(api):
+    c, s, _, _ = api
+    r = CliRunner().invoke(cli.app, ["tickets", "tasks", "add", "123", "--title", "Acme task",
+                                     "--set", "Tier=Globex", "--dry-run", "--json"])
+    assert r.exit_code == 2
+    assert "Tier: 'Globex' is not an active choice; offered: Standard" in r.output
+    assert "status" not in r.output and not s["writes"]
+
+
 def test_all_unknown_required_fields_are_listed(api):
     c, s, fields, _ = api
     fields.extend([{"name": "unproven_a", "label": "Acme dependency", "required": True},

@@ -75,7 +75,12 @@ def custom_values(fields: list[dict[str, Any]], values: dict[str, Any]) -> dict[
         if any(field.get(k) for k in ("deleted", "is_deleted", "deleted_at")):
             raise ValueError("inactive task field")
         if field.get("choices"):
-            value = task_status.resolve(str(value), [{**field, "name": "status"}])[0]
+            try:
+                value = task_status.resolve(str(value), [{**field, "name": "status"}])[0]
+            except ValueError:
+                offered = [label for _, label in task_status.active_choices([{**field, "name": "status"}])]
+                raise ValueError(f"{field.get('label') or name}: {value!r} is not an active choice; offered: "
+                                 + ", ".join(offered)) from None
         elif str(field.get("field_type", "")) in ("custom_text", "custom_paragraph") or field.get("dom_type") in ("text", "textarea"):
             if not isinstance(value, str):
                 raise ValueError("task text field requires text")
