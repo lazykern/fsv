@@ -365,6 +365,10 @@ class Client:
             if self._persist:
                 update_cookie("fw-session-id", fw)
         ct = r.headers.get("content-type", "")
+        # Successful unlink/update endpoints may label a bodyless 200/204 as
+        # JSON. Leave independent readback to establish the remote outcome.
+        if not r.content.strip():
+            return None
         return r.json() if ct.startswith("application/json") else r.text
 
     def v2_get(self, path: str, params: dict[str, Any] | None = None) -> Any:

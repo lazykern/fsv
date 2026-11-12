@@ -41,6 +41,7 @@ class _FakeResponse:
         self.headers = headers or {"content-type": "application/json"}
         self._data = {"ok": True} if data is None else data
         self.text = text or "{\"ok\":true}"
+        self.content = self.text.encode("utf-8")
 
     def json(self):
         return self._data
