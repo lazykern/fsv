@@ -44,7 +44,8 @@ class WritePlan:
 
 
 def execute(plan: WritePlan, client: Any, *, reviewed_hash: str | None,
-            rebuild: Callable[[], WritePlan], verify: Callable[[Any], dict[str, Any]]) -> dict[str, Any]:
+            rebuild: Callable[[], WritePlan], verify: Callable[[Any], dict[str, Any]],
+            rejection: Callable[[APIError], str] | None = None) -> dict[str, Any]:
     if reviewed_hash is None:
         return {"status": "cancelled", "verified": False}
     if not plan.tenant or plan.tenant != config.DOMAIN or reviewed_hash != plan.hash:
@@ -71,7 +72,7 @@ def execute(plan: WritePlan, client: Any, *, reviewed_hash: str | None,
     except APIError as exc:
         if 400 <= exc.status < 500 and exc.status not in (403, 408, 429):
             journal.record_plan("failed", plan.hash, action=plan.action, target=plan.target)
-            raise ReviewedWriteError(f"write rejected (HTTP {exc.status}); no retry") from None
+            raise ReviewedWriteError(rejection(exc) if rejection else f"write rejected (HTTP {exc.status}); no retry") from None
         raise ReviewedWriteError("write outcome unknown; inspect target and journal before retry") from None
     except Exception:
         raise ReviewedWriteError("write outcome unknown; inspect target and journal before retry") from None

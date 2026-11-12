@@ -1,5 +1,25 @@
 # Reviewed operations and metadata freshness
 
+## Problem status lifecycle
+
+```sh
+fsv problems status PRB-123 --to Resolve --dry-run --json
+fsv problems status PRB-123 --to Closed --dry-run --json
+fsv problems status PRB-123 --to Open --yes --expect-plan FULL_HASH --json
+```
+
+Status labels and IDs come from fresh problem form metadata, including tenant
+custom statuses. The minimal status-only PUT is gated by fresh form rules and
+an exact record. Closing additionally requires readable nonempty Root Cause,
+Impact and Symptoms plus a linked solution/workaround, and required-for-closure
+fields. Missing prerequisites are listed as `violated_closure_rules` before
+sending; server closure rejections receive the same actionable explanation.
+Review warns that the server may auto-fill planned dates; independent GET
+readback reports those dates without inventing timestamps. Changed analysis,
+solutions, metadata or record invalidates the review. Use a full hash and one
+attempt; never replay an ambiguous or unverified transition. Offline tests do
+not certify live tenant behavior.
+
 ## Ticket tasks
 
 ```sh

@@ -56,6 +56,28 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                         json_out: bool = typer.Option(False, "--json")) -> None:
         incident_action(problem, incident, True, dry_run, yes, expect_plan)
 
+    @app.command("status", help="Review a metadata-backed problem status transition, including closure checks.")
+    def status(target: str, to: str = typer.Option(..., "--to"), dry_run: bool = typer.Option(False, "--dry-run"),
+               yes: bool = typer.Option(False, "--yes"), expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+               json_out: bool = typer.Option(False, "--json")) -> None:
+        from fsv import problem_status
+        from fsv.errors import APIError
+        try:
+            client = client_factory()
+            plan = problem_status.build_plan(client, target, to)
+            if dry_run:
+                typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
+                return
+            if not yes or expect_plan != plan.hash:
+                raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
+            result = problem_status.send(plan, client, reviewed_hash=expect_plan)
+            typer.echo(json.dumps(result, indent=2))
+            if not result.get("verified"):
+                raise typer.Exit(4)
+        except (ValueError, FormError, ReviewedWriteError, APIError) as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(2) from None
+
     @app.command("create", help="Create a problem through fresh form fields and business rules; no files.")
     def create(from_: Optional[str] = typer.Option(None, "--from", help="YAML answers draft"),
                set_: Optional[list[str]] = typer.Option(None, "--set", help="LABEL=VALUE (repeatable)"),
