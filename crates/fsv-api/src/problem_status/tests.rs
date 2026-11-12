@@ -83,7 +83,28 @@ fn api(state: Arc<Mutex<Value>>) -> FnApi {
             return Ok(json!({"problem_planning_fields": s["analysis"]}));
         }
         if path.ends_with("solutions") {
-            return Ok(json!({"solutions": s["solutions"], "has_more": s["partial"]}));
+            if let Some(status) = s
+                .get("solution_error")
+                .and_then(Value::as_u64)
+                .filter(|n| *n > 0)
+            {
+                return Err(ApiError::new(status as u16, json!({"error": "unavailable"})).into());
+            }
+            if let Some(raw) = s.get("solution_raw").filter(|v| !v.is_null()) {
+                return Ok(raw.clone());
+            }
+            if let Some(pages) = s.get("solution_pages").and_then(Value::as_array) {
+                let page = call
+                    .params
+                    .as_ref()
+                    .and_then(|p| p.get("page"))
+                    .map(fsv_py::py_str)
+                    .and_then(|text| text.parse::<usize>().ok())
+                    .filter(|n| *n >= 1)
+                    .unwrap_or(1);
+                return Ok(pages.get(page - 1).cloned().unwrap_or(json!({})));
+            }
+            return Ok(json!({"articles": s["solutions"], "has_more": s["partial"]}));
         }
         if path == "problems/123" {
             return Ok(json!({"problem": s["row"]}));
@@ -99,7 +120,7 @@ fn cases_match_python() {
     let oracle: Value =
         serde_json::from_str(include_str!("../testdata/problem_status_oracle.json")).unwrap();
     let cases = oracle.as_object().unwrap();
-    assert_eq!(cases.len(), 32);
+    assert_eq!(cases.len(), 38);
     for (name, case) in cases {
         if name == "_python" {
             continue;

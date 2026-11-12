@@ -19,7 +19,7 @@ use crate::notes::{self, BodyFormat};
 use crate::properties::record;
 use crate::readback::{py_equal, resolution_text, same_text, submitted_value_matches};
 use crate::reviewed_write::refused;
-use crate::service::{Api, Journal, last_event, obj, plan_hash};
+use crate::service::{Api, Journal, last_event, obj, plan_hash, snapshot_hash};
 
 pub const ACTION: &str = "ticket_transition";
 
@@ -213,7 +213,7 @@ pub fn context(
         payload.insert("custom_fields".into(), Value::Object(custom));
     }
     let fingerprint = dumps(&json!({
-        "record": plan_hash(&Value::Object(row)),
+        "record": snapshot_hash(&Value::Object(row))?,
         "metadata": meta.fingerprint().hash,
     }));
     Ok((payload, fingerprint, choice.label.clone()))
@@ -400,7 +400,7 @@ pub fn send(
     let attempt = || -> Result<bool> {
         if let Some(html) = &plan.note_html {
             let baseline = record(c, plan.target)?;
-            if Some(json!(plan_hash(&Value::Object(baseline.clone())))) != plan.record_hash() {
+            if Some(json!(snapshot_hash(&Value::Object(baseline.clone()))?)) != plan.record_hash() {
                 return Err(refused("ticket changed before note save"));
             }
             put(&json!({"resolution_notes": html,

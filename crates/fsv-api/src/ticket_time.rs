@@ -12,7 +12,7 @@ use fsv_py::{py_str, truthy};
 
 use crate::readback::{duration_seconds, same_duration, same_instant};
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, plan_hash};
+use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, snapshot_hash};
 use crate::watchers::{positive_id, self_id};
 
 /// Port of fsv.ticket_time.inventory: every time entry of the ticket,
@@ -157,7 +157,7 @@ pub fn build_plan(c: &dyn Api, target: &str, args: &TimeArgs<'_>) -> Result<Writ
             .sort_keys(true)
             .ensure_ascii(false)
             .dump(&payload),
-        context_hash: plan_hash(&json!({"self": user, "entries": rows})),
+        context_hash: snapshot_hash(&json!({"self": user, "entries": rows}))?,
     })
 }
 

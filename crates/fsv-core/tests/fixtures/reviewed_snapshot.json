@@ -1,0 +1,1101 @@
+{
+ "_python": {
+  "commit": "8f156c08ec19b91dc42656707ee229f0b38112e0",
+  "dirty": false
+ },
+ "snapshots": [
+  {
+   "value": null,
+   "plan_hash": null,
+   "snapshot": null,
+   "snapshot_hash": null
+  },
+  {
+   "value": true,
+   "plan_hash": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+   "snapshot": true,
+   "snapshot_hash": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+  },
+  {
+   "value": 3,
+   "plan_hash": "4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce",
+   "snapshot": 3,
+   "snapshot_hash": "4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce"
+  },
+  {
+   "value": 2.5,
+   "plan_hash": "b8736b999909049671d0ea075a42b308a5fbe2df1854899123fe09eb0ee9de61",
+   "snapshot": 2.5,
+   "snapshot_hash": "b8736b999909049671d0ea075a42b308a5fbe2df1854899123fe09eb0ee9de61"
+  },
+  {
+   "value": "",
+   "plan_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
+   "snapshot": "",
+   "snapshot_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126"
+  },
+  {
+   "value": "plain text",
+   "plan_hash": "86696ae0a7dd4789bb5a8256f0a58a13243fe65bafb37c44f3c73e2228fd78b7",
+   "snapshot": "plain text",
+   "snapshot_hash": "86696ae0a7dd4789bb5a8256f0a58a13243fe65bafb37c44f3c73e2228fd78b7"
+  },
+  {
+   "value": [],
+   "plan_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "snapshot": [],
+   "snapshot_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+   "value": {},
+   "plan_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+   "snapshot": {},
+   "snapshot_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  {
+   "value": {
+    "parent": {
+     "id": 123,
+     "attachments": [
+      {
+       "id": 701,
+       "name": "acme.txt",
+       "size": 12,
+       "content_type": "text/plain",
+       "attachment_url": "https://files.example.com/acme.txt?Expires=100&Signature=first&Key-Pair-Id=key",
+       "canonical_url": "https://files.example.com/delivery/first",
+       "created_at": "first",
+       "updated_at": "first",
+       "has_access": true
+      }
+     ]
+    },
+    "before": [
+     {
+      "id": 901,
+      "body": "Acme note",
+      "private": true,
+      "attachments": [
+       {
+        "id": 701,
+        "name": "acme.txt",
+        "size": 12,
+        "content_type": "text/plain",
+        "attachment_url": "https://files.example.com/acme.txt?Expires=100&Signature=first&Key-Pair-Id=key",
+        "canonical_url": "https://files.example.com/delivery/first",
+        "created_at": "first",
+        "updated_at": "first",
+        "has_access": true
+       }
+      ]
+     }
+    ]
+   },
+   "plan_hash": "d68af43daa6d5d591bfed6c5bb261943d4c8d5c86b6279ad3689cca03c5c0be0",
+   "snapshot": {
+    "parent": {
+     "id": 123,
+     "attachments": [
+      {
+       "id": 701,
+       "name": "acme.txt",
+       "size": 12,
+       "content_type": "text/plain",
+       "has_access": true
+      }
+     ]
+    },
+    "before": [
+     {
+      "id": 901,
+      "body": "Acme note",
+      "private": true,
+      "attachments": [
+       {
+        "id": 701,
+        "name": "acme.txt",
+        "size": 12,
+        "content_type": "text/plain",
+        "has_access": true
+       }
+      ]
+     }
+    ]
+   },
+   "snapshot_hash": "401356664b3d831d6490eca8aa9a2d54df4cdfc10092c583f65fe9a299a95c46"
+  },
+  {
+   "value": {
+    "parent": {
+     "id": 123,
+     "attachments": [
+      {
+       "id": 701,
+       "name": "acme.txt",
+       "size": 12,
+       "content_type": "text/plain",
+       "attachment_url": "https://files.example.com/acme.txt?Expires=100&Signature=second&Key-Pair-Id=key",
+       "canonical_url": "https://files.example.com/delivery/second",
+       "created_at": "second",
+       "updated_at": "second",
+       "has_access": true
+      }
+     ]
+    },
+    "before": [
+     {
+      "id": 901,
+      "body": "Acme note",
+      "private": true,
+      "attachments": [
+       {
+        "id": 701,
+        "name": "acme.txt",
+        "size": 12,
+        "content_type": "text/plain",
+        "attachment_url": "https://files.example.com/acme.txt?Expires=100&Signature=second&Key-Pair-Id=key",
+        "canonical_url": "https://files.example.com/delivery/second",
+        "created_at": "second",
+        "updated_at": "second",
+        "has_access": true
+       }
+      ]
+     }
+    ]
+   },
+   "plan_hash": "4ac8b3d5c311c4d1e6ee7911cb982f199185668a64c899bb14af0651afa08df5",
+   "snapshot": {
+    "parent": {
+     "id": 123,
+     "attachments": [
+      {
+       "id": 701,
+       "name": "acme.txt",
+       "size": 12,
+       "content_type": "text/plain",
+       "has_access": true
+      }
+     ]
+    },
+    "before": [
+     {
+      "id": 901,
+      "body": "Acme note",
+      "private": true,
+      "attachments": [
+       {
+        "id": 701,
+        "name": "acme.txt",
+        "size": 12,
+        "content_type": "text/plain",
+        "has_access": true
+       }
+      ]
+     }
+    ]
+   },
+   "snapshot_hash": "401356664b3d831d6490eca8aa9a2d54df4cdfc10092c583f65fe9a299a95c46"
+  },
+  {
+   "value": {
+    "attachments": [
+     {
+      "id": 701,
+      "name": "acme.txt",
+      "size": 12,
+      "content_type": "text/plain",
+      "attachment_url": "https://files.example.com/acme.txt?Expires=100&Signature=first&Key-Pair-Id=key",
+      "canonical_url": "https://files.example.com/delivery/first",
+      "created_at": "first",
+      "updated_at": "first",
+      "has_access": true
+     }
+    ]
+   },
+   "plan_hash": "2699f3fc7962d6c750a0f1ebed7acd263be4c186e1d3b6c1ee26a80f7fd48a06",
+   "snapshot": {
+    "attachments": [
+     {
+      "id": 701,
+      "name": "acme.txt",
+      "size": 12,
+      "content_type": "text/plain",
+      "has_access": true
+     }
+    ]
+   },
+   "snapshot_hash": "a1b6de5b4ed761fab7ce316efcb59cb4a8f0ab59a31130dfddae6ad683040e39"
+  },
+  {
+   "value": {
+    "files": [
+     {
+      "id": 701,
+      "name": "acme.txt",
+      "size": 12,
+      "content_type": "text/plain",
+      "attachment_url": "https://files.example.com/acme.txt?Expires=100&Signature=first&Key-Pair-Id=key",
+      "canonical_url": "https://files.example.com/delivery/first",
+      "created_at": "first",
+      "updated_at": "first",
+      "has_access": true
+     },
+     {
+      "id": 2,
+      "inline": true,
+      "is_inline": false,
+      "deleted": false,
+      "is_deleted": null,
+      "parent_id": 9,
+      "attachable_type": "Ticket",
+      "uploaded_by": 4,
+      "url": "x",
+      "attachments": [
+       {
+        "id": 5
+       }
+      ]
+     }
+    ]
+   },
+   "plan_hash": "e3b575f0514ccfc706541c7829dbc02cb969ba0fc96b7798e837af8838eef72d",
+   "snapshot": {
+    "files": [
+     {
+      "id": 701,
+      "name": "acme.txt",
+      "size": 12,
+      "content_type": "text/plain",
+      "has_access": true
+     },
+     {
+      "id": 2,
+      "inline": true,
+      "is_inline": false,
+      "deleted": false,
+      "is_deleted": null,
+      "parent_id": 9,
+      "attachable_type": "Ticket",
+      "uploaded_by": 4
+     }
+    ]
+   },
+   "snapshot_hash": "0b66115f2a1d1a7d09d662235b18cabbed44faf653bfc4a197edc28b9ae77bd1"
+  },
+  {
+   "value": {
+    "attachments": {
+     "id": 1,
+     "nested": {
+      "id": 2,
+      "created_at": "x"
+     },
+     "updated_at": "y"
+    }
+   },
+   "plan_hash": "27edf155c5cc41e17ffd68da9213c20ad5a6f6b98d28f4dbe30459810d774425",
+   "snapshot": {
+    "attachments": {
+     "id": 1
+    }
+   },
+   "snapshot_hash": "87f328517d22bfa168c1ec6815e3532450b765f155dae834b8c969dd07a057b6"
+  },
+  {
+   "value": {
+    "attachments": [
+     [
+      {
+       "id": 1,
+       "name": "n",
+       "url": "u"
+      }
+     ]
+    ]
+   },
+   "plan_hash": "dca88de4a043db4a4f467083067b38945aec96c46151302764ef0b864dced57b",
+   "snapshot": {
+    "attachments": [
+     [
+      {
+       "id": 1,
+       "name": "n"
+      }
+     ]
+    ]
+   },
+   "snapshot_hash": "c9798717ec2f2f878d86a2b84ca8360f659904b06504023189eb208e77aafcff"
+  },
+  {
+   "value": {
+    "body": "Acme",
+    "private": true,
+    "source": 2,
+    "planned_start_date": "2030-01-02T10:00:00Z",
+    "custom_fields": {
+     "updated_at": "original",
+     "link": "https://x.example/?Signature=a"
+    }
+   },
+   "plan_hash": "064fe63f97915db8bafea32234c928cd7725dfd88c93a8cf1fbfd9f43fe58659",
+   "snapshot": {
+    "body": "Acme",
+    "private": true,
+    "source": 2,
+    "planned_start_date": "2030-01-02T10:00:00Z",
+    "custom_fields": {
+     "updated_at": "original",
+     "link": "https://x.example/?Signature=a"
+    }
+   },
+   "snapshot_hash": "064fe63f97915db8bafea32234c928cd7725dfd88c93a8cf1fbfd9f43fe58659"
+  },
+  {
+   "value": {
+    "created_at": 1,
+    "updated_at": 2,
+    "last_viewed_at": 3,
+    "fetched_at": 4,
+    "expires_at": 5,
+    "url_expires_at": 6,
+    "due_by": 7,
+    "rows": [
+     {
+      "updated_at": 1,
+      "id": 2
+     }
+    ]
+   },
+   "plan_hash": "9514ad343fe3ad5d3eb18fa89d391592f411402c7f8027b198b25490da5ecebb",
+   "snapshot": {
+    "due_by": 7,
+    "rows": [
+     {
+      "id": 2
+     }
+    ]
+   },
+   "snapshot_hash": "a4aea31681b00ace2fa8448974ac5d65533ea147c948c5d787d0ea42c3e91914"
+  },
+  {
+   "value": {
+    "plain": {
+     "id": 123,
+     "body": "Acme",
+     "private": true,
+     "attachments": [
+      {
+       "id": 701,
+       "name": "acme.txt",
+       "size": 12
+      }
+     ]
+    }
+   },
+   "plan_hash": "228d51226e96f15cbf355155240c3b2e6462ad8852cceb30e0aeae88ddfd5ecb",
+   "snapshot": {
+    "plain": {
+     "id": 123,
+     "body": "Acme",
+     "private": true,
+     "attachments": [
+      {
+       "id": 701,
+       "name": "acme.txt",
+       "size": 12
+      }
+     ]
+    }
+   },
+   "snapshot_hash": "228d51226e96f15cbf355155240c3b2e6462ad8852cceb30e0aeae88ddfd5ecb"
+  },
+  {
+   "value": "<div><a href=\"https://files.example.com/acme?version=1&amp;Expires=100&amp;Signature=first&amp;Key-Pair-Id=key\">Acme</a></div>",
+   "plan_hash": "fcd34777a6e5bf111f25d5e7ffbb9bbc9158ecedfec4672da996f1d7b177adbb",
+   "snapshot": "<div><a href=\"https://files.example.com/acme?version=1\">Acme</a></div>",
+   "snapshot_hash": "bd1d9f87a7e8d119c5290ec5f8f8e972eb0fada9cd3210d0503010acf08277c4"
+  },
+  {
+   "value": "<div><a href=\"https://files.example.com/acme?version=1&amp;Expires=200&amp;Signature=second&amp;Key-Pair-Id=other\">Acme</a></div>",
+   "plan_hash": "cfe29f1dd86924bac71a17e0812c73c03df225bb045625d88d093afd98a46723",
+   "snapshot": "<div><a href=\"https://files.example.com/acme?version=1\">Acme</a></div>",
+   "snapshot_hash": "bd1d9f87a7e8d119c5290ec5f8f8e972eb0fada9cd3210d0503010acf08277c4"
+  },
+  {
+   "value": "<div><a href=\"https://files.example.com/acme?version=1&amp;X-Amz-Date=first&amp;X-Amz-Expires=100&amp;X-Amz-Signature=first\">Acme</a></div>",
+   "plan_hash": "3975528fe085d556350fd82a963e97195d2c3ddc40096ac612a6be8c2e5e9d37",
+   "snapshot": "<div><a href=\"https://files.example.com/acme?version=1\">Acme</a></div>",
+   "snapshot_hash": "bd1d9f87a7e8d119c5290ec5f8f8e972eb0fada9cd3210d0503010acf08277c4"
+  },
+  {
+   "value": "<div><a href=\"https://files.example.com/acme?version=2&amp;X-Amz-Date=second&amp;X-Amz-Expires=200&amp;X-Amz-Signature=second\">Acme</a></div>",
+   "plan_hash": "a7164c6f2148f642c772505d8ecce1f0fa785ef3abf3837809d6c9127ce3a74c",
+   "snapshot": "<div><a href=\"https://files.example.com/acme?version=2\">Acme</a></div>",
+   "snapshot_hash": "c86880ccd570e4bc63c331c00d7ab0784c57beb4d36628fa59918031cbe57e27"
+  },
+  {
+   "value": "https://example.com/?Expires=100",
+   "plan_hash": "5bfa4f7ebaec560b81ab3166a297f0894a56bbc353860f97bbce35ce3e3edf2d",
+   "snapshot": "https://example.com/?Expires=100",
+   "snapshot_hash": "5bfa4f7ebaec560b81ab3166a297f0894a56bbc353860f97bbce35ce3e3edf2d"
+  },
+  {
+   "value": "https://example.com/?expires=1&policy=p",
+   "plan_hash": "f0c00240b1a57b2f2c3a7d2b3c318d0889507f6e54212760a97fcafd69155a32",
+   "snapshot": "https://example.com/",
+   "snapshot_hash": "cad6bb88012ec4690af79afd2d955f577a5e37b37ca4d2189a482b144b435a05"
+  },
+  {
+   "value": "see https://a.example/x?SIGNATURE=s&a=1#frag and http://b.example/y?x-AMZ-credential=c&b= done",
+   "plan_hash": "9f727391534b4a90f33a3cbc9016f6e1bf3a61aea130b938afac14590bf6fdce",
+   "snapshot": "see https://a.example/x?a=1#frag and http://b.example/y?b= done",
+   "snapshot_hash": "cbe63e5ce77c31ebe0d885450697180c3c0dae3fbce7c23eb14272db805e740d"
+  },
+  {
+   "value": "https://a.example/p?AWSAccessKeyId=k&keep=1&keep=2&blank=&flag",
+   "plan_hash": "39d9f6f57cc181e83afc369f37d895a69c1a3ac4a212c0d89b44b6d4715190f8",
+   "snapshot": "https://a.example/p?keep=1&keep=2&blank=&flag=",
+   "snapshot_hash": "14cafc12061d37bd75e1a0a0f8496f1534c553cabc5beaa33ea8883b244b4f7a"
+  },
+  {
+   "value": "https://a.example/p?Signature=s&q=a+b%20c&u=%C3%A9&amp=1",
+   "plan_hash": "cc3a340c76c4c85957d1178ce0f9707247ba34fc64baaa57a369eb5891bfb0d7",
+   "snapshot": "https://a.example/p?q=a+b+c&u=%C3%A9&=1",
+   "snapshot_hash": "f69248ea436b9370e872f2a89c36a6e04ab066d6967d0a9d8c4379362594e7a7"
+  },
+  {
+   "value": "https://a.example?Signature=s",
+   "plan_hash": "0d8e2ec0e213c7e58ac09c95c8222e6b7c9f407bd25f1d35c2c225ce331f377a",
+   "snapshot": "https://a.example",
+   "snapshot_hash": "bf17f745daf626a503e9310ad9ebb3c0ee94c1bbcffca20f01626b106b91ceb6"
+  },
+  {
+   "value": "https://a.example/?Signature=s&Expires=1",
+   "plan_hash": "64046e56aaecc5d2b8dc13f16162168f5f448d089b1145a3bc7034237daeadbd",
+   "snapshot": "https://a.example/",
+   "snapshot_hash": "d83281aea3e7ff0954f0e54041073371bb422d59f329e4fe3f9a4911a1640153"
+  },
+  {
+   "value": "HTTPS://A.EXAMPLE/P?Signature=s&k=v",
+   "plan_hash": "333fccbdf7f119767b22a9ff4521b129de43120fe4ee391c4d932e6c3216950d",
+   "snapshot": "HTTPS://A.EXAMPLE/P?Signature=s&k=v",
+   "snapshot_hash": "333fccbdf7f119767b22a9ff4521b129de43120fe4ee391c4d932e6c3216950d"
+  },
+  {
+   "value": "httphttps://a.example/?Signature=s",
+   "plan_hash": "95af4513b233d79fe007283b603bf128c1e96c50bb34132ef2293390c932b984",
+   "snapshot": "httphttps://a.example/",
+   "snapshot_hash": "e572774acefb506e9b00eb80d5b7ec5de4c65aa8b9ee23ce1357167173e77868"
+  },
+  {
+   "value": "http://",
+   "plan_hash": "d6508d106a27a79bf3e8a3abafeef7a0fd9daf7499b2af2eec9254507a634339",
+   "snapshot": "http://",
+   "snapshot_hash": "d6508d106a27a79bf3e8a3abafeef7a0fd9daf7499b2af2eec9254507a634339"
+  },
+  {
+   "value": "https://\u001c",
+   "plan_hash": "0e460b1b050b75da461caecc0ac7b4f8ddbcb85e8cb7b9eb4861f442f9b67c29",
+   "snapshot": "https://\u001c",
+   "snapshot_hash": "0e460b1b050b75da461caecc0ac7b4f8ddbcb85e8cb7b9eb4861f442f9b67c29"
+  },
+  {
+   "value": "x https://a.example/?Signature=s next https://b/?a=1",
+   "plan_hash": "7680df4fe54356f406a7254be60efc681ca57c0cefcc5ed1eb1a2a65148a8106",
+   "snapshot": "x https://a.example/ next https://b/?a=1",
+   "snapshot_hash": "d1ad908f17de09b84add7aa68274fe280615448e92862131bd421018bef5ba43"
+  },
+  {
+   "value": "<a href='https://a.example/?Signature=s&amp;v=1'>",
+   "plan_hash": "ad531f61336c6bf299af2aeacde6b381eb74663816f74ff8a2d5278800c82a21",
+   "snapshot": "<a href='https://a.example/?v=1'>",
+   "snapshot_hash": "742b58b1d436dc87c0647c7056774d47cc809c15a803fba081ddfe069c690f07"
+  },
+  {
+   "value": "https://a.example/?Signature=s&amp;v=1&amp;w=&#38;",
+   "plan_hash": "b4bd3d1c002e1cb1b9fa1af4c623e4625ddad3f4d9a1b35735f8d18b223318ce",
+   "snapshot": "https://a.example/?v=1&amp;w=",
+   "snapshot_hash": "fe0ae36d8ac78f03d6408b3a94411757375a55f702dd46d72ce677729d3f7c7b"
+  },
+  {
+   "value": "https://u:p@a.example:8443/p;params?Signature=s&k=v",
+   "plan_hash": "ca6f57bcde9b44950bc39e21f4e475a46d8a68e5d9df3069a451e1385c3e7a9d",
+   "snapshot": "https://u:p@a.example:8443/p;params?k=v",
+   "snapshot_hash": "1bcc64ca19a95b391e04cdb22297e0cf06bad71655b44a6d46ed28a31f9a14a4"
+  },
+  {
+   "value": "https://[::1]:80/?Signature=s",
+   "plan_hash": "c7e9c45275072eac099896df82a45e02c555fb6809785c6437e4e534b3ff1617",
+   "snapshot": "https://[::1]:80/",
+   "snapshot_hash": "80b057e741475ad97692efa1b33c7461844fae4c6a60f3febfb9deed67c7f232"
+  },
+  {
+   "value": "https://[::1%eth0]/?Signature=s",
+   "plan_hash": "3727257fb86a399f2200a88b20f294fd7d661d64d00896dd10679d3f31a32d7c",
+   "snapshot": "https://[::1%eth0]/",
+   "snapshot_hash": "9052e05e14822563b30b84d33d8e9800e7c066cea188bfd2fc39e2947b3c279c"
+  },
+  {
+   "value": "https://[::1%]/?Signature=s",
+   "plan_hash": "b21388e42b5c8b4d25ed00e0a52a482ddb7e85dfff67112fe3923b8fe92daae9",
+   "error": "'::1%' does not appear to be an IPv4 or IPv6 address"
+  },
+  {
+   "value": "https://[v1.fe]/?Signature=s",
+   "plan_hash": "7616d699af86864c58d742fdbf393f666ca81788c321ece6486c384c27a69307",
+   "snapshot": "https://[v1.fe]/",
+   "snapshot_hash": "0e6e5d4a54844658fba8de0b9605b70403d7dc53fb2b0fec1a82bdffaf7aac91"
+  },
+  {
+   "value": "https://[v1]/?Signature=s",
+   "plan_hash": "da777e4d61bf704a6dcc6edbaf2c5d4863d91001fc2dbd5641c21d55bcadda8a",
+   "error": "IPvFuture address is invalid"
+  },
+  {
+   "value": "https://[1.2.3.4]/?Signature=s",
+   "plan_hash": "898094502e1413409dade3251afa0426f0d09620f9933d0cd3d8ed61bd308193",
+   "error": "An IPv4 address cannot be in brackets"
+  },
+  {
+   "value": "https://[nothost]/?Signature=s",
+   "plan_hash": "ec08369fa5e1f2cbe71eb43e2a4825f10435a1cf5b36db0fe455b4af85853868",
+   "error": "'nothost' does not appear to be an IPv4 or IPv6 address"
+  },
+  {
+   "value": "https://x[::1]/?Signature=s",
+   "plan_hash": "5287ce061fe934b9a2988f642403518a29f86c717fe755bd9f83799895ea8deb",
+   "error": "Invalid IPv6 URL"
+  },
+  {
+   "value": "https://[::1]x/?Signature=s",
+   "plan_hash": "3d15073d3c9d7669da5fefa4a8ea1a6ff49148ed8fc532d7e9708f9feaf7f8f4",
+   "error": "Invalid IPv6 URL"
+  },
+  {
+   "value": "https://[::1/?Signature=s",
+   "plan_hash": "bb275bfef8c7f9b7ac4970817935c0839e9fc0dce8eef3defb01127d738b990d",
+   "error": "Invalid IPv6 URL"
+  },
+  {
+   "value": "https://[::1]/?a=1",
+   "plan_hash": "fee8c66cbbda0aca6dd8255b6d6a8a41044e881b45dde0b1ce889a54579fed02",
+   "snapshot": "https://[::1]/?a=1",
+   "snapshot_hash": "fee8c66cbbda0aca6dd8255b6d6a8a41044e881b45dde0b1ce889a54579fed02"
+  },
+  {
+   "value": "https://a＃b.example/?Signature=s",
+   "plan_hash": "c53b14cf9bd3baee63b9ff0cecc43c6495ad793328c908f7a4d04646c603944c",
+   "error": "netloc 'a＃b.example' contains invalid characters under NFKC normalization"
+  },
+  {
+   "value": "https://a＃b.example/?a=1",
+   "plan_hash": "7a069abb6f0d0d084aba2f9969f952e38779cbe04ae21de148cb6cfd479eac37",
+   "error": "netloc 'a＃b.example' contains invalid characters under NFKC normalization"
+  },
+  {
+   "value": "https://café.example/?Signature=s",
+   "plan_hash": "ad5907ccf2c3222ff8f2128fef2f29606e1cc5d887b7b2b5d58932fbc7fac581",
+   "snapshot": "https://café.example/",
+   "snapshot_hash": "b96c2d81a17f3abe8a255f92ba4135eea020eaabc29d5998c344f2c58cb9893d"
+  },
+  {
+   "value": "https://a.example/é?Signature=s&v=é",
+   "plan_hash": "11107b82e7aa8874bc4df5119b20d5ab10d7979ec3249b0a8bbc7720c3a8c542",
+   "snapshot": "https://a.example/é?v=%C3%A9",
+   "snapshot_hash": "a8c593255fdc9b6838c8b04f4fcf7e32872689ac4b20a10f52f8886886445ce2"
+  },
+  {
+   "value": "https://a.example/?Signature=s;x=1",
+   "plan_hash": "f37d39798b8c44ed7fc2e5e1388120630399364bec4fcd9041e79aaadf201330",
+   "snapshot": "https://a.example/",
+   "snapshot_hash": "d83281aea3e7ff0954f0e54041073371bb422d59f329e4fe3f9a4911a1640153"
+  },
+  {
+   "value": "https://a.example/?%53ignature=s",
+   "plan_hash": "c346c1c75d759028052d27b654e23e7dc9ba9b376dbf5fea0b8e2c56e6633c83",
+   "snapshot": "https://a.example/",
+   "snapshot_hash": "d83281aea3e7ff0954f0e54041073371bb422d59f329e4fe3f9a4911a1640153"
+  },
+  {
+   "value": {
+    "body": "https://[1.2.3.4]/?a=1",
+    "other": "https://[bad/?Signature=s"
+   },
+   "plan_hash": "37e69c46d698ab6e2e1981ef4091548ab25b819ee2ee9cf7650e0d46a1161020",
+   "error": "An IPv4 address cannot be in brackets"
+  }
+ ],
+ "urlsplit": [
+  {
+   "url": "",
+   "split": [
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   "unsplit": ""
+  },
+  {
+   "url": "http://a/b?c#d",
+   "split": [
+    "http",
+    "a",
+    "/b",
+    "c",
+    "d"
+   ],
+   "unsplit": "http://a/b?c#d"
+  },
+  {
+   "url": "HTTP://A/B",
+   "split": [
+    "http",
+    "A",
+    "/B",
+    "",
+    ""
+   ],
+   "unsplit": "http://A/B"
+  },
+  {
+   "url": "  \u0000\u001fhttp://a/b",
+   "split": [
+    "http",
+    "a",
+    "/b",
+    "",
+    ""
+   ],
+   "unsplit": "http://a/b"
+  },
+  {
+   "url": "ht\ttp://a\r\n/b",
+   "split": [
+    "http",
+    "a",
+    "/b",
+    "",
+    ""
+   ],
+   "unsplit": "http://a/b"
+  },
+  {
+   "url": "1http://a",
+   "split": [
+    "",
+    "",
+    "1http://a",
+    "",
+    ""
+   ],
+   "unsplit": "1http://a"
+  },
+  {
+   "url": "mailto:x@y",
+   "split": [
+    "mailto",
+    "",
+    "x@y",
+    "",
+    ""
+   ],
+   "unsplit": "mailto:x@y"
+  },
+  {
+   "url": "//host/path",
+   "split": [
+    "",
+    "host",
+    "/path",
+    "",
+    ""
+   ],
+   "unsplit": "//host/path"
+  },
+  {
+   "url": "path?q",
+   "split": [
+    "",
+    "",
+    "path",
+    "q",
+    ""
+   ],
+   "unsplit": "path?q"
+  },
+  {
+   "url": "#frag",
+   "split": [
+    "",
+    "",
+    "",
+    "",
+    "frag"
+   ],
+   "unsplit": "#frag"
+  },
+  {
+   "url": "?q#f?g",
+   "split": [
+    "",
+    "",
+    "",
+    "q",
+    "f?g"
+   ],
+   "unsplit": "?q#f?g"
+  },
+  {
+   "url": "http:path",
+   "split": [
+    "http",
+    "",
+    "path",
+    "",
+    ""
+   ],
+   "unsplit": "http:path"
+  },
+  {
+   "url": "http:///p",
+   "split": [
+    "http",
+    "",
+    "/p",
+    "",
+    ""
+   ],
+   "unsplit": "http:///p"
+  },
+  {
+   "url": "http://a?b#c?d",
+   "split": [
+    "http",
+    "a",
+    "",
+    "b",
+    "c?d"
+   ],
+   "unsplit": "http://a?b#c?d"
+  },
+  {
+   "url": "svn+ssh://h/p",
+   "split": [
+    "svn+ssh",
+    "h",
+    "/p",
+    "",
+    ""
+   ],
+   "unsplit": "svn+ssh://h/p"
+  },
+  {
+   "url": "custom://h",
+   "split": [
+    "custom",
+    "h",
+    "",
+    "",
+    ""
+   ],
+   "unsplit": "custom://h"
+  },
+  {
+   "url": "custom:/p",
+   "split": [
+    "custom",
+    "",
+    "/p",
+    "",
+    ""
+   ],
+   "unsplit": "custom:/p"
+  },
+  {
+   "url": "custom:p",
+   "split": [
+    "custom",
+    "",
+    "p",
+    "",
+    ""
+   ],
+   "unsplit": "custom:p"
+  },
+  {
+   "url": "file:///etc",
+   "split": [
+    "file",
+    "",
+    "/etc",
+    "",
+    ""
+   ],
+   "unsplit": "file:///etc"
+  },
+  {
+   "url": "http://[::1]",
+   "split": [
+    "http",
+    "[::1]",
+    "",
+    "",
+    ""
+   ],
+   "unsplit": "http://[::1]"
+  },
+  {
+   "url": "http://[::1]:x",
+   "split": [
+    "http",
+    "[::1]:x",
+    "",
+    "",
+    ""
+   ],
+   "unsplit": "http://[::1]:x"
+  },
+  {
+   "url": "http://u@[::1]:8",
+   "split": [
+    "http",
+    "u@[::1]:8",
+    "",
+    "",
+    ""
+   ],
+   "unsplit": "http://u@[::1]:8"
+  },
+  {
+   "url": "http://[::ffff:1.2.3.4]",
+   "split": [
+    "http",
+    "[::ffff:1.2.3.4]",
+    "",
+    "",
+    ""
+   ],
+   "unsplit": "http://[::ffff:1.2.3.4]"
+  },
+  {
+   "url": "http://[v7.x]",
+   "split": [
+    "http",
+    "[v7.x]",
+    "",
+    "",
+    ""
+   ],
+   "unsplit": "http://[v7.x]"
+  },
+  {
+   "url": "http://[vg.x]",
+   "error": "IPvFuture address is invalid"
+  },
+  {
+   "url": "http://[v1.]",
+   "error": "IPvFuture address is invalid"
+  },
+  {
+   "url": "http://[01.2.3.4]",
+   "error": "'01.2.3.4' does not appear to be an IPv4 or IPv6 address"
+  },
+  {
+   "url": "http://[1.2.3.04]",
+   "error": "'1.2.3.04' does not appear to be an IPv4 or IPv6 address"
+  },
+  {
+   "url": "http://[::1%a%b]",
+   "error": "'::1%a%b' does not appear to be an IPv4 or IPv6 address"
+  },
+  {
+   "url": "http://[]",
+   "error": "'' does not appear to be an IPv4 or IPv6 address"
+  },
+  {
+   "url": "http://a]@[::1]",
+   "split": [
+    "http",
+    "a]@[::1]",
+    "",
+    "",
+    ""
+   ],
+   "unsplit": "http://a]@[::1]"
+  },
+  {
+   "url": "http://[::1]@b",
+   "error": "'b' does not appear to be an IPv4 or IPv6 address"
+  },
+  {
+   "url": "http://？a",
+   "error": "netloc '？a' contains invalid characters under NFKC normalization"
+  },
+  {
+   "url": "http://℀",
+   "error": "netloc '℀' contains invalid characters under NFKC normalization"
+  },
+  {
+   "url": "http://é",
+   "split": [
+    "http",
+    "é",
+    "",
+    "",
+    ""
+   ],
+   "unsplit": "http://é"
+  },
+  {
+   "url": "http://﹫/",
+   "error": "netloc '﹫' contains invalid characters under NFKC normalization"
+  },
+  {
+   "url": "http://a:b@c:1/",
+   "split": [
+    "http",
+    "a:b@c:1",
+    "/",
+    "",
+    ""
+   ],
+   "unsplit": "http://a:b@c:1/"
+  },
+  {
+   "url": "http://h/＃",
+   "split": [
+    "http",
+    "h",
+    "/＃",
+    "",
+    ""
+   ],
+   "unsplit": "http://h/＃"
+  },
+  {
+   "url": "http://1:2:3:4:5:6:7::/",
+   "split": [
+    "http",
+    "1:2:3:4:5:6:7::",
+    "/",
+    "",
+    ""
+   ],
+   "unsplit": "http://1:2:3:4:5:6:7::/"
+  }
+ ],
+ "urlunsplit": [
+  [
+   [
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   ""
+  ],
+  [
+   [
+    "http",
+    "",
+    "",
+    "",
+    ""
+   ],
+   "http://"
+  ],
+  [
+   [
+    "http",
+    "",
+    "p",
+    "",
+    ""
+   ],
+   "http:p"
+  ],
+  [
+   [
+    "http",
+    "",
+    "/p",
+    "q",
+    "f"
+   ],
+   "http:///p?q#f"
+  ],
+  [
+   [
+    "custom",
+    "",
+    "/p",
+    "",
+    ""
+   ],
+   "custom:/p"
+  ],
+  [
+   [
+    "custom",
+    "",
+    "p",
+    "",
+    ""
+   ],
+   "custom:p"
+  ],
+  [
+   [
+    "",
+    "",
+    "//p",
+    "",
+    ""
+   ],
+   "////p"
+  ],
+  [
+   [
+    "",
+    "h",
+    "p",
+    "",
+    ""
+   ],
+   "//h/p"
+  ],
+  [
+   [
+    "https",
+    "h",
+    "",
+    "a=1",
+    ""
+   ],
+   "https://h?a=1"
+  ],
+  [
+   [
+    "",
+    "",
+    "",
+    "",
+    "f"
+   ],
+   "#f"
+  ],
+  [
+   [
+    "mailto",
+    "",
+    "x@y",
+    "",
+    ""
+   ],
+   "mailto:x@y"
+  ]
+ ]
+}

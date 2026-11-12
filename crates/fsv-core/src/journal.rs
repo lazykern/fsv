@@ -132,6 +132,15 @@ pub fn plan_hash(body: Option<&Value>) -> Option<String> {
     body.map(|b| sha256_hex(fsv_py::canonical(b).as_bytes()))
 }
 
+/// `journal.snapshot_hash`: `plan_hash` of the stable read snapshot.
+///
+/// `Err` carries the `ValueError` text of a link Python cannot split.
+pub fn snapshot_hash(body: Option<&Value>) -> Result<Option<String>, String> {
+    body.map(crate::reviewed_snapshot::stable_snapshot)
+        .transpose()
+        .map(|b| plan_hash(b.as_ref()))
+}
+
 /// URL path split into segments; unknown non-numeric segments become `[redacted]`.
 pub fn split_path(url: &str) -> Vec<String> {
     static HOST: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^https?://[^/]+").expect("regex"));

@@ -11,7 +11,7 @@ use crate::create::{
 };
 use crate::readback::same_text;
 use crate::reviewed_write::{WritePlan, execute_as, refused};
-use crate::service::{Api, Journal, obj, plan_hash};
+use crate::service::{Api, Journal, obj, plan_hash, snapshot_hash, stable_snapshot};
 use crate::watchers::{has_continuation, positive_id, total_differs};
 
 /// Port of fsv.planning_text.PROBLEM_SECTIONS: native semantic section keys,
@@ -207,8 +207,12 @@ impl PlanningTextPlan {
         self.plan.payload()
     }
 
+    /// `build_plan` has already checked the baseline snapshots, so a
+    /// hand-built plan whose baseline `urlsplit` rejects hashes it unprojected.
     pub fn hash(&self) -> String {
-        plan_hash(&json!({"wire_plan": self.plan.hash(), "before": self.before}))
+        let before = json!(self.before);
+        let before = stable_snapshot(&before).unwrap_or(before);
+        plan_hash(&json!({"wire_plan": self.plan.hash(), "before": before}))
     }
 
     pub fn review(&self) -> Map<String, Value> {
@@ -335,8 +339,9 @@ pub fn build_plan_for(
             .sort_keys(true)
             .ensure_ascii(false)
             .dump(&payload.unwrap_or(Value::Null)),
-        context_hash: plan_hash(&json!({"definitions": defs, "rows": rows})),
+        context_hash: snapshot_hash(&json!({"definitions": defs, "rows": rows}))?,
     };
+    stable_snapshot(&json!(before))?;
     Ok(PlanningTextPlan { plan, before })
 }
 

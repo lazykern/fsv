@@ -26,7 +26,7 @@ use crate::formmeta::MetaStore;
 use crate::notes::{BodyFormat, returned_note};
 use crate::readback::{same_text, submitted_value_matches};
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, last_event, load_conversations, obj, plan_hash};
+use crate::service::{Api, Journal, last_event, load_conversations, obj, plan_hash, snapshot_hash};
 use crate::watchers::positive_id;
 
 const SIZE_KEYS: [&str; 2] = ["max_attachment_size_bytes", "max_file_size_bytes"];
@@ -462,7 +462,7 @@ pub fn conversation_plan(
         method: "POST".into(),
         path: plan.path(),
         payload_json: plan.payload_json.clone(),
-        context_hash: plan_hash(&json!({"parent": parent, "metadata": raw})),
+        context_hash: snapshot_hash(&json!({"parent": parent, "metadata": raw}))?,
     };
     wrap(base, paths, &raw, c, args.max_bytes)
 }
@@ -485,7 +485,7 @@ pub fn problem_note_plan(
         method: plan.plan.method.clone(),
         path: plan.plan.path.clone(),
         payload_json: plan.plan.payload_json.clone(),
-        context_hash: plan_hash(&json!({"base": plan.hash(), "metadata": raw})),
+        context_hash: snapshot_hash(&json!({"base": plan.hash(), "metadata": raw}))?,
     };
     wrap(base, paths, &raw, c, max_bytes)
 }
@@ -844,9 +844,9 @@ pub fn delete_plan(
         method: "DELETE".into(),
         path: format!("attachments/{ident}"),
         payload_json: "null".into(),
-        context_hash: plan_hash(
+        context_hash: snapshot_hash(
             &json!({"owner": owner, "child": child, "section": section, "row": row}),
-        ),
+        )?,
     })
 }
 

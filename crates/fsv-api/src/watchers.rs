@@ -9,7 +9,7 @@ use fsv_core::resource::{CHANGES, TICKETS, parse_id};
 use fsv_py::ValueExt;
 
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, obj, plan_hash};
+use crate::service::{Api, Journal, obj, snapshot_hash};
 
 /// Port of fsv.watchers.positive_id: a positive decimal int or digit string,
 /// never a bool. Like `int()`, any Unicode decimal digits count; a
@@ -128,7 +128,7 @@ pub fn build_plan(c: &dyn Api, module: &str, target: &str, watch: bool) -> Resul
         method: method.into(),
         path,
         payload_json: fsv_py::Dumps::default().sort_keys(true).dump(&payload),
-        context_hash: plan_hash(&context),
+        context_hash: snapshot_hash(&context)?,
     })
 }
 

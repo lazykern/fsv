@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "39e4853003dff8b2aab47ef6ccc435ba711dbb19",
+  "commit": "8f156c08ec19b91dc42656707ee229f0b38112e0",
   "dirty": false
  },
  "two_step_note_acme": {
@@ -2440,6 +2440,123 @@
    }
   ]
  },
+ "delete_signed_acme": {
+  "tenant": "acme.example.com",
+  "base": 701,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "rotate": true,
+     "conversations": [
+      {
+       "id": 901,
+       "body": "Acme note",
+       "attachments": [
+        {
+         "id": 701,
+         "name": "acme.txt",
+         "size": 12
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "delete_build",
+    "ident": "701",
+    "owner": "tickets/123",
+    "child": 901
+   },
+   {
+    "op": "delete_build",
+    "ident": "701",
+    "owner": "tickets/123",
+    "child": 901
+   },
+   {
+    "op": "delete_send",
+    "owner": "tickets/123",
+    "child": 901
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "attachment_delete",
+     "target": 701,
+     "tenant": "acme.example.com",
+     "method": "DELETE",
+     "path": "attachments/701",
+     "payload_json": "null",
+     "context_hash": "f74dd7a1a95a5dd39299e23c774a29474ff7aff8f3361800369214e9d2844739"
+    },
+    "hash": "4ebcc8d5db2ee2e223bfa36b0f5f2d8a20482606077cc015098be335b9f1f38a",
+    "review": {
+     "action": "attachment_delete",
+     "method": "DELETE",
+     "path": "/api/_/attachments/701",
+     "payload": null,
+     "plan_hash": "4ebcc8d5db2ee2e223bfa36b0f5f2d8a20482606077cc015098be335b9f1f38a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "attachment_delete",
+     "target": 701,
+     "tenant": "acme.example.com",
+     "method": "DELETE",
+     "path": "attachments/701",
+     "payload_json": "null",
+     "context_hash": "f74dd7a1a95a5dd39299e23c774a29474ff7aff8f3361800369214e9d2844739"
+    },
+    "hash": "4ebcc8d5db2ee2e223bfa36b0f5f2d8a20482606077cc015098be335b9f1f38a",
+    "review": {
+     "action": "attachment_delete",
+     "method": "DELETE",
+     "path": "/api/_/attachments/701",
+     "payload": null,
+     "plan_hash": "4ebcc8d5db2ee2e223bfa36b0f5f2d8a20482606077cc015098be335b9f1f38a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "4ebcc8d5db2ee2e223bfa36b0f5f2d8a20482606077cc015098be335b9f1f38a",
+     "verified": true,
+     "attachment_id": 701
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:attachment_delete",
+    "started",
+    null
+   ],
+   [
+    "plan:attachment_delete",
+    "done",
+    null
+   ]
+  ],
+  "writes": [
+   {
+    "method": "DELETE",
+    "path": "attachments/701",
+    "raw": ""
+   }
+  ]
+ },
  "two_step_note_globex": {
   "tenant": "globex.example.com",
   "base": 801,
@@ -4870,6 +4987,123 @@
     "path": "tickets",
     "raw": "{\"subject\": \"Acme incident\", \"attachments\": [801, 802]}"
    },
+   {
+    "method": "DELETE",
+    "path": "attachments/801",
+    "raw": ""
+   }
+  ]
+ },
+ "delete_signed_globex": {
+  "tenant": "globex.example.com",
+  "base": 801,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "rotate": true,
+     "conversations": [
+      {
+       "id": 901,
+       "body": "Acme note",
+       "attachments": [
+        {
+         "id": 801,
+         "name": "acme.txt",
+         "size": 12
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "delete_build",
+    "ident": "801",
+    "owner": "tickets/123",
+    "child": 901
+   },
+   {
+    "op": "delete_build",
+    "ident": "801",
+    "owner": "tickets/123",
+    "child": 901
+   },
+   {
+    "op": "delete_send",
+    "owner": "tickets/123",
+    "child": 901
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "attachment_delete",
+     "target": 801,
+     "tenant": "globex.example.com",
+     "method": "DELETE",
+     "path": "attachments/801",
+     "payload_json": "null",
+     "context_hash": "a3ab22fd4745ee9307d4431004ff58b7899d60b1370a7123c648eb491dbcba94"
+    },
+    "hash": "8dc6a26d307f72f6c85ef930a66cbab5c169ac8b9a1f00328d22e9df2014ff7a",
+    "review": {
+     "action": "attachment_delete",
+     "method": "DELETE",
+     "path": "/api/_/attachments/801",
+     "payload": null,
+     "plan_hash": "8dc6a26d307f72f6c85ef930a66cbab5c169ac8b9a1f00328d22e9df2014ff7a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "attachment_delete",
+     "target": 801,
+     "tenant": "globex.example.com",
+     "method": "DELETE",
+     "path": "attachments/801",
+     "payload_json": "null",
+     "context_hash": "a3ab22fd4745ee9307d4431004ff58b7899d60b1370a7123c648eb491dbcba94"
+    },
+    "hash": "8dc6a26d307f72f6c85ef930a66cbab5c169ac8b9a1f00328d22e9df2014ff7a",
+    "review": {
+     "action": "attachment_delete",
+     "method": "DELETE",
+     "path": "/api/_/attachments/801",
+     "payload": null,
+     "plan_hash": "8dc6a26d307f72f6c85ef930a66cbab5c169ac8b9a1f00328d22e9df2014ff7a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "8dc6a26d307f72f6c85ef930a66cbab5c169ac8b9a1f00328d22e9df2014ff7a",
+     "verified": true,
+     "attachment_id": 801
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:attachment_delete",
+    "started",
+    null
+   ],
+   [
+    "plan:attachment_delete",
+    "done",
+    null
+   ]
+  ],
+  "writes": [
    {
     "method": "DELETE",
     "path": "attachments/801",

@@ -1,10 +1,9 @@
-"""Golden `pages._attachment_text` (Python ec7a6ef) for fsv-views `pages`:
-attachment-only planning, description and conversation lines render once
-(paperclip rows only); prose mentioning a file is kept. Mirrors
-`test_attachment_rendering.py` (the renderer tests; its CLI/TUI tests reach the
-same renderer).
+"""Golden detail lines (Python 7f58023) for fsv-views `pages`.
 
-    cd /tmp/fsv-py-ec7a6ef && FSV_PY_SRC=$PWD FSV_PY_COMMIT=ec7a6ef... uv run python \
+`7f58023` reverts the attachment-only dedupe: description, planning text and
+conversation bodies render in full, and paperclip rows render as well.
+
+    cd /tmp/fsv-py-7f58023 && FSV_PY_SRC=$PWD FSV_PY_COMMIT=7f58023... uv run python \
         /Users/phusit.somb/lab/work/fsv-rust/port/golden/gen_fsv_views_attachment_rendering.py \
         /Users/phusit.somb/lab/work/fsv-rust/crates/fsv-views/tests/fixtures/attachment_rendering.json
 """
@@ -37,7 +36,7 @@ def detail(text, files, record=None):
     return V.Detail(CHANGES, record or {"id": 501}, {}, {}, UTC, [], planning=[p])
 
 
-out = {"planning": [], "description": [], "conversation": [], "attachment_text": []}
+out = {"planning": [], "description": [], "conversation": []}
 for body in BODIES:
     text = V.html_to_text(body)
     out["planning"].append({"body": body, "text": text, "files": [NAME, OTHER], "lines": pages.main_lines(detail(text, [NAME, OTHER]))})
@@ -48,7 +47,4 @@ for body in [*BODIES[:2], NAME, "", "<div>Acme evidence</div>"]:
     for files in [[{"id": 701, "name": NAME}, {"id": 702, "name": OTHER}], []]:
         cv = {"id": 901, "body": body, "source": 2, "private": True, "user": {"name": "Acme Agent"}, "attachments": files}
         out["conversation"].append({"cv": cv, "lines": pages.conversation_lines(cv, UTC)})
-for text, files in [(NAME, []), (f"\n\n{NAME}\nx\n\n", [NAME]), (f"•  {NAME}", [NAME]), (f"•{NAME}", [NAME]),
-                    (f"\t{NAME}\r\n{OTHER}", [NAME, OTHER]), ("a\n\nb", ["a"]), ("", [NAME])]:
-    out["attachment_text"].append([text, files, pages._attachment_text(text, files)])
 Path(sys.argv[1]).write_text(json.dumps(stamped(out), indent=1, ensure_ascii=False) + "\n")

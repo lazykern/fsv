@@ -1,4 +1,5 @@
-"""Golden `attachments` (Python 1c186e0, published page limit ba6aef9) for
+"""Golden `attachments` (Python 1c186e0, published page limit ba6aef9, signed
+link churn 8f156c0) for
 fsv-api `attachments`: hash-bound local files, the two-step upload/owner wires,
 plan hashes, reviews, owner readback, ambiguity and drift refusals, metadata
 and tenant-page size limits, `--max-bytes` overrides, and owner-verified
@@ -7,7 +8,7 @@ tests, for both tenants, plus the deletes its CLI test drives). File paths
 are not recorded (only name, size, type and sha256 are bound); the Rust test
 recreates the same files. The Rust test replays the ops.
 
-    cd /tmp/fsv-py-ba6aef9 && FSV_PY_SRC=$PWD FSV_PY_COMMIT=ba6aef9... uv run python \
+    cd /tmp/fsv-py-8f156c0 && FSV_PY_SRC=$PWD FSV_PY_COMMIT=8f156c0... uv run python \
         /Users/phusit.somb/lab/work/fsv-rust/port/golden/gen_fsv_api_attachments.py
 """
 from __future__ import annotations
@@ -62,6 +63,12 @@ def handler_for(s):
                 return httpx.Response(200, json={"attachment_settings": {"max_attachment_size_bytes": s["limit"]}})
             if path == "tickets/123/conversations":
                 rows = copy.deepcopy(s["conversations"])
+                if s.get("rotate"):
+                    s["reads"] = s.get("reads", 0) + 1
+                    for row in rows:
+                        for file in row.get("attachments", []):
+                            file.update(attachment_url=f"https://files.example.com/acme?Expires={s['reads']}&Signature=synthetic&Key-Pair-Id=key",
+                                        updated_at=str(s["reads"]))
                 if s["mismatch"] and rows:
                     rows[0]["attachments"] = []
                 return httpx.Response(200, json={"conversations": rows, "has_more": s["partial"]})
@@ -220,6 +227,12 @@ for tenant, base in [("acme.example.com", 701), ("globex.example.com", 801)]:
         {"op": "set", "state": {"mismatch": True}},
         {"op": "delete_send", "owner": "tickets/123", "hash": "none"},
         {"op": "delete_send", "owner": "tickets/123"}]}
+    CASES[f"delete_signed_{t}"] = {"tenant": tenant, "base": base, "ops": [
+        {"op": "set", "state": {"rotate": True, "conversations": [
+            {"id": 901, "body": "Acme note", "attachments": [{"id": base, "name": "acme.txt", "size": 12}]}]}},
+        {"op": "delete_build", "ident": str(base), "owner": "tickets/123", "child": 901},
+        {"op": "delete_build", "ident": str(base), "owner": "tickets/123", "child": 901},
+        {"op": "delete_send", "owner": "tickets/123", "child": 901}]}
 for drift in ["file", "limit", "owner"]:
     ops = [{"op": "build", "kind": "note"}]
     if drift == "file":

@@ -8,7 +8,7 @@ use fsv_core::resource::{PROBLEMS, parse_id};
 use fsv_py::py_str;
 
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, obj, plan_hash};
+use crate::service::{Api, Journal, obj, snapshot_hash};
 use crate::watchers::positive_id;
 
 /// Port of fsv.problem_known_error.record: the exact problem with a boolean
@@ -43,7 +43,7 @@ pub fn build_plan(c: &dyn Api, target: &str) -> Result<WritePlan> {
         method: "PUT".into(),
         path: format!("problems/{cid}"),
         payload_json: r#"{"known_error": true}"#.into(),
-        context_hash: plan_hash(&Value::Object(row)),
+        context_hash: snapshot_hash(&Value::Object(row))?,
     })
 }
 

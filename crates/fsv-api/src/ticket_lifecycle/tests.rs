@@ -170,7 +170,7 @@ fn opt_str(v: &Value) -> Option<&str> {
 #[test]
 fn cases_match_python() {
     let cases = ORACLE["cases"].as_object().unwrap();
-    assert_eq!(cases.len(), 27);
+    assert_eq!(cases.len(), 28);
     for (name, case) in cases {
         let mut row = obj(
             json!({"id": 123, "status": 31, "group_id": null, "responder_id": 9000001234_i64,

@@ -10,7 +10,7 @@ use fsv_py::py_str;
 use crate::canned;
 use crate::properties::{dumps_sorted, record};
 use crate::reviewed_write::{WritePlan, execute};
-use crate::service::{Api, Journal, obj, plan_hash};
+use crate::service::{Api, Journal, obj, snapshot_hash};
 use crate::watchers::positive_id;
 
 /// Port of fsv.scenarios.context: the scenario row and the ticket.
@@ -29,7 +29,7 @@ pub fn build_plan(c: &dyn Api, target: &str, scenario_id: &Value) -> Result<Writ
         method: "PUT".into(),
         path: "tickets/execute_scenario".into(),
         payload_json: dumps_sorted(&json!({"scenario_id": scenario_id, "ids": [target]})),
-        context_hash: plan_hash(&context(c, target, scenario_id)?),
+        context_hash: snapshot_hash(&context(c, target, scenario_id)?)?,
     })
 }
 

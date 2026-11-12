@@ -12,7 +12,7 @@ use crate::formmeta::{MetaStore, is_status, load_meta};
 use crate::properties::{dumps_sorted, record};
 use crate::readback::{same_text, submitted_value_matches};
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, load_conversations, obj};
+use crate::service::{Api, Journal, load_conversations, obj, stable_snapshot};
 
 pub const ACTION: &str = "ticket_merge";
 pub const PATH: &str = "merge_tickets/complete_merge";
@@ -142,7 +142,7 @@ pub fn build_plan(
         method: "POST".into(),
         path: PATH.into(),
         payload_json: dumps_sorted(&payload),
-        context_hash: dumps_sorted(&context),
+        context_hash: dumps_sorted(&stable_snapshot(&context)?),
     })
 }
 

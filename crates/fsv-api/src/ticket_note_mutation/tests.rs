@@ -1,4 +1,4 @@
-//! Replays `gen_fsv_api_ticket_note_mutation.py` cases (Python 9910ddc).
+//! Replays `gen_fsv_api_ticket_note_mutation.py` cases (Python 8f156c0).
 
 use std::sync::{Arc, Mutex};
 
@@ -14,6 +14,8 @@ struct State {
     partial_after: bool,
     mismatch: bool,
     drop_body: bool,
+    rotate: bool,
+    reads: u32,
     requests: Vec<Value>,
 }
 
@@ -25,6 +27,8 @@ fn new_state() -> State {
         partial_after: false,
         mismatch: false,
         drop_body: false,
+        rotate: false,
+        reads: 0,
         requests: Vec::new(),
     }
 }
@@ -77,8 +81,13 @@ fn api(state: Arc<Mutex<State>>, domain: &str) -> FnApi {
         if s.partial {
             return Err(ApiError::new(403, json!({"message": "denied"})).into());
         }
-        let n = s.rows.as_array().unwrap().len();
-        Ok(json!({"conversations": s.rows, "meta": {"count": n}}))
+        let mut rows = s.rows.clone();
+        if s.rotate {
+            s.reads += 1;
+            rotate_files(&mut rows, s.reads);
+        }
+        let n = rows.as_array().unwrap().len();
+        Ok(json!({"conversations": rows, "meta": {"count": n}}))
     });
     a.domain = domain.into();
     a
@@ -89,7 +98,7 @@ fn cases_match_python() {
     let oracle: Value =
         serde_json::from_str(include_str!("../testdata/ticket_note_mutation_oracle.json")).unwrap();
     let cases = oracle.as_object().unwrap();
-    assert_eq!(cases.len(), 29);
+    assert_eq!(cases.len(), 34);
     for (name, case) in cases {
         if name == "_python" {
             continue;
@@ -153,6 +162,7 @@ fn cases_match_python() {
                             "partial_after" => s.partial_after = v == true,
                             "mismatch" => s.mismatch = v == true,
                             "drop_body" => s.drop_body = v == true,
+                            "rotate" => s.rotate = v == true,
                             other => panic!("{other}"),
                         }
                     }

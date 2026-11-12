@@ -1,9 +1,9 @@
-"""Golden `ticket_note_mutation` (Python 9910ddc) for fsv-api
+"""Golden `ticket_note_mutation` (Python 8f156c0) for fsv-api
 `ticket_note_mutation`: the PUT/DELETE wire, plan hashes, reviews, readback,
 refusals and journal events. Mirrors `test_ticket_note_mutation.py` (the
 non-CLI tests); the Rust test replays the ops.
 
-    cd /tmp/fsv-py-9910ddc && FSV_PY_SRC=$PWD FSV_PY_COMMIT=9910ddc... uv run python \
+    cd /tmp/fsv-py-8f156c0 && FSV_PY_SRC=$PWD FSV_PY_COMMIT=8f156c0... uv run python \
         /Users/phusit.somb/lab/work/fsv-rust/port/golden/gen_fsv_api_ticket_note_mutation.py
 """
 from __future__ import annotations
@@ -39,7 +39,14 @@ def handler_for(s):
                 return httpx.Response(404, json={"error": "unexpected"})
             if s["partial"]:
                 return httpx.Response(403, json={"message": "denied"})
-            return httpx.Response(200, json={"conversations": copy.deepcopy(s["rows"]), "meta": {"count": len(s["rows"])}})
+            rows = copy.deepcopy(s["rows"])
+            if s.get("rotate"):
+                s["reads"] = s.get("reads", 0) + 1
+                for row in rows:
+                    for file in row.get("attachments", []):
+                        file.update(attachment_url=f"https://files.example.com/acme?Expires={s['reads']}&Signature=synthetic&Key-Pair-Id=key",
+                                    updated_at=str(s["reads"]))
+            return httpx.Response(200, json={"conversations": rows, "meta": {"count": len(rows)}})
         s["requests"].append({"method": request.method, "path": path, "raw": request.content.decode()})
         if s["fail"] == "disconnect":
             raise httpx.ReadError("disconnect", request=request)
@@ -129,6 +136,11 @@ for tenant in ("acme.example.com", "globex.example.com"):
     CASES[f"preflight_{t}"] = {"tenant": tenant, "ops": [
         {**EDIT, "body": "New", "ticket": 123}, {"op": "set", "row": {"body": "changed"}}, R, S,
         {"op": "set", "row": {"source": 0}}, DEL, {"op": "set", "state": {"partial": True}}, DEL]}
+FILES = {"op": "set", "state": {"rotate": True}, "row": {"attachments": [{"id": 701, "name": "acme.txt", "size": 12}]}}
+CASES["rotate_delete"] = {"ops": [FILES, DEL, R, DEL, S]}
+CASES["rotate_edit"] = {"ops": [FILES, EDIT, R, EDIT, S]}
+for field, value in [("body", "Changed"), ("private", False), ("attachments", [])]:
+    CASES[f"rotate_changed_{field}"] = {"ops": [FILES, DEL, {"op": "set", "row": {field: value}}, R, S]}
 CASES["invalid_ids"] = {"ops": [
     {**DEL, "note": "0"}, {**DEL, "note": "-1"}, {**DEL, "note": "x"}, {**DEL, "note": ""}, {**DEL, "note": "١٢"},
     {**DEL, "note": " 1"}, {**DEL, "ticket": "0"}, {**DEL, "ticket": "CHN-1"}, {**DEL, "note": "007"},

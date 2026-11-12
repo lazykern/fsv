@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "39e4853003dff8b2aab47ef6ccc435ba711dbb19",
+  "commit": "7f580232e8e4ce1e5dae059115fca1bb697ef0c3",
   "dirty": false
  },
  "transition_Open_41": {
@@ -3111,5 +3111,451 @@
     "raw": "{\"status\": 43}"
    }
   ]
+ },
+ "native_articles": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "solution_raw": {
+      "articles": []
+     }
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "solution_raw": {
+      "articles": [
+       {
+        "id": 701,
+        "title": "Acme workaround",
+        "article_type": 2
+       }
+      ]
+     }
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "solution_raw": {
+      "articles": [
+       {
+        "id": 801,
+        "title": "Globex permanent solution",
+        "article_type": 1
+       }
+      ]
+     }
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: missing linked workaround / solution"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "6e3fa9843506d2530c67b70c37bf791c3d47ab6084b586a52297f79dc17612cd",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "571a2f4c2591a880855518882b024410da81fe74698bf8ce7cb5da6f73990b11",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "571a2f4c2591a880855518882b024410da81fe74698bf8ce7cb5da6f73990b11",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "43899901fab039d22e5dc8f6add65ab4bb96c38e48a4ffb581b8ec406bb61ffb",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "cd2068ddaba56a2d1b1e2a0986bfd6cddea6e032d9e86dca53a808794f7b7114",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "cd2068ddaba56a2d1b1e2a0986bfd6cddea6e032d9e86dca53a808794f7b7114",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "native_articles_pages": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "solution_pages": [
+      {
+       "articles": [
+        {
+         "id": 701,
+         "title": "Acme workaround"
+        }
+       ],
+       "has_more": true
+      },
+      {
+       "articles": [
+        {
+         "id": 801,
+         "title": "Globex solution"
+        }
+       ],
+       "has_more": false
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "69aba5adb32696b7f295fe30b1578bb9374caea36aaeaa12bbea428f2e806423",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "f093ad038f4b89a364d21330c39fd56487d3074a5aea0cb77abe0637c73f0d76",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "f093ad038f4b89a364d21330c39fd56487d3074a5aea0cb77abe0637c73f0d76",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "unknown_solutions": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "solution_raw": {}
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "solution_raw": {
+      "articles": null
+     }
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "solution_raw": {
+      "articles": {}
+     }
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "solution_raw": {
+      "solutions": []
+     }
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "solution_raw": {
+      "articles": [],
+      "meta": {
+       "count": 1
+      }
+     }
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "solution_raw": {
+      "articles": [],
+      "has_more": true
+     }
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem solutions inventory is unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem solutions inventory is unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem solutions inventory is unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem solutions inventory is unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem solutions inventory is unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem solutions inventory is unavailable"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "solutions_read_403": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "solution_error": 403
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem solutions inventory is unavailable"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "solutions_read_429": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "solution_error": 429
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem solutions inventory is unavailable"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "solutions_read_500": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "solution_error": 500
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem solutions inventory is unavailable"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
  }
 }

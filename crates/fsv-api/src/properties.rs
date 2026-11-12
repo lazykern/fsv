@@ -16,7 +16,9 @@ use crate::formmeta::{
     MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, form_err, is_status, load_meta,
 };
 use crate::readback::same_instant;
-use crate::service::{Api, Journal, definite_rejection, last_event, obj, plan_hash};
+use crate::service::{
+    Api, Journal, definite_rejection, last_event, obj, plan_hash, snapshot_hash, stable_snapshot,
+};
 
 const ACTION: &str = "ticket_properties";
 
@@ -97,9 +99,13 @@ impl PropertyPlan {
         self.hash_with("")
     }
 
+    /// `build_plan` has already checked the baseline snapshots, so a
+    /// hand-built plan whose baseline `urlsplit` rejects hashes it unprojected.
     fn hash_with(&self, metadata_hash: &str) -> String {
+        let before = self.before();
+        let before = stable_snapshot(&before).unwrap_or(before);
         let mut intent = json!({"tenant": self.tenant, "ticket_id": self.ticket_id, "payload": self.payload(),
-                                "before": self.before(), "record_hash": self.record_hash});
+                                "before": before, "record_hash": self.record_hash});
         if !metadata_hash.is_empty() {
             intent["metadata_hash"] = json!(metadata_hash);
         }
@@ -443,7 +449,7 @@ pub fn build_plan_with(
             tenant: c.domain(),
             body_json: dumps_sorted(&Value::Object(body)),
             before_json: dumps_sorted(&Value::Object(before)),
-            record_hash: plan_hash(&Value::Object(row)),
+            record_hash: snapshot_hash(&Value::Object(row))?,
         },
         answers_json: dumps_sorted(&Value::Object(answers.clone())),
         metadata_hash,

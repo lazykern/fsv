@@ -25,6 +25,10 @@ fn fixtures_record_their_python_commit() {
             include_str!("../tests/fixtures/session_expected.json"),
         ),
         (
+            "reviewed_snapshot",
+            include_str!("../tests/fixtures/reviewed_snapshot.json"),
+        ),
+        (
             "strip_html",
             include_str!("../tests/fixtures/strip_html.provenance.json"),
         ),

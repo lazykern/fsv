@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "39e4853003dff8b2aab47ef6ccc435ba711dbb19",
+  "commit": "7f580232e8e4ce1e5dae059115fca1bb697ef0c3",
   "dirty": false
  },
  "planning": [
@@ -18,6 +18,7 @@
     "[bold]Planning[/]",
     "  [cyan]Acme planning[/]",
     "    Acme rollout",
+    "    Acme_plan_v1.xlsx",
     "    📎 Acme_plan_v1.xlsx",
     "    📎 Acme_checklist.txt"
    ]
@@ -36,6 +37,7 @@
     "[bold]Planning[/]",
     "  [cyan]Acme planning[/]",
     "    Acme rollout",
+    "    Acme_plan_v1.xlsx",
     "    📎 Acme_plan_v1.xlsx",
     "    📎 Acme_checklist.txt"
    ]
@@ -54,6 +56,8 @@
     "[bold]Planning[/]",
     "  [cyan]Acme planning[/]",
     "    Acme rollout",
+    "",
+    "    • Acme_plan_v1.xlsx",
     "    📎 Acme_plan_v1.xlsx",
     "    📎 Acme_checklist.txt"
    ]
@@ -72,6 +76,8 @@
     "[bold]Planning[/]",
     "  [cyan]Acme planning[/]",
     "    Acme rollout",
+    "    Acme_plan_v1.xlsx",
+    "    Acme_plan_v1.xlsx",
     "    📎 Acme_plan_v1.xlsx",
     "    📎 Acme_checklist.txt"
    ]
@@ -89,6 +95,7 @@
     "",
     "[bold]Planning[/]",
     "  [cyan]Acme planning[/]",
+    "    Acme_plan_v1.xlsx",
     "    📎 Acme_plan_v1.xlsx",
     "    📎 Acme_checklist.txt"
    ]
@@ -108,6 +115,7 @@
     "  [cyan]Acme planning[/]",
     "    Review Acme_plan_v1.xlsx before deploying.",
     "    Acme_plan_v1.xlsx.backup",
+    "    Acme_plan_v1.xlsx",
     "    📎 Acme_plan_v1.xlsx",
     "    📎 Acme_checklist.txt"
    ]
@@ -125,7 +133,11 @@
     "",
     "[bold]Planning[/]",
     "  [cyan]Acme planning[/]",
+    "    • Acme_plan_v1.xlsx",
+    "",
     "    keep",
+    "",
+    "    Acme_checklist.txt",
     "    📎 Acme_plan_v1.xlsx",
     "    📎 Acme_checklist.txt"
    ]
@@ -164,6 +176,7 @@
    "lines": [
     "[bold]Description[/]",
     "  Acme rollout",
+    "  Acme_plan_v1.xlsx",
     "",
     "[bold]Attachments[/]",
     "  📎 Acme_plan_v1.xlsx [dim](123 B)[/]",
@@ -188,6 +201,7 @@
    "lines": [
     "[bold]Description[/]",
     "  Acme rollout",
+    "  Acme_plan_v1.xlsx",
     "",
     "[bold]Attachments[/]",
     "  📎 Acme_plan_v1.xlsx [dim](123 B)[/]",
@@ -222,6 +236,7 @@
    "lines": [
     "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
     "    Acme rollout",
+    "    Acme_plan_v1.xlsx",
     "    📎 Acme_plan_v1.xlsx",
     "    📎 Acme_checklist.txt",
     ""
@@ -268,6 +283,7 @@
    "lines": [
     "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
     "    Acme rollout",
+    "    Acme_plan_v1.xlsx",
     "    📎 Acme_plan_v1.xlsx",
     "    📎 Acme_checklist.txt",
     ""
@@ -313,6 +329,7 @@
    },
    "lines": [
     "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
+    "    Acme_plan_v1.xlsx",
     "    📎 Acme_plan_v1.xlsx",
     "    📎 Acme_checklist.txt",
     ""
@@ -357,6 +374,7 @@
    },
    "lines": [
     "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
+    "    [dim](empty)[/]",
     "    📎 Acme_plan_v1.xlsx",
     "    📎 Acme_checklist.txt",
     ""
@@ -424,55 +442,5 @@
     ""
    ]
   }
- ],
- "attachment_text": [
-  [
-   "Acme_plan_v1.xlsx",
-   [],
-   "Acme_plan_v1.xlsx"
-  ],
-  [
-   "\n\nAcme_plan_v1.xlsx\nx\n\n",
-   [
-    "Acme_plan_v1.xlsx"
-   ],
-   "x"
-  ],
-  [
-   "•  Acme_plan_v1.xlsx",
-   [
-    "Acme_plan_v1.xlsx"
-   ],
-   ""
-  ],
-  [
-   "•Acme_plan_v1.xlsx",
-   [
-    "Acme_plan_v1.xlsx"
-   ],
-   "•Acme_plan_v1.xlsx"
-  ],
-  [
-   "\tAcme_plan_v1.xlsx\r\nAcme_checklist.txt",
-   [
-    "Acme_plan_v1.xlsx",
-    "Acme_checklist.txt"
-   ],
-   ""
-  ],
-  [
-   "a\n\nb",
-   [
-    "a"
-   ],
-   "b"
-  ],
-  [
-   "",
-   [
-    "Acme_plan_v1.xlsx"
-   ],
-   ""
-  ]
  ]
 }

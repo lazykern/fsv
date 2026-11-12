@@ -16,7 +16,7 @@ use crate::notes::{self, BodyFormat, EMAIL, note_id, returned_note, valid_recipi
 use crate::properties::{dumps_sorted, record};
 use crate::readback::py_equal;
 use crate::service::{
-    Api, Journal, definite_rejection, last_event, load_conversations, obj, plan_hash,
+    Api, Journal, definite_rejection, last_event, load_conversations, obj, plan_hash, snapshot_hash,
 };
 
 /// `ConversationError`: a safe user-facing failure.
@@ -119,7 +119,7 @@ fn status_inner(
     let token =
         build_br_validation_excludes(&state.evaluated, "ticket", &Value::Null, &Value::Null)
             .map_err(|e| Error::other(e.to_string()))?;
-    Ok((id, token, plan_hash(&Value::Object(row))))
+    Ok((id, token, snapshot_hash(&Value::Object(row))?))
 }
 
 /// `email.utils.parseaddr(value)[1]`.

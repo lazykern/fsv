@@ -1719,8 +1719,95 @@ strict query grammar reaches it through `fsv_api::query`.
 `port/fsv_coverage.py` now maps `ticket_note_mutation`, `problem_incidents`,
 `ticket_tasks`, `problem_status` and `attachments` to fsv-api.
 
-Next batch:
-- `8f156c0` "stabilize reviewed read snapshots" adds `reviewed_snapshot.py`
-  and `journal.snapshot_hash`. It switches the context hashes of about 20
-  modules, including earlier batches, so it is not small.
-- `d1c158b` (native article inventory for problem closure) comes after it.
+## Ledger: `39e4853..7f58023` (library side)
+
+Triaged against Python `7f58023`. `8f156c0` and `d1c158b` were exported at
+their own SHAs; fixtures that only needed the snapshot rules were already
+stamped `8f156c0`. `problem_status`, `ticket_lifecycle` and the detail-line
+fixture were regenerated from a `git archive 7f58023` export
+(`FSV_PY_COMMIT=7f580232e8e4ce1e5dae059115fca1bb697ef0c3`). Write payloads
+were not retuned. This section covers every crate except fsv-cli and
+fsv-completion.
+
+Counts: **3 ported, 0 partial.** `port/UPSTREAM_BASE` is `7f58023`.
+Commits after it (through `e7c536b`) are a later batch, not triaged here.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `8f156c0` | 11-12 12:29 | fix: stabilize reviewed read snapshots without changing write payloads | ported | fsv-core `reviewed_snapshot`, `journal::snapshot_hash`, `pystr` URL checks; fsv-api pre-write read hashes |
+| `d1c158b` | 11-12 12:34 | fix: read native article inventory for problem closure preflight | ported | fsv-api `problem_workflows::inventory` |
+| `7f58023` | 11-12 13:52 | Revert detail dedupe: planning text lines and attachments are both real content | ported | fsv-views `pages` |
+
+### `8f156c0` stable read snapshots — ported
+
+`fsv_core::reviewed_snapshot::stable_snapshot` strips volatile timestamps,
+keeps attachment inventories to the stable field set, and drops signing
+query params from `http`/`https` links inside text. `custom_fields` is
+kept verbatim. `fsv_core::journal::snapshot_hash` is `plan_hash` of that
+value. A link `urlsplit` rejects is `Err` (Python `ValueError`).
+
+`fsv_core::pystr::{urlsplit, urlunsplit}` now apply Python 3.12's bracketed
+netloc / IPv6 / NFKC netloc checks and `urlunsplit`'s `uses_netloc` table.
+Plan hashes of the write body stay `plan_hash`. The pre-write read in these
+modules is `snapshot_hash` (or `stable_snapshot` where the value is stored,
+not only hashed): `attachments`, `canned`, `conversations`,
+`list_preferences`, `planning_text`, `private_views`, `problem_incidents`,
+`problem_known_error`, `problem_status`, `problem_workflows`, `properties`,
+`scenarios`, `ticket_assignment`, `ticket_lifecycle`, `ticket_merge`,
+`ticket_note_mutation`, `ticket_tasks`, `ticket_time`, `watchers`.
+
+Churn goldens: `ticket_note_mutation` rotate cases, `attachments`
+`delete_signed_*`, `ticket_lifecycle` `read_churn`. A re-read that only
+re-signs links and bumps `updated_at` still sends. A real body change still
+refuses.
+
+### Public API for the fsv-cli owner
+
+No new fsv-api method. Plan builders already used by the CLI now hash the
+stable snapshot internally. Call these only if a CLI path hashes a read
+itself:
+
+- `fsv_core::reviewed_snapshot::stable_snapshot(&Value) -> Result<Value, String>`
+- `fsv_core::journal::snapshot_hash(Option<&Value>) -> Result<Option<String>, String>`
+
+Both are public. fsv-api's wrappers stay `pub(crate)`.
+
+### `d1c158b` article inventory — ported
+
+`problem_workflows::inventory` still requests `problems/{id}/{kind}` and
+still reports "problem {kind}". For `kind == "solutions"` the page key is
+`articles`. A `solutions` envelope, a missing list, a non-list, or a short
+page is "complete problem solutions inventory is unavailable". Closure still
+requires a non-empty list; `article_type` filtering is not in this commit.
+
+### `7f58023` detail lines — ported
+
+`pages::attachment_text` is gone. Description, planning text and
+conversation body render in full, and the 📎 rows render as well. An empty
+conversation body is `(empty)` even when files are attached. PARITY's
+`ec7a6ef` row is replaced.
+
+### CLI handoff (do not edit fsv-cli here)
+
+- Route fixtures `tests/fixtures/routes/problem_status.json` and
+  `problem_status_rejected.json` still return a `solutions` key.
+  `tests/golden/upstream/problem_status.json` names the close cases that
+  read that route. They are not `#[test]` fns in HEAD `upstream_cmds.rs`.
+  When emitted, these fail closed until the fixture uses `articles`:
+  `problems_status_close_dry_run`, `problems_status_close_send`,
+  `problems_status_close_rejected_by_server`,
+  `problems_status_close_missing_analysis_refused`,
+  `problems_status_close_required_field_refused`.
+- Any golden that pins `plan_hash` for a command whose pre-write read now
+  goes through `snapshot_hash` would move if that read had a signed URL or
+  a volatile timestamp. Scratch tree (`git archive HEAD` plus this library
+  diff, fsv-cli left at HEAD): `cargo test -p fsv-cli --offline` passed,
+  0 failed. No compiled fsv-cli test pins a moved plan hash.
+- `7f58023` changes detail markup. CLI or TUI goldens that expected an
+  attachment-named line to be omitted now expect the line and the 📎 row.
+
+`port/fsv_coverage.py` maps `reviewed_snapshot` to fsv-core.
+
+Next batch (not triaged): `36408b2`, `9070409`, `be41032`, `0719e33`,
+`d870fa7`, `780c002`, `ad40a51`, `e173437`, `b310885`, `11e76ed`, `ffcab5b`,
+`e7c536b`.

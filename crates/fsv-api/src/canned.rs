@@ -18,7 +18,7 @@ use crate::conversations::{self, ConversationArgs, ConversationPlan, MailArgs};
 use crate::formmeta::MetaStore;
 use crate::notes::BodyFormat;
 use crate::reviewed_write::refused;
-use crate::service::Api;
+use crate::service::{Api, snapshot_hash};
 use crate::watchers::positive_id;
 
 /// Port of fsv.canned.folders.
@@ -108,7 +108,7 @@ pub fn reply_plan(
     Ok(ConversationPlan {
         canned_id: Some(id),
         canned_pointer: Some(pointer.to_string()),
-        canned_hash: fsv_core::journal::plan_hash(Some(&raw)),
+        canned_hash: Some(snapshot_hash(&raw)?),
         ..plan
     })
 }
@@ -118,7 +118,7 @@ pub fn reply_plan(
 pub fn freshen(plan: &ConversationPlan, c: &dyn Api) -> Result<()> {
     let changed = || refused("canned source changed; review again");
     let raw = show(c, &json!(plan.canned_id))?;
-    if fsv_core::journal::plan_hash(Some(&raw)) != plan.canned_hash {
+    if Some(snapshot_hash(&raw)?) != plan.canned_hash {
         return Err(changed());
     }
     let body = plan.payload().get("body").cloned().unwrap_or(Value::Null);

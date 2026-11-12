@@ -17,7 +17,7 @@ use crate::planning_text::{self, PROBLEM_SECTIONS};
 use crate::problem_workflows::{inventory, record};
 use crate::readback::submitted_value_matches;
 use crate::reviewed_write::{WritePlan, execute_rejecting, refused};
-use crate::service::{Api, Journal, obj, plan_hash};
+use crate::service::{Api, Journal, obj, snapshot_hash};
 use crate::task_status;
 use crate::watchers::positive_id;
 
@@ -180,7 +180,7 @@ pub fn build_plan(
             method: "PUT".into(),
             path: format!("problems/{target}"),
             payload_json: fsv_py::Dumps::default().dump(&json!({"status": status_id})),
-            context_hash: plan_hash(&context),
+            context_hash: snapshot_hash(&context)?,
         },
         label,
         before_json: fsv_py::Dumps::default()

@@ -13,6 +13,7 @@ pub mod output;
 pub mod pystr;
 pub mod resource;
 pub mod review;
+pub mod reviewed_snapshot;
 pub mod runtime;
 pub mod safety;
 pub mod session;

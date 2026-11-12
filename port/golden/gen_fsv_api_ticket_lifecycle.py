@@ -200,6 +200,14 @@ def run(case):
 
 B = {"op": "build"}
 S = {"op": "send"}
+def churn(n):
+    """A re-read that only re-signs links and bumps server timestamps (8f156c0)."""
+    return {"updated_at": f"2030-01-0{n}T00:00:00Z",
+            "attachments": [{"id": 1, "name": "acme.txt", "size": 3, "updated_at": str(n),
+                             "attachment_url": f"https://files.example.com/a?Expires={n}&Signature=s{n}"}],
+            "description": f'<a href="https://files.example.com/b?v=1&amp;X-Amz-Signature=s{n}">b</a>'}
+
+
 CASES = {}
 for tenant, prefix in [(DOMAIN, "INC"), ("globex.example.com", "SR")]:
     CASES[f"resolve_then_transition_{prefix}"] = {"tenant": tenant, "ops": [
@@ -237,6 +245,8 @@ CASES["argument_errors"] = {"ops": [
     {**B, "status": "Bogus"}, {**B, "status": "open"}, {**B, "status": "Open", "answers": {"status": "Closed"}},
     {**B, "status": "Open", "answers": {"reason": "a", "Pending Reason": "b"}},
     {**B, "status": "Open", "answers": {"nonexistent": "x"}}]}
+CASES["read_churn"] = {"ops": [{"op": "row", "set": churn(1)}, {**B, "status": "Open"},
+                               {"op": "row", "set": churn(2)}, S]}
 CASES["routing_unavailable"] = {"ops": [{"op": "row", "pop": ["group_id"]}, {**B, "status": "Open"}]}
 
 MATCHES = [

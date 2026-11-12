@@ -1,4 +1,4 @@
-//! Replays `gen_fsv_api_attachments.py` cases (Python 1c186e0, ba6aef9).
+//! Replays `gen_fsv_api_attachments.py` cases (Python 1c186e0, ba6aef9, 8f156c0).
 
 use std::sync::{Arc, Mutex};
 
@@ -22,7 +22,7 @@ fn new_state(base: i64) -> Value {
            "planning": [], "requests": [], "page": null, "page_status": 200, "page_html": null})
 }
 
-fn read(s: &Value, path: &str) -> Result<Value> {
+fn read(s: &mut Value, path: &str) -> Result<Value> {
     Ok(match path {
         "ticket_form_fields" | "problem_form_fields" => {
             if !s["meta"].is_null() {
@@ -35,6 +35,11 @@ fn read(s: &Value, path: &str) -> Result<Value> {
         }
         "tickets/123/conversations" => {
             let mut rows = s["conversations"].clone();
+            if s["rotate"] == true {
+                let reads = s["reads"].as_u64().unwrap_or(0) as u32 + 1;
+                s["reads"] = json!(reads);
+                rotate_files(&mut rows, reads);
+            }
             if s["mismatch"] == true
                 && let Some(first) = rows.get_mut(0)
             {
@@ -156,7 +161,7 @@ fn api(state: Arc<Mutex<Value>>, domain: &str) -> FnApi {
     let mut a = FnApi::new(move |call: &Call| {
         let mut s = state.lock().unwrap();
         if call.method == "GET" {
-            read(&s, &call.path)
+            read(&mut s, &call.path)
         } else {
             write(&mut s, call)
         }
@@ -221,7 +226,7 @@ fn cases_match_python() {
     let oracle: Value =
         serde_json::from_str(include_str!("../testdata/attachments_oracle.json")).unwrap();
     let cases = oracle.as_object().unwrap();
-    assert_eq!(cases.len(), 62);
+    assert_eq!(cases.len(), 64);
     for (name, case) in cases {
         if name == "_python" {
             continue;

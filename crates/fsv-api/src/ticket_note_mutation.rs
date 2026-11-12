@@ -11,7 +11,7 @@ use crate::notes::{self, BodyFormat};
 use crate::properties::dumps_sorted;
 use crate::readback::same_text;
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, load_conversations, plan_hash};
+use crate::service::{Api, Journal, load_conversations, snapshot_hash};
 
 pub const EDIT: &str = "ticket_note_edit";
 pub const DELETE: &str = "ticket_note_delete";
@@ -42,8 +42,8 @@ fn note(c: &dyn Api, ticket: i64, note_id: i64) -> Result<Map<String, Value>> {
     Ok(row.clone())
 }
 
-fn before_hash(row: &Map<String, Value>) -> String {
-    plan_hash(&Value::Object(row.clone()))
+fn before_hash(row: &Map<String, Value>) -> Result<String> {
+    snapshot_hash(&Value::Object(row.clone()))
 }
 
 fn note_id_of(plan: &WritePlan) -> i64 {
@@ -86,7 +86,7 @@ pub fn build_plan(
         method: if body.is_none() { "DELETE" } else { "PUT" }.into(),
         path: format!("conversations/{nid}"),
         payload_json: dumps_sorted(&payload),
-        context_hash: before_hash(&before),
+        context_hash: before_hash(&before)?,
     })
 }
 
@@ -94,7 +94,7 @@ pub fn build_plan(
 /// refused when the note changed since the plan.
 pub fn review(plan: &WritePlan, c: &dyn Api) -> Result<Map<String, Value>> {
     let before = note(c, plan.target, note_id_of(plan))?;
-    if before_hash(&before) != plan.context_hash {
+    if before_hash(&before)? != plan.context_hash {
         return Err(refused("note changed since review; review again"));
     }
     let mut out = plan.review();
@@ -117,7 +117,7 @@ pub fn send(
     let rebuild = || -> Result<WritePlan> {
         let before = note(c, plan.target, nid)?;
         Ok(WritePlan {
-            context_hash: before_hash(&before),
+            context_hash: before_hash(&before)?,
             tenant: c.domain(),
             ..plan.clone()
         })

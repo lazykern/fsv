@@ -244,24 +244,6 @@ pub fn indent(text: &str, pad: &str) -> Vec<String> {
     }
 }
 
-/// Port of pages._attachment_text: hide body lines that are exactly an
-/// attached file's name (optionally as an `html_to_text` bullet); prose that
-/// mentions a file is kept. Rendering only; the view model is unchanged.
-pub fn attachment_text<'a>(text: &str, files: impl IntoIterator<Item = &'a str>) -> String {
-    let names: std::collections::HashSet<&str> = files.into_iter().collect();
-    let lines: Vec<&str> = site::py_splitlines(text)
-        .into_iter()
-        .filter(|line| {
-            let mut candidate = pystr::strip(line);
-            if let Some(rest) = candidate.strip_prefix("• ") {
-                candidate = pystr::strip(rest);
-            }
-            !names.contains(candidate)
-        })
-        .collect();
-    lines.join("\n").trim_matches('\n').to_string()
-}
-
 pub fn main_lines(d: &Detail) -> Vec<String> {
     let mut out = Vec::new();
     if let Some(items) = &d.requested_items {
@@ -309,17 +291,13 @@ pub fn main_lines(d: &Detail) -> Vec<String> {
         out.push(String::new());
     }
     out.push(section("Description"));
-    let atts = d.attachments();
-    let desc = attachment_text(
-        &d.description(),
-        atts.iter()
-            .filter_map(|a| a.get("name").and_then(Value::as_str)),
-    );
+    let desc = d.description();
     if desc.is_empty() {
         out.push("  [dim]No description[/]".into());
     } else {
         out.extend(indent(&desc, "  "));
     }
+    let atts = d.attachments();
     if !atts.is_empty() {
         out.push(String::new());
         out.push(section("Attachments"));
@@ -348,9 +326,8 @@ pub fn main_lines(d: &Detail) -> Vec<String> {
                 out.push("    [dim]empty[/]".into());
                 continue;
             }
-            let text = attachment_text(&p.text, p.files.iter().map(String::as_str));
-            if !text.is_empty() {
-                out.extend(indent(&text, "    "));
+            if !p.text.is_empty() {
+                out.extend(indent(&p.text, "    "));
             }
             for f in &p.files {
                 out.push(format!("    📎 {}", es(f)));
@@ -414,13 +391,10 @@ pub fn conversation_lines(cv: &Value, tz: Option<&TimeZone>) -> Vec<String> {
         .as_array()
         .map(Vec::as_slice)
         .unwrap_or_default();
-    let body = attachment_text(
-        j["body"].as_str().unwrap_or_default(),
-        files.iter().filter_map(Value::as_str),
-    );
+    let body = j["body"].as_str().unwrap_or_default();
     if !body.is_empty() {
-        out.extend(indent(&body, "    "));
-    } else if files.is_empty() {
+        out.extend(indent(body, "    "));
+    } else {
         out.push("    [dim](empty)[/]".into());
     }
     for f in files {

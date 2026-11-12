@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "39e4853003dff8b2aab47ef6ccc435ba711dbb19",
+  "commit": "7f580232e8e4ce1e5dae059115fca1bb697ef0c3",
   "dirty": false
  },
  "cases": {
@@ -2277,6 +2277,136 @@
     }
    },
    "events": []
+  },
+  "read_churn": {
+   "ops": [
+    {
+     "op": "row",
+     "set": {
+      "updated_at": "2030-01-01T00:00:00Z",
+      "attachments": [
+       {
+        "id": 1,
+        "name": "acme.txt",
+        "size": 3,
+        "updated_at": "1",
+        "attachment_url": "https://files.example.com/a?Expires=1&Signature=s1"
+       }
+      ],
+      "description": "<a href=\"https://files.example.com/b?v=1&amp;X-Amz-Signature=s1\">b</a>"
+     }
+    },
+    {
+     "op": "build",
+     "status": "Open"
+    },
+    {
+     "op": "row",
+     "set": {
+      "updated_at": "2030-01-02T00:00:00Z",
+      "attachments": [
+       {
+        "id": 1,
+        "name": "acme.txt",
+        "size": 3,
+        "updated_at": "2",
+        "attachment_url": "https://files.example.com/a?Expires=2&Signature=s2"
+       }
+      ],
+      "description": "<a href=\"https://files.example.com/b?v=1&amp;X-Amz-Signature=s2\">b</a>"
+     }
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "writes": 0
+    },
+    {
+     "plan": {
+      "target": 123,
+      "tenant": "acme.freshservice.com",
+      "status": "Open",
+      "answers_json": "{}",
+      "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+      "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"9dd9d48ecc617b15a7be23100588dbecbe303ee4db899f122decff6131783b46\"}",
+      "note_html": null
+     },
+     "hash": "d7d8f2e574471baa52915f384add40d1bfc6f17074788ddd24787cca26f47a2e",
+     "review": {
+      "action": "ticket_transition",
+      "status_label": "Open",
+      "steps": [
+       {
+        "method": "PUT",
+        "path": "/api/_/tickets/123",
+        "payload": {
+         "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+         "group_id": null,
+         "responder_id": 9000001234,
+         "status": 31
+        }
+       }
+      ],
+      "plan_hash": "d7d8f2e574471baa52915f384add40d1bfc6f17074788ddd24787cca26f47a2e",
+      "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+     },
+     "writes": 0
+    },
+    {
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "ticket_id": 123,
+      "status_label": "Open",
+      "plan_hash": "d7d8f2e574471baa52915f384add40d1bfc6f17074788ddd24787cca26f47a2e",
+      "verified": true
+     },
+     "writes": 1
+    }
+   ],
+   "puts": [
+    {
+     "raw": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
+     "body": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 31
+     }
+    }
+   ],
+   "final_row": {
+    "id": 123,
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    },
+    "updated_at": "2030-01-02T00:00:00Z",
+    "attachments": [
+     {
+      "id": 1,
+      "name": "acme.txt",
+      "size": 3,
+      "updated_at": "2",
+      "attachment_url": "https://files.example.com/a?Expires=2&Signature=s2"
+     }
+    ],
+    "description": "<a href=\"https://files.example.com/b?v=1&amp;X-Amz-Signature=s2\">b</a>"
+   },
+   "events": [
+    "started",
+    "done"
+   ]
   },
   "routing_unavailable": {
    "ops": [

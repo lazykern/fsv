@@ -1,8 +1,9 @@
-"""Golden `problem_status` (Python 5d7d777) for fsv-api `problem_status`:
+"""Golden `problem_status` (Python d1c158b) for fsv-api `problem_status`:
 the status PUT, plan hashes, reviews, closure preflight, server closure-rule
 rejections, readback and journal events. Mirrors `test_problem_status.py`
 (the non-CLI tests, for both status-id bases); metadata loads through the
-real `load_meta` from routes. The Rust test replays the ops.
+real `load_meta` from routes. Linked solutions are read from the native
+`articles` envelope (`d1c158b`). The Rust test replays the ops.
 
     cd /tmp/fsv-py-5d7d777 && FSV_PY_SRC=$PWD FSV_PY_COMMIT=5d7d777... uv run python \
         /Users/phusit.somb/lab/work/fsv-rust/port/golden/gen_fsv_api_problem_status.py
@@ -57,7 +58,14 @@ def handler_for(s):
             if path.endswith("planning-fields"):
                 return httpx.Response(200, json={"problem_planning_fields": copy.deepcopy(s["analysis"])})
             if path.endswith("solutions"):
-                return httpx.Response(200, json={"solutions": copy.deepcopy(s["solutions"]), "has_more": s["partial"]})
+                if s.get("solution_error"):
+                    return httpx.Response(s["solution_error"], json={"error": "unavailable"})
+                if "solution_raw" in s and s["solution_raw"] is not None:
+                    return httpx.Response(200, json=copy.deepcopy(s["solution_raw"]))
+                if s.get("solution_pages"):
+                    page = int(request.url.params.get("page", 1))
+                    return httpx.Response(200, json=copy.deepcopy(s["solution_pages"][page - 1]))
+                return httpx.Response(200, json={"articles": copy.deepcopy(s["solutions"]), "has_more": s["partial"]})
             if path == "problems/123":
                 return httpx.Response(200, json={"problem": copy.deepcopy(s["row"])})
             return httpx.Response(404, json={"error": "unexpected"})
@@ -184,4 +192,23 @@ CASES["refusals"] = {"n": 41, "ops": [
     {"op": "build", "to": "Open"}, {**S, "hash": "none"}, {**S, "hash": "prefix"}]}
 CASES["readback_dates"] = {"n": 41, "ops": [
     {"op": "build", "to": "Resolve"}, {"op": "set", "state": {"drop_dates": True}}, S]}
+CASES["native_articles"] = {"n": 41, "ops": [
+    {"op": "set", "state": {"solution_raw": {"articles": []}}}, {"op": "build", "to": "Closed"},
+    {"op": "set", "state": {"solution_raw": {"articles": [
+        {"id": 701, "title": "Acme workaround", "article_type": 2}]}}}, {"op": "build", "to": "Closed"},
+    {"op": "set", "state": {"solution_raw": {"articles": [
+        {"id": 801, "title": "Globex permanent solution", "article_type": 1}]}}}, {"op": "build", "to": "Closed"}]}
+CASES["native_articles_pages"] = {"n": 41, "ops": [
+    {"op": "set", "state": {"solution_pages": [
+        {"articles": [{"id": 701, "title": "Acme workaround"}], "has_more": True},
+        {"articles": [{"id": 801, "title": "Globex solution"}], "has_more": False}]}},
+    {"op": "build", "to": "Closed"}]}
+UNKNOWNS = [{}, {"articles": None}, {"articles": {}}, {"solutions": []},
+            {"articles": [], "meta": {"count": 1}}, {"articles": [], "has_more": True}]
+CASES["unknown_solutions"] = {"n": 41, "ops": [
+    op for raw in UNKNOWNS for op in (
+        {"op": "set", "state": {"solution_raw": raw}}, {"op": "build", "to": "Closed"})]}
+for status in (403, 429, 500):
+    CASES[f"solutions_read_{status}"] = {"n": 41, "ops": [
+        {"op": "set", "state": {"solution_error": status}}, {"op": "build", "to": "Closed"}]}
 json.dump(stamped({name: run(case) for name, case in CASES.items()}), sys.stdout, indent=1, ensure_ascii=False)

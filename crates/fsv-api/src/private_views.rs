@@ -12,7 +12,7 @@ use fsv_py::py_str;
 use crate::properties::dumps_sorted;
 use crate::readback::py_equal;
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, plan_hash};
+use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, snapshot_hash};
 use crate::watchers::{positive_id, self_id};
 
 /// Port of fsv.private_views.ViewPlan: a [`WritePlan`] that remembers its
@@ -145,7 +145,7 @@ pub fn build_plan(
             (payload, "PUT", format!("ticket_filters/{source_id}"))
         }
     };
-    let context = plan_hash(&json!({"self": user, "source": row, "source_id": source_id}));
+    let context = snapshot_hash(&json!({"self": user, "source": row, "source_id": source_id}))?;
     Ok(ViewPlan {
         plan: WritePlan {
             action: format!("private_view_{action}"),

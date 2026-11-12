@@ -19,7 +19,9 @@ use crate::formmeta::{
 use crate::properties::dumps_sorted;
 use crate::readback::{same_text, strict_equal, submitted_value_matches};
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, plan_hash};
+use crate::service::{
+    Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, plan_hash, snapshot_hash,
+};
 use crate::watchers::{positive_id, self_id};
 
 /// Port of fsv.problem_workflows.ProblemPlan: a [`WritePlan`] plus the
@@ -62,14 +64,20 @@ pub fn record(c: &dyn Api, target: i64) -> Result<Map<String, Value>> {
     }
 }
 
-/// Port of fsv.problem_workflows.inventory: every note or task of the
-/// problem (`kind` is `notes` or `tasks`), sorted by id.
+/// Port of fsv.problem_workflows.inventory: every note, task, or linked
+/// solution of the problem, sorted by id. The native linked-solutions route
+/// returns KB articles, not a `solutions` key (`d1c158b`).
 pub fn inventory(c: &dyn Api, target: i64, kind: &str) -> Result<Vec<Value>> {
+    let key = if kind == "solutions" {
+        "articles"
+    } else {
+        kind
+    };
     let params = obj(json!({"page": 1, "per_page": 30}));
     let pages = collect_pages(
         |path, params| c.int_get(path, params),
         &format!("problems/{target}/{kind}"),
-        kind,
+        key,
         Some(&params),
         &format!("problem {kind}"),
         MAX_DETAIL_PAGES,
@@ -281,7 +289,7 @@ pub fn child_plan(c: &dyn Api, target: &str, kind: &str, text: &str) -> Result<P
             method: "POST".into(),
             path: format!("problems/{target}/{plural}"),
             payload_json: dumps_sorted(&payload),
-            context_hash: plan_hash(&context),
+            context_hash: snapshot_hash(&context)?,
         },
         inputs_json: Dumps::default().dump(&json!({"text": text, "kind": kind})),
     })

@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "39e4853003dff8b2aab47ef6ccc435ba711dbb19",
+  "commit": "8f156c08ec19b91dc42656707ee229f0b38112e0",
   "dirty": false
  },
  "edit_acme": {
@@ -1962,6 +1962,457 @@
     "error": {
      "type": "ReviewedWriteError",
      "msg": "complete conversation history unavailable; no write attempted"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "rotate_delete": {
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "rotate": true
+    },
+    "row": {
+     "attachments": [
+      {
+       "id": 701,
+       "name": "acme.txt",
+       "size": 12
+      }
+     ]
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "review"
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_note_delete",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "DELETE",
+     "path": "conversations/99001",
+     "payload_json": "null",
+     "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
+    },
+    "hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+    "writes": 0
+   },
+   {
+    "review": {
+     "action": "ticket_note_delete",
+     "method": "DELETE",
+     "path": "/api/_/conversations/99001",
+     "payload": null,
+     "plan_hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "ticket_id": 123,
+     "before": {
+      "id": 99001,
+      "source": 2,
+      "private": true,
+      "body": "<div>Old</div>",
+      "attachments": [
+       {
+        "id": 701,
+        "name": "acme.txt",
+        "size": 12,
+        "attachment_url": "https://files.example.com/acme?Expires=2&Signature=synthetic&Key-Pair-Id=key",
+        "updated_at": "2"
+       }
+      ]
+     }
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_note_delete",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "DELETE",
+     "path": "conversations/99001",
+     "payload_json": "null",
+     "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
+    },
+    "hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+     "verified": true,
+     "conversation_id": 99001,
+     "history_complete": true
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_delete",
+    "started"
+   ],
+   [
+    "plan:ticket_note_delete",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "DELETE",
+    "path": "conversations/99001",
+    "raw": ""
+   }
+  ]
+ },
+ "rotate_edit": {
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "rotate": true
+    },
+    "row": {
+     "attachments": [
+      {
+       "id": 701,
+       "name": "acme.txt",
+       "size": 12
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "body": "New & text"
+   },
+   {
+    "op": "review"
+   },
+   {
+    "op": "build",
+    "body": "New & text"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
+    },
+    "hash": "8e203d36923f78da7b434c75a7ae778778c409d407fec1e511b82f72497c9697",
+    "writes": 0
+   },
+   {
+    "review": {
+     "action": "ticket_note_edit",
+     "method": "PUT",
+     "path": "/api/_/conversations/99001",
+     "payload": {
+      "body": "<div>New &amp; text</div>",
+      "conversation_from_summary": false
+     },
+     "plan_hash": "8e203d36923f78da7b434c75a7ae778778c409d407fec1e511b82f72497c9697",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "ticket_id": 123,
+     "before": {
+      "id": 99001,
+      "source": 2,
+      "private": true,
+      "body": "<div>Old</div>",
+      "attachments": [
+       {
+        "id": 701,
+        "name": "acme.txt",
+        "size": 12,
+        "attachment_url": "https://files.example.com/acme?Expires=2&Signature=synthetic&Key-Pair-Id=key",
+        "updated_at": "2"
+       }
+      ]
+     }
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
+    },
+    "hash": "8e203d36923f78da7b434c75a7ae778778c409d407fec1e511b82f72497c9697",
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "8e203d36923f78da7b434c75a7ae778778c409d407fec1e511b82f72497c9697",
+     "verified": true,
+     "conversation_id": 99001,
+     "history_complete": true,
+     "body": "matched"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "rotate_changed_body": {
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "rotate": true
+    },
+    "row": {
+     "attachments": [
+      {
+       "id": 701,
+       "name": "acme.txt",
+       "size": 12
+      }
+     ]
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "row": {
+     "body": "Changed"
+    }
+   },
+   {
+    "op": "review"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_note_delete",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "DELETE",
+     "path": "conversations/99001",
+     "payload_json": "null",
+     "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
+    },
+    "hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "note changed since review; review again"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "target or metadata changed since review; review again"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "rotate_changed_private": {
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "rotate": true
+    },
+    "row": {
+     "attachments": [
+      {
+       "id": 701,
+       "name": "acme.txt",
+       "size": 12
+      }
+     ]
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "row": {
+     "private": false
+    }
+   },
+   {
+    "op": "review"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_note_delete",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "DELETE",
+     "path": "conversations/99001",
+     "payload_json": "null",
+     "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
+    },
+    "hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "note changed since review; review again"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "target or metadata changed since review; review again"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "rotate_changed_attachments": {
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "rotate": true
+    },
+    "row": {
+     "attachments": [
+      {
+       "id": 701,
+       "name": "acme.txt",
+       "size": 12
+      }
+     ]
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "row": {
+     "attachments": []
+    }
+   },
+   {
+    "op": "review"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_note_delete",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "DELETE",
+     "path": "conversations/99001",
+     "payload_json": "null",
+     "context_hash": "ea6400e39495e8f2cf1c5547acabdd9d1ca732389a4049167eef85556f31b230"
+    },
+    "hash": "0133decdb1a347b1ef62c7482610afa4d9cb7b04d612d3b7937e277a7b2df9de",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "note changed since review; review again"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "target or metadata changed since review; review again"
     },
     "writes": 0
    }

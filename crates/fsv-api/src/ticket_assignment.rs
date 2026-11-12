@@ -15,7 +15,7 @@ use crate::formmeta::MetaStore;
 use crate::properties::{PropertyArgs, build_plan_with, record};
 use crate::readback::submitted_value_matches;
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, obj, plan_hash};
+use crate::service::{Api, Journal, obj, snapshot_hash};
 
 const WARNING: &str = "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.";
 
@@ -235,8 +235,9 @@ pub fn build_plan(
         _ => Value::Null,
     };
     let hashes: Vec<String> = plans.iter().map(|p| p.hash()).collect();
-    let context =
-        plan_hash(&json!({"properties": hashes, "bootstrap": boot, "pickup_agent": pickup_agent}));
+    let context = snapshot_hash(
+        &json!({"properties": hashes, "bootstrap": boot, "pickup_agent": pickup_agent}),
+    )?;
     let write = WritePlan {
         action: action.into(),
         target: cids[0],

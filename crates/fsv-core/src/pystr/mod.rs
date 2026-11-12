@@ -442,6 +442,9 @@ pub fn urlsplit(url: &str) -> Result<SplitUrl, String> {
         if open != close {
             return Err("Invalid IPv6 URL".into());
         }
+        if open {
+            check_bracketed_netloc(&out.netloc)?;
+        }
     }
     let mut rest = rest.to_string();
     if let Some((u, f)) = rest.split_once('#') {
@@ -452,8 +455,146 @@ pub fn urlsplit(url: &str) -> Result<SplitUrl, String> {
         out.query = q.to_string();
         rest = u.to_string();
     }
+    check_netloc(&out.netloc)?;
     out.path = rest;
     Ok(out)
+}
+
+/// `urllib.parse._check_bracketed_netloc`.
+fn check_bracketed_netloc(netloc: &str) -> Result<(), String> {
+    let host_port = netloc.rsplit_once('@').map_or(netloc, |(_, h)| h);
+    let hostname = match host_port.split_once('[') {
+        Some((before, bracketed)) => {
+            if !before.is_empty() {
+                return Err("Invalid IPv6 URL".into());
+            }
+            let (host, port) = bracketed.split_once(']').unwrap_or((bracketed, ""));
+            if !port.is_empty() && !port.starts_with(':') {
+                return Err("Invalid IPv6 URL".into());
+            }
+            host
+        }
+        None => host_port.split_once(':').map_or(host_port, |(h, _)| h),
+    };
+    check_bracketed_host(hostname)
+}
+
+/// `urllib.parse._check_bracketed_host`.
+fn check_bracketed_host(hostname: &str) -> Result<(), String> {
+    if let Some(rest) = hostname.strip_prefix('v') {
+        let valid = rest.split_once('.').is_some_and(|(hex, tail)| {
+            !hex.is_empty() && hex.bytes().all(|b| b.is_ascii_hexdigit()) && !tail.is_empty()
+        });
+        return if valid {
+            Ok(())
+        } else {
+            Err("IPvFuture address is invalid".into())
+        };
+    }
+    if is_ipv4(hostname) {
+        return Err("An IPv4 address cannot be in brackets".into());
+    }
+    let (addr, scope) = match hostname.split_once('%') {
+        Some((a, s)) => (a, Some(s)),
+        None => (hostname, None),
+    };
+    let scoped_ok = scope.is_none_or(|s| !s.is_empty() && !s.contains('%'));
+    if scoped_ok && addr.parse::<std::net::Ipv6Addr>().is_ok() {
+        return Ok(());
+    }
+    Err(format!(
+        "{} does not appear to be an IPv4 or IPv6 address",
+        fsv_py::py_repr_str(hostname)
+    ))
+}
+
+/// `ipaddress.IPv4Address(s)` accepts `s`: four decimal octets, no leading zeros.
+fn is_ipv4(s: &str) -> bool {
+    let octets: Vec<&str> = s.split('.').collect();
+    octets.len() == 4
+        && octets.iter().all(|o| {
+            !o.is_empty()
+                && o.len() <= 3
+                && o.bytes().all(|b| b.is_ascii_digit())
+                && (*o == "0" || !o.starts_with('0'))
+                && o.parse::<u16>().is_ok_and(|n| n <= 255)
+        })
+}
+
+/// `urllib.parse._checknetloc`: no characters that NFKC turns into URL delimiters.
+fn check_netloc(netloc: &str) -> Result<(), String> {
+    use unicode_normalization::UnicodeNormalization;
+    if netloc.is_ascii() {
+        return Ok(());
+    }
+    let n: String = netloc
+        .chars()
+        .filter(|c| !matches!(c, '@' | ':' | '#' | '?'))
+        .collect();
+    let normalized: String = n.nfkc().collect();
+    if n == normalized || !normalized.contains(['/', '?', '#', '@', ':']) {
+        return Ok(());
+    }
+    Err(format!(
+        "netloc '{netloc}' contains invalid characters under NFKC normalization"
+    ))
+}
+
+const USES_NETLOC: [&str; 27] = [
+    "",
+    "ftp",
+    "http",
+    "gopher",
+    "nntp",
+    "telnet",
+    "imap",
+    "wais",
+    "file",
+    "mms",
+    "https",
+    "shttp",
+    "snews",
+    "prospero",
+    "rtsp",
+    "rtsps",
+    "rtspu",
+    "rsync",
+    "svn",
+    "svn+ssh",
+    "sftp",
+    "nfs",
+    "git",
+    "git+ssh",
+    "ws",
+    "wss",
+    "itms-services",
+];
+
+/// `urllib.parse.urlunsplit` (Python 3.12).
+pub fn urlunsplit(u: &SplitUrl) -> String {
+    let mut url = u.path.clone();
+    if !u.netloc.is_empty() {
+        if !url.is_empty() && !url.starts_with('/') {
+            url.insert(0, '/');
+        }
+        url = format!("//{}{url}", u.netloc);
+    } else if url.starts_with("//")
+        || (!u.scheme.is_empty()
+            && USES_NETLOC.contains(&u.scheme.as_str())
+            && (url.is_empty() || url.starts_with('/')))
+    {
+        url = format!("//{url}");
+    }
+    if !u.scheme.is_empty() {
+        url = format!("{}:{url}", u.scheme);
+    }
+    if !u.query.is_empty() {
+        url = format!("{url}?{}", u.query);
+    }
+    if !u.fragment.is_empty() {
+        url = format!("{url}#{}", u.fragment);
+    }
+    url
 }
 
 /// Path of `urllib.parse.urlparse(url)` (the `;params` part of the last segment removed).

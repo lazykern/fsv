@@ -1059,12 +1059,4 @@ fn attachment_only_lines_render_once_like_python() {
             case["cv"]
         );
     }
-    for case in oracle["attachment_text"].as_array().unwrap() {
-        let files = strs(&case[1]);
-        assert_eq!(
-            attachment_text(case[0].as_str().unwrap(), files.iter().map(String::as_str)),
-            case[2].as_str().unwrap(),
-            "{case}"
-        );
-    }
 }

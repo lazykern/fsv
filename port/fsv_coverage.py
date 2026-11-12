@@ -484,7 +484,7 @@ def prefs(module: str) -> tuple[list[str], list[str]]:
     }
     if stem in table:
         return table[stem]
-    for core in ("config", "cache", "editor", "journal", "mdlite", "review", "safety"):
+    for core in ("config", "cache", "editor", "journal", "mdlite", "review", "reviewed_snapshot", "safety"):
         if stem == core:
             return ["fsv-core"], [stem]
     if stem.endswith("_cli"):

@@ -11,7 +11,7 @@ use fsv_py::{Dumps, py_str, truthy};
 
 use crate::readback::py_equal;
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, obj, plan_hash};
+use crate::service::{Api, Journal, obj, snapshot_hash};
 use crate::site::{SavedView, find_view};
 use crate::views::load_views;
 
@@ -122,7 +122,7 @@ pub fn columns_plan(
             method: "POST".into(),
             path: format!("{module}/headers"),
             payload_json: Dumps::default().sort_keys(true).dump(&payload),
-            context_hash: plan_hash(&json!(rows)),
+            context_hash: snapshot_hash(&json!(rows))?,
         },
         inputs_json: Dumps::default()
             .dump(&json!({"module": module, "columns": columns, "frozen": frozen})),
@@ -228,7 +228,7 @@ pub fn export_plan(c: &dyn Api, module: &str, view: &str, fields: &[String]) -> 
         }
     }
     let context =
-        plan_hash(&json!({"headers": rows, "view": row, "selection": selected.to_json()}));
+        snapshot_hash(&json!({"headers": rows, "view": row, "selection": selected.to_json()}))?;
     Ok(ListPlan {
         plan: WritePlan {
             action: "list_export".into(),

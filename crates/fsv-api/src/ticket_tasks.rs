@@ -10,7 +10,7 @@ use fsv_py::{py_repr, py_str, truthy};
 
 use crate::readback::submitted_value_matches;
 use crate::reviewed_write::{WritePlan, execute_as, refused};
-use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, plan_hash};
+use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, snapshot_hash};
 use crate::task_status;
 use crate::watchers::positive_id;
 
@@ -369,7 +369,7 @@ pub fn build_plan(c: &dyn Api, target: &str, args: &TaskArgs) -> Result<TaskPlan
             method: if action == "add" { "POST" } else { "PUT" }.into(),
             path,
             payload_json: dumps(&payload),
-            context_hash: plan_hash(&json!({"before": before, "fields": fields})),
+            context_hash: snapshot_hash(&json!({"before": before, "fields": fields}))?,
         },
         inputs_json: dumps(&inputs),
     })

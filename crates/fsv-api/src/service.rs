@@ -321,6 +321,16 @@ pub(crate) fn plan_hash(body: &Value) -> String {
     fsv_core::journal::plan_hash(Some(body)).unwrap_or_default()
 }
 
+/// `journal.snapshot_hash(body) or ""`; a link `urlsplit` rejects is its `ValueError`.
+pub(crate) fn snapshot_hash(body: &Value) -> Result<String> {
+    Ok(plan_hash(&stable_snapshot(body)?))
+}
+
+/// `reviewed_snapshot.stable_snapshot(value)`.
+pub(crate) fn stable_snapshot(value: &Value) -> Result<Value> {
+    fsv_core::reviewed_snapshot::stable_snapshot(value).map_err(Error::Value)
+}
+
 /// `_id`: a positive decimal int or digit string, never a bool or float.
 pub(crate) fn positive_id(value: &Value) -> Option<i64> {
     let text = match value {
@@ -1134,6 +1144,19 @@ pub(crate) mod testing {
 
     use super::*;
     use fsv_core::ApiError;
+
+    /// The fixture's `rotate`: each read re-signs every attachment link.
+    pub(crate) fn rotate_files(rows: &mut Value, reads: u32) {
+        for row in rows.as_array_mut().into_iter().flatten() {
+            let files = row.get_mut("attachments").and_then(Value::as_array_mut);
+            for file in files.into_iter().flatten() {
+                file["attachment_url"] = json!(format!(
+                    "https://files.example.com/acme?Expires={reads}&Signature=synthetic&Key-Pair-Id=key"
+                ));
+                file["updated_at"] = json!(reads.to_string());
+            }
+        }
+    }
 
     /// A scripted response.
     #[derive(Clone, Debug)]

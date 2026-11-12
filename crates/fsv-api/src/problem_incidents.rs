@@ -9,7 +9,7 @@ use fsv_py::py_str;
 
 use crate::associations::read_page;
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, plan_hash};
+use crate::service::{Api, Journal, MAX_DETAIL_PAGES, collect_pages, obj, snapshot_hash};
 
 pub const LINK: &str = "problem_link_incident";
 pub const UNLINK: &str = "problem_unlink_incident";
@@ -100,7 +100,7 @@ pub fn build_plan(c: &dyn Api, problem: &str, incident: &str, unlink: bool) -> R
             json!({"item_ids": [tid]}),
         )
     };
-    let context = plan_hash(&json!({"problem": pr, "ticket": ticket, "inventory": rows}));
+    let context = snapshot_hash(&json!({"problem": pr, "ticket": ticket, "inventory": rows}))?;
     Ok(WritePlan {
         action: if unlink { UNLINK } else { LINK }.into(),
         target: pid,
