@@ -56,6 +56,23 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                         json_out: bool = typer.Option(False, "--json")) -> None:
         incident_action(problem, incident, True, dry_run, yes, expect_plan)
 
+    @app.command("note", help="Review a problem note, optionally with local attachments; visibility is not inferred.")
+    def note(target: str, body: str = typer.Option(..., "--body"), attach: Optional[list[str]] = typer.Option(None, "--attach"),
+             dry_run: bool = typer.Option(False, "--dry-run"), yes: bool = typer.Option(False, "--yes"),
+             expect_plan: Optional[str] = typer.Option(None, "--expect-plan"), json_out: bool = typer.Option(False, "--json")) -> None:
+        from fsv import attachments
+        from fsv.attachments_cli import finish as finish_attachments
+        try:
+            client = client_factory()
+            if attach:
+                rebuild = lambda: attachments.problem_note_plan(client, target, body, list(attach))
+                finish_attachments(rebuild(), client, dry_run=dry_run, yes=yes, expected=expect_plan, rebuild=rebuild)
+            else:
+                finish(flow.child_plan(client, target, kind="note", text=body), client, dry_run, yes, expect_plan)
+        except (ValueError, ReviewedWriteError) as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(2) from None
+
     @app.command("status", help="Review a metadata-backed problem status transition, including closure checks.")
     def status(target: str, to: str = typer.Option(..., "--to"), dry_run: bool = typer.Option(False, "--dry-run"),
                yes: bool = typer.Option(False, "--yes"), expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),

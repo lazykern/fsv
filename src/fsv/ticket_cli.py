@@ -29,12 +29,14 @@ def print_plan(plan: flow.Plan, as_json: bool) -> None:
 def create_command(client_factory: Callable[[], Any], *, from_file: str | None, sets: list[str],
                    preset: str | None, edit: bool, requester: str | None, dry_run: bool,
                    as_json: bool, yes: bool, expect_plan: str | None, allow_duplicate: bool,
-                   ack: bool, no_input: bool, cc: list[str] | None = None) -> None:
+                   ack: bool, no_input: bool, cc: list[str] | None = None, attach: list[str] | None = None) -> None:
     tty = flow.interactive() and not no_input
     form = not (from_file or sets or preset or edit) and tty and form_tty()
     template_only = not (from_file or sets or preset or edit or form) and dry_run
     if not (from_file or sets or preset or edit or form or template_only):
         raise flow.FlowExit(2, "pass --from or --set, or open the interactive form in a terminal")
+    if attach and (form or template_only or allow_duplicate):
+        raise flow.FlowExit(2, "--attach requires explicit form answers and does not allow duplicate override")
     if (form or template_only) and cc:
         raise flow.FlowExit(2, "--cc requires --from, --set, --preset or --edit; the interactive form and template cannot retain it")
     if edit and not tty:
@@ -77,6 +79,27 @@ def create_command(client_factory: Callable[[], Any], *, from_file: str | None, 
             raise flow.FlowExit(1, str(e)) from None
     else:
         plan = build(draft)
+    if attach:
+        from fsv import attachments, config, journal
+        from fsv.attachments_cli import finish
+        from fsv.reviewed_write import ReviewedWriteError, WritePlan
+        try:
+            def attached(current):
+                if not current.ok or current.payload is None or current.review.blocking_unacked:
+                    raise ReviewedWriteError("cannot attach to incomplete incident plan: " + "; ".join(current.errors))
+                raw = attachments.metadata(client, "tickets")
+                context = journal.plan_hash({"plan": current.hash, "fields": current.meta.form_fields,
+                                             "rules": current.meta.rules, "metadata": raw}) or ""
+                base = WritePlan("ticket_create_attachments", 0, config.DOMAIN, "POST", "tickets",
+                                 json.dumps(current.payload, sort_keys=True), context)
+                return attachments.wrap(base, list(attach), raw)
+            def rebuild_attached():
+                fresh = load_meta(client, "ticket", "new", fresh=True)
+                return attached(build(plan.draft, ack or bool(plan.state.acknowledged), fresh))
+            finish(attached(plan), client, dry_run=dry_run, yes=yes, expected=expect_plan, rebuild=rebuild_attached)
+            return
+        except ReviewedWriteError as exc:
+            raise flow.FlowExit(2, str(exc)) from None
     if dry_run:
         print_plan(plan, as_json)
         if not plan.ok:

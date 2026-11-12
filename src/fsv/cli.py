@@ -4332,6 +4332,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 edit: bool = typer.Option(False, "--edit", "-e", help="edit YAML in a terminal"),
                 requester: Optional[str] = typer.Option(None, "--requester", help="requester email or exact name"),
                 cc: Optional[List[str]] = typer.Option(None, "--cc", help="plain CC email (repeatable)"),
+                attach: Optional[List[str]] = typer.Option(None, "--attach", help="reviewed local file (repeatable)"),
                 dry: bool = typer.Option(False, "--dry-run", help="review and show the payload without sending"),
                 format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="table or json"),
                 json_out: bool = typer.Option(False, "--json", help="emit JSON"),
@@ -4347,7 +4348,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     create_command(_client, from_file=from_, sets=list(set_ or []), preset=preset, edit=edit,
                                    requester=requester, dry_run=dry, as_json=json_out or format_ == OutputFormat.json,
                                    yes=yes, expect_plan=expect_plan, allow_duplicate=allow_duplicate, ack=ack,
-                                   no_input=_no_input(no_input), cc=list(cc or []))
+                                   no_input=_no_input(no_input), cc=list(cc or []), attach=list(attach or []))
                 except FlowExit as e:
                     _flow_exit(e)
                 except (SessionError, APIError) as e:
@@ -4760,6 +4761,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
             body: str = typer.Argument(...),
             cc: Optional[List[str]] = typer.Option(None, "--cc", help="CC email from user lookup (repeatable)"),
             bcc: Optional[List[str]] = typer.Option(None, "--bcc", help="BCC plain email from user lookup (repeatable; requires --sender)"),
+            attach: Optional[List[str]] = typer.Option(None, "--attach", help="local attachment (repeatable; requires full review and --sender)"),
+            json_out: bool = typer.Option(False, "--json"),
             sender: Optional[str] = typer.Option(None, "--sender", help="explicit configured support mailbox; not inferred"),
             set_status: Optional[str] = typer.Option(None, "--set-status", help="send and set status (Pending, Resolved or Closed; runtime requirements apply)"),
             expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full hash from prior reply review"),
@@ -4768,6 +4771,20 @@ def _make_subapp(res: Resource) -> typer.Typer:
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Add a reply (conversation) to a ticket."""
+            if attach:
+                from fsv import attachments
+                from fsv.attachments_cli import finish
+                from fsv.reviewed_write import ReviewedWriteError
+                try:
+                    if cc or bcc or set_status:
+                        raise ReviewedWriteError("combined attachment/recipient/status variant not proven")
+                    client = _client()
+                    rebuild = lambda: attachments.conversation_plan(client, id_, body, list(attach), kind="reply", sender=sender)
+                    finish(rebuild(), client, dry_run=dry_run, yes=yes, expected=expect_plan, rebuild=rebuild)
+                    return
+                except (ValueError, ReviewedWriteError) as exc:
+                    typer.echo(str(exc), err=True)
+                    raise typer.Exit(2) from None
             if not cc and not bcc and sender is None and set_status is None and expect_plan is None:
                 reply_resource(res, id_, body, dry_run, yes, no_input)
                 return
@@ -5093,6 +5110,9 @@ def tui(
 
 for r in REGISTRY.values():
     app.add_typer(_make_subapp(r), name=r.name)
+
+from fsv.attachments_cli import register as register_attachments  # noqa: E402
+register_attachments(app, lambda: _client())
 
 from fsv.form_cli import form_app  # noqa: E402
 

@@ -1,5 +1,45 @@
 # Reviewed operations and metadata freshness
 
+## Local attachments
+
+```sh
+fsv tickets add-note INC-123 --body 'Acme evidence' --attach evidence.txt --attach trace.txt --dry-run --json
+fsv tickets reply INC-123 'Acme update' --sender support@example.com --attach evidence.txt --dry-run --json
+fsv tickets create --requester person@example.com --set 'Subject=Acme incident' --set 'Description=Acme evidence' --attach evidence.txt --dry-run --json
+fsv problems note PRB-123 --body 'Acme evidence' --attach evidence.txt --dry-run --json
+fsv attachments delete 701 --owner tickets/123 --child 901 --dry-run --json
+```
+
+Send with `--yes --expect-plan FULL_HASH --json`. Public ticket notes also need
+`--confirm-public`. Local files are read and SHA-256 hashed for review; metadata,
+owner, size limit and file bytes are rechecked before uploading. Each file uses
+one JSON data-URI POST to `/api/_/attachments`; returned IDs are supplied in the
+owning write's `attachments` array. Dry runs never upload. Independent exact-ID
+parent/conversation/note reads verify normalized text, submitted fields, and file
+IDs/names/sizes; upload echoes are not verification of the owning write.
+
+**Limit availability is a hard prerequisite.** This adapter reads explicitly
+byte-denominated `max_attachment_size_bytes` or `max_file_size_bytes` from the
+runtime form metadata's attachment settings/fields. It does not infer a limit
+from a UI label, a generic number with unknown units, or a fixed MB constant.
+Absent, invalid or conflicting metadata blocks uploads. The offline fixtures
+exercise these shapes; portability of these limit keys is not live-certified.
+
+Upload plus owning write is not atomic. A durable transaction guard precedes
+the first upload, and known uploaded IDs are journaled. Any failed/ambiguous
+step stops immediately, reports known IDs, and forbids replay; no automatic
+cleanup, resend or duplicate override is provided. A missing upload ID blocks
+the owning write. Attached replies require an explicitly configured sender;
+combined attachment/status or reply-recipient variants remain refused.
+
+Deletion requires an exact independently readable owner: `--owner tickets/ID`,
+`problems/ID`, or `changes/ID`; add `--child CONVERSATION_OR_NOTE_ID` for ticket
+conversations/problem notes or `--section NATIVE_KEY` for planning attachments.
+The reviewed single DELETE uses the attachment ID. Readback requires its absence
+and preservation of every other attachment ID on that exact owner; unavailable
+inventories do not prove deletion. There is no attachment GET contract, and
+unowned/orphan deletion is refused because independent verification is not proven.
+
 ## Problem status lifecycle
 
 ```sh

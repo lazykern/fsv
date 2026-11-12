@@ -227,6 +227,7 @@ def register(app: typer.Typer) -> None:
         confirm_public: bool = typer.Option(False, "--confirm-public", help="separately confirm public visibility"),
         html_body: bool = typer.Option(False, "--html", help="body is already HTML; otherwise escape plain text"),
         notify: list[str] | None = typer.Option(None, "--notify-email", help="explicit notification recipient (repeatable; default none)"),
+        attach: list[str] | None = typer.Option(None, "--attach", help="local file (repeatable; reviewed two-step upload)"),
         set_status: str | None = typer.Option(None, "--set-status", help="add and set status (Pending, Resolved or Closed; runtime requirements apply)"),
         dry_run: bool = typer.Option(False, "--dry-run", help="review only; no POST or journal writes"),
         read_only: bool = typer.Option(False, "--read-only", help="refuse sends"),
@@ -236,6 +237,24 @@ def register(app: typer.Typer) -> None:
         json_out: bool = typer.Option(False, "--json", help="emit structured result"),
     ) -> None:
         try:
+            if attach:
+                from fsv import attachments
+                from fsv.attachments_cli import finish
+                from fsv.reviewed_write import ReviewedWriteError
+                try:
+                    if read_only and not dry_run:
+                        raise ReviewedWriteError("read-only mode: no upload attempted")
+                    if set_status is not None:
+                        raise ReviewedWriteError("combined attachment/status wire not proven")
+                    if public and not confirm_public and not dry_run:
+                        raise ReviewedWriteError("public note requires --confirm-public")
+                    client = get_client()
+                    rebuild = lambda: attachments.conversation_plan(client, id_, body, list(attach), kind="note", public=public,
+                                                                    html_body=html_body, notify=tuple(notify or ()))
+                    finish(rebuild(), client, dry_run=dry_run, yes=yes, expected=expected, rebuild=rebuild)
+                    return
+                except ReviewedWriteError as exc:
+                    raise NoteError(str(exc)) from None
             if set_status is not None:
                 from fsv.ticket_conversation import ConversationError, build_plan as build_conversation, send as send_conversation
                 try:
