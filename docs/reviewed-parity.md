@@ -1,5 +1,32 @@
 # Reviewed operations and metadata freshness
 
+## Change/problem time and problem-task writes
+
+```sh
+fsv changes time list CHN-123 --json
+fsv changes time write CHN-123 create --spent 00:01 --executed-at 2026-01-01T09:00:00+00:00 --note 'Acme work' --billable --dry-run --json
+fsv changes time write CHN-123 update --entry 901 --spent 00:02 --note Updated --non-billable --dry-run --json
+fsv changes time write CHN-123 delete --entry 901 --dry-run --json
+fsv problems time write PRB-123 create --spent 00:01 --executed-at 2026-01-01T09:00:00+00:00 --note 'Acme work' --billable --dry-run --json
+fsv problems time write PRB-123 delete --entry 902 --dry-run --json
+fsv problems task-write PRB-123 71 update --title 'Acme task' --note Updated --planned-effort 1h30m --due-date 2026-01-03T09:00:00+00:00 --dry-run --json
+fsv problems task-write PRB-123 71 complete --dry-run --json
+fsv problems task-write PRB-123 71 delete --dry-run --json
+```
+
+Send with `--yes --expect-plan FULL_HASH`. Time is self-owned/manual only;
+create defaults billable (as captured), and change update can set billable.
+Durations/instants are normalized only for independent v2 readback. Problem time
+update, timer actions, other-owner time and executed-date edit remain blocked.
+Problem task update also accepts runtime status/owner/group/reminder and planned
+start/end. No inferred task custom-field or null-clearing contract. Exact native
+task GET verifies owner_id, reminder, dates, description and semantic effort.
+Completion is status-only with fresh closure requirements; the server may rewrite
+planned dates and stop OLA timers. Delete uses native PUT tasks/update with its
+captured string task identity, then complete inventory readback (never guessed
+HTTP DELETE). Unknown or unverified operations must not be replayed.
+
+
 ## SR requested-item writes
 
 ```sh
