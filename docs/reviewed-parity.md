@@ -1,5 +1,22 @@
 # Reviewed operations and metadata freshness
 
+## Ticket tasks
+
+```sh
+fsv tickets tasks list INC-123 --json
+fsv tickets tasks add INC-123 --title "Acme check" --set "Tier=Standard" --dry-run --json
+fsv tickets tasks status INC-123 701 --to Completed --dry-run --json
+fsv tickets tasks delete INC-123 701 --dry-run --json
+```
+
+Send each reviewed write with `--yes --expect-plan FULL_HASH --json`. Required
+custom fields, status IDs (including custom statuses), and reminder IDs come from
+fresh `ticket_task_fields`. Unsupported custom types block rather than guess.
+Deletion uses the native PUT tasks/update action, not DELETE. Complete inventory
+and metadata drift checks precede one journaled attempt; independent exact-ID
+readback compares submitted values. Missing or partial readback is unverified
+and must not be replayed. Tests are offline, not live tenant certification.
+
 ## Problem incident associations
 
 ```sh

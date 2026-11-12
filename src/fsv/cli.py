@@ -3425,7 +3425,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
     ) -> None:
         activity_resource(res, id_, limit, json_out, format_)
 
-    @sub.command("tasks", help=f"List {singular} tasks.", epilog=(
+    @sub.command("tasks-legacy" if res == TICKETS else "tasks", hidden=res == TICKETS, help=f"List {singular} tasks.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} tasks {_pfx}-1234  |  fsv {res.name} tasks {_pfx}-1234 --json"
     ))
     def tasks(
@@ -3918,6 +3918,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
         from fsv.watcher_cli import register as register_watchers
         register_watchers(sub, res, lambda: _client())
     if res.name == "tickets":
+        from fsv.ticket_tasks_cli import register as register_tasks
+        register_tasks(sub, lambda: _client())
         from fsv.ticket_note_mutation_cli import register as register_note_mutation
         register_note_mutation(sub, lambda: _client())
         from fsv.ticket_assignment_cli import register as register_assignment
