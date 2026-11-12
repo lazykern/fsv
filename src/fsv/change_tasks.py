@@ -151,7 +151,7 @@ class TaskPlan:
     tenant: str
     group_id: int | None = None
     status_label: str = "Open"
-    status_id: int = 1
+    status_id: int | None = None  # always the runtime-resolved id (build_plan); never a guessed default
     note: str | None = None
     notify_before: str = "Never"
     planned_start: str | None = None
@@ -171,6 +171,8 @@ class TaskPlan:
             seconds = reminder(self.notify_before, json.loads(self.fields_json))
         else:
             seconds = NOTIFY_BEFORE[self.notify_before]
+        if type(self.status_id) is not int or self.status_id <= 0:
+            raise ValueError("status ID must first be resolved from runtime metadata")
         body = {"title": self.title, "status": self.status_id, "notify_before": seconds}
         if self.note is not None:
             text = html.escape(self.note.replace("\r\n", "\n").replace("\r", "\n")).replace("\n", "<br>")
