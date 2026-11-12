@@ -492,7 +492,7 @@ def prefs(module: str) -> tuple[list[str], list[str]]:
     for api in ("service", "query", "schema", "catalog", "formmeta", "task_status", "state_flow", "create",
                 "bulk_priority", "planning_text", "problem_known_error", "reviewed_write", "ticket_time", "watchers",
                 "ticket_lifecycle", "ticket_merge", "ticket_assignment", "ticket_note_mutation", "problem_incidents",
-                "ticket_tasks", "problem_status", "attachments", "integrated_assets", "sr_approvals", "change_task_update"):
+                "ticket_tasks", "problem_status", "attachments", "integrated_assets", "sr_approvals", "change_task_update", "solutions"):
         if stem == api:
             return ["fsv-api"], [stem]
     return [], [stem]

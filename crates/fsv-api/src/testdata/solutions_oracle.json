@@ -1,0 +1,494 @@
+{
+ "_python": {
+  "commit": "0719e3325c1252974c61081872b91b2967b760e5",
+  "dirty": false
+ },
+ "cases": {
+  "workaround": {
+   "ops": [
+    {
+     "op": "create",
+     "title": "Acme article",
+     "description": "Synthetic guidance",
+     "kind": "workaround"
+    },
+    {
+     "op": "send_create"
+    },
+    {
+     "op": "link",
+     "target": "PRB-23",
+     "ident": 91
+    },
+    {
+     "op": "send_link"
+    },
+    {
+     "op": "link",
+     "target": 23,
+     "ident": 91,
+     "unlink": true
+    },
+    {
+     "op": "send_link"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "solution_create",
+      "target": 81,
+      "tenant": "acme.example.com",
+      "method": "POST",
+      "path": "solutions/articles",
+      "payload": {
+       "article_type": 2,
+       "description": "<div>Synthetic guidance</div>",
+       "folder_id": "81",
+       "source": "problem",
+       "status": 1,
+       "title": "Acme article"
+      },
+      "context_hash": "d61c5a1cec7ea4f3cb410ddad182e774a3709dc1d55cbc0a37571bbc3ae1ff1b",
+      "hash": "3d6bac0c0c82b98c8038770da8216255dc9cb3a35dc4b15ed72780e6ee6732ec",
+      "review": {
+       "action": "solution_create",
+       "method": "POST",
+       "path": "/api/_/solutions/articles",
+       "payload": {
+        "article_type": 2,
+        "description": "<div>Synthetic guidance</div>",
+        "folder_id": "81",
+        "source": "problem",
+        "status": 1,
+        "title": "Acme article"
+       },
+       "plan_hash": "3d6bac0c0c82b98c8038770da8216255dc9cb3a35dc4b15ed72780e6ee6732ec",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "inputs": {
+       "category": null,
+       "description": "Synthetic guidance",
+       "kind": "workaround",
+       "selected_folder": null,
+       "title": "Acme article"
+      }
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "3d6bac0c0c82b98c8038770da8216255dc9cb3a35dc4b15ed72780e6ee6732ec",
+      "verified": true,
+      "article_id": 91,
+      "fields": {
+       "title": "matched",
+       "description": "matched",
+       "status": "matched",
+       "article_type": "matched",
+       "folder_id": "matched"
+      },
+      "readback": {
+       "id": 91,
+       "article_type": 2,
+       "description": "<div style='font:inherit'><div>Synthetic guidance</div></div>",
+       "folder_id": "81",
+       "source": "problem",
+       "status": 1,
+       "title": "Acme article"
+      }
+     },
+     "writes": 1
+    },
+    {
+     "plan": {
+      "action": "problem_solution_link",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "problems/23/solutions/91",
+      "payload": {
+       "type": "link"
+      },
+      "context_hash": "3def31b11c9644b3feb13080d8901517fc607fe6f57afd77c8150226030b7538",
+      "hash": "7762d2707f59dcb41446ce3e1c77665b220dc801f243dbea2ef7013a0752155e",
+      "review": {
+       "action": "problem_solution_link",
+       "method": "PUT",
+       "path": "/api/_/problems/23/solutions/91",
+       "payload": {
+        "type": "link"
+       },
+       "plan_hash": "7762d2707f59dcb41446ce3e1c77665b220dc801f243dbea2ef7013a0752155e",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "inputs": {
+       "ident": 91,
+       "unlink": false
+      }
+     },
+     "writes": 1
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "7762d2707f59dcb41446ce3e1c77665b220dc801f243dbea2ef7013a0752155e",
+      "verified": true,
+      "readback": [
+       {
+        "id": 91,
+        "article_type": 2,
+        "description": "<div style='font:inherit'><div>Synthetic guidance</div></div>",
+        "folder_id": "81",
+        "source": "problem",
+        "status": 1,
+        "title": "Acme article"
+       }
+      ]
+     },
+     "writes": 2
+    },
+    {
+     "plan": {
+      "action": "problem_solution_unlink",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "problems/23/solutions/91",
+      "payload": {
+       "type": "unlink"
+      },
+      "context_hash": "56f8ea26f621de589d7770a0d5320eaf434b897aee91b719e96fdaaf90342dda",
+      "hash": "5a6a410994c3a511b1cf29b15ea95ee9ae0fccf3114504e9ba330b6e6661870c",
+      "review": {
+       "action": "problem_solution_unlink",
+       "method": "PUT",
+       "path": "/api/_/problems/23/solutions/91",
+       "payload": {
+        "type": "unlink"
+       },
+       "plan_hash": "5a6a410994c3a511b1cf29b15ea95ee9ae0fccf3114504e9ba330b6e6661870c",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "inputs": {
+       "ident": 91,
+       "unlink": true
+      }
+     },
+     "writes": 2
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "5a6a410994c3a511b1cf29b15ea95ee9ae0fccf3114504e9ba330b6e6661870c",
+      "verified": true,
+      "readback": []
+     },
+     "writes": 3
+    }
+   ]
+  },
+  "permanent": {
+   "ops": [
+    {
+     "op": "create",
+     "title": "Acme article",
+     "description": "Synthetic guidance",
+     "kind": "permanent"
+    },
+    {
+     "op": "send_create"
+    },
+    {
+     "op": "link",
+     "target": "PRB-23",
+     "ident": 91
+    },
+    {
+     "op": "send_link"
+    },
+    {
+     "op": "link",
+     "target": 23,
+     "ident": 91,
+     "unlink": true
+    },
+    {
+     "op": "send_link"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "solution_create",
+      "target": 81,
+      "tenant": "acme.example.com",
+      "method": "POST",
+      "path": "solutions/articles",
+      "payload": {
+       "article_type": 1,
+       "description": "<div>Synthetic guidance</div>",
+       "folder_id": "81",
+       "source": "problem",
+       "status": 1,
+       "title": "Acme article"
+      },
+      "context_hash": "d61c5a1cec7ea4f3cb410ddad182e774a3709dc1d55cbc0a37571bbc3ae1ff1b",
+      "hash": "9c9d5fe3264a02e4d6e3c0df21106016d90fc8e1bd2a6689738d0541ef619ed3",
+      "review": {
+       "action": "solution_create",
+       "method": "POST",
+       "path": "/api/_/solutions/articles",
+       "payload": {
+        "article_type": 1,
+        "description": "<div>Synthetic guidance</div>",
+        "folder_id": "81",
+        "source": "problem",
+        "status": 1,
+        "title": "Acme article"
+       },
+       "plan_hash": "9c9d5fe3264a02e4d6e3c0df21106016d90fc8e1bd2a6689738d0541ef619ed3",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "inputs": {
+       "category": null,
+       "description": "Synthetic guidance",
+       "kind": "permanent",
+       "selected_folder": null,
+       "title": "Acme article"
+      }
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "9c9d5fe3264a02e4d6e3c0df21106016d90fc8e1bd2a6689738d0541ef619ed3",
+      "verified": true,
+      "article_id": 91,
+      "fields": {
+       "title": "matched",
+       "description": "matched",
+       "status": "matched",
+       "article_type": "matched",
+       "folder_id": "matched"
+      },
+      "readback": {
+       "id": 91,
+       "article_type": 1,
+       "description": "<div style='font:inherit'><div>Synthetic guidance</div></div>",
+       "folder_id": "81",
+       "source": "problem",
+       "status": 1,
+       "title": "Acme article"
+      }
+     },
+     "writes": 1
+    },
+    {
+     "plan": {
+      "action": "problem_solution_link",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "problems/23/solutions/91",
+      "payload": {
+       "type": "link"
+      },
+      "context_hash": "fbe36d2f13e2f9a7442cd8a44c03ec99088e70d1ed6c7933b6e4381290c7e66e",
+      "hash": "4b44e0790830930c666117f588d4d7ce0a984fa70e30593b739706f2d4b1984a",
+      "review": {
+       "action": "problem_solution_link",
+       "method": "PUT",
+       "path": "/api/_/problems/23/solutions/91",
+       "payload": {
+        "type": "link"
+       },
+       "plan_hash": "4b44e0790830930c666117f588d4d7ce0a984fa70e30593b739706f2d4b1984a",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "inputs": {
+       "ident": 91,
+       "unlink": false
+      }
+     },
+     "writes": 1
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "4b44e0790830930c666117f588d4d7ce0a984fa70e30593b739706f2d4b1984a",
+      "verified": true,
+      "readback": [
+       {
+        "id": 91,
+        "article_type": 1,
+        "description": "<div style='font:inherit'><div>Synthetic guidance</div></div>",
+        "folder_id": "81",
+        "source": "problem",
+        "status": 1,
+        "title": "Acme article"
+       }
+      ]
+     },
+     "writes": 2
+    },
+    {
+     "plan": {
+      "action": "problem_solution_unlink",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "problems/23/solutions/91",
+      "payload": {
+       "type": "unlink"
+      },
+      "context_hash": "a90dd5c78efb2d12a082a6b2960f40c8f9b346292a156442c9ae424270bed68d",
+      "hash": "c0482f9ac049aa618f3d4f85c1e123d70290dccc3c3cdfc2601ddc914618b170",
+      "review": {
+       "action": "problem_solution_unlink",
+       "method": "PUT",
+       "path": "/api/_/problems/23/solutions/91",
+       "payload": {
+        "type": "unlink"
+       },
+       "plan_hash": "c0482f9ac049aa618f3d4f85c1e123d70290dccc3c3cdfc2601ddc914618b170",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "inputs": {
+       "ident": 91,
+       "unlink": true
+      }
+     },
+     "writes": 2
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "c0482f9ac049aa618f3d4f85c1e123d70290dccc3c3cdfc2601ddc914618b170",
+      "verified": true,
+      "readback": []
+     },
+     "writes": 3
+    }
+   ]
+  },
+  "echo": {
+   "ops": [
+    {
+     "op": "create",
+     "title": "Acme article",
+     "description": "Guidance",
+     "kind": "workaround"
+    },
+    {
+     "op": "set",
+     "persist": false
+    },
+    {
+     "op": "send_create"
+    },
+    {
+     "op": "send_create"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "solution_create",
+      "target": 81,
+      "tenant": "acme.example.com",
+      "method": "POST",
+      "path": "solutions/articles",
+      "payload": {
+       "article_type": 2,
+       "description": "<div>Guidance</div>",
+       "folder_id": "81",
+       "source": "problem",
+       "status": 1,
+       "title": "Acme article"
+      },
+      "context_hash": "d61c5a1cec7ea4f3cb410ddad182e774a3709dc1d55cbc0a37571bbc3ae1ff1b",
+      "hash": "e0e726322a44060f4e3670c993fa872230973a6c4144675835e857fd25edc0c8",
+      "review": {
+       "action": "solution_create",
+       "method": "POST",
+       "path": "/api/_/solutions/articles",
+       "payload": {
+        "article_type": 2,
+        "description": "<div>Guidance</div>",
+        "folder_id": "81",
+        "source": "problem",
+        "status": 1,
+        "title": "Acme article"
+       },
+       "plan_hash": "e0e726322a44060f4e3670c993fa872230973a6c4144675835e857fd25edc0c8",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "inputs": {
+       "category": null,
+       "description": "Guidance",
+       "kind": "workaround",
+       "selected_folder": null,
+       "title": "Acme article"
+      }
+     },
+     "writes": 0
+    },
+    {
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "e0e726322a44060f4e3670c993fa872230973a6c4144675835e857fd25edc0c8",
+      "verified": false,
+      "warning": "Independent readback failed; do not resend."
+     },
+     "writes": 1
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+     },
+     "writes": 1
+    }
+   ]
+  },
+  "invalid": {
+   "ops": [
+    {
+     "op": "create",
+     "title": "Acme",
+     "description": "Guidance",
+     "kind": "permanent",
+     "selected_folder": "unknown"
+    },
+    {
+     "op": "create",
+     "title": "Acme",
+     "description": "Guidance",
+     "kind": "publish"
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "category/folder must resolve uniquely from runtime metadata; specify --category and --folder"
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "nonempty title/body and workaround or permanent type required"
+     },
+     "writes": 0
+    }
+   ]
+  }
+ }
+}

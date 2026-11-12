@@ -27,7 +27,7 @@ fn new_state(n: i64) -> Value {
         .map(|(i, (_, key, _))| json!({"id": i + 1, "name": key, "description": "<div>Acme evidence</div>"}))
         .collect();
     json!({"row": {"id": 123, "subject": "Acme problem", "status": n, "planned_start_date": null, "planned_end_date": null},
-           "analysis": analysis, "solutions": [{"id": 701, "title": "Acme solution"}], "fields": problem_fields(n),
+           "analysis": analysis, "solutions": [{"id": 701, "title": "Acme solution", "article_type": 1}], "fields": problem_fields(n),
            "rules": [], "fail": null, "mismatch": false, "partial": false, "drop_dates": false, "requests": []})
 }
 

@@ -53,7 +53,7 @@ impl StatusPlan {
 }
 
 /// Port of problem_status.closure_context: every native analysis section
-/// has visible text and at least one solution is linked.
+/// has visible text and a nondeleted workaround or permanent article is linked.
 pub fn closure_context(c: &dyn Api, target: i64) -> Result<Map<String, Value>> {
     let rows = planning_text::inventory(c, "problems", target)?;
     let solutions = inventory(c, target, "solutions")?;
@@ -71,7 +71,15 @@ pub fn closure_context(c: &dyn Api, target: i64) -> Result<Map<String, Value>> {
             missing.push(title.to_string());
         }
     }
-    if solutions.is_empty() {
+    let linked = solutions.iter().any(|row| {
+        !row.get("deleted").is_some_and(truthy)
+            && matches!(
+                row.get("article_type"),
+                Some(Value::Number(n))
+                    if (n.is_i64() || n.is_u64()) && matches!(n.as_i64(), Some(1 | 2))
+            )
+    });
+    if !linked {
         missing.push("linked workaround / solution".into());
     }
     if !missing.is_empty() {

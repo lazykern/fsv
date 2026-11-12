@@ -1981,5 +1981,51 @@ Dry-run, `--yes`, `--expect-plan`, and `--read-only` stay on `finish`.
 
 `port/fsv_coverage.py` maps `change_task_update` to fsv-api.
 
-Still not triaged: `0719e33`, `d870fa7`, `780c002`, `ad40a51`, `e173437`,
-`b310885`, `11e76ed`, `ffcab5b`, `e7c536b`.
+## Ledger: `0719e33` (library side)
+
+Triaged against a `git archive 0719e33` export
+(`FSV_PY_COMMIT=0719e3325c1252974c61081872b91b2967b760e5`).
+`port/golden/gen_fsv_api_solutions.py` stamps
+`crates/fsv-api/src/testdata/solutions_oracle.json`.
+`port/golden/gen_fsv_api_problem_status.py` was regenerated at the same commit
+because closure now requires `article_type` 1 or 2. Closed plan hashes moved.
+Nothing in fsv-cli pins the old hashes.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `0719e33`.
+The partial is the fsv-cli command surface, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `0719e33` | 11-12 14:49 | Create draft solutions and review problem article links | partial | fsv-api `solutions`, `problem_status::closure_context`. fsv-cli follow-up below |
+
+### `0719e33` solutions — partial
+
+`fsv_api::solutions` ports draft create, link, and unlink. Create is
+`POST solutions/articles` with `status` 1, `source` `problem`, and
+`article_type` 1 (permanent) or 2 (workaround). Category and folder come
+from complete metadata; a unique default is used when the caller omits
+them. The plan target of a create is the folder id. Link and unlink are
+`PUT problems/{id}/solutions/{article}` with `{"type":"link"}` or
+`{"type":"unlink"}`. Readback uses the `articles` inventory.
+
+`closure_context` accepts a nondeleted article whose `article_type` is the
+integer 1 or 2. Any other link, including a missing type, still counts as
+missing.
+
+### Public API for the fsv-cli owner
+
+`fsv_api::solutions::{metadata, folder, article, create_plan, send_create, link_plan, send_link, SolutionPlan}`.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`solutions_cli.register` adds top-level `solutions create` (`--title`,
+`--body`, `--type` workaround|permanent, optional `--category` and
+`--folder`, plus dry-run / `--yes` / `--expect-plan` / `--read-only`).
+`solutions_cli.register_links` adds `problems link-solution` and
+`problems unlink-solution` (problem id, article id). Both go through
+`integrated_assets_cli.finish` and `guard`. Create does not link or publish.
+
+`port/fsv_coverage.py` maps `solutions` to fsv-api.
+
+Still not triaged: `d870fa7`, `780c002`, `ad40a51`, `e173437`, `b310885`,
+`11e76ed`, `ffcab5b`, `e7c536b`.

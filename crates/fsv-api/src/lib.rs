@@ -36,6 +36,7 @@ pub mod scenarios;
 pub mod schema;
 pub mod service;
 pub mod site;
+pub mod solutions;
 pub mod sr_approvals;
 pub mod state_flow;
 mod task_status;

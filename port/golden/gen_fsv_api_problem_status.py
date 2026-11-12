@@ -43,7 +43,7 @@ def new_state(n):
     return {"row": {"id": 123, "subject": "Acme problem", "status": n, "planned_start_date": None, "planned_end_date": None},
             "analysis": [{"id": i + 1, "name": key, "description": "<div>Acme evidence</div>"}
                          for i, key in enumerate(planning_text.PROBLEM_SECTIONS.values())],
-            "solutions": [{"id": 701, "title": "Acme solution"}], "fields": problem_fields(n), "rules": [],
+            "solutions": [{"id": 701, "title": "Acme solution", "article_type": 1}], "fields": problem_fields(n), "rules": [],
             "fail": None, "mismatch": False, "partial": False, "drop_dates": False, "requests": []}
 
 
@@ -200,8 +200,8 @@ CASES["native_articles"] = {"n": 41, "ops": [
         {"id": 801, "title": "Globex permanent solution", "article_type": 1}]}}}, {"op": "build", "to": "Closed"}]}
 CASES["native_articles_pages"] = {"n": 41, "ops": [
     {"op": "set", "state": {"solution_pages": [
-        {"articles": [{"id": 701, "title": "Acme workaround"}], "has_more": True},
-        {"articles": [{"id": 801, "title": "Globex solution"}], "has_more": False}]}},
+        {"articles": [{"id": 701, "title": "Acme workaround", "article_type": 2}], "has_more": True},
+        {"articles": [{"id": 801, "title": "Globex solution", "article_type": 1}], "has_more": False}]}},
     {"op": "build", "to": "Closed"}]}
 UNKNOWNS = [{}, {"articles": None}, {"articles": {}}, {"solutions": []},
             {"articles": [], "meta": {"count": 1}}, {"articles": [], "has_more": True}]
