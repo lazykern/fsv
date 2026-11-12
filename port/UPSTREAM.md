@@ -2867,4 +2867,31 @@ a hook the sleep is real, except in fsv-api's own unit tests.
   results also gain `delegated_plan_hash`, and their `plan_hash`
   becomes the bulk review hash.
 
-Still not triaged: `29f7421` and later.
+## Ledger: `29f7421`
+
+Triaged against `git show 29f7421`
+(`29f74214381e9d5fbfdb4d10e417e413bf64551a`). It only adds Python CLI
+tests (`tests/test_ticket_bulk_filter_cli.py`). The library behavior
+they exercise came in with `fbc54d4`: the `Subject` filter refusal,
+the `--max-records` bound checked before any list read, and the
+exact-record predicate proof.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `29f7421`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `29f7421` | 11-13 01:55 | Exercise filtered bulk fail-closed selection through the real CLI filter builder | partial | none (fsv-cli tests) |
+
+### CLI handoff (do not edit fsv-cli here)
+
+Port the three CLI tests once `tickets bulk --max-records` exists, for
+tenants acme and globex. Each must exit 2 with no writes:
+
+- `--where "Subject=Acme rollout"` prints "filter operator unavailable"
+  before any `/api/_/tickets` read.
+- A missing bound, `0` or `51` prints `--max-records`, also before any
+  `/api/_/tickets` read.
+- A server that ignores `status=Closed` / `status=Gelöst` prints
+  "contradicts the predicate".
+
+Still not triaged: `97deaf9` and later.
