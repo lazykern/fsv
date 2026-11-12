@@ -37,6 +37,14 @@ def listing(client: Any, target: int) -> dict[str, Any]:
             "approvals": service.get_ticket_approvals(_T, target, client=client)}
 
 
+def _status_id(row: Any) -> int | None:
+    """Raw status id of an approval record; names are localisable labels and
+    are never compared."""
+    status = row.get("status") if isinstance(row, dict) else None
+    ident = status.get("id") if isinstance(status, dict) else None
+    return ident if type(ident) is int else None
+
+
 def recipients(client: Any, values: list[str]) -> list[int]:
     ids = []
     for value in values:
@@ -91,7 +99,7 @@ def build_plan(client: Any, target: str | int, operation: str, *, ident: int | N
         if len(matches) != 1:
             raise ReviewedWriteError("exact approval/group ID unavailable")
         row = matches[0]
-        requested = row.get("approval_status") == 0 if operation == "cancel" else isinstance(row.get("status"), dict) and row["status"].get("name") == "requested" and row["status"].get("id") == 0
+        requested = row.get("approval_status") == 0 if operation == "cancel" else _status_id(row) == 0
         if not requested:
             raise ReviewedWriteError("target is not a requested approval/group; immutable history cannot be changed")
         if operation in {"approve", "reject"}:
@@ -122,7 +130,7 @@ def send(plan: ApprovalPlan, client: Any, *, reviewed_hash: str | None) -> dict[
                 matched = (group.get("approval_type") == requested["approval_type"] and
                            len(rows) == len(requested["notified_to"]) and
                            {positive_id(r["member_id"]) for r in rows} == set(requested["notified_to"]) and
-                           all(r.get("status") == {"id": 0, "name": "requested"} for r in rows))
+                           all(_status_id(r) == 0 for r in rows))
             return {"verified": bool(matched), "readback": fresh}
         rows = after if operation == "cancel" else [a for g in after for a in g["approvals"]]
         exact = next((r for r in rows if positive_id(r["id"]) == ident), {})
@@ -130,7 +138,7 @@ def send(plan: ApprovalPlan, client: Any, *, reviewed_hash: str | None) -> dict[
             old_group = next(g for g in before if positive_id(g["id"]) == ident)
             matched = (exact.get("approval_status") == 3 and bool(exact.get("approvals")) and
                        {positive_id(r["id"]) for r in exact["approvals"]} == {positive_id(r["id"]) for r in old_group["approvals"]} and
-                       all(r.get("status") == {"id": 3, "name": "cancelled"} for r in exact["approvals"]))
+                       all(_status_id(r) == 3 for r in exact["approvals"]))
         elif operation == "remind":
             old = next(r for g in before for r in g["approvals"] if positive_id(r["id"]) == ident)
             from datetime import datetime
@@ -143,7 +151,7 @@ def send(plan: ApprovalPlan, client: Any, *, reviewed_hash: str | None) -> dict[
             matched = exact.get("status") == old.get("status") and now is not None and (previous is None or now > previous)
         else:
             status_id = plan.payload["approval_status"]
-            matched = (exact.get("status") == {"id": status_id, "name": "approved" if operation == "approve" else "rejected"} and
+            matched = (_status_id(exact) == status_id and
                        any(isinstance(r, dict) and r.get("status") == status_id and r.get("data") == inputs["remark"] for r in exact.get("remark", [])))
         return {"verified": bool(matched), "readback": exact}
     return execute(plan, client, reviewed_hash=reviewed_hash,

@@ -2682,18 +2682,30 @@ class FsvApp(App):
                 self._prepare_change_task(item, title, owner, values)
             elif key == "clear":
                 self._change_task_options(item, title, owner)
-            elif key == "status":
-                self.push_screen(ChoiceScreen([(v, v) for v in change_tasks.STATUS_LABELS], "Task status"),
-                                 lambda value: set_value(key, value))
-            elif key == "notify_before":
-                self.push_screen(ChoiceScreen([(v, v) for v in change_tasks.NOTIFY_BEFORE], "Notify Before"),
-                                 lambda value: set_value(key, value))
+            elif key in ("status", "notify_before"):
+                # Choices come from the tenant's change_task_fields, never a static list.
+                self._change_task_choices(key, lambda value: set_value(key, value))
             else:
                 self.push_screen(ValueScreen(fields[key], values.get(key, "")), lambda value: set_value(key, value))
 
         choices = [("review", "Review exact task"), *[(key, f"{label}: {values.get(key, 'default / omitted')}")
                     for key, label in fields.items()], ("clear", "Clear optional fields")]
-        self.push_screen(ChoiceScreen(choices, "Task optional fields — defaults Open / Never; others omitted"), selected)
+        self.push_screen(ChoiceScreen(choices, "Task optional fields — defaults: the form's first status / reminder; others omitted"), selected)
+
+    @work(thread=True, exclusive=True, group="task-create-choices")
+    def _change_task_choices(self, key: str, done: Any) -> None:
+        from fsv import change_tasks
+        try:
+            fields = change_tasks.runtime_fields()
+            if key == "status":
+                labels = change_tasks.status_choices(fields)
+                title = "Task status"
+            else:
+                labels = [label for _, label in change_tasks.reminder_choices(fields)]
+                title = "Notify Before"
+            self.call_from_thread(self.push_screen, ChoiceScreen([(v, v) for v in labels], title), done)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
 
     @work(thread=True, exclusive=True, group="task-create-review")
     def _prepare_change_task(self, item: dict, title: str, owner: str | None, options: dict | None = None) -> None:
@@ -2703,15 +2715,19 @@ class FsvApp(App):
         try:
             values = dict(options or {})
             group = values.pop("group", None)
-            status = values.pop("status", "Open")
+            status = values.pop("status", None)
             cid = item.get("display_id") or item["id"]
-            change_tasks.status_label(status)
-            change_tasks.build_plan(cid, title, status_id=1, **values)
+            if status is not None:
+                change_tasks.status_label(status)
+            change_tasks.check_inputs(cid, title, **values)
             owner_id = change_tasks.resolve_owner(owner)
+            fields = change_tasks.runtime_fields()
+            status = status if status is not None else change_tasks.default_status(fields)
+            values["notify_before"] = change_tasks.runtime_reminder_label(values.get("notify_before"), fields)
             plan = change_tasks.build_plan(cid, title, owner_id=owner_id,
                                            group_id=change_tasks.resolve_group(group), status=status,
                                            status_id=change_tasks.resolve_status(status),
-                                           fields=change_tasks.runtime_fields(), **values)
+                                           fields=fields, **values)
             self.call_from_thread(self._review_change_task, item, plan)
         except Exception as exc:
             self.call_from_thread(self._show_failure, actions.failure_detail(exc))

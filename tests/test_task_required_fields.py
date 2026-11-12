@@ -56,7 +56,7 @@ def test_metadata_hash_upgrade_keeps_legacy_ambiguity_guard(monkeypatch):
     from dataclasses import replace
     from fsv import journal
     monkeypatch.setattr(config, "DOMAIN", "acme.example.com")
-    plan = a.build_plan(23, "Acme", status_id=7, fields=[])
+    plan = a.build_plan(23, "Acme", status_id=7, fields=[{"name": "notify_before", "choices": [{"id": 0, "value": "Never"}]}])
     legacy = replace(plan, fields_json="")
     journal.record_plan("started", legacy.hash, action="change_task_create", target=23)
     c = SimpleNamespace(_request=lambda *a, **k: pytest.fail("must not write"))

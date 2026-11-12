@@ -10,6 +10,7 @@ from typer.testing import CliRunner
 from fsv import change_tasks, cli, query
 from test_change_task_update import wire
 from test_ticket_notes import mock_client
+from task_meta import default_task_fields
 
 
 NATIVE = {"id": "agent@example.com", "value": "Alex Acme", "user_id": 81}
@@ -25,7 +26,7 @@ def test_native_autocomplete_wire_and_change_create_dry_run(monkeypatch):
         return httpx.Response(200, json={"results": [NATIVE]})
     c = mock_client(monkeypatch, handler)
     monkeypatch.setattr(change_tasks, "get_client", lambda: c)
-    monkeypatch.setattr(change_tasks, "runtime_fields", lambda: [])
+    monkeypatch.setattr(change_tasks, "runtime_fields", default_task_fields)
     monkeypatch.setattr(change_tasks, "resolve_status", lambda *a: 1)
     try:
         result = CliRunner().invoke(cli.app, ["changes", "tasks-add", "4", "--title", "Acme task",

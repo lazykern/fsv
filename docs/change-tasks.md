@@ -1,6 +1,8 @@
 # Reviewed change-task creation
 
-`fsv changes tasks-add` creates a task on one change, defaulting to **Open**.
+`fsv changes tasks-add` creates a task on one change, defaulting to the form's
+first active status and first reminder choice (on a default tenant: **Open** /
+**Never**), read from the tenant's `change_task_fields`.
 The name follows `tasks-update` and `tasks-delete`. Main TUI: select a change,
 press **a**, choose **Add task**, enter the title, choose **No owner (default)**
 or an explicit user ID/email, then use the **Task optional fields** picker.
@@ -50,7 +52,7 @@ Content-Type: application/json
 {"title":"Acme verification","owner_id":9000002001,"status":1,"notify_before":0}
 ```
 
-There is **no `change_task` wrapper**. Defaults remain Open (`1`) / Never (`0`).
+There is **no `change_task` wrapper**. On a default tenant the defaults resolve to Open (`1`) / Never (`0`).
 Blank group, note, dates and effort are omitted. No-owner mode omits `owner_id`
 rather than inventing a null/default owner; owner omission remains an unverified
 variant. Optional-field blocked POST captures establish browser serialization,
@@ -71,9 +73,9 @@ fsv changes tasks-add CHN-1234 --title "Acme verification" \
 | Flag | Wire field / conversion |
 |---|---|
 | `--group` | `group_id`: positive numeric ID or one exact group name from runtime metadata; no fuzzy match |
-| `--status` | `status`: Open (`1`), In Progress (`2`); Completed / Blocked require an exact runtime metadata ID |
+| `--status` | `status`: an active runtime status label or ID from `change_task_fields` (never a guessed ID) |
 | `--note` | `description`: plain text HTML-escaped inside `<div><p>…</p></div>`; newlines become `<br>` |
-| `--notify-before` | `notify_before`: Never (`0`), 15 Minutes (`900`), 30 Minutes (`1800`), 45 Minutes (`2700`), 1 Hour (`3600`), 2 Hours (`7200`), in seconds |
+| `--notify-before` | `notify_before`: a runtime reminder label or its seconds value, from the `notify_before` choices of `change_task_fields` (renamed or re-timed choices are honoured; labels the tenant does not offer are refused) |
 | `--planned-start` / `--planned-end` | `planned_start_date` / `planned_end_date`: ISO date/time with explicit offset, serialized with seconds and that offset |
 | `--planned-effort` | `planned_effort`: `1h30m`, `1h 30m` or `01:30` becomes `1h 30m`; hours-only / minutes-only supported locally |
 

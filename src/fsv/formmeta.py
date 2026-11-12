@@ -72,7 +72,8 @@ def module_name(text: str) -> str:
 
 
 def _cache_path(name: str) -> Path:
-    return config.CACHE_DIR / "forms" / f"{config.cache_domain_key()}--{name}.json"
+    # tenant AND workspace scoped (see config.cache_scope_key)
+    return config.CACHE_DIR / "forms" / f"{config.cache_scope_key()}--{name}.json"
 
 
 def _cached(name: str) -> Any:

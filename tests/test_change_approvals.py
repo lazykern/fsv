@@ -182,9 +182,7 @@ def test_request_named_group_enrichment_keeps_record_guards(monkeypatch, tenant,
 
 @pytest.mark.parametrize("case", ["none", "multiple", "concurrent-unrelated", "wrong-agents", "extra-agent",
     "missing-agent", "partial", "read-error", "malformed", "missing-fields", "reused-id", "duplicate-id",
-    "duplicate-member", "conflicting-member", "missing-member-id", "user-not-member", "missing-baseline",
-    "wrong-status", "wrong-rule", "missing-status", "missing-rule", "boolean-status", "boolean-rule",
-    "conflicting-status", "conflicting-rule"])
+    "duplicate-member", "conflicting-member", "missing-member-id", "user-not-member", "missing-baseline"])
 def test_ambiguous_stays_unknown_and_blocks_retry(monkeypatch, case):
     seen = []
     old = rows(start=310000000011)
@@ -566,3 +564,44 @@ def test_cli_actual_send_readback(monkeypatch, format_, exact):
         assert [req.method for req in seen] == ["GET", "POST", "GET"]
     finally:
         c.close()
+
+
+@pytest.mark.parametrize("case", ["wrong-status", "wrong-rule", "missing-status", "missing-rule", "boolean-status",
+                                  "boolean-rule", "conflicting-status", "conflicting-rule", "localised-names"])
+def test_status_or_rule_readback_mismatch_is_unverified_not_a_hard_failure(monkeypatch, tenant, case):
+    old, fresh = [], rows()
+    if case in ("wrong-status", "conflicting-status", "boolean-status"):
+        fresh[0]["status"] = {"id": False if case == "boolean-status" else 1,
+                              "name": "requested" if case != "wrong-status" else "approved"}
+    elif case in ("wrong-rule", "conflicting-rule", "boolean-rule"):
+        fresh[0]["type"] = {"id": True if case == "boolean-rule" else 2,
+                            "name": "everyone" if case != "wrong-rule" else "anyone"}
+    elif case == "missing-status":
+        del fresh[0]["status"]
+    elif case == "missing-rule":
+        del fresh[0]["type"]
+    else:  # a localised tenant: same raw ids, other names
+        for r in fresh:
+            r["status"]["name"], r["type"]["name"] = "angefordert", "alle"
+    seen = []
+    def handler(req):
+        if req.url.path.endswith("/approval-chains"):
+            return httpx.Response(403, json={})
+        seen.append(req)
+        if req.method == "POST":
+            return httpx.Response(200, json={})
+        return httpx.Response(200, json={"approvals": old if len(seen) == 1 else old + fresh})
+    c = mock_client(monkeypatch, handler)
+    try:
+        p = plan()
+        result = approvals.send(p, c, reviewed_hash=p.hash)
+        assert result["approval_ids"] == [310000000001, 310000000002]
+        if case == "localised-names":
+            assert result["verified"] is True and "unverified" not in result
+        else:
+            assert result["verified"] is False and result["unverified"] and "do not resend" in result["warning"]
+        assert [r.method for r in seen].count("POST") == 1
+        with pytest.raises(approvals.ApprovalError, match="do not resubmit"):
+            approvals.send(p, c, reviewed_hash=p.hash)
+    finally:
+        c._client.close()

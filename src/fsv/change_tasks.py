@@ -19,7 +19,11 @@ from fsv.client import get_client
 from fsv.errors import APIError
 from fsv.resources import CHANGES, parse_id
 
-STATUS_LABELS = ("Open", "In Progress", "Completed", "Blocked")
+# Fallback ONLY for library plans built without runtime task metadata
+# (``fields=None``). The CLI, TUI and every send rebuild pass the tenant's
+# ``change_task_fields``: reminder labels/seconds and status choices then come
+# from its ``notify_before`` / ``status`` choices (renamed or re-timed
+# choices are honoured, unknown labels refused).
 NOTIFY_BEFORE = {"Never": 0, "15 Minutes": 900, "30 Minutes": 1800,
                  "45 Minutes": 2700, "1 Hour": 3600, "2 Hours": 7200}
 _ACTION = "change_task_create"
@@ -162,12 +166,11 @@ class TaskPlan:
 
     @property
     def payload(self) -> dict[str, Any]:
-        seconds = NOTIFY_BEFORE[self.notify_before]
         if self.fields_json:
-            fields = json.loads(self.fields_json)
-            if any(f.get("name") == "notify_before" for f in fields):
-                from fsv.change_task_update import reminder
-                seconds = reminder(self.notify_before, fields)
+            from fsv.change_task_update import reminder
+            seconds = reminder(self.notify_before, json.loads(self.fields_json))
+        else:
+            seconds = NOTIFY_BEFORE[self.notify_before]
         body = {"title": self.title, "status": self.status_id, "notify_before": seconds}
         if self.note is not None:
             text = html.escape(self.note.replace("\r\n", "\n").replace("\r", "\n")).replace("\n", "<br>")
@@ -219,6 +222,67 @@ def validate_required(fields: list[dict[str, Any]], payload: dict[str, Any]) -> 
         raise TaskError("required task fields missing: " + ", ".join(missing))
 
 
+def reminder_choices(fields: list[dict[str, Any]]) -> list[tuple[int, str]]:
+    """Active runtime ``notify_before`` choices: ``[(seconds, label)]``."""
+    matches = [f for f in fields if isinstance(f, dict) and f.get("name") == "notify_before" and not f.get("deleted")]
+    if len(matches) != 1:
+        raise TaskError("runtime reminder metadata unavailable; no task POST attempted")
+    out = []
+    for c in matches[0].get("choices") or []:
+        if not isinstance(c, dict) or any(c.get(k) for k in ("deleted", "deleted_at", "deactivated")):
+            continue
+        ident = c.get("id")
+        if isinstance(ident, bool) or not str(ident).isascii() or not str(ident).isdigit():
+            continue
+        out.append((int(str(ident)), str(c.get("value") or c.get("label") or ident)))
+    if not out:
+        raise TaskError("runtime reminder metadata has no choices; no task POST attempted")
+    return out
+
+
+def runtime_reminder_label(value: str | None, fields: list[dict[str, Any]]) -> str:
+    """The runtime choice label for ``value`` (label or seconds); ``None``:
+    the form's first choice (the web default)."""
+    choices = reminder_choices(fields)
+    if value is None:
+        return choices[0][1]
+    key = str(value).strip().casefold()
+    hits = [label for ident, label in choices if key in (str(ident), label.casefold())]
+    if len(hits) != 1:
+        raise ValueError("notify before must be one of the runtime choices: " + ", ".join(l for _, l in choices))
+    return hits[0]
+
+
+def status_choices(fields: list[dict[str, Any]]) -> list[str]:
+    """Active runtime task-status labels, in metadata order."""
+    return [label for _, label in task_status.active_choices(fields)]
+
+
+def default_status(fields: list[dict[str, Any]]) -> str:
+    """The first active runtime status (the web form's default), never a
+    guessed id."""
+    labels = status_choices(fields)
+    if not labels:
+        raise TaskError("runtime task-status metadata has no active choice; no task POST attempted")
+    return labels[0]
+
+
+def check_inputs(change_id: int | str, title: str, *, note: str | None = None,
+                 planned_start: str | None = None, planned_end: str | None = None,
+                 planned_effort: str | None = None, **_ignored: Any) -> None:
+    """Local validation before any remote lookup (no status or reminder
+    mapping: both need runtime metadata)."""
+    if isinstance(change_id, bool) or not isinstance(change_id, (int, str)) or parse_id(str(change_id), CHANGES) <= 0:
+        raise ValueError("change ID must be a positive display ID")
+    if not isinstance(title, str) or not title.strip() or any(ord(c) < 32 or ord(c) == 127 for c in title):
+        raise ValueError("task title must be nonempty text without control characters")
+    start, end = _date(planned_start), _date(planned_end)
+    if start and end and datetime.fromisoformat(end) < datetime.fromisoformat(start):
+        raise ValueError("planned end must not precede planned start")
+    _note(note)
+    _effort(planned_effort)
+
+
 def runtime_fields() -> list[dict[str, Any]]:
     try:
         return task_status.fields_from(get_client())
@@ -246,10 +310,13 @@ def build_plan(change_id: int | str, title: str, *, owner_id: int | None = None,
     label = status_label(status)
     if type(status_id) is not int or status_id <= 0:
         raise ValueError("status ID must first be resolved from runtime metadata")
-    reminder = next((k for k in NOTIFY_BEFORE if isinstance(notify_before, str)
-                     and k.casefold() == notify_before.casefold()), None)
-    if reminder is None:
-        raise ValueError("notify before must be " + ", ".join(NOTIFY_BEFORE))
+    if fields is not None:
+        reminder = runtime_reminder_label(notify_before, fields)
+    else:
+        reminder = next((k for k in NOTIFY_BEFORE if isinstance(notify_before, str)
+                         and k.casefold() == notify_before.casefold()), None)
+        if reminder is None:
+            raise ValueError("notify before must be " + ", ".join(NOTIFY_BEFORE))
     start, end = _date(planned_start), _date(planned_end)
     if start and end and datetime.fromisoformat(end) < datetime.fromisoformat(start):
         raise ValueError("planned end must not precede planned start")
@@ -409,9 +476,9 @@ def register(app: typer.Typer) -> None:
         values: list[str] = typer.Option(None, "--set", help="runtime custom field NAME=VALUE (repeatable)"),
         system: str | None = typer.Option(None, "--system", help="runtime System choice label/ID"),
         environment: str | None = typer.Option(None, "--environment", "--env", help="runtime Environment choice label/ID"),
-        status: str = typer.Option("Open", "--status", help="exact active runtime status label or ID (including the default Open)"),
+        status: str | None = typer.Option(None, "--status", help="exact active runtime status label or ID (default: the form's first active status)"),
         note: str | None = typer.Option(None, "--note", help="plain text, HTML-escaped"),
-        notify_before: str = typer.Option("Never", "--notify-before", help="Never, 15 Minutes, 30 Minutes, 45 Minutes, 1 Hour, 2 Hours"),
+        notify_before: str | None = typer.Option(None, "--notify-before", help="runtime reminder label or seconds (default: the form's first choice)"),
         planned_start: str | None = typer.Option(None, "--planned-start", help="ISO date/time with explicit timezone offset"),
         planned_end: str | None = typer.Option(None, "--planned-end", help="ISO date/time with explicit timezone offset"),
         planned_effort: str | None = typer.Option(None, "--planned-effort", help="1h30m or 01:30; sends 1h 30m"),
@@ -429,10 +496,13 @@ def register(app: typer.Typer) -> None:
             options: dict[str, Any] = dict(note=note, notify_before=notify_before,
                            planned_start=planned_start, planned_end=planned_end, planned_effort=planned_effort)
             # Validate local inputs before resolving any remote values.
-            status_label(status)
-            build_plan(id_, title, status_id=1, **options)
+            if status is not None:
+                status_label(status)
+            check_inputs(id_, title, **options)
             from fsv.ticket_tasks import custom_values
             fields = runtime_fields()
+            status = status if status is not None else default_status(fields)
+            options["notify_before"] = runtime_reminder_label(notify_before, fields)
             raw_values = {}
             for item in values or []:
                 if "=" not in item:

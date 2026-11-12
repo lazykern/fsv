@@ -8,6 +8,7 @@ import pytest
 from typer.testing import CliRunner
 
 from fsv import change_approvals as approvals, change_tasks as tasks, cli, journal
+from task_meta import default_task_fields
 
 
 OPTIONS: dict[str, Any] = dict(group_id=9000004001, status="In Progress", note="<Acme> & review\nNext step",
@@ -139,7 +140,7 @@ def test_task_optional_readback_single_attempt(monkeypatch, mode):
 
 def test_cli_all_optional_fields_local_review(monkeypatch):
     monkeypatch.setattr(tasks, "resolve_status", lambda value, client=None: {"Open": 1, "In Progress": 2}[value])
-    monkeypatch.setattr(tasks, "runtime_fields", lambda: [])
+    monkeypatch.setattr(tasks, "runtime_fields", default_task_fields)
     result = CliRunner().invoke(cli.app, ["changes", "tasks-add", "CHN-123", "--title", "Acme review",
         "--group", "9000004001", "--status", "In Progress", "--note", "<literal>",
         "--notify-before", "2 Hours", "--planned-start", "2026-12-05T00:00-05:00",
@@ -184,8 +185,8 @@ def test_approval_rule_wrong_readback_and_hash_rejected(monkeypatch, rule):
     plan = approvals.build_plan(123, "Acme review", "Please review", approver_ids=[9000003001], rule=rule)
     wrong = {"id": 310000000001, "member_id": 9000003001, "status": {"id": 0, "name": "requested"},
              "type": {"id": 1, "name": "everyone"}}
-    with pytest.raises(approvals.ApprovalError, match="rule"):
-        approvals._verify_new([wrong], plan)
+    (note,) = approvals._verify_new([wrong], plan)  # a wrong rule id is reported, never "verified"
+    assert "type id 1 does not match" in note
     monkeypatch.setattr(approvals, "get_client", lambda: pytest.fail("changed rule constructed client"))
     with pytest.raises(approvals.ApprovalError, match="hash"):
         approvals.send(plan, reviewed_hash=replace(plan, rule="everyone").hash)
@@ -207,7 +208,8 @@ def test_default_task_hash_preserves_existing_journal_guard(monkeypatch):
 def test_cli_status_metadata_and_local_validation_before_lookup(monkeypatch, label):
     calls = []
     c = SimpleNamespace(int_get=lambda *a: calls.append(a) or {"task_fields": [
-        {"name": "status", "choices": [{"id": 87, "label": label}]}]})
+        {"name": "status", "choices": [{"id": 87, "label": label}]},
+        {"name": "notify_before", "choices": [{"id": 0, "value": "Never"}]}]})
     monkeypatch.setattr(tasks, "get_client", lambda: c)
     base = ["changes", "tasks-add", "123", "--title", "Globex review", "--status", label, "--dry-run"]
     runner = CliRunner()

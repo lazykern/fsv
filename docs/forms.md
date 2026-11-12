@@ -86,6 +86,11 @@ picks the workspace like this:
 The workspace the rules came from is kept as `meta.workspace_id` (the
 engine filters rules by it). Edit-form rules are cached per record
 (`module_id`), since the server filters them by record.
+Form-field and resource-schema caches are keyed by tenant AND workspace
+(`<domain>--ws<id>--<name>.json`, `wsauto` without a `forms.workspace_id`
+override), so switching the override never reuses another workspace's
+fields. Files written before this keying (`<domain>--<name>.json`) are never
+read again.
 
 Parameters: `module_type`, `workspace_id` (path), `item_id` (catalog item
 `id`; `null` otherwise), `form_type` (`new`/`edit`), `requester` and

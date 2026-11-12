@@ -159,8 +159,24 @@ def cache_domain_key(domain: str | None = None) -> str:
         return raw.lower().replace("/", "-")
 
 
+def cache_workspace_key() -> str:
+    """The workspace dimension of schema/form-field cache keys: the
+    ``forms.workspace_id`` override, else ``auto`` (the form metadata's own
+    workspace). Switching the override never reuses another workspace's
+    cached fields."""
+    raw = (load_config().get("forms") or {}).get("workspace_id")
+    text = str(raw).strip() if raw not in (None, "") else ""
+    return f"ws{text}" if text and text.isascii() and text.isalnum() else "wsauto"
+
+
+def cache_scope_key(domain: str | None = None) -> str:
+    """``<domain>--ws<id>``: schema and form-field caches are keyed by tenant
+    AND workspace. Older ``<domain>--<name>`` files are simply never read."""
+    return f"{cache_domain_key(domain)}--{cache_workspace_key()}"
+
+
 def schema_cache_path(name: str, domain: str | None = None) -> Path:
-    return SCHEMA_DIR / f"{cache_domain_key(domain)}--{name}.json"
+    return SCHEMA_DIR / f"{cache_scope_key(domain)}--{name}.json"
 
 
 def schema_cache_candidates(name: str, domain: str | None = None) -> list[Path]:

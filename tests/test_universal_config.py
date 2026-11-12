@@ -53,12 +53,34 @@ def test_cache_paths_are_tenant_scoped_with_legacy_fallback(monkeypatch, tmp_pat
     config.set_domain("demo.freshservice.com")
 
     cache = tmp_path / "cache"
-    assert config.schema_cache_path("changes") == cache / "schema" / "demo.freshservice.com--changes.json"
+    assert config.schema_cache_path("changes") == cache / "schema" / "demo.freshservice.com--wsauto--changes.json"
     assert config.filters_cache_path("changes") == cache / "filters" / "demo.freshservice.com--changes.json"
     assert config.groups_cache_path() == cache / "groups--demo.freshservice.com.json"
     assert config.schema_cache_candidates("changes") == [
-        cache / "schema" / "demo.freshservice.com--changes.json",
+        cache / "schema" / "demo.freshservice.com--wsauto--changes.json",
     ]
+
+
+def test_schema_and_form_caches_are_workspace_scoped_and_ignore_old_keys(monkeypatch, tmp_path):
+    from fsv import cache as fcache, config, formmeta
+    cache = tmp_path / "cache"
+    monkeypatch.setattr(config, "CONFIG_FILE", tmp_path / "config.json")
+    monkeypatch.setattr(config, "CACHE_DIR", cache)
+    monkeypatch.setattr(config, "SCHEMA_DIR", cache / "schema")
+    monkeypatch.setattr(config, "DOMAIN", "demo.freshservice.com")
+    # a pre-migration file (no workspace in the key) is never read
+    old = cache / "forms" / "demo.freshservice.com--change-fields.json"
+    old.parent.mkdir(parents=True, exist_ok=True)
+    fcache.save(old, "schema", {"change_fields": [{"name": "stale"}]})
+    assert formmeta._cached("change-fields") is None
+    formmeta._save("change-fields", "schema", {"change_fields": [{"name": "ws-auto"}]})
+    assert formmeta._cached("change-fields") == {"change_fields": [{"name": "ws-auto"}]}
+    config.save_config({"domain": "demo.freshservice.com", "forms": {"workspace_id": 5}})
+    assert config.schema_cache_path("changes") == cache / "schema" / "demo.freshservice.com--ws5--changes.json"
+    assert formmeta._cached("change-fields") is None  # another workspace never reuses ws-auto fields
+    formmeta._save("change-fields", "schema", {"change_fields": [{"name": "ws5"}]})
+    config.save_config({"domain": "demo.freshservice.com", "forms": {"workspace_id": 9}})
+    assert formmeta._cached("change-fields") is None
 
 
 def test_login_accepts_domain_without_prior_setup(monkeypatch, tmp_path):

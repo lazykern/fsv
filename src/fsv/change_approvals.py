@@ -302,27 +302,35 @@ def get_change_approval_groups(change_id: int, c: Any = None, *, module: str = "
     raise ApprovalError("approval chains inventory page limit exceeded")
 
 
-def _verify_new(rows: list[dict[str, Any]], plan: ApprovalPlan) -> None:
-    """One fresh, requested selected-rule record per explicit recipient; no extras.
+def _verify_new(rows: list[dict[str, Any]], plan: ApprovalPlan) -> list[str]:
+    """One fresh record per explicit recipient; no extras. Returns readback
+    notes (empty when fully verified).
 
     Group name/ID are absent from the observed list. Neither level_id nor user_id
     is a substitute. Existing approval records are only baseline ID evidence.
+    Identity mismatches fail closed (outcome unknown). Status/rule names are
+    tenant-localisable, so only the raw ids are compared; a mismatch or an
+    unreadable value is reported as unverified instead of failing hard.
     """
     members: list[int] = []
+    notes: list[str] = []
     for row in rows:
         aid = _id(row.get("member_id"))
         member = row.get("member")
         if aid is None or (member is not None and (
                 not isinstance(member, dict) or _id(member.get("id")) != aid)):
             raise ApprovalError("approval member identity unavailable or conflicting")
-        for key, expected_id, expected_name in (("status", 0, "requested"), ("type", RULES[plan.rule][0], "everyone" if plan.rule == "everyone" else None)):
+        for key, expected_id in (("status", 0), ("type", RULES[plan.rule][0])):
+            # The raw id decides; the name is a (localisable) label and is ignored.
             value = row.get(key)
-            if (not isinstance(value, dict) or type(value.get("id")) is not int
-                    or value["id"] != expected_id or (expected_name is not None and value.get("name") != expected_name)):
-                raise ApprovalError("approval status or rule does not match the request")
+            if not isinstance(value, dict) or type(value.get("id")) is not int:
+                notes.append(f"approval {aid}: {key} unreadable")
+            elif value["id"] != expected_id:
+                notes.append(f"approval {aid}: {key} id {value['id']} does not match the request ({expected_id})")
         members.append(aid)
     if len(members) != len(plan.approver_ids) or set(members) != set(plan.approver_ids):
         raise ApprovalError("new approval records do not exactly match the recipients")
+    return notes
 
 
 def _require_chains(client: Any, change_id: int, action: str) -> None:
@@ -391,12 +399,15 @@ def send(plan: ApprovalPlan, client: Any = None, *, reviewed_hash: str | None,
         # Inspect ALL newly created record IDs, including unrelated concurrent
         # requests. Do not select a matching subset or infer a group identity.
         exact = [r for r in after_rows if _id(r["id"]) not in before_ids]
-        _verify_new(exact, plan)
+        notes = _verify_new(exact, plan)
     except Exception:
         raise ApprovalError(_UNKNOWN) from None
     result = {"status": "submitted", "change_id": plan.change_id,
               "approval_ids": [_id(r["id"]) for r in exact], "group_name_verified": False,
-              "verified": True, "readback": exact, "plan_hash": plan.hash}
+              "verified": not notes, "readback": exact, "plan_hash": plan.hash}
+    if notes:
+        result["unverified"] = notes
+        result["warning"] = "Approval records exist for exactly these recipients, but their status/rule did not read back as requested; do not resend."
     if before_groups is not None:
         try:
             after_groups = get_change_approval_groups(plan.change_id, c)

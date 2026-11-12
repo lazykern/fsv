@@ -9,6 +9,7 @@ from typer.testing import CliRunner
 
 from fsv import change_tasks as tasks, cli, config, journal
 from test_ticket_notes import mock_client
+from task_meta import default_task_fields
 
 
 @pytest.fixture(params=["acme.example.com", "globex.example.com"])
@@ -201,7 +202,7 @@ def test_owner_resolution_exact_and_explicit(monkeypatch):
     (["--yes", "--expect-plan", "wrong"], None)])
 def test_cli_review_and_guards(monkeypatch, args, input_):
     monkeypatch.setattr(tasks, "resolve_status", lambda value, client=None: {"Open": 1, "In Progress": 2}[value])
-    monkeypatch.setattr(tasks, "runtime_fields", lambda: [])
+    monkeypatch.setattr(tasks, "runtime_fields", default_task_fields)
     r = CliRunner().invoke(cli.app, ["changes", "tasks-add", "CHN-123", "--title", "Acme review", *args], input=input_)
     assert r.exit_code == (0 if args == ["--dry-run", "--json"] or not args else 2), r.output
     if "--dry-run" in args:
@@ -212,7 +213,7 @@ def test_cli_review_and_guards(monkeypatch, args, input_):
 
 def test_cli_reviewed_hash_send(monkeypatch):
     monkeypatch.setattr(tasks, "resolve_status", lambda value, client=None: 1)
-    monkeypatch.setattr(tasks, "runtime_fields", lambda: [])
+    monkeypatch.setattr(tasks, "runtime_fields", default_task_fields)
     runner = CliRunner()
     base = ["changes", "tasks-add", "CHN-123", "--title", "Globex review", "--owner", "9000002001"]
     draft = runner.invoke(cli.app, [*base, "--dry-run", "--json"])
