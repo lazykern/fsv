@@ -226,6 +226,16 @@ def test_owner_ids_or_exact_email_only(api, value):
     assert not s["writes"]
 
 
+def test_update_builder_does_not_default_status_or_other_fields(api):
+    c, s, fields, _ = api
+    fields.append({"name": "owner_id"})
+    s["rows"] = [{"id": 701, "title": "Acme", "status": 999, "owner_id": 80}]
+    plan = flow.build_plan(c, 123, action="update", task=701, owner="81")
+    assert plan.payload == {"owner_id": 81}
+    assert flow.send(plan, c, reviewed_hash=plan.hash)["verified"]
+    assert s["rows"][0]["status"] == 999 and len(s["writes"]) == 1
+
+
 def test_assignment_metadata_drift_blocks_send(api):
     c, s, fields, _ = api
     fields.append({"name": "owner_id"})

@@ -104,6 +104,11 @@ class AcmeChanges(Tenant):
         if method == "POST" and p == "/api/_/changes":
             return httpx.Response(200, json={"change": {"id": 900000502, "human_display_id": "CHN-502"}})
         if method == "PUT" and p.startswith("/api/_/changes/"):
+            for key, value in body.items():
+                if key == "custom_fields":
+                    self.change.setdefault(key, {}).update(value)
+                else:
+                    self.change[key] = value
             return httpx.Response(200, json={"change": {"id": int(p.rsplit("/", 1)[1])}})
         return httpx.Response(404, json={"message": f"no route {method} {p}"})
 

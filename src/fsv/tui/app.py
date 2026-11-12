@@ -1520,8 +1520,10 @@ class FsvApp(App):
             self.call_from_thread(self._show_failure, actions.failure_detail(exc))
             return
         label, done = actions.form_result(mode, out)
+        self.call_from_thread(self.push_screen, OutcomeScreen("Form outcome — do not resend", json.dumps(out, indent=2, default=str)))
         if mode == "edit" and item is not None:
-            self.call_from_thread(self._after_write, item.get("_resource", CHANGES), item, "Change updated")
+            if out.get("verified"):
+                self.call_from_thread(self._after_write, item.get("_resource", CHANGES), item, "Change properties verified")
         else:
             self.call_from_thread(self.notify, f"{label} created {done}".strip())
             self.call_from_thread(self._reload_list)
@@ -2734,6 +2736,7 @@ class FsvApp(App):
             self.call_from_thread(self._show_failure,
                                   f"Task ID {result.get('task_id')} submitted; readback incomplete or unverified.\n{result.get('warning', '')}\nDo not resend.")
             return
+        self.call_from_thread(self.push_screen, OutcomeScreen("Task create outcome — do not resend", json.dumps(result, indent=2)))
         self.call_from_thread(self._after_write, CHANGES, item, f"Task {result['task_id']} verified")
 
     @work(thread=True, exclusive=True, group="action-read")
@@ -2843,6 +2846,9 @@ class FsvApp(App):
     def _confirm_action(self, kind: str, item: dict, target: dict, body: dict) -> None:
         if self.read_only:
             return
+        if kind in {"task-update", "task-delete"}:
+            self._prepare_task_mutation(kind, item, target, body)
+            return
         res = item.get("_resource", TICKETS)
         lines = [f"Record: {format_id(item, res)} (ID {item['id']})",
                  f"Target: {target.get('human_display_id') or target.get('id')} — {target.get('title') or target.get('subject') or target.get('name', '')}",
@@ -2865,6 +2871,41 @@ class FsvApp(App):
         self.push_screen(ConfirmScreen(f"Confirm {kind}", lines),
                          lambda ok: self._execute_action(kind, item, target, body) if ok else None)
 
+    @work(thread=True, exclusive=True, group="task-review")
+    def _prepare_task_mutation(self, kind: str, item: dict, target: dict, body: dict) -> None:
+        from fsv import change_task_delete, change_task_update
+        if self.read_only:
+            return
+        try:
+            cid = item.get("display_id") or item["id"]
+            client = get_client()
+            if kind == "task-delete":
+                plan = change_task_delete.build_plan(client, cid, target["id"])
+            else:
+                inputs = {k.removesuffix("_id") if k in {"owner_id", "group_id"} else k: str(v)
+                          for k, v in body.items()}
+                plan = change_task_update.build_plan(client, cid, target["id"], inputs)
+            def review():
+                self.push_screen(ConfirmScreen("Review exact " + kind, [json.dumps(plan.review(), indent=2)]),
+                                 lambda ok: self._send_task_mutation(kind, item, plan) if ok else None)
+            self.call_from_thread(review)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
+    @work(thread=True, group="write")
+    def _send_task_mutation(self, kind: str, item: dict, plan: Any) -> None:
+        from fsv import change_task_delete, change_task_update
+        if self.read_only:
+            return
+        try:
+            flow = change_task_delete if kind == "task-delete" else change_task_update
+            result = flow.send(plan, get_client(), reviewed_hash=plan.hash)
+            self.call_from_thread(self.push_screen, OutcomeScreen("Task mutation outcome — do not resend", json.dumps(result, indent=2)))
+            if result.get("verified"):
+                self.call_from_thread(self._after_write, CHANGES, item, "Exact task mutation verified")
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
     @work(thread=True, group="write")
     def _execute_action(self, kind: str, item: dict, target: dict, body: dict) -> None:
         if self.read_only:
@@ -2878,6 +2919,8 @@ class FsvApp(App):
                     raise ValueError(json.dumps(result))
                 self.call_from_thread(self.notify, json.dumps(result), title="Download result", timeout=15)
                 return
+            if kind in {"task-update", "task-delete"}:
+                raise ValueError("Task mutations require an exact reviewed task plan")
             result = actions.apply_change_action(kind, item.get("display_id") or item["id"], target, body, client)
             if kind in ("link", "unlink"):
                 if not isinstance(result, dict) or not result.get("verified"):
@@ -2940,24 +2983,46 @@ class FsvApp(App):
             if not choice:
                 return
             new_id, label = choice
-            plan = actions.status_plan(res, item, sch, new_id, label)
-
-            def confirmed(ok: bool | None) -> None:
-                if ok:
-                    self._do_write("status", res, item, new_id, label)
-
-            self.push_screen(ConfirmScreen(plan.title, plan.lines), confirmed)
+            if res == TICKETS:
+                self._prepare_ticket_property(dict(item or {}), "status", new_id)
+            else:
+                self._prepare_change_status(dict(item or {}), new_id)
 
         self.push_screen(StatusScreen(choices, current), picked)
 
+    @work(thread=True, exclusive=True, group="status-review")
+    def _prepare_change_status(self, item: dict, status: Any) -> None:
+        if self.read_only:
+            return
+        from fsv.formui import change_session
+        from types import SimpleNamespace
+        try:
+            session = change_session(get_client(), mode="edit", target=item.get("display_id") or item["id"])
+            result = session.set("status", status)
+            if result.error:
+                raise ValueError(result.error)
+            plan = session.build_plan()
+            if not plan.ok:
+                raise ValueError("; ".join(plan.errors))
+            def review():
+                self.push_screen(ConfirmScreen("Review exact change status", [json.dumps(plan.to_json(), indent=2, default=str)]),
+                                 lambda ok: self._send_form(session, SimpleNamespace(plan=plan), "edit", item) if ok else None)
+            self.call_from_thread(review)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
     def _start_note(self, res: Resource, reply: bool) -> None:
+        if res == CHANGES and not reply:
+            self._show_failure("Change-note visibility and a shared reviewed CLI contract are unavailable. Use the web form; the legacy TUI note sender is disabled.")
+            return
         ok = actions.can_reply(res) if reply else actions.can_note(res)
         if not ok:
             self.notify("Not available for this item type", severity="warning")
             return
         item = dict(self._selected or {})
         # Ticket notes use the reviewed sender; public replies remain separate.
-        screen = NoteScreen(self._target_label(res), reply=reply, can_toggle=True, ticket_options=res == TICKETS)
+        screen = NoteScreen(self._target_label(res) + (" — visibility/notifications not proven" if res == PROBLEMS else ""),
+                            reply=reply, can_toggle=res == TICKETS, ticket_options=res == TICKETS)
 
         def composed(result) -> None:
             if not result:
@@ -2972,16 +3037,40 @@ class FsvApp(App):
             if res == TICKETS and not reply:
                 self._review_ticket_note(item, body, public)
                 return
-            plan = actions.note_plan(res, public, reply)
-
-            def confirmed(ok2: bool | None) -> None:
-                if ok2:
-                    self._do_write("reply" if reply else "note", res, item, body, public)
-
-            preview = ["", "> " + body]
-            self.push_screen(ConfirmScreen(plan.title, plan.lines + preview), confirmed)
+            if res == PROBLEMS and not reply:
+                self._prepare_problem_note(item, body)
+                return
+            self._show_failure("No shared reviewed sender for this operation; nothing sent.")
 
         self.push_screen(screen, composed)
+
+    @work(thread=True, exclusive=True, group="note-review")
+    def _prepare_problem_note(self, item: dict, body: str) -> None:
+        from fsv import problem_workflows
+        if self.read_only:
+            return
+        try:
+            plan = problem_workflows.child_plan(get_client(), item.get("display_id") or item["id"], kind="note", text=body)
+            def review():
+                self.push_screen(ConfirmScreen("Review exact problem note — visibility not proven", [json.dumps(plan.review(), indent=2),
+                    "Body-only native note. Privacy and notifications are not established; inspect before confirming."]),
+                    lambda ok: self._send_problem_note(item, plan) if ok else None)
+            self.call_from_thread(review)
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
+
+    @work(thread=True, group="write")
+    def _send_problem_note(self, item: dict, plan: Any) -> None:
+        from fsv import problem_workflows
+        if self.read_only:
+            return
+        try:
+            result = problem_workflows.send(plan, get_client(), reviewed_hash=plan.hash)
+            self.call_from_thread(self.push_screen, OutcomeScreen("Problem note outcome — do not resend", json.dumps(result, indent=2)))
+            if result.get("verified"):
+                self.call_from_thread(self._after_write, PROBLEMS, item, "Exact problem note verified")
+        except Exception as exc:
+            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
 
     def _ticket_conversation_options(self, item: dict, body: str, public: bool, reply: bool,
                                      options: dict | None = None) -> None:
@@ -3100,27 +3189,15 @@ class FsvApp(App):
         selected = self._selected
         if selected and selected.get("_resource", TICKETS) == TICKETS and (selected.get("display_id") or selected.get("id")) == plan.ticket_id:
             item = selected
+        self.call_from_thread(self.push_screen, OutcomeScreen("Note outcome — do not resend", json.dumps(result, indent=2)))
         self.call_from_thread(self._after_write, TICKETS, item, f"Note {result.get('note_id')} verified")
 
     @work(thread=True, group="write")
     def _do_write(self, kind: str, res: Resource, item: dict, arg: Any, extra: Any) -> None:
         if self.read_only:
             return
-        item_id = item.get("id")
-        try:
-            if kind == "status":
-                actions.apply_status(res, item_id, arg)
-                msg = f"Status set to {extra}"
-            elif kind == "reply":
-                actions.apply_reply(res, item_id, arg)
-                msg = "Reply sent"
-            else:
-                actions.apply_note(res, item_id, arg, bool(extra))
-                msg = "Public note added" if extra else "Private note added"
-        except Exception as exc:  # noqa: BLE001 - preserve ambiguous failures
-            self.call_from_thread(self._show_failure, actions.failure_detail(exc))
-            return
-        self.call_from_thread(self._after_write, res, item, msg)
+        self.call_from_thread(self._show_failure,
+                              "Legacy TUI send path disabled; prepare and confirm an exact shared reviewed plan. Nothing sent.")
 
     def _after_write(self, res: Resource, item: dict, msg: str) -> None:
         self.notify(msg)

@@ -19,7 +19,8 @@ from dataclasses import dataclass, field as dc_field
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
-from fsv import journal
+from fsv import config, journal
+from fsv.reviewed_snapshot import stable_snapshot
 from fsv.drafts import (
     Draft,
     load_hints,
@@ -111,6 +112,9 @@ class Plan:
     target: int | None = None
     hash: str = ""
     risks: list[str] = dc_field(default_factory=list)
+    record_hash: str = ""
+    legacy_hash: str = ""
+    tenant: str = ""
 
     @property
     def ok(self) -> bool:
@@ -567,7 +571,11 @@ def build_update_plan(
     review.metadata = meta.as_of()
     plan = Plan("update", meta, state, draft, body, files, planning, review, problems, target=target, risks=risks)
     if not problems and (body or any(files.values()) or planning):
-        plan.hash = _hash(body, files, planning, target)
+        plan.record_hash = journal.snapshot_hash(stable_snapshot(dict(record))) or ""
+        plan.legacy_hash = _hash(body, files, planning, target)
+        plan.tenant = config.DOMAIN
+        plan.hash = journal.plan_hash({"legacy": plan.legacy_hash, "record": plan.record_hash,
+                                       "metadata": meta.fingerprint.hash, "tenant": plan.tenant}) or ""
         review.plan_hash = plan.hash
     return plan
 
@@ -619,6 +627,9 @@ def execute(plan: Plan, client: Any, *, duplicate: str = "append", attach_flow: 
 
     if not plan.ok:
         raise FlowExit(2, "plan has problems: " + "; ".join(plan.errors))
+    if plan.action == "update":
+        from fsv.change_form_update import send
+        return send(plan, client, reviewed_hash=plan.hash)
     steps: list[dict[str, Any]] = []
     uploaded: list[dict[str, Any]] = []
     paths = plan.files.get("attachments") or []

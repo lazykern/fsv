@@ -3519,26 +3519,32 @@ def _make_subapp(res: Resource) -> typer.Typer:
             guard(run)
 
         @sub.command("tasks-delete", help="Delete a change task.", epilog=(
-            "[bold]Examples:[/bold]  fsv changes tasks-delete CHN-1234 987 --dry-run  |  fsv changes tasks-delete CHN-1234 987 --yes"
+            "[bold]Examples:[/bold]  fsv changes tasks-delete CHN-1234 987 --dry-run  |  fsv changes tasks-delete CHN-1234 987 --yes --expect-plan FULL_HASH"
         ))
         def task_delete(
             id_: str = typer.Argument(..., metavar="CHANGE_ID"),
             task_id: int = typer.Argument(..., metavar="TASK_ID", autocompletion=_complete_task_id),
             dry_run: bool = typer.Option(False, "--dry-run", help="print target without deleting"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm deletion"),
+            expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+            json_out: bool = typer.Option(False, "--json"),
         ) -> None:
+            from fsv import change_task_delete
+            from fsv.reviewed_write import ReviewedWriteError
             try:
-                cid = _cid(id_, res)
-                payload = {"action": "delete_task", "change_id": cid, "task_id": task_id}
+                c = _client()
+                plan = change_task_delete.build_plan(c, id_, task_id)
                 if dry_run:
-                    emit_json(payload)
+                    emit_json({"status": "dry_run", **plan.review()})
                     return
-                if not yes:
-                    if _no_input() or not sys.stdin.isatty():
-                        _err("pass --yes to delete task")
-                    typer.confirm(f"Delete task {task_id} from {format_id({'id': cid}, res)}?", abort=True)
-                _api(lambda: delete_task(cid, task_id))
-                console.print(f"[green]deleted[/] task {task_id} from #{cid}")
+                if not yes or expect_plan != plan.hash:
+                    raise ReviewedWriteError("review with --dry-run, then --yes --expect-plan FULL_HASH")
+                result = change_task_delete.send(plan, c, reviewed_hash=expect_plan)
+                emit_json(result)
+                if not result.get("verified"):
+                    raise typer.Exit(4)
+            except (ValueError, ReviewedWriteError) as exc:
+                _err(str(exc))
             except (SessionError, APIError) as e:
                 _err_exc(e)
 

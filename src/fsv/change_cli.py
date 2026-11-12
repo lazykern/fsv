@@ -466,9 +466,14 @@ def update_command(
     except PartialFailure as e:
         raise _report_partial(e, "change") from None
     if as_json:
-        print(json.dumps({"updated": result["result"], "plan_hash": result["plan_hash"], "steps": result["steps"]},
-                         indent=2, default=str, ensure_ascii=False))
+        print(json.dumps({"updated": result["result"], "plan_hash": result["plan_hash"], "steps": result["steps"],
+                          "verified": result.get("verified", False), "fields": result.get("fields", {}),
+                          "warning": result.get("warning")}, indent=2, default=str, ensure_ascii=False))
+        if not result.get("verified"):
+            raise FlowExit(4, "Change update readback unverified; do not resend")
         return
+    if not result.get("verified"):
+        raise FlowExit(4, "Change update readback unverified; do not resend")
     console.print(f"[green]updated[/] {subject}", highlight=False)
     for s in result["steps"][1:]:
         console.print(f"  [green]ok[/] {s['step']}", highlight=False)

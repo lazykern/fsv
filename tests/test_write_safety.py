@@ -138,7 +138,7 @@ def test_same_status_is_not_gated(fake, monkeypatch):
 
 def test_reassign_gated(fake, monkeypatch):
     import acme_change_form as A
-    acme = A.FakeClient()
+    acme = A.FakeClient(change=A.record(id=1, human_display_id="CHN-1"))
     monkeypatch.setattr(cli, "_client", lambda: acme)
     r = runner.invoke(cli.app, ["changes", "update", "CHN-1", "--group", "999"])
     assert r.exit_code == 2 and not fake.writes

@@ -660,3 +660,40 @@ values produces a plan. Ticket task creation already blocked its required custom
 field; its existing `tickets tasks add --set FIELD=VALUE` succeeds in dry-run when
 provided. Both checks exercised the real client with non-GET requests disabled;
 no live task was created or updated.
+
+
+## Main-TUI send-path audit
+
+Enabled reply, ticket-note, approval, task, planning-text and property sends use
+shared CLI plans and durable single-attempt senders, not legacy service helpers.
+`tests/test_tui_send_transport.py` is a headless Textual Pilot harness over real
+`Client`/`httpx.MockTransport`: fifteen action paths, exact reviewed HTTP payloads,
+no mutation requests on cancel (including the second public consent), read-only changes
+after review, independent GETs, 403/429/500/disconnect, unavailable readback and
+refused replay. It also exercises the actual full change property form. These
+are synthetic offline transport proofs, not live mutation certification.
+
+Audit fixes:
+
+- Ticket/SR status uses the reviewed property builder. Change status uses the
+  full form/rule builder and exact payload/hash review, not a legacy status PUT.
+- Change property updates now bind tenant, full fresh record and metadata to the
+  review. CLI and TUI use one journaled PUT plus exact-target field readback.
+  Unresolved prior payload-only update hashes remain blocked. Unknown outcomes
+  cannot be replayed; JSON exposes verification, and unavailable/mismatched
+  readback is nonzero from the CLI. Combined property/files/planning form sends
+  are refused; use separate reviewed operations instead of a legacy transaction.
+- Change task update/delete use shared reviewed builders. `tasks-delete` now
+  needs `--yes --expect-plan FULL_HASH` after dry-run; deletion verifies the
+  complete remaining ID set, not just absence of the removed task. The native
+  `PUT tasks/update` body is unchanged.
+- Problem notes use the CLI's body-only reviewed note plan. The composer and
+  review explicitly say visibility/notification semantics are not proven; they
+  never promise private notes or invent a `private` field.
+- Change-note sending is disabled in the main TUI: no shared reviewed CLI
+  contract establishes its visibility semantics. Use the web form. Legacy
+  generic TUI reply/note/status/task entrypoints fail closed, even if called
+  directly. Other legacy CLI helpers remain compatibility paths, not certified
+  reviewed operations.
+- Verified task/note/form outcomes remain visible, rather than disappearing
+  into a success toast. Ambiguous/unverified results have no retry action.

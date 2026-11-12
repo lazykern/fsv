@@ -93,12 +93,19 @@ its availability on a particular tenant is not claimed. Group names and those
 two statuses may perform GETs even in a dry run; numeric groups with Open /
 In Progress and numeric/no owner remain local-only.
 
-### Update gap
+### Reviewed update and deletion
 
-`tasks-update` is intentionally unchanged: the evidence contains no task edit
-attempt or PUT capture proving `description`, `planned_effort` or `notify_before`
-keys. Create POST evidence alone does not authorize adding `--note`,
-`--planned-effort` or `--notify-before` to the update flow.
+Method-specific update evidence is now covered by the shared reviewed
+`tasks-update` builder (see `docs/reviewed-parity.md`, Change task update).
+The main TUI uses that builder for its one-field task editor, not the legacy
+service helper.
+
+`tasks-delete CHN-1234 TASK_ID --dry-run --json` reviews the native
+`PUT tasks/update` action. Send only with `--yes --expect-plan FULL_HASH`.
+The TUI delete action shows the same plan and requires explicit confirmation.
+Fresh complete inventory must match review; independent readback requires the
+removed ID to be absent and every other task ID preserved. Ambiguous sends
+are journal-guarded and never replayed.
 
 **Never is a reminder setting, not a guarantee of no notifications.** Creating
 or assigning a task may notify people and trigger tenant workflows.

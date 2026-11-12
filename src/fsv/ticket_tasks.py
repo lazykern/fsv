@@ -97,11 +97,13 @@ def custom_values(fields: list[dict[str, Any]], values: dict[str, Any]) -> dict[
 
 
 def build_plan(client: Any, target: str | int, *, action: str, task: str | int | None = None,
-               title: str | None = None, status: str | None = "Open", values: dict[str, Any] | None = None,
+               title: str | None = None, status: str | None = None, values: dict[str, Any] | None = None,
                owner: str | None = None, group: str | None = None) -> TaskPlan:
     target = positive_id(parse_id(str(target), TICKETS))
     if action not in {"add", "update", "status", "delete"}:
         raise ValueError("unknown task action")
+    if status is None and action in {"add", "status"}:
+        status = "Open"
     before = inventory(client, target)
     fields = fields_from(client)
     tid = positive_id(task) if action != "add" else None

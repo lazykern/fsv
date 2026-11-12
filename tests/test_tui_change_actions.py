@@ -33,10 +33,11 @@ class Client:
     ("task-update", {"status": 3}, ("PUT", "changes/9000001001/tasks/9000001002", {"status": 3})),
     ("task-delete", {}, ("PUT", "changes/9000001001/tasks/update", {"id": "9000001002", "action": "delete"})),
 ])
-def test_exact_helper_one_send(kind, body, expected):
+def test_legacy_task_helper_requires_reviewed_sender(kind, body, expected):
     client = Client()
-    actions.apply_change_action(kind, ITEM["id"], TARGET, body, client)
-    assert client.calls == [expected]
+    with pytest.raises(ValueError, match="reviewed"):
+        actions.apply_change_action(kind, ITEM["id"], TARGET, body, client)
+    assert client.calls == []
 
 
 @pytest.mark.parametrize("kind", ["task-update", "task-delete", "link", "unlink", "download"])
@@ -45,6 +46,15 @@ def test_selected_action_review(offline, monkeypatch, kind, confirm):
     from fsv import task_status
     monkeypatch.setattr(task_status, "fields_from", lambda client: STATUS_FIELDS)
     sent = []
+    from fsv import change_task_delete, change_task_update
+    from fsv.reviewed_write import WritePlan
+    import json
+    monkeypatch.setattr(change_task_delete, "build_plan", lambda *a, **k: WritePlan(
+        "change_task_delete", 11, "acme.example.com", "PUT", "changes/11/tasks/update", json.dumps({"id": str(TARGET["id"]), "action": "delete"}), "baseline"))
+    monkeypatch.setattr(change_task_update, "build_plan", lambda client, cid, tid, inputs: WritePlan(
+        "change_task_update", cid, "acme.example.com", "PUT", f"changes/{cid}/tasks/{tid}", json.dumps(inputs), "baseline"))
+    for flow in (change_task_delete, change_task_update):
+        monkeypatch.setattr(flow, "send", lambda *args, **kwargs: sent.append(args) or {"verified": True})
     monkeypatch.setattr(create, "get_task_for_edit", lambda *a, **kw: TARGET.copy())
     monkeypatch.setattr(actions, "apply_change_action", lambda *args: sent.append(args) or {"verified": True})
     monkeypatch.setattr(actions, "download_selected", lambda *args: sent.append(args) or {"status": "downloaded", "path": "acme.txt"})
@@ -69,6 +79,8 @@ def test_selected_action_review(offline, monkeypatch, kind, confirm):
             if kind == "download":
                 assert isinstance(app.screen, ValueScreen)
                 await pilot.press("enter")
+            await app.workers.wait_for_complete()
+            await pilot.pause()
             assert isinstance(app.screen, ConfirmScreen)
             if kind in ("link", "unlink"):
                 from fsv.change_associations import build_plan
@@ -107,19 +119,27 @@ def test_action_failure_no_retry(offline, monkeypatch, stage):
         sends.append(args)
         if stage == "write":
             raise TimeoutError("outcome unknown")
-    monkeypatch.setattr(actions, "apply_change_action", send)
+    from fsv import change_task_delete
+    from fsv.reviewed_write import WritePlan
+    monkeypatch.setattr(change_task_delete, "build_plan", lambda *a, **k: WritePlan(
+        "change_task_delete", 11, "acme.example.com", "PUT", "changes/11/tasks/update", '{"id":"22","action":"delete"}', "baseline"))
+    monkeypatch.setattr(change_task_delete, "send", lambda *args, **kwargs: send(*args) or {"verified": False, "warning": "readback unverified"})
     monkeypatch.setattr(V, "load_tab", lambda *a: V.TabData("tasks", "Tasks", data=[], meta={"complete": False}))
     async def go():
         app = FsvApp()
         async with app.run_test() as pilot:
             app._confirm_action("task-delete", ITEM, TARGET, {})
+            await app.workers.wait_for_complete()
+            await pilot.pause()
             await pilot.press("y")
             await app.workers.wait_for_complete()
             await pilot.pause()
-            assert isinstance(app.screen, FailureScreen)
-            assert "unknown" in app.screen.message or "unverified" in app.screen.message
-            await pilot.press("escape", "!")
-            assert isinstance(app.screen, FailureScreen)
+            from fsv.tui.modals import OutcomeScreen
+            assert isinstance(app.screen, FailureScreen if stage == "write" else OutcomeScreen)
+            if stage == "write":
+                assert "unknown" in app.screen.message
+                await pilot.press("escape", "!")
+                assert isinstance(app.screen, FailureScreen)
     asyncio.run(go())
     assert len(sends) == 1
 

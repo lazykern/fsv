@@ -114,17 +114,29 @@ def test_delete_dry_run_and_confirmation(monkeypatch):
     sent = []
 
     class FakeClient:
-        def int_put(self, path, body):
-            sent.append((path, body))
+        rows = [{"id": 73, "title": "Acme task"}]
+        def int_get(self, path, params=None):
+            return {"tasks": list(self.rows), "meta": {"count": len(self.rows)}}
+        def _get_csrf(self):
+            return "synthetic"
+        def _request(self, method, path, **kwargs):
+            body = json.loads(kwargs["content"])
+            sent.append(("changes/41/tasks/update", body))
+            self.rows = []
             return {}
 
-    monkeypatch.setattr(create, "get_client", lambda: FakeClient())
+    c = FakeClient()
+    monkeypatch.setattr(config, "DOMAIN", "acme.example.com")
+    monkeypatch.setattr(cli, "_client", lambda: c)
     runner = CliRunner()
     args = ["changes", "tasks-delete", "CHN-41", "73"]
     result = runner.invoke(cli.app, args + ["--dry-run"])
     assert result.exit_code == 0 and not sent
-    assert json.loads(result.output) == {"action": "delete_task", "change_id": 41, "task_id": 73}
+    review = json.loads(result.output)
+    assert review["payload"] == {"id": "73", "action": "delete"}
+    assert review["plan_hash"]
     result = runner.invoke(cli.app, args)
     assert result.exit_code != 0 and not sent
-    result = runner.invoke(cli.app, args + ["--yes"])
+    assert runner.invoke(cli.app, args + ["--yes"]).exit_code != 0 and not sent
+    result = runner.invoke(cli.app, args + ["--yes", "--expect-plan", review["plan_hash"]])
     assert result.exit_code == 0 and sent == [("changes/41/tasks/update", {"id": "73", "action": "delete"})]

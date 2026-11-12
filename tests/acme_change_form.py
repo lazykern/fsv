@@ -200,5 +200,22 @@ class FakeClient:
         self.calls.append(("PUT", path, body))
         return {"change": {"id": int(path.split("/")[1]) if path.split("/")[1].isdigit() else 0}}
 
+    def _get_csrf(self):
+        return "synthetic"
+
+    def _request(self, method, url, **kwargs):
+        import json
+        from urllib.parse import urlsplit
+        path = urlsplit(url).path.removeprefix("/api/_/")
+        assert method == "PUT" and path.startswith("changes/")
+        body = json.loads(kwargs["content"])
+        result = self.int_put(path, body)
+        for key, value in body.items():
+            if key == "custom_fields":
+                self.change.setdefault(key, {}).update(value)
+            else:
+                self.change[key] = value
+        return result
+
     def writes(self) -> list[tuple[str, str, Any]]:
         return [c for c in self.calls if c[0] in ("POST", "PUT")]

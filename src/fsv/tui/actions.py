@@ -1,9 +1,8 @@
 """Service-layer helpers for TUI write actions (no Textual imports).
 
-Everything here is synchronous and talks to ``fsv.service`` through the module
-attribute, so tests can substitute the service functions. Writes go through the
-shared client, which journals every non-GET request, so no extra recording is
-needed here.
+Reviewed writes are prepared and confirmed in the app using shared CLI builders
+and durable single-attempt senders. Legacy status/note/reply/task helper entrypoints
+fail closed: a transport audit alone is not a pre-send ambiguity guard.
 """
 from __future__ import annotations
 
@@ -87,17 +86,15 @@ def note_plan(resource: Resource, public: bool, reply: bool) -> ConfirmPlan:
 
 
 def apply_status(resource: Resource, item_id: int, new_id: Any) -> dict[str, Any]:
-    return service.update_item(resource, item_id, {"status": new_id})
+    raise ValueError("Status requires the shared reviewed property/form sender")
 
 
 def apply_note(resource: Resource, item_id: int, body: str, public: bool) -> dict[str, Any]:
-    if resource.name == "tickets":
-        raise ValueError("Ticket notes require the reviewed ticket-note sender")
-    return service.add_note(resource, item_id, body, public=public)
+    raise ValueError("Notes require a shared reviewed note sender; legacy visibility is not proven")
 
 
 def apply_reply(resource: Resource, item_id: int, body: str) -> dict[str, Any]:
-    return service.add_reply(resource, item_id, body)
+    raise ValueError("Replies require the shared reviewed conversation sender")
 
 
 def clean_error(exc: BaseException) -> str:
@@ -151,11 +148,8 @@ def task_patch(current: dict, field: str, value: Any, fields: list[dict] | None 
 
 def apply_change_action(kind: str, change_id: int, target: dict, body: dict, client: Any) -> Any:
     """One helper invocation, with no fallback or write retry here."""
-    from fsv import create
-    if kind == "task-update":
-        create.update_task(change_id, target["id"], body, c=client)
-    elif kind == "task-delete":
-        create.delete_task(change_id, target["id"], c=client)
+    if kind in {"task-update", "task-delete"}:
+        raise ValueError("Task mutations require the shared reviewed task sender")
     elif kind in ("link", "unlink"):
         from fsv.change_associations import build_plan, send
         plan = target.get("_association_plan")

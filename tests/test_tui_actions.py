@@ -32,6 +32,23 @@ def calls(monkeypatch):
     monkeypatch.setattr(FsvApp, "_load_list", lambda self, append=False: None)
     monkeypatch.setattr(FsvApp, "_load_detail", lambda self, item, key: None)
     monkeypatch.setattr(actions.config, "load_config", lambda: {})
+    from types import SimpleNamespace
+    from fsv import ticket_notes
+    monkeypatch.setattr("fsv.tui.app.get_client", lambda: object())
+    def session(client, **kwargs):
+        values = {}
+        plan = SimpleNamespace(ok=True, errors=[], hash="synthetic-review", to_json=lambda: {
+            "plan_hash": "synthetic-review", "payload": values, "warning": "change status -> Review"})
+        def send(plan):
+            service.update_item(CHANGES, 42, values)
+            return {"verified": True}
+        return SimpleNamespace(set=lambda k, v: values.update({k: v}) or SimpleNamespace(error=""),
+                               build_plan=lambda: plan, send=send)
+    monkeypatch.setattr("fsv.formui.change_session", session)
+    monkeypatch.setattr(ticket_notes, "send", lambda plan, client, **kw:
+                        log.append(("note", "tickets", plan.ticket_id,
+                                    "hello" if "hello" in plan.body_html else "hi", plan.public)) or
+                        {"note_id": 901, "verified": True})
     return log
 
 
@@ -55,6 +72,8 @@ def test_status_cancel_makes_no_call(calls):
             await pilot.press("escape")
             assert not isinstance(app.screen, StatusScreen)
             await pilot.press("s", "down", "enter")
+            await app.workers.wait_for_complete()
+            await pilot.pause()
             assert isinstance(app.screen, ConfirmScreen)
             await pilot.click("#cancel")
             await pilot.pause()
@@ -68,6 +87,8 @@ def test_status_confirm_one_call_with_safety_text(calls):
         app = _app(CHANGES)
         async with app.run_test() as pilot:
             await pilot.press("s", "down", "enter")  # highlighted starts at current (Open) -> Review
+            await app.workers.wait_for_complete()
+            await pilot.pause()
             body = str(app.screen.query_one("#confirm-body").render())
             assert "change status -> Review" in body
             await pilot.click("#confirm")
@@ -86,7 +107,7 @@ def test_ticket_every_status_transition_warns(calls):
 
 def test_private_note_requires_confirm(calls):
     async def go():
-        app = _app(CHANGES)
+        app = _app(TICKETS)
         async with app.run_test() as pilot:
             await pilot.press("n")
             assert isinstance(app.screen, NoteScreen)
@@ -99,19 +120,19 @@ def test_private_note_requires_confirm(calls):
             await app.workers.wait_for_complete()
             await pilot.pause()
     run(go())
-    assert calls == [("note", "changes", 42, "hello", False)]
+    assert calls == [("note", "tickets", 42, "hello", False)]
 
 
 def test_public_note_requires_confirm_and_cancel_sends_nothing(calls):
     async def go():
-        app = _app(CHANGES)
+        app = _app(TICKETS)
         async with app.run_test() as pilot:
             await pilot.press("n")
             app.screen.query_one(TextArea).text = "hi"
             await pilot.press("ctrl+t")
             await pilot.press("ctrl+s")
             assert isinstance(app.screen, ConfirmScreen)
-            assert "public note" in str(app.screen.query_one("#confirm-body").render())
+            assert "ticket note" in app.screen._title
             await pilot.press("escape")
             await pilot.pause()
     run(go())
@@ -120,15 +141,16 @@ def test_public_note_requires_confirm_and_cancel_sends_nothing(calls):
 
 def test_public_note_confirmed(calls):
     async def go():
-        app = _app(CHANGES)
+        app = _app(TICKETS)
         async with app.run_test() as pilot:
             await pilot.press("n")
             app.screen.query_one(TextArea).text = "hi"
             await pilot.press("ctrl+t", "ctrl+s")
             await pilot.click("#confirm")
+            await pilot.click("#confirm")
             await app.workers.wait_for_complete()
     run(go())
-    assert calls == [("note", "changes", 42, "hi", True)]
+    assert calls == [("note", "tickets", 42, "hi", True)]
 
 
 def test_ticket_reply_from_detail_pane(calls, monkeypatch):
@@ -158,7 +180,7 @@ def test_ticket_reply_from_detail_pane(calls, monkeypatch):
 
 def test_empty_note_not_submitted(calls):
     async def go():
-        app = _app(CHANGES)
+        app = _app(TICKETS)
         async with app.run_test() as pilot:
             await pilot.press("n", "ctrl+s")
             assert isinstance(app.screen, NoteScreen)
@@ -197,6 +219,8 @@ def test_error_becomes_persistent_not_crash(calls, monkeypatch):
         app.notify = lambda m, **k: toasts.append((m, k.get("severity"))) or orig(m, **k)
         async with app.run_test() as pilot:
             await pilot.press("s", "down", "enter")
+            await app.workers.wait_for_complete()
+            await pilot.pause()
             await pilot.click("#confirm")
             await app.workers.wait_for_complete()
             await pilot.pause()
@@ -212,7 +236,7 @@ def test_status_choices_from_schema():
 
 def test_typing_in_note_does_not_trigger_app_keys(calls):
     async def go():
-        app = _app(CHANGES)
+        app = _app(TICKETS)
         async with app.run_test() as pilot:
             await pilot.press("n", "q", "o", "y")
             assert app.is_running and isinstance(app.screen, NoteScreen)
