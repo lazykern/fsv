@@ -129,6 +129,7 @@ class CloneClient:
                 "status": 2,
                 "subject": "demo",
                 "associated_cis_and_services_ids": {"x": 1},
+                "attached_risk_survey_response_status": "completed",
             }
         }
 
@@ -138,6 +139,7 @@ def test_change_clone_data_strips_internal_associations():
 
     assert data["status"] == 1
     assert "associated_cis_and_services_ids" not in data
+    assert "attached_risk_survey_response_status" not in data
 
 
 class TaskUpdateClient:

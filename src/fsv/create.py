@@ -27,7 +27,7 @@ READ_ONLY_FIELDS = {
     "first_response_time", "ola_stopped_at",
     # computed status / display
     "status_name", "priority_name", "impact_name", "risk_name",
-    "approval_status", "approval_type", "summary_status",
+    "approval_status", "approval_type", "summary_status", "attached_risk_survey_response_status",
     "resolution_time_taken", "total_time_spent", "timer_active_agents",
     "task_due_status", "is_editable", "status_ola_timer",
     # workflow / state machine
