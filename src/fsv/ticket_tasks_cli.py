@@ -19,7 +19,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
     def list_(target: str, json_out: bool = typer.Option(False, "--json")) -> None:
         typer.echo(json.dumps(flow.inventory(client_factory(), parse_id(target, TICKETS)), indent=2))
 
-    def run(target, action, task, title, status, sets, dry_run, yes, expected):
+    def run(target, action, task, title, status, sets, dry_run, yes, expected, owner=None, group=None):
         try:
             values = {}
             for item in sets or []:
@@ -28,7 +28,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                     raise ValueError("--set requires unique FIELD=VALUE")
                 values[key] = value
             client = client_factory()
-            plan = flow.build_plan(client, target, action=action, task=task, title=title, status=status, values=values)
+            plan = flow.build_plan(client, target, action=action, task=task, title=title, status=status, values=values, owner=owner, group=group)
             if dry_run:
                 typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
                 return
@@ -44,10 +44,19 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
 
     @tasks.command("add")
     def add(target: str, title: str = typer.Option(..., "--title"), status: str = typer.Option("Open", "--status"),
+            owner: Optional[str] = typer.Option(None, "--owner"), group: Optional[str] = typer.Option(None, "--group"),
             set_: Optional[list[str]] = typer.Option(None, "--set"), dry_run: bool = typer.Option(False, "--dry-run"),
             yes: bool = typer.Option(False, "--yes"), expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
             json_out: bool = typer.Option(False, "--json")) -> None:
-        run(target, "add", None, title, status, set_, dry_run, yes, expect_plan)
+        run(target, "add", None, title, status, set_, dry_run, yes, expect_plan, owner, group)
+
+    @tasks.command("update")
+    def update(target: str, task: str, title: Optional[str] = typer.Option(None, "--title"),
+               owner: Optional[str] = typer.Option(None, "--owner"), group: Optional[str] = typer.Option(None, "--group"),
+               dry_run: bool = typer.Option(False, "--dry-run"), yes: bool = typer.Option(False, "--yes"),
+               expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+               json_out: bool = typer.Option(False, "--json")) -> None:
+        run(target, "update", task, title, None, [], dry_run, yes, expect_plan, owner, group)
 
     @tasks.command("status")
     def status_(target: str, task: str, to: str = typer.Option(..., "--to"), dry_run: bool = typer.Option(False, "--dry-run"),

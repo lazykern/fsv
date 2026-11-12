@@ -175,6 +175,67 @@ def test_readback_is_independent(api, mode):
     assert len(s["writes"]) == 1
 
 
+@pytest.mark.parametrize("action", ["add", "update"])
+def test_owner_group_reviewed_cli(api, monkeypatch, action):
+    c, s, fields, n = api
+    fields.extend([{"name": "owner_id"}, {"name": "group_id"}])
+    monkeypatch.setattr(c, "autocomplete", lambda kind, value: [
+        {"id": "agent@example.com", "user_id": 81, "value": "Acme Agent"}])
+    if action == "update":
+        s["rows"] = [{"id": 701, "title": "Acme existing", "owner_id": 80, "group_id": 90}]
+    args = ["tickets", "tasks", action, "123"] + (["701"] if action == "update" else
+            ["--title", "Acme task", "--set", "Tier=Standard"])
+    args += ["--owner", "agent@example.com", "--group", "91"]
+    runner = CliRunner()
+    result = runner.invoke(cli.app, args + ["--dry-run", "--json"])
+    assert result.exit_code == 0, result.output
+    plan = json.loads(result.output)
+    assert plan["payload"]["owner_id"] == 81 and plan["payload"]["group_id"] == 91
+    if action == "update":
+        assert plan["payload"] == {"owner_id": 81, "group_id": 91}
+    assert not s["writes"]
+    result = runner.invoke(cli.app, args + ["--yes", "--expect-plan", plan["plan_hash"]])
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output)["verified"] and len(s["writes"]) == 1
+    assert s["writes"][0][:2] == (("POST", "/api/_/tickets/123/tasks") if action == "add" else
+                                 ("PUT", "/api/_/tickets/123/tasks/701"))
+
+
+@pytest.mark.parametrize("key", ["owner", "group"])
+@pytest.mark.parametrize("metadata", ["missing", "deleted", "duplicate"])
+def test_assignment_requires_unique_active_form_field(api, key, metadata):
+    c, s, fields, _ = api
+    if metadata != "missing":
+        field = {"name": key + "_id"}
+        if metadata == "deleted":
+            field["deleted"] = True
+        fields.append(field)
+        if metadata == "duplicate":
+            fields.append(dict(field))
+    with pytest.raises(ReviewedWriteError, match="task field unavailable"):
+        flow.build_plan(c, 123, action="add", title="Acme", values={"Tier": "Standard"}, **{key: "81"})
+    assert not s["writes"]
+
+
+@pytest.mark.parametrize("value", ["me", "Acme Agent", "0", "-1", "81x", " agent@example.com"])
+def test_owner_ids_or_exact_email_only(api, value):
+    c, s, fields, _ = api
+    fields.append({"name": "owner_id"})
+    with pytest.raises((ValueError, ReviewedWriteError)):
+        flow.build_plan(c, 123, action="add", title="Acme", values={"Tier": "Standard"}, owner=value)
+    assert not s["writes"]
+
+
+def test_assignment_metadata_drift_blocks_send(api):
+    c, s, fields, _ = api
+    fields.append({"name": "owner_id"})
+    plan = flow.build_plan(c, 123, action="add", title="Acme", values={"Tier": "Standard"}, owner="81")
+    fields.pop()
+    with pytest.raises(ReviewedWriteError):
+        flow.send(plan, c, reviewed_hash=plan.hash)
+    assert not s["writes"]
+
+
 def test_cli_full_hash(api):
     _, s, _, _ = api
     runner = CliRunner()

@@ -91,6 +91,12 @@ create. `notify_before` (Never) is sent only when the metadata defines it.
 `workspace_id` comes from the parent ticket and is not sent. Custom keys are sent
 without the `cf_` prefix, like the web form. Every required field fsv cannot fill
 is listed in one error. Unsupported custom types block rather than guess.
+`add` and `update` accept `--owner USER_ID_OR_EXACT_EMAIL` and `--group ID_OR_EXACT_NAME`
+only when fresh task metadata defines unique active `owner_id`/`group_id` fields.
+Email uses the shared active-agent resolver; names and implicit self assignment
+are not accepted for owners. Update submits only supplied title/assignment fields.
+The resolved IDs and fresh form/inventory are hash-bound and checked before send.
+
 Deletion uses the native PUT tasks/update action, not DELETE. Complete inventory
 and metadata drift checks precede one journaled attempt; independent exact-ID
 readback compares submitted values. Missing or partial readback is unverified

@@ -97,9 +97,10 @@ def custom_values(fields: list[dict[str, Any]], values: dict[str, Any]) -> dict[
 
 
 def build_plan(client: Any, target: str | int, *, action: str, task: str | int | None = None,
-               title: str | None = None, status: str = "Open", values: dict[str, Any] | None = None) -> TaskPlan:
+               title: str | None = None, status: str | None = "Open", values: dict[str, Any] | None = None,
+               owner: str | None = None, group: str | None = None) -> TaskPlan:
     target = positive_id(parse_id(str(target), TICKETS))
-    if action not in {"add", "status", "delete"}:
+    if action not in {"add", "update", "status", "delete"}:
         raise ValueError("unknown task action")
     before = inventory(client, target)
     fields = fields_from(client)
@@ -111,14 +112,32 @@ def build_plan(client: Any, target: str | int, *, action: str, task: str | int |
         payload = {"id": str(tid), "action": "delete"}
         path += "/update"
     else:
-        payload: dict[str, Any] = {"status": task_status.resolve(status, fields)[0]}
-        if action == "status":
+        payload: dict[str, Any] = {}
+        if status is not None:
+            payload["status"] = task_status.resolve(status, fields)[0]
+        if action in {"status", "update"}:
             path += f"/{tid}"
-        else:
-            if not isinstance(title, str) or not title.strip() or any(ord(c) < 32 for c in title):
-                raise ValueError("nonempty task title without controls required")
-            payload["title"] = title
-            if any(f.get("name") == "notify_before" for f in fields):
+        if action in {"add", "update"}:
+            if action == "add" or title is not None:
+                if not isinstance(title, str) or not title.strip() or any(ord(c) < 32 for c in title):
+                    raise ValueError("nonempty task title without controls required")
+                payload["title"] = title
+            for key, value in (("owner_id", owner), ("group_id", group)):
+                if value is None:
+                    continue
+                matches = [f for f in fields if f.get("name") == key and not any(
+                    f.get(k) for k in ("deleted", "is_deleted", "deleted_at"))]
+                if len(matches) != 1:
+                    raise ReviewedWriteError("unique active task field unavailable: " + key)
+                if key == "owner_id":
+                    from fsv.agent_lookup import exact_agent_id, is_email
+                    payload[key] = exact_agent_id(client, value) if is_email(value) else positive_id(value)
+                else:
+                    from fsv.change_tasks import resolve_group
+                    payload[key] = resolve_group(value, client)
+                    if payload[key] is None:
+                        raise ValueError("group must be a positive ID or exact name")
+            if action == "add" and any(f.get("name") == "notify_before" for f in fields):
                 payload["notify_before"] = reminder(fields)
             custom = custom_values(fields, values or {})
             def answered(field: dict[str, Any]) -> bool:
@@ -128,10 +147,17 @@ def build_plan(client: Any, target: str | int, *, action: str, task: str | int |
                 key = name[3:] if field.get("default") is False and name.startswith("cf_") else name
                 return custom.get(key) not in (None, "")
             missing = [str(f.get("label") or f.get("name")) for f in fields if required_for_create(f) and not answered(f)]
-            if missing:
+            if action == "add" and missing:
                 raise ReviewedWriteError("required task fields missing: " + ", ".join(missing))
-            payload["custom_fields"] = custom
+            if action == "add" or values:
+                payload["custom_fields"] = custom
+            if not payload:
+                raise ValueError("provide at least one task update field")
     inputs = {"action": action, "task": task, "title": title, "status": status, "values": values}
+    if owner is not None:
+        inputs["owner"] = owner
+    if group is not None:
+        inputs["group"] = group
     return TaskPlan("ticket_task_" + action, target, config.DOMAIN, "POST" if action == "add" else "PUT",
                     path, json.dumps(payload, sort_keys=True), journal.snapshot_hash({"before": before, "fields": fields}) or "",
                     json.dumps(inputs, sort_keys=True))
