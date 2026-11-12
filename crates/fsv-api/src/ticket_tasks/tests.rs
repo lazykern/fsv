@@ -1,4 +1,4 @@
-//! Replays `gen_fsv_api_ticket_tasks.py` cases (Python c46d3b0, 6e598b2, 39e4853).
+//! Replays `gen_fsv_api_ticket_tasks.py` cases (Python c46d3b0, 6e598b2, 39e4853, 4626e12).
 
 use std::sync::{Arc, Mutex};
 
@@ -18,7 +18,8 @@ fn task_fields(n: i64) -> Value {
 
 fn new_state(n: i64) -> Value {
     json!({"rows": [], "fail": null, "partial": false, "partial_after": false, "mismatch": false,
-           "fields": task_fields(n), "fields_key": "ticket_task_fields", "response": null, "requests": []})
+           "fields": task_fields(n), "fields_key": "ticket_task_fields", "response": null, "requests": [],
+           "agents": []})
 }
 
 fn write(s: &mut Value, call: &Call) -> Result<Value> {
@@ -75,6 +76,7 @@ fn api(state: Arc<Mutex<Value>>) -> FnApi {
                 let key = s["fields_key"].as_str().unwrap().to_string();
                 Ok(json!({key: s["fields"]}))
             }
+            "autocomplete/agents" => Ok(s.get("agents").cloned().unwrap_or_else(|| json!([]))),
             "tickets/123/tasks" => {
                 if s["partial"] == true {
                     return Err(ApiError::new(403, json!({"error": "denied"})).into());
@@ -108,7 +110,7 @@ fn cases_match_python() {
     let oracle: Value =
         serde_json::from_str(include_str!("../testdata/ticket_tasks_oracle.json")).unwrap();
     let cases = oracle.as_object().unwrap();
-    assert_eq!(cases.len(), 37);
+    assert_eq!(cases.len(), 46);
     for (name, case) in cases {
         if name == "_python" {
             continue;
@@ -127,7 +129,21 @@ fn cases_match_python() {
             let got: Option<Result<Value>> = match op["op"].as_str().unwrap() {
                 "build" => {
                     let target = op.get("target").map_or("INC-123".to_string(), py_str);
-                    Some(build_plan(&c, &target, &args(op)).map(|p| {
+                    let built = args(op);
+                    let status = match op.get("status") {
+                        None => Some(built.status.clone()),
+                        Some(Value::Null) => None,
+                        Some(Value::String(s)) => Some(s.clone()),
+                        Some(other) => Some(py_str(other)),
+                    };
+                    let owner = op.get("owner").and_then(Value::as_str);
+                    let group = op.get("group").and_then(Value::as_str);
+                    let planned = if owner.is_none() && group.is_none() && status.is_some() {
+                        build_plan(&c, &target, &built)
+                    } else {
+                        build_plan_assigned(&c, &target, &built, owner, group, status.as_deref())
+                    };
+                    Some(planned.map(|p| {
                         let w = &p.write;
                         let out = json!({"plan": {"action": w.action, "target": w.target, "tenant": w.tenant,
                             "method": w.method, "path": w.path, "payload_json": w.payload_json,

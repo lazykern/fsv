@@ -277,10 +277,24 @@ pub fn reminder(fields: &[Value]) -> Result<i64> {
 
 /// Port of ticket_tasks.build_plan: `add` (POST), `status` (PUT of the
 /// task) or `delete` (PUT `update`), bound to the inventory and metadata.
+/// `status` is always sent. Owner and group stay unset.
 pub fn build_plan(c: &dyn Api, target: &str, args: &TaskArgs) -> Result<TaskPlan> {
+    build_plan_assigned(c, target, args, None, None, Some(&args.status))
+}
+
+/// [`build_plan`] plus optional owner, group, and a status that can be
+/// omitted. `status == None` leaves status out of the payload (`update`).
+pub fn build_plan_assigned(
+    c: &dyn Api,
+    target: &str,
+    args: &TaskArgs,
+    owner: Option<&str>,
+    group: Option<&str>,
+    status: Option<&str>,
+) -> Result<TaskPlan> {
     let target = positive_id(&json!(parse_id(target, &TICKETS)?))?;
     let action = args.action.as_str();
-    if !matches!(action, "add" | "status" | "delete") {
+    if !matches!(action, "add" | "update" | "status" | "delete") {
         return Err(Error::value("unknown task action"));
     }
     let before = inventory(c, target)?;
@@ -304,28 +318,40 @@ pub fn build_plan(c: &dyn Api, target: &str, args: &TaskArgs) -> Result<TaskPlan
         path.push_str("/update");
         json!({"id": tid.to_string(), "action": "delete"})
     } else {
-        let status = task_status::resolve(&args.status, &fields)
-            .map_err(value_error)?
-            .0;
-        let mut payload = obj(json!({"status": status}));
-        if let Some(tid) = tid {
+        let mut payload = Map::new();
+        if let Some(status) = status {
+            let id = task_status::resolve(status, &fields)
+                .map_err(value_error)?
+                .0;
+            payload.insert("status".into(), json!(id));
+        }
+        if matches!(action, "status" | "update")
+            && let Some(tid) = tid
+        {
             path.push_str(&format!("/{tid}"));
-        } else {
-            let title = args.title.as_deref().unwrap_or_default();
-            if strip(title).is_empty() || title.chars().any(|ch| (ch as u32) < 32) {
-                return Err(Error::value(
-                    "nonempty task title without controls required",
-                ));
+        }
+        if matches!(action, "add" | "update") {
+            if action == "add" || args.title.is_some() {
+                let title = args.title.as_deref().unwrap_or_default();
+                if strip(title).is_empty() || title.chars().any(|ch| (ch as u32) < 32) {
+                    return Err(Error::value(
+                        "nonempty task title without controls required",
+                    ));
+                }
+                payload.insert("title".into(), json!(title));
             }
-            payload.insert("title".into(), json!(title));
-            if fields
-                .iter()
-                .any(|f| f.get("name") == Some(&json!("notify_before")))
+            assign_party(&mut payload, c, &fields, "owner_id", owner)?;
+            assign_party(&mut payload, c, &fields, "group_id", group)?;
+            if action == "add"
+                && fields
+                    .iter()
+                    .any(|f| f.get("name") == Some(&json!("notify_before")))
             {
                 payload.insert("notify_before".into(), json!(reminder(&fields)?));
             }
             let empty = Map::new();
-            let custom = custom_values(&fields, args.values.as_ref().unwrap_or(&empty))?;
+            let values = args.values.as_ref().unwrap_or(&empty);
+            let custom = custom_values(&fields, values)?;
             let answered = |field: &Value| {
                 let name = field.get("name").map_or_else(|| "None".to_string(), py_str);
                 if payload.contains_key(&name) || CONTEXT_FIELDS.contains(&name.as_str()) {
@@ -347,20 +373,31 @@ pub fn build_plan(c: &dyn Api, target: &str, args: &TaskArgs) -> Result<TaskPlan
                         .map_or_else(|| "None".to_string(), py_str)
                 })
                 .collect();
-            if !missing.is_empty() {
+            if action == "add" && !missing.is_empty() {
                 return Err(refused(format!(
                     "required task fields missing: {}",
                     missing.join(", ")
                 )));
             }
-            payload.insert("custom_fields".into(), Value::Object(custom));
+            if action == "add" || !values.is_empty() {
+                payload.insert("custom_fields".into(), Value::Object(custom));
+            }
+            if payload.is_empty() {
+                return Err(Error::value("provide at least one task update field"));
+            }
         }
         Value::Object(payload)
     };
-    let inputs = json!({
-        "action": action, "task": args.task, "title": args.title, "status": args.status,
-        "values": args.values,
+    let mut inputs = json!({
+        "action": action, "task": args.task, "title": args.title,
+        "status": status, "values": args.values,
     });
+    if let Some(owner) = owner {
+        inputs["owner"] = json!(owner);
+    }
+    if let Some(group) = group {
+        inputs["group"] = json!(group);
+    }
     Ok(TaskPlan {
         write: WritePlan {
             action: format!("ticket_task_{action}"),
@@ -373,6 +410,49 @@ pub fn build_plan(c: &dyn Api, target: &str, args: &TaskArgs) -> Result<TaskPlan
         },
         inputs_json: dumps(&inputs),
     })
+}
+
+fn assign_party(
+    payload: &mut Map<String, Value>,
+    c: &dyn Api,
+    fields: &[Value],
+    key: &str,
+    value: Option<&str>,
+) -> Result<()> {
+    let Some(value) = value else {
+        return Ok(());
+    };
+    let matches: Vec<&Value> = fields
+        .iter()
+        .filter(|f| {
+            f.get("name") == Some(&json!(key))
+                && !DELETED.iter().any(|k| f.get(*k).is_some_and(truthy))
+        })
+        .collect();
+    if matches.len() != 1 {
+        return Err(refused(format!(
+            "unique active task field unavailable: {key}"
+        )));
+    }
+    let id = if key == "owner_id" {
+        if crate::agent_lookup::is_email(value) {
+            let rows = c
+                .autocomplete("agents", value, None)
+                .map_err(|_| Error::value("could not resolve agent; lookup unavailable"))?;
+            crate::agent_lookup::exact_agent_id(&rows, value, false)?
+        } else {
+            positive_id(&json!(value))?
+        }
+    } else {
+        match crate::tasks::resolve_group(c, Some(value))? {
+            Some(id) => id,
+            None => {
+                return Err(Error::value("group must be a positive ID or exact name"));
+            }
+        }
+    };
+    payload.insert(key.into(), json!(id));
+    Ok(())
 }
 
 fn args_from(inputs: &Value) -> TaskArgs {
@@ -395,12 +475,35 @@ pub fn send(
 ) -> Result<Value> {
     let inputs = plan.inputs();
     let args = args_from(&inputs);
+    let status = match inputs.get("status") {
+        Some(Value::String(s)) => Some(s.clone()),
+        Some(Value::Null) | None => None,
+        Some(other) => Some(py_str(other)),
+    };
+    let owner = inputs
+        .get("owner")
+        .and_then(Value::as_str)
+        .map(str::to_string);
+    let group = inputs
+        .get("group")
+        .and_then(Value::as_str)
+        .map(str::to_string);
     let before_ids: Vec<i64> = inventory(c, plan.write.target)?
         .iter()
         .filter_map(|r| positive_id(&r["id"]).ok())
         .collect();
     let target = plan.write.target.to_string();
-    let rebuild = || build_plan(c, &target, &args).map(|p| p.hash());
+    let rebuild = || {
+        build_plan_assigned(
+            c,
+            &target,
+            &args,
+            owner.as_deref(),
+            group.as_deref(),
+            status.as_deref(),
+        )
+        .map(|p| p.hash())
+    };
     let verify = |response: &Value| -> Result<Map<String, Value>> {
         let rows = inventory(c, plan.write.target)?;
         let has = |tid: i64| {

@@ -2279,3 +2279,42 @@ keep `pick_lookup` on `value`, `id`, `email`, and `details`. The
 exact email, or full name.
 
 Still not triaged: none. Range through `e7c536b` is triaged.
+
+## Ledger: `4626e12` (library side)
+
+Triaged against a `git archive 4626e12` export
+(`FSV_PY_COMMIT=4626e1203103bb75bb764625345b6c0c0a4652e7`).
+`port/golden/gen_fsv_api_ticket_tasks.py` stamps
+`crates/fsv-api/src/testdata/ticket_tasks_oracle.json`. Existing
+add/status/delete plan hashes are unchanged.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `4626e12`.
+The partial is the fsv-cli ticket-task command, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `4626e12` | 11-12 17:51 | Add metadata-gated ticket task owner and group reviews | partial | fsv-api `ticket_tasks`. fsv-cli follow-up below |
+
+`build_plan` is unchanged: status is always sent, and owner and group
+stay unset. `build_plan_assigned` adds an optional owner, an optional
+group, and a status that can be omitted. `TaskArgs` has no new fields.
+An `update` writes `PUT tickets/{id}/tasks/{task}` and includes
+`owner_id` or `group_id` only when that task field is the one active
+copy. An email owner is `exact_agent_id`; any other owner is
+`positive_id`. A group is `resolve_group`, and a blank group is
+`group must be a positive ID or exact name`. Title, reminder, required
+fields, and `custom_fields` stay create-only unless `values` is set.
+An empty update is `provide at least one task update field`. `send`
+rebuilds from inputs and leaves status out when the stored status is
+JSON null.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`tickets tasks add` should take optional `--owner` and `--group` and
+call `ticket_tasks::build_plan_assigned`. Add `tickets tasks update
+TARGET TASK` with optional `--title`, `--owner`, and `--group`. That
+command calls `build_plan_assigned` with action `update`, status
+omitted, and no values. Dry-run, `--yes`, and `--expect-plan` stay on
+the existing reviewed-write helper. Do not add fields to `TaskArgs`.
+
+Still not triaged: `dbe1149` and later.

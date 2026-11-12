@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "8f156c08ec19b91dc42656707ee229f0b38112e0",
+  "commit": "4626e1203103bb75bb764625345b6c0c0a4652e7",
   "dirty": false
  },
  "lifecycle_21": {
@@ -6642,6 +6642,979 @@
     "error": {
      "type": "ReviewedWriteError",
      "msg": "unique active runtime notify_before metadata unavailable"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "assign_add": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      },
+      {
+       "name": "owner_id"
+      },
+      {
+       "name": "group_id"
+      }
+     ],
+     "agents": [
+      {
+       "id": "agent@example.com",
+       "value": "Alex Acme",
+       "user_id": 81
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    },
+    "owner": "agent@example.com",
+    "group": "91"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"group_id\": 91, \"notify_before\": 0, \"owner_id\": 81, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "8af799bfe4d79a0dd4b07049b125c4d4ac3a03c315b93d9574f34a56c682e988",
+     "inputs_json": "{\"action\": \"add\", \"group\": \"91\", \"owner\": \"agent@example.com\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "60569659d9e3017c802482a61085f1f9c9510e6e672d721846d578afeac775d8",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "group_id": 91,
+      "notify_before": 0,
+      "owner_id": 81,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "60569659d9e3017c802482a61085f1f9c9510e6e672d721846d578afeac775d8",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "assign_update": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      },
+      {
+       "name": "owner_id"
+      },
+      {
+       "name": "group_id"
+      }
+     ],
+     "agents": [
+      {
+       "id": "agent@example.com",
+       "value": "Alex Acme",
+       "user_id": 81
+      }
+     ],
+     "rows": [
+      {
+       "id": 701,
+       "status": 21
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "owner": "agent@example.com",
+    "group": "91"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_update",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "tickets/123/tasks/701",
+     "payload_json": "{\"group_id\": 91, \"owner_id\": 81}",
+     "context_hash": "ed16e43a1e6bc2f13958f7e31b42af45d377389d3f7e34fb44ef3764b5b0c14a",
+     "inputs_json": "{\"action\": \"update\", \"group\": \"91\", \"owner\": \"agent@example.com\", \"status\": null, \"task\": 701, \"title\": null, \"values\": null}"
+    },
+    "hash": "2418cace9a041324d8409f6fe84bc1694dda4e4dde60f36221210913e1177958",
+    "review": {
+     "action": "ticket_task_update",
+     "method": "PUT",
+     "path": "/api/_/tickets/123/tasks/701",
+     "payload": {
+      "group_id": 91,
+      "owner_id": 81
+     },
+     "plan_hash": "2418cace9a041324d8409f6fe84bc1694dda4e4dde60f36221210913e1177958",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "2418cace9a041324d8409f6fe84bc1694dda4e4dde60f36221210913e1177958",
+     "verified": true,
+     "task_id": 701,
+     "fields": {
+      "group_id": "matched",
+      "owner_id": "matched"
+     }
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_update",
+    "started"
+   ],
+   [
+    "plan:ticket_task_update",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "tickets/123/tasks/701",
+    "raw": "{\"group_id\": 91, \"owner_id\": 81}"
+   }
+  ]
+ },
+ "assign_missing": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "rows": [
+      {
+       "id": 701,
+       "status": 21
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "owner": "81"
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "group": "91"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "unique active task field unavailable: owner_id"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "unique active task field unavailable: group_id"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "assign_deleted": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      },
+      {
+       "name": "owner_id",
+       "deleted": true
+      },
+      {
+       "name": "group_id",
+       "is_deleted": true
+      }
+     ],
+     "rows": [
+      {
+       "id": 701,
+       "status": 21
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "owner": "81"
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "group": "91"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "unique active task field unavailable: owner_id"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "unique active task field unavailable: group_id"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "assign_duplicate": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      },
+      {
+       "name": "owner_id"
+      },
+      {
+       "name": "group_id"
+      },
+      {
+       "name": "owner_id"
+      },
+      {
+       "name": "group_id"
+      }
+     ],
+     "rows": [
+      {
+       "id": 701,
+       "status": 21
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "owner": "81"
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "group": "91"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "unique active task field unavailable: owner_id"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "unique active task field unavailable: group_id"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "assign_owner_bad": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      },
+      {
+       "name": "owner_id"
+      },
+      {
+       "name": "group_id"
+      }
+     ],
+     "agents": [
+      {
+       "id": "agent@example.com",
+       "value": "Alex Acme",
+       "user_id": 81
+      }
+     ],
+     "rows": [
+      {
+       "id": 701,
+       "status": 21
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "owner": "me"
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "owner": "Acme Agent"
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "owner": "0"
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "owner": "-1"
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "owner": "81x"
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "owner": " agent@example.com"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "assign_drift": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      },
+      {
+       "name": "owner_id"
+      },
+      {
+       "name": "group_id"
+      }
+     ],
+     "rows": [
+      {
+       "id": 701,
+       "status": 21
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "owner": "81"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_update",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "tickets/123/tasks/701",
+     "payload_json": "{\"owner_id\": 81}",
+     "context_hash": "ed16e43a1e6bc2f13958f7e31b42af45d377389d3f7e34fb44ef3764b5b0c14a",
+     "inputs_json": "{\"action\": \"update\", \"owner\": \"81\", \"status\": null, \"task\": 701, \"title\": null, \"values\": null}"
+    },
+    "hash": "dfc4ec0fd7e2d4be960437b2df7f37efcc9e2bb59bdd9eeb399bef17f65961c5",
+    "review": {
+     "action": "ticket_task_update",
+     "method": "PUT",
+     "path": "/api/_/tickets/123/tasks/701",
+     "payload": {
+      "owner_id": 81
+     },
+     "plan_hash": "dfc4ec0fd7e2d4be960437b2df7f37efcc9e2bb59bdd9eeb399bef17f65961c5",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "unique active task field unavailable: owner_id"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "assign_empty": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "rows": [
+      {
+       "id": 701,
+       "status": 21
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "provide at least one task update field"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "assign_group_blank": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      },
+      {
+       "name": "owner_id"
+      },
+      {
+       "name": "group_id"
+      }
+     ],
+     "rows": [
+      {
+       "id": 701,
+       "status": 21
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "update",
+    "task": 701,
+    "status": null,
+    "group": "  "
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "group must be a positive ID or exact name"
     },
     "writes": 0
    }

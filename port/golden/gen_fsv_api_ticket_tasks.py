@@ -1,10 +1,10 @@
 """Golden `ticket_tasks` (Python c46d3b0, metadata-driven create 6e598b2,
-unoffered-choice message 39e4853) for fsv-api `ticket_tasks`: the
-add/status/delete wires, plan hashes, inputs, readback, refusals and journal
-events. Mirrors `test_ticket_tasks_reviewed.py` (the non-CLI tests, for both
-status-id bases); the Rust test replays the ops.
+unoffered-choice message 39e4853, owner/group update 4626e12) for fsv-api
+`ticket_tasks`: the add/status/delete/update wires, plan hashes, inputs,
+readback, refusals and journal events. Mirrors `test_ticket_tasks_reviewed.py`
+(the non-CLI tests, for both status-id bases); the Rust test replays the ops.
 
-    cd /tmp/fsv-py-39e4853 && FSV_PY_SRC=$PWD FSV_PY_COMMIT=39e4853... uv run python \
+    cd /tmp/fsv-py-4626e12 && FSV_PY_SRC=$PWD FSV_PY_COMMIT=4626e12... uv run python \
         /Users/phusit.somb/lab/work/fsv-rust/port/golden/gen_fsv_api_ticket_tasks.py
 """
 from __future__ import annotations
@@ -38,11 +38,14 @@ def task_fields(n):
 
 def new_state(n):
     return {"rows": [], "fail": None, "partial": False, "partial_after": False, "mismatch": False,
-            "fields": task_fields(n), "fields_key": "ticket_task_fields", "response": None, "requests": []}
+            "fields": task_fields(n), "fields_key": "ticket_task_fields", "response": None, "requests": [],
+            "agents": []}
 
 
 def handler_for(s):
     def handle(request):
+        if request.url.path == "/search/autocomplete/agents":
+            return httpx.Response(200, json={"results": copy.deepcopy(s.get("agents", []))})
         path = request.url.path.removeprefix("/api/_/")
         if request.method == "GET":
             if path == "ticket_task_fields":
@@ -90,7 +93,7 @@ def client(handler):
     return c
 
 
-ARGS = ("action", "task", "title", "status", "values")
+ARGS = ("action", "task", "title", "status", "values", "owner", "group")
 
 
 def run(case):
@@ -237,4 +240,43 @@ for extra in [{"name": "notify_before", "choices": []}, None]:
         fields.append(extra)
     reminders += [{"op": "set", "state": {"fields": fields}}, ADD]
 CASES["reminders"] = {"n": 21, "ops": reminders}
+PARTY = task_fields(21) + [{"name": "owner_id"}, {"name": "group_id"}]
+AGENT = [{"id": "agent@example.com", "value": "Alex Acme", "user_id": 81}]
+ROW = [{"id": 701, "status": 21}]
+CASES["assign_add"] = {"n": 21, "ops": [
+    {"op": "set", "state": {"fields": PARTY, "agents": AGENT}},
+    {"op": "build", "action": "add", "title": "Acme task", "values": {"Tier": "Standard"},
+     "owner": "agent@example.com", "group": "91"}]}
+CASES["assign_update"] = {"n": 21, "ops": [
+    {"op": "set", "state": {"fields": PARTY, "agents": AGENT, "rows": ROW}},
+    {"op": "build", "action": "update", "task": 701, "status": None,
+     "owner": "agent@example.com", "group": "91"}, S]}
+CASES["assign_missing"] = {"n": 21, "ops": [
+    {"op": "set", "state": {"rows": ROW}},
+    {"op": "build", "action": "update", "task": 701, "status": None, "owner": "81"},
+    {"op": "build", "action": "update", "task": 701, "status": None, "group": "91"}]}
+CASES["assign_deleted"] = {"n": 21, "ops": [
+    {"op": "set", "state": {"fields": task_fields(21) + [{"name": "owner_id", "deleted": True},
+                                                        {"name": "group_id", "is_deleted": True}],
+                            "rows": ROW}},
+    {"op": "build", "action": "update", "task": 701, "status": None, "owner": "81"},
+    {"op": "build", "action": "update", "task": 701, "status": None, "group": "91"}]}
+CASES["assign_duplicate"] = {"n": 21, "ops": [
+    {"op": "set", "state": {"fields": PARTY + [{"name": "owner_id"}, {"name": "group_id"}], "rows": ROW}},
+    {"op": "build", "action": "update", "task": 701, "status": None, "owner": "81"},
+    {"op": "build", "action": "update", "task": 701, "status": None, "group": "91"}]}
+CASES["assign_owner_bad"] = {"n": 21, "ops": [
+    {"op": "set", "state": {"fields": PARTY, "agents": AGENT, "rows": ROW}}] + [
+    {"op": "build", "action": "update", "task": 701, "status": None, "owner": bad}
+    for bad in ("me", "Acme Agent", "0", "-1", "81x", " agent@example.com")]}
+CASES["assign_drift"] = {"n": 21, "ops": [
+    {"op": "set", "state": {"fields": PARTY, "rows": ROW}},
+    {"op": "build", "action": "update", "task": 701, "status": None, "owner": "81"},
+    {"op": "set", "state": {"fields": task_fields(21)}}, S]}
+CASES["assign_empty"] = {"n": 21, "ops": [
+    {"op": "set", "state": {"rows": ROW}},
+    {"op": "build", "action": "update", "task": 701, "status": None}]}
+CASES["assign_group_blank"] = {"n": 21, "ops": [
+    {"op": "set", "state": {"fields": PARTY, "rows": ROW}},
+    {"op": "build", "action": "update", "task": 701, "status": None, "group": "  "}]}
 json.dump(stamped({name: run(case) for name, case in CASES.items()}), sys.stdout, indent=1, ensure_ascii=False)
