@@ -39,26 +39,23 @@ def _id(value: Any) -> int | None:
 
 
 def resolve_owner(value: str | None, client: Any = None) -> int | None:
-    """No implicit self assignment; numeric user ID or exact active agent email."""
+    """No implicit self assignment; use an ID, exact email or full name."""
+    from fsv.agent_lookup import exact_agent_id, is_email
     if value is None or value == "":
         return None
     if _id(value) is not None:
         return _id(value)
-    if not re.fullmatch(r"[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+", value):
-        raise ValueError("owner must be a positive user ID or exact email (not 'me')")
+    email = is_email(value)
+    if not email and ("@" in value or len(value.split()) < 2 or value != value.strip()
+                      or any(ord(char) < 32 for char in value)):
+        raise ValueError("owner must be a positive user ID, exact email or full name (not 'me')")
     try:
         c = client if client is not None else get_client()
-        rows = c.autocomplete("agents", value)
-        if not isinstance(rows, list):
-            raise ValueError("unreadable lookup")
+        return exact_agent_id(c, value, name=not email)
+    except ValueError as exc:
+        raise TaskError(f"owner lookup failed: {exc}; use an explicit user ID if unavailable") from None
     except Exception:
-        raise TaskError("could not resolve owner email; no task POST was attempted; use an explicit user ID if unavailable") from None
-    matches = [r for r in rows if isinstance(r, dict) and str(r.get("email", "")).casefold() == value.casefold()
-               and not r.get("deleted") and not r.get("deactivated")
-               and "(Deactivated)" not in str(r.get("value", ""))]
-    if len(matches) != 1 or _id(matches[0].get("user_id")) is None:
-        raise TaskError("owner email must match exactly one active agent with a user ID; use an explicit user ID if unavailable")
-    return _id(matches[0]["user_id"])
+        raise TaskError("could not resolve owner; no task POST was attempted; use an explicit user ID if unavailable") from None
 
 
 def resolve_group(value: str | None, client: Any = None) -> int | None:
@@ -407,7 +404,7 @@ def register(app: typer.Typer) -> None:
     def tasks_add(
         id_: str = typer.Argument(..., metavar="CHANGE_ID"),
         title: str = typer.Option(..., "--title", help="exact task title to review"),
-        owner: str | None = typer.Option(None, "--owner", help="explicit user ID or exact agent email; default none, no implicit self"),
+        owner: str | None = typer.Option(None, "--owner", help="explicit user ID or exact agent email/full name; default none, no implicit self"),
         group: str | None = typer.Option(None, "--group", help="positive group ID or exact group name"),
         values: list[str] = typer.Option(None, "--set", help="runtime custom field NAME=VALUE (repeatable)"),
         system: str | None = typer.Option(None, "--system", help="runtime System choice label/ID"),

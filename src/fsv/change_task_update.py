@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 from fsv import config, journal, task_status
-from fsv.change_tasks import _date, _effort, _note, resolve_group, resolve_owner, same_effort
+from fsv.change_tasks import TaskError, _date, _effort, _note, resolve_group, resolve_owner, same_effort
 from fsv.readback import same_instant, same_text, submitted_value_matches
 from fsv.resources import CHANGES, parse_id
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
@@ -62,7 +62,10 @@ def build_plan(client: Any, target: str | int, task: int, inputs: dict[str, Any]
         elif key == "status":
             payload[key] = task_status.resolve(value, fields)[0]
         elif key in {"owner", "group"}:
-            payload[key + "_id"] = None if value == "none" else (resolve_owner(value, client) if key == "owner" else resolve_group(value, client))
+            try:
+                payload[key + "_id"] = None if value == "none" else (resolve_owner(value, client) if key == "owner" else resolve_group(value, client))
+            except TaskError as exc:
+                raise ValueError(str(exc)) from None
         elif key == "note":
             _note(value)
             payload["description"] = "<div>" + html.escape(value).replace("\n", "<br>") + "</div>"

@@ -110,6 +110,9 @@ def _resolve_requester(c: Any, value: str) -> dict[str, Any]:
 def _resolve_agent(c: Any, value: str) -> str:
     if _isdigit(value):
         return value
+    from fsv.agent_lookup import exact_agent_id, is_email
+    if is_email(value):
+        return str(exact_agent_id(c, value))
     item = _pick_lookup("agent", value, c.autocomplete("agents", value), ("value", "id", "email", "details"))
     user_id = item.get("user_id")
     if user_id is None:

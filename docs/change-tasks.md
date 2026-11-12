@@ -18,13 +18,12 @@ fsv changes tasks-add CHN-1234 --title "Acme verification" --dry-run --json
 fsv changes tasks-add CHN-1234 --title "Acme verification" --owner 9000002001 --dry-run --json
 ```
 
-Default: **no owner**, never implicit self. To assign yourself, pass your actual
-user ID or exact agent email using `--owner`. Email resolution is read-only,
-requires exactly one active agent with that exact email and a `user_id`, and
-never falls back to a fuzzy name, agent record ID or requester. A numeric user
-ID avoids owner lookup. With default optional fields, numeric/no-owner dry runs
-do not construct a client or write a journal. Email, group-name and metadata-backed
-status resolution may read the tenant.
+Default: **no owner**, never implicit self. Pass a user ID, exact agent email,
+or exact full name using `--owner`. Lookup is read-only and requires exactly one
+active agent with a `user_id`. Email and full-name matches are case-insensitive;
+there is no fuzzy name, agent record ID or requester fallback. A numeric user ID
+avoids owner lookup. Group-name and metadata-backed status resolution may also
+read the tenant.
 
 After inspecting the review, repeat the exact arguments with the **full** hash
 from `plan_hash`:
