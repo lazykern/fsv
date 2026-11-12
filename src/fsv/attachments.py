@@ -269,19 +269,22 @@ def readback(client: Any, plan: AttachedPlan, response: Any, ids: list[int]) -> 
         if key == "email" and base.path in {"tickets", "changes"} and plan.requester_id is not None:
             from fsv.ticket_conversation import _email_set
             nested = row.get("requester", {}) if isinstance(row, dict) else {}
-            ids = [row["requester_id"]] if isinstance(row, dict) and "requester_id" in row else []
+            requester_ids = [row["requester_id"]] if isinstance(row, dict) and "requester_id" in row else []
             if isinstance(nested, dict) and "id" in nested:
-                ids.append(nested["id"])
+                requester_ids.append(nested["id"])
             emails = [row["email"]] if isinstance(row, dict) and "email" in row else []
             if isinstance(nested, dict) and "email" in nested:
                 emails.append(nested["email"])
             expected_email = _email_set([expected])
-            matched = bool(ids) and all(positive_id(i) == plan.requester_id for i in ids)
+            matched = bool(requester_ids) and all(positive_id(i) == plan.requester_id for i in requester_ids)
             matched = matched and expected_email is not None and all(_email_set([v]) == expected_email for v in emails)
-            fields[key] = "matched" if matched else "mismatched" if ids or emails else "unavailable"
+            fields[key] = "matched" if matched else "mismatched" if requester_ids or emails else "unavailable"
         elif key in {"notify_emails", "to_emails", "cc_emails", "bcc_emails", "from_email"}:
             from fsv.ticket_conversation import _recipient_readback, sender_readback
             fields[key] = sender_readback(row, expected) if key == "from_email" else _recipient_readback(row, key, expected)
+        elif key == "custom_fields":
+            from fsv.readback import custom_fields_match
+            fields[key] = "unavailable" if row is None or actual_key not in row else "matched" if custom_fields_match(actual, expected) else "mismatched"
         else:
             from fsv.readback import same_instant
             match = (same_text(actual, expected) if key in {"body", "description"} else

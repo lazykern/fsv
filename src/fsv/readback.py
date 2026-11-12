@@ -54,6 +54,25 @@ def submitted_value_matches(actual: Any, expected: Any) -> bool:
     return False
 
 
+def custom_fields_match(actual: Any, expected: Any) -> bool:
+    """Submitted custom keys only, including native lookup identity wrappers.
+
+    A lookup display value is not its identity. Never match a different ID merely
+    because its label happens to equal the submitted ID or value.
+    """
+    if not isinstance(actual, dict) or not isinstance(expected, dict):
+        return False
+    for key, value in expected.items():
+        if key not in actual:
+            return False
+        observed = actual[key]
+        if isinstance(observed, dict) and set(observed) == {"id", "value"} and not isinstance(value, (dict, list, bool)) and value is not None:
+            observed = observed["id"]
+        if not submitted_value_matches(observed, value):
+            return False
+    return True
+
+
 def same_instant(actual: Any, expected: Any) -> bool:
     """Compare explicit-offset timestamps without assuming a local timezone."""
     def parse(value: Any) -> datetime:

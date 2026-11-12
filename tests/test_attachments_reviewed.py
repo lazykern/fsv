@@ -379,3 +379,36 @@ def test_cli_incident_create_real_owner_transport(api, monkeypatch):
     assert r.exit_code == 0, r.output
     assert json.loads(r.output)["verified"]
     assert len(s["writes"]) == 2 and s["writes"][-1][1] == "tickets"
+
+@pytest.mark.parametrize("kind", ["tickets", "changes"])
+def test_create_requester_lookup_does_not_replace_attachment_ids(api, kind):
+    from dataclasses import replace
+    from test_ticket_create import WHO
+    c, s, paths, base = api
+    raw = flow.metadata(c, "tickets")
+    payload = {"subject": "Acme", "email": WHO.email,
+               "custom_fields": {"count": 12, "requester_lookup": "991"}}
+    write = WritePlan("ticket_create_attachments", 0, config.DOMAIN, "POST", kind,
+                      json.dumps(payload), journal.plan_hash(raw))
+    plan = replace(flow.wrap(write, paths, raw, client=c), requester_id=WHO.id)
+    original = c.int_get
+    def normalized(path, *args, **kwargs):
+        data = original(path, *args, **kwargs)
+        if path == kind + "/123":
+            data["ticket" if kind == "tickets" else "change"]["custom_fields"] = {
+                "count": "12.0", "requester_lookup": {"id": 991, "value": "Alex Acme"}, "extra": "server default"}
+        return data
+    c.int_get = normalized
+    result = flow.send(plan, c, reviewed_hash=plan.hash, rebuild=lambda: plan)
+    assert result["verified"] and result["fields"]["custom_fields"] == "matched"
+    assert result["attachments"] == result["uploaded_ids"] == [base, base + 1]
+    assert len(s["writes"]) == 3
+
+
+@pytest.mark.parametrize("actual", [{}, {"lookup": {"id": 992, "value": "991"}},
+                                    {"lookup": True}, {"lookup": None},
+                                    {"lookup": {"id": 991, "value": "Acme", "unknown": "shape"}}])
+def test_lookup_normalization_does_not_mask_missing_or_wrong_identity(actual):
+    from fsv.readback import custom_fields_match
+    assert not custom_fields_match(actual, {"lookup": "991"})
+
