@@ -2498,3 +2498,36 @@ with `no upload` and sends nothing.
 HEAD scratch of `fsv-cli` still fails the same 23 tests. No new name.
 
 Still not triaged: `550fe8c` and later.
+
+## Ledger: `550fe8c` (library side)
+
+Triaged against `git show 550fe8c`
+(`550fe8ca81282965db3a26e918b6e49e96d969cf`). No plan hash of an
+existing whole-ticket forward moved. `docs/commands.md` and
+`docs/reviewed-parity.md` have no library behavior.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `550fe8c`.
+The partial is the `tickets forward --conversation` flag, named below.
+The committed CLI does not call the new builder, so the previous
+scratch list is unchanged.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `550fe8c` | 11-12 22:02 | Add reviewed exact-conversation forwarding | partial | fsv-api `conversations`. fsv-cli follow-up below |
+
+`forward_source` snapshots the one conversation whose id matches, and
+only from a complete history. A missing, partial, or ambiguous history
+is `exact forward source unavailable in complete ticket history`.
+`build_plan_forward_source` puts `conversation_id` on the payload and
+stores that snapshot as `record_hash`. `ConversationArgs` has no new
+field. `send` recomputes the snapshot before the POST and refuses with
+`forward source changed; review again` when it differs. A selector on
+a reply or note is `conversation selector is only supported for forward`.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`tickets forward` should take `--conversation` and call
+`conversations::build_plan_forward_source` with that id. Dry-run,
+`--yes`, and `--expect-plan` stay on the existing helper.
+
+Still not triaged: `e116be9` and later.

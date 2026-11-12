@@ -321,6 +321,53 @@ pub fn build_plan(
     build_plan_mail(c, store, ticket_id, body, args, &MailArgs::default())
 }
 
+/// `ticket_conversation.forward_source`: the snapshot of the one matching
+/// conversation in a complete ticket history.
+pub fn forward_source(c: &dyn Api, ticket_id: i64, conversation_id: i64) -> Result<String> {
+    let conversation_id = crate::watchers::positive_id(&json!(conversation_id))?;
+    let pages = load_conversations(c, ticket_id)?;
+    let want = conversation_id.to_string();
+    let matches: Vec<&Value> = pages
+        .rows
+        .iter()
+        .filter(|row| py_str(row.get("id").unwrap_or(&Value::Null)) == want)
+        .collect();
+    if pages.missing.is_some()
+        || pages.meta.get("partial").is_some_and(truthy)
+        || matches.len() != 1
+    {
+        return Err(refused(
+            "exact forward source unavailable in complete ticket history",
+        ));
+    }
+    snapshot_hash(matches[0])
+}
+
+/// `build_plan(..., conversation_id=)` for an exact-conversation forward.
+/// `ConversationArgs` stays unchanged so existing CLI literals keep compiling.
+pub fn build_plan_forward_source(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    ticket_id: &str,
+    body: &str,
+    args: &ConversationArgs<'_>,
+    mail: &MailArgs<'_>,
+    conversation_id: i64,
+) -> Result<ConversationPlan> {
+    if args.kind != "forward" {
+        return Err(Error::value(
+            "conversation selector is only supported for forward",
+        ));
+    }
+    let mut plan = build_plan_mail(c, store, ticket_id, body, args, mail)?;
+    let source = forward_source(c, plan.ticket_id, conversation_id)?;
+    let mut payload = plan.payload();
+    payload["conversation_id"] = json!(conversation_id);
+    plan.payload_json = dumps_sorted(&payload);
+    plan.record_hash = Some(source);
+    Ok(plan)
+}
+
 /// Port of fsv.ticket_conversation.build_plan: reply (optionally with BCC
 /// and an explicit sender), note, or whole-ticket forward.
 pub fn build_plan_mail(
@@ -451,6 +498,12 @@ pub fn send(
         return Err(refused(
             "conversation was sent or outcome unknown; inspect ticket and journal before retry",
         ));
+    }
+    if plan.kind == "forward" && payload.get("conversation_id").is_some() {
+        let id = crate::watchers::positive_id(&payload["conversation_id"])?;
+        if forward_source(c, plan.ticket_id, id)? != plan.record_hash.as_deref().unwrap_or("") {
+            return Err(refused("forward source changed; review again"));
+        }
     }
     if plan.canned_id.is_some() {
         crate::canned::freshen(plan, c)?;
@@ -1097,6 +1150,73 @@ mod tests {
                 &json!(["person@example.com"])
             ),
             "unavailable"
+        );
+    }
+
+    fn source_row() -> Value {
+        json!({"id": 901, "body": "<div>Original Acme message</div>"})
+    }
+
+    fn forward_source_plan(c: &FakeApi) -> Result<ConversationPlan> {
+        let to = vec!["person@example.com".to_string()];
+        build_plan_forward_source(
+            c,
+            &MemStore::default(),
+            "123",
+            "Acme update",
+            &ConversationArgs {
+                kind: "forward",
+                notify: &to,
+                ..Default::default()
+            },
+            &MailArgs {
+                sender: Some("support@example.com"),
+                ..MailArgs::default()
+            },
+            901,
+        )
+    }
+
+    /// `test_missing_source_blocks_forward` and `test_source_drift_blocks_forward`.
+    #[test]
+    fn exact_forward_source_is_bound_and_drift_sends_nothing() {
+        let missing = api().ok(
+            "GET tickets/123/conversations",
+            json!({"conversations": []}),
+        );
+        assert!(err(forward_source_plan(&missing)).contains("exact forward source"));
+        assert!(missing.writes().is_empty());
+        let row = source_row();
+        let c = api().ok(
+            "GET tickets/123/conversations",
+            json!({"conversations": [row]}),
+        );
+        let p = forward_source_plan(&c).unwrap();
+        assert_eq!(p.payload()["conversation_id"], 901);
+        assert_eq!(
+            p.record_hash.as_deref(),
+            Some(snapshot_hash(&source_row()).unwrap().as_str())
+        );
+        let drifted = api().ok(
+            "GET tickets/123/conversations",
+            json!({"conversations": [{"id": 901, "body": "Changed"}]}),
+        );
+        let (j, store) = (MemJournal::default(), MemStore::default());
+        assert!(
+            err(send(&p, &drifted, &j, &store, Some(&p.hash()), true)).contains("source changed")
+        );
+        assert!(drifted.writes().is_empty());
+        assert!(
+            err(build_plan_forward_source(
+                &c,
+                &store,
+                "123",
+                "Acme update",
+                &ConversationArgs::default(),
+                &MailArgs::default(),
+                901,
+            ))
+            .contains("only supported for forward")
         );
     }
 
