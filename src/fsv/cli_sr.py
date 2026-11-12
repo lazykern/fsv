@@ -44,6 +44,9 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+from fsv.integrated_assets_cli import register as register_integrated_assets
+register_integrated_assets(app, "sr", lambda: _client())
+
 MAX_CHOICES_SHOWN = 12
 
 

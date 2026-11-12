@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fsv.create import search_assets_for_change
+from fsv.integrated_assets import search
 from fsv.resources import CHANGES, parse_id
 from fsv.reviewed_write import ReviewedWriteError
 from fsv.watchers import positive_id
@@ -13,8 +13,9 @@ def candidates(client: Any, target: str | int, query: str, *, page: int = 1) -> 
     target = positive_id(parse_id(str(target), CHANGES))
     if type(page) is not int or page < 1:
         raise ValueError("page must be positive")
-    raw = search_assets_for_change(target, query, page=page, per_page=30, c=client)
-    rows = raw.get("assets") if isinstance(raw, dict) else None
+    raw = search(client, query, page=page)
+    rows = [{"display_id": int(r["name"]["id"]), "name": r["name"].get("label"),
+             "ci_type_name": r.get("type"), "inventory": r} for r in raw["data"]]
     if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
         raise ReviewedWriteError("asset candidate response is unavailable")
     ids = [positive_id(row.get("display_id")) for row in rows]

@@ -19,11 +19,11 @@ from test_tui_integration import offline  # noqa: F401
 @pytest.fixture
 def wire(monkeypatch):
     monkeypatch.setattr(config, "DOMAIN", "globex.example.com")
-    state = {"rows": [{"id": 9000007001, "display_id": 701, "name": "Globex laptop", "ci_type_name": "Computer"}], "requests": []}
+    state = {"rows": [{"device_pk": 701, "name": {"id": 701, "label": "Globex laptop"}, "type": "Computer"}], "requests": []}
     def handle(req):
         state["requests"].append(req)
-        assert req.method == "GET" and req.url.path.endswith("/assets-to-associate")
-        return httpx.Response(200, json={"assets": state["rows"]})
+        assert req.method == "GET" and req.url.path.endswith("/itam/core/device/api/")
+        return httpx.Response(200, json={"page": int(req.url.params["page"]), "error": None, "total_rows": len(state["rows"]), "data": state["rows"]})
     c = Client(cookies={})
     c._client.close()
     c._client = httpx.Client(transport=httpx.MockTransport(handle))
@@ -37,10 +37,10 @@ def test_cli_exact_display_id_and_search_params(wire, monkeypatch):
     result = CliRunner().invoke(cli.app, ["changes", "asset-picker", "CHN-123", "--search", "Globex", "--select", "701", "--page", "2", "--json"])
     assert result.exit_code == 0, result.output
     data = json.loads(result.output)
-    assert data["selected"]["id"] == 9000007001 and data["mutation"] == "none"
+    assert data["selected"]["inventory"]["name"]["id"] == 701 and data["mutation"] == "none"
     assert "not a complete inventory" in data["scope"]
     req = wire["requests"][0]
-    assert dict(req.url.params) == {"entity": "change", "entity_id": "123", "include_meta": "true", "page": "2", "per_page": "30", "search_term": "Globex"}
+    assert dict(req.url.params) == {"order": "", "page": "2", "page_size": "50", "q": "Globex"}
     result = asset_picker.candidates(wire["client"], 123, "")
     with pytest.raises(ReviewedWriteError, match="not unique"):
         asset_picker.select(result, 9000007001)

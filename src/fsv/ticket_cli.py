@@ -30,7 +30,7 @@ def create_command(client_factory: Callable[[], Any], *, from_file: str | None, 
                    preset: str | None, edit: bool, requester: str | None, dry_run: bool,
                    as_json: bool, yes: bool, expect_plan: str | None, allow_duplicate: bool,
                    ack: bool, no_input: bool, cc: list[str] | None = None, attach: list[str] | None = None,
-                   max_bytes: int | None = None) -> None:
+                   max_bytes: int | None = None, devices: list[int] | None = None) -> None:
     tty = flow.interactive() and not no_input
     form = not (from_file or sets or preset or edit) and tty and form_tty()
     template_only = not (from_file or sets or preset or edit or form) and dry_run
@@ -54,7 +54,7 @@ def create_command(client_factory: Callable[[], Any], *, from_file: str | None, 
     def build(d: Draft, ack_all: bool = ack, m: Any = None) -> flow.Plan:
         req, problem = who.resolve(d)
         plan = ticket_flow.build_create_plan(m or meta, d, resolver=resolver, requester=req, ack_all=ack_all,
-                                             cc_emails=tuple(cc or ()))
+                                             cc_emails=tuple(cc or ()), devices=tuple(devices or ()))
         if problem:
             plan.errors.insert(0, problem)
             plan.hash = plan.review.plan_hash = ""
@@ -126,7 +126,8 @@ def create_command(client_factory: Callable[[], Any], *, from_file: str | None, 
     result = ticket_flow.send(plan, client, rebuild, expected=expect_plan, allow_duplicate=allow_duplicate)
     if as_json:
         print(json.dumps({"created": result["result"], "plan_hash": result["plan_hash"],
-                          **({"verification": result["verification"]} if "verification" in result else {})}, default=str))
+                          **({"verification": result["verification"]} if "verification" in result else {}),
+                          **({"device_verification": result["device_verification"]} if "device_verification" in result else {})}, default=str))
     else:
         console.print(f"[green]created[/green] incident {result['id']}", highlight=False)
         if result.get("verification", {}).get("warning"):

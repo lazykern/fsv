@@ -345,6 +345,7 @@ def build_create_plan(
     requester: LookupValue | None,
     ack_all: bool = False,
     allow_incomplete: bool = False,
+    devices: tuple[int, ...] = (),
 ) -> Plan:
     spec = meta.spec
     state = FormState(spec, meta.engine(), mode="new", resolver=resolver)
@@ -397,6 +398,10 @@ def build_create_plan(
             problems += [p for p in e.problems if p not in problems]
         except FormError as e:
             problems.append(str(e))
+
+    if devices and payload is not None:
+        from fsv.watchers import positive_id
+        payload["device_ids"] = [str(positive_id(i)) for i in devices]
 
     review = Review(title="New Change" + (f": {state.get('subject')}" if spec.find("subject") and state.get("subject")
                                           else ""))
@@ -669,7 +674,11 @@ def execute(plan: Plan, client: Any, *, duplicate: str = "append", attach_flow: 
                             error=str(e))
         raise PartialFailure(cid, uploaded, steps, e) from e
     journal.record_plan("done", plan.hash, action=plan.action, target=plan.target, created_id=cid, steps=steps)
-    return {"id": cid, "result": result, "steps": steps, "uploaded": uploaded, "plan_hash": plan.hash}
+    outcome = {"id": cid, "result": result, "steps": steps, "uploaded": uploaded, "plan_hash": plan.hash}
+    if body.get("device_ids"):
+        from fsv.integrated_assets import verify_devices
+        outcome["device_verification"] = verify_devices(client, "changes", cid, body["device_ids"])
+    return outcome
 
 
 def review_diff(old: Plan, new: Plan) -> list[str]:

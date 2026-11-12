@@ -6,39 +6,27 @@ from typer.testing import CliRunner
 runner = CliRunner()
 
 
-def test_assets_new_ls_subcommand_calls_assets_resource(monkeypatch):
+def test_assets_new_ls_subcommand_calls_integrated_inventory(monkeypatch):
     import fsv.cli as cli
-
+    from fsv import integrated_assets
     calls = []
-    monkeypatch.setattr(cli, "assets_resource", lambda *args, **kwargs: calls.append((args, kwargs)))
-
+    monkeypatch.setattr(cli, "_client", lambda: None)
+    monkeypatch.setattr(integrated_assets, "inventory", lambda *a: calls.append(a) or [])
     result = runner.invoke(cli.app, ["changes", "assets", "ls", "CHN-1", "--json"])
-
-    assert result.exit_code == 0
-    assert calls == [
-        (
-            ("CHN-1", None, [], [], 1, 30, False, False, True, cli.OutputFormat.table),
-            {"category_name": None},
-        )
-    ]
+    assert result.exit_code == 0, result.output
+    assert calls == [(None, "changes", "CHN-1", "devices")]
 
 
-def test_assets_legacy_syntax_routes_to_hidden_legacy_command(monkeypatch):
+def test_assets_legacy_search_routes_to_integrated_inventory(monkeypatch):
     import fsv.cli as cli
-
+    from fsv import integrated_assets
     calls = []
-    monkeypatch.setattr(cli, "assets_resource", lambda *args, **kwargs: calls.append((args, kwargs)))
-
+    monkeypatch.setattr(cli, "_client", lambda: None)
+    monkeypatch.setattr(integrated_assets, "search", lambda *a: calls.append(a) or {})
     result = runner.invoke(cli.app, ["changes", "assets", "CHN-1", "--search", "AcmeApp", "--json"])
-
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
     assert "deprecated" in result.output
-    assert calls == [
-        (
-            ("CHN-1", "AcmeApp", [], [], 1, 30, False, False, True, cli.OutputFormat.table),
-            {"pick": False, "category_name": None, "list_categories": False},
-        )
-    ]
+    assert calls == [(None, "AcmeApp")]
 
 
 def test_associations_new_add_subcommand_calls_resource(monkeypatch):

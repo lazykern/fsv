@@ -542,3 +542,26 @@ fsv tickets lookup priority High --refresh --json
 Explicit refresh failures are errors, not silent fallbacks to old definitions.
 Reviewed form sends separately re-fetch fields and business rules before
 submitting, so the schema display cache is not a write authorization source.
+
+
+## Integrated inventory
+
+`fsv assets search Acme --kind devices --json` searches integrated ITAM inventory,
+not legacy asset display IDs. `--kind services` searches business services;
+`--kind assets` is read-only physical-asset search. Unproven type filters and
+physical-asset association writes remain disabled.
+
+`tickets|sr|problems|changes assets list|add|remove` uses `associated-cis`,
+`associate-ci`, and `disassociate-ci`. Add accepts several inventory IDs in one
+reviewed PUT; removal accepts exactly one inventory ID and resolves its exact
+`itam_cmdb_request_id` from the target's complete inventory. Example:
+`fsv changes assets add CHN-23 81 82 --dry-run --json`, then repeat with
+`--yes --expect-plan FULL_HASH`. Use `--kind services` for business services.
+`changes ci-list|ci-add|ci-remove` are aliases. The legacy nested search alias
+and `changes asset-picker` now read integrated Devices, not `assets-to-associate`.
+The TUI `i` picker remains explicitly read-only; extending it safely needs a
+separate reviewed mutation UX rather than turning candidate selection into a write.
+
+Incident and change creation accept repeatable `--device INVENTORY_ID`. The
+`device_ids` array is included in the exact reviewed create payload and hash;
+independent association readback is reported as `device_verification`.

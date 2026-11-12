@@ -190,7 +190,7 @@ def test_fish_script_includes_global_verbose_for_leaf_commands():
 def test_fish_script_scopes_root_only_flags_to_pre_subcommand():
     from fsv.completion_gen import build_script
     script = build_script("fish", "fsv")
-    assert "complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth completion config cache journal changes tickets problems attachments form sr' -a --version" in script
+    assert "complete -c fsv -f -n 'not __fish_seen_subcommand_from help search setup tui auth assets completion config cache journal changes tickets problems attachments form sr' -a --version" in script
     assert "complete -c fsv -f -n '__fish_seen_subcommand_from changes; and __fish_seen_subcommand_from ls; and not contains -- (commandline -opc)[-1] --view --where -w --query-hash --per-page -n --page -p --order-by --order-type --npages -N --output -o' -a --version" not in script
 
 

@@ -15,7 +15,7 @@ from fsv.review import Review
 
 
 def build_create_plan(meta: Any, draft: Draft, *, resolver: Any, requester: LookupValue | None,
-                      ack_all: bool = False, cc_emails: tuple[str, ...] = ()) -> flow.Plan:
+                      ack_all: bool = False, cc_emails: tuple[str, ...] = (), devices: tuple[int, ...] = ()) -> flow.Plan:
     spec = meta.spec
     state = FormState(spec, meta.engine(), mode="new", resolver=resolver)
     answers, status_raw, req_raw, errors = flow._split_special(meta, draft)
@@ -74,6 +74,9 @@ def build_create_plan(meta: Any, draft: Draft, *, resolver: Any, requester: Look
                 payload["cc_emails"] = list(cc_emails)
         except (FormError, PayloadError) as e:
             errors.extend(getattr(e, "problems", [str(e)]))
+    if devices and payload is not None:
+        from fsv.watchers import positive_id
+        payload["device_ids"] = [str(positive_id(i)) for i in devices]
     review = Review(title="New Incident")
     review.rows.append(("Requester", str(requester) if requester else "(not set)"))
     if cc_emails and not any(not isinstance(v, str) for v in cc_emails):
@@ -153,6 +156,9 @@ def execute(plan: flow.Plan, client: Any, *, allow_duplicate: bool = False) -> d
         if not verification["verified"]:
             verification["warning"] = "Incident CC was not fully verified on exact-ticket read-back; do not resend."
         result_out["verification"] = verification
+    if plan.payload.get("device_ids"):
+        from fsv.integrated_assets import verify_devices
+        result_out["device_verification"] = verify_devices(client, "tickets", cid, plan.payload["device_ids"])
     return result_out
 
 

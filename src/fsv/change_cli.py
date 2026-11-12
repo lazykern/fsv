@@ -223,6 +223,7 @@ def create_command(
     no_validate: bool,
     portal_url: str,
     attach_flow: str | None = None,
+    devices: list[int] | None = None,
 ) -> None:
     from fsv.editor import EditorAbort
 
@@ -269,7 +270,7 @@ def create_command(
     def build(d: Draft, ack_all: bool = ack, m: Any = None) -> Plan:
         req, problem = who.resolve(d)
         plan = flow.build_create_plan(m or meta, d, resolver=resolver, requester=req, ack_all=ack_all,
-                                      allow_incomplete=no_validate)
+                                      allow_incomplete=no_validate, devices=tuple(devices or ()))
         if problem:
             plan.errors[:] = [problem] + [e for e in plan.errors if not e.startswith("requester is not set")]
             plan.review.errors = plan.errors
@@ -344,7 +345,8 @@ def _report_created(result: dict[str, Any], *, as_json: bool, portal_url: str) -
     cid = result["id"]
     if as_json:
         print(json.dumps({"created": result["result"], "plan_hash": result["plan_hash"], "steps": result["steps"],
-                          "uploaded": result["uploaded"]}, indent=2, default=str, ensure_ascii=False))
+                          "uploaded": result["uploaded"],
+                          **({"device_verification": result["device_verification"]} if "device_verification" in result else {})}, indent=2, default=str, ensure_ascii=False))
         return
     from fsv.resources import CHANGES, format_id
 

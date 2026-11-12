@@ -90,7 +90,9 @@ def test_search_and_list_wiring():
 
 def test_format_wiring_for_target_commands():
     assert _param_keywords(_functions("tasks")[0], "format_")["autocompletion"] == "completion.complete_format"
-    assert _param_keywords(_functions("assets")[0], "format_")["autocompletion"] == "completion.complete_format"
+    # Integrated inventory commands intentionally emit JSON only.
+    from fsv.integrated_assets_cli import register
+    assert callable(register)
 
     for fn in _functions("approvals"):
         assert _param_keywords(fn, "format_")["autocompletion"] == "completion.complete_format"

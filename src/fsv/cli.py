@@ -2843,6 +2843,11 @@ def auth_status() -> None:
 
 app.add_typer(auth_app, name="auth")
 
+from fsv.integrated_assets_cli import register_search as _register_inventory_search
+_inventory_app = typer.Typer(help="Integrated inventory search (read-only).")
+_register_inventory_search(_inventory_app, lambda: _client())
+app.add_typer(_inventory_app, name="assets")
+
 
 HELP_TOPICS = {
     "auth": "Login: fsv auth login --browser --domain acme.freshservice.com; fsv auth status. Scripts: use fsv auth login --domain ... --header ... --store file.",
@@ -3451,144 +3456,6 @@ def _make_subapp(res: Resource) -> typer.Typer:
             update_task,
         )
 
-        assets_app = typer.Typer(
-            cls=ChangeLegacyGroup,
-            invoke_without_command=True,
-            no_args_is_help=True,
-            help="Manage change assets.",
-            rich_markup_mode=None if _COMPLETING else "rich",
-            epilog=(
-                "[bold]Examples:[/bold]  "
-                "fsv changes assets ls CHN-1234  |  "
-                "fsv changes assets search CHN-1234 app --category 'Application Portfolio'  |  "
-                "fsv changes assets add CHN-1234 456 --dry-run  |  "
-                "fsv changes assets pick CHN-1234 --category 'Application Portfolio' --yes  |  "
-                "fsv changes assets categories"
-            ),
-        )
-
-        @assets_app.callback()
-        def assets_group(ctx: typer.Context) -> None:
-            if ctx.meta.get("fsv_legacy_nested"):
-                err.print("[yellow]deprecated[/]: use `fsv changes assets <ls|search|add|remove|pick|categories> ...`", highlight=False)
-
-        @assets_app.command("legacy", hidden=True)
-        def assets(
-            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
-            search: Optional[str] = typer.Option(None, "--search", "-q", help="search assets available to associate", autocompletion=_complete_asset_search_for_change),
-            add: Optional[List[str]] = typer.Option(None, "--add", help="asset display ID(s) or names to associate", autocompletion=_complete_asset_id_for_change),
-            remove: Optional[List[str]] = typer.Option(None, "--remove", help="asset display ID(s) or names to remove", autocompletion=_complete_associated_asset_for_change),
-            page: int = typer.Option(1, "--page", "-p"),
-            per_page: int = typer.Option(30, "--per-page", "-n"),
-            category: Optional[str] = typer.Option(None, "--category", help="asset category/type label from Freshservice UI", autocompletion=_complete_asset_category),
-            list_categories: bool = typer.Option(False, "--list-categories", help="show available asset categories from /cmdb/items"),
-            pick: bool = typer.Option(False, "--pick", help="interactive picker for add flow; prompts for category first when omitted"),
-            dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
-            yes: bool = typer.Option(False, "--yes", "-y", help="confirm add/remove mutation"),
-            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
-            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
-        ) -> None:
-            try:
-                assets_resource(
-                    id_,
-                    search,
-                    list(add or []),
-                    list(remove or []),
-                    page,
-                    per_page,
-                    dry_run,
-                    yes,
-                    json_out,
-                    format_,
-                    pick=pick,
-                    category_name=category,
-                    list_categories=list_categories,
-                )
-            except (SessionError, APIError, ValueError) as e:
-                _err_exc(e)
-
-        @assets_app.command("ls", help="List associated change assets.", epilog="[bold]Examples:[/bold]  fsv changes assets ls CHN-1234  |  fsv changes assets ls CHN-1234 --category 'Application Portfolio' --json")
-        def assets_ls(
-            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
-            page: int = typer.Option(1, "--page", "-p"),
-            per_page: int = typer.Option(30, "--per-page", "-n"),
-            category: Optional[str] = typer.Option(None, "--category", help="asset category/type label from Freshservice UI", autocompletion=_complete_asset_category),
-            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
-            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
-        ) -> None:
-            try:
-                assets_resource(id_, None, [], [], page, per_page, False, False, json_out, format_, category_name=category)
-            except (SessionError, APIError, ValueError) as e:
-                _err_exc(e)
-
-        @assets_app.command("search", help="Search assets available to associate.", epilog="[bold]Examples:[/bold]  fsv changes assets search CHN-1234 app  |  fsv changes assets search CHN-1234 AcmeApp --category 'Application Portfolio' --json")
-        def assets_search(
-            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
-            query: str = typer.Argument(..., metavar="QUERY", autocompletion=_complete_asset_search_for_change),
-            page: int = typer.Option(1, "--page", "-p"),
-            per_page: int = typer.Option(30, "--per-page", "-n"),
-            category: Optional[str] = typer.Option(None, "--category", help="asset category/type label from Freshservice UI", autocompletion=_complete_asset_category),
-            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
-            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
-        ) -> None:
-            try:
-                assets_resource(id_, query, [], [], page, per_page, False, False, json_out, format_, category_name=category)
-            except (SessionError, APIError, ValueError) as e:
-                _err_exc(e)
-
-        @assets_app.command("add", help="Associate asset(s) to change.", epilog="[bold]Examples:[/bold]  fsv changes assets add CHN-1234 456 --dry-run  |  fsv changes assets add CHN-1234 OOS --category 'Application Portfolio' --yes")
-        def assets_add(
-            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
-            assets_: List[str] = typer.Argument(..., metavar="ASSET", autocompletion=_complete_asset_id_for_change),
-            category: Optional[str] = typer.Option(None, "--category", help="asset category/type label from Freshservice UI", autocompletion=_complete_asset_category),
-            dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
-            yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
-            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
-        ) -> None:
-            try:
-                assets_resource(id_, None, list(assets_), [], 1, 30, dry_run, yes, json_out, pick=False, category_name=category)
-            except (SessionError, APIError, ValueError) as e:
-                _err_exc(e)
-
-        @assets_app.command("remove", help="Remove asset(s) from change.", epilog="[bold]Examples:[/bold]  fsv changes assets remove CHN-1234 456 --dry-run  |  fsv changes assets remove CHN-1234 OOS --category 'Application Portfolio' --yes")
-        def assets_remove(
-            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
-            assets_: List[str] = typer.Argument(..., metavar="ASSET", autocompletion=_complete_associated_asset_for_change),
-            category: Optional[str] = typer.Option(None, "--category", help="asset category/type label from Freshservice UI", autocompletion=_complete_asset_category),
-            dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
-            yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
-            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
-        ) -> None:
-            try:
-                assets_resource(id_, None, [], list(assets_), 1, 30, dry_run, yes, json_out, pick=False, category_name=category)
-            except (SessionError, APIError, ValueError) as e:
-                _err_exc(e)
-
-        @assets_app.command("pick", help="Interactively pick asset(s) to associate.", epilog="[bold]Examples:[/bold]  fsv changes assets pick CHN-1234 --category 'Application Portfolio' --yes  |  fsv changes assets pick CHN-1234 --dry-run")
-        def assets_pick(
-            id_: str = typer.Argument(..., metavar="CHANGE_ID"),
-            category: Optional[str] = typer.Option(None, "--category", help="asset category/type label from Freshservice UI", autocompletion=_complete_asset_category),
-            dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without mutating"),
-            yes: bool = typer.Option(False, "--yes", "-y", help="confirm mutation"),
-            json_out: bool = typer.Option(False, "--json", help="emit JSON"),
-        ) -> None:
-            try:
-                assets_resource(id_, None, [], [], 1, 30, dry_run, yes, json_out, pick=True, category_name=category)
-            except (SessionError, APIError, ValueError) as e:
-                _err_exc(e)
-
-        @assets_app.command("categories", help="List available asset categories.", epilog="[bold]Examples:[/bold]  fsv changes assets categories  |  fsv changes assets categories --json")
-        def assets_categories(
-            format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
-            json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
-        ) -> None:
-            try:
-                asset_categories_resource(format_, json_out)
-            except (SessionError, APIError, ValueError) as e:
-                _err_exc(e)
-
-        sub.add_typer(assets_app, name="assets")
-
         from fsv.change_tasks import register as register_change_tasks
         register_change_tasks(sub)
         from fsv.change_approvals import register as register_change_approvals
@@ -3904,6 +3771,10 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 _err_exc(e)
 
         sub.add_typer(associations_app, name="associations")
+
+    if res.name in {"tickets", "problems", "changes"}:
+        from fsv.integrated_assets_cli import register as register_integrated_assets
+        register_integrated_assets(sub, res.name, lambda: _client())
 
     from fsv.list_preferences_cli import register as register_list_preferences
     register_list_preferences(sub, res, lambda: _client())
@@ -4328,6 +4199,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
 
             @sub.command("create", help="Create an incident using the ticket form and business rules.")
             def ticket_create(
+                device: Optional[List[int]] = typer.Option(None, "--device", min=1, help="integrated Device inventory ID (repeatable)"),
                 from_: Optional[str] = typer.Option(None, "--from", help="YAML draft"),
                 set_: Optional[List[str]] = typer.Option(None, "--set", help="answer LABEL=VALUE (repeatable)"),
                 preset: Optional[str] = typer.Option(None, "--preset", help="draft preset"),
@@ -4352,7 +4224,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                                    requester=requester, dry_run=dry, as_json=json_out or format_ == OutputFormat.json,
                                    yes=yes, expect_plan=expect_plan, allow_duplicate=allow_duplicate, ack=ack,
                                    no_input=_no_input(no_input), cc=list(cc or []), attach=list(attach or []),
-                                   max_bytes=max_bytes)
+                                   max_bytes=max_bytes, devices=list(device or []))
                 except FlowExit as e:
                     _flow_exit(e)
                 except (SessionError, APIError) as e:
@@ -4648,6 +4520,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             "fsv changes create --subject 'Patch DB' --set 'Change Type=Normal' --requester jane@example.com --dry-run"
         ))
         def create(
+            device: Optional[List[int]] = typer.Option(None, "--device", min=1, help="integrated Device inventory ID (repeatable)"),
             from_: Optional[str] = typer.Option(None, "--from", help="draft YAML (answers by label, description_md, attachments, planning)"),
             set_: Optional[List[str]] = typer.Option(None, "--set", help="answer LABEL=VALUE (label or internal name; repeatable)", autocompletion=completion.complete_set(res)),
             preset: Optional[str] = typer.Option(None, "--preset", help="preset name (config presets/NAME.yaml) or path"),
@@ -4692,7 +4565,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     dry_run=dry, as_json=json_out or format_ == OutputFormat.json, yes=yes,
                     expect_plan=expect_plan, allow_duplicate=allow_duplicate, ack=ack,
                     no_input=_no_input(no_input), no_validate=no_validate, portal_url=res.portal_url,
-                    attach_flow=attach_flow,
+                    attach_flow=attach_flow, devices=list(device or []),
                 )
             except FlowExit as e:
                 _flow_exit(e)
