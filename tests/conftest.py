@@ -91,6 +91,11 @@ def _isolated_fsv_env(tmp_path, monkeypatch):
     client = sys.modules.get("fsv.client")
     if client is not None:
         client._instance = None
+    # Bounded read-only readback backoff is real time in production; keep the
+    # observation count but not the wall-clock delay in offline tests.
+    readback = sys.modules.get("fsv.readback")
+    if readback is not None:
+        monkeypatch.setattr(readback, "_sleep", lambda _seconds: None)
     yield
     for name in [k for k in sys.modules if k == "fsv" or k.startswith("fsv.")]:
         if name not in saved_modules:

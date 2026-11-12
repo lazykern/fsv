@@ -103,3 +103,30 @@ def test_stale_target_and_duplicates_fail_before_send(wire):
     with pytest.raises(ValueError, match="unique"):
         bulk.build_plan(w.client, [w.ids[0], w.ids[0]], "High")
     assert not [r for r in w.seen if r.method == "PUT"]
+
+
+@pytest.mark.parametrize("lag,verified", [(1, True), (100, False)])
+def test_lagging_readback_rereads_only_and_never_resends(wire, monkeypatch, lag, verified):
+    w = wire
+    p = bulk.build_plan(w.client, w.ids, "High")
+    real = dict(w.rows)
+    stale = {"left": lag}
+    def lagging(cid):
+        def get(*_a, **_k):
+            if stale["left"]:
+                stale["left"] -= 1
+                return {**real[cid], "priority": 1}
+            return real[cid]
+        return get
+    from fsv import ticket_properties
+    original = ticket_properties._record
+    writes = lambda: [r for r in w.seen if r.method != "GET"]
+    monkeypatch.setattr(ticket_properties, "_record",
+                        lambda client, cid: lagging(cid)() if writes() else original(client, cid))
+    result = bulk.send(p, w.client, reviewed_hash=p.hash)
+    assert result["verified"] is verified
+    assert result["readback_attempts"] == (2 if verified else 4)
+    assert len(writes()) == 1
+    with pytest.raises(ReviewedWriteError):
+        bulk.send(p, w.client, reviewed_hash=p.hash)
+    assert len(writes()) == 1

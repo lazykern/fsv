@@ -134,4 +134,5 @@ def send(plan: AssignmentPlan, client: Any, *, reviewed_hash: str | None) -> dic
                 fields = {k: "unavailable" for k in expected}
             results[str(cid)] = fields
         return {"tickets": results, "verified": all(fields and all(v == "matched" for v in fields.values()) for fields in results.values())}
-    return execute(plan.write, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=verify)
+    from fsv.readback import bounded_readback
+    return execute(plan.write, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=lambda response: bounded_readback(lambda: verify(response)))

@@ -147,9 +147,11 @@ def send(plan: BulkPlan, client: Any, *, reviewed_hash: str | None, confirm_dest
         return fresh.write
     rebuild()
     if intent["action"] == "merge":
-        return ticket_merge.send(plan.delegate, client, reviewed_hash=plan.delegate.hash)
+        result = ticket_merge.send(plan.delegate, client, reviewed_hash=plan.delegate.hash)
+        return {**result, "delegated_plan_hash": result.get("plan_hash"), "plan_hash": plan.hash}
     if intent["action"] == "pickup":
-        return ticket_assignment.send(plan.delegate, client, reviewed_hash=plan.delegate.hash)
+        result = ticket_assignment.send(plan.delegate, client, reviewed_hash=plan.delegate.hash)
+        return {**result, "delegated_plan_hash": result.get("plan_hash"), "plan_hash": plan.hash}
     def verify(_response):
         result = {}
         for cid, expected in zip(plan.ids, json.loads(plan.expected_json)):
@@ -162,4 +164,7 @@ def send(plan: BulkPlan, client: Any, *, reviewed_hash: str | None, confirm_dest
                 result[str(cid)] = {k: "unavailable" for k in expected}
         return {"ticket_ids": list(plan.ids), "tickets": result,
                 "verified": all(all(v == "matched" for v in fields.values()) for fields in result.values())}
-    return execute(plan.write, client, reviewed_hash=plan.write.hash, rebuild=rebuild, verify=verify)
+    from fsv.readback import bounded_readback
+    result = execute(plan.write, client, reviewed_hash=plan.write.hash, rebuild=rebuild,
+                     verify=lambda response: bounded_readback(lambda: verify(response)))
+    return {**result, "delegated_plan_hash": result.get("plan_hash"), "plan_hash": plan.hash}

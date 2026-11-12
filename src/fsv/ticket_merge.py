@@ -104,4 +104,5 @@ def send(plan: WritePlan, client: Any, *, reviewed_hash: str | None) -> dict[str
                 "primary_note": primary_note, "secondaries": checks,
                 "verified": bool(unchanged and primary_note and all(all(v.values()) for v in checks.values()))}
 
-    return execute(plan, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=verify)
+    from fsv.readback import bounded_readback
+    return execute(plan, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=lambda response: bounded_readback(lambda: verify(response)))

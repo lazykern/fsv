@@ -59,4 +59,6 @@ def send(plan: BulkPriorityPlan, client: Any, *, reviewed_hash: str | None) -> d
             except Exception:
                 fields[str(cid)] = "unavailable"
         return {"tickets": fields, "verified": all(value == "matched" for value in fields.values())}
-    return execute(plan.write, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=verify)
+    from fsv.readback import bounded_readback
+    return execute(plan.write, client, reviewed_hash=reviewed_hash, rebuild=rebuild,
+                   verify=lambda response: bounded_readback(lambda: verify(response)))

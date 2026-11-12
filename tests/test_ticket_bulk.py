@@ -25,6 +25,10 @@ def api(monkeypatch, tmp_path):
             if path == "tickets":
                 return httpx.Response(200, json={"tickets": list(s["rows"].values()), "has_more": s["partial"]})
             row = copy.deepcopy(s["rows"][int(path.rsplit("/", 1)[1])])
+            if s.get("stale", 0) and s["writes"]:
+                s["stale"] -= 1
+                row.update(status=2, spam=False, deleted=False)
+            s["post_reads"] = s.get("post_reads", 0) + bool(s["writes"])
             if s["omit"] and s["writes"]:
                 row.pop("spam", None)
             return httpx.Response(200, json={"ticket": row})
@@ -47,6 +51,8 @@ def api(monkeypatch, tmp_path):
     c._client = httpx.Client(transport=httpx.MockTransport(handler))
     c._csrf = "synthetic"
     monkeypatch.setattr(cli, "_client", lambda: c)
+    import fsv.readback as readback
+    monkeypatch.setattr(readback, "_sleep", lambda seconds: s.setdefault("sleeps", []).append(seconds))
     monkeypatch.setattr(flow, "build_query_hash", lambda *a: (json.dumps([{'condition': 'priority', 'operator': 'is_in', 'type': 'default', 'value': [1]}]), [{'condition': 'priority', 'operator': 'is_in', 'type': 'default', 'value': [1]}], []))
     def prop(client, i, answers):
         payload = {"status": 3}
@@ -169,3 +175,20 @@ def test_full_selected_subjects_and_ids_are_hash_bound(api):
         flow.send(p, c, reviewed_hash=p.hash, confirm_destructive=True)
     assert not s["writes"]
 
+@pytest.mark.parametrize("action,options", [("status", {"status": "Pending"}), ("spam", {}), ("delete", {})])
+@pytest.mark.parametrize("lag,verified", [(2, True), (100, False)])
+def test_eventual_readback_polls_gets_without_resending(api, action, options, lag, verified):
+    c, s = api
+    p = flow.build_plan(c, ["71", "72"], action=action, **options)
+    s["stale"] = lag
+    result = flow.send(p, c, reviewed_hash=p.hash, confirm_destructive=True)
+    assert result["verified"] is verified
+    assert result["readback_attempts"] == (2 if verified else 4)
+    assert s["sleeps"] == ([0.5] if verified else [0.5, 1.5, 3.0])
+    assert s["post_reads"] == (4 if verified else 8)
+    assert result["plan_hash"] == p.hash
+    assert result["delegated_plan_hash"] == p.write.hash
+    assert len(s["writes"]) == 1
+    with pytest.raises(ReviewedWriteError, match="was sent"):
+        flow.send(p, c, reviewed_hash=p.hash, confirm_destructive=True)
+    assert len(s["writes"]) == 1

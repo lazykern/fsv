@@ -4,7 +4,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 import re
-from typing import Any
+import time
+from typing import Any, Callable
 
 
 def same_text(actual: Any, expected: Any) -> bool:
@@ -87,6 +88,32 @@ def same_instant(actual: Any, expected: Any) -> bool:
         return parse(actual) == parse(expected)
     except (ValueError, TypeError, OverflowError):
         return False
+
+
+READBACK_DELAYS = (0.0, 0.5, 1.5, 3.0)
+_sleep = time.sleep
+
+
+def bounded_readback(verify: Callable[[], dict[str, Any]]) -> dict[str, Any]:
+    """Re-run only an independent read-only verifier, never the mutation sender.
+
+    Bulk endpoints can acknowledge before every exact record read reflects the
+    change. Take at most four observations over five seconds; the final
+    mismatches/unavailable fields are preserved and the caller's durable
+    journal still forbids any resend.
+    """
+    result: dict[str, Any] = {"verified": False}
+    for attempt, delay in enumerate(READBACK_DELAYS, 1):
+        if delay:
+            _sleep(delay)
+        try:
+            result = dict(verify())
+        except Exception:
+            result = {"verified": False, "warning": "Independent readback unavailable; do not resend."}
+        result["readback_attempts"] = attempt
+        if result.get("verified") is True:
+            break
+    return result
 
 
 def duration_seconds(value: Any) -> int:
