@@ -87,9 +87,24 @@ def test_closure_missing_sections_and_solution(api):
     c, s, _, _ = api
     s["analysis"] = []
     s["solutions"] = []
-    with pytest.raises(ReviewedWriteError, match="Root Cause, Impact, Symptoms, linked workaround / solution"):
+    with pytest.raises(ReviewedWriteError, match=r"missing Root Cause, Impact, Symptoms$"):
         flow.build_plan(c, 123, "Closed")
     assert not s["writes"]
+
+
+def test_missing_solution_warns_until_the_tenant_proves_the_rule(api):
+    c, s, _, _ = api
+    s["solutions"] = []
+    p = flow.build_plan(c, 123, "Closed")
+    (warning,) = p.review()["warnings"]
+    assert "no linked workaround / solution" in warning and "2 of 62" in warning
+    # the server rejects: that proves the rule for this tenant, and later preflights block
+    s["fail"] = "closure"
+    with pytest.raises(ReviewedWriteError, match="a workaround / solution must be linked"):
+        flow.send(p, c, reviewed_hash=p.hash)
+    assert flow.SOLUTION_RULE in flow.proven_closure_rules()
+    with pytest.raises(ReviewedWriteError, match="missing linked workaround / solution"):
+        flow.build_plan(c, 123, "Closed")
 
 
 @pytest.mark.parametrize("articles", [[], [{"id": 701, "title": "Acme workaround", "article_type": 2}],
@@ -99,13 +114,11 @@ def test_native_articles_envelope_and_empty_inventory_diagnostic(api, articles):
     s["solution_raw"] = {"articles": articles}
     runner = CliRunner()
     r = runner.invoke(cli.app, ["problems", "status", "PRB-123", "--to", "Closed", "--dry-run"])
-    if articles:
-        assert r.exit_code == 0, r.output
-        p = flow.build_plan(c, 123, "Closed")
-        assert flow.build_plan(c, 123, "Closed").hash == p.hash
-    else:
-        assert r.exit_code == 2, r.output
-        assert "violated_closure_rules: missing linked workaround / solution" in r.output
+    assert r.exit_code == 0, r.output
+    p = flow.build_plan(c, 123, "Closed")
+    assert flow.build_plan(c, 123, "Closed").hash == p.hash
+    if not articles:  # a warning, not a block, until the tenant proves the rule
+        assert "no linked workaround / solution" in json.loads(r.output)["warnings"][0]
         assert "inventory is unavailable" not in r.output
     assert not s["writes"]
 

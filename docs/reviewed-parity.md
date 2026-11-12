@@ -230,8 +230,12 @@ fsv problems status PRB-123 --to Open --yes --expect-plan FULL_HASH --json
 Status labels and IDs come from fresh problem form metadata, including tenant
 custom statuses. The minimal status-only PUT is gated by fresh form rules and
 an exact record. Closing additionally requires readable nonempty Root Cause,
-Impact and Symptoms plus a linked solution/workaround, and required-for-closure
-fields. Missing prerequisites are listed as `violated_closure_rules` before
+Impact and Symptoms and required-for-closure fields. A missing linked
+solution/workaround is a review warning (the rule is tenant configuration:
+observed on one tenant, only 2 of 62 closed problems had one); it blocks only
+after this tenant has proven the rule by rejecting a closure with
+`check_workaround_or_solution_added` (remembered per tenant in the cache).
+Missing prerequisites are listed as `violated_closure_rules` before
 sending; server closure rejections receive the same actionable explanation.
 Review warns that the server may auto-fill planned dates; independent GET
 readback reports those dates without inventing timestamps. Changed analysis,

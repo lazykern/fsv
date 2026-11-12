@@ -31,10 +31,45 @@ class StatusPlan(WritePlan):
         return out
 
 
+SOLUTION_RULE = "check_workaround_or_solution_added"
+SOLUTION_EVIDENCE = ("observed on one tenant: only 2 of 62 closed problems had a linked workaround / solution, "
+                     "so this closure rule is tenant configuration, not a platform rule")
+
+
+def _rules_path() -> Any:
+    return config.CACHE_DIR / "forms" / f"{config.cache_domain_key()}--problem-closure-rules.json"
+
+
+def proven_closure_rules() -> set[str]:
+    """Closure-rule codes this tenant has proven by rejecting a closure
+    (``violated_closure_rules``); the rules themselves are not readable."""
+    try:
+        data = json.loads(_rules_path().read_text())
+    except (OSError, ValueError):
+        return set()
+    return {str(x) for x in data.get("codes", [])} if isinstance(data, dict) else set()
+
+
+def remember_closure_rules(codes: list[str]) -> None:
+    if not codes:
+        return
+    try:
+        path = _rules_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({"codes": sorted(proven_closure_rules() | set(codes))}))
+    except OSError:
+        pass
+
+
 def closure_context(client: Any, target: int) -> dict[str, Any]:
+    """Closure preflight. Missing Root Cause / Impact / Symptoms blocks. A
+    missing linked workaround / solution blocks only when this tenant has
+    proven that rule (an earlier ``check_workaround_or_solution_added``
+    rejection); otherwise it is a review warning and the server decides."""
     rows = planning_text.inventory(client, "problems", target)
     solutions = inventory(client, target, "solutions")
     missing = []
+    warnings: list[str] = []
     for label, key in planning_text.PROBLEM_SECTIONS.items():
         matches = [r for r in rows if r.get("name") == key]
         content = planning_text.section_content(matches[0]) if len(matches) == 1 else None
@@ -42,10 +77,15 @@ def closure_context(client: Any, target: int) -> dict[str, Any]:
             missing.append(label.title())
     if not any(not row.get("deleted") and type(row.get("article_type")) is int
                and row["article_type"] in (1, 2) for row in solutions):
-        missing.append("linked workaround / solution")
+        if SOLUTION_RULE in proven_closure_rules():
+            missing.append("linked workaround / solution")
+        else:
+            warnings.append("no linked workaround / solution: some tenants reject closure without one "
+                            f"({SOLUTION_RULE}); not blocked because this tenant has not proven that rule "
+                            f"({SOLUTION_EVIDENCE}); the server decides")
     if missing:
         raise ReviewedWriteError("violated_closure_rules: missing " + ", ".join(missing))
-    return {"analysis": rows, "solutions": solutions}
+    return {"analysis": rows, "solutions": solutions, "warnings": warnings}
 
 
 def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
@@ -79,6 +119,7 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
                     missing.append(str(raw.get("label") or name))
         if missing:
             raise ReviewedWriteError("violated_closure_rules: missing required closure fields: " + ", ".join(missing))
+        warnings += closure.get("warnings", [])
     context = {"before": before, "fields": meta.form_fields, "rules": meta.rules, "closure": closure}
     return StatusPlan("problem_status", target, config.DOMAIN, "PUT", f"problems/{target}",
                       json.dumps({"status": status_id}), journal.snapshot_hash(context) or "", label,
@@ -93,6 +134,8 @@ def rejection(exc: Any) -> str:
             names = {"check_analysis_completed": "Root Cause, Impact and Symptoms must be filled",
                      "check_workaround_or_solution_added": "a workaround / solution must be linked"}
             details = [text for key, text in names.items() if isinstance(desc, dict) and key in desc]
+            # the server proved these rules for this tenant: later preflights block on them
+            remember_closure_rules([key for key in names if isinstance(desc, dict) and key in desc])
             return "violated_closure_rules: " + ("; ".join(details) or "closure prerequisites rejected; inspect analysis and solutions")
     return f"write rejected (HTTP {exc.status}); no retry"
 
