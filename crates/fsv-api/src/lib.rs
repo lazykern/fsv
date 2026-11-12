@@ -34,6 +34,7 @@ pub mod planning_text;
 pub mod private_views;
 pub mod problem_incidents;
 pub mod problem_known_error;
+pub mod problem_properties;
 pub mod problem_status;
 pub mod problem_task_update;
 pub mod problem_workflows;

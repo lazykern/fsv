@@ -3242,4 +3242,29 @@ Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `e449ed3`.
 
 No CLI follow-up. Change activity reads go through `collect_pages`.
 
-Still not triaged: commits after `e449ed3`.
+## Ledger: `1285fe7` (library side)
+
+Triaged against `git show 1285fe7`
+(`1285fe792ec4df577cca4e0f19c78ea899519d1a`). A problem planning PUT
+sends only the dirty planned-start, planned-end and planned-effort
+keys. The form must have the field, and the rules must leave it
+visible and unlocked.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `1285fe7`.
+The partial is the CLI flag wiring, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `1285fe7` | 11-13 03:31 | Allow problem planned dates and effort in problems update | partial | fsv-api `problem_properties` |
+
+Effort is sent as `1h 30m`. Readback uses `same_instant` for dates
+and `same_effort` for effort. An end before the start is refused
+before any write.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`problems update --planned-start --planned-end --planned-effort`
+calls `problem_properties::build_plan` then `send`. `--dry-run`
+prints `review()`. Port `tests/test_problem_properties.py`.
+
+Still not triaged: commits after `1285fe7`.

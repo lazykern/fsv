@@ -71,6 +71,7 @@ thread_local! {
 }
 
 /// Tests point the proven-rule file at a temp directory.
+#[cfg(test)]
 pub(crate) fn set_closure_rules_dir(path: Option<PathBuf>) {
     CLOSURE_RULES_DIR.with(|slot| *slot.borrow_mut() = path);
 }
