@@ -309,7 +309,10 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
     if closing and result["verified"]:
         journal.record_plan("done", plan.hash, action=action, target=plan.ticket_id, created_id=conv_id)
     if plan.kind == "forward" and "conversation_id" in payload:
+        # Native conversation rows expose no source-conversation reference, so
+        # source linkage is reported as unavailable rather than failed or proven.
         result["source_conversation_id"] = payload["conversation_id"]
+        result["source_link_readback"] = "unavailable"
         result["source_link_verified"] = False
         result["verification_scope"] = "delivery fields; source link is not exposed by independent readback"
     if not result["verified"]:

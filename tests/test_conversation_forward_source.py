@@ -58,3 +58,26 @@ def test_formatted_sender_forward_readback(wire):
     assert result["verified"] and result["fields"]["from_email"] == "matched"
     assert result["source_link_verified"] is False
     assert len([r for r in wire.requests if r.method == "POST"]) == 1
+
+
+@pytest.mark.parametrize("extra", [{}, {"quoted_text_html": "<div>Original Acme message</div>", "source": 6}])
+def test_unexposed_source_link_is_unavailable_not_failed(wire, extra):
+    wire.conversation = {"id": 901, "body": "<div>Original Acme message</div>"}
+    p = conv.build_plan(wire.client, wire.cid, "Acme update", kind="forward", conversation_id=901,
+                        sender="support@example.com", notify=("person@example.com",))
+    wire.conv_transform = lambda row: row.update(extra) if row.get("id") == wire.conv_id else None
+    result = conv.send(p, wire.client, reviewed_hash=p.hash, public_confirmed=True)
+    assert result["verified"] is True and "warning" not in result
+    assert result["source_link_readback"] == "unavailable" and result["source_link_verified"] is False
+    assert "source_link" not in result["fields"]
+    assert len([r for r in wire.requests if r.method == "POST"]) == 1
+
+
+def test_delivery_mismatch_still_fails_with_source_unavailable(wire):
+    wire.conversation = {"id": 901, "body": "<div>Original Acme message</div>"}
+    p = conv.build_plan(wire.client, wire.cid, "Acme update", kind="forward", conversation_id=901,
+                        sender="support@example.com", notify=("person@example.com",))
+    wire.conv_transform = lambda row: row.update(to_emails=["other@example.com"]) if row.get("id") == wire.conv_id else None
+    result = conv.send(p, wire.client, reviewed_hash=p.hash, public_confirmed=True)
+    assert result["verified"] is False and result["source_link_readback"] == "unavailable"
+    assert len([r for r in wire.requests if r.method == "POST"]) == 1
