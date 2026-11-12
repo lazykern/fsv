@@ -3070,4 +3070,27 @@ the acknowledgement.
 - Unverified sends sleep up to 5s unless wrapped in
   `fsv_api::readback::with_readback_sleep`.
 
-Still not triaged: `e1bc129` and later.
+## Ledger: `e1bc129` (library side)
+
+Triaged against `git show e1bc129`
+(`e1bc12967443cad8735df6a8afb7e1bdea8dd5c9`). The forms golden was
+regenerated at `e1bc129`. Its only behavior change is `parse_actions`
+case 5: `enable` is accepted, with target `subject`. The three new
+engine tests match the upstream cases: saved-record status, a non-form
+`includes` record field, and reversible `enable`.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `e1bc129`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `e1bc129` | 11-13 02:55 | Support current_entity rule conditions and the enable action | ported | fsv-forms `rules` |
+
+`enable` is a supported action. Its reverse is `disable`.
+`evaluate_on: current_entity` reads `RuleContext.entity` when set.
+Otherwise an edit evaluation reads the load values, and any other mode
+reads an empty record. A missing non-form record attribute is
+"unavailable record (current_entity) field '<name>'", which blocks
+writes. A known form field is not that gap. The CLI forms path uses
+this engine, so no command change is required.
+
+Still not triaged: commits after `e1bc129`.

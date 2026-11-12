@@ -968,3 +968,198 @@ fn target_matches_python() {
         assert_eq!(e.target(&want.raw), want);
     }
 }
+
+fn entity_rule(id: i64, cond: Json, actions: Json, reversible: bool, form_type: &str) -> Json {
+    json!({
+        "id": id,
+        "name": format!("Entity rule {id}"),
+        "module_type": "change",
+        "state": "active",
+        "rule_type": "client_side",
+        "form_type": form_type,
+        "user_type": "both",
+        "is_reversible": reversible,
+        "condition_data": {"all": [cond]},
+        "action_data": {"action": actions},
+    })
+}
+
+fn rules_of(rules: &[Json]) -> Json {
+    json!({"business_rules": rules})
+}
+
+fn load_values(status: &str) -> Values {
+    values_from_v(&json!({
+        "change_type": "Normal", "impact": "Low", "priority": "Low", "risk": "Low", "status": status
+    }))
+}
+
+/// `test_current_entity_reads_the_saved_record_not_live_answers`.
+#[test]
+fn current_entity_reads_the_saved_record_not_live_answers() {
+    let rule = entity_rule(
+        80,
+        json!({"name": "status", "operator": "is", "value": ["3"], "evaluate_on": "current_entity"}),
+        json!([{"name": ["downtime"], "property": "disable"}]),
+        false,
+        "edit_form",
+    );
+    let eng = RulesEngine::new(
+        pg::change_spec(),
+        Some(&rules_of(&[rule])),
+        EngineOptions::default().module("change"),
+    )
+    .unwrap();
+    let saved = load_values("Approval");
+    let e = eng
+        .evaluate_with(
+            &load_values("Open"),
+            "edit",
+            EvalOptions {
+                base: Some(&saved),
+                ..EvalOptions::default()
+            },
+        )
+        .unwrap();
+    assert!(e.disabled.contains("downtime"), "{:?}", e.disabled);
+    let saved = load_values("Open");
+    let e = eng
+        .evaluate_with(
+            &load_values("Approval"),
+            "edit",
+            EvalOptions {
+                base: Some(&saved),
+                ..EvalOptions::default()
+            },
+        )
+        .unwrap();
+    assert!(!e.disabled.contains("downtime"), "{:?}", e.disabled);
+    assert!(
+        eng.unavailable_dependencies("edit")
+            .iter()
+            .all(|d| !d.contains("current_entity"))
+    );
+}
+
+/// `test_current_entity_includes_and_non_form_record_fields`.
+#[test]
+fn current_entity_includes_and_non_form_record_fields() {
+    let rule = entity_rule(
+        81,
+        json!({
+            "name": "requested_catalog_items",
+            "operator": "includes",
+            "value": ["700", "701"],
+            "evaluate_on": "current_entity"
+        }),
+        json!([{"name": ["subject"], "property": "hide"}]),
+        false,
+        "edit_form",
+    );
+    let ctx = RuleContext {
+        module: Some("change".into()),
+        entity: Some(
+            json!({"requested_catalog_items": ["701"]})
+                .as_object()
+                .unwrap()
+                .clone(),
+        ),
+        ..RuleContext::default()
+    };
+    let eng = RulesEngine::new(
+        pg::change_spec(),
+        Some(&rules_of(std::slice::from_ref(&rule))),
+        EngineOptions {
+            context: Some(ctx),
+            ..EngineOptions::default()
+        },
+    )
+    .unwrap();
+    let base = load_values("Open");
+    let e = eng
+        .evaluate_with(
+            &base,
+            "edit",
+            EvalOptions {
+                base: Some(&base),
+                ..EvalOptions::default()
+            },
+        )
+        .unwrap();
+    assert!(!e.is_visible("subject"), "{:?}", e.disabled);
+    let eng = RulesEngine::new(
+        pg::change_spec(),
+        Some(&rules_of(&[rule])),
+        EngineOptions::default().module("change"),
+    )
+    .unwrap();
+    eng.evaluate_with(
+        &base,
+        "edit",
+        EvalOptions {
+            base: Some(&base),
+            ..EvalOptions::default()
+        },
+    )
+    .unwrap();
+    let gaps = eng.unavailable_dependencies("edit");
+    assert!(
+        gaps.iter()
+            .any(|d| d.contains("current_entity") && d.contains("requested_catalog_items")),
+        "{gaps:?}"
+    );
+}
+
+/// `test_enable_action_and_its_reverse`.
+#[test]
+fn enable_action_and_its_reverse() {
+    let disable = entity_rule(
+        82,
+        json!({"name": "status", "operator": "is", "value": ["1"], "evaluate_on": "change"}),
+        json!([{"name": ["downtime"], "property": "disable"}]),
+        false,
+        "both",
+    );
+    let enable = entity_rule(
+        83,
+        json!({
+            "name": "status",
+            "operator": "includes",
+            "value": ["2", "3"],
+            "evaluate_on": "current_entity"
+        }),
+        json!([{"name": ["downtime"], "property": "enable"}]),
+        true,
+        "edit_form",
+    );
+    let eng = RulesEngine::new(
+        pg::change_spec(),
+        Some(&rules_of(&[disable, enable])),
+        EngineOptions::default().module("change"),
+    )
+    .unwrap();
+    let saved = load_values("Planning");
+    let e = eng
+        .evaluate_with(
+            &load_values("Open"),
+            "edit",
+            EvalOptions {
+                base: Some(&saved),
+                ..EvalOptions::default()
+            },
+        )
+        .unwrap();
+    assert!(!e.disabled.contains("downtime"), "{:?}", e.disabled);
+    let saved = load_values("Open");
+    let e = eng
+        .evaluate_with(
+            &load_values("Planning"),
+            "edit",
+            EvalOptions {
+                base: Some(&saved),
+                ..EvalOptions::default()
+            },
+        )
+        .unwrap();
+    assert!(e.disabled.contains("downtime"), "{:?}", e.disabled);
+}

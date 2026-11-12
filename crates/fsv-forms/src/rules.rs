@@ -38,13 +38,14 @@ pub const SUPPORTED_OPERATORS: [&str; 6] = [
     "selected",
     "not_selected",
 ];
-pub const SUPPORTED_ACTIONS: [&str; 7] = [
+pub const SUPPORTED_ACTIONS: [&str; 8] = [
     "show",
     "hide",
     "mandate",
     "unmandate",
     "populate",
     "disable",
+    "enable",
     "message",
 ];
 /// `evaluate_on` values that read a form field (the module's own name).
@@ -69,6 +70,9 @@ pub const CONTEXT_SOURCES: [(&str, &str); 4] = [
     ("requested_for", "requested_for"),
     ("system", "system"),
 ];
+/// `evaluate_on` values that read the saved record the edit form was opened
+/// on (`current_entity`): the load values, not the live answers.
+pub const ENTITY_SOURCES: [(&str, &str); 1] = [("current_entity", "entity")];
 /// Action targets that are not form fields but form-level switches.
 pub const PSEUDO_TARGETS: [&str; 1] = ["attachment_ids"];
 pub const EXCLUDE_KEYS: [&str; 3] = ["optional", "disabled", "hidden"];
@@ -84,7 +88,14 @@ pub const MAX_PASSES: usize = 8;
 
 /// Every `evaluate_on` value the engine understands.
 pub fn supported_evaluate_on(v: &str) -> bool {
-    FORM_SOURCES.contains(&v) || context_source(v).is_some()
+    FORM_SOURCES.contains(&v) || context_source(v).is_some() || entity_source(v).is_some()
+}
+
+fn entity_source(v: &str) -> Option<&'static str> {
+    ENTITY_SOURCES
+        .iter()
+        .find(|(k, _)| *k == v)
+        .map(|(_, s)| *s)
 }
 
 fn context_source(v: &str) -> Option<&'static str> {
@@ -101,6 +112,7 @@ fn reverse_of(action: &str) -> Option<&'static str> {
         "mandate" => "unmandate",
         "unmandate" => "mandate",
         "disable" => "enable",
+        "enable" => "disable",
         "populate" => "restore",
         _ => return None,
     })
@@ -204,6 +216,9 @@ pub struct RuleContext {
     pub requester: Option<Map<String, Json>>,
     pub requested_for: Option<Map<String, Json>>,
     pub system: Option<Map<String, Json>>,
+    /// Saved record for `current_entity`. `None`: use the evaluation's load
+    /// values (edit) or an empty record (any other mode).
+    pub entity: Option<Map<String, Json>>,
 }
 
 impl Default for RuleContext {
@@ -218,6 +233,7 @@ impl Default for RuleContext {
             requester: None,
             requested_for: None,
             system: None,
+            entity: None,
         }
     }
 }
@@ -252,7 +268,7 @@ pub struct Condition {
     pub field: Option<String>,
     pub operator: String,
     pub values: Vec<String>,
-    /// `"form"` | `"user"` | `"requester"` | `"requested_for"` | `"system"`.
+    /// `"form"` | `"entity"` | `"user"` | `"requester"` | `"requested_for"` | `"system"`.
     pub source: String,
 }
 
@@ -750,6 +766,9 @@ pub struct RulesEngine {
     pub rules: Vec<Rule>,
     warnings: Mutex<Vec<String>>,
     pos: HashMap<String, f64>,
+    /// Record `current_entity` conditions read. Set from [`RuleContext::entity`],
+    /// or from the load values at the start of an edit evaluation.
+    entity: Mutex<Option<Values>>,
 }
 
 impl Clone for RulesEngine {
@@ -770,6 +789,7 @@ impl Clone for RulesEngine {
             rules: self.rules.clone(),
             warnings: Mutex::new(self.warnings()),
             pos: self.pos.clone(),
+            entity: Mutex::new(self.entity.lock().ok().and_then(|g| g.clone())),
         }
     }
 }
@@ -821,6 +841,11 @@ impl RulesEngine {
                 ctx
             }
         };
+        let entity = context.entity.as_ref().map(|m| {
+            m.iter()
+                .map(|(k, v)| (k.clone(), Value::from_json(v)))
+                .collect()
+        });
         let mut engine = RulesEngine {
             spec: spec.clone(),
             context,
@@ -837,6 +862,7 @@ impl RulesEngine {
             rules: vec![],
             warnings: Mutex::new(vec![]),
             pos: HashMap::new(),
+            entity: Mutex::new(entity),
         };
         engine.rules = engine.load(rules)?;
         let order = spec.ordered();
@@ -1155,6 +1181,17 @@ impl RulesEngine {
                 None => vec![],
                 Some(v) => vec![jstr(v)],
             };
+            if let Some(source) = entity_source(&ev_key) {
+                let api = self.spec.resolve_name(&raw_name).map(str::to_string);
+                items.push(ConditionItem::Condition(Condition {
+                    name: raw_name,
+                    field: api,
+                    operator: op,
+                    values: vals,
+                    source: source.to_string(),
+                }));
+                continue;
+            }
             if let Some(source) = context_source(&ev_key) {
                 let attr = raw_name.rsplit('.').next().unwrap_or("").to_string();
                 items.push(ConditionItem::Condition(Condition {
@@ -1325,6 +1362,18 @@ impl RulesEngine {
                             );
                         }
                     }
+                    ConditionItem::Condition(c) if c.source == "entity" => {
+                        if c.field.is_none() && engine.entity_value(c).is_none() {
+                            add(
+                                problems,
+                                format!(
+                                    "rule {}: unavailable record (current_entity) field {}",
+                                    fsv_py::py_repr_str(&rule.name),
+                                    fsv_py::py_repr_str(&c.name)
+                                ),
+                            );
+                        }
+                    }
                     ConditionItem::Condition(c) => {
                         let field = c.field.as_deref().unwrap_or("");
                         if engine
@@ -1413,6 +1462,16 @@ impl RulesEngine {
                     .collect()
             })
             .unwrap_or_default();
+        if self.context.entity.is_none() {
+            let record = if mode == "edit" {
+                base.clone()
+            } else {
+                Values::new()
+            };
+            if let Ok(mut slot) = self.entity.lock() {
+                *slot = Some(record);
+            }
+        }
         let st = match model {
             Model::Replay => {
                 let mut user = base.clone();
@@ -2039,9 +2098,34 @@ impl RulesEngine {
         person
     }
 
+    /// `(found, value)` of a `current_entity` condition. The first present
+    /// name wins: the resolved field, the raw name, then its last dotted part.
+    fn entity_value(&self, c: &Condition) -> Option<Value> {
+        let guard = self.entity.lock().ok()?;
+        let entity = guard.as_ref()?;
+        let tail = c.name.rsplit('.').next().unwrap_or("");
+        for n in [c.field.as_deref().unwrap_or(""), c.name.as_str(), tail] {
+            if !n.is_empty()
+                && let Some(v) = entity.get(n)
+            {
+                return Some(v.clone());
+            }
+        }
+        None
+    }
+
     /// Port of fsv.forms.rules.RulesEngine._match.
     fn match_condition(&self, c: &Condition, eff: &Values) -> Result<bool> {
-        let (f, v): (Option<&Field>, Option<Value>) = if c.source != "form" {
+        let (f, v): (Option<&Field>, Option<Value>) = if c.source == "entity" {
+            let missing = self.entity.lock().ok().is_none_or(|g| g.is_none());
+            if missing {
+                self.warn_once(
+                    "rules read the saved record (current_entity) but none was given; their conditions see empty values".into(),
+                );
+            }
+            let f = c.field.as_deref().and_then(|n| self.spec.get(n));
+            (f, self.entity_value(c))
+        } else if c.source != "form" {
             let v = self
                 .person(&c.source)
                 .and_then(|p| p.get(c.field.as_deref().unwrap_or("")))
