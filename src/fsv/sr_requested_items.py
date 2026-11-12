@@ -8,6 +8,7 @@ from fsv import catalog, config
 from fsv.attachments import owner_row
 from fsv.formmeta import apply_answers
 from fsv.forms import FormState
+from fsv.forms.plan import metadata_fingerprint
 from fsv.readback import submitted_value_matches
 from fsv.resources import TICKETS, parse_id
 from fsv.reviewed_snapshot import stable_snapshot
@@ -56,7 +57,9 @@ def text_answers(client: Any, raw_item: dict, answers: dict, existing: dict | No
         raise ReviewedWriteError("requested-item validation failed: " + "; ".join(errors))
     if any(name not in state.evaluated.visible for name in answers):
         raise ReviewedWriteError("requested-item answer is hidden")
-    return meta.fingerprint.hash
+    # Catalog reads carry signed icon/attachment URLs that rotate per GET; bind
+    # only stable metadata so identical reviews hash identically.
+    return metadata_fingerprint(None, stable_snapshot(meta.rules), stable_snapshot(meta.item)).hash
 
 
 def build_plan(client: Any, target: str | int, *, action: str, item: int | None = None,

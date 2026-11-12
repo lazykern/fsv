@@ -32,7 +32,11 @@ def api(monkeypatch, tmp_path):
             if "business_rules" in path:
                 return httpx.Response(403, json={"error": "denied"}) if s["rules_fail"] else httpx.Response(200, json={"business_rules": []})
             if path == "catalog/service-items/71":
-                return httpx.Response(200, json={"service_item": item})
+                # Real catalog reads sign icon URLs freshly on every GET.
+                s["signed"] = s.get("signed", 0) + 1
+                signed = dict(item, icon_url=f"https://cdn.example.com/icons/71.png?X-Amz-Date=2026{s['signed']:04d}"
+                                             f"&X-Amz-Signature=sig{s['signed']}&X-Amz-Expires=300")
+                return httpx.Response(200, json={"service_item": signed})
             if path == "tickets/123/requested_items":
                 return httpx.Response(200, json={"requested_items": copy.deepcopy(s["rows"]), "meta": {"e_signature_limit_reached": False}})
             ident = int(path.rsplit("/", 1)[1])
@@ -156,3 +160,13 @@ def test_parent_type_proof_uses_native_exact_read(api, fields, allowed, action):
         with pytest.raises(ReviewedWriteError, match="service request|ticket type"):
             flow.build_plan(c, "SR-123", action=action, **opts(action))
     assert not s["writes"]
+
+
+def test_edit_plan_hash_stable_across_rotating_signed_catalog_urls(api):
+    c, s = api
+    first = flow.build_plan(c, 123, action="edit", **opts("edit"))
+    second = flow.build_plan(c, 123, action="edit", **opts("edit"))
+    assert s["signed"] >= 2 and first.hash == second.hash
+    # A real metadata change still changes the review.
+    s["rows"][0]["item"]["custom_fields"][0]["label"] = "Renamed"
+    assert flow.build_plan(c, 123, action="edit", **opts("edit")).hash != first.hash
