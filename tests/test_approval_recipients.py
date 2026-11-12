@@ -14,7 +14,8 @@ def client():
         if path == "cabs":
             return {"cabs": [{"id": 91, "name": "Release review"}]}
         ids = state["members"] if "/groups/" in path else [82, 83]
-        return {"approval_users": [{"id": i, "selected": False} for i in ids], "meta": {"count": len(ids), "page": 1, "per_page": 30}}
+        key = "approval_users" if "/groups/" in path else "approval_agents"
+        return {key: [{"id": str(i), "name": "Acme reviewer", "email": "reviewer@example.com", "selected": False} for i in ids], "meta": {"count": len(ids), "page": 1, "per_page": 30}}
     return SimpleNamespace(int_get=get, state=state)
 
 
@@ -27,6 +28,28 @@ def test_flatten_eligible_users_not_bootstrap_agent_ids():
     c.state["members"] = [81]
     with pytest.raises(ReviewedWriteError, match="membership changed"):
         a.validate(c, 23, context)
+
+
+@pytest.mark.parametrize("key", ["approval_agents", "approval_users"])
+def test_cab_native_and_legacy_envelopes(key):
+    row = {"id": "81", "selected": False}
+    c = SimpleNamespace(int_get=lambda *a, **k: {key: [row]})
+    assert a.members(c, 23, "cabs", 91) == [81]
+
+
+@pytest.mark.parametrize("raw", [
+    {"approval_agents": []},
+    {"approval_agents": [{"id": 81}, {"id": "81"}]},
+    {"approval_agents": [{"id": 81, "deactivated": True}]},
+    {"approval_agents": [{"id": 81}], "meta": {"count": 2}},
+    {"approval_agents": [{"id": 81}], "meta": {"partial": True}},
+    {"approval_agents": [{"id": 81}], "approval_users": [{"id": 82}]},
+    {"approval_agents": None, "approval_users": [{"id": 81}]},
+])
+def test_cab_invalid_or_conflicting_envelopes_fail_closed(raw):
+    c = SimpleNamespace(int_get=lambda *a, **k: raw)
+    with pytest.raises((ReviewedWriteError, ValueError)):
+        a.members(c, 23, "cabs", 91)
 
 
 def test_empty_and_unknown_sources_fail_closed():

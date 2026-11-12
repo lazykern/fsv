@@ -46,7 +46,13 @@ def members(client: Any, target: int, kind: str, ident: int) -> list[int]:
         rows = _rows({"approval_users": rows}, "approval_users")
     elif kind == "cabs":
         raw = client.int_get(f"changes/{target}/cab-members", params={"cab_id": ident})
-        rows = _rows(raw, "approval_users")
+        # Native CAB lookups use approval_agents; agent-group lookups use
+        # approval_users. Reject conflicting dual envelopes rather than guessing.
+        key = "approval_agents" if isinstance(raw, dict) and "approval_agents" in raw else "approval_users"
+        rows = _rows(raw, key)
+        if isinstance(raw, dict) and key == "approval_agents" and "approval_users" in raw:
+            if sorted(positive_id(r["id"]) for r in rows) != sorted(positive_id(r["id"]) for r in _rows(raw, "approval_users")):
+                raise ReviewedWriteError("conflicting CAB recipient metadata")
     else:
         raise ValueError("unsupported recipient source")
     if not rows or any(r.get("deleted") or r.get("deactivated") for r in rows):
