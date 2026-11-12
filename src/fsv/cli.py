@@ -4335,6 +4335,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 requester: Optional[str] = typer.Option(None, "--requester", help="requester email or exact name"),
                 cc: Optional[List[str]] = typer.Option(None, "--cc", help="plain CC email (repeatable)"),
                 attach: Optional[List[str]] = typer.Option(None, "--attach", help="reviewed local file (repeatable)"),
+                max_bytes: Optional[int] = typer.Option(None, "--max-bytes", min=1, help="explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)"),
                 dry: bool = typer.Option(False, "--dry-run", help="review and show the payload without sending"),
                 format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="table or json"),
                 json_out: bool = typer.Option(False, "--json", help="emit JSON"),
@@ -4350,7 +4351,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     create_command(_client, from_file=from_, sets=list(set_ or []), preset=preset, edit=edit,
                                    requester=requester, dry_run=dry, as_json=json_out or format_ == OutputFormat.json,
                                    yes=yes, expect_plan=expect_plan, allow_duplicate=allow_duplicate, ack=ack,
-                                   no_input=_no_input(no_input), cc=list(cc or []), attach=list(attach or []))
+                                   no_input=_no_input(no_input), cc=list(cc or []), attach=list(attach or []),
+                                   max_bytes=max_bytes)
                 except FlowExit as e:
                     _flow_exit(e)
                 except (SessionError, APIError) as e:
@@ -4764,6 +4766,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             cc: Optional[List[str]] = typer.Option(None, "--cc", help="CC email from user lookup (repeatable)"),
             bcc: Optional[List[str]] = typer.Option(None, "--bcc", help="BCC plain email from user lookup (repeatable; requires --sender)"),
             attach: Optional[List[str]] = typer.Option(None, "--attach", help="local attachment (repeatable; requires full review and --sender)"),
+            max_bytes: Optional[int] = typer.Option(None, "--max-bytes", min=1, help="explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)"),
             json_out: bool = typer.Option(False, "--json"),
             sender: Optional[str] = typer.Option(None, "--sender", help="explicit configured support mailbox; not inferred"),
             set_status: Optional[str] = typer.Option(None, "--set-status", help="send and set status (Pending, Resolved or Closed; runtime requirements apply)"),
@@ -4781,7 +4784,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     if cc or bcc or set_status:
                         raise ReviewedWriteError("combined attachment/recipient/status variant not proven")
                     client = _client()
-                    rebuild = lambda: attachments.conversation_plan(client, id_, body, list(attach), kind="reply", sender=sender)
+                    rebuild = lambda: attachments.conversation_plan(client, id_, body, list(attach), kind="reply", sender=sender,
+                                                                    max_bytes=max_bytes)
                     finish(rebuild(), client, dry_run=dry_run, yes=yes, expected=expect_plan, rebuild=rebuild)
                     return
                 except (ValueError, ReviewedWriteError) as exc:

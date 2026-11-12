@@ -23,9 +23,9 @@ shows the exact request and generated validation token, so treat its output as
 private. Metadata is reloaded before a send; a changed plan must be reviewed
 again. Unsupported or unavailable rule inputs cause a refusal rather than a
 static-only validation. Incident `--attach FILE` uses a full-hash-reviewed
-upload transaction when an explicit byte size limit is available in runtime
-metadata; see [reviewed attachments](reviewed-parity.md#local-attachments).
-Missing limit metadata blocks uploads rather than guessing a constant.
+upload transaction. The size limit is the one the tenant publishes; see
+[reviewed attachments](reviewed-parity.md#local-attachments). If the tenant
+publishes none, the review says so and a send needs an explicit `--max-bytes N`.
 
 There is no automatic create retry, including on a CSRF error. If the result is
 unknown, check the server before taking any further action; even

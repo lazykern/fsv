@@ -228,6 +228,7 @@ def register(app: typer.Typer) -> None:
         html_body: bool = typer.Option(False, "--html", help="body is already HTML; otherwise escape plain text"),
         notify: list[str] | None = typer.Option(None, "--notify-email", help="explicit notification recipient (repeatable; default none)"),
         attach: list[str] | None = typer.Option(None, "--attach", help="local file (repeatable; reviewed two-step upload)"),
+        max_bytes: int | None = typer.Option(None, "--max-bytes", min=1, help="explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)"),
         set_status: str | None = typer.Option(None, "--set-status", help="add and set status (Pending, Resolved or Closed; runtime requirements apply)"),
         dry_run: bool = typer.Option(False, "--dry-run", help="review only; no POST or journal writes"),
         read_only: bool = typer.Option(False, "--read-only", help="refuse sends"),
@@ -250,7 +251,8 @@ def register(app: typer.Typer) -> None:
                         raise ReviewedWriteError("public note requires --confirm-public")
                     client = get_client()
                     rebuild = lambda: attachments.conversation_plan(client, id_, body, list(attach), kind="note", public=public,
-                                                                    html_body=html_body, notify=tuple(notify or ()))
+                                                                    html_body=html_body, notify=tuple(notify or ()),
+                                                                    max_bytes=max_bytes)
                     finish(rebuild(), client, dry_run=dry_run, yes=yes, expected=expected, rebuild=rebuild)
                     return
                 except ReviewedWriteError as exc:

@@ -29,7 +29,8 @@ def print_plan(plan: flow.Plan, as_json: bool) -> None:
 def create_command(client_factory: Callable[[], Any], *, from_file: str | None, sets: list[str],
                    preset: str | None, edit: bool, requester: str | None, dry_run: bool,
                    as_json: bool, yes: bool, expect_plan: str | None, allow_duplicate: bool,
-                   ack: bool, no_input: bool, cc: list[str] | None = None, attach: list[str] | None = None) -> None:
+                   ack: bool, no_input: bool, cc: list[str] | None = None, attach: list[str] | None = None,
+                   max_bytes: int | None = None) -> None:
     tty = flow.interactive() and not no_input
     form = not (from_file or sets or preset or edit) and tty and form_tty()
     template_only = not (from_file or sets or preset or edit or form) and dry_run
@@ -92,7 +93,7 @@ def create_command(client_factory: Callable[[], Any], *, from_file: str | None, 
                                              "rules": current.meta.rules, "metadata": raw}) or ""
                 base = WritePlan("ticket_create_attachments", 0, config.DOMAIN, "POST", "tickets",
                                  json.dumps(current.payload, sort_keys=True), context)
-                return attachments.wrap(base, list(attach), raw)
+                return attachments.wrap(base, list(attach), raw, client=client, max_bytes=max_bytes)
             def rebuild_attached():
                 fresh = load_meta(client, "ticket", "new", fresh=True)
                 return attached(build(plan.draft, ack or bool(plan.state.acknowledged), fresh))

@@ -21,14 +21,21 @@ def api(request, monkeypatch, tmp_path):
     monkeypatch.setattr(journal, "journal_path", lambda: tmp_path / "journal")
     s = {"writes": [], "uploads": {}, "notes": [], "conversations": [], "ticket": {"id": 123, "attachments": []},
          "problem": {"id": 123, "attachments": []}, "limit": 4096, "fail": None, "fail_step": "upload", "mismatch": False,
-         "missing_id": False, "partial": False}
+         "missing_id": False, "partial": False, "page": None, "page_status": 200}
     files = [tmp_path / "acme.txt", tmp_path / "globex.txt"]
     for i, file in enumerate(files):
         file.write_bytes(f"Acme evidence {i}\n".encode())
     def handler(req):
         path = req.url.path.removeprefix("/api/_/")
         if req.method == "GET":
+            if path == "/a/dashboard":
+                script = "" if s["page"] is None else "".join(f"window.MAX_ATTACHMENT_LIMIT = {v};\n" for v in s["page"])
+                html = f'<html><head><meta name="csrf-token" content="synthetic"></head><script>{script}</script></html>'
+                headers = {"location": "/login"} if 300 <= s["page_status"] < 400 else {}
+                return httpx.Response(s["page_status"], text=html, headers={"content-type": "text/html", **headers})
             if path in {"ticket_form_fields", "problem_form_fields"}:
+                if s["limit"] is None:
+                    return httpx.Response(200, json={"ticket_fields": [{"name": "subject"}]})
                 return httpx.Response(200, json={"attachment_settings": {"max_attachment_size_bytes": s["limit"]}})
             if path == "tickets/123/conversations":
                 rows = copy.deepcopy(s["conversations"])
@@ -90,7 +97,7 @@ def builder(c, paths, kind):
         def build():
             raw = flow.metadata(c, "tickets")
             base = WritePlan("ticket_create_attachments", 0, config.DOMAIN, "POST", "tickets", json.dumps({"subject": "Acme incident"}), journal.plan_hash(raw))
-            return flow.wrap(base, paths, raw)
+            return flow.wrap(base, paths, raw, client=c)
         return build
     return lambda: flow.conversation_plan(c, "INC-123", "Acme evidence", paths, kind=kind,
                                          sender="support@example.com" if kind == "reply" else None)
@@ -146,12 +153,128 @@ def test_preupload_drift_blocks(api, drift):
     assert not s["writes"]
 
 
-@pytest.mark.parametrize("limit", [None, 0, True, "4096", 1])
+@pytest.mark.parametrize("limit", [0, True, "4096", 1])
 def test_metadata_limit_fail_closed(api, limit):
     c, s, paths, _ = api
     s["limit"] = limit
     with pytest.raises(ReviewedWriteError):
         builder(c, paths, "note")()
+    assert not s["writes"]
+
+
+def test_conflicting_metadata_byte_limits_block(api):
+    c, s, paths, _ = api
+    s["limit"] = 4096
+    raw = {"attachment_settings": {"max_attachment_size_bytes": 4096}, "fields": [{"max_file_size_bytes": 2048}]}
+    with pytest.raises(ReviewedWriteError, match="conflicting"):
+        flow.resolve_limit(c, raw)
+
+
+@pytest.mark.parametrize("kind", ["note", "reply", "problem", "create"])
+def test_published_page_limit_is_mib_per_submit(api, kind):
+    c, s, paths, _ = api
+    s.update(limit=None, page=["40"])
+    p = builder(c, paths, kind)()
+    review = p.review()
+    assert p.limit == review["max_attachment_size_bytes"] == 40 * 1024 * 1024
+    assert review["attachment_size_limit"]["source"] == flow.PAGE_SOURCE
+    assert review["attachment_size_limit"]["total_bytes"] == sum(f.size for f in p.files)
+    assert flow.send(p, c, reviewed_hash=p.hash, rebuild=builder(c, paths, kind))["verified"]
+
+
+def test_total_over_published_limit_refused_before_upload(api):
+    c, s, paths, _ = api
+    s.update(limit=None, page=["0.00002"])  # 20.97 bytes -> 20; each file is 16 bytes
+    assert builder(c, paths[:1], "note")().limit == 20
+    with pytest.raises(ReviewedWriteError, match="exceed"):
+        builder(c, paths, "note")()  # each file fits, the total does not
+    assert not s["writes"]
+
+
+def test_page_limit_drift_invalidates_review(api):
+    c, s, paths, _ = api
+    s.update(limit=None, page=["40"])
+    build = builder(c, paths, "note")
+    p = build()
+    s["page"] = ["20"]
+    with pytest.raises(ReviewedWriteError, match="changed"):
+        flow.send(p, c, reviewed_hash=p.hash, rebuild=build)
+    assert not s["writes"]
+
+
+@pytest.mark.parametrize("page", [["40", "20"], ["0"], ["-1"], ["window.x"], ["1e3"]])
+def test_ambiguous_or_invalid_page_limit_blocks(api, page):
+    c, s, paths, _ = api
+    s.update(limit=None, page=page)
+    with pytest.raises(ReviewedWriteError, match="limit"):
+        builder(c, paths, "note")()
+    assert not s["writes"]
+
+
+@pytest.mark.parametrize("status", [302, 500])
+def test_unreadable_page_blocks(api, status):
+    from fsv.session import SessionError
+    c, s, paths, _ = api
+    s.update(limit=None, page=["40"], page_status=status)
+    with pytest.raises(SessionError if status == 302 else ReviewedWriteError):
+        builder(c, paths, "note")()
+    assert not s["writes"]
+
+
+def test_unpublished_limit_is_reviewed_and_needs_explicit_override(api):
+    c, s, paths, base = api
+    s.update(limit=None, page=None)
+    build = builder(c, paths, "note")
+    p = build()
+    review = p.review()
+    assert p.limit is None and review["attachment_size_limit"]["source"] == flow.NOT_PUBLISHED
+    assert review["attachment_size_limit"]["published_bytes"] == flow.NOT_PUBLISHED
+    assert "--max-bytes" in review["attachment_size_limit"]["note"]
+    with pytest.raises(ReviewedWriteError, match="--max-bytes"):
+        flow.send(p, c, reviewed_hash=p.hash, rebuild=build)
+    assert not s["writes"] and not journal.read()
+    total = sum(f.size for f in p.files)
+    with pytest.raises(ReviewedWriteError, match="exceed"):
+        flow.conversation_plan(c, "INC-123", "Acme evidence", paths, kind="note", max_bytes=total - 1)
+    build = lambda: flow.conversation_plan(c, "INC-123", "Acme evidence", paths, kind="note", max_bytes=total)
+    p = build()
+    assert p.review()["attachment_size_limit"]["source"] == flow.OVERRIDE_SOURCE
+    assert flow.send(p, c, reviewed_hash=p.hash, rebuild=build)["verified"]
+    assert s["writes"][-1][2]["attachments"] == [base, base+1]
+
+
+def test_override_replaces_published_limit_and_is_hash_bound(api):
+    c, s, paths, _ = api
+    s.update(limit=None, page=["40"])
+    p = flow.conversation_plan(c, "INC-123", "Acme evidence", paths, kind="note", max_bytes=4096)
+    limit = p.review()["attachment_size_limit"]
+    assert (limit["max_bytes"], limit["published_bytes"]) == (4096, 40 * 1024 * 1024)
+    assert p.hash != builder(c, paths, "note")().hash
+    for bad in (0, -1, True):
+        with pytest.raises(ReviewedWriteError, match="--max-bytes"):
+            flow.conversation_plan(c, "INC-123", "Acme evidence", paths, kind="note", max_bytes=bad)
+
+
+@pytest.mark.parametrize("kind", ["note", "reply", "problem"])
+def test_cli_max_bytes_option(api, kind):
+    _, s, paths, _ = api
+    s.update(limit=None, page=None)
+    runner = CliRunner()
+    args = {"note": ["tickets", "add-note", "INC-123", "--body", "Acme evidence"],
+            "reply": ["tickets", "reply", "INC-123", "Acme evidence", "--sender", "support@example.com"],
+            "problem": ["problems", "note", "PRB-123", "--body", "Acme evidence"]}[kind] + ["--attach", paths[0]]
+    r = runner.invoke(cli.app, args + ["--dry-run", "--json"])
+    assert r.exit_code == 0, r.output
+    review = json.loads(r.output)
+    assert review["attachment_size_limit"]["source"] == flow.NOT_PUBLISHED
+    r = runner.invoke(cli.app, args + ["--yes", "--expect-plan", review["plan_hash"], "--json"])
+    assert r.exit_code == 2 and "--max-bytes" in r.output
+    assert runner.invoke(cli.app, args + ["--max-bytes", "0", "--dry-run"]).exit_code == 2
+    r = runner.invoke(cli.app, args + ["--max-bytes", "1", "--dry-run", "--json"])
+    assert r.exit_code == 2 and "exceed" in r.output
+    r = runner.invoke(cli.app, args + ["--max-bytes", "4096", "--dry-run", "--json"])
+    assert r.exit_code == 0, r.output
+    assert json.loads(r.output)["attachment_size_limit"]["max_bytes"] == 4096
     assert not s["writes"]
 
 

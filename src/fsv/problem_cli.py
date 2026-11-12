@@ -58,6 +58,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
 
     @app.command("note", help="Review a problem note, optionally with local attachments; visibility is not inferred.")
     def note(target: str, body: str = typer.Option(..., "--body"), attach: Optional[list[str]] = typer.Option(None, "--attach"),
+             max_bytes: Optional[int] = typer.Option(None, "--max-bytes", min=1, help="explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)"),
              dry_run: bool = typer.Option(False, "--dry-run"), yes: bool = typer.Option(False, "--yes"),
              expect_plan: Optional[str] = typer.Option(None, "--expect-plan"), json_out: bool = typer.Option(False, "--json")) -> None:
         from fsv import attachments
@@ -65,7 +66,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
         try:
             client = client_factory()
             if attach:
-                rebuild = lambda: attachments.problem_note_plan(client, target, body, list(attach))
+                rebuild = lambda: attachments.problem_note_plan(client, target, body, list(attach), max_bytes=max_bytes)
                 finish_attachments(rebuild(), client, dry_run=dry_run, yes=yes, expected=expect_plan, rebuild=rebuild)
             else:
                 finish(flow.child_plan(client, target, kind="note", text=body), client, dry_run, yes, expect_plan)

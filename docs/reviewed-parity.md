@@ -18,12 +18,26 @@ owning write's `attachments` array. Dry runs never upload. Independent exact-ID
 parent/conversation/note reads verify normalized text, submitted fields, and file
 IDs/names/sizes; upload echoes are not verification of the owning write.
 
-**Limit availability is a hard prerequisite.** This adapter reads explicitly
-byte-denominated `max_attachment_size_bytes` or `max_file_size_bytes` from the
-runtime form metadata's attachment settings/fields. It does not infer a limit
-from a UI label, a generic number with unknown units, or a fixed MB constant.
-Absent, invalid or conflicting metadata blocks uploads. The offline fixtures
-exercise these shapes; portability of these limit keys is not live-certified.
+**Size limit.** The limit comes from the tenant, never from a constant built
+into fsv:
+
+1. Explicitly byte-denominated `max_attachment_size_bytes` or
+   `max_file_size_bytes` in the form metadata, if present.
+2. Otherwise the agent app page (`GET /a/dashboard`), which sets
+   `window.MAX_ATTACHMENT_LIMIT = <n>;`. The web UI divides file sizes by
+   1048576 and checks the total of all files in one form against it, so fsv
+   reads `<n>` as MiB per submit (40 gives 41,943,040 bytes) and checks the
+   total of every `--attach` file.
+
+The review's `attachment_size_limit` shows the bytes, the source, the tenant's
+published value and the total of the files. Invalid, conflicting or ambiguous
+values block, and so does an unreadable page. If the tenant publishes no limit,
+the review shows `not published by the tenant`. Sending then needs
+`--max-bytes N`, an explicit total limit in bytes. `--max-bytes` also replaces
+a published limit. The limit is part of the plan hash, so a change between
+review and send means reviewing again. Files over the limit are refused before
+any upload. The server does not enforce the web's limit itself, so this check is
+fsv's own guard.
 
 Upload plus owning write is not atomic. A durable transaction guard precedes
 the first upload, and known uploaded IDs are journaled. Any failed/ambiguous
