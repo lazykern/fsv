@@ -139,6 +139,25 @@ fn parts(src: &dyn Api, td: &mut TabData, specs: Vec<PartSpec<'_>>) -> Result<()
     Ok(())
 }
 
+/// `_truncation_notice` (`fsv activity`): `truncated: N more (showing X of
+/// Y); use --limit N or --all` when rows were cut by `--limit` or the pages
+/// were capped (`partial`, which adds `+`).
+pub fn truncation_notice(total: usize, shown: usize, partial: bool) -> Option<String> {
+    let hidden = total.saturating_sub(shown);
+    if hidden == 0 && !partial {
+        return None;
+    }
+    let plus = if partial { "+" } else { "" };
+    let more = if hidden > 0 {
+        format!("{hidden}{plus} more")
+    } else {
+        "more on the server".to_string()
+    };
+    Some(format!(
+        "truncated: {more} (showing {shown} of {total}{plus}); use --limit N or --all"
+    ))
+}
+
 /// `load_tab`: one site tab through the endpoints the web calls.
 pub fn load_tab(
     src: &mut dyn Source,
@@ -865,6 +884,25 @@ mod tests {
     use super::*;
     use crate::source::fake::Canned;
     use fsv_core::resource::{CHANGES, TICKETS};
+
+    /// `fsv.cli._truncation_notice` (Python 754eef1).
+    #[test]
+    fn truncation_notice_matches_python() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("../tests/fixtures/truncation_notice.json")).unwrap();
+        let cases = oracle["cases"].as_array().unwrap();
+        assert_eq!(cases.len(), 10);
+        for case in cases {
+            let total = case["total"].as_u64().unwrap() as usize;
+            let shown = case["shown"].as_u64().unwrap() as usize;
+            let partial = case["partial"].as_bool().unwrap();
+            assert_eq!(
+                json!(truncation_notice(total, shown, partial)),
+                case["notice"],
+                "{case}"
+            );
+        }
+    }
 
     #[test]
     fn notes_tab_reads_one_page() {

@@ -3695,4 +3695,30 @@ CLI follow-ups:
   goes to stderr only. The send result gains `selected_tickets` (the
   plan's `selected_json`). `--json` help says stdout is always JSON.
 
-Still not triaged: commits after `676b8bb`.
+## Ledger: `754eef1` (library side)
+
+Triaged against `git show 754eef1`
+(`754eef18692934c644263911bb39df1fa0cc9618`). Upstream changes only
+`cli.py`. The library gains the pure helper the CLI needs:
+`fsv_views::detail::truncation_notice(total, shown, partial)`, a port of
+`_truncation_notice`. `tests/fixtures/truncation_notice.json` is stamped
+inline at `754eef1` (10 cases). `TabData.meta["partial"]` already
+carries the capped-pages flag.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `754eef1`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `754eef1` | 11-13 05:33 | fix: activity lists report truncation and accept --all | partial | fsv-views (`detail::truncation_notice`). fsv-cli follow-up below |
+
+CLI follow-up:
+
+- `<resource> activity` gains `--all` (every loaded entry; it overrides
+  `--limit`). A negative limit shows none. Compute
+  `truncation_notice(rows, shown, meta.partial)`. In table output, print
+  `\n[yellow]{escape(notice)}[/]` after the rows. For JSON, CSV, and
+  TSV, print `[yellow]{notice}[/]` to stderr first, so stdout keeps its
+  shape. The `--limit` help says `newest N entries (a 'truncated' notice
+  reports the rest)`.
+
+Still not triaged: commits after `754eef1`.

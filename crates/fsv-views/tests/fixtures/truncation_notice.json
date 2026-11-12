@@ -1,0 +1,68 @@
+{
+ "_python": {
+  "commit": "754eef18692934c644263911bb39df1fa0cc9618",
+  "dirty": false
+ },
+ "cases": [
+  {
+   "total": 20,
+   "shown": 20,
+   "partial": false,
+   "notice": null
+  },
+  {
+   "total": 30,
+   "shown": 20,
+   "partial": false,
+   "notice": "truncated: 10 more (showing 20 of 30); use --limit N or --all"
+  },
+  {
+   "total": 30,
+   "shown": 20,
+   "partial": true,
+   "notice": "truncated: 10+ more (showing 20 of 30+); use --limit N or --all"
+  },
+  {
+   "total": 20,
+   "shown": 20,
+   "partial": true,
+   "notice": "truncated: more on the server (showing 20 of 20+); use --limit N or --all"
+  },
+  {
+   "total": 0,
+   "shown": 0,
+   "partial": false,
+   "notice": null
+  },
+  {
+   "total": 0,
+   "shown": 0,
+   "partial": true,
+   "notice": "truncated: more on the server (showing 0 of 0+); use --limit N or --all"
+  },
+  {
+   "total": 5,
+   "shown": 0,
+   "partial": false,
+   "notice": "truncated: 5 more (showing 0 of 5); use --limit N or --all"
+  },
+  {
+   "total": 21,
+   "shown": 20,
+   "partial": false,
+   "notice": "truncated: 1 more (showing 20 of 21); use --limit N or --all"
+  },
+  {
+   "total": 100,
+   "shown": 100,
+   "partial": true,
+   "notice": "truncated: more on the server (showing 100 of 100+); use --limit N or --all"
+  },
+  {
+   "total": 3,
+   "shown": 5,
+   "partial": false,
+   "notice": null
+  }
+ ]
+}
