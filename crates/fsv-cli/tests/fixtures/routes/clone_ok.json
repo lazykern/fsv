@@ -11,7 +11,8 @@
       "id": 11
      }
     ],
-    "state_flow_id": 27
+    "state_flow_id": 27,
+    "attached_risk_survey_response_status": "completed"
    }
   }
  },

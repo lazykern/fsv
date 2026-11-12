@@ -458,8 +458,13 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
         println!("{}", pretty(&result));
     } else {
         let s = |k: &str| result.get(k).map_or("None".to_string(), fsv_py::py_str);
+        let identity = if result.get("identity_verified").is_some() {
+            s("identity_verified")
+        } else {
+            s("verified")
+        };
         println!(
-            "Note {} submitted on ticket {}; exact-ID read-back: {}",
+            "Note {} submitted on ticket {}; exact-ID read-back: {identity}; all fields verified: {}",
             s("note_id"),
             plan.ticket_id,
             s("verified")

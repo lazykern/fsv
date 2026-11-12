@@ -1,0 +1,79 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/130/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 601,
+     "body": "<div>Acme\n fix</div>",
+     "body_text": "<div>Acme\n fix</div>",
+     "source": 2,
+     "private": true,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z",
+     "to_emails": []
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets/130/notes",
+  "json": {
+   "conversation": {
+    "id": 601,
+    "body": "<div>Acme fix</div>",
+    "body_text": "<div>Acme fix</div>",
+    "source": 2,
+    "private": true,
+    "user_id": 9000001234,
+    "created_at": "2030-01-01T00:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/131/conversations",
+  "json": {
+   "conversations": [
+    {
+     "id": 602,
+     "body": "<div>Acme\n fix</div>",
+     "body_text": "<div>Acme\n fix</div>",
+     "source": 2,
+     "private": false,
+     "user_id": 9000001234,
+     "created_at": "2030-01-01T00:00:00Z",
+     "to_emails": []
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/tickets/131/notes",
+  "json": {
+   "conversation": {
+    "id": 602,
+    "body": "<div>Acme fix</div>",
+    "body_text": "<div>Acme fix</div>",
+    "source": 2,
+    "private": true,
+    "user_id": 9000001234,
+    "created_at": "2030-01-01T00:00:00Z"
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

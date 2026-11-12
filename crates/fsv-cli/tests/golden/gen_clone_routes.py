@@ -17,7 +17,8 @@ DASHBOARD = {"method": "GET", "path": "/a/dashboard",
              "text": '<html><head><meta name="csrf-token" content="tok"></head></html>'}
 READS = {
     "changes/123": {"change": {"id": 123, "subject": "Acme maintenance", "status": 47,
-                               "attachments": [{"id": 11}], "state_flow_id": 27}},
+                               "attachments": [{"id": 11}], "state_flow_id": 27,
+                               "attached_risk_survey_response_status": "completed"}},
     "changes/123/tasks": {"tasks": [{"id": 501, "title": "Verify Acme", "owner_id": 71, "status": 3}]},
     "changes/123/assets": {"associated_assets": [{"id": 801, "config_item": {"display_id": 701}}]},
     "changes/123/planning-fields": {"change_planning_fields": [

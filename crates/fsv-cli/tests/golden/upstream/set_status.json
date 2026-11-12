@@ -1,0 +1,20 @@
+[
+ {"name": "reply_set_status_resolved_needs_note", "fixture": "ticket_lifecycle",
+  "args": ["tickets", "reply", "123", "hi", "--set-status", "Resolved", "--dry-run"]},
+ {"name": "reply_set_status_closed_dry_run", "fixture": "ticket_lifecycle",
+  "args": ["tickets", "reply", "124", "hi", "--set-status", "Closed", "--dry-run"]},
+ {"name": "reply_set_status_closed_required_field", "fixture": "ticket_lifecycle",
+  "args": ["tickets", "reply", "126", "hi", "--set-status", "Closed", "--dry-run"]},
+ {"name": "reply_set_status_unknown", "fixture": "ticket_lifecycle",
+  "args": ["tickets", "reply", "123", "hi", "--set-status", "Bogus", "--dry-run"]},
+ {"name": "note_set_status_resolved_needs_note", "fixture": "ticket_lifecycle",
+  "args": ["tickets", "add-note", "123", "--body", "hi", "--set-status", "Resolved", "--dry-run"]},
+ {"name": "note_set_status_closed_dry_run", "fixture": "ticket_lifecycle",
+  "args": ["tickets", "add-note", "124", "--body", "hi", "--set-status", "Closed", "--dry-run"]},
+ {"name": "note_set_status_closed_needs_resolution", "fixture": "ticket_lifecycle",
+  "args": ["tickets", "add-note", "125", "--body", "hi", "--set-status", "closed", "--dry-run"]},
+ {"name": "reply_set_status_not_pending", "fixture": "ticket_conv",
+  "args": ["tickets", "reply", "5", "hi", "--set-status", "Open", "--dry-run"]},
+ {"name": "note_set_status_not_pending", "fixture": "ticket_conv",
+  "args": ["tickets", "add-note", "5", "--body", "hi", "--set-status", "Open", "--dry-run"]}
+]

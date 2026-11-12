@@ -3,11 +3,13 @@
 //! forward, update --reviewed with --set answers, the SR send-failure report,
 //! the change asset picker, canned replies and scenarios, private ticket
 //! views, list columns and exports, problem create and child writes,
-//! Click's missing-parameter errors, and change clones that fail part-way.
+//! Click's missing-parameter errors, change clones that fail part-way, and
+//! ticket status transitions, merges, assignment and pick-up, closing
+//! replies and notes (`--set-status`), and the add-note send report.
 //! Expected output was captured from
 //! Python on the same routes (`tests/golden/emit_upstream.py`); one-shot
 //! routes serve the record before the write and the changed record after it.
-//! Python commit: 3432beaa8719b988eb99a257b347f7b4338982eb
+//! Python commit: 94925f46cddbea900802f9cb5cdea0563f73d2b1
 
 mod common;
 use common::run_fixture;
@@ -6633,4 +6635,1924 @@ fn clone_no_input_needs_yes() {
         r#"error: clone of CHN-123: --with-tasks: creates tasks that can notify their groups and trigger tenant workflows. Pass --yes to confirm.
 "#
     );
+}
+
+#[test]
+fn tickets_resolve_dry_run() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "resolve",
+            "INC-123",
+            "--note",
+            "Acme fix <safe>",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_transition",
+  "status_label": "Resolved",
+  "steps": [
+    {
+      "method": "PUT",
+      "path": "/api/_/tickets/123",
+      "payload": {
+        "resolution_notes": "<div>Acme fix &lt;safe&gt;</div>",
+        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/_/tickets/123",
+      "payload": {
+        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+        "group_id": null,
+        "responder_id": 9000001234,
+        "status": 62
+      }
+    }
+  ],
+  "plan_hash": "7c49d4b0c04c0bbe0619b9be73e451751847577b668d8d0991e55dd2921e674d",
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_resolve_with_answer_dry_run() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "resolve",
+            "123",
+            "--note",
+            "Acme fix",
+            "--set",
+            "summary=Globex fix",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_transition",
+  "status_label": "Resolved",
+  "steps": [
+    {
+      "method": "PUT",
+      "path": "/api/_/tickets/123",
+      "payload": {
+        "resolution_notes": "<div>Acme fix</div>",
+        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0="
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/_/tickets/123",
+      "payload": {
+        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+        "custom_fields": {
+          "summary": "Globex fix"
+        },
+        "group_id": null,
+        "responder_id": 9000001234,
+        "status": 62
+      }
+    }
+  ],
+  "plan_hash": "ecff7776669056fd3454d7f2a862ff235a364cfed26f0552c0092f06ee1a224d",
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_resolve_needs_expect_plan() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "resolve",
+            "123",
+            "--note",
+            "Acme fix <safe>",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn tickets_resolve_wrong_hash() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "resolve",
+            "123",
+            "--note",
+            "Acme fix <safe>",
+            "--yes",
+            "--expect-plan",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn tickets_resolve_send() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "resolve",
+            "INC-123",
+            "--note",
+            "Acme fix <safe>",
+            "--yes",
+            "--expect-plan",
+            "7c49d4b0c04c0bbe0619b9be73e451751847577b668d8d0991e55dd2921e674d",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "ticket_id": 123,
+  "status_label": "Resolved",
+  "plan_hash": "7c49d4b0c04c0bbe0619b9be73e451751847577b668d8d0991e55dd2921e674d",
+  "verified": true
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.write_paths(),
+        ["PUT /api/_/tickets/123", "PUT /api/_/tickets/123"]
+    );
+}
+
+#[test]
+fn tickets_close_dry_run() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &["tickets", "close", "124", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_transition",
+  "status_label": "Closed",
+  "steps": [
+    {
+      "method": "PUT",
+      "path": "/api/_/tickets/124",
+      "payload": {
+        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+        "group_id": null,
+        "responder_id": 9000001234,
+        "status": 89
+      }
+    }
+  ],
+  "plan_hash": "809b34350b79011c765c2372918154b8d0eae87d6c0a084dc5c74b5f5029d920",
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_close_send() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "close",
+            "124",
+            "--yes",
+            "--expect-plan",
+            "809b34350b79011c765c2372918154b8d0eae87d6c0a084dc5c74b5f5029d920",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "ticket_id": 124,
+  "status_label": "Closed",
+  "plan_hash": "809b34350b79011c765c2372918154b8d0eae87d6c0a084dc5c74b5f5029d920",
+  "verified": true
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/124"]);
+}
+
+#[test]
+fn tickets_close_needs_resolution_note() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &["tickets", "close", "125", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"a persisted resolution note is required; use tickets resolve ID --note TEXT first
+"#
+    );
+}
+
+#[test]
+fn tickets_close_required_field_missing() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &["tickets", "close", "126", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"required fields: Resolution Summary (summary); supply --set FIELD=VALUE
+"#
+    );
+}
+
+#[test]
+fn tickets_close_required_field_answered() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "close",
+            "126",
+            "--set",
+            "summary=Globex fix",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_transition",
+  "status_label": "Closed",
+  "steps": [
+    {
+      "method": "PUT",
+      "path": "/api/_/tickets/126",
+      "payload": {
+        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+        "custom_fields": {
+          "summary": "Globex fix"
+        },
+        "group_id": null,
+        "responder_id": 9000001234,
+        "status": 89
+      }
+    }
+  ],
+  "plan_hash": "0086ebfa6080639b7fff523a8a8d8f7397978ec643ac0c8441cc6526ab555466",
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_reopen_dry_run() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &["tickets", "reopen", "127", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_transition",
+  "status_label": "Open",
+  "steps": [
+    {
+      "method": "PUT",
+      "path": "/api/_/tickets/127",
+      "payload": {
+        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+        "group_id": null,
+        "responder_id": 9000001234,
+        "status": 31
+      }
+    }
+  ],
+  "plan_hash": "f060bab230b722d25b590adcaa8bcb7184b6dd39464f15ef6e72497136192564",
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_reopen_send() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "reopen",
+            "127",
+            "--yes",
+            "--expect-plan",
+            "f060bab230b722d25b590adcaa8bcb7184b6dd39464f15ef6e72497136192564",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "ticket_id": 127,
+  "status_label": "Open",
+  "plan_hash": "f060bab230b722d25b590adcaa8bcb7184b6dd39464f15ef6e72497136192564",
+  "verified": true
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/127"]);
+}
+
+#[test]
+fn tickets_status_pending_dry_run() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "status",
+            "123",
+            "pending",
+            "--set",
+            "reason=Waiting on Acme",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_transition",
+  "status_label": "Pending",
+  "steps": [
+    {
+      "method": "PUT",
+      "path": "/api/_/tickets/123",
+      "payload": {
+        "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+        "custom_fields": {
+          "reason": "Waiting on Acme"
+        },
+        "group_id": null,
+        "responder_id": 9000001234,
+        "status": 47
+      }
+    }
+  ],
+  "plan_hash": "2ce0f9888d30450783860d343bc6a93d1a1bfe22e8efc1e64a646d1528898509",
+  "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_status_unknown_refused() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &["tickets", "status", "123", "Bogus", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"status must identify one visible runtime status label
+"#
+    );
+}
+
+#[test]
+fn tickets_status_set_without_value_refused() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "status",
+            "123",
+            "Pending",
+            "--set",
+            "reason",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"--set requires unique FIELD=VALUE answers
+"#
+    );
+}
+
+#[test]
+fn tickets_status_set_duplicate_refused() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "status",
+            "123",
+            "Pending",
+            "--set",
+            "reason=a",
+            "--set",
+            "reason=b",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"--set requires unique FIELD=VALUE answers
+"#
+    );
+}
+
+#[test]
+fn tickets_status_set_default_field_refused() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "status",
+            "123",
+            "Pending",
+            "--set",
+            "status=Open",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"Status: --set requires unique writable custom fields
+"#
+    );
+}
+
+#[test]
+fn tickets_status_bad_id_refused() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &["tickets", "status", "0", "Pending", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"ticket ID must be positive
+"#
+    );
+}
+
+#[test]
+fn tickets_close_readback_mismatch() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "close",
+            "128",
+            "--yes",
+            "--expect-plan",
+            "7c2da2bb62f2da4b14c11139ec37af3b5b224fd2168787ab821ee3fc35eed3c1",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"transition readback mismatch; outcome unknown; do not resend
+"#
+    );
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/128"]);
+}
+
+#[test]
+fn tickets_merge_dry_run() {
+    let r = run_fixture(
+        "ticket_merge",
+        &[
+            "tickets",
+            "merge",
+            "INC-123",
+            "INC-124",
+            "INC-125",
+            "--note-primary",
+            "Primary note",
+            "--note-secondary",
+            "Secondary note",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_merge",
+  "method": "POST",
+  "path": "/api/_/merge_tickets/complete_merge",
+  "payload": {
+    "source": {
+      "is_private": true,
+      "note": "Secondary note",
+      "ticket_ids": [
+        124,
+        125
+      ]
+    },
+    "target": {
+      "is_private": true,
+      "note": "Primary note",
+      "ticket_id": 123
+    }
+  },
+  "plan_hash": "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e",
+  "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+  "surviving_ticket": 123,
+  "merged_tickets": [
+    124,
+    125
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_merge_public_notes_dry_run() {
+    let r = run_fixture(
+        "ticket_merge",
+        &[
+            "tickets",
+            "merge",
+            "123",
+            "124",
+            "--note-primary",
+            "Primary note",
+            "--note-secondary",
+            "Secondary note",
+            "--public-primary",
+            "--public-secondary",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_merge",
+  "method": "POST",
+  "path": "/api/_/merge_tickets/complete_merge",
+  "payload": {
+    "source": {
+      "is_private": false,
+      "note": "Secondary note",
+      "ticket_ids": [
+        124
+      ]
+    },
+    "target": {
+      "is_private": false,
+      "note": "Primary note",
+      "ticket_id": 123
+    }
+  },
+  "plan_hash": "53d303e9a5422166146cee2214b8f71280a04b5fa3fd7c664f786ee332835449",
+  "warning": "Irreversible: secondary tickets are closed and their conversations move to the surviving primary. Tenant workflows may notify people. Unknown outcomes must not be resent.",
+  "surviving_ticket": 123,
+  "merged_tickets": [
+    124
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_merge_needs_expect_plan() {
+    let r = run_fixture(
+        "ticket_merge",
+        &[
+            "tickets",
+            "merge",
+            "123",
+            "124",
+            "--note-primary",
+            "Primary note",
+            "--note-secondary",
+            "Secondary note",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn tickets_merge_short_hash_refused() {
+    let r = run_fixture(
+        "ticket_merge",
+        &[
+            "tickets",
+            "merge",
+            "123",
+            "124",
+            "--note-primary",
+            "Primary note",
+            "--note-secondary",
+            "Secondary note",
+            "--yes",
+            "--expect-plan",
+            "0000000000000000",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn tickets_merge_send() {
+    let r = run_fixture(
+        "ticket_merge",
+        &[
+            "tickets",
+            "merge",
+            "INC-123",
+            "INC-124",
+            "INC-125",
+            "--note-primary",
+            "Primary note",
+            "--note-secondary",
+            "Secondary note",
+            "--yes",
+            "--expect-plan",
+            "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e",
+  "verified": true,
+  "surviving_ticket": 123,
+  "primary_status_unchanged": true,
+  "primary_note": true,
+  "secondaries": {
+    "124": {
+      "closed": true,
+      "conversations_moved": true,
+      "source_note": true
+    },
+    "125": {
+      "closed": true,
+      "conversations_moved": true,
+      "source_note": true
+    }
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.write_paths(),
+        ["POST /api/_/merge_tickets/complete_merge"]
+    );
+}
+
+#[test]
+fn tickets_merge_readback_unverified() {
+    let r = run_fixture(
+        "ticket_merge_unverified",
+        &[
+            "tickets",
+            "merge",
+            "INC-123",
+            "INC-124",
+            "INC-125",
+            "--note-primary",
+            "Primary note",
+            "--note-secondary",
+            "Secondary note",
+            "--yes",
+            "--expect-plan",
+            "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e",
+  "verified": false,
+  "surviving_ticket": 123,
+  "primary_status_unchanged": true,
+  "primary_note": false,
+  "secondaries": {
+    "124": {
+      "closed": true,
+      "conversations_moved": true,
+      "source_note": true
+    },
+    "125": {
+      "closed": true,
+      "conversations_moved": true,
+      "source_note": true
+    }
+  },
+  "warning": "Readback was not fully verified; do not resend."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.write_paths(),
+        ["POST /api/_/merge_tickets/complete_merge"]
+    );
+}
+
+#[test]
+fn tickets_merge_server_error_unknown() {
+    let r = run_fixture(
+        "ticket_merge_500",
+        &[
+            "tickets",
+            "merge",
+            "INC-123",
+            "INC-124",
+            "INC-125",
+            "--note-primary",
+            "Primary note",
+            "--note-secondary",
+            "Secondary note",
+            "--yes",
+            "--expect-plan",
+            "8a9efa8c3d1d67c739cdbdd1ae3a377d90f1325a1da54a9d6e9d3c976560b98e",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"write outcome unknown; inspect target and journal before retry
+"#
+    );
+    assert_eq!(
+        r.write_paths(),
+        ["POST /api/_/merge_tickets/complete_merge"]
+    );
+}
+
+#[test]
+fn tickets_merge_same_ticket_refused() {
+    let r = run_fixture(
+        "ticket_merge",
+        &[
+            "tickets",
+            "merge",
+            "123",
+            "123",
+            "--note-primary",
+            "A",
+            "--note-secondary",
+            "B",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"primary and secondary tickets must be distinct
+"#
+    );
+}
+
+#[test]
+fn tickets_merge_duplicate_secondary_refused() {
+    let r = run_fixture(
+        "ticket_merge",
+        &[
+            "tickets",
+            "merge",
+            "123",
+            "124",
+            "INC-124",
+            "--note-primary",
+            "A",
+            "--note-secondary",
+            "B",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"primary and secondary tickets must be distinct
+"#
+    );
+}
+
+#[test]
+fn tickets_merge_blank_note_refused() {
+    let r = run_fixture(
+        "ticket_merge",
+        &[
+            "tickets",
+            "merge",
+            "123",
+            "124",
+            "--note-primary",
+            "  ",
+            "--note-secondary",
+            "B",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"both merge notes must be nonempty text
+"#
+    );
+}
+
+#[test]
+fn tickets_merge_bad_id_refused() {
+    let r = run_fixture(
+        "ticket_merge",
+        &[
+            "tickets",
+            "merge",
+            "0",
+            "124",
+            "--note-primary",
+            "A",
+            "--note-secondary",
+            "B",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"ticket ID must be positive
+"#
+    );
+}
+
+#[test]
+fn tickets_merge_incomplete_history_refused() {
+    let r = run_fixture(
+        "ticket_merge",
+        &[
+            "tickets",
+            "merge",
+            "123",
+            "126",
+            "--note-primary",
+            "A",
+            "--note-secondary",
+            "B",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"complete conversation history is required; no merge attempted
+"#
+    );
+}
+
+#[test]
+fn tickets_assign_unassign_dry_run() {
+    let r = run_fixture(
+        "ticket_assign",
+        &[
+            "tickets",
+            "assign",
+            "INC-123",
+            "--unassign",
+            "--dry-run",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_assign",
+  "method": "PUT",
+  "path": "/api/_/tickets/123",
+  "payload": {
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+    "responder_id": null
+  },
+  "plan_hash": "d067767325ce33d846f2738d5792b5a43755127f74df9e2dd6c3caec9484dc4d",
+  "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
+  "before": [
+    {
+      "group_id": 81,
+      "responder_id": 71,
+      "ticket_id": 123
+    }
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_assign_unassign_needs_expect_plan() {
+    let r = run_fixture(
+        "ticket_assign",
+        &["tickets", "assign", "INC-123", "--unassign", "--yes"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn tickets_assign_unassign_short_hash_refused() {
+    let r = run_fixture(
+        "ticket_assign",
+        &[
+            "tickets",
+            "assign",
+            "INC-123",
+            "--unassign",
+            "--yes",
+            "--expect-plan",
+            "0000000000000000",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn tickets_assign_unassign_send() {
+    let r = run_fixture(
+        "ticket_assign",
+        &[
+            "tickets",
+            "assign",
+            "INC-123",
+            "--unassign",
+            "--yes",
+            "--expect-plan",
+            "d067767325ce33d846f2738d5792b5a43755127f74df9e2dd6c3caec9484dc4d",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "d067767325ce33d846f2738d5792b5a43755127f74df9e2dd6c3caec9484dc4d",
+  "verified": true,
+  "tickets": {
+    "123": {
+      "responder_id": "matched"
+    }
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/123"]);
+}
+
+#[test]
+fn tickets_assign_agent_in_group_dry_run() {
+    let r = run_fixture(
+        "ticket_assign",
+        &[
+            "tickets",
+            "assign",
+            "124",
+            "--agent",
+            "agent@example.com",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_assign",
+  "method": "PUT",
+  "path": "/api/_/tickets/124",
+  "payload": {
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+    "responder_id": 71
+  },
+  "plan_hash": "1594a3873b1e7eec0c528867478413fc483cff9c1924e7f03fa6abca6874da36",
+  "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
+  "before": [
+    {
+      "group_id": 81,
+      "responder_id": null,
+      "ticket_id": 124
+    }
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_assign_agent_send() {
+    let r = run_fixture(
+        "ticket_assign",
+        &[
+            "tickets",
+            "assign",
+            "124",
+            "--agent",
+            "agent@example.com",
+            "--yes",
+            "--expect-plan",
+            "1594a3873b1e7eec0c528867478413fc483cff9c1924e7f03fa6abca6874da36",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "1594a3873b1e7eec0c528867478413fc483cff9c1924e7f03fa6abca6874da36",
+  "verified": true,
+  "tickets": {
+    "124": {
+      "responder_id": "matched"
+    }
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/124"]);
+}
+
+#[test]
+fn tickets_assign_group_and_agent_dry_run() {
+    let r = run_fixture(
+        "ticket_assign",
+        &[
+            "tickets",
+            "assign",
+            "123",
+            "--group",
+            "Acme Desk",
+            "--agent",
+            "Acme Agent",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_assign",
+  "method": "PUT",
+  "path": "/api/_/tickets/123",
+  "payload": {
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+    "group_id": 81,
+    "responder_id": 71
+  },
+  "plan_hash": "71a03c4d518b01765c2b0bd514c68a98847059282ac9e77c191d01b0796f2472",
+  "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
+  "before": [
+    {
+      "group_id": 81,
+      "responder_id": 71,
+      "ticket_id": 123
+    }
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_assign_group_only_clears_agent_dry_run() {
+    let r = run_fixture(
+        "ticket_assign",
+        &[
+            "tickets",
+            "assign",
+            "123",
+            "--group",
+            "Globex Desk",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_assign",
+  "method": "PUT",
+  "path": "/api/_/tickets/123",
+  "payload": {
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+    "group_id": 82,
+    "responder_id": null
+  },
+  "plan_hash": "97c00714dc0acfb737760f7eb5720c989b3f8562a68c1fbb3a326a7cacf1a69f",
+  "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
+  "before": [
+    {
+      "group_id": 81,
+      "responder_id": 71,
+      "ticket_id": 123
+    }
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_assign_agent_not_member_refused() {
+    let r = run_fixture(
+        "ticket_assign",
+        &[
+            "tickets",
+            "assign",
+            "123",
+            "--agent",
+            "Globex Agent",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"agent is not a verified member of the group
+"#
+    );
+}
+
+#[test]
+fn tickets_assign_unknown_agent_refused() {
+    let r = run_fixture(
+        "ticket_assign",
+        &["tickets", "assign", "123", "--agent", "Nobody", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"agent must identify exactly one active runtime entry
+"#
+    );
+}
+
+#[test]
+fn tickets_assign_no_option_refused() {
+    let r = run_fixture(
+        "ticket_assign",
+        &["tickets", "assign", "123", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"assign one ticket with --agent and/or --group, or --unassign
+"#
+    );
+}
+
+#[test]
+fn tickets_assign_unassign_with_agent_refused() {
+    let r = run_fixture(
+        "ticket_assign",
+        &[
+            "tickets",
+            "assign",
+            "123",
+            "--unassign",
+            "--agent",
+            "71",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"assign one ticket with --agent and/or --group, or --unassign
+"#
+    );
+}
+
+#[test]
+fn tickets_assign_readback_unverified() {
+    let r = run_fixture(
+        "ticket_assign",
+        &[
+            "tickets",
+            "assign",
+            "126",
+            "--agent",
+            "71",
+            "--yes",
+            "--expect-plan",
+            "a056715e758b8fb9ffbe5d466dc32534c48973bc9c76efcbdcee2a256bd05007",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "a056715e758b8fb9ffbe5d466dc32534c48973bc9c76efcbdcee2a256bd05007",
+  "verified": false,
+  "tickets": {
+    "126": {
+      "responder_id": "mismatched"
+    }
+  },
+  "warning": "Readback was not fully verified; do not resend."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/126"]);
+}
+
+#[test]
+fn tickets_pick_up_dry_run() {
+    let r = run_fixture(
+        "ticket_assign",
+        &["tickets", "pick-up", "124", "INC-125", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_pick_up",
+  "method": "PUT",
+  "path": "/api/_/tickets/pick_up",
+  "payload": {
+    "ids": [
+      124,
+      125
+    ]
+  },
+  "plan_hash": "59754f3bdb37289d5ca03cc2b2be757004067bc185091e0362f631d8c2805b79",
+  "warning": "Assignment can notify people. Inspect each ticket after an unknown or partial outcome; never resend automatically.",
+  "before": [
+    {
+      "group_id": 81,
+      "responder_id": null,
+      "ticket_id": 124
+    },
+    {
+      "group_id": null,
+      "responder_id": null,
+      "ticket_id": 125
+    }
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_pick_up_send() {
+    let r = run_fixture(
+        "ticket_assign",
+        &[
+            "tickets",
+            "pick-up",
+            "124",
+            "INC-125",
+            "--yes",
+            "--expect-plan",
+            "59754f3bdb37289d5ca03cc2b2be757004067bc185091e0362f631d8c2805b79",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "59754f3bdb37289d5ca03cc2b2be757004067bc185091e0362f631d8c2805b79",
+  "verified": true,
+  "tickets": {
+    "124": {
+      "responder_id": "matched"
+    },
+    "125": {
+      "responder_id": "matched"
+    }
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/pick_up"]);
+}
+
+#[test]
+fn tickets_pick_up_duplicate_refused() {
+    let r = run_fixture(
+        "ticket_assign",
+        &["tickets", "pick-up", "124", "INC-124", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"ticket IDs must be positive and unique
+"#
+    );
+}
+
+#[test]
+fn reply_set_status_resolved_needs_note() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "reply",
+            "123",
+            "hi",
+            "--set-status",
+            "Resolved",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"a persisted resolution note is required; use tickets resolve ID --note TEXT first
+"#
+    );
+}
+
+#[test]
+fn reply_set_status_closed_dry_run() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "reply",
+            "124",
+            "hi",
+            "--set-status",
+            "Closed",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_reply",
+  "method": "POST",
+  "path": "/api/_/tickets/124/reply",
+  "payload": {
+    "body": "<div>hi</div>",
+    "cc_emails": [],
+    "conversation_from_summary": false,
+    "freddy_message_id": null,
+    "full_text": "<div>hi</div>",
+    "helpdesk_ticket": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 89
+    },
+    "translate_reply": false
+  },
+  "status_label": "Closed",
+  "plan_hash": "be11dde146d1a83e4e7d87c7d7ac698f52db9fbc48cf08fd06d3c91f8b13d69d",
+  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn reply_set_status_closed_required_field() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "reply",
+            "126",
+            "hi",
+            "--set-status",
+            "Closed",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"required fields: Resolution Summary (summary); supply --set FIELD=VALUE
+"#
+    );
+}
+
+#[test]
+fn reply_set_status_unknown() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "reply",
+            "123",
+            "hi",
+            "--set-status",
+            "Bogus",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"only the Pending status transition was captured; use the web form for other statuses
+"#
+    );
+}
+
+#[test]
+fn note_set_status_resolved_needs_note() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "add-note",
+            "123",
+            "--body",
+            "hi",
+            "--set-status",
+            "Resolved",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"a persisted resolution note is required; use tickets resolve ID --note TEXT first
+"#
+    );
+}
+
+#[test]
+fn note_set_status_closed_dry_run() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "add-note",
+            "124",
+            "--body",
+            "hi",
+            "--set-status",
+            "Closed",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_note",
+  "method": "POST",
+  "path": "/api/_/tickets/124/notes",
+  "payload": {
+    "body": "<div>hi</div>",
+    "conversation_from_summary": false,
+    "helpdesk_ticket": {
+      "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+      "group_id": null,
+      "responder_id": 9000001234,
+      "status": 89
+    },
+    "notify_emails": [],
+    "private": true
+  },
+  "status_label": "Closed",
+  "plan_hash": "ab4d38dd09e8d0835893191df8d134811e8b22643d72da2af02984255b463b7b",
+  "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn note_set_status_closed_needs_resolution() {
+    let r = run_fixture(
+        "ticket_lifecycle",
+        &[
+            "tickets",
+            "add-note",
+            "125",
+            "--body",
+            "hi",
+            "--set-status",
+            "closed",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"a persisted resolution note is required; use tickets resolve ID --note TEXT first
+"#
+    );
+}
+
+#[test]
+fn reply_set_status_not_pending() {
+    let r = run_fixture(
+        "ticket_conv",
+        &[
+            "tickets",
+            "reply",
+            "5",
+            "hi",
+            "--set-status",
+            "Open",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"only the Pending status transition was captured; use the web form for other statuses
+"#
+    );
+}
+
+#[test]
+fn note_set_status_not_pending() {
+    let r = run_fixture(
+        "ticket_conv",
+        &[
+            "tickets",
+            "add-note",
+            "5",
+            "--body",
+            "hi",
+            "--set-status",
+            "Open",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"only the Pending status transition was captured; use the web form for other statuses
+"#
+    );
+}
+
+#[test]
+fn tickets_add_note_send_verified() {
+    let r = run_fixture(
+        "ticket_note_send",
+        &[
+            "tickets",
+            "add-note",
+            "130",
+            "--body",
+            "Acme fix",
+            "--yes",
+            "--expect-plan",
+            "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"Note 601 submitted on ticket 130; exact-ID read-back: True; all fields verified: True
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"{
+  "action": "ticket_note",
+  "tenant": "acme.freshservice.com",
+  "ticket_id": 130,
+  "visibility": "private note",
+  "path": "/api/_/tickets/130/notes",
+  "method": "POST",
+  "payload": {
+    "body": "<div>Acme fix</div>",
+    "conversation_from_summary": false,
+    "private": true,
+    "notify_emails": []
+  },
+  "body_text": "Acme fix",
+  "plan_hash": "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6",
+  "risks": [],
+  "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications."
+}
+"#
+    );
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/130/notes"]);
+}
+
+#[test]
+fn tickets_add_note_send_fields_unverified() {
+    let r = run_fixture(
+        "ticket_note_send",
+        &[
+            "tickets",
+            "add-note",
+            "131",
+            "--body",
+            "Acme fix",
+            "--yes",
+            "--expect-plan",
+            "cb78404c474288d741d0285b54c6e2425be0feb24cc0c206737f533d5f6f376d",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"Note 602 submitted on ticket 131; exact-ID read-back: True; all fields verified: False
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"{
+  "action": "ticket_note",
+  "tenant": "acme.freshservice.com",
+  "ticket_id": 131,
+  "visibility": "private note",
+  "path": "/api/_/tickets/131/notes",
+  "method": "POST",
+  "payload": {
+    "body": "<div>Acme fix</div>",
+    "conversation_from_summary": false,
+    "private": true,
+    "notify_emails": []
+  },
+  "body_text": "Acme fix",
+  "plan_hash": "cb78404c474288d741d0285b54c6e2425be0feb24cc0c206737f533d5f6f376d",
+  "risks": [],
+  "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications."
+}
+Read-back did not fully verify the note fields and history; do not resend.
+"#
+    );
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/131/notes"]);
+}
+
+#[test]
+fn tickets_add_note_send_json() {
+    let r = run_fixture(
+        "ticket_note_send",
+        &[
+            "tickets",
+            "add-note",
+            "130",
+            "--body",
+            "Acme fix",
+            "--json",
+            "--yes",
+            "--expect-plan",
+            "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "ticket_id": 130,
+  "note_id": 601,
+  "note": {
+    "id": 601,
+    "body": "<div>Acme fix</div>",
+    "body_text": "<div>Acme fix</div>",
+    "source": 2,
+    "private": true,
+    "user_id": 9000001234,
+    "created_at": "2030-01-01T00:00:00Z"
+  },
+  "plan_hash": "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6",
+  "verified": true,
+  "readback": {
+    "id": 601,
+    "body": "<div>Acme\n fix</div>",
+    "body_text": "<div>Acme\n fix</div>",
+    "source": 2,
+    "private": true,
+    "user_id": 9000001234,
+    "created_at": "2030-01-01T00:00:00Z",
+    "to_emails": []
+  },
+  "identity_verified": true,
+  "fields_verified": true,
+  "readback_complete": true,
+  "fields": {
+    "body": "matched",
+    "private": "matched",
+    "notify_emails": "matched"
+  }
+}
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"{
+  "action": "ticket_note",
+  "tenant": "acme.freshservice.com",
+  "ticket_id": 130,
+  "visibility": "private note",
+  "path": "/api/_/tickets/130/notes",
+  "method": "POST",
+  "payload": {
+    "body": "<div>Acme fix</div>",
+    "conversation_from_summary": false,
+    "private": true,
+    "notify_emails": []
+  },
+  "body_text": "Acme fix",
+  "plan_hash": "e323d17f803276921d22db41c0f3b45bf7accd93a8bacf88b30f0c8f927f80f6",
+  "risks": [],
+  "warning": "Not a reply. Empty notify_emails does not disable tenant workflows or guarantee no notifications."
+}
+"#
+    );
+    assert_eq!(r.write_paths(), ["POST /api/_/tickets/130/notes"]);
 }

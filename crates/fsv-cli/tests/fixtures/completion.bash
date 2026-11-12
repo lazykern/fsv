@@ -563,6 +563,27 @@ _fsv_complete() {
         "tickets export")
             COMPREPLY=( $(compgen -W "--verbose -v --view --field --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
             return 0 ;;
+        "tickets assign")
+            COMPREPLY=( $(compgen -W "--verbose -v --agent --group --unassign --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
+            return 0 ;;
+        "tickets pick-up")
+            COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
+            return 0 ;;
+        "tickets merge")
+            COMPREPLY=( $(compgen -W "--verbose -v --note-primary --note-secondary --private-primary --public-primary --private-secondary --public-secondary --dry-run --yes --expect-plan --output -o --json" -- "$cur") )
+            return 0 ;;
+        "tickets resolve")
+            COMPREPLY=( $(compgen -W "--verbose -v --note --set --dry-run --yes --expect-plan" -- "$cur") )
+            return 0 ;;
+        "tickets close")
+            COMPREPLY=( $(compgen -W "--verbose -v --set --dry-run --yes --expect-plan" -- "$cur") )
+            return 0 ;;
+        "tickets reopen")
+            COMPREPLY=( $(compgen -W "--verbose -v --dry-run --yes --expect-plan" -- "$cur") )
+            return 0 ;;
+        "tickets status")
+            COMPREPLY=( $(compgen -W "--verbose -v --set --dry-run --yes --expect-plan" -- "$cur") )
+            return 0 ;;
         "tickets bulk-priority")
             COMPREPLY=( $(compgen -W "--verbose -v --priority --dry-run --yes --output -o --json --expect-plan" -- "$cur") )
             return 0 ;;
@@ -908,7 +929,7 @@ _fsv_complete() {
             COMPREPLY=( $(compgen -W "ls get activity tasks tasks-add approval-request approval-respond approval-cancel tasks-update tasks-delete approvals state export asset-picker planning-text fields lookup views search url update download clone create notes add-note assets associations columns watchers --verbose -v" -- "$cur") )
             return 0 ;;
         "tickets")
-            COMPREPLY=( $(compgen -W "ls get activity tasks export bulk-priority fields lookup views search url add-note create approvals associations update download conversations reply forward columns watchers private-views canned scenarios time --verbose -v" -- "$cur") )
+            COMPREPLY=( $(compgen -W "ls get activity tasks export assign pick-up merge resolve close reopen status bulk-priority fields lookup views search url add-note create approvals associations update download conversations reply forward columns watchers private-views canned scenarios time --verbose -v" -- "$cur") )
             return 0 ;;
         "problems")
             COMPREPLY=( $(compgen -W "ls get activity tasks export create write-child mark-known-error planning-text fields lookup views search url update download notes add-note columns --verbose -v" -- "$cur") )

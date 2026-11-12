@@ -1,6 +1,7 @@
 //! Single-attempt reviewed commands with JSON-only output: watchers
 //! (`watcher_cli`), ticket time (`ticket_time_cli`), planning text and the
-//! known-error mark (`planning_cli`), bulk priority (`bulk_priority_cli`).
+//! known-error mark (`planning_cli`), bulk priority (`bulk_priority_cli`),
+//! ticket lifecycle, merge and assignment (`ticket_*_cli`).
 
 use std::sync::Arc;
 
@@ -9,7 +10,8 @@ use serde_json::{Map, Value, json};
 use fsv_api::formmeta::{ClientResolver, DiskStore};
 use fsv_api::service::{Api, DiskJournal};
 use fsv_api::{
-    asset_picker, bulk_priority, planning_text, problem_known_error, ticket_time, watchers,
+    asset_picker, bulk_priority, planning_text, problem_known_error, ticket_assignment,
+    ticket_lifecycle, ticket_merge, ticket_time, watchers,
 };
 use fsv_core::resource::{Resource, TICKETS, parse_id};
 use fsv_core::{Error, Result};
@@ -246,4 +248,204 @@ pub fn bulk_priority(a: TicketsBulkPriorityArgs) -> CmdResult {
         true => Ok(()),
         false => Err(Error::exit(1, "")),
     }
+}
+
+fn lookup_resolver(c: &Arc<fsv_core::Client>) -> Option<Arc<dyn fsv_forms::LookupResolver>> {
+    let api: Arc<dyn Api + Send + Sync> = c.clone();
+    Some(Arc::new(ClientResolver::new(api)))
+}
+
+/// `--set FIELD=VALUE` answers; each field once.
+fn set_answers(sets: &[String]) -> Result<Map<String, Value>> {
+    let mut answers = Map::new();
+    for expression in sets {
+        match expression.split_once('=') {
+            Some((key, value)) if !key.is_empty() && !answers.contains_key(key) => {
+                answers.insert(key.into(), json!(value));
+            }
+            _ => return Err(Error::value("--set requires unique FIELD=VALUE answers")),
+        }
+    }
+    Ok(answers)
+}
+
+/// Port of fsv.ticket_lifecycle_cli's shared `run`.
+fn lifecycle(
+    target: &str,
+    status: &str,
+    note: Option<&str>,
+    sets: &[String],
+    dry_run: bool,
+    yes: bool,
+    expect_plan: Option<&str>,
+) -> CmdResult {
+    let run = || -> Result<()> {
+        let answers = set_answers(sets)?;
+        let c = client()?;
+        let store = DiskStore::current();
+        let plan = ticket_lifecycle::build_plan(
+            c.as_ref(),
+            &store,
+            target,
+            status,
+            note,
+            Some(&answers),
+            lookup_resolver(&c),
+        )?;
+        if dry_run {
+            print_dry_run(plan.review());
+            return Ok(());
+        }
+        let hash = plan.hash();
+        require_review(yes, expect_plan, &hash)?;
+        let result = ticket_lifecycle::send(
+            &plan,
+            c.as_ref(),
+            &store,
+            &DiskJournal,
+            Some(&hash),
+            lookup_resolver(&c),
+        )?;
+        println!("{}", dumps(&result));
+        Ok(())
+    };
+    run().map_err(refusal)
+}
+
+pub fn resolve(a: TicketsResolveArgs) -> CmdResult {
+    let note = Some(a.note.as_str());
+    lifecycle(
+        &a.id_,
+        "Resolved",
+        note,
+        &a.sets,
+        a.dry_run,
+        a.yes,
+        a.expect_plan.as_deref(),
+    )
+}
+
+pub fn close(a: TicketsCloseArgs) -> CmdResult {
+    lifecycle(
+        &a.id_,
+        "Closed",
+        None,
+        &a.sets,
+        a.dry_run,
+        a.yes,
+        a.expect_plan.as_deref(),
+    )
+}
+
+pub fn reopen(a: TicketsReopenArgs) -> CmdResult {
+    lifecycle(
+        &a.id_,
+        "Open",
+        None,
+        &[],
+        a.dry_run,
+        a.yes,
+        a.expect_plan.as_deref(),
+    )
+}
+
+pub fn status(a: TicketsStatusArgs) -> CmdResult {
+    lifecycle(
+        &a.id_,
+        &a.status_,
+        None,
+        &a.sets,
+        a.dry_run,
+        a.yes,
+        a.expect_plan.as_deref(),
+    )
+}
+
+/// Port of fsv.ticket_merge_cli's `merge`.
+pub fn merge(a: TicketsMergeArgs) -> CmdResult {
+    let dumps = |v: &Value| {
+        fsv_py::Dumps::default()
+            .indent(2)
+            .ensure_ascii(false)
+            .dump(v)
+    };
+    let run = || -> Result<()> {
+        let c = client()?;
+        let store = DiskStore::current();
+        let plan = ticket_merge::build_plan(
+            c.as_ref(),
+            &store,
+            &a.primary,
+            &a.secondary,
+            &a.note_primary,
+            &a.note_secondary,
+            !a.public_primary,
+            !a.public_secondary,
+        )?;
+        if a.dry_run {
+            let mut out = Map::new();
+            out.insert("status".into(), json!("dry_run"));
+            out.extend(ticket_merge::review(&plan));
+            println!("{}", dumps(&Value::Object(out)));
+            return Ok(());
+        }
+        let hash = plan.hash();
+        require_review(a.yes, a.expect_plan.as_deref(), &hash)?;
+        let result = ticket_merge::send(&plan, c.as_ref(), &store, &DiskJournal, Some(&hash))?;
+        println!("{}", dumps(&result));
+        Ok(())
+    };
+    run().map_err(refusal)
+}
+
+/// Port of fsv.ticket_assignment_cli's shared `run`.
+fn assignment(
+    ids: &[String],
+    args: &ticket_assignment::AssignmentArgs<'_>,
+    dry_run: bool,
+    yes: bool,
+    expect_plan: Option<&str>,
+) -> CmdResult {
+    let run = || -> Result<()> {
+        let c = client()?;
+        let store = DiskStore::current();
+        let plan =
+            ticket_assignment::build_plan(c.as_ref(), &store, ids, args, lookup_resolver(&c))?;
+        if dry_run {
+            print_dry_run(plan.review());
+            return Ok(());
+        }
+        let hash = plan.hash();
+        require_review(yes, expect_plan, &hash)?;
+        let result = ticket_assignment::send(
+            &plan,
+            c.as_ref(),
+            &store,
+            &DiskJournal,
+            Some(&hash),
+            lookup_resolver(&c),
+        )?;
+        println!("{}", dumps(&result));
+        Ok(())
+    };
+    run().map_err(refusal)
+}
+
+pub fn assign(a: TicketsAssignArgs) -> CmdResult {
+    let args = ticket_assignment::AssignmentArgs {
+        agent: a.agent.as_deref(),
+        group: a.group.as_deref(),
+        unassign: a.unassign,
+        pickup: false,
+    };
+    let ids = [a.id_.clone()];
+    assignment(&ids, &args, a.dry_run, a.yes, a.expect_plan.as_deref())
+}
+
+pub fn pick_up(a: TicketsPickUpArgs) -> CmdResult {
+    let args = ticket_assignment::AssignmentArgs {
+        pickup: true,
+        ..Default::default()
+    };
+    assignment(&a.ids, &args, a.dry_run, a.yes, a.expect_plan.as_deref())
 }

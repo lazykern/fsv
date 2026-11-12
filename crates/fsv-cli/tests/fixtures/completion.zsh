@@ -529,6 +529,20 @@ _fsv() {
             compadd -- --verbose -v --output -o --json; return 0 ;;
         "tickets export")
             compadd -- --verbose -v --view --field --dry-run --yes --expect-plan --output -o --json; return 0 ;;
+        "tickets assign")
+            compadd -- --verbose -v --agent --group --unassign --dry-run --yes --expect-plan --output -o --json; return 0 ;;
+        "tickets pick-up")
+            compadd -- --verbose -v --dry-run --yes --expect-plan --output -o --json; return 0 ;;
+        "tickets merge")
+            compadd -- --verbose -v --note-primary --note-secondary --private-primary --public-primary --private-secondary --public-secondary --dry-run --yes --expect-plan --output -o --json; return 0 ;;
+        "tickets resolve")
+            compadd -- --verbose -v --note --set --dry-run --yes --expect-plan; return 0 ;;
+        "tickets close")
+            compadd -- --verbose -v --set --dry-run --yes --expect-plan; return 0 ;;
+        "tickets reopen")
+            compadd -- --verbose -v --dry-run --yes --expect-plan; return 0 ;;
+        "tickets status")
+            compadd -- --verbose -v --set --dry-run --yes --expect-plan; return 0 ;;
         "tickets bulk-priority")
             compadd -- --verbose -v --priority --dry-run --yes --output -o --json --expect-plan; return 0 ;;
         "tickets fields")
@@ -843,7 +857,7 @@ _fsv() {
         "changes")
             compadd -- ls get activity tasks tasks-add approval-request approval-respond approval-cancel tasks-update tasks-delete approvals state export asset-picker planning-text fields lookup views search url update download clone create notes add-note assets associations columns watchers --verbose -v; return 0 ;;
         "tickets")
-            compadd -- ls get activity tasks export bulk-priority fields lookup views search url add-note create approvals associations update download conversations reply forward columns watchers private-views canned scenarios time --verbose -v; return 0 ;;
+            compadd -- ls get activity tasks export assign pick-up merge resolve close reopen status bulk-priority fields lookup views search url add-note create approvals associations update download conversations reply forward columns watchers private-views canned scenarios time --verbose -v; return 0 ;;
         "problems")
             compadd -- ls get activity tasks export create write-child mark-known-error planning-text fields lookup views search url update download notes add-note columns --verbose -v; return 0 ;;
         "form")

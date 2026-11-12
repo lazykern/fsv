@@ -59,6 +59,19 @@ def notes():
     return routes
 
 
+# --- fdbb3e9 add-note readback: 130 reads back with `to_emails` and other
+# body whitespace (verified); 131 reads back public (identity only).
+def note_send():
+    routes = []
+    for tid, nid, private in [(130, 601, True), (131, 602, False)]:
+        back = note(nid, "<div>Acme\n fix</div>", private=private)
+        back["to_emails"] = []
+        routes += [fixed(f"/api/_/tickets/{tid}/conversations", {"conversations": [back], "meta": PAGE}),
+                   {"method": "POST", "path": f"/api/_/tickets/{tid}/notes",
+                    "json": {"conversation": note(nid, "<div>Acme fix</div>")}}]
+    return routes + [CSRF]
+
+
 # --- 17ada1b problem incidents: the inventory is read for the plan, the
 # rebuild, then the readback.
 INCIDENT_BEFORE_READS = 2
@@ -184,6 +197,7 @@ def problems(rejected=False):
 
 def main():
     for name, routes in [("ticket_note_mutation", notes()),
+                         ("ticket_note_send", note_send()),
                          ("problem_incidents", incidents()),
                          ("ticket_tasks_reviewed", tasks()),
                          ("problem_status", problems()),

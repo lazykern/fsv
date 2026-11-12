@@ -1,0 +1,11 @@
+[
+ {"name": "tickets_add_note_send_verified", "fixture": "ticket_note_send",
+  "hash_from": ["tickets", "add-note", "130", "--body", "Acme fix", "--dry-run"],
+  "args": ["tickets", "add-note", "130", "--body", "Acme fix", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "tickets_add_note_send_fields_unverified", "fixture": "ticket_note_send",
+  "hash_from": ["tickets", "add-note", "131", "--body", "Acme fix", "--dry-run"],
+  "args": ["tickets", "add-note", "131", "--body", "Acme fix", "--yes", "--expect-plan", "{HASH}"]},
+ {"name": "tickets_add_note_send_json", "fixture": "ticket_note_send",
+  "hash_from": ["tickets", "add-note", "130", "--body", "Acme fix", "--dry-run"],
+  "args": ["tickets", "add-note", "130", "--body", "Acme fix", "--json", "--yes", "--expect-plan", "{HASH}"]}
+]

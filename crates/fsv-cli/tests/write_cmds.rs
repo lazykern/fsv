@@ -2412,55 +2412,6 @@ fn reply_cc_deleted_user() {
 }
 
 #[test]
-fn reply_set_status_not_pending() {
-    let r = run_fixture(
-        "ticket_conv",
-        &[
-            "tickets",
-            "reply",
-            "5",
-            "hi",
-            "--set-status",
-            "Resolved",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"only the Pending status transition was captured; use the web form for other statuses
-"#
-    );
-}
-
-#[test]
-fn note_set_status_not_pending() {
-    let r = run_fixture(
-        "ticket_conv",
-        &[
-            "tickets",
-            "add-note",
-            "5",
-            "--body",
-            "hi",
-            "--set-status",
-            "Open",
-            "--dry-run",
-        ],
-        None,
-    );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
-    assert_eq!(
-        r.err,
-        r#"only the Pending status transition was captured; use the web form for other statuses
-"#
-    );
-}
-
-#[test]
 fn note_set_status_read_only() {
     let r = run_fixture(
         "ticket_conv",
