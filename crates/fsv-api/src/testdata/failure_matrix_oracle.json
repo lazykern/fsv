@@ -1,0 +1,1322 @@
+{
+ "_python": {
+  "commit": "3432beaa8719b988eb99a257b347f7b4338982eb",
+  "dirty": false
+ },
+ "attachments": {
+  "policies": [
+   {
+    "mode": "skip",
+    "backup": false,
+    "ok": {
+     "_fsv_noop": true,
+     "skipped": [
+      "plan.txt"
+     ],
+     "attachments": [
+      71,
+      72
+     ]
+    },
+    "writes": [],
+    "upload_bytes": [],
+    "downloads": []
+   },
+   {
+    "mode": "append",
+    "backup": false,
+    "ok": {
+     "attachments": [
+      71,
+      72,
+      91
+     ],
+     "skipped": []
+    },
+    "writes": [
+     [
+      "POST",
+      "attachments",
+      {
+       "content": "data:text/plain;base64,R2xvYmV4IG5ldyBieXRlcw==",
+       "content_file_name": "plan.txt",
+       "content_file_size": 16,
+       "content_content_type": "text/plain"
+      }
+     ],
+     [
+      "PUT",
+      "changes/123",
+      {
+       "attachments": [
+        71,
+        72,
+        91
+       ]
+      }
+     ]
+    ],
+    "upload_bytes": [
+     "Globex new bytes"
+    ],
+    "downloads": []
+   },
+   {
+    "mode": "replace",
+    "backup": false,
+    "ok": {
+     "attachments": [
+      72,
+      91
+     ],
+     "skipped": []
+    },
+    "writes": [
+     [
+      "POST",
+      "attachments",
+      {
+       "content": "data:text/plain;base64,R2xvYmV4IG5ldyBieXRlcw==",
+       "content_file_name": "plan.txt",
+       "content_file_size": 16,
+       "content_content_type": "text/plain"
+      }
+     ],
+     [
+      "PUT",
+      "changes/123",
+      {
+       "attachments": [
+        72,
+        91
+       ]
+      }
+     ]
+    ],
+    "upload_bytes": [
+     "Globex new bytes"
+    ],
+    "downloads": []
+   },
+   {
+    "mode": "replace",
+    "backup": true,
+    "ok": {
+     "attachments": [
+      72,
+      91,
+      92
+     ],
+     "skipped": []
+    },
+    "writes": [
+     [
+      "POST",
+      "attachments",
+      {
+       "content": "data:text/plain;base64,QWNtZSBvbGQgYnl0ZXM=",
+       "content_file_name": "plan.backup.txt",
+       "content_file_size": 14,
+       "content_content_type": "text/plain"
+      }
+     ],
+     [
+      "POST",
+      "attachments",
+      {
+       "content": "data:text/plain;base64,R2xvYmV4IG5ldyBieXRlcw==",
+       "content_file_name": "plan.txt",
+       "content_file_size": 16,
+       "content_content_type": "text/plain"
+      }
+     ],
+     [
+      "PUT",
+      "changes/123",
+      {
+       "attachments": [
+        72,
+        91,
+        92
+       ]
+      }
+     ]
+    ],
+    "upload_bytes": [
+     "Acme old bytes",
+     "Globex new bytes"
+    ],
+    "downloads": [
+     "https://example.com/old"
+    ]
+   }
+  ],
+  "replace_failure": [
+   {
+    "failure": "download",
+    "error": "APIError",
+    "msg": "HTTP 503: Acme old bytes",
+    "exit": 5,
+    "status": 503,
+    "writes": [],
+    "downloads": [
+     "https://example.com/old"
+    ]
+   },
+   {
+    "failure": "attachments",
+    "error": "APIError",
+    "msg": "HTTP 503 creating attachments: synthetic outage",
+    "exit": 5,
+    "status": 503,
+    "writes": [
+     [
+      "POST",
+      "attachments",
+      {
+       "content": "data:text/plain;base64,QWNtZSBvbGQgYnl0ZXM=",
+       "content_file_name": "plan.backup.txt",
+       "content_file_size": 14,
+       "content_content_type": "text/plain"
+      }
+     ]
+    ],
+    "downloads": [
+     "https://example.com/old"
+    ]
+   },
+   {
+    "failure": "changes/123",
+    "error": "APIError",
+    "msg": "HTTP 503 updating change: synthetic outage",
+    "exit": 5,
+    "status": 503,
+    "writes": [
+     [
+      "POST",
+      "attachments",
+      {
+       "content": "data:text/plain;base64,QWNtZSBvbGQgYnl0ZXM=",
+       "content_file_name": "plan.backup.txt",
+       "content_file_size": 14,
+       "content_content_type": "text/plain"
+      }
+     ],
+     [
+      "POST",
+      "attachments",
+      {
+       "content": "data:text/plain;base64,R2xvYmV4IG5ldyBieXRlcw==",
+       "content_file_name": "plan.txt",
+       "content_file_size": 16,
+       "content_content_type": "text/plain"
+      }
+     ],
+     [
+      "PUT",
+      "changes/123",
+      {
+       "attachments": [
+        72,
+        91,
+        92
+       ]
+      }
+     ]
+    ],
+    "downloads": [
+     "https://example.com/old"
+    ]
+   }
+  ],
+  "missing_id": [
+   {
+    "response": {},
+    "error": "APIError",
+    "msg": "Error: attachment upload returned no id: {}",
+    "exit": 5,
+    "status": 0,
+    "writes": [
+     [
+      "POST",
+      "attachments",
+      {
+       "content": "data:text/plain;base64,bmV3",
+       "content_file_name": "plan.txt",
+       "content_file_size": 3,
+       "content_content_type": "text/plain"
+      }
+     ]
+    ]
+   },
+   {
+    "response": [],
+    "error": "APIError",
+    "msg": "Error: attachment upload returned no id: []",
+    "exit": 5,
+    "status": 0,
+    "writes": [
+     [
+      "POST",
+      "attachments",
+      {
+       "content": "data:text/plain;base64,bmV3",
+       "content_file_name": "plan.txt",
+       "content_file_size": 3,
+       "content_content_type": "text/plain"
+      }
+     ]
+    ]
+   },
+   {
+    "response": {
+     "name": "plan.txt"
+    },
+    "error": "APIError",
+    "msg": "Error: attachment upload returned no id: {'name': 'plan.txt'}",
+    "exit": 5,
+    "status": 0,
+    "writes": [
+     [
+      "POST",
+      "attachments",
+      {
+       "content": "data:text/plain;base64,bmV3",
+       "content_file_name": "plan.txt",
+       "content_file_size": 3,
+       "content_content_type": "text/plain"
+      }
+     ]
+    ]
+   }
+  ],
+  "receipt": [
+   {
+    "response": {
+     "id": "91",
+     "content_file_name": "plan.txt",
+     "content_file_size": 3
+    },
+    "ok": 91,
+    "stderr": "  uploading plan.txt... ok (3 B)\n",
+    "writes": [
+     [
+      "POST",
+      "attachments",
+      {
+       "content": "data:text/plain;base64,bmV3",
+       "content_file_name": "plan.txt",
+       "content_file_size": 3,
+       "content_content_type": "text/plain"
+      }
+     ]
+    ]
+   },
+   {
+    "response": {
+     "id": 91,
+     "name": "renamed.txt",
+     "size": 3
+    },
+    "ok": 91,
+    "stderr": "  uploading plan.txt... ok (3 B, server name \"renamed.txt\" differs)\n",
+    "writes": [
+     [
+      "POST",
+      "attachments",
+      {
+       "content": "data:text/plain;base64,bmV3",
+       "content_file_name": "plan.txt",
+       "content_file_size": 3,
+       "content_content_type": "text/plain"
+      }
+     ]
+    ]
+   },
+   {
+    "response": {
+     "id": 91,
+     "name": "plan.txt",
+     "size": 99
+    },
+    "ok": 91,
+    "stderr": "  uploading plan.txt... mismatch (local 3 B, server 99 B)\n",
+    "writes": [
+     [
+      "POST",
+      "attachments",
+      {
+       "content": "data:text/plain;base64,bmV3",
+       "content_file_name": "plan.txt",
+       "content_file_size": 3,
+       "content_content_type": "text/plain"
+      }
+     ]
+    ]
+   }
+  ],
+  "invalid_mode": {
+   "error": "UsageError",
+   "msg": "--duplicate must be one of: prompt, skip, replace, append",
+   "exit": 2,
+   "status": 0,
+   "writes": []
+  },
+  "download_error": {
+   "error": "APIError",
+   "msg": "HTTP 503: Acme old bytes",
+   "exit": 5,
+   "status": 503,
+   "kept": "local bytes",
+   "downloads": [
+    "https://example.com/old"
+   ]
+  },
+  "missing_url": {
+   "error": "APIError",
+   "msg": "Error: attachment has no URL: {'name': 'plan.txt'}",
+   "exit": 5,
+   "status": 0,
+   "created_dir": false,
+   "downloads": []
+  }
+ },
+ "clone": {
+  "partial": [
+   {
+    "failed": "tasks",
+    "status": 403,
+    "data": {
+     "subject": "Acme maintenance",
+     "status": 1
+    },
+    "created": {
+     "id": 456,
+     "human_display_id": "CHN-456"
+    },
+    "steps": {
+     "tasks": {
+      "error": "APIError",
+      "msg": "HTTP 403 creating tasks: synthetic denial",
+      "exit": 5,
+      "status": 403
+     },
+     "assets": {
+      "ok": [
+       701
+      ]
+     },
+     "planning": {
+      "ok": [
+       "test_plan"
+      ]
+     }
+    },
+    "exit": 5,
+    "writes": [
+     [
+      "POST",
+      "changes",
+      {
+       "subject": "Acme maintenance",
+       "status": 1
+      }
+     ],
+     [
+      "POST",
+      "changes/456/tasks",
+      {
+       "change_task": {
+        "title": "Verify Acme",
+        "status": 1
+       }
+      }
+     ],
+     [
+      "PUT",
+      "changes/456/assets/associate",
+      {
+       "item_ids": [
+        701
+       ]
+      }
+     ],
+     [
+      "POST",
+      "changes/456/planning-fields?id=test_plan",
+      {
+       "description": "Acme checks"
+      }
+     ]
+    ],
+    "reads": [
+     "changes/123",
+     "changes/123/tasks",
+     "changes/123/assets",
+     "changes/123/planning-fields"
+    ]
+   },
+   {
+    "failed": "tasks",
+    "status": 409,
+    "data": {
+     "subject": "Acme maintenance",
+     "status": 1
+    },
+    "created": {
+     "id": 456,
+     "human_display_id": "CHN-456"
+    },
+    "steps": {
+     "tasks": {
+      "error": "APIError",
+      "msg": "HTTP 409 creating tasks: synthetic denial",
+      "exit": 4,
+      "status": 409
+     },
+     "assets": {
+      "ok": [
+       701
+      ]
+     },
+     "planning": {
+      "ok": [
+       "test_plan"
+      ]
+     }
+    },
+    "exit": 4,
+    "writes": [
+     [
+      "POST",
+      "changes",
+      {
+       "subject": "Acme maintenance",
+       "status": 1
+      }
+     ],
+     [
+      "POST",
+      "changes/456/tasks",
+      {
+       "change_task": {
+        "title": "Verify Acme",
+        "status": 1
+       }
+      }
+     ],
+     [
+      "PUT",
+      "changes/456/assets/associate",
+      {
+       "item_ids": [
+        701
+       ]
+      }
+     ],
+     [
+      "POST",
+      "changes/456/planning-fields?id=test_plan",
+      {
+       "description": "Acme checks"
+      }
+     ]
+    ],
+    "reads": [
+     "changes/123",
+     "changes/123/tasks",
+     "changes/123/assets",
+     "changes/123/planning-fields"
+    ]
+   },
+   {
+    "failed": "tasks",
+    "status": 429,
+    "data": {
+     "subject": "Acme maintenance",
+     "status": 1
+    },
+    "created": {
+     "id": 456,
+     "human_display_id": "CHN-456"
+    },
+    "steps": {
+     "tasks": {
+      "error": "APIError",
+      "msg": "HTTP 429 creating tasks: synthetic denial",
+      "exit": 5,
+      "status": 429
+     },
+     "assets": {
+      "ok": [
+       701
+      ]
+     },
+     "planning": {
+      "ok": [
+       "test_plan"
+      ]
+     }
+    },
+    "exit": 5,
+    "writes": [
+     [
+      "POST",
+      "changes",
+      {
+       "subject": "Acme maintenance",
+       "status": 1
+      }
+     ],
+     [
+      "POST",
+      "changes/456/tasks",
+      {
+       "change_task": {
+        "title": "Verify Acme",
+        "status": 1
+       }
+      }
+     ],
+     [
+      "PUT",
+      "changes/456/assets/associate",
+      {
+       "item_ids": [
+        701
+       ]
+      }
+     ],
+     [
+      "POST",
+      "changes/456/planning-fields?id=test_plan",
+      {
+       "description": "Acme checks"
+      }
+     ]
+    ],
+    "reads": [
+     "changes/123",
+     "changes/123/tasks",
+     "changes/123/assets",
+     "changes/123/planning-fields"
+    ]
+   },
+   {
+    "failed": "tasks",
+    "status": 500,
+    "data": {
+     "subject": "Acme maintenance",
+     "status": 1
+    },
+    "created": {
+     "id": 456,
+     "human_display_id": "CHN-456"
+    },
+    "steps": {
+     "tasks": {
+      "error": "APIError",
+      "msg": "HTTP 500 creating tasks: synthetic denial",
+      "exit": 5,
+      "status": 500
+     },
+     "assets": {
+      "ok": [
+       701
+      ]
+     },
+     "planning": {
+      "ok": [
+       "test_plan"
+      ]
+     }
+    },
+    "exit": 5,
+    "writes": [
+     [
+      "POST",
+      "changes",
+      {
+       "subject": "Acme maintenance",
+       "status": 1
+      }
+     ],
+     [
+      "POST",
+      "changes/456/tasks",
+      {
+       "change_task": {
+        "title": "Verify Acme",
+        "status": 1
+       }
+      }
+     ],
+     [
+      "PUT",
+      "changes/456/assets/associate",
+      {
+       "item_ids": [
+        701
+       ]
+      }
+     ],
+     [
+      "POST",
+      "changes/456/planning-fields?id=test_plan",
+      {
+       "description": "Acme checks"
+      }
+     ]
+    ],
+    "reads": [
+     "changes/123",
+     "changes/123/tasks",
+     "changes/123/assets",
+     "changes/123/planning-fields"
+    ]
+   },
+   {
+    "failed": "assets",
+    "status": 403,
+    "data": {
+     "subject": "Acme maintenance",
+     "status": 1
+    },
+    "created": {
+     "id": 456,
+     "human_display_id": "CHN-456"
+    },
+    "steps": {
+     "tasks": {
+      "ok": [
+       {
+        "id": 901
+       }
+      ]
+     },
+     "assets": {
+      "error": "APIError",
+      "msg": "HTTP 403 updating associate: synthetic denial",
+      "exit": 5,
+      "status": 403
+     },
+     "planning": {
+      "ok": [
+       "test_plan"
+      ]
+     }
+    },
+    "exit": 5,
+    "writes": [
+     [
+      "POST",
+      "changes",
+      {
+       "subject": "Acme maintenance",
+       "status": 1
+      }
+     ],
+     [
+      "POST",
+      "changes/456/tasks",
+      {
+       "change_task": {
+        "title": "Verify Acme",
+        "status": 1
+       }
+      }
+     ],
+     [
+      "PUT",
+      "changes/456/assets/associate",
+      {
+       "item_ids": [
+        701
+       ]
+      }
+     ],
+     [
+      "POST",
+      "changes/456/planning-fields?id=test_plan",
+      {
+       "description": "Acme checks"
+      }
+     ]
+    ],
+    "reads": [
+     "changes/123",
+     "changes/123/tasks",
+     "changes/123/assets",
+     "changes/123/planning-fields"
+    ]
+   },
+   {
+    "failed": "assets",
+    "status": 409,
+    "data": {
+     "subject": "Acme maintenance",
+     "status": 1
+    },
+    "created": {
+     "id": 456,
+     "human_display_id": "CHN-456"
+    },
+    "steps": {
+     "tasks": {
+      "ok": [
+       {
+        "id": 901
+       }
+      ]
+     },
+     "assets": {
+      "error": "APIError",
+      "msg": "HTTP 409 updating associate: synthetic denial",
+      "exit": 4,
+      "status": 409
+     },
+     "planning": {
+      "ok": [
+       "test_plan"
+      ]
+     }
+    },
+    "exit": 4,
+    "writes": [
+     [
+      "POST",
+      "changes",
+      {
+       "subject": "Acme maintenance",
+       "status": 1
+      }
+     ],
+     [
+      "POST",
+      "changes/456/tasks",
+      {
+       "change_task": {
+        "title": "Verify Acme",
+        "status": 1
+       }
+      }
+     ],
+     [
+      "PUT",
+      "changes/456/assets/associate",
+      {
+       "item_ids": [
+        701
+       ]
+      }
+     ],
+     [
+      "POST",
+      "changes/456/planning-fields?id=test_plan",
+      {
+       "description": "Acme checks"
+      }
+     ]
+    ],
+    "reads": [
+     "changes/123",
+     "changes/123/tasks",
+     "changes/123/assets",
+     "changes/123/planning-fields"
+    ]
+   },
+   {
+    "failed": "assets",
+    "status": 429,
+    "data": {
+     "subject": "Acme maintenance",
+     "status": 1
+    },
+    "created": {
+     "id": 456,
+     "human_display_id": "CHN-456"
+    },
+    "steps": {
+     "tasks": {
+      "ok": [
+       {
+        "id": 901
+       }
+      ]
+     },
+     "assets": {
+      "error": "APIError",
+      "msg": "HTTP 429 updating associate: synthetic denial",
+      "exit": 5,
+      "status": 429
+     },
+     "planning": {
+      "ok": [
+       "test_plan"
+      ]
+     }
+    },
+    "exit": 5,
+    "writes": [
+     [
+      "POST",
+      "changes",
+      {
+       "subject": "Acme maintenance",
+       "status": 1
+      }
+     ],
+     [
+      "POST",
+      "changes/456/tasks",
+      {
+       "change_task": {
+        "title": "Verify Acme",
+        "status": 1
+       }
+      }
+     ],
+     [
+      "PUT",
+      "changes/456/assets/associate",
+      {
+       "item_ids": [
+        701
+       ]
+      }
+     ],
+     [
+      "POST",
+      "changes/456/planning-fields?id=test_plan",
+      {
+       "description": "Acme checks"
+      }
+     ]
+    ],
+    "reads": [
+     "changes/123",
+     "changes/123/tasks",
+     "changes/123/assets",
+     "changes/123/planning-fields"
+    ]
+   },
+   {
+    "failed": "assets",
+    "status": 500,
+    "data": {
+     "subject": "Acme maintenance",
+     "status": 1
+    },
+    "created": {
+     "id": 456,
+     "human_display_id": "CHN-456"
+    },
+    "steps": {
+     "tasks": {
+      "ok": [
+       {
+        "id": 901
+       }
+      ]
+     },
+     "assets": {
+      "error": "APIError",
+      "msg": "HTTP 500 updating associate: synthetic denial",
+      "exit": 5,
+      "status": 500
+     },
+     "planning": {
+      "ok": [
+       "test_plan"
+      ]
+     }
+    },
+    "exit": 5,
+    "writes": [
+     [
+      "POST",
+      "changes",
+      {
+       "subject": "Acme maintenance",
+       "status": 1
+      }
+     ],
+     [
+      "POST",
+      "changes/456/tasks",
+      {
+       "change_task": {
+        "title": "Verify Acme",
+        "status": 1
+       }
+      }
+     ],
+     [
+      "PUT",
+      "changes/456/assets/associate",
+      {
+       "item_ids": [
+        701
+       ]
+      }
+     ],
+     [
+      "POST",
+      "changes/456/planning-fields?id=test_plan",
+      {
+       "description": "Acme checks"
+      }
+     ]
+    ],
+    "reads": [
+     "changes/123",
+     "changes/123/tasks",
+     "changes/123/assets",
+     "changes/123/planning-fields"
+    ]
+   },
+   {
+    "failed": "planning",
+    "status": 403,
+    "data": {
+     "subject": "Acme maintenance",
+     "status": 1
+    },
+    "created": {
+     "id": 456,
+     "human_display_id": "CHN-456"
+    },
+    "steps": {
+     "tasks": {
+      "ok": [
+       {
+        "id": 901
+       }
+      ]
+     },
+     "assets": {
+      "ok": [
+       701
+      ]
+     },
+     "planning": {
+      "error": "APIError",
+      "msg": "HTTP 403 creating planning-fields: synthetic denial",
+      "exit": 5,
+      "status": 403
+     }
+    },
+    "exit": 5,
+    "writes": [
+     [
+      "POST",
+      "changes",
+      {
+       "subject": "Acme maintenance",
+       "status": 1
+      }
+     ],
+     [
+      "POST",
+      "changes/456/tasks",
+      {
+       "change_task": {
+        "title": "Verify Acme",
+        "status": 1
+       }
+      }
+     ],
+     [
+      "PUT",
+      "changes/456/assets/associate",
+      {
+       "item_ids": [
+        701
+       ]
+      }
+     ],
+     [
+      "POST",
+      "changes/456/planning-fields?id=test_plan",
+      {
+       "description": "Acme checks"
+      }
+     ]
+    ],
+    "reads": [
+     "changes/123",
+     "changes/123/tasks",
+     "changes/123/assets",
+     "changes/123/planning-fields"
+    ]
+   },
+   {
+    "failed": "planning",
+    "status": 409,
+    "data": {
+     "subject": "Acme maintenance",
+     "status": 1
+    },
+    "created": {
+     "id": 456,
+     "human_display_id": "CHN-456"
+    },
+    "steps": {
+     "tasks": {
+      "ok": [
+       {
+        "id": 901
+       }
+      ]
+     },
+     "assets": {
+      "ok": [
+       701
+      ]
+     },
+     "planning": {
+      "error": "APIError",
+      "msg": "HTTP 409 creating planning-fields: synthetic denial",
+      "exit": 4,
+      "status": 409
+     }
+    },
+    "exit": 4,
+    "writes": [
+     [
+      "POST",
+      "changes",
+      {
+       "subject": "Acme maintenance",
+       "status": 1
+      }
+     ],
+     [
+      "POST",
+      "changes/456/tasks",
+      {
+       "change_task": {
+        "title": "Verify Acme",
+        "status": 1
+       }
+      }
+     ],
+     [
+      "PUT",
+      "changes/456/assets/associate",
+      {
+       "item_ids": [
+        701
+       ]
+      }
+     ],
+     [
+      "POST",
+      "changes/456/planning-fields?id=test_plan",
+      {
+       "description": "Acme checks"
+      }
+     ]
+    ],
+    "reads": [
+     "changes/123",
+     "changes/123/tasks",
+     "changes/123/assets",
+     "changes/123/planning-fields"
+    ]
+   },
+   {
+    "failed": "planning",
+    "status": 429,
+    "data": {
+     "subject": "Acme maintenance",
+     "status": 1
+    },
+    "created": {
+     "id": 456,
+     "human_display_id": "CHN-456"
+    },
+    "steps": {
+     "tasks": {
+      "ok": [
+       {
+        "id": 901
+       }
+      ]
+     },
+     "assets": {
+      "ok": [
+       701
+      ]
+     },
+     "planning": {
+      "error": "APIError",
+      "msg": "HTTP 429 creating planning-fields: synthetic denial",
+      "exit": 5,
+      "status": 429
+     }
+    },
+    "exit": 5,
+    "writes": [
+     [
+      "POST",
+      "changes",
+      {
+       "subject": "Acme maintenance",
+       "status": 1
+      }
+     ],
+     [
+      "POST",
+      "changes/456/tasks",
+      {
+       "change_task": {
+        "title": "Verify Acme",
+        "status": 1
+       }
+      }
+     ],
+     [
+      "PUT",
+      "changes/456/assets/associate",
+      {
+       "item_ids": [
+        701
+       ]
+      }
+     ],
+     [
+      "POST",
+      "changes/456/planning-fields?id=test_plan",
+      {
+       "description": "Acme checks"
+      }
+     ]
+    ],
+    "reads": [
+     "changes/123",
+     "changes/123/tasks",
+     "changes/123/assets",
+     "changes/123/planning-fields"
+    ]
+   },
+   {
+    "failed": "planning",
+    "status": 500,
+    "data": {
+     "subject": "Acme maintenance",
+     "status": 1
+    },
+    "created": {
+     "id": 456,
+     "human_display_id": "CHN-456"
+    },
+    "steps": {
+     "tasks": {
+      "ok": [
+       {
+        "id": 901
+       }
+      ]
+     },
+     "assets": {
+      "ok": [
+       701
+      ]
+     },
+     "planning": {
+      "error": "APIError",
+      "msg": "HTTP 500 creating planning-fields: synthetic denial",
+      "exit": 5,
+      "status": 500
+     }
+    },
+    "exit": 5,
+    "writes": [
+     [
+      "POST",
+      "changes",
+      {
+       "subject": "Acme maintenance",
+       "status": 1
+      }
+     ],
+     [
+      "POST",
+      "changes/456/tasks",
+      {
+       "change_task": {
+        "title": "Verify Acme",
+        "status": 1
+       }
+      }
+     ],
+     [
+      "PUT",
+      "changes/456/assets/associate",
+      {
+       "item_ids": [
+        701
+       ]
+      }
+     ],
+     [
+      "POST",
+      "changes/456/planning-fields?id=test_plan",
+      {
+       "description": "Acme checks"
+      }
+     ]
+    ],
+    "reads": [
+     "changes/123",
+     "changes/123/tasks",
+     "changes/123/assets",
+     "changes/123/planning-fields"
+    ]
+   }
+  ],
+  "side_effects": {
+   "data": {
+    "subject": "Acme maintenance",
+    "status": 1
+   },
+   "effects": {
+    "tasks": 1,
+    "tasks_with_owner": 1,
+    "assets": 1,
+    "planning_fields": 1,
+    "planning_attachments": 0
+   },
+   "writes": [],
+   "reads": [
+    "changes/123",
+    "changes/123/tasks",
+    "changes/123/planning-fields",
+    "changes/123/assets"
+   ]
+  },
+  "missing_id": {
+   "data": {
+    "subject": "Acme maintenance",
+    "status": 1
+   },
+   "created": {},
+   "steps": {},
+   "exit": 0,
+   "writes": [
+    [
+     "POST",
+     "changes",
+     {
+      "subject": "Acme maintenance",
+      "status": 1
+     }
+    ]
+   ],
+   "reads": [
+    "changes/123"
+   ]
+  }
+ }
+}

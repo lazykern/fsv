@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "92002d76b880d927e16750ab986b525ee4fa85d6",
+  "commit": "3432beaa8719b988eb99a257b347f7b4338982eb",
   "dirty": false
  },
  "canned": {
@@ -5851,8 +5851,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "5d712c5f7f2bb212768d7105b467bbb2583f3ac7e81a5230c6cc8c5430c22355",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "5d712c5f7f2bb212768d7105b467bbb2583f3ac7e81a5230c6cc8c5430c22355",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "Acme original",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "be40b1b06206084570a0f5ef31d4eb57edce69b62cc450f8a8a3de0e01b648d9",
+    "before": "Acme original",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "5d712c5f7f2bb212768d7105b467bbb2583f3ac7e81a5230c6cc8c5430c22355",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -5864,8 +5901,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "fd4e62eecc6db8f5f62550a30cc832b1637f8c67bc7f61be4ae0527096ffebf0",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "fd4e62eecc6db8f5f62550a30cc832b1637f8c67bc7f61be4ae0527096ffebf0",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": " ",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "8781435c911817e50e4700f0f16ab68e1e573d6b75855394dd7a54db0bbecb8b",
+    "before": " ",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "fd4e62eecc6db8f5f62550a30cc832b1637f8c67bc7f61be4ae0527096ffebf0",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -5877,8 +5951,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "12caa30c043c828f7c4fc620d7a0aa50d81306aaf69beb4ce6f15a321a7d44e9",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "12caa30c043c828f7c4fc620d7a0aa50d81306aaf69beb4ce6f15a321a7d44e9",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "<div><br></div>",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "72a9e1a90edfeabaec2c546067703955b29171972246ea92ea945ec300cb53ea",
+    "before": "<div><br></div>",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "12caa30c043c828f7c4fc620d7a0aa50d81306aaf69beb4ce6f15a321a7d44e9",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -5890,8 +6001,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "475e56cc6301d781a173dd1e6899c4b2c5ad48dce5a46a0cf1b7ed32c0611e8f",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "475e56cc6301d781a173dd1e6899c4b2c5ad48dce5a46a0cf1b7ed32c0611e8f",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "Acme original",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "df23e3668d9575b88f96f116ccde98880e36a07fadba817b1ea46155461e249b",
+    "before": "Acme original",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "475e56cc6301d781a173dd1e6899c4b2c5ad48dce5a46a0cf1b7ed32c0611e8f",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -5903,8 +6051,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "b4ff9aa9efb92993238a2249ca005f5e5a237f54b3039c29dd3cf0e591129392",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "b4ff9aa9efb92993238a2249ca005f5e5a237f54b3039c29dd3cf0e591129392",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": " ",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "a07e6f03e3650aa021d27075d3529f18b7cbf73e6c8b79ae71b7b2f95c3738f1",
+    "before": " ",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "b4ff9aa9efb92993238a2249ca005f5e5a237f54b3039c29dd3cf0e591129392",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -5916,8 +6101,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "e690918998ced1dec54caf647563f66bdedf40eaa2a342512b6bc0772d4b61c7",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "e690918998ced1dec54caf647563f66bdedf40eaa2a342512b6bc0772d4b61c7",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "<div><br></div>",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "4821fa8f1fa9357c125c2115c5f6fdc06eca0129bff50a19674f266d15e12be3",
+    "before": "<div><br></div>",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "e690918998ced1dec54caf647563f66bdedf40eaa2a342512b6bc0772d4b61c7",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -5929,8 +6151,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "80a063b8b18239b027712acfc7aabaa5265fb58ab0f79c8fc585544237c40bc4",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "80a063b8b18239b027712acfc7aabaa5265fb58ab0f79c8fc585544237c40bc4",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "Acme original",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "911859ac8efadbeead0169884e2a3923d4400862a4fcc397b8b3fa8b5b855687",
+    "before": "Acme original",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "80a063b8b18239b027712acfc7aabaa5265fb58ab0f79c8fc585544237c40bc4",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -5942,8 +6201,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "ee1dda8a171f245d40dfe08e3f45e6bc2a2e8fccbfa49723571625ddc7296274",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "ee1dda8a171f245d40dfe08e3f45e6bc2a2e8fccbfa49723571625ddc7296274",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": " ",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "408f6a64b77242cb31e782a873a51b91518f9e6ec55a5bbed4cea4047f81b356",
+    "before": " ",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "ee1dda8a171f245d40dfe08e3f45e6bc2a2e8fccbfa49723571625ddc7296274",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -5955,8 +6251,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "3486285cf32c17ec2c93b7889e6d5a25d4f340687330cbe6ce97a148abf1b5c8",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "3486285cf32c17ec2c93b7889e6d5a25d4f340687330cbe6ce97a148abf1b5c8",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "<div><br></div>",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "d8b2208ddc8897f51e07b199e249bf58372ae857500b9057b3489bd2367dbc63",
+    "before": "<div><br></div>",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "3486285cf32c17ec2c93b7889e6d5a25d4f340687330cbe6ce97a148abf1b5c8",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -5968,8 +6301,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "7b868f67123ef2b820cfdb1f7303704e63e1edc46fe7799ac0f24e1271f01848",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "7b868f67123ef2b820cfdb1f7303704e63e1edc46fe7799ac0f24e1271f01848",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "Acme original",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "e9b0d65ff58f2ee9ec18cfaf55710c32870fac0d021e87cfe505235546077b16",
+    "before": "Acme original",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "7b868f67123ef2b820cfdb1f7303704e63e1edc46fe7799ac0f24e1271f01848",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -5981,8 +6351,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "8746bb082322efdcf31316867d98d64e18a098a7deb47c0fc2fcc31cd4ec6e63",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "8746bb082322efdcf31316867d98d64e18a098a7deb47c0fc2fcc31cd4ec6e63",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": " ",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "d7d05618fa7d08bf2bbd0c39632fe8bdc9037b55591dc8381a846e748e0efd05",
+    "before": " ",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "8746bb082322efdcf31316867d98d64e18a098a7deb47c0fc2fcc31cd4ec6e63",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -5994,8 +6401,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "d5e369875fcef486eb727e0df215873a1c36dffbd4291faac2d6eafd416e8abc",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "d5e369875fcef486eb727e0df215873a1c36dffbd4291faac2d6eafd416e8abc",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "<div><br></div>",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "c1a91c627d323ff0b9715db0ae8cde5f20deefdc3497326bb1e3fa62a8288f48",
+    "before": "<div><br></div>",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "d5e369875fcef486eb727e0df215873a1c36dffbd4291faac2d6eafd416e8abc",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -6007,8 +6451,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "3d39828d864dd30050f379bae2755c6bb5f682c9cdaf0269d3b71ea8a062cc10",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "3d39828d864dd30050f379bae2755c6bb5f682c9cdaf0269d3b71ea8a062cc10",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "Acme original",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "3af1c88b500e230d3788a745bf7c8f3d1c712cbd5d3260952baf67db6a2b0eba",
+    "before": "Acme original",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "3d39828d864dd30050f379bae2755c6bb5f682c9cdaf0269d3b71ea8a062cc10",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -6020,8 +6501,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "15cec27dbaef0e8aaac63b2afa49d1bdc25ba9d3cdd57c9c82c1fe6ec02dba69",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "15cec27dbaef0e8aaac63b2afa49d1bdc25ba9d3cdd57c9c82c1fe6ec02dba69",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": " ",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "23f7ba3075047338afdd9766ccd95b37e60002351dc9dfceac0ea68a8a68d1ad",
+    "before": " ",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "15cec27dbaef0e8aaac63b2afa49d1bdc25ba9d3cdd57c9c82c1fe6ec02dba69",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "changes",
@@ -6033,8 +6551,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "0b0cf505a37cae0dde8f9a1ff895970d6d467afc0ca7a98c7b65323558de69c0",
+    "review": {
+     "action": "changes_planning_text",
+     "method": "PUT",
+     "path": "/api/_/changes/123/planning-fields/acme_plan",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "0b0cf505a37cae0dde8f9a1ff895970d6d467afc0ca7a98c7b65323558de69c0",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "<div><br></div>",
+     "after": "Acme replacement"
+    },
+    "action": "changes_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "changes/123/planning-fields/acme_plan",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "0abf28b8b872868ed9ddd4961d1a43d9455de2004b5a6e247c0067daf977d86f",
+    "before": "<div><br></div>",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "0b0cf505a37cae0dde8f9a1ff895970d6d467afc0ca7a98c7b65323558de69c0",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "changes/123/planning-fields/acme_plan",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6046,8 +6601,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "5e4b251e9bf6ce54f5ddba8c7201d7b10e96852ef1f507de1de6e484272f133f",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "5e4b251e9bf6ce54f5ddba8c7201d7b10e96852ef1f507de1de6e484272f133f",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "Acme original",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "9b892854c0a8d09065d9e6c2ac2315488c094bb9c1d68cceb4ff5d347994686f",
+    "before": "Acme original",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "5e4b251e9bf6ce54f5ddba8c7201d7b10e96852ef1f507de1de6e484272f133f",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6059,8 +6651,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "7ad51e5909ee36be264ed7986fe7fba89253b9de4ddeeea1a842444c4601db1a",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "7ad51e5909ee36be264ed7986fe7fba89253b9de4ddeeea1a842444c4601db1a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": " ",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "f2fe088eaa181b473013f38e32872ccb8d74aff2b338aa5ead4e33ddc3b04024",
+    "before": " ",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "7ad51e5909ee36be264ed7986fe7fba89253b9de4ddeeea1a842444c4601db1a",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6072,8 +6701,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "f11c5138f160d44866550d192b7a5aac8589bf4a9301d6f131313a644743642b",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "f11c5138f160d44866550d192b7a5aac8589bf4a9301d6f131313a644743642b",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "<div><br></div>",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "2dd7acf08bc2e4cc523b368c005ba6988ca94b045fee673c3aeff72053de8f10",
+    "before": "<div><br></div>",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "f11c5138f160d44866550d192b7a5aac8589bf4a9301d6f131313a644743642b",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6085,8 +6751,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "d37761cfad44de3c2ef33d050fab345b44e7798e4f3fb75e4a5b6b8fdf909e7a",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "d37761cfad44de3c2ef33d050fab345b44e7798e4f3fb75e4a5b6b8fdf909e7a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "Acme original",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "bcba1f8dd5f648754901e459dc846602cd03261768a4cf72cf6d89a4da832169",
+    "before": "Acme original",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "d37761cfad44de3c2ef33d050fab345b44e7798e4f3fb75e4a5b6b8fdf909e7a",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6098,8 +6801,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "337a57cfe7d0fc2e2f9dc676aebb9167952ba9f73b538bec3e50f84d5fe3493b",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "337a57cfe7d0fc2e2f9dc676aebb9167952ba9f73b538bec3e50f84d5fe3493b",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": " ",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "fc6be3c1a727344f3f4a7fe60858c90d961f6305174e5b1fd3b4ccf6869f038b",
+    "before": " ",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "337a57cfe7d0fc2e2f9dc676aebb9167952ba9f73b538bec3e50f84d5fe3493b",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6111,8 +6851,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "89a4f56cdd65ef16f8d651567fe4139e0729e5799d841b03171c23de957b8af5",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "89a4f56cdd65ef16f8d651567fe4139e0729e5799d841b03171c23de957b8af5",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "<div><br></div>",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "bb10f8d34b81c362d2dca8d427f869c692ff5517874d6547b211d14b79958fbc",
+    "before": "<div><br></div>",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "89a4f56cdd65ef16f8d651567fe4139e0729e5799d841b03171c23de957b8af5",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6124,8 +6901,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "c3abc8a87c7810b8d338393278765a4094967cbe82ace229733a43358e89de14",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "c3abc8a87c7810b8d338393278765a4094967cbe82ace229733a43358e89de14",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "Acme original",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "7ef19a4cd400869c6cc161e9579ea41caff01a732a054afddeb8c3802b6c20ba",
+    "before": "Acme original",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "c3abc8a87c7810b8d338393278765a4094967cbe82ace229733a43358e89de14",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6137,8 +6951,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "e64780ace7111821ef8648ffd97b0115d81038e33fe50a8aa9dffc9b1f02d35a",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "e64780ace7111821ef8648ffd97b0115d81038e33fe50a8aa9dffc9b1f02d35a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": " ",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "a8920667958a7008a14aa3150a01a16fea2cba697047e8b96c39205a48ca397b",
+    "before": " ",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "e64780ace7111821ef8648ffd97b0115d81038e33fe50a8aa9dffc9b1f02d35a",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6150,8 +7001,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "7efecb59412938441a8d519674d11bf03183aacece9c5bfd708f81e9688cc7d3",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "7efecb59412938441a8d519674d11bf03183aacece9c5bfd708f81e9688cc7d3",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "<div><br></div>",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "e3dd85a006d726597b76694c0dbbc3f6adebf4c8e5cb5106f58864af3fddd70f",
+    "before": "<div><br></div>",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "7efecb59412938441a8d519674d11bf03183aacece9c5bfd708f81e9688cc7d3",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6163,8 +7051,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "289ed7d4d1d942a1005922b6c4218dda45c438f7576b0b7444d7341b0b748078",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "289ed7d4d1d942a1005922b6c4218dda45c438f7576b0b7444d7341b0b748078",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "Acme original",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "c1722b400877b6cf28312eea7495c619b888730c09348dad4a92feb545279c0a",
+    "before": "Acme original",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "289ed7d4d1d942a1005922b6c4218dda45c438f7576b0b7444d7341b0b748078",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6176,8 +7101,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "6b28e3535d2bf3b0667e969557da6c035e0cf286301c6453cb11a69c4e8878cf",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "6b28e3535d2bf3b0667e969557da6c035e0cf286301c6453cb11a69c4e8878cf",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": " ",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "0dba3f88260b684385932a6fe18d77c1af4f2f8044d44fa303568853047c81a6",
+    "before": " ",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "6b28e3535d2bf3b0667e969557da6c035e0cf286301c6453cb11a69c4e8878cf",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6189,8 +7151,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "8afb383f169af45fa5efa331398b60d998f205e718bc5a94aa4c70381d0aed86",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "8afb383f169af45fa5efa331398b60d998f205e718bc5a94aa4c70381d0aed86",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "<div><br></div>",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "410c52a16a8a33856affcae73e5767a4966a424d34f2e5a1fb75bb37561d706d",
+    "before": "<div><br></div>",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "8afb383f169af45fa5efa331398b60d998f205e718bc5a94aa4c70381d0aed86",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6202,8 +7201,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "311014744c8e62bd67127cb287f515684474d702476fdcb2d1d94eb29b8d4e0b",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "311014744c8e62bd67127cb287f515684474d702476fdcb2d1d94eb29b8d4e0b",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "Acme original",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "ad3ccdc2e1f64dc163b3ad386a7403cacbb48ed1ffd94e38526941f2cbfad14c",
+    "before": "Acme original",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "311014744c8e62bd67127cb287f515684474d702476fdcb2d1d94eb29b8d4e0b",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6215,8 +7251,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "35534c94c471c1bfaf387fd136f8fdde634f97e0ba57a0cd3513401c81369b23",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "35534c94c471c1bfaf387fd136f8fdde634f97e0ba57a0cd3513401c81369b23",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": " ",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "8d20362a74f82c041d6ca33f8321796674f4d03ef546457dbe4e1944a954e526",
+    "before": " ",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "35534c94c471c1bfaf387fd136f8fdde634f97e0ba57a0cd3513401c81369b23",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    },
    {
     "module": "problems",
@@ -6228,8 +7301,45 @@
       "files": []
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
-    "type": "ReviewedWriteError"
+    "hash": "475bbb421c28b404b3221d00b2ef7a7e1321aff9e81376e989d2467326395544",
+    "review": {
+     "action": "problems_planning_text",
+     "method": "PUT",
+     "path": "/api/_/problems/123/planning-fields/problem_cause",
+     "payload": {
+      "description": "Acme replacement"
+     },
+     "plan_hash": "475bbb421c28b404b3221d00b2ef7a7e1321aff9e81376e989d2467326395544",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "operation": "edit",
+     "before": "<div><br></div>",
+     "after": "Acme replacement"
+    },
+    "action": "problems_planning_text",
+    "target": 123,
+    "method": "PUT",
+    "path": "problems/123/planning-fields/problem_cause",
+    "payload_json": "{\"description\": \"Acme replacement\"}",
+    "context_hash": "f6c8f6e9add170fa1a74a771071cd074a8c8c1fd5bcca385edd9266610bc02d7",
+    "before": "<div><br></div>",
+    "send": {
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "475bbb421c28b404b3221d00b2ef7a7e1321aff9e81376e989d2467326395544",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     }
+    },
+    "writes": [
+     [
+      "PUT",
+      "problems/123/planning-fields/problem_cause",
+      {
+       "description": "Acme replacement"
+      }
+     ]
+    ]
    }
   ],
   "unknown": [
@@ -6295,7 +7405,7 @@
       "content": "Acme original"
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "error": "planning text state is contradictory; no write attempted",
     "type": "ReviewedWriteError"
    },
    {
@@ -6337,7 +7447,7 @@
       "empty": false
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "error": "planning text state is contradictory; no write attempted",
     "type": "ReviewedWriteError"
    },
    {
@@ -6402,7 +7512,7 @@
       "content": "Acme original"
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "error": "planning text state is contradictory; no write attempted",
     "type": "ReviewedWriteError"
    },
    {
@@ -6444,7 +7554,7 @@
       "empty": false
      }
     ],
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "error": "planning text state is contradictory; no write attempted",
     "type": "ReviewedWriteError"
    }
   ],
@@ -6499,7 +7609,7 @@
      }
     ],
     "hash": "15ed697b40b4935fb6102b52a126b63a0460b601c83928666ce6074d1749b29c",
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "error": "target or metadata changed since review; review again",
     "type": "ReviewedWriteError",
     "writes": []
    },
@@ -6514,7 +7624,7 @@
      }
     ],
     "hash": "2c035c87a499019647f15c08d5c6eb436fd906c1c82de97ebfea93338b64fabb",
-    "error": "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+    "error": "target or metadata changed since review; review again",
     "type": "ReviewedWriteError",
     "writes": []
    }
@@ -6792,7 +7902,95 @@
      "body": "b",
      "content": "c"
     },
-    "ok": "c"
+    "error": "planning text state is contradictory; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "description": "<div>Acme original</div>",
+     "description_text": "Acme original"
+    },
+    "ok": "<div>Acme original</div>"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "description": "<div>Acme original</div>",
+     "description_text": "Conflicting"
+    },
+    "error": "planning text state is contradictory; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "content": "",
+     "empty": false
+    },
+    "error": "planning text state is contradictory; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "content": "x",
+     "empty": true
+    },
+    "error": "planning text state is contradictory; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "content": "x",
+     "empty": false
+    },
+    "ok": "x"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "content": "",
+     "empty": true
+    },
+    "ok": ""
+   },
+   {
+    "row": {
+     "attachments": [],
+     "content": "",
+     "empty": "yes"
+    },
+    "error": "planning text state is contradictory; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "content": "",
+     "empty": null
+    },
+    "error": "planning text state is contradictory; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "content": "",
+     "description_text": " "
+    },
+    "error": "planning text state is contradictory; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "description": "<div><br></div>",
+     "body": ""
+    },
+    "error": "planning text state is contradictory; no write attempted",
+    "type": "ReviewedWriteError"
    }
   ],
   "definitions": {
@@ -6826,6 +8024,1102 @@
     "error": "planning wire is proven only for changes and the three native problem analysis sections",
     "type": "ReviewedWriteError"
    }
+  },
+  "edit_clear": {
+   "wire": [
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": false,
+     "hash": "e590c4fc68489745b475635df71202ab2a2a230fb66a740f751cb259a526b2e5",
+     "review": {
+      "action": "changes_planning_text",
+      "method": "PUT",
+      "path": "/api/_/changes/123/planning-fields/acme_plan",
+      "payload": {
+       "description": "Acme new"
+      },
+      "plan_hash": "e590c4fc68489745b475635df71202ab2a2a230fb66a740f751cb259a526b2e5",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+      "operation": "edit",
+      "before": "<div>Acme original</div>",
+      "after": "Acme new"
+     },
+     "action": "changes_planning_text",
+     "target": 123,
+     "method": "PUT",
+     "path": "changes/123/planning-fields/acme_plan",
+     "payload_json": "{\"description\": \"Acme new\"}",
+     "context_hash": "f4c7d235c2f0c60676fa523b2a45fc557f4232787284a45ecbe604c18cbf80f9",
+     "before": "<div>Acme original</div>",
+     "payload": {
+      "description": "Acme new"
+     },
+     "cancel": {
+      "ok": {
+       "status": "cancelled",
+       "verified": false
+      }
+     },
+     "cancel_writes": 0,
+     "send": {
+      "ok": {
+       "status": "submitted",
+       "plan_hash": "e590c4fc68489745b475635df71202ab2a2a230fb66a740f751cb259a526b2e5",
+       "verified": true,
+       "section": "acme_plan",
+       "description": "matched"
+      }
+     },
+     "resend": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "PUT",
+       "changes/123/planning-fields/acme_plan",
+       {
+        "description": "Acme new"
+       }
+      ]
+     ]
+    },
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": true,
+     "hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+     "review": {
+      "action": "changes_planning_text",
+      "method": "DELETE",
+      "path": "/api/_/changes/123/planning-fields/acme_plan",
+      "payload": null,
+      "plan_hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+      "operation": "clear",
+      "before": "<div>Acme original</div>",
+      "after": ""
+     },
+     "action": "changes_planning_text",
+     "target": 123,
+     "method": "DELETE",
+     "path": "changes/123/planning-fields/acme_plan",
+     "payload_json": "null",
+     "context_hash": "f4c7d235c2f0c60676fa523b2a45fc557f4232787284a45ecbe604c18cbf80f9",
+     "before": "<div>Acme original</div>",
+     "payload": null,
+     "cancel": {
+      "ok": {
+       "status": "cancelled",
+       "verified": false
+      }
+     },
+     "cancel_writes": 0,
+     "send": {
+      "ok": {
+       "status": "submitted",
+       "plan_hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+       "verified": true,
+       "section": "acme_plan",
+       "description": "matched"
+      }
+     },
+     "resend": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "DELETE",
+       "changes/123/planning-fields/acme_plan",
+       null
+      ]
+     ]
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": false,
+     "hash": "e33c72165368d8c13662c77458450eab0339c86bdb977db0841862240d9cc96f",
+     "review": {
+      "action": "problems_planning_text",
+      "method": "PUT",
+      "path": "/api/_/problems/123/planning-fields/problem_cause",
+      "payload": {
+       "description": "Acme new"
+      },
+      "plan_hash": "e33c72165368d8c13662c77458450eab0339c86bdb977db0841862240d9cc96f",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+      "operation": "edit",
+      "before": "<div>Acme original</div>",
+      "after": "Acme new"
+     },
+     "action": "problems_planning_text",
+     "target": 123,
+     "method": "PUT",
+     "path": "problems/123/planning-fields/problem_cause",
+     "payload_json": "{\"description\": \"Acme new\"}",
+     "context_hash": "d23934fc18bf8e2907ae1dbc93c39d374bc2ec2244f9cef4bdba6d8a29bf70ea",
+     "before": "<div>Acme original</div>",
+     "payload": {
+      "description": "Acme new"
+     },
+     "cancel": {
+      "ok": {
+       "status": "cancelled",
+       "verified": false
+      }
+     },
+     "cancel_writes": 0,
+     "send": {
+      "ok": {
+       "status": "submitted",
+       "plan_hash": "e33c72165368d8c13662c77458450eab0339c86bdb977db0841862240d9cc96f",
+       "verified": true,
+       "section": "problem_cause",
+       "description": "matched"
+      }
+     },
+     "resend": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "PUT",
+       "problems/123/planning-fields/problem_cause",
+       {
+        "description": "Acme new"
+       }
+      ]
+     ]
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": true,
+     "hash": "2d18b09bc0731ae140f13cb43bd6734008eb913616cdf644d0ce7beae3793c0b",
+     "review": {
+      "action": "problems_planning_text",
+      "method": "DELETE",
+      "path": "/api/_/problems/123/planning-fields/problem_cause",
+      "payload": null,
+      "plan_hash": "2d18b09bc0731ae140f13cb43bd6734008eb913616cdf644d0ce7beae3793c0b",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+      "operation": "clear",
+      "before": "<div>Acme original</div>",
+      "after": ""
+     },
+     "action": "problems_planning_text",
+     "target": 123,
+     "method": "DELETE",
+     "path": "problems/123/planning-fields/problem_cause",
+     "payload_json": "null",
+     "context_hash": "d23934fc18bf8e2907ae1dbc93c39d374bc2ec2244f9cef4bdba6d8a29bf70ea",
+     "before": "<div>Acme original</div>",
+     "payload": null,
+     "cancel": {
+      "ok": {
+       "status": "cancelled",
+       "verified": false
+      }
+     },
+     "cancel_writes": 0,
+     "send": {
+      "ok": {
+       "status": "submitted",
+       "plan_hash": "2d18b09bc0731ae140f13cb43bd6734008eb913616cdf644d0ce7beae3793c0b",
+       "verified": true,
+       "section": "problem_cause",
+       "description": "matched"
+      }
+     },
+     "resend": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "DELETE",
+       "problems/123/planning-fields/problem_cause",
+       null
+      ]
+     ]
+    }
+   ],
+   "race": [
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": false,
+     "race": "text",
+     "rows": [
+      {
+       "id": 987,
+       "name": "acme_plan",
+       "description": "Changed by someone else",
+       "description_text": "Changed by someone else",
+       "attachments": []
+      }
+     ],
+     "error": "target or metadata changed since review; review again",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": false,
+     "race": "files",
+     "rows": [
+      {
+       "id": 987,
+       "name": "acme_plan",
+       "description": "<div>Acme original</div>",
+       "description_text": "Acme original",
+       "attachments": [
+        {
+         "id": 321
+        }
+       ]
+      }
+     ],
+     "error": "planning attachments are present or unavailable; text-only preservation is not proven",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": false,
+     "race": "removed",
+     "rows": [],
+     "error": "target or metadata changed since review; review again",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": true,
+     "race": "text",
+     "rows": [
+      {
+       "id": 987,
+       "name": "acme_plan",
+       "description": "Changed by someone else",
+       "description_text": "Changed by someone else",
+       "attachments": []
+      }
+     ],
+     "error": "target or metadata changed since review; review again",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": true,
+     "race": "files",
+     "rows": [
+      {
+       "id": 987,
+       "name": "acme_plan",
+       "description": "<div>Acme original</div>",
+       "description_text": "Acme original",
+       "attachments": [
+        {
+         "id": 321
+        }
+       ]
+      }
+     ],
+     "error": "planning attachments are present or unavailable; text-only preservation is not proven",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": true,
+     "race": "removed",
+     "rows": [],
+     "error": "planning section is already empty; no write attempted",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": false,
+     "race": "text",
+     "rows": [
+      {
+       "id": 987,
+       "name": "problem_cause",
+       "description": "Changed by someone else",
+       "description_text": "Changed by someone else",
+       "attachments": []
+      }
+     ],
+     "error": "target or metadata changed since review; review again",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": false,
+     "race": "files",
+     "rows": [
+      {
+       "id": 987,
+       "name": "problem_cause",
+       "description": "<div>Acme original</div>",
+       "description_text": "Acme original",
+       "attachments": [
+        {
+         "id": 321
+        }
+       ]
+      }
+     ],
+     "error": "planning attachments are present or unavailable; text-only preservation is not proven",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": false,
+     "race": "removed",
+     "rows": [],
+     "error": "target or metadata changed since review; review again",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": true,
+     "race": "text",
+     "rows": [
+      {
+       "id": 987,
+       "name": "problem_cause",
+       "description": "Changed by someone else",
+       "description_text": "Changed by someone else",
+       "attachments": []
+      }
+     ],
+     "error": "target or metadata changed since review; review again",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": true,
+     "race": "files",
+     "rows": [
+      {
+       "id": 987,
+       "name": "problem_cause",
+       "description": "<div>Acme original</div>",
+       "description_text": "Acme original",
+       "attachments": [
+        {
+         "id": 321
+        }
+       ]
+      }
+     ],
+     "error": "planning attachments are present or unavailable; text-only preservation is not proven",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": true,
+     "race": "removed",
+     "rows": [],
+     "error": "planning section is already empty; no write attempted",
+     "type": "ReviewedWriteError",
+     "writes": []
+    }
+   ],
+   "transport": [
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": false,
+     "failure": 403,
+     "hash": "c577226cd1012f7c61eb8c6f41634798f6e9b4ba6eda5bc90355e910c10b11c4",
+     "first": {
+      "error": "write outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "second": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "PUT",
+       "changes/123/planning-fields/acme_plan",
+       {
+        "description": "Acme new"
+       }
+      ]
+     ]
+    },
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": false,
+     "failure": 429,
+     "hash": "c577226cd1012f7c61eb8c6f41634798f6e9b4ba6eda5bc90355e910c10b11c4",
+     "first": {
+      "error": "write outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "second": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "PUT",
+       "changes/123/planning-fields/acme_plan",
+       {
+        "description": "Acme new"
+       }
+      ]
+     ]
+    },
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": false,
+     "failure": "timeout",
+     "hash": "c577226cd1012f7c61eb8c6f41634798f6e9b4ba6eda5bc90355e910c10b11c4",
+     "first": {
+      "error": "write outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "second": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "PUT",
+       "changes/123/planning-fields/acme_plan",
+       {
+        "description": "Acme new"
+       }
+      ]
+     ]
+    },
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": true,
+     "failure": 403,
+     "hash": "56ae753c594df4135c0805a60fadbd18fca4aa08402973c403d819d9f170320f",
+     "first": {
+      "error": "write outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "second": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "DELETE",
+       "changes/123/planning-fields/acme_plan",
+       null
+      ]
+     ]
+    },
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": true,
+     "failure": 429,
+     "hash": "56ae753c594df4135c0805a60fadbd18fca4aa08402973c403d819d9f170320f",
+     "first": {
+      "error": "write outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "second": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "DELETE",
+       "changes/123/planning-fields/acme_plan",
+       null
+      ]
+     ]
+    },
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": true,
+     "failure": "timeout",
+     "hash": "56ae753c594df4135c0805a60fadbd18fca4aa08402973c403d819d9f170320f",
+     "first": {
+      "error": "write outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "second": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "DELETE",
+       "changes/123/planning-fields/acme_plan",
+       null
+      ]
+     ]
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": false,
+     "failure": 403,
+     "hash": "7a22add9037a3aae7644d1d1aa2d7599f51b23b9eb714bfd6a12c7b6efe7ad8d",
+     "first": {
+      "error": "write outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "second": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "PUT",
+       "problems/123/planning-fields/problem_cause",
+       {
+        "description": "Acme new"
+       }
+      ]
+     ]
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": false,
+     "failure": 429,
+     "hash": "7a22add9037a3aae7644d1d1aa2d7599f51b23b9eb714bfd6a12c7b6efe7ad8d",
+     "first": {
+      "error": "write outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "second": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "PUT",
+       "problems/123/planning-fields/problem_cause",
+       {
+        "description": "Acme new"
+       }
+      ]
+     ]
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": false,
+     "failure": "timeout",
+     "hash": "7a22add9037a3aae7644d1d1aa2d7599f51b23b9eb714bfd6a12c7b6efe7ad8d",
+     "first": {
+      "error": "write outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "second": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "PUT",
+       "problems/123/planning-fields/problem_cause",
+       {
+        "description": "Acme new"
+       }
+      ]
+     ]
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": true,
+     "failure": 403,
+     "hash": "81a2a227b47a54d54bccd5bc31412f12f701479c46e6bc51977659117fe2a4d3",
+     "first": {
+      "error": "write outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "second": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "DELETE",
+       "problems/123/planning-fields/problem_cause",
+       null
+      ]
+     ]
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": true,
+     "failure": 429,
+     "hash": "81a2a227b47a54d54bccd5bc31412f12f701479c46e6bc51977659117fe2a4d3",
+     "first": {
+      "error": "write outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "second": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "DELETE",
+       "problems/123/planning-fields/problem_cause",
+       null
+      ]
+     ]
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": true,
+     "failure": "timeout",
+     "hash": "81a2a227b47a54d54bccd5bc31412f12f701479c46e6bc51977659117fe2a4d3",
+     "first": {
+      "error": "write outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "second": {
+      "error": "write was sent or outcome unknown; inspect target and journal before retry",
+      "type": "ReviewedWriteError"
+     },
+     "writes": [
+      [
+       "DELETE",
+       "problems/123/planning-fields/problem_cause",
+       null
+      ]
+     ]
+    }
+   ],
+   "envelope": [
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": false,
+     "rows": [
+      {
+       "id": 987,
+       "name": "acme_plan",
+       "description": "Acme original",
+       "attachments": []
+      }
+     ],
+     "after": [
+      {
+       "id": 987,
+       "name": "acme_plan",
+       "description": "<div>Acme new</div>",
+       "attachments": []
+      }
+     ],
+     "hash": "c577226cd1012f7c61eb8c6f41634798f6e9b4ba6eda5bc90355e910c10b11c4",
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "c577226cd1012f7c61eb8c6f41634798f6e9b4ba6eda5bc90355e910c10b11c4",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     },
+     "methods": [
+      "GET",
+      "GET",
+      "PUT",
+      "GET"
+     ],
+     "writes": [
+      [
+       "PUT",
+       "changes/123/planning-fields/acme_plan",
+       {
+        "description": "Acme new"
+       }
+      ]
+     ]
+    },
+    {
+     "module": "changes",
+     "section": "Rollout Plan",
+     "clear": true,
+     "rows": [
+      {
+       "id": 987,
+       "name": "acme_plan",
+       "description": "Acme original",
+       "attachments": []
+      }
+     ],
+     "after": [],
+     "hash": "56ae753c594df4135c0805a60fadbd18fca4aa08402973c403d819d9f170320f",
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "56ae753c594df4135c0805a60fadbd18fca4aa08402973c403d819d9f170320f",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     },
+     "methods": [
+      "GET",
+      "GET",
+      "DELETE",
+      "GET"
+     ],
+     "writes": [
+      [
+       "DELETE",
+       "changes/123/planning-fields/acme_plan",
+       null
+      ]
+     ]
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": false,
+     "rows": [
+      {
+       "id": 987,
+       "name": "problem_cause",
+       "description": "Acme original",
+       "attachments": []
+      }
+     ],
+     "after": [
+      {
+       "id": 987,
+       "name": "problem_cause",
+       "description": "<div>Acme new</div>",
+       "attachments": []
+      }
+     ],
+     "hash": "7a22add9037a3aae7644d1d1aa2d7599f51b23b9eb714bfd6a12c7b6efe7ad8d",
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "7a22add9037a3aae7644d1d1aa2d7599f51b23b9eb714bfd6a12c7b6efe7ad8d",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     },
+     "methods": [
+      "GET",
+      "GET",
+      "PUT",
+      "GET"
+     ],
+     "writes": [
+      [
+       "PUT",
+       "problems/123/planning-fields/problem_cause",
+       {
+        "description": "Acme new"
+       }
+      ]
+     ]
+    },
+    {
+     "module": "problems",
+     "section": "Root Cause",
+     "clear": true,
+     "rows": [
+      {
+       "id": 987,
+       "name": "problem_cause",
+       "description": "Acme original",
+       "attachments": []
+      }
+     ],
+     "after": [],
+     "hash": "81a2a227b47a54d54bccd5bc31412f12f701479c46e6bc51977659117fe2a4d3",
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "81a2a227b47a54d54bccd5bc31412f12f701479c46e6bc51977659117fe2a4d3",
+      "verified": true,
+      "section": "problem_cause",
+      "description": "matched"
+     },
+     "methods": [
+      "GET",
+      "GET",
+      "DELETE",
+      "GET"
+     ],
+     "writes": [
+      [
+       "DELETE",
+       "problems/123/planning-fields/problem_cause",
+       null
+      ]
+     ]
+    }
+   ],
+   "delete_readback": [
+    {
+     "after": [],
+     "hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    {
+     "after": [
+      {
+       "name": "acme_plan",
+       "content": "",
+       "files": [],
+       "empty": true
+      }
+     ],
+     "hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+      "verified": true,
+      "section": "acme_plan",
+      "description": "matched"
+     }
+    },
+    {
+     "after": [
+      {
+       "name": "acme_plan",
+       "content": "<div><br></div>",
+       "files": []
+      }
+     ],
+     "hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+      "verified": false,
+      "section": "acme_plan",
+      "description": "mismatched",
+      "warning": "Readback was not fully verified; do not resend."
+     }
+    },
+    {
+     "after": [
+      {
+       "name": "acme_plan",
+       "content": "",
+       "files": null
+      }
+     ],
+     "hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+      "verified": false,
+      "section": "acme_plan",
+      "description": "unavailable",
+      "warning": "Readback was not fully verified; do not resend."
+     }
+    },
+    {
+     "after": [
+      {
+       "name": "acme_plan",
+       "content": "",
+       "files": [],
+       "empty": false
+      }
+     ],
+     "hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+      "verified": false,
+      "section": "acme_plan",
+      "description": "unavailable",
+      "warning": "Readback was not fully verified; do not resend."
+     }
+    },
+    {
+     "after": [
+      {
+       "name": "acme_plan",
+       "content": "",
+       "files": [],
+       "id": 987
+      }
+     ],
+     "hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+      "verified": false,
+      "section": "acme_plan",
+      "description": "mismatched",
+      "warning": "Readback was not fully verified; do not resend."
+     }
+    },
+    {
+     "after": [
+      {
+       "name": "acme_plan",
+       "files": []
+      }
+     ],
+     "hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+     "ok": {
+      "status": "submitted",
+      "plan_hash": "52d29c5577661cd4d8d1a8e830a7ae1621e89539e9c2fd21efa76bfc3aca06c1",
+      "verified": false,
+      "section": "acme_plan",
+      "description": "unavailable",
+      "warning": "Readback was not fully verified; do not resend."
+     }
+    }
+   ],
+   "clear_refused": [
+    {
+     "rows": [],
+     "description": null,
+     "clear": true,
+     "error": "planning section is already empty; no write attempted",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "rows": [
+      {
+       "name": "acme_plan",
+       "description": "",
+       "attachments": []
+      }
+     ],
+     "description": null,
+     "clear": true,
+     "error": "planning section is already empty; no write attempted",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "rows": [
+      {
+       "id": 987,
+       "name": "acme_plan",
+       "description": "",
+       "attachments": []
+      }
+     ],
+     "description": null,
+     "clear": true,
+     "error": "stored empty planning row has unknown create/edit state; no write attempted",
+     "type": "ReviewedWriteError",
+     "writes": []
+    },
+    {
+     "rows": [
+      {
+       "id": 987,
+       "name": "acme_plan",
+       "description": "",
+       "attachments": []
+      }
+     ],
+     "description": "Acme",
+     "clear": false,
+     "error": "stored empty planning row has unknown create/edit state; no write attempted",
+     "type": "ReviewedWriteError",
+     "writes": []
+    }
+   ],
+   "aliases": [
+    {
+     "clear": false,
+     "rows": [
+      {
+       "id": 987,
+       "name": "acme_plan",
+       "description": "<div>Acme original</div>",
+       "description_text": "Conflicting original",
+       "attachments": []
+      }
+     ],
+     "error": "planning text state is contradictory; no write attempted",
+     "type": "ReviewedWriteError"
+    },
+    {
+     "clear": true,
+     "rows": [
+      {
+       "id": 987,
+       "name": "acme_plan",
+       "description": "<div>Acme original</div>",
+       "description_text": "Conflicting original",
+       "attachments": []
+      }
+     ],
+     "error": "planning text state is contradictory; no write attempted",
+     "type": "ReviewedWriteError"
+    }
+   ],
+   "inputs": [
+    {
+     "description": null,
+     "clear": false,
+     "error": "planning description must be nonempty text/HTML; use --clear to delete",
+     "type": "ValueError"
+    },
+    {
+     "description": "Acme",
+     "clear": true,
+     "error": "--clear and --description are mutually exclusive",
+     "type": "ValueError"
+    },
+    {
+     "description": "",
+     "clear": false,
+     "error": "planning description must be nonempty text/HTML; use --clear to delete",
+     "type": "ValueError"
+    },
+    {
+     "description": "  ",
+     "clear": false,
+     "error": "planning description must be nonempty text/HTML; use --clear to delete",
+     "type": "ValueError"
+    }
+   ]
   }
  },
  "direct": {

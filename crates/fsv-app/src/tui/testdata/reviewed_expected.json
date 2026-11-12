@@ -1,6 +1,6 @@
 {
   "_python": {
-    "commit": "92002d76b880d927e16750ab986b525ee4fa85d6",
+    "commit": "3432beaa8719b988eb99a257b347f7b4338982eb",
     "dirty": false
   },
   "fields": [
@@ -1152,6 +1152,47 @@
       "result": {
         "status": "submitted",
         "plan_hash": "b74ff20117b866ed15311aa673ff3176f334ac1f17a62ab99503bfe3e9be9942",
+        "verified": true,
+        "section": "rollout_plan",
+        "description": "matched"
+      },
+      "send_error": null
+    },
+    "changes_edit": {
+      "plan_lines": [
+        "GET /api/_/changes/5/planning-fields"
+      ],
+      "hash": "11bc9798b36b3db1df6612ae7d58046b60da309a344b1d26e17512ca9fb4696d",
+      "review": {
+        "action": "changes_planning_text",
+        "method": "PUT",
+        "path": "/api/_/changes/5/planning-fields/rollout_plan",
+        "payload": {
+          "description": "<p>v2</p>"
+        },
+        "plan_hash": "11bc9798b36b3db1df6612ae7d58046b60da309a344b1d26e17512ca9fb4696d",
+        "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+        "operation": "edit",
+        "before": "<p>v1</p>",
+        "after": "<p>v2</p>"
+      },
+      "action": "changes_planning_text",
+      "target": 5,
+      "method": "PUT",
+      "path": "changes/5/planning-fields/rollout_plan",
+      "payload_json": "{\"description\": \"<p>v2</p>\"}",
+      "context_hash": "c5eee0eeed35c8ed469f68b4eb3d7a9582aff5da72cac163431f83ad97e96151",
+      "send_lines": [
+        "GET /api/_/changes/5/planning-fields",
+        "PUT /api/_/changes/5/planning-fields/rollout_plan",
+        "GET /api/_/changes/5/planning-fields"
+      ],
+      "send_bodies": [
+        "{\"description\": \"<p>v2</p>\"}"
+      ],
+      "result": {
+        "status": "submitted",
+        "plan_hash": "11bc9798b36b3db1df6612ae7d58046b60da309a344b1d26e17512ca9fb4696d",
         "verified": true,
         "section": "rollout_plan",
         "description": "matched"

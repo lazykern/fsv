@@ -672,15 +672,20 @@ def gen_readback():
 
 class PlanningClient:
     """`tests/test_planning_text.py::Client`; `after` replaces the rows a
-    POST leaves behind (the native detail shape of test_planning_readback)."""
+    write leaves behind (the native detail shape of test_planning_readback,
+    or `test_planning_edit_clear.py`'s readback client). `failure` is raised
+    by the write after it is recorded; `methods` logs every request."""
 
     def __init__(self, module="changes"):
         self.module = module
         self.rows = []
         self.writes = []
+        self.methods = []
         self.after = None
+        self.failure = None
 
     def int_get(self, path):
+        self.methods.append("GET")
         key = "change_planning_fields" if self.module == "changes" else "problem_planning_fields"
         return {key: copy.deepcopy(self.rows)}
 
@@ -689,11 +694,15 @@ class PlanningClient:
 
     def _request(self, method, path, **kw):
         from urllib.parse import parse_qs, urlsplit
-        payload = json.loads(kw["content"])
+        self.methods.append(method)
+        payload = json.loads(kw["content"]) if "content" in kw else None
         self.writes.append([method, path.split("/api/_/", 1)[1], payload])
-        self.rows = copy.deepcopy(self.after) if self.after is not None else [
-            {"name": parse_qs(urlsplit(path).query)["id"][0], "description": payload["description"],
-             "attachments": []}]
+        if self.failure is not None:
+            raise self.failure
+        key = (parse_qs(urlsplit(path).query)["id"][0] if method == "POST" else
+               urlsplit(path).path.rsplit("/", 1)[1])
+        self.rows = copy.deepcopy(self.after) if self.after is not None else [] if method == "DELETE" else [
+            {"name": key, "description": payload["description"], "attachments": []}]
         return {}
 
 
@@ -734,9 +743,11 @@ def gen_planning():
                 reset()
                 c = PlanningClient(module)
                 c.rows = [{"name": key, shape: stored, "files": []}]
-                out["existing"].append({"module": module, "section": section, "rows": c.rows,
-                                        **attempt(lambda: plan_out(planning.build_plan(
-                                            c, module, 123, section, "Acme replacement")))})
+                rows = copy.deepcopy(c.rows)
+                p = planning.build_plan(c, module, 123, section, "Acme replacement")
+                out["existing"].append({"module": module, "section": section, "rows": rows, **plan_out(p),
+                                        "send": attempt(lambda: planning.send(p, c, reviewed_hash=p.hash)),
+                                        "writes": c.writes})
         for fields in [{"content": None}, {"content": 42}, {}, {"empty": True},
                        {"description": "", "content": "Acme original"}, {"description": "", "content": 42},
                        {"description": "", "content": None}, {"content": "", "empty": False}]:
@@ -781,7 +792,121 @@ def gen_planning():
               {"attachments": [], "description": None, "content": "c"},
               {"attachments": [], "body": "b", "content": "c"}]:
         out["editable_content"].append({"row": r, **attempt(lambda: planning.editable_content(r))})
+    for r in [{"attachments": [], "description": "<div>Acme original</div>", "description_text": "Acme original"},
+              {"attachments": [], "description": "<div>Acme original</div>", "description_text": "Conflicting"},
+              {"attachments": [], "content": "", "empty": False}, {"attachments": [], "content": "x", "empty": True},
+              {"attachments": [], "content": "x", "empty": False}, {"attachments": [], "content": "", "empty": True},
+              {"attachments": [], "content": "", "empty": "yes"}, {"attachments": [], "content": "", "empty": None},
+              {"attachments": [], "content": "", "description_text": " "},
+              {"attachments": [], "description": "<div><br></div>", "body": ""}]:
+        out["editable_content"].append({"row": r, **attempt(lambda: planning.editable_content(r))})
     out["definitions"] = {m: attempt(lambda: planning.definitions(None, m)) for m in ["changes", "problems", "tickets"]}
+    out["edit_clear"] = gen_planning_edit_clear(planning, plan_out)
+    return out
+
+
+def gen_planning_edit_clear(planning, plan_out):
+    """`tests/test_planning_edit_clear.py` (e638d85) over `PlanningClient`."""
+    from fsv.errors import APIError
+    import httpx
+
+    def populated(c, key):
+        c.rows = [{"id": 987, "name": key, "description": "<div>Acme original</div>",
+                   "description_text": "Acme original", "attachments": []}]
+
+    out = {"wire": [], "race": [], "transport": [], "envelope": [], "delete_readback": [],
+           "clear_refused": [], "aliases": [], "inputs": []}
+    for module, section, key in PLANNING_TARGETS:
+        for clear in (False, True):
+            desc = None if clear else "Acme new"
+            reset()
+            c = PlanningClient(module)
+            populated(c, key)
+            p = planning.build_plan(c, module, 123, section, desc, clear=clear)
+            entry = {"module": module, "section": section, "clear": clear, **plan_out(p), "payload": p.payload,
+                     "cancel": attempt(lambda: planning.send(p, c, reviewed_hash=None))}
+            entry["cancel_writes"] = len(c.writes)
+            entry["send"] = attempt(lambda: planning.send(p, c, reviewed_hash=p.hash))
+            entry["resend"] = attempt(lambda: planning.send(p, c, reviewed_hash=p.hash))
+            entry["writes"] = c.writes
+            out["wire"].append(entry)
+            for race in ("text", "files", "removed"):
+                reset()
+                c = PlanningClient(module)
+                populated(c, key)
+                p = planning.build_plan(c, module, 123, section, desc, clear=clear)
+                if race == "removed":
+                    c.rows = []
+                elif race == "files":
+                    c.rows[0]["attachments"] = [{"id": 321}]
+                else:
+                    c.rows[0]["description"] = "Changed by someone else"
+                    c.rows[0]["description_text"] = "Changed by someone else"
+                out["race"].append({"module": module, "section": section, "clear": clear, "race": race,
+                                    "rows": copy.deepcopy(c.rows),
+                                    **attempt(lambda: planning.send(p, c, reviewed_hash=p.hash)),
+                                    "writes": c.writes})
+            for failure in (403, 429, "timeout"):
+                reset()
+                c = PlanningClient(module)
+                c.rows = [{"id": 987, "name": key, "description": "Acme original", "attachments": []}]
+                p = planning.build_plan(c, module, 123, section, desc, clear=clear)
+                c.failure = (httpx.ReadTimeout("synthetic timeout") if failure == "timeout" else
+                             APIError(failure, {"message": "synthetic rejection"}))
+                out["transport"].append({"module": module, "section": section, "clear": clear,
+                                         "failure": failure, "hash": p.hash,
+                                         "first": attempt(lambda: planning.send(p, c, reviewed_hash=p.hash)),
+                                         "second": attempt(lambda: planning.send(p, c, reviewed_hash=p.hash)),
+                                         "writes": c.writes})
+            reset()
+            c = PlanningClient(module)
+            c.rows = [{"id": 987, "name": key, "description": "Acme original", "attachments": []}]
+            c.after = [] if clear else [{"id": 987, "name": key, "description": "<div>Acme new</div>",
+                                         "attachments": []}]
+            p = planning.build_plan(c, module, 123, section, desc, clear=clear)
+            out["envelope"].append({"module": module, "section": section, "clear": clear, "rows": c.rows,
+                                    "after": c.after, "hash": p.hash,
+                                    **attempt(lambda: planning.send(p, c, reviewed_hash=p.hash)),
+                                    "methods": c.methods, "writes": c.writes})
+    for after in [[], [{"name": "acme_plan", "content": "", "files": [], "empty": True}],
+                  [{"name": "acme_plan", "content": "<div><br></div>", "files": []}],
+                  [{"name": "acme_plan", "content": "", "files": None}],
+                  [{"name": "acme_plan", "content": "", "files": [], "empty": False}],
+                  [{"name": "acme_plan", "content": "", "files": [], "id": 987}],
+                  [{"name": "acme_plan", "files": []}]]:
+        reset()
+        c = PlanningClient()
+        populated(c, "acme_plan")
+        c.after = after
+        p = planning.build_plan(c, "changes", 123, "Rollout Plan", clear=True)
+        out["delete_readback"].append({"after": after, "hash": p.hash,
+                                       **attempt(lambda: planning.send(p, c, reviewed_hash=p.hash))})
+    for rows, desc, clear in [([], None, True),
+                              ([{"name": "acme_plan", "description": "", "attachments": []}], None, True),
+                              ([{"id": 987, "name": "acme_plan", "description": "", "attachments": []}], None, True),
+                              ([{"id": 987, "name": "acme_plan", "description": "", "attachments": []}], "Acme", False)]:
+        reset()
+        c = PlanningClient()
+        c.rows = rows
+        out["clear_refused"].append({"rows": rows, "description": desc, "clear": clear,
+                                     **attempt(lambda: planning.build_plan(c, "changes", 123, "Rollout Plan",
+                                                                           desc, clear=clear)),
+                                     "writes": c.writes})
+    for clear in (False, True):
+        reset()
+        c = PlanningClient()
+        populated(c, "acme_plan")
+        c.rows[0]["description_text"] = "Conflicting original"
+        out["aliases"].append({"clear": clear, "rows": c.rows,
+                               **attempt(lambda: planning.build_plan(c, "changes", 123, "Rollout Plan",
+                                                                     None if clear else "Acme new", clear=clear))})
+    for desc, clear in [(None, False), ("Acme", True), ("", False), ("  ", False)]:
+        reset()
+        c = PlanningClient()
+        populated(c, "acme_plan")
+        out["inputs"].append({"description": desc, "clear": clear,
+                              **attempt(lambda: planning.build_plan(c, "changes", 123, "Rollout Plan",
+                                                                    desc, clear=clear))})
     return out
 
 

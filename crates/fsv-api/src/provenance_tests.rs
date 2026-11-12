@@ -29,6 +29,10 @@ fn fixtures_record_their_python_commit() {
         ),
         ("create_oracle", include_str!("testdata/create_oracle.json")),
         (
+            "failure_matrix_oracle",
+            include_str!("testdata/failure_matrix_oracle.json"),
+        ),
+        (
             "reviewed_oracle",
             include_str!("testdata/reviewed_oracle.json"),
         ),

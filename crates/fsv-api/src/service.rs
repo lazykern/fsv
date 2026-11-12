@@ -1333,6 +1333,8 @@ pub(crate) mod testing {
         pub calls: Mutex<Vec<Call>>,
         #[allow(clippy::type_complexity)]
         handler: Mutex<Box<dyn FnMut(&Call) -> Result<Value> + Send>>,
+        #[allow(clippy::type_complexity)]
+        fetcher: Mutex<Option<Box<dyn FnMut(&str) -> Result<Response> + Send>>>,
         pub domain: String,
     }
 
@@ -1341,8 +1343,19 @@ pub(crate) mod testing {
             FnApi {
                 calls: Mutex::new(Vec::new()),
                 handler: Mutex::new(Box::new(handler)),
+                fetcher: Mutex::new(None),
                 domain: "acme.freshservice.com".into(),
             }
+        }
+
+        /// Downloads go to `fetcher` (recorded as method `FETCH`); without
+        /// one every download is a 404.
+        pub fn with_fetch(
+            self,
+            fetcher: impl FnMut(&str) -> Result<Response> + Send + 'static,
+        ) -> Self {
+            *self.fetcher.lock().unwrap() = Some(Box::new(fetcher));
+            self
         }
 
         pub fn writes(&self) -> Vec<Call> {
@@ -1447,8 +1460,19 @@ pub(crate) mod testing {
                 _ => self.call(method, path, params, None, None),
             }
         }
-        fn fetch(&self, _url: &str) -> Result<Response> {
-            Ok(Response::new(404))
+        fn fetch(&self, url: &str) -> Result<Response> {
+            let mut fetcher = self.fetcher.lock().unwrap();
+            let Some(fetch) = fetcher.as_mut() else {
+                return Ok(Response::new(404));
+            };
+            self.calls.lock().unwrap().push(Call {
+                method: "FETCH".into(),
+                path: url.into(),
+                params: None,
+                body: None,
+                raw: None,
+            });
+            fetch(url)
         }
         fn domain(&self) -> String {
             self.domain.clone()

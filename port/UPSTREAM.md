@@ -1182,10 +1182,11 @@ fsv-formui work in this range.
 ## Base pin
 
 `port/UPSTREAM_BASE` holds the last Python commit whose range is fully
-triaged (`92002d7`). Advance it only when every row up to the new SHA is
+triaged (`3432bea`). Advance it only when every row up to the new SHA is
 `ported`, `partial` with a named follow-up, or `wontfix` with a PARITY
-entry. Open follow-up: fsv-api `asset_picker.rs` validation order
-(`53c678e`). (fsv-core's status-0 `ApiError` display now matches Python.)
+entry. Open follow-ups: fsv-api `asset_picker.rs` validation order
+(`53c678e`); fsv-cli `planning-text --clear` (`e638d85`) and the clone CLI
+cases (`3432bea`). (fsv-core's status-0 `ApiError` display now matches Python.)
 
 ## Ledger: `dbe553c..92002d7`
 
@@ -1266,3 +1267,93 @@ and failures come from Python `FsvApp._load_planning_editor` at `92002d7`
 Also done: **fsv-cli**. `planning.json` gives the created sections no text
 and `upstream_cmds.rs` pins the new review keys plus the refusal on a section
 with text (`…_existing_refused`).
+
+## Ledger: `92002d7..3432bea`
+
+Triaged against Python `3432bea` (2 commits; `src` is identical at
+`e638d85` and `3432bea`). Every fixture outside fsv-cli and fsv-completion
+is regenerated from a `git archive 3432bea` export and stamped with it.
+
+Counts: **0 ported, 2 partial, 0 missing.**
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `e638d85` | 11-12 08:15 | Support reviewed native planning text edits and clears | partial (fsv-cli `--clear`) | fsv-api `planning_text`, fsv-app `tui`, fsv-tui test docs |
+| `3432bea` | 11-12 08:26 | Test clone partial failures and attachment transport errors offline | partial (fsv-cli clone cases) | fsv-api `create` tests, `FnApi::with_fetch` |
+
+### `e638d85` Support reviewed native planning text edits and clears — partial
+
+Done in fsv-api: `planning_text::build_plan_for(c, module, target, section,
+description: Option<&str>, clear, schema)`. `build_plan` stays as the
+create/edit wrapper. Stored text plans a `PUT {module}/{id}/planning-fields/KEY`
+(operation `edit`) and `clear` plans a bodyless `DELETE` (operation `clear`,
+`after: ""`). An empty section stays `POST …?id=KEY`. Refused with no write:
+`--clear` plus `--description`; a blank description ("…; use --clear to
+delete"); an empty stored row that has an id; clearing an empty section;
+contradictory text aliases or `empty` flag (`editable_content`). The clear
+readback matches only an empty section with no row id. Expected values come
+from `gen_fsv_api_workflows.py` (`planning_text.edit_clear`: wire, race,
+transport, envelope, delete_readback, clear_refused, aliases, inputs), and the
+tests live in `planning_text.rs`. They mirror `test_planning_edit_clear.py`
+(the non-CLI tests) and the edit cases of `test_planning_state.py`.
+
+fsv-app: `LiveBackend` plans an edit of stored text (`tests_reviewed.rs`
+`planning_text_edits_stored_text_with_a_put`, golden `changes_edit` from
+`gen_fsv_app_tui_reviewed.py`). fsv-tui needed no code change: the editor
+already opens the stored text, and the review now comes back from the backend
+(`test_tui_native_existing_content_preloads_and_reviews_edit`, cited on
+`a_planning_text_picks_a_section_edits_reviews_and_sends_once`). The TUI
+never clears, as in Python.
+
+Open (fsv-cli owner, `planning_cli.py`):
+- `planning-text --description` becomes optional (help "text/HTML; reviewed
+  verbatim; mutually exclusive with --clear"). Add a `--clear` bool flag
+  (help "delete existing section text; refuses files or unknown state").
+- Call `fsv_api::planning_text::build_plan_for(c, res.name, id, section,
+  a.description.as_deref(), a.clear, schema)`. Its `Error::value` refusals
+  exit 2, as the other planning-text usage errors do.
+- Update the `cli_tree` and completion trees for `--clear`.
+- Port `test_cli_edit_clear_review_hash_and_send`,
+  `test_cli_missing_or_conflicting_operation_refused` and
+  `test_planning_state.py::test_cli_existing_content_review_or_unreviewed_refusal`
+  (an existing section: `--dry-run` exits 0 with operation `edit`; `--yes`
+  with a wrong `--expect-plan` exits 2 with "full --expect-plan hash").
+- Re-pin `tests/upstream_cmds.rs` from Python `3432bea`. These fail against
+  the new library (fsv-cli tree at HEAD): `change_planning_text_empty_refused`
+  (message gains "; use --clear to delete") and
+  `change_planning_text_existing_refused` (an existing section is now a
+  reviewed edit, exit 0, not a refusal).
+
+### `3432bea` Test clone partial failures and attachment transport errors offline — partial
+
+Tests only. `port/golden/gen_fsv_api_failure_matrix.py` drives the Python
+handlers of `test_attachment_failure_matrix.py` and
+`test_clone_failure_matrix.py` through the library and writes
+`fsv-api/src/testdata/failure_matrix_oracle.json`. `src/create_failure_tests.rs`
+replays them on `FnApi` and its new `with_fetch` download hook. It compares
+results, error text, status and `exit_code`, every write with its query string,
+reads, downloads, and the upload receipt line. That line is factored out as
+`create::upload_receipt`.
+- Attachments: all seven Python tests (duplicate policies, replacement
+  failures at download, upload or save, a missing upload id, receipt
+  diagnostics, an invalid `--duplicate`, a failed download that keeps the
+  existing file with force, and a missing URL that creates no directory).
+- Clone, library side: the base create, then tasks, assets and planning each
+  attempted once at 403/409/429/500 (exit 4 for 409, else 5); the
+  `clone_side_effects` counts; and no steps when the create returns no id.
+
+No behavior mismatch was found.
+
+Open (fsv-cli owner, `changes clone`, from `test_clone_failure_matrix.py`):
+- `test_partial_clone_preserves_new_identity_and_attempts_each_step_once`:
+  the stdout JSON keeps `id: 456`, `human_display_id`, and
+  `fsv_clone_steps` (`"ok"` / `"failed: …"`). stderr says "do not rerun
+  clone", and the exit is `exit_code_for(first failure)`.
+- `test_clone_dry_run_counts_side_effects_without_creating`
+  (`--dry-run --keep-task-owners`): stderr "owners/past dates kept", "1
+  asset(s)", "1 planning field(s)", "0 attachment(s)"; no writes.
+- `test_clone_missing_returned_id_does_not_guess_side_effect_target`: exit
+  0, stdout `{}`, stderr "response had no id", one write, read
+  `changes/123` only.
+- `test_clone_confirmation_failure_prevents_even_base_create`: `--no-input`
+  without `--yes` exits 2 mentioning `--yes`; no writes.

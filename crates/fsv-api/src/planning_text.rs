@@ -109,7 +109,12 @@ fn query_id(path: &str) -> Result<String> {
 
 /// `urllib.parse.unquote_plus`.
 fn unquote_plus(text: &str) -> String {
-    let bytes = text.replace('+', " ").into_bytes();
+    unquote(&text.replace('+', " "))
+}
+
+/// `urllib.parse.unquote`.
+fn unquote(text: &str) -> String {
+    let bytes = text.as_bytes();
     let mut out = Vec::with_capacity(bytes.len());
     let mut i = 0;
     while i < bytes.len() {
@@ -171,11 +176,26 @@ pub fn editable_content(row: Option<&Value>) -> Result<String> {
             "planning text state is unavailable; no write attempted",
         ));
     }
-    Ok(content.unwrap_or_default())
+    let content = content.unwrap_or_default();
+    // HTML/plain aliases may differ in markup but must describe the same text
+    // and agree about literal emptiness; markup is never stripped to choose a wire.
+    let aliases_differ = TEXT_KEYS
+        .iter()
+        .filter_map(|k| r.get(*k).and_then(Value::as_str))
+        .any(|v| v.is_empty() != content.is_empty() || !same_text(&json!(v), &json!(content)));
+    let empty_differs = r
+        .get("empty")
+        .is_some_and(|e| e.as_bool() != Some(content.is_empty()));
+    if aliases_differ || empty_differs {
+        return Err(refused(
+            "planning text state is contradictory; no write attempted",
+        ));
+    }
+    Ok(content)
 }
 
-/// Port of fsv.planning_text.PlanningTextPlan: a first-write POST whose
-/// hash also binds the reviewed (empty) baseline.
+/// Port of fsv.planning_text.PlanningTextPlan: a create POST, edit PUT or
+/// bodyless clear DELETE whose hash also binds the reviewed baseline.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PlanningTextPlan {
     pub plan: WritePlan,
@@ -194,16 +214,20 @@ impl PlanningTextPlan {
     pub fn review(&self) -> Map<String, Value> {
         let mut review = self.plan.review();
         review.insert("plan_hash".into(), json!(self.hash()));
-        review.insert("operation".into(), json!("create"));
+        let (operation, after) = match self.plan.method.as_str() {
+            "DELETE" => ("clear", json!("")),
+            "PUT" => ("edit", self.payload()["description"].clone()),
+            _ => ("create", self.payload()["description"].clone()),
+        };
+        review.insert("operation".into(), json!(operation));
         review.insert("before".into(), json!(self.before));
-        review.insert("after".into(), self.payload()["description"].clone());
+        review.insert("after".into(), after);
         review
     }
 }
 
-/// Port of fsv.planning_text.build_plan: one native section's first text.
-/// Refused when the section has (or may have) attachments or any stored
-/// text, since only the create POST is captured.
+/// `build_plan(client, module, target, section, description)`: a create or
+/// edit of the section text.
 pub fn build_plan(
     c: &dyn Api,
     module: &str,
@@ -212,9 +236,31 @@ pub fn build_plan(
     description: &str,
     schema: &ChangeSchema,
 ) -> Result<PlanningTextPlan> {
-    if fsv_core::pystr::strip(description).is_empty() {
+    build_plan_for(c, module, target, section, Some(description), false, schema)
+}
+
+/// Port of fsv.planning_text.build_plan: a POST into a known-empty section,
+/// a PUT over stored text, or (`clear`) a bodyless DELETE of stored text.
+/// Refused when the section has (or may have) attachments, or its text
+/// state is unknown or contradictory.
+pub fn build_plan_for(
+    c: &dyn Api,
+    module: &str,
+    target: &str,
+    section: &str,
+    description: Option<&str>,
+    clear: bool,
+    schema: &ChangeSchema,
+) -> Result<PlanningTextPlan> {
+    if clear {
+        if description.is_some() {
+            return Err(Error::value(
+                "--clear and --description are mutually exclusive",
+            ));
+        }
+    } else if description.is_none_or(|d| fsv_core::pystr::strip(d).is_empty()) {
         return Err(Error::value(
-            "planning description must be nonempty text/HTML",
+            "planning description must be nonempty text/HTML; use --clear to delete",
         ));
     }
     let defs = definitions(c, module, schema)?;
@@ -249,35 +295,54 @@ pub fn build_plan(
     let rows = inventory(c, module, cid)?;
     let existing = match_planning_row(&definition, &rows)?;
     let before = editable_content(existing.as_ref())?;
-    let has_text = existing.as_ref().is_some_and(|r| {
-        TEXT_KEYS.iter().any(|k| {
-            r.get(*k)
-                .and_then(Value::as_str)
-                .is_some_and(|t| !t.is_empty())
-        }) || r.get("empty") == Some(&json!(false))
-    });
-    if !before.is_empty() || has_text {
+    if before.is_empty()
+        && existing
+            .as_ref()
+            .is_some_and(|r| r.get("id").is_some_and(|id| !id.is_null()))
+    {
         return Err(refused(
-            "planning section already has content; native edit wire is not captured; use the web editor (no write attempted)",
+            "stored empty planning row has unknown create/edit state; no write attempted",
         ));
     }
+    if clear && before.is_empty() {
+        return Err(refused(
+            "planning section is already empty; no write attempted",
+        ));
+    }
+    let method = if clear {
+        "DELETE"
+    } else if before.is_empty() {
+        "POST"
+    } else {
+        "PUT"
+    };
+    let base = format!("{module}/{cid}/planning-fields");
+    let path = if method == "POST" {
+        format!("{base}?id={}", quote(&key))
+    } else {
+        format!("{base}/{}", quote(&key))
+    };
+    let payload = description
+        .filter(|_| !clear)
+        .map(|d| json!({"description": d}));
     let plan = WritePlan {
         action: format!("{module}_planning_text"),
         target: cid,
         tenant: c.domain(),
-        method: "POST".into(),
-        path: format!("{module}/{cid}/planning-fields?id={}", quote(&key)),
+        method: method.into(),
+        path,
         payload_json: fsv_py::Dumps::default()
             .sort_keys(true)
             .ensure_ascii(false)
-            .dump(&json!({"description": description})),
+            .dump(&payload.unwrap_or(Value::Null)),
         context_hash: plan_hash(&json!({"definitions": defs, "rows": rows})),
     };
     Ok(PlanningTextPlan { plan, before })
 }
 
-/// Port of fsv.planning_text.send: one POST, then the section's description
-/// read back from a fresh inventory.
+/// Port of fsv.planning_text.send: one write, then the section read back from
+/// a fresh inventory. A clear is verified only by a row that is gone or a
+/// known-empty placeholder without an id; HTML is never normalized to prove it.
 pub fn send(
     plan: &PlanningTextPlan,
     c: &dyn Api,
@@ -287,12 +352,23 @@ pub fn send(
 ) -> Result<Value> {
     let wire = &plan.plan;
     let module = wire.path.split('/').next().unwrap_or_default().to_string();
-    let section = query_id(&wire.path)?;
-    let payload = plan.payload();
-    let description = payload
-        .get("description")
-        .ok_or_else(|| Error::other("KeyError: 'description'"))?
-        .clone();
+    let section = if wire.method == "POST" {
+        query_id(&wire.path)?
+    } else {
+        let path = wire.path.split(['?', '#']).next().unwrap_or_default();
+        unquote(path.rsplit('/').next().unwrap_or_default())
+    };
+    let clear = wire.method == "DELETE";
+    let description = if clear {
+        None
+    } else {
+        Some(
+            plan.payload()
+                .get("description")
+                .ok_or_else(|| Error::other("KeyError: 'description'"))?
+                .clone(),
+        )
+    };
     let verify = |_: &Value| -> Result<Map<String, Value>> {
         let defs = definitions(c, &module, schema)?;
         let definition = defs
@@ -300,18 +376,45 @@ pub fn send(
             .find(|d| planning_server_key(d) == section)
             .ok_or_else(|| Error::other("StopIteration"))?;
         let row = match_planning_row(definition, &inventory(c, &module, wire.target)?)?;
-        let field = match section_content(row.as_ref()) {
-            None => "unavailable",
-            Some(d) if same_text(&json!(d), &description) => "matched",
-            Some(_) => "mismatched",
+        let content = section_content(row.as_ref());
+        let checked = editable_content(row.as_ref()).ok();
+        let field = match &description {
+            None => {
+                let gone = row
+                    .as_ref()
+                    .is_none_or(|r| r.get("id").is_none_or(Value::is_null));
+                match checked.as_deref() {
+                    Some("") if gone => "matched",
+                    None => "unavailable",
+                    Some(_) => "mismatched",
+                }
+            }
+            Some(want) => match (content, checked) {
+                (None, _) | (_, None) => "unavailable",
+                (Some(d), Some(_)) if same_text(&json!(d), want) => "matched",
+                (Some(_), Some(_)) => "mismatched",
+            },
         };
         Ok(obj(
             json!({"section": section, "description": field, "verified": field == "matched"}),
         ))
     };
     let target = wire.target.to_string();
-    let text = description.as_str().unwrap_or_default().to_string();
-    let rebuild = || build_plan(c, &module, &target, &section, &text, schema).map(|p| p.hash());
+    let text = description
+        .as_ref()
+        .map(|d| d.as_str().unwrap_or_default().to_string());
+    let rebuild = || {
+        build_plan_for(
+            c,
+            &module,
+            &target,
+            &section,
+            text.as_deref(),
+            clear,
+            schema,
+        )
+        .map(|p| p.hash())
+    };
     execute_as(
         wire,
         &plan.hash(),
@@ -334,8 +437,9 @@ mod tests {
     struct World {
         module: &'static str,
         rows: Value,
-        failure: Option<u16>,
-        /// The rows a POST leaves behind (native detail shape) instead of the echo.
+        /// The oracle's `failure`: an HTTP status, or `"timeout"` for a transport error.
+        failure: Option<Value>,
+        /// The rows a write leaves behind (native detail shape) instead of the echo.
         after: Option<Value>,
     }
 
@@ -357,15 +461,31 @@ mod tests {
             if call.method == "GET" {
                 return Ok(json!({key: w.rows}));
             }
-            if let Some(s) = w.failure {
-                return Err(ApiError::new(s, json!("uncertain")).into());
+            match &w.failure {
+                Some(Value::Number(s)) => {
+                    let status = s.as_u64().unwrap() as u16;
+                    return Err(
+                        ApiError::new(status, json!({"message": "synthetic rejection"})).into(),
+                    );
+                }
+                Some(_) => {
+                    return Err(Error::Http {
+                        kind: "ReadTimeout".into(),
+                        message: "synthetic timeout".into(),
+                    });
+                }
+                None => {}
             }
-            let name = query_id(&call.path).unwrap();
-            let description = call.body.as_ref().unwrap()["description"].clone();
-            w.rows = w
-                .after
-                .clone()
-                .unwrap_or(json!([{"name": name, "description": description, "attachments": []}]));
+            let echo = match call.method.as_str() {
+                "DELETE" => json!([]),
+                "POST" => {
+                    json!([{"name": query_id(&call.path).unwrap(),
+                            "description": call.body.as_ref().unwrap()["description"], "attachments": []}])
+                }
+                _ => json!([{"name": call.path.rsplit('/').next().unwrap(),
+                             "description": call.body.as_ref().unwrap()["description"], "attachments": []}]),
+            };
+            w.rows = w.after.clone().unwrap_or(echo);
             Ok(json!({}))
         })
     }
@@ -472,8 +592,8 @@ mod tests {
         }
     }
 
-    /// `test_planning_state.py`: known-empty creates, refused existing or
-    /// unknown text and files, the GET race, and normalized readback.
+    /// `test_planning_state.py`: known-empty creates, edits of existing text,
+    /// refused unknown text and files, the GET race, and normalized readback.
     #[test]
     fn create_versus_edit_boundaries() {
         let build = |case: &Value, rows: &Value, text: &str| {
@@ -488,7 +608,12 @@ mod tests {
                 c,
             )
         };
-        for case in ORACLE["create"].as_array().unwrap() {
+        for case in ORACLE["create"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .chain(ORACLE["existing"].as_array().unwrap())
+        {
             let (_, got, c) = build(case, &case["rows"], "Acme replacement");
             let got = got.unwrap();
             for key in ["hash", "review", "payload_json", "context_hash", "before"] {
@@ -520,7 +645,7 @@ mod tests {
             );
             assert_eq!(writes(&c), case["writes"]);
         }
-        for key in ["existing", "unknown", "files"] {
+        for key in ["unknown", "files"] {
             for case in ORACLE[key].as_array().unwrap() {
                 let text = if key == "files" {
                     "Acme"
@@ -648,7 +773,7 @@ mod tests {
         let c = client(&w);
         let j = MemJournal::default();
         let p = build_plan(&c, "changes", "123", "Rollout Plan", "Acme", &schema).unwrap();
-        w.lock().unwrap().failure = Some(403);
+        w.lock().unwrap().failure = Some(json!(403));
         for _ in 0..2 {
             assert!(err(send(&p, &c, &j, Some(&p.hash()), &schema)).contains("unknown"));
         }
@@ -698,7 +823,7 @@ mod tests {
         let c = client(&w);
         assert_eq!(
             err(build_plan(&c, "changes", "1", "x", "  ", &schema)),
-            "planning description must be nonempty text/HTML"
+            "planning description must be nonempty text/HTML; use --clear to delete"
         );
         assert_eq!(
             err(build_plan(&c, "releases", "1", "x", "y", &schema)),
@@ -725,5 +850,216 @@ mod tests {
             "a b c"
         );
         assert!(query_id("changes/1/planning-fields?id=").is_err());
+        assert_eq!(unquote("a%20b+c%2Fd%zz"), "a b+c/d%zz");
+    }
+
+    fn edit_clear(key: &str) -> &'static [Value] {
+        ORACLE["edit_clear"][key].as_array().unwrap()
+    }
+
+    fn build_case(c: &FnApi, case: &Value) -> Result<PlanningTextPlan> {
+        let clear = case["clear"] == true;
+        let section = case["section"].as_str().unwrap_or("Rollout Plan");
+        let text = if clear { None } else { Some("Acme new") };
+        build_plan_for(c, module_of(case), "123", section, text, clear, &schema)
+    }
+
+    fn populated(module: &'static str, key: &str) -> Arc<Mutex<World>> {
+        let w = world(module);
+        w.lock().unwrap().rows = json!([{"id": 987, "name": key, "description": "<div>Acme original</div>",
+                                         "description_text": "Acme original", "attachments": []}]);
+        w
+    }
+
+    fn key_of(case: &Value) -> &'static str {
+        if module_of(case) == "changes" {
+            "acme_plan"
+        } else {
+            "problem_cause"
+        }
+    }
+
+    /// `test_planning_edit_clear.py::test_exact_wire_review_and_independent_get`:
+    /// PUT or bodyless DELETE on the section path, cancel without a hash,
+    /// one verified send, and a refused resend.
+    #[test]
+    fn edit_and_clear_exact_wire_and_readback() {
+        for case in edit_clear("wire") {
+            let w = populated(module_of(case), key_of(case));
+            let c = client(&w);
+            let j = MemJournal::default();
+            let p = build_case(&c, case).unwrap();
+            let got = plan_json(&p);
+            for key in [
+                "hash",
+                "review",
+                "action",
+                "target",
+                "method",
+                "path",
+                "payload_json",
+            ] {
+                assert_eq!(got[key], case[key], "{case} {key}");
+            }
+            assert_eq!(got["context_hash"], case["context_hash"]);
+            assert_eq!(p.payload(), case["payload"]);
+            same(
+                &outcome(send(&p, &c, &j, None, &schema)),
+                &case["cancel"],
+                "cancel",
+            );
+            assert_eq!(c.writes().len(), 0);
+            same(
+                &outcome(send(&p, &c, &j, Some(&p.hash()), &schema)),
+                &case["send"],
+                "send",
+            );
+            same(
+                &outcome(send(&p, &c, &j, Some(&p.hash()), &schema)),
+                &case["resend"],
+                "resend",
+            );
+            assert_eq!(writes(&c), case["writes"]);
+            if case["clear"] == true {
+                assert!(c.writes()[0].raw.is_none() && c.writes()[0].body.is_none());
+            }
+        }
+    }
+
+    /// `test_review_race_blocks_all_mutations`: changed text, new files or a
+    /// removed row after review block both edits and clears.
+    #[test]
+    fn edit_and_clear_review_race_sends_nothing() {
+        for case in edit_clear("race") {
+            let w = populated(module_of(case), key_of(case));
+            let c = client(&w);
+            let p = build_case(&c, case).unwrap();
+            w.lock().unwrap().rows = case["rows"].clone();
+            let j = MemJournal::default();
+            same(
+                &outcome(send(&p, &c, &j, Some(&p.hash()), &schema)),
+                case,
+                &format!("{case}"),
+            );
+            assert!(c.writes().is_empty() && j.events().is_empty());
+        }
+    }
+
+    /// `test_real_transport_edit_and_clear_single_attempt`: 403, 429 and a
+    /// transport timeout are unknown outcomes; the write is attempted once.
+    #[test]
+    fn edit_and_clear_unknown_outcome_single_attempt() {
+        for case in edit_clear("transport") {
+            let w = world(module_of(case));
+            w.lock().unwrap().rows = json!([{"id": 987, "name": key_of(case),
+                                             "description": "Acme original", "attachments": []}]);
+            let c = client(&w);
+            let p = build_case(&c, case).unwrap();
+            assert_eq!(p.hash(), case["hash"]);
+            w.lock().unwrap().failure = Some(case["failure"].clone());
+            let j = MemJournal::default();
+            same(
+                &outcome(send(&p, &c, &j, Some(&p.hash()), &schema)),
+                &case["first"],
+                "first",
+            );
+            same(
+                &outcome(send(&p, &c, &j, Some(&p.hash()), &schema)),
+                &case["second"],
+                "second",
+            );
+            assert_eq!(writes(&c), case["writes"], "{case}");
+        }
+    }
+
+    /// `test_real_transport_accepted_envelope_then_fresh_get`: the write's
+    /// response is ignored; verification reads a fresh inventory.
+    #[test]
+    fn edit_and_clear_verify_from_a_fresh_inventory() {
+        for case in edit_clear("envelope") {
+            let w = world(module_of(case));
+            w.lock().unwrap().rows = case["rows"].clone();
+            w.lock().unwrap().after = Some(case["after"].clone());
+            let c = client(&w);
+            let p = build_case(&c, case).unwrap();
+            assert_eq!(p.hash(), case["hash"]);
+            same(
+                &outcome(send(
+                    &p,
+                    &c,
+                    &MemJournal::default(),
+                    Some(&p.hash()),
+                    &schema,
+                )),
+                case,
+                "envelope",
+            );
+            let methods: Vec<String> = c
+                .calls
+                .lock()
+                .unwrap()
+                .iter()
+                .map(|c| c.method.clone())
+                .collect();
+            assert_eq!(json!(methods), case["methods"]);
+        }
+    }
+
+    /// `test_delete_response_never_substitutes_for_readback`: a clear is
+    /// verified only by a removed row or a known-empty placeholder.
+    #[test]
+    fn clear_readback_matrix() {
+        for case in edit_clear("delete_readback") {
+            let w = populated("changes", "acme_plan");
+            w.lock().unwrap().after = Some(case["after"].clone());
+            let c = client(&w);
+            let p =
+                build_plan_for(&c, "changes", "123", "Rollout Plan", None, true, &schema).unwrap();
+            assert_eq!(p.hash(), case["hash"]);
+            same(
+                &outcome(send(
+                    &p,
+                    &c,
+                    &MemJournal::default(),
+                    Some(&p.hash()),
+                    &schema,
+                )),
+                case,
+                &format!("{}", case["after"]),
+            );
+        }
+    }
+
+    /// `test_clear_empty_or_unknown_stored_state_is_not_a_delete`,
+    /// `test_empty_stored_row_does_not_guess_create`,
+    /// `test_conflicting_nonempty_aliases_fail_closed` and the library side
+    /// of `test_cli_missing_or_conflicting_operation_refused`.
+    #[test]
+    fn edit_and_clear_refusals() {
+        for case in edit_clear("clear_refused")
+            .iter()
+            .chain(edit_clear("aliases"))
+            .chain(edit_clear("inputs"))
+        {
+            let w = world("changes");
+            w.lock().unwrap().rows = case.get("rows").cloned().unwrap_or_else(|| {
+                json!([{"id": 987, "name": "acme_plan", "description": "<div>Acme original</div>",
+                        "description_text": "Acme original", "attachments": []}])
+            });
+            let c = client(&w);
+            let clear = case["clear"] == true;
+            let text = match (case.get("description"), clear) {
+                (Some(d), _) => d.as_str(),
+                (None, true) => None,
+                (None, false) => Some("Acme new"),
+            };
+            let got = build_plan_for(&c, "changes", "123", "Rollout Plan", text, clear, &schema);
+            assert_eq!(
+                got.err().map(|e| e.to_string()),
+                case["error"].as_str().map(str::to_string),
+                "{case}"
+            );
+            assert!(c.writes().is_empty());
+        }
     }
 }

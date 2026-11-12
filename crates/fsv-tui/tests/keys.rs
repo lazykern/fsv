@@ -1706,7 +1706,10 @@ fn a_known_error_on_a_problem_reviews_then_sends_once() {
     }
 }
 
-/// `test_tui_planning_picker_editor_review_and_outcome`, both `cancel` cases.
+/// `test_tui_planning_picker_editor_review_and_outcome`, both `cancel` cases;
+/// the stored text preloads and is reviewed and sent like
+/// `test_tui_native_existing_content_preloads_and_reviews_edit` (the PUT
+/// itself is checked in fsv-app `planning_text_edits_stored_text_with_a_put`).
 #[test]
 fn a_planning_text_picks_a_section_edits_reviews_and_sends_once() {
     for cancel in [true, false] {

@@ -694,6 +694,14 @@ pub fn upload_bytes(c: &dyn Api, name: &str, raw: &[u8], mime: &str) -> Result<i
             py_repr(&result)
         )));
     };
+    eprintln!("{}", upload_receipt(name, raw.len(), &result));
+    py_int(&att_id)
+        .ok_or_else(|| Error::value(format!("invalid literal for int(): {}", py_repr(&att_id))))
+}
+
+/// The line `_upload_bytes` prints after `uploading NAME... `: the server's
+/// echoed name and size checked against what was sent.
+fn upload_receipt(name: &str, n: usize, result: &Value) -> String {
     let srv_size = result
         .get_truthy("content_file_size")
         .or_else(|| result.get("size"))
@@ -704,24 +712,21 @@ pub fn upload_bytes(c: &dyn Api, name: &str, raw: &[u8], mime: &str) -> Result<i
         .or_else(|| result.get("name"))
         .cloned()
         .unwrap_or(Value::Null);
-    let n = raw.len();
     if srv_size == json!(n) && srv_name == json!(name) {
-        eprintln!("ok ({} B)", thousands(n));
+        format!("ok ({} B)", thousands(n))
     } else if srv_name != json!(name) {
-        eprintln!(
+        format!(
             "ok ({} B, server name \"{}\" differs)",
             thousands(n),
             py_str(&srv_name)
-        );
+        )
     } else {
-        eprintln!(
+        format!(
             "mismatch (local {} B, server {} B)",
             thousands(n),
             py_str(&srv_size)
-        );
+        )
     }
-    py_int(&att_id)
-        .ok_or_else(|| Error::value(format!("invalid literal for int(): {}", py_repr(&att_id))))
 }
 
 fn guess_mime(path: &str) -> Option<String> {
@@ -1772,6 +1777,10 @@ pub fn update_task(
     )?;
     Ok(unwrap_key(data, "task"))
 }
+
+#[cfg(test)]
+#[path = "create_failure_tests.rs"]
+mod failure_tests;
 
 #[cfg(test)]
 mod tests {

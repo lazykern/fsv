@@ -130,6 +130,15 @@ class Tenant:
             if req.method == "PUT":
                 self.problem.update(body)
             return httpx.Response(200, json={"problem": self.problem})
+        if "/planning-fields/" in p:
+            rec, key = p.split("/planning-fields/")
+            rows = self.planning.get(rec, [])
+            for row in rows:
+                if row["name"] == key and req.method == "PUT":
+                    row["description"] = body["description"]
+            if req.method == "DELETE":
+                self.planning[rec] = [r for r in rows if r["name"] != key]
+            return httpx.Response(200, json={"planning_field": {"id": 1}})
         if p.endswith("/planning-fields"):
             rec = p.removesuffix("/planning-fields")
             if rec in self.planning:
@@ -321,6 +330,13 @@ for module, target, section, description in [("problems", 77, "problem_cause", "
                           planning_text.build_plan(c, m, i, s_, d),
                           lambda plan, c: planning_text.send(plan, c, reviewed_hash=plan.hash)))
     planning[module] = entry
+# `test_tui_native_existing_content_preloads_and_reviews_edit` (e638d85): stored
+# text is edited with a PUT on the section path.
+PLANNING["changes/5"][0]["description"] = "<p>v1</p>"
+planning["changes_edit"] = reviewed("changes_edit", lambda c: planning_text.build_plan(c, "changes", 5, "rollout_plan",
+                                                                                     "<p>v2</p>"),
+                                    lambda plan, c: planning_text.send(plan, c, reviewed_hash=plan.hash))
+PLANNING["changes/5"][0]["description"] = ""
 try:
     planning_text.definitions(Tenant().client(), "tickets")
 except Exception as e:  # noqa: BLE001

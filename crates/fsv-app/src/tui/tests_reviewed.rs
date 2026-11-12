@@ -25,15 +25,20 @@ fn backend(t: &Tenant) -> LiveBackend {
 /// that the reply/note POSTs add; problem 77; planning rows of problem 77
 /// and change 5; one asset search page.
 fn ticket_tenant() -> Tenant {
+    ticket_tenant_with(json!({
+        "problems/77": [{"name": "problem_cause", "label": "Root Cause", "description": "", "attachments": []}],
+        "changes/5": [{"name": "rollout_plan", "label": "Rollout Plan", "description": "", "attachments": []}],
+    }))
+}
+
+/// [`ticket_tenant`] with other planning rows (`"record path": [rows]`).
+fn ticket_tenant_with(planning: Value) -> Tenant {
     let row = Arc::new(Mutex::new(PY["row"].clone()));
     let convs = Arc::new(Mutex::new(Vec::<Value>::new()));
     let problem = Arc::new(Mutex::new(
         json!({"id": 77, "subject": "Disk", "known_error": false}),
     ));
-    let planning = Arc::new(Mutex::new(json!({
-        "problems/77": [{"name": "problem_cause", "label": "Root Cause", "description": "", "attachments": []}],
-        "changes/5": [{"name": "rollout_plan", "label": "Rollout Plan", "description": "", "attachments": []}],
-    })));
+    let planning = Arc::new(Mutex::new(planning));
     tenant(move |c: &Call| {
         let p = c.path.strip_prefix("/api/_/").unwrap_or(&c.path);
         let body = c.json();
@@ -90,6 +95,20 @@ fn ticket_tenant() -> Tenant {
                     pr[k] = v.clone();
                 }
                 ok(json!({"problem": *pr}))
+            }
+            (m, p) if p.contains("/planning-fields/") => {
+                let (rec, key) = p.split_once("/planning-fields/")?;
+                let mut all = planning.lock().unwrap();
+                let rows = all.get_mut(rec)?.as_array_mut()?;
+                if m == "PUT" {
+                    for r in rows.iter_mut().filter(|r| r["name"] == json!(key)) {
+                        r["description"] = body.as_ref()?["description"].clone();
+                    }
+                }
+                if m == "DELETE" {
+                    rows.retain(|r| r["name"] != json!(key));
+                }
+                ok(json!({"planning_field": {"id": 1}}))
             }
             (m, p) if p.ends_with("/planning-fields") => {
                 let rec = p.trim_end_matches("/planning-fields");
@@ -458,6 +477,28 @@ fn known_error_marks_once_and_reads_back() {
 
 fn planning_backend(t: &Tenant) -> LiveBackend {
     backend(t).with_change_schema(|_| Ok(json!({"fields": PY["change_fields"]})))
+}
+
+/// `test_tui_native_existing_content_preloads_and_reviews_edit`: stored
+/// section text is reviewed as an `edit` and sent once as a PUT.
+#[test]
+fn planning_text_edits_stored_text_with_a_put() {
+    let t = ticket_tenant_with(json!({
+        "changes/5": [{"name": "rollout_plan", "label": "Rollout Plan", "description": "<p>v1</p>", "attachments": []}],
+    }));
+    let b = planning_backend(&t);
+    let plan = b
+        .planning_text_plan("changes", &json!(5), "rollout_plan", "<p>v2</p>")
+        .unwrap();
+    assert_eq!(plan.review["operation"], "edit");
+    assert_eq!(plan.review["before"], "<p>v1</p>");
+    write_case(
+        "changes_edit",
+        &PY["planning"]["changes_edit"],
+        &t,
+        plan,
+        |p| b.send_planning_text(p),
+    );
 }
 
 #[test]
