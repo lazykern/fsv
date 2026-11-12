@@ -4351,6 +4351,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             planned_end: Optional[str] = typer.Option(None, "--planned-end", help="tickets and problems: ISO date/time with explicit UTC offset"),
             planned_effort: Optional[str] = typer.Option(None, "--planned-effort", help="problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field"),
             reviewed: bool = typer.Option(False, "--reviewed", help="tickets only: evaluate --set and core flags as a hash-bound property plan"),
+            ack: bool = typer.Option(False, "--ack", help="tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)"),
             expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full reviewed hash for ticket property update"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print resolved payload without updating"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm status changes, reassignment and other notifying writes"),
@@ -4383,7 +4384,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                             answers[name] = value
                     c = _client()
                     plan = build_plan(c, id_, tags=list(tag) if tag else None,
-                                      planned_start=planned_start, planned_end=planned_end, answers=answers)
+                                      planned_start=planned_start, planned_end=planned_end, answers=answers, ack=ack)
                     if dry_run:
                         typer.echo(json.dumps({"status": "dry_run", **plan.review()}, ensure_ascii=False, indent=2))
                         return
@@ -4406,6 +4407,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 return
             if expect_plan:
                 _err("--expect-plan requires --reviewed, --tag, --planned-start or --planned-end")
+            if ack:
+                _err("--ack requires tickets --reviewed")
             update_resource(res, id_, status, priority, agent_id, group_id, json_out, dry_run, yes, no_input, set_)
 
         _threads_key = "conversations" if not res.has_notes else "notes"

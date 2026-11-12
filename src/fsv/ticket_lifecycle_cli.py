@@ -11,7 +11,7 @@ from fsv.reviewed_write import ReviewedWriteError
 
 
 def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
-    def run(target, status, note, sets, dry_run, yes, expect_plan):
+    def run(target, status, note, sets, dry_run, yes, expect_plan, ack=False):
         try:
             answers = {}
             for expression in sets:
@@ -20,7 +20,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                     raise ValueError("--set requires unique FIELD=VALUE answers")
                 answers[key] = value
             client = client_factory()
-            plan = flow.build_plan(client, target, status, note=note, answers=answers)
+            plan = flow.build_plan(client, target, status, note=note, answers=answers, ack=ack)
             if dry_run:
                 typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
                 return
@@ -37,23 +37,26 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                 sets: list[str] = typer.Option([], "--set", help="custom FIELD=VALUE; repeatable"),
                 dry_run: bool = typer.Option(False, "--dry-run"),
                 yes: bool = typer.Option(False, "--yes"),
-                expect_plan: Optional[str] = typer.Option(None, "--expect-plan")) -> None:
-        run(id_, "Resolved", note, sets, dry_run, yes, expect_plan)
+                expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+                ack: bool = typer.Option(False, "--ack", help="acknowledge blocking rule messages (bound to the review hash)")) -> None:
+        run(id_, "Resolved", note, sets, dry_run, yes, expect_plan, ack)
 
     @app.command("close", help="Close a ticket with a persisted resolution note and required fields.")
     def close(id_: str = typer.Argument(..., metavar="ID"),
               sets: list[str] = typer.Option([], "--set"),
               dry_run: bool = typer.Option(False, "--dry-run"),
               yes: bool = typer.Option(False, "--yes"),
-              expect_plan: Optional[str] = typer.Option(None, "--expect-plan")) -> None:
-        run(id_, "Closed", None, sets, dry_run, yes, expect_plan)
+              expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+              ack: bool = typer.Option(False, "--ack", help="acknowledge blocking rule messages (bound to the review hash)")) -> None:
+        run(id_, "Closed", None, sets, dry_run, yes, expect_plan, ack)
 
     @app.command("reopen", help="Set the runtime Open status; preserve the resolution note.")
     def reopen(id_: str = typer.Argument(..., metavar="ID"),
                dry_run: bool = typer.Option(False, "--dry-run"),
                yes: bool = typer.Option(False, "--yes"),
-               expect_plan: Optional[str] = typer.Option(None, "--expect-plan")) -> None:
-        run(id_, "Open", None, [], dry_run, yes, expect_plan)
+               expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+               ack: bool = typer.Option(False, "--ack", help="acknowledge blocking rule messages (bound to the review hash)")) -> None:
+        run(id_, "Open", None, [], dry_run, yes, expect_plan, ack)
 
     @app.command("status", help="Reviewed runtime status transition with conditional custom answers.")
     def status(id_: str = typer.Argument(..., metavar="ID"),
@@ -61,5 +64,6 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                sets: list[str] = typer.Option([], "--set"),
                dry_run: bool = typer.Option(False, "--dry-run"),
                yes: bool = typer.Option(False, "--yes"),
-               expect_plan: Optional[str] = typer.Option(None, "--expect-plan")) -> None:
-        run(id_, status_, None, sets, dry_run, yes, expect_plan)
+               expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
+               ack: bool = typer.Option(False, "--ack", help="acknowledge blocking rule messages (bound to the review hash)")) -> None:
+        run(id_, status_, None, sets, dry_run, yes, expect_plan, ack)

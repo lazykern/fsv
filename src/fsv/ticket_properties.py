@@ -41,6 +41,7 @@ class PropertyPlan:
     record_hash: str
     answers_json: str = "{}"
     metadata_hash: str = ""
+    acknowledged_json: str = "[]"
 
     @property
     def payload(self) -> dict[str, Any]:
@@ -56,18 +57,28 @@ class PropertyPlan:
                   "payload": self.payload, "before": stable_snapshot(self.before), "record_hash": self.record_hash}
         if self.metadata_hash:
             intent["metadata_hash"] = self.metadata_hash
+        if self.acknowledged:
+            # Bound only when used, so unacknowledged review hashes are unchanged.
+            intent["acknowledged"] = self.acknowledged
         return journal.plan_hash(intent) or ""
+
+    @property
+    def acknowledged(self) -> list[str]:
+        return list(json.loads(self.acknowledged_json))
 
     def review(self) -> dict[str, Any]:
         after = {k: v for k, v in self.payload.items() if k != "br_validation_excludes"}
-        return {"action": _ACTION, "method": "PUT", "path": f"/api/_/tickets/{self.ticket_id}",
-                "before": self.before, "after": after, "payload": self.payload,
-                "plan_hash": self.hash, "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."}
+        out = {"action": _ACTION, "method": "PUT", "path": f"/api/_/tickets/{self.ticket_id}",
+               "before": self.before, "after": after, "payload": self.payload,
+               "plan_hash": self.hash, "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."}
+        if self.acknowledged:
+            out["acknowledged_rule_messages"] = self.acknowledged
+        return out
 
 
 def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
                planned_start: str | None = None, planned_end: str | None = None,
-               answers: dict[str, Any] | None = None) -> PropertyPlan:
+               answers: dict[str, Any] | None = None, ack: bool = False) -> PropertyPlan:
     cid = parse_id(str(ticket_id), TICKETS)
     if cid <= 0:
         raise ValueError("ticket ID must be positive")
@@ -128,7 +139,9 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
             if is_status(field):
                 choice = field.choice(value)
                 if choice is None or choice.label.casefold() in {"resolved", "closed"}:
-                    raise PropertyError("combined resolution/closure requirements are not proven; use the web form")
+                    raise PropertyError("update does not resolve or close tickets (combined resolution/closure requirements are"
+                                        " not proven here); use `fsv tickets resolve ID --note TEXT` or `fsv tickets close ID`"
+                                        " (both check runtime closure requirements and accept --set/--ack), or the web form")
             if field.is_custom:
                 body.setdefault("custom_fields", {})[field.api_name] = encoded
             else:
@@ -147,9 +160,14 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
         gate = state.rule_gate()
         if gate.blockers:
             raise PropertyError("ticket business rules block this write: " + "; ".join(gate.blockers))
+        if ack:
+            state.acknowledge()
+        acknowledged = sorted(m.text for m in state.evaluated.blocking_messages if m.key in state.acknowledged)
         problems = state.errors()
         if problems:
-            raise PropertyError("ticket form validation failed: " + "; ".join(problems))
+            hint = ("; pass --ack to acknowledge the blocking rule message(s) after reading them"
+                    if state.unacknowledged() else "")
+            raise PropertyError("ticket form validation failed: " + "; ".join(problems) + hint)
         body["br_validation_excludes"] = build_br_validation_excludes(state.evaluated, "ticket")
     except PropertyError:
         raise
@@ -158,7 +176,7 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
     return PropertyPlan(cid, config.DOMAIN, json.dumps(body, sort_keys=True, ensure_ascii=False),
                         json.dumps(before, sort_keys=True, ensure_ascii=False), journal.snapshot_hash(row) or "",
                         json.dumps(answers or {}, sort_keys=True, ensure_ascii=False),
-                        meta.fingerprint.hash if answers else "")
+                        meta.fingerprint.hash if answers else "", json.dumps(acknowledged, ensure_ascii=False))
 
 
 def send(plan: PropertyPlan, c: Any, *, reviewed_hash: str | None) -> dict[str, Any]:
@@ -172,7 +190,7 @@ def send(plan: PropertyPlan, c: Any, *, reviewed_hash: str | None) -> dict[str, 
     payload = plan.payload
     fresh = build_plan(c, plan.ticket_id, tags=payload.get("tags"),
                        planned_start=payload.get("planned_start_date"), planned_end=payload.get("planned_end_date"),
-                       answers=json.loads(plan.answers_json))
+                       answers=json.loads(plan.answers_json), ack=bool(plan.acknowledged))
     if fresh.hash != plan.hash:
         raise PropertyError("ticket or form changed since review; review again")
     try:

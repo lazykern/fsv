@@ -265,3 +265,47 @@ def test_digit_string_status_ids_send_integer_wire(monkeypatch):
     assert p.payload["status"] == 47 and type(p.payload["status"]) is int
     assert flow.send(p, c, reviewed_hash=p.hash)["verified"]
     assert c.writes[-1]["status"] == 47
+
+
+def _blocking_close_rule(m, status_id="89"):
+    # Shape of a real tenant is_validation rule: a message shown when the
+    # status becomes Closed, which the web form blocks on until dealt with.
+    cond = {"all": [{"name": "status", "operator": "is", "value": status_id, "evaluate_on": "ticket"}]}
+    rule = a._rule(9000007120, "Only requester closes", cond,
+                   [a._a("message", ["Only the requester closes Acme tickets"])], validation=True)
+    rule["module_type"] = "ticket"
+    rule["workspace_id"] = 1
+    m.rules["business_rules"] = [rule]
+    return m
+
+
+@pytest.mark.parametrize("args", [["close", "123"], ["status", "123", "Closed"]])
+def test_blocking_rule_message_needs_explicit_ack_bound_to_review(monkeypatch, args):
+    m = _blocking_close_rule(metadata())
+    monkeypatch.setattr(flow, "load_meta", lambda *args, **kwargs: m)
+    c = Client()
+    c.row["resolution_notes"] = {"notes_html": "Existing fix"}
+    monkeypatch.setattr(cli, "_client", lambda: c)
+    runner = CliRunner()
+    command = ["tickets", *args]
+    refused = runner.invoke(cli.app, command + ["--dry-run"])
+    assert refused.exit_code == 2
+    assert "blocked by rule (acknowledge to continue): Only the requester closes" in refused.output
+    assert "--ack" in refused.output
+    reviewed = runner.invoke(cli.app, command + ["--ack", "--dry-run"])
+    assert reviewed.exit_code == 0, reviewed.output
+    review = json.loads(reviewed.output)
+    assert review["acknowledged_rule_messages"] == ["Only the requester closes Acme tickets"]
+    assert "blocks submit" in review["warning"] and not c.writes
+    # The acknowledgement is part of the reviewed identity: a hash reviewed
+    # with --ack cannot be sent without it.
+    assert runner.invoke(cli.app, command + ["--yes", "--expect-plan", review["plan_hash"]]).exit_code == 2
+    assert not c.writes
+    sent = runner.invoke(cli.app, command + ["--ack", "--yes", "--expect-plan", review["plan_hash"]])
+    assert sent.exit_code == 0, sent.output
+    assert json.loads(sent.output)["verified"] and len(c.writes) == 1
+
+
+def test_unacknowledged_plans_keep_their_context_identity():
+    plan = flow.build_plan(Client(), 123, "Pending", answers={"reason": "Waiting"})
+    assert set(json.loads(plan.context_hash)) == {"record", "metadata"} and plan.acknowledged == []

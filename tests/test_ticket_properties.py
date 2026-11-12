@@ -144,8 +144,36 @@ def test_reviewed_cli_uses_full_hash_and_refuses_unproven_closure(monkeypatch):
     sent = runner.invoke(cli.app, args + ["--yes", "--expect-plan", digest])
     assert sent.exit_code == 0, sent.output
     assert len(c.writes) == 1
-    with pytest.raises(props.PropertyError, match="closure"):
+    with pytest.raises(props.PropertyError, match="closure") as refused:
         props.build_plan(c, 123, answers={"Status": "Closed"})
+    # The refusal names the commands that can close, not only the web form.
+    assert "fsv tickets close ID" in str(refused.value) and "--ack" in str(refused.value)
+
+
+def test_reviewed_update_blocking_message_needs_ack(monkeypatch):
+    m = rich_metadata()
+    cond = {"all": [{"name": "priority", "operator": "is", "value": "73", "evaluate_on": "ticket"}]}
+    rule = a._rule(9000008101, "High needs lead", cond, [a._a("message", ["High priority needs the Acme lead"])],
+                   validation=True)
+    rule["module_type"], rule["workspace_id"] = "ticket", 1
+    m.rules["business_rules"] = [rule]
+    monkeypatch.setattr(props, "load_meta", lambda *args, **kwargs: m)
+    c = Client()
+    c.row.update(status=81, priority=1, custom_fields={"cost_code": "old"})
+    monkeypatch.setattr(cli, "_client", lambda: c)
+    runner = CliRunner()
+    args = ["tickets", "update", "INC-123", "--reviewed", "--priority", "High"]
+    refused = runner.invoke(cli.app, args + ["--dry-run"])
+    assert refused.exit_code == 2 and "acknowledge to continue" in refused.output and "--ack" in refused.output
+    review = runner.invoke(cli.app, args + ["--ack", "--dry-run"])
+    assert review.exit_code == 0, review.output
+    body = json.loads(review.output)
+    assert body["acknowledged_rule_messages"] == ["High priority needs the Acme lead"]
+    assert runner.invoke(cli.app, args + ["--yes", "--expect-plan", body["plan_hash"]]).exit_code == 2
+    sent = runner.invoke(cli.app, args + ["--ack", "--yes", "--expect-plan", body["plan_hash"]])
+    assert sent.exit_code == 0, sent.output
+    assert len(c.writes) == 1
+    assert runner.invoke(cli.app, ["tickets", "update", "INC-123", "--priority", "High", "--ack", "--dry-run"]).exit_code != 0
 
 
 def test_legacy_property_hash_identity_is_unchanged():

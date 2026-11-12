@@ -19,7 +19,7 @@ from fsv.ticket_properties import _record
 
 def context(client: Any, cid: int, status: str, answers: dict[str, Any] | None = None,
             *, resolution: str | None = None, row: dict[str, Any] | None = None,
-            warnings_out: list[str] | None = None) -> tuple[dict[str, Any], str, str]:
+            warnings_out: list[str] | None = None, ack: bool = False) -> tuple[dict[str, Any], str, str]:
     row = _record(client, cid) if row is None else row
     meta = load_meta(client, "ticket", "edit", fresh=True, module_id=cid)
     if meta.rules.get(RULES_UNAVAILABLE_KEY):
@@ -68,9 +68,16 @@ def context(client: Any, cid: int, status: str, answers: dict[str, Any] | None =
                                              (f.kind == "checkbox" and state.get(f.api_name) is not True))]
     if missing:
         raise ReviewedWriteError("required fields: " + ", ".join(missing) + "; supply --set FIELD=VALUE")
+    if ack:
+        # Same explicit acknowledgement concept as the create flows' --ack:
+        # the reviewer read the blocking (is_validation) rule messages.
+        state.acknowledge()
+    acknowledged = sorted(m.text for m in state.evaluated.blocking_messages if m.key in state.acknowledged)
     errors = state.errors()
     if errors:
-        raise ReviewedWriteError("ticket form validation failed: " + "; ".join(errors))
+        hint = ("; pass --ack to acknowledge the blocking rule message(s) after reading them"
+                if state.unacknowledged() else "")
+        raise ReviewedWriteError("ticket form validation failed: " + "; ".join(errors) + hint)
     for name in seen:
         f = meta.spec.field(name)
         if name not in state.evaluated.visible:
@@ -87,7 +94,10 @@ def context(client: Any, cid: int, status: str, answers: dict[str, Any] | None =
         payload[key] = row[key]
     if custom:
         payload["custom_fields"] = custom
-    return payload, json.dumps({"record": journal.snapshot_hash(row), "metadata": meta.fingerprint.hash}, sort_keys=True), choice.label
+    bound = {"record": journal.snapshot_hash(row), "metadata": meta.fingerprint.hash}
+    if acknowledged:
+        bound["acknowledged"] = acknowledged  # only when used: unacknowledged plan hashes stay stable
+    return payload, json.dumps(bound, sort_keys=True), choice.label
 
 
 @dataclass(frozen=True)
@@ -121,11 +131,20 @@ class LifecyclePlan:
                 "plan_hash": self.hash, "warning": "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people."}
         if self.rule_warnings:
             out["rule_warnings"] = list(self.rule_warnings)
+        acknowledged = self.acknowledged
+        if acknowledged:
+            out["acknowledged_rule_messages"] = acknowledged
+            out["warning"] += (" Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them,"
+                               " and the server or a workflow may still reject or revert the transition.")
         return out
+
+    @property
+    def acknowledged(self) -> list[str]:
+        return list(json.loads(self.context_hash).get("acknowledged") or [])
 
 
 def build_plan(client: Any, target: str | int, status: str, *, note: str | None = None,
-               answers: dict[str, Any] | None = None) -> LifecyclePlan:
+               answers: dict[str, Any] | None = None, ack: bool = False) -> LifecyclePlan:
     cid = parse_id(str(target), TICKETS)
     if cid <= 0:
         raise ValueError("ticket ID must be positive")
@@ -133,7 +152,7 @@ def build_plan(client: Any, target: str | int, status: str, *, note: str | None 
         raise ValueError("--note is supported by resolve only")
     html = note_plan(cid, note).body_html if note is not None else None
     warnings: list[str] = []
-    payload, fingerprint, label = context(client, cid, status, answers, resolution=html, warnings_out=warnings)
+    payload, fingerprint, label = context(client, cid, status, answers, resolution=html, warnings_out=warnings, ack=ack)
     return LifecyclePlan(cid, config.DOMAIN, label, json.dumps(answers or {}, sort_keys=True),
                          json.dumps(payload, sort_keys=True), fingerprint, html, tuple(warnings))
 
@@ -194,8 +213,9 @@ def send(plan: LifecyclePlan, client: Any, *, reviewed_hash: str | None) -> dict
         raise ReviewedWriteError("transition was sent or outcome unknown; inspect ticket and journal before retry")
     answers = json.loads(plan.answers_json)
     before = _record(client, plan.target)
+    ack = bool(plan.acknowledged)
     payload, fingerprint, _ = context(client, plan.target, plan.status, answers, resolution=plan.note_html,
-                                      row=before)
+                                      row=before, ack=ack)
     if fingerprint != plan.context_hash or payload != plan.payload:
         raise ReviewedWriteError("ticket or metadata changed; review again")
     csrf = client._get_csrf()
@@ -223,7 +243,7 @@ def send(plan: LifecyclePlan, client: Any, *, reviewed_hash: str | None) -> dict
             for key in ("status", "group_id", "responder_id", "custom_fields"):
                 if key not in after or after[key] != baseline.get(key):
                     raise ReviewedWriteError("ticket changed during note save; transition not attempted")
-            fresh_payload, fresh_context, _ = context(client, plan.target, plan.status, answers)
+            fresh_payload, fresh_context, _ = context(client, plan.target, plan.status, answers, ack=ack)
             if (fresh_payload != payload or json.loads(fresh_context)["metadata"] !=
                     json.loads(plan.context_hash)["metadata"]):
                 raise ReviewedWriteError("transition requirements changed after note save")
