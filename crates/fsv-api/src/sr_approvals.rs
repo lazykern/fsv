@@ -98,6 +98,14 @@ pub fn recipients(c: &dyn Api, values: &[Value]) -> Result<Vec<i64>> {
     Ok(ids)
 }
 
+/// Raw status id. Names are localisable labels and are never compared.
+fn status_id(row: &Value) -> Option<i64> {
+    row.get("status")
+        .and_then(Value::as_object)
+        .and_then(|m| m.get("id"))
+        .and_then(Value::as_i64)
+}
+
 fn dumps(v: &Value) -> String {
     Dumps::default().sort_keys(true).dump(v)
 }
@@ -201,12 +209,7 @@ pub fn build_plan(
         let requested = if operation == "cancel" {
             row.get("approval_status").and_then(Value::as_i64) == Some(0)
         } else {
-            row.get("status")
-                .and_then(Value::as_object)
-                .is_some_and(|status| {
-                    status.get("name").and_then(Value::as_str) == Some("requested")
-                        && status.get("id").and_then(Value::as_i64) == Some(0)
-                })
+            status_id(row) == Some(0)
         };
         if !requested {
             return Err(crate::reviewed_write::refused(
@@ -326,9 +329,7 @@ pub fn send(
                 matched = group.get("approval_type") == requested.get("approval_type")
                     && rows.len() == want.len()
                     && members == want
-                    && rows.iter().all(|row| {
-                        row.get("status") == Some(&json!({"id": 0, "name": "requested"}))
-                    });
+                    && rows.iter().all(|row| status_id(row) == Some(0));
             }
             return Ok(obj(json!({"verified": matched, "readback": fresh})));
         }
@@ -370,9 +371,7 @@ pub fn send(
             exact.get("approval_status").and_then(Value::as_i64) == Some(3)
                 && !new_rows.is_empty()
                 && id_set(&new_rows)? == id_set(&old_rows)?
-                && new_rows
-                    .iter()
-                    .all(|row| row.get("status") == Some(&json!({"id": 3, "name": "cancelled"})))
+                && new_rows.iter().all(|row| status_id(row) == Some(3))
         } else if operation == "remind" {
             let old = before
                 .iter()
@@ -389,20 +388,16 @@ pub fn send(
                 && now.is_some()
                 && previous.is_none_or(|prev| now.is_some_and(|n| n > prev))
         } else {
-            let status_id = plan.write.payload()["approval_status"].clone();
-            let name = if operation == "approve" {
-                "approved"
-            } else {
-                "rejected"
-            };
+            let want = plan.write.payload()["approval_status"].as_i64();
             let remarks = exact
                 .get("remark")
                 .and_then(Value::as_array)
                 .cloned()
                 .unwrap_or_default();
-            exact.get("status") == Some(&json!({"id": status_id, "name": name}))
+            status_id(&exact) == want
                 && remarks.iter().any(|row| {
-                    row.get("status") == Some(&status_id) && row.get("data") == inputs.get("remark")
+                    row.get("status").and_then(Value::as_i64) == want
+                        && row.get("data") == inputs.get("remark")
                 })
         };
         Ok(obj(json!({"verified": matched, "readback": exact})))

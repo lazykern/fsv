@@ -291,7 +291,7 @@ pub fn load(res: &'static Resource, client: &Arc<Client>, force: bool) -> Result
         client,
         force,
         &config::paths(),
-        &config::cache_domain_key(None),
+        &config::cache_scope_key(None),
     )
 }
 
@@ -398,7 +398,7 @@ pub fn load_forced(res: &Resource, client: &dyn Api) -> Result<Value> {
         res,
         client,
         &config::paths(),
-        &config::cache_domain_key(None),
+        &config::cache_scope_key(None),
     )
 }
 
@@ -725,7 +725,7 @@ mod load_tests {
             cache_path(&p, KEY, "changes"),
             Path::new("/x/cache/schema/acme.freshservice.com--changes.json")
         );
-        let process = cache_path(&config::paths(), &config::cache_domain_key(None), "tickets");
+        let process = cache_path(&config::paths(), &config::cache_scope_key(None), "tickets");
         assert_eq!(process, config::schema_cache_path("tickets", None));
     }
 }

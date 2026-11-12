@@ -457,6 +457,96 @@ pub fn build_plan(
     )
 }
 
+/// Active runtime `notify_before` choices: `(seconds, label)`.
+pub fn reminder_choices(fields: &[Value]) -> Result<Vec<(i64, String)>> {
+    let matches: Vec<&Value> = fields
+        .iter()
+        .filter(|f| {
+            f.get("name") == Some(&json!("notify_before"))
+                && !f.get("deleted").is_some_and(fsv_py::truthy)
+        })
+        .collect();
+    if matches.len() != 1 {
+        return Err(crate::reviewed_write::refused(
+            "runtime reminder metadata unavailable; no task POST attempted",
+        ));
+    }
+    let mut out = Vec::new();
+    for choice in matches[0]
+        .get("choices")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        let Some(c) = choice.as_object() else {
+            continue;
+        };
+        if ["deleted", "deleted_at", "deactivated"]
+            .iter()
+            .any(|k| c.get(*k).is_some_and(fsv_py::truthy))
+        {
+            continue;
+        }
+        let Some(ident) = crate::choice_ids::runtime_choice_id(c.get("id"), 0) else {
+            continue;
+        };
+        let label = c
+            .get("value")
+            .filter(|v| fsv_py::truthy(v))
+            .or_else(|| c.get("label"))
+            .map(fsv_py::py_str)
+            .unwrap_or_else(|| ident.to_string());
+        out.push((ident, label));
+    }
+    if out.is_empty() {
+        return Err(crate::reviewed_write::refused(
+            "runtime reminder metadata has no choices; no task POST attempted",
+        ));
+    }
+    Ok(out)
+}
+
+/// The runtime choice label for `value` (label or seconds). `None` is the
+/// form's first choice.
+pub fn runtime_reminder_label(value: Option<&str>, fields: &[Value]) -> Result<String> {
+    let choices = reminder_choices(fields)?;
+    let Some(value) = value.map(str::trim).filter(|v| !v.is_empty()) else {
+        return Ok(choices[0].1.clone());
+    };
+    let key = casefold(value);
+    let hits: Vec<&str> = choices
+        .iter()
+        .filter(|(id, label)| key == id.to_string() || key == casefold(label))
+        .map(|(_, label)| label.as_str())
+        .collect();
+    if hits.len() != 1 {
+        let names: Vec<&str> = choices.iter().map(|(_, l)| l.as_str()).collect();
+        return Err(Error::value(format!(
+            "notify before must be one of the runtime choices: {}",
+            names.join(", ")
+        )));
+    }
+    Ok(hits[0].to_string())
+}
+
+/// Active runtime task-status labels, in metadata order.
+pub fn status_choices(fields: &[Value]) -> Result<Vec<String>> {
+    Ok(crate::task_status::active_choices(fields)
+        .map_err(|e| Error::value(e.0))?
+        .into_iter()
+        .map(|(_, label)| label)
+        .collect())
+}
+
+/// The first active runtime status. Never a guessed id.
+pub fn default_status(fields: &[Value]) -> Result<String> {
+    status_choices(fields)?.into_iter().next().ok_or_else(|| {
+        crate::reviewed_write::refused(
+            "runtime task-status metadata has no active choice; no task POST attempted",
+        )
+    })
+}
+
 /// [`build_plan`] plus runtime custom values and the field metadata bound
 /// into the hash. `fields == None` leaves `fields_json` empty.
 pub fn build_plan_ex(
@@ -488,13 +578,18 @@ pub fn build_plan_ex(
             "status ID must first be resolved from runtime metadata",
         ));
     };
-    let wanted = casefold(args.notify_before);
-    let Some((reminder, _)) = NOTIFY_BEFORE.iter().find(|(k, _)| casefold(k) == wanted) else {
-        let names: Vec<&str> = NOTIFY_BEFORE.iter().map(|(k, _)| *k).collect();
-        return Err(Error::value(format!(
-            "notify before must be {}",
-            names.join(", ")
-        )));
+    let reminder = if let Some(fields) = fields {
+        runtime_reminder_label(Some(args.notify_before), fields)?
+    } else {
+        let wanted = casefold(args.notify_before);
+        let Some((reminder, _)) = NOTIFY_BEFORE.iter().find(|(k, _)| casefold(k) == wanted) else {
+            let names: Vec<&str> = NOTIFY_BEFORE.iter().map(|(k, _)| *k).collect();
+            return Err(Error::value(format!(
+                "notify before must be {}",
+                names.join(", ")
+            )));
+        };
+        (*reminder).to_string()
     };
     let (start, end) = (date(args.planned_start)?, date(args.planned_end)?);
     if let (Some(s), Some(e)) = (&start, &end)
@@ -511,7 +606,7 @@ pub fn build_plan_ex(
         status_label: label,
         status_id,
         note: note(args.note)?,
-        notify_before: (*reminder).into(),
+        notify_before: reminder,
         planned_start: start,
         planned_end: end,
         planned_effort: effort(args.planned_effort)?,
@@ -1384,20 +1479,18 @@ mod tests {
         .unwrap();
         assert_eq!(bare.hash(), oracle["bare_hash"].as_str().unwrap());
         let empty: Vec<Value> = Vec::new();
-        let empty_plan = build_plan(
-            "23",
-            "Acme",
-            &TaskArgs {
-                status_id: Some(7),
-                fields: Some(&empty),
-                ..Default::default()
-            },
-            tenant,
-        )
-        .unwrap();
         assert_eq!(
-            empty_plan.hash(),
-            oracle["empty_fields_hash"].as_str().unwrap()
+            err(build_plan(
+                "23",
+                "Acme",
+                &TaskArgs {
+                    status_id: Some(7),
+                    fields: Some(&empty),
+                    ..Default::default()
+                },
+                tenant,
+            )),
+            "runtime reminder metadata unavailable; no task POST attempted"
         );
         let api = FakeApi::new().ok("GET change_task_fields", json!({}));
         assert_eq!(

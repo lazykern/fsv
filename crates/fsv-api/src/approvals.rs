@@ -548,9 +548,14 @@ pub fn approval_groups(c: &dyn Api, change_id: &Value, module: &str) -> Result<V
     Err(refused("approval chains inventory page limit exceeded"))
 }
 
-/// `_verify_new`: one fresh requested selected-rule record per recipient, no extras.
-pub fn verify_new(rows: &[Value], plan: &ApprovalPlan) -> Result<()> {
+/// `_verify_new`: one fresh record per recipient, no extras.
+///
+/// Identity mismatches fail closed. Status and rule names are localisable,
+/// so only the raw ids are compared. A mismatch or an unreadable value is a
+/// note (unverified), not a hard failure.
+pub fn verify_new(rows: &[Value], plan: &ApprovalPlan) -> Result<Vec<String>> {
     let mut members = Vec::new();
+    let mut notes = Vec::new();
     for row in rows {
         let aid = id_at(row, "member_id");
         let member = row.get("member").filter(|m| !m.is_null());
@@ -560,22 +565,18 @@ pub fn verify_new(rows: &[Value], plan: &ApprovalPlan) -> Result<()> {
                 "approval member identity unavailable or conflicting",
             ));
         };
-        let everyone = plan.rule == "everyone";
-        for (key, expected_id, expected_name) in [
-            ("status", 0, Some("requested")),
-            ("type", plan.rule_id(), everyone.then_some("everyone")),
-        ] {
-            let v = row.get(key);
-            let ok = v.is_some_and(|v| {
-                v.is_object()
-                    && v.get("id").and_then(as_int) == Some(expected_id)
-                    && expected_name
-                        .is_none_or(|n| v.get("name").and_then(Value::as_str) == Some(n))
-            });
-            if !ok {
-                return Err(refused(
-                    "approval status or rule does not match the request",
-                ));
+        for (key, expected_id) in [("status", 0i64), ("type", plan.rule_id())] {
+            let value = row.get(key);
+            let id = value
+                .and_then(|v| v.as_object())
+                .and_then(|m| m.get("id"))
+                .and_then(as_int);
+            match id {
+                None => notes.push(format!("approval {aid}: {key} unreadable")),
+                Some(n) if n != expected_id => notes.push(format!(
+                    "approval {aid}: {key} id {n} does not match the request ({expected_id})"
+                )),
+                Some(_) => {}
             }
         }
         members.push(aid);
@@ -588,7 +589,7 @@ pub fn verify_new(rows: &[Value], plan: &ApprovalPlan) -> Result<()> {
             "new approval records do not exactly match the recipients",
         ));
     }
-    Ok(())
+    Ok(notes)
 }
 
 fn row_ids(rows: &[Value]) -> BTreeSet<i64> {
@@ -689,7 +690,7 @@ pub fn send(
         }
         return Err(refused(UNKNOWN));
     }
-    let verify = || -> Result<Vec<Value>> {
+    let verify = || -> Result<(Vec<Value>, Vec<String>)> {
         let after_rows = inventory(c, plan.change_id)?;
         if !before_ids.is_subset(&row_ids(&after_rows)) {
             return Err(refused(UNKNOWN));
@@ -698,15 +699,22 @@ pub fn send(
             .into_iter()
             .filter(|r| !id_at(r, "id").is_some_and(|i| before_ids.contains(&i)))
             .collect();
-        verify_new(&exact, plan)?;
-        Ok(exact)
+        let notes = verify_new(&exact, plan)?;
+        Ok((exact, notes))
     };
-    let exact = verify().map_err(|_| refused(UNKNOWN))?;
+    let (exact, notes) = verify().map_err(|_| refused(UNKNOWN))?;
     let mut result = obj(json!({
         "status": "submitted", "change_id": plan.change_id,
         "approval_ids": exact.iter().filter_map(|r| id_at(r, "id")).collect::<Vec<_>>(),
-        "group_name_verified": false, "verified": true, "readback": exact, "plan_hash": hash,
+        "group_name_verified": false, "verified": notes.is_empty(), "readback": exact, "plan_hash": hash,
     }));
+    if !notes.is_empty() {
+        result.insert("unverified".into(), json!(notes));
+        result.insert(
+            "warning".into(),
+            json!("Approval records exist for exactly these recipients, but their status/rule did not read back as requested; do not resend."),
+        );
+    }
     if let Some(before_groups) = before_groups
         && let Ok(after_groups) = get_change_approval_groups(c, &json!(plan.change_id))
     {
@@ -1675,8 +1683,23 @@ mod tests {
             "new approval records do not exactly match the recipients"
         );
         assert_eq!(
-            err(verify_new(&[row(3, 7), row(4, 8)], &p)),
-            "approval status or rule does not match the request"
+            verify_new(&[row(3, 7), row(4, 8)], &p).unwrap(),
+            [
+                "approval 7: type id 1 does not match the request (2)",
+                "approval 8: type id 1 does not match the request (2)",
+            ]
+        );
+        let local = json!({"id": 2, "name": "Jeder"});
+        assert!(
+            verify_new(
+                &[
+                    with(r(3, 7), "type", local.clone()),
+                    with(r(4, 8), "type", local)
+                ],
+                &p
+            )
+            .unwrap()
+            .is_empty()
         );
         assert_eq!(
             err(verify_new(

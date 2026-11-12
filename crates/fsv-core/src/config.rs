@@ -365,8 +365,33 @@ pub fn cache_domain_key(domain: Option<&str>) -> String {
     normalize_domain(raw, false).unwrap_or_else(|_| raw.to_lowercase().replace('/', "-"))
 }
 
+/// Workspace half of schema and form-field cache keys. The
+/// `forms.workspace_id` override, else `wsauto`.
+pub fn cache_workspace_key() -> String {
+    let config = load_config();
+    let raw = config
+        .get("forms")
+        .and_then(|f| f.get("workspace_id"))
+        .filter(|v| !v.is_null() && v.as_str() != Some(""));
+    let text = match raw {
+        Some(serde_json::Value::String(s)) => s.trim().to_string(),
+        Some(other) => other.to_string(),
+        None => String::new(),
+    };
+    if !text.is_empty() && text.is_ascii() && text.chars().all(|c| c.is_ascii_alphanumeric()) {
+        format!("ws{text}")
+    } else {
+        "wsauto".into()
+    }
+}
+
+/// `<domain>--ws<id>`. Older `<domain>--<name>` files are never read.
+pub fn cache_scope_key(domain: Option<&str>) -> String {
+    format!("{}--{}", cache_domain_key(domain), cache_workspace_key())
+}
+
 pub fn schema_cache_path(name: &str, domain: Option<&str>) -> PathBuf {
-    schema_dir().join(format!("{}--{name}.json", cache_domain_key(domain)))
+    schema_dir().join(format!("{}--{name}.json", cache_scope_key(domain)))
 }
 
 pub fn schema_cache_candidates(name: &str, domain: Option<&str>) -> Vec<PathBuf> {
@@ -652,14 +677,14 @@ mod tests {
         assert_eq!(cache_domain_key(None), "acme.freshservice.com");
         assert_eq!(
             rel(&schema_cache_path("changes", None), &env),
-            "<D>/cache/schema/acme.freshservice.com--changes.json"
+            "<D>/cache/schema/acme.freshservice.com--wsauto--changes.json"
         );
         assert_eq!(
             schema_cache_candidates("changes", Some("globex.freshservice.com"))
                 .iter()
                 .map(|p| rel(p, &env))
                 .collect::<Vec<_>>(),
-            ["<D>/cache/schema/globex.freshservice.com--changes.json"]
+            ["<D>/cache/schema/globex.freshservice.com--wsauto--changes.json"]
         );
         assert_eq!(
             rel(&filters_cache_path("tickets", None), &env),

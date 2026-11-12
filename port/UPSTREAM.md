@@ -3161,4 +3161,45 @@ refused". Approve and reject probe before the PUT
 - Port `tests/test_approval_model.py` (legacy 400/404, unknown 403,
   SR writes, SR list fallback, groups vs flat list).
 
-Still not triaged: commits after `5711a5a`.
+## Ledger: `a6262dc` (library side)
+
+Triaged against `git show a6262dc`
+(`a6262dc1888b7975dfd2aff26c5e4edb224fb233`). Three library changes.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `a6262dc`.
+The partial is the task command and the TUI, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `a6262dc` | 11-13 03:25 | Take change-task reminders/statuses from runtime metadata; scope caches by workspace | partial | fsv-core `config`, fsv-api `schema`, `formmeta`, `tasks`, `approvals`, `sr_approvals`, `views` |
+
+Schema and form-field cache files are `<domain>--ws<id>--<name>.json`.
+No `forms.workspace_id` override uses `wsauto`. Older
+`<domain>--<name>` files are not read. Filter and group caches stay
+on the domain key.
+
+`build_plan_ex` with field metadata resolves the reminder through
+`runtime_reminder_label`. An empty field list refuses. Without
+metadata the static Never/15 Minutes/... list remains.
+`default_status` and `status_choices` are the runtime status list.
+
+Approval-request readback compares status and rule ids only. A
+mismatch is `verified: false` with `unverified` notes and the
+do-not-resend warning. Identity and recipient mismatches still fail
+closed. SR approve, reject, cancel and request readback use the raw
+status id the same way.
+
+A 5xx from business rules is an unavailable set, so edit-rule notes
+say "not available on this account (500)" rather than the old
+raised-error wording.
+
+### CLI handoff (do not edit fsv-cli here)
+
+- `changes tasks-add`: do not preflight with `status_id: 1`. Resolve
+  status with `default_status` when `--status` is omitted, and the
+  reminder with `runtime_reminder_label` (None is the first choice).
+- `fsv-app` task preflight still passes `status_id: Some(1)`.
+  `fsv-tui` still offers the static `Never` list. Both should use the
+  runtime helpers above.
+
+Still not triaged: commits after `a6262dc`.

@@ -107,7 +107,7 @@ pub trait MetaStore {
     fn configured_workspace(&self) -> Json;
 }
 
-/// `_cache_path`: `<cache>/forms/<domain key>--<name>.json`.
+/// `_cache_path`: `<cache>/forms/<domain>--ws<id>--<name>.json`.
 pub fn cache_path(cache_dir: &Path, domain_key: &str, name: &str) -> PathBuf {
     cache_dir
         .join("forms")
@@ -151,7 +151,7 @@ impl DiskStore {
     pub fn current() -> DiskStore {
         DiskStore {
             cache_dir: fsv_core::config::cache_dir(),
-            domain_key: fsv_core::config::cache_domain_key(None),
+            domain_key: fsv_core::config::cache_scope_key(None),
             config: fsv_core::config::load_config(),
         }
     }
