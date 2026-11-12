@@ -154,3 +154,53 @@ def test_recipient_readback_requires_exact_ticket_and_fields(monkeypatch, tmp_pa
     result = catalog.execute(p, c)
     assert result["verification"]["verified"] is True
     assert all(v == "matched" for v in result["verification"]["fields"].values())
+
+
+@pytest.mark.parametrize("mode", ["ids", "nested", "wrong-requester", "wrong-target", "conflict", "missing", "wrong-ticket"])
+def test_native_recipient_projections(monkeypatch, tmp_path, mode):
+    from fsv import journal
+    monkeypatch.setattr(journal, "journal_path", lambda: tmp_path / "j")
+    class Place:
+        writes = 0
+        def int_post(self, path, body):
+            self.writes += 1
+            return {"ticket": {"id": 123}}
+        def int_get(self, path):
+            assert path == "tickets/123"
+            row = {"id": 123, "requester_id": 11, "requested_for_id": 11,
+                   "requested_for": {"id": 11, "name": "Actor", "email": ACTOR.email}}
+            if mode == "nested":
+                row.pop("requester_id")
+                row["requester"] = {"id": "11", "email": ACTOR.email.upper()}
+            if mode == "wrong-requester":
+                row["requester_id"] = 99
+            if mode == "wrong-target":
+                row["requested_for_id"] = 99
+            if mode == "conflict":
+                row["email"] = "other@example.com"
+            if mode == "missing":
+                row = {"id": 123}
+            if mode == "wrong-ticket":
+                row["id"] = 124
+            return {"ticket": row}
+    c = Place()
+    plan = catalog.build_sr_plan(meta(), Draft(answers={"Answer": "ok"}), resolver=None, requester=ACTOR,
+                                 requested_for=ACTOR)
+    assert plan.identity["requester_id"] == 11
+    result = catalog.execute(plan, c)
+    assert result["verification"]["verified"] is (mode in ("ids", "nested"))
+    assert c.writes == 1
+
+
+def test_old_recipient_hash_unknown_outcome_remains_blocked(monkeypatch, tmp_path):
+    from fsv import journal
+    monkeypatch.setattr(journal, "journal_path", lambda: tmp_path / "j")
+    plan = catalog.build_sr_plan(meta(), Draft(answers={"Answer": "ok"}), resolver=None, requester=ACTOR,
+                                 requested_for=ACTOR)
+    previous = {k: v for k, v in plan.identity.items() if k != "requester_id"}
+    old_hash = catalog.plan_hash({"request": plan.payload, "target": plan.target,
+                                  "recipient_identity": previous}, plan.files)
+    assert old_hash != plan.hash
+    journal.record_plan("started", old_hash, action="create", target=plan.target)
+    with pytest.raises(flow.FlowExit, match="outcome is unknown"):
+        catalog.duplicate_check(plan, allow_duplicate=True)

@@ -591,6 +591,9 @@ def build_sr_plan(meta: ItemMeta, draft: Draft, *, resolver: Any, requester: Loo
             problems.append("CC identity count differs from addresses")
         identity["cc_ids"] = list(cc_ids)
     if identity:
+        if requester is not None:
+            from fsv.watchers import positive_id
+            identity["requester_id"] = positive_id(requester.id)
         identity["tenant"] = config.DOMAIN
     plan = SRPlan(meta, state, draft, payload, uploads, review, problems, requester=requester, identity=identity)
     if payload is not None and not problems:
@@ -701,11 +704,8 @@ def execute(plan: SRPlan, client: Any, *, upload_fn: Callable[[Any, str], int] =
             row = raw.get("ticket", raw) if isinstance(raw, dict) else None
             if not isinstance(row, dict) or str(row.get("id")) != str(ref["id"]):
                 raise ValueError("identity mismatch")
-            fields = {}
-            for key in ("email", "requested_for", "cc_emails"):
-                if key in body:
-                    fields[key] = ("unavailable" if key not in row else
-                                   "matched" if row[key] == body[key] else "mismatched")
+            from fsv.sr_recipient_readback import recipient_fields
+            fields = recipient_fields(row, body, plan.identity)
             verification = {"verified": bool(fields) and all(v == "matched" for v in fields.values()), "fields": fields}
         except Exception:
             verification["warning"] = "Exact ticket read-back failed; do not resend."
@@ -728,8 +728,18 @@ def freshen(plan: SRPlan, client: Any, rebuild: Callable[[ItemMeta], SRPlan]) ->
 
 
 def duplicate_check(plan: SRPlan, allow_duplicate: bool) -> None:
-    events = [r for r in journal.read() if r.get("kind") == "plan:create" and r.get("plan") == plan.hash]
-    if events and events[-1].get("event") == "started":
+    hashes = {plan.hash}
+    if "requester_id" in plan.identity:
+        # Upgrading recipient projections must not bypass an unresolved write
+        # reviewed before requester IDs were bound into the hash.
+        previous = {k: v for k, v in plan.identity.items() if k != "requester_id"}
+        hashes.add(plan_hash({"request": plan.payload, "target": plan.target,
+                              "recipient_identity": previous}, plan.files))
+    latest = {}
+    for row in journal.read():
+        if row.get("kind") == "plan:create" and row.get("plan") in hashes:
+            latest[row["plan"]] = row
+    if any(row.get("event") == "started" for row in latest.values()):
         raise FlowExit(4, "previous request outcome is unknown; inspect the server and journal before retry")
     check_duplicate(plan, allow_duplicate)  # type: ignore[arg-type]
 
