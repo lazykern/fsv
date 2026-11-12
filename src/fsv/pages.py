@@ -130,25 +130,6 @@ def _indent(text: str, pad: str = "  ") -> list[str]:
     return [pad + _e(ln) if ln else "" for ln in text.splitlines()] or [pad]
 
 
-def _attachment_text(text: str, files: Iterable[str]) -> str:
-    """Hide attachment-only body lines; keep canonical paperclip rows and prose.
-
-    Rich-text links have already become their visible labels in html_to_text.
-    Never mutate the view model: JSON retains the original content and file list.
-    """
-    names = set(files)
-    lines = []
-    for line in text.splitlines():
-        candidate = line.strip()
-        # html_to_text renders list items with this bullet. Only discard a
-        # whole file-label line, never a sentence mentioning that file.
-        if candidate.startswith("• "):
-            candidate = candidate[2:].strip()
-        if candidate not in names:
-            lines.append(line)
-    return "\n".join(lines).strip("\n")
-
-
 def main_lines(d: V.Detail) -> list[str]:
     out: list[str] = []
     if d.requested_items is not None:
@@ -165,9 +146,9 @@ def main_lines(d: V.Detail) -> list[str]:
     elif d.requested_items_missing:
         out += [f"[dim]{_e(d.requested_items_missing.note)}[/]", ""]
     out.append(section("Description"))
-    atts = d.attachments()
-    desc = _attachment_text(d.description(), (a["name"] for a in atts))
+    desc = d.description()
     out += _indent(desc) if desc else ["  [dim]No description[/]"]
+    atts = d.attachments()
     if atts:
         out.append("")
         out.append(section("Attachments"))
@@ -183,9 +164,8 @@ def main_lines(d: V.Detail) -> list[str]:
             if p.empty:
                 out.append("    [dim]empty[/]")
                 continue
-            text = _attachment_text(p.text, p.files)
-            if text:
-                out += _indent(text, "    ")
+            if p.text:
+                out += _indent(p.text, "    ")
             for f in p.files:
                 out.append(f"    📎 {_e(f)}")
     elif d.planning_missing:
@@ -215,11 +195,8 @@ def conversation_lines(cv: Mapping[str, Any], tz: dt.tzinfo | None) -> list[str]
     mark = "[yellow]🔒 private[/]" if j["private"] else "[green]public[/]"
     when = V.fmt_when(j["created_at"], tz, year=False)
     out = [f"  [bold]{_e(j['author'] or 'Someone')}[/] {_e(kind)} · {mark} · {_e(j['relative'])} [dim]({_e(when)})[/]"]
-    body = _attachment_text(j["body"], j["attachments"])
-    if body:
-        out += _indent(body, "    ")
-    elif not j["attachments"]:
-        out.append("    [dim](empty)[/]")
+    body = j["body"]
+    out += _indent(body, "    ") if body else ["    [dim](empty)[/]"]
     for f in j["attachments"]:
         out.append(f"    📎 {_e(f)}")
     out.append("")
