@@ -1,6 +1,6 @@
 {
   "_python": {
-    "commit": "d870fa754623adf838f7381e8b6a5cdf836e1e1c",
+    "commit": "e1734374f1ab283a7077a238cfd4bcaf3561ac0c",
     "dirty": false
   },
   "cases": {
@@ -385,6 +385,194 @@
               ]
             }
           ]
+        }
+      ]
+    },
+    "cab_ok": {
+      "ops": [
+        {
+          "op": "members",
+          "raw": {
+            "approval_agents": [
+              {
+                "id": "81",
+                "selected": false
+              }
+            ]
+          }
+        },
+        {
+          "op": "members",
+          "raw": {
+            "approval_users": [
+              {
+                "id": "81",
+                "selected": false
+              }
+            ]
+          }
+        },
+        {
+          "op": "members",
+          "raw": {
+            "approval_agents": [
+              {
+                "id": 81
+              }
+            ],
+            "approval_users": [
+              {
+                "id": "81"
+              }
+            ]
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "ids": [
+            81
+          ]
+        },
+        {
+          "ids": [
+            81
+          ]
+        },
+        {
+          "ids": [
+            81
+          ]
+        }
+      ]
+    },
+    "cab_bad": {
+      "ops": [
+        {
+          "op": "members",
+          "raw": {
+            "approval_agents": []
+          }
+        },
+        {
+          "op": "members",
+          "raw": {
+            "approval_agents": [
+              {
+                "id": 81
+              },
+              {
+                "id": "81"
+              }
+            ]
+          }
+        },
+        {
+          "op": "members",
+          "raw": {
+            "approval_agents": [
+              {
+                "id": 81,
+                "deactivated": true
+              }
+            ]
+          }
+        },
+        {
+          "op": "members",
+          "raw": {
+            "approval_agents": [
+              {
+                "id": 81
+              }
+            ],
+            "meta": {
+              "count": 2
+            }
+          }
+        },
+        {
+          "op": "members",
+          "raw": {
+            "approval_agents": [
+              {
+                "id": 81
+              }
+            ],
+            "meta": {
+              "partial": true
+            }
+          }
+        },
+        {
+          "op": "members",
+          "raw": {
+            "approval_agents": [
+              {
+                "id": 81
+              }
+            ],
+            "approval_users": [
+              {
+                "id": 82
+              }
+            ]
+          }
+        },
+        {
+          "op": "members",
+          "raw": {
+            "approval_agents": null,
+            "approval_users": [
+              {
+                "id": 81
+              }
+            ]
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "error": {
+            "type": "ReviewedWriteError",
+            "msg": "empty or inactive group/CAB recipients; no request attempted"
+          }
+        },
+        {
+          "error": {
+            "type": "ReviewedWriteError",
+            "msg": "duplicate recipient metadata identities"
+          }
+        },
+        {
+          "error": {
+            "type": "ReviewedWriteError",
+            "msg": "empty or inactive group/CAB recipients; no request attempted"
+          }
+        },
+        {
+          "error": {
+            "type": "ReviewedWriteError",
+            "msg": "recipient metadata count mismatch"
+          }
+        },
+        {
+          "error": {
+            "type": "ReviewedWriteError",
+            "msg": "recipient metadata incomplete"
+          }
+        },
+        {
+          "error": {
+            "type": "ReviewedWriteError",
+            "msg": "conflicting CAB recipient metadata"
+          }
+        },
+        {
+          "error": {
+            "type": "ReviewedWriteError",
+            "msg": "recipient metadata unavailable"
+          }
         }
       ]
     }

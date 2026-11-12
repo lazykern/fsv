@@ -71,6 +71,15 @@ fn inactive(row: &Value) -> bool {
     row.get("deleted").is_some_and(truthy) || row.get("deactivated").is_some_and(truthy)
 }
 
+fn sorted_ids(rows: &[Value]) -> Result<Vec<i64>> {
+    let mut ids = rows
+        .iter()
+        .map(|row| positive_id(row.get("id").unwrap_or(&Value::Null)))
+        .collect::<Result<Vec<_>>>()?;
+    ids.sort_unstable();
+    Ok(ids)
+}
+
 fn finish(rows: Vec<Value>) -> Result<Vec<i64>> {
     let rows = rows_of(&json!({"approval_users": rows}), "approval_users")?;
     if rows.is_empty() || rows.iter().any(inactive) {
@@ -132,7 +141,20 @@ pub fn members(c: &dyn Api, target: i64, kind: &str, ident: i64) -> Result<Vec<i
             &format!("changes/{target}/cab-members"),
             Some(obj(json!({"cab_id": ident}))),
         )?;
-        return finish(rows_of(&raw, "approval_users")?);
+        // Native CAB lookups use approval_agents. Agent groups use approval_users.
+        let key = if raw.get("approval_agents").is_some() {
+            "approval_agents"
+        } else {
+            "approval_users"
+        };
+        let rows = rows_of(&raw, key)?;
+        if key == "approval_agents" && raw.get("approval_users").is_some() {
+            let other = rows_of(&raw, "approval_users")?;
+            if sorted_ids(&rows)? != sorted_ids(&other)? {
+                return Err(refused("conflicting CAB recipient metadata"));
+            }
+        }
+        return finish(rows);
     }
     Err(Error::value("unsupported recipient source"))
 }
@@ -274,8 +296,18 @@ mod tests {
             } else {
                 ids.clone()
             };
+            let groups = call.path.contains("/groups/");
+            let key = if groups {
+                "approval_users"
+            } else {
+                "approval_agents"
+            };
             Ok(json!({
-                "approval_users": chunk.iter().map(|i| json!({"id": i, "selected": false})).collect::<Vec<_>>(),
+                key: chunk.iter().map(|i| if groups {
+                    json!({"id": i, "selected": false})
+                } else {
+                    json!({"id": i.to_string(), "name": "Acme reviewer", "email": "reviewer@example.com", "selected": false})
+                }).collect::<Vec<_>>(),
                 "meta": {"count": ids.len(), "page": 1, "per_page": 30}
             }))
         });
@@ -288,7 +320,7 @@ mod tests {
         let oracle: Value =
             serde_json::from_str(include_str!("testdata/approval_recipients_oracle.json")).unwrap();
         let cases = oracle["cases"].as_object().unwrap();
-        assert_eq!(cases.len(), 4);
+        assert_eq!(cases.len(), 6);
         for (name, case) in cases {
             let state = Arc::new(Mutex::new(World {
                 members: vec![81, 82],
@@ -350,6 +382,11 @@ mod tests {
                         })
                     }
                     "validate" => validate(&c, 23, &context).map(|_| json!({})),
+                    "members" => {
+                        let raw = op["raw"].clone();
+                        let one = FnApi::new(move |_: &Call| Ok(raw.clone()));
+                        members(&one, 23, "cabs", 91).map(|ids| json!({"ids": ids}))
+                    }
                     other => panic!("{ctx} {other}"),
                 };
                 match got {

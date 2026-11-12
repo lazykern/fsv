@@ -1,4 +1,4 @@
-"""Golden approval recipients (Python d870fa7) for fsv-api `approval_recipients`.
+"""Golden approval recipients (Python e173437) for fsv-api `approval_recipients`.
 
     cd /tmp/fsv-py-d870fa7 && FSV_PY_SRC=$PWD FSV_PY_COMMIT=d870fa7... uv run --offline python \
         /Users/phusit.somb/lab/work/fsv-rust/port/golden/gen_fsv_api_approval_recipients.py \
@@ -40,10 +40,12 @@ class Client:
             page = (params or {}).get("page", 1)
             start = max(page - 1, 0) * 30
             chunk = ids[start:start + 30]
-        return {
-            "approval_users": [{"id": i, "selected": False} for i in chunk],
-            "meta": {"count": len(ids), "page": 1, "per_page": 30},
-        }
+        key = "approval_users" if "/groups/" in path else "approval_agents"
+        rows = [{"id": i, "selected": False} for i in chunk] if key == "approval_users" else [
+            {"id": str(i), "name": "Acme reviewer", "email": "reviewer@example.com", "selected": False}
+            for i in chunk
+        ]
+        return {key: rows, "meta": {"count": len(ids), "page": 1, "per_page": 30}}
 
 
 def plan_out(ids, context):
@@ -78,6 +80,10 @@ def run(ops):
             elif kind == "validate":
                 flow.validate(c, 23, context)
                 out = {}
+            elif kind == "members":
+                raw = op["raw"]
+                one = type("C", (), {"int_get": lambda self, path, params=None: raw})()
+                out = {"ids": flow.members(one, 23, "cabs", 91)}
             else:
                 raise AssertionError(kind)
         except Exception as exc:  # noqa: BLE001 — oracle records the Python failure
@@ -104,6 +110,20 @@ CASES = {
     "paged": [
         {"op": "set", "paged": True, "members": list(range(1, 41))},
         {"op": "resolve", "groups": ["71"], "cabs": []},
+    ],
+    "cab_ok": [
+        {"op": "members", "raw": {"approval_agents": [{"id": "81", "selected": False}]}},
+        {"op": "members", "raw": {"approval_users": [{"id": "81", "selected": False}]}},
+        {"op": "members", "raw": {"approval_agents": [{"id": 81}], "approval_users": [{"id": "81"}]}},
+    ],
+    "cab_bad": [
+        {"op": "members", "raw": {"approval_agents": []}},
+        {"op": "members", "raw": {"approval_agents": [{"id": 81}, {"id": "81"}]}},
+        {"op": "members", "raw": {"approval_agents": [{"id": 81, "deactivated": True}]}},
+        {"op": "members", "raw": {"approval_agents": [{"id": 81}], "meta": {"count": 2}}},
+        {"op": "members", "raw": {"approval_agents": [{"id": 81}], "meta": {"partial": True}}},
+        {"op": "members", "raw": {"approval_agents": [{"id": 81}], "approval_users": [{"id": 82}]}},
+        {"op": "members", "raw": {"approval_agents": None, "approval_users": [{"id": 81}]}},
     ],
 }
 

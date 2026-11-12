@@ -2158,4 +2158,19 @@ Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `ad40a51`.
 id list as integers. Removal writes `positive_id` of
 `itam_cmdb_request_id`. Solution create writes integer `folder_id`.
 
-Still not triaged: `e173437`, `b310885`, `11e76ed`, `ffcab5b`, `e7c536b`.
+## Ledger: `e173437` (library side)
+
+Triaged against a `git archive e173437` export
+(`FSV_PY_COMMIT=e1734374f1ab283a7077a238cfd4bcaf3561ac0c`).
+`gen_fsv_api_approval_recipients.py` was regenerated. CAB reads
+prefer `approval_agents`. A second `approval_users` list is
+accepted only when its ids match. The flatten plan hash is
+unchanged.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `e173437`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `e173437` | 11-12 15:54 | Accept native CAB approval_agents recipient envelopes | ported | fsv-api `approval_recipients` |
+
+Still not triaged: `b310885`, `11e76ed`, `ffcab5b`, `e7c536b`.
