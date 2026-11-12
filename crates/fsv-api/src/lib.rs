@@ -27,6 +27,7 @@ pub mod email_addr;
 pub mod filter_proof;
 pub mod formmeta;
 pub mod integrated_assets;
+pub mod legacy_approvals;
 pub mod list_preferences;
 pub mod module_time;
 pub mod notes;
