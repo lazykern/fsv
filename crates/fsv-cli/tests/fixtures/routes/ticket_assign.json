@@ -1,0 +1,478 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "human_display_id": "INC-123",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": 71,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "human_display_id": "INC-123",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": 71,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "human_display_id": "INC-123",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": 71,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "human_display_id": "INC-123",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": 71,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "human_display_id": "INC-123",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124",
+  "json": {
+   "ticket": {
+    "id": 124,
+    "human_display_id": "INC-124",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124",
+  "json": {
+   "ticket": {
+    "id": 124,
+    "human_display_id": "INC-124",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124",
+  "json": {
+   "ticket": {
+    "id": 124,
+    "human_display_id": "INC-124",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124",
+  "json": {
+   "ticket": {
+    "id": 124,
+    "human_display_id": "INC-124",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124",
+  "json": {
+   "ticket": {
+    "id": 124,
+    "human_display_id": "INC-124",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": 71,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125",
+  "json": {
+   "ticket": {
+    "id": 125,
+    "human_display_id": "INC-125",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": null,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125",
+  "json": {
+   "ticket": {
+    "id": 125,
+    "human_display_id": "INC-125",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": null,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125",
+  "json": {
+   "ticket": {
+    "id": 125,
+    "human_display_id": "INC-125",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": null,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125",
+  "json": {
+   "ticket": {
+    "id": 125,
+    "human_display_id": "INC-125",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": null,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125",
+  "json": {
+   "ticket": {
+    "id": 125,
+    "human_display_id": "INC-125",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": 71,
+    "group_id": null,
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/126",
+  "json": {
+   "ticket": {
+    "id": 126,
+    "human_display_id": "INC-126",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/126",
+  "json": {
+   "ticket": {
+    "id": 126,
+    "human_display_id": "INC-126",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/126",
+  "json": {
+   "ticket": {
+    "id": 126,
+    "human_display_id": "INC-126",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/126",
+  "json": {
+   "ticket": {
+    "id": 126,
+    "human_display_id": "INC-126",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/126",
+  "json": {
+   "ticket": {
+    "id": 126,
+    "human_display_id": "INC-126",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "human_display_id": "INC-123",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/124",
+  "json": {
+   "ticket": {
+    "id": 124,
+    "human_display_id": "INC-124",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": 71,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/126",
+  "json": {
+   "ticket": {
+    "id": 126,
+    "human_display_id": "INC-126",
+    "subject": "Acme VPN",
+    "status": 2,
+    "responder_id": null,
+    "group_id": 81,
+    "custom_fields": {}
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/pick_up",
+  "status": 204
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/bootstrap/agents_groups",
+  "json": {
+   "agents": [
+    {
+     "id": 71,
+     "name": "Acme Agent",
+     "email": "agent@example.com",
+     "group_ids": [
+      81
+     ],
+     "deleted": false
+    },
+    {
+     "id": 72,
+     "name": "Globex Agent",
+     "group_ids": [],
+     "deleted": false
+    }
+   ],
+   "groups": [
+    {
+     "id": 81,
+     "name": "Acme Desk",
+     "agent_ids": [
+      71
+     ]
+    },
+    {
+     "id": 82,
+     "name": "Globex Desk",
+     "agent_ids": []
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/v2/agents/me",
+  "json": {
+   "agent": {
+    "id": 71
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_form_fields",
+  "json": {
+   "ticket_fields": [
+    {
+     "id": 9000007100,
+     "name": "group",
+     "label": "Group",
+     "description": "",
+     "field_type": "default_group",
+     "required": false,
+     "required_for_closure": false,
+     "position": 1,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000007101,
+     "name": "agent",
+     "label": "Agent",
+     "description": "",
+     "field_type": "default_agent",
+     "required": false,
+     "required_for_closure": false,
+     "position": 2,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/business_rules",
+  "json": {
+   "business_rules": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

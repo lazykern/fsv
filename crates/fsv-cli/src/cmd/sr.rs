@@ -930,6 +930,30 @@ fn attachment_rows(
         }
     }
     for (it, lab) in items.iter().zip(labels) {
+        for x in it
+            .get("attachments")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+        {
+            let Value::Object(m) = x else { continue };
+            let key = m
+                .get("id")
+                .filter(|v| !v.is_null())
+                .map(|_| py_get(x, "id"));
+            if key
+                .as_ref()
+                .is_some_and(|k| by_id.iter().any(|(b, _)| b == k))
+            {
+                continue;
+            }
+            let mut row = m.clone();
+            row.insert("source".into(), json!("requested item"));
+            out.push(Value::Object(row));
+            if let Some(key) = key {
+                set(&mut by_id, key, out.len() - 1);
+            }
+        }
         for (name, v) in custom_fields(it) {
             if !cat::is_file_value(&v) {
                 continue;
@@ -1565,5 +1589,53 @@ mod tests {
             "required: at least one general file"
         );
         assert_eq!(attachment_rule(&item(true, false)), "optional");
+    }
+
+    /// Values from Python 25bf9d7 `cli_sr._attachment_rows`
+    /// (`test_requested_item_general_attachments_and_deduplication`, plus
+    /// duplicate, id-less and non-dict general attachments).
+    #[test]
+    fn attachment_rows_include_requested_item_attachments() {
+        let general = json!({"id": 9901, "name": "overview.txt", "size": 11,
+                             "attachment_url": "https://example.com/file"});
+        let field = json!({"id": 9902, "name": "field.txt", "size": 12});
+        let labels = |pairs: &[(&str, &str)]| {
+            vec![
+                pairs
+                    .iter()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect::<indexmap::IndexMap<_, _>>(),
+            ]
+        };
+        let rows = attachment_rows(
+            &[],
+            &[json!({"attachments": [general, field], "custom_fields": {"brief": [field]}})],
+            &labels(&[("brief", "Brief")]),
+        );
+        assert_eq!(
+            json!(rows),
+            json!([
+                {"id": 9901, "name": "overview.txt", "size": 11,
+                 "attachment_url": "https://example.com/file", "source": "requested item"},
+                {"id": 9902, "name": "field.txt", "size": 12, "source": "Brief"}
+            ])
+        );
+        let rows = attachment_rows(
+            &[json!({"id": 1, "name": "a"})],
+            &[
+                json!({"attachments": [{"id": 1, "name": "dup"}, {"name": "noid"},
+                                     {"name": "noid2", "id": null}, "junk", {"id": "1"}],
+                     "custom_fields": {}}),
+            ],
+            &labels(&[]),
+        );
+        assert_eq!(
+            json!(rows),
+            json!([
+                {"id": 1, "name": "a", "source": "request"},
+                {"name": "noid", "source": "requested item"},
+                {"name": "noid2", "id": null, "source": "requested item"}
+            ])
+        );
     }
 }

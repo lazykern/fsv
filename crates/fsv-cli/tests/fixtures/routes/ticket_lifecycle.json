@@ -1,0 +1,578 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "human_display_id": "INC-123",
+    "subject": "Acme VPN",
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "human_display_id": "INC-123",
+    "subject": "Acme VPN",
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "human_display_id": "INC-123",
+    "subject": "Acme VPN",
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "human_display_id": "INC-123",
+    "subject": "Acme VPN",
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix &lt;safe&gt;</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "human_display_id": "INC-123",
+    "subject": "Acme VPN",
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix &lt;safe&gt;</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "human_display_id": "INC-123",
+    "subject": "Acme VPN",
+    "status": 62,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix &lt;safe&gt;</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/123",
+  "json": {
+   "ticket": {
+    "id": 123,
+    "human_display_id": "INC-123",
+    "subject": "Acme VPN",
+    "status": 62,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix &lt;safe&gt;</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124",
+  "json": {
+   "ticket": {
+    "id": 124,
+    "human_display_id": "INC-124",
+    "subject": "Acme VPN",
+    "status": 62,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124",
+  "json": {
+   "ticket": {
+    "id": 124,
+    "human_display_id": "INC-124",
+    "subject": "Acme VPN",
+    "status": 62,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/124",
+  "json": {
+   "ticket": {
+    "id": 124,
+    "human_display_id": "INC-124",
+    "subject": "Acme VPN",
+    "status": 89,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/124",
+  "json": {
+   "ticket": {
+    "id": 124,
+    "human_display_id": "INC-124",
+    "subject": "Acme VPN",
+    "status": 89,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/125",
+  "json": {
+   "ticket": {
+    "id": 125,
+    "human_display_id": "INC-125",
+    "subject": "Acme VPN",
+    "status": 62,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/126",
+  "json": {
+   "ticket": {
+    "id": 126,
+    "human_display_id": "INC-126",
+    "subject": "Acme VPN",
+    "status": 62,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/127",
+  "json": {
+   "ticket": {
+    "id": 127,
+    "human_display_id": "INC-127",
+    "subject": "Acme VPN",
+    "status": 62,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/127",
+  "json": {
+   "ticket": {
+    "id": 127,
+    "human_display_id": "INC-127",
+    "subject": "Acme VPN",
+    "status": 62,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/127",
+  "json": {
+   "ticket": {
+    "id": 127,
+    "human_display_id": "INC-127",
+    "subject": "Acme VPN",
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/127",
+  "json": {
+   "ticket": {
+    "id": 127,
+    "human_display_id": "INC-127",
+    "subject": "Acme VPN",
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/128",
+  "json": {
+   "ticket": {
+    "id": 128,
+    "human_display_id": "INC-128",
+    "subject": "Acme VPN",
+    "status": 62,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": {
+     "notes_html": "<div>Acme fix</div>",
+     "user": {
+      "name": "Acme Operator",
+      "email": "operator@example.com"
+     }
+    },
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/128",
+  "json": {
+   "ticket": {
+    "id": 128,
+    "human_display_id": "INC-128",
+    "subject": "Acme VPN",
+    "status": 31,
+    "group_id": null,
+    "responder_id": 9000001234,
+    "resolution_notes": null,
+    "custom_fields": {
+     "summary": "Acme fix",
+     "reason": "",
+     "untouched": "keep"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_form_fields",
+  "json": {
+   "ticket_fields": [
+    {
+     "id": 9000007101,
+     "name": "status",
+     "label": "Status",
+     "description": "",
+     "field_type": "default_status",
+     "required": false,
+     "required_for_closure": false,
+     "position": 1,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 31,
+       "value": "Open"
+      },
+      {
+       "id": 47,
+       "value": "Pending"
+      },
+      {
+       "id": 62,
+       "value": "Resolved"
+      },
+      {
+       "id": 89,
+       "value": "Closed"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000007102,
+     "name": "summary",
+     "label": "Resolution Summary",
+     "description": "",
+     "field_type": "custom_text",
+     "required": false,
+     "required_for_closure": true,
+     "position": 2,
+     "default_field": false,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000007103,
+     "name": "reason",
+     "label": "Pending Reason",
+     "description": "",
+     "field_type": "custom_text",
+     "required": false,
+     "required_for_closure": false,
+     "position": 3,
+     "default_field": false,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/business_rules",
+  "json": {
+   "business_rules": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ }
+]

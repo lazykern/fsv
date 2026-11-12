@@ -2,7 +2,8 @@
 """Run Python and Rust fsv with the same routes; diff stdout, stderr, exit
 code and the requests sent. Dev aid only; the Rust tests never run Python.
 
-Usage: cmp.py ROUTES.json [--stdin TEXT] [--files DIR] [--pre ARGV_JSON]... [--show] [--emit TEST_NAME] -- ARGS...
+Usage: cmp.py ROUTES.json [--stdin TEXT] [--files DIR] [--pre ARGV_JSON]... [--show] [--emit TEST_NAME] [--py-only] -- ARGS...
+--py-only prints Python's exit, output and requests (for cases whose Rust command is not ported yet).
 With --emit, a Rust test asserting Python's output is appended to $EMIT_TO (or printed);
 a new $EMIT_TO starts with a `// Python commit: <sha>` line (`pyrev.py`).
 Each --pre runs first in the same home (output ignored), e.g. --pre '["config","set","k","v"]'.
@@ -34,6 +35,7 @@ show = False
 emit = None
 pre = []
 tty = False
+py_only = False
 extra_env = []
 while argv and argv[0] != "--":
     opt = argv.pop(0)
@@ -51,6 +53,8 @@ while argv and argv[0] != "--":
         show = True
     elif opt == "--emit":
         emit = argv.pop(0)
+    elif opt == "--py-only":
+        py_only = True
 args = argv[1:]
 
 
@@ -116,6 +120,13 @@ def run(impl):
             "requests": reqs, "files": sorted(listing)}
 
 
+if py_only:
+    py = run("py")
+    print(f"PYTHON (exit {py['exit'][0]})")
+    for k in ("stdout", "stderr"):
+        print(f"--- {k}\n{raw['py'][k]}", end="" if raw["py"][k].endswith("\n") else "\n")
+    print("--- requests", *py["requests"], sep="\n")
+    sys.exit(0)
 py, rs = run("py"), run("rs")
 py_raw = raw["py"]
 same = True

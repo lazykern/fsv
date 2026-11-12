@@ -5,4 +5,15 @@ hold only ported commands. Add a path when Python gains a command the Rust
 tree lacks; remove it when the command lands.
 """
 
-NOT_PORTED: set[str] = set()
+NOT_PORTED: set[str] = {
+    # 9ab0eaa ticket_lifecycle_cli
+    "fsv tickets status",
+    "fsv tickets resolve",
+    "fsv tickets close",
+    "fsv tickets reopen",
+    # f402e61 ticket_merge_cli
+    "fsv tickets merge",
+    # cc41912 ticket_assignment_cli
+    "fsv tickets assign",
+    "fsv tickets pick-up",
+}
