@@ -12,6 +12,11 @@ static ORACLE: LazyLock<Value> = LazyLock::new(|| {
     serde_json::from_str(include_str!("../testdata/ticket_lifecycle_oracle.json")).unwrap()
 });
 
+/// `gen_fsv_api_ticket_lifecycle.py --ack` (Python d699b8c).
+static ACK_ORACLE: LazyLock<Value> = LazyLock::new(|| {
+    serde_json::from_str(include_str!("../testdata/ticket_lifecycle_ack_oracle.json")).unwrap()
+});
+
 const FORM: &str = "/api/_/lookup?field_name=reason_900000777";
 
 fn fields() -> Vec<Value> {
@@ -79,6 +84,16 @@ fn variant(name: &str) -> (Vec<Value>, Option<Value>) {
             fs.push(json!({"name": "unknown_requirement", "required_for_closure": true}))
         }
         "rules_unavailable" => return (fs, None),
+        "blocking_close" => {
+            let mut blocking = rule(
+                9000007120,
+                "Only requester closes",
+                json!({"all": [{"name": "status", "operator": "is", "value": "89", "evaluate_on": "ticket"}]}),
+                json!([{"name": ["Only the requester closes Acme tickets"], "property": "message"}]),
+            );
+            blocking["is_validation"] = json!(true);
+            rules = json!({ "business_rules": [blocking] });
+        }
         "string_ids" => {
             for c in fs[0]["choices"].as_array_mut().unwrap() {
                 c["id"] = json!(fsv_py::py_str(&c["id"]));
@@ -155,6 +170,12 @@ fn api(world: Arc<Mutex<World>>, tenant: &str) -> FnApi {
                             }
                         }
                         "br_validation_excludes" => {}
+                        "status" if flags.get("rewrite_status").is_some() => {
+                            w.row.insert(key.clone(), flags["rewrite_status"].clone());
+                        }
+                        "group_id" if flags.get("rewrite_group").is_some() => {
+                            w.row.insert(key.clone(), flags["rewrite_group"].clone());
+                        }
                         "status" if flags["bad_status"] == true => {}
                         _ => {
                             w.row.insert(key.clone(), value.clone());
@@ -187,6 +208,40 @@ fn opt_str(v: &Value) -> Option<&str> {
 fn cases_match_python() {
     let cases = ORACLE["cases"].as_object().unwrap();
     assert_eq!(cases.len(), 36);
+    replay(cases);
+}
+
+/// `test_blocking_rule_message_needs_explicit_ack_bound_to_review` and
+/// workflow rewrites accepted as `verified_with_note`.
+#[test]
+fn ack_and_workflow_rewrites_match_python() {
+    let cases = ACK_ORACLE["cases"].as_object().unwrap();
+    assert_eq!(cases.len(), 4);
+    replay(cases);
+    for case in ACK_ORACLE["readback"].as_array().unwrap() {
+        let (ok, notes) = readback(
+            case["before"].as_object(),
+            case["row"].as_object().unwrap(),
+            case["payload"].as_object().unwrap(),
+            case["note_html"].as_str(),
+        );
+        assert_eq!(json!([ok, notes]), case["expected"], "{case}");
+    }
+}
+
+/// `test_unacknowledged_plans_keep_their_context_identity`.
+#[test]
+fn unacknowledged_plans_keep_their_context_identity() {
+    let case = &ORACLE["cases"]["pending_reason_rule"]["outputs"][1]["plan"]["context_hash"];
+    let keys: Vec<String> = serde_json::from_str::<Map<String, Value>>(case.as_str().unwrap())
+        .unwrap()
+        .keys()
+        .cloned()
+        .collect();
+    assert_eq!(keys, ["metadata", "record"]);
+}
+
+fn replay(cases: &Map<String, Value>) {
     for (name, case) in cases {
         let mut row = obj(
             json!({"id": 123, "status": 31, "group_id": null, "responder_id": 9000001234_i64,
@@ -237,20 +292,24 @@ fn cases_match_python() {
                         Value::Null => "123".to_string(),
                         v => fsv_py::py_str(v),
                     };
+                    let ack = op["ack"] == true;
                     Some(
-                        build_plan(&c, &store, &target, op["status"].as_str().unwrap(),
-                                   opt_str(&op["note"]), op["answers"].as_object(), None)
+                        build_plan_ack(&c, &store, &target, op["status"].as_str().unwrap(),
+                                   opt_str(&op["note"]), op["answers"].as_object(), None, ack)
                         .map(|p| {
                             assert_eq!(Value::Object(p.payload()), serde_json::from_str::<Value>(&p.payload_json).unwrap());
                             let empty = Map::new();
-                            let (payload, fingerprint, label, _) = context(&c, &store, p.target, op["status"].as_str().unwrap(),
-                                op["answers"].as_object().unwrap_or(&empty), p.note_html.as_deref(), None).unwrap();
+                            let (payload, fingerprint, label, _) = context_ack(&c, &store, p.target, op["status"].as_str().unwrap(),
+                                op["answers"].as_object().unwrap_or(&empty), p.note_html.as_deref(), None, None, ack).unwrap();
                             assert_eq!((Value::Object(payload), &fingerprint, &label),
                                        (Value::Object(p.payload()), &p.context_hash, &p.status), "{ctx}");
-                            let out = json!({"plan": {"target": p.target, "tenant": p.tenant, "status": p.status,
+                            let mut out = json!({"plan": {"target": p.target, "tenant": p.tenant, "status": p.status,
                                 "answers_json": p.answers_json, "payload_json": p.payload_json,
                                 "context_hash": p.context_hash, "note_html": p.note_html},
                                 "hash": p.hash(), "review": p.review()});
+                            if want["plan"].get("rule_warnings").is_some() {
+                                out["plan"]["rule_warnings"] = json!(p.rule_warnings);
+                            }
                             plan = Some(p);
                             out
                         }),

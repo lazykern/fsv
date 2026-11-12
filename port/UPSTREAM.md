@@ -3441,4 +3441,55 @@ Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `140f52f`.
 
 No CLI follow-up: `sr items edit --expect-plan` gets the stable hash from the library.
 
-Still not triaged: commits after `140f52f`.
+## Ledger: `d699b8c` (library side)
+
+Triaged against `git show d699b8c`
+(`d699b8c95057f158fcadde515f5d81c13dcdf041`). `ticket_lifecycle::build_plan_ack`
+and `context_ack` acknowledge blocking (`is_validation`) rule messages.
+The sorted message texts join the context fingerprint as `acknowledged`
+only when there are any, so unacknowledged hashes are unchanged. The
+review lists `acknowledged_rule_messages` and appends the tenant-policy
+warning. `send` re-checks with the same acknowledgement. Validation
+refusals append the `--ack` hint while a blocking message is
+unacknowledged. `properties::build_plan_ack` does the same for reviewed
+ticket updates. `AnsweredPropertyPlan.acknowledged_json` (`"[]"` when
+none) joins the intent hash only when nonempty.
+
+The CLI agent reported a library gap: `ticket_lifecycle::send` did not
+return `verified_with_note`. That came from `d378079`, which `d699b8c`
+does not touch. It is ported here too: `ticket_lifecycle::readback`
+accepts a status moved away from the pre-write status and rewritten
+routing or custom fields as verified with notes. `send` reads the record
+once and passes it to `context_ack`, so the GET count is unchanged.
+
+Two user-visible strings are still the pre-`d699b8c` text, so the
+fsv-cli goldens stay green: the transition mismatch error omits the
+`(status is still N)` detail, and the reviewed-update Resolved/Closed
+refusal is still the web-form text. The Python text is in
+`/tmp/fsv-d699b8c-cli-strings.patch` and branch
+`lib/upstream-next2-cli-strings`. It turns `update_reviewed_closure_refused`
+and `tickets_close_readback_mismatch` red until their goldens change.
+
+`gen_fsv_api_ticket_lifecycle.py --ack` writes
+`ticket_lifecycle_ack_oracle.json` (stamped `d699b8c`): the blocking
+message refusal and acknowledged plan, sends with workflow status and
+routing rewrites, and pure `readback` cases.
+
+Counts: **1 partial, 0 ported.** `port/UPSTREAM_BASE` is `d699b8c`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `d699b8c` | 11-13 04:56 | fix: ticket transitions expose --ack for blocking rule messages | partial | fsv-api (`ticket_lifecycle`, `properties`), fsv-app (`tui` property plan round-trip) |
+
+### CLI follow-up
+
+Add `--ack` to `tickets close`, `resolve`, `reopen`, `status`, and
+`update --reviewed`. Call `ticket_lifecycle::build_plan_ack` /
+`properties::build_plan_ack`. `--ack` without `--reviewed` exits 2
+(`--ack requires tickets --reviewed`). Print `verified_with_note` from
+transition results. Apply the strings patch and update the
+`update_reviewed_closure_refused` and `tickets_close_readback_mismatch`
+goldens. Port the d699b8c tests in `tests/test_ticket_lifecycle.py` and
+`tests/test_ticket_properties.py`.
+
+Still not triaged: commits after `d699b8c`.

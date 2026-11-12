@@ -24,6 +24,7 @@ use crate::service::{Api, Journal, last_event, obj, plan_hash, snapshot_hash};
 pub const ACTION: &str = "ticket_transition";
 
 const WARNING: &str = "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people.";
+const ACK_WARNING: &str = " Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.";
 const UNKNOWN: &str =
     "transition outcome unknown or partial; inspect ticket and journal; do not resend";
 
@@ -43,8 +44,31 @@ pub fn context(
     resolution: Option<&str>,
     resolver: Option<Arc<dyn LookupResolver>>,
 ) -> Result<(Map<String, Value>, String, String, Vec<String>)> {
+    context_ack(
+        c, store, cid, status, answers, resolution, resolver, None, false,
+    )
+}
+
+/// [`context`] over an already read `row`, with `ack` acknowledging the
+/// blocking rule messages. Acknowledged texts join the fingerprint only
+/// when there are any, so unacknowledged plan hashes stay stable.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
+pub fn context_ack(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    cid: i64,
+    status: &str,
+    answers: &Map<String, Value>,
+    resolution: Option<&str>,
+    resolver: Option<Arc<dyn LookupResolver>>,
+    row: Option<Map<String, Value>>,
+    ack: bool,
+) -> Result<(Map<String, Value>, String, String, Vec<String>)> {
     let other = |e: fsv_forms::FormError| Error::other(e.to_string());
-    let row = record(c, cid)?;
+    let row = match row {
+        Some(row) => row,
+        None => record(c, cid)?,
+    };
     let meta = load_meta(c, store, "ticket", "edit", true, &json!(cid))?;
     if meta
         .rules
@@ -162,11 +186,16 @@ pub fn context(
             missing.join(", ")
         )));
     }
+    if ack {
+        state.acknowledge_all();
+    }
+    let acknowledged = crate::properties::acknowledged_texts(&state);
     let errors = state.errors().map_err(other)?;
     if !errors.is_empty() {
         return Err(refused(format!(
-            "ticket form validation failed: {}",
-            errors.join("; ")
+            "ticket form validation failed: {}{}",
+            errors.join("; "),
+            crate::properties::ack_hint(&state)
         )));
     }
     let mut custom = Map::new();
@@ -208,10 +237,14 @@ pub fn context(
     if !custom.is_empty() {
         payload.insert("custom_fields".into(), Value::Object(custom));
     }
-    let fingerprint = dumps(&json!({
+    let mut bound = json!({
         "record": snapshot_hash(&Value::Object(row))?,
         "metadata": meta.fingerprint().hash,
-    }));
+    });
+    if !acknowledged.is_empty() {
+        bound["acknowledged"] = json!(acknowledged);
+    }
+    let fingerprint = dumps(&bound);
     Ok((payload, fingerprint, choice.label.clone(), gate.warnings))
 }
 
@@ -263,7 +296,20 @@ impl LifecyclePlan {
         if !self.rule_warnings.is_empty() {
             out.insert("rule_warnings".into(), json!(self.rule_warnings));
         }
+        let acknowledged = self.acknowledged();
+        if !acknowledged.is_empty() {
+            out.insert("acknowledged_rule_messages".into(), json!(acknowledged));
+            out.insert("warning".into(), json!(format!("{WARNING}{ACK_WARNING}")));
+        }
         out
+    }
+
+    /// Acknowledged blocking rule message texts bound in `context_hash`.
+    pub fn acknowledged(&self) -> Vec<String> {
+        serde_json::from_str::<Value>(&self.context_hash)
+            .ok()
+            .and_then(|v| serde_json::from_value(v.get("acknowledged")?.clone()).ok())
+            .unwrap_or_default()
     }
 
     fn record_hash(&self) -> Option<Value> {
@@ -290,6 +336,22 @@ pub fn build_plan(
     answers: Option<&Map<String, Value>>,
     resolver: Option<Arc<dyn LookupResolver>>,
 ) -> Result<LifecyclePlan> {
+    build_plan_ack(c, store, target, status, note, answers, resolver, false)
+}
+
+/// [`build_plan`] with `ack=True`: blocking rule messages are acknowledged
+/// and bound to the review hash.
+#[allow(clippy::too_many_arguments)]
+pub fn build_plan_ack(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    target: &str,
+    status: &str,
+    note: Option<&str>,
+    answers: Option<&Map<String, Value>>,
+    resolver: Option<Arc<dyn LookupResolver>>,
+    ack: bool,
+) -> Result<LifecyclePlan> {
     let cid = parse_id(target, &TICKETS)?;
     if cid <= 0 {
         return Err(Error::value("ticket ID must be positive"));
@@ -307,8 +369,17 @@ pub fn build_plan(
     };
     let empty = Map::new();
     let answers = answers.unwrap_or(&empty);
-    let (payload, fingerprint, label, warnings) =
-        context(c, store, cid, status, answers, html.as_deref(), resolver)?;
+    let (payload, fingerprint, label, warnings) = context_ack(
+        c,
+        store,
+        cid,
+        status,
+        answers,
+        html.as_deref(),
+        resolver,
+        None,
+        ack,
+    )?;
     Ok(LifecyclePlan {
         target: cid,
         tenant,
@@ -331,6 +402,67 @@ pub fn matches(row: &Map<String, Value>, payload: &Map<String, Value>) -> bool {
             .get(key)
             .is_some_and(|v| !v.is_boolean() && py_equal(v, value)),
     })
+}
+
+/// `(verified, notes)` for a transition readback. The status and the
+/// resolution note decide the outcome. A status that moved away from the
+/// pre-write status is a workflow rewrite, verified with a note; so is any
+/// other submitted key the server rewrote. An unchanged status or a lost
+/// note is a mismatch.
+pub fn readback(
+    before: Option<&Map<String, Value>>,
+    row: &Map<String, Value>,
+    payload: &Map<String, Value>,
+    note_html: Option<&str>,
+) -> (bool, Vec<String>) {
+    let mut notes = Vec::new();
+    if let Some(html) = note_html {
+        let saved = resolution_text(&Value::Object(row.clone())).map_or(Value::Null, Value::String);
+        if !same_text(&saved, &json!(html)) {
+            return (false, vec!["resolution note not found on readback".into()]);
+        }
+    }
+    let want = payload.get("status").unwrap_or(&Value::Null);
+    let got = match row.get("status") {
+        None | Some(Value::Null | Value::Bool(_)) => {
+            return (false, vec!["status missing on readback".into()]);
+        }
+        Some(got) => got,
+    };
+    if fsv_py::py_str(got) != fsv_py::py_str(want) {
+        let prior = before
+            .and_then(|b| b.get("status"))
+            .filter(|v| !v.is_null());
+        match prior {
+            Some(prior) if fsv_py::py_str(got) != fsv_py::py_str(prior) => notes.push(format!(
+                "status rewritten server-side to {} after the write (workflow)",
+                fsv_py::py_str(got)
+            )),
+            _ => {
+                return (
+                    false,
+                    vec![format!("status is still {}", fsv_py::py_str(got))],
+                );
+            }
+        }
+    }
+    for (key, value) in payload {
+        if matches!(key.as_str(), "status" | "br_validation_excludes") {
+            continue;
+        }
+        let same = if key == "custom_fields" {
+            submitted_value_matches(row.get(key).unwrap_or(&Value::Null), value)
+        } else {
+            row.get(key)
+                .is_some_and(|v| !v.is_boolean() && py_equal(v, value))
+        };
+        if !same {
+            notes.push(format!(
+                "{key} differs on readback (server-side workflow or normalization)"
+            ));
+        }
+    }
+    (true, notes)
 }
 
 /// `send(plan, client, reviewed_hash=...)`: the optional resolution PUT,
@@ -359,7 +491,9 @@ pub fn send(
         ));
     }
     let answers = plan.answers();
-    let (payload, fingerprint, _, _) = context(
+    let before = record(c, plan.target)?;
+    let ack = !plan.acknowledged().is_empty();
+    let (payload, fingerprint, _, _) = context_ack(
         c,
         store,
         plan.target,
@@ -367,6 +501,8 @@ pub fn send(
         &answers,
         plan.note_html.as_deref(),
         resolver.clone(),
+        Some(before.clone()),
+        ack,
     )?;
     if fingerprint != plan.context_hash
         || !py_equal(
@@ -400,7 +536,7 @@ pub fn send(
             &json!(html),
         )
     };
-    let attempt = || -> Result<bool> {
+    let attempt = || -> Result<(bool, Vec<String>)> {
         if let Some(html) = &plan.note_html {
             let baseline = record(c, plan.target)?;
             if Some(json!(snapshot_hash(&Value::Object(baseline.clone()))?)) != plan.record_hash() {
@@ -426,7 +562,7 @@ pub fn send(
                     ));
                 }
             }
-            let (fresh, fresh_context, _, _) = context(
+            let (fresh, fresh_context, _, _) = context_ack(
                 c,
                 store,
                 plan.target,
@@ -434,6 +570,8 @@ pub fn send(
                 &answers,
                 None,
                 resolver.clone(),
+                None,
+                ack,
             )?;
             let fresh_meta = serde_json::from_str::<Value>(&fresh_context)
                 .ok()
@@ -446,26 +584,29 @@ pub fn send(
         }
         put(&Value::Object(payload.clone()))?;
         let after = record(c, plan.target)?;
-        Ok(matches(&after, &payload)
-            && plan
-                .note_html
-                .as_deref()
-                .is_none_or(|html| note_saved(&after, html)))
+        Ok(readback(
+            Some(&before),
+            &after,
+            &payload,
+            plan.note_html.as_deref(),
+        ))
     };
-    match attempt() {
+    let notes = match attempt() {
         Err(_) => return Err(refused(UNKNOWN)),
-        Ok(false) => {
+        Ok((false, _)) => {
             return Err(refused(
                 "transition readback mismatch; outcome unknown; do not resend",
             ));
         }
-        Ok(true) => {}
-    }
+        Ok((true, notes)) => notes,
+    };
     journal.record_plan("done", &hash, ACTION, Some(&target), None);
-    Ok(
-        json!({"status": "submitted", "ticket_id": plan.target, "status_label": plan.status,
-              "plan_hash": hash, "verified": true}),
-    )
+    let mut out = json!({"status": "submitted", "ticket_id": plan.target, "status_label": plan.status,
+              "plan_hash": hash, "verified": true});
+    if !notes.is_empty() {
+        out["verified_with_note"] = json!(notes);
+    }
+    Ok(out)
 }
 
 #[cfg(test)]

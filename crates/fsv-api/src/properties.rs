@@ -96,18 +96,22 @@ impl PropertyPlan {
 
     /// The tag/date hash (no answers, so no `metadata_hash`).
     pub fn hash(&self) -> String {
-        self.hash_with("")
+        self.hash_with("", &[])
     }
 
     /// `build_plan` has already checked the baseline snapshots, so a
     /// hand-built plan whose baseline `urlsplit` rejects hashes it unprojected.
-    fn hash_with(&self, metadata_hash: &str) -> String {
+    fn hash_with(&self, metadata_hash: &str, acknowledged: &[String]) -> String {
         let before = self.before();
         let before = stable_snapshot(&before).unwrap_or(before);
         let mut intent = json!({"tenant": self.tenant, "ticket_id": self.ticket_id, "payload": self.payload(),
                                 "before": before, "record_hash": self.record_hash});
         if !metadata_hash.is_empty() {
             intent["metadata_hash"] = json!(metadata_hash);
+        }
+        // Bound only when used, so unacknowledged review hashes are unchanged.
+        if !acknowledged.is_empty() {
+            intent["acknowledged"] = json!(acknowledged);
         }
         plan_hash(&intent)
     }
@@ -137,6 +141,8 @@ pub struct AnsweredPropertyPlan {
     pub answers_json: String,
     /// The edit form's fingerprint when answers were given, else empty.
     pub metadata_hash: String,
+    /// Acknowledged blocking rule message texts, sorted (`"[]"` when none).
+    pub acknowledged_json: String,
 }
 
 impl From<PropertyPlan> for AnsweredPropertyPlan {
@@ -145,6 +151,7 @@ impl From<PropertyPlan> for AnsweredPropertyPlan {
             plan,
             answers_json: "{}".into(),
             metadata_hash: String::new(),
+            acknowledged_json: "[]".into(),
         }
     }
 }
@@ -159,13 +166,23 @@ impl AnsweredPropertyPlan {
         serde_json::from_str(&self.answers_json).unwrap_or_default()
     }
 
+    pub fn acknowledged(&self) -> Vec<String> {
+        serde_json::from_str(&self.acknowledged_json).unwrap_or_default()
+    }
+
     /// `metadata_hash` joins the intent only when answers were given.
     pub fn hash(&self) -> String {
-        self.plan.hash_with(&self.metadata_hash)
+        self.plan
+            .hash_with(&self.metadata_hash, &self.acknowledged())
     }
 
     pub fn review(&self) -> Map<String, Value> {
-        self.plan.review_with(self.hash())
+        let mut out = self.plan.review_with(self.hash());
+        let acknowledged = self.acknowledged();
+        if !acknowledged.is_empty() {
+            out.insert("acknowledged_rule_messages".into(), json!(acknowledged));
+        }
+        out
     }
 }
 
@@ -190,7 +207,7 @@ fn values_of(body: &Map<String, Value>, row: &Map<String, Value>) -> Map<String,
 }
 
 /// The fresh edit form with the answers encoded into `body` and `body`
-/// applied: `(business-rule token, metadata hash or "")`.
+/// applied: `(business-rule token, metadata hash or "", acknowledged texts)`.
 #[allow(clippy::too_many_arguments)]
 fn evaluate(
     c: &dyn Api,
@@ -200,7 +217,8 @@ fn evaluate(
     body: &mut Map<String, Value>,
     answers: &Map<String, Value>,
     resolver: Option<Arc<dyn LookupResolver>>,
-) -> Result<(String, String)> {
+    ack: bool,
+) -> Result<(String, String, Vec<String>)> {
     let other = |e: fsv_forms::FormError| Error::other(e.to_string());
     let meta = load_meta(c, store, "ticket", "edit", true, &json!(cid))?;
     if meta
@@ -330,11 +348,16 @@ fn evaluate(
             gate.blockers.join("; ")
         )));
     }
+    if ack {
+        state.acknowledge_all();
+    }
+    let acknowledged = acknowledged_texts(&state);
     let problems = state.errors().map_err(other)?;
     if !problems.is_empty() {
         return Err(refused(format!(
-            "ticket form validation failed: {}",
-            problems.join("; ")
+            "ticket form validation failed: {}{}",
+            problems.join("; "),
+            ack_hint(&state)
         )));
     }
     let token =
@@ -345,7 +368,28 @@ fn evaluate(
     } else {
         meta.fingerprint().hash
     };
-    Ok((token, metadata_hash))
+    Ok((token, metadata_hash, acknowledged))
+}
+
+/// Sorted texts of the blocking rule messages the reviewer acknowledged.
+pub(crate) fn acknowledged_texts(state: &FormState) -> Vec<String> {
+    let mut texts: Vec<String> = state
+        .evaluated
+        .blocking_messages()
+        .into_iter()
+        .filter(|m| state.acknowledged.contains(&m.key()))
+        .map(|m| m.text.clone())
+        .collect();
+    texts.sort();
+    texts
+}
+
+pub(crate) fn ack_hint(state: &FormState) -> &'static str {
+    if state.unacknowledged().is_empty() {
+        ""
+    } else {
+        "; pass --ack to acknowledge the blocking rule message(s) after reading them"
+    }
 }
 
 /// Keyword arguments of [`build_plan_with`] (Python `build_plan` keywords).
@@ -388,6 +432,19 @@ pub fn build_plan_with(
     args: &PropertyArgs<'_>,
     resolver: Option<Arc<dyn LookupResolver>>,
 ) -> Result<AnsweredPropertyPlan> {
+    build_plan_ack(c, store, ticket_id, args, resolver, false)
+}
+
+/// [`build_plan_with`] with `ack`: acknowledged blocking rule messages are
+/// bound to the review hash and listed in the review.
+pub fn build_plan_ack(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    ticket_id: &str,
+    args: &PropertyArgs<'_>,
+    resolver: Option<Arc<dyn LookupResolver>>,
+    ack: bool,
+) -> Result<AnsweredPropertyPlan> {
     let cid = parse_id(ticket_id, &TICKETS)?;
     if cid <= 0 {
         return Err(Error::value("ticket ID must be positive"));
@@ -428,15 +485,16 @@ pub fn build_plan_with(
     }
     let row = record(c, cid)?;
     missing_keys(&body, &row)?;
-    let (token, metadata_hash) = match evaluate(c, store, cid, &row, &mut body, answers, resolver) {
-        Ok(t) => t,
-        Err(e @ Error::Exit { .. }) => return Err(e),
-        Err(_) => {
-            return Err(refused(
-                "could not evaluate ticket edit form and rules; no update attempted",
-            ));
-        }
-    };
+    let (token, metadata_hash, acknowledged) =
+        match evaluate(c, store, cid, &row, &mut body, answers, resolver, ack) {
+            Ok(t) => t,
+            Err(e @ Error::Exit { .. }) => return Err(e),
+            Err(_) => {
+                return Err(refused(
+                    "could not evaluate ticket edit form and rules; no update attempted",
+                ));
+            }
+        };
     let before = values_of(&body, &row);
     body.insert("br_validation_excludes".into(), json!(token));
     Ok(AnsweredPropertyPlan {
@@ -449,6 +507,9 @@ pub fn build_plan_with(
         },
         answers_json: dumps_sorted(&Value::Object(answers.clone())),
         metadata_hash,
+        acknowledged_json: fsv_py::Dumps::default()
+            .ensure_ascii(false)
+            .dump(&json!(acknowledged)),
     })
 }
 
@@ -502,7 +563,8 @@ pub fn send_with(
         planned_end: payload.get("planned_end_date").and_then(Value::as_str),
         answers: Some(&answers),
     };
-    let fresh = build_plan_with(c, store, &plan.ticket_id.to_string(), &args, resolver)?;
+    let ack = !answered.acknowledged().is_empty();
+    let fresh = build_plan_ack(c, store, &plan.ticket_id.to_string(), &args, resolver, ack)?;
     if fresh.hash() != hash {
         return Err(refused("ticket or form changed since review; review again"));
     }
@@ -1018,6 +1080,72 @@ mod tests {
         )
         .unwrap();
         assert_eq!(out["verified"], true, "{out}");
+    }
+
+    /// `test_reviewed_update_blocking_message_needs_ack`.
+    #[test]
+    fn reviewed_update_blocking_message_needs_ack() {
+        let rule = json!({"id": 9_000_008_101_i64, "name": "High needs lead", "module_type": "ticket",
+            "workspace_id": 1, "state": "active", "user_type": "both", "form_type": "both",
+            "rule_type": "client_side", "is_validation": true,
+            "condition_data": {"all": [{"name": "priority", "operator": "is", "value": "73", "evaluate_on": "ticket"}]},
+            "action_data": {"action": [{"name": ["High priority needs the Acme lead"], "property": "message"}]}});
+        let c = rich_api(
+            rich_form(&[]),
+            json!({"business_rules": [rule]}),
+            rich_row(),
+        );
+        let a = answers(&[("Priority", "High")]);
+        let refused = err(answer_plan(&c, "INC-123", &a));
+        assert!(
+            refused.contains("acknowledge to continue") && refused.contains("--ack"),
+            "{refused}"
+        );
+        let args = PropertyArgs {
+            answers: Some(&a),
+            ..Default::default()
+        };
+        let acked = build_plan_ack(
+            &c,
+            &MemStore::default(),
+            "INC-123",
+            &args,
+            Some(Arc::new(People)),
+            true,
+        )
+        .unwrap();
+        assert_eq!(
+            acked.review()["acknowledged_rule_messages"],
+            json!(["High priority needs the Acme lead"])
+        );
+        let unacked = AnsweredPropertyPlan {
+            acknowledged_json: "[]".into(),
+            ..acked.clone()
+        };
+        assert_ne!(acked.hash(), unacked.hash());
+        assert!(
+            send_with(
+                &unacked,
+                &c,
+                &MemJournal::default(),
+                &MemStore::default(),
+                Some(&unacked.hash()),
+                Some(Arc::new(People))
+            )
+            .is_err()
+        );
+        assert!(c.writes().is_empty());
+        let out = send_with(
+            &acked,
+            &c,
+            &MemJournal::default(),
+            &MemStore::default(),
+            Some(&acked.hash()),
+            Some(Arc::new(People)),
+        )
+        .unwrap();
+        assert_eq!(out["verified"], true, "{out}");
+        assert_eq!(c.writes().len(), 1);
     }
 
     /// `test_beneficiary_edit_never_reuses_previous_person_rule_context`.

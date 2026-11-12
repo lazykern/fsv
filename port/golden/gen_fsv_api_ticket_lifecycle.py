@@ -6,6 +6,10 @@ ops) that the Rust test replays over `FnApi`; metadata loads through the real
 
     cd /tmp/fsv-py-9ab0eaa && FSV_PY_SRC=$PWD FSV_PY_COMMIT=9ab0eaa... uv run python \
         /Users/phusit.somb/lab/work/fsv-rust/port/golden/gen_fsv_api_ticket_lifecycle.py
+
+`--ack` (Python d699b8c or later) writes `ticket_lifecycle_ack_oracle.json`:
+acknowledged blocking rule messages, workflow rewrites on send, and the
+pure `readback` cases.
 """
 from __future__ import annotations
 
@@ -86,6 +90,13 @@ def variant(name):
         fs.append({"name": "unknown_requirement", "required_for_closure": True})
     elif name == "rules_unavailable":
         rules = None
+    elif name == "blocking_close":
+        # A tenant is_validation rule: a message the web form blocks submit on.
+        blocking = rule(9000007120, "Only requester closes",
+                        {"all": [{"name": "status", "operator": "is", "value": "89", "evaluate_on": "ticket"}]},
+                        [{"name": ["Only the requester closes Acme tickets"], "property": "message"}])
+        blocking["is_validation"] = True
+        rules = {"business_rules": [blocking]}
     elif name == "string_ids":
         for c in fs[0]["choices"]:
             c["id"] = str(c["id"])
@@ -146,6 +157,10 @@ class Fake:
                     self.row["group_id"] = 9000005678
             elif key == "custom_fields":
                 self.row[key].update(value)
+            elif key == "status" and "rewrite_status" in self.flags:
+                self.row[key] = self.flags["rewrite_status"]
+            elif key == "group_id" and "rewrite_group" in self.flags:
+                self.row[key] = self.flags["rewrite_group"]
             elif key != "br_validation_excludes" and not (key == "status" and self.flags.get("bad_status")):
                 self.row[key] = value
         return {"ticket": copy.deepcopy(self.row)}
@@ -176,8 +191,9 @@ def run(case):
         kind = op["op"]
         try:
             if kind == "build":
+                kwargs = {"ack": True} if op.get("ack") else {}
                 plan = flow.build_plan(c, op.get("target", 123), op["status"], note=op.get("note"),
-                                       answers=op.get("answers"))
+                                       answers=op.get("answers"), **kwargs)
                 out = plan_out(plan)
             elif kind == "send":
                 reviewed = {"full": plan.hash, "none": None, "prefix": plan.hash[:12]}[op.get("hash", "full")]
@@ -278,6 +294,46 @@ RESOLUTION = [
     {"resolution_notes_html": 7},
     {},
 ]
+ACK_CASES = {
+    "blocking_message_needs_ack": {"meta": "blocking_close",
+                                   "row": {"resolution_notes": {"notes_html": "Existing fix"}},
+                                   "ops": [{**B, "status": "Closed"}, {**B, "status": "Closed", "ack": True}, S]},
+    "ack_without_blocking_message": {"ops": [{**B, "status": "Pending", "answers": {"reason": "Waiting"},
+                                              "ack": True}, S]},
+    "workflow_status_rewrite": {"flags": {"rewrite_status": 62}, "ops": [
+        {**B, "status": "Pending", "answers": {"reason": "Waiting"}}, S]},
+    "workflow_routing_rewrite": {"flags": {"rewrite_group": 9000005678}, "ops": [{**B, "status": "Open"}, S]},
+}
+NOTE = "<div>Fixed by restarting the Acme service</div>"
+PAYLOAD = {"status": 4, "group_id": 9000000201, "responder_id": None, "br_validation_excludes": "x"}
+
+
+def _row(status, **kw):
+    row = {"status": status, "group_id": 9000000201, "responder_id": None, "resolution_notes": NOTE,
+           "custom_fields": {}}
+    row.update(kw)
+    return row
+
+
+READBACK = [
+    (_row(2), _row(4), PAYLOAD, NOTE),
+    (_row(2), _row(4, group_id=9000000202), PAYLOAD, NOTE),
+    (_row(2), _row(5), PAYLOAD, NOTE),
+    (_row(2), _row(2), PAYLOAD, NOTE),
+    (_row(2), _row(4, resolution_notes=""), PAYLOAD, NOTE),
+    (None, _row(5), PAYLOAD, NOTE),
+    (_row(2), _row(None), PAYLOAD, None),
+    (_row(2), _row(True), PAYLOAD, None),
+    (_row("2"), _row("4"), PAYLOAD, None),
+    (_row(2), _row(4, custom_fields={"a": "1"}), {**PAYLOAD, "custom_fields": {"a": 1}}, None),
+    (_row(2), _row(4, custom_fields={"a": "2"}), {**PAYLOAD, "custom_fields": {"a": 1}}, None),
+]
+if "--ack" in sys.argv:
+    out = {"cases": {name: run(case) for name, case in ACK_CASES.items()},
+           "readback": [{"before": b, "row": r, "payload": p, "note_html": n, "expected": list(flow.readback(b, r, p, n))}
+                        for b, r, p, n in READBACK]}
+    json.dump(stamped(out), sys.stdout, indent=1, ensure_ascii=False)
+    sys.exit(0)
 out = {"cases": {name: run(case) for name, case in CASES.items()},
        "matches": [{"row": r, "payload": p, "expected": flow.matches(r, p)} for r, p in MATCHES],
        "resolution_text": [{"record": r, "expected": resolution_text(r)} for r in RESOLUTION]}

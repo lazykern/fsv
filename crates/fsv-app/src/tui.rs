@@ -452,7 +452,7 @@ pub fn property_review(a: &AnsweredPropertyPlan) -> ReviewPlan {
         target_id: json!(p.ticket_id),
         raw: json!({"kind": "ticket_property", "ticket_id": p.ticket_id, "tenant": p.tenant, "body_json": p.body_json,
                     "before_json": p.before_json, "record_hash": p.record_hash, "answers_json": a.answers_json,
-                    "metadata_hash": a.metadata_hash}),
+                    "metadata_hash": a.metadata_hash, "acknowledged_json": a.acknowledged_json}),
     }
 }
 
@@ -467,6 +467,7 @@ fn property_plan(raw: &Value) -> AnsweredPropertyPlan {
         },
         answers_json: opt_str(raw, "answers_json").unwrap_or_else(|| "{}".into()),
         metadata_hash: str_at(raw, "metadata_hash"),
+        acknowledged_json: opt_str(raw, "acknowledged_json").unwrap_or_else(|| "[]".into()),
     }
 }
 
