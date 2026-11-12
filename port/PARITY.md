@@ -134,7 +134,8 @@ those stay identical.
 
 | Python | Rust | status |
 |---|---|---|
-| `query.py` filter → `query_hash`, date merge, one-shot percent-decode | `fsv_api::query` | ported (the four edge-case tests). Schema loading and the HTTP directory wait on `fsv-core`. `query._resolve_group` has no caller; `cli._resolve_group` is the one that is used. |
+| `query.py` filter → `query_hash`, date merge, one-shot percent-decode, `_resolve_group` | `fsv_api::query` (`resolve_group` over `Directory::agent_groups`) | ported. `src/query_matrix_tests.rs` mirrors `test_query_matrix.py` (Python `92d76ff`) against `port/golden/gen_fsv_api_query_flow_matrix.py`; a malformed raw hash keeps Python's `invalid query-hash JSON: ` prefix with serde_json's wording after it (as `--query-hash` below). Schema loading is the caller's. `query._resolve_group` has no Python caller; `cli._resolve_group` (fsv-cli `lookup::resolve_group`) is the one commands use. |
+| `state_flow.py` reads and renderers | `fsv_api::state_flow` (`Printed`: the `console.print` arguments) | ported. `src/state_flow_matrix_tests.rs` mirrors `test_state_flow_render.py` (Python `92d76ff`): exact markup strings and table cells recorded from a Python console, and each read. |
 | `task_status.py` | `fsv_api::task_status` | ported (tenant ids, fail-closed choices, no default id). `change_tasks.build_plan` still to come. |
 | `schema.py` choice labels, priority/impact/risk, v2 merge | `fsv_api::schema` | ported for the pure helpers. Cache TTL constant is present; the on-disk schema cache still waits on the client. |
 | `views.py` dates, html, span, relative | `fsv_api::site::format` | ported. `span(23h 59.67m)` is `24h` (Python does not carry that into `1d`). List items keep the blank line `</li>` inserts. |

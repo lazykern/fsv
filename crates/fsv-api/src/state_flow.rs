@@ -302,6 +302,10 @@ pub fn render_state_diagram(c: &dyn Api, change: &Value, context: usize) -> Vec<
 }
 
 #[cfg(test)]
+#[path = "state_flow_matrix_tests.rs"]
+mod matrix_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::service::testing::*;

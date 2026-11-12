@@ -569,6 +569,32 @@ fn resolve_agent(dir: Option<&dyn Directory>, value: &str) -> Result<String, Que
     }
 }
 
+/// `_resolve_group`: the group id as text, from `bootstrap/agents_groups`
+/// (exact id, else a unique casefolded name substring).
+pub fn resolve_group(dir: &dyn Directory, value: &str) -> Result<String, QueryError> {
+    if ascii_digits(value) {
+        return Ok(value.to_string());
+    }
+    let data = dir.agent_groups()?;
+    let folded = pystr::casefold(value);
+    let groups: Vec<Value> = data
+        .get("groups")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter(|g| {
+            pystr::casefold(&py_or_empty(g.get("name"))).contains(&folded)
+                || py_or_empty(g.get("id")) == value
+        })
+        .cloned()
+        .collect();
+    let item = pick_lookup("group", value, &groups, &["name", "id"])?;
+    match item.get("id") {
+        Some(id) if !id.is_null() => Ok(scalar(id)),
+        _ => Err(QueryError(format!("group match has no id: {value}"))),
+    }
+}
+
 fn pick_lookup<'a>(
     kind: &str,
     value: &str,
@@ -718,6 +744,10 @@ fn unquote(raw: &str) -> String {
     }
     String::from_utf8_lossy(&out).into_owned()
 }
+
+#[cfg(test)]
+#[path = "query_matrix_tests.rs"]
+mod matrix_tests;
 
 #[cfg(test)]
 mod tests {

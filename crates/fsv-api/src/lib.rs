@@ -44,7 +44,7 @@ pub use schema::{
 
 pub use query::{
     Directory, Explain, build_query_hash, build_query_hash_from_schema, load_query_hash,
-    merge_same_conditions,
+    merge_same_conditions, resolve_group,
 };
 pub use task_status::{active_choices, display, fields_from_payload, resolve};
 

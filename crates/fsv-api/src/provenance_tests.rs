@@ -33,6 +33,10 @@ fn fixtures_record_their_python_commit() {
             include_str!("testdata/failure_matrix_oracle.json"),
         ),
         (
+            "query_flow_oracle",
+            include_str!("testdata/query_flow_oracle.json"),
+        ),
+        (
             "reviewed_oracle",
             include_str!("testdata/reviewed_oracle.json"),
         ),

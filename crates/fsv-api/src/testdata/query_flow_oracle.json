@@ -1,0 +1,1103 @@
+{
+ "_python": {
+  "commit": "92d76ffe7750176451215bd8dca723fd7304625f",
+  "dirty": false
+ },
+ "query": {
+  "schema": {
+   "fields": [
+    {
+     "name": "status",
+     "label": "State",
+     "default_field": true,
+     "field_type": "default_status",
+     "choices": [
+      {
+       "id": 47,
+       "value": "Awaiting review",
+       "requester_display_value": "In review"
+      },
+      {
+       "id": 83,
+       "name": "Done"
+      }
+     ]
+    },
+    {
+     "name": "cf_tier",
+     "label": "Tier",
+     "field_type": "custom_dropdown",
+     "choices": [
+      {
+       "id": 701,
+       "value": "Gold"
+      }
+     ]
+    },
+    {
+     "name": "cf_count",
+     "label": "Count",
+     "field_type": "custom_number"
+    },
+    {
+     "name": "subject",
+     "label": "Subject",
+     "default_field": true,
+     "field_type": "default_text"
+    },
+    {
+     "name": "requester",
+     "label": "Requester",
+     "default_field": true
+    },
+    {
+     "name": "agent",
+     "label": "Agent",
+     "default_field": true
+    },
+    {
+     "name": "group",
+     "label": "Group",
+     "default_field": true,
+     "choices": [
+      {
+       "id": 93,
+       "value": "Acme Ops"
+      }
+     ]
+    }
+   ]
+  },
+  "wire": {
+   "State=In review": {
+    "ok": "[{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   "status!=83": {
+    "ok": "[{\"value\":[83],\"condition\":\"status\",\"operator\":\"is_not_in\",\"type\":\"default\"}]"
+   },
+   "custom:Tier=701": {
+    "ok": "[{\"value\":[\"Gold\"],\"condition\":\"cf_tier\",\"operator\":\"is_in\",\"type\":\"custom_field\"}]"
+   },
+   "cf_tier=gold": {
+    "ok": "[{\"value\":[\"Gold\"],\"condition\":\"cf_tier\",\"operator\":\"is_in\",\"type\":\"custom_field\"}]"
+   },
+   "Count=12": {
+    "ok": "[{\"value\":[12],\"condition\":\"cf_count\",\"operator\":\"is_in\",\"type\":\"custom_field\"}]"
+   },
+   "Count=-12": {
+    "ok": "[{\"value\":[\"-12\"],\"condition\":\"cf_count\",\"operator\":\"is_in\",\"type\":\"custom_field\"}]"
+   },
+   "Subject='Acme = ready'": {
+    "ok": "[{\"value\":[\"Acme = ready\"],\"condition\":\"subject\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   "group=Acme Ops": {
+    "ok": "[{\"value\":[\"93\"],\"condition\":\"group_id\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   "group_id!=93": {
+    "ok": "[{\"value\":[93],\"condition\":\"group_id\",\"operator\":\"is_not_in\",\"type\":\"default\"}]"
+   },
+   "asset_id=external": {
+    "ok": "[{\"value\":[\"external\"],\"condition\":\"asset_id\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   "requester=71": {
+    "ok": "[{\"value\":[{\"id\":71,\"name\":\"71\"}],\"condition\":\"requester_id\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   "agent=72": {
+    "ok": "[{\"value\":[\"72\"],\"condition\":\"agent_id\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   }
+  },
+  "invalid": {
+   "status": {
+    "err": "invalid filter 'status'; expected FIELD=VALUE"
+   },
+   "unknown=x": {
+    "err": "field not found: 'unknown'"
+   },
+   "status=missing": {
+    "err": "no choice 'missing' for State; options: Awaiting review, Done"
+   },
+   "status~=review": {
+    "err": "operator ~= (contains) not supported; use = or !="
+   },
+   "status>47": {
+    "err": "operator '>' not supported for this field; use = or !="
+   },
+   "status<47": {
+    "err": "operator '<' not supported for this field; use = or !="
+   },
+   "status>=47": {
+    "err": "operator '>=' not supported for this field; use = or !="
+   },
+   "status<=47": {
+    "err": "operator '<=' not supported for this field; use = or !="
+   },
+   "group_id>93": {
+    "err": "operator '>' not supported on ID fields; use = or !="
+   },
+   "group_id<93": {
+    "err": "operator '<' not supported on ID fields; use = or !="
+   },
+   "group_id>=93": {
+    "err": "operator '>=' not supported on ID fields; use = or !="
+   },
+   "group_id<=93": {
+    "err": "operator '<=' not supported on ID fields; use = or !="
+   },
+   "group_id~=93": {
+    "err": "operator '~=' not supported on ID fields; use = or !="
+   },
+   "created_at!=2026-01-01": {
+    "err": "operator '!=' is not supported for date field 'created_at'; use a range such as `>=` / `<=`"
+   },
+   "created_at~=2026": {
+    "err": "unsupported date operator '~='; use = != >= <= > <"
+   }
+  },
+  "date_bounds": [
+   {
+    "field": "created_at",
+    "lower": ">",
+    "upper": "<",
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   {
+    "field": "created_at",
+    "lower": ">=",
+    "upper": "<=",
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   {
+    "field": "updated_at",
+    "lower": ">",
+    "upper": "<",
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"updated_at\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   {
+    "field": "updated_at",
+    "lower": ">=",
+    "upper": "<=",
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"updated_at\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   {
+    "field": "due_by",
+    "lower": ">",
+    "upper": "<",
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"due_by\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   {
+    "field": "due_by",
+    "lower": ">=",
+    "upper": "<=",
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"due_by\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   {
+    "field": "planned_start_date",
+    "lower": ">",
+    "upper": "<",
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"planned_start_date\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   {
+    "field": "planned_start_date",
+    "lower": ">=",
+    "upper": "<=",
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"planned_start_date\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   {
+    "field": "planned_end_date",
+    "lower": ">",
+    "upper": "<",
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"planned_end_date\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   },
+   {
+    "field": "planned_end_date",
+    "lower": ">=",
+    "upper": "<=",
+    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"planned_end_date\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+   }
+  ],
+  "exact_date": {
+   "ok": "[{\"value\":{\"from\":\"2026-02-01\",\"to\":\"2026-01-01\"},\"condition\":\"due_by\",\"operator\":\"custom_date\",\"type\":\"default\"}]"
+  },
+  "find_field": [
+   {
+    "fields": [
+     {
+      "name": "status",
+      "label": "State"
+     },
+     {
+      "name": "other",
+      "label": "Status"
+     }
+    ],
+    "text": "status",
+    "ok": "status"
+   },
+   {
+    "fields": [
+     {
+      "name": "cf_zone",
+      "label": "Acme Zone"
+     }
+    ],
+    "text": "zone",
+    "ok": "cf_zone"
+   },
+   {
+    "fields": [
+     {
+      "name": "state",
+      "default_field": true
+     },
+     {
+      "name": "state"
+     }
+    ],
+    "text": "default:state",
+    "ok": "state"
+   },
+   {
+    "fields": [
+     {
+      "name": "state",
+      "default_field": true
+     },
+     {
+      "name": "state"
+     }
+    ],
+    "text": "custom:state",
+    "ok": "state"
+   },
+   {
+    "fields": [
+     {
+      "name": "alpha",
+      "label": "Zone"
+     },
+     {
+      "name": "beta",
+      "label": "Zone"
+     }
+    ],
+    "text": "Zone",
+    "err": "ambiguous field 'Zone': alpha, beta"
+   },
+   {
+    "fields": [
+     {
+      "name": "cf_zone_a"
+     },
+     {
+      "name": "cf_zone_b"
+     }
+    ],
+    "text": "zone",
+    "err": "ambiguous field 'zone': cf_zone_a, cf_zone_b"
+   }
+  ],
+  "people": {
+   "changes": {
+    "ok": [
+     "{\"any\":[{\"value\":[{\"id\":71,\"name\":\"Alex Acme\"}],\"condition\":\"requester_id\",\"operator\":\"is_in\",\"type\":\"default\"},{\"value\":[\"171\"],\"condition\":\"agent_id\",\"operator\":\"is_in\",\"type\":\"default\"}]}",
+     [
+      {
+       "value": [
+        {
+         "id": 71,
+         "name": "Alex Acme"
+        }
+       ],
+       "condition": "requester_id",
+       "operator": "is_in",
+       "type": "default"
+      },
+      {
+       "value": [
+        "171"
+       ],
+       "condition": "agent_id",
+       "operator": "is_in",
+       "type": "default"
+      }
+     ],
+     [
+      {
+       "field": "requester",
+       "condition": "requester_id",
+       "operator": "is_in",
+       "type": "default",
+       "value": "Alex Acme (71)"
+      },
+      {
+       "field": "agent",
+       "condition": "agent_id",
+       "operator": "is_in",
+       "type": "default",
+       "value": "171"
+      }
+     ]
+    ],
+    "calls": [
+     [
+      "requesters",
+      "alex@example.com",
+      {
+       "all_users": "true"
+      }
+     ],
+     [
+      "agents",
+      "Alex Acme",
+      null
+     ]
+    ]
+   },
+   "tickets": {
+    "ok": [
+     "{\"any\":[{\"value\":[{\"id\":71,\"name\":\"Alex Acme\"}],\"condition\":\"requester_id\",\"operator\":\"is_in\",\"type\":\"default\"},{\"value\":[\"171\"],\"condition\":\"responder_id\",\"operator\":\"is_in\",\"type\":\"default\"}]}",
+     [
+      {
+       "value": [
+        {
+         "id": 71,
+         "name": "Alex Acme"
+        }
+       ],
+       "condition": "requester_id",
+       "operator": "is_in",
+       "type": "default"
+      },
+      {
+       "value": [
+        "171"
+       ],
+       "condition": "responder_id",
+       "operator": "is_in",
+       "type": "default"
+      }
+     ],
+     [
+      {
+       "field": "requester",
+       "condition": "requester_id",
+       "operator": "is_in",
+       "type": "default",
+       "value": "Alex Acme (71)"
+      },
+      {
+       "field": "agent",
+       "condition": "responder_id",
+       "operator": "is_in",
+       "type": "default",
+       "value": "171"
+      }
+     ]
+    ],
+    "calls": [
+     [
+      "requesters",
+      "alex@example.com",
+      {
+       "all_users": "true"
+      }
+     ],
+     [
+      "agents",
+      "Alex Acme",
+      null
+     ]
+    ]
+   }
+  },
+  "agent_errors": [
+   {
+    "rows": [],
+    "err": "no agent match: Alex"
+   },
+   {
+    "rows": [
+     {
+      "id": 71,
+      "value": "Alex"
+     }
+    ],
+    "err": "agent match has no user_id: Alex"
+   },
+   {
+    "rows": [
+     {
+      "id": 71,
+      "value": "Alex Acme"
+     },
+     {
+      "id": 72,
+      "value": "Alex Globex"
+     }
+    ],
+    "err": "multiple agent matches for 'Alex': Alex Acme, Alex Globex"
+   }
+  ],
+  "groups": {
+   "found": {
+    "Acme": {
+     "ok": "91"
+    },
+    "Ops": {
+     "ok": "92"
+    },
+    "93": {
+     "ok": "93"
+    }
+   },
+   "calls": [
+    "bootstrap/agents_groups",
+    "bootstrap/agents_groups"
+   ],
+   "missing_id": {
+    "err": "group match has no id: Acme"
+   }
+  },
+  "raw": [
+   {
+    "raw": "[{\"condition\": \"subject\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"100%25 Acme\"]}]",
+    "ok": [
+     "[{\"condition\":\"subject\",\"operator\":\"is_in\",\"type\":\"default\",\"value\":[\"100%25 Acme\"]},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]",
+     [
+      {
+       "condition": "subject",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "100%25 Acme"
+       ]
+      },
+      {
+       "value": [
+        47
+       ],
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default"
+      }
+     ],
+     [
+      {
+       "field": "query_hash",
+       "condition": "raw",
+       "operator": "raw",
+       "type": "raw",
+       "value": "[{\"condition\": \"subject\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"100%25 Acme\"]}]"
+      },
+      {
+       "field": "status",
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": "47"
+      }
+     ]
+    ]
+   },
+   {
+    "raw": "%5B%7B%22condition%22%3A%20%22subject%22%2C%20%22operator%22%3A%20%22is_in%22%2C%20%22type%22%3A%20%22default%22%2C%20%22value%22%3A%20%5B%22100%2525%20Acme%22%5D%7D%5D",
+    "ok": [
+     "[{\"condition\":\"subject\",\"operator\":\"is_in\",\"type\":\"default\",\"value\":[\"100%25 Acme\"]},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]",
+     [
+      {
+       "condition": "subject",
+       "operator": "is_in",
+       "type": "default",
+       "value": [
+        "100%25 Acme"
+       ]
+      },
+      {
+       "value": [
+        47
+       ],
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default"
+      }
+     ],
+     [
+      {
+       "field": "query_hash",
+       "condition": "raw",
+       "operator": "raw",
+       "type": "raw",
+       "value": "%5B%7B%22condition%22%3A%20%22subject%22%2C%20%22operator%22%3A%20%22is_in%22%2C%20%22type%22%3A%20%22default%22%2C%20%22value%22%3A%20%5B%22100%2525%20Acme%22%5D%7D%5D"
+      },
+      {
+       "field": "status",
+       "condition": "status",
+       "operator": "is_in",
+       "type": "default",
+       "value": "47"
+      }
+     ]
+    ]
+   }
+  ],
+  "malformed_raw": {
+   "%ZZ": {
+    "err": "invalid query-hash JSON: Expecting value: line 1 column 1 (char 0)"
+   },
+   "%255B%255D": {
+    "err": "invalid query-hash JSON: Expecting value: line 1 column 1 (char 0)"
+   },
+   "{}": {
+    "err": "query-hash must be a JSON array"
+   },
+   "null": {
+    "err": "query-hash must be a JSON array"
+   }
+  },
+  "empty": {
+   "build": [
+    null,
+    [],
+    []
+   ],
+   "from_schema": null
+  }
+ },
+ "state_flow": {
+  "flow": {
+   "name": "Acme release",
+   "state_list": [
+    {
+     "id": 1,
+     "value": "Phase 1"
+    },
+    {
+     "id": 2,
+     "value": "Phase 2"
+    },
+    {
+     "id": 3,
+     "value": "Phase 3"
+    },
+    {
+     "id": 4,
+     "value": "Phase 4"
+    },
+    {
+     "id": 5,
+     "value": "Phase 5"
+    },
+    {
+     "id": 6,
+     "value": "Phase 6"
+    },
+    {
+     "id": 7,
+     "value": "Phase 7"
+    }
+   ]
+  },
+  "approvals": [
+   {
+    "level_id": 1,
+    "status": {
+     "name": "approved"
+    },
+    "member": {
+     "name": "Alex Acme"
+    }
+   },
+   {
+    "level_id": 2,
+    "status": {
+     "name": "rejected"
+    },
+    "member_id": 72
+   },
+   {
+    "level_id": 3,
+    "member_id": 73
+   }
+  ],
+  "change": {
+   "id": 123,
+   "human_display_id": "CHN-123",
+   "state_flow_id": 51,
+   "workspace_id": 17,
+   "status": 4,
+   "status_name": "Phase 4",
+   "state_traversal": [
+    1,
+    2,
+    3
+   ],
+   "change_type": 2
+  },
+  "workspace": [
+   {
+    "workspace": null,
+    "wrapped": true,
+    "result": {
+     "name": "Acme lifecycle",
+     "state_list": []
+    },
+    "calls": [
+     [
+      "change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "workspace": "",
+    "wrapped": false,
+    "result": {
+     "name": "Acme lifecycle",
+     "state_list": []
+    },
+    "calls": [
+     [
+      "change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "workspace": 17,
+    "wrapped": true,
+    "result": {
+     "name": "Acme lifecycle",
+     "state_list": []
+    },
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   }
+  ],
+  "fallback": [
+   {
+    "status": 403,
+    "calls": [
+     "ws/17/change_management/51"
+    ]
+   },
+   {
+    "status": 404,
+    "ok": {
+     "name": "Acme fallback"
+    },
+    "calls": [
+     "ws/17/change_management/51",
+     "change_management/51"
+    ]
+   },
+   {
+    "status": 429,
+    "calls": [
+     "ws/17/change_management/51"
+    ]
+   },
+   {
+    "status": 500,
+    "calls": [
+     "ws/17/change_management/51"
+    ]
+   }
+  ],
+  "full": {
+   "printed": [
+    {
+     "table": "CHN-123 flow — [bold]Acme release[/] (change_type=2)",
+     "rows": [
+      [
+       "[green]✓[/]",
+       "[green]Phase 1[/]",
+       "[green]passed[/]"
+      ],
+      [
+       "[green]✓[/]",
+       "[green]Phase 2[/]",
+       "[green]passed[/]"
+      ],
+      [
+       "[green]✓[/]",
+       "[green]Phase 3[/]",
+       "[green]passed[/]"
+      ],
+      [
+       "[bold yellow]▶[/]",
+       "[bold yellow]Phase 4[/]",
+       "[bold yellow]current[/]"
+      ],
+      [
+       "[dim]·[/]",
+       "[dim]Phase 5[/]",
+       "[dim]future[/]"
+      ],
+      [
+       "[dim]·[/]",
+       "[dim]Phase 6[/]",
+       "[dim]future[/]"
+      ],
+      [
+       "[dim]·[/]",
+       "[dim]Phase 7[/]",
+       "[dim]future[/]"
+      ]
+     ]
+    },
+    {
+     "text": "  current: [bold yellow]Phase 4[/] · past: 3 · ahead: 3"
+    },
+    {
+     "blank": true
+    },
+    {
+     "text": "[bold]Approval gates:[/]"
+    },
+    {
+     "text": "  ✓ L1: Alex Acme — approved"
+    },
+    {
+     "text": "  ✗ L2: 72 — rejected"
+    },
+    {
+     "text": "  ◷ L3: 73 — ?"
+    }
+   ],
+   "calls": [
+    [
+     "ws/17/change_management/51",
+     {
+      "include": "state_info"
+     }
+    ],
+    [
+     "changes/123/approvals",
+     null
+    ]
+   ]
+  },
+  "windows": [
+   {
+    "renderer": "compact",
+    "status": 1,
+    "context": 1,
+    "printed": [
+     {
+      "text": "state:    [bold yellow]▶ Phase 1[/] [dim]→[/] [green]Phase 2[/] [dim]→[/] [dim]…[/]  [dim][3/7][/]"
+     },
+     {
+      "text": "[dim]          `fsv changes state CHN-123` for full flow[/]"
+     }
+    ],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "renderer": "compact",
+    "status": 4,
+    "context": 1,
+    "printed": [
+     {
+      "text": "state:    [dim]…[/] [dim]→[/] [green]Phase 3[/] [dim]→[/] [bold yellow]▶ Phase 4[/] [dim]→[/] [dim]Phase 5[/] [dim]→[/] [dim]…[/]  [dim][3/7][/]"
+     },
+     {
+      "text": "[dim]          `fsv changes state CHN-123` for full flow[/]"
+     }
+    ],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "renderer": "compact",
+    "status": 7,
+    "context": 1,
+    "printed": [
+     {
+      "text": "state:    [dim]…[/] [dim]→[/] [dim]Phase 6[/] [dim]→[/] [bold yellow]▶ Phase 7[/]  [dim][3/7][/]"
+     },
+     {
+      "text": "[dim]          `fsv changes state CHN-123` for full flow[/]"
+     }
+    ],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "renderer": "compact",
+    "status": 4,
+    "context": 10,
+    "printed": [
+     {
+      "text": "state:    [green]Phase 1[/] [dim]→[/] [green]Phase 2[/] [dim]→[/] [green]Phase 3[/] [dim]→[/] [bold yellow]▶ Phase 4[/] [dim]→[/] [dim]Phase 5[/] [dim]→[/] [dim]Phase 6[/] [dim]→[/] [dim]Phase 7[/]  [dim][3/7][/]"
+     },
+     {
+      "text": "[dim]          `fsv changes state CHN-123` for full flow[/]"
+     }
+    ],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "renderer": "diagram",
+    "status": 1,
+    "context": 1,
+    "printed": [
+     {
+      "text": "[bold cyan]state flow:[/] [bold]43%[/] complete  [dim](3/7)[/]"
+     },
+     {
+      "text": "[bold yellow on blue] ▶ Phase 1 [/] [dim]→[/] [green]✓ Phase 2[/] [dim]→[/] [dim]…[/]"
+     },
+     {
+      "text": "[dim]  use `fsv changes state CHN-123` for full flow[/]"
+     }
+    ],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "renderer": "diagram",
+    "status": 4,
+    "context": 1,
+    "printed": [
+     {
+      "text": "[bold cyan]state flow:[/] [bold]43%[/] complete  [dim](3/7)[/]"
+     },
+     {
+      "text": "[dim]…[/] [dim]→[/] [green]✓ Phase 3[/] [dim]→[/] [bold yellow on blue] ▶ Phase 4 [/] [dim]→[/] [dim]Phase 5[/] [dim]→[/] [dim]…[/]"
+     },
+     {
+      "text": "[dim]  use `fsv changes state CHN-123` for full flow[/]"
+     }
+    ],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "renderer": "diagram",
+    "status": 7,
+    "context": 1,
+    "printed": [
+     {
+      "text": "[bold cyan]state flow:[/] [bold]43%[/] complete  [dim](3/7)[/]"
+     },
+     {
+      "text": "[dim]…[/] [dim]→[/] [dim]Phase 6[/] [dim]→[/] [bold yellow on blue] ▶ Phase 7 [/]"
+     },
+     {
+      "text": "[dim]  use `fsv changes state CHN-123` for full flow[/]"
+     }
+    ],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "renderer": "diagram",
+    "status": 4,
+    "context": 10,
+    "printed": [
+     {
+      "text": "[bold cyan]state flow:[/] [bold]43%[/] complete  [dim](3/7)[/]"
+     },
+     {
+      "text": "[green]✓ Phase 1[/] [dim]→[/] [green]✓ Phase 2[/] [dim]→[/] [green]✓ Phase 3[/] [dim]→[/] [bold yellow on blue] ▶ Phase 4 [/] [dim]→[/] [dim]Phase 5[/] [dim]→[/] [dim]Phase 6[/] [dim]→[/] [dim]Phase 7[/]"
+     }
+    ],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   }
+  ],
+  "escaped": [
+   {
+    "renderer": "compact",
+    "printed": [
+     {
+      "text": "state:    [dim]…[/] [dim]→[/] [green]Phase 2[/] [dim]→[/] [green]Phase 3[/] [dim]→[/] [bold yellow]▶ Review [Acme] → Δ[/] [dim]→[/] [dim]Phase 5[/] [dim]→[/] [dim]Phase 6[/] [dim]→[/] [dim]…[/]  [dim][3/7][/]"
+     },
+     {
+      "text": "[dim]          `fsv changes state CHN-123` for full flow[/]"
+     }
+    ]
+   },
+   {
+    "renderer": "diagram",
+    "printed": [
+     {
+      "text": "[bold cyan]state flow:[/] [bold]43%[/] complete  [dim](3/7)[/]"
+     },
+     {
+      "text": "[green]✓ Phase 1[/] [dim]→[/] [green]✓ Phase 2[/] [dim]→[/] [green]✓ Phase 3[/] [dim]→[/] [bold yellow on blue] ▶ Review [Acme] → Δ [/] [dim]→[/] [dim]Phase 5[/] [dim]→[/] [dim]Phase 6[/] [dim]→[/] [dim]Phase 7[/]"
+     }
+    ]
+   }
+  ],
+  "unavailable": [
+   {
+    "renderer": "compact",
+    "case": "missing-flow",
+    "printed": [],
+    "calls": []
+   },
+   {
+    "renderer": "compact",
+    "case": "empty-states",
+    "printed": [],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "renderer": "compact",
+    "case": "unknown-current",
+    "printed": [],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "renderer": "compact",
+    "case": "denied",
+    "printed": [],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "renderer": "diagram",
+    "case": "missing-flow",
+    "printed": [],
+    "calls": []
+   },
+   {
+    "renderer": "diagram",
+    "case": "empty-states",
+    "printed": [],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "renderer": "diagram",
+    "case": "unknown-current",
+    "printed": [],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   },
+   {
+    "renderer": "diagram",
+    "case": "denied",
+    "printed": [],
+    "calls": [
+     [
+      "ws/17/change_management/51",
+      {
+       "include": "state_info"
+      }
+     ]
+    ]
+   }
+  ],
+  "absent": {
+   "missing": [
+    {
+     "text": "[yellow]no state_flow_id on this change[/]"
+    }
+   ],
+   "empty": [
+    {
+     "text": "[yellow]empty state_list[/]"
+    }
+   ]
+  },
+  "denied": {
+   "approvals": [],
+   "printed": [],
+   "status": 403
+  }
+ }
+}

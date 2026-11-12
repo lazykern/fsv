@@ -1182,11 +1182,12 @@ fsv-formui work in this range.
 ## Base pin
 
 `port/UPSTREAM_BASE` holds the last Python commit whose range is fully
-triaged (`3432bea`). Advance it only when every row up to the new SHA is
+triaged (`92d76ff`). Advance it only when every row up to the new SHA is
 `ported`, `partial` with a named follow-up, or `wontfix` with a PARITY
 entry. Open follow-ups: fsv-api `asset_picker.rs` validation order
 (`53c678e`); fsv-cli `planning-text --clear` (`e638d85`) and the clone CLI
-cases (`3432bea`). (fsv-core's status-0 `ApiError` display now matches Python.)
+cases (`3432bea`). Next untriaged: `2956fce` (fsv-completion owner).
+(fsv-core's status-0 `ApiError` display now matches Python.)
 
 ## Ledger: `dbe553c..92002d7`
 
@@ -1357,3 +1358,66 @@ Open (fsv-cli owner, `changes clone`, from `test_clone_failure_matrix.py`):
   `changes/123` only.
 - `test_clone_confirmation_failure_prevents_even_base_create`: `--no-input`
   without `--yes` exits 2 mentioning `--yes`; no writes.
+
+## Ledger: `3432bea..2956fce`
+
+Python `src` is identical at `3432bea`, `92d76ff` and `2956fce`; both
+commits add tests only. `92d76ff` comes before `2956fce`, so the base pin
+stops at `92d76ff`. The new fixture is generated from a `git archive
+92d76ff` export; the other fixtures keep their `3432bea` stamp (same `src`).
+
+Counts: **1 ported, 0 partial, 1 untriaged (assigned).**
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `92d76ff` | 11-12 08:31 | Exercise query ambiguity and lifecycle rendering matrices offline | ported | fsv-api `query`, `state_flow` (tests), `query::resolve_group` |
+| `2956fce` | 11-12 08:36 | Cover cached completion branches and thin subprocess protocol | untriaged (fsv-completion owner) | fsv-completion |
+
+### `92d76ff` Exercise query ambiguity and lifecycle rendering matrices offline — ported
+
+`port/golden/gen_fsv_api_query_flow_matrix.py` writes
+`fsv-api/src/testdata/query_flow_oracle.json`.
+
+- **`test_query_matrix.py`** → `src/query_matrix_tests.rs`, 11 tests:
+  - the exact wire items for 12 filters;
+  - the messages for 17 invalid filters;
+  - inclusive, merged date bounds for 5 fields with `>`/`<` and `>=`/`<=`;
+  - an exact date followed by a repeated bound;
+  - field precedence, scope prefixes and ambiguity;
+  - person lookups for changes (`agent_id`) and tickets (`responder_id`),
+    with the autocomplete calls;
+  - agent lookup errors;
+  - group lookups;
+  - a raw hash, plain and percent-encoded, combined with a filter;
+  - malformed raw hashes;
+  - empty filters, which need no schema.
+
+  The test needed fsv-api `query::resolve_group` (Python
+  `query._resolve_group`, over `Directory::agent_groups`), which is new. For
+  a malformed raw hash that fails to decode, Python's `invalid query-hash
+  JSON: ` prefix is compared and the decoder's wording after it is not. That
+  is the existing PARITY entry for `--query-hash`.
+- **`test_state_flow_render.py`** → `src/state_flow_matrix_tests.rs`, 8
+  tests:
+  - a workspace path with a wrapped or bare response;
+  - only a workspace 404 falls back to the plain path (403/404/429/500);
+  - the full flow table and approval gates, with its reads;
+  - context windows for both compact renderers;
+  - names are escaped, not read as markup;
+  - nothing is printed when data is unavailable;
+  - the full flow reports a missing or empty lifecycle;
+  - an approvals denial is optional, but a denial of the flow itself
+    propagates.
+
+  The generator records Python's `console.print` arguments: markup strings
+  and table title and cells. They are compared with
+  `fsv_api::state_flow::Printed`. In the `denied` diagram case, the generator
+  fails the flow read, where the Python test patches `get_state_flow`. Both
+  print nothing.
+
+No behavior mismatch was found. No case is CLI-only.
+
+`port/fsv_coverage.py` now follows `#[path = "…"]` module declarations and
+credits a `#[path]` test file to the file that declares it. Without that,
+`query::resolve_group` showed as fn-only, because `resolve_group` is a common
+name with three fns.
