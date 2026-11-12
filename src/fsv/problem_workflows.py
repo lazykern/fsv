@@ -79,8 +79,13 @@ def create_plan(client: Any, answers: dict[str, Any], requester: str) -> Problem
     top, custom = _module_body(state, {}, ("subject", "description", "status", "priority", "impact"),
                                state.evaluated.values.get("status"))
     top.pop("requester", None)
-    if set(top) - {"subject", "description", "status", "priority", "impact"}:
-        raise ReviewedWriteError("problem form needs uncaptured top-level create fields")
+    extra = sorted(set(top) - {"subject", "description", "status", "priority", "impact"})
+    if extra:
+        # only the captured create body is sent; other default fields have
+        # captured update wires instead
+        raise ReviewedWriteError("problem create sends only subject, description, status, priority, impact, "
+                                 "requester and custom fields; uncaptured on create: " + ", ".join(extra)
+                                 + "; create first, then set them with `problems update`")
     if not all(key in top for key in ("subject", "description", "status", "priority", "impact")):
         raise ReviewedWriteError("subject, description, status, priority and impact must be selected from the form")
     payload = {**top, "custom_fields": custom, "email": person.email}

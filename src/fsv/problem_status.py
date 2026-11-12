@@ -1,6 +1,7 @@
 """Reviewed problem status transitions and captured closure preconditions."""
 from __future__ import annotations
 
+import datetime as dt
 import json
 from dataclasses import dataclass
 from typing import Any
@@ -93,6 +94,8 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
     before = record(client, target)
     if "status" not in before:
         raise ReviewedWriteError("current problem status unavailable")
+    if before.get("deleted") is True:
+        raise ReviewedWriteError(f"problem {target} is deleted (in trash); restore it before changing status")
     meta = load_meta(client, "problem", "edit", fresh=True, module_id=target)
     blockers = rules_gate(meta.rules, meta.spec, ["status"])
     if blockers:
@@ -127,6 +130,40 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
                       json.dumps(before, sort_keys=True), json.dumps(warnings))
 
 
+def status_readback(before: Any, after: Any, sent: Any) -> tuple[bool, str | None]:
+    """(verified, note). A problem workflow may rewrite the status right after
+    the write (for example to a monitoring status): a readback status that
+    differs from both the sent and the pre-write status is that rewrite, so
+    the write is verified with a note. An unchanged status is not verified."""
+    if after is None or isinstance(after, bool):
+        return False, None
+    if submitted_value_matches(after, sent):
+        return True, None
+    if before is not None and str(after) != str(before):
+        return True, f"status rewritten server-side to {after} after the write (workflow)"
+    return False, None
+
+
+def workflow_activity_note(client: Any, target: int, since: dt.datetime) -> str | None:
+    """A note when the first activity page shows a workflow that set the
+    status after ``since`` (a rewrite back to the pre-write status)."""
+    from fsv import service
+    from fsv.resources import PROBLEMS
+    try:
+        rows = service.get_activities(PROBLEMS, target, client=client)
+    except Exception:
+        return None
+    for row in rows if isinstance(rows, list) else []:
+        text = strip_html(str(row.get("content") or "")).casefold() if isinstance(row, dict) else ""
+        try:
+            at = dt.datetime.fromisoformat(str(row.get("created_at")).replace("Z", "+00:00"))
+        except (TypeError, ValueError):
+            continue
+        if at.tzinfo is not None and at >= since and "workflow" in text and "set status as" in text:
+            return "status rewritten server-side after the write (activity shows a workflow set it)"
+    return None
+
+
 def rejection(exc: Any) -> str:
     errors = exc.body.get("errors", []) if isinstance(exc.body, dict) else []
     for error in errors if isinstance(errors, list) else []:
@@ -138,14 +175,25 @@ def rejection(exc: Any) -> str:
             # the server proved these rules for this tenant: later preflights block on them
             remember_closure_rules([key for key in names if isinstance(desc, dict) and key in desc])
             return "violated_closure_rules: " + ("; ".join(details) or "closure prerequisites rejected; inspect analysis and solutions")
+    if exc.status == 405:
+        return "write rejected (HTTP 405): the problem is not editable (deleted or in trash?); no retry"
     return f"write rejected (HTTP {exc.status}); no retry"
 
 
 def send(plan: StatusPlan, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:
     def verify(_response: Any) -> dict[str, Any]:
         row = record(client, plan.target)
-        return {"problem_id": plan.target, "verified": "status" in row and submitted_value_matches(row["status"], plan.payload["status"]),
-                "readback": {k: row[k] for k in ("status", "planned_start_date", "planned_end_date") if k in row},
-                "unavailable": [k for k in ("planned_start_date", "planned_end_date") if k not in row]}
+        verified, note = status_readback(json.loads(plan.before_json).get("status"), row.get("status"),
+                                         plan.payload["status"])
+        if not verified and row.get("status") is not None:
+            note = workflow_activity_note(client, plan.target, since)
+            verified = note is not None
+        out = {"problem_id": plan.target, "verified": verified,
+               "readback": {k: row[k] for k in ("status", "planned_start_date", "planned_end_date") if k in row},
+               "unavailable": [k for k in ("planned_start_date", "planned_end_date") if k not in row]}
+        if note:
+            out["verified_with_note"] = note
+        return out
+    since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=2)  # tolerate clock skew
     return execute(plan, client, reviewed_hash=reviewed_hash,
                    rebuild=lambda: build_plan(client, plan.target, plan.label), verify=verify, rejection=rejection)

@@ -513,6 +513,17 @@ fsv problems columns list -h
 fsv problems columns set -h
 ```
 
+`problems update --set` nests custom fields in `custom_fields` (only the
+changed keys) and refuses a deleted (trashed) problem before sending; the
+server answers 405 there. `problems status` reads back the status: a
+workflow that moves it on right after the write (or back, when the first
+activity page shows the workflow) is `verified` with `verified_with_note`.
+`problems create` sends only the captured create keys and names any other
+top-level field it would need; set those with `problems update` afterwards.
+An `update --dry-run` on a cached schema makes one GET of the form fields
+and warns (`warnings`) when the server has choices the cache lacks; run
+`fsv <module> fields --refresh` then.
+
 ### attachments
 
 ```bash

@@ -759,10 +759,13 @@ def _confirm_terminal_status(res: Resource, cid: int, sch: dict[str, Any], statu
 
 
 def _emit_dry_run(res: Resource, cid: int, body: dict[str, Any], action: str = "update",
-                  risks: list[str] | None = None, display_id: str | None = None) -> None:
+                  risks: list[str] | None = None, display_id: str | None = None,
+                  warnings: list[str] | None = None) -> None:
     out: dict[str, Any] = {"dry_run": True, "action": action, "id": display_id or format_id({"id": cid}, res), "body": body}
     if risks:
         out["requires_confirmation"] = risks
+    if warnings:
+        out["warnings"] = warnings
     emit_json(out)
 
 
@@ -2654,6 +2657,18 @@ def update_resource(
     cid = _cid(id_, res)
     c = _client()
     sch = _api(lambda: schema_mod.load(res, c))
+    stale_warning = schema_mod.freshness_warning(res, c, sch) if dry_run else None
+    if stale_warning:
+        err.print(f"[yellow]warning[/yellow]: {stale_warning}")
+    if res.name == "problems":
+        # PUT on a deleted (trashed) problem answers 405; refuse before sending
+        try:
+            row = c.int_get(f"{res.api_path}/{cid}")
+        except Exception:  # advisory: the server still refuses (405) a deleted record
+            row = None
+        row = row.get(res.item_key, row) if isinstance(row, dict) else None
+        if isinstance(row, dict) and row.get("deleted") is True:
+            _err(f"{format_id({'id': cid}, res)} is deleted (in trash); restore it before updating")
     body: dict[str, Any] = {}
     if status is not None:
         body["status"] = _resolve_update_choice(sch, "status", status)
@@ -2669,11 +2684,13 @@ def update_resource(
         field_text, _, raw_value = expr.partition("=")
         field = _find_schema_field(sch, field_text.strip())
         k, v = _resolve_set_field(c, sch, field_text.strip(), raw_value)
-        # The ticket form metadata distinguishes custom fields from default
-        # fields; ticket create uses the same custom_fields envelope.
+        # The form metadata distinguishes custom fields from default fields;
+        # tickets and problems nest custom fields in custom_fields (a
+        # top-level custom key is rejected with 400). Only changed keys are
+        # sent: the problem web form sends null for unchanged ones.
         ftype = str((field or {}).get("field_type") or "")
         is_default = bool((field or {}).get("default_field", ftype.startswith("default_")))
-        if res.name == "tickets" and not is_default:
+        if res.name in ("tickets", "problems") and not is_default:
             body.setdefault("custom_fields", {})[k] = v
         else:
             body[k] = v
@@ -2693,10 +2710,20 @@ def update_resource(
                 display_id = id_.strip().upper()
             else:
                 display_id = f"tickets/{cid}"
-        _emit_dry_run(res, cid, body, risks=risks, display_id=display_id)
+        _emit_dry_run(res, cid, body, risks=risks, display_id=display_id,
+                      warnings=[stale_warning] if stale_warning else None)
         return
     _confirm_writes(risks, format_id({"id": cid}, res), yes, no_input)
-    item = _api(lambda: service.update_item(res, cid, body, client=c))
+
+    def _update() -> dict[str, Any]:
+        try:
+            return service.update_item(res, cid, body, client=c)
+        except APIError as exc:
+            if exc.status == 405:
+                raise APIError(405, f"{format_id({'id': cid}, res)} is not editable (deleted or in trash?); "
+                                    "nothing was changed", "PUT", f"{res.api_path}/{cid}") from None
+            raise
+    item = _api(_update)
     if json_out:
         emit_json(item)
         return

@@ -94,6 +94,55 @@ def _fetch_schema(c: Client, res: Resource) -> list[dict[str, Any]]:
     return int_fields
 
 
+def _choice_labels(choices: Any) -> set[str]:
+    """Every choice value/label in a field's choices (nested included)."""
+    out: set[str] = set()
+    if isinstance(choices, dict):
+        for k, v in choices.items():
+            out.add(str(k))
+            if isinstance(v, (dict, list)):
+                out |= _choice_labels(v)
+    elif isinstance(choices, list):
+        for item in choices:
+            if isinstance(item, dict):
+                for key in ("value", "label", "name"):
+                    if item.get(key) not in (None, ""):
+                        out.add(str(item[key]))
+                for key in ("nested_options", "choices"):
+                    if isinstance(item.get(key), (dict, list)):
+                        out |= _choice_labels(item[key])
+            elif isinstance(item, (list, tuple)):
+                out |= {str(x) for x in item if isinstance(x, (str, int)) and not isinstance(x, bool)}
+            elif item is not None:
+                out.add(str(item))
+    return out
+
+
+def freshness_warning(res: Resource, client: Any, schema: dict[str, Any]) -> str | None:
+    """One GET of the form fields compared with a cached schema: a warning
+    naming the fields whose choices the server has but the cache lacks (a
+    tenant added a choice after caching), else None. Errors are ignored:
+    this check is advisory and never blocks."""
+    if not isinstance(schema, dict) or schema.get("source") != "cache":
+        return None
+    try:
+        raw = client.int_get(res.form_fields_path)
+        fresh = raw.get(res.form_fields_key) if isinstance(raw, dict) else None
+    except Exception:
+        return None
+    if not isinstance(fresh, list):
+        return None
+    cached = {f.get("name"): _choice_labels(f.get("choices")) for f in schema.get("fields") or []
+              if isinstance(f, dict)}
+    changed = [str(f.get("name")) for f in fresh if isinstance(f, dict) and f.get("name") in cached
+               and _choice_labels(f.get("choices")) - cached[f.get("name")]]
+    if not changed:
+        return None
+    shown = ", ".join(changed[:5]) + (" ..." if len(changed) > 5 else "")
+    return (f"cached {res.name} schema is out of date: the server has new choices for {shown}; "
+            f"run `fsv {res.name} fields --refresh` (or `fsv cache clear schema`) and review again")
+
+
 def _unwrap(d: dict[str, Any]) -> dict[str, Any]:
     """Extract {saved_at, fields} from an envelope or old-format cache.
 

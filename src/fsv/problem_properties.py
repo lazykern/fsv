@@ -62,6 +62,8 @@ def build_plan(client: Any, target: str | int, *, planned_start: str | None = No
     if not payload:
         raise ValueError("specify --planned-start, --planned-end or --planned-effort")
     before_row = record(client, target)
+    if before_row.get("deleted") is True:
+        raise ReviewedWriteError(f"problem {target} is deleted (in trash); restore it before updating")
     start = payload.get("planned_start_date", before_row.get("planned_start_date"))
     end = payload.get("planned_end_date", before_row.get("planned_end_date"))
     if isinstance(start, str) and isinstance(end, str) and _instant(end) and _instant(start) \
