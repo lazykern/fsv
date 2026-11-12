@@ -25,8 +25,98 @@ pub const ACTION: &str = "ticket_transition";
 
 const WARNING: &str = "Resolution save and transition are separate writes, not atomic. Unknown or partial outcomes must not be resent. Tenant workflows may notify people.";
 const ACK_WARNING: &str = " Acknowledged blocking rule messages are tenant policy: the web form blocks submit on them, and the server or a workflow may still reject or revert the transition.";
-const UNKNOWN: &str =
-    "transition outcome unknown or partial; inspect ticket and journal; do not resend";
+/// How far [`send`] got before a failure (`_partial_report`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Phase {
+    Start,
+    NoteSent,
+    NoteSaved,
+    StatusSent,
+}
+
+/// `_status_text`: the readback status (and name) for a partial report.
+fn status_text(row: Option<&Map<String, Value>>) -> String {
+    let Some(row) = row else {
+        return "status unavailable on readback".into();
+    };
+    let Some(status) = row.get("status").filter(|s| !s.is_null()) else {
+        return "status unavailable on readback".into();
+    };
+    let name = match row.get("status_name") {
+        Some(Value::String(n)) if !n.is_empty() => format!(" {n}"),
+        _ => String::new(),
+    };
+    format!("readback status {}{name}", fsv_py::py_str(status))
+}
+
+/// `_next_step`: the readback-based next step after a held status.
+fn next_step(plan: &LifecyclePlan) -> String {
+    let t = plan.target;
+    format!(
+        "Next: inspect `fsv tickets get {t}` and `fsv tickets activity {t}` for the workflow/\
+         approval/rule entry; once it no longer holds the ticket, review the status alone with \
+         `fsv tickets status {t} {} --dry-run` (the note is already saved). Do not resend this plan.",
+        plan.status
+    )
+}
+
+/// `_partial_report`: the explicit outcome of a failure between or after
+/// the two transition writes. Reads the ticket once more; a failed read
+/// reports the status as unavailable.
+fn partial_report(c: &dyn Api, plan: &LifecyclePlan, phase: Phase, exc: &Error) -> String {
+    let row = record(c, plan.target).ok();
+    let status = status_text(row.as_ref());
+    let mut reason = match exc {
+        Error::Exit { message, .. } => message.clone(),
+        _ => String::new(),
+    };
+    if let Some(api) = exc.as_api().filter(|a| (400..500).contains(&a.status)) {
+        let msg = fsv_core::error::server_message(&api.body, 240);
+        reason = if msg.is_empty() {
+            format!("HTTP {}", api.status)
+        } else {
+            format!("HTTP {}: {msg}", api.status)
+        };
+    }
+    match phase {
+        Phase::NoteSaved => format!(
+            "resolution note saved and verified; status unchanged ({status}): transition not attempted because {}. {}",
+            if reason.is_empty() {
+                "the ticket changed after the note save"
+            } else {
+                &reason
+            },
+            next_step(plan)
+        ),
+        Phase::StatusSent if plan.note_html.is_some() => {
+            let what = if reason.is_empty() {
+                "the status write outcome is unknown".to_string()
+            } else {
+                format!("the status write was rejected ({reason})")
+            };
+            format!(
+                "resolution note saved; {what}; {status}. {}",
+                next_step(plan)
+            )
+        }
+        Phase::NoteSent => format!(
+            "resolution note save outcome unknown{}; transition not attempted; {status}. Inspect the ticket and journal; do not resend this plan.",
+            if reason.is_empty() {
+                String::new()
+            } else {
+                format!(" ({reason})")
+            }
+        ),
+        _ => format!(
+            "transition outcome unknown or partial{}; {status}; inspect ticket and journal; do not resend",
+            if reason.is_empty() {
+                String::new()
+            } else {
+                format!(" ({reason})")
+            }
+        ),
+    }
+}
 
 fn dumps(v: &Value) -> String {
     fsv_py::Dumps::default().sort_keys(true).dump(v)
@@ -536,12 +626,16 @@ pub fn send(
             &json!(html),
         )
     };
-    let attempt = || -> Result<(bool, Vec<String>)> {
+    // The note and the status are separate writes, and tenant workflows or
+    // rules can act between them; the phase names what happened.
+    let phase = std::cell::Cell::new(Phase::Start);
+    let attempt = || -> Result<(bool, Vec<String>, Map<String, Value>)> {
         if let Some(html) = &plan.note_html {
             let baseline = record(c, plan.target)?;
             if Some(json!(snapshot_hash(&Value::Object(baseline.clone()))?)) != plan.record_hash() {
                 return Err(refused("ticket changed before note save"));
             }
+            phase.set(Phase::NoteSent);
             put(&json!({"resolution_notes": html,
                         "br_validation_excludes": payload.get("br_validation_excludes")}))?;
             let after = record(c, plan.target)?;
@@ -550,17 +644,22 @@ pub fn send(
                     "resolution save was not verified; transition not attempted",
                 ));
             }
+            phase.set(Phase::NoteSaved);
             // A saved note may update derived fields, but must not silently
             // change routing, status, or existing answers.
-            for key in ["status", "group_id", "responder_id", "custom_fields"] {
-                let unchanged = after
-                    .get(key)
-                    .is_some_and(|v| py_equal(v, baseline.get(key).unwrap_or(&Value::Null)));
-                if !unchanged {
-                    return Err(refused(
-                        "ticket changed during note save; transition not attempted",
-                    ));
-                }
+            let changed: Vec<&str> = ["status", "group_id", "responder_id", "custom_fields"]
+                .into_iter()
+                .filter(|key| {
+                    !after
+                        .get(*key)
+                        .is_some_and(|v| py_equal(v, baseline.get(*key).unwrap_or(&Value::Null)))
+                })
+                .collect();
+            if !changed.is_empty() {
+                return Err(refused(format!(
+                    "the ticket changed during the note save ({}), typically a tenant workflow or rule",
+                    changed.join(", ")
+                )));
             }
             let (fresh, fresh_context, _, _) = context_ack(
                 c,
@@ -579,26 +678,38 @@ pub fn send(
             if !py_equal(&Value::Object(fresh), &Value::Object(payload.clone()))
                 || fresh_meta != plan.metadata_hash()
             {
-                return Err(refused("transition requirements changed after note save"));
+                return Err(refused(
+                    "transition requirements changed after the note save",
+                ));
             }
         }
+        phase.set(Phase::StatusSent);
         put(&Value::Object(payload.clone()))?;
         let after = record(c, plan.target)?;
-        Ok(readback(
-            Some(&before),
-            &after,
-            &payload,
-            plan.note_html.as_deref(),
-        ))
+        let (verified, notes) =
+            readback(Some(&before), &after, &payload, plan.note_html.as_deref());
+        Ok((verified, notes, after))
     };
     let notes = match attempt() {
-        Err(_) => return Err(refused(UNKNOWN)),
-        Ok((false, _)) => {
+        Err(e) => return Err(refused(partial_report(c, plan, phase.get(), &e))),
+        Ok((false, notes, after)) => {
+            if plan.note_html.is_some()
+                && notes
+                    .first()
+                    .is_some_and(|n| n.starts_with("status is still"))
+            {
+                return Err(refused(format!(
+                    "resolution note saved; status unchanged ({}): the status write was accepted but \
+                     the ticket stayed put, held by a tenant workflow or rule. {}",
+                    status_text(Some(&after)),
+                    next_step(plan)
+                )));
+            }
             return Err(refused(
                 "transition readback mismatch; outcome unknown; do not resend",
             ));
         }
-        Ok((true, notes)) => notes,
+        Ok((true, notes, _)) => notes,
     };
     journal.record_plan("done", &hash, ACTION, Some(&target), None);
     let mut out = json!({"status": "submitted", "ticket_id": plan.target, "status_label": plan.status,

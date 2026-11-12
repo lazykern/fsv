@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "7acec015693dd0242d358f06104c7e997ade07a3",
+  "commit": "8a466b59772906bd55b476c597b0bcf35319baab",
   "dirty": false
  },
  "cases": {
@@ -32,7 +32,8 @@
       "answers_json": "{\"summary\": \"Globex fix\"}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"summary\": \"Globex fix\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": "<div>Acme fix &lt;safe&gt;</div>"
+      "note_html": "<div>Acme fix &lt;safe&gt;</div>",
+      "rule_warnings": []
      },
      "hash": "7959ae7f2c8386239749aa3b3a87a4a2d0af1d98cc1fc36f1f4ab3af150e299e",
      "review": {
@@ -156,7 +157,8 @@
       "answers_json": "{\"summary\": \"Globex fix\"}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"summary\": \"Globex fix\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": "<div>Acme fix &lt;safe&gt;</div>"
+      "note_html": "<div>Acme fix &lt;safe&gt;</div>",
+      "rule_warnings": []
      },
      "hash": "306bfd3855a766ff2a668257fb2c14d11fefe4e5f932222612ea95eb2439056a",
      "review": {
@@ -277,7 +279,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 89}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"c44ecc4638ab37e1e25ad281687ca0196cb7c49b1e65a2b2a3b9f75ea23ec181\"}",
-      "note_html": null
+      "note_html": null,
+      "rule_warnings": []
      },
      "hash": "56122c6a040423a861db945baf2f8788360476253c70201f5264ab6aa17951ca",
      "review": {
@@ -366,7 +369,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"c44ecc4638ab37e1e25ad281687ca0196cb7c49b1e65a2b2a3b9f75ea23ec181\"}",
-      "note_html": null
+      "note_html": null,
+      "rule_warnings": []
      },
      "hash": "ed60f129be13e655d1f2249fd2f218e3ca66b9f0ed24cae0053759b7878a1455",
      "review": {
@@ -457,7 +461,8 @@
       "answers_json": "{\"reason\": \"Waiting for self\"}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting for self\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"c44ecc4638ab37e1e25ad281687ca0196cb7c49b1e65a2b2a3b9f75ea23ec181\"}",
-      "note_html": null
+      "note_html": null,
+      "rule_warnings": []
      },
      "hash": "fcfe63ae54dcf180ad5c8cbd8a33da8bb55afd7874138338b5e6312cc651f518",
      "review": {
@@ -811,7 +816,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 89}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"763272c2473365fb604b52c1b6509ca0b02ca7f68d9c27d78d8e2256111d90c6\"}",
-      "note_html": null
+      "note_html": null,
+      "rule_warnings": []
      },
      "hash": "18cc842d9251d5c16374b328a19fd88e35fb9dd2158032c5b49a080697d289f4",
      "review": {
@@ -900,7 +906,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": "<div>fix</div>"
+      "note_html": "<div>fix</div>",
+      "rule_warnings": []
      },
      "hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
      "review": {
@@ -934,7 +941,7 @@
     {
      "error": {
       "type": "ReviewedWriteError",
-      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+      "msg": "resolution note save outcome unknown (resolution save was not verified; transition not attempted); transition not attempted; readback status 31. Inspect the ticket and journal; do not resend this plan."
      },
      "writes": 1
     },
@@ -1003,7 +1010,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": "<div>fix</div>"
+      "note_html": "<div>fix</div>",
+      "rule_warnings": []
      },
      "hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
      "review": {
@@ -1037,7 +1045,7 @@
     {
      "error": {
       "type": "ReviewedWriteError",
-      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+      "msg": "resolution note saved and verified; status unchanged (readback status 31): transition not attempted because the ticket changed during the note save (group_id), typically a tenant workflow or rule. Next: inspect `fsv tickets get 123` and `fsv tickets activity 123` for the workflow/approval/rule entry; once it no longer holds the ticket, review the status alone with `fsv tickets status 123 Resolved --dry-run` (the note is already saved). Do not resend this plan."
      },
      "writes": 1
     },
@@ -1106,7 +1114,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": "<div>fix</div>"
+      "note_html": "<div>fix</div>",
+      "rule_warnings": []
      },
      "hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
      "review": {
@@ -1140,7 +1149,7 @@
     {
      "error": {
       "type": "ReviewedWriteError",
-      "msg": "transition readback mismatch; outcome unknown; do not resend"
+      "msg": "resolution note saved; status unchanged (readback status 31): the status write was accepted but the ticket stayed put, held by a tenant workflow or rule. Next: inspect `fsv tickets get 123` and `fsv tickets activity 123` for the workflow/approval/rule entry; once it no longer holds the ticket, review the status alone with `fsv tickets status 123 Resolved --dry-run` (the note is already saved). Do not resend this plan."
      },
      "writes": 2
     },
@@ -1218,7 +1227,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": "<div>fix</div>"
+      "note_html": "<div>fix</div>",
+      "rule_warnings": []
      },
      "hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
      "review": {
@@ -1252,7 +1262,7 @@
     {
      "error": {
       "type": "ReviewedWriteError",
-      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+      "msg": "resolution note save outcome unknown (HTTP 403: synthetic rejection); transition not attempted; readback status 31. Inspect the ticket and journal; do not resend this plan."
      },
      "writes": 1
     },
@@ -1315,7 +1325,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": "<div>fix</div>"
+      "note_html": "<div>fix</div>",
+      "rule_warnings": []
      },
      "hash": "d08b3bc14a12d4a4152b31c27d91283e250d04cc8d1fbb35439e03bae4ff7653",
      "review": {
@@ -1349,7 +1360,7 @@
     {
      "error": {
       "type": "ReviewedWriteError",
-      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+      "msg": "resolution note saved; the status write was rejected (HTTP 403: synthetic rejection); readback status 31. Next: inspect `fsv tickets get 123` and `fsv tickets activity 123` for the workflow/approval/rule entry; once it no longer holds the ticket, review the status alone with `fsv tickets status 123 Resolved --dry-run` (the note is already saved). Do not resend this plan."
      },
      "writes": 2
     },
@@ -1457,7 +1468,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": null
+      "note_html": null,
+      "rule_warnings": []
      },
      "hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
      "review": {
@@ -1571,7 +1583,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": null
+      "note_html": null,
+      "rule_warnings": []
      },
      "hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
      "review": {
@@ -1597,7 +1610,7 @@
     {
      "error": {
       "type": "ReviewedWriteError",
-      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+      "msg": "transition outcome unknown or partial (HTTP 403: synthetic failure); readback status 31; inspect ticket and journal; do not resend"
      },
      "writes": 1
     },
@@ -1661,7 +1674,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": null
+      "note_html": null,
+      "rule_warnings": []
      },
      "hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
      "review": {
@@ -1687,7 +1701,7 @@
     {
      "error": {
       "type": "ReviewedWriteError",
-      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+      "msg": "transition outcome unknown or partial (HTTP 429: synthetic failure); readback status 31; inspect ticket and journal; do not resend"
      },
      "writes": 1
     },
@@ -1751,7 +1765,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": null
+      "note_html": null,
+      "rule_warnings": []
      },
      "hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
      "review": {
@@ -1777,7 +1792,7 @@
     {
      "error": {
       "type": "ReviewedWriteError",
-      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+      "msg": "transition outcome unknown or partial; readback status 31; inspect ticket and journal; do not resend"
      },
      "writes": 1
     },
@@ -1841,7 +1856,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": null
+      "note_html": null,
+      "rule_warnings": []
      },
      "hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
      "review": {
@@ -1867,7 +1883,7 @@
     {
      "error": {
       "type": "ReviewedWriteError",
-      "msg": "transition outcome unknown or partial; inspect ticket and journal; do not resend"
+      "msg": "transition outcome unknown or partial; readback status 31; inspect ticket and journal; do not resend"
      },
      "writes": 1
     },
@@ -1937,7 +1953,8 @@
       "answers_json": "{\"reason\": \"Waiting\"}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
       "context_hash": "{\"metadata\": \"85b128bf8ef1ae5642c983ba0fb3e2145d568052dc66a80fd81a0c37f1e2b45c\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": null
+      "note_html": null,
+      "rule_warnings": []
      },
      "hash": "9c67100e80b49562bde769a41deeb94720fab9c691c430ceaeb0ea03d35707cf",
      "review": {
@@ -2008,7 +2025,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltcInN1bW1hcnlfOTAwMDAwNzc3XCJdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
       "context_hash": "{\"metadata\": \"99c11d14895dfd45eea931c8c5f2ccf879bf220b05b063ee615adbbb7e6096b9\", \"record\": \"08f46d260e84c5a2a17f5d95ddaf19cd014fa82ebe5105e189481e6e8bab49d6\"}",
-      "note_html": "<div>fix</div>"
+      "note_html": "<div>fix</div>",
+      "rule_warnings": []
      },
      "hash": "cf2e3ef38ffd4f96377cd5bdd7eec9b57861928b19ca957ce0ba95c39a00ccf8",
      "review": {
@@ -2088,7 +2106,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 62}",
       "context_hash": "{\"metadata\": \"3ca4d2c2783f50d0309d37747d7299acc782c688be8fbee5dddf09fb06b9e94e\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": "<div>fix</div>"
+      "note_html": "<div>fix</div>",
+      "rule_warnings": []
      },
      "hash": "7f586de47f5d3b05009da003d0e258d053723c5cf4ac3d942070cd0eae633ec6",
      "review": {
@@ -2218,7 +2237,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": null
+      "note_html": null,
+      "rule_warnings": []
      },
      "hash": "e3a328d6b6eb57e2ef70b5dd9ac9f14e9ce39d2a734ac233e90832393e4436ed",
      "review": {
@@ -2332,7 +2352,8 @@
       "answers_json": "{}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"group_id\": null, \"responder_id\": 9000001234, \"status\": 31}",
       "context_hash": "{\"metadata\": \"4f778cd08b4d4eb455bda2b7dc4a04eb3c7fac07945eab8888854b7e9ce4f182\", \"record\": \"9dd9d48ecc617b15a7be23100588dbecbe303ee4db899f122decff6131783b46\"}",
-      "note_html": null
+      "note_html": null,
+      "rule_warnings": []
      },
      "hash": "d7d8f2e574471baa52915f384add40d1bfc6f17074788ddd24787cca26f47a2e",
      "review": {
@@ -2431,7 +2452,8 @@
       "answers_json": "{\"reason\": \"Waiting for self\"}",
       "payload_json": "{\"br_validation_excludes\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=\", \"custom_fields\": {\"reason\": \"Waiting for self\"}, \"group_id\": null, \"responder_id\": 9000001234, \"status\": 47}",
       "context_hash": "{\"metadata\": \"c9b1662d3fe82be44d834ca5fdf95370b807ef7a88cfa7a21a3a8cde29102181\", \"record\": \"4df43106bd0e3c5d562c4f6e9bdbbb2c773731340d5c57104692fa4299ac0bdb\"}",
-      "note_html": null
+      "note_html": null,
+      "rule_warnings": []
      },
      "hash": "d720718763efc664dc4112220f4064b8f07f137fb2ff811808868186504d9442",
      "review": {

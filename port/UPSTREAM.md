@@ -3608,4 +3608,47 @@ CLI follow-ups:
   `build_plan_assigned`, so delete plans bind `status: null` the way
   Python does.
 
-Still not triaged: commits after `7530df6`.
+## Ledger: `8a466b5` (library side)
+
+Triaged against `git show 8a466b5`
+(`8a466b59772906bd55b476c597b0bcf35319baab`). `ticket_lifecycle::send`
+tracks the phase (`start`, `note_sent`, `note_saved`, `status_sent`).
+A failure now reads the ticket once more and reports exactly what
+happened (`_partial_report`):
+
+- `note_sent`: `resolution note save outcome unknown ({reason});
+  transition not attempted; {status}. ...`
+- `note_saved`: `resolution note saved and verified; status unchanged
+  ({status}): transition not attempted because {reason}. Next: ...`
+- `status_sent` with a note: `resolution note saved; the status write
+  was rejected ({reason}); {status}. Next: ...`, or `the status write
+  outcome is unknown`
+- otherwise: `transition outcome unknown or partial ({reason});
+  {status}; ...`
+
+The reason is the refusal text, or `HTTP {s}: {server_message}` for a
+4xx. `{status}` is `readback status N [name]`, or `status unavailable
+on readback`. A note save that changes routing names the keys:
+`the ticket changed during the note save (group_id), typically a tenant
+workflow or rule`. When a resolve readback finds `status is still N`, it
+reports `resolution note saved; status unchanged (...): the status write
+was accepted but the ticket stayed put, held by a tenant workflow or
+rule. Next: ...`. The plan is never replayed.
+
+Both `ticket_lifecycle` oracles are restamped at `8a466b5`. The base
+oracle's 11 partial and transport cases carry the new texts, and plans
+now record `rule_warnings`. The Rust fake 4xx body now matches the
+generator (`synthetic failure`).
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `8a466b5`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `8a466b5` | 11-13 05:21 | fix: explicit partial outcome for ticket resolve when a workflow holds status | ported | fsv-api (`ticket_lifecycle`) |
+
+No CLI follow-up: the CLI prints the refusal text. The non-resolve
+readback mismatch keeps `transition readback mismatch; outcome unknown;
+do not resend`, which fsv-cli `tickets_close_readback_mismatch` pins.
+The `({notes})` form is held on `lib/upstream-next2-cli-strings`.
+
+Still not triaged: commits after `8a466b5`.

@@ -140,9 +140,11 @@ fn api(world: Arc<Mutex<World>>, tenant: &str) -> FnApi {
                 match &flags["put_error"] {
                     Value::String(_) => return Err(Error::other("offline disconnect")),
                     Value::Number(n) => {
-                        return Err(
-                            ApiError::new(n.as_u64().unwrap() as u16, json!("synthetic")).into(),
-                        );
+                        return Err(ApiError::new(
+                            n.as_u64().unwrap() as u16,
+                            json!("synthetic failure"),
+                        )
+                        .into());
                     }
                     _ => {}
                 }
