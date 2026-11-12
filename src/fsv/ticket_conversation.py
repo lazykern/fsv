@@ -140,10 +140,21 @@ class ConversationPlan:
                 "warning": "Replies and forwards send mail; notes may trigger tenant workflows. Explicit sender addresses are user-asserted, not verified mailbox configuration."}
 
 
+def forward_source(client: Any, ticket_id: int, conversation_id: int) -> str:
+    from fsv.watchers import positive_id
+    conversation_id = positive_id(conversation_id)
+    rows, meta, missing = load_conversations(client, ticket_id, all_pages=True)
+    matches = [r for r in rows if str(r.get("id")) == str(conversation_id)]
+    if missing or meta.get("partial") or len(matches) != 1:
+        raise ConversationError("exact forward source unavailable in complete ticket history")
+    return journal.snapshot_hash(matches[0]) or ""
+
+
 def build_plan(client: Any, ticket_id: str | int, body: str, *, kind: str = "reply",
                cc: tuple[str, ...] = (), public: bool = False, notify: tuple[str, ...] = (),
                body_format: Literal["plain", "html"] = "plain", set_status: str | None = None,
-               bcc: tuple[str, ...] = (), sender: str | None = None) -> ConversationPlan:
+               bcc: tuple[str, ...] = (), sender: str | None = None,
+               conversation_id: int | None = None) -> ConversationPlan:
     from fsv.ticket_notes import _EMAIL
     if kind not in ("reply", "note", "forward"):
         raise ValueError("invalid conversation kind")
@@ -178,6 +189,11 @@ def build_plan(client: Any, ticket_id: str | int, body: str, *, kind: str = "rep
     else:
         payload = note.payload
     record_hash = None
+    if conversation_id is not None:
+        if kind != "forward":
+            raise ValueError("conversation selector is only supported for forward")
+        record_hash = forward_source(client, note.ticket_id, conversation_id)
+        payload["conversation_id"] = conversation_id
     if set_status is not None:
         payload["helpdesk_ticket"], record_hash = status_fields(client, note.ticket_id, set_status)
     return ConversationPlan(kind, note.ticket_id, config.DOMAIN,
@@ -197,6 +213,9 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
     events = [r for r in journal.read() if r.get("kind") == f"plan:{action}" and r.get("plan") == plan.hash]
     if events and events[-1].get("event") in ("started", "done"):
         raise ConversationError("conversation was sent or outcome unknown; inspect ticket and journal before retry")
+    if plan.kind == "forward" and "conversation_id" in payload:
+        if forward_source(client, plan.ticket_id, payload["conversation_id"]) != plan.record_hash:
+            raise ConversationError("forward source changed; review again")
     if plan.canned_id is not None:
         from fsv.canned import freshen
         freshen(plan, client)

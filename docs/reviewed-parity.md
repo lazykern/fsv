@@ -1,5 +1,16 @@
 # Reviewed operations and metadata freshness
 
+## Exact-conversation forward
+
+`fsv tickets forward INC-123 'Acme update' --conversation 901 --to user@example.com
+--sender support@example.com --dry-run --json` reviews the captured ticket forward
+wire with an integer `conversation_id`. The source must exist exactly once in a
+complete history; source edits invalidate the review. Send using
+`--yes --expect-plan FULL_HASH`. Source selection is bound to the review; returned
+conversations do not expose source identity, so readback verifies delivery fields,
+not an independently returned source link. No attachment/CC/BCC/status combinations.
+
+
 ## Accepted initial attachment scope
 
 `tickets reply`, `tickets add-note` and `tickets create --attach FILE --max-bytes N`

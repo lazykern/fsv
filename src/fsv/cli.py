@@ -4669,10 +4669,11 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 typer.echo(str(exc), err=True)
                 raise typer.Exit(2) from None
 
-        @sub.command("forward", help="Review and forward a whole ticket (not an individual conversation).")
+        @sub.command("forward", help="Review a whole-ticket or exact-conversation forward.")
         def forward(
             id_: str = typer.Argument(..., metavar="ID"),
             body: str = typer.Argument(...),
+            conversation: Optional[int] = typer.Option(None, "--conversation", min=1, help="exact source conversation ID in this ticket"),
             to: List[str] = typer.Option(..., "--to", help="plain recipient email (repeatable)"),
             sender: str = typer.Option(..., "--sender", help="configured support mailbox; not inferred"),
             output: ReviewOutput = typer.Option(ReviewOutput.json, "--output", "-o", help="output format (JSON only)"),
@@ -4686,7 +4687,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             try:
                 c = _client()
                 recipients(c, to)
-                plan = build_plan(c, id_, body, kind="forward", notify=tuple(to), sender=sender)
+                plan = build_plan(c, id_, body, kind="forward", notify=tuple(to), sender=sender, conversation_id=conversation)
                 if dry_run:
                     typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
                     return
