@@ -2894,4 +2894,30 @@ tenants acme and globex. Each must exit 2 with no writes:
 - A server that ignores `status=Closed` / `status=Gelöst` prints
   "contradicts the predicate".
 
-Still not triaged: `97deaf9` and later.
+## Ledger: `97deaf9` (library side)
+
+Triaged against `git show 97deaf9`
+(`97deaf946471427d9354c82d1503f61c67646da5`). A stamped generator gives
+21 `exact_ticket_type` records. All of them match. The
+change-relationship oracle regenerates unchanged, since `ticket_type`
+alone still proves an incident.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `97deaf9`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `97deaf9` | 11-13 02:01 | Prove caused-incident targets from the native exact ticket type | ported | fsv-api `ticket_kind`, `change_relationships` |
+
+New `ticket_kind::exact_ticket_type` reads the native `type` and the
+echo `ticket_type`. Null values are ignored. Every other present value
+must be a nonempty string. Underscores become spaces, whitespace is
+collapsed and the result is casefolded. All values must agree. The
+refusals are "exact ticket type unavailable" and "conflicting exact
+ticket type representations". The change-relationship caused-incident
+add uses it. The Rust port of
+`test_caused_incident_type_proof_uses_native_exact_read` covers its
+eight records.
+
+No CLI follow-up.
+
+Still not triaged: `2b81a76` and later.
