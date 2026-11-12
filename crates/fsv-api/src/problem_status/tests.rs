@@ -77,6 +77,13 @@ fn api(state: Arc<Mutex<Value>>) -> FnApi {
             return Ok(json!({"problem_fields": s["fields"]}));
         }
         if path.ends_with("business_rules") {
+            if let Some(status) = s
+                .get("rules_status")
+                .and_then(Value::as_u64)
+                .filter(|n| *n > 0)
+            {
+                return Err(ApiError::new(status as u16, json!({"error": "synthetic"})).into());
+            }
             return Ok(json!({"business_rules": s["rules"]}));
         }
         if path.ends_with("planning-fields") {
@@ -120,7 +127,7 @@ fn cases_match_python() {
     let oracle: Value =
         serde_json::from_str(include_str!("../testdata/problem_status_oracle.json")).unwrap();
     let cases = oracle.as_object().unwrap();
-    assert_eq!(cases.len(), 38);
+    assert_eq!(cases.len(), 40);
     for (name, case) in cases {
         if name == "_python" {
             continue;
@@ -153,7 +160,8 @@ fn cases_match_python() {
                                 let out = json!({"plan": {"action": w.action, "target": w.target,
                                     "tenant": w.tenant, "method": w.method, "path": w.path,
                                     "payload_json": w.payload_json, "context_hash": w.context_hash,
-                                    "label": p.label, "before_json": p.before_json},
+                                    "label": p.label, "before_json": p.before_json,
+                                    "warnings_json": p.warnings_json},
                                     "hash": p.hash(), "review": p.review()});
                                 plan = Some(p);
                                 out

@@ -1469,6 +1469,7 @@ impl Backend for LiveBackend {
         let child = fsv_api::problem_workflows::ProblemPlan {
             plan: write,
             inputs_json: str_at(&plan.raw, "inputs_json"),
+            warnings_json: "[]".into(),
         };
         Ok(fsv_api::problem_workflows::send(
             &child,

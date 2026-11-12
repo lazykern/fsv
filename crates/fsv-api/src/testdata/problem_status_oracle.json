@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "0719e3325c1252974c61081872b91b2967b760e5",
+  "commit": "60ac0a7013ff0d939b6eebc09b8d8966f81ab3d5",
   "dirty": false
  },
  "transition_Open_41": {
@@ -28,7 +28,8 @@
      "payload_json": "{\"status\": 41}",
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Open",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "4540c8d3324fef7b38032ec732e123a00fe011698af4612647028e884a16d6d9",
     "review": {
@@ -112,7 +113,8 @@
      "payload_json": "{\"status\": 42}",
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "In Progress",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "c62635718ab4a2e842119882c0735148c7a089d8ae98f11eb1b3bb3ea51b545b",
     "review": {
@@ -196,7 +198,8 @@
      "payload_json": "{\"status\": 43}",
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -280,7 +283,8 @@
      "payload_json": "{\"status\": 44}",
      "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
     "review": {
@@ -413,7 +417,8 @@
      "payload_json": "{\"status\": 44}",
      "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
     "review": {
@@ -493,7 +498,8 @@
      "payload_json": "{\"status\": 43}",
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -578,7 +584,8 @@
      "payload_json": "{\"status\": 43}",
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -663,7 +670,8 @@
      "payload_json": "{\"status\": 43}",
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -748,7 +756,8 @@
      "payload_json": "{\"status\": 43}",
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -843,7 +852,8 @@
      "payload_json": "{\"status\": 44}",
      "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
     "review": {
@@ -918,7 +928,8 @@
      "payload_json": "{\"status\": 43}",
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -999,7 +1010,8 @@
      "payload_json": "{\"status\": 81}",
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Open",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "d33731dc744d2b52eb9c39c9aabda4151306555994c248f6d1a4aa6708f3368f",
     "review": {
@@ -1083,7 +1095,8 @@
      "payload_json": "{\"status\": 82}",
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "In Progress",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "cd587718ba75ecad801d3037794465a64e8c3b9b6d516c061ee137eb3a4efc40",
     "review": {
@@ -1167,7 +1180,8 @@
      "payload_json": "{\"status\": 83}",
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Resolve",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
     "review": {
@@ -1251,7 +1265,8 @@
      "payload_json": "{\"status\": 84}",
      "context_hash": "0a48fb0c9de76637c19bc508916a454ef6d3034e861523b2c78e8f986a28708e",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "9867d4dd5221a56811e78259d20527a828df809d0f89ac0ee6839ed04a61b2de",
     "review": {
@@ -1384,7 +1399,8 @@
      "payload_json": "{\"status\": 84}",
      "context_hash": "0a48fb0c9de76637c19bc508916a454ef6d3034e861523b2c78e8f986a28708e",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "9867d4dd5221a56811e78259d20527a828df809d0f89ac0ee6839ed04a61b2de",
     "review": {
@@ -1464,7 +1480,8 @@
      "payload_json": "{\"status\": 83}",
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Resolve",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
     "review": {
@@ -1549,7 +1566,8 @@
      "payload_json": "{\"status\": 83}",
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Resolve",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
     "review": {
@@ -1634,7 +1652,8 @@
      "payload_json": "{\"status\": 83}",
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Resolve",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
     "review": {
@@ -1719,7 +1738,8 @@
      "payload_json": "{\"status\": 83}",
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Resolve",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
     "review": {
@@ -1814,7 +1834,8 @@
      "payload_json": "{\"status\": 84}",
      "context_hash": "0a48fb0c9de76637c19bc508916a454ef6d3034e861523b2c78e8f986a28708e",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "9867d4dd5221a56811e78259d20527a828df809d0f89ac0ee6839ed04a61b2de",
     "review": {
@@ -1889,7 +1910,8 @@
      "payload_json": "{\"status\": 83}",
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Resolve",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
     "review": {
@@ -1985,7 +2007,8 @@
      "payload_json": "{\"status\": 44}",
      "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
     "review": {
@@ -2070,7 +2093,8 @@
      "payload_json": "{\"status\": 44}",
      "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
     "review": {
@@ -2155,7 +2179,8 @@
      "payload_json": "{\"status\": 44}",
      "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
     "review": {
@@ -2235,7 +2260,8 @@
      "payload_json": "{\"status\": 44}",
      "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
     "review": {
@@ -2315,7 +2341,8 @@
      "payload_json": "{\"status\": 44}",
      "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
     "review": {
@@ -2698,7 +2725,8 @@
      "payload_json": "{\"status\": 42}",
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "In Progress",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "c62635718ab4a2e842119882c0735148c7a089d8ae98f11eb1b3bb3ea51b545b",
     "review": {
@@ -2732,7 +2760,8 @@
      "payload_json": "{\"status\": 42}",
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "In Progress",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "c62635718ab4a2e842119882c0735148c7a089d8ae98f11eb1b3bb3ea51b545b",
     "review": {
@@ -2903,7 +2932,8 @@
      "payload_json": "{\"status\": 41}",
      "context_hash": "04e4cbb0e93a23cc54d21a6ff95f741d68972258a7f636fa4a85bd70ad60fb5c",
      "label": "Open",
-     "before_json": "{\"custom_fields\": {\"cf_reason\": \"Because\"}, \"id\": 123, \"status\": 41, \"subject\": \"Acme\"}"
+     "before_json": "{\"custom_fields\": {\"cf_reason\": \"Because\"}, \"id\": 123, \"status\": 41, \"subject\": \"Acme\"}",
+     "warnings_json": "[]"
     },
     "hash": "c2a176e8dd3f24e529943c108a971935173977713688e3621ed20a22fcd0f6cf",
     "review": {
@@ -2974,7 +3004,8 @@
      "payload_json": "{\"status\": 43}",
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -3106,7 +3137,8 @@
      "payload_json": "{\"status\": 44}",
      "context_hash": "6e3fa9843506d2530c67b70c37bf791c3d47ab6084b586a52297f79dc17612cd",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "571a2f4c2591a880855518882b024410da81fe74698bf8ce7cb5da6f73990b11",
     "review": {
@@ -3143,7 +3175,8 @@
      "payload_json": "{\"status\": 44}",
      "context_hash": "43899901fab039d22e5dc8f6add65ab4bb96c38e48a4ffb581b8ec406bb61ffb",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "cd2068ddaba56a2d1b1e2a0986bfd6cddea6e032d9e86dca53a808794f7b7114",
     "review": {
@@ -3220,7 +3253,8 @@
      "payload_json": "{\"status\": 44}",
      "context_hash": "6d56486266c37dff969d4f0ebd03c8d461e75743cbb35c7efb4d5f3c7a5a2dbd",
      "label": "Closed",
-     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[]"
     },
     "hash": "8631a60c62278865bb724678503ed6a0d02811fd557d86c2af90579ba472f2e2",
     "review": {
@@ -3471,6 +3505,131 @@
     "error": {
      "type": "ReviewedWriteError",
      "msg": "complete problem solutions inventory is unavailable"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "rules_status_500": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "rules_status": 500
+    }
+   },
+   {
+    "op": "build",
+    "to": "In Progress"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 42}",
+     "context_hash": "1fecead30820151efffa38fe8f3f77f877d435efe5877300fd1820b9b517842c",
+     "label": "In Progress",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "warnings_json": "[\"rules unavailable (workspace 17 answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules\"]"
+    },
+    "hash": "1bca3f33dbd2f144d6814c5ac6673f5f26e6b4ed6378d816a517ea2b5d66f092",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 42
+     },
+     "plan_hash": "1bca3f33dbd2f144d6814c5ac6673f5f26e6b4ed6378d816a517ea2b5d66f092",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "In Progress",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "warnings": [
+      "rules unavailable (workspace 17 answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
+     ]
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "rules_hidden_status": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "rules_status": 500,
+     "fields": [
+      {
+       "id": 501,
+       "name": "subject",
+       "label": "Subject",
+       "field_type": "default_subject",
+       "position": 1,
+       "required_for_closure": true
+      },
+      {
+       "id": 502,
+       "name": "status",
+       "label": "Status",
+       "field_type": "default_status",
+       "position": 2,
+       "choices": [
+        {
+         "id": 41,
+         "value": "Open"
+        },
+        {
+         "id": 42,
+         "value": "In Progress"
+        },
+        {
+         "id": 43,
+         "value": "Resolve"
+        },
+        {
+         "id": 44,
+         "value": "Closed"
+        }
+       ],
+       "displayed_to_agents": false
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "to": "In Progress"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "problem rules are unavailable and this write depends on them: Status: hidden on the static form; only an unavailable rule could show it"
     },
     "writes": 0
    }

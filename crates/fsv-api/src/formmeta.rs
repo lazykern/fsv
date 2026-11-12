@@ -398,6 +398,18 @@ pub fn fetch_rules(
                 *last = Some(e.status);
                 return Ok(None);
             }
+            Err(Error::Api(e)) if e.status >= 500 => {
+                let where_ = match ws {
+                    Some(w) => format!("workspace {}", py_str(w)),
+                    None => "the workspace-less path".to_string(),
+                };
+                return Ok(Some(json!({
+                    "business_rules": [],
+                    "user": null,
+                    RULES_UNAVAILABLE_KEY: format!("{where_} answered HTTP {} (server error)", e.status),
+                    "unavailable_status": e.status,
+                })));
+            }
             Err(e) => return Err(e),
         };
         let mut rules = if !truthy(&raw) && !matches!(raw, Json::Bool(_) | Json::Number(_)) {
@@ -475,6 +487,47 @@ fn unavailable(rules: &Json) -> Option<String> {
         .get(RULES_UNAVAILABLE_KEY)
         .filter(|v| truthy(v))
         .map(py_str)
+}
+
+/// The rules endpoint failed with a 5xx, as opposed to 403/404 (no rules feature).
+pub fn rules_server_error(rules: &Json) -> bool {
+    let status = rules.get("unavailable_status").and_then(Json::as_u64);
+    unavailable(rules).is_some() && status.is_some_and(|n| n >= 500)
+}
+
+/// One review warning for a write planned without business rules.
+#[rustfmt::skip]
+pub fn rules_unavailable_warning(rules: &Json) -> Option<String> {
+    unavailable(rules).map(|why| {
+        format!(
+            "rules unavailable ({why}): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
+        )
+    })
+}
+
+/// Block a write whose safety depends on rules that could not be loaded.
+///
+/// An answer on a field the static form hides, or on a field that is not on
+/// the form, cannot be checked. Other writes proceed with
+/// [`rules_unavailable_warning`]. Available rules return nothing.
+pub fn rules_gate(rules: &Json, spec: &FormSpec, touched: &[&str]) -> Vec<String> {
+    if unavailable(rules).is_none() {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    for name in touched {
+        match spec.find(name) {
+            None => out.push(format!(
+                "{name}: not on the form; its rules are unavailable"
+            )),
+            Some(f) if !f.visible_base => out.push(format!(
+                "{}: hidden on the static form; only an unavailable rule could show it",
+                f.label
+            )),
+            Some(_) => {}
+        }
+    }
+    out
 }
 
 /// Review warning when the tenant gave no business rules.
@@ -796,7 +849,10 @@ pub fn load_meta(
                 ..Default::default()
             };
             let rules = load_rules(c, store, &module, std::slice::from_ref(&ws), &query)?;
-            store.save(&ckey, "form_rules", &rules);
+            // A 5xx is not an answer: ask again next time.
+            if !rules_server_error(&rules) {
+                store.save(&ckey, "form_rules", &rules);
+            }
             rules
         }
     };
@@ -1639,8 +1695,9 @@ mod tests {
                           "unavailable": "no workspace found in the form metadata or the account, and /api/_/business_rules answered HTTP 403", "unavailable_status": 403})
         );
         let down = FakeApi::new().on("GET ws/2/business_rules", Reply::Status(500));
-        assert!(
-            matches!(fetch_rules(&down, "change", &[json!(2)], None, &q).unwrap_err(), Error::Api(e) if e.status == 500)
+        assert_eq!(
+            fetch_rules(&down, "change", &[json!(2)], None, &q).unwrap(),
+            json!({"business_rules": [], "user": null, "unavailable": "workspace 2 answered HTTP 500 (server error)", "unavailable_status": 500})
         );
     }
 
@@ -2231,5 +2288,69 @@ mod tests {
             (ser(&state.values["subject"]), ser(&state.values["status"])),
             (json!("S"), json!("Planning"))
         );
+    }
+
+    #[test]
+    fn rules_5xx_stops_and_is_not_cached() {
+        let q = BusinessRulesOptions::default();
+        let api = FakeApi::new()
+            .on("GET ws/2/business_rules", Reply::Status(500))
+            .ok(
+                "GET ws/1/business_rules",
+                json!({"business_rules": [rule()]}),
+            );
+        let fallback = || Ok(vec![1, 3]);
+        let rules =
+            fetch_rules(&api, "problem", &[json!(2), json!(1)], Some(&fallback), &q).unwrap();
+        assert_eq!(
+            rules,
+            json!({
+                "business_rules": [],
+                "user": null,
+                "unavailable": "workspace 2 answered HTTP 500 (server error)",
+                "unavailable_status": 500
+            })
+        );
+        assert_eq!(
+            calls_of(&api),
+            [call("ws/2/business_rules", json!("new_form"))]
+        );
+        assert!(rules_server_error(&rules));
+        let warning = rules_unavailable_warning(&rules).unwrap();
+        assert!(warning.contains("rules unavailable") && warning.contains("HTTP 500"));
+        assert!(rules_gate(&rules, &spec(), &["status"]).is_empty());
+        assert_eq!(
+            rules_gate(&rules, &spec(), &["Nope"]),
+            ["Nope: not on the form; its rules are unavailable"]
+        );
+        let hidden = FormSpec::from_form_fields(
+            &json!({"change_fields": [form_field(
+                14, "status", "Status", "default_status", 1,
+                json!({"displayed_to_agents": false, "choices": [{"id": 1, "value": "Open"}]})
+            )]}),
+            "change",
+        )
+        .unwrap();
+        assert_eq!(
+            rules_gate(&rules, &hidden, &["status"]),
+            ["Status: hidden on the static form; only an unavailable rule could show it"]
+        );
+        assert!(!rules_server_error(
+            &json!({"unavailable": "denied", "unavailable_status": 403})
+        ));
+
+        let api = FakeApi::new()
+            .ok("GET ticket_form_fields", ticket_form(3))
+            .on("GET ws/2/business_rules", Reply::Status(503));
+        let store = MemStore {
+            workspace: json!(2),
+            ..MemStore::default()
+        };
+        let first = load_meta(&api, &store, "ticket", "edit", true, &json!(123)).unwrap();
+        assert!(rules_server_error(&first.rules));
+        let before = calls_of(&api).len();
+        let second = load_meta(&api, &store, "ticket", "edit", false, &json!(123)).unwrap();
+        assert!(rules_server_error(&second.rules));
+        assert!(calls_of(&api).len() > before);
     }
 }

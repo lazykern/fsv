@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "2b81a76f4dedb7547116732f2e9c71f000be8bbd",
+  "commit": "60ac0a7013ff0d939b6eebc09b8d8966f81ab3d5",
   "dirty": false
  },
  "canned": {
@@ -4752,7 +4752,71 @@
   "refusals": [
    {
     "name": "rules_denied",
-    "error": "problem rules are unavailable; no static-form write",
+    "ok": {
+     "hash": "d9f750364abd0a290e0a58b55ebbe192c3327dc39586470c01d53e44dd7bd240",
+     "review": {
+      "action": "problem_create",
+      "method": "POST",
+      "path": "/api/_/problems",
+      "payload": {
+       "custom_fields": {},
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      },
+      "plan_hash": "d9f750364abd0a290e0a58b55ebbe192c3327dc39586470c01d53e44dd7bd240",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+      "warnings": [
+       "rules unavailable (workspace 17 and the workspace-less path answered HTTP 403): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
+      ]
+     },
+     "action": "problem_create",
+     "target": 0,
+     "method": "POST",
+     "path": "problems",
+     "payload_json": "{\"custom_fields\": {}, \"description\": \"<div>Acme details</div>\", \"email\": \"person@example.com\", \"impact\": 43, \"priority\": 42, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "context_hash": "deb2bf03cb6bff441e660beb19595b53b0a4b8ec9049b618e7b529d07e6fd318",
+     "inputs_json": "{\"answers\": {\"Description\": \"Acme details\", \"Impact\": \"Low\", \"Priority\": \"Low\", \"Status\": \"Open\", \"Subject\": \"Acme problem\"}, \"requester\": \"person@example.com\"}"
+    }
+   },
+   {
+    "name": "rules_500",
+    "ok": {
+     "hash": "a304b1afa883ad97f5c161880149a4d4759f170edc22fccae1f58662f419983d",
+     "review": {
+      "action": "problem_create",
+      "method": "POST",
+      "path": "/api/_/problems",
+      "payload": {
+       "custom_fields": {},
+       "description": "<div>Acme details</div>",
+       "email": "person@example.com",
+       "impact": 43,
+       "priority": 42,
+       "status": 41,
+       "subject": "Acme problem"
+      },
+      "plan_hash": "a304b1afa883ad97f5c161880149a4d4759f170edc22fccae1f58662f419983d",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+      "warnings": [
+       "rules unavailable (workspace 17 answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
+      ]
+     },
+     "action": "problem_create",
+     "target": 0,
+     "method": "POST",
+     "path": "problems",
+     "payload_json": "{\"custom_fields\": {}, \"description\": \"<div>Acme details</div>\", \"email\": \"person@example.com\", \"impact\": 43, \"priority\": 42, \"status\": 41, \"subject\": \"Acme problem\"}",
+     "context_hash": "8ba90dd7515e425c2722712030b2eb1f8e0672701c9093c58b46019161951e3c",
+     "inputs_json": "{\"answers\": {\"Description\": \"Acme details\", \"Impact\": \"Low\", \"Priority\": \"Low\", \"Status\": \"Open\", \"Subject\": \"Acme problem\"}, \"requester\": \"person@example.com\"}"
+    }
+   },
+   {
+    "name": "rules_hidden",
+    "error": "problem rules are unavailable and this write depends on them: Acme hidden: hidden on the static form; only an unavailable rule could show it",
     "type": "ReviewedWriteError"
    },
    {

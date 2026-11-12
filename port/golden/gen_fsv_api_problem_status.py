@@ -54,6 +54,8 @@ def handler_for(s):
             if path == "problem_form_fields":
                 return httpx.Response(200, json={"problem_fields": copy.deepcopy(s["fields"])})
             if path.endswith("business_rules"):
+                if s.get("rules_status"):
+                    return httpx.Response(s["rules_status"], json={"error": "synthetic"})
                 return httpx.Response(200, json={"business_rules": copy.deepcopy(s["rules"])})
             if path.endswith("planning-fields"):
                 return httpx.Response(200, json={"problem_planning_fields": copy.deepcopy(s["analysis"])})
@@ -211,4 +213,12 @@ CASES["unknown_solutions"] = {"n": 41, "ops": [
 for status in (403, 429, 500):
     CASES[f"solutions_read_{status}"] = {"n": 41, "ops": [
         {"op": "set", "state": {"solution_error": status}}, {"op": "build", "to": "Closed"}]}
+hidden = problem_fields(41)
+for field in hidden:
+    if field["name"] == "status":
+        field["displayed_to_agents"] = False
+CASES["rules_status_500"] = {"n": 41, "ops": [
+    {"op": "set", "state": {"rules_status": 500}}, {"op": "build", "to": "In Progress"}]}
+CASES["rules_hidden_status"] = {"n": 41, "ops": [
+    {"op": "set", "state": {"rules_status": 500, "fields": hidden}}, {"op": "build", "to": "In Progress"}]}
 json.dump(stamped({name: run(case) for name, case in CASES.items()}), sys.stdout, indent=1, ensure_ascii=False)

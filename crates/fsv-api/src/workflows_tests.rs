@@ -747,6 +747,13 @@ fn problem_handle(s: &mut Value, method: &str, path: &str, body: Option<&Value>)
             _ => {}
         }
         if path.ends_with("business_rules") {
+            if let Some(status) = s
+                .get("rules_status")
+                .and_then(Value::as_u64)
+                .filter(|n| *n > 0)
+            {
+                return R::S(status as u16);
+            }
             return if s["rules_denied"] == true {
                 R::S(403)
             } else {
@@ -815,7 +822,9 @@ fn answers() -> Map<String, Value> {
 }
 
 fn problem_plan(p: &problem_workflows::ProblemPlan) -> Value {
-    with(write_plan(&p.plan), "inputs_json", json!(p.inputs_json))
+    let mut v = write_plan(&p.plan);
+    v["review"] = Value::Object(p.review());
+    with(v, "inputs_json", json!(p.inputs_json))
 }
 
 fn create(
@@ -923,6 +932,26 @@ fn problem_refusals() {
             "rules_denied",
             Box::new(|s| s["rules_denied"] = json!(true)),
             Box::new(|w| create(w, &answers(), "person@example.com")),
+        ),
+        (
+            "rules_500",
+            Box::new(|s| s["rules_status"] = json!(500)),
+            Box::new(|w| create(w, &answers(), "person@example.com")),
+        ),
+        (
+            "rules_hidden",
+            Box::new(|s| {
+                s["rules_denied"] = json!(true);
+                s["fields"].as_array_mut().unwrap().push(json!({
+                    "id": 602, "name": "acme_hidden", "label": "Acme hidden",
+                    "field_type": "custom_text", "position": 21, "displayed_to_agents": false
+                }));
+            }),
+            Box::new(|w| {
+                let mut a = answers();
+                a.insert("Acme hidden".into(), json!("x"));
+                create(w, &a, "person@example.com")
+            }),
         ),
         (
             "requester_answer",

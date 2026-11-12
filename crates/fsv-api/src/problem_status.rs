@@ -12,7 +12,9 @@ use fsv_core::resource::{PROBLEMS, parse_id};
 use fsv_forms::LookupResolver;
 use fsv_py::{py_str, truthy};
 
-use crate::formmeta::{MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, load_meta};
+use crate::formmeta::{
+    MetaStore, existing_from_record, load_meta, rules_gate, rules_unavailable_warning,
+};
 use crate::planning_text::{self, PROBLEM_SECTIONS};
 use crate::problem_workflows::{inventory, record};
 use crate::readback::submitted_value_matches;
@@ -32,6 +34,8 @@ pub struct StatusPlan {
     pub write: WritePlan,
     pub label: String,
     pub before_json: String,
+    /// Review warnings that are not part of the write hash. `"[]"` when none.
+    pub warnings_json: String,
 }
 
 impl StatusPlan {
@@ -48,6 +52,11 @@ impl StatusPlan {
             serde_json::from_str(&self.before_json).unwrap_or(Value::Null),
         );
         out.insert("side_effects".into(), json!(SIDE_EFFECTS));
+        let warnings: Value =
+            serde_json::from_str(&self.warnings_json).unwrap_or(Value::Array(vec![]));
+        if warnings.as_array().is_some_and(|a| !a.is_empty()) {
+            out.insert("warnings".into(), warnings);
+        }
         out
     }
 }
@@ -115,9 +124,16 @@ pub fn build_plan(
         return Err(refused("current problem status unavailable"));
     }
     let meta = load_meta(c, store, "problem", "edit", true, &json!(target))?;
-    if meta.rules.get(RULES_UNAVAILABLE_KEY).is_some_and(truthy) {
-        return Err(refused("problem rules unavailable"));
+    let blockers = rules_gate(&meta.rules, &meta.spec(), &["status"]);
+    if !blockers.is_empty() {
+        return Err(refused(format!(
+            "problem rules are unavailable and this write depends on them: {}",
+            blockers.join("; ")
+        )));
     }
+    let warnings = rules_unavailable_warning(&meta.rules)
+        .into_iter()
+        .collect::<Vec<_>>();
     let raw_fields = meta.raw_fields();
     let (status_id, label) =
         task_status::resolve(to, &raw_fields).map_err(|e| Error::value(e.0))?;
@@ -194,6 +210,7 @@ pub fn build_plan(
         before_json: fsv_py::Dumps::default()
             .sort_keys(true)
             .dump(&Value::Object(before)),
+        warnings_json: serde_json::to_string(&warnings).unwrap_or_else(|_| "[]".into()),
     })
 }
 

@@ -500,6 +500,8 @@ def problem_wire(base=41):
             if path == "problem_task_fields":
                 return {"problem_task_fields": state["task_fields"]}
             if path.endswith("business_rules"):
+                if state.get("rules_status"):
+                    return state["rules_status"]
                 return 403 if state["rules_denied"] else {"business_rules": []}
             if path == "autocomplete/requesters":
                 return {"results": [{"id": 901, "value": "Acme Operator", "email": "person@example.com"}]}
@@ -622,6 +624,12 @@ def gen_problem_workflows():
     create = lambda answers=ANSWERS, who="person@example.com": (  # noqa: E731
         lambda c: problem_workflows.create_plan(c, answers, who))
     refuse("rules_denied", lambda s: s.update(rules_denied=True), create())
+    refuse("rules_500", lambda s: s.update(rules_status=500), create())
+    def hide(s):
+        s["rules_denied"] = True
+        s["fields"].append({"id": 602, "name": "acme_hidden", "label": "Acme hidden",
+                            "field_type": "custom_text", "position": 21, "displayed_to_agents": False})
+    refuse("rules_hidden", hide, create({**ANSWERS, "Acme hidden": "x"}))
     refuse("requester_answer", lambda s: None, create({**ANSWERS, "Requester": "x"}))
     refuse("unknown_answer", lambda s: None, create({**ANSWERS, "Nope": "x"}))
     refuse("no_requester_field", lambda s: s["fields"].pop(2), create())

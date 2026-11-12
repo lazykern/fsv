@@ -3093,4 +3093,38 @@ reads an empty record. A missing non-form record attribute is
 writes. A known form field is not that gap. The CLI forms path uses
 this engine, so no command change is required.
 
-Still not triaged: commits after `e1bc129`.
+## Ledger: `60ac0a7` (library side)
+
+Triaged against `git show 60ac0a7`
+(`60ac0a7013ff0d939b6eebc09b8d8966f81ab3d5`). A 5xx from
+`business_rules` is an uncached unavailable set and does not fall
+through to another workspace. Problem create and status proceed with
+one review warning, and block only when the write depends on the rules.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `60ac0a7`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `60ac0a7` | 11-13 03:03 | Degrade problem writes when the rules endpoint answers 5xx | ported | fsv-api `formmeta`, `problem_workflows`, `problem_status`. fsv-app plan literal |
+
+`fetch_rules` stops on HTTP >= 500. The result is
+`unavailable` plus `unavailable_status`, and `load_meta` does not cache
+it. `rules_gate` blocks an answer on a statically hidden field or a
+field that is not on the form. A 403/404 unavailable set no longer
+refuses every problem create or status write; ordinary answers warn and
+proceed. The warning is on `ProblemPlan.review` and `StatusPlan.review`.
+It is not part of the write hash.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`problems create` and `problems status` already print `review()`, so
+`--dry-run --json` gains `warnings` with no command change. Add the
+upstream CLI cases:
+
+- rules HTTP 500 and 503: the dry-run warning names the status, a second
+  metadata load hits the network again, exit 0, no writes.
+- an answer on a field hidden on the static form exits 2 with
+  "rules are unavailable and this write depends on them" and writes nothing.
+- `problems status` with rules HTTP 500 does the same in the dry-run JSON.
+
+Still not triaged: commits after `60ac0a7`.

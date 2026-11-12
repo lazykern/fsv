@@ -13,8 +13,8 @@ use fsv_forms::payload::{check, module_body};
 use fsv_py::{Dumps, py_str, truthy};
 
 use crate::formmeta::{
-    MetaStore, RULES_UNAVAILABLE_KEY, apply_answers, find_field, form_err, is_requester, load_meta,
-    resolve_requester,
+    MetaStore, apply_answers, find_field, form_err, is_requester, load_meta, resolve_requester,
+    rules_gate, rules_unavailable_warning,
 };
 use crate::properties::dumps_sorted;
 use crate::readback::{same_text, strict_equal, submitted_value_matches};
@@ -30,6 +30,8 @@ use crate::watchers::{positive_id, self_id};
 pub struct ProblemPlan {
     pub plan: WritePlan,
     pub inputs_json: String,
+    /// Review warnings that are not part of the write hash. `"[]"` when none.
+    pub warnings_json: String,
 }
 
 impl ProblemPlan {
@@ -38,7 +40,13 @@ impl ProblemPlan {
     }
 
     pub fn review(&self) -> Map<String, Value> {
-        self.plan.review()
+        let mut out = self.plan.review();
+        let warnings: Value =
+            serde_json::from_str(&self.warnings_json).unwrap_or(Value::Array(vec![]));
+        if warnings.as_array().is_some_and(|a| !a.is_empty()) {
+            out.insert("warnings".into(), warnings);
+        }
+        out
     }
 
     pub fn payload(&self) -> Value {
@@ -110,11 +118,17 @@ pub fn create_plan(
     resolver: Option<Arc<dyn LookupResolver>>,
 ) -> Result<ProblemPlan> {
     let meta = load_meta(c, store, "problem", "new", true, &Value::Null)?;
-    if meta.rules.get(RULES_UNAVAILABLE_KEY).is_some_and(truthy) {
-        return Err(refused(
-            "problem rules are unavailable; no static-form write",
-        ));
+    let touched: Vec<&str> = answers.keys().map(String::as_str).collect();
+    let blockers = rules_gate(&meta.rules, &meta.spec(), &touched);
+    if !blockers.is_empty() {
+        return Err(refused(format!(
+            "problem rules are unavailable and this write depends on them: {}",
+            blockers.join("; ")
+        )));
     }
+    let warnings = rules_unavailable_warning(&meta.rules)
+        .into_iter()
+        .collect::<Vec<_>>();
     let person = resolve_requester(c, requester, None)?;
     let Some(email) = person.email.clone().filter(|e| !e.is_empty()) else {
         return Err(Error::value("resolved requester needs an email"));
@@ -185,6 +199,7 @@ pub fn create_plan(
         inputs_json: Dumps::default()
             .sort_keys(true)
             .dump(&json!({"answers": answers, "requester": requester})),
+        warnings_json: serde_json::to_string(&warnings).unwrap_or_else(|_| "[]".into()),
     })
 }
 
@@ -289,6 +304,7 @@ pub fn child_plan(c: &dyn Api, target: &str, kind: &str, text: &str) -> Result<P
             context_hash: snapshot_hash(&context)?,
         },
         inputs_json: Dumps::default().dump(&json!({"text": text, "kind": kind})),
+        warnings_json: "[]".into(),
     })
 }
 
