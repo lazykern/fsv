@@ -37,9 +37,11 @@ def _closed(client: Any, ticket: int) -> tuple[int, str]:
     meta = load_meta(client, "ticket", "edit", fresh=True, module_id=ticket)
     fields = [f for f in meta.spec.fields if is_status(f)]
     choices = [c for f in fields for c in f.choices if c.visible and c.label.casefold() == "closed"]
-    if len(fields) != 1 or len(choices) != 1 or type(choices[0].id) is not int or choices[0].id <= 0:
+    from fsv.choice_ids import runtime_choice_id
+    ident = runtime_choice_id(choices[0].id) if len(fields) == 1 and len(choices) == 1 else None
+    if ident is None:
         raise ReviewedWriteError("a unique runtime Closed status ID is required")
-    return choices[0].id, meta.fingerprint.hash
+    return ident, meta.fingerprint.hash
 
 
 def build_plan(client: Any, primary: str | int, secondaries: Sequence[str | int], *,

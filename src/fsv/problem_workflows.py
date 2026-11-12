@@ -88,12 +88,11 @@ def _choice(fields: list[dict[str, Any]], name: str, label: str) -> int:
                str(c.get("value") or c.get("label") or c.get("name") or "").casefold() == label.casefold()]
     # Native problem_task_fields serialize choice IDs as digit strings; the
     # accepted task-create wire sends the same identities as JSON integers.
-    ident = choices[0].get("id") if len(choices) == 1 else None
-    if type(ident) is int and ident >= 0:
-        return ident
-    if type(ident) is str and ident.isascii() and ident.isdigit():
-        return int(ident)
-    raise ReviewedWriteError("active runtime " + name + " choice is unavailable or ambiguous")
+    from fsv.choice_ids import runtime_choice_id
+    ident = runtime_choice_id(choices[0].get("id"), minimum=0) if len(choices) == 1 else None
+    if ident is None:
+        raise ReviewedWriteError("active runtime " + name + " choice is unavailable or ambiguous")
+    return ident
 
 
 def child_plan(client: Any, target: str | int, *, kind: str, text: str) -> ProblemPlan:

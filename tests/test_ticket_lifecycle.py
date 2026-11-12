@@ -251,3 +251,17 @@ def test_unknown_required_field_and_unavailable_rules(monkeypatch):
     ({"resolution_notes": {"unexpected": "not note text"}}, None)])
 def test_resolution_readback_shapes(record, expected):
     assert resolution_text(record) == expected
+
+
+def test_digit_string_status_ids_send_integer_wire(monkeypatch):
+    def string_ids():
+        meta = metadata()
+        fields = [{**f, "choices": [{**c, "id": str(c["id"])} for c in f["choices"]]} if f.get("choices") else f
+                  for f in meta.raw_fields]
+        return FormMeta("ticket", "edit_form", {"ticket_fields": fields}, {"business_rules": []}, 1, 0, "fixture", 123)
+    monkeypatch.setattr(flow, "load_meta", lambda *args, **kwargs: string_ids())
+    c = Client()
+    p = flow.build_plan(c, 123, "Pending", answers={"reason": "Waiting for self"})
+    assert p.payload["status"] == 47 and type(p.payload["status"]) is int
+    assert flow.send(p, c, reviewed_hash=p.hash)["verified"]
+    assert c.writes[-1]["status"] == 47

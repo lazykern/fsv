@@ -146,3 +146,18 @@ def test_cli_json_review_and_full_hash_gate(api, monkeypatch):
     assert review["surviving_ticket"] == 123 and review["merged_tickets"] == [124]
     bad = runner.invoke(cli.app, args + ["--yes", "--expect-plan", review["plan_hash"][:16]])
     assert bad.exit_code == 2 and not state["writes"]
+
+
+@pytest.mark.parametrize("ident,expected", [("89", 89), (89, 89), ("0", None), ("8a", None), (True, None), ("-89", None)])
+def test_closed_status_accepts_only_positive_digit_identities(monkeypatch, ident, expected):
+    fields = [a._f("status", "Status", "default_status", 1, choices=[
+        {"id": "31", "value": "Open"}, {"id": ident, "value": "Closed"}])]
+    fields[0]["id"] = 9000007101
+    monkeypatch.setattr(flow, "load_meta", lambda *a, **k: FormMeta(
+        "ticket", "edit_form", {"ticket_fields": fields}, {"business_rules": []}, 1, 0, "fixture", 123))
+    if expected is None:
+        with pytest.raises(ReviewedWriteError, match="Closed status"):
+            flow._closed(None, 123)
+    else:
+        status, _ = flow._closed(None, 123)
+        assert status == expected and type(status) is int

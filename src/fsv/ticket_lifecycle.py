@@ -30,7 +30,9 @@ def context(client: Any, cid: int, status: str, answers: dict[str, Any] | None =
         raise ReviewedWriteError("status metadata is not unique")
     field = fields[0]
     choices = [c for c in field.choices if c.visible and status.casefold() in {c.label.casefold(), c.value.casefold()}]
-    if len(choices) != 1 or type(choices[0].id) is not int or choices[0].id <= 0:
+    from fsv.choice_ids import runtime_choice_id
+    status_id = runtime_choice_id(choices[0].id) if len(choices) == 1 else None
+    if status_id is None:
         raise ReviewedWriteError("status must identify one visible runtime status label")
     choice = choices[0]
     closing = choice.label.casefold() in {"resolved", "closed"}
@@ -71,7 +73,7 @@ def context(client: Any, cid: int, status: str, answers: dict[str, Any] | None =
         custom[name] = encode_value(meta.spec, f, state.get(name), state.evaluated.values)
     if closing and not str(resolution if resolution is not None else resolution_text(row) or "").strip():
         raise ReviewedWriteError("a persisted resolution note is required; use tickets resolve ID --note TEXT first")
-    payload = {"status": choice.id, "br_validation_excludes": build_br_validation_excludes(state.evaluated, "ticket")}
+    payload = {"status": status_id, "br_validation_excludes": build_br_validation_excludes(state.evaluated, "ticket")}
     # Native transitions preserve routing, including explicit nulls. Never pick
     # an agent/group or replace the rest of the custom-field inventory.
     for key in ("group_id", "responder_id"):
