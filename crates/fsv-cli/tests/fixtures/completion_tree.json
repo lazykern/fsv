@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "92002d76b880d927e16750ab986b525ee4fa85d6",
+  "commit": "3432beaa8719b988eb99a257b347f7b4338982eb",
   "dirty": false
  },
  "path": [
@@ -1941,6 +1941,14 @@
         "--description"
        ],
        "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--clear"
+       ],
+       "kind": "boolean",
        "completer": null,
        "resource": null
       },
@@ -7170,6 +7178,14 @@
         "--description"
        ],
        "kind": "freeform",
+       "completer": null,
+       "resource": null
+      },
+      {
+       "flags": [
+        "--clear"
+       ],
+       "kind": "boolean",
        "completer": null,
        "resource": null
       },

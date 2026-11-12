@@ -377,7 +377,7 @@ _fsv_complete() {
                 --section)
                     COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash complete_planning_field_names changes "$cur") ); return 0 ;;
             esac
-            COMPREPLY=( $(compgen -W "--verbose -v --section --description --dry-run --yes --output -o --json --expect-plan" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --section --description --clear --dry-run --yes --output -o --json --expect-plan" -- "$cur") )
             return 0 ;;
         "changes fields")
             case "$prev" in
@@ -759,7 +759,7 @@ _fsv_complete() {
                 --section)
                     COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash complete_section - "$cur") ); return 0 ;;
             esac
-            COMPREPLY=( $(compgen -W "--verbose -v --section --description --dry-run --yes --output -o --json --expect-plan" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --section --description --clear --dry-run --yes --output -o --json --expect-plan" -- "$cur") )
             return 0 ;;
         "problems fields")
             case "$prev" in

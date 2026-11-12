@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "92002d76b880d927e16750ab986b525ee4fa85d6",
+  "commit": "3432beaa8719b988eb99a257b347f7b4338982eb",
   "dirty": false
  },
  "path": "fsv",
@@ -3473,13 +3473,32 @@
        "secondary_opts": [],
        "type": "text",
        "choices": null,
-       "required": true,
+       "required": false,
        "multiple": false,
        "nargs": 1,
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "text/HTML; reviewed verbatim",
+       "help": "text/HTML; reviewed verbatim; mutually exclusive with --clear",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "clear",
+       "kind": "option",
+       "opts": [
+        "--clear"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "delete existing section text; refuses files or unknown state",
        "metavar": null,
        "envvar": null
       },
@@ -14013,13 +14032,32 @@
        "secondary_opts": [],
        "type": "text",
        "choices": null,
-       "required": true,
+       "required": false,
        "multiple": false,
        "nargs": 1,
        "is_flag": false,
        "default": null,
        "hidden": false,
-       "help": "text/HTML; reviewed verbatim",
+       "help": "text/HTML; reviewed verbatim; mutually exclusive with --clear",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "clear",
+       "kind": "option",
+       "opts": [
+        "--clear"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "delete existing section text; refuses files or unknown state",
        "metavar": null,
        "envvar": null
       },

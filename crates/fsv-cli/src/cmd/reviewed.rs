@@ -158,12 +158,13 @@ pub fn planning_text(res: &'static Resource, a: PlanningTextArgs) -> CmdResult {
     let schema = &planning_text::live_change_schema;
     let run = || -> Result<()> {
         let c = client()?;
-        let plan = planning_text::build_plan(
+        let plan = planning_text::build_plan_for(
             c.as_ref(),
             res.name,
             &a.id_,
             &a.section,
-            &a.description,
+            a.description.as_deref(),
+            a.clear,
             schema,
         )?;
         if a.dry_run {

@@ -1,0 +1,109 @@
+[
+ {
+  "name": "clone_partial_tasks_403_keeps_new_identity",
+  "fixture": "clone_tasks_403",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--yes",
+   "--json"
+  ]
+ },
+ {
+  "name": "clone_partial_assets_409_keeps_new_identity",
+  "fixture": "clone_assets_409",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--yes",
+   "--json"
+  ]
+ },
+ {
+  "name": "clone_partial_planning_429_keeps_new_identity",
+  "fixture": "clone_planning_429",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--yes",
+   "--json"
+  ]
+ },
+ {
+  "name": "clone_partial_tasks_500_keeps_new_identity",
+  "fixture": "clone_tasks_500",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--yes",
+   "--json"
+  ]
+ },
+ {
+  "name": "clone_dry_run_counts_side_effects",
+  "fixture": "clone_ok",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--yes",
+   "--json",
+   "--dry-run",
+   "--keep-task-owners"
+  ]
+ },
+ {
+  "name": "clone_missing_returned_id",
+  "fixture": "clone_noid",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--yes",
+   "--json"
+  ]
+ },
+ {
+  "name": "clone_no_input_needs_yes",
+  "fixture": "clone_ok",
+  "args": [
+   "changes",
+   "clone",
+   "CHN-123",
+   "--no-edit",
+   "--with-tasks",
+   "--with-assets",
+   "--with-planning",
+   "--json",
+   "--no-input"
+  ]
+ }
+]

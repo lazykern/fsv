@@ -10,6 +10,8 @@ mod emit;
 mod gen_tests;
 mod model;
 mod network;
+#[cfg(test)]
+mod provenance_tests;
 mod quote;
 
 pub use dynamic::{complete, complete_help_topic, complete_update_choice, run};

@@ -911,6 +911,8 @@ fn run_in(env: &Env, args: &[String]) -> String {
 #[cfg(test)]
 mod golden;
 #[cfg(test)]
+mod matrix;
+#[cfg(test)]
 mod units;
 
 #[cfg(test)]
@@ -948,7 +950,7 @@ mod tests {
 
     /// `problems planning-text --section` names `complete_section`, which
     /// Python's `_complete._completions` does not know: nothing is printed
-    /// (fsv 92002d7, bash and fish, tokens "", "r", "ro", "Root").
+    /// (fsv 3432bea, bash and fish, tokens "", "r", "ro", "Root").
     #[test]
     fn complete_section_prints_nothing_like_python() {
         for shell in ["bash", "fish"] {

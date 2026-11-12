@@ -1,0 +1,112 @@
+[
+ {
+  "path": "/api/_/changes/123",
+  "json": {
+   "change": {
+    "id": 123,
+    "subject": "Acme maintenance",
+    "status": 47,
+    "attachments": [
+     {
+      "id": 11
+     }
+    ],
+    "state_flow_id": 27
+   }
+  }
+ },
+ {
+  "path": "/api/_/changes/123/tasks",
+  "json": {
+   "tasks": [
+    {
+     "id": 501,
+     "title": "Verify Acme",
+     "owner_id": 71,
+     "status": 3
+    }
+   ]
+  }
+ },
+ {
+  "path": "/api/_/changes/123/assets",
+  "json": {
+   "associated_assets": [
+    {
+     "id": 801,
+     "config_item": {
+      "display_id": 701
+     }
+    }
+   ]
+  }
+ },
+ {
+  "path": "/api/_/changes/123/planning-fields",
+  "json": {
+   "change_planning_fields": [
+    {
+     "name": "test_plan",
+     "description": "Acme checks",
+     "attachments": []
+    }
+   ]
+  }
+ },
+ {
+  "path": "/api/_/change_form_fields",
+  "json": {
+   "change_fields": [
+    {
+     "id": 1,
+     "name": "subject",
+     "label": "Subject",
+     "field_type": "default_subject",
+     "default_field": true,
+     "required": true
+    }
+   ]
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/changes",
+  "json": {
+   "change": {
+    "id": 456,
+    "human_display_id": "CHN-456"
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/changes/456/tasks",
+  "status": 500,
+  "json": {
+   "description": "synthetic denial"
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/changes/456/assets/associate",
+  "json": {
+   "task": {
+    "id": 901
+   }
+  }
+ },
+ {
+  "method": "POST",
+  "path": "/api/_/changes/456/planning-fields",
+  "json": {
+   "task": {
+    "id": 901
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ }
+]

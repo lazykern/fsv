@@ -337,7 +337,7 @@ _fsv() {
                     local _vals; _vals=($( FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete zsh complete_planning_field_names changes "$cur" ))
                     compadd -a _vals; return 0 ;;
             esac
-            compadd -- --verbose -v --section --description --dry-run --yes --output -o --json --expect-plan; return 0 ;;
+            compadd -- --verbose -v --section --description --clear --dry-run --yes --output -o --json --expect-plan; return 0 ;;
         "changes fields")
             case "$prev" in
                 --output)
@@ -713,7 +713,7 @@ _fsv() {
                     local _vals; _vals=($( FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete zsh complete_section - "$cur" ))
                     compadd -a _vals; return 0 ;;
             esac
-            compadd -- --verbose -v --section --description --dry-run --yes --output -o --json --expect-plan; return 0 ;;
+            compadd -- --verbose -v --section --description --clear --dry-run --yes --output -o --json --expect-plan; return 0 ;;
         "problems fields")
             case "$prev" in
                 --output)

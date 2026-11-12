@@ -191,6 +191,315 @@
   ]
  },
  {
+  "name": "change_planning_text_edit_dry_run",
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "123",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "Acme new",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "change_planning_text_edit_needs_expect_plan",
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "123",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "Acme new",
+   "--yes"
+  ]
+ },
+ {
+  "name": "change_planning_text_edit_send",
+  "fixture": "planning_edit",
+  "hash_from": [
+   "changes",
+   "planning-text",
+   "123",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "Acme new",
+   "--dry-run"
+  ],
+  "args": [
+   "changes",
+   "planning-text",
+   "123",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "Acme new",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ]
+ },
+ {
+  "name": "change_planning_text_clear_dry_run",
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "124",
+   "--section",
+   "Rollout Plan",
+   "--clear",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "change_planning_text_clear_needs_expect_plan",
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "124",
+   "--section",
+   "Rollout Plan",
+   "--clear",
+   "--yes"
+  ]
+ },
+ {
+  "name": "change_planning_text_clear_send",
+  "fixture": "planning_edit",
+  "hash_from": [
+   "changes",
+   "planning-text",
+   "124",
+   "--section",
+   "Rollout Plan",
+   "--clear",
+   "--dry-run"
+  ],
+  "args": [
+   "changes",
+   "planning-text",
+   "124",
+   "--section",
+   "Rollout Plan",
+   "--clear",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ]
+ },
+ {
+  "name": "change_planning_text_existing_content_edit_dry_run",
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "125",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "Acme",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "change_planning_text_existing_content_wrong_hash",
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "125",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "Acme",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ]
+ },
+ {
+  "name": "problem_planning_text_edit_dry_run",
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problem_planning_text_edit_needs_expect_plan",
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--yes"
+  ]
+ },
+ {
+  "name": "problem_planning_text_edit_send",
+  "fixture": "planning_edit",
+  "hash_from": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--dry-run"
+  ],
+  "args": [
+   "problems",
+   "planning-text",
+   "123",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme new",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ]
+ },
+ {
+  "name": "problem_planning_text_clear_dry_run",
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problem_planning_text_clear_needs_expect_plan",
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--yes"
+  ]
+ },
+ {
+  "name": "problem_planning_text_clear_send",
+  "fixture": "planning_edit",
+  "hash_from": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--dry-run"
+  ],
+  "args": [
+   "problems",
+   "planning-text",
+   "124",
+   "--section",
+   "Root Cause",
+   "--clear",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ]
+ },
+ {
+  "name": "problem_planning_text_existing_content_edit_dry_run",
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "125",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problem_planning_text_existing_content_wrong_hash",
+  "fixture": "planning_edit",
+  "args": [
+   "problems",
+   "planning-text",
+   "125",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme",
+   "--yes",
+   "--expect-plan",
+   "0000000000000000000000000000000000000000000000000000000000000000"
+  ]
+ },
+ {
+  "name": "change_planning_text_no_operation_refused",
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "123",
+   "--section",
+   "Rollout Plan",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "change_planning_text_clear_and_description_refused",
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "123",
+   "--section",
+   "Rollout Plan",
+   "--dry-run",
+   "--clear",
+   "--description",
+   "Acme"
+  ]
+ },
+ {
+  "name": "change_planning_text_blank_description_refused",
+  "fixture": "planning_edit",
+  "args": [
+   "changes",
+   "planning-text",
+   "123",
+   "--section",
+   "Rollout Plan",
+   "--dry-run",
+   "--description",
+   ""
+  ]
+ },
+ {
   "name": "mark_known_error_dry_run",
   "fixture": "planning",
   "args": [

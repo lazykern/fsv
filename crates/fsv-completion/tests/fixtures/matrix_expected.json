@@ -1,0 +1,3724 @@
+{
+ "_python": {
+  "commit": "2956fce18599ae10d980c8e3fa18ee7a7e2cdcda",
+  "dirty": false
+ },
+ "domain": "acme.freshservice.com",
+ "scenarios": [
+  {
+   "name": "thin",
+   "files": {
+    "cache/filters/acme.freshservice.com--changes.json": "{\n  \"_kind\": \"filters\",\n  \"saved_at\": 1794450125.7082062,\n  \"checked_at\": 1794450125.7082062,\n  \"changed_at\": 1794450125.7082062,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": {\n    \"filters\": [\n      {\n        \"id\": \"all\",\n        \"name\": \"All Changes\"\n      }\n    ]\n  }\n}",
+    "cache/groups--acme.freshservice.com.json": "{\n  \"_kind\": \"groups\",\n  \"saved_at\": 1794450125.707103,\n  \"checked_at\": 1794450125.707103,\n  \"changed_at\": 1794450125.707103,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": {\n    \"groups\": [\n      {\n        \"id\": 91,\n        \"name\": \"Acme Ops\",\n        \"description\": \"Acme support\"\n      }\n    ]\n  }\n}",
+    "cache/schema/acme.freshservice.com--changes.json": "{\n  \"_kind\": \"schema\",\n  \"saved_at\": 1794450125.7059782,\n  \"checked_at\": 1794450125.7059782,\n  \"changed_at\": 1794450125.7059782,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": [\n    {\n      \"name\": \"status\",\n      \"label\": \"State\",\n      \"field_type\": \"default_status\",\n      \"default_field\": true,\n      \"choices\": [\n        {\n          \"id\": 47,\n          \"value\": \"Review\"\n        }\n      ]\n    },\n    {\n      \"name\": \"test_plan\",\n      \"label\": \"Test Plan\",\n      \"field_type\": \"planning_field\"\n    }\n  ]\n}",
+    "cfg/config.json": "{\"domain\": \"acme.freshservice.com\"}"
+   },
+   "cases": [
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_format",
+      "-",
+      "j"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "json\tJSON array"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "bash",
+      "complete_format",
+      "-",
+      "j"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "json"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "zsh",
+      "complete_format",
+      "-",
+      "j"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "json"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_where",
+      "changes",
+      "sta"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "status=\tState · default_status · default"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_set",
+      "changes",
+      "status=R"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "status=Review\tstatus"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_filter_name",
+      "changes",
+      "All"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "all\tAll Changes"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_field_names",
+      "changes",
+      "sta"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "status\tState · default_status · default"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_choice_field_names",
+      "changes",
+      "sta"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "status\tState · default_status · default · 1 choices"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_planning_field_names",
+      "changes",
+      "Test"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "Test Plan\ttest_plan",
+      "test_plan\tTest Plan"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_lookup_kind",
+      "changes",
+      "gr"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "group\tgroup lookup"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_update_group_id",
+      "changes",
+      "Ac"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "Acme Ops\tid=91 · Acme support"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_update_agent_id",
+      "changes",
+      "al"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_lookup_query",
+      "changes",
+      "Ac",
+      "--",
+      "changes",
+      "lookup",
+      "--kind",
+      "group"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "Acme Ops\tAcme support"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_lookup_query",
+      "changes",
+      "Ac",
+      "--",
+      "changes",
+      "lookup",
+      "-k",
+      "group"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "Acme Ops\tAcme support"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_lookup_query",
+      "changes",
+      "Ac",
+      "--",
+      "changes",
+      "lookup",
+      "--kind=group"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "Acme Ops\tAcme support"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_lookup_query",
+      "changes",
+      "Ac",
+      "--",
+      "changes",
+      "lookup",
+      "-k=group"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      "Acme Ops\tAcme support"
+     ],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_where",
+      "changes"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "unknown",
+      "changes",
+      ""
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_where",
+      "not-a-resource",
+      "st"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_format",
+      "-",
+      "json"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_config_value",
+      "-",
+      "off"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_lookup_query",
+      "changes",
+      "Ac",
+      "--",
+      "--kind"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_lookup_query",
+      "changes",
+      "Ac",
+      "--",
+      "unrelated"
+     ],
+     "network": false,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "thin_malformed_config",
+   "files": {
+    "cache/filters/acme.freshservice.com--changes.json": "{\n  \"_kind\": \"filters\",\n  \"saved_at\": 1794450125.736512,\n  \"checked_at\": 1794450125.736512,\n  \"changed_at\": 1794450125.736512,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": {\n    \"filters\": [\n      {\n        \"id\": \"all\",\n        \"name\": \"All Changes\"\n      }\n    ]\n  }\n}",
+    "cache/groups--acme.freshservice.com.json": "{\n  \"_kind\": \"groups\",\n  \"saved_at\": 1794450125.7361732,\n  \"checked_at\": 1794450125.7361732,\n  \"changed_at\": 1794450125.7361732,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": {\n    \"groups\": [\n      {\n        \"id\": 91,\n        \"name\": \"Acme Ops\",\n        \"description\": \"Acme support\"\n      }\n    ]\n  }\n}",
+    "cache/schema/acme.freshservice.com--changes.json": "{\n  \"_kind\": \"schema\",\n  \"saved_at\": 1794450125.735548,\n  \"checked_at\": 1794450125.735548,\n  \"changed_at\": 1794450125.735548,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": [\n    {\n      \"name\": \"status\",\n      \"label\": \"State\",\n      \"field_type\": \"default_status\",\n      \"default_field\": true,\n      \"choices\": [\n        {\n          \"id\": 47,\n          \"value\": \"Review\"\n        }\n      ]\n    },\n    {\n      \"name\": \"test_plan\",\n      \"label\": \"Test Plan\",\n      \"field_type\": \"planning_field\"\n    }\n  ]\n}",
+    "cfg/config.json": "{\"domain\": \"acme.freshservice.com\", \"completion\": null}"
+   },
+   "cases": [
+    {
+     "fn": "thin",
+     "args": [
+      "fish",
+      "complete_update_agent_id",
+      "-",
+      "al"
+     ],
+     "network": null,
+     "env": "0",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "cached",
+   "files": {
+    "cache/filters/acme.freshservice.com--changes.json": "{\n  \"_kind\": \"filters\",\n  \"saved_at\": 1794450125.751442,\n  \"checked_at\": 1794450125.751442,\n  \"changed_at\": 1794450125.751442,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": {\n    \"filters\": [\n      {\n        \"id\": 17,\n        \"name\": \"Acme active\"\n      },\n      {\n        \"id\": \"all\",\n        \"name\": \"All Changes\"\n      },\n      null,\n      {}\n    ]\n  }\n}",
+    "cache/groups--acme.freshservice.com.json": "{\n  \"_kind\": \"groups\",\n  \"saved_at\": 1794450125.751112,\n  \"checked_at\": 1794450125.751112,\n  \"changed_at\": 1794450125.751112,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": {\n    \"groups\": [\n      {\n        \"id\": 91,\n        \"name\": \"Acme Ops\",\n        \"description\": \"Acme support\"\n      },\n      {\n        \"id\": 92,\n        \"name\": \"Globex\"\n      },\n      {\n        \"id\": 93\n      }\n    ]\n  }\n}",
+    "cache/schema/acme.freshservice.com--changes.json": "{\n  \"_kind\": \"schema\",\n  \"saved_at\": 1794450125.750421,\n  \"checked_at\": 1794450125.750421,\n  \"changed_at\": 1794450125.750421,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": [\n    {\n      \"name\": \"status\",\n      \"label\": \"State\",\n      \"default_field\": true,\n      \"field_type\": \"default_status\",\n      \"choices\": [\n        {\n          \"id\": 47,\n          \"value\": \"Review\"\n        },\n        {\n          \"id\": 83,\n          \"name\": \"Done\"\n        },\n        {\n          \"id\": 47,\n          \"value\": \"Review\"\n        }\n      ]\n    },\n    {\n      \"name\": \"cf_enabled\",\n      \"label\": \"Enabled\",\n      \"field_type\": \"custom_checkbox\"\n    },\n    {\n      \"name\": \"planned_start_date\",\n      \"label\": \"Start\",\n      \"field_type\": \"default_date\"\n    },\n    {\n      \"name\": \"cf_plan\",\n      \"label\": \"Test Plan\",\n      \"field_type\": \"planning_field\"\n    },\n    {\n      \"name\": \"cf_owner\",\n      \"label\": \"Owner\",\n      \"field_type\": \"custom_lookup\",\n      \"lookup_config\": {\n        \"link\": \"/lookups/people\"\n      }\n    },\n    {\n      \"name\": \"requester\",\n      \"label\": \"Requester\",\n      \"field_type\": \"custom_lookup\"\n    },\n    {\n      \"name\": \"agent\",\n      \"label\": \"Agent\",\n      \"field_type\": \"default_agent\"\n    },\n    {\n      \"name\": \"cf_title\",\n      \"label\": \"Title\",\n      \"field_type\": \"custom_text\"\n    },\n    {\n      \"label\": \"Nameless\"\n    }\n  ]\n}",
+    "cfg/config.json": "{\"domain\": \"acme.freshservice.com\"}"
+   },
+   "cases": [
+    {
+     "fn": "cached_fields",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      {
+       "name": "status",
+       "label": "State",
+       "default_field": true,
+       "field_type": "default_status",
+       "choices": [
+        {
+         "id": 47,
+         "value": "Review"
+        },
+        {
+         "id": 83,
+         "name": "Done"
+        },
+        {
+         "id": 47,
+         "value": "Review"
+        }
+       ]
+      },
+      {
+       "name": "cf_enabled",
+       "label": "Enabled",
+       "field_type": "custom_checkbox"
+      },
+      {
+       "name": "planned_start_date",
+       "label": "Start",
+       "field_type": "default_date"
+      },
+      {
+       "name": "cf_plan",
+       "label": "Test Plan",
+       "field_type": "planning_field"
+      },
+      {
+       "name": "cf_owner",
+       "label": "Owner",
+       "field_type": "custom_lookup",
+       "lookup_config": {
+        "link": "/lookups/people"
+       }
+      },
+      {
+       "name": "requester",
+       "label": "Requester",
+       "field_type": "custom_lookup"
+      },
+      {
+       "name": "agent",
+       "label": "Agent",
+       "field_type": "default_agent"
+      },
+      {
+       "name": "cf_title",
+       "label": "Title",
+       "field_type": "custom_text"
+      },
+      {
+       "label": "Nameless"
+      }
+     ],
+     "calls": []
+    },
+    {
+     "fn": "cached_filters",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "17",
+       "Acme active"
+      ],
+      [
+       "all",
+       "All Changes"
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "cached_groups",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      {
+       "id": 91,
+       "name": "Acme Ops",
+       "description": "Acme support"
+      },
+      {
+       "id": 92,
+       "name": "Globex"
+      },
+      {
+       "id": 93
+      }
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_filter_name",
+      "changes",
+      "Ac"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "17",
+       "Acme active"
+      ],
+      [
+       "Ac",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_group_query",
+      "-",
+      "ac"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "Acme Ops",
+       "Acme support"
+      ],
+      [
+       "ac",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_update_group_id",
+      "-",
+      "9"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "91",
+       "Acme Ops"
+      ],
+      [
+       "92",
+       "Globex"
+      ],
+      [
+       "93",
+       ""
+      ],
+      [
+       "9",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_update_group_id",
+      "-",
+      "Ac"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "Acme Ops",
+       "id=91 · Acme support"
+      ],
+      [
+       "Ac",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "find_field",
+     "args": [
+      "changes",
+      "default:State"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": {
+      "name": "status",
+      "label": "State",
+      "default_field": true,
+      "field_type": "default_status",
+      "choices": [
+       {
+        "id": 47,
+        "value": "Review"
+       },
+       {
+        "id": 83,
+        "name": "Done"
+       },
+       {
+        "id": 47,
+        "value": "Review"
+       }
+      ]
+     },
+     "calls": []
+    },
+    {
+     "fn": "find_field",
+     "args": [
+      "changes",
+      "custom:Enabled"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": {
+      "name": "cf_enabled",
+      "label": "Enabled",
+      "field_type": "custom_checkbox"
+     },
+     "calls": []
+    },
+    {
+     "fn": "find_field",
+     "args": [
+      "changes",
+      "custom:State"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": null,
+     "calls": []
+    },
+    {
+     "fn": "find_field",
+     "args": [
+      "changes",
+      "title"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": {
+      "name": "cf_title",
+      "label": "Title",
+      "field_type": "custom_text"
+     },
+     "calls": []
+    },
+    {
+     "fn": "find_field",
+     "args": [
+      "changes",
+      "cf_"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": null,
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_field_names",
+      "changes",
+      "sta"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "status",
+       "State · default_status · default"
+      ],
+      [
+       "planned_start_date",
+       "Start · default_date · custom"
+      ],
+      [
+       "sta",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_choice_field_names",
+      "changes",
+      "sta"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "status",
+       "State · default_status · default · 3 choices"
+      ],
+      [
+       "sta",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_planning_field_names",
+      "changes",
+      "Test"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "Test Plan",
+       "cf_plan"
+      ],
+      [
+       "cf_plan",
+       "Test Plan"
+      ],
+      [
+       "Test",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_lookup_kind",
+      "changes",
+      "gr"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "group",
+       "group lookup"
+      ],
+      [
+       "gr",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "cf_enabled=t"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "cf_enabled=true",
+       ""
+      ],
+      [
+       "cf_enabled=t",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "cf_enabled="
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "cf_enabled=true",
+       ""
+      ],
+      [
+       "cf_enabled=false",
+       ""
+      ],
+      [
+       "cf_enabled=",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "status=Re"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "status=Review",
+       "status"
+      ],
+      [
+       "status=Review",
+       "status"
+      ],
+      [
+       "status=Re",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "unknown=x"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "unknown=x",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "cf_title=Acme"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "cf_title=Acme",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "'tit"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "title=",
+       "cf_title · custom_text · custom"
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "planned_start_date=2025"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "planned_start_date=2025-01-01T00:00:00+07:00",
+       "ISO-8601"
+      ],
+      [
+       "planned_start_date=2025-12-31T23:59:59+07:00",
+       "ISO-8601"
+      ],
+      [
+       "planned_start_date=2025",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_where",
+      "changes",
+      "due_by>=2025"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "due_by>=2025-01-01T00:00:00+07:00",
+       "ISO-8601 timestamp"
+      ],
+      [
+       "due_by>=2025-12-31T23:59:59+07:00",
+       "ISO-8601 timestamp"
+      ],
+      [
+       "due_by>=2025",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete_update_choice",
+     "args": [
+      "changes",
+      "status",
+      ""
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "Review",
+       "id=47"
+      ],
+      [
+       "47",
+       "Review"
+      ],
+      [
+       "Done",
+       "id=83"
+      ],
+      [
+       "83",
+       "Done"
+      ],
+      [
+       "Open",
+       "status"
+      ],
+      [
+       "Pending",
+       "status"
+      ],
+      [
+       "Resolved",
+       "status"
+      ],
+      [
+       "Closed",
+       "status"
+      ],
+      [
+       "",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "cf_owner=al"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": [
+       {
+        "name": "Unrelated"
+       },
+       {
+        "name": "Al Globex"
+       },
+       {
+        "name": "Alex Acme",
+        "email": "Alex@example.com"
+       }
+      ],
+      "fail": false
+     },
+     "want": [
+      [
+       "cf_owner=al",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_where",
+      "changes",
+      "cf_owner=al"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": [
+       {
+        "name": "Unrelated"
+       },
+       {
+        "name": "Al Globex"
+       },
+       {
+        "name": "Alex Acme",
+        "email": "Alex@example.com"
+       }
+      ],
+      "fail": false
+     },
+     "want": [
+      [
+       "cf_owner=al",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "requester=al"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": [
+       {
+        "name": "Unrelated"
+       },
+       {
+        "name": "Al Globex"
+       },
+       {
+        "name": "Alex Acme",
+        "email": "Alex@example.com"
+       }
+      ],
+      "fail": false
+     },
+     "want": [
+      [
+       "requester=al",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_where",
+      "changes",
+      "requester=al"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": [
+       {
+        "name": "Unrelated"
+       },
+       {
+        "name": "Al Globex"
+       },
+       {
+        "name": "Alex Acme",
+        "email": "Alex@example.com"
+       }
+      ],
+      "fail": false
+     },
+     "want": [
+      [
+       "requester=al",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "agent=al"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": [
+       {
+        "name": "Unrelated"
+       },
+       {
+        "name": "Al Globex"
+       },
+       {
+        "name": "Alex Acme",
+        "email": "Alex@example.com"
+       }
+      ],
+      "fail": false
+     },
+     "want": [
+      [
+       "agent=al",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_where",
+      "changes",
+      "agent=al"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": [
+       {
+        "name": "Unrelated"
+       },
+       {
+        "name": "Al Globex"
+       },
+       {
+        "name": "Alex Acme",
+        "email": "Alex@example.com"
+       }
+      ],
+      "fail": false
+     },
+     "want": [
+      [
+       "agent=al",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_update_agent_id",
+      "-",
+      "al"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "al",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_format",
+      "-",
+      "j"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "json",
+       "JSON array"
+      ],
+      [
+       "j",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_store",
+      "-",
+      "arg"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "argon",
+       "Argon2id + AES-256-GCM encrypted"
+      ],
+      [
+       "arg",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_config_key",
+      "-",
+      "forms"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "forms.workspace_id",
+       "workspace whose business rules apply"
+      ],
+      [
+       "forms",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_config_value",
+      "-",
+      "of"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "off",
+       ""
+      ],
+      [
+       "of",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_cache_target",
+      "-",
+      "v"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "views",
+       "saved view names"
+      ],
+      [
+       "v",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "remote_user_values",
+     "args": [
+      "requesters",
+      " al "
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "alex@example.com",
+       "Alex Acme"
+      ],
+      [
+       "al Globex",
+       "Al Globex"
+      ],
+      [
+       "Unrelated",
+       "Unrelated"
+      ]
+     ],
+     "calls": [
+      [
+       "autocomplete",
+       "requesters",
+       "al",
+       {
+        "all_users": "true"
+       }
+      ]
+     ]
+    },
+    {
+     "fn": "remote_user_values",
+     "args": [
+      "requesters",
+      "a"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "remote_user_values",
+     "args": [
+      "agents",
+      " al "
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "alex@example.com",
+       "Alex Acme"
+      ],
+      [
+       "al Globex",
+       "Al Globex"
+      ],
+      [
+       "Unrelated",
+       "Unrelated"
+      ]
+     ],
+     "calls": [
+      [
+       "autocomplete",
+       "agents",
+       "al",
+       null
+      ]
+     ]
+    },
+    {
+     "fn": "remote_user_values",
+     "args": [
+      "agents",
+      "a"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_lookup_query",
+      "changes",
+      "al",
+      "--kind",
+      "requester"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "alex@example.com",
+       "Alex Acme"
+      ],
+      [
+       "al Globex",
+       "Al Globex"
+      ],
+      [
+       "Unrelated",
+       "Unrelated"
+      ],
+      [
+       "al",
+       ""
+      ]
+     ],
+     "calls": [
+      [
+       "autocomplete",
+       "requesters",
+       "al",
+       {
+        "all_users": "true"
+       }
+      ]
+     ]
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_lookup_query",
+      "changes",
+      "al",
+      "--kind",
+      "agent"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "alex@example.com",
+       "Alex Acme"
+      ],
+      [
+       "al Globex",
+       "Al Globex"
+      ],
+      [
+       "Unrelated",
+       "Unrelated"
+      ],
+      [
+       "al",
+       ""
+      ]
+     ],
+     "calls": [
+      [
+       "autocomplete",
+       "agents",
+       "al",
+       null
+      ]
+     ]
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_lookup_query",
+      "changes",
+      "Ac",
+      "--kind",
+      "group"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "Acme Ops",
+       "Acme support"
+      ],
+      [
+       "Ac",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_lookup_query",
+      "changes",
+      "Re",
+      "--kind",
+      "status"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "Review",
+       "status"
+      ],
+      [
+       "Review",
+       "status"
+      ],
+      [
+       "Re",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_lookup_query",
+      "changes",
+      "al",
+      "--kind",
+      ""
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "al",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "remote_user_values",
+     "args": [
+      "agents",
+      "al"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "email": "alex0@example.com"
+       },
+       {
+        "email": "alex1@example.com"
+       },
+       {
+        "email": "alex2@example.com"
+       },
+       {
+        "email": "alex3@example.com"
+       },
+       {
+        "email": "alex4@example.com"
+       },
+       {
+        "email": "alex5@example.com"
+       },
+       {
+        "email": "alex6@example.com"
+       },
+       {
+        "email": "alex7@example.com"
+       },
+       {
+        "email": "alex8@example.com"
+       },
+       {
+        "email": "alex9@example.com"
+       },
+       {
+        "email": "alex10@example.com"
+       },
+       {
+        "email": "alex11@example.com"
+       },
+       {
+        "email": "alex12@example.com"
+       },
+       {
+        "email": "alex13@example.com"
+       },
+       {
+        "email": "alex14@example.com"
+       },
+       {
+        "email": "alex15@example.com"
+       },
+       {
+        "email": "alex16@example.com"
+       },
+       {
+        "email": "alex17@example.com"
+       },
+       {
+        "email": "alex18@example.com"
+       },
+       {
+        "email": "alex19@example.com"
+       }
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "alex0@example.com",
+       "alex0@example.com"
+      ],
+      [
+       "alex1@example.com",
+       "alex1@example.com"
+      ],
+      [
+       "alex2@example.com",
+       "alex2@example.com"
+      ],
+      [
+       "alex3@example.com",
+       "alex3@example.com"
+      ],
+      [
+       "alex4@example.com",
+       "alex4@example.com"
+      ],
+      [
+       "alex5@example.com",
+       "alex5@example.com"
+      ],
+      [
+       "alex6@example.com",
+       "alex6@example.com"
+      ],
+      [
+       "alex7@example.com",
+       "alex7@example.com"
+      ],
+      [
+       "alex8@example.com",
+       "alex8@example.com"
+      ],
+      [
+       "alex9@example.com",
+       "alex9@example.com"
+      ]
+     ],
+     "calls": [
+      [
+       "autocomplete",
+       "agents",
+       "al",
+       null
+      ]
+     ]
+    },
+    {
+     "fn": "remote_user_values",
+     "args": [
+      "agents",
+      "al"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": true
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_update_agent_id",
+      "-",
+      "al"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": true
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "cf_owner=al"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": null,
+      "lookup": [
+       {
+        "name": "Unrelated"
+       },
+       {
+        "name": "Al Globex"
+       },
+       {
+        "name": "Alex Acme",
+        "email": "Alex@example.com"
+       }
+      ],
+      "fail": false
+     },
+     "want": [
+      [
+       "cf_owner=al Globex",
+       ""
+      ],
+      [
+       "cf_owner=alex@example.com",
+       "Alex Acme"
+      ],
+      [
+       "cf_owner=al",
+       ""
+      ]
+     ],
+     "calls": [
+      [
+       "lookup_choices",
+       "/lookups/people",
+       "al"
+      ]
+     ]
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "cf_owner=al"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": null,
+      "lookup": [
+       {
+        "name": "Alex 0"
+       },
+       {
+        "name": "Alex 1"
+       },
+       {
+        "name": "Alex 2"
+       },
+       {
+        "name": "Alex 3"
+       },
+       {
+        "name": "Alex 4"
+       },
+       {
+        "name": "Alex 5"
+       },
+       {
+        "name": "Alex 6"
+       },
+       {
+        "name": "Alex 7"
+       },
+       {
+        "name": "Alex 8"
+       },
+       {
+        "name": "Alex 9"
+       },
+       {
+        "name": "Alex 10"
+       },
+       {
+        "name": "Alex 11"
+       },
+       {
+        "name": "Alex 12"
+       },
+       {
+        "name": "Alex 13"
+       },
+       {
+        "name": "Alex 14"
+       },
+       {
+        "name": "Alex 15"
+       },
+       {
+        "name": "Alex 16"
+       },
+       {
+        "name": "Alex 17"
+       },
+       {
+        "name": "Alex 18"
+       },
+       {
+        "name": "Alex 19"
+       },
+       {
+        "name": "Alex 20"
+       },
+       {
+        "name": "Alex 21"
+       },
+       {
+        "name": "Alex 22"
+       },
+       {
+        "name": "Alex 23"
+       },
+       {
+        "name": "Alex 24"
+       }
+      ],
+      "fail": false
+     },
+     "want": [
+      [
+       "cf_owner=alex 0",
+       ""
+      ],
+      [
+       "cf_owner=alex 1",
+       ""
+      ],
+      [
+       "cf_owner=alex 2",
+       ""
+      ],
+      [
+       "cf_owner=alex 3",
+       ""
+      ],
+      [
+       "cf_owner=alex 4",
+       ""
+      ],
+      [
+       "cf_owner=alex 5",
+       ""
+      ],
+      [
+       "cf_owner=alex 6",
+       ""
+      ],
+      [
+       "cf_owner=alex 7",
+       ""
+      ],
+      [
+       "cf_owner=alex 8",
+       ""
+      ],
+      [
+       "cf_owner=alex 9",
+       ""
+      ],
+      [
+       "cf_owner=alex 10",
+       ""
+      ],
+      [
+       "cf_owner=alex 11",
+       ""
+      ],
+      [
+       "cf_owner=alex 12",
+       ""
+      ],
+      [
+       "cf_owner=alex 13",
+       ""
+      ],
+      [
+       "cf_owner=alex 14",
+       ""
+      ],
+      [
+       "cf_owner=alex 15",
+       ""
+      ],
+      [
+       "cf_owner=alex 16",
+       ""
+      ],
+      [
+       "cf_owner=alex 17",
+       ""
+      ],
+      [
+       "cf_owner=alex 18",
+       ""
+      ],
+      [
+       "cf_owner=alex 19",
+       ""
+      ],
+      [
+       "cf_owner=al",
+       ""
+      ]
+     ],
+     "calls": [
+      [
+       "lookup_choices",
+       "/lookups/people",
+       "al"
+      ]
+     ]
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "cf_owner=a"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": null,
+      "lookup": [
+       {
+        "name": "Alex 0"
+       },
+       {
+        "name": "Alex 1"
+       },
+       {
+        "name": "Alex 2"
+       },
+       {
+        "name": "Alex 3"
+       },
+       {
+        "name": "Alex 4"
+       },
+       {
+        "name": "Alex 5"
+       },
+       {
+        "name": "Alex 6"
+       },
+       {
+        "name": "Alex 7"
+       },
+       {
+        "name": "Alex 8"
+       },
+       {
+        "name": "Alex 9"
+       },
+       {
+        "name": "Alex 10"
+       },
+       {
+        "name": "Alex 11"
+       },
+       {
+        "name": "Alex 12"
+       },
+       {
+        "name": "Alex 13"
+       },
+       {
+        "name": "Alex 14"
+       },
+       {
+        "name": "Alex 15"
+       },
+       {
+        "name": "Alex 16"
+       },
+       {
+        "name": "Alex 17"
+       },
+       {
+        "name": "Alex 18"
+       },
+       {
+        "name": "Alex 19"
+       },
+       {
+        "name": "Alex 20"
+       },
+       {
+        "name": "Alex 21"
+       },
+       {
+        "name": "Alex 22"
+       },
+       {
+        "name": "Alex 23"
+       },
+       {
+        "name": "Alex 24"
+       }
+      ],
+      "fail": false
+     },
+     "want": [
+      [
+       "cf_owner=a",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "cf_owner=al"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": true
+     },
+     "want": [
+      [
+       "cf_owner=al",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_set",
+      "changes",
+      "requester=al"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "requester=alex@example.com",
+       "Alex Acme"
+      ],
+      [
+       "requester=al Globex",
+       "Al Globex"
+      ],
+      [
+       "requester=Unrelated",
+       "Unrelated"
+      ],
+      [
+       "requester=al",
+       ""
+      ]
+     ],
+     "calls": [
+      [
+       "autocomplete",
+       "agents",
+       "al",
+       null
+      ],
+      [
+       "autocomplete",
+       "requesters",
+       "al",
+       {
+        "all_users": "true"
+       }
+      ]
+     ]
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_where",
+      "changes",
+      "agent!=al"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "agent!=alex@example.com",
+       "Alex Acme"
+      ],
+      [
+       "agent!=al Globex",
+       "Al Globex"
+      ],
+      [
+       "agent!=Unrelated",
+       "Unrelated"
+      ],
+      [
+       "agent!=al",
+       ""
+      ]
+     ],
+     "calls": [
+      [
+       "autocomplete",
+       "agents",
+       "al",
+       null
+      ]
+     ]
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_where",
+      "changes",
+      "requester=al"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "requester=alex@example.com",
+       "Alex Acme"
+      ],
+      [
+       "requester=al Globex",
+       "Al Globex"
+      ],
+      [
+       "requester=Unrelated",
+       "Unrelated"
+      ],
+      [
+       "requester=al",
+       ""
+      ]
+     ],
+     "calls": [
+      [
+       "autocomplete",
+       "requesters",
+       "al",
+       {
+        "all_users": "true"
+       }
+      ]
+     ]
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_update_agent_id",
+      "-",
+      "al"
+     ],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": [
+       {
+        "id": 71,
+        "email": "Alex@example.com",
+        "value": "Alex Acme"
+       },
+       {
+        "id": 72,
+        "name": "Al Globex"
+       },
+       {
+        "id": 73,
+        "value": "Unrelated"
+       },
+       {}
+      ],
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "alex@example.com",
+       "Alex Acme"
+      ],
+      [
+       "al Globex",
+       "Al Globex"
+      ],
+      [
+       "Unrelated",
+       "Unrelated"
+      ]
+     ],
+     "calls": [
+      [
+       "autocomplete",
+       "agents",
+       "al",
+       null
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "families_legacy",
+   "files": {
+    "cache/filters/acme.freshservice.com--changes.json": "{\"filters\": [{\"id\": 17, \"name\": \"Acme active\"}]}",
+    "cache/groups--acme.freshservice.com.json": "{\"groups\": [{\"id\": 91, \"name\": \"Acme\"}]}",
+    "cfg/config.json": "{\"domain\": \"acme.freshservice.com\"}"
+   },
+   "cases": [
+    {
+     "fn": "cached_groups",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      {
+       "id": 91,
+       "name": "Acme"
+      }
+     ],
+     "calls": []
+    },
+    {
+     "fn": "cached_filters",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "17",
+       "Acme active"
+      ]
+     ],
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "families_list",
+   "files": {
+    "cache/filters/acme.freshservice.com--changes.json": "{\"data\": [{\"id\": 17, \"name\": \"Acme active\"}]}",
+    "cache/groups--acme.freshservice.com.json": "{\"data\": [{\"id\": 91, \"name\": \"Acme\"}]}",
+    "cfg/config.json": "{\"domain\": \"acme.freshservice.com\"}"
+   },
+   "cases": [
+    {
+     "fn": "cached_groups",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      {
+       "id": 91,
+       "name": "Acme"
+      }
+     ],
+     "calls": []
+    },
+    {
+     "fn": "cached_filters",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "17",
+       "Acme active"
+      ]
+     ],
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "families_dict",
+   "files": {
+    "cache/filters/acme.freshservice.com--changes.json": "{\"data\": {\"filters\": [{\"id\": 17, \"name\": \"Acme active\"}]}}",
+    "cache/groups--acme.freshservice.com.json": "{\"data\": {\"groups\": [{\"id\": 91, \"name\": \"Acme\"}]}}",
+    "cfg/config.json": "{\"domain\": \"acme.freshservice.com\"}"
+   },
+   "cases": [
+    {
+     "fn": "cached_groups",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      {
+       "id": 91,
+       "name": "Acme"
+      }
+     ],
+     "calls": []
+    },
+    {
+     "fn": "cached_filters",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "17",
+       "Acme active"
+      ]
+     ],
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "families_fallback",
+   "files": {
+    "cache/filters/acme.freshservice.com--changes.json": "{\"data\": \"invalid\", \"filters\": [{\"id\": 17, \"name\": \"Acme active\"}]}",
+    "cache/groups--acme.freshservice.com.json": "{\"data\": \"invalid\", \"groups\": [{\"id\": 91, \"name\": \"Acme\"}]}",
+    "cfg/config.json": "{\"domain\": \"acme.freshservice.com\"}"
+   },
+   "cases": [
+    {
+     "fn": "cached_groups",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      {
+       "id": 91,
+       "name": "Acme"
+      }
+     ],
+     "calls": []
+    },
+    {
+     "fn": "cached_filters",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      [
+       "17",
+       "Acme active"
+      ]
+     ],
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "corrupt_0",
+   "files": {
+    "cache/schema/acme.freshservice.com--changes.json": "not json",
+    "cfg/config.json": "{\"domain\": \"acme.freshservice.com\"}"
+   },
+   "cases": [
+    {
+     "fn": "cached_fields",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_where",
+      "changes",
+      "sta"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": true
+     },
+     "want": [
+      [
+       "status=",
+       "Status · default_status · default"
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_where",
+      "changes",
+      "status=Pe"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": true
+     },
+     "want": [
+      [
+       "status=Pending",
+       "status"
+      ],
+      [
+       "status=Pe",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "cached_groups",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "cached_filters",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "corrupt_1",
+   "files": {
+    "cache/schema/acme.freshservice.com--changes.json": "[]",
+    "cfg/config.json": "{\"domain\": \"acme.freshservice.com\"}"
+   },
+   "cases": [
+    {
+     "fn": "cached_fields",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_where",
+      "changes",
+      "sta"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": true
+     },
+     "want": [
+      [
+       "status=",
+       "Status · default_status · default"
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_where",
+      "changes",
+      "status=Pe"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": true
+     },
+     "want": [
+      [
+       "status=Pending",
+       "status"
+      ],
+      [
+       "status=Pe",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "cached_groups",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "cached_filters",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "corrupt_2",
+   "files": {
+    "cache/schema/acme.freshservice.com--changes.json": "{}",
+    "cfg/config.json": "{\"domain\": \"acme.freshservice.com\"}"
+   },
+   "cases": [
+    {
+     "fn": "cached_fields",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_where",
+      "changes",
+      "sta"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": true
+     },
+     "want": [
+      [
+       "status=",
+       "Status · default_status · default"
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "complete",
+     "args": [
+      "complete_where",
+      "changes",
+      "status=Pe"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": true
+     },
+     "want": [
+      [
+       "status=Pending",
+       "status"
+      ],
+      [
+       "status=Pe",
+       ""
+      ]
+     ],
+     "calls": []
+    },
+    {
+     "fn": "cached_groups",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "cached_filters",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "stale",
+   "files": {
+    "cache/filters/acme.freshservice.com--changes.json": "{\n  \"_kind\": \"filters\",\n  \"saved_at\": 1794450125.8212962,\n  \"checked_at\": 1794450125.8212962,\n  \"changed_at\": 1794450125.8212962,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": {\n    \"filters\": [\n      {\n        \"id\": 17,\n        \"name\": \"Acme active\"\n      },\n      {\n        \"id\": \"all\",\n        \"name\": \"All Changes\"\n      },\n      null,\n      {}\n    ]\n  }\n}",
+    "cache/groups--acme.freshservice.com.json": "{\n  \"_kind\": \"groups\",\n  \"saved_at\": 1794450125.821005,\n  \"checked_at\": 1794450125.821005,\n  \"changed_at\": 1794450125.821005,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": {\n    \"groups\": [\n      {\n        \"id\": 91,\n        \"name\": \"Acme Ops\",\n        \"description\": \"Acme support\"\n      },\n      {\n        \"id\": 92,\n        \"name\": \"Globex\"\n      },\n      {\n        \"id\": 93\n      }\n    ]\n  }\n}",
+    "cache/schema/acme.freshservice.com--changes.json": "{\n  \"_kind\": \"schema\",\n  \"saved_at\": 1.0,\n  \"checked_at\": 1794450125.820446,\n  \"changed_at\": 1794450125.820446,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": [\n    {\n      \"name\": \"status\",\n      \"label\": \"State\",\n      \"default_field\": true,\n      \"field_type\": \"default_status\",\n      \"choices\": [\n        {\n          \"id\": 47,\n          \"value\": \"Review\"\n        },\n        {\n          \"id\": 83,\n          \"name\": \"Done\"\n        },\n        {\n          \"id\": 47,\n          \"value\": \"Review\"\n        }\n      ]\n    },\n    {\n      \"name\": \"cf_enabled\",\n      \"label\": \"Enabled\",\n      \"field_type\": \"custom_checkbox\"\n    },\n    {\n      \"name\": \"planned_start_date\",\n      \"label\": \"Start\",\n      \"field_type\": \"default_date\"\n    },\n    {\n      \"name\": \"cf_plan\",\n      \"label\": \"Test Plan\",\n      \"field_type\": \"planning_field\"\n    },\n    {\n      \"name\": \"cf_owner\",\n      \"label\": \"Owner\",\n      \"field_type\": \"custom_lookup\",\n      \"lookup_config\": {\n        \"link\": \"/lookups/people\"\n      }\n    },\n    {\n      \"name\": \"requester\",\n      \"label\": \"Requester\",\n      \"field_type\": \"custom_lookup\"\n    },\n    {\n      \"name\": \"agent\",\n      \"label\": \"Agent\",\n      \"field_type\": \"default_agent\"\n    },\n    {\n      \"name\": \"cf_title\",\n      \"label\": \"Title\",\n      \"field_type\": \"custom_text\"\n    },\n    {\n      \"label\": \"Nameless\"\n    }\n  ]\n}",
+    "cfg/config.json": "{\"domain\": \"acme.freshservice.com\"}"
+   },
+   "cases": [
+    {
+     "fn": "cached_fields",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [
+      {
+       "name": "status",
+       "label": "State",
+       "default_field": true,
+       "field_type": "default_status",
+       "choices": [
+        {
+         "id": 47,
+         "value": "Review"
+        },
+        {
+         "id": 83,
+         "name": "Done"
+        },
+        {
+         "id": 47,
+         "value": "Review"
+        }
+       ]
+      },
+      {
+       "name": "cf_enabled",
+       "label": "Enabled",
+       "field_type": "custom_checkbox"
+      },
+      {
+       "name": "planned_start_date",
+       "label": "Start",
+       "field_type": "default_date"
+      },
+      {
+       "name": "cf_plan",
+       "label": "Test Plan",
+       "field_type": "planning_field"
+      },
+      {
+       "name": "cf_owner",
+       "label": "Owner",
+       "field_type": "custom_lookup",
+       "lookup_config": {
+        "link": "/lookups/people"
+       }
+      },
+      {
+       "name": "requester",
+       "label": "Requester",
+       "field_type": "custom_lookup"
+      },
+      {
+       "name": "agent",
+       "label": "Agent",
+       "field_type": "default_agent"
+      },
+      {
+       "name": "cf_title",
+       "label": "Title",
+       "field_type": "custom_text"
+      },
+      {
+       "label": "Nameless"
+      }
+     ],
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "other_tenant",
+   "files": {
+    "cache/filters/acme.freshservice.com--changes.json": "{\n  \"_kind\": \"filters\",\n  \"saved_at\": 1794450125.836842,\n  \"checked_at\": 1794450125.836842,\n  \"changed_at\": 1794450125.836842,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": {\n    \"filters\": [\n      {\n        \"id\": 17,\n        \"name\": \"Acme active\"\n      },\n      {\n        \"id\": \"all\",\n        \"name\": \"All Changes\"\n      },\n      null,\n      {}\n    ]\n  }\n}",
+    "cache/groups--acme.freshservice.com.json": "{\n  \"_kind\": \"groups\",\n  \"saved_at\": 1794450125.836257,\n  \"checked_at\": 1794450125.836257,\n  \"changed_at\": 1794450125.836257,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": {\n    \"groups\": [\n      {\n        \"id\": 91,\n        \"name\": \"Acme Ops\",\n        \"description\": \"Acme support\"\n      },\n      {\n        \"id\": 92,\n        \"name\": \"Globex\"\n      },\n      {\n        \"id\": 93\n      }\n    ]\n  }\n}",
+    "cache/schema/acme.freshservice.com--changes.json": "{\n  \"_kind\": \"schema\",\n  \"saved_at\": 1.0,\n  \"checked_at\": 1794450125.8355682,\n  \"changed_at\": 1794450125.8355682,\n  \"hash\": \"\",\n  \"etag\": \"\",\n  \"latency_ms\": 0,\n  \"fetch_count\": 1,\n  \"data\": [\n    {\n      \"name\": \"status\",\n      \"label\": \"State\",\n      \"default_field\": true,\n      \"field_type\": \"default_status\",\n      \"choices\": [\n        {\n          \"id\": 47,\n          \"value\": \"Review\"\n        },\n        {\n          \"id\": 83,\n          \"name\": \"Done\"\n        },\n        {\n          \"id\": 47,\n          \"value\": \"Review\"\n        }\n      ]\n    },\n    {\n      \"name\": \"cf_enabled\",\n      \"label\": \"Enabled\",\n      \"field_type\": \"custom_checkbox\"\n    },\n    {\n      \"name\": \"planned_start_date\",\n      \"label\": \"Start\",\n      \"field_type\": \"default_date\"\n    },\n    {\n      \"name\": \"cf_plan\",\n      \"label\": \"Test Plan\",\n      \"field_type\": \"planning_field\"\n    },\n    {\n      \"name\": \"cf_owner\",\n      \"label\": \"Owner\",\n      \"field_type\": \"custom_lookup\",\n      \"lookup_config\": {\n        \"link\": \"/lookups/people\"\n      }\n    },\n    {\n      \"name\": \"requester\",\n      \"label\": \"Requester\",\n      \"field_type\": \"custom_lookup\"\n    },\n    {\n      \"name\": \"agent\",\n      \"label\": \"Agent\",\n      \"field_type\": \"default_agent\"\n    },\n    {\n      \"name\": \"cf_title\",\n      \"label\": \"Title\",\n      \"field_type\": \"custom_text\"\n    },\n    {\n      \"label\": \"Nameless\"\n    }\n  ]\n}",
+    "cfg/config.json": "{\"domain\": \"globex.example.com\"}"
+   },
+   "cases": [
+    {
+     "fn": "cached_fields",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "cached_groups",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    },
+    {
+     "fn": "cached_filters",
+     "args": [
+      "changes"
+     ],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": [],
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "network_setting_0",
+   "files": {
+    "cfg/config.json": "{\"completion\": {\"network\": \"on\"}}"
+   },
+   "cases": [
+    {
+     "fn": "network",
+     "args": [],
+     "network": true,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": true,
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "network_setting_1",
+   "files": {
+    "cfg/config.json": "{\"completion\": {\"network\": true}}"
+   },
+   "cases": [
+    {
+     "fn": "network",
+     "args": [],
+     "network": true,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": true,
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "network_setting_2",
+   "files": {
+    "cfg/config.json": "{\"completion\": {\"network\": \"true\"}}"
+   },
+   "cases": [
+    {
+     "fn": "network",
+     "args": [],
+     "network": true,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": true,
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "network_setting_3",
+   "files": {
+    "cfg/config.json": "{\"completion\": {\"network\": \"1\"}}"
+   },
+   "cases": [
+    {
+     "fn": "network",
+     "args": [],
+     "network": true,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": true,
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "network_setting_4",
+   "files": {
+    "cfg/config.json": "{\"completion\": {\"network\": \"off\"}}"
+   },
+   "cases": [
+    {
+     "fn": "network",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": false,
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "network_setting_5",
+   "files": {
+    "cfg/config.json": "{\"completion\": {\"network\": false}}"
+   },
+   "cases": [
+    {
+     "fn": "network",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": false,
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "config_missing",
+   "files": {},
+   "cases": [
+    {
+     "fn": "config_load",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": {},
+     "calls": []
+    },
+    {
+     "fn": "network",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": false,
+     "calls": []
+    }
+   ]
+  },
+  {
+   "name": "config_broken",
+   "files": {
+    "cfg/config.json": "broken"
+   },
+   "cases": [
+    {
+     "fn": "config_load",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": {},
+     "calls": []
+    },
+    {
+     "fn": "network",
+     "args": [],
+     "network": false,
+     "env": null,
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": false,
+     "calls": []
+    },
+    {
+     "fn": "network",
+     "args": [],
+     "network": true,
+     "env": "1",
+     "remote": {
+      "autocomplete": null,
+      "lookup": null,
+      "fail": false
+     },
+     "want": true,
+     "calls": []
+    }
+   ]
+  }
+ ]
+}

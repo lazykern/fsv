@@ -2,11 +2,12 @@
 //! planning-text, mark-known-error, bulk-priority, reply --bcc/--sender,
 //! forward, update --reviewed with --set answers, the SR send-failure report,
 //! the change asset picker, canned replies and scenarios, private ticket
-//! views, list columns and exports, problem create and child writes, and
-//! Click's missing-parameter errors. Expected output was captured from
+//! views, list columns and exports, problem create and child writes,
+//! Click's missing-parameter errors, and change clones that fail part-way.
+//! Expected output was captured from
 //! Python on the same routes (`tests/golden/emit_upstream.py`); one-shot
 //! routes serve the record before the write and the changed record after it.
-//! Python commit: 92002d76b880d927e16750ab986b525ee4fa85d6
+//! Python commit: 3432beaa8719b988eb99a257b347f7b4338982eb
 
 mod common;
 use common::run_fixture;
@@ -812,7 +813,7 @@ fn change_planning_text_empty_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"planning description must be nonempty text/HTML
+        r#"planning description must be nonempty text/HTML; use --clear to delete
 "#
     );
 }
@@ -833,13 +834,26 @@ fn change_planning_text_existing_refused() {
         ],
         None,
     );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
+    assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
-        r.err,
-        r#"planning section already has content; native edit wire is not captured; use the web editor (no write attempted)
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "changes_planning_text",
+  "method": "PUT",
+  "path": "/api/_/changes/14/planning-fields/acme_plan",
+  "payload": {
+    "description": "x"
+  },
+  "plan_hash": "a2da8700f9883b0573a9c87ab44e3e1d6c5c5404e88c3725c43e02dd7ecb22d7",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "operation": "edit",
+  "before": "<p>old</p>",
+  "after": "x"
+}
 "#
     );
+    assert_eq!(r.err, r#""#);
 }
 
 #[test]
@@ -1034,6 +1048,600 @@ fn problem_planning_text_needs_yes() {
     assert_eq!(
         r.err,
         r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn change_planning_text_edit_dry_run() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "changes",
+            "planning-text",
+            "123",
+            "--section",
+            "Rollout Plan",
+            "--description",
+            "Acme new",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "changes_planning_text",
+  "method": "PUT",
+  "path": "/api/_/changes/123/planning-fields/acme_plan",
+  "payload": {
+    "description": "Acme new"
+  },
+  "plan_hash": "ac447771e70b1c15ab26e19add62ef1d7dbecbc53f3c944987d1b8fcf591d9b1",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "operation": "edit",
+  "before": "<div>Acme original</div>",
+  "after": "Acme new"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn change_planning_text_edit_needs_expect_plan() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "changes",
+            "planning-text",
+            "123",
+            "--section",
+            "Rollout Plan",
+            "--description",
+            "Acme new",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn change_planning_text_edit_send() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "changes",
+            "planning-text",
+            "123",
+            "--section",
+            "Rollout Plan",
+            "--description",
+            "Acme new",
+            "--yes",
+            "--expect-plan",
+            "ac447771e70b1c15ab26e19add62ef1d7dbecbc53f3c944987d1b8fcf591d9b1",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "ac447771e70b1c15ab26e19add62ef1d7dbecbc53f3c944987d1b8fcf591d9b1",
+  "verified": true,
+  "section": "acme_plan",
+  "description": "matched"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.write_paths(),
+        ["PUT /api/_/changes/123/planning-fields/acme_plan"]
+    );
+}
+
+#[test]
+fn change_planning_text_clear_dry_run() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "changes",
+            "planning-text",
+            "124",
+            "--section",
+            "Rollout Plan",
+            "--clear",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "changes_planning_text",
+  "method": "DELETE",
+  "path": "/api/_/changes/124/planning-fields/acme_plan",
+  "payload": null,
+  "plan_hash": "2e39db850f451625f78daa2f832f1223d71169be821b9cb4990067beb8aaeb7b",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "operation": "clear",
+  "before": "<div>Acme original</div>",
+  "after": ""
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn change_planning_text_clear_needs_expect_plan() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "changes",
+            "planning-text",
+            "124",
+            "--section",
+            "Rollout Plan",
+            "--clear",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn change_planning_text_clear_send() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "changes",
+            "planning-text",
+            "124",
+            "--section",
+            "Rollout Plan",
+            "--clear",
+            "--yes",
+            "--expect-plan",
+            "2e39db850f451625f78daa2f832f1223d71169be821b9cb4990067beb8aaeb7b",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "2e39db850f451625f78daa2f832f1223d71169be821b9cb4990067beb8aaeb7b",
+  "verified": true,
+  "section": "acme_plan",
+  "description": "matched"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.write_paths(),
+        ["DELETE /api/_/changes/124/planning-fields/acme_plan"]
+    );
+}
+
+#[test]
+fn change_planning_text_existing_content_edit_dry_run() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "changes",
+            "planning-text",
+            "125",
+            "--section",
+            "Rollout Plan",
+            "--description",
+            "Acme",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "changes_planning_text",
+  "method": "PUT",
+  "path": "/api/_/changes/125/planning-fields/acme_plan",
+  "payload": {
+    "description": "Acme"
+  },
+  "plan_hash": "f15c3d2339b690f4f445b2a51795ebdccc3361bb48fe79f68f81475389f40daa",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "operation": "edit",
+  "before": "Acme original",
+  "after": "Acme"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn change_planning_text_existing_content_wrong_hash() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "changes",
+            "planning-text",
+            "125",
+            "--section",
+            "Rollout Plan",
+            "--description",
+            "Acme",
+            "--yes",
+            "--expect-plan",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn problem_planning_text_edit_dry_run() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "problems",
+            "planning-text",
+            "123",
+            "--section",
+            "Root Cause",
+            "--description",
+            "Acme new",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "problems_planning_text",
+  "method": "PUT",
+  "path": "/api/_/problems/123/planning-fields/problem_cause",
+  "payload": {
+    "description": "Acme new"
+  },
+  "plan_hash": "e33c72165368d8c13662c77458450eab0339c86bdb977db0841862240d9cc96f",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "operation": "edit",
+  "before": "<div>Acme original</div>",
+  "after": "Acme new"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problem_planning_text_edit_needs_expect_plan() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "problems",
+            "planning-text",
+            "123",
+            "--section",
+            "Root Cause",
+            "--description",
+            "Acme new",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn problem_planning_text_edit_send() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "problems",
+            "planning-text",
+            "123",
+            "--section",
+            "Root Cause",
+            "--description",
+            "Acme new",
+            "--yes",
+            "--expect-plan",
+            "e33c72165368d8c13662c77458450eab0339c86bdb977db0841862240d9cc96f",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "e33c72165368d8c13662c77458450eab0339c86bdb977db0841862240d9cc96f",
+  "verified": true,
+  "section": "problem_cause",
+  "description": "matched"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.write_paths(),
+        ["PUT /api/_/problems/123/planning-fields/problem_cause"]
+    );
+}
+
+#[test]
+fn problem_planning_text_clear_dry_run() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "problems",
+            "planning-text",
+            "124",
+            "--section",
+            "Root Cause",
+            "--clear",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "problems_planning_text",
+  "method": "DELETE",
+  "path": "/api/_/problems/124/planning-fields/problem_cause",
+  "payload": null,
+  "plan_hash": "d505aac8cc150eb5568d39aae2f18cd888b7f6f5bd2d4e4667f11aff17b6bf0b",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "operation": "clear",
+  "before": "<div>Acme original</div>",
+  "after": ""
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problem_planning_text_clear_needs_expect_plan() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "problems",
+            "planning-text",
+            "124",
+            "--section",
+            "Root Cause",
+            "--clear",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn problem_planning_text_clear_send() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "problems",
+            "planning-text",
+            "124",
+            "--section",
+            "Root Cause",
+            "--clear",
+            "--yes",
+            "--expect-plan",
+            "d505aac8cc150eb5568d39aae2f18cd888b7f6f5bd2d4e4667f11aff17b6bf0b",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "d505aac8cc150eb5568d39aae2f18cd888b7f6f5bd2d4e4667f11aff17b6bf0b",
+  "verified": true,
+  "section": "problem_cause",
+  "description": "matched"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.write_paths(),
+        ["DELETE /api/_/problems/124/planning-fields/problem_cause"]
+    );
+}
+
+#[test]
+fn problem_planning_text_existing_content_edit_dry_run() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "problems",
+            "planning-text",
+            "125",
+            "--section",
+            "Root Cause",
+            "--description",
+            "Acme",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "problems_planning_text",
+  "method": "PUT",
+  "path": "/api/_/problems/125/planning-fields/problem_cause",
+  "payload": {
+    "description": "Acme"
+  },
+  "plan_hash": "5f90b0f07360dfe22c64244bfe70d616c4926518e3f1103f979990f71eaa17f4",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "operation": "edit",
+  "before": "Acme original",
+  "after": "Acme"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn problem_planning_text_existing_content_wrong_hash() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "problems",
+            "planning-text",
+            "125",
+            "--section",
+            "Root Cause",
+            "--description",
+            "Acme",
+            "--yes",
+            "--expect-plan",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn change_planning_text_no_operation_refused() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "changes",
+            "planning-text",
+            "123",
+            "--section",
+            "Rollout Plan",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"planning description must be nonempty text/HTML; use --clear to delete
+"#
+    );
+}
+
+#[test]
+fn change_planning_text_clear_and_description_refused() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "changes",
+            "planning-text",
+            "123",
+            "--section",
+            "Rollout Plan",
+            "--dry-run",
+            "--clear",
+            "--description",
+            "Acme",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"--clear and --description are mutually exclusive
+"#
+    );
+}
+
+#[test]
+fn change_planning_text_blank_description_refused() {
+    let r = run_fixture(
+        "planning_edit",
+        &[
+            "changes",
+            "planning-text",
+            "123",
+            "--section",
+            "Rollout Plan",
+            "--dry-run",
+            "--description",
+            "",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"planning description must be nonempty text/HTML; use --clear to delete
 "#
     );
 }
@@ -5714,6 +6322,315 @@ Try 'fsv changes tasks-update -h' for help.
 ╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Missing argument 'TASK_ID'.                                                                                                                                                                          │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+"#
+    );
+}
+
+#[test]
+fn clone_partial_tasks_403_keeps_new_identity() {
+    let r = run_fixture(
+        "clone_tasks_403",
+        &[
+            "changes",
+            "clone",
+            "CHN-123",
+            "--no-edit",
+            "--with-tasks",
+            "--with-assets",
+            "--with-planning",
+            "--yes",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 5, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "id": 456,
+  "human_display_id": "CHN-456",
+  "fsv_clone_steps": {
+    "tasks": "failed: HTTP 403 creating tasks: synthetic denial",
+    "assets": "ok",
+    "planning": "ok"
+  }
+}
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"created CHN-456
+step failed: tasks: HTTP 403 creating tasks: synthetic denial
+  note: task 'Verify Acme': owner not copied
+  note: tenant workflows may have added their own tasks; compare with the source before relying on the copy
+  associated 1 asset(s)
+  cloned 1 planning field(s)
+error: CHN-456 WAS created but 1 step(s) failed; do not rerun clone (it would duplicate the change). Fix the failed step(s) on CHN-456 directly.
+"#
+    );
+    assert_eq!(
+        r.write_paths(),
+        [
+            "POST /api/_/changes",
+            "POST /api/_/changes/456/tasks",
+            "PUT /api/_/changes/456/assets/associate",
+            "POST /api/_/changes/456/planning-fields"
+        ]
+    );
+}
+
+#[test]
+fn clone_partial_assets_409_keeps_new_identity() {
+    let r = run_fixture(
+        "clone_assets_409",
+        &[
+            "changes",
+            "clone",
+            "CHN-123",
+            "--no-edit",
+            "--with-tasks",
+            "--with-assets",
+            "--with-planning",
+            "--yes",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 4, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "id": 456,
+  "human_display_id": "CHN-456",
+  "fsv_clone_steps": {
+    "tasks": "ok",
+    "assets": "failed: HTTP 409 updating associate: synthetic denial",
+    "planning": "ok"
+  }
+}
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"created CHN-456
+  cloned 1 task(s)
+  note: task 'Verify Acme': owner not copied
+  note: tenant workflows may have added their own tasks; compare with the source before relying on the copy
+step failed: assets: HTTP 409 updating associate: synthetic denial
+  cloned 1 planning field(s)
+error: CHN-456 WAS created but 1 step(s) failed; do not rerun clone (it would duplicate the change). Fix the failed step(s) on CHN-456 directly.
+"#
+    );
+    assert_eq!(
+        r.write_paths(),
+        [
+            "POST /api/_/changes",
+            "POST /api/_/changes/456/tasks",
+            "PUT /api/_/changes/456/assets/associate",
+            "POST /api/_/changes/456/planning-fields"
+        ]
+    );
+}
+
+#[test]
+fn clone_partial_planning_429_keeps_new_identity() {
+    let r = run_fixture(
+        "clone_planning_429",
+        &[
+            "changes",
+            "clone",
+            "CHN-123",
+            "--no-edit",
+            "--with-tasks",
+            "--with-assets",
+            "--with-planning",
+            "--yes",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 5, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "id": 456,
+  "human_display_id": "CHN-456",
+  "fsv_clone_steps": {
+    "tasks": "ok",
+    "assets": "ok",
+    "planning": "failed: HTTP 429 creating planning-fields: synthetic denial"
+  }
+}
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"created CHN-456
+  cloned 1 task(s)
+  note: task 'Verify Acme': owner not copied
+  note: tenant workflows may have added their own tasks; compare with the source before relying on the copy
+  associated 1 asset(s)
+step failed: planning: HTTP 429 creating planning-fields: synthetic denial
+error: CHN-456 WAS created but 1 step(s) failed; do not rerun clone (it would duplicate the change). Fix the failed step(s) on CHN-456 directly.
+"#
+    );
+    assert_eq!(
+        r.write_paths(),
+        [
+            "POST /api/_/changes",
+            "POST /api/_/changes/456/tasks",
+            "PUT /api/_/changes/456/assets/associate",
+            "POST /api/_/changes/456/planning-fields"
+        ]
+    );
+}
+
+#[test]
+fn clone_partial_tasks_500_keeps_new_identity() {
+    let r = run_fixture(
+        "clone_tasks_500",
+        &[
+            "changes",
+            "clone",
+            "CHN-123",
+            "--no-edit",
+            "--with-tasks",
+            "--with-assets",
+            "--with-planning",
+            "--yes",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 5, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "id": 456,
+  "human_display_id": "CHN-456",
+  "fsv_clone_steps": {
+    "tasks": "failed: HTTP 500 creating tasks: synthetic denial",
+    "assets": "ok",
+    "planning": "ok"
+  }
+}
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"created CHN-456
+step failed: tasks: HTTP 500 creating tasks: synthetic denial
+  note: task 'Verify Acme': owner not copied
+  note: tenant workflows may have added their own tasks; compare with the source before relying on the copy
+  associated 1 asset(s)
+  cloned 1 planning field(s)
+error: CHN-456 WAS created but 1 step(s) failed; do not rerun clone (it would duplicate the change). Fix the failed step(s) on CHN-456 directly.
+"#
+    );
+    assert_eq!(
+        r.write_paths(),
+        [
+            "POST /api/_/changes",
+            "POST /api/_/changes/456/tasks",
+            "PUT /api/_/changes/456/assets/associate",
+            "POST /api/_/changes/456/planning-fields"
+        ]
+    );
+}
+
+#[test]
+fn clone_dry_run_counts_side_effects() {
+    let r = run_fixture(
+        "clone_ok",
+        &[
+            "changes",
+            "clone",
+            "CHN-123",
+            "--no-edit",
+            "--with-tasks",
+            "--with-assets",
+            "--with-planning",
+            "--yes",
+            "--json",
+            "--dry-run",
+            "--keep-task-owners",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "subject": "Acme maintenance",
+  "status": 1
+}
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"side effects if run without --dry-run:
+  - 1 task(s) created (1 with an owner; owners/past dates kept)
+  - tenant workflows may add their own tasks to the new change
+  - 1 asset(s) associated
+  - 1 planning field(s) copied, 0 attachment(s) re-uploaded
+"#
+    );
+}
+
+#[test]
+fn clone_missing_returned_id() {
+    let r = run_fixture(
+        "clone_noid",
+        &[
+            "changes",
+            "clone",
+            "CHN-123",
+            "--no-edit",
+            "--with-tasks",
+            "--with-assets",
+            "--with-planning",
+            "--yes",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{}
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"created CHN-None
+warning: change created but the response had no id; see `fsv journal tail`
+"#
+    );
+    assert_eq!(r.write_paths(), ["POST /api/_/changes"]);
+}
+
+#[test]
+fn clone_no_input_needs_yes() {
+    let r = run_fixture(
+        "clone_ok",
+        &[
+            "changes",
+            "clone",
+            "CHN-123",
+            "--no-edit",
+            "--with-tasks",
+            "--with-assets",
+            "--with-planning",
+            "--json",
+            "--no-input",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"error: clone of CHN-123: --with-tasks: creates tasks that can notify their groups and trigger tenant workflows. Pass --yes to confirm.
 "#
     );
 }

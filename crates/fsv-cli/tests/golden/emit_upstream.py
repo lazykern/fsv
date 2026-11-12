@@ -20,7 +20,7 @@ from pyrev import python_rev, stamp
 GOLDEN = pathlib.Path(__file__).resolve().parent
 OUT = GOLDEN.parent / "upstream_cmds.rs"
 PARTS = ["watch", "time", "plan", "mail", "rev", "srf", "asset", "asset_hand.rs", "canned", "pv", "lp",
-         "pw", "form", "tail_hand.rs", "missing"]
+         "pw", "form", "tail_hand.rs", "missing", "clone"]
 # Not emitted: each is covered by a hand test in `*_hand.rs`.
 DIVERGENT = {"asset_picker_api_error", "asset_picker_page_zero"}
 
@@ -28,8 +28,9 @@ HEADER = """//! Upstream commands ported from Python: watchers, ticket time,
 //! planning-text, mark-known-error, bulk-priority, reply --bcc/--sender,
 //! forward, update --reviewed with --set answers, the SR send-failure report,
 //! the change asset picker, canned replies and scenarios, private ticket
-//! views, list columns and exports, problem create and child writes, and
-//! Click's missing-parameter errors. Expected output was captured from
+//! views, list columns and exports, problem create and child writes,
+//! Click's missing-parameter errors, and change clones that fail part-way.
+//! Expected output was captured from
 //! Python on the same routes (`tests/golden/emit_upstream.py`); one-shot
 //! routes serve the record before the write and the changed record after it.
 //! {stamp}
