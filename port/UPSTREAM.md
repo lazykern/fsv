@@ -3267,4 +3267,21 @@ before any write.
 calls `problem_properties::build_plan` then `send`. `--dry-run`
 prints `review()`. Port `tests/test_problem_properties.py`.
 
-Still not triaged: commits after `1285fe7`.
+## Ledger: `02bdf27` (library side)
+
+Triaged against `git show 02bdf27`
+(`02bdf27a23fa53a273b4bcd33cdbf2cc7549c1c1`). The Python change removes
+`TaskPlan.status_id`'s default of 1 and adds an AST lint plus a
+shifted-tenant test. The Rust `TaskArgs.status_id` is already `None`
+until `build_plan` resolves a runtime id, and a missing id is
+"status ID must first be resolved from runtime metadata".
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `02bdf27`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `02bdf27` | 11-13 03:37 | Lint numeric status/reminder constants and add a shifted-tenant fake | ported | (already in fsv-api `tasks`) |
+
+No CLI follow-up beyond the runtime status/reminder handoff on `a6262dc`.
+
+Still not triaged: commits after `02bdf27`.
