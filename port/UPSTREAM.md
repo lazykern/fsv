@@ -3032,4 +3032,42 @@ verification.
 No CLI follow-up. CLI goldens for `tickets forward --conversation`
 results would gain the key.
 
-Still not triaged: commits after `915df4c`.
+## Ledger: `bf6576c` (library side)
+
+Triaged against `git show bf6576c`
+(`bf6576c26e6c4afb89be7b22e00033c600bae8d9`). A stamped run gives 13
+cases: the bodyless delete, two lagging readbacks, the missing
+confirmation, four unproven targets, subject drift, and four transport
+failures. All of them match.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `bf6576c`.
+The partial is the CLI command, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `bf6576c` | 11-13 02:36 | Add reviewed changes delete from the accepted bodyless soft-delete wire | partial | fsv-api `change_delete`. fsv-cli follow-up below |
+
+`change_delete::build_plan` reads one exact change. `deleted` must be
+false and `subject` must be a string. The plan is `DELETE changes/{id}`
+with payload `null`. The hash binds `snapshot_hash({"change": row})`.
+`review` adds `change_id`, `subject` and the destructive warning.
+`send` requires `confirm_destructive` when a hash is passed. It sends
+the bodyless DELETE once and checks `deleted: true` through
+`bounded_readback`. A cancel (`reviewed_hash` none) does not require
+the acknowledgement.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`fsv changes delete CHANGE_ID`:
+
+- `--dry-run` prints `{"status": "dry_run", **review}` and does not delete.
+- A send needs `--confirm-destructive --yes --expect-plan FULL_HASH`.
+  Missing `--yes`, a wrong hash, or missing `--confirm-destructive`
+  exits 2 and writes nothing.
+- Call `change_delete::build_plan` then `change_delete::send(..., confirm_destructive)`.
+- Exit 4 when the result is not verified.
+- `ValueError` and the reviewed-write refusal exit 2.
+- Unverified sends sleep up to 5s unless wrapped in
+  `fsv_api::readback::with_readback_sleep`.
+
+Still not triaged: `e1bc129` and later.

@@ -1,0 +1,192 @@
+{
+  "_python": {
+    "commit": "bf6576c26e6c4afb89be7b22e00033c600bae8d9",
+    "dirty": false
+  },
+  "cases": [
+    {
+      "name": "ok",
+      "hash": "5ba7d60e00bde9e21413d44f2d3d239a158d1a9e48d298d660d90dcd765ce10c",
+      "review": {
+        "action": "change_delete",
+        "method": "DELETE",
+        "path": "/api/_/changes/123",
+        "payload": null,
+        "plan_hash": "5ba7d60e00bde9e21413d44f2d3d239a158d1a9e48d298d660d90dcd765ce10c",
+        "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
+        "change_id": 123,
+        "subject": "Acme rollout"
+      },
+      "payload_json": "null",
+      "context": "2d8afa8bdd7640485d0e127555430eefed8ecfd043b73c364a34a169bf2b1a22",
+      "result": {
+        "status": "submitted",
+        "plan_hash": "5ba7d60e00bde9e21413d44f2d3d239a158d1a9e48d298d660d90dcd765ce10c",
+        "verified": true,
+        "change_id": 123,
+        "fields": {
+          "deleted": "matched"
+        },
+        "readback_attempts": 1
+      },
+      "sleeps": [],
+      "reads_after": 1,
+      "writes": [
+        {
+          "method": "DELETE",
+          "path": "changes/123",
+          "body": ""
+        }
+      ],
+      "replay": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    {
+      "name": "lag2",
+      "hash": "5ba7d60e00bde9e21413d44f2d3d239a158d1a9e48d298d660d90dcd765ce10c",
+      "review": {
+        "action": "change_delete",
+        "method": "DELETE",
+        "path": "/api/_/changes/123",
+        "payload": null,
+        "plan_hash": "5ba7d60e00bde9e21413d44f2d3d239a158d1a9e48d298d660d90dcd765ce10c",
+        "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
+        "change_id": 123,
+        "subject": "Acme rollout"
+      },
+      "payload_json": "null",
+      "context": "2d8afa8bdd7640485d0e127555430eefed8ecfd043b73c364a34a169bf2b1a22",
+      "result": {
+        "status": "submitted",
+        "plan_hash": "5ba7d60e00bde9e21413d44f2d3d239a158d1a9e48d298d660d90dcd765ce10c",
+        "verified": true,
+        "change_id": 123,
+        "fields": {
+          "deleted": "matched"
+        },
+        "readback_attempts": 3
+      },
+      "sleeps": [
+        0.5,
+        1.5
+      ],
+      "reads_after": 3,
+      "writes": [
+        {
+          "method": "DELETE",
+          "path": "changes/123",
+          "body": ""
+        }
+      ],
+      "replay": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    {
+      "name": "lag100",
+      "hash": "5ba7d60e00bde9e21413d44f2d3d239a158d1a9e48d298d660d90dcd765ce10c",
+      "review": {
+        "action": "change_delete",
+        "method": "DELETE",
+        "path": "/api/_/changes/123",
+        "payload": null,
+        "plan_hash": "5ba7d60e00bde9e21413d44f2d3d239a158d1a9e48d298d660d90dcd765ce10c",
+        "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
+        "change_id": 123,
+        "subject": "Acme rollout"
+      },
+      "payload_json": "null",
+      "context": "2d8afa8bdd7640485d0e127555430eefed8ecfd043b73c364a34a169bf2b1a22",
+      "result": {
+        "status": "submitted",
+        "plan_hash": "5ba7d60e00bde9e21413d44f2d3d239a158d1a9e48d298d660d90dcd765ce10c",
+        "verified": false,
+        "change_id": 123,
+        "fields": {
+          "deleted": "mismatched"
+        },
+        "readback_attempts": 4,
+        "warning": "Readback was not fully verified; do not resend."
+      },
+      "sleeps": [
+        0.5,
+        1.5,
+        3.0
+      ],
+      "reads_after": 4,
+      "writes": [
+        {
+          "method": "DELETE",
+          "path": "changes/123",
+          "body": ""
+        }
+      ],
+      "replay": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    {
+      "name": "no_confirm",
+      "hash": "5ba7d60e00bde9e21413d44f2d3d239a158d1a9e48d298d660d90dcd765ce10c",
+      "review": {
+        "action": "change_delete",
+        "method": "DELETE",
+        "path": "/api/_/changes/123",
+        "payload": null,
+        "plan_hash": "5ba7d60e00bde9e21413d44f2d3d239a158d1a9e48d298d660d90dcd765ce10c",
+        "warning": "Destructive soft delete of one change. Restoration is not a captured fsv contract; unknown outcomes must be inspected, never automatically resent.",
+        "change_id": 123,
+        "subject": "Acme rollout"
+      },
+      "payload_json": "null",
+      "context": "2d8afa8bdd7640485d0e127555430eefed8ecfd043b73c364a34a169bf2b1a22",
+      "send_err": "change delete requires --confirm-destructive after inspecting the review",
+      "writes": 0
+    },
+    {
+      "name": "deleted_true",
+      "build_err": "change must be readable with deleted:false before deletion",
+      "writes": 0
+    },
+    {
+      "name": "deleted_missing",
+      "build_err": "change must be readable with deleted:false before deletion",
+      "writes": 0
+    },
+    {
+      "name": "deleted_str",
+      "build_err": "change must be readable with deleted:false before deletion",
+      "writes": 0
+    },
+    {
+      "name": "subject_null",
+      "build_err": "exact change subject unavailable",
+      "writes": 0
+    },
+    {
+      "name": "drift",
+      "hash": "5ba7d60e00bde9e21413d44f2d3d239a158d1a9e48d298d660d90dcd765ce10c",
+      "err": "target or metadata changed since review; review again",
+      "writes": 0
+    },
+    {
+      "name": "403",
+      "err": "write outcome unknown; inspect target and journal before retry",
+      "replay": "write was sent or outcome unknown; inspect target and journal before retry",
+      "writes": 1
+    },
+    {
+      "name": "429",
+      "err": "write outcome unknown; inspect target and journal before retry",
+      "replay": "write was sent or outcome unknown; inspect target and journal before retry",
+      "writes": 1
+    },
+    {
+      "name": "422",
+      "err": "write rejected (HTTP 422); no retry",
+      "replay": null,
+      "writes": 1
+    },
+    {
+      "name": "disconnect",
+      "err": "write outcome unknown; inspect target and journal before retry",
+      "replay": "write was sent or outcome unknown; inspect target and journal before retry",
+      "writes": 1
+    }
+  ]
+}
