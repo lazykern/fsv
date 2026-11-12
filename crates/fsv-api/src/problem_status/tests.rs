@@ -124,6 +124,10 @@ fn api(state: Arc<Mutex<Value>>) -> FnApi {
 
 #[test]
 fn cases_match_python() {
+    let dir = std::env::temp_dir().join(format!("fsv-closure-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    set_closure_rules_dir(Some(dir.clone()));
     let oracle: Value =
         serde_json::from_str(include_str!("../testdata/problem_status_oracle.json")).unwrap();
     let cases = oracle.as_object().unwrap();

@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "60ac0a7013ff0d939b6eebc09b8d8966f81ab3d5",
+  "commit": "233b08f89bd009f5da2e5241788ab88b6f213de1",
   "dirty": false
  },
  "transition_Open_41": {
@@ -281,12 +281,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 44}",
-     "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
+     "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+    "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -294,7 +294,7 @@
      "payload": {
       "status": 44
      },
-     "plan_hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+     "plan_hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {
@@ -311,7 +311,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+     "plan_hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
      "verified": true,
      "problem_id": 123,
      "readback": {
@@ -366,7 +366,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "violated_closure_rules: missing Root Cause, Impact, Symptoms, linked workaround / solution"
+     "msg": "violated_closure_rules: missing Root Cause, Impact, Symptoms"
     },
     "writes": 0
    }
@@ -415,12 +415,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 44}",
-     "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
+     "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+    "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -428,7 +428,7 @@
      "payload": {
       "status": 44
      },
-     "plan_hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+     "plan_hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {
@@ -850,12 +850,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 44}",
-     "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
+     "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+    "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -863,7 +863,7 @@
      "payload": {
       "status": 44
      },
-     "plan_hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+     "plan_hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {
@@ -1263,12 +1263,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 84}",
-     "context_hash": "0a48fb0c9de76637c19bc508916a454ef6d3034e861523b2c78e8f986a28708e",
+     "context_hash": "f851e69df1a44c35d07539f50eb5907f0f037f1a7ea24ed77d9579b0892d9f18",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "9867d4dd5221a56811e78259d20527a828df809d0f89ac0ee6839ed04a61b2de",
+    "hash": "fd47f2a84398c9e7648e6127c6a43d04cf155dea2f26996c13812d135fc938cd",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -1276,7 +1276,7 @@
      "payload": {
       "status": 84
      },
-     "plan_hash": "9867d4dd5221a56811e78259d20527a828df809d0f89ac0ee6839ed04a61b2de",
+     "plan_hash": "fd47f2a84398c9e7648e6127c6a43d04cf155dea2f26996c13812d135fc938cd",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {
@@ -1293,7 +1293,7 @@
    {
     "result": {
      "status": "submitted",
-     "plan_hash": "9867d4dd5221a56811e78259d20527a828df809d0f89ac0ee6839ed04a61b2de",
+     "plan_hash": "fd47f2a84398c9e7648e6127c6a43d04cf155dea2f26996c13812d135fc938cd",
      "verified": true,
      "problem_id": 123,
      "readback": {
@@ -1397,12 +1397,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 84}",
-     "context_hash": "0a48fb0c9de76637c19bc508916a454ef6d3034e861523b2c78e8f986a28708e",
+     "context_hash": "f851e69df1a44c35d07539f50eb5907f0f037f1a7ea24ed77d9579b0892d9f18",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "9867d4dd5221a56811e78259d20527a828df809d0f89ac0ee6839ed04a61b2de",
+    "hash": "fd47f2a84398c9e7648e6127c6a43d04cf155dea2f26996c13812d135fc938cd",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -1410,7 +1410,7 @@
      "payload": {
       "status": 84
      },
-     "plan_hash": "9867d4dd5221a56811e78259d20527a828df809d0f89ac0ee6839ed04a61b2de",
+     "plan_hash": "fd47f2a84398c9e7648e6127c6a43d04cf155dea2f26996c13812d135fc938cd",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {
@@ -1832,12 +1832,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 84}",
-     "context_hash": "0a48fb0c9de76637c19bc508916a454ef6d3034e861523b2c78e8f986a28708e",
+     "context_hash": "f851e69df1a44c35d07539f50eb5907f0f037f1a7ea24ed77d9579b0892d9f18",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "9867d4dd5221a56811e78259d20527a828df809d0f89ac0ee6839ed04a61b2de",
+    "hash": "fd47f2a84398c9e7648e6127c6a43d04cf155dea2f26996c13812d135fc938cd",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -1845,7 +1845,7 @@
      "payload": {
       "status": 84
      },
-     "plan_hash": "9867d4dd5221a56811e78259d20527a828df809d0f89ac0ee6839ed04a61b2de",
+     "plan_hash": "fd47f2a84398c9e7648e6127c6a43d04cf155dea2f26996c13812d135fc938cd",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {
@@ -2005,12 +2005,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 44}",
-     "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
+     "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+    "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -2018,7 +2018,7 @@
      "payload": {
       "status": 44
      },
-     "plan_hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+     "plan_hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {
@@ -2091,12 +2091,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 44}",
-     "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
+     "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+    "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -2104,7 +2104,7 @@
      "payload": {
       "status": 44
      },
-     "plan_hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+     "plan_hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {
@@ -2177,12 +2177,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 44}",
-     "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
+     "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+    "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -2190,7 +2190,7 @@
      "payload": {
       "status": 44
      },
-     "plan_hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+     "plan_hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {
@@ -2258,12 +2258,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 44}",
-     "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
+     "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+    "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -2271,7 +2271,7 @@
      "payload": {
       "status": 44
      },
-     "plan_hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+     "plan_hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {
@@ -2339,12 +2339,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 44}",
-     "context_hash": "fba6b6933fc8116f526952e583cb47989afa042a247d42a41ffd2060e5d9a89d",
+     "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+    "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -2352,7 +2352,7 @@
      "payload": {
       "status": 44
      },
-     "plan_hash": "4d4f885d697fec72b8173431449987ce5f12255cff54ec1ce9f39133be211671",
+     "plan_hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {
@@ -3135,12 +3135,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 44}",
-     "context_hash": "6e3fa9843506d2530c67b70c37bf791c3d47ab6084b586a52297f79dc17612cd",
+     "context_hash": "a28762425bb9f10cea689de32ea8b0ada30d8bca794d8a7b9615f1f686ca1e1b",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "571a2f4c2591a880855518882b024410da81fe74698bf8ce7cb5da6f73990b11",
+    "hash": "6ed7b23d20bff8fa79fae23c4d49364178a775f88cb99f5ff1a405f65e19cf85",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -3148,7 +3148,7 @@
      "payload": {
       "status": 44
      },
-     "plan_hash": "571a2f4c2591a880855518882b024410da81fe74698bf8ce7cb5da6f73990b11",
+     "plan_hash": "6ed7b23d20bff8fa79fae23c4d49364178a775f88cb99f5ff1a405f65e19cf85",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {
@@ -3173,12 +3173,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 44}",
-     "context_hash": "43899901fab039d22e5dc8f6add65ab4bb96c38e48a4ffb581b8ec406bb61ffb",
+     "context_hash": "4662b53fad2c543394f7875b5ceba6d09f2ed98601175fd768d042685c10ea17",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "cd2068ddaba56a2d1b1e2a0986bfd6cddea6e032d9e86dca53a808794f7b7114",
+    "hash": "cff83d01c8890027e5c5cb89da4ff9d0ee27d70c7e924915a651a6a6a28775ab",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -3186,7 +3186,7 @@
      "payload": {
       "status": 44
      },
-     "plan_hash": "cd2068ddaba56a2d1b1e2a0986bfd6cddea6e032d9e86dca53a808794f7b7114",
+     "plan_hash": "cff83d01c8890027e5c5cb89da4ff9d0ee27d70c7e924915a651a6a6a28775ab",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {
@@ -3251,12 +3251,12 @@
      "method": "PUT",
      "path": "problems/123",
      "payload_json": "{\"status\": 44}",
-     "context_hash": "6d56486266c37dff969d4f0ebd03c8d461e75743cbb35c7efb4d5f3c7a5a2dbd",
+     "context_hash": "e047aa0cc77382d4e7b30118bb66595085e4d1de12d98a0d9d4e44f2e61605e6",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
      "warnings_json": "[]"
     },
-    "hash": "8631a60c62278865bb724678503ed6a0d02811fd557d86c2af90579ba472f2e2",
+    "hash": "cf765ca4aee9d435c18d7ed6ade69fc1f26c4a1cbc7e70ace5189b611a07499d",
     "review": {
      "action": "problem_status",
      "method": "PUT",
@@ -3264,7 +3264,7 @@
      "payload": {
       "status": 44
      },
-     "plan_hash": "8631a60c62278865bb724678503ed6a0d02811fd557d86c2af90579ba472f2e2",
+     "plan_hash": "cf765ca4aee9d435c18d7ed6ade69fc1f26c4a1cbc7e70ace5189b611a07499d",
      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
      "to": "Closed",
      "before": {

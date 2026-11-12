@@ -3202,4 +3202,29 @@ raised-error wording.
   `fsv-tui` still offers the static `Never` list. Both should use the
   runtime helpers above.
 
-Still not triaged: commits after `a6262dc`.
+## Ledger: `233b08f` (library side)
+
+Triaged against `git show 233b08f`
+(`233b08f89bd009f5da2e5241788ab88b6f213de1`). The status oracle was
+regenerated at this commit. Missing analysis still blocks a close. A
+missing linked solution is a review warning until the tenant's cache
+records `check_workaround_or_solution_added`.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `233b08f`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `233b08f` | 11-13 03:31 | Make the missing-solution closure preflight a warning until the tenant proves it | ported | fsv-api `problem_status` |
+
+The proven codes live in
+`<cache>/forms/<domain>--problem-closure-rules.json`. `rejection`
+writes a code when the server returns it. The next close then blocks.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`problems status` already prints `review()`, so the warning is in
+`--dry-run --json`. Add the upstream cases: a close with analysis and
+no solution warns and does not block; after a
+`check_workaround_or_solution_added` rejection, the next close blocks.
+
+Still not triaged: commits after `233b08f`.

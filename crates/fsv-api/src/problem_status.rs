@@ -1,6 +1,8 @@
 //! Reviewed problem status transitions and captured closure preconditions
 //! (`problem_status.py`).
 
+use std::cell::RefCell;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use serde_json::{Map, Value, json};
@@ -61,12 +63,68 @@ impl StatusPlan {
     }
 }
 
-/// Port of problem_status.closure_context: every native analysis section
-/// has visible text and a nondeleted workaround or permanent article is linked.
+const SOLUTION_RULE: &str = "check_workaround_or_solution_added";
+const SOLUTION_EVIDENCE: &str = "observed on one tenant: only 2 of 62 closed problems had a linked workaround / solution, so this closure rule is tenant configuration, not a platform rule";
+
+thread_local! {
+    static CLOSURE_RULES_DIR: RefCell<Option<PathBuf>> = const { RefCell::new(None) };
+}
+
+/// Tests point the proven-rule file at a temp directory.
+pub(crate) fn set_closure_rules_dir(path: Option<PathBuf>) {
+    CLOSURE_RULES_DIR.with(|slot| *slot.borrow_mut() = path);
+}
+
+fn rules_path() -> PathBuf {
+    let dir = CLOSURE_RULES_DIR.with(|slot| {
+        slot.borrow()
+            .clone()
+            .unwrap_or_else(|| fsv_core::config::cache_dir().join("forms"))
+    });
+    dir.join(format!(
+        "{}--problem-closure-rules.json",
+        fsv_core::config::cache_domain_key(None)
+    ))
+}
+
+fn proven_closure_rules() -> std::collections::BTreeSet<String> {
+    let Ok(text) = std::fs::read_to_string(rules_path()) else {
+        return std::collections::BTreeSet::new();
+    };
+    let Ok(data) = serde_json::from_str::<Value>(&text) else {
+        return std::collections::BTreeSet::new();
+    };
+    data.get("codes")
+        .and_then(Value::as_array)
+        .map(|codes| codes.iter().map(fsv_py::py_str).collect())
+        .unwrap_or_default()
+}
+
+fn remember_closure_rules(codes: &[&str]) {
+    if codes.is_empty() {
+        return;
+    }
+    let mut known = proven_closure_rules();
+    known.extend(codes.iter().map(|c| (*c).to_string()));
+    let path = rules_path();
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    let list: Vec<&String> = known.iter().collect();
+    let _ = std::fs::write(
+        path,
+        serde_json::to_string(&json!({"codes": list})).unwrap_or_default(),
+    );
+}
+
+/// Port of problem_status.closure_context. Missing analysis blocks. A
+/// missing linked solution blocks only after this tenant has proven that
+/// rule; otherwise it is a review warning.
 pub fn closure_context(c: &dyn Api, target: i64) -> Result<Map<String, Value>> {
     let rows = planning_text::inventory(c, "problems", target)?;
     let solutions = inventory(c, target, "solutions")?;
     let mut missing: Vec<String> = Vec::new();
+    let mut solution_warnings: Vec<String> = Vec::new();
     for (_, key, title) in PROBLEM_SECTIONS {
         let matches: Vec<&Value> = rows
             .iter()
@@ -89,7 +147,13 @@ pub fn closure_context(c: &dyn Api, target: i64) -> Result<Map<String, Value>> {
             )
     });
     if !linked {
-        missing.push("linked workaround / solution".into());
+        if proven_closure_rules().contains(SOLUTION_RULE) {
+            missing.push("linked workaround / solution".into());
+        } else {
+            solution_warnings.push(format!(
+                "no linked workaround / solution: some tenants reject closure without one ({SOLUTION_RULE}); not blocked because this tenant has not proven that rule ({SOLUTION_EVIDENCE}); the server decides"
+            ));
+        }
     }
     if !missing.is_empty() {
         return Err(refused(format!(
@@ -97,7 +161,9 @@ pub fn closure_context(c: &dyn Api, target: i64) -> Result<Map<String, Value>> {
             missing.join(", ")
         )));
     }
-    Ok(obj(json!({"analysis": rows, "solutions": solutions})))
+    Ok(obj(
+        json!({"analysis": rows, "solutions": solutions, "warnings": solution_warnings}),
+    ))
 }
 
 /// Python `before.get(name, before.get("custom_fields", {}).get(name))`.
@@ -131,7 +197,7 @@ pub fn build_plan(
             blockers.join("; ")
         )));
     }
-    let warnings = rules_unavailable_warning(&meta.rules)
+    let mut warnings = rules_unavailable_warning(&meta.rules)
         .into_iter()
         .collect::<Vec<_>>();
     let raw_fields = meta.raw_fields();
@@ -193,6 +259,13 @@ pub fn build_plan(
                 missing.join(", ")
             )));
         }
+        if let Some(extra) = closure.get("warnings").and_then(Value::as_array) {
+            for item in extra {
+                if let Some(text) = item.as_str() {
+                    warnings.push(text.to_string());
+                }
+            }
+        }
     }
     let context = json!({"before": before, "fields": meta.form_fields, "rules": meta.rules,
                          "closure": closure});
@@ -237,6 +310,14 @@ pub fn rejection(e: &ApiError) -> String {
         .filter(|(k, _)| desc.is_some_and(|d| d.contains_key(*k)))
         .map(|(_, text)| *text)
         .collect();
+        let proven: Vec<&str> = [
+            "check_analysis_completed",
+            "check_workaround_or_solution_added",
+        ]
+        .into_iter()
+        .filter(|k| desc.is_some_and(|d| d.contains_key(*k)))
+        .collect();
+        remember_closure_rules(&proven);
         return format!(
             "violated_closure_rules: {}",
             if details.is_empty() {
