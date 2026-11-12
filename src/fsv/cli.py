@@ -1374,13 +1374,27 @@ def _activity_text(value: str | None) -> str:
     return re.sub(r"\s+", " ", strip_html(value)).strip()
 
 
-def activity_resource(res: Resource, id_: str, limit: int, json_out: bool, format_: OutputFormat | str = "table") -> None:
+def _truncation_notice(total: int, shown: int, partial: bool) -> str | None:
+    """'truncated: N more ...' when rows were cut by --limit or pages were capped."""
+    hidden = total - shown
+    if hidden <= 0 and not partial:
+        return None
+    more = f"{hidden}{'+' if partial else ''} more" if hidden > 0 else "more on the server"
+    return f"truncated: {more} (showing {shown} of {total}{'+' if partial else ''}); use --limit N or --all"
+
+
+def activity_resource(res: Resource, id_: str, limit: int | None, json_out: bool, format_: OutputFormat | str = "table") -> None:
     from fsv import views
     cid = _cid(id_, res)
     c = _client()
     td = _api(lambda: views.load_tab(c, res, {"id": cid}, "activity"))
     _read_warnings(td)
-    acts = (td.data or [])[:limit]
+    rows = td.data or []
+    acts = rows if limit is None else rows[:max(limit, 0)]
+    notice = _truncation_notice(len(rows), len(acts), bool(td.meta.get("partial")))
+    if notice and (json_out or (format_.value if isinstance(format_, OutputFormat) else format_) != "table"):
+        # Machine formats keep their stdout shape; the notice goes to stderr.
+        err.print(f"[yellow]{notice}[/]", highlight=False)
     flat = [{"day": _activity_day(_local_dt(a.get("created_at"))), "time": (lambda dt: dt.strftime("%H:%M") if dt else "--:--")(_local_dt(a.get("created_at"))), "actor": (a.get("actor") or {}).get("name", "?"), "content": _activity_text(a.get("content"))} for a in acts]
     if _emit_fmt(acts, flat, format_, json_out):
         return
@@ -1396,6 +1410,8 @@ def activity_resource(res: Resource, id_: str, limit: int, json_out: bool, forma
         console.print(f"[dim]{when}[/]  [cyan]{escape(actor)}[/]  {escape(_activity_text(a.get('content')))}")
         for sub_c in a.get("sub_contents") or []:
             console.print(f"      [dim]·[/] {escape(_activity_text(sub_c))}")
+    if notice:
+        console.print(f"\n[yellow]{escape(notice)}[/]", highlight=False)
 
 
 def tasks_resource(res: Resource, id_: str, format_: OutputFormat | str = "table", json_out: bool = False) -> None:
@@ -3504,11 +3520,12 @@ def _make_subapp(res: Resource) -> typer.Typer:
     ))
     def activity(
         id_: str = typer.Argument(...),
-        limit: int = typer.Option(20, "-l", "--limit"),
+        limit: int = typer.Option(20, "-l", "--limit", help="newest N entries (a 'truncated' notice reports the rest)"),
+        all_: bool = typer.Option(False, "--all", help="every loaded entry (overrides --limit)"),
         format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
     ) -> None:
-        activity_resource(res, id_, limit, json_out, format_)
+        activity_resource(res, id_, None if all_ else limit, json_out, format_)
 
     @sub.command("tasks-legacy" if res == TICKETS else "tasks", hidden=res == TICKETS, help=f"List {singular} tasks.", epilog=(
         f"[bold]Examples:[/bold]  fsv {res.name} tasks {_pfx}-1234  |  fsv {res.name} tasks {_pfx}-1234 --json"
