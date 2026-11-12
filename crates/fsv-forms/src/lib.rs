@@ -7,8 +7,6 @@
 //! caller fetches metadata (see [`fetch`] for the request shapes) and
 //! supplies a [`LookupResolver`] for people/group lookups.
 
-#![allow(clippy::result_large_err)]
-
 pub mod errors;
 pub mod fetch;
 pub mod fuzzy;

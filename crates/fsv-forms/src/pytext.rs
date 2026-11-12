@@ -7,7 +7,8 @@ use std::sync::LazyLock;
 use regex::Regex;
 use serde_json::Value as Json;
 
-use crate::tables::{casefold::CASEFOLD, digits::DIGIT_ZEROS, html5};
+use crate::tables::{casefold::CASEFOLD, digits::DIGIT_ZEROS};
+use fsv_py::html_entities as html5;
 
 /// `str.isspace()` for one character.
 pub fn is_py_space(c: char) -> bool {

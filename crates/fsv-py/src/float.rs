@@ -9,7 +9,11 @@ pub fn float_repr(value: f64) -> String {
         return "NaN".into();
     }
     if value.is_infinite() {
-        return if value > 0.0 { "Infinity".into() } else { "-Infinity".into() };
+        return if value > 0.0 {
+            "Infinity".into()
+        } else {
+            "-Infinity".into()
+        };
     }
     finite(value)
 }
@@ -19,14 +23,22 @@ pub(crate) fn float_repr_py(value: f64) -> String {
         return "nan".into();
     }
     if value.is_infinite() {
-        return if value > 0.0 { "inf".into() } else { "-inf".into() };
+        return if value > 0.0 {
+            "inf".into()
+        } else {
+            "-inf".into()
+        };
     }
     finite(value)
 }
 
 fn finite(value: f64) -> String {
     if value == 0.0 {
-        return if value.is_sign_negative() { "-0.0".into() } else { "0.0".into() };
+        return if value.is_sign_negative() {
+            "-0.0".into()
+        } else {
+            "0.0".into()
+        };
     }
     // Rust's `{:e}` prints the shortest round-trip digits, e.g. "1.5e-5".
     let sci = format!("{value:e}");

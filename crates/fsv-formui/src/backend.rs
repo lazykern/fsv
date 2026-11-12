@@ -149,7 +149,6 @@ pub trait FormBackend {
     fn save_draft(&self, req: &PlanRequest<'_>, plan: &Plan, path: &Path) -> std::io::Result<()>;
     /// Duplicate check, metadata freshness re-check (refuse when the plan
     /// changed: `FlowExit(4, ...)`), then the writes (uploads only now).
-    #[allow(clippy::result_large_err)]
     fn send(
         &self,
         req: &PlanRequest<'_>,

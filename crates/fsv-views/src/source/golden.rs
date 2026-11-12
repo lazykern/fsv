@@ -2,10 +2,13 @@
 //! on scripted responses (`tests/fixtures/views_expected.json`, from
 //! `/tmp/fsv_port/views_oracle.py`).
 
+use std::sync::Mutex;
+
 use serde_json::{Map, Value, json};
 
 use fsv_core::resource;
 
+use super::fake::{raised, read_only_api};
 use super::*;
 
 const EXPECTED: &str = include_str!("../../tests/fixtures/views_expected.json");
@@ -18,9 +21,9 @@ fn expected() -> Value {
 /// `{"api": status}`, `{"exc": true}` or `{"session": msg}`); once they run
 /// out, an empty `key` page.
 struct Scripted {
-    responses: Vec<Value>,
+    responses: Mutex<Vec<Value>>,
     key: String,
-    calls: Vec<Value>,
+    calls: Mutex<Vec<Value>>,
 }
 
 impl Scripted {
@@ -28,41 +31,42 @@ impl Scripted {
         let mut responses = responses.as_array().cloned().unwrap_or_default();
         responses.reverse();
         Scripted {
-            responses,
+            responses: Mutex::new(responses),
             key: key.into(),
-            calls: Vec::new(),
+            calls: Mutex::default(),
         }
+    }
+
+    fn calls(&self) -> Value {
+        Value::Array(self.calls.lock().unwrap().clone())
     }
 }
 
-impl Source for Scripted {
-    fn int_get(
-        &mut self,
-        path: &str,
-        params: Option<&Map<String, Value>>,
-    ) -> Result<Value, FetchError> {
-        self.calls.push(json!([
-            path,
-            params.cloned().map_or(Value::Null, Value::Object)
-        ]));
-        let Some(r) = self.responses.pop() else {
+impl Api for Scripted {
+    fn int_get(&self, path: &str, params: Option<Map<String, Value>>) -> fsv_core::Result<Value> {
+        self.calls
+            .lock()
+            .unwrap()
+            .push(json!([path, params.map_or(Value::Null, Value::Object)]));
+        let Some(r) = self.responses.lock().unwrap().pop() else {
             return Ok(json!({ self.key.clone(): [] }));
         };
-        if let Some(status) = r.get("api") {
-            return Err(FetchError::Status(status.as_i64()));
-        }
-        if let Some(msg) = r.get("session") {
-            return Err(FetchError::Session(msg.as_str().unwrap_or_default().into()));
-        }
-        if r.get("exc").is_some() {
-            return Err(FetchError::Status(None));
-        }
-        Ok(r["ok"].clone())
+        raised(if let Some(status) = r.get("api") {
+            Err(FetchError::Status(status.as_i64()))
+        } else if let Some(msg) = r.get("session") {
+            Err(FetchError::Session(msg.as_str().unwrap_or_default().into()))
+        } else if r.get("exc").is_some() {
+            Err(FetchError::Status(None))
+        } else {
+            Ok(r["ok"].clone())
+        })
     }
 
-    fn v2_get(&mut self, path: &str) -> Result<Value, FetchError> {
+    fn v2_get(&self, path: &str, _: Option<Map<String, Value>>) -> fsv_core::Result<Value> {
         panic!("unexpected v2 call {path}")
     }
+
+    read_only_api!();
 }
 
 fn miss_json(m: Option<&Missing>) -> Value {
@@ -73,7 +77,7 @@ fn miss_json(m: Option<&Missing>) -> Value {
 fn collect_pages_matches_python() {
     for case in expected()["collect_pages"].as_array().expect("cases") {
         let key = case["key"].as_str().expect("key");
-        let mut src = Scripted::new(&case["responses"], key);
+        let src = Scripted::new(&case["responses"], key);
         let params = case["params"].as_object().cloned().unwrap_or_default();
         let max_pages = case
             .get("max_pages")
@@ -81,7 +85,7 @@ fn collect_pages_matches_python() {
             .unwrap_or(MAX_DETAIL_PAGES);
         let what = case.get("what").and_then(Value::as_str).unwrap_or("");
         let got = match collect_pages(
-            &mut src,
+            &src,
             "tickets/5/conversations",
             key,
             &params,
@@ -94,12 +98,7 @@ fn collect_pages_matches_python() {
             Err(e) => json!({"session": e.0}),
         };
         assert_eq!(got, case["result"], "{}", case["name"]);
-        assert_eq!(
-            Value::Array(src.calls),
-            case["calls"],
-            "{} calls",
-            case["name"]
-        );
+        assert_eq!(src.calls(), case["calls"], "{} calls", case["name"]);
     }
 }
 
@@ -108,8 +107,8 @@ fn load_views_matches_python() {
     for case in expected()["load_views"].as_array().expect("cases") {
         let res =
             resource::lookup(case["resource"].as_str().expect("resource")).expect("known resource");
-        let mut src = Scripted::new(&json!([case["response"]]), "x");
-        let got = match load_views(&mut src, res) {
+        let src = Scripted::new(&json!([case["response"]]), "x");
+        let got = match load_views(&src, res) {
             Ok((views, miss)) => {
                 let views: Vec<Value> = views
                     .iter()
@@ -124,7 +123,7 @@ fn load_views_matches_python() {
             Err(e) => json!({"session": e.0}),
         };
         assert_eq!(got, case["result"], "{case}");
-        assert_eq!(Value::Array(src.calls), case["calls"], "{case}");
+        assert_eq!(src.calls(), case["calls"], "{case}");
     }
 }
 

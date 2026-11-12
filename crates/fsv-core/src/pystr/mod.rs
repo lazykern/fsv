@@ -4,8 +4,6 @@
 //! quoting differ in small ways from Rust's std; messages, previews and
 //! hashes must match the Python build, so these helpers reproduce CPython.
 
-mod entities;
-
 use std::borrow::Cow;
 
 /// `str.isspace()` for one character (Rust's `is_whitespace` misses U+001C..U+001F).
@@ -158,10 +156,10 @@ pub fn html_escape(s: &str, quote: bool) -> String {
 }
 
 fn html5_lookup(name: &str) -> Option<&'static str> {
-    entities::HTML5
+    fsv_py::html_entities::HTML5
         .binary_search_by(|(k, _)| (*k).cmp(name))
         .ok()
-        .map(|i| entities::HTML5[i].1)
+        .map(|i| fsv_py::html_entities::HTML5[i].1)
 }
 
 /// `html.unescape(s)` (full HTML5 entity table, numeric reference fix-ups).
@@ -243,15 +241,19 @@ fn replace_charref(s: &str) -> String {
         let digits = digits.trim_end_matches(';');
         let n = u64::from_str_radix(digits, radix).unwrap_or(u64::MAX);
         if let Ok(n32) = u32::try_from(n)
-            && let Ok(i) = entities::INVALID_CHARREFS.binary_search_by(|(k, _)| k.cmp(&n32))
+            && let Ok(i) =
+                fsv_py::html_entities::INVALID_CHARREFS.binary_search_by(|(k, _)| k.cmp(&n32))
         {
-            return entities::INVALID_CHARREFS[i].1.to_string();
+            return fsv_py::html_entities::INVALID_CHARREFS[i].1.to_string();
         }
         if (0xD800..=0xDFFF).contains(&n) || n > 0x10FFFF {
             return "\u{FFFD}".into();
         }
         let n32 = n as u32;
-        if entities::INVALID_CODEPOINTS.binary_search(&n32).is_ok() {
+        if fsv_py::html_entities::INVALID_CODEPOINTS
+            .binary_search(&n32)
+            .is_ok()
+        {
             return String::new();
         }
         return char::from_u32(n32)

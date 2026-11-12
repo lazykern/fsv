@@ -63,7 +63,11 @@ fn write_repr(out: &mut String, value: &Value) {
 
 /// Python `repr(str)`: single quotes unless the text contains `'` and no `"`.
 pub fn py_repr_str(s: &str) -> String {
-    let quote = if s.contains('\'') && !s.contains('"') { '"' } else { '\'' };
+    let quote = if s.contains('\'') && !s.contains('"') {
+        '"'
+    } else {
+        '\''
+    };
     let mut out = String::with_capacity(s.len() + 2);
     out.push(quote);
     for c in s.chars() {
@@ -119,7 +123,10 @@ mod tests {
 
     #[test]
     fn repr_like_python() {
-        assert_eq!(py_repr(&json!({"a": [1, null, true, 1.5, "x"]})), "{'a': [1, None, True, 1.5, 'x']}");
+        assert_eq!(
+            py_repr(&json!({"a": [1, null, true, 1.5, "x"]})),
+            "{'a': [1, None, True, 1.5, 'x']}"
+        );
         assert_eq!(py_repr_str("it's"), "\"it's\"");
         assert_eq!(py_repr_str("a'b\"c"), "'a\\'b\"c'");
         assert_eq!(py_repr_str("tab\there"), "'tab\\there'");

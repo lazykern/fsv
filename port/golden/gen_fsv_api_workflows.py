@@ -772,6 +772,14 @@ def gen_planning():
     out["section_content"] = [{"row": r, "content": planning.section_content(r)} for r in [
         None, {}, {"description": 1, "content": "c"}, {"body": "b", "description_text": "t"},
         {"description_html": "h"}]]
+    out["editable_content"] = []
+    for r in [None, {}, {"attachments": []}, {"files": [], "content": "x"},
+              {"attachments": [], "description": "<p>a</p>"}, {"attachments": [{"id": 1}], "content": ""},
+              {"files": None, "content": ""}, {"attachments": [], "files": [], "description": "d"},
+              {"attachments": [], "description": 1, "content": "c"},
+              {"attachments": [], "description": None, "content": "c"},
+              {"attachments": [], "body": "b", "content": "c"}]:
+        out["editable_content"].append({"row": r, **attempt(lambda: planning.editable_content(r))})
     return out
 
 

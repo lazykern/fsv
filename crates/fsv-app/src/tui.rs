@@ -674,7 +674,7 @@ impl Backend for LiveBackend {
     }
 
     fn ticket_headers(&self) -> BResult<Vec<Value>> {
-        fsv_views::source::ticket_headers(&mut self.src()).map_err(session)
+        fsv_views::source::ticket_headers(&self.src()).map_err(session)
     }
 
     /// `views.view_settings`.
@@ -1180,7 +1180,7 @@ impl Backend for LiveBackend {
             }
         }
         if res.name == "tickets" {
-            let conv = fsv_views::source::load_conversations(&mut self.src(), &rid, true, 3)
+            let conv = fsv_views::source::load_conversations(&self.src(), &rid, true, 3)
                 .map_err(session)?;
             if let Some(m) = &conv.missing {
                 warnings.push(m.note());

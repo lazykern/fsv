@@ -1070,7 +1070,6 @@ pub fn resolve_requester(
 // answers -> state
 
 /// Field by internal name or label; ambiguous labels are an error.
-#[allow(clippy::result_large_err)]
 pub fn find_field<'a>(spec: &'a FormSpec, key: &str) -> std::result::Result<&'a Field, FormError> {
     let k = fsv_core::pystr::strip(key);
     if let Some(f) = spec.get(k) {

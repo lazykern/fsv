@@ -6704,6 +6704,92 @@
     },
     "content": "h"
    }
+  ],
+  "editable_content": [
+   {
+    "row": null,
+    "ok": ""
+   },
+   {
+    "row": {},
+    "error": "planning attachments are present or unavailable; text-only preservation is not proven",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "row": {
+     "attachments": []
+    },
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "row": {
+     "files": [],
+     "content": "x"
+    },
+    "ok": "x"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "description": "<p>a</p>"
+    },
+    "ok": "<p>a</p>"
+   },
+   {
+    "row": {
+     "attachments": [
+      {
+       "id": 1
+      }
+     ],
+     "content": ""
+    },
+    "error": "planning attachments are present or unavailable; text-only preservation is not proven",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "row": {
+     "files": null,
+     "content": ""
+    },
+    "error": "planning attachments are present or unavailable; text-only preservation is not proven",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "files": [],
+     "description": "d"
+    },
+    "ok": "d"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "description": 1,
+     "content": "c"
+    },
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "description": null,
+     "content": "c"
+    },
+    "error": "planning text state is unavailable; no write attempted",
+    "type": "ReviewedWriteError"
+   },
+   {
+    "row": {
+     "attachments": [],
+     "body": "b",
+     "content": "c"
+    },
+    "ok": "c"
+   }
   ]
  }
 }

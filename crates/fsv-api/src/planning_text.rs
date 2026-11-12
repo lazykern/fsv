@@ -594,9 +594,27 @@ mod tests {
                 "{case}"
             );
         }
+    }
+
+    /// `planning_text.section_content` and `editable_content` on the rows
+    /// `gen_fsv_api_workflows.py` ran them on.
+    #[test]
+    fn editable_and_section_content_match_python() {
         for case in ORACLE["section_content"].as_array().unwrap() {
             let row = Some(&case["row"]).filter(|r| !r.is_null());
             assert_eq!(json!(section_content(row)), case["content"], "{case}");
+        }
+        for case in ORACLE["editable_content"].as_array().unwrap() {
+            let row = Some(&case["row"]).filter(|r| !r.is_null());
+            let got = match editable_content(row) {
+                Ok(text) => json!({"ok": text}),
+                Err(e) => json!({"error": e.to_string()}),
+            };
+            let want = match case.get("ok") {
+                Some(ok) => json!({"ok": ok}),
+                None => json!({"error": case["error"]}),
+            };
+            assert_eq!(got, want, "{case}");
         }
     }
 

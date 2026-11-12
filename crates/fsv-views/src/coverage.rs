@@ -2,6 +2,8 @@
 //! `service.get_requested_items`): expected JSON comes from running the
 //! Python loaders over the same fake client responses.
 
+use std::sync::Mutex;
+
 use jiff::tz::{self, TimeZone};
 use serde_json::{Map, Value, json};
 
@@ -11,54 +13,61 @@ use fsv_core::resource::{CHANGES, Resource, TICKETS};
 use crate::detail::{
     Detail, DetailInput, TabData, load_detail, load_lifecycle, load_planning, load_tab,
 };
+use crate::source::fake::{raised, read_only_api};
 use crate::source::{
-    AssociationReader, FetchError, SessionError, Source, collect_pages, get_requested_items,
-    load_conversations, name_of, obj, py_int, rows_of,
+    AssociationReader, FetchError, SessionError, collect_pages, get_requested_items, int_read,
+    load_conversations, name_of, obj, py_int, rows_of, v2_read,
 };
+use fsv_api::service::Api;
+
+type Replies = Vec<(String, Vec<Result<Value, FetchError>>)>;
 
 /// Responses per path, served in order (the last one repeats); unknown paths 404.
 #[derive(Default)]
 struct Seq {
-    int: Vec<(String, Vec<Result<Value, FetchError>>)>,
-    v2: Vec<(String, Vec<Result<Value, FetchError>>)>,
-    calls: Vec<Value>,
+    int: Mutex<Replies>,
+    v2: Mutex<Replies>,
+    calls: Mutex<Vec<Value>>,
 }
 
 impl Seq {
-    fn int(mut self, path: &str, replies: Vec<Result<Value, FetchError>>) -> Self {
-        self.int.push((path.into(), replies));
+    fn int(self, path: &str, replies: Vec<Result<Value, FetchError>>) -> Self {
+        self.int.lock().unwrap().push((path.into(), replies));
         self
     }
-    fn v2(mut self, path: &str, reply: Result<Value, FetchError>) -> Self {
-        self.v2.push((path.into(), vec![reply]));
+    fn v2(self, path: &str, reply: Result<Value, FetchError>) -> Self {
+        self.v2.lock().unwrap().push((path.into(), vec![reply]));
         self
     }
-    fn next(
-        table: &mut [(String, Vec<Result<Value, FetchError>>)],
-        path: &str,
-    ) -> Result<Value, FetchError> {
-        match table.iter_mut().find(|(p, _)| p == path) {
+    fn calls(&self) -> Vec<Value> {
+        self.calls.lock().unwrap().clone()
+    }
+    fn next(table: &Mutex<Replies>, path: &str) -> fsv_core::Result<Value> {
+        let mut table = table.lock().unwrap();
+        raised(match table.iter_mut().find(|(p, _)| p == path) {
             Some((_, replies)) if replies.len() > 1 => replies.remove(0),
             Some((_, replies)) => replies[0].clone(),
             None => Err(FetchError::Status(Some(404))),
-        }
+        })
     }
 }
 
-impl Source for Seq {
-    fn int_get(
-        &mut self,
-        path: &str,
-        params: Option<&Map<String, Value>>,
-    ) -> Result<Value, FetchError> {
+impl Api for Seq {
+    fn int_get(&self, path: &str, params: Option<Map<String, Value>>) -> fsv_core::Result<Value> {
         self.calls
-            .push(json!([path, params.map(|p| Value::Object(p.clone()))]));
-        Seq::next(&mut self.int, path)
+            .lock()
+            .unwrap()
+            .push(json!([path, params.map(Value::Object)]));
+        Seq::next(&self.int, path)
     }
-    fn v2_get(&mut self, path: &str) -> Result<Value, FetchError> {
-        self.calls.push(json!([format!("v2:{path}"), null]));
-        Seq::next(&mut self.v2, path)
+    fn v2_get(&self, path: &str, _: Option<Map<String, Value>>) -> fsv_core::Result<Value> {
+        self.calls
+            .lock()
+            .unwrap()
+            .push(json!([format!("v2:{path}"), null]));
+        Seq::next(&self.v2, path)
     }
+    read_only_api!();
 }
 
 fn status(code: i64) -> Result<Value, FetchError> {
@@ -104,7 +113,7 @@ fn session_error_displays_message() {
 
 #[test]
 fn collect_pages_dedups_across_pages() {
-    let mut src = Seq::default().int(
+    let src = Seq::default().int(
         "changes/1/notes",
         vec![
             Ok(json!({"notes": [{"id": 1}, {"id": 2}], "meta": {"has_more": true}})),
@@ -112,7 +121,7 @@ fn collect_pages_dedups_across_pages() {
         ],
     );
     let got = collect_pages(
-        &mut src,
+        &src,
         "changes/1/notes",
         "notes",
         &obj(json!({"page": 1, "per_page": 2})),
@@ -127,14 +136,14 @@ fn collect_pages_dedups_across_pages() {
     );
     assert!(got.failure.is_none());
     assert_eq!(
-        compact(&json!(src.calls)),
+        compact(&json!(src.calls())),
         r#"[["changes/1/notes",{"page":1,"per_page":2}],["changes/1/notes",{"page":2,"per_page":2}]]"#
     );
 }
 
 #[test]
 fn collect_pages_keeps_rows_on_later_failure() {
-    let mut src = Seq::default().int(
+    let src = Seq::default().int(
         "changes/1/notes",
         vec![
             Ok(json!({"notes": [{"id": 1}], "meta": {"has_more": true}})),
@@ -142,7 +151,7 @@ fn collect_pages_keeps_rows_on_later_failure() {
         ],
     );
     let got = collect_pages(
-        &mut src,
+        &src,
         "changes/1/notes",
         "notes",
         &obj(json!({"page": 1})),
@@ -163,9 +172,9 @@ fn collect_pages_keeps_rows_on_later_failure() {
 
 #[test]
 fn collect_pages_raises_session_errors() {
-    let mut src = Seq::default().int("x", vec![Err(FetchError::Session("expired".into()))]);
+    let src = Seq::default().int("x", vec![Err(FetchError::Session("expired".into()))]);
     assert_eq!(
-        collect_pages(&mut src, "x", "x", &Map::new(), "", 50)
+        collect_pages(&src, "x", "x", &Map::new(), "", 50)
             .unwrap_err()
             .0,
         "expired"
@@ -229,14 +238,14 @@ fn obj_and_py_int_helpers() {
 
 #[test]
 fn association_reader_passes_v2_through() {
-    let mut inner = Seq::default().v2("tickets/1/resolution_note", Ok(json!({"ok": 1})));
-    let mut reader = AssociationReader(&mut inner);
+    let inner = Seq::default().v2("tickets/1/resolution_note", Ok(json!({"ok": 1})));
+    let reader = AssociationReader(&inner);
     assert_eq!(
-        reader.v2_get("tickets/1/resolution_note"),
+        v2_read(&reader, "tickets/1/resolution_note"),
         Ok(json!({"ok": 1}))
     );
     assert_eq!(
-        reader.int_get("changes/1/tickets", None),
+        int_read(&reader, "changes/1/tickets", None),
         Err(FetchError::Status(Some(404)))
     );
 }
@@ -245,18 +254,18 @@ fn association_reader_passes_v2_through() {
 fn load_conversations_latest_page() {
     let conv = json!({"conversations": [{"id": 2, "created_at": "2026-01-02T00:00:00Z"}, {"id": 1, "created_at": "2026-01-01T00:00:00Z"}],
                       "meta": {"count": 7}});
-    let mut src = Seq::default().int("tickets/5/conversations", vec![Ok(conv)]);
-    let got = load_conversations(&mut src, &json!(5), false, 3).unwrap();
+    let src = Seq::default().int("tickets/5/conversations", vec![Ok(conv)]);
+    let got = load_conversations(&src, &json!(5), false, 3).unwrap();
     let ids: Vec<&Value> = got.rows.iter().map(|r| &r["id"]).collect();
     assert_eq!(compact(&json!(ids)), "[1,2]");
     assert_eq!(compact(&Value::Object(got.meta)), r#"{"count":7}"#);
     assert!(got.missing.is_none());
     assert_eq!(
-        compact(&src.calls[0][1]),
+        compact(&src.calls()[0][1]),
         r#"{"include":"user,phone,feedback","per_page":3}"#
     );
 
-    let got = load_conversations(&mut Seq::default(), &json!(5), false, 3).unwrap();
+    let got = load_conversations(&Seq::default(), &json!(5), false, 3).unwrap();
     assert!(got.rows.is_empty() && got.meta.is_empty());
     assert_eq!(
         note(&got.missing),
@@ -266,14 +275,14 @@ fn load_conversations_latest_page() {
 
 #[test]
 fn load_conversations_all_pages_partial_and_complete() {
-    let mut src = Seq::default().int(
+    let src = Seq::default().int(
         "tickets/5/conversations",
         vec![
             Ok(json!({"conversations": [{"id": 1}], "meta": {"has_more": true, "count": 4}})),
             status(500),
         ],
     );
-    let got = load_conversations(&mut src, &json!(5), true, 3).unwrap();
+    let got = load_conversations(&src, &json!(5), true, 3).unwrap();
     assert_eq!(got.rows.len(), 1);
     assert_eq!(got.meta["count"], json!(4));
     assert_eq!(
@@ -281,17 +290,17 @@ fn load_conversations_all_pages_partial_and_complete() {
         "conversations after the first 1 (page 2): unavailable (500)"
     );
     assert_eq!(
-        compact(&src.calls[0][1]),
+        compact(&src.calls()[0][1]),
         r#"{"include":"user,phone,feedback","per_page":30,"page":1}"#
     );
 
-    let mut src = Seq::default().int(
+    let src = Seq::default().int(
         "tickets/5/conversations",
         vec![Ok(
             json!({"conversations": [{"id": 1}, {"id": 2}], "meta": {"has_more": false}}),
         )],
     );
-    let got = load_conversations(&mut src, &json!(5), true, 3).unwrap();
+    let got = load_conversations(&src, &json!(5), true, 3).unwrap();
     assert_eq!(got.rows.len(), 2);
     assert_eq!(got.meta["count"], json!(2));
     assert!(got.missing.is_none());
@@ -299,7 +308,7 @@ fn load_conversations_all_pages_partial_and_complete() {
 
 #[test]
 fn get_requested_items_merges_more_info() {
-    let mut src = Seq::default()
+    let src = Seq::default()
         .int(
             "tickets/9/requested_items",
             vec![Ok(json!({"requested_items": [
@@ -314,7 +323,7 @@ fn get_requested_items_merges_more_info() {
                 json!({"requested_item": {"stage": "Done", "item": {"a": 2, "b": 3}}}),
             )],
         );
-    let got = get_requested_items(&mut src, &json!(9)).unwrap();
+    let got = get_requested_items(&src, &json!(9)).unwrap();
     assert_eq!(
         compact(&json!(got)),
         r#"[{"id":1,"quantity":1,"item":{"name":"Laptop","a":2,"b":3},"stage":"Done"},{"id":2,"item":{"name":"Phone"}},{"quantity":3}]"#
@@ -344,7 +353,7 @@ fn tab_data_to_json_order() {
 
 fn tab_value(res: &'static Resource, rec: Value, name: &str, mut src: Seq) -> Value {
     let td = load_tab(&mut src, res, &rec, name).unwrap();
-    json!({"tab": td.to_json(), "calls": src.calls})
+    json!({"tab": td.to_json(), "calls": src.calls()})
 }
 
 fn tab_case(res: &'static Resource, rec: Value, name: &str, src: Seq) -> String {
@@ -643,9 +652,9 @@ fn lc_json(lc: &Option<Lifecycle>) -> Value {
 #[test]
 fn load_lifecycle_workspace_denied_none() {
     let flow = json!({"state_flow": {"name": "Std", "state_list": [{"id": 1, "value": "Open"}, {"id": 2, "value": "Plan"}]}});
-    let mut src = Seq::default().int("ws/3/change_management/8", vec![Ok(flow)]);
+    let src = Seq::default().int("ws/3/change_management/8", vec![Ok(flow)]);
     let (lc, miss) = load_lifecycle(
-        &mut src,
+        &src,
         &json!({"state_flow_id": 8, "workspace_id": 3, "status": 2, "state_traversal": [1, 2]}),
     )
     .unwrap();
@@ -655,28 +664,27 @@ fn load_lifecycle_workspace_denied_none() {
     );
     assert!(miss.is_none());
     assert_eq!(
-        compact(&json!(src.calls)),
+        compact(&json!(src.calls())),
         r#"[["ws/3/change_management/8",{"include":"state_info"}]]"#
     );
 
-    let mut src = Seq::default().int("change_management/8", vec![status(403)]);
-    let (lc, miss) = load_lifecycle(&mut src, &json!({"state_flow_id": 8, "status": 2})).unwrap();
+    let src = Seq::default().int("change_management/8", vec![status(403)]);
+    let (lc, miss) = load_lifecycle(&src, &json!({"state_flow_id": 8, "status": 2})).unwrap();
     assert!(lc.is_none());
     assert_eq!(note(&miss), "lifecycle: not permitted for your role (403)");
 
-    let (lc, miss) = load_lifecycle(&mut Seq::default(), &json!({})).unwrap();
+    let (lc, miss) = load_lifecycle(&Seq::default(), &json!({})).unwrap();
     assert!(lc.is_none() && miss.is_none());
 }
 
 #[test]
 fn load_planning_rows_missing_none_unidentified() {
     let schema = json!({"fields": [{"name": "planning_reason", "label": "Reason &amp; why", "field_type": "planning_field", "helptext": "<b>Why</b> now"}]});
-    let mut src = Seq::default().int(
+    let src = Seq::default().int(
         "changes/4/planning-fields",
         vec![Ok(json!({"change_planning_fields": [{"name": "planning_reason", "description": "<p>Because</p>", "attachments": [{"name": "p.pdf"}]}]}))],
     );
-    let (rows, miss) =
-        load_planning(&mut src, &json!({"display_id": 4}), &schema, "changes").unwrap();
+    let (rows, miss) = load_planning(&src, &json!({"display_id": 4}), &schema, "changes").unwrap();
     let rows: Vec<Value> = rows.unwrap().iter().map(PlanningEntry::to_json).collect();
     assert_eq!(
         compact(&json!(rows)),
@@ -685,7 +693,7 @@ fn load_planning_rows_missing_none_unidentified() {
     assert!(miss.is_none());
 
     let (rows, miss) = load_planning(
-        &mut Seq::default(),
+        &Seq::default(),
         &json!({"display_id": 4}),
         &schema,
         "changes",
@@ -695,7 +703,7 @@ fn load_planning_rows_missing_none_unidentified() {
     assert_eq!(note(&miss), "planning: not available on this account (404)");
 
     let (rows, miss) = load_planning(
-        &mut Seq::default(),
+        &Seq::default(),
         &json!({"display_id": 4}),
         &json!({"fields": []}),
         "changes",
@@ -703,12 +711,11 @@ fn load_planning_rows_missing_none_unidentified() {
     .unwrap();
     assert!(rows.is_none() && miss.is_none());
 
-    let mut src = Seq::default().int(
+    let src = Seq::default().int(
         "changes/4/planning-fields",
         vec![Ok(json!([{"description": "orphan"}]))],
     );
-    let (rows, miss) =
-        load_planning(&mut src, &json!({"display_id": 4}), &schema, "changes").unwrap();
+    let (rows, miss) = load_planning(&src, &json!({"display_id": 4}), &schema, "changes").unwrap();
     assert!(rows.is_none());
     assert_eq!(note(&miss), "unidentified planning rows: unavailable");
 }
@@ -718,7 +725,7 @@ fn load_planning_rows_missing_none_unidentified() {
 #[test]
 fn load_planning_problem_analysis_sections() {
     for shape in ["content", "description"] {
-        let mut src = Seq::default().int(
+        let src = Seq::default().int(
             "problems/123/planning-fields",
             vec![Ok(json!({"problem_planning_fields": [
                 {"name": "problem_cause", shape: "<div>Acme cause &amp; evidence</div>", "files": []},
@@ -727,7 +734,7 @@ fn load_planning_problem_analysis_sections() {
             ]}))],
         );
         let (rows, miss) =
-            load_planning(&mut src, &json!({"id": 123}), &json!({}), "problems").unwrap();
+            load_planning(&src, &json!({"id": 123}), &json!({}), "problems").unwrap();
         let got: Vec<Value> = rows
             .unwrap()
             .iter()
@@ -750,9 +757,9 @@ fn load_planning_problem_analysis_sections() {
         json!({"problem_planning_fields": [42]}),
         json!({"change_planning_fields": [{"name": "x"}]}),
     ] {
-        let mut src = Seq::default().int("problems/123/planning-fields", vec![Ok(payload.clone())]);
+        let src = Seq::default().int("problems/123/planning-fields", vec![Ok(payload.clone())]);
         let (rows, miss) =
-            load_planning(&mut src, &json!({"id": 123}), &json!({}), "problems").unwrap();
+            load_planning(&src, &json!({"id": 123}), &json!({}), "problems").unwrap();
         assert!(rows.is_none(), "{payload}");
         assert_eq!(
             note(&miss),

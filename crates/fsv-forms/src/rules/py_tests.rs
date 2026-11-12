@@ -950,7 +950,12 @@ fn target_matches_python() {
     for want in [
         t(Some("priority"), "priority", "priority", false),
         t(Some("priority"), "Priority", "Priority", false),
-        t(Some("priority"), "custom_fields.priority", "priority", false),
+        t(
+            Some("priority"),
+            "custom_fields.priority",
+            "priority",
+            false,
+        ),
         t(Some("stage"), "stage", "stage", true),
         t(Some("stage"), "Stage", "stage", true),
         t(Some("stage"), "custom_fields.stage", "stage", true),

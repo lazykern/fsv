@@ -79,7 +79,7 @@ fn form_rule_init_message() {
         "rule",
         &FormError::FormRule {
             message: "rule 'X' is odd".into(),
-            rule_id: json!(5),
+            rule_id: Box::new(json!(5)),
             rule_name: Some("X".into()),
             unsupported: false,
         },
@@ -88,7 +88,7 @@ fn form_rule_init_message() {
         "rule_bare",
         &FormError::FormRule {
             message: "odd".into(),
-            rule_id: Json::Null,
+            rule_id: Box::new(Json::Null),
             rule_name: None,
             unsupported: false,
         },

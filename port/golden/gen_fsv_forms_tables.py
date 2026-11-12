@@ -6,12 +6,11 @@ implementation produces them:
     cd /Users/phusit.somb/lab/work/fsv && \
       uv run python /Users/phusit.somb/lab/work/fsv-rust/port/golden/gen_fsv_forms_tables.py
 
-Writes ``crates/fsv-forms/src/tables/{casefold,html5,digits}.rs``.
+Writes ``crates/fsv-forms/src/tables/{casefold,digits}.rs`` (the HTML5 entity
+table is in fsv-py; see ``gen_html_entities.py``).
 """
 from __future__ import annotations
 
-import html.entities
-import html as html_mod
 import sys
 import unicodedata
 from pathlib import Path
@@ -51,21 +50,6 @@ def casefold() -> str:
     return HEADER + f"pub(crate) static CASEFOLD: [(char, &str); {len(rows)}] = [\n{body}];\n"
 
 
-def html5() -> str:
-    rows = sorted(html.entities.html5.items())
-    body = "".join(f"    ({rust_str(k)}, {rust_str(v)}),\n" for k, v in rows)
-    inv = sorted(html_mod._invalid_charrefs.items())
-    inv_body = "".join(f"    (0x{k:x}, {rust_str(v)}),\n" for k, v in inv)
-    cps = sorted(html_mod._invalid_codepoints)
-    cps_body = "".join(f"    0x{c:x},\n" for c in cps)
-    return (
-        HEADER
-        + f"pub(crate) static HTML5: [(&str, &str); {len(rows)}] = [\n{body}];\n\n"
-        + f"pub(crate) static INVALID_CHARREFS: [(u32, &str); {len(inv)}] = [\n{inv_body}];\n\n"
-        + f"pub(crate) static INVALID_CODEPOINTS: [u32; {len(cps)}] = [\n{cps_body}];\n"
-    )
-
-
 def digits() -> str:
     zeros = []
     for cp in range(0x110000):
@@ -79,7 +63,6 @@ def digits() -> str:
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "casefold.rs").write_text(casefold())
-    (OUT / "html5.rs").write_text(html5())
     (OUT / "digits.rs").write_text(digits())
     print(f"wrote tables to {OUT}")
 

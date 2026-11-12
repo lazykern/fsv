@@ -52,11 +52,16 @@ impl ValueExt for Value {
     }
 
     fn obj_or_empty(&self, key: &str) -> &Map<String, Value> {
-        self.get_truthy(key).and_then(Value::as_object).unwrap_or(&EMPTY_OBJ)
+        self.get_truthy(key)
+            .and_then(Value::as_object)
+            .unwrap_or(&EMPTY_OBJ)
     }
 
     fn list_or_empty(&self, key: &str) -> &[Value] {
-        self.get_truthy(key).and_then(Value::as_array).map(Vec::as_slice).unwrap_or(&[])
+        self.get_truthy(key)
+            .and_then(Value::as_array)
+            .map(Vec::as_slice)
+            .unwrap_or(&[])
     }
 
     fn py_get_str(&self, key: &str) -> String {
@@ -74,10 +79,26 @@ mod tests {
 
     #[test]
     fn falsy_values_match_python() {
-        for v in [json!(null), json!(false), json!(0), json!(0.0), json!(""), json!([]), json!({})] {
+        for v in [
+            json!(null),
+            json!(false),
+            json!(0),
+            json!(0.0),
+            json!(""),
+            json!([]),
+            json!({}),
+        ] {
             assert!(!truthy(&v), "{v}");
         }
-        for v in [json!(true), json!(1), json!(-2), json!(0.5), json!("0"), json!([0]), json!({"a": null})] {
+        for v in [
+            json!(true),
+            json!(1),
+            json!(-2),
+            json!(0.5),
+            json!("0"),
+            json!([0]),
+            json!({"a": null}),
+        ] {
             assert!(truthy(&v), "{v}");
         }
     }

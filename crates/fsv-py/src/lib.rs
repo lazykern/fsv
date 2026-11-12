@@ -7,6 +7,7 @@
 //! output byte for byte for values that come from JSON (`serde_json::Value`).
 
 mod float;
+pub mod html_entities;
 mod json;
 mod repr;
 mod value;

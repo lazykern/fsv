@@ -19,7 +19,12 @@ pub struct Dumps {
 
 impl Default for Dumps {
     fn default() -> Self {
-        Self { sort_keys: false, ensure_ascii: true, indent: None, separators: None }
+        Self {
+            sort_keys: false,
+            ensure_ascii: true,
+            indent: None,
+            separators: None,
+        }
     }
 }
 
@@ -41,7 +46,11 @@ impl Dumps {
         self
     }
     pub fn dump(&self, value: &Value) -> String {
-        let (item, key) = self.separators.unwrap_or(if self.indent.is_some() { (",", ": ") } else { (", ", ": ") });
+        let (item, key) = self.separators.unwrap_or(if self.indent.is_some() {
+            (",", ": ")
+        } else {
+            (", ", ": ")
+        });
         let mut out = String::new();
         write_value(&mut out, value, self, item, key, 0);
         out
@@ -56,12 +65,19 @@ pub fn dumps(value: &Value, opts: &Dumps) -> String {
 /// `json.dumps(v, sort_keys=True, separators=(",", ":"), ensure_ascii=False)`:
 /// the canonical form hashed by plans and the journal.
 pub fn canonical(value: &Value) -> String {
-    Dumps::default().sort_keys(true).separators(",", ":").ensure_ascii(false).dump(value)
+    Dumps::default()
+        .sort_keys(true)
+        .separators(",", ":")
+        .ensure_ascii(false)
+        .dump(value)
 }
 
 /// `json.dumps(v, ensure_ascii=False, separators=(",", ":"))`.
 pub fn compact(value: &Value) -> String {
-    Dumps::default().separators(",", ":").ensure_ascii(false).dump(value)
+    Dumps::default()
+        .separators(",", ":")
+        .ensure_ascii(false)
+        .dump(value)
 }
 
 /// `json.dumps(v, indent=2)` (ensure_ascii stays True, like Python's default).
@@ -189,7 +205,10 @@ mod tests {
     #[test]
     fn indent_matches_python() {
         let v = json!({"a": [1, {}], "b": {"c": null}});
-        assert_eq!(pretty(&v), "{\n  \"a\": [\n    1,\n    {}\n  ],\n  \"b\": {\n    \"c\": null\n  }\n}");
+        assert_eq!(
+            pretty(&v),
+            "{\n  \"a\": [\n    1,\n    {}\n  ],\n  \"b\": {\n    \"c\": null\n  }\n}"
+        );
     }
 
     #[test]

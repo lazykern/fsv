@@ -1558,9 +1558,15 @@ mod tests {
         before.visible = strs(&["subject", "priority", "count"]);
         before.required = ["subject", "count"].map(String::from).into();
         before.messages = vec![msg("one", 1), msg("two", 2)];
-        before.populated = [("subject".to_string(), serde_json::json!(7))].into_iter().collect();
-        before.values = [("subject".to_string(), Value::from("a"))].into_iter().collect();
-        before.restricted = [("count".to_string(), restriction(&[]))].into_iter().collect();
+        before.populated = [("subject".to_string(), serde_json::json!(7))]
+            .into_iter()
+            .collect();
+        before.values = [("subject".to_string(), Value::from("a"))]
+            .into_iter()
+            .collect();
+        before.restricted = [("count".to_string(), restriction(&[]))]
+            .into_iter()
+            .collect();
         let mut after = base;
         after.visible = strs(&["priority", "count", "ok"]);
         after.required = ["ok", "count", "priority"].map(String::from).into();
@@ -1577,7 +1583,9 @@ mod tests {
         ]
         .into_iter()
         .collect();
-        after.restricted = [("priority".to_string(), restriction(&["low"]))].into_iter().collect();
+        after.restricted = [("priority".to_string(), restriction(&["low"]))]
+            .into_iter()
+            .collect();
 
         let d = diff("priority", &before, &after).expect("diff");
         assert_eq!(d.field, "priority");

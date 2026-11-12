@@ -915,7 +915,7 @@ impl RulesEngine {
                     "{listing} business rule(s) have no conditions or actions: this is the rules listing, not the \
                      form's rules. Fetch them with fsv.forms.business_rules_query(...) (ember_api=true)."
                 ),
-                rule_id: Json::Null,
+                rule_id: Box::new(Json::Null),
                 rule_name: None,
                 unsupported: false,
             });
@@ -1059,7 +1059,7 @@ impl RulesEngine {
                 if self.strict {
                     return Err(FormError::FormRule {
                         message: msg,
-                        rule_id: id,
+                        rule_id: Box::new(id),
                         rule_name: Some(name),
                         unsupported: true,
                     });

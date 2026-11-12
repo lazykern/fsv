@@ -6,6 +6,7 @@ use jiff::tz::TimeZone;
 use serde_json::{Map, Value, json};
 
 use fsv_api::QueryError;
+use fsv_api::service::Api;
 use fsv_api::site::{
     self, Lifecycle, Missing, PlanningEntry, PlanningOutcome, Prop, Tab, canonical_tab,
     html_to_text, tab_label,
@@ -15,7 +16,7 @@ use fsv_core::resource::{self, Resource};
 use crate::render::requested_item_json;
 use crate::source::{
     AssociationReader, FetchError, MAX_DETAIL_PAGES, SessionError, Source, collect_pages,
-    get_requested_items, load_conversations, obj, optional_get, requested_for, rows_of,
+    get_requested_items, load_conversations, obj, optional_get, requested_for, rows_of, v2_read,
     workspace_get,
 };
 
@@ -78,7 +79,7 @@ fn rid_of(record: &Value) -> String {
 }
 
 fn simple(
-    src: &mut dyn Source,
+    src: &dyn Api,
     td: &mut TabData,
     path: &str,
     params: Value,
@@ -109,11 +110,7 @@ fn simple(
 type PartSpec<'a> = (&'a str, String, Value, &'a str);
 
 /// `_parts`: several lists under one tab; the tab is missing only when every list failed.
-fn parts(
-    src: &mut dyn Source,
-    td: &mut TabData,
-    specs: Vec<PartSpec<'_>>,
-) -> Result<(), SessionError> {
+fn parts(src: &dyn Api, td: &mut TabData, specs: Vec<PartSpec<'_>>) -> Result<(), SessionError> {
     let mut failures: Vec<Missing> = Vec::new();
     for (label, path, params, key) in specs {
         let got = collect_pages(src, &path, key, &obj(params), label, MAX_DETAIL_PAGES)?;
@@ -149,6 +146,10 @@ pub fn load_tab(
     record: &Value,
     name: &str,
 ) -> Result<TabData, SessionError> {
+    tab(src.api(), res, record, name)
+}
+
+fn tab(src: &dyn Api, res: &Resource, record: &Value, name: &str) -> Result<TabData, SessionError> {
     let name = canonical_tab(name);
     let base = format!("{}/{}", res.api_path, rid_of(record));
     let mut td = TabData::new(&name);
@@ -256,8 +257,7 @@ pub fn load_tab(
                         "problems",
                     ),
                 ];
-                let mut reader = AssociationReader(src);
-                parts(&mut reader, &mut td, specs)?;
+                parts(&AssociationReader(src), &mut td, specs)?;
             } else {
                 let specs = if res.name == "tickets" {
                     vec![
@@ -360,7 +360,7 @@ fn first_rows(data: &Value, keys: &[&str]) -> Vec<Value> {
 }
 
 fn resolution(
-    src: &mut dyn Source,
+    src: &dyn Api,
     td: &mut TabData,
     record: &Value,
     base: &str,
@@ -379,7 +379,7 @@ fn resolution(
         .unwrap_or(Value::String(String::new()));
     let mut text = html_to_text(&html);
     if text.is_empty() {
-        let data = match src.v2_get(&format!("{base}/resolution_note")) {
+        let data = match v2_read(src, &format!("{base}/resolution_note")) {
             Ok(data) => data,
             Err(FetchError::Session(msg)) => return Err(SessionError(msg)),
             Err(FetchError::Status(Some(404))) => {
@@ -697,6 +697,15 @@ pub fn load_detail(
     input: DetailInput<'_>,
     properties: Properties,
 ) -> Result<Detail, SessionError> {
+    detail(src.api(), res, input, properties)
+}
+
+fn detail(
+    src: &dyn Api,
+    res: &'static Resource,
+    input: DetailInput<'_>,
+    properties: Properties,
+) -> Result<Detail, SessionError> {
     let rec = input.record;
     let sch = input
         .schema
@@ -793,7 +802,7 @@ pub fn load_detail(
         if cname == "details" {
             continue;
         }
-        let td = load_tab(src, res, &d.record, &cname)?;
+        let td = tab(src, res, &d.record, &cname)?;
         d.set_tab(td);
     }
     Ok(d)
@@ -801,7 +810,7 @@ pub fn load_detail(
 
 /// `load_lifecycle`: `(None, None)` when the account has no flow.
 pub fn load_lifecycle(
-    src: &mut dyn Source,
+    src: &dyn Api,
     record: &Value,
 ) -> Result<(Option<Lifecycle>, Option<Missing>), SessionError> {
     let Some(sfid) = record.get("state_flow_id").filter(|v| fsv_py::truthy(v)) else {
@@ -824,7 +833,7 @@ pub fn load_lifecycle(
 /// `load_planning`: planning fields (problems: the native analysis
 /// sections) in form order; `(None, None)` when the account defines none.
 pub fn load_planning(
-    src: &mut dyn Source,
+    src: &dyn Api,
     record: &Value,
     schema: &Value,
     module: &str,

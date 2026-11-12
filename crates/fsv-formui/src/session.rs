@@ -423,7 +423,6 @@ pub struct FormSession {
 }
 
 impl FormSession {
-    #[allow(clippy::result_large_err)]
     pub fn new(init: SessionInit) -> Result<FormSession, FormError> {
         if init.kind == FormKind::Ticket && init.mode != FormMode::New {
             return Err(FormError::Value(
@@ -1514,7 +1513,6 @@ impl FormSession {
 
     /// The non-interactive send path for embedding apps (TUI): duplicate
     /// check, freshness re-check, then the writes. A dry run refuses.
-    #[allow(clippy::result_large_err)]
     pub fn send(&self, plan: &Plan, allow_duplicate: bool) -> Result<Json, fsv_core::Error> {
         if self.dry_run {
             return Err(fsv_core::Error::exit(2, "dry run: nothing is sent"));

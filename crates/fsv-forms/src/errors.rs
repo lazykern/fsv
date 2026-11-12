@@ -25,7 +25,7 @@ pub enum FormError {
     #[error("{field}: {message}")]
     ValueParse {
         field: String,
-        raw: Value,
+        raw: Box<Value>,
         message: String,
         options: Vec<String>,
     },
@@ -48,7 +48,7 @@ pub enum FormError {
     #[error("{message}")]
     FormRule {
         message: String,
-        rule_id: serde_json::Value,
+        rule_id: Box<serde_json::Value>,
         rule_name: Option<String>,
         unsupported: bool,
     },
@@ -114,7 +114,7 @@ impl FormError {
     pub(crate) fn parse(field: &str, raw: &Value, message: impl Into<String>) -> Self {
         FormError::ValueParse {
             field: field.to_string(),
-            raw: raw.clone(),
+            raw: Box::new(raw.clone()),
             message: message.into(),
             options: vec![],
         }
@@ -129,7 +129,7 @@ impl FormError {
     ) -> Self {
         FormError::ValueParse {
             field: field.to_string(),
-            raw: raw.clone(),
+            raw: Box::new(raw.clone()),
             message: message.into(),
             options,
         }
