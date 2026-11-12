@@ -596,3 +596,21 @@ choices through runtime metadata. Only supplied fields are updated; unchanged
 fields are not invented. Exact task GET verifies normalized dates, rich-text
 note, owner alias, duration, and custom values. Unproven editor/due-date writes
 are retired and fail closed. Task edits may notify assignees or schedule reminders.
+
+
+## Knowledge solutions
+
+`fsv solutions create --title 'Acme workaround' --body 'Synthetic guidance'
+--type workaround --dry-run --json` creates a **draft only** after full-hash
+confirmation. `--type permanent` selects the other accepted application enum.
+Category/folder IDs and defaults come from complete live metadata; pass exact
+`--category` and `--folder` names/IDs to override. Folder workspace is preserved,
+not silently copied from the problem. Publication and attachments are unsupported.
+
+Create and link are separate reviewed writes: `fsv problems link-solution PRB-23
+ARTICLE_ID --dry-run --json`, then `--yes --expect-plan FULL_HASH`.
+`unlink-solution` uses the same article ID and exact-target readback. Verification
+reads `articles` from the linked-solutions inventory, not an invented `solutions`
+envelope. `problems status PRB-23 --to Closed` accepts persisted, nondeleted
+workaround/permanent links once analysis and runtime closure-required fields are
+satisfied; incomplete inventories still block closure.

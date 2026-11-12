@@ -25,7 +25,7 @@ def api(request, monkeypatch, tmp_path):
                "choices": [{"id": n+i, "value": label} for i, label in enumerate(["Open", "In Progress", "Resolve", "Closed"])]}]
     s = {"row": {"id": 123, "subject": "Acme problem", "status": n, "planned_start_date": None, "planned_end_date": None},
          "analysis": [{"id": i+1, "name": key, "description": "<div>Acme evidence</div>"} for i, key in enumerate(flow.planning_text.PROBLEM_SECTIONS.values())],
-         "solutions": [{"id": 701, "title": "Acme solution"}], "writes": [], "fail": None, "mismatch": False, "partial": False}
+         "solutions": [{"id": 701, "title": "Acme solution", "article_type": 1}], "writes": [], "fail": None, "mismatch": False, "partial": False}
     def handler(req):
         path = req.url.path.removeprefix("/api/_/")
         if req.method == "GET":
@@ -110,8 +110,8 @@ def test_native_articles_envelope_and_empty_inventory_diagnostic(api, articles):
 
 def test_native_articles_pagination_stays_on_solutions_route(api):
     c, s, _, _ = api
-    s["solution_pages"] = [{"articles": [{"id": 701, "title": "Acme workaround"}], "has_more": True},
-                           {"articles": [{"id": 801, "title": "Globex solution"}], "has_more": False}]
+    s["solution_pages"] = [{"articles": [{"id": 701, "title": "Acme workaround", "article_type": 2}], "has_more": True},
+                           {"articles": [{"id": 801, "title": "Globex solution", "article_type": 1}], "has_more": False}]
     context = flow.closure_context(c, 123)
     assert [r["id"] for r in context["solutions"]] == [701, 801]
     assert [r["page"] for r in s["solution_reads"]] == ["1", "2"]

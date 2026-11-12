@@ -35,7 +35,8 @@ def closure_context(client: Any, target: int) -> dict[str, Any]:
         content = planning_text.section_content(matches[0]) if len(matches) == 1 else None
         if not isinstance(content, str) or not strip_html(content).strip():
             missing.append(label.title())
-    if not solutions:
+    if not any(not row.get("deleted") and type(row.get("article_type")) is int
+               and row["article_type"] in (1, 2) for row in solutions):
         missing.append("linked workaround / solution")
     if missing:
         raise ReviewedWriteError("violated_closure_rules: missing " + ", ".join(missing))

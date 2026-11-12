@@ -2847,6 +2847,10 @@ from fsv.integrated_assets_cli import register_search as _register_inventory_sea
 _inventory_app = typer.Typer(help="Integrated inventory search (read-only).")
 _register_inventory_search(_inventory_app, lambda: _client())
 app.add_typer(_inventory_app, name="assets")
+from fsv.solutions_cli import register as _register_solutions
+_solutions_app = typer.Typer(help="Draft knowledge solutions.")
+_register_solutions(_solutions_app, lambda: _client())
+app.add_typer(_solutions_app, name="solutions")
 
 
 HELP_TOPICS = {
@@ -3740,6 +3744,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
     if res.name == "problems":
         from fsv.problem_cli import register as register_problem
         register_problem(sub, lambda: _client())
+        from fsv.solutions_cli import register_links
+        register_links(sub, lambda: _client())
     if res.name in {"changes", "problems"}:
         from fsv.planning_cli import register as register_planning
         register_planning(sub, res, lambda: _client())
