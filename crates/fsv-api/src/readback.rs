@@ -24,6 +24,67 @@ pub fn same_instant(actual: &Value, expected: &Value) -> bool {
     }
 }
 
+/// `READBACK_DELAYS`: seconds slept before each of the four observations.
+pub const READBACK_DELAYS: [f64; 4] = [0.0, 0.5, 1.5, 3.0];
+
+type SleepHook = Option<Box<dyn Fn(f64)>>;
+
+thread_local! {
+    static READBACK_SLEEP: std::cell::RefCell<SleepHook> =
+        const { std::cell::RefCell::new(None) };
+}
+
+/// Replaces the bounded-readback sleep on this thread while `body` runs
+/// (Python tests monkeypatch `readback._sleep`).
+pub fn with_readback_sleep<R>(sleep: impl Fn(f64) + 'static, body: impl FnOnce() -> R) -> R {
+    struct Reset(SleepHook);
+    impl Drop for Reset {
+        fn drop(&mut self) {
+            let prior = self.0.take();
+            READBACK_SLEEP.with(|s| *s.borrow_mut() = prior);
+        }
+    }
+    let prior = READBACK_SLEEP.with(|s| s.borrow_mut().replace(Box::new(sleep)));
+    let _reset = Reset(prior);
+    body()
+}
+
+fn readback_sleep(seconds: f64) {
+    let hooked = READBACK_SLEEP.with(|s| s.borrow().as_ref().map(|f| f(seconds)).is_some());
+    if !hooked && !cfg!(test) {
+        std::thread::sleep(std::time::Duration::from_secs_f64(seconds));
+    }
+}
+
+/// Port of fsv.readback.bounded_readback: re-runs only the read-only
+/// verifier, at most four observations over five seconds, and keeps the
+/// final observation. The caller's journal still forbids any resend.
+pub fn bounded_readback(
+    verify: impl Fn() -> Result<serde_json::Map<String, Value>>,
+) -> serde_json::Map<String, Value> {
+    let mut result = serde_json::Map::new();
+    result.insert("verified".into(), Value::Bool(false));
+    for (attempt, delay) in READBACK_DELAYS.iter().enumerate() {
+        if *delay != 0.0 {
+            readback_sleep(*delay);
+        }
+        result = verify().unwrap_or_else(|_| {
+            let mut m = serde_json::Map::new();
+            m.insert("verified".into(), Value::Bool(false));
+            m.insert(
+                "warning".into(),
+                Value::from("Independent readback unavailable; do not resend."),
+            );
+            m
+        });
+        result.insert("readback_attempts".into(), Value::from(attempt + 1));
+        if result.get("verified") == Some(&Value::Bool(true)) {
+            break;
+        }
+    }
+    result
+}
+
 /// Port of fsv.readback.duration_seconds: `HH:MM` or `HH:MM:SS` with
 /// unbounded hours; never wraps at 24h.
 pub fn duration_seconds(value: &Value) -> Result<i64> {
@@ -250,6 +311,31 @@ pub fn custom_fields_match(actual: &Value, expected: &Value) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bounded_readback_keeps_last_failed_observation() {
+        let calls = std::cell::Cell::new(0);
+        let sleeps = std::rc::Rc::new(std::cell::RefCell::new(Vec::new()));
+        let seen = std::rc::Rc::clone(&sleeps);
+        let got = with_readback_sleep(
+            move |s| seen.borrow_mut().push(s),
+            || {
+                bounded_readback(|| {
+                    calls.set(calls.get() + 1);
+                    Err(Error::other("read failed"))
+                })
+            },
+        );
+        assert_eq!(calls.get(), 4);
+        assert_eq!(*sleeps.borrow(), vec![0.5, 1.5, 3.0]);
+        assert_eq!(
+            Value::Object(got),
+            serde_json::json!({"verified": false,
+                "warning": "Independent readback unavailable; do not resend.",
+                "readback_attempts": 4})
+        );
+    }
+
     use serde_json::json;
 
     /// `tests/test_readback_normalization.py::test_duration_semantics`.

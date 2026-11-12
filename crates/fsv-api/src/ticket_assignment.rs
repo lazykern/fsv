@@ -326,7 +326,8 @@ pub fn send(
         });
         Ok(obj(json!({"tickets": results, "verified": verified})))
     };
-    execute(&plan.write, c, journal, reviewed_hash, &rebuild, &verify)
+    let bounded = |r: &Value| Ok(crate::readback::bounded_readback(|| verify(r)));
+    execute(&plan.write, c, journal, reviewed_hash, &rebuild, &bounded)
 }
 
 #[cfg(test)]

@@ -11,7 +11,7 @@ use regex::Regex;
 use serde_json::{Map, Value, json};
 
 use fsv_core::error::{Error, Result};
-use fsv_core::pystr::{casefold, strip};
+use fsv_core::pystr::strip;
 use fsv_core::resource::{CHANGES, parse_id};
 
 use crate::attachments::owner_row;
@@ -363,13 +363,7 @@ pub fn build_plan(c: &dyn Api, target: &str, args: &RelArgs<'_>) -> Result<Write
         }
         if args.kind == "caused-incident" && args.action == "add" {
             let record = owner_row(c, "tickets", ident)?;
-            if casefold(
-                &record
-                    .get("ticket_type")
-                    .map(fsv_py::py_str)
-                    .unwrap_or_default(),
-            ) != "incident"
-            {
+            if crate::ticket_kind::exact_ticket_type(&Value::Object(record))? != "incident" {
                 return Err(refused("caused relationship requires a proven incident"));
             }
         } else if args.action == "add" {
@@ -579,6 +573,7 @@ mod tests {
         fail: bool,
         nested_fail: bool,
         no_effect: bool,
+        kind_fields: Value,
     }
 
     fn empty_world() -> World {
@@ -598,6 +593,7 @@ mod tests {
             fail: false,
             nested_fail: false,
             no_effect: false,
+            kind_fields: json!({"type": "Incident"}),
         }
     }
 
@@ -674,9 +670,11 @@ mod tests {
                 let module = parts.next().unwrap_or("");
                 let ident = parts.next().unwrap_or("0");
                 let singular = module.strip_suffix('s').unwrap_or(module);
-                return Ok(json!({
-                    singular: {"id": ident.parse::<i64>().unwrap_or(0), "ticket_type": "Incident"}
-                }));
+                let mut row = json!({"id": ident.parse::<i64>().unwrap_or(0)});
+                for (k, v) in s.kind_fields.as_object().into_iter().flatten() {
+                    row[k] = v.clone();
+                }
+                return Ok(json!({ singular: row }));
             }
             if s.fail {
                 return Err(Error::session("expired"));
@@ -869,6 +867,48 @@ mod tests {
                 "{kind} {action}"
             );
             assert!(posts(&c).is_empty(), "{kind} {action}");
+        }
+    }
+
+    /// `test_caused_incident_type_proof_uses_native_exact_read`.
+    #[test]
+    fn caused_incident_type_proof_uses_native_exact_read() {
+        for (fields, allowed) in [
+            (json!({"type": "Incident"}), true),
+            (json!({"ticket_type": "Incident"}), true),
+            (json!({"type": "Incident", "ticket_type": "incident"}), true),
+            (json!({"type": "Service Request"}), false),
+            (
+                json!({"type": "Incident", "ticket_type": "Service Request"}),
+                false,
+            ),
+            (json!({}), false),
+            (json!({"type": ""}), false),
+            (json!({"type": 1}), false),
+        ] {
+            let mut world = empty_world();
+            world.kind_fields = fields.clone();
+            let c = api(Arc::new(Mutex::new(world)));
+            let got = build_plan(
+                &c,
+                "CHN-123",
+                &args("caused-incident", "add", Some("71"), None, None, None),
+            );
+            if allowed {
+                let plan = got.unwrap();
+                assert_eq!(
+                    plan.payload(),
+                    json!({"item_ids": [71], "module_type": "ticket_cause"}),
+                    "{fields}"
+                );
+            } else {
+                let err = got.unwrap_err().to_string();
+                assert!(
+                    err.contains("incident") || err.contains("ticket type"),
+                    "{fields}: {err}"
+                );
+            }
+            assert!(posts(&c).is_empty());
         }
     }
 

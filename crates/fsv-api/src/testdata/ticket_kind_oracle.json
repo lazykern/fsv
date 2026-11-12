@@ -1,0 +1,135 @@
+{
+  "_python": {
+    "commit": "97deaf946471427d9354c82d1503f61c67646da5",
+    "dirty": false
+  },
+  "cases": [
+    {
+      "record": {
+        "type": "Incident"
+      },
+      "ok": "incident"
+    },
+    {
+      "record": {
+        "ticket_type": "Incident"
+      },
+      "ok": "incident"
+    },
+    {
+      "record": {
+        "type": "Incident",
+        "ticket_type": "incident"
+      },
+      "ok": "incident"
+    },
+    {
+      "record": {
+        "type": "Service Request"
+      },
+      "ok": "service request"
+    },
+    {
+      "record": {
+        "type": "Incident",
+        "ticket_type": "Service Request"
+      },
+      "err": "conflicting exact ticket type representations"
+    },
+    {
+      "record": {},
+      "err": "exact ticket type unavailable"
+    },
+    {
+      "record": {
+        "type": ""
+      },
+      "err": "exact ticket type unavailable"
+    },
+    {
+      "record": {
+        "type": 1
+      },
+      "err": "exact ticket type unavailable"
+    },
+    {
+      "record": {
+        "type": "   "
+      },
+      "err": "exact ticket type unavailable"
+    },
+    {
+      "record": {
+        "type": null
+      },
+      "err": "exact ticket type unavailable"
+    },
+    {
+      "record": {
+        "type": null,
+        "ticket_type": "Incident"
+      },
+      "ok": "incident"
+    },
+    {
+      "record": {
+        "type": "service_request",
+        "ticket_type": "Service  Request"
+      },
+      "ok": "service request"
+    },
+    {
+      "record": {
+        "type": " INCIDENT "
+      },
+      "ok": "incident"
+    },
+    {
+      "record": {
+        "type": "Incident",
+        "ticket_type": ""
+      },
+      "err": "exact ticket type unavailable"
+    },
+    {
+      "record": {
+        "type": "Incident",
+        "ticket_type": 7
+      },
+      "err": "exact ticket type unavailable"
+    },
+    {
+      "record": {
+        "type": [
+          "Incident"
+        ]
+      },
+      "err": "exact ticket type unavailable"
+    },
+    {
+      "record": {
+        "type": "Stra\u00dfe"
+      },
+      "ok": "strasse"
+    },
+    {
+      "record": {
+        "type": "STRASSE",
+        "ticket_type": "stra\u00dfe"
+      },
+      "ok": "strasse"
+    },
+    {
+      "record": null,
+      "err": "exact ticket type unavailable"
+    },
+    {
+      "record": [],
+      "err": "exact ticket type unavailable"
+    },
+    {
+      "record": "Incident",
+      "err": "exact ticket type unavailable"
+    }
+  ]
+}

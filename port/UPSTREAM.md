@@ -2826,4 +2826,210 @@ no such key, else "matched" or "mismatched".
 
 No CLI follow-up.
 
-Still not triaged: commits after `291e5cd`.
+## Ledger: `aa8df39` (library side)
+
+Triaged against `git show aa8df39`
+(`aa8df3956389e29eecb3774680772c32c0af9f1a`). A stamped generator gives
+six lagging bulk readbacks (spam and delete, lag 0, 2 and 100). Each
+records the result, the requested sleeps, the post-write reads, the
+write count and the replay refusal. All of them match. The
+ticket-assignment and ticket-merge oracles were regenerated at
+`aa8df39`: their results gain `readback_attempts`. The ticket-bulk and
+reviewed (bulk priority) oracles regenerate unchanged.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `aa8df39`.
+The partial is the CLI note named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `aa8df39` | 11-13 01:49 | Re-read bulk outcomes with bounded read-only observations and report the reviewed bulk hash | partial | fsv-api `readback`, `ticket_bulk`, `ticket_assignment`, `ticket_merge`, `bulk_priority`. fsv-cli note below |
+
+New `readback::bounded_readback` re-runs only the read-only verifier.
+It takes up to four observations, sleeping 0.5, 1.5 and 3.0 seconds
+between them, and stops at the first `verified: true`. A verifier error
+becomes `{verified: false, warning: "Independent readback unavailable;
+do not resend."}`. Every result carries `readback_attempts`. The
+journal still forbids any resend. Ticket bulk, assignment, merge and
+bulk priority sends use it. Ticket bulk results, including the merge
+and pickup delegates, report the bulk review hash as `plan_hash` and
+the write's hash as `delegated_plan_hash`.
+
+`readback::with_readback_sleep(hook, body)` replaces the sleep on the
+current thread, like the Python tests' `readback._sleep` patch. Without
+a hook the sleep is real, except in fsv-api's own unit tests.
+
+### CLI handoff (do not edit fsv-cli here)
+
+- CLI tests that send an unverified bulk, assignment, merge or priority
+  write now take up to 5 s of real sleep unless wrapped in
+  `fsv_api::readback::with_readback_sleep(|_| {}, ...)`.
+- CLI result goldens for these sends gain `readback_attempts`. Bulk
+  results also gain `delegated_plan_hash`, and their `plan_hash`
+  becomes the bulk review hash.
+
+## Ledger: `29f7421`
+
+Triaged against `git show 29f7421`
+(`29f74214381e9d5fbfdb4d10e417e413bf64551a`). It only adds Python CLI
+tests (`tests/test_ticket_bulk_filter_cli.py`). The library behavior
+they exercise came in with `fbc54d4`: the `Subject` filter refusal,
+the `--max-records` bound checked before any list read, and the
+exact-record predicate proof.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `29f7421`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `29f7421` | 11-13 01:55 | Exercise filtered bulk fail-closed selection through the real CLI filter builder | partial | none (fsv-cli tests) |
+
+### CLI handoff (do not edit fsv-cli here)
+
+Port the three CLI tests once `tickets bulk --max-records` exists, for
+tenants acme and globex. Each must exit 2 with no writes:
+
+- `--where "Subject=Acme rollout"` prints "filter operator unavailable"
+  before any `/api/_/tickets` read.
+- A missing bound, `0` or `51` prints `--max-records`, also before any
+  `/api/_/tickets` read.
+- A server that ignores `status=Closed` / `status=Gelöst` prints
+  "contradicts the predicate".
+
+## Ledger: `97deaf9` (library side)
+
+Triaged against `git show 97deaf9`
+(`97deaf946471427d9354c82d1503f61c67646da5`). A stamped generator gives
+21 `exact_ticket_type` records. All of them match. The
+change-relationship oracle regenerates unchanged, since `ticket_type`
+alone still proves an incident.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `97deaf9`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `97deaf9` | 11-13 02:01 | Prove caused-incident targets from the native exact ticket type | ported | fsv-api `ticket_kind`, `change_relationships` |
+
+New `ticket_kind::exact_ticket_type` reads the native `type` and the
+echo `ticket_type`. Null values are ignored. Every other present value
+must be a nonempty string. Underscores become spaces, whitespace is
+collapsed and the result is casefolded. All values must agree. The
+refusals are "exact ticket type unavailable" and "conflicting exact
+ticket type representations". The change-relationship caused-incident
+add uses it. The Rust port of
+`test_caused_incident_type_proof_uses_native_exact_read` covers its
+eight records.
+
+No CLI follow-up.
+
+## Ledger: `2b81a76` (library side)
+
+Triaged against `git show 2b81a76`
+(`2b81a76f4dedb7547116732f2e9c71f000be8bbd`). The workflows oracle was
+regenerated at `2b81a76`. `task_str_id` now builds a task with integer
+`status`. Appended cases: eight choice ids and six task-metadata
+variants with nested `required_for_create`, a required `workspace_id`
+and a required `title`. All of them match. The requested-items oracle
+regenerates unchanged.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `2b81a76`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `2b81a76` | 11-13 02:09 | Accept native SR parent type and string problem-task choice IDs before review | ported | fsv-api `problem_workflows`, `sr_requested_items` |
+
+Problem-task choices accept a nonnegative integer id or an ASCII digit
+string. Both are sent as a JSON integer. The required-field check uses
+`ticket_tasks::required_for_create`, which covers nested
+`field_options.required_for_create` and `"true"`, and it skips
+`CONTEXT_FIELDS` (`workspace_id`). Requested-item writes prove the
+parent with `ticket_kind::exact_ticket_type(...) == "service request"`.
+The Rust port of `test_parent_type_proof_uses_native_exact_read`
+covers seven records for edit, stage and add.
+
+No CLI follow-up.
+
+## Ledger: `7acec01` (library side)
+
+Triaged against `git show 7acec01`
+(`7acec015693dd0242d358f06104c7e997ade07a3`). A stamped generator gives
+19 `runtime_choice_id` cases and eight merge Closed-status ids. The
+ticket-lifecycle oracle was regenerated at `7acec01` with eight
+appended cases: digit-string status ids (integer 47 sent, readback
+verified) and seven bad Pending id shapes, which refuse. All of them
+match. The workflows oracle regenerates unchanged.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `7acec01`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `7acec01` | 11-13 02:16 | Accept digit-string runtime choice IDs wherever a choice identity is compared | ported | fsv-api `choice_ids`, `problem_workflows`, `ticket_lifecycle`, `ticket_merge` |
+
+New `choice_ids::runtime_choice_id(value, minimum)` accepts a JSON
+integer or an ASCII digit string at least `minimum`. Booleans, signs,
+whitespace, decimals and non-ASCII digits return none. Problem-task
+choices (minimum 0), the ticket lifecycle status and the merge Closed
+status (minimum 1) use it, and send the integer.
+
+No CLI follow-up.
+
+## Ledger: `368a2d4` (library side)
+
+Triaged against `git show 368a2d4`
+(`368a2d4e6c0c3777b39dedcaabfe6a6847d5a743`). The filter-proof oracle
+was regenerated at `368a2d4` with three new sections: 20
+`name_valued_choice` cases, 11 `ticket_type` proofs and eight
+ticket-type query builds. All of them match. The earlier sections, the
+query-flow oracle and the ticket-bulk oracle regenerate unchanged.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `368a2d4`.
+The partial is the CLI wiring, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `368a2d4` | 11-13 02:23 | Filter ticket type by runtime choice name, not the ignored numeric ID | partial | fsv-api `filter_proof`, `query`. fsv-cli follow-up below |
+
+New `filter_proof::name_valued_choice` covers `default_ticket_type`
+fields. It resolves a label (stripped, casefolded) or a choice id to
+the one active choice name. Choices that are deleted or deactivated,
+or have a blank value, are skipped. Otherwise it refuses with "no
+unique runtime choice '<raw>' for <label or name>". `query::resolve_where`
+runs it before the generic choice branch, so the wire sends
+`ticket_type is_in ["Service Request"]`. `filter_proof::matches` proves
+a default `ticket_type` clause through `ticket_kind::exact_ticket_type`.
+It needs every clause value to be a string, and compares it casefolded
+only.
+
+### CLI handoff (do not edit fsv-cli here)
+
+- The CLI `resolve_where` (`crates/fsv-cli/src/filters.rs`) calls
+  `fsv_api::filter_proof::name_valued_choice(&field, &raw)` right
+  before its choice branch. On error it exits 2 with the message, and
+  on a name it emits `query_item(name, operator, [named], type_, ...)`.
+- Port `tests/test_ticket_type_filter.py`'s CLI cases: `tickets ls
+  --where type=Service Request` and `type=7402` both send the name
+  form. `type=Case` exits 2 before any `/api/_/tickets` read. Filtered
+  bulk by type still needs the independent proof.
+
+## Ledger: `915df4c` (library side)
+
+Triaged against `git show 915df4c`
+(`915df4c5698123216b7e6a7b6827a788e1ca6dc9`). A stamped generator runs
+upstream's `wire` pytest fixture for four exact-source forward variants
+(plain, quoted source, formatted sender, delivery mismatch). It
+records eight results, because the fixture is parametrized. All of them
+match.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `915df4c`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `915df4c` | 11-13 02:29 | Report unexposed forward source-link readback as unavailable | ported | fsv-api `conversations` |
+
+Exact-source forward results add `source_link_readback: "unavailable"`
+next to `source_link_verified: false`. It is not a field check:
+`fields` has no `source_link`. A delivery mismatch still fails
+verification.
+
+No CLI follow-up. CLI goldens for `tickets forward --conversation`
+results would gain the key.
+
+Still not triaged: commits after `915df4c`.

@@ -1,10 +1,10 @@
 """Golden `filter_proof`: filterable-field guard, exact-row predicate proofs and list contradictions.
 
-    mkdir -p /tmp/fsv-py-fbc54d4
-    git -C /Users/phusit.somb/lab/work/fsv archive fbc54d4 | tar -x -C /tmp/fsv-py-fbc54d4
-    cd /tmp/fsv-py-fbc54d4 && uv sync --offline
-    FSV_PY_SRC=/tmp/fsv-py-fbc54d4 FSV_PY_COMMIT=$(git -C /Users/phusit.somb/lab/work/fsv rev-parse fbc54d4) \\
-        uv run --offline --project /tmp/fsv-py-fbc54d4 \\
+    mkdir -p /tmp/fsv-py-368a2d4
+    git -C /Users/phusit.somb/lab/work/fsv archive 368a2d4 | tar -x -C /tmp/fsv-py-368a2d4
+    cd /tmp/fsv-py-368a2d4 && uv sync --offline
+    FSV_PY_SRC=/tmp/fsv-py-368a2d4 FSV_PY_COMMIT=$(git -C /Users/phusit.somb/lab/work/fsv rev-parse 368a2d4) \\
+        uv run --offline --project /tmp/fsv-py-368a2d4 \\
         python /Users/phusit.somb/lab/work/fsv-rust/port/golden/gen_fsv_api_filter_proof.py \\
         > /Users/phusit.somb/lab/work/fsv-rust/crates/fsv-api/src/testdata/filter_proof_oracle.json
 """
@@ -26,7 +26,9 @@ os.environ["XDG_STATE_HOME"] = str(Path(BOOT) / "state")
 os.environ["FSV_NO_KEYCHAIN"] = "1"
 
 from fsv import config  # noqa: E402
-from fsv.filter_proof import contradictions, matches, require_filterable_field  # noqa: E402
+from fsv.filter_proof import contradictions, matches, name_valued_choice, require_filterable_field  # noqa: E402
+from fsv.query import build_query_hash_from_schema  # noqa: E402
+from fsv.resources import TICKETS  # noqa: E402
 from provenance import stamped  # noqa: E402
 
 config.reload()
@@ -88,6 +90,41 @@ CONTRA = [
 ]
 
 
+TYPE = {"name": "ticket_type", "label": "Type", "default_field": True, "field_type": "default_ticket_type",
+        "choices": [{"id": 3, "value": "Incident"}, {"id": 4, "value": "Service Request"},
+                    {"id": 5, "value": "Retired", "deleted": True}]}
+NAMED = [
+    (TYPE, "Service Request"), (TYPE, " service request "), (TYPE, "4"), (TYPE, " 4 "), (TYPE, "Case"),
+    (TYPE, "5"), (TYPE, "Retired"), (TYPE, "9"), (TYPE, ""),
+    ({**TYPE, "choices": [{"id": 3, "value": "Incident"}, {"id": 6, "value": "incident"}]}, "Incident"),
+    ({**TYPE, "choices": [{"id": 3, "value": "Incident"}, {"id": 6, "value": "Request"}]}, "Case"),
+    ({**TYPE, "choices": [{"id": 3, "value": "Incident"}, {"id": "Incident", "value": "Request"}]}, "Incident"),
+    ({**TYPE, "choices": [{"id": True, "value": "Incident"}]}, "True"),
+    ({**TYPE, "choices": [{"id": 3, "value": " "}, {"id": 4, "value": 7}, "x", {"id": 8, "value": "Ops",
+                                                                                "deactivated": 1}]}, "3"),
+    ({**TYPE, "choices": [{"id": 3.0, "value": "Incident"}]}, "3.0"),
+    ({**TYPE, "label": None}, "Case"),
+    ({**TYPE, "label": "", "name": None}, "Case"),
+    ({**TYPE, "choices": None}, "Incident"),
+    ({**TYPE, "field_type": "default_status"}, "Incident"),
+    ({**TYPE, "field_type": None}, "Incident"),
+]
+SR = {"condition": "ticket_type", "operator": "is_in", "type": "default", "value": ["Service Request"]}
+TYPE_MATCHES = [
+    ({"type": "Service Request"}, [SR]), ({"ticket_type": "Service Request"}, [SR]), ({"type": "Incident"}, [SR]),
+    ({"type": "Service Request", "ticket_type": "Incident"}, [SR]), ({}, [SR]),
+    ({"type": "service_request"}, [{**SR, "value": ["service request"]}]),
+    ({"type": "service_request"}, [{**SR, "value": ["service_request"]}]),
+    ({"type": "Incident"}, [{**SR, "operator": "is_not_in"}]),
+    ({"type": "Incident"}, [{**SR, "value": [3]}]),
+    ({"type": "Incident"}, [{**SR, "type": "custom_field"}]),
+    ({"type": "Incident", "custom_fields": {"ticket_type": "Incident"}},
+     [{**SR, "type": "custom_field", "value": ["Incident"]}]),
+]
+QUERIES = ["type=Service Request", "Type=service request", "ticket_type=4", "type!=Incident", "type=Case",
+           "type=5", "type=Retired", "type=9"]
+
+
 def run(fn):
     try:
         return {"ok": fn()}
@@ -100,6 +137,10 @@ def main() -> None:
         "filterable": [{"field": f, **run(lambda f=f: require_filterable_field(f))} for f in FIELDS],
         "matches": [{"row": r, "clauses": c, **run(lambda r=r, c=c: matches(r, c))} for r, c in MATCHES],
         "contradictions": [{"rows": r, "clauses": c, "ids": contradictions(r, c)} for r, c in CONTRA],
+        "name_valued": [{"field": f, "raw": r, **run(lambda f=f, r=r: name_valued_choice(f, r))} for f, r in NAMED],
+        "type_matches": [{"row": r, "clauses": c, **run(lambda r=r, c=c: matches(r, c))} for r, c in TYPE_MATCHES],
+        "type_queries": [{"expr": e, **run(lambda e=e: json.loads(
+            build_query_hash_from_schema(None, TICKETS, {"fields": [TYPE]}, [e])))} for e in QUERIES],
     }
     json.dump(stamped(cases), sys.stdout, indent=2)
 

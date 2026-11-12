@@ -77,12 +77,7 @@ pub fn context(
         .filter(|ch| ch.visible && (casefold(&ch.label) == want || casefold(&ch.value) == want))
         .collect();
     let id = match choices.as_slice() {
-        [one] => one
-            .id
-            .as_ref()
-            .filter(|v| v.is_i64() || v.is_u64())
-            .and_then(Value::as_i64)
-            .filter(|i| *i > 0),
+        [one] => crate::choice_ids::runtime_choice_id(one.id.as_ref(), 1),
         _ => None,
     };
     let Some(id) = id else {

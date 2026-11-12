@@ -1,0 +1,137 @@
+{
+  "_python": {
+    "commit": "7acec015693dd0242d358f06104c7e997ade07a3",
+    "dirty": false
+  },
+  "ids": [
+    {
+      "value": 1,
+      "minimum": 1,
+      "expected": 1
+    },
+    {
+      "value": "1",
+      "minimum": 1,
+      "expected": 1
+    },
+    {
+      "value": "0",
+      "minimum": 0,
+      "expected": 0
+    },
+    {
+      "value": 0,
+      "minimum": 0,
+      "expected": 0
+    },
+    {
+      "value": "0",
+      "minimum": 1,
+      "expected": null
+    },
+    {
+      "value": 0,
+      "minimum": 1,
+      "expected": null
+    },
+    {
+      "value": "900",
+      "minimum": 0,
+      "expected": 900
+    },
+    {
+      "value": true,
+      "minimum": 0,
+      "expected": null
+    },
+    {
+      "value": false,
+      "minimum": 0,
+      "expected": null
+    },
+    {
+      "value": "-1",
+      "minimum": 0,
+      "expected": null
+    },
+    {
+      "value": -1,
+      "minimum": 0,
+      "expected": null
+    },
+    {
+      "value": " 1",
+      "minimum": 0,
+      "expected": null
+    },
+    {
+      "value": "1.0",
+      "minimum": 0,
+      "expected": null
+    },
+    {
+      "value": 1.0,
+      "minimum": 0,
+      "expected": null
+    },
+    {
+      "value": "\u0661",
+      "minimum": 0,
+      "expected": null
+    },
+    {
+      "value": null,
+      "minimum": 0,
+      "expected": null
+    },
+    {
+      "value": "",
+      "minimum": 0,
+      "expected": null
+    },
+    {
+      "value": "007",
+      "minimum": 1,
+      "expected": 7
+    },
+    {
+      "value": "+1",
+      "minimum": 0,
+      "expected": null
+    }
+  ],
+  "closed": [
+    {
+      "id": "89",
+      "ok": 89
+    },
+    {
+      "id": 89,
+      "ok": 89
+    },
+    {
+      "id": "0",
+      "err": "a unique runtime Closed status ID is required"
+    },
+    {
+      "id": "8a",
+      "err": "a unique runtime Closed status ID is required"
+    },
+    {
+      "id": true,
+      "err": "a unique runtime Closed status ID is required"
+    },
+    {
+      "id": "-89",
+      "err": "a unique runtime Closed status ID is required"
+    },
+    {
+      "id": 89.0,
+      "err": "a unique runtime Closed status ID is required"
+    },
+    {
+      "id": null,
+      "err": "a unique runtime Closed status ID is required"
+    }
+  ]
+}

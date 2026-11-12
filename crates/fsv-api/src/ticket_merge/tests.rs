@@ -288,3 +288,46 @@ fn closed_status_matches_the_python_context() {
         );
     }
 }
+
+/// `test_closed_status_accepts_only_positive_digit_identities`.
+#[test]
+fn closed_status_accepts_only_positive_digit_identities() {
+    let oracle: Value =
+        serde_json::from_str(include_str!("../testdata/choice_ids_oracle.json")).unwrap();
+    let cases = oracle["closed"].as_array().unwrap();
+    assert_eq!(cases.len(), 8);
+    for case in cases {
+        let ident = case["id"].clone();
+        let c = FnApi::new(move |call: &Call| {
+            if call.path == "ticket_form_fields" {
+                let field = form_field(
+                    9000007101,
+                    "status",
+                    "Status",
+                    "default_status",
+                    1,
+                    json!({"choices": [{"id": "31", "value": "Open"},
+                                       {"id": ident.clone(), "value": "Closed"}]}),
+                );
+                return Ok(json!({"ticket_fields": [field]}));
+            }
+            if call.path.ends_with("business_rules") {
+                return Ok(json!({"business_rules": []}));
+            }
+            Err(ApiError::new(404, json!({"error": "unexpected"})).into())
+        });
+        let store = MemStore {
+            workspace: json!(1),
+            ..MemStore::default()
+        };
+        let got = match closed(&c, &store, 123) {
+            Ok((status, _)) => json!({"ok": status}),
+            Err(e) => json!({"err": e.to_string()}),
+        };
+        let want = match case.get("ok") {
+            Some(ok) => json!({"ok": ok}),
+            None => json!({"err": case["err"]}),
+        };
+        assert_eq!(got, want, "{}", case["id"]);
+    }
+}

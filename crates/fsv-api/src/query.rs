@@ -243,6 +243,20 @@ pub fn resolve_where(
             (),
         ));
     }
+    if let Some(named) = crate::filter_proof::name_valued_choice(&field, &raw)? {
+        return Ok((
+            query_item(
+                &name,
+                &operator,
+                json!([named.clone()]),
+                type_,
+                explain,
+                &name,
+                &named,
+            ),
+            (),
+        ));
+    }
     if field
         .get("choices")
         .and_then(Value::as_array)

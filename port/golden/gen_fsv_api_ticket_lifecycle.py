@@ -86,6 +86,13 @@ def variant(name):
         fs.append({"name": "unknown_requirement", "required_for_closure": True})
     elif name == "rules_unavailable":
         rules = None
+    elif name == "string_ids":
+        for c in fs[0]["choices"]:
+            c["id"] = str(c["id"])
+    elif name.startswith("bad_id_"):
+        fs[0]["choices"][1]["id"] = {"bad_id_sign": "-47", "bad_id_alpha": "47a", "bad_id_bool": True,
+                                     "bad_id_zero": "0", "bad_id_float": 47.0, "bad_id_space": " 47",
+                                     "bad_id_arabic": "\u0664\u0667"}[name]
     return {"fields": fs, "rules": rules}
 
 
@@ -247,6 +254,11 @@ CASES["argument_errors"] = {"ops": [
     {**B, "status": "Open", "answers": {"nonexistent": "x"}}]}
 CASES["read_churn"] = {"ops": [{"op": "row", "set": churn(1)}, {**B, "status": "Open"},
                                {"op": "row", "set": churn(2)}, S]}
+CASES["string_status_ids"] = {"meta": "string_ids", "ops": [
+    {**B, "status": "Pending", "answers": {"reason": "Waiting for self"}}, S]}
+for bad in ["sign", "alpha", "bool", "zero", "float", "space", "arabic"]:
+    CASES[f"bad_status_id_{bad}"] = {"meta": f"bad_id_{bad}", "ops": [
+        {**B, "status": "Pending", "answers": {"reason": "Waiting for self"}}]}
 CASES["routing_unavailable"] = {"ops": [{"op": "row", "pop": ["group_id"]}, {**B, "status": "Open"}]}
 
 MATCHES = [

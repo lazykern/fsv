@@ -10,7 +10,7 @@ use std::collections::BTreeSet;
 use serde_json::{Map, Value, json};
 
 use fsv_core::error::{Error, Result};
-use fsv_core::pystr::{casefold, strip};
+use fsv_core::pystr::strip;
 use fsv_core::resource::{TICKETS, parse_id};
 use fsv_forms::value::values_from_json;
 use fsv_forms::{FormState, Kind, StateOptions};
@@ -179,8 +179,7 @@ pub fn build_plan(
         return Err(Error::value("unsupported requested-item action"));
     }
     let parent = owner_row(c, "tickets", cid)?;
-    let kind = casefold(&parent.get("ticket_type").map(py_str).unwrap_or_default());
-    if kind != "service request" && kind != "service_request" {
+    if crate::ticket_kind::exact_ticket_type(&Value::Object(parent.clone()))? != "service request" {
         return Err(refused("exact parent must be a service request"));
     }
     let rows = inventory(c, cid)?;
@@ -444,6 +443,7 @@ mod tests {
         missing: bool,
         rules_fail: bool,
         fail: bool,
+        kind_fields: Option<Value>,
     }
 
     fn world() -> World {
@@ -468,7 +468,15 @@ mod tests {
             let path = call.path.as_str();
             if call.method == "GET" {
                 if path == "tickets/123" {
-                    return Ok(json!({"ticket": {"id": 123, "ticket_type": "Service Request"}}));
+                    let mut row = json!({"id": 123});
+                    let kind = s
+                        .kind_fields
+                        .clone()
+                        .unwrap_or_else(|| json!({"ticket_type": "Service Request"}));
+                    for (k, v) in kind.as_object().into_iter().flatten() {
+                        row[k] = v.clone();
+                    }
+                    return Ok(json!({ "ticket": row }));
                 }
                 if path.contains("business_rules") {
                     if s.rules_fail {
@@ -581,6 +589,52 @@ mod tests {
                 item: Some(902),
                 ..ItemArgs::default()
             },
+        }
+    }
+
+    /// `test_parent_type_proof_uses_native_exact_read`.
+    #[test]
+    fn parent_type_proof_uses_native_exact_read() {
+        for (fields, allowed) in [
+            (json!({"type": "Service Request"}), true),
+            (json!({"ticket_type": "Service Request"}), true),
+            (
+                json!({"type": "Service Request", "ticket_type": "service_request"}),
+                true,
+            ),
+            (json!({"type": "Incident"}), false),
+            (
+                json!({"type": "Service Request", "ticket_type": "Incident"}),
+                false,
+            ),
+            (json!({}), false),
+            (json!({"type": null}), false),
+        ] {
+            for action in ["edit", "stage", "add"] {
+                let mut w = world();
+                w.kind_fields = Some(fields.clone());
+                let c = api(Arc::new(Mutex::new(w)));
+                let answers = if action == "add" {
+                    add_answers()
+                } else {
+                    edit_answers()
+                };
+                let got = build_plan(&c, &MemStore::default(), "SR-123", &args(action, &answers));
+                if allowed {
+                    let plan = got.unwrap();
+                    assert!(
+                        matches!(plan.method.as_str(), "PUT" | "PATCH" | "POST"),
+                        "{fields} {action}"
+                    );
+                } else {
+                    let err = got.unwrap_err().to_string();
+                    assert!(
+                        err.contains("service request") || err.contains("ticket type"),
+                        "{fields} {action}: {err}"
+                    );
+                }
+                assert!(writes(&c).is_empty());
+            }
         }
     }
 

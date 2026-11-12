@@ -578,18 +578,29 @@ pub fn send(
         ));
     }
     rebuilt(plan, c, store)?;
+    let reported = |result: Value| {
+        let mut result = result;
+        if let Value::Object(m) = &mut result {
+            let delegated = m.get("plan_hash").cloned().unwrap_or(Value::Null);
+            m.insert("delegated_plan_hash".into(), delegated);
+            m.insert("plan_hash".into(), json!(plan.hash()));
+        }
+        result
+    };
     if action == "merge" {
-        return ticket_merge::send(&plan.write, c, store, journal, Some(&plan.write.hash()));
+        return ticket_merge::send(&plan.write, c, store, journal, Some(&plan.write.hash()))
+            .map(reported);
     }
     if action == "pickup" {
         let delegate = plan
             .pickup
             .as_ref()
             .ok_or_else(|| refused("bulk selection, metadata or records changed; review again"))?;
-        return ticket_assignment::send(delegate, c, store, journal, Some(&delegate.hash()), None);
+        return ticket_assignment::send(delegate, c, store, journal, Some(&delegate.hash()), None)
+            .map(reported);
     }
     let rebuild = || Ok(rebuilt(plan, c, store)?.write);
-    let check = |_: &Value| verify(plan, c);
+    let check = |_: &Value| Ok(crate::readback::bounded_readback(|| verify(plan, c)));
     execute(
         &plan.write,
         c,
@@ -598,6 +609,7 @@ pub fn send(
         &rebuild,
         &check,
     )
+    .map(reported)
 }
 
 #[cfg(test)]
@@ -648,6 +660,8 @@ mod tests {
         fail: bool,
         omit: bool,
         wrote: bool,
+        stale: usize,
+        post_reads: usize,
     }
 
     fn world() -> World {
@@ -661,6 +675,8 @@ mod tests {
             fail: false,
             omit: false,
             wrote: false,
+            stale: 0,
+            post_reads: 0,
         }
     }
 
@@ -690,6 +706,14 @@ mod tests {
                 let Some(mut row) = s.rows.get(&id).cloned() else {
                     return Err(Error::other("missing ticket"));
                 };
+                if s.stale > 0 && s.wrote {
+                    s.stale -= 1;
+                    let obj = row.as_object_mut().unwrap();
+                    obj.insert("status".into(), json!(2));
+                    obj.insert("spam".into(), json!(false));
+                    obj.insert("deleted".into(), json!(false));
+                }
+                s.post_reads += usize::from(s.wrote);
                 if s.omit && s.wrote {
                     row.as_object_mut().unwrap().shift_remove("spam");
                 }
@@ -1035,6 +1059,38 @@ mod tests {
             msg(&err),
             "exact selected subject unavailable; refusing filtered review"
         );
+    }
+
+    static READBACK: LazyLock<Value> = LazyLock::new(|| {
+        serde_json::from_str(include_str!("testdata/bulk_readback_oracle.json")).unwrap()
+    });
+
+    #[test]
+    fn lagging_readback_rereads_only_and_matches_python() {
+        for case in READBACK["cases"].as_array().unwrap() {
+            let action = case["action"].as_str().unwrap();
+            let state = Arc::new(Mutex::new(world()));
+            state.lock().unwrap().stale = case["lag"].as_u64().unwrap() as usize;
+            let c = api(Arc::clone(&state));
+            let plan =
+                build_plan(&c, &store(), &["71".into(), "72".into()], &args(action)).unwrap();
+            assert_eq!(plan.hash(), case["hash"].as_str().unwrap());
+            assert_eq!(plan.write.hash(), case["write_hash"].as_str().unwrap());
+            let journal = MemJournal::default();
+            let sleeps = Arc::new(Mutex::new(Vec::new()));
+            let seen = Arc::clone(&sleeps);
+            let sent = crate::readback::with_readback_sleep(
+                move |s| seen.lock().unwrap().push(s),
+                || send(&plan, &c, &store(), &journal, Some(&plan.hash()), true),
+            )
+            .unwrap();
+            assert_eq!(sent, case["result"], "{action} {}", case["lag"]);
+            assert_eq!(json!(*sleeps.lock().unwrap()), case["sleeps"]);
+            assert_eq!(json!(state.lock().unwrap().post_reads), case["post_reads"]);
+            let err = send(&plan, &c, &store(), &journal, Some(&plan.hash()), true).unwrap_err();
+            assert_eq!(msg(&err), case["replay"].as_str().unwrap());
+            assert_eq!(json!(posts(&c).len()), case["writes"]);
+        }
     }
 
     #[test]

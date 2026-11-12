@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "8f156c08ec19b91dc42656707ee229f0b38112e0",
+  "commit": "aa8df3956389e29eecb3774680772c32c0af9f1a",
   "dirty": false
  },
  "exact_wire": {
@@ -75,7 +75,8 @@
        "conversations_moved": true,
        "source_note": true
       }
-     }
+     },
+     "readback_attempts": 1
     },
     "posts": 1
    },
@@ -169,7 +170,8 @@
        "conversations_moved": true,
        "source_note": true
       }
-     }
+     },
+     "readback_attempts": 1
     },
     "posts": 1
    }
@@ -1018,6 +1020,7 @@
        "source_note": true
       }
      },
+     "readback_attempts": 4,
      "warning": "Readback was not fully verified; do not resend."
     },
     "posts": 1
@@ -1124,6 +1127,7 @@
        "source_note": true
       }
      },
+     "readback_attempts": 4,
      "warning": "Readback was not fully verified; do not resend."
     },
     "posts": 1
@@ -1230,6 +1234,7 @@
        "source_note": true
       }
      },
+     "readback_attempts": 4,
      "warning": "Readback was not fully verified; do not resend."
     },
     "posts": 1
@@ -1336,6 +1341,7 @@
        "source_note": true
       }
      },
+     "readback_attempts": 4,
      "warning": "Readback was not fully verified; do not resend."
     },
     "posts": 1
