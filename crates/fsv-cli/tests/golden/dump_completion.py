@@ -18,6 +18,7 @@ import sys
 from fsv import completion_gen as g
 from fsv.cli import _ROOT_FLAGS_ANYWHERE, app
 from not_ported import NOT_PORTED
+from pyrev import python_rev
 
 EXE = "@FSV_EXE@"
 
@@ -58,7 +59,8 @@ out = pathlib.Path(sys.argv[1])
 root = g._walk(app, ["fsv"], inherited_flags=set(_ROOT_FLAGS_ANYWHERE))
 prune(root)
 split_flags(root)
-(out / "completion_tree.json").write_text(json.dumps(to_json(root), indent=1, ensure_ascii=False) + "\n")
+(out / "completion_tree.json").write_text(
+    json.dumps({"_python": python_rev(), **to_json(root)}, indent=1, ensure_ascii=False) + "\n")
 sys.executable = EXE
 for shell, emit in (("fish", g._emit_fish), ("bash", g._emit_bash), ("zsh", g._emit_zsh)):
     text = emit(root, "fsv").replace(f"{EXE} -m fsv._complete", f"{EXE} _complete")

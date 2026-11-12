@@ -1,11 +1,12 @@
-//! Upstream commands ported from Python (base `92002d7`): watchers, ticket
-//! time, planning-text, mark-known-error, bulk-priority, reply --bcc/--sender,
+//! Upstream commands ported from Python: watchers, ticket time,
+//! planning-text, mark-known-error, bulk-priority, reply --bcc/--sender,
 //! forward, update --reviewed with --set answers, the SR send-failure report,
 //! the change asset picker, canned replies and scenarios, private ticket
-//! views, list columns and exports, and problem create and child writes.
-//! Expected output was captured from Python on the same routes
-//! (`tests/golden/cmp.py --emit`); one-shot routes serve the record before
-//! the write and the changed record after it.
+//! views, list columns and exports, problem create and child writes, and
+//! Click's missing-parameter errors. Expected output was captured from
+//! Python on the same routes (`tests/golden/emit_upstream.py`); one-shot
+//! routes serve the record before the write and the changed record after it.
+//! Python commit: 92002d76b880d927e16750ab986b525ee4fa85d6
 
 mod common;
 use common::run_fixture;
@@ -2449,6 +2450,7 @@ fn asset_picker_page_must_be_positive() {
     assert_eq!(r.code, 2, "{}", r.err);
     assert!(r.requests.is_empty());
 }
+
 #[test]
 fn canned_folders() {
     let r = run_fixture("canned", &["tickets", "canned", "folders"], None);
@@ -5096,6 +5098,22 @@ fn problem_create_unknown_label() {
 }
 
 #[test]
+fn problem_create_needs_requester() {
+    let r = run_fixture("problem_flows", &["problems", "create", "--dry-run"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"Usage: fsv problems create [OPTIONS]
+Try 'fsv problems create -h' for help.
+╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Missing option '--requester'.                                                                                                                                                                        │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+"#
+    );
+}
+
+#[test]
 fn problem_note_dry_run() {
     let r = run_fixture(
         "problem_flows",
@@ -5555,14 +5573,6 @@ fn form_dump_problems() {
 }
 
 #[test]
-fn problem_create_requires_requester() {
-    // Click's missing-option panel; clap's text differs.
-    let r = run_fixture("problem_flows", &["problems", "create", "--dry-run"], None);
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert!(r.requests.is_empty());
-}
-
-#[test]
 fn update_reviewed_multi_field_dry_run() {
     let r = run_fixture(
         "ticket_reviewed",
@@ -5607,4 +5617,100 @@ fn json_only_output_rejects_other_formats() {
     );
     assert_eq!(r.code, 2, "{}", r.err);
     assert!(r.requests.is_empty());
+}
+
+#[test]
+fn missing_option_with_short() {
+    let r = run_fixture("watchers", &["config", "defaults", "set", "changes"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"Usage: fsv config defaults set [OPTIONS] RESOURCE
+Try 'fsv config defaults set -h' for help.
+╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Missing option '--where' / '-w'.                                                                                                                                                                     │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+"#
+    );
+}
+
+#[test]
+fn missing_secondary_flag() {
+    let r = run_fixture("watchers", &["tickets", "watchers", "set", "5"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"Usage: fsv tickets watchers set [OPTIONS] ID
+Try 'fsv tickets watchers set -h' for help.
+╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Missing option '--watch'.                                                                                                                                                                            │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+"#
+    );
+}
+
+#[test]
+fn missing_variadic_argument() {
+    let r = run_fixture("watchers", &["tickets", "bulk-priority"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"Usage: fsv tickets bulk-priority [OPTIONS] ID...
+Try 'fsv tickets bulk-priority -h' for help.
+╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Missing argument 'ID...'.                                                                                                                                                                            │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+"#
+    );
+}
+
+#[test]
+fn missing_argument_before_optional() {
+    let r = run_fixture("watchers", &["changes", "lookup"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"Usage: fsv changes lookup [OPTIONS] KIND [QUERY]
+Try 'fsv changes lookup -h' for help.
+╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Missing argument 'KIND'.                                                                                                                                                                             │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+"#
+    );
+}
+
+#[test]
+fn missing_argument_without_metavar() {
+    let r = run_fixture("watchers", &["changes", "activity"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"Usage: fsv changes activity [OPTIONS] ID_
+Try 'fsv changes activity -h' for help.
+╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Missing argument 'ID_'.                                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+"#
+    );
+}
+
+#[test]
+fn missing_second_argument() {
+    let r = run_fixture("watchers", &["changes", "tasks-update", "5"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"Usage: fsv changes tasks-update [OPTIONS] CHANGE_ID TASK_ID
+Try 'fsv changes tasks-update -h' for help.
+╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Missing argument 'TASK_ID'.                                                                                                                                                                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+"#
+    );
 }

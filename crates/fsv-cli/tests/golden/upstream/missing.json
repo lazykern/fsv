@@ -1,0 +1,8 @@
+[
+ {"name": "missing_option_with_short", "fixture": "watchers", "args": ["config", "defaults", "set", "changes"]},
+ {"name": "missing_secondary_flag", "fixture": "watchers", "args": ["tickets", "watchers", "set", "5"]},
+ {"name": "missing_variadic_argument", "fixture": "watchers", "args": ["tickets", "bulk-priority"]},
+ {"name": "missing_argument_before_optional", "fixture": "watchers", "args": ["changes", "lookup"]},
+ {"name": "missing_argument_without_metavar", "fixture": "watchers", "args": ["changes", "activity"]},
+ {"name": "missing_second_argument", "fixture": "watchers", "args": ["changes", "tasks-update", "5"]}
+]

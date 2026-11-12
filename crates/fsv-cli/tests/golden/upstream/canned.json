@@ -1,0 +1,307 @@
+[
+ {
+  "name": "canned_folders",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "folders"
+  ]
+ },
+ {
+  "name": "canned_list",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "list",
+   "--folder",
+   "702",
+   "--json"
+  ]
+ },
+ {
+  "name": "canned_show",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "show",
+   "701",
+   "-o",
+   "json"
+  ]
+ },
+ {
+  "name": "canned_reply_dry_run",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "INC-5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/content",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "canned_reply_send",
+  "fixture": "canned",
+  "hash_from": [
+   "tickets",
+   "canned",
+   "reply",
+   "INC-5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/content",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ],
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "INC-5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/content",
+   "--sender",
+   "support@acme.com",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ]
+ },
+ {
+  "name": "canned_reply_needs_hash",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/content",
+   "--sender",
+   "support@acme.com",
+   "--yes"
+  ]
+ },
+ {
+  "name": "canned_reply_pointer_without_slash",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "canned_response/content",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "canned_reply_pointer_bad_escape",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/~2",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "canned_reply_pointer_missing",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/body",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "canned_reply_pointer_not_text",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/meta",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "canned_reply_placeholder_refused",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "705",
+   "--content-pointer",
+   "/canned_response/content",
+   "--sender",
+   "support@acme.com",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "canned_reply_sender_not_plain",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "reply",
+   "5",
+   "--response",
+   "701",
+   "--content-pointer",
+   "/canned_response/content",
+   "--sender",
+   "Support <support@acme.com>",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "scenarios_list",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "list"
+  ]
+ },
+ {
+  "name": "scenarios_show",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "show",
+   "703"
+  ]
+ },
+ {
+  "name": "scenarios_show_ambiguous",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "show",
+   "704"
+  ]
+ },
+ {
+  "name": "scenarios_show_missing",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "show",
+   "999"
+  ]
+ },
+ {
+  "name": "scenarios_apply_dry_run",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "apply",
+   "INC-5",
+   "--scenario",
+   "703",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "scenarios_apply_send",
+  "fixture": "canned",
+  "hash_from": [
+   "tickets",
+   "scenarios",
+   "apply",
+   "5",
+   "--scenario",
+   "703",
+   "--dry-run"
+  ],
+  "args": [
+   "tickets",
+   "scenarios",
+   "apply",
+   "5",
+   "--scenario",
+   "703",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ]
+ },
+ {
+  "name": "scenarios_apply_wrong_hash",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "apply",
+   "5",
+   "--scenario",
+   "703",
+   "--yes",
+   "--expect-plan",
+   "abc"
+  ]
+ },
+ {
+  "name": "scenarios_apply_ambiguous",
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "apply",
+   "5",
+   "--scenario",
+   "704",
+   "--dry-run"
+  ]
+ }
+]

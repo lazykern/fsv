@@ -1,0 +1,314 @@
+[
+ {
+  "name": "problem_create_dry_run",
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Subject=Acme problem",
+   "--set",
+   "Description=Acme details",
+   "--set",
+   "Status=Open",
+   "--set",
+   "Priority=Low",
+   "--set",
+   "Impact=Low",
+   "--set",
+   "Acme count=7",
+   "--dry-run"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_create_send",
+  "hash_from": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Subject=Acme problem",
+   "--set",
+   "Description=Acme details",
+   "--set",
+   "Status=Open",
+   "--set",
+   "Priority=Low",
+   "--set",
+   "Impact=Low",
+   "--set",
+   "Acme count=7",
+   "--dry-run"
+  ],
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Subject=Acme problem",
+   "--set",
+   "Description=Acme details",
+   "--set",
+   "Status=Open",
+   "--set",
+   "Priority=Low",
+   "--set",
+   "Impact=Low",
+   "--set",
+   "Acme count=7",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_create_needs_hash",
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Subject=Acme problem",
+   "--set",
+   "Description=Acme details",
+   "--set",
+   "Status=Open",
+   "--set",
+   "Priority=Low",
+   "--set",
+   "Impact=Low",
+   "--set",
+   "Acme count=7",
+   "--yes"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_create_requester_answer",
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Subject=Acme problem",
+   "--set",
+   "Description=Acme details",
+   "--set",
+   "Status=Open",
+   "--set",
+   "Priority=Low",
+   "--set",
+   "Impact=Low",
+   "--set",
+   "Acme count=7",
+   "--set",
+   "Requester=ann@acme.com",
+   "--dry-run"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_create_missing_subject",
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Status=Open",
+   "--dry-run"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_create_unknown_label",
+  "args": [
+   "problems",
+   "create",
+   "--requester",
+   "ann@acme.com",
+   "--set",
+   "Subject=Acme problem",
+   "--set",
+   "Description=Acme details",
+   "--set",
+   "Status=Open",
+   "--set",
+   "Priority=Low",
+   "--set",
+   "Impact=Low",
+   "--set",
+   "Acme count=7",
+   "--set",
+   "Nope=1",
+   "--dry-run"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_create_needs_requester",
+  "args": [
+   "problems",
+   "create",
+   "--dry-run"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_note_dry_run",
+  "args": [
+   "problems",
+   "write-child",
+   "PRB-123",
+   "note",
+   "Acme",
+   "--dry-run"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_task_dry_run",
+  "args": [
+   "problems",
+   "write-child",
+   "123",
+   "task",
+   "Acme",
+   "--dry-run"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_note_send",
+  "hash_from": [
+   "problems",
+   "write-child",
+   "PRB-123",
+   "note",
+   "Acme",
+   "--dry-run"
+  ],
+  "args": [
+   "problems",
+   "write-child",
+   "PRB-123",
+   "note",
+   "Acme",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_task_send",
+  "hash_from": [
+   "problems",
+   "write-child",
+   "123",
+   "task",
+   "Acme",
+   "--dry-run"
+  ],
+  "args": [
+   "problems",
+   "write-child",
+   "123",
+   "task",
+   "Acme",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--json"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_note_send_mismatch",
+  "hash_from": [
+   "problems",
+   "write-child",
+   "123",
+   "note",
+   "Other",
+   "--dry-run"
+  ],
+  "args": [
+   "problems",
+   "write-child",
+   "123",
+   "note",
+   "Other",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_child_bad_kind",
+  "args": [
+   "problems",
+   "write-child",
+   "123",
+   "comment",
+   "Acme",
+   "--dry-run"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_child_blank_text",
+  "args": [
+   "problems",
+   "write-child",
+   "123",
+   "note",
+   "  ",
+   "--dry-run"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_child_bad_target",
+  "args": [
+   "problems",
+   "write-child",
+   "CHN-123",
+   "note",
+   "Acme",
+   "--dry-run"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_child_identity_mismatch",
+  "args": [
+   "problems",
+   "write-child",
+   "124",
+   "note",
+   "Acme",
+   "--dry-run"
+  ],
+  "fixture": "problem_flows"
+ },
+ {
+  "name": "problem_child_needs_yes",
+  "args": [
+   "problems",
+   "write-child",
+   "123",
+   "note",
+   "Acme"
+  ],
+  "fixture": "problem_flows"
+ }
+]

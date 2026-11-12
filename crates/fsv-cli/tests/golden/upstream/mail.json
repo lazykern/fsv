@@ -1,0 +1,12 @@
+[
+ {"name":"reply_bcc_dry_run","fixture":"ticket_mail","args":["tickets","reply","5","thanks","--bcc","ann@acme.com","--sender","support@acme.com","--dry-run"]},
+ {"name":"reply_bcc_send","fixture":"ticket_mail","hash_from":["tickets","reply","5","thanks","--bcc","ann@acme.com","--sender","support@acme.com","--dry-run"],"args":["tickets","reply","5","thanks","--bcc","ann@acme.com","--sender","support@acme.com","--yes","--expect-plan","{HASH}"]},
+ {"name":"reply_bcc_needs_sender","fixture":"ticket_mail","args":["tickets","reply","5","thanks","--bcc","ann@acme.com","--dry-run"]},
+ {"name":"reply_bcc_with_cc_refused","fixture":"ticket_mail","args":["tickets","reply","5","thanks","--cc","ann@acme.com","--bcc","ann@acme.com","--sender","support@acme.com","--dry-run"]},
+ {"name":"reply_sender_not_plain","fixture":"ticket_mail","args":["tickets","reply","5","thanks","--sender","Support <support@acme.com>","--dry-run"]},
+ {"name":"reply_bcc_not_plain","fixture":"ticket_mail","args":["tickets","reply","5","thanks","--bcc","Ann <ann@acme.com>","--sender","support@acme.com","--dry-run"]},
+ {"name":"forward_dry_run","fixture":"ticket_mail","args":["tickets","forward","INC-5","see below","--to","ann@acme.com","--sender","support@acme.com","--dry-run"]},
+ {"name":"forward_send","fixture":"ticket_mail","hash_from":["tickets","forward","5","see below","--to","ann@acme.com","--sender","support@acme.com","--dry-run"],"args":["tickets","forward","5","see below","--to","ann@acme.com","--sender","support@acme.com","--json","--yes","--expect-plan","{HASH}"]},
+ {"name":"forward_needs_exact_review","fixture":"ticket_mail","args":["tickets","forward","5","see below","--to","ann@acme.com","--sender","support@acme.com","--yes"]},
+ {"name":"forward_formatted_recipient","fixture":"ticket_mail","args":["tickets","forward","5","see below","--to","Ann <ann@acme.com>","--sender","support@acme.com","--dry-run"]}
+]

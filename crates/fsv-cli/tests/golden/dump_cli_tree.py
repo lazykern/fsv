@@ -14,6 +14,7 @@ import typer.main
 
 from fsv.cli import app
 from not_ported import NOT_PORTED
+from pyrev import python_rev
 
 
 def _default(v):
@@ -45,6 +46,8 @@ def _param(p):
         "metavar": p.metavar,
         "envvar": p.envvar,
     }
+    if t.name == "integer range":
+        d["min"], d["max"] = t.min, t.max
     return d
 
 
@@ -66,4 +69,4 @@ def _walk(cmd, path):
 
 
 root = typer.main.get_command(app)
-print(json.dumps(_walk(root, "fsv"), indent=1, ensure_ascii=False))
+print(json.dumps({"_python": python_rev(), **_walk(root, "fsv")}, indent=1, ensure_ascii=False))

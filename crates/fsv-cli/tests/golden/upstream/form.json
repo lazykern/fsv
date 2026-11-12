@@ -1,0 +1,53 @@
+[
+ {
+  "name": "form_fields_problems",
+  "fixture": "problem_flows",
+  "args": [
+   "form",
+   "fields",
+   "problems"
+  ]
+ },
+ {
+  "name": "form_fields_problems_choices",
+  "fixture": "problem_flows",
+  "args": [
+   "form",
+   "fields",
+   "problems",
+   "--choices",
+   "Status"
+  ]
+ },
+ {
+  "name": "form_explain_problems",
+  "fixture": "problem_flows",
+  "args": [
+   "form",
+   "explain",
+   "problems"
+  ]
+ },
+ {
+  "name": "form_explain_problem_record",
+  "fixture": "problem_flows",
+  "args": [
+   "form",
+   "explain",
+   "problems",
+   "--id",
+   "PRB-123",
+   "--set",
+   "Status=Open"
+  ]
+ },
+ {
+  "name": "form_unsupported_lists_problems",
+  "fixture": "problem_flows",
+  "args": [
+   "form",
+   "dump",
+   "nope"
+  ]
+ }
+]

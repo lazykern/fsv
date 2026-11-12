@@ -1,4 +1,8 @@
 {
+ "_python": {
+  "commit": "92002d76b880d927e16750ab986b525ee4fa85d6",
+  "dirty": false
+ },
  "path": "fsv",
  "help": "Freshservice CLI",
  "epilog": "[bold]Examples:[/bold]  fsv auth login  |  fsv changes ls --where status=Open  |  fsv changes get CHN-1234 --internal  |  fsv changes update CHN-1234 --set 'environment=Production'  |  fsv changes download CHN-1234 --all",
@@ -3346,7 +3350,9 @@
        "hidden": false,
        "help": null,
        "metavar": null,
-       "envvar": null
+       "envvar": null,
+       "min": 1,
+       "max": null
       },
       {
        "name": "select",
@@ -3365,7 +3371,9 @@
        "hidden": false,
        "help": "exact display ID from this page, not internal ID",
        "metavar": null,
-       "envvar": null
+       "envvar": null,
+       "min": 1,
+       "max": null
       },
       {
        "name": "output",
@@ -11520,7 +11528,9 @@
          "hidden": false,
          "help": null,
          "metavar": null,
-         "envvar": null
+         "envvar": null,
+         "min": 1,
+         "max": null
         },
         {
          "name": "output",
@@ -11590,7 +11600,9 @@
          "hidden": false,
          "help": null,
          "metavar": "SOURCE_VIEW",
-         "envvar": null
+         "envvar": null,
+         "min": 1,
+         "max": null
         },
         {
          "name": "action",
@@ -11816,7 +11828,9 @@
          "hidden": false,
          "help": null,
          "metavar": null,
-         "envvar": null
+         "envvar": null,
+         "min": 1,
+         "max": null
         },
         {
          "name": "output",
@@ -11886,7 +11900,9 @@
          "hidden": false,
          "help": null,
          "metavar": null,
-         "envvar": null
+         "envvar": null,
+         "min": 1,
+         "max": null
         },
         {
          "name": "output",
@@ -11975,7 +11991,9 @@
          "hidden": false,
          "help": null,
          "metavar": null,
-         "envvar": null
+         "envvar": null,
+         "min": 1,
+         "max": null
         },
         {
          "name": "content_pointer",
@@ -12201,7 +12219,9 @@
          "hidden": false,
          "help": null,
          "metavar": null,
-         "envvar": null
+         "envvar": null,
+         "min": 1,
+         "max": null
         },
         {
          "name": "output",
@@ -12290,7 +12310,9 @@
          "hidden": false,
          "help": null,
          "metavar": null,
-         "envvar": null
+         "envvar": null,
+         "min": 1,
+         "max": null
         },
         {
          "name": "dry_run",

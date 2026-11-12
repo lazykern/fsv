@@ -1,0 +1,537 @@
+[
+ {
+  "name": "tickets_columns_list",
+  "args": [
+   "tickets",
+   "columns",
+   "list"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "tickets_columns_set_dry_run",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "tickets_columns_set_send",
+  "hash_from": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--dry-run"
+  ],
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--json"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "tickets_columns_set_needs_hash",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--yes"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "tickets_export_dry_run",
+  "args": [
+   "tickets",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "tickets_export_send",
+  "hash_from": [
+   "tickets",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--dry-run"
+  ],
+  "args": [
+   "tickets",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "changes_columns_list",
+  "args": [
+   "changes",
+   "columns",
+   "list"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "changes_columns_set_dry_run",
+  "args": [
+   "changes",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "requester",
+   "--column",
+   "status",
+   "--freeze",
+   "requester",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "changes_columns_set_send",
+  "hash_from": [
+   "changes",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "requester",
+   "--column",
+   "status",
+   "--freeze",
+   "requester",
+   "--dry-run"
+  ],
+  "args": [
+   "changes",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "requester",
+   "--column",
+   "status",
+   "--freeze",
+   "requester",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--json"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "changes_columns_set_needs_hash",
+  "args": [
+   "changes",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "requester",
+   "--column",
+   "status",
+   "--freeze",
+   "requester",
+   "--yes"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "changes_export_dry_run",
+  "args": [
+   "changes",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "changes_export_send",
+  "hash_from": [
+   "changes",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--dry-run"
+  ],
+  "args": [
+   "changes",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "problems_columns_list",
+  "args": [
+   "problems",
+   "columns",
+   "list"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "problems_columns_set_dry_run",
+  "args": [
+   "problems",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "problems_columns_set_send",
+  "hash_from": [
+   "problems",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--dry-run"
+  ],
+  "args": [
+   "problems",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--json"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "problems_columns_set_needs_hash",
+  "args": [
+   "problems",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--yes"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "problems_export_dry_run",
+  "args": [
+   "problems",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "problems_export_send",
+  "hash_from": [
+   "problems",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--dry-run"
+  ],
+  "args": [
+   "problems",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "columns_set_display_id",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "display_id",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "columns_set_needs_subject",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "status",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "columns_set_duplicate",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "ticket_subject",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "columns_set_unknown",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "nope",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "columns_set_ticket_freeze",
+  "args": [
+   "tickets",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "requester",
+   "--freeze",
+   "requester",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "columns_set_freeze_unselected",
+  "args": [
+   "changes",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--freeze",
+   "requester",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "columns_set_freeze_other",
+  "args": [
+   "changes",
+   "columns",
+   "set",
+   "--column",
+   "ticket_subject",
+   "--column",
+   "status",
+   "--freeze",
+   "status",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "export_ticket_owner_refused",
+  "args": [
+   "tickets",
+   "export",
+   "--view",
+   "701",
+   "--field",
+   "owner",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "export_duplicate_field",
+  "args": [
+   "tickets",
+   "export",
+   "--view",
+   "701",
+   "--field",
+   "subject",
+   "--field",
+   "subject",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "export_label_unavailable",
+  "args": [
+   "problems",
+   "export",
+   "--view",
+   "701",
+   "--field",
+   "department_name",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "export_unknown_view",
+  "args": [
+   "changes",
+   "export",
+   "--view",
+   "Nope",
+   "--field",
+   "subject",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "export_advanced_view",
+  "args": [
+   "changes",
+   "export",
+   "--view",
+   "702",
+   "--field",
+   "subject",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "export_ambiguous_view",
+  "args": [
+   "tickets",
+   "export",
+   "--view",
+   "Acme",
+   "--field",
+   "subject",
+   "--dry-run"
+  ],
+  "fixture": "list_prefs"
+ }
+]

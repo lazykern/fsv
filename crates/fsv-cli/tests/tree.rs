@@ -108,6 +108,22 @@ fn tree_matches_python() {
     assert_eq!(seen.len(), 152);
 }
 
+/// The dumps record the Python commit they came from (`tests/golden/pyrev.py`).
+#[test]
+fn fixtures_record_the_python_commit() {
+    let completion: Value =
+        serde_json::from_str(include_str!("fixtures/completion_tree.json")).unwrap();
+    for (name, tree) in [("cli_tree", fixture()), ("completion_tree", completion)] {
+        let rev = &tree["_python"];
+        let commit = rev["commit"].as_str().unwrap_or_default();
+        assert!(
+            commit.len() == 40 && commit.chars().all(|c| c.is_ascii_hexdigit()),
+            "{name}: _python.commit {rev}"
+        );
+        assert!(rev["dirty"].is_boolean(), "{name}: _python.dirty {rev}");
+    }
+}
+
 #[test]
 fn every_command_path_is_reachable() {
     fn paths(c: &Command, prefix: &str, out: &mut Vec<String>) {

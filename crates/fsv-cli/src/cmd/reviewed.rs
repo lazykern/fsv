@@ -55,10 +55,16 @@ pub(crate) fn refusal(e: Error) -> Error {
 /// error (usage line, help hint, then an "Error" panel as wide as stderr).
 pub(crate) fn bad_parameter(usage: &str, msg: &str) -> Error {
     let path = fsv_core::runtime::command_path().unwrap_or_else(|| "fsv".into());
+    usage_error(&path, usage, &format!("Invalid value: {msg}"));
+    Error::exit(2, "")
+}
+
+/// Click's `UsageError` as Typer's rich formatter prints it on stderr.
+pub(crate) fn usage_error(path: &str, usage: &str, message: &str) {
     let width = fsv_core::term::err().width().max(12);
     let inner = width - 4;
     let mut lines: Vec<String> = Vec::new();
-    for word in format!("Invalid value: {msg}").split(' ') {
+    for word in message.split(' ') {
         match lines.last_mut() {
             Some(line) if line.chars().count() + 1 + word.chars().count() <= inner => {
                 line.push(' ');
@@ -75,7 +81,6 @@ pub(crate) fn bad_parameter(usage: &str, msg: &str) -> Error {
         eprintln!("│ {line}{} │", " ".repeat(pad));
     }
     eprintln!("╰{}╯", "─".repeat(width - 2));
-    Error::exit(2, "")
 }
 
 pub fn watchers_list(res: &'static Resource, a: ReviewedListArgs) -> CmdResult {

@@ -76,14 +76,6 @@ struct SrModes {
     template_only: bool,
 }
 
-/// `_valid_recipient(e) and _EMAIL.fullmatch(e)`.
-fn plain_email(e: &str) -> bool {
-    static EMAIL: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
-        regex::Regex::new(r"^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$").expect("email regex")
-    });
-    !e.chars().any(|c| (c as u32) < 32 || c as u32 == 127) && EMAIL.is_match(e)
-}
-
 enum SrReviewed {
     Flow(Box<cat::SRPlan>),
     Form(Box<fsv_app::Submitted>),
@@ -423,7 +415,7 @@ fn sr_create(a: &SrCreateArgs, c: std::sync::Arc<fsv_core::Client>, m: SrModes) 
         };
         let (mut cc_emails, mut cc_ids) = (Vec::new(), Vec::new());
         for email in &a.cc {
-            if !plain_email(email) {
+            if !fsv_api::recipients::plain_email(email) {
                 return Err(Error::exit(2, "CC must be a plain email address"));
             }
             let exact = match fsv_api::formmeta::resolve_requester(api, email, None) {
@@ -1526,6 +1518,31 @@ pub(crate) fn expanduser(s: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Values from Python `_valid_recipient(e) and _EMAIL.fullmatch(e)`, the
+    /// `sr create --cc` check.
+    #[test]
+    fn cc_plain_email_matches_python() {
+        for (e, want) in [
+            ("a@example.com", true),
+            ("Name <a@example.com>", false),
+            ("a@example", false),
+            ("a@example.com\n", false),
+            ("a@exa\u{7f}mple.com", false),
+            ("a\u{85}b@example.com", false),
+            ("a\u{a0}b@example.com", false),
+            ("a\u{2028}@x.co", false),
+            ("é@exämple.org", true),
+            ("a@b.c.d", true),
+            ("a@@b.c", false),
+            ("a@b.c;", false),
+            ("\t a@b.c", false),
+            ("a@b.c\u{200b}", true),
+            ("a@b.", false),
+        ] {
+            assert_eq!(fsv_api::recipients::plain_email(e), want, "{e:?}");
+        }
+    }
 
     /// Values from `cli_sr._attachment_rule`.
     #[test]

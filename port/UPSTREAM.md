@@ -612,9 +612,8 @@ fsv-tui needs no new work beyond test updates.
 5. **fsv-cli** (the tree can start now; commands follow fsv-api)
    - Re-dump `crates/fsv-cli/tests/fixtures/cli_tree.json` with
      `crates/fsv-cli/tests/golden/dump_cli_tree.py` from the Python repo, and
-     update `generated.rs` to match (`tests/tree.rs` checks it). The
-     `gen_tree.py` named in the `generated.rs` header is not in the
-     worktree, so either restore it or edit `generated.rs` by hand. The tree
+     regenerate `generated.rs` with `tests/golden/gen_tree.py`
+     (`tests/tree.rs` checks it). The tree
      diff against Python at `b7d96a7` is: new `changes planning-text`, `changes watchers
      list|set`, `problems mark-known-error`, `problems planning-text`,
      `tickets bulk-priority`, `tickets forward`, `tickets time list|write`,

@@ -1,12 +1,13 @@
 //! Process edge: argv rewriting, clap parsing, dispatch, exit codes.
 
-use clap::error::ErrorKind;
+use clap::error::{ContextKind, ContextValue, ErrorKind};
 use clap::{Arg, ArgAction, ArgMatches, Command};
 
 use fsv_core::resource::{self, CHANGES};
 use fsv_core::term::err;
 
 use crate::cmd;
+use crate::generated::CLICK_USAGE;
 use crate::util::report;
 
 /// `_ROOT_FLAGS_ANYWHERE`.
@@ -246,11 +247,43 @@ fn clap_error(e: clap::Error) -> i32 {
             print!("{}", e.render());
             2
         }
+        ErrorKind::MissingRequiredArgument if missing_parameter(&e) => 2,
         _ => {
             let _ = e.print();
             2
         }
     }
+}
+
+/// Click's `MissingParameter` for the first missing parameter in declaration
+/// order. clap's usage line names the command (`Usage: fsv problems create
+/// --requester <REQUESTER>`); false if the leaf has no `CLICK_USAGE` row.
+fn missing_parameter(e: &clap::Error) -> bool {
+    let (Some(ContextValue::StyledStr(usage)), Some(ContextValue::Strings(missing))) =
+        (e.get(ContextKind::Usage), e.get(ContextKind::InvalidArg))
+    else {
+        return false;
+    };
+    let usage = usage.to_string();
+    let mut words = usage.strip_prefix("Usage: ").unwrap_or(&usage).split(' ');
+    let prog = words.next().unwrap_or("fsv");
+    let path: Vec<&str> = words
+        .take_while(|w| !w.starts_with(['-', '<', '[']))
+        .collect();
+    let path = path.join(" ");
+    let tokens: Vec<&str> = missing
+        .iter()
+        .filter_map(|m| m.split(' ').next())
+        .map(|t| t.trim_end_matches("..."))
+        .collect();
+    let Some((_, pieces, params)) = CLICK_USAGE.iter().find(|(p, ..)| *p == path) else {
+        return false;
+    };
+    let Some((_, message)) = params.iter().find(|(t, _)| tokens.contains(t)) else {
+        return false;
+    };
+    cmd::reviewed::usage_error(&format!("{prog} {path}"), pieces, message);
+    true
 }
 
 #[cfg(test)]

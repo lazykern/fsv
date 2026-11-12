@@ -1,0 +1,13 @@
+[
+ {"name":"tickets_watchers_list","fixture":"watchers","args":["tickets","watchers","list","INC-5"]},
+ {"name":"changes_watchers_list_json","fixture":"watchers","args":["changes","watchers","list","CHN-12","--json"]},
+ {"name":"watchers_list_duplicate_ids","fixture":"watchers","args":["tickets","watchers","list","6"]},
+ {"name":"watchers_list_incomplete","fixture":"watchers","args":["tickets","watchers","list","7","-o","json"]},
+ {"name":"watchers_list_bad_id","fixture":"watchers","args":["tickets","watchers","list","CHN-5"]},
+ {"name":"tickets_watch_dry_run","fixture":"watchers","args":["tickets","watchers","set","5","--watch","--dry-run"]},
+ {"name":"tickets_watch_needs_hash","fixture":"watchers","args":["tickets","watchers","set","5","--watch","--yes"]},
+ {"name":"tickets_watch_send","fixture":"watchers","hash_from":["tickets","watchers","set","5","--watch","--dry-run"],"args":["tickets","watchers","set","5","--watch","--yes","--output=json","--json","--expect-plan","{HASH}"]},
+ {"name":"changes_unwatch_dry_run","fixture":"watchers","args":["changes","watchers","set","CHN-12","--watch","--unwatch","--dry-run"]},
+ {"name":"changes_unwatch_send","fixture":"watchers","hash_from":["changes","watchers","set","12","--unwatch","--dry-run"],"args":["changes","watchers","set","12","--unwatch","--yes","--expect-plan","{HASH}"]},
+ {"name":"tickets_watch_already_watching","fixture":"watchers","hash_from":["tickets","watchers","set","8","--watch","--dry-run"],"args":["tickets","watchers","set","8","--watch","--yes","--expect-plan","{HASH}"]}
+]

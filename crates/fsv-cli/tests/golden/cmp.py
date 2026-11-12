@@ -3,7 +3,8 @@
 code and the requests sent. Dev aid only; the Rust tests never run Python.
 
 Usage: cmp.py ROUTES.json [--stdin TEXT] [--files DIR] [--pre ARGV_JSON]... [--show] [--emit TEST_NAME] -- ARGS...
-With --emit, a Rust test asserting Python's output is appended to $EMIT_TO (or printed).
+With --emit, a Rust test asserting Python's output is appended to $EMIT_TO (or printed);
+a new $EMIT_TO starts with a `// Python commit: <sha>` line (`pyrev.py`).
 Each --pre runs first in the same home (output ignored), e.g. --pre '["config","set","k","v"]'.
 FSV_RS_BIN overrides the Rust binary; CMP_TIMEOUT (seconds, default 60) bounds each run.
 FSV_PY_SRC (e.g. a `git archive <commit>` src/ dir) runs that Python source instead
@@ -18,6 +19,8 @@ import subprocess
 import sys
 import tempfile
 import time
+
+from pyrev import python_rev, stamp
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "../../../.."))
@@ -172,10 +175,16 @@ if emit and same_out:
     rust.append("}")
     out_file = os.environ.get("EMIT_TO")
     text = "\n".join(rust) + "\n\n"
+    header = f"// {stamp(python_rev(PY))}\n"
     if out_file:
+        old = open(out_file).readline() if os.path.exists(out_file) else ""
+        if not old:
+            text = header + "\n" + text
+        elif old != header:
+            print(f"WARNING: {out_file} starts {old.strip()!r}, this run is {header.strip()!r}")
         open(out_file, "a").write(text)
     else:
-        print(text)
+        print(header + text)
 if show:
     for k in ("exit", "stdout", "stderr", "requests"):
         print(f"--- py {k}")

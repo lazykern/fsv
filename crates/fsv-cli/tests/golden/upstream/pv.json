@@ -1,0 +1,372 @@
+[
+ {
+  "name": "pv_show",
+  "args": [
+   "tickets",
+   "private-views",
+   "show",
+   "701"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_show_json_flag",
+  "args": [
+   "tickets",
+   "private-views",
+   "show",
+   "702",
+   "--json"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_create_dry_run",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "create",
+   "--name",
+   "Globex",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_edit_dry_run",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_delete_dry_run",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_object_label_dry_run",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "709",
+   "create",
+   "--name",
+   "Only",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_needs_yes",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "create",
+   "--name",
+   "Globex"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_wrong_hash",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "create",
+   "--name",
+   "Globex",
+   "--yes",
+   "--expect-plan",
+   "abc"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_unsupported_action",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "rename",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_delete_with_name",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_create_without_name",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "create",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_create_blank_name",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "create",
+   "--name",
+   "  ",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_refuses_default",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "705",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_refuses_other_owner",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "706",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_refuses_visibility_name",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "707",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_refuses_order",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "708",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_refuses_advanced_query",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "710",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_refuses_id_mismatch",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "711",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_refuses_null_visibility_name",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "713",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_refuses_system",
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "714",
+   "create",
+   "--name",
+   "x",
+   "--dry-run"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_create_send",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "create",
+   "--name",
+   "Globex",
+   "--dry-run"
+  ],
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "701",
+   "create",
+   "--name",
+   "Globex",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_edit_send",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--dry-run"
+  ],
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex renamed",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_edit_send_mismatch",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex_renamed",
+   "--dry-run"
+  ],
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "703",
+   "edit",
+   "--name",
+   "Globex_renamed",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "fixture": "private_views"
+ },
+ {
+  "name": "pv_delete_send",
+  "hash_from": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--dry-run"
+  ],
+  "args": [
+   "tickets",
+   "private-views",
+   "write",
+   "704",
+   "delete",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "fixture": "private_views"
+ }
+]

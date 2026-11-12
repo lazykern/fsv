@@ -1,0 +1,273 @@
+[
+ {
+  "name": "update_reviewed_priority_dry_run",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "update_reviewed_custom_field_dry_run",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--set",
+   "Cost Code=new",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "update_reviewed_send_verifies",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "update_reviewed_yes_without_hash",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--yes"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "update_reviewed_wrong_hash",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "abc"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "update_reviewed_closure_refused",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--status",
+   "Closed",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "update_reviewed_unknown_choice",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "Urgent",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "update_reviewed_duplicate_answer",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--set",
+   "priority=Low",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "update_reviewed_set_without_equals",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--reviewed",
+   "--set",
+   "priority",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "update_reviewed_problems_refused",
+  "args": [
+   "problems",
+   "update",
+   "5",
+   "--reviewed",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "update_expect_plan_needs_reviewed",
+  "args": [
+   "tickets",
+   "update",
+   "5",
+   "--priority",
+   "High",
+   "--expect-plan",
+   "abc"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "bulk_priority_dry_run",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "6",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "bulk_priority_send_verifies",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "6",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "6",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "bulk_priority_unverified_exits_1",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "7",
+   "--priority",
+   "High",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "7",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "bulk_priority_yes_without_hash",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "6",
+   "--priority",
+   "High",
+   "--yes"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "bulk_priority_duplicate_ids",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "INC-5",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "bulk_priority_bad_id",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "x",
+   "--priority",
+   "High",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ },
+ {
+  "name": "bulk_priority_unknown_priority",
+  "args": [
+   "tickets",
+   "bulk-priority",
+   "5",
+   "6",
+   "--priority",
+   "Urgent",
+   "--dry-run"
+  ],
+  "fixture": "ticket_reviewed"
+ }
+]

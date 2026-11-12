@@ -1,0 +1,16 @@
+[
+ {"name":"time_list","fixture":"ticket_time","args":["tickets","time","list","INC-5"]},
+ {"name":"time_create_dry_run","fixture":"ticket_time","args":["tickets","time","write","5","create","--spent","01:15","--executed-at","2030-01-02T03:00:00+07:00","--note","Acme work","--dry-run"]},
+ {"name":"time_create_send","fixture":"ticket_time","hash_from":["tickets","time","write","5","create","--spent","01:15","--executed-at","2030-01-02T03:00:00+07:00","--note","Acme work","--dry-run"],"args":["tickets","time","write","5","create","--spent","01:15","--executed-at","2030-01-02T03:00:00+07:00","--note","Acme work","--yes","--expect-plan","{HASH}"]},
+ {"name":"time_create_needs_executed_at","fixture":"ticket_time","args":["tickets","time","write","5","create","--spent","01:15","--dry-run"]},
+ {"name":"time_create_bad_duration","fixture":"ticket_time","args":["tickets","time","write","5","create","--spent","1:5","--executed-at","2030-01-02T03:00:00+07:00","--dry-run"]},
+ {"name":"time_create_naive_timestamp","fixture":"ticket_time","args":["tickets","time","write","5","create","--spent","00:30","--executed-at","2030-01-02T03:00:00","--dry-run"]},
+ {"name":"time_unsupported_action","fixture":"ticket_time","args":["tickets","time","write","5","start","--dry-run"]},
+ {"name":"time_update_note_keeps_minutes","fixture":"ticket_time","args":["tickets","time","write","6","update","--entry","41","--note","Globex","--dry-run"]},
+ {"name":"time_update_send","fixture":"ticket_time","hash_from":["tickets","time","write","6","update","--entry","41","--note","Globex","--dry-run"],"args":["tickets","time","write","6","update","--entry","41","--note","Globex","--yes","--json","--expect-plan","{HASH}"]},
+ {"name":"time_update_sub_minute_refused","fixture":"ticket_time","args":["tickets","time","write","6","update","--entry","42","--note","x","--dry-run"]},
+ {"name":"time_update_other_agent_refused","fixture":"ticket_time","args":["tickets","time","write","6","update","--entry","43","--spent","00:20","--dry-run"]},
+ {"name":"time_update_billable_refused","fixture":"ticket_time","args":["tickets","time","write","6","delete","--entry","44","--dry-run"]},
+ {"name":"time_delete_send","fixture":"ticket_time","hash_from":["tickets","time","write","7","delete","--entry","51","--dry-run"],"args":["tickets","time","write","7","delete","--entry","51","--yes","--expect-plan","{HASH}"]},
+ {"name":"time_delete_wrong_hash","fixture":"ticket_time","args":["tickets","time","write","7","delete","--entry","51","--yes","--expect-plan","abc"]}
+]

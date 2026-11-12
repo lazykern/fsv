@@ -1,0 +1,251 @@
+[
+ {
+  "name": "change_planning_text_dry_run",
+  "fixture": "planning",
+  "args": [
+   "changes",
+   "planning-text",
+   "CHN-12",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "<p>Globex rollout</p>",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "change_planning_text_send",
+  "fixture": "planning",
+  "hash_from": [
+   "changes",
+   "planning-text",
+   "12",
+   "--section",
+   "acme_plan",
+   "--description",
+   "<p>Globex rollout</p>",
+   "--dry-run"
+  ],
+  "args": [
+   "changes",
+   "planning-text",
+   "12",
+   "--section",
+   "acme_plan",
+   "--description",
+   "<p>Globex rollout</p>",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ]
+ },
+ {
+  "name": "change_planning_text_attachments_refused",
+  "fixture": "planning",
+  "args": [
+   "changes",
+   "planning-text",
+   "13",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "change_planning_text_empty_refused",
+  "fixture": "planning",
+  "args": [
+   "changes",
+   "planning-text",
+   "12",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "  ",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "change_planning_text_existing_refused",
+  "fixture": "planning",
+  "args": [
+   "changes",
+   "planning-text",
+   "14",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "change_planning_text_unknown_section",
+  "fixture": "planning",
+  "args": [
+   "changes",
+   "planning-text",
+   "12",
+   "--section",
+   "nope",
+   "--description",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "change_planning_text_api_error",
+  "fixture": "planning",
+  "args": [
+   "changes",
+   "planning-text",
+   "15",
+   "--section",
+   "Rollout Plan",
+   "--description",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problem_planning_text_dry_run",
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "planning-text",
+   "PRB-7",
+   "--section",
+   "root cause",
+   "--description",
+   "Acme DNS outage",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problem_planning_text_send",
+  "fixture": "planning",
+  "hash_from": [
+   "problems",
+   "planning-text",
+   "7",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme DNS outage",
+   "--dry-run"
+  ],
+  "args": [
+   "problems",
+   "planning-text",
+   "7",
+   "--section",
+   "Root Cause",
+   "--description",
+   "Acme DNS outage",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ]
+ },
+ {
+  "name": "problem_planning_text_unknown_section",
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "planning-text",
+   "7",
+   "--section",
+   "Workaround",
+   "--description",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problem_planning_text_attachments_unknown",
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "planning-text",
+   "8",
+   "--section",
+   "problem_impact",
+   "--description",
+   "x",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "problem_planning_text_needs_yes",
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "planning-text",
+   "7",
+   "--section",
+   "Root Cause",
+   "--description",
+   "x"
+  ]
+ },
+ {
+  "name": "mark_known_error_dry_run",
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "mark-known-error",
+   "PRB-7",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "mark_known_error_send",
+  "fixture": "planning",
+  "hash_from": [
+   "problems",
+   "mark-known-error",
+   "7",
+   "--dry-run"
+  ],
+  "args": [
+   "problems",
+   "mark-known-error",
+   "7",
+   "--yes",
+   "-o",
+   "json",
+   "--expect-plan",
+   "{HASH}"
+  ]
+ },
+ {
+  "name": "mark_known_error_already",
+  "fixture": "planning",
+  "hash_from": [
+   "problems",
+   "mark-known-error",
+   "9",
+   "--dry-run"
+  ],
+  "args": [
+   "problems",
+   "mark-known-error",
+   "9",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ]
+ },
+ {
+  "name": "mark_known_error_state_unavailable",
+  "fixture": "planning",
+  "args": [
+   "problems",
+   "mark-known-error",
+   "10",
+   "--dry-run"
+  ]
+ }
+]
