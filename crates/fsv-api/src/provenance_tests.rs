@@ -101,6 +101,10 @@ fn fixtures_record_their_python_commit() {
             "sr_approvals_oracle",
             include_str!("testdata/sr_approvals_oracle.json"),
         ),
+        (
+            "change_task_update_oracle",
+            include_str!("testdata/change_task_update_oracle.json"),
+        ),
     ] {
         assert_stamped(name, text);
     }

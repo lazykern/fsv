@@ -1,0 +1,651 @@
+{
+ "_python": {
+  "commit": "be410329d2f89944bd445e414738754681d2c19a",
+  "dirty": false
+ },
+ "cases": {
+  "full": {
+   "ops": [
+    {
+     "op": "build",
+     "target": "CHN-23",
+     "task": 17,
+     "inputs": {
+      "title": "Acme revised",
+      "status": "In Progress",
+      "owner": "82",
+      "group": "92",
+      "note": "Review evidence",
+      "planned_start": "2026-12-01T05:15:00-05:00",
+      "planned_end": "2026-12-01T06:15:00-05:00",
+      "planned_effort": "01:30",
+      "notify_before": "15 Minutes"
+     }
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "change_task_update",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "changes/23/tasks/17",
+      "payload": {
+       "description": "<div>Review evidence</div>",
+       "group_id": 92,
+       "notify_before": 900,
+       "owner_id": 82,
+       "planned_effort": "1h 30m",
+       "planned_end_date": "2026-12-01T06:15:00-05:00",
+       "planned_start_date": "2026-12-01T05:15:00-05:00",
+       "status": 7,
+       "title": "Acme revised"
+      },
+      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
+      "hash": "922d4e0a52b62b91afdc870865b3ec39fbd00e3521205aa71510da3ea69fd5e8",
+      "review": {
+       "action": "change_task_update",
+       "method": "PUT",
+       "path": "/api/_/changes/23/tasks/17",
+       "payload": {
+        "description": "<div>Review evidence</div>",
+        "group_id": 92,
+        "notify_before": 900,
+        "owner_id": 82,
+        "planned_effort": "1h 30m",
+        "planned_end_date": "2026-12-01T06:15:00-05:00",
+        "planned_start_date": "2026-12-01T05:15:00-05:00",
+        "status": 7,
+        "title": "Acme revised"
+       },
+       "plan_hash": "922d4e0a52b62b91afdc870865b3ec39fbd00e3521205aa71510da3ea69fd5e8",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "task_id": 17,
+      "inputs": {
+       "group": "92",
+       "note": "Review evidence",
+       "notify_before": "15 Minutes",
+       "owner": "82",
+       "planned_effort": "01:30",
+       "planned_end": "2026-12-01T06:15:00-05:00",
+       "planned_start": "2026-12-01T05:15:00-05:00",
+       "status": "In Progress",
+       "title": "Acme revised"
+      }
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "922d4e0a52b62b91afdc870865b3ec39fbd00e3521205aa71510da3ea69fd5e8",
+      "verified": true,
+      "fields": {
+       "description": "matched",
+       "group_id": "matched",
+       "notify_before": "matched",
+       "owner_id": "matched",
+       "planned_effort": "matched",
+       "planned_end_date": "matched",
+       "planned_start_date": "matched",
+       "status": "matched",
+       "title": "matched"
+      },
+      "readback": {
+       "id": 17,
+       "title": "Acme revised",
+       "group_id": 92,
+       "status": 7,
+       "planned_start_date": "2026-12-01T10:15:00Z",
+       "planned_end_date": "2026-12-01T06:15:00-05:00",
+       "description": "<div style='font:inherit'><div>Review evidence</div></div>",
+       "notify_before": 900,
+       "planned_effort": "1h 30m",
+       "agent_id": 82
+      }
+     },
+     "writes": 1
+    }
+   ]
+  },
+  "echo": {
+   "ops": [
+    {
+     "op": "build",
+     "inputs": {
+      "title": "Acme revised"
+     }
+    },
+    {
+     "op": "set",
+     "persist": false
+    },
+    {
+     "op": "send"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "change_task_update",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "changes/23/tasks/17",
+      "payload": {
+       "title": "Acme revised"
+      },
+      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
+      "hash": "adcc0bb7378c0ab088e6f7ea4d4f8e590f49edc402d033504fd9fb842a1c8a9f",
+      "review": {
+       "action": "change_task_update",
+       "method": "PUT",
+       "path": "/api/_/changes/23/tasks/17",
+       "payload": {
+        "title": "Acme revised"
+       },
+       "plan_hash": "adcc0bb7378c0ab088e6f7ea4d4f8e590f49edc402d033504fd9fb842a1c8a9f",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "task_id": 17,
+      "inputs": {
+       "title": "Acme revised"
+      }
+     },
+     "writes": 0
+    },
+    {
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "adcc0bb7378c0ab088e6f7ea4d4f8e590f49edc402d033504fd9fb842a1c8a9f",
+      "verified": false,
+      "fields": {
+       "title": "mismatched"
+      },
+      "readback": {
+       "id": 17,
+       "title": "Acme task",
+       "owner_id": 81,
+       "group_id": 91,
+       "status": 1,
+       "planned_start_date": "2026-12-01T10:00:00Z",
+       "planned_end_date": "2026-12-01T11:00:00Z"
+      },
+      "warning": "Readback was not fully verified; do not resend."
+     },
+     "writes": 1
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+     },
+     "writes": 1
+    }
+   ]
+  },
+  "validation": {
+   "ops": [
+    {
+     "op": "build",
+     "inputs": {
+      "notify_before": "15"
+     }
+    },
+    {
+     "op": "build",
+     "inputs": {
+      "planned_end": "2026-12-01T09:00:00Z"
+     }
+    },
+    {
+     "op": "build",
+     "inputs": {
+      "title": "Acme revised"
+     }
+    },
+    {
+     "op": "set",
+     "task_title": "Concurrent update"
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "notify-before must match a runtime reminder label or seconds value"
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "planned end must not precede start"
+     },
+     "writes": 0
+    },
+    {
+     "plan": {
+      "action": "change_task_update",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "changes/23/tasks/17",
+      "payload": {
+       "title": "Acme revised"
+      },
+      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
+      "hash": "adcc0bb7378c0ab088e6f7ea4d4f8e590f49edc402d033504fd9fb842a1c8a9f",
+      "review": {
+       "action": "change_task_update",
+       "method": "PUT",
+       "path": "/api/_/changes/23/tasks/17",
+       "payload": {
+        "title": "Acme revised"
+       },
+       "plan_hash": "adcc0bb7378c0ab088e6f7ea4d4f8e590f49edc402d033504fd9fb842a1c8a9f",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "task_id": 17,
+      "inputs": {
+       "title": "Acme revised"
+      }
+     },
+     "writes": 0
+    },
+    {
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "target or metadata changed since review; review again"
+     },
+     "writes": 0
+    }
+   ]
+  },
+  "clear": {
+   "ops": [
+    {
+     "op": "build",
+     "inputs": {
+      "owner": "none",
+      "group": "none"
+     }
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "plan": {
+      "action": "change_task_update",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "changes/23/tasks/17",
+      "payload": {
+       "group_id": null,
+       "owner_id": null
+      },
+      "context_hash": "8dd9224e2dfb13f1e35860970c40d4cc20cfab6a161e8fe5a33a6e5b858231ec",
+      "hash": "58d3678ac912a33244c48bfca6b33563c3efdce9419a620eb203f07a1b6e4921",
+      "review": {
+       "action": "change_task_update",
+       "method": "PUT",
+       "path": "/api/_/changes/23/tasks/17",
+       "payload": {
+        "group_id": null,
+        "owner_id": null
+       },
+       "plan_hash": "58d3678ac912a33244c48bfca6b33563c3efdce9419a620eb203f07a1b6e4921",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "task_id": 17,
+      "inputs": {
+       "group": "none",
+       "owner": "none"
+      }
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "58d3678ac912a33244c48bfca6b33563c3efdce9419a620eb203f07a1b6e4921",
+      "verified": true,
+      "fields": {
+       "group_id": "matched",
+       "owner_id": "matched"
+      },
+      "readback": {
+       "id": 17,
+       "title": "Acme task",
+       "group_id": null,
+       "status": 1,
+       "planned_start_date": "2026-12-01T10:00:00Z",
+       "planned_end_date": "2026-12-01T11:00:00Z",
+       "agent_id": null
+      }
+     },
+     "writes": 1
+    }
+   ]
+  },
+  "custom": {
+   "ops": [
+    {
+     "op": "set",
+     "fields": [
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": "1",
+         "value": "Open"
+        },
+        {
+         "id": "7",
+         "value": "In Progress"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": "0",
+         "value": "Never"
+        },
+        {
+         "id": "900",
+         "value": "15 Minutes"
+        }
+       ]
+      },
+      {
+       "name": "cf_system",
+       "label": "System",
+       "custom": true,
+       "default": false,
+       "field_type": "custom_text"
+      }
+     ]
+    },
+    {
+     "op": "build",
+     "inputs": {
+      "values": {
+       "System": "SAP"
+      }
+     }
+    },
+    {
+     "op": "send"
+    }
+   ],
+   "outputs": [
+    {
+     "writes": 0
+    },
+    {
+     "plan": {
+      "action": "change_task_update",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "changes/23/tasks/17",
+      "payload": {
+       "custom_fields": {
+        "system": "SAP"
+       }
+      },
+      "context_hash": "e3dad8ab62d4c93a39718ebda6ce192d1f30d063bf0ba8b405ac78f82125283b",
+      "hash": "0675f3fd7a47de18d961883f009f0c59b3e07c09f09bd5ea77c92d03ab27104a",
+      "review": {
+       "action": "change_task_update",
+       "method": "PUT",
+       "path": "/api/_/changes/23/tasks/17",
+       "payload": {
+        "custom_fields": {
+         "system": "SAP"
+        }
+       },
+       "plan_hash": "0675f3fd7a47de18d961883f009f0c59b3e07c09f09bd5ea77c92d03ab27104a",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "task_id": 17,
+      "inputs": {
+       "values": {
+        "System": "SAP"
+       }
+      }
+     },
+     "writes": 0
+    },
+    {
+     "result": {
+      "status": "submitted",
+      "plan_hash": "0675f3fd7a47de18d961883f009f0c59b3e07c09f09bd5ea77c92d03ab27104a",
+      "verified": true,
+      "fields": {
+       "custom_fields": "matched"
+      },
+      "readback": {
+       "id": 17,
+       "title": "Acme task",
+       "owner_id": 81,
+       "group_id": 91,
+       "status": 1,
+       "planned_start_date": "2026-12-01T10:00:00Z",
+       "planned_end_date": "2026-12-01T11:00:00Z",
+       "custom_fields": {
+        "system": "SAP"
+       }
+      }
+     },
+     "writes": 1
+    }
+   ]
+  },
+  "closure": {
+   "ops": [
+    {
+     "op": "set",
+     "fields": [
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": "1",
+         "value": "Open"
+        },
+        {
+         "id": "3",
+         "value": "Completed"
+        }
+       ]
+      },
+      {
+       "name": "cf_evidence",
+       "label": "Evidence",
+       "required_for_closure": true,
+       "custom": true,
+       "default": false,
+       "field_type": "custom_text"
+      }
+     ]
+    },
+    {
+     "op": "build",
+     "inputs": {
+      "status": "Completed"
+     }
+    },
+    {
+     "op": "build",
+     "inputs": {
+      "status": "Completed",
+      "values": {
+       "Evidence": "photo"
+      }
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "required closure task fields missing: Evidence"
+     },
+     "writes": 0
+    },
+    {
+     "plan": {
+      "action": "change_task_update",
+      "target": 23,
+      "tenant": "acme.example.com",
+      "method": "PUT",
+      "path": "changes/23/tasks/17",
+      "payload": {
+       "custom_fields": {
+        "evidence": "photo"
+       },
+       "status": 3
+      },
+      "context_hash": "221215bc2f32ab906cf609b09f9de4b80ab8ad9b12c3339e21e0a83e122ac5d3",
+      "hash": "f819a8a0b599c804ad55344db52f2eb96b1804830b82359ce875e26f318fda5f",
+      "review": {
+       "action": "change_task_update",
+       "method": "PUT",
+       "path": "/api/_/changes/23/tasks/17",
+       "payload": {
+        "custom_fields": {
+         "evidence": "photo"
+        },
+        "status": 3
+       },
+       "plan_hash": "f819a8a0b599c804ad55344db52f2eb96b1804830b82359ce875e26f318fda5f",
+       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      },
+      "task_id": 17,
+      "inputs": {
+       "status": "Completed",
+       "values": {
+        "Evidence": "photo"
+       }
+      }
+     },
+     "writes": 0
+    }
+   ]
+  },
+  "unsupported": {
+   "ops": [
+    {
+     "op": "build",
+     "inputs": {
+      "due_date": "2026-01-01"
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "provide captured task fields; unsupported fields cannot be sent"
+     },
+     "writes": 0
+    }
+   ]
+  },
+  "empty": {
+   "ops": [
+    {
+     "op": "build",
+     "inputs": {}
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "provide captured task fields; unsupported fields cannot be sent"
+     },
+     "writes": 0
+    }
+   ]
+  },
+  "missing_task": {
+   "ops": [
+    {
+     "op": "build",
+     "task": 99,
+     "inputs": {
+      "title": "Acme revised"
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ReviewedWriteError",
+      "msg": "exact task unavailable"
+     },
+     "writes": 0
+    }
+   ]
+  },
+  "bad_title": {
+   "ops": [
+    {
+     "op": "build",
+     "inputs": {
+      "title": "  "
+     }
+    },
+    {
+     "op": "build",
+     "inputs": {
+      "title": "Acme\nreview"
+     }
+    }
+   ],
+   "outputs": [
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "nonempty task title required"
+     },
+     "writes": 0
+    },
+    {
+     "error": {
+      "type": "ValueError",
+      "msg": "nonempty task title required"
+     },
+     "writes": 0
+    }
+   ]
+  }
+ }
+}

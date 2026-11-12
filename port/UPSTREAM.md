@@ -1935,5 +1935,51 @@ on reject). Dry-run and send go through `integrated_assets_cli.finish`.
 
 `port/fsv_coverage.py` maps `sr_approvals` to fsv-api.
 
-Still not triaged: `be41032`, `0719e33`, `d870fa7`, `780c002`, `ad40a51`,
-`e173437`, `b310885`, `11e76ed`, `ffcab5b`, `e7c536b`.
+## Ledger: `be41032` (library side)
+
+Triaged against a `git archive be41032` export
+(`FSV_PY_COMMIT=be410329d2f89944bd445e414738754681d2c19a`).
+`port/golden/gen_fsv_api_change_task_update.py` stamps
+`crates/fsv-api/src/testdata/change_task_update_oracle.json`.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `be41032`.
+The partial is `changes tasks-update` in fsv-cli, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `be41032` | 11-12 14:40 | Review complete captured change task update fields | partial | fsv-api `change_task_update`. fsv-cli follow-up below |
+
+### `be41032` change task update — partial
+
+`fsv_api::change_task_update` ports `inventory`, `reminder`, `build_plan`,
+and `send`. The PUT is `changes/{id}/tasks/{task}` and contains only the
+supplied fields. `owner`/`group` of `none` write a null id. Reminder
+seconds come from the runtime `notify_before` choice. A `Completed` status
+refuses when a `required_for_closure` field is blank. Readback matches
+dates by instant, notes by stripped HTML, and `owner_id` against `agent_id`
+when the task stores the alias.
+
+### Public API for the fsv-cli owner
+
+`fsv_api::change_task_update::{inventory, reminder, build_plan, send, TaskUpdatePlan}`.
+
+`build_plan(c, target, task, inputs)` takes the captured map. Keys: `title`,
+`status`, `owner`, `group`, `note`, `planned_start`, `planned_end`,
+`planned_effort`, `notify_before`, `values`. `send` rebuilds from
+`inputs_json`.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`changes tasks-update` should call `build_plan` / `send` through
+`integrated_assets_cli.finish` and `guard`. Map flags into `inputs`:
+`--title`, `--status`, `--owner`/`--agent`, `--group`, `--note`,
+`--planned-start`, `--planned-end`, `--planned-effort`, `--notify-before`.
+`--system` and `--environment` become `values["cf_system"]` and
+`values["cf_environment"]`. `--edit` and `--due-date` raise
+`ValueError("--edit/--due-date are not captured task-update contracts; use explicit planned dates and reviewed flags")`.
+Dry-run, `--yes`, `--expect-plan`, and `--read-only` stay on `finish`.
+
+`port/fsv_coverage.py` maps `change_task_update` to fsv-api.
+
+Still not triaged: `0719e33`, `d870fa7`, `780c002`, `ad40a51`, `e173437`,
+`b310885`, `11e76ed`, `ffcab5b`, `e7c536b`.

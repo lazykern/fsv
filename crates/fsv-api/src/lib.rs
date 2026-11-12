@@ -12,6 +12,7 @@ pub mod attachments;
 pub mod bulk_priority;
 pub mod canned;
 pub mod catalog;
+pub mod change_task_update;
 pub mod conversations;
 pub mod create;
 pub mod downloads;
