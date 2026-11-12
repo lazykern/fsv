@@ -591,3 +591,70 @@ mod hardening {
         );
     }
 }
+
+mod identities {
+    use std::sync::LazyLock;
+
+    use super::*;
+
+    static ORACLE: LazyLock<Value> = LazyLock::new(|| {
+        serde_json::from_str(include_str!(
+            "../testdata/attachment_identities_oracle.json"
+        ))
+        .unwrap()
+    });
+
+    const PAYLOAD: &str = r#"{"custom_fields": {"count": 12, "requester_lookup": "991"}, "email": "jane.doe@example.com", "subject": "Acme"}"#;
+
+    #[test]
+    fn custom_fields_match_python() {
+        for case in ORACLE["matches"].as_array().unwrap() {
+            assert_eq!(
+                crate::readback::custom_fields_match(&case["actual"], &case["expected"]),
+                case["matched"].as_bool().unwrap(),
+                "{case}"
+            );
+        }
+    }
+
+    #[test]
+    fn readbacks_keep_uploaded_ids_and_match_python() {
+        for case in ORACLE["readbacks"].as_array().unwrap() {
+            let name = case["name"].as_str().unwrap();
+            let path = case["path"].as_str().unwrap().to_string();
+            let key = if path == "tickets" {
+                "ticket"
+            } else {
+                "change"
+            };
+            let row = case["row"].clone();
+            let route = format!("{path}/123");
+            let c = FnApi::new(move |call: &Call| {
+                assert_eq!(call.path, route);
+                Ok(json!({key: row.clone()}))
+            });
+            let p = AttachedPlan {
+                base: WritePlan {
+                    action: "ticket_create_attachments".into(),
+                    target: 0,
+                    tenant: "acme.freshservice.com".into(),
+                    method: "POST".into(),
+                    path: path.clone(),
+                    payload_json: PAYLOAD.into(),
+                    context_hash: "synthetic".into(),
+                },
+                files: Vec::new(),
+                limit: Some(4096),
+                limit_source: METADATA_SOURCE.into(),
+                published_limit: None,
+                prior_guards: Vec::new(),
+                requester_id: case["requester"].as_i64(),
+            };
+            let got = match readback(&c, &p, &json!({key: {"id": 123}}), &[501, 502]) {
+                Ok(r) => json!({"result": r}),
+                Err(_) => json!({"error": "ReviewedWriteError"}),
+            };
+            assert_eq!(got, case["outcome"], "{name}");
+        }
+    }
+}

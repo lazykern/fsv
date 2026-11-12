@@ -2800,4 +2800,30 @@ unchanged. The bound goes through the new `build_plan_bounded` /
   requested predicate; do not use this list for writes. IDs: " plus the
   ids joined by ", " on stderr.
 
-Still not triaged: `291e5cd` and later.
+## Ledger: `291e5cd` (library side)
+
+Triaged against `git show 291e5cd`
+(`291e5cdd665690ed86dede4c1dbbfa5044cba1c1`). A stamped generator gives
+15 `custom_fields_match` cases and seven initial-owner readbacks with
+custom fields and uploaded ids. All of them match. The attachment
+hardening oracle was regenerated at `291e5cd`: its readback results
+now list the uploaded ids. The attachments oracle regenerates
+unchanged.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `291e5cd`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `291e5cd` | 11-12 23:54 | Preserve attachment result identities and normalize native create custom fields | ported | fsv-api `attachments`, `readback` |
+
+The result's `attachments` is the uploaded ids again, also when the
+requester readback runs. This drops the `57a236e` quirk noted above.
+New `readback::custom_fields_match` checks every submitted custom key.
+For a scalar submission it unwraps a native lookup `{id, value}` to its
+id, so a display label never stands in for the id. The attachment
+readback uses it for `custom_fields`: "unavailable" when the owner has
+no such key, else "matched" or "mismatched".
+
+No CLI follow-up.
+
+Still not triaged: commits after `291e5cd`.

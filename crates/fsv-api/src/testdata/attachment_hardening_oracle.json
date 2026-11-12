@@ -1,6 +1,6 @@
 {
   "_python": {
-    "commit": "57a236e1c00d3b901ff11ae3f63043db2e8fe0bd",
+    "commit": "291e5cdd665690ed86dede4c1dbbfa5044cba1c1",
     "dirty": false
   },
   "identities": [
@@ -142,9 +142,7 @@
       "outcome": {
         "result": {
           "owner_id": 123,
-          "attachments": [
-            81
-          ],
+          "attachments": [],
           "attachments_verified": true,
           "fields": {
             "cc_emails": "matched",
@@ -174,9 +172,7 @@
       "outcome": {
         "result": {
           "owner_id": 123,
-          "attachments": [
-            999
-          ],
+          "attachments": [],
           "attachments_verified": true,
           "fields": {
             "cc_emails": "matched",
@@ -210,10 +206,7 @@
       "outcome": {
         "result": {
           "owner_id": 123,
-          "attachments": [
-            81,
-            81
-          ],
+          "attachments": [],
           "attachments_verified": true,
           "fields": {
             "cc_emails": "matched",
@@ -245,9 +238,7 @@
       "outcome": {
         "result": {
           "owner_id": 123,
-          "attachments": [
-            81
-          ],
+          "attachments": [],
           "attachments_verified": true,
           "fields": {
             "cc_emails": "matched",
@@ -354,9 +345,7 @@
       "outcome": {
         "result": {
           "owner_id": 123,
-          "attachments": [
-            81
-          ],
+          "attachments": [],
           "attachments_verified": true,
           "fields": {
             "cc_emails": "matched",
@@ -386,9 +375,7 @@
       "outcome": {
         "result": {
           "owner_id": 123,
-          "attachments": [
-            81
-          ],
+          "attachments": [],
           "attachments_verified": true,
           "fields": {
             "cc_emails": "mismatched",
@@ -418,9 +405,7 @@
       "outcome": {
         "result": {
           "owner_id": 123,
-          "attachments": [
-            81
-          ],
+          "attachments": [],
           "attachments_verified": true,
           "fields": {
             "cc_emails": "matched",

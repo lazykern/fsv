@@ -559,26 +559,25 @@ fn envelope<'a>(response: &'a Value, key: &str, empty: &'a Value) -> &'a Value {
 
 /// The `email` readback of an initial ticket/change: every observed
 /// requester id is the resolved requester and every observed email is the
-/// submitted address. Also returns the observed requester ids, which
-/// upstream `57a236e` reports as the result's `attachments`.
+/// submitted address.
 fn requester_readback(
     row: Option<&Map<String, Value>>,
     expected: &Value,
     requester: i64,
-) -> Result<(&'static str, Value)> {
+) -> Result<&'static str> {
     let nested = row
         .and_then(|r| r.get("requester"))
         .and_then(Value::as_object);
-    let mut ids: Vec<&Value> = row
+    let mut requester_ids: Vec<&Value> = row
         .and_then(|r| r.get("requester_id"))
         .into_iter()
         .collect();
-    ids.extend(nested.and_then(|n| n.get("id")));
+    requester_ids.extend(nested.and_then(|n| n.get("id")));
     let mut emails: Vec<&Value> = row.and_then(|r| r.get("email")).into_iter().collect();
     emails.extend(nested.and_then(|n| n.get("email")));
     let wanted = conversations::email_set(&json!([expected]));
-    let mut matched = !ids.is_empty();
-    for id in &ids {
+    let mut matched = !requester_ids.is_empty();
+    for id in &requester_ids {
         if positive_id(id)? != requester {
             matched = false;
             break;
@@ -591,12 +590,12 @@ fn requester_readback(
             .all(|v| conversations::email_set(&json!([v])) == wanted);
     let state = if matched {
         "matched"
-    } else if ids.is_empty() && emails.is_empty() {
+    } else if requester_ids.is_empty() && emails.is_empty() {
         "unavailable"
     } else {
         "mismatched"
     };
-    Ok((state, json!(ids)))
+    Ok(state)
 }
 
 /// Port of attachments.readback: the owning record carries the uploaded
@@ -655,7 +654,6 @@ pub fn readback(
                 )
         });
     let mut fields = Map::new();
-    let mut reported = json!(ids);
     for (key, expected) in base.payload().as_object().into_iter().flatten() {
         if IGNORED.contains(&key.as_str()) {
             continue;
@@ -669,9 +667,7 @@ pub fn readback(
             && (base.path == "tickets" || base.path == "changes")
             && let Some(requester) = plan.requester_id
         {
-            let (state, observed) = requester_readback(row.as_ref(), expected, requester)?;
-            reported = observed;
-            state
+            requester_readback(row.as_ref(), expected, requester)?
         } else if key == "from_email" {
             conversations::sender_readback(row.as_ref(), expected)
         } else if matches!(
@@ -679,6 +675,12 @@ pub fn readback(
             "notify_emails" | "to_emails" | "cc_emails" | "bcc_emails"
         ) {
             conversations::recipient_readback(row.as_ref(), key, expected)
+        } else if key == "custom_fields" {
+            match actual {
+                Some(a) if crate::readback::custom_fields_match(a, expected) => "matched",
+                Some(_) => "mismatched",
+                None => "unavailable",
+            }
         } else {
             match actual {
                 _ if row.as_ref().is_none_or(|r| !r.contains_key(actual_key)) => "unavailable",
@@ -703,7 +705,7 @@ pub fn readback(
     }
     let verified = files_match && fields.values().all(|v| v == "matched");
     Ok(obj(json!({
-        "owner_id": returned_id, "attachments": reported, "attachments_verified": files_match,
+        "owner_id": returned_id, "attachments": ids, "attachments_verified": files_match,
         "fields": fields, "verified": verified,
     })))
 }

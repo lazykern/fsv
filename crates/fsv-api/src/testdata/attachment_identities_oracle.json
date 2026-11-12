@@ -1,0 +1,439 @@
+{
+  "_python": {
+    "commit": "291e5cdd665690ed86dede4c1dbbfa5044cba1c1",
+    "dirty": false
+  },
+  "matches": [
+    {
+      "actual": {
+        "lookup": {
+          "id": 991,
+          "value": "Alex"
+        }
+      },
+      "expected": {
+        "lookup": "991"
+      },
+      "matched": true
+    },
+    {
+      "actual": {
+        "lookup": {
+          "id": 991,
+          "value": "Alex"
+        }
+      },
+      "expected": {
+        "lookup": 991
+      },
+      "matched": true
+    },
+    {
+      "actual": {},
+      "expected": {
+        "lookup": "991"
+      },
+      "matched": false
+    },
+    {
+      "actual": {
+        "lookup": {
+          "id": 992,
+          "value": "991"
+        }
+      },
+      "expected": {
+        "lookup": "991"
+      },
+      "matched": false
+    },
+    {
+      "actual": {
+        "lookup": true
+      },
+      "expected": {
+        "lookup": "991"
+      },
+      "matched": false
+    },
+    {
+      "actual": {
+        "lookup": null
+      },
+      "expected": {
+        "lookup": "991"
+      },
+      "matched": false
+    },
+    {
+      "actual": {
+        "lookup": {
+          "id": 991,
+          "value": "Acme",
+          "unknown": "shape"
+        }
+      },
+      "expected": {
+        "lookup": "991"
+      },
+      "matched": false
+    },
+    {
+      "actual": {
+        "lookup": {
+          "id": 991,
+          "value": "Alex"
+        }
+      },
+      "expected": {
+        "lookup": {
+          "id": 991
+        }
+      },
+      "matched": true
+    },
+    {
+      "actual": {
+        "lookup": {
+          "id": 991,
+          "value": "Alex"
+        }
+      },
+      "expected": {
+        "lookup": null
+      },
+      "matched": false
+    },
+    {
+      "actual": {
+        "lookup": {
+          "id": true,
+          "value": "Alex"
+        }
+      },
+      "expected": {
+        "lookup": "True"
+      },
+      "matched": false
+    },
+    {
+      "actual": {
+        "count": "12.0",
+        "extra": 1
+      },
+      "expected": {
+        "count": 12
+      },
+      "matched": true
+    },
+    {
+      "actual": {
+        "count": "12.0"
+      },
+      "expected": {},
+      "matched": true
+    },
+    {
+      "actual": null,
+      "expected": {
+        "count": 12
+      },
+      "matched": false
+    },
+    {
+      "actual": {
+        "count": 12
+      },
+      "expected": null,
+      "matched": false
+    },
+    {
+      "actual": [],
+      "expected": [],
+      "matched": false
+    }
+  ],
+  "readbacks": [
+    {
+      "name": "normalized",
+      "path": "tickets",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [
+          {
+            "id": 501
+          },
+          {
+            "id": 502
+          }
+        ],
+        "subject": "Acme",
+        "requester_id": 81,
+        "email": "jane.doe@example.com",
+        "custom_fields": {
+          "count": "12.0",
+          "requester_lookup": {
+            "id": 991,
+            "value": "Alex Acme"
+          },
+          "extra": "server default"
+        }
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            501,
+            502
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "custom_fields": "matched",
+            "email": "matched",
+            "subject": "matched"
+          },
+          "verified": true
+        }
+      }
+    },
+    {
+      "name": "change-owner",
+      "path": "changes",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [
+          {
+            "id": 501
+          },
+          {
+            "id": 502
+          }
+        ],
+        "subject": "Acme",
+        "requester_id": 81,
+        "email": "jane.doe@example.com",
+        "custom_fields": {
+          "count": "12.0",
+          "requester_lookup": {
+            "id": 991,
+            "value": "Alex Acme"
+          },
+          "extra": "server default"
+        }
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            501,
+            502
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "custom_fields": "matched",
+            "email": "matched",
+            "subject": "matched"
+          },
+          "verified": true
+        }
+      }
+    },
+    {
+      "name": "no-plan-requester",
+      "path": "tickets",
+      "requester": null,
+      "row": {
+        "id": 123,
+        "attachments": [
+          {
+            "id": 501
+          },
+          {
+            "id": 502
+          }
+        ],
+        "subject": "Acme",
+        "requester_id": 81,
+        "email": "jane.doe@example.com",
+        "custom_fields": {
+          "count": "12.0",
+          "requester_lookup": {
+            "id": 991,
+            "value": "Alex Acme"
+          },
+          "extra": "server default"
+        }
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            501,
+            502
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "custom_fields": "matched",
+            "email": "matched",
+            "subject": "matched"
+          },
+          "verified": true
+        }
+      }
+    },
+    {
+      "name": "wrong-lookup",
+      "path": "tickets",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [
+          {
+            "id": 501
+          },
+          {
+            "id": 502
+          }
+        ],
+        "subject": "Acme",
+        "requester_id": 81,
+        "email": "jane.doe@example.com",
+        "custom_fields": {
+          "count": "12.0",
+          "requester_lookup": {
+            "id": 992,
+            "value": "991"
+          },
+          "extra": "server default"
+        }
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            501,
+            502
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "custom_fields": "mismatched",
+            "email": "matched",
+            "subject": "matched"
+          },
+          "verified": false
+        }
+      }
+    },
+    {
+      "name": "missing-key",
+      "path": "tickets",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [
+          {
+            "id": 501
+          },
+          {
+            "id": 502
+          }
+        ],
+        "subject": "Acme",
+        "requester_id": 81,
+        "email": "jane.doe@example.com",
+        "custom_fields": {
+          "count": 12
+        }
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            501,
+            502
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "custom_fields": "mismatched",
+            "email": "matched",
+            "subject": "matched"
+          },
+          "verified": false
+        }
+      }
+    },
+    {
+      "name": "not-object",
+      "path": "tickets",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [
+          {
+            "id": 501
+          },
+          {
+            "id": 502
+          }
+        ],
+        "subject": "Acme",
+        "requester_id": 81,
+        "email": "jane.doe@example.com",
+        "custom_fields": "x"
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            501,
+            502
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "custom_fields": "mismatched",
+            "email": "matched",
+            "subject": "matched"
+          },
+          "verified": false
+        }
+      }
+    },
+    {
+      "name": "absent",
+      "path": "tickets",
+      "requester": 81,
+      "row": {
+        "id": 123,
+        "attachments": [
+          {
+            "id": 501
+          },
+          {
+            "id": 502
+          }
+        ],
+        "subject": "Acme",
+        "requester_id": 81,
+        "email": "jane.doe@example.com"
+      },
+      "outcome": {
+        "result": {
+          "owner_id": 123,
+          "attachments": [
+            501,
+            502
+          ],
+          "attachments_verified": true,
+          "fields": {
+            "custom_fields": "unavailable",
+            "email": "matched",
+            "subject": "matched"
+          },
+          "verified": false
+        }
+      }
+    }
+  ]
+}

@@ -221,6 +221,32 @@ pub fn submitted_value_matches(actual: &Value, expected: &Value) -> bool {
     false
 }
 
+/// Port of fsv.readback.custom_fields_match: every submitted custom key,
+/// unwrapping a native lookup `{id, value}` to its id for a scalar
+/// submission. A lookup's display value never stands in for its identity.
+pub fn custom_fields_match(actual: &Value, expected: &Value) -> bool {
+    let (Some(actual), Some(expected)) = (actual.as_object(), expected.as_object()) else {
+        return false;
+    };
+    expected.iter().all(|(key, value)| {
+        let Some(mut observed) = actual.get(key) else {
+            return false;
+        };
+        if let Value::Object(wrapper) = observed
+            && wrapper.len() == 2
+            && wrapper.contains_key("id")
+            && wrapper.contains_key("value")
+            && !matches!(
+                value,
+                Value::Object(_) | Value::Array(_) | Value::Bool(_) | Value::Null
+            )
+        {
+            observed = &wrapper["id"];
+        }
+        submitted_value_matches(observed, value)
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
