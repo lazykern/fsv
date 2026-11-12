@@ -490,6 +490,7 @@ def build_update_plan(
     resolver: Any,
     ack_all: bool = False,
     status_label: Callable[[Any], str] | None = None,
+    lifecycle: Callable[[], Mapping[str, Any]] | None = None,
 ) -> Plan:
     spec = meta.spec
     existing = name_existing(existing_from_record(spec, record), spec, record, resolver)
@@ -549,6 +550,22 @@ def build_update_plan(
     for p in planning:
         files[f"planning:{p['field_id']}"] = p["files"]
     problems += perr + _file_errors([x for paths in files.values() for x in paths])
+    if lifecycle is not None and body:
+        # Runtime state flow: edges, entry criteria and field locks the server
+        # would otherwise reject with a bare HTTP 400.
+        from fsv.change_lifecycle import precheck
+
+        def label(name: str) -> str:
+            f = next((spec.find(n) for n in (name, name.removesuffix("_id")) if spec.find(n) is not None), None)
+            return f"{f.label} ({name})" if f is not None else name
+        try:
+            flow_data = lifecycle()
+        except Exception as exc:  # noqa: BLE001 - a read failure only skips the pre-check
+            warnings.append(f"lifecycle pre-check unavailable ({type(exc).__name__}); the server decides edges and criteria")
+        else:
+            lerr, lwarn = precheck(flow_data, record, body, label)
+            problems += lerr
+            warnings += lwarn
 
     flat = {k: v for k, v in body.items() if k != "custom_fields"}
     if status_label is None:

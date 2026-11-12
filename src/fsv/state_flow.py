@@ -60,6 +60,11 @@ def render_flow(
     t.add_column("→", justify="center", style="dim", width=3)
     t.add_column("Status", no_wrap=True)
     t.add_column("State", justify="center", style="dim", width=7)
+    from rich.markup import escape
+    from fsv.change_lifecycle import locks, outgoing
+    has_edges = isinstance(flow.get("transitions"), dict) and bool(flow["transitions"])
+    if has_edges:
+        t.add_column("Next (allowed transitions)")
 
     current_seen = False
     for i, s in enumerate(state_list):
@@ -94,10 +99,26 @@ def render_flow(
             name_display = f"[dim]{name}[/]"
             state_display = "[dim]future[/]"
 
-        t.add_row(icon, name_display, state_display)
+        row = [icon, name_display, state_display]
+        if has_edges:
+            row.append(escape(", ".join(name for name, _ in outgoing(flow, sid)) or "-"))
+        t.add_row(*row)
 
     out.print(t)
     out.print(f"  current: [bold yellow]{current_name}[/] · past: {len(traversal_ids)} · ahead: {len(state_list) - len(traversal_ids & (set(s['id'] for s in state_list))) - 1}")
+    if has_edges:
+        out.print()
+        out.print(f"[bold]Transitions from {escape(current_name)}:[/]")
+        edges = outgoing(flow, current_status)
+        for name, criteria in edges:
+            out.print(f"  → {escape(name)}" + (": " + escape("; ".join(criteria)) if criteria else ": no entry criteria"),
+                      highlight=False)
+        if not edges:
+            out.print("  none (final state or no transition defined)")
+    locked = locks(flow, current_status)
+    if locked:
+        out.print(f"[bold]Locked in {escape(current_name)}:[/] "
+                  + escape(", ".join(sorted({n.removeprefix('customFields.') for n in locked}))), highlight=False)
 
     # Show approval gates
     approvals_data = _try_get_approvals(change.get("id"), c)

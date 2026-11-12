@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from fsv import config, journal
-from fsv.errors import APIError
+from fsv.errors import APIError, server_message
 
 
 class ReviewedWriteError(RuntimeError):
@@ -72,7 +72,12 @@ def execute(plan: WritePlan, client: Any, *, reviewed_hash: str | None,
     except APIError as exc:
         if 400 <= exc.status < 500 and exc.status not in (403, 408, 429):
             journal.record_plan("failed", plan.hash, action=plan.action, target=plan.target)
-            raise ReviewedWriteError(rejection(exc) if rejection else f"write rejected (HTTP {exc.status}); no retry") from None
+            if rejection:
+                raise ReviewedWriteError(rejection(exc)) from None
+            # Name the server's reason (e.g. a lifecycle edge, criterion or lock).
+            reason = server_message(exc.body)
+            raise ReviewedWriteError(f"write rejected (HTTP {exc.status})" + (f": {reason}" if reason else "")
+                                     + "; no retry") from None
         raise ReviewedWriteError("write outcome unknown; inspect target and journal before retry") from None
     except Exception:
         raise ReviewedWriteError("write outcome unknown; inspect target and journal before retry") from None

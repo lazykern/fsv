@@ -440,10 +440,19 @@ def update_command(
     except ValueError as e:
         raise FlowExit(2, str(e)) from None
     resolver = ClientResolver(client)
+    lifecycle_cache: dict[str, Any] = {}
+
+    def lifecycle() -> Any:
+        # One read of the runtime state flow per command (edges, criteria, locks).
+        if "flow" not in lifecycle_cache:
+            from fsv.state_flow import get_state_flow
+            lifecycle_cache["flow"] = get_state_flow(record["state_flow_id"], client, record.get("workspace_id"))
+        return lifecycle_cache["flow"]
 
     def build(d: Draft, ack_all: bool = ack, m: Any = None) -> Plan:
         return flow.build_update_plan(m or meta, d, record, cid, resolver=resolver, ack_all=ack_all,
-                                      status_label=status_label)
+                                      status_label=status_label,
+                                      lifecycle=lifecycle if record.get("state_flow_id") else None)
 
     session = None
     try:
