@@ -4751,7 +4751,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             cc: Optional[List[str]] = typer.Option(None, "--cc", help="CC email from user lookup (repeatable)"),
             bcc: Optional[List[str]] = typer.Option(None, "--bcc", help="BCC plain email from user lookup (repeatable; requires --sender)"),
             sender: Optional[str] = typer.Option(None, "--sender", help="explicit configured support mailbox; not inferred"),
-            set_status: Optional[str] = typer.Option(None, "--set-status", help="send and set status (Pending only; resolved from runtime metadata)"),
+            set_status: Optional[str] = typer.Option(None, "--set-status", help="send and set status (Pending, Resolved or Closed; runtime requirements apply)"),
             expect_plan: Optional[str] = typer.Option(None, "--expect-plan", help="full hash from prior reply review"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print the reply without sending it"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm sending the reply"),

@@ -45,6 +45,8 @@ def wire(request, monkeypatch):
                     w.conversation[key] = payload[key]
             if "helpdesk_ticket" in payload:
                 w.row["status"] = payload["helpdesk_ticket"]["status"]
+                if "private" in payload:
+                    w.conversation["to_emails"] = payload.get("notify_emails", [])
             return httpx.Response(200, json={"conversation": {"id": w.conv_id}})
         if path == "ticket_form_fields":
             return httpx.Response(200, json={"ticket_fields": w.fields})

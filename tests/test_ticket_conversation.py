@@ -79,9 +79,8 @@ def test_note_status_and_ambiguous_outcome():
 
 def test_resolved_closed_ambiguous_and_stale_fail(monkeypatch):
     c = Client()
-    for value in ("Resolved", "Closed", "3"):
-        with pytest.raises(ValueError, match="Pending"):
-            conv.build_plan(c, 123, "hi", set_status=value)
+    with pytest.raises(ValueError, match="Pending"):
+        conv.build_plan(c, 123, "hi", set_status="3")
     monkeypatch.setattr(c, "autocomplete", lambda *a: [{"id": 1, "value": "A", "email": "a@example.com"}, {"id": 2, "value": "B", "email": "a@example.com"}])
     with pytest.raises(conv.ConversationError, match="exactly one"):
         conv.recipients(c, ["a@example.com"])

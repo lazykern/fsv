@@ -65,7 +65,8 @@ def test_changed_cc_identity_refuses_instead_of_changing_reviewed_payload(wire):
 
 
 @pytest.mark.parametrize("label", ["Resolved", "Closed"])
-def test_resolution_workflow_cannot_be_guessed_from_http_metadata(wire, label):
-    with pytest.raises(ValueError, match="Pending"):
+def test_resolution_requires_persisted_note_from_http_readback(wire, label):
+    wire.fields[1]["choices"].append({"id": 91, "value": label})
+    with pytest.raises(conv.ConversationError, match="persisted resolution"):
         conv.build_plan(wire.client, wire.cid, "Acme update", set_status=label)
     assert not [r for r in wire.requests if r.method == "POST"]

@@ -68,6 +68,19 @@ def status_context(client: Any, cid: int, label: str) -> tuple[int, str, str]:
         raise ConversationError("could not resolve Pending and evaluate ticket rules from fresh metadata; no send attempted") from None
 
 
+def status_fields(client: Any, cid: int, label: str) -> tuple[dict[str, Any], str]:
+    if isinstance(label, str) and label.casefold() in {"resolved", "closed"}:
+        from fsv.ticket_lifecycle import context
+        from fsv.reviewed_write import ReviewedWriteError
+        try:
+            payload, fingerprint, _ = context(client, cid, label)
+        except ReviewedWriteError as exc:
+            raise ConversationError(str(exc)) from None
+        return payload, fingerprint
+    status_id, token, record_hash = status_context(client, cid, label)
+    return {"status": status_id, "br_validation_excludes": token}, record_hash
+
+
 @dataclass(frozen=True)
 class ConversationPlan:
     kind: str
@@ -142,8 +155,7 @@ def build_plan(client: Any, ticket_id: str | int, body: str, *, kind: str = "rep
         payload = note.payload
     record_hash = None
     if set_status is not None:
-        status_id, token, record_hash = status_context(client, note.ticket_id, set_status)
-        payload["helpdesk_ticket"] = {"status": status_id, "br_validation_excludes": token}
+        payload["helpdesk_ticket"], record_hash = status_fields(client, note.ticket_id, set_status)
     return ConversationPlan(kind, note.ticket_id, config.DOMAIN,
                             json.dumps(payload, sort_keys=True, ensure_ascii=False), set_status, record_hash)
 
@@ -165,8 +177,8 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
         from fsv.canned import freshen
         freshen(plan, client)
     if plan.status_label is not None:
-        status_id, token, record_hash = status_context(client, plan.ticket_id, plan.status_label)
-        if record_hash != plan.record_hash or payload.get("helpdesk_ticket") != {"status": status_id, "br_validation_excludes": token}:
+        status_payload, record_hash = status_fields(client, plan.ticket_id, plan.status_label)
+        if record_hash != plan.record_hash or payload.get("helpdesk_ticket") != status_payload:
             raise ConversationError("ticket or status metadata changed; review again")
     # Reconfirm formatted CC recipients without silently changing reviewed bytes.
     if payload.get("cc_emails"):
@@ -182,6 +194,7 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
         csrf = client._get_csrf()
     except Exception:
         raise ConversationError("could not prepare session; no send attempted") from None
+    closing = bool(plan.status_label and plan.status_label.casefold() in {"resolved", "closed"})
     journal.record_plan("started", plan.hash, action=action, target=plan.ticket_id)
     events = [r for r in journal.read() if r.get("kind") == f"plan:{action}" and r.get("plan") == plan.hash]
     if not events or events[-1].get("event") != "started":
@@ -201,7 +214,8 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
     conv_id = _note_id(conversation)
     if conv_id is None:
         raise ConversationError("response has no exact conversation ID; outcome unknown, do not resend")
-    journal.record_plan("done", plan.hash, action=action, target=plan.ticket_id, created_id=conv_id)
+    if not closing:
+        journal.record_plan("done", plan.hash, action=action, target=plan.ticket_id, created_id=conv_id)
     result: dict[str, Any] = {"status": "submitted", "conversation_id": conv_id, "ticket_id": plan.ticket_id,
                               "plan_hash": plan.hash, "verified": False}
     try:
@@ -214,7 +228,12 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
             if "bcc_emails" in payload:
                 expected["bcc_emails"] = payload["bcc_emails"]
         else:
-            expected.update(private=payload["private"], notify_emails=payload["notify_emails"])
+            expected.update(private=payload["private"])
+            # Accepted internal note readback exposes notification recipients as
+            # to_emails, not notify_emails. Require the explicit array; omission
+            # is never evidence that no notification recipients were used.
+            recipient_key = "to_emails" if closing and plan.kind == "note" else "notify_emails"
+            expected[recipient_key] = payload["notify_emails"]
         if "from_email" in payload:
             expected["from_email"] = payload["from_email"]
         fields = {k: ("unavailable" if exact is None or k not in exact else
@@ -222,11 +241,16 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
         if plan.status_label is not None:
             row = _record(client, plan.ticket_id)
             fields["ticket_status"] = ("unavailable" if "status" not in row else
-                "matched" if row["status"] == payload["helpdesk_ticket"]["status"] else "mismatched")
+                "matched" if type(row["status"]) is int and row["status"] == payload["helpdesk_ticket"]["status"] else "mismatched")
+            if closing:
+                from fsv.ticket_lifecycle import matches
+                fields["ticket_transition"] = "matched" if matches(row, payload["helpdesk_ticket"]) else "mismatched"
         result["fields"] = fields
         result["verified"] = bool(exact is not None and not missing and not meta.get("partial") and all(v == "matched" for v in fields.values()))
     except Exception:
         pass
+    if closing and result["verified"]:
+        journal.record_plan("done", plan.hash, action=action, target=plan.ticket_id, created_id=conv_id)
     if not result["verified"]:
         result["warning"] = "Conversation or ticket fields were not fully verified on read-back; do not resend."
     return result

@@ -222,7 +222,7 @@ def register(app: typer.Typer) -> None:
         confirm_public: bool = typer.Option(False, "--confirm-public", help="separately confirm public visibility"),
         html_body: bool = typer.Option(False, "--html", help="body is already HTML; otherwise escape plain text"),
         notify: list[str] | None = typer.Option(None, "--notify-email", help="explicit notification recipient (repeatable; default none)"),
-        set_status: str | None = typer.Option(None, "--set-status", help="add and set status (Pending only; resolved from runtime metadata)"),
+        set_status: str | None = typer.Option(None, "--set-status", help="add and set status (Pending, Resolved or Closed; runtime requirements apply)"),
         dry_run: bool = typer.Option(False, "--dry-run", help="review only; no POST or journal writes"),
         read_only: bool = typer.Option(False, "--read-only", help="refuse sends"),
         yes: bool = typer.Option(False, "--yes", "-y", help="confirm the exact previously reviewed --expect-plan"),
