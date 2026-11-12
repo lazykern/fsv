@@ -46,6 +46,7 @@ pub mod state_flow;
 mod task_status;
 pub mod tasks;
 pub mod ticket_assignment;
+pub mod ticket_bulk;
 pub mod ticket_lifecycle;
 pub mod ticket_merge;
 pub mod ticket_note_mutation;

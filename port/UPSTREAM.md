@@ -2531,3 +2531,37 @@ a reply or note is `conversation selector is only supported for forward`.
 `--yes`, and `--expect-plan` stay on the existing helper.
 
 Still not triaged: `e116be9` and later.
+
+## Ledger: `e116be9` (library side)
+
+Triaged against `git show e116be9`
+(`e116be9242d3984856c130bc0f85e244e1784207`). Spam, unspam and
+delete plan hashes match a stamped generator. Status, assign, pickup
+and merge call the real builders. `docs/commands.md` and
+`docs/reviewed-parity.md` are a one-line note.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `e116be9`.
+The partial is the `tickets bulk` command, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `e116be9` | 11-12 22:10 | Add reviewed bulk ticket actions with frozen filtered selection | partial | fsv-api `ticket_bulk`. fsv-cli follow-up below |
+
+`selection` sorts 1 to 100 explicit ids, or a complete filtered
+inventory. A short page or a drifted filter refuses before any write.
+`send` checks the bulk hash (write hash plus the printed selection),
+then the inner write hash. Spam and delete need a destructive confirm.
+A started or done journal blocks replay. Merge and pickup delegate to
+those modules' own senders.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`tickets bulk` should print `Selected ticket IDs: ...` on stderr.
+Dry-run prints the review JSON. Send requires `--yes` and
+`--expect-plan` equal to the bulk hash, otherwise
+`review with --dry-run, then --yes --expect-plan FULL_HASH`.
+Unverified exits 4. `ValueError`, `PropertyError` and
+`ReviewedWriteError` exit 2. Spam and delete require
+`--confirm-destructive` after the printed id list.
+
+Still not triaged: `1490984` and later.

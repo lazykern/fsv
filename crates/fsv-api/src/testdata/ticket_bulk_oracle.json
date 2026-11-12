@@ -1,0 +1,39 @@
+{
+  "_python": {
+    "commit": "e116be9242d3984856c130bc0f85e244e1784207",
+    "dirty": false
+  },
+  "spam": {
+    "hash": "8ab0d3b31cb14c943defed52bd25cdf1f05620fd9bd89964d0930fd965d6e6a3",
+    "write_hash": "4394c5c3eb12e37282730736bfff68a9464f8ceb0cd9372a24c3027613861a5f",
+    "action": "ticket_bulk_spam",
+    "method": "POST",
+    "path": "tickets/spam_multiple",
+    "payload": "{\"ids\": [71, 72]}",
+    "tenant": "acme.freshservice.com",
+    "target": 71,
+    "context": "b219ac39ad471fe860ab6097d7e54804427dde6ac251fcd67e189b213b940354"
+  },
+  "unspam": {
+    "hash": "8579ef40eb00aed910fd622abf2373dd34ed1e3694bddaee0a57fcdac0c150fd",
+    "write_hash": "f599a744b4fb81fb278ca3839d64f7d5758ff67408b54ef03c27344669ecdb64",
+    "action": "ticket_bulk_unspam",
+    "method": "POST",
+    "path": "tickets/unspam_multiple",
+    "payload": "{\"ids\": [71]}",
+    "tenant": "acme.freshservice.com",
+    "target": 71,
+    "context": "68780678d5e0dd09fd94ba12b5bade2363ebb21b23232724e811a6942a60cee1"
+  },
+  "delete": {
+    "hash": "4532d8470e6384ad53e574114735ba85b23b5eddff563a04420692b21b160eec",
+    "write_hash": "3b233b4ff9045379ac49fc00cb9f06766890734770bdf59c279eca9ecf1b89a2",
+    "action": "ticket_bulk_delete",
+    "method": "DELETE",
+    "path": "tickets/delete_multiple?ids=71%2C72",
+    "payload": "null",
+    "tenant": "acme.freshservice.com",
+    "target": 71,
+    "context": "b219ac39ad471fe860ab6097d7e54804427dde6ac251fcd67e189b213b940354"
+  }
+}
