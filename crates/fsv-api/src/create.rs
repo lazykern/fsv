@@ -619,7 +619,7 @@ fn now_epoch() -> f64 {
         .unwrap_or(0.0)
 }
 
-fn data_uri(mime: &str, raw: &[u8]) -> String {
+pub(crate) fn data_uri(mime: &str, raw: &[u8]) -> String {
     format!(
         "data:{mime};base64,{}",
         base64::engine::general_purpose::STANDARD.encode(raw)
@@ -730,7 +730,7 @@ fn upload_receipt(name: &str, n: usize, result: &Value) -> String {
     }
 }
 
-fn guess_mime(path: &str) -> Option<String> {
+pub(crate) fn guess_mime(path: &str) -> Option<String> {
     mime_guess::from_path(path).first_raw().map(str::to_string)
 }
 

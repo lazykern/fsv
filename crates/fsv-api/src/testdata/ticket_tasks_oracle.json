@@ -1,0 +1,6652 @@
+{
+ "_python": {
+  "commit": "39e4853003dff8b2aab47ef6ccc435ba711dbb19",
+  "dirty": false
+ },
+ "lifecycle_21": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "build",
+    "target": 123,
+    "action": "status",
+    "task": 701,
+    "status": "Canceled"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "build",
+    "target": 123,
+    "action": "delete",
+    "task": 701
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "5ba5c4c4b4d906cedee2e88f5cc957d214333334bdb0606be7c963c2a9311718",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+     "verified": true,
+     "task_id": 701,
+     "fields": {
+      "custom_fields": "matched",
+      "notify_before": "matched",
+      "status": "matched",
+      "title": "matched"
+     }
+    },
+    "writes": 1
+   },
+   {
+    "plan": {
+     "action": "ticket_task_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "tickets/123/tasks/701",
+     "payload_json": "{\"status\": 23}",
+     "context_hash": "3c0b9a56b50259faa0e5f963713f8ad0b770619b6b8af465b82021fa664d21d7",
+     "inputs_json": "{\"action\": \"status\", \"status\": \"Canceled\", \"task\": 701, \"title\": null, \"values\": null}"
+    },
+    "hash": "946885d85fea3f38425fbe48d9cd1dc03929e78453db0e24d6e1a2637298f305",
+    "review": {
+     "action": "ticket_task_status",
+     "method": "PUT",
+     "path": "/api/_/tickets/123/tasks/701",
+     "payload": {
+      "status": 23
+     },
+     "plan_hash": "946885d85fea3f38425fbe48d9cd1dc03929e78453db0e24d6e1a2637298f305",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 1
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "946885d85fea3f38425fbe48d9cd1dc03929e78453db0e24d6e1a2637298f305",
+     "verified": true,
+     "task_id": 701,
+     "fields": {
+      "status": "matched"
+     }
+    },
+    "writes": 2
+   },
+   {
+    "plan": {
+     "action": "ticket_task_delete",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "tickets/123/tasks/update",
+     "payload_json": "{\"action\": \"delete\", \"id\": \"701\"}",
+     "context_hash": "0c07e3a4affb47e9de7c69f4258d02ba5269b7f0edbc90731f88fd926c22f2ff",
+     "inputs_json": "{\"action\": \"delete\", \"status\": \"Open\", \"task\": 701, \"title\": null, \"values\": null}"
+    },
+    "hash": "5912f00fbf2e30be190d9233a0f25dcd481aaf17b9437c336200061d306d63f6",
+    "review": {
+     "action": "ticket_task_delete",
+     "method": "PUT",
+     "path": "/api/_/tickets/123/tasks/update",
+     "payload": {
+      "action": "delete",
+      "id": "701"
+     },
+     "plan_hash": "5912f00fbf2e30be190d9233a0f25dcd481aaf17b9437c336200061d306d63f6",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 2
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "5912f00fbf2e30be190d9233a0f25dcd481aaf17b9437c336200061d306d63f6",
+     "verified": true,
+     "task_id": 701
+    },
+    "writes": 3
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 3
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ],
+   [
+    "plan:ticket_task_status",
+    "started"
+   ],
+   [
+    "plan:ticket_task_status",
+    "done"
+   ],
+   [
+    "plan:ticket_task_delete",
+    "started"
+   ],
+   [
+    "plan:ticket_task_delete",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   },
+   {
+    "method": "PUT",
+    "path": "tickets/123/tasks/701",
+    "raw": "{\"status\": 23}"
+   },
+   {
+    "method": "PUT",
+    "path": "tickets/123/tasks/update",
+    "raw": "{\"action\": \"delete\", \"id\": \"701\"}"
+   }
+  ]
+ },
+ "unknown_403_21": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 403
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "5ba5c4c4b4d906cedee2e88f5cc957d214333334bdb0606be7c963c2a9311718",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "unknown_429_21": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 429
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "5ba5c4c4b4d906cedee2e88f5cc957d214333334bdb0606be7c963c2a9311718",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "unknown_500_21": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 500
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "5ba5c4c4b4d906cedee2e88f5cc957d214333334bdb0606be7c963c2a9311718",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "unknown_disconnect_21": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": "disconnect"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "5ba5c4c4b4d906cedee2e88f5cc957d214333334bdb0606be7c963c2a9311718",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "unknown_422_21": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 422
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "5ba5c4c4b4d906cedee2e88f5cc957d214333334bdb0606be7c963c2a9311718",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 422); no retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 422); no retry"
+    },
+    "writes": 2
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "failed"
+   ],
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "failed"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   },
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "validation_drift_21": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "action": "add",
+    "title": "Acme"
+   },
+   {
+    "op": "build",
+    "target": 123,
+    "action": "status",
+    "task": "bad",
+    "status": "Open"
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "bump_open": 100
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "required task fields missing: Tier"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "5ba5c4c4b4d906cedee2e88f5cc957d214333334bdb0606be7c963c2a9311718",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "target or metadata changed since review; review again"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "readback_mismatch_21": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "mismatch": true
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "5ba5c4c4b4d906cedee2e88f5cc957d214333334bdb0606be7c963c2a9311718",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+     "verified": false,
+     "task_id": 701,
+     "fields": {
+      "custom_fields": "matched",
+      "notify_before": "matched",
+      "status": "mismatched",
+      "title": "matched"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "readback_partial_after_21": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial_after": true
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "5ba5c4c4b4d906cedee2e88f5cc957d214333334bdb0606be7c963c2a9311718",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "0ddac8ddb60329b768a78286f9487aed219f2129623f468e116a9cbf0ad19939",
+     "verified": false,
+     "warning": "Independent readback failed; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "lifecycle_61": {
+  "n": 61,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "build",
+    "target": 123,
+    "action": "status",
+    "task": 701,
+    "status": "Canceled"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "build",
+    "target": 123,
+    "action": "delete",
+    "task": 701
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}",
+     "context_hash": "33e0203372c392a0a2dab844a678edcab9ba28d28c8b15e1697861dc47381bf8",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 64
+      },
+      "notify_before": 0,
+      "status": 61,
+      "title": "Acme task"
+     },
+     "plan_hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+     "verified": true,
+     "task_id": 701,
+     "fields": {
+      "custom_fields": "matched",
+      "notify_before": "matched",
+      "status": "matched",
+      "title": "matched"
+     }
+    },
+    "writes": 1
+   },
+   {
+    "plan": {
+     "action": "ticket_task_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "tickets/123/tasks/701",
+     "payload_json": "{\"status\": 63}",
+     "context_hash": "d3f1ee12714e55b74bed6e06db2f625653a1c62d912feda070e002a8e1397eb1",
+     "inputs_json": "{\"action\": \"status\", \"status\": \"Canceled\", \"task\": 701, \"title\": null, \"values\": null}"
+    },
+    "hash": "1efdd130acaff592f050ae04628a2f4808ea36b85cd3061df7163f96c0ddc350",
+    "review": {
+     "action": "ticket_task_status",
+     "method": "PUT",
+     "path": "/api/_/tickets/123/tasks/701",
+     "payload": {
+      "status": 63
+     },
+     "plan_hash": "1efdd130acaff592f050ae04628a2f4808ea36b85cd3061df7163f96c0ddc350",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 1
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "1efdd130acaff592f050ae04628a2f4808ea36b85cd3061df7163f96c0ddc350",
+     "verified": true,
+     "task_id": 701,
+     "fields": {
+      "status": "matched"
+     }
+    },
+    "writes": 2
+   },
+   {
+    "plan": {
+     "action": "ticket_task_delete",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "tickets/123/tasks/update",
+     "payload_json": "{\"action\": \"delete\", \"id\": \"701\"}",
+     "context_hash": "23e37485432ede58e39cd48a226c010a49bf59206cab0200e1a7f8ed21f7440b",
+     "inputs_json": "{\"action\": \"delete\", \"status\": \"Open\", \"task\": 701, \"title\": null, \"values\": null}"
+    },
+    "hash": "155ea8e9f636ddd58f01ba2682d6388cef0c9faa240ffaa62a8ea0d5fb6d26e2",
+    "review": {
+     "action": "ticket_task_delete",
+     "method": "PUT",
+     "path": "/api/_/tickets/123/tasks/update",
+     "payload": {
+      "action": "delete",
+      "id": "701"
+     },
+     "plan_hash": "155ea8e9f636ddd58f01ba2682d6388cef0c9faa240ffaa62a8ea0d5fb6d26e2",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 2
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "155ea8e9f636ddd58f01ba2682d6388cef0c9faa240ffaa62a8ea0d5fb6d26e2",
+     "verified": true,
+     "task_id": 701
+    },
+    "writes": 3
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 3
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ],
+   [
+    "plan:ticket_task_status",
+    "started"
+   ],
+   [
+    "plan:ticket_task_status",
+    "done"
+   ],
+   [
+    "plan:ticket_task_delete",
+    "started"
+   ],
+   [
+    "plan:ticket_task_delete",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}"
+   },
+   {
+    "method": "PUT",
+    "path": "tickets/123/tasks/701",
+    "raw": "{\"status\": 63}"
+   },
+   {
+    "method": "PUT",
+    "path": "tickets/123/tasks/update",
+    "raw": "{\"action\": \"delete\", \"id\": \"701\"}"
+   }
+  ]
+ },
+ "unknown_403_61": {
+  "n": 61,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 403
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}",
+     "context_hash": "33e0203372c392a0a2dab844a678edcab9ba28d28c8b15e1697861dc47381bf8",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 64
+      },
+      "notify_before": 0,
+      "status": 61,
+      "title": "Acme task"
+     },
+     "plan_hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "unknown_429_61": {
+  "n": 61,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 429
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}",
+     "context_hash": "33e0203372c392a0a2dab844a678edcab9ba28d28c8b15e1697861dc47381bf8",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 64
+      },
+      "notify_before": 0,
+      "status": 61,
+      "title": "Acme task"
+     },
+     "plan_hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "unknown_500_61": {
+  "n": 61,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 500
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}",
+     "context_hash": "33e0203372c392a0a2dab844a678edcab9ba28d28c8b15e1697861dc47381bf8",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 64
+      },
+      "notify_before": 0,
+      "status": 61,
+      "title": "Acme task"
+     },
+     "plan_hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "unknown_disconnect_61": {
+  "n": 61,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": "disconnect"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}",
+     "context_hash": "33e0203372c392a0a2dab844a678edcab9ba28d28c8b15e1697861dc47381bf8",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 64
+      },
+      "notify_before": 0,
+      "status": 61,
+      "title": "Acme task"
+     },
+     "plan_hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "unknown_422_61": {
+  "n": 61,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 422
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}",
+     "context_hash": "33e0203372c392a0a2dab844a678edcab9ba28d28c8b15e1697861dc47381bf8",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 64
+      },
+      "notify_before": 0,
+      "status": 61,
+      "title": "Acme task"
+     },
+     "plan_hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 422); no retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 422); no retry"
+    },
+    "writes": 2
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "failed"
+   ],
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "failed"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}"
+   },
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "validation_drift_61": {
+  "n": 61,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "action": "add",
+    "title": "Acme"
+   },
+   {
+    "op": "build",
+    "target": 123,
+    "action": "status",
+    "task": "bad",
+    "status": "Open"
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "bump_open": 100
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "required task fields missing: Tier"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}",
+     "context_hash": "33e0203372c392a0a2dab844a678edcab9ba28d28c8b15e1697861dc47381bf8",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 64
+      },
+      "notify_before": 0,
+      "status": 61,
+      "title": "Acme task"
+     },
+     "plan_hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "target or metadata changed since review; review again"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "readback_mismatch_61": {
+  "n": 61,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "mismatch": true
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}",
+     "context_hash": "33e0203372c392a0a2dab844a678edcab9ba28d28c8b15e1697861dc47381bf8",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 64
+      },
+      "notify_before": 0,
+      "status": 61,
+      "title": "Acme task"
+     },
+     "plan_hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+     "verified": false,
+     "task_id": 701,
+     "fields": {
+      "custom_fields": "matched",
+      "notify_before": "matched",
+      "status": "mismatched",
+      "title": "matched"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "readback_partial_after_61": {
+  "n": 61,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial_after": true
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}",
+     "context_hash": "33e0203372c392a0a2dab844a678edcab9ba28d28c8b15e1697861dc47381bf8",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 64
+      },
+      "notify_before": 0,
+      "status": 61,
+      "title": "Acme task"
+     },
+     "plan_hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "63f991d888a386ef48de5a3676d0c2ede2b2e906881a9ec54a450c73864b4eae",
+     "verified": false,
+     "warning": "Independent readback failed; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "refusals": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "build",
+    "action": "bogus"
+   },
+   {
+    "op": "build",
+    "target": "0",
+    "action": "add"
+   },
+   {
+    "op": "build",
+    "target": "SR-5",
+    "action": "status",
+    "task": 1
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": " ",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "a\tb",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": null,
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    },
+    "status": "Done"
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    },
+    "status": " completed "
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    },
+    "status": "22"
+   },
+   {
+    "op": "build",
+    "action": "status",
+    "task": 701
+   },
+   {
+    "op": "build",
+    "action": "delete",
+    "task": null
+   },
+   {
+    "op": "build",
+    "action": "delete",
+    "task": true
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "tier": "Standard",
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": ""
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "rows": [
+      {
+       "id": 9
+      },
+      {
+       "id": "9"
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "rows": [
+      {
+       "id": 0
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "rows": [
+      {
+       "id": "x"
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "rows": [
+      {
+       "id": 9,
+       "status": 21
+      },
+      {
+       "id": 3,
+       "status": 22
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "status",
+    "task": "9",
+    "status": "Open"
+   },
+   {
+    "op": "build",
+    "action": "delete",
+    "task": "003"
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial": true
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial": false
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields_key": "task_fields"
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields_key": "other"
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields_key": "fields",
+     "fields": [
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        }
+       ]
+      },
+      "x"
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields_key": "fields",
+     "fields": [
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "label": "Need",
+       "required": true
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": null
+   },
+   {
+    "op": "send",
+    "hash": "none"
+   },
+   {
+    "op": "send",
+    "hash": "prefix"
+   }
+  ],
+  "outputs": [
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "unknown task action"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete ticket task inventory unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "nonempty task title without controls required"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "nonempty task title without controls required"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "nonempty task title without controls required"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "status must match one active runtime task-status ID or label"
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 22, \"title\": \"Acme task\"}",
+     "context_hash": "5ba5c4c4b4d906cedee2e88f5cc957d214333334bdb0606be7c963c2a9311718",
+     "inputs_json": "{\"action\": \"add\", \"status\": \" completed \", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "84c363f8108fdd741a46f145903ae1e56e43e9af0ab7b4cab973789a34cc0af6",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 0,
+      "status": 22,
+      "title": "Acme task"
+     },
+     "plan_hash": "84c363f8108fdd741a46f145903ae1e56e43e9af0ab7b4cab973789a34cc0af6",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 22, \"title\": \"Acme task\"}",
+     "context_hash": "5ba5c4c4b4d906cedee2e88f5cc957d214333334bdb0606be7c963c2a9311718",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"22\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "84c363f8108fdd741a46f145903ae1e56e43e9af0ab7b4cab973789a34cc0af6",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 0,
+      "status": 22,
+      "title": "Acme task"
+     },
+     "plan_hash": "84c363f8108fdd741a46f145903ae1e56e43e9af0ab7b4cab973789a34cc0af6",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "exact task unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "duplicate custom field assignment"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "Tier: '' is not an active choice; offered: Standard"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete ticket task inventory unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "tickets/123/tasks/9",
+     "payload_json": "{\"status\": 21}",
+     "context_hash": "86c7844a20cd428638cc6583626adf1a88dc5d452e7724108f3f20a03d00b3bc",
+     "inputs_json": "{\"action\": \"status\", \"status\": \"Open\", \"task\": \"9\", \"title\": null, \"values\": null}"
+    },
+    "hash": "5ec3bfb1e378e0d8803394825a84a880c448f3414886b982475398dc61d37aca",
+    "review": {
+     "action": "ticket_task_status",
+     "method": "PUT",
+     "path": "/api/_/tickets/123/tasks/9",
+     "payload": {
+      "status": 21
+     },
+     "plan_hash": "5ec3bfb1e378e0d8803394825a84a880c448f3414886b982475398dc61d37aca",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_delete",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "tickets/123/tasks/update",
+     "payload_json": "{\"action\": \"delete\", \"id\": \"3\"}",
+     "context_hash": "86c7844a20cd428638cc6583626adf1a88dc5d452e7724108f3f20a03d00b3bc",
+     "inputs_json": "{\"action\": \"delete\", \"status\": \"Open\", \"task\": \"003\", \"title\": null, \"values\": null}"
+    },
+    "hash": "a4be95a3d9b650cbed6986d1a6cdb6a7cb48c5c799d30cb2ba88300e121acf04",
+    "review": {
+     "action": "ticket_task_delete",
+     "method": "PUT",
+     "path": "/api/_/tickets/123/tasks/update",
+     "payload": {
+      "action": "delete",
+      "id": "3"
+     },
+     "plan_hash": "a4be95a3d9b650cbed6986d1a6cdb6a7cb48c5c799d30cb2ba88300e121acf04",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete ticket task inventory unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "86c7844a20cd428638cc6583626adf1a88dc5d452e7724108f3f20a03d00b3bc",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "9dbef3371bfa8aeadcb6924bab5cacaa7a6755b262aacd3b413ae26dbc6832c0",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "9dbef3371bfa8aeadcb6924bab5cacaa7a6755b262aacd3b413ae26dbc6832c0",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "ticket task metadata unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "ticket task metadata unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "custom field must match unique runtime name or label: Tier"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "custom field must match unique runtime name or label: Tier"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "39dc92d6a766c3e916dab36f7782ebf791a76cc9b201862ba172340b19e9e790",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": null}"
+    },
+    "hash": "a17a9d0a86e41a88be21f4e8776d25932bade3ba1270660103ffb6ebaf28fc77",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {},
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "a17a9d0a86e41a88be21f4e8776d25932bade3ba1270660103ffb6ebaf28fc77",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "cancelled",
+     "verified": false
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "tenant or full review hash changed; review again"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "response_string_task": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      }
+     ],
+     "response": {
+      "task": "x"
+     }
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": null
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "ca16789b65a311c8a289f0262fa638ab06d06039c63335aaba25ad5b1e2261f4",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": null}"
+    },
+    "hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {},
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+     "verified": false,
+     "warning": "Independent readback failed; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "response_list": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      }
+     ],
+     "response": [
+      1
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": null
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "ca16789b65a311c8a289f0262fa638ab06d06039c63335aaba25ad5b1e2261f4",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": null}"
+    },
+    "hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {},
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+     "verified": false,
+     "warning": "Independent readback failed; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "response_bad_id": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      }
+     ],
+     "response": {
+      "task": {
+       "id": "x"
+      }
+     }
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": null
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "ca16789b65a311c8a289f0262fa638ab06d06039c63335aaba25ad5b1e2261f4",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": null}"
+    },
+    "hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {},
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+     "verified": false,
+     "warning": "Independent readback failed; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "response_no_id": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      }
+     ],
+     "response": {
+      "task": {}
+     }
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": null
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "ca16789b65a311c8a289f0262fa638ab06d06039c63335aaba25ad5b1e2261f4",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": null}"
+    },
+    "hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {},
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+     "verified": false,
+     "warning": "Independent readback failed; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "response_old_id": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "rows": [
+      {
+       "id": 701,
+       "status": 21
+      }
+     ],
+     "fields": [
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": null
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "189858092bd1616650a58bb1f77ca4916b94b64e5e6ccbcf287cac4ea991f501",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": null}"
+    },
+    "hash": "01b4c7a4ef8e6a8b1640b5fa692956753e8bb4b009367c2421fe44b303f0a017",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {},
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "01b4c7a4ef8e6a8b1640b5fa692956753e8bb4b009367c2421fe44b303f0a017",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "01b4c7a4ef8e6a8b1640b5fa692956753e8bb4b009367c2421fe44b303f0a017",
+     "verified": false,
+     "task_id": 701,
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "response_bare": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "response": {
+      "id": 702
+     },
+     "fields": [
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": null
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "ca16789b65a311c8a289f0262fa638ab06d06039c63335aaba25ad5b1e2261f4",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": null}"
+    },
+    "hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {},
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "fecd52bcf59fe0fc6d338f381a2879c5095471fde02eb75f413890e269b8e0a1",
+     "verified": false,
+     "task_id": 702,
+     "fields": {
+      "custom_fields": "unavailable",
+      "notify_before": "unavailable",
+      "status": "unavailable",
+      "title": "unavailable"
+     },
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "custom_values": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "tier",
+      "label": "Tier",
+      "field_type": "custom_dropdown",
+      "choices": [
+       {
+        "id": 5,
+        "value": "Standard"
+       }
+      ]
+     },
+     {
+      "name": "note",
+      "label": "Note",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "memo",
+      "label": "Memo",
+      "custom": true,
+      "field_type": "custom_paragraph"
+     },
+     {
+      "name": "plain",
+      "label": "Plain",
+      "field_type": "default_text"
+     },
+     {
+      "name": "gone",
+      "label": "Gone",
+      "field_type": "custom_text",
+      "deleted": true
+     },
+     {
+      "name": "num",
+      "label": "Num",
+      "is_custom": true,
+      "field_type": "custom_number"
+     },
+     {
+      "name": "twin",
+      "label": "Twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "twin2",
+      "label": "twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": null,
+      "label": "Nameless",
+      "field_type": "custom_text"
+     }
+    ],
+    "values": {
+     "Tier": "standard"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "tier",
+      "label": "Tier",
+      "field_type": "custom_dropdown",
+      "choices": [
+       {
+        "id": 5,
+        "value": "Standard"
+       }
+      ]
+     },
+     {
+      "name": "note",
+      "label": "Note",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "memo",
+      "label": "Memo",
+      "custom": true,
+      "field_type": "custom_paragraph"
+     },
+     {
+      "name": "plain",
+      "label": "Plain",
+      "field_type": "default_text"
+     },
+     {
+      "name": "gone",
+      "label": "Gone",
+      "field_type": "custom_text",
+      "deleted": true
+     },
+     {
+      "name": "num",
+      "label": "Num",
+      "is_custom": true,
+      "field_type": "custom_number"
+     },
+     {
+      "name": "twin",
+      "label": "Twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "twin2",
+      "label": "twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": null,
+      "label": "Nameless",
+      "field_type": "custom_text"
+     }
+    ],
+    "values": {
+     "tier": "5"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "tier",
+      "label": "Tier",
+      "field_type": "custom_dropdown",
+      "choices": [
+       {
+        "id": 5,
+        "value": "Standard"
+       }
+      ]
+     },
+     {
+      "name": "note",
+      "label": "Note",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "memo",
+      "label": "Memo",
+      "custom": true,
+      "field_type": "custom_paragraph"
+     },
+     {
+      "name": "plain",
+      "label": "Plain",
+      "field_type": "default_text"
+     },
+     {
+      "name": "gone",
+      "label": "Gone",
+      "field_type": "custom_text",
+      "deleted": true
+     },
+     {
+      "name": "num",
+      "label": "Num",
+      "is_custom": true,
+      "field_type": "custom_number"
+     },
+     {
+      "name": "twin",
+      "label": "Twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "twin2",
+      "label": "twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": null,
+      "label": "Nameless",
+      "field_type": "custom_text"
+     }
+    ],
+    "values": {
+     "Note": "x",
+     "memo": "y"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "tier",
+      "label": "Tier",
+      "field_type": "custom_dropdown",
+      "choices": [
+       {
+        "id": 5,
+        "value": "Standard"
+       }
+      ]
+     },
+     {
+      "name": "note",
+      "label": "Note",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "memo",
+      "label": "Memo",
+      "custom": true,
+      "field_type": "custom_paragraph"
+     },
+     {
+      "name": "plain",
+      "label": "Plain",
+      "field_type": "default_text"
+     },
+     {
+      "name": "gone",
+      "label": "Gone",
+      "field_type": "custom_text",
+      "deleted": true
+     },
+     {
+      "name": "num",
+      "label": "Num",
+      "is_custom": true,
+      "field_type": "custom_number"
+     },
+     {
+      "name": "twin",
+      "label": "Twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "twin2",
+      "label": "twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": null,
+      "label": "Nameless",
+      "field_type": "custom_text"
+     }
+    ],
+    "values": {
+     "Note": 5
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "tier",
+      "label": "Tier",
+      "field_type": "custom_dropdown",
+      "choices": [
+       {
+        "id": 5,
+        "value": "Standard"
+       }
+      ]
+     },
+     {
+      "name": "note",
+      "label": "Note",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "memo",
+      "label": "Memo",
+      "custom": true,
+      "field_type": "custom_paragraph"
+     },
+     {
+      "name": "plain",
+      "label": "Plain",
+      "field_type": "default_text"
+     },
+     {
+      "name": "gone",
+      "label": "Gone",
+      "field_type": "custom_text",
+      "deleted": true
+     },
+     {
+      "name": "num",
+      "label": "Num",
+      "is_custom": true,
+      "field_type": "custom_number"
+     },
+     {
+      "name": "twin",
+      "label": "Twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "twin2",
+      "label": "twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": null,
+      "label": "Nameless",
+      "field_type": "custom_text"
+     }
+    ],
+    "values": {
+     "Plain": "x"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "tier",
+      "label": "Tier",
+      "field_type": "custom_dropdown",
+      "choices": [
+       {
+        "id": 5,
+        "value": "Standard"
+       }
+      ]
+     },
+     {
+      "name": "note",
+      "label": "Note",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "memo",
+      "label": "Memo",
+      "custom": true,
+      "field_type": "custom_paragraph"
+     },
+     {
+      "name": "plain",
+      "label": "Plain",
+      "field_type": "default_text"
+     },
+     {
+      "name": "gone",
+      "label": "Gone",
+      "field_type": "custom_text",
+      "deleted": true
+     },
+     {
+      "name": "num",
+      "label": "Num",
+      "is_custom": true,
+      "field_type": "custom_number"
+     },
+     {
+      "name": "twin",
+      "label": "Twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "twin2",
+      "label": "twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": null,
+      "label": "Nameless",
+      "field_type": "custom_text"
+     }
+    ],
+    "values": {
+     "Gone": "x"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "tier",
+      "label": "Tier",
+      "field_type": "custom_dropdown",
+      "choices": [
+       {
+        "id": 5,
+        "value": "Standard"
+       }
+      ]
+     },
+     {
+      "name": "note",
+      "label": "Note",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "memo",
+      "label": "Memo",
+      "custom": true,
+      "field_type": "custom_paragraph"
+     },
+     {
+      "name": "plain",
+      "label": "Plain",
+      "field_type": "default_text"
+     },
+     {
+      "name": "gone",
+      "label": "Gone",
+      "field_type": "custom_text",
+      "deleted": true
+     },
+     {
+      "name": "num",
+      "label": "Num",
+      "is_custom": true,
+      "field_type": "custom_number"
+     },
+     {
+      "name": "twin",
+      "label": "Twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "twin2",
+      "label": "twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": null,
+      "label": "Nameless",
+      "field_type": "custom_text"
+     }
+    ],
+    "values": {
+     "Num": 1
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "tier",
+      "label": "Tier",
+      "field_type": "custom_dropdown",
+      "choices": [
+       {
+        "id": 5,
+        "value": "Standard"
+       }
+      ]
+     },
+     {
+      "name": "note",
+      "label": "Note",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "memo",
+      "label": "Memo",
+      "custom": true,
+      "field_type": "custom_paragraph"
+     },
+     {
+      "name": "plain",
+      "label": "Plain",
+      "field_type": "default_text"
+     },
+     {
+      "name": "gone",
+      "label": "Gone",
+      "field_type": "custom_text",
+      "deleted": true
+     },
+     {
+      "name": "num",
+      "label": "Num",
+      "is_custom": true,
+      "field_type": "custom_number"
+     },
+     {
+      "name": "twin",
+      "label": "Twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "twin2",
+      "label": "twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": null,
+      "label": "Nameless",
+      "field_type": "custom_text"
+     }
+    ],
+    "values": {
+     "Twin": "x"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "tier",
+      "label": "Tier",
+      "field_type": "custom_dropdown",
+      "choices": [
+       {
+        "id": 5,
+        "value": "Standard"
+       }
+      ]
+     },
+     {
+      "name": "note",
+      "label": "Note",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "memo",
+      "label": "Memo",
+      "custom": true,
+      "field_type": "custom_paragraph"
+     },
+     {
+      "name": "plain",
+      "label": "Plain",
+      "field_type": "default_text"
+     },
+     {
+      "name": "gone",
+      "label": "Gone",
+      "field_type": "custom_text",
+      "deleted": true
+     },
+     {
+      "name": "num",
+      "label": "Num",
+      "is_custom": true,
+      "field_type": "custom_number"
+     },
+     {
+      "name": "twin",
+      "label": "Twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "twin2",
+      "label": "twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": null,
+      "label": "Nameless",
+      "field_type": "custom_text"
+     }
+    ],
+    "values": {
+     "Missing": "x"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "tier",
+      "label": "Tier",
+      "field_type": "custom_dropdown",
+      "choices": [
+       {
+        "id": 5,
+        "value": "Standard"
+       }
+      ]
+     },
+     {
+      "name": "note",
+      "label": "Note",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "memo",
+      "label": "Memo",
+      "custom": true,
+      "field_type": "custom_paragraph"
+     },
+     {
+      "name": "plain",
+      "label": "Plain",
+      "field_type": "default_text"
+     },
+     {
+      "name": "gone",
+      "label": "Gone",
+      "field_type": "custom_text",
+      "deleted": true
+     },
+     {
+      "name": "num",
+      "label": "Num",
+      "is_custom": true,
+      "field_type": "custom_number"
+     },
+     {
+      "name": "twin",
+      "label": "Twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "twin2",
+      "label": "twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": null,
+      "label": "Nameless",
+      "field_type": "custom_text"
+     }
+    ],
+    "values": {
+     "Tier": "Gold"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "tier",
+      "label": "Tier",
+      "field_type": "custom_dropdown",
+      "choices": [
+       {
+        "id": 5,
+        "value": "Standard"
+       }
+      ]
+     },
+     {
+      "name": "note",
+      "label": "Note",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "memo",
+      "label": "Memo",
+      "custom": true,
+      "field_type": "custom_paragraph"
+     },
+     {
+      "name": "plain",
+      "label": "Plain",
+      "field_type": "default_text"
+     },
+     {
+      "name": "gone",
+      "label": "Gone",
+      "field_type": "custom_text",
+      "deleted": true
+     },
+     {
+      "name": "num",
+      "label": "Num",
+      "is_custom": true,
+      "field_type": "custom_number"
+     },
+     {
+      "name": "twin",
+      "label": "Twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "twin2",
+      "label": "twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": null,
+      "label": "Nameless",
+      "field_type": "custom_text"
+     }
+    ],
+    "values": {
+     "Nameless": "x"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "tier",
+      "label": "Tier",
+      "field_type": "custom_dropdown",
+      "choices": [
+       {
+        "id": 5,
+        "value": "Standard"
+       }
+      ]
+     },
+     {
+      "name": "note",
+      "label": "Note",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "memo",
+      "label": "Memo",
+      "custom": true,
+      "field_type": "custom_paragraph"
+     },
+     {
+      "name": "plain",
+      "label": "Plain",
+      "field_type": "default_text"
+     },
+     {
+      "name": "gone",
+      "label": "Gone",
+      "field_type": "custom_text",
+      "deleted": true
+     },
+     {
+      "name": "num",
+      "label": "Num",
+      "is_custom": true,
+      "field_type": "custom_number"
+     },
+     {
+      "name": "twin",
+      "label": "Twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "twin2",
+      "label": "twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": null,
+      "label": "Nameless",
+      "field_type": "custom_text"
+     }
+    ],
+    "values": {
+     "note": "a",
+     "NOTE": "b"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "tier",
+      "label": "Tier",
+      "field_type": "custom_dropdown",
+      "choices": [
+       {
+        "id": 5,
+        "value": "Standard"
+       }
+      ]
+     },
+     {
+      "name": "note",
+      "label": "Note",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "memo",
+      "label": "Memo",
+      "custom": true,
+      "field_type": "custom_paragraph"
+     },
+     {
+      "name": "plain",
+      "label": "Plain",
+      "field_type": "default_text"
+     },
+     {
+      "name": "gone",
+      "label": "Gone",
+      "field_type": "custom_text",
+      "deleted": true
+     },
+     {
+      "name": "num",
+      "label": "Num",
+      "is_custom": true,
+      "field_type": "custom_number"
+     },
+     {
+      "name": "twin",
+      "label": "Twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": "twin2",
+      "label": "twin",
+      "field_type": "custom_text"
+     },
+     {
+      "name": null,
+      "label": "Nameless",
+      "field_type": "custom_text"
+     }
+    ],
+    "values": {}
+   }
+  ],
+  "outputs": [
+   {
+    "custom": {
+     "tier": 5
+    },
+    "writes": 0
+   },
+   {
+    "custom": {
+     "tier": 5
+    },
+    "writes": 0
+   },
+   {
+    "custom": {
+     "note": "x",
+     "memo": "y"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "task text field requires text"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "--set accepts only proven custom task fields"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "inactive task field"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "unproven task custom field type: num"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "custom field must match unique runtime name or label: Twin"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "custom field must match unique runtime name or label: Missing"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "Tier: 'Gold' is not an active choice; offered: Standard"
+    },
+    "writes": 0
+   },
+   {
+    "custom": {
+     "null": "x"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "duplicate custom field assignment"
+    },
+    "writes": 0
+   },
+   {
+    "custom": {},
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "custom_native": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "cf_area",
+      "label": "Area",
+      "default": false,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_memo",
+      "label": "Memo",
+      "default": false,
+      "dom_type": "textarea"
+     },
+     {
+      "name": "cf_pick",
+      "label": "Pick",
+      "default": false,
+      "dom_type": "dropdown",
+      "choices": [
+       {
+        "id": "7",
+        "value": "Acme"
+       }
+      ]
+     },
+     {
+      "name": "plain_area",
+      "label": "Plain",
+      "default": true,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_num",
+      "label": "Num",
+      "default": false,
+      "dom_type": "number"
+     },
+     {
+      "name": "area",
+      "label": "Twin",
+      "default": false,
+      "dom_type": "text"
+     }
+    ],
+    "values": {
+     "cf_area": "x",
+     "Memo": "y"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "cf_area",
+      "label": "Area",
+      "default": false,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_memo",
+      "label": "Memo",
+      "default": false,
+      "dom_type": "textarea"
+     },
+     {
+      "name": "cf_pick",
+      "label": "Pick",
+      "default": false,
+      "dom_type": "dropdown",
+      "choices": [
+       {
+        "id": "7",
+        "value": "Acme"
+       }
+      ]
+     },
+     {
+      "name": "plain_area",
+      "label": "Plain",
+      "default": true,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_num",
+      "label": "Num",
+      "default": false,
+      "dom_type": "number"
+     },
+     {
+      "name": "area",
+      "label": "Twin",
+      "default": false,
+      "dom_type": "text"
+     }
+    ],
+    "values": {
+     "Area": "x"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "cf_area",
+      "label": "Area",
+      "default": false,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_memo",
+      "label": "Memo",
+      "default": false,
+      "dom_type": "textarea"
+     },
+     {
+      "name": "cf_pick",
+      "label": "Pick",
+      "default": false,
+      "dom_type": "dropdown",
+      "choices": [
+       {
+        "id": "7",
+        "value": "Acme"
+       }
+      ]
+     },
+     {
+      "name": "plain_area",
+      "label": "Plain",
+      "default": true,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_num",
+      "label": "Num",
+      "default": false,
+      "dom_type": "number"
+     },
+     {
+      "name": "area",
+      "label": "Twin",
+      "default": false,
+      "dom_type": "text"
+     }
+    ],
+    "values": {
+     "Pick": "acme"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "cf_area",
+      "label": "Area",
+      "default": false,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_memo",
+      "label": "Memo",
+      "default": false,
+      "dom_type": "textarea"
+     },
+     {
+      "name": "cf_pick",
+      "label": "Pick",
+      "default": false,
+      "dom_type": "dropdown",
+      "choices": [
+       {
+        "id": "7",
+        "value": "Acme"
+       }
+      ]
+     },
+     {
+      "name": "plain_area",
+      "label": "Plain",
+      "default": true,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_num",
+      "label": "Num",
+      "default": false,
+      "dom_type": "number"
+     },
+     {
+      "name": "area",
+      "label": "Twin",
+      "default": false,
+      "dom_type": "text"
+     }
+    ],
+    "values": {
+     "Pick": "Globex"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "cf_area",
+      "label": "Area",
+      "default": false,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_memo",
+      "label": "Memo",
+      "default": false,
+      "dom_type": "textarea"
+     },
+     {
+      "name": "cf_pick",
+      "label": "Pick",
+      "default": false,
+      "dom_type": "dropdown",
+      "choices": [
+       {
+        "id": "7",
+        "value": "Acme"
+       }
+      ]
+     },
+     {
+      "name": "plain_area",
+      "label": "Plain",
+      "default": true,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_num",
+      "label": "Num",
+      "default": false,
+      "dom_type": "number"
+     },
+     {
+      "name": "area",
+      "label": "Twin",
+      "default": false,
+      "dom_type": "text"
+     }
+    ],
+    "values": {
+     "Pick": 5
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "cf_area",
+      "label": "Area",
+      "default": false,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_memo",
+      "label": "Memo",
+      "default": false,
+      "dom_type": "textarea"
+     },
+     {
+      "name": "cf_pick",
+      "label": "Pick",
+      "default": false,
+      "dom_type": "dropdown",
+      "choices": [
+       {
+        "id": "7",
+        "value": "Acme"
+       }
+      ]
+     },
+     {
+      "name": "plain_area",
+      "label": "Plain",
+      "default": true,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_num",
+      "label": "Num",
+      "default": false,
+      "dom_type": "number"
+     },
+     {
+      "name": "area",
+      "label": "Twin",
+      "default": false,
+      "dom_type": "text"
+     }
+    ],
+    "values": {
+     "Plain": "x"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "cf_area",
+      "label": "Area",
+      "default": false,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_memo",
+      "label": "Memo",
+      "default": false,
+      "dom_type": "textarea"
+     },
+     {
+      "name": "cf_pick",
+      "label": "Pick",
+      "default": false,
+      "dom_type": "dropdown",
+      "choices": [
+       {
+        "id": "7",
+        "value": "Acme"
+       }
+      ]
+     },
+     {
+      "name": "plain_area",
+      "label": "Plain",
+      "default": true,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_num",
+      "label": "Num",
+      "default": false,
+      "dom_type": "number"
+     },
+     {
+      "name": "area",
+      "label": "Twin",
+      "default": false,
+      "dom_type": "text"
+     }
+    ],
+    "values": {
+     "Num": 1
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "cf_area",
+      "label": "Area",
+      "default": false,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_memo",
+      "label": "Memo",
+      "default": false,
+      "dom_type": "textarea"
+     },
+     {
+      "name": "cf_pick",
+      "label": "Pick",
+      "default": false,
+      "dom_type": "dropdown",
+      "choices": [
+       {
+        "id": "7",
+        "value": "Acme"
+       }
+      ]
+     },
+     {
+      "name": "plain_area",
+      "label": "Plain",
+      "default": true,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_num",
+      "label": "Num",
+      "default": false,
+      "dom_type": "number"
+     },
+     {
+      "name": "area",
+      "label": "Twin",
+      "default": false,
+      "dom_type": "text"
+     }
+    ],
+    "values": {
+     "cf_area": "x",
+     "Twin": "y"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "cf_area",
+      "label": "Area",
+      "default": false,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_memo",
+      "label": "Memo",
+      "default": false,
+      "dom_type": "textarea"
+     },
+     {
+      "name": "cf_pick",
+      "label": "Pick",
+      "default": false,
+      "dom_type": "dropdown",
+      "choices": [
+       {
+        "id": "7",
+        "value": "Acme"
+       }
+      ]
+     },
+     {
+      "name": "plain_area",
+      "label": "Plain",
+      "default": true,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_num",
+      "label": "Num",
+      "default": false,
+      "dom_type": "number"
+     },
+     {
+      "name": "area",
+      "label": "Twin",
+      "default": false,
+      "dom_type": "text"
+     }
+    ],
+    "values": {
+     "Tier": "x"
+    }
+   },
+   {
+    "op": "custom",
+    "fields": [
+     {
+      "name": "cf_area",
+      "label": "Area",
+      "default": false,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_memo",
+      "label": "Memo",
+      "default": false,
+      "dom_type": "textarea"
+     },
+     {
+      "name": "cf_pick",
+      "label": "Pick",
+      "default": false,
+      "dom_type": "dropdown",
+      "choices": [
+       {
+        "id": "7",
+        "value": "Acme"
+       }
+      ]
+     },
+     {
+      "name": "plain_area",
+      "label": "Plain",
+      "default": true,
+      "dom_type": "text"
+     },
+     {
+      "name": "cf_num",
+      "label": "Num",
+      "default": false,
+      "dom_type": "number"
+     },
+     {
+      "name": "area",
+      "label": "Twin",
+      "default": false,
+      "dom_type": "text"
+     }
+    ],
+    "values": {
+     "cf_memo": 3
+    }
+   }
+  ],
+  "outputs": [
+   {
+    "custom": {
+     "area": "x",
+     "memo": "y"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "custom field must match unique runtime name or label: Area"
+    },
+    "writes": 0
+   },
+   {
+    "custom": {
+     "pick": 7
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "Pick: 'Globex' is not an active choice; offered: Acme"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "Pick: 5 is not an active choice; offered: Acme"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "--set accepts only proven custom task fields"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "unproven task custom field type: cf_num"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "duplicate custom field assignment"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "custom field must match unique runtime name or label: Tier"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "task text field requires text"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "reminder_optional_21": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "f9ea4dc58082e2a30e8ab14d855d317944a893b5de1af91ed98eb0d230b11ec4",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "3667cafcda23a98a50ac97ae2f86e1d876a2d43628050cd1625ac349e79148e0",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "3667cafcda23a98a50ac97ae2f86e1d876a2d43628050cd1625ac349e79148e0",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "3667cafcda23a98a50ac97ae2f86e1d876a2d43628050cd1625ac349e79148e0",
+     "verified": true,
+     "task_id": 701,
+     "fields": {
+      "custom_fields": "matched",
+      "status": "matched",
+      "title": "matched"
+     }
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 24}, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "native_required_21": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": "0",
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "cf_tier",
+       "label": "Tier",
+       "default": false,
+       "type": 1003,
+       "dom_type": "dropdown",
+       "field_options": {
+        "required_for_create": "true",
+        "required_for_closure": "false"
+       },
+       "choices": [
+        {
+         "id": "24",
+         "value": "Standard"
+        }
+       ]
+      },
+      {
+       "name": "workspace_id",
+       "default": true,
+       "field_options": {
+        "required_for_create": "true"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task"
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "required task fields missing: Tier"
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "be708e5c0bdb2ffa493643844587ef13fab2afc3214de98f1eafad945b3020d8",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "7f8e64e882531181da9a7bec6edbab887ea2c279b2c08a9de330dab4b5ae8caf",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 0,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "7f8e64e882531181da9a7bec6edbab887ea2c279b2c08a9de330dab4b5ae8caf",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "7f8e64e882531181da9a7bec6edbab887ea2c279b2c08a9de330dab4b5ae8caf",
+     "verified": true,
+     "task_id": 701,
+     "fields": {
+      "custom_fields": "matched",
+      "notify_before": "matched",
+      "status": "matched",
+      "title": "matched"
+     }
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 0, \"status\": 21, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "required_listed_21": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      },
+      {
+       "name": "unproven_a",
+       "label": "Acme dependency",
+       "required": true
+      },
+      {
+       "name": "unproven_b",
+       "label": "Globex dependency",
+       "field_options": {
+        "required_for_create": "true"
+       }
+      },
+      {
+       "name": "closure_only",
+       "field_options": {
+        "required_for_closure": "true"
+       }
+      },
+      {
+       "name": "flag_text",
+       "required_on_create": "TRUE"
+      },
+      {
+       "required_for_agents": true
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "required task fields missing: Acme dependency, Globex dependency, None"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "unoffered_choice_21": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Globex"
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": 7
+    }
+   }
+  ],
+  "outputs": [
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "Tier: 'Globex' is not an active choice; offered: Standard"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "Tier: 7 is not an active choice; offered: Standard"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "reminder_optional_61": {
+  "n": 61,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 61,
+         "value": "Open"
+        },
+        {
+         "id": 62,
+         "value": "Completed"
+        },
+        {
+         "id": 63,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 64,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 64}, \"status\": 61, \"title\": \"Acme task\"}",
+     "context_hash": "1ef68a64f0025e1b3f7eeb16b57dde7093d8b54909ec36dd11522bfd153ead1d",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "5978655586228e19de5025d030e1b4785755fe1f5d4b7becdb15505e24890797",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 64
+      },
+      "status": 61,
+      "title": "Acme task"
+     },
+     "plan_hash": "5978655586228e19de5025d030e1b4785755fe1f5d4b7becdb15505e24890797",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "5978655586228e19de5025d030e1b4785755fe1f5d4b7becdb15505e24890797",
+     "verified": true,
+     "task_id": 701,
+     "fields": {
+      "custom_fields": "matched",
+      "status": "matched",
+      "title": "matched"
+     }
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 64}, \"status\": 61, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "native_required_61": {
+  "n": 61,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 61,
+         "value": "Open"
+        },
+        {
+         "id": 62,
+         "value": "Completed"
+        },
+        {
+         "id": 63,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": "0",
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "cf_tier",
+       "label": "Tier",
+       "default": false,
+       "type": 1003,
+       "dom_type": "dropdown",
+       "field_options": {
+        "required_for_create": "true",
+        "required_for_closure": "false"
+       },
+       "choices": [
+        {
+         "id": "64",
+         "value": "Standard"
+        }
+       ]
+      },
+      {
+       "name": "workspace_id",
+       "default": true,
+       "field_options": {
+        "required_for_create": "true"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task"
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "required task fields missing: Tier"
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}",
+     "context_hash": "e51be94efa6ce0cb1e17b15c750f7eb243aa0207a9303da85e1cc048e96c6d01",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "311b5b37b45bc4bc7de636499ff62608aab55e412478490f2962dee22a14b877",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 64
+      },
+      "notify_before": 0,
+      "status": 61,
+      "title": "Acme task"
+     },
+     "plan_hash": "311b5b37b45bc4bc7de636499ff62608aab55e412478490f2962dee22a14b877",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "311b5b37b45bc4bc7de636499ff62608aab55e412478490f2962dee22a14b877",
+     "verified": true,
+     "task_id": 701,
+     "fields": {
+      "custom_fields": "matched",
+      "notify_before": "matched",
+      "status": "matched",
+      "title": "matched"
+     }
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_task_add",
+    "started"
+   ],
+   [
+    "plan:ticket_task_add",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "POST",
+    "path": "tickets/123/tasks",
+    "raw": "{\"custom_fields\": {\"tier\": 64}, \"notify_before\": 0, \"status\": 61, \"title\": \"Acme task\"}"
+   }
+  ]
+ },
+ "required_listed_61": {
+  "n": 61,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 61,
+         "value": "Open"
+        },
+        {
+         "id": 62,
+         "value": "Completed"
+        },
+        {
+         "id": 63,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 64,
+         "value": "Standard"
+        }
+       ]
+      },
+      {
+       "name": "unproven_a",
+       "label": "Acme dependency",
+       "required": true
+      },
+      {
+       "name": "unproven_b",
+       "label": "Globex dependency",
+       "field_options": {
+        "required_for_create": "true"
+       }
+      },
+      {
+       "name": "closure_only",
+       "field_options": {
+        "required_for_closure": "true"
+       }
+      },
+      {
+       "name": "flag_text",
+       "required_on_create": "TRUE"
+      },
+      {
+       "required_for_agents": true
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "required task fields missing: Acme dependency, Globex dependency, None"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "unoffered_choice_61": {
+  "n": 61,
+  "ops": [
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Globex"
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": 7
+    }
+   }
+  ],
+  "outputs": [
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "Tier: 'Globex' is not an active choice; offered: Standard"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "Tier: 7 is not an active choice; offered: Standard"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "reminders": {
+  "n": 21,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": true,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": -1,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": "-1",
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": "bad",
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": null,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": "٣",
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 1.0,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": "007",
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 3,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        },
+        {
+         "id": 1,
+         "label": "never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never",
+         "deactivated": true
+        },
+        {
+         "id": 4,
+         "value": "",
+         "label": "NEVER"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never",
+         "deleted": true
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": []
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        "x",
+        {
+         "id": 2,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ]
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": []
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "fields": [
+      {
+       "name": "title",
+       "required_for_create": true
+      },
+      {
+       "name": "status",
+       "choices": [
+        {
+         "id": 21,
+         "value": "Open"
+        },
+        {
+         "id": 22,
+         "value": "Completed"
+        },
+        {
+         "id": 23,
+         "value": "Canceled"
+        }
+       ]
+      },
+      {
+       "name": "notify_before",
+       "choices": [
+        {
+         "id": 0,
+         "value": "Never"
+        }
+       ],
+       "deleted": true
+      },
+      {
+       "name": "tier",
+       "label": "Tier",
+       "field_type": "custom_dropdown",
+       "required_for_create": true,
+       "choices": [
+        {
+         "id": 24,
+         "value": "Standard"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "action": "add",
+    "title": "Acme task",
+    "values": {
+     "Tier": "Standard"
+    }
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "active runtime notify_before choice is unavailable or ambiguous"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "active runtime notify_before choice is unavailable or ambiguous"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "active runtime notify_before choice is unavailable or ambiguous"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "active runtime notify_before choice is unavailable or ambiguous"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "active runtime notify_before choice is unavailable or ambiguous"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "active runtime notify_before choice is unavailable or ambiguous"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "active runtime notify_before choice is unavailable or ambiguous"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 7, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "fb60894cbe116f321d25c846ee4d84a06a338585a6157a662576b5c06bf0786f",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "2d9b3d22c125593390f6d357f991339d80f55c489868d62edd31102a35fd3215",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 7,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "2d9b3d22c125593390f6d357f991339d80f55c489868d62edd31102a35fd3215",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 3, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "c49227a14ac43914c0461140a80b8ec828faf57adaae9787fbadbdd15e2b2265",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "cc085b34d93f5d436afd591de0f954be09e1ef53f16f7bffdba7c56a02978981",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 3,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "cc085b34d93f5d436afd591de0f954be09e1ef53f16f7bffdba7c56a02978981",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "active runtime notify_before choice is unavailable or ambiguous"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 4, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "367152b8d62574991cf5db52103acec81868f3abbd7f60c1d3781dea556532b8",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "e53594a8193a11007c6fdc0cab225b0ef42f24a0d28539f0f87f3b29f77ebc32",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 4,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "e53594a8193a11007c6fdc0cab225b0ef42f24a0d28539f0f87f3b29f77ebc32",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "active runtime notify_before choice is unavailable or ambiguous"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "active runtime notify_before choice is unavailable or ambiguous"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_task_add",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "POST",
+     "path": "tickets/123/tasks",
+     "payload_json": "{\"custom_fields\": {\"tier\": 24}, \"notify_before\": 2, \"status\": 21, \"title\": \"Acme task\"}",
+     "context_hash": "c1ba160dd46e7f40215c944765d0f3aae8727ba4516358c84fa2040eee2ba73c",
+     "inputs_json": "{\"action\": \"add\", \"status\": \"Open\", \"task\": null, \"title\": \"Acme task\", \"values\": {\"Tier\": \"Standard\"}}"
+    },
+    "hash": "e362514cc0fb9d42ef31d20d289a4956caadc71a12249432e35054849f9a237c",
+    "review": {
+     "action": "ticket_task_add",
+     "method": "POST",
+     "path": "/api/_/tickets/123/tasks",
+     "payload": {
+      "custom_fields": {
+       "tier": 24
+      },
+      "notify_before": 2,
+      "status": 21,
+      "title": "Acme task"
+     },
+     "plan_hash": "e362514cc0fb9d42ef31d20d289a4956caadc71a12249432e35054849f9a237c",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "unique active runtime notify_before metadata unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "unique active runtime notify_before metadata unavailable"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ }
+}

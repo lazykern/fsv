@@ -58,6 +58,12 @@ pub trait Api: Sync {
     ) -> Result<Value>;
     /// `_client.get(url, follow_redirects=True)`: raw download, no status mapping.
     fn fetch(&self, url: &str) -> Result<Response>;
+    /// `_send("GET", f"https://{DOMAIN}{path}", follow_redirects=False)`
+    /// with an HTML `Accept`: one tenant web page, no status mapping; the
+    /// default has none.
+    fn page(&self, path: &str) -> Result<Response> {
+        Err(Error::other(format!("tenant page {path} is unavailable")))
+    }
     /// Tenant host (`config.DOMAIN`).
     fn domain(&self) -> String;
     /// Values of session cookies whose name contains `workspace`.
@@ -143,6 +149,17 @@ impl Api for fsv_core::Client {
     }
     fn fetch(&self, url: &str) -> Result<Response> {
         self.fetch_raw(url, true)
+    }
+    fn page(&self, path: &str) -> Result<Response> {
+        let opts = RequestOpts {
+            headers: vec![("Accept".into(), "text/html,application/xhtml+xml".into())],
+            ..RequestOpts::default()
+        };
+        self.send(
+            "GET",
+            &format!("https://{}{path}", self.tenant().domain),
+            &opts,
+        )
     }
     fn domain(&self) -> String {
         self.tenant().domain.clone()
@@ -1459,6 +1476,21 @@ pub(crate) mod testing {
                 Body::Json(v) => self.call(method, path, params, Some(v), None),
                 _ => self.call(method, path, params, None, None),
             }
+        }
+        /// Pages go to `fetcher` too (recorded as method `PAGE`).
+        fn page(&self, path: &str) -> Result<Response> {
+            let mut fetcher = self.fetcher.lock().unwrap();
+            let Some(fetch) = fetcher.as_mut() else {
+                return Ok(Response::new(404));
+            };
+            self.calls.lock().unwrap().push(Call {
+                method: "PAGE".into(),
+                path: path.into(),
+                params: None,
+                body: None,
+                raw: None,
+            });
+            fetch(path)
         }
         fn fetch(&self, url: &str) -> Result<Response> {
             let mut fetcher = self.fetcher.lock().unwrap();

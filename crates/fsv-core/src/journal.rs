@@ -102,7 +102,8 @@ fn path_bytes(p: &Path) -> Vec<u8> {
     }
 }
 
-fn sha256_hex(data: &[u8]) -> String {
+/// Lowercase hex SHA-256 of `data` (`hashlib.sha256(data).hexdigest()`).
+pub fn sha256_hex(data: &[u8]) -> String {
     hex::encode(Sha256::digest(data))
 }
 

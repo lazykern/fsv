@@ -92,6 +92,22 @@ pub fn execute_as(
     rebuild: &dyn Fn() -> Result<String>,
     verify: &dyn Fn(&Value) -> Result<Map<String, Value>>,
 ) -> Result<Value> {
+    execute_rejecting(plan, hash, c, journal, reviewed_hash, rebuild, verify, None)
+}
+
+/// Port of fsv.reviewed_write.execute with `rejection=`: [`execute_as`]
+/// where `rejection` words the refusal for a definite (4xx) rejection.
+#[allow(clippy::too_many_arguments)]
+pub fn execute_rejecting(
+    plan: &WritePlan,
+    hash: &str,
+    c: &dyn Api,
+    journal: &dyn Journal,
+    reviewed_hash: Option<&str>,
+    rebuild: &dyn Fn() -> Result<String>,
+    verify: &dyn Fn(&Value) -> Result<Map<String, Value>>,
+    rejection: Option<&dyn Fn(&fsv_core::ApiError) -> String>,
+) -> Result<Value> {
     let Some(reviewed) = reviewed_hash else {
         return Ok(json!({"status": "cancelled", "verified": false}));
     };
@@ -132,7 +148,10 @@ pub fn execute_as(
         Err(e) => {
             if let Some(status) = definite_rejection(&e) {
                 journal.record_plan("failed", &hash, &plan.action, Some(&target), None);
-                return Err(refused(format!("write rejected (HTTP {status}); no retry")));
+                return Err(refused(match (rejection, e.as_api()) {
+                    (Some(word), Some(api)) => word(api),
+                    _ => format!("write rejected (HTTP {status}); no retry"),
+                }));
             }
             return Err(refused(UNKNOWN));
         }

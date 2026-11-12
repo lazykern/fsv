@@ -1,4 +1,5 @@
-//! Query payload matrix (Python `92d76ff`: `tests/test_query_matrix.py`).
+//! Query payload matrix (Python `bd6f6bd`: `tests/test_query_matrix.py`,
+//! `tests/test_strict_filter_contract.py`, `tests/test_query_edge_cases.py`).
 //! Expected values come from `port/golden/gen_fsv_api_query_flow_matrix.py`.
 
 use std::cell::RefCell;
@@ -240,4 +241,35 @@ fn empty_filters_do_not_load_schema() {
         json!(build_query_hash_from_schema(None, "changes", &q()["schema"], &[]).unwrap()),
         e["from_schema"]
     );
+}
+
+#[test]
+fn malformed_operator_is_never_repaired_and_quoted_literals_survive() {
+    for (expr, case) in q()["strict"]["parse"].as_object().unwrap() {
+        let got = outcome(parse_where(expr).map(|(f, o, v)| json!([f, o, v])));
+        assert_eq!(got, *case, "{expr:?}");
+    }
+}
+
+#[test]
+fn unknown_internal_operator_has_no_equality_fallback() {
+    for (op, case) in q()["strict"]["operator"].as_object().unwrap() {
+        assert_eq!(outcome(where_operator(op)), *case, "{op:?}");
+    }
+}
+
+#[test]
+fn shared_builder_blocks_unproven_strict_and_contains() {
+    let strict = &q()["strict"];
+    for (resource, cases) in strict["builder"].as_object().unwrap() {
+        for (expr, case) in cases.as_object().unwrap() {
+            let got = build_query_hash_from_schema(
+                None,
+                resource,
+                &strict["schema"],
+                std::slice::from_ref(expr),
+            );
+            assert_eq!(outcome(got.map(|h| json!(h))), *case, "{resource} {expr}");
+        }
+    }
 }

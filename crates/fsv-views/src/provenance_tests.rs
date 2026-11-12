@@ -21,6 +21,10 @@ fn assert_stamped(name: &str, text: &str) {
 fn fixtures_record_their_python_commit() {
     for (name, text) in [
         (
+            "attachment_rendering",
+            include_str!("../tests/fixtures/attachment_rendering.json"),
+        ),
+        (
             "properties_expected",
             include_str!("../tests/fixtures/properties_expected.provenance.json"),
         ),

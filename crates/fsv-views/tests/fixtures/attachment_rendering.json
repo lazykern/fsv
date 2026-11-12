@@ -1,0 +1,478 @@
+{
+ "_python": {
+  "commit": "39e4853003dff8b2aab47ef6ccc435ba711dbb19",
+  "dirty": false
+ },
+ "planning": [
+  {
+   "body": "<div>Acme rollout</div><div>Acme_plan_v1.xlsx</div>",
+   "text": "Acme rollout\nAcme_plan_v1.xlsx",
+   "files": [
+    "Acme_plan_v1.xlsx",
+    "Acme_checklist.txt"
+   ],
+   "lines": [
+    "[bold]Description[/]",
+    "  [dim]No description[/]",
+    "",
+    "[bold]Planning[/]",
+    "  [cyan]Acme planning[/]",
+    "    Acme rollout",
+    "    📎 Acme_plan_v1.xlsx",
+    "    📎 Acme_checklist.txt"
+   ]
+  },
+  {
+   "body": "<p>Acme rollout</p><p><a href=\"https://files.example.com/701\">Acme_plan_v1.xlsx</a></p>",
+   "text": "Acme rollout\nAcme_plan_v1.xlsx",
+   "files": [
+    "Acme_plan_v1.xlsx",
+    "Acme_checklist.txt"
+   ],
+   "lines": [
+    "[bold]Description[/]",
+    "  [dim]No description[/]",
+    "",
+    "[bold]Planning[/]",
+    "  [cyan]Acme planning[/]",
+    "    Acme rollout",
+    "    📎 Acme_plan_v1.xlsx",
+    "    📎 Acme_checklist.txt"
+   ]
+  },
+  {
+   "body": "<p>Acme rollout</p><ul><li><a href=\"https://files.example.com/701\">Acme_plan_v1.xlsx</a></li></ul>",
+   "text": "Acme rollout\n\n• Acme_plan_v1.xlsx",
+   "files": [
+    "Acme_plan_v1.xlsx",
+    "Acme_checklist.txt"
+   ],
+   "lines": [
+    "[bold]Description[/]",
+    "  [dim]No description[/]",
+    "",
+    "[bold]Planning[/]",
+    "  [cyan]Acme planning[/]",
+    "    Acme rollout",
+    "    📎 Acme_plan_v1.xlsx",
+    "    📎 Acme_checklist.txt"
+   ]
+  },
+  {
+   "body": "Acme rollout\nAcme_plan_v1.xlsx\nAcme_plan_v1.xlsx",
+   "text": "Acme rollout\nAcme_plan_v1.xlsx\nAcme_plan_v1.xlsx",
+   "files": [
+    "Acme_plan_v1.xlsx",
+    "Acme_checklist.txt"
+   ],
+   "lines": [
+    "[bold]Description[/]",
+    "  [dim]No description[/]",
+    "",
+    "[bold]Planning[/]",
+    "  [cyan]Acme planning[/]",
+    "    Acme rollout",
+    "    📎 Acme_plan_v1.xlsx",
+    "    📎 Acme_checklist.txt"
+   ]
+  },
+  {
+   "body": "Acme_plan_v1.xlsx",
+   "text": "Acme_plan_v1.xlsx",
+   "files": [
+    "Acme_plan_v1.xlsx",
+    "Acme_checklist.txt"
+   ],
+   "lines": [
+    "[bold]Description[/]",
+    "  [dim]No description[/]",
+    "",
+    "[bold]Planning[/]",
+    "  [cyan]Acme planning[/]",
+    "    📎 Acme_plan_v1.xlsx",
+    "    📎 Acme_checklist.txt"
+   ]
+  },
+  {
+   "body": "Review Acme_plan_v1.xlsx before deploying.\nAcme_plan_v1.xlsx.backup\nAcme_plan_v1.xlsx",
+   "text": "Review Acme_plan_v1.xlsx before deploying.\nAcme_plan_v1.xlsx.backup\nAcme_plan_v1.xlsx",
+   "files": [
+    "Acme_plan_v1.xlsx",
+    "Acme_checklist.txt"
+   ],
+   "lines": [
+    "[bold]Description[/]",
+    "  [dim]No description[/]",
+    "",
+    "[bold]Planning[/]",
+    "  [cyan]Acme planning[/]",
+    "    Review Acme_plan_v1.xlsx before deploying.",
+    "    Acme_plan_v1.xlsx.backup",
+    "    📎 Acme_plan_v1.xlsx",
+    "    📎 Acme_checklist.txt"
+   ]
+  },
+  {
+   "body": "  • Acme_plan_v1.xlsx  \n\n\nkeep\n\nAcme_checklist.txt\n",
+   "text": "• Acme_plan_v1.xlsx\n\nkeep\n\nAcme_checklist.txt",
+   "files": [
+    "Acme_plan_v1.xlsx",
+    "Acme_checklist.txt"
+   ],
+   "lines": [
+    "[bold]Description[/]",
+    "  [dim]No description[/]",
+    "",
+    "[bold]Planning[/]",
+    "  [cyan]Acme planning[/]",
+    "    keep",
+    "    📎 Acme_plan_v1.xlsx",
+    "    📎 Acme_checklist.txt"
+   ]
+  },
+  {
+   "body": "",
+   "text": "",
+   "files": [
+    "Acme_plan_v1.xlsx",
+    "Acme_checklist.txt"
+   ],
+   "lines": [
+    "[bold]Description[/]",
+    "  [dim]No description[/]",
+    "",
+    "[bold]Planning[/]",
+    "  [cyan]Acme planning[/]",
+    "    📎 Acme_plan_v1.xlsx",
+    "    📎 Acme_checklist.txt"
+   ]
+  }
+ ],
+ "description": [
+  {
+   "record": {
+    "id": 501,
+    "description": "<div>Acme rollout</div><div>Acme_plan_v1.xlsx</div>",
+    "attachments": [
+     {
+      "id": 701,
+      "name": "Acme_plan_v1.xlsx",
+      "size": 123
+     }
+    ]
+   },
+   "lines": [
+    "[bold]Description[/]",
+    "  Acme rollout",
+    "",
+    "[bold]Attachments[/]",
+    "  📎 Acme_plan_v1.xlsx [dim](123 B)[/]",
+    "",
+    "[bold]Planning[/]",
+    "  [cyan]Acme planning[/]",
+    "    [dim]empty[/]"
+   ]
+  },
+  {
+   "record": {
+    "id": 501,
+    "description": "<p>Acme rollout</p><p><a href=\"https://files.example.com/701\">Acme_plan_v1.xlsx</a></p>",
+    "attachments": [
+     {
+      "id": 701,
+      "name": "Acme_plan_v1.xlsx",
+      "size": 123
+     }
+    ]
+   },
+   "lines": [
+    "[bold]Description[/]",
+    "  Acme rollout",
+    "",
+    "[bold]Attachments[/]",
+    "  📎 Acme_plan_v1.xlsx [dim](123 B)[/]",
+    "",
+    "[bold]Planning[/]",
+    "  [cyan]Acme planning[/]",
+    "    [dim]empty[/]"
+   ]
+  }
+ ],
+ "conversation": [
+  {
+   "cv": {
+    "id": 901,
+    "body": "<div>Acme rollout</div><div>Acme_plan_v1.xlsx</div>",
+    "source": 2,
+    "private": true,
+    "user": {
+     "name": "Acme Agent"
+    },
+    "attachments": [
+     {
+      "id": 701,
+      "name": "Acme_plan_v1.xlsx"
+     },
+     {
+      "id": 702,
+      "name": "Acme_checklist.txt"
+     }
+    ]
+   },
+   "lines": [
+    "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
+    "    Acme rollout",
+    "    📎 Acme_plan_v1.xlsx",
+    "    📎 Acme_checklist.txt",
+    ""
+   ]
+  },
+  {
+   "cv": {
+    "id": 901,
+    "body": "<div>Acme rollout</div><div>Acme_plan_v1.xlsx</div>",
+    "source": 2,
+    "private": true,
+    "user": {
+     "name": "Acme Agent"
+    },
+    "attachments": []
+   },
+   "lines": [
+    "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
+    "    Acme rollout",
+    "    Acme_plan_v1.xlsx",
+    ""
+   ]
+  },
+  {
+   "cv": {
+    "id": 901,
+    "body": "<p>Acme rollout</p><p><a href=\"https://files.example.com/701\">Acme_plan_v1.xlsx</a></p>",
+    "source": 2,
+    "private": true,
+    "user": {
+     "name": "Acme Agent"
+    },
+    "attachments": [
+     {
+      "id": 701,
+      "name": "Acme_plan_v1.xlsx"
+     },
+     {
+      "id": 702,
+      "name": "Acme_checklist.txt"
+     }
+    ]
+   },
+   "lines": [
+    "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
+    "    Acme rollout",
+    "    📎 Acme_plan_v1.xlsx",
+    "    📎 Acme_checklist.txt",
+    ""
+   ]
+  },
+  {
+   "cv": {
+    "id": 901,
+    "body": "<p>Acme rollout</p><p><a href=\"https://files.example.com/701\">Acme_plan_v1.xlsx</a></p>",
+    "source": 2,
+    "private": true,
+    "user": {
+     "name": "Acme Agent"
+    },
+    "attachments": []
+   },
+   "lines": [
+    "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
+    "    Acme rollout",
+    "    Acme_plan_v1.xlsx",
+    ""
+   ]
+  },
+  {
+   "cv": {
+    "id": 901,
+    "body": "Acme_plan_v1.xlsx",
+    "source": 2,
+    "private": true,
+    "user": {
+     "name": "Acme Agent"
+    },
+    "attachments": [
+     {
+      "id": 701,
+      "name": "Acme_plan_v1.xlsx"
+     },
+     {
+      "id": 702,
+      "name": "Acme_checklist.txt"
+     }
+    ]
+   },
+   "lines": [
+    "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
+    "    📎 Acme_plan_v1.xlsx",
+    "    📎 Acme_checklist.txt",
+    ""
+   ]
+  },
+  {
+   "cv": {
+    "id": 901,
+    "body": "Acme_plan_v1.xlsx",
+    "source": 2,
+    "private": true,
+    "user": {
+     "name": "Acme Agent"
+    },
+    "attachments": []
+   },
+   "lines": [
+    "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
+    "    Acme_plan_v1.xlsx",
+    ""
+   ]
+  },
+  {
+   "cv": {
+    "id": 901,
+    "body": "",
+    "source": 2,
+    "private": true,
+    "user": {
+     "name": "Acme Agent"
+    },
+    "attachments": [
+     {
+      "id": 701,
+      "name": "Acme_plan_v1.xlsx"
+     },
+     {
+      "id": 702,
+      "name": "Acme_checklist.txt"
+     }
+    ]
+   },
+   "lines": [
+    "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
+    "    📎 Acme_plan_v1.xlsx",
+    "    📎 Acme_checklist.txt",
+    ""
+   ]
+  },
+  {
+   "cv": {
+    "id": 901,
+    "body": "",
+    "source": 2,
+    "private": true,
+    "user": {
+     "name": "Acme Agent"
+    },
+    "attachments": []
+   },
+   "lines": [
+    "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
+    "    [dim](empty)[/]",
+    ""
+   ]
+  },
+  {
+   "cv": {
+    "id": 901,
+    "body": "<div>Acme evidence</div>",
+    "source": 2,
+    "private": true,
+    "user": {
+     "name": "Acme Agent"
+    },
+    "attachments": [
+     {
+      "id": 701,
+      "name": "Acme_plan_v1.xlsx"
+     },
+     {
+      "id": 702,
+      "name": "Acme_checklist.txt"
+     }
+    ]
+   },
+   "lines": [
+    "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
+    "    Acme evidence",
+    "    📎 Acme_plan_v1.xlsx",
+    "    📎 Acme_checklist.txt",
+    ""
+   ]
+  },
+  {
+   "cv": {
+    "id": 901,
+    "body": "<div>Acme evidence</div>",
+    "source": 2,
+    "private": true,
+    "user": {
+     "name": "Acme Agent"
+    },
+    "attachments": []
+   },
+   "lines": [
+    "  [bold]Acme Agent[/] private note · [yellow]🔒 private[/] ·  [dim]()[/]",
+    "    Acme evidence",
+    ""
+   ]
+  }
+ ],
+ "attachment_text": [
+  [
+   "Acme_plan_v1.xlsx",
+   [],
+   "Acme_plan_v1.xlsx"
+  ],
+  [
+   "\n\nAcme_plan_v1.xlsx\nx\n\n",
+   [
+    "Acme_plan_v1.xlsx"
+   ],
+   "x"
+  ],
+  [
+   "•  Acme_plan_v1.xlsx",
+   [
+    "Acme_plan_v1.xlsx"
+   ],
+   ""
+  ],
+  [
+   "•Acme_plan_v1.xlsx",
+   [
+    "Acme_plan_v1.xlsx"
+   ],
+   "•Acme_plan_v1.xlsx"
+  ],
+  [
+   "\tAcme_plan_v1.xlsx\r\nAcme_checklist.txt",
+   [
+    "Acme_plan_v1.xlsx",
+    "Acme_checklist.txt"
+   ],
+   ""
+  ],
+  [
+   "a\n\nb",
+   [
+    "a"
+   ],
+   "b"
+  ],
+  [
+   "",
+   [
+    "Acme_plan_v1.xlsx"
+   ],
+   ""
+  ]
+ ]
+}

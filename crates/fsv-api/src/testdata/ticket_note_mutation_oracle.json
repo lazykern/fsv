@@ -1,0 +1,2297 @@
+{
+ "_python": {
+  "commit": "39e4853003dff8b2aab47ef6ccc435ba711dbb19",
+  "dirty": false
+ },
+ "edit_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text"
+   },
+   {
+    "op": "review"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "writes": 0
+   },
+   {
+    "review": {
+     "action": "ticket_note_edit",
+     "method": "PUT",
+     "path": "/api/_/conversations/99001",
+     "payload": {
+      "body": "<div>New &amp; text</div>",
+      "conversation_from_summary": false
+     },
+     "plan_hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "ticket_id": 123,
+     "before": {
+      "id": 99001,
+      "source": 2,
+      "private": true,
+      "body": "<div>Old</div>"
+     }
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+     "verified": true,
+     "conversation_id": 99001,
+     "history_complete": true,
+     "body": "matched"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "delete_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "review"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_delete",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "DELETE",
+     "path": "conversations/99001",
+     "payload_json": "null",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "10243af2750d2f204731d3a7a43eb93272affcab2d6681337527cb9c78b6de0d",
+    "writes": 0
+   },
+   {
+    "review": {
+     "action": "ticket_note_delete",
+     "method": "DELETE",
+     "path": "/api/_/conversations/99001",
+     "payload": null,
+     "plan_hash": "10243af2750d2f204731d3a7a43eb93272affcab2d6681337527cb9c78b6de0d",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "ticket_id": 123,
+     "before": {
+      "id": 99001,
+      "source": 2,
+      "private": true,
+      "body": "<div>Old</div>"
+     }
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "10243af2750d2f204731d3a7a43eb93272affcab2d6681337527cb9c78b6de0d",
+     "verified": true,
+     "conversation_id": 99001,
+     "history_complete": true
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_delete",
+    "started"
+   ],
+   [
+    "plan:ticket_note_delete",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "DELETE",
+    "path": "conversations/99001",
+    "raw": ""
+   }
+  ]
+ },
+ "unknown_403_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 403
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unknown_429_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 429
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unknown_500_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 500
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unknown_disconnect_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": "disconnect"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unknown_400_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 400
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 400); no retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 400); no retry"
+    },
+    "writes": 2
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "failed"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "failed"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   },
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unknown_404_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 404
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 404); no retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 404); no retry"
+    },
+    "writes": 2
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "failed"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "failed"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   },
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unverified_partial_after_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial_after": true
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+     "verified": false,
+     "conversation_id": 99001,
+     "history_complete": false,
+     "body": "unavailable",
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unverified_mismatch_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "mismatch": true
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+     "verified": false,
+     "conversation_id": 99001,
+     "history_complete": true,
+     "body": "mismatched",
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "edit_no_body_readback_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text"
+   },
+   {
+    "op": "set",
+    "state": {
+     "drop_body": true
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "e28eee9f70e77d5e4e47477066ae392f28feed67224a07f1ddee335bb1230b62",
+     "verified": false,
+     "conversation_id": 99001,
+     "history_complete": true,
+     "body": "unavailable",
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "delete_partial_after_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial_after": true
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_delete",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "DELETE",
+     "path": "conversations/99001",
+     "payload_json": "null",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "10243af2750d2f204731d3a7a43eb93272affcab2d6681337527cb9c78b6de0d",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "10243af2750d2f204731d3a7a43eb93272affcab2d6681337527cb9c78b6de0d",
+     "verified": false,
+     "conversation_id": 99001,
+     "history_complete": false,
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_delete",
+    "started"
+   ],
+   [
+    "plan:ticket_note_delete",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "DELETE",
+    "path": "conversations/99001",
+    "raw": ""
+   }
+  ]
+ },
+ "preflight_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "row": {
+     "body": "changed"
+    }
+   },
+   {
+    "op": "review"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "set",
+    "row": {
+     "source": 0
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial": true
+    }
+   },
+   {
+    "op": "build"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "afcca45eb4c5c634d6414788f7d5c7009b50d810b2e6b235c126990197fc7cce",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "note changed since review; review again"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "target or metadata changed since review; review again"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "conversation is not a verified note"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete conversation history unavailable; no write attempted"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "edit_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text"
+   },
+   {
+    "op": "review"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "writes": 0
+   },
+   {
+    "review": {
+     "action": "ticket_note_edit",
+     "method": "PUT",
+     "path": "/api/_/conversations/99001",
+     "payload": {
+      "body": "<div>New &amp; text</div>",
+      "conversation_from_summary": false
+     },
+     "plan_hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "ticket_id": 123,
+     "before": {
+      "id": 99001,
+      "source": 2,
+      "private": true,
+      "body": "<div>Old</div>"
+     }
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+     "verified": true,
+     "conversation_id": 99001,
+     "history_complete": true,
+     "body": "matched"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "delete_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "review"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_delete",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "DELETE",
+     "path": "conversations/99001",
+     "payload_json": "null",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "29ac0daff3f40b05aa776886a89823b4e04f29fd1c57828c4d879ef6329e1911",
+    "writes": 0
+   },
+   {
+    "review": {
+     "action": "ticket_note_delete",
+     "method": "DELETE",
+     "path": "/api/_/conversations/99001",
+     "payload": null,
+     "plan_hash": "29ac0daff3f40b05aa776886a89823b4e04f29fd1c57828c4d879ef6329e1911",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "ticket_id": 123,
+     "before": {
+      "id": 99001,
+      "source": 2,
+      "private": true,
+      "body": "<div>Old</div>"
+     }
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "29ac0daff3f40b05aa776886a89823b4e04f29fd1c57828c4d879ef6329e1911",
+     "verified": true,
+     "conversation_id": 99001,
+     "history_complete": true
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_delete",
+    "started"
+   ],
+   [
+    "plan:ticket_note_delete",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "DELETE",
+    "path": "conversations/99001",
+    "raw": ""
+   }
+  ]
+ },
+ "unknown_403_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 403
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unknown_429_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 429
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unknown_500_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 500
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unknown_disconnect_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": "disconnect"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unknown_400_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 400
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 400); no retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 400); no retry"
+    },
+    "writes": 2
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "failed"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "failed"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   },
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unknown_404_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 404
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 404); no retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 404); no retry"
+    },
+    "writes": 2
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "failed"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "failed"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   },
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unverified_partial_after_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial_after": true
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+     "verified": false,
+     "conversation_id": 99001,
+     "history_complete": false,
+     "body": "unavailable",
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "unverified_mismatch_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "mismatch": true
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+     "verified": false,
+     "conversation_id": 99001,
+     "history_complete": true,
+     "body": "mismatched",
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "edit_no_body_readback_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New & text"
+   },
+   {
+    "op": "set",
+    "state": {
+     "drop_body": true
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "27844774f699914a961de6ffe750eab444583c6c84789b826da11655e96833a3",
+     "verified": false,
+     "conversation_id": 99001,
+     "history_complete": true,
+     "body": "unavailable",
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_edit",
+    "started"
+   ],
+   [
+    "plan:ticket_note_edit",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "conversations/99001",
+    "raw": "{\"body\": \"<div>New &amp; text</div>\", \"conversation_from_summary\": false}"
+   }
+  ]
+ },
+ "delete_partial_after_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial_after": true
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_delete",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "DELETE",
+     "path": "conversations/99001",
+     "payload_json": "null",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "29ac0daff3f40b05aa776886a89823b4e04f29fd1c57828c4d879ef6329e1911",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "29ac0daff3f40b05aa776886a89823b4e04f29fd1c57828c4d879ef6329e1911",
+     "verified": false,
+     "conversation_id": 99001,
+     "history_complete": false,
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:ticket_note_delete",
+    "started"
+   ],
+   [
+    "plan:ticket_note_delete",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "DELETE",
+    "path": "conversations/99001",
+    "raw": ""
+   }
+  ]
+ },
+ "preflight_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "body": "New",
+    "ticket": 123
+   },
+   {
+    "op": "set",
+    "row": {
+     "body": "changed"
+    }
+   },
+   {
+    "op": "review"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "set",
+    "row": {
+     "source": 0
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial": true
+    }
+   },
+   {
+    "op": "build"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "ticket_note_edit",
+     "target": 123,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "conversations/99001",
+     "payload_json": "{\"body\": \"<div>New</div>\", \"conversation_from_summary\": false}",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "3a6ebac96e7d7f56a4f30e46d41a2ae9aa774841a7497c90cea54ecd94fbf147",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "note changed since review; review again"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "target or metadata changed since review; review again"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "conversation is not a verified note"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete conversation history unavailable; no write attempted"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "invalid_ids": {
+  "ops": [
+   {
+    "op": "build",
+    "note": "0"
+   },
+   {
+    "op": "build",
+    "note": "-1"
+   },
+   {
+    "op": "build",
+    "note": "x"
+   },
+   {
+    "op": "build",
+    "note": ""
+   },
+   {
+    "op": "build",
+    "note": "١٢"
+   },
+   {
+    "op": "build",
+    "note": " 1"
+   },
+   {
+    "op": "build",
+    "ticket": "0"
+   },
+   {
+    "op": "build",
+    "ticket": "CHN-1"
+   },
+   {
+    "op": "build",
+    "note": "007"
+   },
+   {
+    "op": "build",
+    "body": "  "
+   },
+   {
+    "op": "build",
+    "body": "a\u0000b"
+   },
+   {
+    "op": "build",
+    "hash": "none"
+   },
+   {
+    "op": "send",
+    "hash": "none"
+   },
+   {
+    "op": "send",
+    "hash": "prefix"
+   }
+  ],
+  "outputs": [
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "ticket and conversation IDs must be positive"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "ticket and conversation IDs must be positive"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "ticket and conversation IDs must be positive"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "ticket and conversation IDs must be positive"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "ticket and conversation IDs must be positive"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "ticket and conversation IDs must be positive"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "ticket and conversation IDs must be positive"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "prefix CHN not valid for tickets (expect INC or SR)"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "exact note not found or ambiguous"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "note body must be nonempty text without NUL characters"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "note body must be nonempty text without NUL characters"
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_note_delete",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "DELETE",
+     "path": "conversations/99001",
+     "payload_json": "null",
+     "context_hash": "226525b68e604c2deebeb73bac36ab002931ba2d5895ff5ca0df886df9b190ed"
+    },
+    "hash": "10243af2750d2f204731d3a7a43eb93272affcab2d6681337527cb9c78b6de0d",
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "cancelled",
+     "verified": false
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "tenant or full review hash changed; review again"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "note_shapes": {
+  "ops": [
+   {
+    "op": "set",
+    "rows": [
+     {
+      "id": 99001,
+      "source": true,
+      "private": true
+     }
+    ]
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "rows": [
+     {
+      "id": 99001,
+      "source": 2,
+      "private": 1
+     }
+    ]
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "rows": [
+     {
+      "id": 99001,
+      "source": 2.0,
+      "private": false
+     }
+    ]
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "rows": [
+     {
+      "id": 99001,
+      "source": 2,
+      "private": false
+     },
+     {
+      "id": "99001",
+      "source": 2,
+      "private": false
+     }
+    ]
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "rows": [
+     {
+      "id": "99001",
+      "source": 2,
+      "private": false
+     }
+    ]
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "rows": [
+     {
+      "id": 99002,
+      "source": 2,
+      "private": false
+     }
+    ]
+   },
+   {
+    "op": "build"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "conversation is not a verified note"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "conversation is not a verified note"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "conversation is not a verified note"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete conversation history unavailable; no write attempted"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "ticket_note_delete",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "DELETE",
+     "path": "conversations/99001",
+     "payload_json": "null",
+     "context_hash": "b954f3cfc7a4d18fb41a0c3808254f3a08baa805dc6292a8ccf9520f8b7260a5"
+    },
+    "hash": "a1dcd97d6605441627eda9338c89b819c9471c1c0604784f6b6ff494efa3b258",
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "exact note not found or ambiguous"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ }
+}

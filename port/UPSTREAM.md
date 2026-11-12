@@ -1548,3 +1548,179 @@ only `cli_sr._attachment_rows`, which reaches it through
 
 Next batch: `9910ddc`, `b48889a` (the CLI side is in `b09db91`), `17ada1b`,
 `c46d3b0`, `5d7d777`.
+
+## Ledger: `94925f4..39e4853` (library side)
+
+Triaged against Python `39e4853` (11 commits). Each commit was exported with
+`git archive` at its own SHA and its generator was first run there; the
+fixtures are regenerated from the `39e4853` export (`/tmp/fsv-regen.sh`,
+`FSV_PY_COMMIT=39e4853…`). Apart from the new oracles and the strict-query
+changes in `query_flow_oracle.json` and `coverage_oracle.json`, every
+fixture changed only in its stamp (`create_oracle.json` also has new
+wall-clock backup-name stamps). This section covers every crate except
+fsv-cli and fsv-completion; the CLI parts are listed for the fsv-cli owner.
+
+Counts: **11 ported (library), 0 partial, 0 missing.** CLI handoff is open for
+`9910ddc`, `bd6f6bd`, `17ada1b`, `c46d3b0`, `5d7d777`, `1c186e0` and `ba6aef9`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `9910ddc` | 11-12 10:35 | feat: add reviewed ticket note edits and deletion | ported | fsv-api `ticket_note_mutation` |
+| `b48889a` | 11-12 10:42 | fix: refuse unsupported strict date filter operators | ported | fsv-api `query`; CLI side in `b09db91` |
+| `17ada1b` | 11-12 10:50 | feat: add reviewed problem incident associations | ported | fsv-api `problem_incidents` |
+| `c46d3b0` | 11-12 11:00 | feat: add reviewed ticket task lifecycle | ported | fsv-api `ticket_tasks` |
+| `5d7d777` | 11-12 11:04 | feat: add reviewed problem status lifecycle and closure preflight | ported | fsv-api `problem_status`, `reviewed_write::execute_rejecting` |
+| `1c186e0` | 11-12 11:20 | feat: add reviewed two-step attachments and owner-verified deletion | ported | fsv-api `attachments`; fsv-core `journal::sha256_hex` made public |
+| `ec7a6ef` | 11-12 11:34 | fix: render attachment-only planning and conversation lines once | ported | fsv-views `pages::attachment_text` |
+| `bd6f6bd` | 11-12 11:39 | fix: enforce strict filter grammar and refuse unproven query operators | ported | fsv-api `query` (`parse_where`, `where_operator` now public) |
+| `6e598b2` | 11-12 12:02 | fix: build ticket task create from the task metadata the tenant returns | ported | fsv-api `ticket_tasks` |
+| `ba6aef9` | 11-12 12:10 | fix: read the attachment size limit the tenant publishes | ported | fsv-api `attachments`, `service::Api::page`; fsv-app `ClientSource`, fsv-views `AssociationReader` forward `page` |
+| `39e4853` | 11-12 12:15 | fix: name the task field and its offered choices when a --set value is not offered | ported | fsv-api `ticket_tasks` |
+
+No fsv-app or fsv-tui wiring is needed. At these commits the Python TUI uses
+none of the new reviewed-write modules. Its change detail renders through
+`pages.main_lines`, which fsv-app already calls as
+`fsv_views::pages::main_lines`, so `ec7a6ef` reaches the TUI as is. The
+strict query grammar reaches it through `fsv_api::query`.
+
+### `9910ddc` note edits and deletion — ported (library)
+
+- `fsv_api::ticket_note_mutation` is new: `EDIT`, `DELETE`, `build_plan`,
+  `review` and `send`. Edit is one PUT `conversations/{id}` of the sorted
+  `{"body", "conversation_from_summary": false}`; delete is a bodyless
+  DELETE. Both bind the exact private note (complete history, one row,
+  source 2, a bool `private`) and verify by read-back.
+- Generator: `gen_fsv_api_ticket_note_mutation.py` →
+  `ticket_note_mutation_oracle.json` (28 cases).
+
+### `b48889a` and `bd6f6bd` strict filters — ported (library)
+
+- `query::parse_where` is Python's strict grammar: controls, an empty field
+  or value, an unterminated quote and a value starting with an operator
+  character are refused, and a malformed operator is never repaired.
+- `where_operator` has no equality fallback. On date fields `>`/`<` are
+  refused, `>=`/`<=` are inclusive bounds, and anything else is refused.
+- Both are now `pub`, so fsv-cli can delegate to them as Python's `cli.py`
+  now does.
+- Generator: `gen_fsv_api_query_flow_matrix.py` gains a `strict` section
+  (23 parse, 9 operator, 1 schema, 3 builder cases), replayed in
+  `query_matrix_tests.rs`.
+
+### `17ada1b` problem incident associations — ported (library)
+
+- `fsv_api::problem_incidents` is new: `LINK`, `UNLINK`, `build_plan` and
+  `send`. Link is PUT `problems/{p}/tickets/associate`, unlink DELETE
+  `problems/{p}/tickets/{t}`. The context binds the complete association
+  inventory, which also verifies the write.
+- Generator: `gen_fsv_api_problem_incidents.py` →
+  `problem_incidents_oracle.json` (21 cases).
+
+### `c46d3b0`, `6e598b2` and `39e4853` ticket tasks — ported (library)
+
+- `fsv_api::ticket_tasks` is new: `TaskPlan`, `TaskArgs`, `inventory`,
+  `fields_from`, `custom_values`, `required_for_create`, `reminder`,
+  `CONTEXT_FIELDS`, `build_plan` and `send`.
+  - Add is POST `tickets/{t}/tasks`, status is PUT `…/tasks/{id}`, and
+    delete is PUT `…/tasks/update`.
+- `6e598b2`:
+  - `notify_before` is sent only when the metadata defines it, and is the
+    id of the unique active "Never" choice (string ids accepted).
+  - `required_for_create` reads the top-level flags and
+    `field_options.required_for_create`, including `"true"`.
+  - Every unfilled required field is listed in one refusal.
+  - `workspace_id` is neither asked for nor sent.
+  - Native (`default: false`) `cf_` fields are sent unprefixed.
+- `39e4853`: an unoffered `--set` choice names the field and its offered
+  choices.
+- Generator: `gen_fsv_api_ticket_tasks.py` → `ticket_tasks_oracle.json`
+  (36 cases).
+
+### `5d7d777` problem status — ported (library)
+
+- `fsv_api::problem_status` is new: `ACTION`, `StatusPlan`,
+  `closure_context`, `build_plan`, `rejection` and `send`.
+- `reviewed_write::execute_rejecting` takes Python's `rejection=` callback
+  for a definite 4xx. `execute_as` delegates to it with none.
+- Generator: `gen_fsv_api_problem_status.py` → `problem_status_oracle.json`
+  (31 cases).
+
+### `1c186e0` and `ba6aef9` attachments — ported (library)
+
+- `fsv_api::attachments` is new. It covers hash-bound `LocalFile`s,
+  `AttachedPlan` (`hash`/`review`) and `wrap`.
+- Plans are built by `conversation_plan` (ticket note or reply),
+  `problem_note_plan`, or `wrap` around a caller-built create plan.
+- `send` makes one `POST attachments` per file, then one owning write, then
+  `readback`. Any failure inside that becomes the "do not replay" refusal
+  with the uploaded IDs.
+- Deletion is `deletion_owner`, `delete_plan` and `delete`; the deletion is
+  verified by the owner's remaining attachment IDs.
+- `ba6aef9`:
+  - `size_limit` returns `None` when the metadata has no byte key.
+  - `page_limit` reads `window.MAX_ATTACHMENT_LIMIT` (MiB, exact `Decimal`
+    arithmetic) from `GET /a/dashboard` through the new `Api::page`.
+  - `resolve_limit` applies `max_bytes` overrides.
+  - The limit applies to the total of all files.
+  - The review gains `attachment_size_limit`.
+  - A plan with no limit cannot be sent.
+- Generator: `gen_fsv_api_attachments.py` → `attachments_oracle.json`
+  (61 cases, both tenants). The Rust test recreates the same files in a
+  tempdir.
+- PARITY divergences: content types come from `mime_guess`, and a published
+  limit beyond `i64` is refused.
+
+### `ec7a6ef` attachment-only lines — ported
+
+- `fsv_views::pages::attachment_text` is used by `main_lines` (description
+  and planning) and by `conversation_lines`.
+- Generator: `gen_fsv_views_attachment_rendering.py` →
+  `tests/fixtures/attachment_rendering.json`. It also checks
+  `html_to_text_str` on the raw bodies.
+
+### CLI handoff (fsv-cli owner)
+
+- **`LazyApi` must forward `Api::page`** (`Api::page(self.get()?.as_ref(),
+  path)`). Without it, every attached send whose metadata has no byte key
+  is refused with "could not read the tenant's published attachment size
+  limit".
+- `ticket_note_mutation_cli.py`: `tickets note-edit ID CONV_ID --body` and
+  `tickets note-delete ID CONV_ID`, with `--dry-run`, `--yes`,
+  `--expect-plan`, `-o` and `--json` → `ticket_note_mutation`.
+- `bd6f6bd` `cli.py`:
+  - `_parse_where` and `_where_operator` delegate to `query` (error text
+    unchanged, exit 2). Use `fsv_api::query::{parse_where, where_operator}`.
+  - A relative date period accepts only `=`/`>=`; anything else is "relative
+    date periods support only = or >=; no inverse period wire is proven".
+  - fsv-cli's own `filters.rs` grammar still passes its tests but no longer
+    matches Python.
+- `problem_cli.py`:
+  - `problems link-incident` and `problems unlink-incident` →
+    `problem_incidents`.
+  - `problems status --to` → `problem_status`.
+  - `problems note --body --attach [--max-bytes N]` →
+    `attachments::problem_note_plan`.
+- `ticket_tasks_cli.py`: `tickets tasks add|status|delete|list` →
+  `ticket_tasks`. The old ticket `tasks` command becomes the hidden
+  `tasks-legacy`.
+- `attachments_cli.py`:
+  - `attachments delete ID --owner tickets/ID|problems/ID|changes/ID
+    [--child N | --section KEY]` → `attachments::{delete_plan, delete}`.
+  - `finish` exits 4 when the read-back is not verified.
+- `--attach` on `tickets note`, `tickets reply` (requires `--sender`) and
+  `tickets create`. Create builds `WritePlan("ticket_create_attachments", 0,
+  …, "POST", "tickets", json.dumps(payload, sort_keys=True), context)` and
+  `attachments::wrap(base, paths, &raw, c, max_bytes)`.
+- `ba6aef9`: `--max-bytes N` (`min=1`) on `tickets create`, `tickets reply`,
+  `tickets note` and `problems note`. The help text is "explicit total
+  attachment size limit in bytes; replaces the tenant-published limit
+  (required to send when the tenant publishes none)".
+- The `test_completion_gen` changes for the new commands.
+
+`port/fsv_coverage.py` now maps `ticket_note_mutation`, `problem_incidents`,
+`ticket_tasks`, `problem_status` and `attachments` to fsv-api.
+
+Next batch:
+- `8f156c0` "stabilize reviewed read snapshots" adds `reviewed_snapshot.py`
+  and `journal.snapshot_hash`. It switches the context hashes of about 20
+  modules, including earlier batches, so it is not small.
+- `d1c158b` (native article inventory for problem closure) comes after it.

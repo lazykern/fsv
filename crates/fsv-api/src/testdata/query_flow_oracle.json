@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "94925f46cddbea900802f9cb5cdea0563f73d2b1",
+  "commit": "39e4853003dff8b2aab47ef6ccc435ba711dbb19",
   "dirty": false
  },
  "query": {
@@ -108,7 +108,7 @@
   },
   "invalid": {
    "status": {
-    "err": "invalid filter 'status'; expected FIELD=VALUE"
+    "err": "invalid filter 'status'; expected FIELD followed by = != >= <= > < or ~="
    },
    "unknown=x": {
     "err": "field not found: 'unknown'"
@@ -149,28 +149,22 @@
    "created_at!=2026-01-01": {
     "err": "operator '!=' is not supported for date field 'created_at'; use a range such as `>=` / `<=`"
    },
+   "created_at>2026-01-01": {
+    "err": "strict date operator '>' is not supported; use >= or <= for inclusive bounds"
+   },
+   "created_at<2026-01-01": {
+    "err": "strict date operator '<' is not supported; use >= or <= for inclusive bounds"
+   },
    "created_at~=2026": {
-    "err": "unsupported date operator '~='; use = != >= <= > <"
+    "err": "unsupported date operator '~='; use = >= <="
    }
   },
   "date_bounds": [
    {
     "field": "created_at",
-    "lower": ">",
-    "upper": "<",
-    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
-   },
-   {
-    "field": "created_at",
     "lower": ">=",
     "upper": "<=",
     "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
-   },
-   {
-    "field": "updated_at",
-    "lower": ">",
-    "upper": "<",
-    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"updated_at\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
    },
    {
     "field": "updated_at",
@@ -180,33 +174,15 @@
    },
    {
     "field": "due_by",
-    "lower": ">",
-    "upper": "<",
-    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"due_by\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
-   },
-   {
-    "field": "due_by",
     "lower": ">=",
     "upper": "<=",
     "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"due_by\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
    },
    {
     "field": "planned_start_date",
-    "lower": ">",
-    "upper": "<",
-    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"planned_start_date\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
-   },
-   {
-    "field": "planned_start_date",
     "lower": ">=",
     "upper": "<=",
     "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"planned_start_date\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
-   },
-   {
-    "field": "planned_end_date",
-    "lower": ">",
-    "upper": "<",
-    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"planned_end_date\",\"operator\":\"custom_date\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
    },
    {
     "field": "planned_end_date",
@@ -456,6 +432,227 @@
    ],
    "missing_id": {
     "err": "group match has no id: Acme"
+   }
+  },
+  "strict": {
+   "parse": {
+    "status==Open": {
+     "err": "invalid filter operator sequence; quote a literal value starting with an operator"
+    },
+    "status=>Open": {
+     "err": "invalid filter operator sequence; quote a literal value starting with an operator"
+    },
+    "status=<Open": {
+     "err": "invalid filter operator sequence; quote a literal value starting with an operator"
+    },
+    "status<>Open": {
+     "err": "invalid filter operator sequence; quote a literal value starting with an operator"
+    },
+    "status!==Open": {
+     "err": "invalid filter operator sequence; quote a literal value starting with an operator"
+    },
+    "status~~=Open": {
+     "err": "invalid filter 'status~~=Open'; expected FIELD followed by = != >= <= > < or ~="
+    },
+    "status!>Open": {
+     "err": "invalid filter 'status!>Open'; expected FIELD followed by = != >= <= > < or ~="
+    },
+    "status=": {
+     "err": "invalid filter; field and value are required (quote literal empty text)"
+    },
+    "=Open": {
+     "err": "invalid filter '=Open'; expected FIELD followed by = != >= <= > < or ~="
+    },
+    "status='Open": {
+     "err": "invalid filter; unterminated quoted value"
+    },
+    "status=Open\npriority=High": {
+     "err": "invalid filter; controls and multiline expressions are not supported"
+    },
+    "status=Open\u0001": {
+     "err": "invalid filter; controls and multiline expressions are not supported"
+    },
+    "  ": {
+     "err": "invalid filter '  '; expected FIELD followed by = != >= <= > < or ~="
+    },
+    "status= ": {
+     "err": "invalid filter; field and value are required (quote literal empty text)"
+    },
+    " Subject = '=Acme' ": {
+     "ok": [
+      "Subject",
+      "=",
+      "=Acme"
+     ]
+    },
+    "Subject=\"Acme >= Globex\"": {
+     "ok": [
+      "Subject",
+      "=",
+      "Acme >= Globex"
+     ]
+    },
+    "Subject=''": {
+     "ok": [
+      "Subject",
+      "=",
+      ""
+     ]
+    },
+    "status!=Open": {
+     "ok": [
+      "status",
+      "!=",
+      "Open"
+     ]
+    },
+    "a=b=c": {
+     "ok": [
+      "a",
+      "=",
+      "b=c"
+     ]
+    },
+    "  \"Due Date\" >= '2026-01-01' ": {
+     "ok": [
+      "\"Due Date\"",
+      ">=",
+      "2026-01-01"
+     ]
+    },
+    "Sübject = x　": {
+     "ok": [
+      "Sübject",
+      "=",
+      "x"
+     ]
+    },
+    "x='": {
+     "err": "invalid filter; unterminated quoted value"
+    },
+    "x=\"a'": {
+     "err": "invalid filter; unterminated quoted value"
+    }
+   },
+   "operator": {
+    "": {
+     "err": "unknown filter operator ''; no equality fallback"
+    },
+    "==": {
+     "err": "unknown filter operator '=='; no equality fallback"
+    },
+    "contains": {
+     "err": "unknown filter operator 'contains'; no equality fallback"
+    },
+    "gte": {
+     "err": "unknown filter operator 'gte'; no equality fallback"
+    },
+    "is_greater_than": {
+     "err": "unknown filter operator 'is_greater_than'; no equality fallback"
+    },
+    "=": {
+     "ok": "is_in"
+    },
+    "!=": {
+     "ok": "is_not_in"
+    },
+    ">": {
+     "err": "operator '>' not supported for this field; use = or !="
+    },
+    "~=": {
+     "err": "operator ~= (contains) not supported; use = or !="
+    }
+   },
+   "schema": {
+    "fields": [
+     {
+      "name": "subject",
+      "label": "Subject",
+      "field_type": "default_text",
+      "default_field": true
+     },
+     {
+      "name": "count",
+      "label": "Count",
+      "field_type": "custom_number"
+     },
+     {
+      "name": "status",
+      "field_type": "default_status",
+      "default_field": true
+     }
+    ]
+   },
+   "builder": {
+    "changes": {
+     "created_at>2030-01-01": {
+      "err": "strict date operator '>' is not supported; use >= or <= for inclusive bounds"
+     },
+     "created_at<2030-01-01": {
+      "err": "strict date operator '<' is not supported; use >= or <= for inclusive bounds"
+     },
+     "Subject~=Acme": {
+      "err": "operator ~= (contains) not supported; use = or !="
+     },
+     "Count>12": {
+      "err": "operator '>' not supported for this field; use = or !="
+     },
+     "status~=Open": {
+      "err": "operator ~= (contains) not supported; use = or !="
+     },
+     "created_at>=2030-01-01": {
+      "ok": "[{\"value\":{\"from\":\"2030-01-01\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"}]"
+     },
+     "Subject='=Acme'": {
+      "ok": "[{\"value\":[\"=Acme\"],\"condition\":\"subject\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+     }
+    },
+    "tickets": {
+     "created_at>2030-01-01": {
+      "err": "strict date operator '>' is not supported; use >= or <= for inclusive bounds"
+     },
+     "created_at<2030-01-01": {
+      "err": "strict date operator '<' is not supported; use >= or <= for inclusive bounds"
+     },
+     "Subject~=Acme": {
+      "err": "operator ~= (contains) not supported; use = or !="
+     },
+     "Count>12": {
+      "err": "operator '>' not supported for this field; use = or !="
+     },
+     "status~=Open": {
+      "err": "operator ~= (contains) not supported; use = or !="
+     },
+     "created_at>=2030-01-01": {
+      "ok": "[{\"value\":{\"from\":\"2030-01-01\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"}]"
+     },
+     "Subject='=Acme'": {
+      "ok": "[{\"value\":[\"=Acme\"],\"condition\":\"subject\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+     }
+    },
+    "problems": {
+     "created_at>2030-01-01": {
+      "err": "strict date operator '>' is not supported; use >= or <= for inclusive bounds"
+     },
+     "created_at<2030-01-01": {
+      "err": "strict date operator '<' is not supported; use >= or <= for inclusive bounds"
+     },
+     "Subject~=Acme": {
+      "err": "operator ~= (contains) not supported; use = or !="
+     },
+     "Count>12": {
+      "err": "operator '>' not supported for this field; use = or !="
+     },
+     "status~=Open": {
+      "err": "operator ~= (contains) not supported; use = or !="
+     },
+     "created_at>=2030-01-01": {
+      "ok": "[{\"value\":{\"from\":\"2030-01-01\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"}]"
+     },
+     "Subject='=Acme'": {
+      "ok": "[{\"value\":[\"=Acme\"],\"condition\":\"subject\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+     }
+    }
    }
   },
   "raw": [

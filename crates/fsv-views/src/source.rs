@@ -249,6 +249,9 @@ impl Api for AssociationReader<'_> {
     fn fetch(&self, url: &str) -> ApiResult<Response> {
         self.0.fetch(url)
     }
+    fn page(&self, path: &str) -> ApiResult<Response> {
+        self.0.page(path)
+    }
     fn domain(&self) -> String {
         self.0.domain()
     }

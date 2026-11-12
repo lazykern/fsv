@@ -1007,3 +1007,64 @@ fn print_detail_wide_grid() {
         want
     );
 }
+
+#[test]
+fn attachment_only_lines_render_once_like_python() {
+    let oracle: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/attachment_rendering.json"
+    ))
+    .unwrap();
+    let strs = |v: &Value| -> Vec<String> {
+        v.as_array()
+            .unwrap()
+            .iter()
+            .map(|x| x.as_str().unwrap().to_string())
+            .collect()
+    };
+    let planning_detail = |record: Value, text: &str, files: Vec<String>| {
+        let mut d = Detail::new(
+            &CHANGES,
+            record,
+            json!({}),
+            json!({}),
+            TimeZone::UTC,
+            vec![],
+        );
+        d.planning = Some(vec![PlanningEntry {
+            name: "go_live_checklist".into(),
+            label: "Acme planning".into(),
+            help: String::new(),
+            text: text.into(),
+            files,
+        }]);
+        d
+    };
+    for case in oracle["planning"].as_array().unwrap() {
+        let text = case["text"].as_str().unwrap();
+        assert_eq!(site::html_to_text_str(case["body"].as_str().unwrap()), text);
+        let d = planning_detail(json!({"id": 501}), text, strs(&case["files"]));
+        let before = d.planning.clone();
+        assert_eq!(main_lines(&d), strs(&case["lines"]), "{text:?}");
+        assert_eq!(d.planning, before);
+    }
+    for case in oracle["description"].as_array().unwrap() {
+        let d = planning_detail(case["record"].clone(), "", vec![]);
+        assert_eq!(main_lines(&d), strs(&case["lines"]), "{}", case["record"]);
+    }
+    for case in oracle["conversation"].as_array().unwrap() {
+        assert_eq!(
+            conversation_lines(&case["cv"], Some(&TimeZone::UTC)),
+            strs(&case["lines"]),
+            "{}",
+            case["cv"]
+        );
+    }
+    for case in oracle["attachment_text"].as_array().unwrap() {
+        let files = strs(&case[1]);
+        assert_eq!(
+            attachment_text(case[0].as_str().unwrap(), files.iter().map(String::as_str)),
+            case[2].as_str().unwrap(),
+            "{case}"
+        );
+    }
+}

@@ -1,0 +1,3115 @@
+{
+ "_python": {
+  "commit": "39e4853003dff8b2aab47ef6ccc435ba711dbb19",
+  "dirty": false
+ },
+ "transition_Open_41": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Open"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 41}",
+     "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
+     "label": "Open",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "4540c8d3324fef7b38032ec732e123a00fe011698af4612647028e884a16d6d9",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 41
+     },
+     "plan_hash": "4540c8d3324fef7b38032ec732e123a00fe011698af4612647028e884a16d6d9",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Open",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "4540c8d3324fef7b38032ec732e123a00fe011698af4612647028e884a16d6d9",
+     "verified": true,
+     "problem_id": 123,
+     "readback": {
+      "status": 41,
+      "planned_start_date": "2030-01-02T10:00:00Z",
+      "planned_end_date": "2030-01-02T11:00:00Z"
+     },
+     "unavailable": []
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 41}"
+   }
+  ]
+ },
+ "transition_In Progress_41": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "to": "In Progress"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 42}",
+     "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
+     "label": "In Progress",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "c62635718ab4a2e842119882c0735148c7a089d8ae98f11eb1b3bb3ea51b545b",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 42
+     },
+     "plan_hash": "c62635718ab4a2e842119882c0735148c7a089d8ae98f11eb1b3bb3ea51b545b",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "In Progress",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "c62635718ab4a2e842119882c0735148c7a089d8ae98f11eb1b3bb3ea51b545b",
+     "verified": true,
+     "problem_id": 123,
+     "readback": {
+      "status": 42,
+      "planned_start_date": "2030-01-02T10:00:00Z",
+      "planned_end_date": "2030-01-02T11:00:00Z"
+     },
+     "unavailable": []
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 42}"
+   }
+  ]
+ },
+ "transition_Resolve_41": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Resolve"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 43}",
+     "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
+     "label": "Resolve",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 43
+     },
+     "plan_hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Resolve",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+     "verified": true,
+     "problem_id": 123,
+     "readback": {
+      "status": 43,
+      "planned_start_date": "2030-01-02T10:00:00Z",
+      "planned_end_date": "2030-01-02T11:00:00Z"
+     },
+     "unavailable": []
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 43}"
+   }
+  ]
+ },
+ "transition_Closed_41": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "c04db634dc734c96a47779f26d891321ca34f0b4b5f36c3ff1857bf0b214ad0f",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+     "verified": true,
+     "problem_id": 123,
+     "readback": {
+      "status": 44,
+      "planned_start_date": "2030-01-02T10:00:00Z",
+      "planned_end_date": "2030-01-02T11:00:00Z"
+     },
+     "unavailable": []
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 44}"
+   }
+  ]
+ },
+ "closure_missing_41": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "analysis": [],
+     "solutions": []
+    }
+   },
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Closed"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: missing Root Cause, Impact, Symptoms, linked workaround / solution"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "closure_drift_required_41": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "analysis0": {
+     "description": "<div> </div>"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "set",
+    "analysis0": {
+     "description": "Acme"
+    },
+    "row": {
+     "subject": ""
+    }
+   },
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Closed"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "c04db634dc734c96a47779f26d891321ca34f0b4b5f36c3ff1857bf0b214ad0f",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: missing Root Cause"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: missing required closure fields: Subject"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "ambiguous_403_41": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Resolve"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 403
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 43}",
+     "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
+     "label": "Resolve",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 43
+     },
+     "plan_hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Resolve",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 43}"
+   }
+  ]
+ },
+ "ambiguous_429_41": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Resolve"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 429
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 43}",
+     "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
+     "label": "Resolve",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 43
+     },
+     "plan_hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Resolve",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 43}"
+   }
+  ]
+ },
+ "ambiguous_500_41": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Resolve"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 500
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 43}",
+     "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
+     "label": "Resolve",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 43
+     },
+     "plan_hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Resolve",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 43}"
+   }
+  ]
+ },
+ "ambiguous_disconnect_41": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Resolve"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": "disconnect"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 43}",
+     "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
+     "label": "Resolve",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 43
+     },
+     "plan_hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Resolve",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 43}"
+   }
+  ]
+ },
+ "server_closure_41": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": {
+      "status": 400,
+      "body": {
+       "errors": [
+        {
+         "code": "violated_closure_rules",
+         "description": {
+          "check_analysis_completed": "Analysis required",
+          "check_workaround_or_solution_added": "Solution required"
+         }
+        }
+       ]
+      }
+     }
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "c04db634dc734c96a47779f26d891321ca34f0b4b5f36c3ff1857bf0b214ad0f",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: Root Cause, Impact and Symptoms must be filled; a workaround / solution must be linked"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "failed"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 44}"
+   }
+  ]
+ },
+ "mismatch_41": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Resolve"
+   },
+   {
+    "op": "set",
+    "state": {
+     "mismatch": true
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 43}",
+     "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
+     "label": "Resolve",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 43
+     },
+     "plan_hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Resolve",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+     "verified": false,
+     "problem_id": 123,
+     "readback": {
+      "status": 41,
+      "planned_start_date": "2030-01-02T10:00:00Z",
+      "planned_end_date": "2030-01-02T11:00:00Z"
+     },
+     "unavailable": [],
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 43}"
+   }
+  ]
+ },
+ "transition_Open_81": {
+  "n": 81,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Open"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 81}",
+     "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
+     "label": "Open",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "d33731dc744d2b52eb9c39c9aabda4151306555994c248f6d1a4aa6708f3368f",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 81
+     },
+     "plan_hash": "d33731dc744d2b52eb9c39c9aabda4151306555994c248f6d1a4aa6708f3368f",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Open",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 81,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "d33731dc744d2b52eb9c39c9aabda4151306555994c248f6d1a4aa6708f3368f",
+     "verified": true,
+     "problem_id": 123,
+     "readback": {
+      "status": 81,
+      "planned_start_date": "2030-01-02T10:00:00Z",
+      "planned_end_date": "2030-01-02T11:00:00Z"
+     },
+     "unavailable": []
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 81}"
+   }
+  ]
+ },
+ "transition_In Progress_81": {
+  "n": 81,
+  "ops": [
+   {
+    "op": "build",
+    "to": "In Progress"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 82}",
+     "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
+     "label": "In Progress",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "cd587718ba75ecad801d3037794465a64e8c3b9b6d516c061ee137eb3a4efc40",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 82
+     },
+     "plan_hash": "cd587718ba75ecad801d3037794465a64e8c3b9b6d516c061ee137eb3a4efc40",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "In Progress",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 81,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "cd587718ba75ecad801d3037794465a64e8c3b9b6d516c061ee137eb3a4efc40",
+     "verified": true,
+     "problem_id": 123,
+     "readback": {
+      "status": 82,
+      "planned_start_date": "2030-01-02T10:00:00Z",
+      "planned_end_date": "2030-01-02T11:00:00Z"
+     },
+     "unavailable": []
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 82}"
+   }
+  ]
+ },
+ "transition_Resolve_81": {
+  "n": 81,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Resolve"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 83}",
+     "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
+     "label": "Resolve",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 83
+     },
+     "plan_hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Resolve",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 81,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+     "verified": true,
+     "problem_id": 123,
+     "readback": {
+      "status": 83,
+      "planned_start_date": "2030-01-02T10:00:00Z",
+      "planned_end_date": "2030-01-02T11:00:00Z"
+     },
+     "unavailable": []
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 83}"
+   }
+  ]
+ },
+ "transition_Closed_81": {
+  "n": 81,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 84}",
+     "context_hash": "3b7eb53988a257c1019fa9b840f90e52a9c80dbb77a007cc794a62a848fb9ae5",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "d76ef95e21a5977dd1ad6feb699cf9ab7142a16999a065763fea9961e4ecdeab",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 84
+     },
+     "plan_hash": "d76ef95e21a5977dd1ad6feb699cf9ab7142a16999a065763fea9961e4ecdeab",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 81,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "d76ef95e21a5977dd1ad6feb699cf9ab7142a16999a065763fea9961e4ecdeab",
+     "verified": true,
+     "problem_id": 123,
+     "readback": {
+      "status": 84,
+      "planned_start_date": "2030-01-02T10:00:00Z",
+      "planned_end_date": "2030-01-02T11:00:00Z"
+     },
+     "unavailable": []
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 84}"
+   }
+  ]
+ },
+ "closure_missing_81": {
+  "n": 81,
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "analysis": [],
+     "solutions": []
+    }
+   },
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Closed"
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: missing Root Cause, Impact, Symptoms, linked workaround / solution"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "closure_drift_required_81": {
+  "n": 81,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "analysis0": {
+     "description": "<div> </div>"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "set",
+    "analysis0": {
+     "description": "Acme"
+    },
+    "row": {
+     "subject": ""
+    }
+   },
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Closed"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 84}",
+     "context_hash": "3b7eb53988a257c1019fa9b840f90e52a9c80dbb77a007cc794a62a848fb9ae5",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "d76ef95e21a5977dd1ad6feb699cf9ab7142a16999a065763fea9961e4ecdeab",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 84
+     },
+     "plan_hash": "d76ef95e21a5977dd1ad6feb699cf9ab7142a16999a065763fea9961e4ecdeab",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 81,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: missing Root Cause"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: missing required closure fields: Subject"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "ambiguous_403_81": {
+  "n": 81,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Resolve"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 403
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 83}",
+     "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
+     "label": "Resolve",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 83
+     },
+     "plan_hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Resolve",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 81,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 83}"
+   }
+  ]
+ },
+ "ambiguous_429_81": {
+  "n": 81,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Resolve"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 429
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 83}",
+     "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
+     "label": "Resolve",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 83
+     },
+     "plan_hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Resolve",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 81,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 83}"
+   }
+  ]
+ },
+ "ambiguous_500_81": {
+  "n": 81,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Resolve"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 500
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 83}",
+     "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
+     "label": "Resolve",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 83
+     },
+     "plan_hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Resolve",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 81,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 83}"
+   }
+  ]
+ },
+ "ambiguous_disconnect_81": {
+  "n": 81,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Resolve"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": "disconnect"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 83}",
+     "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
+     "label": "Resolve",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 83
+     },
+     "plan_hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Resolve",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 81,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 83}"
+   }
+  ]
+ },
+ "server_closure_81": {
+  "n": 81,
+  "ops": [
+   {
+    "op": "build",
+    "target": 123,
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": {
+      "status": 400,
+      "body": {
+       "errors": [
+        {
+         "code": "violated_closure_rules",
+         "description": {
+          "check_analysis_completed": "Analysis required",
+          "check_workaround_or_solution_added": "Solution required"
+         }
+        }
+       ]
+      }
+     }
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 84}",
+     "context_hash": "3b7eb53988a257c1019fa9b840f90e52a9c80dbb77a007cc794a62a848fb9ae5",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "d76ef95e21a5977dd1ad6feb699cf9ab7142a16999a065763fea9961e4ecdeab",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 84
+     },
+     "plan_hash": "d76ef95e21a5977dd1ad6feb699cf9ab7142a16999a065763fea9961e4ecdeab",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 81,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: Root Cause, Impact and Symptoms must be filled; a workaround / solution must be linked"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "failed"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 84}"
+   }
+  ]
+ },
+ "mismatch_81": {
+  "n": 81,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Resolve"
+   },
+   {
+    "op": "set",
+    "state": {
+     "mismatch": true
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 83}",
+     "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
+     "label": "Resolve",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 83
+     },
+     "plan_hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Resolve",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 81,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
+     "verified": false,
+     "problem_id": 123,
+     "readback": {
+      "status": 81,
+      "planned_start_date": "2030-01-02T10:00:00Z",
+      "planned_end_date": "2030-01-02T11:00:00Z"
+     },
+     "unavailable": [],
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 83}"
+   }
+  ]
+ },
+ "rejection_0": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": {
+      "status": 400,
+      "body": {
+       "errors": [
+        {
+         "code": "violated_closure_rules",
+         "description": {
+          "check_analysis_completed": 1
+         }
+        }
+       ]
+      }
+     }
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "c04db634dc734c96a47779f26d891321ca34f0b4b5f36c3ff1857bf0b214ad0f",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: Root Cause, Impact and Symptoms must be filled"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "failed"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 44}"
+   }
+  ]
+ },
+ "rejection_1": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": {
+      "status": 400,
+      "body": {
+       "errors": [
+        {
+         "code": "violated_closure_rules",
+         "description": "x"
+        }
+       ]
+      }
+     }
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "c04db634dc734c96a47779f26d891321ca34f0b4b5f36c3ff1857bf0b214ad0f",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: closure prerequisites rejected; inspect analysis and solutions"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "failed"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 44}"
+   }
+  ]
+ },
+ "rejection_2": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": {
+      "status": 422,
+      "body": {
+       "errors": [
+        {
+         "code": "other"
+        },
+        "x"
+       ]
+      }
+     }
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "c04db634dc734c96a47779f26d891321ca34f0b4b5f36c3ff1857bf0b214ad0f",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 422); no retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "failed"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 44}"
+   }
+  ]
+ },
+ "rejection_3": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": {
+      "status": 400,
+      "body": {
+       "errors": "x"
+      }
+     }
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "c04db634dc734c96a47779f26d891321ca34f0b4b5f36c3ff1857bf0b214ad0f",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 400); no retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "failed"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 44}"
+   }
+  ]
+ },
+ "rejection_4": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": {
+      "status": 409,
+      "body": [
+       "x"
+      ]
+     }
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "c04db634dc734c96a47779f26d891321ca34f0b4b5f36c3ff1857bf0b214ad0f",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "193087a8bfd2c2c2c5f13558443b825c79cb61bd9d33aacf3e48bc6aeafa2d13",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 409); no retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "failed"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 44}"
+   }
+  ]
+ },
+ "refusals": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Done"
+   },
+   {
+    "op": "build",
+    "to": " in progress "
+   },
+   {
+    "op": "build",
+    "to": "42"
+   },
+   {
+    "op": "build",
+    "target": "0",
+    "to": "Open"
+   },
+   {
+    "op": "build",
+    "target": "INC-1",
+    "to": "Open"
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial": true
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial": false,
+     "solutions": [
+      {
+       "id": 1
+      },
+      {
+       "id": "1"
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "solutions": [
+      {
+       "id": 1
+      }
+     ],
+     "analysis": [
+      {
+       "id": 1,
+       "name": "problem_cause",
+       "description": "a"
+      },
+      {
+       "id": 2,
+       "name": "problem_cause",
+       "description": "b"
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "analysis": [
+      {
+       "id": 1,
+       "name": "problem_cause",
+       "description": "&nbsp;"
+      },
+      {
+       "id": 2,
+       "name": "problem_impact",
+       "description_text": "Impact text"
+      },
+      {
+       "id": 3,
+       "name": "problem_symptom",
+       "description": null
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "state": {
+     "analysis": [
+      {
+       "id": 1,
+       "name": "problem_cause",
+       "description": "x"
+      },
+      {
+       "id": 2,
+       "name": "problem_impact",
+       "description": "x"
+      },
+      {
+       "id": 3,
+       "name": "problem_symptom",
+       "description": "x"
+      }
+     ]
+    },
+    "row": {
+     "subject": null
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "row": {
+     "subject": []
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "row": {
+     "subject": 0
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "row": {
+     "subject": "Acme"
+    }
+   },
+   {
+    "op": "set",
+    "state": {
+     "row": {
+      "id": 123,
+      "subject": "Acme"
+     }
+    }
+   },
+   {
+    "op": "build",
+    "to": "Open"
+   },
+   {
+    "op": "set",
+    "state": {
+     "row": {
+      "id": 124,
+      "status": 41
+     }
+    }
+   },
+   {
+    "op": "build",
+    "to": "Open"
+   },
+   {
+    "op": "set",
+    "state": {
+     "row": {
+      "id": 123,
+      "status": 41,
+      "subject": "Acme"
+     },
+     "rules": [
+      {
+       "id": 1
+      }
+     ],
+     "fields": [
+      {
+       "id": 501,
+       "name": "subject",
+       "label": "Subject",
+       "field_type": "default_subject",
+       "position": 1,
+       "required_for_closure": true
+      },
+      {
+       "id": 502,
+       "name": "status",
+       "label": "Status",
+       "field_type": "default_status",
+       "position": 2,
+       "choices": [
+        {
+         "id": 41,
+         "value": "Open"
+        },
+        {
+         "id": 42,
+         "value": "In Progress"
+        },
+        {
+         "id": 43,
+         "value": "Resolve"
+        },
+        {
+         "id": 44,
+         "value": "Closed"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "to": "Open"
+   },
+   {
+    "op": "set",
+    "state": {
+     "rules": [],
+     "fields": [
+      {
+       "id": 501,
+       "name": "subject",
+       "label": "Subject",
+       "field_type": "default_subject",
+       "position": 1,
+       "required_for_closure": true
+      },
+      {
+       "id": 502,
+       "name": "status",
+       "label": "Status",
+       "field_type": "default_status",
+       "position": 2,
+       "choices": [
+        {
+         "id": 41,
+         "value": "Open"
+        },
+        {
+         "id": 42,
+         "value": "In Progress"
+        },
+        {
+         "id": 43,
+         "value": "Resolve"
+        },
+        {
+         "id": 44,
+         "value": "Closed"
+        }
+       ]
+      },
+      {
+       "id": 503,
+       "name": "cf_reason",
+       "label": "Reason",
+       "field_type": "custom_text",
+       "position": 3,
+       "required_for_closure": true
+      }
+     ]
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "set",
+    "row": {
+     "custom_fields": {
+      "cf_reason": "Because"
+     }
+    }
+   },
+   {
+    "op": "build",
+    "to": "Closed"
+   },
+   {
+    "op": "build",
+    "to": "Open"
+   },
+   {
+    "op": "send",
+    "hash": "none"
+   },
+   {
+    "op": "send",
+    "hash": "prefix"
+   }
+  ],
+  "outputs": [
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "status must match one active runtime task-status ID or label"
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 42}",
+     "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
+     "label": "In Progress",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "c62635718ab4a2e842119882c0735148c7a089d8ae98f11eb1b3bb3ea51b545b",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 42
+     },
+     "plan_hash": "c62635718ab4a2e842119882c0735148c7a089d8ae98f11eb1b3bb3ea51b545b",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "In Progress",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 42}",
+     "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
+     "label": "In Progress",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "c62635718ab4a2e842119882c0735148c7a089d8ae98f11eb1b3bb3ea51b545b",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 42
+     },
+     "plan_hash": "c62635718ab4a2e842119882c0735148c7a089d8ae98f11eb1b3bb3ea51b545b",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "In Progress",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "expected a positive numeric identity"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "prefix INC not valid for problems (expect PRB)"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem solutions inventory is unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "86b9109699bdb48d75ef9310777beca14d8cc3e02018d4fe886e57bc534d0d82",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "6b96d3bd1c0219151ab0a3d5d2d7d816a7289a641b7ac20b4a64856f969fa5c7",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "6b96d3bd1c0219151ab0a3d5d2d7d816a7289a641b7ac20b4a64856f969fa5c7",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: missing Root Cause, Impact, Symptoms"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: missing Root Cause, Symptoms"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: missing required closure fields: Subject"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: missing required closure fields: Subject"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "10d5432aef3c78c6b1b9996879ed04bf1c60165e85e860e11396aa495dbd543c",
+     "label": "Closed",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": 0}"
+    },
+    "hash": "413696e5f3a92e6d3a49c7bfa76c915f6612dd5c8ecb29e142193ee394821215",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "413696e5f3a92e6d3a49c7bfa76c915f6612dd5c8ecb29e142193ee394821215",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": 0
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "current problem status unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "exact problem identity is unavailable"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "APIError",
+     "msg": "HTTP 200 listing business rules: the server returned the business-rule listing without conditions/actions; fsv cannot evaluate the form from it (use the web)"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "violated_closure_rules: missing required closure fields: Reason"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 44}",
+     "context_hash": "b3946826575e0216a41bb3cfc4863bec6d9b5cabae58e1166999cd6ebbcd4f3a",
+     "label": "Closed",
+     "before_json": "{\"custom_fields\": {\"cf_reason\": \"Because\"}, \"id\": 123, \"status\": 41, \"subject\": \"Acme\"}"
+    },
+    "hash": "f4d0b14b2e9721e05f4e0b7dc2a3a8314abc714c9230bd44f883018818df434b",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 44
+     },
+     "plan_hash": "f4d0b14b2e9721e05f4e0b7dc2a3a8314abc714c9230bd44f883018818df434b",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Closed",
+     "before": {
+      "custom_fields": {
+       "cf_reason": "Because"
+      },
+      "id": 123,
+      "status": 41,
+      "subject": "Acme"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 41}",
+     "context_hash": "04e4cbb0e93a23cc54d21a6ff95f741d68972258a7f636fa4a85bd70ad60fb5c",
+     "label": "Open",
+     "before_json": "{\"custom_fields\": {\"cf_reason\": \"Because\"}, \"id\": 123, \"status\": 41, \"subject\": \"Acme\"}"
+    },
+    "hash": "c2a176e8dd3f24e529943c108a971935173977713688e3621ed20a22fcd0f6cf",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 41
+     },
+     "plan_hash": "c2a176e8dd3f24e529943c108a971935173977713688e3621ed20a22fcd0f6cf",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Open",
+     "before": {
+      "custom_fields": {
+       "cf_reason": "Because"
+      },
+      "id": 123,
+      "status": 41,
+      "subject": "Acme"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "cancelled",
+     "verified": false
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "tenant or full review hash changed; review again"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "readback_dates": {
+  "n": 41,
+  "ops": [
+   {
+    "op": "build",
+    "to": "Resolve"
+   },
+   {
+    "op": "set",
+    "state": {
+     "drop_dates": true
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_status",
+     "target": 123,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/123",
+     "payload_json": "{\"status\": 43}",
+     "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
+     "label": "Resolve",
+     "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}"
+    },
+    "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+    "review": {
+     "action": "problem_status",
+     "method": "PUT",
+     "path": "/api/_/problems/123",
+     "payload": {
+      "status": 43
+     },
+     "plan_hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+     "to": "Resolve",
+     "before": {
+      "id": 123,
+      "planned_end_date": null,
+      "planned_start_date": null,
+      "status": 41,
+      "subject": "Acme problem"
+     },
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
+     "verified": true,
+     "problem_id": 123,
+     "readback": {
+      "status": 43,
+      "planned_start_date": "2030-01-02T10:00:00Z"
+     },
+     "unavailable": [
+      "planned_end_date"
+     ]
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   "started",
+   "done"
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/123",
+    "raw": "{\"status\": 43}"
+   }
+  ]
+ }
+}

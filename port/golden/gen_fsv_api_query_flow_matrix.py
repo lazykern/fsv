@@ -1,5 +1,5 @@
 """Expected values for the fsv-api query and state-flow matrices (Python
-`92d76ff`: `tests/test_query_matrix.py`, `tests/test_state_flow_render.py`).
+`bd6f6bd`: `tests/test_query_matrix.py`, `tests/test_strict_filter_contract.py`, `tests/test_state_flow_render.py`).
 
 Each case runs the Python test's inputs through `fsv.query` /
 `fsv.state_flow` with the same fakes. Renderers print into a recording
@@ -51,7 +51,8 @@ WIRE = ["State=In review", "status!=83", "custom:Tier=701", "cf_tier=gold", "Cou
 INVALID = ["status", "unknown=x", "status=missing", "status~=review",
            *["status" + op + "47" for op in (">", "<", ">=", "<=")],
            *["group_id" + op + "93" for op in (">", "<", ">=", "<=", "~=")],
-           "created_at!=2026-01-01", "created_at~=2026"]
+           "created_at!=2026-01-01", *["created_at" + op + "2026-01-01" for op in (">", "<")],
+           "created_at~=2026"]
 DATE_FIELDS = ["created_at", "updated_at", "due_by", "planned_start_date", "planned_end_date"]
 PRECEDENCE = [
     ([{"name": "status", "label": "State"}, {"name": "other", "label": "Status"}], "status"),
@@ -106,6 +107,29 @@ def raw_hash():
     return out
 
 
+MALFORMED = ["status==Open", "status=>Open", "status=<Open", "status<>Open", "status!==Open", "status~~=Open",
+             "status!>Open", "status=", "=Open", "status='Open", "status=Open\npriority=High", "status=Open\x01",
+             "  ", "status= ", " Subject = '=Acme' ", 'Subject="Acme >= Globex"', "Subject=''", "status!=Open",
+             "a=b=c", '  "Due Date" >= \'2026-01-01\' ', "Sübject\u00a0=\u2003x\u3000", "x='", "x=\"a'"]
+STRICT_SCH = {"fields": [{"name": "subject", "label": "Subject", "field_type": "default_text", "default_field": True},
+                         {"name": "count", "label": "Count", "field_type": "custom_number"},
+                         {"name": "status", "field_type": "default_status", "default_field": True}]}
+STRICT_EXPRS = ["created_at>2030-01-01", "created_at<2030-01-01", "Subject~=Acme", "Count>12", "status~=Open",
+                "created_at>=2030-01-01", "Subject='=Acme'"]
+
+
+def strict():
+    from fsv.resources import PROBLEMS
+    return {
+        "parse": {e: outcome(lambda e=e: list(query._parse_where(e))) for e in MALFORMED},
+        "operator": {op: outcome(lambda op=op: query._where_operator(op))
+                     for op in ["", "==", "contains", "gte", "is_greater_than", "=", "!=", ">", "~="]},
+        "schema": STRICT_SCH,
+        "builder": {r.name: {e: outcome(lambda r=r, e=e: query.build_query_hash_from_schema(None, r, STRICT_SCH, [e]))
+                             for e in STRICT_EXPRS} for r in (CHANGES, TICKETS, PROBLEMS)},
+    }
+
+
 def gen_query():
     out = {
         "schema": SCH,
@@ -113,7 +137,7 @@ def gen_query():
         "invalid": {e: from_schema([e]) for e in INVALID},
         "date_bounds": [{"field": f, "lower": lo, "upper": hi,
                          **from_schema([f"{f}{lo}2026-01-01", "status=47", f"{f}{hi}2026-12-31"])}
-                        for f in DATE_FIELDS for lo, hi in [(">", "<"), (">=", "<=")]],
+                        for f in DATE_FIELDS for lo, hi in [(">=", "<=")]],
         "exact_date": from_schema(["due_by=2026-01-01", "due_by>=2026-02-01"]),
         "find_field": [{"fields": fields, "text": text,
                         **outcome(lambda: query._find_schema_field({"fields": fields}, text)["name"])}
@@ -124,6 +148,7 @@ def gen_query():
             for rows in [[], [{"id": 71, "value": "Alex"}],
                          [{"id": 71, "value": "Alex Acme"}, {"id": 72, "value": "Alex Globex"}]]],
         "groups": groups(),
+        "strict": strict(),
         "raw": raw_hash(),
         "malformed_raw": {raw: outcome(lambda: list(query.build_query_hash(None, CHANGES, [], raw=raw)))
                           for raw in ["%ZZ", "%255B%255D", "{}", "null"]},

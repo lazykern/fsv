@@ -1,0 +1,2022 @@
+{
+ "_python": {
+  "commit": "39e4853003dff8b2aab47ef6ccc435ba711dbb19",
+  "dirty": false
+ },
+ "link_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send",
+    "incident": 123
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "verified": true,
+     "problem_id": 7,
+     "incident_id": 123,
+     "linked": true
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ],
+   [
+    "plan:problem_link_incident",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "unlink_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "linked": true
+    }
+   },
+   {
+    "op": "build",
+    "unlink": true
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send",
+    "incident": 123
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_unlink_incident",
+     "target": 7,
+     "tenant": "acme.example.com",
+     "method": "DELETE",
+     "path": "problems/7/tickets/123",
+     "payload_json": "{\"type\": \"unlink\"}",
+     "context_hash": "3962c546c838adb3cbd6cc0c265e3a11938bbeb937ac0d1debfe6aec030344d6"
+    },
+    "hash": "c7248bf5c538365e83d4cdf199dd4775224962495f4d96253ee605c69edc23e3",
+    "review": {
+     "action": "problem_unlink_incident",
+     "method": "DELETE",
+     "path": "/api/_/problems/7/tickets/123",
+     "payload": {
+      "type": "unlink"
+     },
+     "plan_hash": "c7248bf5c538365e83d4cdf199dd4775224962495f4d96253ee605c69edc23e3",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "c7248bf5c538365e83d4cdf199dd4775224962495f4d96253ee605c69edc23e3",
+     "verified": true,
+     "problem_id": 7,
+     "incident_id": 123,
+     "linked": false
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_unlink_incident",
+    "started"
+   ],
+   [
+    "plan:problem_unlink_incident",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "DELETE",
+    "path": "problems/7/tickets/123",
+    "raw": "{\"type\": \"unlink\"}"
+   }
+  ]
+ },
+ "ambiguous_403_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "problem": 7,
+    "incident": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 403
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "ambiguous_429_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "problem": 7,
+    "incident": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 429
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "ambiguous_500_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "problem": 7,
+    "incident": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 500
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "ambiguous_disconnect_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "problem": 7,
+    "incident": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": "disconnect"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "ambiguous_400_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "problem": 7,
+    "incident": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 400
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 400); no retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 400); no retry"
+    },
+    "writes": 2
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ],
+   [
+    "plan:problem_link_incident",
+    "failed"
+   ],
+   [
+    "plan:problem_link_incident",
+    "started"
+   ],
+   [
+    "plan:problem_link_incident",
+    "failed"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   },
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "unavailable_readback_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial_after": true
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "verified": false,
+     "warning": "Independent readback failed; do not resend."
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ],
+   [
+    "plan:problem_link_incident",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "mismatch_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "mismatch": true
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "verified": false,
+     "problem_id": 7,
+     "incident_id": 123,
+     "linked": false,
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ],
+   [
+    "plan:problem_link_incident",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "preflight_acme": {
+  "tenant": "acme.example.com",
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "type": "Service Request"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "build",
+    "incident": "SR-123"
+   },
+   {
+    "op": "build",
+    "incident": "sr-123"
+   },
+   {
+    "op": "set",
+    "state": {
+     "type": "Incident",
+     "partial": true
+    }
+   },
+   {
+    "op": "build"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "41fb7c43837b8c56254a3301b224703ba33fbaccebaabba8bf6d044fe7f8075e",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "ticket is not a verified incident"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "incident ID must use the INC prefix, not SR"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "incident ID must use the INC prefix, not SR"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem ticket inventory unavailable; no write attempted"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "link_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send",
+    "incident": 123
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "verified": true,
+     "problem_id": 7,
+     "incident_id": 123,
+     "linked": true
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ],
+   [
+    "plan:problem_link_incident",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "unlink_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "set",
+    "state": {
+     "linked": true
+    }
+   },
+   {
+    "op": "build",
+    "unlink": true
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send",
+    "incident": 123
+   }
+  ],
+  "outputs": [
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_unlink_incident",
+     "target": 7,
+     "tenant": "globex.example.com",
+     "method": "DELETE",
+     "path": "problems/7/tickets/123",
+     "payload_json": "{\"type\": \"unlink\"}",
+     "context_hash": "3962c546c838adb3cbd6cc0c265e3a11938bbeb937ac0d1debfe6aec030344d6"
+    },
+    "hash": "18fec0a4b9325159aa39874bbd5c801374254bd78915ce78aef174754b9ea912",
+    "review": {
+     "action": "problem_unlink_incident",
+     "method": "DELETE",
+     "path": "/api/_/problems/7/tickets/123",
+     "payload": {
+      "type": "unlink"
+     },
+     "plan_hash": "18fec0a4b9325159aa39874bbd5c801374254bd78915ce78aef174754b9ea912",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "18fec0a4b9325159aa39874bbd5c801374254bd78915ce78aef174754b9ea912",
+     "verified": true,
+     "problem_id": 7,
+     "incident_id": 123,
+     "linked": false
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_unlink_incident",
+    "started"
+   ],
+   [
+    "plan:problem_unlink_incident",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "DELETE",
+    "path": "problems/7/tickets/123",
+    "raw": "{\"type\": \"unlink\"}"
+   }
+  ]
+ },
+ "ambiguous_403_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "problem": 7,
+    "incident": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 403
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "ambiguous_429_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "problem": 7,
+    "incident": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 429
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "ambiguous_500_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "problem": 7,
+    "incident": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 500
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "ambiguous_disconnect_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "problem": 7,
+    "incident": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": "disconnect"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "ambiguous_400_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build",
+    "problem": 7,
+    "incident": 123
+   },
+   {
+    "op": "set",
+    "state": {
+     "fail": 400
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 400); no retry"
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write rejected (HTTP 400); no retry"
+    },
+    "writes": 2
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ],
+   [
+    "plan:problem_link_incident",
+    "failed"
+   ],
+   [
+    "plan:problem_link_incident",
+    "started"
+   ],
+   [
+    "plan:problem_link_incident",
+    "failed"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   },
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "unavailable_readback_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "partial_after": true
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "verified": false,
+     "warning": "Independent readback failed; do not resend."
+    },
+    "writes": 1
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ],
+   [
+    "plan:problem_link_incident",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "mismatch_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "mismatch": true
+    }
+   },
+   {
+    "op": "send"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "submitted",
+     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "verified": false,
+     "problem_id": 7,
+     "incident_id": 123,
+     "linked": false,
+     "warning": "Readback was not fully verified; do not resend."
+    },
+    "writes": 1
+   }
+  ],
+  "events": [
+   [
+    "plan:problem_link_incident",
+    "started"
+   ],
+   [
+    "plan:problem_link_incident",
+    "done"
+   ]
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "path": "problems/7/tickets/associate",
+    "raw": "{\"item_ids\": [123]}"
+   }
+  ]
+ },
+ "preflight_globex": {
+  "tenant": "globex.example.com",
+  "ops": [
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "type": "Service Request"
+    }
+   },
+   {
+    "op": "send"
+   },
+   {
+    "op": "build",
+    "incident": "SR-123"
+   },
+   {
+    "op": "build",
+    "incident": "sr-123"
+   },
+   {
+    "op": "set",
+    "state": {
+     "type": "Incident",
+     "partial": true
+    }
+   },
+   {
+    "op": "build"
+   }
+  ],
+  "outputs": [
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "globex.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "baf21bea1e8f6a0ed7cfef3bc36f4d433bd348f77ab2d5b6aa64899a2d39dcd0"
+    },
+    "hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "735550172f5af47a83565badc0f1f576e45a840a1bbadfa7a97a2afa8bb7587a",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "ticket is not a verified incident"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "incident ID must use the INC prefix, not SR"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "incident ID must use the INC prefix, not SR"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem ticket inventory unavailable; no write attempted"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ },
+ "refusals": {
+  "ops": [
+   {
+    "op": "build",
+    "unlink": true
+   },
+   {
+    "op": "set",
+    "state": {
+     "linked": true
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "linked": false,
+     "display": "SR-123"
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "display": null
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "ticket_id": "124"
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "ticket_id": 123,
+     "problem": {
+      "problem": {
+       "id": 8
+      }
+     }
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "problem": {
+      "problem": "x"
+     }
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "problem": {
+      "id": "7"
+     }
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "rows": [
+      {
+       "id": 5
+      },
+      {
+       "id": "5"
+      }
+     ]
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "rows": [
+      {
+       "id": 0
+      }
+     ]
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "set",
+    "state": {
+     "rows": [
+      {
+       "id": 5
+      }
+     ]
+    }
+   },
+   {
+    "op": "build"
+   },
+   {
+    "op": "build",
+    "problem": "0"
+   },
+   {
+    "op": "build",
+    "incident": "0"
+   },
+   {
+    "op": "build",
+    "problem": "INC-7"
+   },
+   {
+    "op": "build",
+    "incident": "CHN-1"
+   },
+   {
+    "op": "send",
+    "hash": "none"
+   },
+   {
+    "op": "send",
+    "hash": "prefix"
+   }
+  ],
+  "outputs": [
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "incident is already in the requested association state"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "incident is already in the requested association state"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "ticket is not a verified incident"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "203fe691fd62b4b5f53ad7fff5431f3d8ac92e610954f84aa53a61c5315f8a9e"
+    },
+    "hash": "d382ab065585f5f600ca54e82eebc0163b4a8489781b0ce12e5c41297a19b35e",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "d382ab065585f5f600ca54e82eebc0163b4a8489781b0ce12e5c41297a19b35e",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "incident read did not identify exact target"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "problem read did not identify exact target"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "problem read did not identify exact target"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "c2d1ad096a11682f4c5fe1ab90455900be54ccfeabd962e7c1986abd745e043a"
+    },
+    "hash": "a60368a49c27c6f77b530675b1b376912fa65e4b6748852dd8855d14217d5d1d",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "a60368a49c27c6f77b530675b1b376912fa65e4b6748852dd8855d14217d5d1d",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem ticket inventory unavailable; no write attempted"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "complete problem ticket inventory unavailable; no write attempted"
+    },
+    "writes": 0
+   },
+   {
+    "writes": 0
+   },
+   {
+    "plan": {
+     "action": "problem_link_incident",
+     "target": 7,
+     "tenant": "acme.example.com",
+     "method": "PUT",
+     "path": "problems/7/tickets/associate",
+     "payload_json": "{\"item_ids\": [123]}",
+     "context_hash": "293aa82ed4f7707d43040c2cfb0c0c549b91989d36461611c15daa55ee6f590b"
+    },
+    "hash": "0ec2294c5ff3b2c40bf755931427a7e8638bafe4cb5651c624e26d7a13d4cb32",
+    "review": {
+     "action": "problem_link_incident",
+     "method": "PUT",
+     "path": "/api/_/problems/7/tickets/associate",
+     "payload": {
+      "item_ids": [
+       123
+      ]
+     },
+     "plan_hash": "0ec2294c5ff3b2c40bf755931427a7e8638bafe4cb5651c624e26d7a13d4cb32",
+     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "problem and incident IDs must be positive"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "problem and incident IDs must be positive"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "prefix INC not valid for problems (expect PRB)"
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ValueError",
+     "msg": "prefix CHN not valid for tickets (expect INC or SR)"
+    },
+    "writes": 0
+   },
+   {
+    "result": {
+     "status": "cancelled",
+     "verified": false
+    },
+    "writes": 0
+   },
+   {
+    "error": {
+     "type": "ReviewedWriteError",
+     "msg": "tenant or full review hash changed; review again"
+    },
+    "writes": 0
+   }
+  ],
+  "events": [],
+  "writes": []
+ }
+}

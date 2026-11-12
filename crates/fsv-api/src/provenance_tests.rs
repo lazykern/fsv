@@ -73,6 +73,26 @@ fn fixtures_record_their_python_commit() {
             "workflows_oracle",
             include_str!("testdata/workflows_oracle.json"),
         ),
+        (
+            "attachments_oracle",
+            include_str!("testdata/attachments_oracle.json"),
+        ),
+        (
+            "problem_incidents_oracle",
+            include_str!("testdata/problem_incidents_oracle.json"),
+        ),
+        (
+            "problem_status_oracle",
+            include_str!("testdata/problem_status_oracle.json"),
+        ),
+        (
+            "ticket_note_mutation_oracle",
+            include_str!("testdata/ticket_note_mutation_oracle.json"),
+        ),
+        (
+            "ticket_tasks_oracle",
+            include_str!("testdata/ticket_tasks_oracle.json"),
+        ),
     ] {
         assert_stamped(name, text);
     }

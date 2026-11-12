@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "94925f46cddbea900802f9cb5cdea0563f73d2b1",
+  "commit": "39e4853003dff8b2aab47ef6ccc435ba711dbb19",
   "dirty": false
  },
  "misc": {
@@ -542,17 +542,13 @@
     ]
    },
    "=x": {
-    "err": "invalid filter '=x'; expected FIELD=VALUE"
+    "err": "invalid filter '=x'; expected FIELD followed by = != >= <= > < or ~="
    },
    "==x": {
-    "ok": [
-     "=",
-     "=",
-     "x"
-    ]
+    "err": "invalid filter '==x'; expected FIELD followed by = != >= <= > < or ~="
    },
    "noop": {
-    "err": "invalid filter 'noop'; expected FIELD=VALUE"
+    "err": "invalid filter 'noop'; expected FIELD followed by = != >= <= > < or ~="
    },
    "f= \"q\" ": {
     "ok": [
@@ -569,24 +565,16 @@
     ]
    },
    ">=x": {
-    "ok": [
-     ">",
-     "=",
-     "x"
-    ]
+    "err": "invalid filter '>=x'; expected FIELD followed by = != >= <= > < or ~="
    },
    "a\n=b": {
-    "err": "invalid filter 'a\\n=b'; expected FIELD=VALUE"
+    "err": "invalid filter; controls and multiline expressions are not supported"
    },
    "a=b\nc": {
-    "err": "invalid filter 'a=b\\nc'; expected FIELD=VALUE"
+    "err": "invalid filter; controls and multiline expressions are not supported"
    },
    "sub=x\n": {
-    "ok": [
-     "sub",
-     "=",
-     "x"
-    ]
+    "err": "invalid filter; controls and multiline expressions are not supported"
    },
    "é=1": {
     "ok": [
@@ -1280,7 +1268,7 @@
     "err": "operator ~= (contains) not supported; use = or !="
    },
    "?": {
-    "ok": "is_in"
+    "err": "unknown filter operator '?'; no equality fallback"
    }
   },
   "query_item": {
@@ -1377,51 +1365,7 @@
     ]
    },
    "or": {
-    "ok": [
-     "{\"any\":[{\"value\":[1],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"},{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-02-01\"},\"condition\":\"created_at\",\"operator\":\"custom_date\",\"type\":\"default\"}]}",
-     [
-      {
-       "value": [
-        1
-       ],
-       "condition": "status",
-       "operator": "is_in",
-       "type": "default"
-      },
-      {
-       "value": {
-        "from": "2026-01-01",
-        "to": "2026-02-01"
-       },
-       "condition": "created_at",
-       "operator": "custom_date",
-       "type": "default"
-      }
-     ],
-     [
-      {
-       "field": "status",
-       "condition": "status",
-       "operator": "is_in",
-       "type": "default",
-       "value": "1"
-      },
-      {
-       "field": "created_at",
-       "condition": "created_at",
-       "operator": "custom_date",
-       "type": "default",
-       "value": "2026-01-01"
-      },
-      {
-       "field": "created_at",
-       "condition": "created_at",
-       "operator": "custom_date",
-       "type": "default",
-       "value": "2026-02-01"
-      }
-     ]
-    ]
+    "err": "strict date operator '<' is not supported; use >= or <= for inclusive bounds"
    },
    "raw": {
     "ok": [

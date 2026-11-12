@@ -113,8 +113,14 @@ pub fn resolve_where(
     let (field_text, op, raw) = parse_where(expr)?;
     if DATE_FIELDS.contains(&field_text.as_str()) {
         let value = match op.as_str() {
-            ">" | ">=" => json!({"from": raw}),
-            "<" | "<=" => json!({"to": raw}),
+            ">" | "<" => {
+                return Err(QueryError(format!(
+                    "strict date operator {} is not supported; use >= or <= for inclusive bounds",
+                    py_repr_str(&op)
+                )));
+            }
+            ">=" => json!({"from": raw}),
+            "<=" => json!({"to": raw}),
             "!=" => {
                 return Err(QueryError(format!(
                     "operator '!=' is not supported for date field {}; use a range such as `>=` / `<=`",
@@ -124,7 +130,7 @@ pub fn resolve_where(
             "=" => json!({"from": raw, "to": raw}),
             _ => {
                 return Err(QueryError(format!(
-                    "unsupported date operator {}; use = != >= <= > <",
+                    "unsupported date operator {}; use = >= <=",
                     py_repr_str(&op)
                 )));
             }
@@ -349,26 +355,54 @@ fn query_item(
     json!({"value": value, "condition": condition, "operator": operator, "type": type_})
 }
 
-/// `^(.+?)(>=|<=|!=|~=|=|>|<)(.*)$`: the field is at least one character, so
-/// `>=x` is field `>`, operator `=`. `.` does not match a newline, so an
-/// embedded `\n` makes the filter invalid.
-fn parse_where(expr: &str) -> Result<(String, String, String), QueryError> {
-    let expr = pystr::strip(expr);
-    let ops = [">=", "<=", "!=", "~=", "=", ">", "<"];
-    let skip = expr.chars().next().map_or(0, char::len_utf8);
-    let found = ops
-        .iter()
-        .filter_map(|op| expr[skip..].find(op).map(|i| (skip + i, *op)))
-        .min_by_key(|(i, _)| *i);
-    let Some(start) = found.filter(|_| !expr.contains('\n')) else {
-        return Err(QueryError(format!(
-            "invalid filter {}; expected FIELD=VALUE",
+/// Port of query._parse_where: `FIELD OP VALUE`, where the field is the
+/// text before the first operator character and `OP` is one of
+/// `>= <= != ~= = > <`. Controls, an empty field or value, an unterminated
+/// quote and a value starting with an operator character are refused; a
+/// malformed operator is never repaired.
+pub fn parse_where(expr: &str) -> Result<(String, String, String), QueryError> {
+    if expr.chars().any(|ch| (ch as u32) < 32) {
+        return Err(QueryError(
+            "invalid filter; controls and multiline expressions are not supported".into(),
+        ));
+    }
+    let invalid = || {
+        QueryError(format!(
+            "invalid filter {}; expected FIELD followed by = != >= <= > < or ~=",
             py_repr_str(expr)
-        )));
+        ))
     };
-    let (field, rest) = expr.split_at(start.0);
-    let value = strip_quotes(rest[start.1.len()..].trim());
-    Ok((field.trim().to_string(), start.1.to_string(), value))
+    let text = pystr::strip(expr);
+    let start = text.find(['<', '>', '=', '!', '~']).ok_or_else(invalid)?;
+    if start == 0 {
+        return Err(invalid());
+    }
+    let rest = &text[start..];
+    let op = [">=", "<=", "!=", "~=", "=", ">", "<"]
+        .into_iter()
+        .find(|op| rest.starts_with(op))
+        .ok_or_else(invalid)?;
+    let field = pystr::strip(&text[..start]);
+    let value = pystr::strip(&rest[op.len()..]);
+    if field.is_empty() || value.is_empty() {
+        return Err(QueryError(
+            "invalid filter; field and value are required (quote literal empty text)".into(),
+        ));
+    }
+    let first = value.chars().next().unwrap_or_default();
+    if first == '"' || first == '\'' {
+        if value.chars().count() < 2 || !value.ends_with(first) {
+            return Err(QueryError(
+                "invalid filter; unterminated quoted value".into(),
+            ));
+        }
+    } else if "<>=!~".contains(first) {
+        return Err(QueryError(
+            "invalid filter operator sequence; quote a literal value starting with an operator"
+                .into(),
+        ));
+    }
+    Ok((field.to_string(), op.to_string(), strip_quotes(value)))
 }
 
 fn strip_quotes(value: &str) -> String {
@@ -381,7 +415,9 @@ fn strip_quotes(value: &str) -> String {
     }
 }
 
-fn where_operator(op: &str) -> Result<String, QueryError> {
+/// Port of query._where_operator: the wire operator; an unknown operator is
+/// refused (no equality fallback).
+pub fn where_operator(op: &str) -> Result<String, QueryError> {
     match op {
         "=" => Ok("is_in".into()),
         "!=" => Ok("is_not_in".into()),
@@ -392,7 +428,10 @@ fn where_operator(op: &str) -> Result<String, QueryError> {
         "~=" => Err(QueryError(
             "operator ~= (contains) not supported; use = or !=".into(),
         )),
-        _ => Ok("is_in".into()),
+        _ => Err(QueryError(format!(
+            "unknown filter operator {}; no equality fallback",
+            py_repr_str(op)
+        ))),
     }
 }
 
@@ -785,13 +824,20 @@ mod tests {
             json!({"from": "2026-01-01"})
         );
         assert_eq!(
-            one("created_at>2026-01-01")["value"],
-            json!({"from": "2026-01-01"})
-        );
-        assert_eq!(
-            one("created_at<2026-02-01")["value"],
+            one("created_at<=2026-02-01")["value"],
             json!({"to": "2026-02-01"})
         );
+        for op in [">", "<"] {
+            let err = resolve_where(
+                None,
+                "changes",
+                &json!({"fields": []}),
+                &format!("created_at{op}2026-01-01"),
+                &mut Vec::new(),
+            )
+            .unwrap_err();
+            assert!(err.0.contains("strict date operator"), "{}", err.0);
+        }
         assert_eq!(
             one("created_at=2026-01-01")["value"],
             json!({"from": "2026-01-01", "to": "2026-01-01"})
