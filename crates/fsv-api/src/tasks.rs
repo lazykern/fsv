@@ -32,9 +32,6 @@ const ACTION: &str = "change_task_create";
 const UNKNOWN: &str =
     "task outcome unknown; inspect the change and journal before any retry; do not resubmit";
 
-static EMAIL: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$").expect("regex"));
-
 /// `TaskError`: a safe user-facing failure (the CLI exits 2).
 fn refused(msg: impl Into<String>) -> Error {
     Error::exit(2, msg)
@@ -48,7 +45,8 @@ fn str_at(row: &Value, key: &str) -> String {
     row.get(key).map(fsv_py::py_str).unwrap_or_default()
 }
 
-/// `resolve_owner`: no implicit self; a positive user id or one exact active agent email.
+/// `resolve_owner`: no implicit self. A positive user id, one exact email,
+/// or one exact full name.
 pub fn resolve_owner(c: &dyn Api, value: Option<&str>) -> Result<Option<i64>> {
     let Some(value) = value.filter(|v| !v.is_empty()) else {
         return Ok(None);
@@ -56,35 +54,31 @@ pub fn resolve_owner(c: &dyn Api, value: Option<&str>) -> Result<Option<i64>> {
     if let Some(id) = positive_id(&json!(value)) {
         return Ok(Some(id));
     }
-    if !EMAIL.is_match(value) {
+    let email = crate::agent_lookup::is_email(value);
+    let words = value.split_whitespace().count();
+    if !email
+        && (value.contains('@')
+            || words < 2
+            || value != fsv_core::pystr::strip(value)
+            || value.chars().any(|ch| (ch as u32) < 32))
+    {
         return Err(Error::value(
-            "owner must be a positive user ID or exact email (not 'me')",
+            "owner must be a positive user ID, exact email or full name (not 'me')",
         ));
     }
-    let rows = c
-        .autocomplete("agents", value, None)
-        .map_err(|_| refused("could not resolve owner email; no task POST was attempted; use an explicit user ID if unavailable"))?;
-    let wanted = casefold(value);
-    let matches: Vec<&Value> = rows
-        .iter()
-        .filter(|r| {
-            r.is_object()
-                && casefold(&str_at(r, "email")) == wanted
-                && !r.get("deleted").is_some_and(fsv_py::truthy)
-                && !r.get("deactivated").is_some_and(fsv_py::truthy)
-                && !str_at(r, "value").contains("(Deactivated)")
-        })
-        .collect();
-    match matches.as_slice() {
-        [one] => match one.get("user_id").and_then(positive_id) {
-            Some(id) => Ok(Some(id)),
-            None => Err(refused(
-                "owner email must match exactly one active agent with a user ID; use an explicit user ID if unavailable",
-            )),
-        },
-        _ => Err(refused(
-            "owner email must match exactly one active agent with a user ID; use an explicit user ID if unavailable",
-        )),
+    let rows = match c.autocomplete("agents", value, None) {
+        Ok(rows) => rows,
+        Err(_) => {
+            return Err(refused(
+                "owner lookup failed: could not resolve agent; lookup unavailable; use an explicit user ID if unavailable",
+            ));
+        }
+    };
+    match crate::agent_lookup::exact_agent_id(&rows, value, !email) {
+        Ok(id) => Ok(Some(id)),
+        Err(err) => Err(refused(format!(
+            "owner lookup failed: {err}; use an explicit user ID if unavailable"
+        ))),
     }
 }
 
@@ -800,7 +794,7 @@ mod tests {
     use crate::service::testing::*;
 
     const T: &str = "acme.freshservice.com";
-    const OWNER_ERR: &str = "owner email must match exactly one active agent with a user ID; use an explicit user ID if unavailable";
+    const OWNER_ERR: &str = "owner lookup failed: agent must match exactly one active entry with a user ID; 0 exact active candidates; use an explicit user ID if unavailable";
     const GROUP_ERR: &str =
         "group must resolve to exactly one exact name or be a positive ID; no POST attempted";
     const DATE_ERR: &str = "planned dates require ISO-8601 date/time with explicit offset, whole seconds (no host timezone inferred)";
@@ -868,15 +862,23 @@ mod tests {
         assert_eq!(resolve_owner(&api, Some("ann@X.io")).unwrap(), Some(11));
         assert_eq!(
             err(resolve_owner(&api, Some("me"))),
-            "owner must be a positive user ID or exact email (not 'me')"
+            "owner must be a positive user ID, exact email or full name (not 'me')"
         );
-        for who in ["bob@x.io", "cy@x.io", "dee@x.io"] {
+        for who in ["bob@x.io", "cy@x.io"] {
             assert_eq!(err(resolve_owner(&api, Some(who))), OWNER_ERR);
         }
+        assert_eq!(
+            err(resolve_owner(&api, Some("dee@x.io"))),
+            "owner lookup failed: agent must match exactly one active entry with a user ID; 1 exact active candidates; use an explicit user ID if unavailable"
+        );
+        let named = json!([{"id": "agent@example.com", "value": "Alex Acme", "user_id": 81}]);
+        let api = FakeApi::new().ok("GET autocomplete/agents", named);
+        assert_eq!(resolve_owner(&api, Some("ALEX ACME")).unwrap(), Some(81));
+        assert_eq!(err(resolve_owner(&api, Some("Alex Globex"))), OWNER_ERR);
         let down = FakeApi::new().on("GET autocomplete/agents", Reply::Session);
         assert_eq!(
             err(resolve_owner(&down, Some("ann@x.io"))),
-            "could not resolve owner email; no task POST was attempted; use an explicit user ID if unavailable"
+            "owner lookup failed: could not resolve agent; lookup unavailable; use an explicit user ID if unavailable"
         );
     }
 

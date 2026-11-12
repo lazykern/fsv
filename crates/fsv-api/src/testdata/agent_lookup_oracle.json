@@ -1,0 +1,85 @@
+{
+ "_python": {
+  "commit": "e7c536b57dcec600a09200ccc130ed0212a3775a",
+  "dirty": false
+ },
+ "cases": {
+  "email_id": {
+   "ok": 81
+  },
+  "email_key": {
+   "ok": 81
+  },
+  "details": {
+   "ok": 81
+  },
+  "empty": {
+   "error": "ValueError",
+   "msg": "agent must match exactly one active entry with a user ID; 0 exact active candidates"
+  },
+  "duplicate": {
+   "error": "ValueError",
+   "msg": "agent must match exactly one active entry with a user ID; 2 exact active candidates"
+  },
+  "deleted": {
+   "error": "ValueError",
+   "msg": "agent must match exactly one active entry with a user ID; 0 exact active candidates"
+  },
+  "inactive": {
+   "error": "ValueError",
+   "msg": "agent must match exactly one active entry with a user ID; 0 exact active candidates"
+  },
+  "deactivated_label": {
+   "error": "ValueError",
+   "msg": "agent must match exactly one active entry with a user ID; 0 exact active candidates"
+  },
+  "null_user": {
+   "error": "ValueError",
+   "msg": "agent must match exactly one active entry with a user ID; 1 exact active candidates"
+  },
+  "bool_user": {
+   "error": "ValueError",
+   "msg": "agent must match exactly one active entry with a user ID; 1 exact active candidates"
+  },
+  "other_email": {
+   "error": "ValueError",
+   "msg": "agent must match exactly one active entry with a user ID; 0 exact active candidates"
+  },
+  "bad_id": {
+   "error": "ValueError",
+   "msg": "agent must match exactly one active entry with a user ID; 0 exact active candidates"
+  },
+  "name": {
+   "ok": 81
+  },
+  "name_miss": {
+   "error": "ValueError",
+   "msg": "agent must match exactly one active entry with a user ID; 0 exact active candidates"
+  },
+  "owner_email": {
+   "ok": 81
+  },
+  "owner_name": {
+   "ok": 81
+  },
+  "owner_me": {
+   "error": "ValueError",
+   "msg": "owner must be a positive user ID, exact email or full name (not 'me')"
+  },
+  "owner_ambiguous": {
+   "error": "TaskError",
+   "msg": "owner lookup failed: agent must match exactly one active entry with a user ID; 2 exact active candidates; use an explicit user ID if unavailable"
+  },
+  "query_email": {
+   "ok": "81"
+  },
+  "query_ambiguous": {
+   "error": "ValueError",
+   "msg": "agent must match exactly one active entry with a user ID; 2 exact active candidates"
+  },
+  "unreadable": {
+   "error": "ValueError",
+   "msg": "agent lookup returned an unreadable result"
+  }
+ }
+}

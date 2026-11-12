@@ -595,6 +595,14 @@ fn resolve_agent(dir: Option<&dyn Directory>, value: &str) -> Result<String, Que
         return Ok(value.to_string());
     }
     let dir = dir.ok_or_else(|| QueryError("no directory for agent lookup".into()))?;
+    if crate::agent_lookup::is_email(value) {
+        let results = dir
+            .autocomplete("agents", value, &[])
+            .map_err(|_| QueryError("could not resolve agent; lookup unavailable".into()))?;
+        return crate::agent_lookup::exact_agent_id(&results, value, false)
+            .map(|id| id.to_string())
+            .map_err(|err| QueryError(err.to_string()));
+    }
     let results = dir.autocomplete("agents", value, &[])?;
     let item = pick_lookup(
         "agent",
@@ -1117,5 +1125,28 @@ mod tests {
         let case = &oracle["merge_same_conditions"];
         let input = case["input"].as_array().unwrap().clone();
         assert_eq!(Value::Array(merge_same_conditions(input)), case["output"]);
+    }
+
+    #[test]
+    fn resolve_agent_email_matches_python() {
+        let oracle: Value =
+            serde_json::from_str(include_str!("testdata/agent_lookup_oracle.json")).unwrap();
+        let native = json!({"id": "agent@example.com", "value": "Alex Acme", "user_id": 81});
+        let email = Dir {
+            rows: vec![native.clone()],
+            calls: Default::default(),
+        };
+        assert_eq!(
+            outcome(resolve_agent(Some(&email), "AGENT@example.com")),
+            json!({"ok": oracle["cases"]["query_email"]["ok"]})
+        );
+        let ambiguous = Dir {
+            rows: vec![native.clone(), native],
+            calls: Default::default(),
+        };
+        assert_eq!(
+            outcome(resolve_agent(Some(&ambiguous), "agent@example.com"))["err"],
+            oracle["cases"]["query_ambiguous"]["msg"]
+        );
     }
 }

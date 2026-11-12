@@ -2245,4 +2245,37 @@ A 200 or 204 labeled `application/json` with an empty or whitespace
 body is null, same as a JSON `null` body. Unlink readback still decides
 whether the article is gone. No CLI flag change.
 
-Still not triaged: `e7c536b`.
+## Ledger: `e7c536b` (library side)
+
+Triaged against a `git archive e7c536b` export
+(`FSV_PY_COMMIT=e7c536b57dcec600a09200ccc130ed0212a3775a`).
+`port/golden/gen_fsv_api_agent_lookup.py` stamps
+`crates/fsv-api/src/testdata/agent_lookup_oracle.json`.
+
+Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `e7c536b`.
+The partial is fsv-cli `lookup.rs` `resolve_agent` and the task-add
+help text, named below.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `e7c536b` | 11-12 16:57 | Resolve exact agent emails from native autocomplete | partial | fsv-api `agent_lookup`, `tasks::resolve_owner`, `query::resolve_agent`, `change_task_update`. fsv-cli follow-up below |
+
+`exact_agent_id` returns a user id only for one exact active row.
+Email lookup reads `id`, `email`, and `details` (the native `id` is
+the email). A second email on the row that disagrees is not a match.
+Full-name lookup reads `value` and `name`. `resolve_owner` accepts an
+id, an exact email, or a full name. Lookup failure is `TaskError`.
+`changes tasks-update` turns that `TaskError` into `ValueError`.
+`query._resolve_agent` uses the same email match and still falls
+through to `pick_lookup` for a non-email.
+
+### CLI handoff (do not edit fsv-cli here)
+
+`lookup.rs` `resolve_agent` should, for an email, call
+`agent_lookup::exact_agent_id` and return the user id as text. A
+`ValueError` from that lookup is the command error. Non-email values
+keep `pick_lookup` on `value`, `id`, `email`, and `details`. The
+`changes tasks-add --owner` help text should say an explicit user id,
+exact email, or full name.
+
+Still not triaged: none. Range through `e7c536b` is triaged.

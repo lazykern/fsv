@@ -158,10 +158,14 @@ fn assign_party(c: &dyn Api, key: &str, value: &Value) -> Result<Value> {
         other => py_str(other),
     };
     let id = if key == "owner" {
-        tasks::resolve_owner(c, Some(&text))?
+        tasks::resolve_owner(c, Some(&text))
     } else {
-        tasks::resolve_group(c, Some(&text))?
+        tasks::resolve_group(c, Some(&text))
     };
+    let id = id.map_err(|err| match err {
+        Error::Exit { message, .. } => Error::value(message),
+        other => other,
+    })?;
     Ok(match id {
         Some(n) => json!(n),
         None => Value::Null,
@@ -659,5 +663,24 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn owner_lookup_failure_is_a_value_error() {
+        let agents = json!([
+            {"id": "agent@example.com", "value": "Alex Acme", "user_id": 81},
+            {"id": "agent@example.com", "value": "Alex Acme", "user_id": 81}
+        ]);
+        let api = FakeApi::new()
+            .ok(
+                "GET changes/23/tasks",
+                json!({"tasks": [{"id": 17, "title": "Acme"}], "meta": {"has_next": false}}),
+            )
+            .ok("GET change_task_fields", json!({"change_task_fields": []}))
+            .ok("GET autocomplete/agents", agents);
+        let inputs = obj(json!({"owner": "agent@example.com"}));
+        let err = build_plan(&api, &json!("CHN-23"), &json!(17), &inputs).unwrap_err();
+        assert!(matches!(err, Error::Value(_)), "{err:?}");
+        assert!(err.to_string().contains("2 exact active candidates"));
     }
 }
