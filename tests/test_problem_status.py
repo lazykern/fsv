@@ -36,7 +36,15 @@ def api(request, monkeypatch, tmp_path):
             if path.endswith("planning-fields"):
                 return httpx.Response(200, json={"problem_planning_fields": copy.deepcopy(s["analysis"])})
             if path.endswith("solutions"):
-                return httpx.Response(200, json={"solutions": copy.deepcopy(s["solutions"]), "has_more": s["partial"]})
+                s.setdefault("solution_reads", []).append(dict(req.url.params))
+                if s.get("solution_error"):
+                    return httpx.Response(s["solution_error"], json={"error": "unavailable"})
+                if "solution_raw" in s:
+                    return httpx.Response(200, json=copy.deepcopy(s["solution_raw"]))
+                if s.get("solution_pages"):
+                    page = int(req.url.params.get("page", 1))
+                    return httpx.Response(200, json=copy.deepcopy(s["solution_pages"][page - 1]))
+                return httpx.Response(200, json={"articles": copy.deepcopy(s["solutions"]), "has_more": s["partial"]})
             assert path == "problems/123"
             return httpx.Response(200, json={"problem": copy.deepcopy(s["row"])})
         body = json.loads(req.content)
@@ -78,6 +86,54 @@ def test_closure_missing_sections_and_solution(api):
     s["analysis"] = []
     s["solutions"] = []
     with pytest.raises(ReviewedWriteError, match="Root Cause, Impact, Symptoms, linked workaround / solution"):
+        flow.build_plan(c, 123, "Closed")
+    assert not s["writes"]
+
+
+@pytest.mark.parametrize("articles", [[], [{"id": 701, "title": "Acme workaround", "article_type": 2}],
+                                     [{"id": 801, "title": "Globex permanent solution", "article_type": 1}]])
+def test_native_articles_envelope_and_empty_inventory_diagnostic(api, articles):
+    c, s, _, _ = api
+    s["solution_raw"] = {"articles": articles}
+    runner = CliRunner()
+    r = runner.invoke(cli.app, ["problems", "status", "PRB-123", "--to", "Closed", "--dry-run"])
+    if articles:
+        assert r.exit_code == 0, r.output
+        p = flow.build_plan(c, 123, "Closed")
+        assert flow.build_plan(c, 123, "Closed").hash == p.hash
+    else:
+        assert r.exit_code == 2, r.output
+        assert "violated_closure_rules: missing linked workaround / solution" in r.output
+        assert "inventory is unavailable" not in r.output
+    assert not s["writes"]
+
+
+def test_native_articles_pagination_stays_on_solutions_route(api):
+    c, s, _, _ = api
+    s["solution_pages"] = [{"articles": [{"id": 701, "title": "Acme workaround"}], "has_more": True},
+                           {"articles": [{"id": 801, "title": "Globex solution"}], "has_more": False}]
+    context = flow.closure_context(c, 123)
+    assert [r["id"] for r in context["solutions"]] == [701, 801]
+    assert [r["page"] for r in s["solution_reads"]] == ["1", "2"]
+    assert not s["writes"]
+
+
+@pytest.mark.parametrize("raw", [{}, {"articles": None}, {"articles": {}},
+                                 {"solutions": []}, {"articles": [], "meta": {"count": 1}},
+                                 {"articles": [], "has_more": True}])
+def test_unknown_or_incomplete_solutions_never_means_empty(api, raw):
+    c, s, _, _ = api
+    s["solution_raw"] = raw
+    with pytest.raises(ReviewedWriteError, match="complete problem solutions inventory is unavailable"):
+        flow.build_plan(c, 123, "Closed")
+    assert not s["writes"]
+
+
+@pytest.mark.parametrize("status", [403, 429, 500])
+def test_solutions_read_errors_fail_closed(api, status):
+    c, s, _, _ = api
+    s["solution_error"] = status
+    with pytest.raises(ReviewedWriteError, match="complete problem solutions inventory is unavailable"):
         flow.build_plan(c, 123, "Closed")
     assert not s["writes"]
 

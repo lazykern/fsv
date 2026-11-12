@@ -31,7 +31,9 @@ def record(client: Any, target: int) -> dict[str, Any]:
 
 
 def inventory(client: Any, target: int, kind: str) -> list[dict[str, Any]]:
-    rows, meta, _ = collect_pages(client, f"problems/{target}/{kind}", kind,
+    # The native linked-solutions route returns KB articles, not a solutions key.
+    key = "articles" if kind == "solutions" else kind
+    rows, meta, _ = collect_pages(client, f"problems/{target}/{kind}", key,
                                   {"page": 1, "per_page": 30}, what="problem " + kind)
     if not meta.get("complete"):
         raise ReviewedWriteError("complete problem " + kind + " inventory is unavailable")
