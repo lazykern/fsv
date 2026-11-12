@@ -192,3 +192,40 @@ def test_problem_form_dump_and_create_cli(wire, monkeypatch):
     sent = runner.invoke(cli.app, args + ["--yes", "--expect-plan", digest])
     assert sent.exit_code == 0, sent.output
     assert json.loads(sent.output)["verified"]
+
+
+def _native_task_fields(base, *, extra_required=None, status_id=None):
+    def field(name, required="false", choices=None):
+        row = {"name": name, "label": name.title(), "required": False,
+               "field_options": {"im_api_name": name, "required_for_create": required, "required_for_closure": required}}
+        if choices is not None:
+            row["choices"] = choices
+        return row
+    fields = [field("title", "true"), field("description"), field("workspace_id", "true"), field("group_id"),
+              field("owner_id"),
+              field("status", choices=[{"id": str(base + 10) if status_id is None else status_id, "value": "Open"},
+                                       {"id": str(base + 12), "value": "Completed"}]),
+              field("notify_before", choices=[{"id": "0", "value": "Never"}, {"id": "900", "value": "15 Minutes"}]),
+              field("planned_effort")]
+    if extra_required:
+        next(f for f in fields if f["name"] == extra_required)["field_options"]["required_for_create"] = "true"
+    return fields
+
+
+def test_native_task_metadata_string_choice_ids_seed_integer_wire(wire):
+    wire["task_fields"] = _native_task_fields(wire["base"])
+    p = flow.child_plan(wire["client"], "PRB-123", kind="task", text="Acme")
+    assert p.payload == {"title": "Acme", "owner_id": 901, "status": wire["base"] + 10,
+                         "notify_before": 0, "planned_effort": "1m"}
+    assert type(p.payload["status"]) is int and type(p.payload["notify_before"]) is int
+    assert flow.send(p, wire["client"], reviewed_hash=p.hash)["verified"]
+    assert wire["writes"] == [("problems/123/tasks", p.payload)]
+
+
+@pytest.mark.parametrize("variant", [{"extra_required": "group_id"}, {"status_id": "1a"}, {"status_id": True},
+                                     {"status_id": "-1"}, {"status_id": None, "extra_required": "description"}])
+def test_native_task_metadata_fails_closed_without_write(wire, variant):
+    wire["task_fields"] = _native_task_fields(wire["base"], **variant)
+    with pytest.raises(ReviewedWriteError):
+        flow.child_plan(wire["client"], "PRB-123", kind="task", text="Acme")
+    assert not wire["writes"]

@@ -86,9 +86,14 @@ def _choice(fields: list[dict[str, Any]], name: str, label: str) -> int:
     choices = [c for c in matches[0].get("choices", []) if isinstance(c, dict) and
                not any(c.get(k) for k in ("deleted", "is_deleted", "deactivated", "deleted_at")) and
                str(c.get("value") or c.get("label") or c.get("name") or "").casefold() == label.casefold()]
-    if len(choices) != 1 or type(choices[0].get("id")) is not int or choices[0]["id"] < 0:
-        raise ReviewedWriteError("active runtime " + name + " choice is unavailable or ambiguous")
-    return choices[0]["id"]
+    # Native problem_task_fields serialize choice IDs as digit strings; the
+    # accepted task-create wire sends the same identities as JSON integers.
+    ident = choices[0].get("id") if len(choices) == 1 else None
+    if type(ident) is int and ident >= 0:
+        return ident
+    if type(ident) is str and ident.isascii() and ident.isdigit():
+        return int(ident)
+    raise ReviewedWriteError("active runtime " + name + " choice is unavailable or ambiguous")
 
 
 def child_plan(client: Any, target: str | int, *, kind: str, text: str) -> ProblemPlan:
@@ -112,8 +117,11 @@ def child_plan(client: Any, target: str | int, *, kind: str, text: str) -> Probl
             raise ReviewedWriteError("problem task metadata is unavailable")
         payload = {"title": text, "owner_id": user, "status": _choice(fields, "status", "Open"),
                    "notify_before": _choice(fields, "notify_before", "Never"), "planned_effort": "1m"}
+        # Requiredness lives in nested field_options (boolean or "true"); the
+        # parent-provided workspace is omitted by the accepted create body.
+        from fsv.ticket_tasks import CONTEXT_FIELDS, required_for_create
         for field in fields:
-            if any(field.get(k) is True for k in ("required", "required_for_agents", "required_on_create")) and field.get("name") not in payload:
+            if required_for_create(field) and field.get("name") not in payload and field.get("name") not in CONTEXT_FIELDS:
                 raise ReviewedWriteError("problem task has an uncaptured required field")
         context.update(fields=fields, self=user)
     return ProblemPlan("problem_" + kind, target, config.DOMAIN, "POST",

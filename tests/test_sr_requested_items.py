@@ -27,7 +27,8 @@ def api(monkeypatch, tmp_path):
         path = req.url.path.removeprefix("/api/_/")
         if req.method == "GET":
             if path == "tickets/123":
-                return httpx.Response(200, json={"ticket": {"id": 123, "ticket_type": "Service Request"}})
+                # Native exact ticket reads expose ``type``; echoes may use ``ticket_type``.
+                return httpx.Response(200, json={"ticket": {"id": 123, **s.get("kind_fields", {"type": "Service Request"})}})
             if "business_rules" in path:
                 return httpx.Response(403, json={"error": "denied"}) if s["rules_fail"] else httpx.Response(200, json={"business_rules": []})
             if path == "catalog/service-items/71":
@@ -138,3 +139,20 @@ def test_sr_item_cli_review(api):
     sent = runner.invoke(cli_sr.app, args + ["--yes", "--expect-plan", p["plan_hash"]])
     assert sent.exit_code == 0, sent.output
     assert json.loads(sent.stdout)["verified"]
+
+
+@pytest.mark.parametrize("fields,allowed", [
+    ({"type": "Service Request"}, True), ({"ticket_type": "Service Request"}, True),
+    ({"type": "Service Request", "ticket_type": "service_request"}, True),
+    ({"type": "Incident"}, False), ({"type": "Service Request", "ticket_type": "Incident"}, False),
+    ({}, False), ({"type": None}, False)])
+@pytest.mark.parametrize("action", ["edit", "stage", "add"])
+def test_parent_type_proof_uses_native_exact_read(api, fields, allowed, action):
+    c, s = api
+    s["kind_fields"] = fields
+    if allowed:
+        assert flow.build_plan(c, "SR-123", action=action, **opts(action)).method in {"PUT", "PATCH", "POST"}
+    else:
+        with pytest.raises(ReviewedWriteError, match="service request|ticket type"):
+            flow.build_plan(c, "SR-123", action=action, **opts(action))
+    assert not s["writes"]
