@@ -2201,4 +2201,30 @@ No new CLI flags. A `changes tasks-update` caller that prints `send`'s
 result gets `fields_verified` and that warning. The `be41032` CLI
 follow-up is unchanged.
 
-Still not triaged: `11e76ed`, `ffcab5b`, `e7c536b`.
+## Ledger: `11e76ed` (library side)
+
+Triaged against a `git archive 11e76ed` export
+(`FSV_PY_COMMIT=11e76ed502217750f9713371113eddf406b8aa9c`).
+`port/golden/oracles/fsv_oracle/o_catalog.py` was regenerated into
+`crates/fsv-api/src/testdata/catalog_oracle.json`. Plans with a
+requester and another recipient now bind `requester_id`. The
+recipients plan hash moved from `ab09e59e…` to `917c8820…`.
+fsv-cli does not pin the old hash.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `11e76ed`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `11e76ed` | 11-12 16:06 | Verify SR recipients from exact ticket user identities and nested projections | ported | fsv-api `sr_recipient_readback`, `catalog` |
+
+`recipient_fields` accepts an email string, a nested `{id, email}`, and
+the ticket's `requester_id` / `requested_for_id`. Every representation
+has to agree. CC stays a case-insensitive list. `duplicate_check` still
+blocks a journal `started` event recorded under the hash from before
+`requester_id` was bound.
+
+No new CLI flags. `build_sr_plan` / `execute` / `duplicate_check` pick
+this up for any caller that already passes a requester with
+`requested_for` or CC.
+
+Still not triaged: `ffcab5b`, `e7c536b`.

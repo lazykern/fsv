@@ -1358,6 +1358,10 @@ pub fn build_sr_plan(
         identity.insert("cc_ids".into(), json!(who.cc_ids));
     }
     if !identity.is_empty() {
+        if let Some(requester) = requester {
+            let id = crate::watchers::positive_id(&requester.id)?;
+            identity.insert("requester_id".into(), json!(id));
+        }
         identity.insert("tenant".into(), json!(tenant));
     }
     review.errors = problems.clone();
@@ -1698,17 +1702,14 @@ pub fn execute_detailed(
             {
                 return Err(Error::value("identity mismatch"));
             }
-            let mut fields = Map::new();
-            for key in ["email", "requested_for", "cc_emails"] {
-                if let Some(want) = body.get(key) {
-                    let state = match row.get(key) {
-                        None => "unavailable",
-                        Some(got) if got == want => "matched",
-                        Some(_) => "mismatched",
-                    };
-                    fields.insert(key.into(), json!(state));
-                }
-            }
+            let Some(body) = body.as_object() else {
+                return Err(Error::value("identity mismatch"));
+            };
+            let fields = crate::sr_recipient_readback::recipient_fields(
+                row.as_object().unwrap(),
+                body,
+                &plan.identity,
+            )?;
             let verified = !fields.is_empty() && fields.values().all(|v| v == "matched");
             Ok(json!({"verified": verified, "fields": fields}))
         };
@@ -1797,7 +1798,21 @@ pub fn freshen(
 /// `duplicate_check`: an unknown earlier outcome, then the 24-hour
 /// duplicate window (`change_flow.check_duplicate`).
 pub fn duplicate_check(plan: &SRPlan, allow_duplicate: bool, journal: &dyn Journal) -> Result<()> {
-    if crate::service::last_event(journal, "create", &plan.hash).as_deref() == Some("started") {
+    let mut hashes = vec![plan.hash.clone()];
+    if plan.identity.contains_key("requester_id") {
+        // A write reviewed before requester ids were bound stays unresolved.
+        let mut previous = plan.identity.clone();
+        previous.shift_remove("requester_id");
+        let mut hashed = obj(json!({"request": plan.payload, "target": plan.target()}));
+        hashed.insert("recipient_identity".into(), Json::Object(previous));
+        hashes.push(
+            plan_hash(&Json::Object(hashed), Some(&plan.plan_files()))
+                .map_err(|e| flow_exit(2, format!("cannot verify reviewed files: {e}")))?,
+        );
+    }
+    if hashes.iter().any(|hash| {
+        crate::service::last_event(journal, "create", hash).as_deref() == Some("started")
+    }) {
         return Err(flow_exit(
             4,
             "previous request outcome is unknown; inspect the server and journal before retry",
@@ -2748,6 +2763,25 @@ mod tests {
         assert_eq!(err(duplicate_check(&p, false, &j)), want_err("dup_done"));
         assert!(duplicate_check(&p, true, &j).is_ok());
         assert_eq!(ORACLE["dup_allowed"], Json::Null);
+
+        let recipients = recipients_plan();
+        assert_eq!(recipients.identity["requester_id"], json!(9000000007i64));
+        let mut previous = recipients.identity.clone();
+        previous.shift_remove("requester_id");
+        let mut hashed = obj(json!({"request": recipients.payload, "target": recipients.target()}));
+        hashed.insert("recipient_identity".into(), Json::Object(previous));
+        let old = plan_hash(&Json::Object(hashed), Some(&recipients.plan_files())).unwrap();
+        assert_eq!(
+            old,
+            "ab09e59e340830bc1e26b2ba6b0f89f1c4360defee3340d4e239bc7b80a5f85e"
+        );
+        assert_ne!(old, recipients.hash);
+        let j = MemJournal::default();
+        j.record_plan("started", &old, "create", None, None);
+        assert_eq!(
+            err(duplicate_check(&recipients, true, &j)),
+            want_err("dup_started")
+        );
     }
 
     #[test]

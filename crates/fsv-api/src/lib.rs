@@ -39,6 +39,7 @@ pub mod service;
 pub mod site;
 pub mod solutions;
 pub mod sr_approvals;
+pub mod sr_recipient_readback;
 pub mod state_flow;
 mod task_status;
 pub mod tasks;
