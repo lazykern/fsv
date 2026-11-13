@@ -14,7 +14,27 @@ from fsv.errors import APIError, server_message
 
 
 class ReviewedWriteError(RuntimeError):
-    pass
+    """Safe user-facing failure. ``http_status``/``server_message`` carry the
+    server's answer (sanitized: one line, tags stripped, bounded) when a
+    write got a non-2xx response, so callers never report a bare failure."""
+
+    def __init__(self, message: str, *, http_status: int | None = None, server_message: str | None = None) -> None:
+        super().__init__(message)
+        self.http_status = http_status
+        self.server_message = server_message
+
+    def as_dict(self) -> dict[str, Any]:
+        out: dict[str, Any] = {"error": str(self)}
+        if self.http_status is not None:
+            out["http_status"] = self.http_status
+            out["server_message"] = self.server_message or ""
+        return out
+
+
+def http_detail(exc: APIError) -> tuple[str, str]:
+    """``("HTTP 503: <message>", "<message>")`` for a failed write."""
+    reason = server_message(exc.body)
+    return f"HTTP {exc.status}" + (f": {reason}" if reason else " (empty response body)"), reason
 
 
 @dataclass(frozen=True)
@@ -71,17 +91,20 @@ def execute(plan: WritePlan, client: Any, *, reviewed_hash: str | None,
     try:
         response = client._request(plan.method, f"{config.API_INT}/{plan.path}", **kwargs)
     except APIError as exc:
+        # Never a bare failure: name the server's status and reason (e.g. a
+        # lifecycle edge, criterion, lock, rate limit or server error).
+        detail, reason = http_detail(exc)
         if 400 <= exc.status < 500 and exc.status not in (403, 408, 429):
             journal.record_plan("failed", plan.hash, action=plan.action, target=plan.target)
             if rejection:
-                raise ReviewedWriteError(rejection(exc)) from None
-            # Name the server's reason (e.g. a lifecycle edge, criterion or lock).
-            reason = server_message(exc.body)
+                raise ReviewedWriteError(rejection(exc), http_status=exc.status, server_message=reason) from None
             raise ReviewedWriteError(f"write rejected (HTTP {exc.status})" + (f": {reason}" if reason else "")
-                                     + "; no retry") from None
-        raise ReviewedWriteError("write outcome unknown; inspect target and journal before retry") from None
-    except Exception:
-        raise ReviewedWriteError("write outcome unknown; inspect target and journal before retry") from None
+                                     + "; no retry", http_status=exc.status, server_message=reason) from None
+        raise ReviewedWriteError(f"write outcome unknown ({detail}); inspect target and journal before retry",
+                                 http_status=exc.status, server_message=reason) from None
+    except Exception as exc:
+        raise ReviewedWriteError(f"write outcome unknown ({type(exc).__name__}); inspect target and journal "
+                                 "before retry") from None
     journal.record_plan("done", plan.hash, action=plan.action, target=plan.target)
     result = {"status": "submitted", "plan_hash": plan.hash, "verified": False}
     try:

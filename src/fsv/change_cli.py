@@ -503,11 +503,18 @@ def update_command(
         if plan.review.blocking_unacked:
             raise FlowExit(2, "blocking rule message(s) need --ack: " + "; ".join(plan.review.blocking_unacked))
         flow.expect(plan, expect_plan)
+    from fsv.reviewed_write import ReviewedWriteError
     try:
         result = _send(plan, client, rebuild=lambda m: build(plan.draft, ack, m), tty=tty, yes=yes,
                        expect_plan=expect_plan, allow_duplicate=True, duplicate=duplicate)
     except PartialFailure as e:
         raise _report_partial(e, "change") from None
+    except ReviewedWriteError as e:
+        # A failed send always names the server's status and message.
+        if as_json:
+            print(json.dumps({"updated": None, "plan_hash": plan.hash, "verified": False, **e.as_dict()},
+                             indent=2, default=str, ensure_ascii=False))
+        raise FlowExit(5 if e.http_status else 1, f"{subject}: {e}") from None
     if as_json:
         print(json.dumps({"updated": result["result"], "plan_hash": result["plan_hash"], "steps": result["steps"],
                           "verified": result.get("verified", False), "fields": result.get("fields", {}),

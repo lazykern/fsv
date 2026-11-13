@@ -224,12 +224,15 @@ def send(plan: PropertyPlan, c: Any, *, reviewed_hash: str | None) -> dict[str, 
                    content=plan.body_json.encode("utf-8"),
                    headers={"Content-Type": "application/json", "X-CSRF-Token": csrf})
     except APIError as exc:
+        from fsv.reviewed_write import http_detail
+        detail, _reason = http_detail(exc)
         if 400 <= exc.status < 500 and exc.status not in (403, 408, 429):
             journal.record_plan("failed", plan.hash, action=_ACTION, target=plan.ticket_id)
-            raise PropertyError(f"update rejected (HTTP {exc.status}); no retry") from None
-        raise PropertyError("update outcome unknown; inspect ticket and journal before retry") from None
-    except Exception:
-        raise PropertyError("update outcome unknown; inspect ticket and journal before retry") from None
+            raise PropertyError(f"update rejected ({detail}); no retry") from None
+        raise PropertyError(f"update outcome unknown ({detail}); inspect ticket and journal before retry") from None
+    except Exception as exc:
+        raise PropertyError(f"update outcome unknown ({type(exc).__name__}); inspect ticket and journal "
+                            "before retry") from None
     journal.record_plan("done", plan.hash, action=_ACTION, target=plan.ticket_id)
     result: dict[str, Any] = {"status": "submitted", "ticket_id": plan.ticket_id,
                               "plan_hash": plan.hash, "verified": False}
