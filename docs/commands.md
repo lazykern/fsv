@@ -200,6 +200,9 @@ fsv tickets activity INC-1234
 fsv tickets fields --refresh
 fsv tickets search 'Acme service'
 fsv tickets conversations INC-1234
+fsv templates list
+fsv tickets create --template 'Acme outage' --requester jane@example.com --dry-run
+fsv tickets add-note INC-1234 --body 'FYI' --notify-agent 'Robin Agent' --dry-run
 fsv tickets add-note INC-1234 --body 'See screenshot' --inline-image shot.png --dry-run
 fsv tickets approvals INC-1234
 fsv tickets associations INC-1234
@@ -245,6 +248,8 @@ fsv problems assets list PRB-1234
 fsv problems columns list
 fsv changes views
 fsv changes ls --where status=Open --json
+fsv changes windows list
+fsv changes windows create --name 'Acme freeze' --start '2030-11-21 10:00' --end '2030-11-21 12:00' --criteria change_type=Normal --dry-run
 fsv changes get CHN-1234 --all-tabs
 fsv changes activity CHN-1234 -n 20
 fsv changes tasks CHN-1234

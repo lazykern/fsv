@@ -30,11 +30,25 @@ def create_command(client_factory: Callable[[], Any], *, from_file: str | None, 
                    preset: str | None, edit: bool, requester: str | None, dry_run: bool,
                    as_json: bool, yes: bool, expect_plan: str | None, allow_duplicate: bool,
                    ack: bool, no_input: bool, cc: list[str] | None = None, attach: list[str] | None = None,
-                   max_bytes: int | None = None, devices: list[int] | None = None) -> None:
+                   max_bytes: int | None = None, devices: list[int] | None = None,
+                   template: str | None = None) -> None:
     tty = flow.interactive() and not no_input
-    form = not (from_file or sets or preset or edit) and tty and form_tty()
-    template_only = not (from_file or sets or preset or edit or form) and dry_run
-    if not (from_file or sets or preset or edit or form or template_only):
+    if template:
+        # A template only prefills: the answers below still pass the form's
+        # fields, rules and review; --from/--set/--preset win key by key.
+        from fsv import templates as T
+        try:
+            row = T.show(client_factory(), template)
+        except (T.TemplateError, ValueError) as e:
+            raise flow.FlowExit(2, str(e)) from None
+        base_draft, applied, ignored = T.to_draft(row)
+        err.print(f"template {row.get('name')!r} prefills: {', '.join(applied) or 'nothing'}"
+                  + (f"; not applied: {', '.join(ignored)}" if ignored else ""), markup=False, highlight=False)
+    else:
+        base_draft = None
+    form = not (from_file or sets or preset or edit or base_draft) and tty and form_tty()
+    template_only = not (from_file or sets or preset or edit or form or base_draft) and dry_run
+    if not (from_file or sets or preset or edit or form or template_only or base_draft):
         raise flow.FlowExit(2, "pass --from or --set, or open the interactive form in a terminal")
     if attach and (form or template_only or allow_duplicate):
         raise flow.FlowExit(2, "--attach requires explicit form answers and does not allow duplicate override")
@@ -46,6 +60,8 @@ def create_command(client_factory: Callable[[], Any], *, from_file: str | None, 
     meta = load_meta(client, "ticket", "new", fresh=dry_run or yes or not tty)
     try:
         draft = resolve_draft(from_file, preset, sets, Draft())
+        if base_draft is not None:
+            draft = base_draft.merged(draft)
     except ValueError as e:
         raise flow.FlowExit(2, str(e)) from None
     who = _Requester(client, requester, tty)

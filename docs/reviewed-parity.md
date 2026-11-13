@@ -375,6 +375,36 @@ be authenticated by fsv's agent session and the host is not published in the
 tenant metadata fsv reads, so nothing is implemented rather than hardcoding a
 host.
 
+## Ticket templates, maintenance windows and notify entries
+
+`fsv templates list` / `fsv templates show NAME_OR_ID` read
+`GET /api/_/ticket-templates` and `GET /api/_/ticket-templates/<id>` (the new
+ticket form's template picker; `meta.max_template_count` is the current count,
+not a cap). `fsv tickets create --template NAME` only prefills, as the picker
+does: subject, status, source, priority, urgency, impact, category fields,
+scalar custom fields and the description become draft answers, `--from`,
+`--preset` and `--set` win key by key, and everything still passes the form's
+fields, business rules and the normal review/hash gate. Keys that are not
+prefilled (tags, nested custom values, ...) are named on stderr. Template
+create/delete are classic admin form posts and are not implemented.
+
+`fsv changes windows list|create|delete` follow the captured window page:
+`create` needs at least one `--criteria change_type=<label or id>` (the UI's
+mandatory "Applicable to Changes" row; only this condition is captured), takes
+`--start/--end 'YYYY-MM-DD HH:MM'` and sends `DD-MM-YYYY` / `h:mmam` values.
+After `--yes --expect-plan` it first posts the UI's overlap check
+(`POST /api/_/change_windows/overlapping_windows`, read-only in effect) and
+refuses when any window overlaps unless `--allow-overlap`; then one
+`POST /api/_/maintenance_windows` with the `change_window` body, verified in
+the window list. `delete` is `DELETE /api/_/maintenance_windows/<id>`, verified
+by absence. Matching windows to a change is not implemented (no accepted
+contract in this round).
+
+Notes have no inline @mention; the editor's "Notify to" picker sends
+`notify_emails: ["Name <email>"]`. `fsv tickets add-note --notify-agent NAME`
+resolves one active agent by exact name or email through the agent autocomplete
+and adds that entry (repeatable, combinable with `--notify-email`).
+
 ## Ticket note edits and deletion
 
 ```sh

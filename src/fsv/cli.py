@@ -2939,6 +2939,8 @@ from fsv.solutions_cli import register as _register_solutions
 _solutions_app = typer.Typer(help="Draft knowledge solutions.")
 _register_solutions(_solutions_app, lambda: _client())
 app.add_typer(_solutions_app, name="solutions")
+from fsv.templates_cli import register_templates as _register_templates
+_register_templates(app, lambda: _client())
 
 
 HELP_TOPICS = {
@@ -3559,6 +3561,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
         register_relationships(sub, lambda: _client())
         from fsv.module_time_cli import register as register_change_time
         register_change_time(sub, lambda: _client(), "changes")
+        from fsv.templates_cli import register_windows
+        register_windows(sub, lambda: _client())
 
         @sub.command("delete", help="Soft-delete one exact change (reviewed, destructive).", epilog=(
             "[bold]Examples:[/bold]  fsv changes delete CHN-1234 --dry-run  |  "
@@ -4297,6 +4301,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 from_: Optional[str] = typer.Option(None, "--from", help="YAML draft"),
                 set_: Optional[List[str]] = typer.Option(None, "--set", help="answer LABEL=VALUE (repeatable)"),
                 preset: Optional[str] = typer.Option(None, "--preset", help="draft preset"),
+                template: Optional[str] = typer.Option(None, "--template", help="ticket template name or ID: prefills the form; --set/--from still win"),
                 edit: bool = typer.Option(False, "--edit", "-e", help="edit YAML in a terminal"),
                 requester: Optional[str] = typer.Option(None, "--requester", help="requester email or exact name"),
                 cc: Optional[List[str]] = typer.Option(None, "--cc", help="plain CC email (repeatable)"),
@@ -4318,7 +4323,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                                    requester=requester, dry_run=dry, as_json=json_out or format_ == OutputFormat.json,
                                    yes=yes, expect_plan=expect_plan, allow_duplicate=allow_duplicate, ack=ack,
                                    no_input=_no_input(no_input), cc=list(cc or []), attach=list(attach or []),
-                                   max_bytes=max_bytes, devices=list(device or []))
+                                   max_bytes=max_bytes, devices=list(device or []), template=template)
                 except FlowExit as e:
                     _flow_exit(e)
                 except (SessionError, APIError) as e:

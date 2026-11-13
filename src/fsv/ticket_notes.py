@@ -227,6 +227,7 @@ def register(app: typer.Typer) -> None:
         confirm_public: bool = typer.Option(False, "--confirm-public", help="separately confirm public visibility"),
         html_body: bool = typer.Option(False, "--html", help="body is already HTML; otherwise escape plain text"),
         notify: list[str] | None = typer.Option(None, "--notify-email", help="explicit notification recipient (repeatable; default none)"),
+        notify_agent: list[str] | None = typer.Option(None, "--notify-agent", help="agent exact name or email from the agent lookup; sent as 'Name <email>' in notify_emails (repeatable)"),
         attach: list[str] | None = typer.Option(None, "--attach", help="local file (repeatable; reviewed two-step upload)"),
         inline_image: list[str] | None = typer.Option(None, "--inline-image", help="local JPEG/PNG/GIF/WebP shown inside the note body (repeatable; reviewed upload)"),
         max_bytes: int | None = typer.Option(None, "--max-bytes", min=1, help="explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)"),
@@ -239,6 +240,12 @@ def register(app: typer.Typer) -> None:
         json_out: bool = typer.Option(False, "--json", help="emit structured result"),
     ) -> None:
         try:
+            if notify_agent:
+                from fsv import templates as T
+                try:
+                    notify = [*(notify or []), *(T.notify_entry(get_client(), name) for name in notify_agent)]
+                except T.TemplateError as exc:
+                    raise NoteError(str(exc)) from None
             if inline_image:
                 from fsv import inline_images
                 from fsv.reviewed_write import ReviewedWriteError
