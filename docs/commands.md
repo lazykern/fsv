@@ -245,6 +245,7 @@ fsv problems ls --where status=Open --json
 fsv problems delete PRB-12 --dry-run
 fsv problems restore PRB-12 --dry-run
 fsv problems delete-forever PRB-12 --confirm-destructive --yes --expect-plan FULL_HASH
+fsv problems delete-forever PRB-12 PRB-13 --max-records 2 --dry-run
 fsv solutions delete-forever 1234 --dry-run
 fsv problems get PRB-1234
 fsv problems tasks PRB-1234

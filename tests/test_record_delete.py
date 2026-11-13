@@ -143,8 +143,9 @@ def test_cli_review_then_hash_bound_send(api):
     r = runner.invoke(cli.app, ["problems", "restore", str(pid), "--dry-run"])
     assert r.exit_code == 0 and json.loads(r.output)["method"] == "PUT"
     r = runner.invoke(cli.app, ["solutions", "delete-forever", str(aid), "--dry-run"])
-    assert r.exit_code == 0 and "PERMANENT" in json.loads(r.output)["effect"]
-    h = json.loads(r.output)["plan_hash"]
+    assert r.exit_code == 0 and "PERMANENT" in json.loads(r.stdout)["effect"]
+    assert f"Articles to delete PERMANENTLY: {aid}" in r.stderr
+    h = json.loads(r.stdout)["plan_hash"]
     r = runner.invoke(cli.app, ["solutions", "delete-forever", str(aid), "--yes", "--expect-plan", h])
     assert r.exit_code == 2 and len(s["writes"]) == 1
 
@@ -173,3 +174,79 @@ def test_identical_delete_after_restore_is_refused_as_already_sent(api):
         flow.send(again, c, reviewed_hash=again.hash)
     assert "outcome unknown" not in str(exc.value)
     assert len(s["writes"]) == writes
+
+@pytest.fixture
+def many(monkeypatch, tmp_path):
+    monkeypatch.setattr(config, "DOMAIN", "acme.example.com")
+    monkeypatch.setattr(config, "API_INT", "https://acme.example.com/api/_")
+    monkeypatch.setattr(journal, "journal_path", lambda: tmp_path / "journal")
+    monkeypatch.setattr(readback, "_sleep", lambda _s: None)
+    s = {"writes": [], "fail_on": None,
+         "problem": {i: {"id": i, "subject": f"Acme trashed {i}", "deleted": True} for i in (21, 22, 23)},
+         "article": {i: {"id": i, "title": f"Globex article {i}", "deleted": False} for i in (31, 32)}}
+
+    def handler(req):
+        path = req.url.path.removeprefix("/api/_/")
+        parts = path.split("/")
+        if req.method == "GET":
+            kind, store = ("problem", s["problem"]) if parts[0] == "problems" else ("article", s["article"])
+            row = store.get(int(parts[-1]))
+            return httpx.Response(200, json={kind: copy.deepcopy(row)}) if row else httpx.Response(404, json={})
+        s["writes"].append((req.method, path, dict(req.url.params)))
+        if path == "problems/delete-forever":
+            pid = int(req.url.params["ids"])
+            if pid == s["fail_on"]:
+                return httpx.Response(500, json={"errors": "no"})
+            s["problem"].pop(pid)
+        else:
+            s["article"].pop(int(parts[2]))
+        return httpx.Response(204)
+
+    c = Client(cookies={})
+    c._client.close()
+    c._client = httpx.Client(transport=httpx.MockTransport(handler))
+    c._csrf = "synthetic"
+    monkeypatch.setattr(cli, "_client", lambda: c)
+    yield c, s
+    c.close()
+
+
+@pytest.mark.parametrize("args,msg", [
+    (["problems", "delete-forever", "21", "22"], "requires --max-records"),
+    (["problems", "delete-forever", "21", "22", "--max-records", "1"], "more IDs than --max-records"),
+    (["problems", "delete-forever", "21", "--max-records", "51"], "1 to 50"),
+    (["problems", "delete-forever", "21", "21", "--max-records", "2"], "distinct"),
+    (["solutions", "delete-forever", "31", "32"], "requires --max-records"),
+])
+def test_forever_bounds_refuse_before_any_write(many, args, msg):
+    c, s = many
+    r = CliRunner().invoke(cli.app, args + ["--dry-run"])
+    assert r.exit_code != 0 and msg in r.output and not s["writes"]
+
+
+@pytest.mark.parametrize("module,kind,ids", [("problems", "problem", [21, 22, 23]), ("solutions", "article", [31, 32])])
+def test_forever_many_ids_review_print_and_send(many, module, kind, ids):
+    c, s = many
+    runner = CliRunner()
+    args = [module, "delete-forever", *map(str, ids), "--max-records", str(len(ids))]
+    r = runner.invoke(cli.app, args + ["--dry-run"])
+    assert r.exit_code == 0, r.output
+    review = json.loads(r.stdout)
+    assert review[f"{kind}_ids"] == ids and len(review["requests"]) == len(ids) and not s["writes"]
+    assert "PERMANENTLY: " + ", ".join(map(str, ids)) in r.stderr
+    h = review["plan_hash"]
+    r = runner.invoke(cli.app, args + ["--yes", "--expect-plan", h])
+    assert r.exit_code != 0 and "confirm-destructive" in r.output and not s["writes"]
+    r = runner.invoke(cli.app, args + ["--yes", "--expect-plan", h, "--confirm-destructive"])
+    assert r.exit_code == 0, r.output
+    assert json.loads(r.stdout)["verified"] and len(s["writes"]) == len(ids) and not s[kind]
+
+
+def test_forever_batch_stops_at_first_failure_and_is_bound_to_max_records(many):
+    c, s = many
+    a = flow.build_forever(c, "problem", ["21", "22", "23"], max_records=3)
+    assert flow.build_forever(c, "problem", ["21", "22", "23"], max_records=4).hash != a.hash
+    s["fail_on"] = 22
+    r = flow.send_forever(a, c, reviewed_hash=a.hash, confirm_destructive=True)
+    assert r["status"] == "partial" and r["stopped_at"] == 22 and r["not_attempted"] == [23]
+    assert [w[2]["ids"] for w in s["writes"]] == ["21", "22"] and 23 in s["problem"]

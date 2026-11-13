@@ -412,9 +412,14 @@ unknown transaction leaves orphan images; the error lists their ids.
 |---|---|---|
 | `fsv problems delete ID` | `DELETE /api/_/problems/<n>` (trash) | exact GET `deleted: true` |
 | `fsv problems restore ID` | `PUT /api/_/problems/<n>/restore` | exact GET `deleted: false` |
-| `fsv problems delete-forever ID` | `DELETE /api/_/problems/delete-forever?ids=<n>` (trashed problems only) | exact GET 404 |
+| `fsv problems delete-forever ID... [--max-records N]` | `DELETE /api/_/problems/delete-forever?ids=<n>`, one request per ID (trashed problems only) | exact GET 404 |
 | `fsv solutions delete ARTICLE_ID` | `DELETE /api/_/solutions/articles/<id>` (trash) | `deleted: true` or 404 |
-| `fsv solutions delete-forever ARTICLE_ID` | `DELETE /api/_/solutions/articles/<id>/delete_forever` | exact GET 404 |
+| `fsv solutions delete-forever ARTICLE_ID... [--max-records N]` | `DELETE /api/_/solutions/articles/<id>/delete_forever`, one request per ID | exact GET 404 |
+
+`delete-forever` takes explicit IDs only (no filters). More than one ID needs
+`--max-records N` (1 to 50, at least the ID count); the ID list and titles are
+printed before every review and send, and a batch stops at the first failed or
+unverified record.
 
 All are bodyless JSON requests, reviewed with `--dry-run` (title, deleted flag,
 effect), hash-bound to the exact record snapshot, single-attempt and journaled

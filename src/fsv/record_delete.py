@@ -16,6 +16,8 @@ different product host with its own session and is not implemented.
 """
 from __future__ import annotations
 
+import json
+from dataclasses import dataclass
 from typing import Any
 
 from fsv import config, journal
@@ -83,6 +85,92 @@ def article_plan(client: Any, ident: int | str, action: str) -> WritePlan:
     path = f"solutions/articles/{aid}" + ("/delete_forever" if action == "delete-forever" else "")
     return WritePlan("solution_" + action.replace("-", "_"), aid, config.DOMAIN, "DELETE", path, "null",
                      journal.snapshot_hash({"article": row}) or "")
+
+
+MAX_FOREVER = 50
+
+
+@dataclass(frozen=True)
+class ForeverBatch:
+    """Explicit IDs to delete permanently, one captured request per record, in order."""
+    kind: str
+    plans: tuple[WritePlan, ...]
+    rows_json: str
+    max_records: int | None
+
+    @property
+    def ids(self) -> list[int]:
+        return [p.target for p in self.plans]
+
+    @property
+    def action(self) -> str:
+        return self.plans[0].action
+
+    @property
+    def hash(self) -> str:
+        return journal.plan_hash({"action": self.action, "plans": [p.hash for p in self.plans],
+                                  "ids": self.ids, "max_records": self.max_records}) or ""
+
+    @property
+    def rows(self) -> list[dict[str, Any]]:
+        return json.loads(self.rows_json)
+
+    def review(self) -> dict[str, Any]:
+        return {"action": self.action, "method": "DELETE", "requests": ["/api/_/" + p.path for p in self.plans],
+                f"{self.kind}_ids": self.ids, "selected": self.rows, "max_records": self.max_records,
+                "effect": f"PERMANENT: removes the listed {self.kind}(s); they cannot be restored.",
+                "requires": "--confirm-destructive", "plan_hash": self.hash,
+                "warning": f"One request per {self.kind}, in order; stops at the first failed or unverified one. "
+                           "Never replay an uncertain outcome."}
+
+
+def build_forever(client: Any, kind: str, idents: list[str], *, max_records: int | None) -> ForeverBatch:
+    """Permanent delete of explicit IDs; more than one ID needs --max-records (1 to 50)."""
+    if kind not in {"problem", "article"}:
+        raise ValueError("unsupported delete-forever kind")
+    if not idents:
+        raise ValueError(f"give one or more explicit {kind} IDs")
+    if max_records is not None and (type(max_records) is not int or not 1 <= max_records <= MAX_FOREVER):
+        raise ValueError(f"--max-records must be 1 to {MAX_FOREVER}")
+    if len(idents) > 1 and max_records is None:
+        raise ValueError(f"deleting more than one {kind} permanently requires --max-records N (1 to {MAX_FOREVER})")
+    if len(idents) > (max_records or 1):
+        raise ValueError("more IDs than --max-records; refusing the whole plan; nothing was sent")
+    build = (lambda i: problem_plan(client, i, "delete-forever")) if kind == "problem" else \
+        (lambda i: article_plan(client, i, "delete-forever"))
+    plans = [build(i) for i in idents]
+    ids = [p.target for p in plans]
+    if len(ids) != len(set(ids)):
+        raise ValueError(f"give distinct {kind} IDs")
+    getter = _problem if kind == "problem" else _article
+    rows = []
+    for pid in ids:
+        row = getter(client, pid) or {}
+        rows.append({"id": pid, "title": row.get("subject") if kind == "problem" else row.get("title")})
+    return ForeverBatch(kind, tuple(plans), json.dumps(rows, sort_keys=True, ensure_ascii=False), max_records)
+
+
+def send_forever(batch: ForeverBatch, client: Any, *, reviewed_hash: str | None,
+                 confirm_destructive: bool = False) -> dict[str, Any]:
+    if reviewed_hash is None:
+        return {"status": "cancelled", "verified": False}
+    if reviewed_hash != batch.hash:
+        raise ReviewedWriteError("full review hash changed; review again")
+    if confirm_destructive is not True:
+        raise ReviewedWriteError(f"{batch.kind} delete-forever requires --confirm-destructive after inspecting the printed ID list")
+    key = f"{batch.kind}_ids"
+    results: dict[str, Any] = {}
+    for index, sub in enumerate(batch.plans):
+        try:
+            result = send(sub, client, reviewed_hash=sub.hash, confirm_destructive=True)
+        except ReviewedWriteError as exc:
+            result = {"verified": False, "error": str(exc)}
+        results[str(sub.target)] = {k: result.get(k) for k in ("verified", "error", "warning") if k in result}
+        if not result.get("verified"):
+            return {"status": "partial" if index else "failed", "verified": False, "plan_hash": batch.hash,
+                    key: batch.ids, "results": results, "stopped_at": sub.target, "not_attempted": batch.ids[index + 1:],
+                    "warning": f"Stopped at the first failed or unverified {batch.kind}; inspect it and the journal; never replay."}
+    return {"status": "submitted", "verified": True, "plan_hash": batch.hash, key: batch.ids, "results": results}
 
 
 def _kind(plan: WritePlan) -> tuple[str, str]:
