@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "11e76ed502217750f9713371113eddf406b8aa9c",
+  "commit": "e9c9b086405809e4ecb15464bb3f95160b9a9d74",
   "dirty": false
  },
  "norm": [
@@ -275,7 +275,7 @@
  ],
  "lookup_errors": [
   [
-   "Who: catalog lookup submission is unverified; use the web form"
+   "Who (who): catalog lookup field (type 501) is answered, but fsv cannot submit catalog lookup fields: no accepted request wire for this field type has been captured, so the value would be dropped. Nothing was sent; use the web form for this item"
   ],
   [],
   []

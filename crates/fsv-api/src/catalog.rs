@@ -869,7 +869,11 @@ fn json_empty(v: &Json) -> bool {
     }
 }
 
-/// `unsupported_lookup_errors`: never silently discard an answered lookup.
+/// `unsupported_lookup_errors`: fail closed on catalog lookup fields
+/// (formserv types 501/502): no accepted submission wire is captured for
+/// them, so an answered lookup (even if now hidden) or a visible required one
+/// blocks the request instead of being dropped or "satisfied" by an unsent
+/// value.
 pub fn unsupported_lookup_errors(state: &FormState, draft: &Draft) -> Vec<String> {
     let mut answered: HashSet<String> = state
         .spec
@@ -894,15 +898,39 @@ pub fn unsupported_lookup_errors(state: &FormState, draft: &Draft) -> Vec<String
             answered.insert(f.api_name.clone());
         }
     }
+    let ev = &state.evaluated;
+    let required: HashSet<String> = state
+        .spec
+        .fields()
+        .iter()
+        .filter(|f| {
+            f.kind == Kind::Lookup
+                && !f.sent
+                && ev.visible.contains(&f.api_name)
+                && ev.required.contains(&f.api_name)
+        })
+        .map(|f| f.api_name.clone())
+        .collect();
     state
         .spec
         .ordered()
         .into_iter()
-        .filter(|f| answered.contains(&f.api_name))
+        .filter(|f| answered.contains(&f.api_name) || required.contains(&f.api_name))
         .map(|f| {
+            let code = f
+                .field_type
+                .strip_prefix("formserv:")
+                .unwrap_or(&f.field_type);
+            let why = if answered.contains(&f.api_name) {
+                "answered"
+            } else {
+                "required on the form"
+            };
             format!(
-                "{}: catalog lookup submission is unverified; use the web form",
-                f.label
+                "{} ({}): catalog lookup field (type {code}) is {why}, but fsv cannot submit catalog \
+                 lookup fields: no accepted request wire for this field type has been captured, so the \
+                 value would be dropped. Nothing was sent; use the web form for this item",
+                f.label, f.api_name
             )
         })
         .collect()
@@ -3256,5 +3284,74 @@ mod tests {
             json!([{"name": "a", "label": "A"}, {"name": "a1", "label": "A1", "parent": "a"},
                    {"label": "nameless", "parent": "x"}, {"name": "orphan"}])
         );
+    }
+
+    fn lookup_meta(item: Json, ws: i64) -> ItemMeta {
+        ItemMeta::new(
+            item,
+            json!({"business_rules": []}),
+            json!(ws),
+            0.0,
+            "server",
+        )
+        .unwrap()
+    }
+
+    /// e9c9b08 `test_answered_unverified_lookup_never_creates_sendable_plan`
+    /// (the refusal text) and `test_required_unverified_lookup_cannot_be_omitted`.
+    #[test]
+    fn catalog_lookup_refusals_name_the_field_and_the_missing_capture() {
+        for (code, visible) in [(501, true), (501, false), (502, true), (502, false)] {
+            let mut raw = item();
+            raw["custom_fields"].as_array_mut().unwrap().push(json!({
+                "id": 9000000020i64, "name": "asset", "label": "Asset", "type": code,
+                "account_id": 9000000004i64, "visible": visible, "required": false,
+                "field_options": {"link": "/lookup_choices"}}));
+            let m = lookup_meta(raw, 3);
+            let value = if code == 501 {
+                json!(9000000021i64)
+            } else {
+                json!([9000000021i64])
+            };
+            let draft = Draft {
+                answers: answers(json!({"Asset": value})),
+                ..Draft::default()
+            };
+            let errors = unsupported_lookup_errors(&state(&m), &draft);
+            assert!(
+                errors.iter().any(|e| e.starts_with(&format!(
+                    "Asset (asset): catalog lookup field (type {code}) is answered"
+                )) && e.contains("no accepted request wire")),
+                "{errors:?}"
+            );
+        }
+        let mut raw = item();
+        raw["custom_fields"].as_array_mut().unwrap().push(json!({
+            "id": 9000000020i64, "name": "asset", "label": "Asset", "type": 501,
+            "account_id": 9000000004i64, "required": true}));
+        let m = lookup_meta(raw, 3);
+        let errors = unsupported_lookup_errors(&state(&m), &Draft::default());
+        assert_eq!(
+            errors,
+            [
+                "Asset (asset): catalog lookup field (type 501) is required on the form, but fsv cannot \
+              submit catalog lookup fields: no accepted request wire for this field type has been \
+              captured, so the value would be dropped. Nothing was sent; use the web form for this item"
+            ]
+        );
+    }
+
+    /// e9c9b08 `test_required_catalog_lookup_on_a_second_workspace_item_is_refused_by_name`.
+    #[test]
+    fn required_catalog_lookup_on_a_second_workspace_item_is_refused_by_name() {
+        let item = json!({"id": 4400909, "display_id": 909, "name": "Gerät anfordern", "workspace_id": 9,
+            "custom_fields": [{"id": 9000000031i64, "name": "geraet", "label": "Gerät", "type": 502,
+                "position": 1, "required": true, "account_id": 9000000004i64,
+                "field_options": {"link": "/lookup_choices"}}]});
+        let m = lookup_meta(item, 9);
+        let errors = unsupported_lookup_errors(&state(&m), &Draft::default());
+        assert_eq!(errors.len(), 1, "{errors:?}");
+        assert!(errors[0].starts_with("Gerät (geraet): catalog lookup field (type 502)"));
+        assert!(errors[0].contains("Nothing was sent"));
     }
 }
