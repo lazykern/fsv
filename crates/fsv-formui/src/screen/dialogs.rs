@@ -418,10 +418,14 @@ pub struct DatePicker {
     pub grid: CalendarGrid,
     pub time: LineInput,
     pub suggest: usize,
+    suggest_top: usize,
     pub focus: PickerFocus,
     pub preview: String,
     error: String,
 }
+
+/// Time suggestions shown at once (the list scrolls).
+const SUGGEST_ROWS: usize = 6;
 
 impl DatePicker {
     pub fn new(label: &str, value: &Value, date_only: bool, tz: &Zone, tz_source: &str) -> Self {
@@ -468,6 +472,7 @@ impl DatePicker {
             grid: CalendarGrid::new(day, today),
             time: input,
             suggest: 0,
+            suggest_top: 0,
             focus: PickerFocus::Calendar,
             preview: String::new(),
             error: String::new(),
@@ -588,12 +593,17 @@ impl DatePicker {
             PickerFocus::Suggest => {
                 let n = TIME_SUGGESTIONS.len();
                 match k.code {
-                    KeyCode::Down => self.suggest = (self.suggest + 1).min(n - 1),
-                    KeyCode::Up => self.suggest = self.suggest.saturating_sub(1),
+                    KeyCode::Down => self.suggest = step(self.suggest, n, 1),
+                    KeyCode::Up => self.suggest = step(self.suggest, n, -1),
                     KeyCode::Home => self.suggest = 0,
                     KeyCode::End => self.suggest = n - 1,
                     KeyCode::Enter => self.time(self.suggest),
                     _ => {}
+                }
+                if self.suggest < self.suggest_top {
+                    self.suggest_top = self.suggest;
+                } else if self.suggest >= self.suggest_top + SUGGEST_ROWS {
+                    self.suggest_top = self.suggest + 1 - SUGGEST_ROWS;
                 }
                 Dlg::Open
             }
@@ -645,7 +655,13 @@ impl DatePicker {
                 self.focus == PickerFocus::Time,
                 theme,
             );
-            for (i, t) in TIME_SUGGESTIONS.iter().enumerate().take(6) {
+            for (row, (i, t)) in TIME_SUGGESTIONS
+                .iter()
+                .enumerate()
+                .skip(self.suggest_top)
+                .take(SUGGEST_ROWS)
+                .enumerate()
+            {
                 let mut style = Style::default();
                 if i == self.suggest {
                     style = if self.focus == PickerFocus::Suggest {
@@ -654,7 +670,7 @@ impl DatePicker {
                         style.add_modifier(Modifier::REVERSED)
                     };
                 }
-                buf.set_stringn(tx + 1, body_y + 3 + i as u16, t, usize::from(tw), style);
+                buf.set_stringn(tx + 1, body_y + 3 + row as u16, t, usize::from(tw), style);
             }
         }
         let mut y = body_y + 9 + 1;
@@ -776,6 +792,32 @@ mod tests {
             Dlg::Done(Some(Value::DateTime(_)))
         ));
         assert_eq!(p.handle_key(&parse_key("escape")), Dlg::Done(None));
+    }
+
+    /// The time suggestions wrap at both ends (Textual's `OptionList`, as a
+    /// pilot of the Python picker shows: up from 09:00 is 22:00) and the
+    /// list scrolls to keep the highlighted time on screen.
+    #[test]
+    fn time_suggestions_wrap_and_scroll() {
+        let mut p = picker(false);
+        p.focus = PickerFocus::Suggest;
+        p.handle_key(&parse_key("up"));
+        assert_eq!(p.suggest, 7);
+        p.handle_key(&parse_key("down"));
+        assert_eq!(p.suggest, 0);
+        p.handle_key(&parse_key("end"));
+        p.time.set_value("");
+        let theme = Theme::textual_dark();
+        let area = Rect::new(0, 0, 80, 30);
+        let mut buf = Buffer::empty(area);
+        p.render(area, &mut buf, &theme);
+        let text = crate::kit::draw::buffer_text(&buf);
+        assert!(
+            text.contains("  22:00  ") && !text.contains("  09:00  "),
+            "{text}"
+        );
+        p.handle_key(&parse_key("enter"));
+        assert_eq!(p.time.value(), "22:00");
     }
 
     /// `SavePathDialog`: the path is selected on open; Save and Cancel.

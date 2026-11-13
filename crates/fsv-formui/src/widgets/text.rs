@@ -271,8 +271,12 @@ impl Editor for DescriptionEditor {
 
     fn handle_key(&mut self, k: &KeyEvent, _slot: usize, cx: &mut EdCx<'_>) -> bool {
         if k.code == KeyCode::F(3) {
-            // focus stays here in preview mode so F3 toggles back
+            // focus stays here in preview mode so F3 toggles back; the hidden
+            // text area is left all the same, so it commits
             self.action_toggle_preview();
+            if self.preview {
+                self.commit(cx);
+            }
             return true;
         }
         if self.preview {
@@ -652,6 +656,24 @@ mod tests {
         v.value = Value::Bool(false);
         h.cx(|cx| c.sync(&v, false, cx));
         assert!(!c.value);
+        assert!(h.take().is_empty());
+    }
+
+    /// `DescriptionEditor.action_toggle_preview`: turning the preview on
+    /// commits the text at once (in Textual the text area loses focus).
+    #[test]
+    fn preview_commits_the_text() {
+        let mut h = TestCx::new();
+        let mut d = DescriptionEditor::new(&h.item("description"));
+        d.area.insert("hi");
+        h.cx(|cx| d.handle_key(&KeyEvent::from(KeyCode::F(3)), 0, cx));
+        assert!(d.preview);
+        assert_eq!(
+            h.take(),
+            [EdMsg::Edited("description".into(), Value::str("hi"))]
+        );
+        h.cx(|cx| d.handle_key(&KeyEvent::from(KeyCode::F(3)), 0, cx));
+        assert!(!d.preview);
         assert!(h.take().is_empty());
     }
 

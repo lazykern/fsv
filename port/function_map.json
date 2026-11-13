@@ -8308,9 +8308,10 @@
    "module": "formui/app.py",
    "name": "form_available",
    "line": 16,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/app.rs",
-   "rust_item": "form_available"
+   "rust_item": "form_available",
+   "note": "same FSV_NO_FORM (non-empty) / TERM=dumb / stdin+stdout tty checks"
   },
   {
    "module": "formui/app.py",
@@ -8341,58 +8342,65 @@
    "name": "_done",
    "class": "FormApp",
    "line": 46,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui/forms.rs",
-   "rust_item": "done"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/app.rs",
+   "rust_item": "event_loop",
+   "note": "pointer fixed (was fsv-app tui done): loop ends when the screen finishes and returns its result, as _done exits with it"
   },
   {
    "module": "formui/app.py",
    "name": "run_form",
    "line": 51,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/app.rs",
-   "rust_item": "run_form"
+   "rust_item": "run_form",
+   "note": "same: runs the screen full-screen, nothing sent, Cancel result when quit; theme is passed in by the caller"
   },
   {
    "module": "formui/fuzzy.py",
    "name": "fold",
    "line": 16,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/fuzzy.rs",
-   "rust_item": "fold"
+   "rust_item": "fold",
+   "note": "same NFKD, combining marks dropped, casefold, str.split whitespace join"
   },
   {
    "module": "formui/fuzzy.py",
    "name": "_subsequence",
    "line": 23,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/fuzzy.rs",
-   "rust_item": "subsequence"
+   "rust_item": "subsequence",
+   "note": "same in-order iterator consumption"
   },
   {
    "module": "formui/fuzzy.py",
    "name": "score",
    "line": 28,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/fuzzy.rs",
-   "rust_item": "score"
+   "rust_item": "score",
+   "note": "same ranks 0-4/None and the -,/,( word splitting, description fold"
   },
   {
    "module": "formui/fuzzy.py",
    "name": "fuzzy_filter",
    "line": 49,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/fuzzy.rs",
-   "rust_item": "fuzzy_filter"
+   "rust_item": "fuzzy_filter",
+   "note": "same (rank, index) sort, ties keep form order"
   },
   {
    "module": "formui/lookups.py",
    "name": "LookupUnavailable",
    "line": 25,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/lookups.rs",
-   "rust_item": "LookupUnavailable"
+   "rust_item": "LookupUnavailable",
+   "note": "same message '<what> is not available for your role (HTTP n|not offered)'"
   },
   {
    "module": "formui/lookups.py",
@@ -8406,34 +8414,38 @@
    "module": "formui/lookups.py",
    "name": "_email_of",
    "line": 35,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/lookups.rs",
-   "rust_item": "email_of"
+   "rust_item": "email_of",
+   "note": "same email/primary_email '@' check then 'Name <email>' / bare details parsing"
   },
   {
    "module": "formui/lookups.py",
    "name": "person",
    "line": 48,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/lookups.rs",
-   "rust_item": "person"
+   "rust_item": "person",
+   "note": "same value/name/details-name/id display fallbacks and email"
   },
   {
    "module": "formui/lookups.py",
    "name": "search_requesters",
    "line": 56,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/lookups.rs",
-   "rust_item": "search_requesters"
+   "rust_item": "search_requesters",
+   "note": "same stripped q, qf=details param, 403/404 -> 'requester search' unavailable, deleted/no-id rows skipped, limit 20"
   },
   {
    "module": "formui/lookups.py",
    "name": "AgentsGroups",
    "line": 72,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/lookups.rs",
-   "rust_item": "AgentsGroups"
+   "rust_item": "AgentsGroups",
+   "note": "same fetched-once cache with remembered 403/404"
   },
   {
    "module": "formui/lookups.py",
@@ -8448,71 +8460,78 @@
    "name": "_load",
    "class": "AgentsGroups",
    "line": 81,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/lookups.rs",
-   "rust_item": "load"
+   "rust_item": "load",
+   "note": "same GET bootstrap/agents_groups, non-dict -> {}, denial cached, other errors not cached"
   },
   {
    "module": "formui/lookups.py",
    "name": "has",
    "class": "AgentsGroups",
    "line": 96,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/lookups.rs",
-   "rust_item": "has"
+   "rust_item": "has",
+   "note": "same isinstance(list) check"
   },
   {
    "module": "formui/lookups.py",
    "name": "groups",
    "class": "AgentsGroups",
    "line": 100,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/lookups.rs",
-   "rust_item": "groups"
+   "rust_item": "groups",
+   "note": "same name/value/id display and id-not-None filter"
   },
   {
    "module": "formui/lookups.py",
    "name": "agents",
    "class": "AgentsGroups",
    "line": 105,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/lookups.rs",
-   "rust_item": "agents"
+   "rust_item": "agents",
+   "note": "same (Deactivated) skip and user_id-over-id key"
   },
   {
    "module": "formui/lookups.py",
    "name": "filter",
    "class": "AgentsGroups",
    "line": 116,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/lookups.rs",
-   "rust_item": "filter"
+   "rust_item": "filter",
+   "note": "same fuzzy over (display, email), limit 50"
   },
   {
    "module": "formui/lookups.py",
    "name": "search_field",
    "line": 122,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/lookups.rs",
-   "rust_item": "search_field"
+   "rust_item": "search_field",
+   "note": "same user/group/agent routing, agent fallback to resolver on denied bootstrap, blank query -> [], '<label> search' unavailable"
   },
   {
    "module": "formui/screens.py",
    "name": "review_text",
    "line": 28,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/review.rs",
    "rust_item": "review_lines",
-   "note": "Re-renders Review.render (rule title, rows table, changes table with — / →, sections with styles, metadata, plan) at max(40, width) as styled ratatui lines instead of ANSI round-trip. Tested by review_text_keeps_the_cli_layout_and_the_cyan_labels."
+   "note": "same Review.render layout: title rule, cyan label table, Field/Old/→/New with —, sections and styles, metadata, plan line; width max 40"
   },
   {
    "module": "formui/screens.py",
    "name": "ConfirmDialog",
    "line": 41,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "ConfirmDialog"
+   "rust_item": "ConfirmDialog",
+   "note": "same question/buttons, No focused first"
   },
   {
    "module": "formui/screens.py",
@@ -8543,36 +8562,40 @@
    "name": "_pressed",
    "class": "ConfirmDialog",
    "line": 65,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "pressed"
+   "rust_item": "pressed",
+   "note": "same: yes button -> True"
   },
   {
    "module": "formui/screens.py",
    "name": "action_yes",
    "class": "ConfirmDialog",
    "line": 68,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "action_yes"
+   "rust_item": "action_yes",
+   "note": "same y -> True"
   },
   {
    "module": "formui/screens.py",
    "name": "action_no",
    "class": "ConfirmDialog",
    "line": 71,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "action_no"
+   "rust_item": "action_no",
+   "note": "same Esc -> False"
   },
   {
    "module": "formui/screens.py",
    "name": "SavePathDialog",
    "line": 75,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "SavePathDialog"
+   "rust_item": "SavePathDialog",
+   "note": "same title, default path, note line; the screen writes and reports failures back"
   },
   {
    "module": "formui/screens.py",
@@ -8603,63 +8626,70 @@
    "name": "_enter",
    "class": "SavePathDialog",
    "line": 107,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "enter"
+   "rust_item": "enter",
+   "note": "same: Enter saves"
   },
   {
    "module": "formui/screens.py",
    "name": "_save_btn",
    "class": "SavePathDialog",
    "line": 112,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "save_btn"
+   "rust_item": "save_btn",
+   "note": "same"
   },
   {
    "module": "formui/screens.py",
    "name": "_cancel_btn",
    "class": "SavePathDialog",
    "line": 116,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "cancel_btn"
+   "rust_item": "cancel_btn",
+   "note": "same None"
   },
   {
    "module": "formui/screens.py",
    "name": "_note",
    "class": "SavePathDialog",
    "line": 119,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "note"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/screen/dialogs.rs",
+   "rust_item": "set_note",
+   "note": "pointer fixed (was fsv-api note): sets the note line"
   },
   {
    "module": "formui/screens.py",
    "name": "_save",
    "class": "SavePathDialog",
    "line": 122,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "save"
+   "rust_item": "save",
+   "note": "same 'type a file path' / folder / missing folder / overwrite-twice notes and 'cannot save to P: strerror' (failed)"
   },
   {
    "module": "formui/screens.py",
    "name": "action_cancel",
    "class": "SavePathDialog",
    "line": 150,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "action_cancel"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/screen/dialogs.rs",
+   "rust_item": "cancel_btn",
+   "note": "pointer fixed (was FormScreen action_cancel): Esc -> None"
   },
   {
    "module": "formui/screens.py",
    "name": "TextDialog",
    "line": 154,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "TextDialog"
+   "rust_item": "TextDialog",
+   "note": "same title/text/dim note, Copy focused"
   },
   {
    "module": "formui/screens.py",
@@ -8690,27 +8720,30 @@
    "name": "_copy",
    "class": "TextDialog",
    "line": 183,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "copy"
+   "rust_item": "copy",
+   "note": "same: text to clipboard + 'copied to the clipboard ...' toast (4 s), stays open"
   },
   {
    "module": "formui/screens.py",
    "name": "_close_btn",
    "class": "TextDialog",
    "line": 188,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "close_btn"
+   "rust_item": "close_btn",
+   "note": "same"
   },
   {
    "module": "formui/screens.py",
    "name": "action_close",
    "class": "TextDialog",
    "line": 191,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "action_close"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/screen/dialogs.rs",
+   "rust_item": "close_btn",
+   "note": "pointer fixed (was fsv-tui modals): Esc closes"
   },
   {
    "module": "formui/screens.py",
@@ -8749,18 +8782,20 @@
    "name": "value",
    "class": "DatePickerScreen",
    "line": 248,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "value"
+   "rust_item": "value",
+   "note": "same date-only day, else parse_when('<day> <time>') value or None with the error kept"
   },
   {
    "module": "formui/screens.py",
    "name": "_update",
    "class": "DatePickerScreen",
    "line": 257,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "update"
+   "rust_item": "update",
+   "note": "same preview / error / 'type a time like 19:00'"
   },
   {
    "module": "formui/screens.py",
@@ -8775,72 +8810,80 @@
    "name": "_picked",
    "class": "DatePickerScreen",
    "line": 267,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "picked"
+   "rust_item": "picked",
+   "note": "same: date-only done, else focus the time"
   },
   {
    "module": "formui/screens.py",
    "name": "on_key",
    "class": "DatePickerScreen",
    "line": 275,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "on_key"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/screen/dialogs.rs",
+   "rust_item": "handle_key",
+   "note": "pointer fixed (was fsv-tui modals): every key refreshes the preview; fixed: time suggestions wrap at both ends like Textual's OptionList and the list scrolls to the highlighted time (only the first 6 of 8 were ever drawn)"
   },
   {
    "module": "formui/screens.py",
    "name": "_time",
    "class": "DatePickerScreen",
    "line": 279,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "time"
+   "rust_item": "time",
+   "note": "same suggestion -> time box, preview, focus OK"
   },
   {
    "module": "formui/screens.py",
    "name": "_typed",
    "class": "DatePickerScreen",
    "line": 286,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "typed"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/screen/dialogs.rs",
+   "rust_item": "handle_key",
+   "note": "pointer fixed (was combo typed): typing in the time box refreshes the preview"
   },
   {
    "module": "formui/screens.py",
    "name": "_time_enter",
    "class": "DatePickerScreen",
    "line": 290,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "time_enter"
+   "rust_item": "time_enter",
+   "note": "same Enter = OK"
   },
   {
    "module": "formui/screens.py",
    "name": "_ok",
    "class": "DatePickerScreen",
    "line": 295,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "ok"
+   "rust_item": "ok",
+   "note": "same: done only with a value"
   },
   {
    "module": "formui/screens.py",
    "name": "_cancel",
    "class": "DatePickerScreen",
    "line": 301,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "cancel"
+   "rust_item": "cancel",
+   "note": "same None"
   },
   {
    "module": "formui/screens.py",
    "name": "action_cancel",
    "class": "DatePickerScreen",
    "line": 304,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "action_cancel"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/screen/dialogs.rs",
+   "rust_item": "cancel",
+   "note": "pointer fixed (was FormScreen action_cancel): Esc -> None"
   },
   {
    "module": "formui/screens.py",
@@ -8895,72 +8938,80 @@
    "name": "_ack",
    "class": "ReviewScreen",
    "line": 395,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "ack"
+   "rust_item": "ack",
+   "note": "same: toggles session.ack, rebuilds the plan, refreshes"
   },
   {
    "module": "formui/screens.py",
    "name": "action_submit",
    "class": "ReviewScreen",
    "line": 402,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/review.rs",
-   "rust_item": "action_submit"
+   "rust_item": "action_submit",
+   "note": "same refusal 'fix the problems first (Back to edit)' while disabled (not ok, no hash, unacked blocking)"
   },
   {
    "module": "formui/screens.py",
    "name": "action_back",
    "class": "ReviewScreen",
    "line": 409,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/review.rs",
-   "rust_item": "action_back"
+   "rust_item": "action_back",
+   "note": "same back"
   },
   {
    "module": "formui/screens.py",
    "name": "_cancel",
    "class": "ReviewScreen",
    "line": 413,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "cancel"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/screen/review.rs",
+   "rust_item": "cancel",
+   "note": "pointer fixed (was DatePicker cancel): Cancel button -> cancel"
   },
   {
    "module": "formui/screens.py",
    "name": "action_save",
    "class": "ReviewScreen",
    "line": 417,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "action_save"
+   "rust_item": "review_action",
+   "note": "pointer fixed (was FormScreen action_save): 'Save draft to' dialog saving the reviewed plan, then save_draft result"
   },
   {
    "module": "formui/screens.py",
    "name": "action_command",
    "class": "ReviewScreen",
    "line": 426,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/review.rs",
-   "rust_item": "action_command"
+   "rust_item": "action_command",
+   "note": "same 'no complete plan yet' refusal; then save dialog, relpath command and 'draft saved to ...' note (save_to)"
   },
   {
    "module": "formui/screens.py",
    "name": "action_payload",
    "class": "ReviewScreen",
    "line": 441,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/review.rs",
-   "rust_item": "action_payload"
+   "rust_item": "action_payload",
+   "note": "same toggle; payload json indent 2 unescaped or the no-payload line"
   },
   {
    "module": "formui/screens.py",
    "name": "FormScreen",
    "line": 449,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "FormScreen"
+   "rust_item": "FormScreen",
+   "note": "same title (+ (edit), dry run), notes, rows, buttons, status and help panel"
   },
   {
    "module": "formui/screens.py",
@@ -8991,9 +9042,10 @@
    "name": "_focus_first",
    "class": "FormScreen",
    "line": 515,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "focus_first"
+   "rust_item": "focus_first",
+   "note": "same first visible enabled editor"
   },
   {
    "module": "formui/screens.py",
@@ -9008,63 +9060,70 @@
    "name": "refresh_rows",
    "class": "FormScreen",
    "line": 526,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "refresh_rows"
+   "rust_item": "refresh_rows",
+   "note": "same row sync, review disabled on problems, 'N required field(s) missing: a, b +n' / first problem / Ready status + key hints"
   },
   {
    "module": "formui/screens.py",
    "name": "show_notes",
    "class": "FormScreen",
    "line": 545,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "show_notes"
+   "rust_item": "show_notes",
+   "note": "same last 4 notes, 6 s toast of all, cleared after 8 s"
   },
   {
    "module": "formui/screens.py",
    "name": "show_help",
    "class": "FormScreen",
    "line": 554,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "show_help"
+   "rust_item": "show_help",
+   "note": "same help markup lines, 40 choices cap, effects, why, kind hints"
   },
   {
    "module": "formui/screens.py",
    "name": "on_descendant_focus",
    "class": "FormScreen",
    "line": 597,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "on_descendant_focus"
+   "rust_item": "on_descendant_focus",
+   "note": "same: help follows the focused row"
   },
   {
    "module": "formui/screens.py",
    "name": "_edited",
    "class": "FormScreen",
    "line": 605,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "edited"
+   "rust_item": "edited",
+   "note": "same set, refresh, notes"
   },
   {
    "module": "formui/screens.py",
    "name": "_invalid",
    "class": "FormScreen",
    "line": 613,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "invalid"
+   "rust_item": "invalid",
+   "note": "same mark_invalid + refresh"
   },
   {
    "module": "formui/screens.py",
    "name": "_opened",
    "class": "FormScreen",
    "line": 619,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "opened"
+   "rust_item": "opened",
+   "note": "same scroll into view"
   },
   {
    "module": "formui/screens.py",
@@ -9079,203 +9138,225 @@
    "name": "_review_btn",
    "class": "FormScreen",
    "line": 638,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "review_btn"
+   "rust_item": "review_btn",
+   "note": "same"
   },
   {
    "module": "formui/screens.py",
    "name": "_save_btn",
    "class": "FormScreen",
    "line": 642,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "save_btn"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/screen/mod.rs",
+   "rust_item": "save_btn",
+   "note": "pointer fixed (was SavePathDialog save_btn): Save draft button"
   },
   {
    "module": "formui/screens.py",
    "name": "_cancel_btn",
    "class": "FormScreen",
    "line": 646,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/screen/dialogs.rs",
-   "rust_item": "cancel_btn"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/screen/mod.rs",
+   "rust_item": "cancel_btn",
+   "note": "pointer fixed (was SavePathDialog cancel_btn): Cancel button"
   },
   {
    "module": "formui/screens.py",
    "name": "_commit_focused",
    "class": "FormScreen",
    "line": 650,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "commit_focused"
+   "rust_item": "commit_focused",
+   "note": "same: the focused editor commits"
   },
   {
    "module": "formui/screens.py",
    "name": "action_review",
    "class": "FormScreen",
    "line": 658,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "action_review"
+   "rust_item": "action_review",
+   "note": "same commit then open review"
   },
   {
    "module": "formui/screens.py",
    "name": "_open_review",
    "class": "FormScreen",
    "line": 662,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "open_review"
+   "rust_item": "open_review",
+   "note": "same show_all_errors, refresh, build plan, review"
   },
   {
    "module": "formui/screens.py",
    "name": "_after_review",
    "class": "FormScreen",
    "line": 669,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "after_review"
+   "rust_item": "after_review",
+   "note": "same submit/cancel finish, back focuses first missing (else first visible error) field"
   },
   {
    "module": "formui/screens.py",
    "name": "action_save",
    "class": "FormScreen",
    "line": 682,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "action_save"
+   "rust_item": "action_save",
+   "note": "same commit then 'Save draft to' dialog, save_draft result"
   },
   {
    "module": "formui/screens.py",
    "name": "_dirty",
    "class": "FormScreen",
    "line": 692,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "dirty"
+   "rust_item": "dirty",
+   "note": "same any editor dirty"
   },
   {
    "module": "formui/screens.py",
    "name": "action_cancel",
    "class": "FormScreen",
    "line": 704,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "action_cancel"
+   "rust_item": "action_cancel",
+   "note": "same: untouched and clean cancels at once, else 'Discard this form? Nothing has been sent.' Discard/Keep editing"
   },
   {
    "module": "formui/screens.py",
    "name": "action_toggle_help",
    "class": "FormScreen",
    "line": 719,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "action_toggle_help"
+   "rust_item": "action_toggle_help",
+   "note": "same toggle"
   },
   {
    "module": "formui/session.py",
    "name": "_plain",
    "line": 60,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "plain"
+   "rust_item": "plain",
+   "note": "fixed: whitespace split now uses Python str.split rules (\\x1c-\\x1f separators) via pytext::split_ws; same 600/80 char cut with …"
   },
   {
    "module": "formui/session.py",
    "name": "FormItem",
    "line": 66,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "FormItem"
+   "rust_item": "FormItem",
+   "note": "same fields (widget as enum)"
   },
   {
    "module": "formui/session.py",
    "name": "synthetic",
    "class": "FormItem",
    "line": 80,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "synthetic"
+   "rust_item": "is_synthetic",
+   "note": "pointer fixed (Rust synthetic is the constructor): field is None"
   },
   {
    "module": "formui/session.py",
    "name": "ItemView",
    "line": 85,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "ItemView"
+   "rust_item": "ItemView",
+   "note": "same fields and defaults"
   },
   {
    "module": "formui/session.py",
    "name": "Suggestion",
    "line": 97,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "Suggestion"
+   "rust_item": "Suggestion",
+   "note": "same fields, selected defaults false"
   },
   {
    "module": "formui/session.py",
    "name": "Outcome",
    "line": 105,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "Outcome"
+   "rust_item": "Outcome",
+   "note": "same notes/error"
   },
   {
    "module": "formui/session.py",
    "name": "FormResult",
    "line": 111,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "FormResult"
+   "rust_item": "FormResult",
+   "note": "same action/plan/saved_path/session (state lives in the session)"
   },
   {
    "module": "formui/session.py",
    "name": "_fork",
    "line": 121,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "fork"
+   "rust_item": "fork",
+   "note": "same independent copy of values/sources/seq/events/acks (clone)"
   },
   {
    "module": "formui/session.py",
    "name": "check_files",
    "line": 133,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/files.rs",
-   "rust_item": "check_files"
+   "rust_item": "check_files",
+   "note": "same ';'/newline split, abspath, max files, not found/not a file/types/empty/MB-limit messages in order"
   },
   {
    "module": "formui/session.py",
    "name": "human_size",
    "line": 157,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/files.rs",
-   "rust_item": "human_size"
+   "rust_item": "human_size",
+   "note": "same 'n,nnn B' then 1024-step .1f KB/MB/GB"
   },
   {
    "module": "formui/session.py",
    "name": "_max_bytes",
    "line": 165,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/files.rs",
    "rust_item": "max_file_bytes",
-   "note": "FIXED: Rust dropped negative limits (returned None = no limit); Python keeps int(float(v)*1e6) even when negative, so every non-empty file is rejected. Now Option<i64> (FileRules.max_bytes and session fields too); test values computed with pinned Python."
+   "note": "same float(v)*1e6 truncated, None for missing/''/unparsable; read once per session where Python rereads the config per set; DIVERGENCE: 'inf' gives no limit where Python crashes (OverflowError)"
   },
   {
    "module": "formui/session.py",
    "name": "FormSession",
    "line": 173,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "FormSession"
+   "rust_item": "FormSession",
+   "note": "same init order: existing (edit), tz, special requester set, draft requester, description prefill, items, preselect notes after rules warnings, requester note first"
   },
   {
    "module": "formui/session.py",
@@ -9290,453 +9371,503 @@
    "name": "spec",
    "class": "FormSession",
    "line": 229,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "spec"
+   "rust_item": "spec",
+   "note": "same"
   },
   {
    "module": "formui/session.py",
    "name": "_requester_field",
    "class": "FormSession",
    "line": 232,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "requester_field"
+   "rust_item": "requester_field",
+   "note": "same first default_requester field"
   },
   {
    "module": "formui/session.py",
    "name": "_description_field",
    "class": "FormSession",
    "line": 235,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "description_field"
+   "rust_item": "description_field",
+   "note": "same (change forms only)"
   },
   {
    "module": "formui/session.py",
    "name": "_requester_is_special",
    "class": "FormSession",
    "line": 238,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "requester_is_special"
+   "rust_item": "requester_is_special",
+   "note": "same sr or new"
   },
   {
    "module": "formui/session.py",
    "name": "_timezone",
    "class": "FormSession",
    "line": 242,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "timezone"
+   "rust_item": "timezone",
+   "note": "same: only for 'system time zone' without rules user, check_session time_zone -> 'Freshservice user time zone (name)', errors ignored"
   },
   {
    "module": "formui/session.py",
    "name": "_build_items",
    "class": "FormSession",
    "line": 257,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "build_items"
+   "rust_item": "build_items",
+   "note": "same synthetic requester, status skipped on create, widget/entity maps, attachments + planning rows and help texts"
   },
   {
    "module": "formui/session.py",
    "name": "view",
    "class": "FormSession",
    "line": 287,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "view"
+   "rust_item": "view",
+   "note": "same requester/attachments/planning/field views, disabled reason, restricted note (8 labels or none), unavailable error, 'required' after touch/show-all"
   },
   {
    "module": "formui/session.py",
    "name": "_empty",
    "class": "FormSession",
    "line": 328,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "empty"
+   "rust_item": "empty",
+   "note": "same: checkbox not True, else None/''/()/[]"
   },
   {
    "module": "formui/session.py",
    "name": "text_for",
    "class": "FormSession",
    "line": 333,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "text_for"
+   "rust_item": "text_for",
+   "note": "same date to_text, choice display, '; ' files, description markdown, ', ' tuples, str()"
   },
   {
    "module": "formui/session.py",
    "name": "_desc_text",
    "class": "FormSession",
    "line": 353,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "desc_text"
+   "rust_item": "desc_text",
+   "note": "same markdown-or-prefill"
   },
   {
    "module": "formui/session.py",
    "name": "visible_keys",
    "class": "FormSession",
    "line": 356,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "visible_keys"
+   "rust_item": "visible_keys",
+   "note": "same"
   },
   {
    "module": "formui/session.py",
    "name": "problems",
    "class": "FormSession",
    "line": 359,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "problems"
+   "rust_item": "problems",
+   "note": "same order: requester, engine errors (blocked/requester skipped), SR attachments, input errors; deduped"
   },
   {
    "module": "formui/session.py",
    "name": "missing_keys",
    "class": "FormSession",
    "line": 381,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "missing_keys"
+   "rust_item": "missing_keys",
+   "note": "same"
   },
   {
    "module": "formui/session.py",
    "name": "help_for",
    "class": "FormSession",
    "line": 389,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "help_for"
+   "rust_item": "help_for",
+   "note": "same label/required/help/placeholder/choices/why (tz or date only, explain decisions)/effects"
   },
   {
    "module": "formui/session.py",
    "name": "_pool",
    "class": "FormSession",
    "line": 406,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "pool"
+   "rust_item": "pool",
+   "note": "same visible, labelled, non-empty-value choices; [] on error"
   },
   {
    "module": "formui/session.py",
    "name": "suggestions",
    "class": "FormSession",
    "line": 414,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "suggestions"
+   "rust_item": "suggestions",
+   "note": "same nested 'choose X first', fuzzy filter with selected flags, 'no choice matches', lookup notes incl. typed-address fallback (via SuggestJob)"
   },
   {
    "module": "formui/session.py",
    "name": "effects",
    "class": "FormSession",
    "line": 447,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "effects"
+   "rust_item": "effects",
+   "note": "same cached Ticking/Unticking/Picking X will ... on a forked state, 30 choices max"
   },
   {
    "module": "formui/session.py",
    "name": "_labels",
    "class": "FormSession",
    "line": 476,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "labels"
+   "rust_item": "labels_req",
+   "note": "same ' (required)' suffix (labels is the plain variant)"
   },
   {
    "module": "formui/session.py",
    "name": "_diff_parts",
    "class": "FormSession",
    "line": 481,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "diff_parts"
+   "rust_item": "diff_parts",
+   "note": "same show/hide/make required/optional/limit/offer again/message repr parts"
   },
   {
    "module": "formui/session.py",
    "name": "set",
    "class": "FormSession",
    "line": 502,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "set"
+   "rust_item": "set",
+   "note": "same routing: requester, synthetic files, field files -> tuple or None, description, state.set error kept per key, remember, notes + preselect"
   },
   {
    "module": "formui/session.py",
    "name": "mark_invalid",
    "class": "FormSession",
    "line": 545,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "mark_invalid"
+   "rust_item": "mark_invalid",
+   "note": "same add/withdraw"
   },
   {
    "module": "formui/session.py",
    "name": "input_errors",
    "class": "FormSession",
    "line": 554,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "input_errors"
+   "rust_item": "input_errors",
+   "note": "same 'Label: error' for visible rows"
   },
   {
    "module": "formui/session.py",
    "name": "_remember",
    "class": "FormSession",
    "line": 559,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "remember"
+   "rust_item": "remember",
+   "note": "same user-sourced value, None on edit clears, else dropped"
   },
   {
    "module": "formui/session.py",
    "name": "_set_requester",
    "class": "FormSession",
    "line": 569,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "set_requester"
+   "rust_item": "set_requester",
+   "note": "fixed: draft requester is email-or-display with an empty email falling back to the name (Python `or`); same 'pick a person' / 'has no email address' errors"
   },
   {
    "module": "formui/session.py",
    "name": "_set_description",
    "class": "FormSession",
    "line": 588,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "set_description"
+   "rust_item": "set_description",
+   "note": "same unchanged-on-edit -> existing html, blank -> None/'' on edit, else to_html"
   },
   {
    "module": "formui/session.py",
    "name": "_notes",
    "class": "FormSession",
    "line": 607,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "notes"
+   "rust_item": "notes",
+   "note": "same +/-/*/no longer required/limited/offered again/!/cleared notes"
   },
   {
    "module": "formui/session.py",
    "name": "_preselect",
    "class": "FormSession",
    "line": 632,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "preselect"
+   "rust_item": "preselect",
+   "note": "same single-choice pick with '(the only choice rule X allows)' and its notes"
   },
   {
    "module": "formui/session.py",
    "name": "_preselect_all",
    "class": "FormSession",
    "line": 657,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "preselect_all"
+   "rust_item": "preselect_all",
+   "note": "same over every restricted field"
   },
   {
    "module": "formui/session.py",
    "name": "build_plan",
    "class": "FormSession",
    "line": 661,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same pending input errors added to plan and review errors with the hash cleared (Plan::block_on); builders injected via FormBackend"
   },
   {
    "module": "formui/session.py",
    "name": "default_draft_path",
    "class": "FormSession",
    "line": 686,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "default_draft_path"
+   "rust_item": "default_draft_path",
+   "note": "same ticket/sr/change-<target>/change draft names under cwd"
   },
   {
    "module": "formui/session.py",
    "name": "save_draft",
    "class": "FormSession",
    "line": 691,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "save_draft"
+   "rust_item": "save_draft",
+   "note": "same build-if-needed and backend write; DIVERGENCE: the saved path is made absolute against the session cwd (Python keeps the typed relative path; the form's dialogs always pass absolute paths)"
   },
   {
    "module": "formui/session.py",
    "name": "command_for",
    "class": "FormSession",
    "line": 703,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "command_for"
+   "rust_item": "command_for",
+   "note": "same sr/tickets/changes update/create commands, hash[:16], shlex.quote, --ack"
   },
   {
    "module": "formui/session.py",
    "name": "send",
    "class": "FormSession",
    "line": 715,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same dry-run exit 2 message and duplicate allowance on edit; checks/writes via backend"
   },
   {
    "module": "formui/session.py",
    "name": "_default_requester",
    "line": 743,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/session.rs",
-   "rust_item": "default_requester"
+   "rust_item": "default_requester",
+   "note": "same defaults.<key> strip, 'Requester X from config defaults.key', repr + squashed error note"
   },
   {
    "module": "formui/session.py",
    "name": "change_session",
    "line": 753,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-app/src/form.rs",
-   "rust_item": "change_session"
+   "rust_item": "change_session",
+   "note": "same full-record fetch for edit, display_id/id/target meta id, default requester only on new, titles"
   },
   {
    "module": "formui/session.py",
    "name": "sr_session",
    "line": 776,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-app/src/form.rs",
-   "rust_item": "sr_session"
+   "rust_item": "sr_session",
+   "note": "same item meta load, sr_requester default, 'New service request: <item>' title"
   },
   {
    "module": "formui/session.py",
    "name": "ticket_session",
    "line": 791,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-app/src/form.rs",
-   "rust_item": "ticket_session"
+   "rust_item": "ticket_session",
+   "note": "same meta, requester default, 'New Incident'"
   },
   {
    "module": "formui/session.py",
    "name": "open_session",
    "line": 804,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/backend.rs",
-   "rust_item": "FormKind",
-   "note": "FormKind::parse holds the kind aliases (change/changes, sr/service_request, ticket/tickets/incident) and the exact error text; fsv-app's change_session/sr_session/ticket_session (crates/fsv-app/src/form.rs) are the dispatch targets. Tested by fsv-formui/tests/session.rs kind_aliases."
+   "rust_item": "parse",
+   "note": "same aliases and 'unknown form kind ...; expected change, ticket or sr' message (FormKind::parse)"
   },
   {
    "module": "formui/when.py",
    "name": "Parsed",
    "line": 43,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "Parsed"
+   "rust_item": "Parsed",
+   "note": "same value/preview/error fields, default empty"
   },
   {
    "module": "formui/when.py",
    "name": "ok",
    "class": "Parsed",
    "line": 49,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "ok"
+   "rust_item": "ok",
+   "note": "same: no error"
   },
   {
    "module": "formui/when.py",
    "name": "_month",
    "line": 53,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "month"
+   "rust_item": "month",
+   "note": "same casefold[:3] month lookup"
   },
   {
    "module": "formui/when.py",
    "name": "_parse_date",
    "line": 58,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "parse_date"
+   "rust_item": "parse_date",
+   "note": "same weekday decoration, today/tomorrow/yesterday, +Nd/+Nw, next weekday, ISO, DMY/MDY with year rollover, 'cannot read' message; DIVERGENCE: a huge +Nd gives 'date value out of range' where Python crashes with OverflowError"
   },
   {
    "module": "formui/when.py",
    "name": "_split_time",
    "line": 101,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "split_time"
+   "rust_item": "split_time",
+   "note": "same regex, am/pm 1-12 message, 'not a time of day', Z/+-HH:MM offsets and the >=24h timedelta message"
   },
   {
    "module": "formui/when.py",
    "name": "offset_text",
    "line": 126,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "offset_text"
+   "rust_item": "offset_text",
+   "note": "same +-HH:MM"
   },
   {
    "module": "formui/when.py",
    "name": "tz_phrase",
    "line": 134,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "tz_phrase"
+   "rust_item": "tz_phrase",
+   "note": "same four phrases"
   },
   {
    "module": "formui/when.py",
    "name": "date_text",
    "line": 145,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "date_text"
+   "rust_item": "date_text",
+   "note": "same 'Thu 26 Nov 2026'"
   },
   {
    "module": "formui/when.py",
    "name": "preview",
    "line": 149,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "preview"
+   "rust_item": "preview",
+   "note": "same 'date HH:MM (+off where)' / date / ''"
   },
   {
    "module": "formui/when.py",
    "name": "parse_when",
    "line": 158,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "parse_when"
+   "rust_item": "parse_when",
+   "note": "same date-only refusal, missing time/date messages, typed offset vs localize (DST errors), 'is not a real date' rewrite"
   },
   {
    "module": "formui/when.py",
    "name": "to_text",
    "line": 189,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "to_text"
+   "rust_item": "to_text",
+   "note": "same seconds-when-set and offset-unless-the-zone-gives-it (gap/overlap always offset)"
   },
   {
    "module": "formui/when.py",
    "name": "_no_dst_doubt",
    "line": 208,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
    "rust_item": "to_text",
-   "note": "Inlined as `localize(l, tz).is_ok_and(|x| x.offset == v.offset)`. Same result as Python's fold-offset check plus _no_dst_doubt: when localize succeeds the wall time is unambiguous, so fold doesn't matter."
+   "note": "folded into to_text: localize(local, tz) succeeding with the same offset"
   },
   {
    "module": "formui/when.py",
    "name": "month_weeks",
    "line": 216,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "month_weeks"
+   "rust_item": "month_weeks",
+   "note": "same monthdatescalendar full weeks, firstweekday % 7, bad month message"
   },
   {
    "module": "formui/when.py",
    "name": "add_months",
    "line": 220,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "add_months"
+   "rust_item": "add_months",
+   "note": "same floor month arithmetic and day clamp"
   },
   {
    "module": "formui/widgets.py",
@@ -9783,18 +9914,20 @@
    "name": "key",
    "class": "EditorMixin",
    "line": 62,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "key"
+   "rust_item": "key",
+   "note": "same item key (each editor keeps its key)"
   },
   {
    "module": "formui/widgets.py",
    "name": "sync",
    "class": "EditorMixin",
    "line": 65,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "sync"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/mod.rs",
+   "rust_item": "Editor",
+   "note": "same: Editor::sync is required per editor"
   },
   {
    "module": "formui/widgets.py",
@@ -9809,18 +9942,20 @@
    "name": "dirty",
    "class": "EditorMixin",
    "line": 71,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "dirty"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/mod.rs",
+   "rust_item": "Editor",
+   "note": "same default false (Editor::dirty)"
   },
   {
    "module": "formui/widgets.py",
    "name": "TextEditor",
    "line": 80,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/text.rs",
-   "rust_item": "TextEditor"
+   "rust_item": "TextEditor",
+   "note": "same placeholder or 'a number', number input"
   },
   {
    "module": "formui/widgets.py",
@@ -9835,36 +9970,40 @@
    "name": "sync",
    "class": "TextEditor",
    "line": 88,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "sync"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "sync",
+   "note": "pointer fixed (was combo sync): same unfocused value write-back, disabled"
   },
   {
    "module": "formui/widgets.py",
    "name": "_changed",
    "class": "TextEditor",
    "line": 94,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/text.rs",
-   "rust_item": "changed"
+   "rust_item": "changed",
+   "note": "same 0.3 s commit debounce"
   },
   {
    "module": "formui/widgets.py",
    "name": "commit",
    "class": "TextEditor",
    "line": 100,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/date.rs",
-   "rust_item": "commit"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "commit",
+   "note": "pointer fixed (was date commit): same commit-when-changed FieldEdited(str)"
   },
   {
    "module": "formui/widgets.py",
    "name": "dirty",
    "class": "TextEditor",
    "line": 105,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "dirty"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "dirty",
+   "note": "pointer fixed (was combo dirty): same value != committed"
   },
   {
    "module": "formui/widgets.py",
@@ -9879,18 +10018,20 @@
    "name": "_submitted",
    "class": "TextEditor",
    "line": 112,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "submitted"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "handle_key",
+   "note": "pointer fixed (was fsv-tui submitted): Enter commits then focus next"
   },
   {
    "module": "formui/widgets.py",
    "name": "ParagraphEditor",
    "line": 118,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/text.rs",
-   "rust_item": "ParagraphEditor"
+   "rust_item": "ParagraphEditor",
+   "note": "same 5-row soft-wrapped area, Tab leaves"
   },
   {
    "module": "formui/widgets.py",
@@ -9905,36 +10046,40 @@
    "name": "sync",
    "class": "ParagraphEditor",
    "line": 127,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "sync"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "sync",
+   "note": "pointer fixed: same unfocused load_text"
   },
   {
    "module": "formui/widgets.py",
    "name": "_changed",
    "class": "ParagraphEditor",
    "line": 133,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/text.rs",
-   "rust_item": "changed"
+   "rust_item": "changed",
+   "note": "same debounce"
   },
   {
    "module": "formui/widgets.py",
    "name": "commit",
    "class": "ParagraphEditor",
    "line": 139,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/date.rs",
-   "rust_item": "commit"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "commit",
+   "note": "pointer fixed: same commit-when-changed"
   },
   {
    "module": "formui/widgets.py",
    "name": "dirty",
    "class": "ParagraphEditor",
    "line": 144,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "dirty"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "dirty",
+   "note": "pointer fixed: same"
   },
   {
    "module": "formui/widgets.py",
@@ -9949,9 +10094,10 @@
    "name": "DescriptionEditor",
    "line": 151,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/text.rs",
-   "rust_item": "DescriptionEditor"
+   "rust_item": "DescriptionEditor",
+   "note": "same markdown area (10 rows), bar text, F3 preview"
   },
   {
    "module": "formui/widgets.py",
@@ -9990,36 +10136,40 @@
    "name": "sync",
    "class": "DescriptionEditor",
    "line": 182,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "sync"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "sync",
+   "note": "pointer fixed: same unfocused load_text"
   },
   {
    "module": "formui/widgets.py",
    "name": "_changed",
    "class": "DescriptionEditor",
    "line": 189,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/text.rs",
-   "rust_item": "changed"
+   "rust_item": "changed",
+   "note": "same debounce"
   },
   {
    "module": "formui/widgets.py",
    "name": "commit",
    "class": "DescriptionEditor",
    "line": 195,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/date.rs",
-   "rust_item": "commit"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "commit",
+   "note": "pointer fixed: same commit-when-changed"
   },
   {
    "module": "formui/widgets.py",
    "name": "dirty",
    "class": "DescriptionEditor",
    "line": 201,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "dirty"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "dirty",
+   "note": "pointer fixed: same"
   },
   {
    "module": "formui/widgets.py",
@@ -10034,18 +10184,20 @@
    "name": "action_toggle_preview",
    "class": "DescriptionEditor",
    "line": 207,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/text.rs",
-   "rust_item": "action_toggle_preview"
+   "rust_item": "action_toggle_preview",
+   "note": "fixed: turning the preview on commits the text (Textual blurs the hidden area); preview of '' is _(empty)_ but blank text now renders nothing as in Textual (markdown_lines); DIVERGENCE: focus stays on the editor so F3 toggles back (Textual drops focus and the preview cannot be left with F3)"
   },
   {
    "module": "formui/widgets.py",
    "name": "CheckEditor",
    "line": 216,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/text.rs",
-   "rust_item": "CheckEditor"
+   "rust_item": "CheckEditor",
+   "note": "same 'Yes' box"
   },
   {
    "module": "formui/widgets.py",
@@ -10060,27 +10212,30 @@
    "name": "sync",
    "class": "CheckEditor",
    "line": 222,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "sync"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "sync",
+   "note": "pointer fixed: same value is True, no report on sync"
   },
   {
    "module": "formui/widgets.py",
    "name": "_changed",
    "class": "CheckEditor",
    "line": 229,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/text.rs",
-   "rust_item": "changed"
+   "rust_item": "changed",
+   "note": "same FieldEdited(bool) on a toggle by the person"
   },
   {
    "module": "formui/widgets.py",
    "name": "ComboBox",
    "line": 241,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "ComboBox"
+   "rust_item": "ComboBox",
+   "note": "same multi/remote modes and placeholders"
   },
   {
    "module": "formui/widgets.py",
@@ -10103,18 +10258,16 @@
    "name": "input",
    "class": "ComboBox",
    "line": 290,
-   "status": "matched",
-   "rust": "crates/fsv-completion/src/dynamic/golden.rs",
-   "rust_item": "input"
+   "status": "idiom",
+   "note": "Textual query accessor; the Rust combo owns its LineInput field"
   },
   {
    "module": "formui/widgets.py",
    "name": "options",
    "class": "ComboBox",
    "line": 294,
-   "status": "matched",
-   "rust": "crates/fsv-forms/src/errors.rs",
-   "rust_item": "options"
+   "status": "idiom",
+   "note": "Textual OptionList accessor; Rust keeps options/highlighted fields"
   },
   {
    "module": "formui/widgets.py",
@@ -10137,90 +10290,100 @@
    "name": "sync",
    "class": "ComboBox",
    "line": 304,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "sync"
+   "rust_item": "sync",
+   "note": "same disabled, multi chosen line + refresh, unfocused text write-back else refresh open local list"
   },
   {
    "module": "formui/widgets.py",
    "name": "_query",
    "class": "ComboBox",
    "line": 319,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "query"
+   "rust_item": "query",
+   "note": "same shown-text-means-empty query on single boxes"
   },
   {
    "module": "formui/widgets.py",
    "name": "open",
    "class": "ComboBox",
    "line": 323,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "open"
+   "rust_item": "open",
+   "note": "same disabled guard, Opened, immediate search for group/agent"
   },
   {
    "module": "formui/widgets.py",
    "name": "close",
    "class": "ComboBox",
    "line": 334,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "close"
+   "rust_item": "close",
+   "note": "fixed: the highlight is kept across close (Textual's OptionList keeps it; a pilot shows a multi-select reopening on the same row); same options/query/note reset and text restore when unfocused"
   },
   {
    "module": "formui/widgets.py",
    "name": "refresh_options",
    "class": "ComboBox",
    "line": 344,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "refresh_options"
+   "rust_item": "refresh_options",
+   "note": "same session.suggestions over the query"
   },
   {
    "module": "formui/widgets.py",
    "name": "show_options",
    "class": "ComboBox",
    "line": 348,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "show_options"
+   "rust_item": "show_options",
+   "note": "same highlight (kept on multi, else 0) and note"
   },
   {
    "module": "formui/widgets.py",
    "name": "_note",
    "class": "ComboBox",
    "line": 368,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "note"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/combo.rs",
+   "rust_item": "set_note",
+   "note": "pointer fixed (was fsv-api note): same local description then note joined by ' · '"
   },
   {
    "module": "formui/widgets.py",
    "name": "_typed",
    "class": "ComboBox",
    "line": 380,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "typed"
+   "rust_item": "typed",
+   "note": "same guard, open, 'searching…' reset for a changed remote query, debounce"
   },
   {
    "module": "formui/widgets.py",
    "name": "dirty",
    "class": "ComboBox",
    "line": 398,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "dirty"
+   "rust_item": "dirty",
+   "note": "same non-blank and (multi or not the shown text)"
   },
   {
    "module": "formui/widgets.py",
    "name": "on_descendant_focus",
    "class": "ComboBox",
    "line": 402,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "on_descendant_focus"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/combo.rs",
+   "rust_item": "focus",
+   "note": "pointer fixed (was FormScreen): focusing the input opens the list"
   },
   {
    "module": "formui/widgets.py",
@@ -10235,45 +10398,50 @@
    "name": "_maybe_close",
    "class": "ComboBox",
    "line": 409,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "maybe_close"
+   "rust_item": "maybe_close",
+   "note": "same close once unfocused (0.15 s after blur)"
   },
   {
    "module": "formui/widgets.py",
    "name": "_schedule_search",
    "class": "ComboBox",
    "line": 413,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "schedule_search"
+   "rust_item": "schedule_search",
+   "note": "same immediate or 0.25 s debounce"
   },
   {
    "module": "formui/widgets.py",
    "name": "_search",
    "class": "ComboBox",
    "line": 421,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "search"
+   "rust_item": "search",
+   "note": "same query, searches count, 'searching…' note; errors squashed to 200 chars by the screen"
   },
   {
    "module": "formui/widgets.py",
    "name": "_found",
    "class": "ComboBox",
    "line": 435,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "found"
+   "rust_item": "found",
+   "note": "same stale (query changed / closed) drop; also drops older generations"
   },
   {
    "module": "formui/widgets.py",
    "name": "_stale",
    "class": "ComboBox",
    "line": 441,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "stale"
+   "rust_item": "stale",
+   "note": "same remote options_query check"
   },
   {
    "module": "formui/widgets.py",
@@ -10296,45 +10464,50 @@
    "name": "_enter",
    "class": "ComboBox",
    "line": 460,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "enter"
+   "rust_item": "enter",
+   "note": "same open / clear on blank single box / 'still searching…' / pick highlighted"
   },
   {
    "module": "formui/widgets.py",
    "name": "pick",
    "class": "ComboBox",
    "line": 477,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "pick"
+   "rust_item": "pick",
+   "note": "same multi toggle (None when empty, input cleared) and single text_for-or-label, edit, close"
   },
   {
    "module": "formui/widgets.py",
    "name": "action_cursor",
    "class": "ComboBox",
    "line": 493,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "action_cursor"
+   "rust_item": "action_cursor",
+   "note": "fixed: the note is only redone when the highlight moves (Textual fires no highlight event otherwise); same open-first and clamp"
   },
   {
    "module": "formui/widgets.py",
    "name": "action_close",
    "class": "ComboBox",
    "line": 505,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "action_close"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/combo.rs",
+   "rust_item": "handle_key",
+   "note": "pointer fixed (was fsv-tui modals): Esc closes an open list, else goes up to the screen (SkipAction)"
   },
   {
    "module": "formui/widgets.py",
    "name": "CalendarGrid",
    "line": 515,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/calendar.rs",
-   "rust_item": "CalendarGrid"
+   "rust_item": "CalendarGrid",
+   "note": "same cursor/today"
   },
   {
    "module": "formui/widgets.py",
@@ -10349,45 +10522,50 @@
    "name": "render",
    "class": "CalendarGrid",
    "line": 538,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/calendar.rs",
-   "rust_item": "render"
+   "rust_item": "render",
+   "note": "same ‹ centered month year ›, Mo..Su dim, 2-wide days, cursor reverse bold, other months dim, today underlined"
   },
   {
    "module": "formui/widgets.py",
    "name": "action_move",
    "class": "CalendarGrid",
    "line": 564,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/calendar.rs",
-   "rust_item": "action_move"
+   "rust_item": "action_move",
+   "note": "same day/week moves"
   },
   {
    "module": "formui/widgets.py",
    "name": "action_month",
    "class": "CalendarGrid",
    "line": 567,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/calendar.rs",
-   "rust_item": "action_month"
+   "rust_item": "action_month",
+   "note": "same add_months clamp"
   },
   {
    "module": "formui/widgets.py",
    "name": "action_today",
    "class": "CalendarGrid",
    "line": 570,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/calendar.rs",
-   "rust_item": "action_today"
+   "rust_item": "action_today",
+   "note": "same"
   },
   {
    "module": "formui/widgets.py",
    "name": "action_pick",
    "class": "CalendarGrid",
    "line": 573,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/calendar.rs",
-   "rust_item": "action_pick"
+   "rust_item": "action_pick",
+   "note": "same Picked(cursor)"
   },
   {
    "module": "formui/widgets.py",
@@ -10402,9 +10580,10 @@
    "name": "DateEditor",
    "line": 588,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/date.rs",
-   "rust_item": "DateEditor"
+   "rust_item": "DateEditor",
+   "note": "same date-only flag and placeholders"
   },
   {
    "module": "formui/widgets.py",
@@ -10427,9 +10606,8 @@
    "name": "input",
    "class": "DateEditor",
    "line": 622,
-   "status": "matched",
-   "rust": "crates/fsv-completion/src/dynamic/golden.rs",
-   "rust_item": "input"
+   "status": "idiom",
+   "note": "Textual query accessor; the Rust editor owns its LineInput field"
   },
   {
    "module": "formui/widgets.py",
@@ -10444,54 +10622,60 @@
    "name": "parse",
    "class": "DateEditor",
    "line": 628,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/date.rs",
-   "rust_item": "parse"
+   "rust_item": "parse",
+   "note": "same parse_when with the session zone/source and date_only"
   },
   {
    "module": "formui/widgets.py",
    "name": "sync",
    "class": "DateEditor",
    "line": 631,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "sync"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/date.rs",
+   "rust_item": "sync",
+   "note": "pointer fixed (was combo sync): same disabled, invalid text kept, unfocused write-back with preview"
   },
   {
    "module": "formui/widgets.py",
    "name": "dirty",
    "class": "DateEditor",
    "line": 641,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "dirty"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/date.rs",
+   "rust_item": "dirty",
+   "note": "pointer fixed: same"
   },
   {
    "module": "formui/widgets.py",
    "name": "_preview",
    "class": "DateEditor",
    "line": 644,
-   "status": "matched",
-   "rust": "crates/fsv-forms/src/when.rs",
-   "rust_item": "preview"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/date.rs",
+   "rust_item": "update_preview",
+   "note": "pointer fixed (was when preview): preview or error under the box"
   },
   {
    "module": "formui/widgets.py",
    "name": "_typed",
    "class": "DateEditor",
    "line": 652,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "typed"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/date.rs",
+   "rust_item": "handle_key",
+   "note": "pointer fixed (was combo typed): typing refreshes the preview"
   },
   {
    "module": "formui/widgets.py",
    "name": "commit",
    "class": "DateEditor",
    "line": 656,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/date.rs",
-   "rust_item": "commit"
+   "rust_item": "commit_text",
+   "note": "same revert withdraws the error, unreadable text kept + FieldInvalid, else FieldEdited(value)"
   },
   {
    "module": "formui/widgets.py",
@@ -10506,36 +10690,40 @@
    "name": "_enter",
    "class": "DateEditor",
    "line": 681,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "enter"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/date.rs",
+   "rust_item": "enter",
+   "note": "pointer fixed (was combo enter): Enter commits"
   },
   {
    "module": "formui/widgets.py",
    "name": "_button",
    "class": "DateEditor",
    "line": 686,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/date.rs",
-   "rust_item": "button"
+   "rust_item": "button",
+   "note": "same Calendar button (disabled with the field)"
   },
   {
    "module": "formui/widgets.py",
    "name": "action_calendar",
    "class": "DateEditor",
    "line": 690,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/date.rs",
-   "rust_item": "action_calendar"
+   "rust_item": "action_calendar",
+   "note": "same OpenCalendar"
   },
   {
    "module": "formui/widgets.py",
    "name": "set_value",
    "class": "DateEditor",
    "line": 693,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/date.rs",
-   "rust_item": "set_value"
+   "rust_item": "set_value",
+   "note": "same to_text, invalid cleared, preview, committed, FieldEdited"
   },
   {
    "module": "formui/widgets.py",
@@ -10565,18 +10753,20 @@
    "module": "formui/widgets.py",
    "name": "complete_path",
    "line": 718,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/files.rs",
-   "rust_item": "complete_path"
+   "rust_item": "complete_path",
+   "note": "same last ';' fragment, expanduser, sorted listing, hidden only for '.' prefixes, common prefix, '/' for a lone dir, None when nothing to add"
   },
   {
    "module": "formui/widgets.py",
    "name": "FileEditor",
    "line": 740,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/text.rs",
-   "rust_item": "FileEditor"
+   "rust_item": "FileEditor",
+   "note": "same placeholder with types and 'max N' rules"
   },
   {
    "module": "formui/widgets.py",
@@ -10599,9 +10789,8 @@
    "name": "input",
    "class": "FileEditor",
    "line": 762,
-   "status": "matched",
-   "rust": "crates/fsv-completion/src/dynamic/golden.rs",
-   "rust_item": "input"
+   "status": "idiom",
+   "note": "Textual query accessor; the Rust editor owns its LineInput field"
   },
   {
    "module": "formui/widgets.py",
@@ -10616,27 +10805,30 @@
    "name": "sync",
    "class": "FileEditor",
    "line": 768,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "sync"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "sync",
+   "note": "pointer fixed: same disabled, write-back, ✓ name size / ✗ name missing list + 'uploaded only after you confirm the review'"
   },
   {
    "module": "formui/widgets.py",
    "name": "commit",
    "class": "FileEditor",
    "line": 784,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/date.rs",
-   "rust_item": "commit"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "commit",
+   "note": "pointer fixed: same commit-when-changed"
   },
   {
    "module": "formui/widgets.py",
    "name": "dirty",
    "class": "FileEditor",
    "line": 789,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "dirty"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "dirty",
+   "note": "pointer fixed: same"
   },
   {
    "module": "formui/widgets.py",
@@ -10651,35 +10843,39 @@
    "name": "_enter",
    "class": "FileEditor",
    "line": 797,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "enter"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "enter",
+   "note": "pointer fixed (was combo enter): Enter commits"
   },
   {
    "module": "formui/widgets.py",
    "name": "_typed",
    "class": "FileEditor",
    "line": 802,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "typed"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/text.rs",
+   "rust_item": "suggest",
+   "note": "pointer fixed (was combo typed): typing refreshes the path completion (PathSuggester)"
   },
   {
    "module": "formui/widgets.py",
    "name": "_safe_id",
    "line": 817,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/mod.rs",
-   "rust_item": "safe_id"
+   "rust_item": "safe_id",
+   "note": "same alnum/_/- kept, else _"
   },
   {
    "module": "formui/widgets.py",
    "name": "FieldRow",
    "line": 821,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-formui/src/widgets/mod.rs",
-   "rust_item": "FieldRow"
+   "rust_item": "FieldRow",
+   "note": "same notice box, label, editor, first help sentence (<160 chars else cut …), note, error"
   },
   {
    "module": "formui/widgets.py",
@@ -10694,9 +10890,10 @@
    "name": "key",
    "class": "FieldRow",
    "line": 841,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "key"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/mod.rs",
+   "rust_item": "key",
+   "note": "pointer fixed (was combo key): the item key"
   },
   {
    "module": "formui/widgets.py",
@@ -10711,9 +10908,10 @@
    "name": "sync",
    "class": "FieldRow",
    "line": 865,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/widgets/combo.rs",
-   "rust_item": "sync"
+   "status": "reviewed",
+   "rust": "crates/fsv-formui/src/widgets/mod.rs",
+   "rust_item": "sync",
+   "note": "pointer fixed (was combo sync): view, required star, read-only tag, note = disabled reason else note, error, editor sync"
   },
   {
    "module": "formui/widgets.py",

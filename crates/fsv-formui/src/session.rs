@@ -83,8 +83,7 @@ fn entity_for(f: &Field) -> String {
 }
 
 fn plain(text: &str, limit: usize) -> String {
-    let s = fsv_forms::spec::plain_text(text)
-        .split_whitespace()
+    let s = fsv_forms::pytext::split_ws(&fsv_forms::spec::plain_text(text))
         .collect::<Vec<_>>()
         .join(" ");
     if s.chars().count() <= limit {
@@ -182,6 +181,14 @@ pub fn shell_quote(s: &str) -> String {
     } else {
         format!("'{}'", s.replace('\'', "'\"'\"'"))
     }
+}
+
+/// `person.email or person.display`.
+fn email_or_display(p: &LookupValue) -> String {
+    p.email
+        .clone()
+        .filter(|e| !e.is_empty())
+        .unwrap_or_else(|| p.display.clone())
 }
 
 /// A throw-away copy to try a value on (`set` replaces `evaluated`).
@@ -488,7 +495,7 @@ impl FormSession {
             let _ = s.state.set(&name, Value::Lookup(who.clone()));
         }
         if let Some(who) = &init.requester {
-            s.draft.requester = Some(who.email.clone().unwrap_or_else(|| who.display.clone()));
+            s.draft.requester = Some(email_or_display(who));
         }
         if let Some(desc) = s.description_field()
             && s.mode == FormMode::Edit
@@ -1269,9 +1276,7 @@ impl FormSession {
             self.errors_by_key.insert(it.key.clone(), err.clone());
             return Outcome::error(err);
         }
-        self.draft.requester = person
-            .as_ref()
-            .map(|p| p.email.clone().unwrap_or_else(|| p.display.clone()));
+        self.draft.requester = person.as_ref().map(email_or_display);
         self.requester = person.clone();
         if let Some(req) = self.requester_field()
             && matches!(self.kind, FormKind::Change | FormKind::Ticket)
@@ -1568,6 +1573,21 @@ mod tests {
         );
         assert_eq!(plain("abcdefghij", 5), "abcd…");
         assert_eq!(plain("", 600), "");
+        // str.split() also splits on the \x1c-\x1f separators
+        assert_eq!(plain("a\u{1f}b", 600), "a b");
+    }
+
+    /// `raw.email or raw.display`: an empty email falls back to the name.
+    #[test]
+    fn requester_without_an_email_is_kept_by_name() {
+        let (_a, mut s) = acme::acme();
+        let req = s.item("requester").cloned().expect("item");
+        let who = LookupValue::new(5, "Bo Lin", Some(""));
+        assert_eq!(
+            s.set_requester(&req, Value::Lookup(who)),
+            Outcome::default()
+        );
+        assert_eq!(s.draft.requester.as_deref(), Some("Bo Lin"));
     }
 
     #[test]

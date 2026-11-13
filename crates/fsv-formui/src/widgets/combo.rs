@@ -106,10 +106,10 @@ impl ComboBox {
         }
     }
 
+    /// The highlight is kept: a multi-select opens again on the same row.
     pub fn close(&mut self, focused: bool) {
         self.is_open = false;
         self.options.clear();
-        self.highlighted = None;
         self.options_query = None;
         self.note.clear();
         if !self.multi && self.input.value() != self.shown_text && !focused {
@@ -281,8 +281,10 @@ impl ComboBox {
         }
         let cur = self.highlighted.map_or(-1, |h| h as isize);
         let next = (cur + n).clamp(0, self.options.len() as isize - 1) as usize;
-        self.highlighted = Some(next);
-        self.on_highlight();
+        if self.highlighted != Some(next) {
+            self.highlighted = Some(next);
+            self.on_highlight();
+        }
     }
 
     /// `ComboBox._highlighted`: the note follows the highlighted choice.
@@ -613,6 +615,27 @@ mod tests {
         c.highlighted = Some(2);
         c.on_highlight();
         assert_eq!(c.note, "Revenue at risk");
+    }
+
+    /// A pilot of the Python form: Down twice in Services, leave, come back:
+    /// the third row is highlighted again. A move that stays put (Up on the
+    /// first row) keeps the note, as no highlight event fires.
+    #[test]
+    fn multi_reopens_on_the_same_row_and_a_stuck_cursor_keeps_the_note() {
+        let mut h = TestCx::new();
+        let mut m = combo(&h, "services");
+        h.cx(|cx| m.open(cx));
+        h.cx(|cx| m.action_cursor(2, cx));
+        assert_eq!(m.highlighted, Some(2));
+        m.close(false);
+        h.cx(|cx| m.open(cx));
+        assert_eq!(m.highlighted, Some(2));
+
+        let mut c = combo(&h, "priority");
+        h.cx(|cx| c.open(cx));
+        c.set_note("searching…");
+        h.cx(|cx| c.action_cursor(-1, cx));
+        assert_eq!(c.note, "Can wait · searching…");
     }
 
     /// `ComboBox._maybe_close`: closes only once the input lost focus, and

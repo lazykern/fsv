@@ -344,11 +344,7 @@ fn body(b: &Block, width: u16, theme: &Theme, c: &Colors) -> Vec<Line<'static>> 
 /// The preview of `md` in `width` columns; empty text reads `(empty)`.
 pub fn markdown_lines(md: &str, width: u16, theme: &Theme) -> Vec<Line<'static>> {
     let c = colors(theme);
-    let md = if md.trim().is_empty() {
-        "_(empty)_"
-    } else {
-        md
-    };
+    let md = if md.is_empty() { "_(empty)_" } else { md };
     let mut out: Vec<Line<'static>> = vec![];
     let mut gap = 0;
     for b in blocks(md) {
@@ -524,6 +520,12 @@ mod tests {
 
         let empty = markdown_lines("", 72, &t);
         assert_eq!(text(&empty), ["(empty)", ""]);
+        // `text or "_(empty)_"`: blank text is not empty, and renders nothing
+        assert!(
+            text(&markdown_lines("  \n ", 72, &t))
+                .iter()
+                .all(|l| l.trim().is_empty())
+        );
         assert!(
             empty[0].spans[0]
                 .style

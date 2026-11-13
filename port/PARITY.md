@@ -143,6 +143,14 @@ those stay identical.
   `invalid literal for int()`. Rust skips that workspace id, and
   `active_choices` fails with `invalid active task-status identity`. Other
   Unicode decimal digits (`١٣`) parse as in Python.
+- Form date input: a huge `+Nd` offset says "date value out of range".
+  Python's `when._parse_date` crashes with `OverflowError`.
+- Form `max_file_mb = inf` means no limit. Python's `_max_bytes` crashes
+  with `OverflowError`.
+- Form `save_draft` makes the saved path absolute against the session cwd.
+  Python keeps a typed relative path; its dialogs always pass absolute ones.
+- Form F3 description preview keeps focus on the editor, so F3 toggles back.
+  In Textual the preview drops focus and F3 cannot leave it.
 
 ## fsv-app
 
