@@ -12,10 +12,10 @@ plans, roles, forms and workflows differ (see the
 | Area | Rows | COVERED | UNSURE | GAP | N/A |
 |---|---|---|---|---|---|
 | Tickets | 79 | 50 | 26 | 2 | 1 |
-| Changes | 53 | 35 | 13 | 4 | 1 |
+| Changes | 53 | 36 | 12 | 4 | 1 |
 | Problems and service requests | 62 | 42 | 19 | 1 | 0 |
 | Cross-cutting | 73 | 35 | 36 | 2 | 0 |
-| **All** | **267** | **162** | **94** | **9** | **2** |
+| **All** | **267** | **163** | **93** | **9** | **2** |
 
 N/A rows are local commands with no wire. Counts are per row: a few commands
 appear both in their module table and in the cross-cutting table.
@@ -193,7 +193,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | changes watchers list | `GET /api/_/changes/{id} (watcher_ids)` | COVERED | yes (read) | n/a | read-verified | test_watchers.py | Live read verified. |
 | changes watchers set | `POST /api/_/changes/{id}/watchers {user_id} ; DELETE /changes/{id}/unwatch?user_id=` | COVERED | yes | yes | none | test_watchers.py | Live send verified by an independent readback. |
 | changes windows list | `GET /api/_/maintenance_windows` | COVERED | yes (read) | n/a | none | test_templates_windows.py | Live read verified. |
-| changes windows create | `POST /api/_/change_windows/overlapping_windows then POST /api/_/maintenance_windows` | UNSURE | yes | yes | none | test_templates_windows.py | Create verified live; overlap guard reworked afterwards (maintenance-window list check); times now converted to the tenant (agent profile) zone, `--timezone`, dry-run overlap report, `--allow-overlap` hash-bound; re-test pending. |
+| changes windows create | `POST /api/_/change_windows/overlapping_windows then POST /api/_/maintenance_windows` | COVERED | yes | yes | none | test_templates_windows.py | Live send verified by an independent readback. Overlap is checked against the listed windows (dry-run and send), times are converted to the tenant zone (`--timezone`), skipped daylight-saving times are refused, and `--allow-overlap` is bound into the plan hash. |
 | changes windows delete | `DELETE /api/_/maintenance_windows/{id}` | COVERED | yes | yes | none | test_templates_windows.py | Live send verified by an independent readback. |
 | changes views | `GET /api/_/change-filters` | UNSURE | yes (read) | n/a | read-verified | test_views_cli.py, test_tui_views.py | Read verified live; row-by-row comparison with the web UI pending. |
 | changes columns list | `GET /api/_/changes/headers or list prefs` | UNSURE | yes (read) | n/a | read-verified | test_list_preferences.py | Read verified live; row-by-row comparison with the web UI pending. |
