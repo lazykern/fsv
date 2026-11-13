@@ -225,6 +225,7 @@ mod tests {
             })
         });
         let client = Client::builder(ctx)
+            .cookies(Default::default())
             .transport(mock.clone())
             .sleeper(|_| {})
             .build()

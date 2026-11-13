@@ -83,8 +83,19 @@ impl Tenant {
     }
 }
 
+/// Point the process-wide config at an empty temp dir with the test domain
+/// once, so no test reads the user's real config.
+pub fn hermetic() {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| {
+        let dir = tempfile::tempdir().expect("tempdir").keep();
+        fsv_core::config::use_for_tests(Paths::under(&dir), HOST);
+    });
+}
+
 /// A tenant whose API answers come from `route`; an unrouted call is a 404.
 pub fn tenant(route: impl Fn(&Call) -> Option<Response> + Send + Sync + 'static) -> Tenant {
+    hermetic();
     let dir = tempfile::tempdir().expect("tempdir");
     let ctx = Arc::new(Ctx::new(Paths::under(dir.path())).with_tenant(HOST));
     let mock = MockTransport::new(move |r| {

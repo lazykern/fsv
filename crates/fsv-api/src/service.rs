@@ -1184,6 +1184,16 @@ pub(crate) mod testing {
     use super::*;
     use fsv_core::ApiError;
 
+    /// Point the process-wide config at an empty temp dir (no domain) once,
+    /// so no test reads the user's real config.
+    pub(crate) fn hermetic() {
+        static ONCE: std::sync::Once = std::sync::Once::new();
+        ONCE.call_once(|| {
+            let dir = tempfile::tempdir().expect("tempdir").keep();
+            fsv_core::config::use_for_tests(fsv_core::Paths::under(&dir), "");
+        });
+    }
+
     /// The fixture's `rotate`: each read re-signs every attachment link.
     pub(crate) fn rotate_files(rows: &mut Value, reads: u32) {
         for row in rows.as_array_mut().into_iter().flatten() {
@@ -1226,6 +1236,7 @@ pub(crate) mod testing {
 
     impl FakeApi {
         pub fn new() -> Self {
+            hermetic();
             Self::default()
         }
 
@@ -1422,6 +1433,7 @@ pub(crate) mod testing {
 
     impl FnApi {
         pub fn new(handler: impl FnMut(&Call) -> Result<Value> + Send + 'static) -> Self {
+            hermetic();
             FnApi {
                 calls: Mutex::new(Vec::new()),
                 handler: Mutex::new(Box::new(handler)),
