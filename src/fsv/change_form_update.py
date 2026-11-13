@@ -32,8 +32,9 @@ def send(source: Any, client: Any, *, reviewed_hash: str | None) -> dict[str, An
         raise ReviewedWriteError("Complete hash-bound property plan required")
     for value in {source.hash, source.legacy_hash}:
         events = [e for e in journal.read() if e.get("kind") == "plan:update" and e.get("plan") == value]
-        if events and events[-1].get("event") in {"started", "done"}:
-            raise ReviewedWriteError("Change update was sent or outcome unknown; do not replay")
+        refusal = journal.replay_refusal(events, "Change update was sent or outcome unknown; do not replay")
+        if refusal:
+            raise ReviewedWriteError(refusal)
     def record():
         raw = client.int_get(f"changes/{source.target}")
         row = raw.get("change", raw) if isinstance(raw, dict) else {}

@@ -178,6 +178,27 @@ def _append(entry: dict[str, Any]) -> None:
         os.close(fd)
 
 
+
+def replay_refusal(events: list[dict[str, Any]], unknown: str) -> str | None:
+    """Why a journaled plan must not be sent again; None when it may be sent.
+
+    ``started`` without a later event is an ambiguous outcome and keeps the
+    caller's ``unknown`` text. ``done`` means this exact plan was already sent
+    and answered: say so with its time, because an identical repeat (e.g. a
+    delete again after a restore) hashes the same when nothing changed.
+    """
+    last = events[-1] if events else {}
+    event = last.get("event")
+    if event == "started":
+        return unknown
+    if event == "done":
+        when = last.get("ts") or "an earlier run"
+        return (f"this exact plan was already sent at {when} and the server answered; nothing was sent now. "
+                "Plans are single-use and this one hashes the same because the target, payload and record "
+                "state are unchanged; there is no override. Make a real change (e.g. edit a field of the "
+                "record, or change the requested values), then review again for a new plan hash; do not replay it")
+    return None
+
 def record_plan(event: str, plan: str, *, action: str, target: Any = None, created_id: Any = None,
                 steps: list[dict[str, Any]] | None = None, error: str | None = None) -> None:
     """Append a plan event. Never raises."""

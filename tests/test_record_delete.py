@@ -95,7 +95,7 @@ def test_ignored_delete_is_not_verified_and_never_replayed(api):
     p = flow.problem_plan(c, pid, "delete")
     r = flow.send(p, c, reviewed_hash=p.hash)
     assert not r["verified"] and r["fields"] == {"deleted": "mismatched"}
-    with pytest.raises(ReviewedWriteError, match="outcome unknown"):
+    with pytest.raises(ReviewedWriteError, match="already sent at .* answered; nothing was sent now"):
         flow.send(p, c, reviewed_hash=p.hash)
     assert len(s["writes"]) == 1
 
@@ -147,3 +147,29 @@ def test_cli_review_then_hash_bound_send(api):
     h = json.loads(r.output)["plan_hash"]
     r = runner.invoke(cli.app, ["solutions", "delete-forever", str(aid), "--yes", "--expect-plan", h])
     assert r.exit_code == 2 and len(s["writes"]) == 1
+
+
+def test_replay_refusal_names_a_completed_plan_but_keeps_unknown_outcomes_ambiguous():
+    from fsv import journal
+    assert journal.replay_refusal([], "unknown") is None
+    assert journal.replay_refusal([{"event": "failed"}], "unknown") is None
+    assert journal.replay_refusal([{"event": "done"}, {"event": "started"}], "sent or outcome unknown") == \
+        "sent or outcome unknown"
+    text = journal.replay_refusal([{"event": "started"}, {"event": "done", "ts": "2030-01-02T03:04:05+0000"}], "x")
+    assert "already sent at 2030-01-02T03:04:05+0000" in text and "nothing was sent now" in text
+    assert "outcome unknown" not in text and "no override" in text and "review again" in text
+
+
+def test_identical_delete_after_restore_is_refused_as_already_sent(api):
+    c, s, pid, _ = api
+    restored = copy.deepcopy(s["problem"])
+    first = flow.problem_plan(c, pid, "delete")
+    assert flow.send(first, c, reviewed_hash=first.hash)["verified"]
+    s["problem"] = restored  # restored in the web UI: same record state, same plan
+    again = flow.problem_plan(c, pid, "delete")
+    assert again.hash == first.hash
+    writes = len(s["writes"])
+    with pytest.raises(ReviewedWriteError, match="already sent at .* no override") as exc:
+        flow.send(again, c, reviewed_hash=again.hash)
+    assert "outcome unknown" not in str(exc.value)
+    assert len(s["writes"]) == writes

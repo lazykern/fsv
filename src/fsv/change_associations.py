@@ -134,8 +134,9 @@ def send(plan: AssociationPlan, client: Any = None, *, reviewed_hash: str | None
     if reviewed_hash != plan.hash or not plan.tenant:
         raise AssociationError("association review hash/tenant does not match; review again")
     events = [r for r in journal.read() if r.get("kind") == f"plan:{_ACTION}" and r.get("plan") == plan.hash]
-    if events and events[-1].get("event") in ("started", "done"):
-        raise AssociationError(_UNKNOWN)
+    refusal = journal.replay_refusal(events, _UNKNOWN)
+    if refusal:
+        raise AssociationError(refusal)
     try:
         c = client if client is not None else get_client()
         before = ticket_ids(plan.change_id, c)

@@ -142,8 +142,9 @@ def send(p: InlinePlan, client: Any, *, reviewed_hash: str | None,
                                  "nothing was sent")
     action = base.action
     events = [e for e in journal.read() if e.get("kind") == "plan:" + action and e.get("plan") == p.hash]
-    if events and events[-1].get("event") in {"started", "done"}:
-        raise ReviewedWriteError("inline-image transaction was sent or outcome unknown; do not replay")
+    refusal = journal.replay_refusal(events, "inline-image transaction was sent or outcome unknown; do not replay")
+    if refusal:
+        raise ReviewedWriteError(refusal)
     if rebuild().hash != p.hash or attachments.local_files([f.path for f in p.files], p.limit) != p.files:
         raise ReviewedWriteError("ticket, metadata or image bytes changed; review again (nothing was sent)")
     csrf = client._get_csrf()

@@ -158,8 +158,9 @@ def send(plan: BulkPlan, client: Any, *, reviewed_hash: str | None, confirm_dest
     if intent["action"] in {"spam", "delete"} and confirm_destructive is not True:
         raise ReviewedWriteError("spam/delete require --confirm-destructive after inspecting the printed ID list")
     events = [e for e in journal.read() if e.get("kind") == "plan:" + plan.write.action and e.get("plan") == plan.write.hash]
-    if events and events[-1].get("event") in {"started", "done"}:
-        raise ReviewedWriteError("bulk write was sent or outcome unknown; do not replay")
+    refusal = journal.replay_refusal(events, "bulk write was sent or outcome unknown; do not replay")
+    if refusal:
+        raise ReviewedWriteError(refusal)
     def rebuild():
         fresh = build_plan(client, **intent)
         if fresh.hash != plan.hash:

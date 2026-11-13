@@ -62,7 +62,7 @@ def test_response_echo_not_proof_and_replay_blocked(wire):
     plan = a.build_plan(wire, 23, "request", name="Acme review", message="Review", approvers=["81"])
     wire.state["persist"] = False
     assert not a.send(plan, wire, reviewed_hash=plan.hash)["verified"]
-    with pytest.raises(ReviewedWriteError, match="outcome unknown"):
+    with pytest.raises(ReviewedWriteError, match="already sent at .* answered; nothing was sent now"):
         a.send(plan, wire, reviewed_hash=plan.hash)
     assert len(wire.state["writes"]) == 1
 

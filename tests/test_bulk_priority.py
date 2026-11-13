@@ -65,7 +65,7 @@ def test_partial_is_not_success_and_is_not_resent(wire):
     p = bulk.build_plan(w.client, w.ids, "High")
     result = bulk.send(p, w.client, reviewed_hash=p.hash)
     assert result["verified"] is False and result["tickets"][str(w.ids[1])] == "mismatched"
-    with pytest.raises(ReviewedWriteError, match="unknown"):
+    with pytest.raises(ReviewedWriteError, match="already sent at"):
         bulk.send(p, w.client, reviewed_hash=p.hash)
     assert len([r for r in w.seen if r.method == "PUT"]) == 1
 

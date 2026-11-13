@@ -49,7 +49,7 @@ def test_change_form_same_plan_never_replayed(transport, mode):
             change_form_update.send(source, c, reviewed_hash=source.hash)
     else:
         assert not change_form_update.send(source, c, reviewed_hash=source.hash)["verified"]
-    with pytest.raises(ReviewedWriteError, match="unknown"):
+    with pytest.raises(ReviewedWriteError, match="unknown" if mode == "disconnect" else "already sent at"):
         change_form_update.send(source, c, reviewed_hash=source.hash)
     assert len(state["writes"]) == 1
 

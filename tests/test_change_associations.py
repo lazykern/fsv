@@ -44,7 +44,7 @@ def test_exact_single_request_complete_readback(monkeypatch, unlink, response):
         assert json.loads(req.content) == ({"type": "unlink"} if unlink else {"item_ids": [TID], "module_type": "ticket"})
         assert req.headers["x-csrf-token"] == "synthetic-token"
         assert [r["event"] for r in journal.read() if r["kind"] == "plan:change_ticket_association"] == ["started", "done"]
-        with pytest.raises(assoc.AssociationError, match="do not resubmit"):
+        with pytest.raises(assoc.AssociationError, match="already sent at .* do not replay"):
             assoc.send(plan, c, reviewed_hash=plan.hash)
         assert len([r for r in calls if r.method != "GET"]) == 1
     finally:

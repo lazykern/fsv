@@ -209,8 +209,9 @@ def send(plan: LifecyclePlan, client: Any, *, reviewed_hash: str | None) -> dict
         raise ReviewedWriteError("tenant or full review hash changed; review again")
     action = "ticket_transition"
     events = [r for r in journal.read() if r.get("kind") == "plan:" + action and r.get("plan") == plan.hash]
-    if events and events[-1].get("event") in {"started", "done"}:
-        raise ReviewedWriteError("transition was sent or outcome unknown; inspect ticket and journal before retry")
+    refusal = journal.replay_refusal(events, "transition was sent or outcome unknown; inspect ticket and journal before retry")
+    if refusal:
+        raise ReviewedWriteError(refusal)
     answers = json.loads(plan.answers_json)
     before = _record(client, plan.target)
     ack = bool(plan.acknowledged)

@@ -74,7 +74,7 @@ def test_echo_not_readback_and_no_replay(wire):
     plan = a.build_plan(wire, 23, 17, {"title": "Acme revised"})
     wire.state["persist"] = False
     assert not a.send(plan, wire, reviewed_hash=plan.hash)["verified"]
-    with pytest.raises(ReviewedWriteError, match="outcome unknown"):
+    with pytest.raises(ReviewedWriteError, match="already sent at .* answered; nothing was sent now"):
         a.send(plan, wire, reviewed_hash=plan.hash)
     assert len(wire.state["writes"]) == 1
 

@@ -305,12 +305,16 @@ def send(plan: AttachedPlan, client: Any, *, reviewed_hash: str | None,
         raise ReviewedWriteError("the tenant publishes no attachment size limit; review again with --max-bytes N; no upload attempted")
     action = plan.base.action
     events = [e for e in journal.read() if e.get("kind") == "plan:" + action and e.get("plan") == plan.hash]
-    if events and events[-1].get("event") in {"started", "done"}:
-        raise ReviewedWriteError("attachment transaction was sent or outcome unknown; do not replay")
+    refusal = journal.replay_refusal(events, "attachment transaction was sent or outcome unknown; do not replay")
+    if refusal:
+        raise ReviewedWriteError(refusal)
     for prior_action, prior_hash in plan.prior_guards:
         previous = [e for e in journal.read() if e.get("kind") == "plan:" + prior_action and e.get("plan") == prior_hash]
-        if previous and previous[-1].get("event") in {"started", "done"}:
-            raise ReviewedWriteError("prior attachment/create transaction was sent or outcome unknown; do not replay")
+        refusal = journal.replay_refusal(previous, "prior attachment/create transaction was sent or outcome "
+                                                   "unknown; do not replay")
+        if refusal:
+            prefix = "" if refusal.startswith("prior ") else "prior attachment/create transaction: "
+            raise ReviewedWriteError(prefix + refusal)
     if rebuild().hash != plan.hash or local_files([f.path for f in plan.files], plan.limit) != plan.files:
         raise ReviewedWriteError("owner, metadata or attachment bytes changed; review again")
     csrf = client._get_csrf()

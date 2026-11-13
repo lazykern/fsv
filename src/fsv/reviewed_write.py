@@ -51,8 +51,9 @@ def execute(plan: WritePlan, client: Any, *, reviewed_hash: str | None,
     if not plan.tenant or plan.tenant != config.DOMAIN or reviewed_hash != plan.hash:
         raise ReviewedWriteError("tenant or full review hash changed; review again")
     events = [e for e in journal.read() if e.get("kind") == "plan:" + plan.action and e.get("plan") == plan.hash]
-    if events and events[-1].get("event") in {"started", "done"}:
-        raise ReviewedWriteError("write was sent or outcome unknown; inspect target and journal before retry")
+    refusal = journal.replay_refusal(events, "write was sent or outcome unknown; inspect target and journal before retry")
+    if refusal:
+        raise ReviewedWriteError(refusal)
     if rebuild().hash != plan.hash:
         raise ReviewedWriteError("target or metadata changed since review; review again")
     try:

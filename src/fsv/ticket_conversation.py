@@ -224,8 +224,9 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
         raise ConversationError("public conversation requires explicit confirmation")
     action = f"ticket_{plan.kind}_reviewed"
     events = [r for r in journal.read() if r.get("kind") == f"plan:{action}" and r.get("plan") == plan.hash]
-    if events and events[-1].get("event") in ("started", "done"):
-        raise ConversationError("conversation was sent or outcome unknown; inspect ticket and journal before retry")
+    refusal = journal.replay_refusal(events, "conversation was sent or outcome unknown; inspect ticket and journal before retry")
+    if refusal:
+        raise ConversationError(refusal)
     if plan.kind == "forward" and "conversation_id" in payload:
         if forward_source(client, plan.ticket_id, payload["conversation_id"]) != plan.record_hash:
             raise ConversationError("forward source changed; review again")

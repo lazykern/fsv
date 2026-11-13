@@ -183,8 +183,9 @@ def send_create(plan: WindowPlan, client: Any, *, reviewed_hash: str | None, all
     if reviewed_hash is None:
         return {"status": "cancelled", "verified": False}
     events = [e for e in journal.read() if e.get("kind") == "plan:" + plan.write.action and e.get("plan") == plan.hash]
-    if events and events[-1].get("event") in {"started", "done"}:
-        raise ReviewedWriteError("window create was sent or outcome unknown; inspect the window list, do not replay")
+    refusal = journal.replay_refusal(events, "window create was sent or outcome unknown; inspect the window list, do not replay")
+    if refusal:
+        raise ReviewedWriteError(refusal)
     if reviewed_hash != plan.hash or (rebuild is not None and rebuild().hash != plan.hash):
         raise ReviewedWriteError("windows or metadata changed since review; review again (nothing was sent)")
     csrf = client._get_csrf()

@@ -40,7 +40,7 @@ def test_unlink_body_shapes_require_independent_absence(monkeypatch, tmp_path, s
         assert result["status"] == "submitted"
         assert result["verified"] is persist
         assert state["writes"] == 1
-        with pytest.raises(ReviewedWriteError, match="outcome unknown"):
+        with pytest.raises(ReviewedWriteError, match="already sent at .* answered; nothing was sent now"):
             solutions.send_link(plan, client, reviewed_hash=plan.hash)
         assert state["writes"] == 1
     finally:
