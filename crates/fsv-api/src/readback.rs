@@ -9,6 +9,24 @@ use serde_json::Value;
 use fsv_core::error::{Error, Result};
 use fsv_forms::pydt::datetime_fromisoformat;
 
+/// `readback.REMINDER_NOT_EXPOSED`.
+pub const REMINDER_NOT_EXPOSED: &str = "unavailable (not exposed by the server)";
+/// `readback.REMINDER_NOTE`.
+pub const REMINDER_NOTE: &str = "The task reminder (notify_before) is not returned by the tenant's task reads; it was sent exactly as reviewed but cannot be read back. Every readable field matched.";
+
+/// Port of fsv.readback.exempt_unexposed_reminder: only an absent
+/// `notify_before` on an exactly identified task row is marked not exposed.
+pub fn exempt_unexposed_reminder(
+    fields: &mut serde_json::Map<String, Value>,
+    row_present: bool,
+) -> bool {
+    if row_present && fields.get("notify_before").and_then(Value::as_str) == Some("unavailable") {
+        fields.insert("notify_before".into(), Value::from(REMINDER_NOT_EXPOSED));
+        return true;
+    }
+    false
+}
+
 /// Port of fsv.readback.same_instant: both values are text with an explicit
 /// offset and name the same UTC instant. A naive or date-only value never
 /// matches; no local timezone is assumed.

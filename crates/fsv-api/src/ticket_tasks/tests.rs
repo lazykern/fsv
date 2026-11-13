@@ -82,7 +82,28 @@ fn api(state: Arc<Mutex<Value>>) -> FnApi {
                     return Err(ApiError::new(403, json!({"error": "denied"})).into());
                 }
                 let n = s["rows"].as_array().unwrap().len();
-                Ok(json!({"tasks": s["rows"], "meta": {"count": n}}))
+                let mut rows = s["rows"].clone();
+                let shape = s["shape"].as_str().unwrap_or_default().to_string();
+                let open = s["fields"][1]["choices"][0]["id"]
+                    .as_i64()
+                    .unwrap_or_default();
+                for r in rows.as_array_mut().unwrap() {
+                    let r = r.as_object_mut().unwrap();
+                    if shape.starts_with("omit-reminder") {
+                        r.shift_remove("notify_before");
+                    }
+                    if shape == "omit-reminder-and-title" {
+                        r.shift_remove("title");
+                    }
+                    if shape == "wrong-reminder" {
+                        r.insert("notify_before".into(), json!(900));
+                    }
+                    if shape == "wrong-status" {
+                        r.shift_remove("notify_before");
+                        r.insert("status".into(), json!(open + 1));
+                    }
+                }
+                Ok(json!({"tasks": rows, "meta": {"count": n}}))
             }
             _ => Err(ApiError::new(404, json!({"error": "unexpected"})).into()),
         }
@@ -225,5 +246,74 @@ fn cases_match_python() {
             .map(|r| json!([r["kind"], r["event"]]))
             .collect();
         assert_eq!(json!(events), case["events"], "{name} events");
+    }
+}
+
+/// `test_task_create_reminder_not_exposed_by_server`.
+#[test]
+fn task_create_reminder_not_exposed_by_server() {
+    for n in [21, 61] {
+        for (shape, verified) in [
+            ("omit-reminder", true),
+            ("wrong-reminder", false),
+            ("omit-reminder-and-title", false),
+            ("wrong-status", false),
+        ] {
+            let state = Arc::new(Mutex::new(new_state(n)));
+            state.lock().unwrap()["shape"] = json!(shape);
+            let c = api(state.clone());
+            let journal = MemJournal::default();
+            let add = TaskArgs {
+                action: "add".into(),
+                title: Some("Acme task".into()),
+                values: Some(json!({"Tier": "Standard"}).as_object().unwrap().clone()),
+                ..TaskArgs::default()
+            };
+            let plan = build_plan(&c, "INC-123", &add).unwrap();
+            let result = send(&plan, &c, &journal, Some(&plan.hash())).unwrap();
+            let ctx = format!("{n} {shape}: {result}");
+            assert_eq!(result["verified"], json!(verified), "{ctx}");
+            assert_eq!(
+                state.lock().unwrap()["requests"].as_array().unwrap().len(),
+                1
+            );
+            if shape == "omit-reminder" {
+                assert_eq!(
+                    result["fields"]["notify_before"],
+                    json!("unavailable (not exposed by the server)")
+                );
+                assert!(
+                    result["readback_note"]
+                        .as_str()
+                        .unwrap()
+                        .contains("not returned")
+                );
+                assert!(result.get("warning").is_none());
+                let matched: std::collections::BTreeSet<&str> = result["fields"]
+                    .as_object()
+                    .unwrap()
+                    .iter()
+                    .filter(|(_, v)| *v == "matched")
+                    .map(|(k, _)| k.as_str())
+                    .collect();
+                assert_eq!(
+                    matched,
+                    ["custom_fields", "status", "title"].into(),
+                    "{ctx}"
+                );
+            } else {
+                assert!(
+                    result["warning"]
+                        .as_str()
+                        .unwrap()
+                        .contains("do not resend"),
+                    "{ctx}"
+                );
+                assert!(result.get("readback_note").is_none());
+            }
+            if shape == "wrong-reminder" {
+                assert_eq!(result["fields"]["notify_before"], json!("mismatched"));
+            }
+        }
     }
 }

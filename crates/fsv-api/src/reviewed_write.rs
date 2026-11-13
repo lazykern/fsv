@@ -9,7 +9,9 @@ use serde_json::{Map, Value, json};
 use fsv_core::client::Body;
 use fsv_core::error::{Error, Result};
 
-use crate::service::{Api, Journal, definite_rejection, last_event, obj, plan_hash};
+use crate::service::{
+    Api, Journal, definite_rejection, last_event, obj, plan_hash, replay_refusal,
+};
 
 /// Port of fsv.reviewed_write.ReviewedWriteError: a safe user-facing refusal
 /// (exit 2).
@@ -115,13 +117,13 @@ pub fn execute_rejecting(
     if plan.tenant.is_empty() || plan.tenant != c.domain() || reviewed != hash {
         return Err(refused("tenant or full review hash changed; review again"));
     }
-    if matches!(
-        last_event(journal, &plan.action, &hash).as_deref(),
-        Some("started" | "done")
+    if let Some(refusal) = replay_refusal(
+        journal,
+        &plan.action,
+        &hash,
+        "write was sent or outcome unknown; inspect target and journal before retry",
     ) {
-        return Err(refused(
-            "write was sent or outcome unknown; inspect target and journal before retry",
-        ));
+        return Err(refused(refusal));
     }
     if rebuild()? != hash {
         return Err(refused(
@@ -250,7 +252,7 @@ mod tests {
         );
         assert_eq!(
             err(execute(&p, &c, &j, Some(&h), &same, &ok)),
-            "write was sent or outcome unknown; inspect target and journal before retry"
+            "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
         );
         assert_eq!(c.writes().len(), 1);
         assert_eq!(

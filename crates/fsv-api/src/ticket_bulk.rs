@@ -226,8 +226,98 @@ impl BulkPlan {
             serde_json::from_str(&self.selected_json).unwrap_or(Value::Null),
         );
         out.insert("warning".into(), json!(WARNING));
+        if self.write.action == "ticket_bulk_scenario" {
+            let expected: Value = serde_json::from_str(&self.expected_json).unwrap_or(Value::Null);
+            let chosen = &expected[0];
+            out.insert(
+                "scenario".into(),
+                json!({"id": chosen["scenario_id"], "name": chosen["scenario_name"]}),
+            );
+            out.insert(
+                "warning".into(),
+                json!(format!(
+                    "Runs scenario {} ({}) on every listed ticket. Its actions (ticket type changes, assignments, emails, notes) run on the server asynchronously (HTTP 202) and cannot be proven by fsv; check the scenario name above. Never replay an uncertain run.",
+                    fsv_py::py_str(&chosen["scenario_id"]),
+                    fsv_py::py_repr(&chosen["scenario_name"])
+                )),
+            );
+        }
         out
     }
+}
+
+/// Port of `ticket_bulk.resolve_scenario`: one scenario by exact ID or
+/// exact name (never by list position); more than one match is refused.
+pub fn resolve_scenario(c: &dyn Api, value: &str) -> Result<Map<String, Value>> {
+    let raw = crate::canned::scenarios(c)?;
+    let rows = match &raw {
+        Value::Object(m) => m
+            .get("scenario_automations")
+            .cloned()
+            .unwrap_or(Value::Null),
+        other => other.clone(),
+    };
+    let rows: Vec<Map<String, Value>> = match rows.as_array() {
+        Some(list) if list.iter().all(Value::is_object) => {
+            list.iter().filter_map(|r| r.as_object().cloned()).collect()
+        }
+        _ => return Err(refused("scenario list is unreadable; nothing was sent")),
+    };
+    let text = fsv_core::pystr::strip(value).to_string();
+    if text.is_empty() {
+        return Err(Error::value(
+            "--scenario needs an exact scenario name or ID",
+        ));
+    }
+    let id_of = |r: &Map<String, Value>| fsv_py::py_str(r.get("id").unwrap_or(&Value::Null));
+    let digits = text.chars().all(|ch| ch.is_ascii_digit());
+    let by_id = rows.iter().filter(|r| digits && id_of(r) == text);
+    let exact: Vec<&Map<String, Value>> = rows
+        .iter()
+        .filter(|r| r.get("name").and_then(Value::as_str) == Some(text.as_str()))
+        .collect();
+    let by_name = if exact.is_empty() {
+        rows.iter()
+            .filter(|r| {
+                r.get("name")
+                    .and_then(Value::as_str)
+                    .is_some_and(|n| casefold(fsv_core::pystr::strip(n)) == casefold(&text))
+            })
+            .collect()
+    } else {
+        exact
+    };
+    let mut found: Vec<(String, &Map<String, Value>)> = Vec::new();
+    for r in by_id.chain(by_name) {
+        let key = id_of(r);
+        match found.iter_mut().find(|(k, _)| *k == key) {
+            Some(slot) => slot.1 = r,
+            None => found.push((key, r)),
+        }
+    }
+    if found.len() != 1 {
+        let names = found
+            .iter()
+            .map(|(_, r)| {
+                format!(
+                    "{}: {}",
+                    id_of(r),
+                    fsv_py::py_repr(r.get("name").unwrap_or(&Value::Null))
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
+        let names = if names.is_empty() {
+            "none".to_string()
+        } else {
+            names
+        };
+        return Err(refused(format!(
+            "scenario {} must match exactly one scenario by ID or exact name (matches: {names}); nothing was sent",
+            fsv_py::py_repr_str(&text)
+        )));
+    }
+    Ok(found[0].1.clone())
 }
 
 fn intent_value(
@@ -235,6 +325,7 @@ fn intent_value(
     args: &BulkArgs<'_>,
     max_records: Option<i64>,
     answers: Option<&Map<String, Value>>,
+    scenario: Option<&str>,
 ) -> Value {
     let mut intent = json!({
         "action": args.action,
@@ -252,6 +343,9 @@ fn intent_value(
     // Bound only when used: older review hashes are unchanged.
     if let Some(answers) = answers.filter(|a| !a.is_empty()) {
         intent["answers"] = Value::Object(answers.clone());
+    }
+    if let Some(scenario) = scenario {
+        intent["scenario"] = json!(scenario);
     }
     intent
 }
@@ -292,9 +386,29 @@ pub fn build_plan_with_answers(
     max_records: Option<i64>,
     answers: Option<&Map<String, Value>>,
 ) -> Result<BulkPlan> {
+    build_plan_scenario(c, store, journal, ids, args, max_records, answers, None)
+}
+
+/// [`build_plan_with_answers`] plus `scenario=` (`bulk scenario --scenario`):
+/// the captured `PUT tickets/execute_scenario` for explicit IDs only.
+#[allow(clippy::too_many_arguments)]
+pub fn build_plan_scenario(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    journal: &dyn Journal,
+    ids: &[String],
+    args: &BulkArgs<'_>,
+    max_records: Option<i64>,
+    answers: Option<&Map<String, Value>>,
+    scenario: Option<&str>,
+) -> Result<BulkPlan> {
     let answers = answers.filter(|a| !a.is_empty());
+    if args.action == "scenario" && (!args.where_.is_empty() || args.select_all) {
+        return Err(Error::value(
+            "bulk scenario takes explicit ticket IDs only; filters are not supported",
+        ));
+    }
     let cids = selection_bounded(c, ids, args.where_, args.select_all, max_records)?;
-    let intent_json = dumps_sorted(&intent_value(ids, args, max_records, answers));
     if let Some(answers) = answers {
         if args.action != "status" {
             return Err(Error::value("--set is supported by bulk status only"));
@@ -308,10 +422,16 @@ pub fn build_plan_with_answers(
             ));
         }
     }
+    if scenario.is_some() != (args.action == "scenario") {
+        return Err(Error::value(
+            "--scenario NAME_OR_ID is required by, and only valid for, bulk scenario",
+        ));
+    }
+    let intent_json = dumps_sorted(&intent_value(ids, args, max_records, answers, scenario));
     let mut delegate = Vec::new();
     if !matches!(
         args.action,
-        "status" | "assign" | "pickup" | "merge" | "spam" | "unspam" | "delete"
+        "status" | "assign" | "pickup" | "merge" | "spam" | "unspam" | "delete" | "scenario"
     ) {
         return Err(Error::value("unsupported bulk action"));
     }
@@ -339,6 +459,30 @@ pub fn build_plan_with_answers(
             ["expected"]
             .clone();
         (delegate.write.clone(), expected, Some(delegate))
+    } else if args.action == "scenario" {
+        let definition = resolve_scenario(c, scenario.unwrap_or(""))?;
+        let mut baselines = Vec::with_capacity(cids.len());
+        for id in &cids {
+            baselines.push(Value::Object(properties::record(c, *id)?));
+        }
+        let sid = watchers::positive_id(definition.get("id").unwrap_or(&Value::Null))?;
+        let write = WritePlan {
+            action: "ticket_bulk_scenario".into(),
+            target: cids[0],
+            tenant: c.domain(),
+            method: "PUT".into(),
+            path: "tickets/execute_scenario".into(),
+            payload_json: dumps_sorted(&json!({"scenario_id": sid, "ids": cids})),
+            context_hash: snapshot_hash(
+                &json!({"records": baselines, "scenario": Value::Object(definition.clone())}),
+            )?,
+        };
+        let name = definition.get("name").cloned().unwrap_or(Value::Null);
+        (
+            write,
+            json!([{"scenario_id": sid, "scenario_name": name}]),
+            None,
+        )
     } else if args.action == "merge" {
         let pid = watchers::positive_id(&json!(parse_id(args.primary.unwrap_or(""), &TICKETS)?))?;
         if !cids.contains(&pid) {
@@ -587,7 +731,8 @@ fn plan_from_intent(
     let primary = opt_str(&intent["primary"]);
     let note_primary = opt_str(&intent["note_primary"]);
     let note_secondary = opt_str(&intent["note_secondary"]);
-    build_plan_with_answers(
+    let scenario = opt_str(&intent["scenario"]);
+    build_plan_scenario(
         c,
         store,
         journal,
@@ -605,6 +750,7 @@ fn plan_from_intent(
         },
         intent["max_records"].as_i64(),
         intent["answers"].as_object(),
+        scenario.as_deref(),
     )
 }
 
@@ -697,6 +843,26 @@ fn verify(plan: &BulkPlan, c: &dyn Api) -> Result<Map<String, Value>> {
     })))
 }
 
+/// The `verify` of a scenario run: exact ticket identities only; the
+/// scenario's effects are never proven.
+fn verify_scenario(plan: &BulkPlan, c: &dyn Api) -> Result<Map<String, Value>> {
+    let mut seen = Map::new();
+    for cid in &plan.ids {
+        let same = properties::record(c, *cid)
+            .map(|row| fsv_py::py_str(row.get("id").unwrap_or(&Value::Null)) == cid.to_string())
+            .unwrap_or(false);
+        seen.insert(cid.to_string(), json!(same));
+    }
+    let expected: Value = serde_json::from_str(&plan.expected_json).unwrap_or(Value::Null);
+    Ok(obj(json!({
+        "ticket_ids": plan.ids,
+        "identity_verified": seen,
+        "scenario": expected[0],
+        "verified": false,
+        "warning": "Accepted for asynchronous execution; exact tickets were read back, but the scenario's effects cannot be proven. Inspect the tickets; do not resend.",
+    })))
+}
+
 fn rebuilt(
     plan: &BulkPlan,
     c: &dyn Api,
@@ -734,13 +900,13 @@ pub fn send(
             "spam/delete require --confirm-destructive after inspecting the printed ID list",
         ));
     }
-    if matches!(
-        service::last_event(journal, &plan.write.action, &plan.write.hash()).as_deref(),
-        Some("started" | "done")
+    if let Some(refusal) = service::replay_refusal(
+        journal,
+        &plan.write.action,
+        &plan.write.hash(),
+        "bulk write was sent or outcome unknown; do not replay",
     ) {
-        return Err(refused(
-            "bulk write was sent or outcome unknown; do not replay",
-        ));
+        return Err(refused(refusal));
     }
     rebuilt(plan, c, store, journal)?;
     if intent.get("answers").is_some_and(fsv_py::truthy) {
@@ -768,7 +934,15 @@ pub fn send(
             .map(reported);
     }
     let rebuild = || Ok(rebuilt(plan, c, store, journal)?.write);
-    let check = |_: &Value| Ok(crate::readback::bounded_readback(|| verify(plan, c)));
+    let check = |_: &Value| {
+        Ok(crate::readback::bounded_readback(|| {
+            if action == "scenario" {
+                verify_scenario(plan, c)
+            } else {
+                verify(plan, c)
+            }
+        }))
+    };
     execute(
         &plan.write,
         c,
@@ -1642,5 +1816,165 @@ mod tests {
             assert!(msg(&err).contains("was sent"), "{restore}: {}", msg(&err));
             assert_eq!(posts(&c).len(), writes + 1, "{restore}");
         }
+    }
+
+    /// `tests/test_ticket_bulk_scenario.py`.
+    fn scenario_api(writes: Arc<Mutex<Vec<(String, String, Value)>>>) -> FnApi {
+        let mut a = FnApi::new(move |call: &Call| {
+            if call.method == "GET" {
+                if call.path == "scenario_automations" {
+                    return Ok(json!({"scenario_automations": [
+                        {"id": 501, "name": "Acme convert to request", "visibility": "shared"},
+                        {"id": 502, "name": "Assign to Acme Team", "visibility": "shared"},
+                        {"id": 503, "name": "assign to acme team", "visibility": "personal"},
+                        {"id": 504, "name": "502", "visibility": "shared"}]}));
+                }
+                let tid: i64 = call.path.split('/').nth(1).unwrap().parse().unwrap();
+                return Ok(
+                    json!({"ticket": {"id": tid, "subject": format!("Acme {tid}"),
+                                            "spam": false, "deleted": false}}),
+                );
+            }
+            writes.lock().unwrap().push((
+                call.method.clone(),
+                call.path.clone(),
+                call.body.clone().unwrap_or(Value::Null),
+            ));
+            Ok(json!({}))
+        });
+        a.domain = "acme.example.com".into();
+        a
+    }
+
+    fn scenario_args<'a>(action: &'a str, where_: &'a [String], select_all: bool) -> BulkArgs<'a> {
+        BulkArgs {
+            action,
+            where_,
+            select_all,
+            status: None,
+            agent: None,
+            group: None,
+            primary: None,
+            note_primary: None,
+            note_secondary: None,
+        }
+    }
+
+    #[test]
+    fn scenario_exact_name_resolution_and_ambiguity() {
+        let c = scenario_api(Arc::default());
+        let id = |v: &str| resolve_scenario(&c, v).map(|r| r["id"].clone());
+        assert_eq!(id("Acme convert to request").unwrap(), 501);
+        assert_eq!(id("501").unwrap(), 501);
+        assert_eq!(id("Assign to Acme Team").unwrap(), 502);
+        let e = id("ASSIGN TO ACME TEAM").unwrap_err().to_string();
+        assert_eq!(
+            e,
+            "scenario 'ASSIGN TO ACME TEAM' must match exactly one scenario by ID or exact name (matches: 502: 'Assign to Acme Team', 503: 'assign to acme team'); nothing was sent"
+        );
+        assert!(id("502").unwrap_err().to_string().contains("exactly one"));
+        assert!(
+            id("Assign")
+                .unwrap_err()
+                .to_string()
+                .contains("(matches: none)")
+        );
+    }
+
+    #[test]
+    fn scenario_plan_payload_review_and_unverified_202() {
+        let writes = Arc::new(Mutex::new(Vec::new()));
+        let c = scenario_api(Arc::clone(&writes));
+        let (st, j) = (store(), MemJournal::default());
+        let ids = ["INC-31".to_string(), "30".to_string()];
+        let args = scenario_args("scenario", &[], false);
+        let plan = build_plan_scenario(
+            &c,
+            &st,
+            &j,
+            &ids,
+            &args,
+            None,
+            None,
+            Some("Acme convert to request"),
+        )
+        .unwrap();
+        assert_eq!(
+            plan.write.payload(),
+            json!({"scenario_id": 501, "ids": [30, 31]})
+        );
+        let review = plan.review();
+        assert_eq!(
+            review["scenario"],
+            json!({"id": 501, "name": "Acme convert to request"})
+        );
+        let warning = review["warning"].as_str().unwrap();
+        assert!(
+            warning.contains("cannot be proven") && warning.contains("Acme convert to request")
+        );
+        let result = crate::readback::with_readback_sleep(
+            |_| {},
+            || send(&plan, &c, &st, &j, Some(&plan.hash()), false),
+        )
+        .unwrap();
+        assert_eq!(result["verified"], false);
+        assert_eq!(result["identity_verified"], json!({"30": true, "31": true}));
+        assert_eq!(
+            *writes.lock().unwrap(),
+            [(
+                "PUT".to_string(),
+                "tickets/execute_scenario".to_string(),
+                json!({"scenario_id": 501, "ids": [30, 31]})
+            )]
+        );
+        let again = send(&plan, &c, &st, &j, Some(&plan.hash()), false).unwrap_err();
+        assert!(again.to_string().contains("sent"));
+        assert_eq!(writes.lock().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn scenario_filters_and_option_mismatch_refused() {
+        let writes = Arc::new(Mutex::new(Vec::new()));
+        let c = scenario_api(Arc::clone(&writes));
+        let (st, j) = (store(), MemJournal::default());
+        let where_ = ["status=Open".to_string()];
+        let e = build_plan_scenario(
+            &c,
+            &st,
+            &j,
+            &[],
+            &scenario_args("scenario", &where_, true),
+            None,
+            None,
+            Some("501"),
+        )
+        .unwrap_err();
+        assert!(e.to_string().contains("explicit"));
+        let ids = ["30".to_string()];
+        let e = build_plan_scenario(
+            &c,
+            &st,
+            &j,
+            &ids,
+            &scenario_args("scenario", &[], false),
+            None,
+            None,
+            None,
+        )
+        .unwrap_err();
+        assert!(e.to_string().contains("--scenario"));
+        let e = build_plan_scenario(
+            &c,
+            &st,
+            &j,
+            &ids,
+            &scenario_args("spam", &[], false),
+            None,
+            None,
+            Some("501"),
+        )
+        .unwrap_err();
+        assert!(e.to_string().contains("--scenario"));
+        assert!(writes.lock().unwrap().is_empty());
     }
 }

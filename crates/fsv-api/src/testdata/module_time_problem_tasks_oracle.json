@@ -1,6 +1,6 @@
 {
   "_python": {
-    "commit": "51cd54476acf11ab6e5701d4edf338683b5fd0d1",
+    "commit": "2092e44c9d47e5ae2fc6fe36a1498a0a54cb01a3",
     "dirty": false
   },
   "time-changes": {
@@ -384,8 +384,8 @@
       "message": "exact self-owned manual entry is unavailable"
     },
     "problem_update": {
-      "kind": "ValueError",
-      "message": "problem time update has no captured accepted wire; only create/delete"
+      "kind": "ReviewedWriteError",
+      "message": "entry time/note is unavailable"
     },
     "bad_spent": {
       "kind": "ValueError",

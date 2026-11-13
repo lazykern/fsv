@@ -31,7 +31,7 @@
       "sleeps": [],
       "post_reads": 2,
       "writes": 1,
-      "replay": "bulk write was sent or outcome unknown; do not replay"
+      "replay": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     {
       "action": "spam",
@@ -62,7 +62,7 @@
       ],
       "post_reads": 4,
       "writes": 1,
-      "replay": "bulk write was sent or outcome unknown; do not replay"
+      "replay": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     {
       "action": "spam",
@@ -96,7 +96,7 @@
       ],
       "post_reads": 8,
       "writes": 1,
-      "replay": "bulk write was sent or outcome unknown; do not replay"
+      "replay": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     {
       "action": "delete",
@@ -125,7 +125,7 @@
       "sleeps": [],
       "post_reads": 2,
       "writes": 1,
-      "replay": "bulk write was sent or outcome unknown; do not replay"
+      "replay": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     {
       "action": "delete",
@@ -156,7 +156,7 @@
       ],
       "post_reads": 4,
       "writes": 1,
-      "replay": "bulk write was sent or outcome unknown; do not replay"
+      "replay": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     {
       "action": "delete",
@@ -190,7 +190,7 @@
       ],
       "post_reads": 8,
       "writes": 1,
-      "replay": "bulk write was sent or outcome unknown; do not replay"
+      "replay": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     }
   ]
 }

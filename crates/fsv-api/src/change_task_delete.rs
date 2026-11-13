@@ -135,7 +135,7 @@ mod tests {
         assert_eq!(result["verified"], json!(false));
         assert_eq!(c.writes().len(), 1);
         let err = send(&plan, &c, &journal, Some(&plan.hash())).unwrap_err();
-        assert!(err.to_string().contains("unknown"), "{err}");
+        assert!(err.to_string().contains("already sent at"), "{err}");
         assert!(matches!(err, Error::Exit { code: 2, .. }));
         assert_eq!(c.writes().len(), 1);
     }

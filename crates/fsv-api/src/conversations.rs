@@ -18,7 +18,8 @@ use crate::notes::{self, BodyFormat, EMAIL, note_id, returned_note, valid_recipi
 use crate::properties::{dumps_sorted, record};
 use crate::readback::py_equal;
 use crate::service::{
-    Api, Journal, definite_rejection, last_event, load_conversations, obj, plan_hash, snapshot_hash,
+    Api, Journal, definite_rejection, last_event, load_conversations, obj, plan_hash,
+    replay_refusal, snapshot_hash,
 };
 
 /// `ConversationError`: a safe user-facing failure.
@@ -520,13 +521,13 @@ pub fn send(
         ));
     }
     let action = format!("ticket_{}_reviewed", plan.kind);
-    if matches!(
-        last_event(journal, &action, &hash).as_deref(),
-        Some("started" | "done")
+    if let Some(refusal) = replay_refusal(
+        journal,
+        &action,
+        &hash,
+        "conversation was sent or outcome unknown; inspect ticket and journal before retry",
     ) {
-        return Err(refused(
-            "conversation was sent or outcome unknown; inspect ticket and journal before retry",
-        ));
+        return Err(refused(refusal));
     }
     if plan.kind == "forward" && payload.get("conversation_id").is_some() {
         let id = crate::watchers::positive_id(&payload["conversation_id"])?;
@@ -945,7 +946,7 @@ mod tests {
         );
         assert_eq!(
             err(send(&p, &c, &j, &store, Some(REPLY_HASH), true)),
-            "conversation was sent or outcome unknown; inspect ticket and journal before retry"
+            "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
         );
         assert_eq!(
             send(&p, &c, &j, &store, None, false).unwrap(),

@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "aa8df3956389e29eecb3774680772c32c0af9f1a",
+  "commit": "a3f2a1a1c802d5db32ef4bb8b0cc1b86da1137f9",
   "dirty": false
  },
  "exact_wire": {
@@ -83,7 +83,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }
@@ -1028,7 +1028,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }
@@ -1135,7 +1135,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }
@@ -1242,7 +1242,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }
@@ -1349,7 +1349,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "write was sent or outcome unknown; inspect target and journal before retry"
+     "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
     },
     "posts": 1
    }

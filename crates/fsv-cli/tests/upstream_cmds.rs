@@ -14486,7 +14486,8 @@ fn tickets_assets_candidates() {
       "name": "Acme laptop 2"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "legacy"
 }
 "#
     );
@@ -14510,7 +14511,8 @@ fn changes_assets_candidates() {
       "name": "Acme router C"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "legacy"
 }
 "#
     );
@@ -14538,7 +14540,8 @@ fn sr_assets_candidates() {
       "name": "Acme laptop 2"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "legacy"
 }
 "#
     );
@@ -14556,7 +14559,7 @@ fn problems_assets_candidates_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no legacy asset association for this module
+        r#"HTTP 404 listing device: no route
 "#
     );
 }
@@ -18987,13 +18990,13 @@ fn changes_time_create_dry_run() {
   "path": "/api/_/changes/60/time_entries",
   "payload": {
     "agent_id": 9,
-    "billable": true,
+    "billable": false,
     "executed_at": "2030-01-02T09:00:00+07:00",
     "note": "Acme deploy",
     "time_spent": "00:45",
     "timer_running": false
   },
-  "plan_hash": "e81b967f00f9ee82d7e5c8ec7f63a629737464d126513a44fafeefefe7c60752",
+  "plan_hash": "bf99aee3382ce2e1ad8d921e971a72863b42cdd4f9d216df0e9f37db9eaedfc7",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
 }
 "#
@@ -19017,6 +19020,7 @@ fn changes_time_create_send() {
             "2030-01-02T09:00:00+07:00",
             "--note",
             "Acme deploy",
+            "--billable",
             "--yes",
             "--expect-plan",
             "e81b967f00f9ee82d7e5c8ec7f63a629737464d126513a44fafeefefe7c60752",
@@ -19368,6 +19372,7 @@ fn problems_time_update_refused() {
             "75",
             "--note",
             "x",
+            "--billable",
             "--dry-run",
         ],
         None,
@@ -19376,7 +19381,7 @@ fn problems_time_update_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"problem time update has no captured accepted wire; only create/delete
+        r#"problem time update covers --spent and --note only; billable is not a captured update field
 "#
     );
 }

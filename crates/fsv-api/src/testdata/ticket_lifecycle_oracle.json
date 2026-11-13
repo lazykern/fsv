@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "8a466b59772906bd55b476c597b0bcf35319baab",
+  "commit": "a3f2a1a1c802d5db32ef4bb8b0cc1b86da1137f9",
   "dirty": false
  },
  "cases": {
@@ -80,7 +80,7 @@
     {
      "error": {
       "type": "ReviewedWriteError",
-      "msg": "transition was sent or outcome unknown; inspect ticket and journal before retry"
+      "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
      },
      "writes": 2
     }
@@ -205,7 +205,7 @@
     {
      "error": {
       "type": "ReviewedWriteError",
-      "msg": "transition was sent or outcome unknown; inspect ticket and journal before retry"
+      "msg": "this exact plan was already sent at an earlier run and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
      },
      "writes": 2
     }

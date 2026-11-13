@@ -553,10 +553,19 @@ pub fn send(
             };
             fields.insert(k.clone(), json!(status));
         }
-        let verified = !row.is_empty() && fields.values().all(|v| v == "matched");
-        Ok(obj(
-            json!({"task_id": tid, "fields": fields, "verified": verified}),
-        ))
+        let exempt = crate::readback::exempt_unexposed_reminder(&mut fields, !row.is_empty());
+        let verified = !row.is_empty()
+            && fields
+                .iter()
+                .all(|(k, v)| (exempt && k == "notify_before") || v == "matched");
+        let mut out = obj(json!({"task_id": tid, "fields": fields, "verified": verified}));
+        if exempt && verified {
+            out.insert(
+                "readback_note".into(),
+                json!(crate::readback::REMINDER_NOTE),
+            );
+        }
+        Ok(out)
     };
     execute_as(
         &plan.write,

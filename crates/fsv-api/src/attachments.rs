@@ -26,7 +26,9 @@ use crate::formmeta::MetaStore;
 use crate::notes::{BodyFormat, returned_note};
 use crate::readback::{same_text, submitted_value_matches};
 use crate::reviewed_write::{WritePlan, execute, refused};
-use crate::service::{Api, Journal, last_event, load_conversations, obj, plan_hash, snapshot_hash};
+use crate::service::{
+    Api, Journal, last_event, load_conversations, obj, plan_hash, replay_refusal, snapshot_hash,
+};
 use crate::watchers::positive_id;
 
 const SIZE_KEYS: [&str; 2] = ["max_attachment_size_bytes", "max_file_size_bytes"];
@@ -805,22 +807,27 @@ pub fn send(
         ));
     }
     let action = &plan.base.action;
-    if matches!(
-        last_event(journal, action, &hash).as_deref(),
-        Some("started" | "done")
+    if let Some(refusal) = replay_refusal(
+        journal,
+        action,
+        &hash,
+        "attachment transaction was sent or outcome unknown; do not replay",
     ) {
-        return Err(refused(
-            "attachment transaction was sent or outcome unknown; do not replay",
-        ));
+        return Err(refused(refusal));
     }
     for (prior_action, prior_hash) in &plan.prior_guards {
-        if matches!(
-            last_event(journal, prior_action, prior_hash).as_deref(),
-            Some("started" | "done")
+        if let Some(refusal) = replay_refusal(
+            journal,
+            prior_action,
+            prior_hash,
+            "prior attachment/create transaction was sent or outcome unknown; do not replay",
         ) {
-            return Err(refused(
-                "prior attachment/create transaction was sent or outcome unknown; do not replay",
-            ));
+            let prefix = if refusal.starts_with("prior ") {
+                ""
+            } else {
+                "prior attachment/create transaction: "
+            };
+            return Err(refused(format!("{prefix}{refusal}")));
         }
     }
     let paths: Vec<String> = plan.files.iter().map(|f| f.path.clone()).collect();

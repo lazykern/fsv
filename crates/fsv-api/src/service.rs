@@ -336,6 +336,16 @@ pub(crate) fn last_event(journal: &dyn Journal, action: &str, hash: &str) -> Opt
         .map(str::to_string)
 }
 
+/// `journal.replay_refusal(events, unknown)` over [`plan_events`].
+pub(crate) fn replay_refusal(
+    journal: &dyn Journal,
+    action: &str,
+    hash: &str,
+    unknown: &str,
+) -> Option<String> {
+    fsv_core::journal::replay_refusal(&plan_events(journal, action, hash), unknown)
+}
+
 /// `journal.plan_hash(body) or ""`.
 pub(crate) fn plan_hash(body: &Value) -> String {
     fsv_core::journal::plan_hash(Some(body)).unwrap_or_default()

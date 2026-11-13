@@ -1,0 +1,65 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/scenario_automations",
+  "json": {
+   "scenario_automations": [
+    {
+     "id": 501,
+     "name": "Acme convert to request",
+     "visibility": "shared"
+    },
+    {
+     "id": 502,
+     "name": "Assign to Acme Team",
+     "visibility": "shared"
+    },
+    {
+     "id": 503,
+     "name": "assign to acme team",
+     "visibility": "personal"
+    },
+    {
+     "id": 504,
+     "name": "502",
+     "visibility": "shared"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/30",
+  "json": {
+   "ticket": {
+    "id": 30,
+    "subject": "Acme 30",
+    "spam": false,
+    "deleted": false
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/31",
+  "json": {
+   "ticket": {
+    "id": 31,
+    "subject": "Acme 31",
+    "spam": false,
+    "deleted": false
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/execute_scenario",
+  "status": 202,
+  "json": {}
+ }
+]

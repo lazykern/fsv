@@ -93,12 +93,12 @@ pub fn listing(module: &str, target: &str, kind: &str) -> CmdResult {
     guard(assets::listing(&c, module, &json!(target), kind).map(|v| println!("{}", dumps(&v))))
 }
 
-/// `MODULE assets candidates TARGET`.
-pub fn candidates(module: &str, target: &str) -> CmdResult {
+/// `MODULE assets candidates TARGET [--search Q] [--kind K] [--page N]`.
+pub fn candidates(module: &str, target: &str, query: &str, kind: &str, page: i64) -> CmdResult {
     let c = LazyApi::default();
     guard(
-        assets::legacy_candidates(&c, module, &json!(target))
-            .map(|rows| println!("{}", dumps(&json!({"data": rows, "complete": true})))),
+        assets::candidates(&c, module, &json!(target), query, kind, page)
+            .map(|v| println!("{}", dumps(&v))),
     )
 }
 
@@ -171,7 +171,7 @@ pub fn dispatch(module: &str, sub: &str, m: &clap::ArgMatches) -> Option<CmdResu
                 Ok(a) => a,
                 Err(e) => return Some(Err(e)),
             };
-            candidates(module, &a.target)
+            candidates(module, &a.target, &a.query, &a.kind, a.page)
         }};
     }
     macro_rules! write {

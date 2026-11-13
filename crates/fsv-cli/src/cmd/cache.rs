@@ -207,6 +207,42 @@ pub fn refresh_background() {
     }
 }
 
+/// Removes `path` recursively; an entry another process removed first
+/// (`NotFound`) counts as removed, every other error is reported.
+fn remove_vanishing(path: &Path) -> std::io::Result<()> {
+    let gone = |r: std::io::Result<()>| match r {
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        other => other,
+    };
+    let meta = match std::fs::symlink_metadata(path) {
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        other => other?,
+    };
+    if !meta.is_dir() {
+        return gone(std::fs::remove_file(path));
+    }
+    let entries = match std::fs::read_dir(path) {
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        other => other?,
+    };
+    for entry in entries {
+        match entry {
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            other => remove_vanishing(&other?.path())?,
+        }
+    }
+    gone(std::fs::remove_dir(path))
+}
+
+/// `remove_tree`: false when `path` is already absent.
+fn remove_tree(path: &Path) -> std::io::Result<bool> {
+    if !path.exists() {
+        return Ok(false);
+    }
+    remove_vanishing(path)?;
+    Ok(true)
+}
+
 /// `fsv cache clear TARGET`.
 pub fn clear(a: CacheClearArgs) -> CmdResult {
     let target = a.target.unwrap_or_default();
@@ -216,25 +252,22 @@ pub fn clear(a: CacheClearArgs) -> CmdResult {
     ) {
         return Err(usage("choose schema|views|groups|all"));
     }
-    if matches!(target.as_str(), "schema" | "all") {
-        let dir = config::schema_dir();
-        if dir.exists() {
-            std::fs::remove_dir_all(&dir)?;
-            out().print("schema cache cleared");
-        }
+    if matches!(target.as_str(), "schema" | "all") && remove_tree(&config::schema_dir())? {
+        out().print("schema cache cleared");
     }
-    if matches!(target.as_str(), "views" | "filters" | "all") {
-        let dir = config::cache_dir().join("filters");
-        if dir.exists() {
-            std::fs::remove_dir_all(&dir)?;
-            out().print("views cache cleared");
-        }
+    if matches!(target.as_str(), "views" | "filters" | "all")
+        && remove_tree(&config::cache_dir().join("filters"))?
+    {
+        out().print("views cache cleared");
     }
     if matches!(target.as_str(), "groups" | "all") {
         let mut removed = false;
         for p in config::groups_cache_candidates(None) {
             if p.exists() {
-                std::fs::remove_file(&p)?;
+                match std::fs::remove_file(&p) {
+                    Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+                    other => other?,
+                }
                 removed = true;
             }
         }
@@ -290,5 +323,29 @@ mod tests {
         json_files(env.dir.path(), env.dir.path(), &mut files);
         files.sort();
         assert_eq!(json!(files), want["files"]);
+    }
+
+    #[test]
+    fn remove_tree_tolerates_vanished_entries_but_reports_real_errors() {
+        let tmp = tempfile::tempdir().unwrap();
+        let schema = tmp.path().join("schema");
+        std::fs::create_dir_all(schema.join("sub")).unwrap();
+        std::fs::write(schema.join("sub").join("a.json"), "{}").unwrap();
+        assert!(remove_tree(&schema).unwrap());
+        assert!(!schema.exists());
+        assert!(!remove_tree(&schema).unwrap());
+        remove_vanishing(&schema.join("sub")).unwrap();
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let locked = tmp.path().join("locked");
+            std::fs::create_dir_all(&locked).unwrap();
+            std::fs::write(locked.join("a.json"), "{}").unwrap();
+            std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o500)).unwrap();
+            let err = remove_tree(&locked).unwrap_err();
+            std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o700)).unwrap();
+            assert_eq!(err.kind(), std::io::ErrorKind::PermissionDenied);
+        }
     }
 }
