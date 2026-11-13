@@ -1,0 +1,292 @@
+[
+ {
+  "name": "tickets_trash_list",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "trash",
+   "list",
+   "--json"
+  ]
+ },
+ {
+  "name": "tickets_trash_list_page",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "trash",
+   "list",
+   "--page",
+   "2",
+   "--per-page",
+   "5"
+  ]
+ },
+ {
+  "name": "tickets_trash_list_read_failed",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "trash",
+   "list",
+   "--page",
+   "9"
+  ]
+ },
+ {
+  "name": "tickets_trash_list_unreadable",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "trash",
+   "list",
+   "--page",
+   "8"
+  ]
+ },
+ {
+  "name": "tickets_restore_dry_run",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "INC-34",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_restore_not_in_trash",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "33",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_restore_not_found",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "99",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_restore_read_failed",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "38",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_restore_flag_unavailable",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "39",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_restore_needs_expect_plan",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "34",
+   "--yes"
+  ]
+ },
+ {
+  "name": "tickets_restore_send",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "34",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "tickets",
+   "restore",
+   "34",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_restore_send_unverified",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "restore",
+   "35",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "tickets",
+   "restore",
+   "35",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_delete_forever_needs_max_records",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "32",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_delete_forever_more_than_max",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "32",
+   "--max-records",
+   "1",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_delete_forever_max_records_range",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "--max-records",
+   "51",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_delete_forever_distinct",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "INC-31",
+   "--max-records",
+   "2",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_delete_forever_not_in_trash",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "33",
+   "--max-records",
+   "5",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_delete_forever_dry_run",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "INC-32",
+   "--max-records",
+   "2",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_delete_forever_needs_confirm",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "INC-32",
+   "--max-records",
+   "2",
+   "--yes",
+   "--expect-plan",
+   "{HASH}"
+  ],
+  "hash_from": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "INC-32",
+   "--max-records",
+   "2",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_delete_forever_send",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "INC-32",
+   "--max-records",
+   "2",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--confirm-destructive"
+  ],
+  "hash_from": [
+   "tickets",
+   "delete-forever",
+   "31",
+   "INC-32",
+   "--max-records",
+   "2",
+   "--dry-run"
+  ]
+ },
+ {
+  "name": "tickets_delete_forever_stops_at_failure",
+  "fixture": "ticket_trash",
+  "args": [
+   "tickets",
+   "delete-forever",
+   "36",
+   "37",
+   "--max-records",
+   "2",
+   "--yes",
+   "--expect-plan",
+   "{HASH}",
+   "--confirm-destructive"
+  ],
+  "hash_from": [
+   "tickets",
+   "delete-forever",
+   "36",
+   "37",
+   "--max-records",
+   "2",
+   "--dry-run"
+  ]
+ }
+]
