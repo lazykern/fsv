@@ -102,6 +102,11 @@ def wapi(request, monkeypatch):
         body = json.loads(req.content) if req.content else None
         s["writes"].append((req.method, path, body))
         if path == W.OVERLAP_PATH:
+            if "overlap_answer" in s:
+                answer = s["overlap_answer"]
+                if isinstance(answer, httpx.Response):
+                    return answer
+                return httpx.Response(200, json=answer)
             return httpx.Response(200, json={"overlapping_windows": s["overlaps"]})
         if req.method == "POST":
             row = {"id": 62, "name": body["change_window"]["name"]}
@@ -174,3 +179,51 @@ def test_window_delete_and_cli(wapi):
     assert r.exit_code == 0, r.output
     assert json.loads(r.output)["overlap_check"]["payload"]["criteria"][0]["value"] == "4"
     assert len(s["writes"]) == 1
+
+
+@pytest.mark.parametrize("answer", [
+    [], {}, False, {"overlapping_windows": []}, {"overlaps": []}, {"conflicts": [], "count": 0},
+    {"blackout_windows": [], "maintenance_windows": []}, {"overlap": False}, {"is_overlapping": False},
+    {"overlapping_windows": {"blackout_windows": [], "maintenance_windows": []}},
+    httpx.Response(200, text="false", headers={"content-type": "text/plain"}),
+])
+def test_window_overlap_answer_shapes_without_conflicts_create(wapi, answer):
+    c, s = wapi
+    s["overlap_answer"] = answer
+    p = _plan(c)
+    r = W.send_create(p, c, reviewed_hash=p.hash, rebuild=lambda: _plan(c))
+    assert r["verified"] and r["overlaps"] == 0
+    assert [w[1] for w in s["writes"]] == [W.OVERLAP_PATH, "maintenance_windows"]
+
+
+@pytest.mark.parametrize("answer", [
+    [{"id": 61}], True, {"has_overlap": True}, {"overlap_count": 2}, {"conflicts": [{"id": 61}]},
+    {"blackout_windows": [], "maintenance_windows": [{"id": 61}]},
+    {"overlapping_windows": {"maintenance_windows": [{"id": 61}]}},
+])
+def test_window_overlap_answer_shapes_with_conflicts_refuse(wapi, answer):
+    c, s = wapi
+    s["overlap_answer"] = answer
+    p = _plan(c)
+    with pytest.raises(ReviewedWriteError, match="overlapping window"):
+        W.send_create(p, c, reviewed_hash=p.hash)
+    assert [w[1] for w in s["writes"]] == [W.OVERLAP_PATH]
+
+
+@pytest.mark.parametrize("answer", [
+    {"message": "Acme"}, {"status": "ok"}, {"overlap": False, "windows": [{"id": 61}]}, {"a": {"b": {"c": []}}},
+    httpx.Response(200), httpx.Response(200, text="Globex", headers={"content-type": "text/plain"}),
+])
+def test_window_overlap_unknown_answer_refuses_unless_allowed(wapi, answer):
+    c, s = wapi
+    s["overlap_answer"] = answer
+    p = _plan(c)
+    with pytest.raises(ReviewedWriteError, match="nothing was created") as exc:
+        W.send_create(p, c, reviewed_hash=p.hash)
+    assert "Acme" not in str(exc.value) and "Globex" not in str(exc.value)
+    assert [w[1] for w in s["writes"]] == [W.OVERLAP_PATH]
+    if "contradictory" in str(exc.value):
+        return
+    r = W.send_create(p, c, reviewed_hash=p.hash, allow_overlap=True, rebuild=lambda: _plan(c))
+    assert r["verified"] and r["overlaps"] == "unknown"
+    assert [w[1] for w in s["writes"]] == [W.OVERLAP_PATH, W.OVERLAP_PATH, "maintenance_windows"]

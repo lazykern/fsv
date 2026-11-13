@@ -62,7 +62,7 @@ def register_windows(app: typer.Typer, factory: Callable[[], Any]) -> None:
                criteria: List[str] = typer.Option(..., "--criteria", help="change_type=<label or id> (repeatable; at least one)"),
                description: str = typer.Option("", "--description"),
                no_alert_suppression: bool = typer.Option(False, "--no-alert-suppression"),
-               allow_overlap: bool = typer.Option(False, "--allow-overlap", help="create even if windows overlap"),
+               allow_overlap: bool = typer.Option(False, "--allow-overlap", help="create even if windows overlap or the overlap answer is not understood"),
                dry_run: bool = typer.Option(False, "--dry-run"), yes: bool = typer.Option(False, "--yes", "-y"),
                expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
                json_out: bool = typer.Option(False, "--json")) -> None:

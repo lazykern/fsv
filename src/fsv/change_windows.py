@@ -118,14 +118,64 @@ def create_plan(client: Any, name: str, description: str, start: str, end: str, 
     return WindowPlan(write, json.dumps(overlap, sort_keys=True))
 
 
+_FLAG_WORDS = ("overlap", "conflict")
+_COUNT_KEYS = frozenset({"count", "total", "total_count", "overlap_count", "overlapping_count", "conflict_count"})
+_UNSPECIFIED = {"overlap": "reported without details"}
+
+
+def _shape(value: Any, depth: int = 0) -> str:
+    """Type-only outline of an answer (never values) for refusal messages."""
+    if isinstance(value, dict) and depth < 2:
+        inner = ", ".join(f"{k}: {_shape(v, depth + 1)}" for k, v in list(value.items())[:8])
+        return "{" + inner + ("" if len(value) <= 8 else ", ...") + "}"
+    return {dict: "object", list: "list", bool: "bool", str: "text", type(None): "null"}.get(type(value), "number")
+
+
 def _overlaps(response: Any) -> list[Any]:
+    """Conflicting windows from the overlap-check answer.
+
+    Accepted shapes: a list of windows; ``true``/``false`` (JSON or text); an
+    object whose values are window lists (one or several, e.g. per window
+    kind, optionally one level nested), overlap/conflict boolean flags and
+    numeric counts; an empty object (nothing reported). A flag or count that
+    reports an overlap without rows yields one placeholder conflict. Anything
+    else, or flags/counts contradicting the lists, raises.
+    """
+    if isinstance(response, str) and response.strip().casefold() in ("true", "false"):
+        response = response.strip().casefold() == "true"
+    if isinstance(response, bool):
+        return [_UNSPECIFIED] if response else []
     if isinstance(response, list):
         return response
-    if isinstance(response, dict):
-        lists = [v for v in response.values() if isinstance(v, list)]
-        if len(lists) == 1:
-            return lists[0]
-    raise ReviewedWriteError("overlap check answer not understood; nothing was created")
+    rows: list[Any] = []
+    flags: list[bool] = []
+
+    def walk(obj: dict[str, Any], depth: int) -> bool:
+        for key, value in obj.items():
+            word = str(key).casefold()
+            if isinstance(value, list):
+                rows.extend(value)
+            elif isinstance(value, bool) and any(w in word for w in _FLAG_WORDS):
+                flags.append(value)
+            elif (isinstance(value, int) and not isinstance(value, bool) and value >= 0
+                  and (word in _COUNT_KEYS or any(w in word for w in _FLAG_WORDS))):
+                flags.append(value > 0)
+            elif isinstance(value, dict) and depth == 0:
+                if not walk(value, 1):
+                    return False
+            else:
+                return False
+        return True
+
+    if isinstance(response, dict) and walk(response, 0):
+        if any(flags) and not rows:
+            return [_UNSPECIFIED]
+        if rows and flags and not any(flags):
+            raise ReviewedWriteError("overlap check answer is contradictory (no-overlap flag with windows listed); "
+                                     "nothing was created")
+        return rows
+    raise ReviewedWriteError(f"overlap check answer not understood (shape {_shape(response)}); nothing was created. "
+                             "Check `fsv changes windows list` yourself; --allow-overlap skips this check")
 
 
 def send_create(plan: WindowPlan, client: Any, *, reviewed_hash: str | None, allow_overlap: bool = False,
@@ -140,7 +190,12 @@ def send_create(plan: WindowPlan, client: Any, *, reviewed_hash: str | None, all
     csrf = client._get_csrf()
     answer = client._request("POST", f"{config.API_INT}/{OVERLAP_PATH}", content=plan.overlap_json.encode(),
                              headers={"Content-Type": "application/json", "X-CSRF-Token": csrf})
-    conflicts = _overlaps(answer)
+    try:
+        conflicts: list[Any] | None = _overlaps(answer)
+    except ReviewedWriteError:
+        if not allow_overlap:
+            raise
+        conflicts = None  # explicitly accepted: overlaps unknown
     if conflicts and not allow_overlap:
         raise ReviewedWriteError(f"{len(conflicts)} overlapping window(s); nothing was created "
                                  "(review them, then pass --allow-overlap)")
@@ -151,7 +206,7 @@ def send_create(plan: WindowPlan, client: Any, *, reviewed_hash: str | None, all
         wid = positive_id(row.get("id") if isinstance(row, dict) else None)
         listed = [r for r in list_windows(client) if positive_id(r.get("id")) == wid]
         state = "matched" if len(listed) == 1 and listed[0].get("name") == name else "mismatched"
-        return {"window_id": wid, "fields": {"name": state}, "overlaps": len(conflicts), "verified": state == "matched"}
+        return {"window_id": wid, "fields": {"name": state}, "overlaps": "unknown" if conflicts is None else len(conflicts), "verified": state == "matched"}
 
     return execute(plan.write, client, reviewed_hash=reviewed_hash, rebuild=lambda: plan.write, verify=verify)
 
