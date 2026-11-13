@@ -18,4 +18,20 @@
 - [Views](views.md) — saved views, filters, lists, detail pages, and TUI behavior.
 - [This index](index.md) — links to every page in this documentation directory.
 
+## Freshservice knowledge base
+
+Platform behaviour of Freshservice as seen by an agent web client, with every
+statement tagged VERIFIED LIVE, CAPTURED or INFERRED:
+
+- [Overview](freshservice/overview.md) — product model, modules, API families, session and CSRF, ids vs display ids, how records appear in the web UI, feature-flag probes.
+- [Forms and rules](freshservice/forms-and-rules.md) — form metadata shapes, field types, nested fields, lookups, required flags, client-side business rules and why writes must evaluate them.
+- [Lifecycles and workflows](freshservice/lifecycles-and-workflows.md) — ticket, service-request, problem and change status models, change state flows, workflow automator side effects, SLA and due dates.
+- [Wire contracts](freshservice/wire-contracts.md) — request shapes per feature (method, path, payload keys, response, readback, pitfalls) and their proof level.
+- [Quirks and pitfalls](freshservice/quirks-and-pitfalls.md) — platform gotchas: string vs integer ids, bodyless requests, signed URLs, fields never echoed, derived values, 405/206/500/429 behaviour, UI traps, tenant differences.
+
+## Working on fsv
+
+- [Live-testing methodology](live-testing.md) — reviewed writes, blocked-submit captures, trial replication, throwaway records and cleanup, reading evidence, probing a new tenant.
+- [Contributing for agents](contributing-agents.md) — repository layout, the reviewed-write pattern, offline test conventions, public-content hygiene, where knowledge lives.
+
 Return to the [project README](../README.md).

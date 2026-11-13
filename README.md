@@ -84,3 +84,5 @@ uv run pytest -q
 ```
 
 Upgrade an installed copy with `uv tool upgrade fsv`. The [documentation index](docs/index.md) links the feature and safety guides.
+
+Contributors and coding agents should start with [contributing for agents](docs/contributing-agents.md) and the [live-testing methodology](docs/live-testing.md). The [Freshservice knowledge base](docs/freshservice/overview.md) describes how the platform and its agent web UI behave (API families, forms and business rules, lifecycles and workflows, wire contracts, quirks), with each statement marked as verified live, captured or inferred.
