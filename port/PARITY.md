@@ -40,6 +40,14 @@ those stay identical.
 - Concurrent GETs (the parallel loads in `get`, `ls`, `tabs`) can be issued
   in a different order than Python issues them. Writes keep their order.
   `tests/differential.rs` compares GETs as a set.
+- A number filter proof (`filter_proof::number_matches`) compares finite
+  ASCII decimals. Python's `Decimal` also reads non-ASCII digits, `_`
+  separators, infinities and NaN; Rust treats those row values as
+  unverifiable, so the write is refused rather than guessed.
+- A `>`/`<` date shift past year 9999 or before year 1 exits 2 with
+  `date value out of range`. Python raises an uncaught `OverflowError`
+  (exit 1, traceback).
+- A choice or workspace id beyond `i64` is not an id.
 - A malformed `--query-hash` keeps Python's `invalid --query-hash JSON: `
   prefix and exit code; the decoder's detail after it is serde_json's
   (`EOF while parsing an object at line 1 column 2`), not CPython's

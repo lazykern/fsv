@@ -1,4 +1,4 @@
-# upstream 754eef18692934c644263911bb39df1fa0cc9618
+# upstream 406ca71e2392f23d5b9fd680572d50aabb0835a2
 # C<path> or A<path><flag> help text, as Typer declares it.
 # Rust repeats --verbose on every command; those lines are not listed.
 C	fsv	Freshservice CLI

@@ -2398,8 +2398,7 @@ Triaged against `git show` of each commit. None of these touch `src/fsv`
 behavior. README, `docs/index.md`, and `docs/commands.md` have no
 library port.
 
-Counts: **3 ported, 1 partial.** `port/UPSTREAM_BASE` is `7b7f5d2`.
-The partial is the workspace version, named below.
+Counts: **4 ported, 0 partial.** `port/UPSTREAM_BASE` is `7b7f5d2`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
@@ -3652,4 +3651,30 @@ Done in fsv-cli: `--all`, the negative limit and the notice on stderr or
 after the table (`crates/fsv-cli/src/cmd/resource.rs:531-545`). Tests
 at `crates/fsv-cli/tests/read_cmds.rs:1029-1090`.
 
-Still not triaged: commits after `754eef1`.
+## Ledger: `406ca71`
+
+Triaged against `git show 406ca71`. Upstream adds the captured list-filter
+wires in `query.py` and makes text filters fail closed. Dates send
+`is_in_the_range` and need both ends; `>`/`<` shift one whole day and print
+a `note:`. Relative `on:`/`last:`/`next:` periods, number fields and
+multi-select ids go to `advanced_query_hash` with the workspace item, on
+tickets and changes only. `--or` now works on tickets. Problems refuse the
+advanced shapes and date fields other than `created_at`. The number proof
+is `filter_proof::number_matches` (`fsv_py::decimal_cmp`). Filtered bulk
+writes refuse advanced payloads. The TUI sends a `{` payload as advanced.
+No option help changed. The query oracles were regenerated at `406ca71`
+for the changed cases only.
+
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `406ca71`.
+
+| commit | date | subject | status | crates |
+|---|---|---|---|---|
+| `406ca71` | 11-13 12:41 | feat: captured list-filter wires (date ranges, relative dates, numbers, multi-select); text filters fail closed | ported | fsv-api (`query`, `filter_proof`, `ticket_bulk`), fsv-py (`decimal`), fsv-cli (`filters`, `cmd/resource`), fsv-app (`tui`) |
+
+Tests: `crates/fsv-api/src/query_wire_tests.rs` ports
+`tests/test_filter_wires.py`; the CLI wires are in
+`crates/fsv-cli/tests/where_cmds.rs`. `tests/differential.rs` agrees with
+Python `406ca71` on every case. Docs (`commands.md`,
+`reviewed-parity.md`) have no Rust port.
+
+Still not triaged: commits after `406ca71`.

@@ -1,6 +1,6 @@
 // Clap command tree. Hand-maintained; `tests/tree.rs` checks every command,
 // option, positional and help string against tests/fixtures/cli_tree.json.
-// Python commit: 754eef18692934c644263911bb39df1fa0cc9618
+// Python commit: 406ca71e2392f23d5b9fd680572d50aabb0835a2
 #![allow(clippy::all)]
 use crate::types::{OutputFormat, ReviewOutput, SearchSort, SortOrder};
 use clap::{Arg, ArgAction, Args, Command};

@@ -1,7 +1,7 @@
 //! Every Python module at the pinned upstream commit has a Rust counterpart
 //! listed in `port/module_map.json`, and every listed file is still in the tree.
-//! When the sibling `fsv` checkout is present, its `src/fsv` tree must match
-//! the map exactly.
+//! When the sibling `fsv` checkout has the pinned commit, that commit's
+//! `src/fsv` tree must match the map exactly.
 
 #[test]
 fn command_tree_matches_python_flags() {
@@ -77,26 +77,27 @@ fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
-fn python_modules(root: &Path) -> BTreeSet<String> {
-    let mut out = BTreeSet::new();
-    let mut stack = vec![root.to_path_buf()];
-    while let Some(dir) = stack.pop() {
-        for entry in std::fs::read_dir(&dir).unwrap() {
-            let entry = entry.unwrap();
-            let path = entry.path();
-            if path.is_dir() {
-                stack.push(path);
-            } else if path.extension().and_then(|e| e.to_str()) == Some("py") {
-                let rel = path
-                    .strip_prefix(root)
-                    .unwrap()
-                    .to_string_lossy()
-                    .replace('\\', "/");
-                out.insert(rel);
-            }
-        }
+/// The `.py` files under `src/fsv` at `commit`, or `None` when the checkout
+/// does not have that commit. Reading the commit, not the working tree, keeps
+/// upstream's uncommitted modules out.
+fn python_modules(checkout: &Path, commit: &str) -> Option<BTreeSet<String>> {
+    let out = std::process::Command::new("git")
+        .arg("-C")
+        .arg(checkout)
+        .args(["ls-tree", "-r", "--name-only", commit, "src/fsv"])
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
     }
-    out
+    Some(
+        String::from_utf8_lossy(&out.stdout)
+            .lines()
+            .filter_map(|l| l.strip_prefix("src/fsv/"))
+            .filter(|l| l.ends_with(".py"))
+            .map(str::to_string)
+            .collect(),
+    )
 }
 
 #[test]
@@ -121,14 +122,14 @@ fn every_python_module_has_a_rust_counterpart() {
         }
     }
 
-    let live = root.join("../fsv/src/fsv");
-    if live.is_dir() {
-        let found = python_modules(&live);
+    let checkout = root.join("../fsv");
+    if let Some(found) = python_modules(&checkout, pinned.trim()) {
         let extra: Vec<_> = found.difference(&listed).cloned().collect();
         let gone: Vec<_> = listed.difference(&found).cloned().collect();
         assert!(
             extra.is_empty() && gone.is_empty(),
-            "module map drifted from {live:?}\nmissing from map: {extra:?}\ngone from Python: {gone:?}"
+            "module map drifted from {checkout:?} at {}\nmissing from map: {extra:?}\ngone from Python: {gone:?}",
+            pinned.trim()
         );
     }
 }
