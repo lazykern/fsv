@@ -6,11 +6,11 @@ fsv signs in with your browser session, so you don't need an API key. It uses th
 
 ## Get started
 
-Install with [uv](https://docs.astral.sh/uv/):
+This branch is the Rust port. Build the `fsv` binary from a checkout:
 
 ```bash
-uv tool install git+https://github.com/lazykern/fsv.git
-fsv setup
+cargo build --release -p fsv-cli --bin fsv
+./target/release/fsv setup
 ```
 
 The setup wizard asks for your domain and helps with login, shell completion and defaults. If you'd rather just sign in:
@@ -225,22 +225,12 @@ The former shared journal at `$XDG_STATE_HOME/fsv/journal.jsonl` is left untouch
 
 ## Update or work on the code
 
-For an installed copy:
-
-```bash
-uv tool upgrade fsv
-```
-
-For a local checkout:
-
 ```bash
 git clone https://github.com/lazykern/fsv.git
 cd fsv
-uv sync
-uv run fsv --help
-uv run pytest -q
+git switch rust-port
+cargo test --workspace --offline
+cargo clippy --workspace --all-targets --offline -- -D warnings
 ```
 
-Use `uv tool install --editable .` if you want the checkout available as `fsv` in your shell. Pull updates with `git pull --ff-only`, then run `uv sync`.
-
-Most command handling lives in `src/fsv/cli.py`. The `forms/` package handles form metadata and rules, `formui/` contains the interactive forms, and `views.py` and `pages.py` load and render the site-style views. The full-screen app lives in `tui/`.
+The binary is `fsv-cli`. Domain code is split across `fsv-core` (HTTP, session, journal), `fsv-api` (Freshservice operations), `fsv-forms` (form engine), `fsv-flows` (change, ticket, and catalog flows), `fsv-views` (rendering), `fsv-tui` and `fsv-formui` (screens), and `fsv-app` (the adapters that wire them together). The Python source this port tracks lives in a separate checkout, not in this tree. JSON fixtures under `crates/` and `port/golden` are frozen expected values.
