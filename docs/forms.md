@@ -73,8 +73,10 @@ change writes keep blocking on unavailable rules.
 **Which workspace.** `formmeta.load_rules()` (used by every form face)
 picks the workspace like this:
 
-1. `fsv config set forms.workspace_id N`: an override, used alone;
-2. the record's own `workspace_id` (edit forms and detail pages);
+1. the record's own `workspace_id` (edit forms and record writes pass the
+   record to `load_meta(record=...)`): it beats the override, which is a
+   default for records and forms without a workspace;
+2. `fsv config set forms.workspace_id N`: an override, used alone;
 3. the workspace the form's custom fields belong to (`workspace_id` in the
    form-fields metadata);
 4. only when those are missing or refused: the account itself, the
@@ -84,7 +86,22 @@ picks the workspace like this:
 5. the workspace-less path.
 
 The workspace the rules came from is kept as `meta.workspace_id` (the
-engine filters rules by it). Edit-form rules are cached per record
+engine filters rules by it); the record's own workspace as
+`meta.record_workspace`.
+
+**One default form.** fsv reads the single `<module>_form_fields` form; no
+per-form or per-workspace field endpoint is captured. `meta.form_notes`
+makes that assumption explicit in reviews (ticket transitions, ticket and
+problem property updates, problem status, `form explain`) when the field
+metadata spans workspaces, when the record lives in another workspace
+than the form's fields, or when the override is ignored for a record.
+
+**Status meaning.** Whether a status opens, pends, resolves or closes a
+record comes from `fsv.status_semantics`: the built-in statuses keep their
+platform internal ids under any label (tickets 2 Open, 3 Pending,
+4 Resolved, 5 Closed; problems 1 Open, 3 Closed), custom statuses never
+resolve or close, and metadata without those ids is refused rather than
+read by its English labels. Edit-form rules are cached per record
 (`module_id`), since the server filters them by record.
 Form-field and resource-schema caches are keyed by tenant AND workspace
 (`<domain>--ws<id>--<name>.json`, `wsauto` without a `forms.workspace_id`

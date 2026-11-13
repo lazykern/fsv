@@ -1,7 +1,11 @@
 """A 'shifted' synthetic tenant: every tenant-configurable id is moved away
-from the platform defaults (statuses 21-23, task statuses 7-9, reminders
-600/0 with renamed labels) and the tenant has two workspaces (5 and 9) whose
-form fields differ. Touched modules must take every value from metadata."""
+from the platform defaults (custom statuses 12/13/21/22, task statuses 7-9,
+reminders 600/0 with renamed labels), built-in statuses keep their platform
+internal ids under translated labels, ticket types are renamed with a custom
+display-id prefix, choice labels are translated or raw i18n keys, and the
+tenant has two workspaces (5 and 9) whose form fields differ. Touched modules
+must take every value from metadata (or local config) and refuse when the
+metadata cannot prove a meaning."""
 from __future__ import annotations
 
 import copy
@@ -316,3 +320,19 @@ def test_required_catalog_lookup_on_a_second_workspace_item_is_refused_by_name()
     errors = catalog.unsupported_lookup_errors(state, Draft())
     assert len(errors) == 1 and errors[0].startswith("Gerät (geraet): catalog lookup field (type 502)")
     assert "Nothing was sent" in errors[0]
+
+
+def test_form_explain_problem_record_uses_its_workspace_and_says_so(shifted, monkeypatch):
+    from typer.testing import CliRunner
+    import fsv.cli as cli
+    c, s = shifted
+    use_workspace(5)
+    s["row"]["workspace_id"] = 9
+    monkeypatch.setattr(cli, "_client", lambda: c)
+    r = CliRunner().invoke(cli.app, ["form", "explain", "problems", "--id", "PRB-77", "-o", "json"])
+    assert r.exit_code == 0, r.output
+    out = json.loads(r.stdout)
+    assert any("record is in workspace 9" in n for n in out["form_notes"])
+    assert {row["field"] for row in out["rows"]} >= {"subject", "status"}
+    assert s["rule_paths"] and all(p.startswith("ws/9/") for p in s["rule_paths"])
+    assert not s["writes"]
