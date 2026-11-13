@@ -2790,6 +2790,21 @@ def update_resource(
     console.print(f"[green]updated[/] {format_id(item, res)}")
 
 
+DOWNLOADS_DIR = Path("downloads")
+
+
+def _download_dir(out: Path | None, label: str) -> Path:
+    """Attachment downloads go exactly under --dir, or by default under
+    ./downloads/<ID>: never a bare ./<ID> directory in the current
+    directory (which may be a repository checkout). The chosen directory is
+    announced on stderr so JSON stdout stays a manifest."""
+    from rich.markup import escape
+    target = out if out is not None else DOWNLOADS_DIR / label
+    origin = "--dir" if out is not None else "default ./downloads/<ID>; choose with --dir"
+    err.print(f"output directory: {escape(str(target))} ({origin})")
+    return target
+
+
 def note_resource(res: Resource, id_: str, body: str, public: bool, dry_run: bool = False,
                   yes: bool = False, no_input: bool = False) -> None:
     from fsv import service
@@ -4279,7 +4294,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             main_attachments: bool = typer.Option(False, "--attachments", "--main-attachments", help="download main change attachments"),
             description_attachments: bool = typer.Option(False, "--description-attachments", help="download attachment links found in description HTML"),
             all_: bool = typer.Option(False, "--all", help="download planning, main, and description attachments"),
-            out: Optional[Path] = typer.Option(None, "--dir", "--out", help="output directory (default: ./CHN-<id>)"),
+            out: Optional[Path] = typer.Option(None, "--dir", "--out", help="output directory (default: ./downloads/CHN-<id>)"),
             force: bool = typer.Option(False, "--force", help="overwrite existing files"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON manifest"),
         ) -> None:
@@ -4292,7 +4307,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                     description_attachments = True
                 if not planning and not all_planning and not main_attachments and not description_attachments:
                     all_planning = True
-                out_dir = out or Path(f"CHN-{cid}")
+                out_dir = _download_dir(out, f"CHN-{cid}")
                 results: list[dict[str, Any]] = []
 
                 evidence: dict[str, Any] | None = None
@@ -4509,7 +4524,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             threads: bool = typer.Option(False, _threads_flag, help=_threads_help),
             description_attachments: bool = typer.Option(False, "--description-attachments", help="download attachment links found in description HTML"),
             all_: bool = typer.Option(False, "--all", help="download all attachments from all sources"),
-            out: Optional[Path] = typer.Option(None, "--dir", "--out", help="output directory"),
+            out: Optional[Path] = typer.Option(None, "--dir", "--out", help="output directory (default: ./downloads/<ID>)"),
             force: bool = typer.Option(False, "--force", help="overwrite existing files"),
             json_out: bool = typer.Option(False, "--json", help="emit JSON manifest"),
         ) -> None:
@@ -4524,7 +4539,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
                 if not main_attachments and not threads and not description_attachments:
                     main_attachments = True
                 pfx = res.display_prefixes[0]
-                out_dir = out or Path(f"{pfx}-{cid}")
+                out_dir = _download_dir(out, f"{pfx}-{cid}")
                 results: list[dict[str, Any]] = []
 
                 raw = c.int_get(f"{res.api_path}/{cid}", params={"include": "requester,stats"})
