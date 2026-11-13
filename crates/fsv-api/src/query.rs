@@ -29,6 +29,9 @@ pub const DATE_FIELDS: &[&str] = &[
     "due_by",
     "planned_start_date",
     "planned_end_date",
+    "fr_due_by",
+    "closed_at",
+    "resolved_at",
 ];
 const ON_TOKENS: &[&str] = &["today", "yesterday", "tomorrow", "week", "month", "year"];
 const RANGE_TOKENS: &[&str] = &[
@@ -40,13 +43,28 @@ const RANGE_TOKENS: &[&str] = &[
     "one_year",
 ];
 const ADVANCED_MODULES: &[&str] = &["tickets", "changes"];
-/// Date conditions offered by the advanced builder (due date is `due_by_date` there).
+/// Date conditions offered by the advanced builder, keyed by fsv's field name.
+/// fsv reads no filter-field metadata that names them: the builder's field
+/// list ships in the web bundle, and neither the form fields nor the saved
+/// views carry the advanced name, so this table is the source. The due,
+/// first-response-due, closed and resolved dates differ from the record names.
 const ADVANCED_DATE_CONDITIONS: &[(&str, &str)] = &[
     ("created_at", "created_at"),
+    ("updated_at", "updated_at"),
     ("due_by", "due_by_date"),
+    ("fr_due_by", "fr_due_by_date"),
+    ("closed_at", "closed_date"),
+    ("resolved_at", "resolved_date"),
     ("planned_start_date", "planned_start_date"),
     ("planned_end_date", "planned_end_date"),
 ];
+/// Advanced dates that exist only in the ticket builder.
+pub const TICKET_ONLY_DATES: &[&str] = &["fr_due_by", "closed_at", "resolved_at"];
+/// Dates whose range goes through the advanced builder under its advanced
+/// name: the basic `due_by` range answers 206 + `meta.search_error`
+/// (unfiltered rows), and the closed/resolved/first-response dates have no
+/// basic panel.
+const ADVANCED_RANGE_DATES: &[&str] = &["due_by", "fr_due_by", "closed_at", "resolved_at"];
 /// Problems: only the created range is proven; other shapes returned 0 rows silently.
 const PROBLEM_DATE_FIELDS: &[&str] = &["created_at"];
 const NUMBER_OPERATORS: &[(&str, &str)] = &[
@@ -288,13 +306,8 @@ pub fn date_condition(
                 "{operator} date filters exist only in the tickets/changes advanced filter; {resource} has none, nothing was sent"
             )));
         }
-        let Some(cond) = lookup(ADVANCED_DATE_CONDITIONS, field) else {
-            return Err(QueryError(format!(
-                "{field} is not a date in the advanced filter builder; nothing was sent"
-            )));
-        };
         return Ok(advanced(query_item(
-            cond,
+            advanced_date_condition(resource, field)?,
             operator,
             json!(token),
             "default",
@@ -339,6 +352,22 @@ pub fn date_condition(
             )));
         }
     };
+    if ADVANCED_RANGE_DATES.contains(&field) {
+        if !ADVANCED_MODULES.contains(&resource) {
+            return Err(QueryError(format!(
+                "{field} date ranges exist only in the tickets/changes advanced filter; {resource} has none, nothing was sent"
+            )));
+        }
+        return Ok(advanced(query_item(
+            advanced_date_condition(resource, field)?,
+            "is_in_the_range",
+            value,
+            "default",
+            explain,
+            shown,
+            &format!("{text}{note}"),
+        )));
+    }
     Ok(query_item(
         field,
         "is_in_the_range",
@@ -348,6 +377,16 @@ pub fn date_condition(
         shown,
         &format!("{text}{note}"),
     ))
+}
+
+/// `advanced_date_condition`: the advanced builder's condition name for an fsv date field.
+pub fn advanced_date_condition(resource: &str, field: &str) -> Result<&'static str, QueryError> {
+    match lookup(ADVANCED_DATE_CONDITIONS, field) {
+        Some(cond) if !(TICKET_ONLY_DATES.contains(&field) && resource != "tickets") => Ok(cond),
+        _ => Err(QueryError(format!(
+            "{field} is not a date in the {resource} advanced filter builder; nothing was sent"
+        ))),
+    }
 }
 
 fn lookup<'a>(table: &[(&str, &'a str)], key: &str) -> Option<&'a str> {
@@ -441,7 +480,9 @@ pub fn typed_condition(
                 py_str(ch.get("id").unwrap_or(&Value::Null)) == wanted
                     || ["value", "name", "label"]
                         .iter()
-                        .any(|k| pystr::casefold(pystr::strip(&py_or_empty(ch.get(*k)))) == folded)
+                        .map(|k| py_or_empty(ch.get(*k)))
+                        .chain(std::iter::once(humanize_or_empty(ch.get("value"))))
+                        .any(|x| pystr::casefold(pystr::strip(&x)) == folded)
             })
             .collect();
         let mut ids: Vec<Option<i64>> =
@@ -625,7 +666,8 @@ fn refuse_unsupported_filter(resource: &str, condition: &str) -> Result<(), Quer
     Ok(())
 }
 
-fn check_raw_query(resource: &str, items: &Value) -> Result<(), QueryError> {
+/// `_check_raw_query`: refuse raw conditions the list ignores.
+pub fn check_raw_query(resource: &str, items: &Value) -> Result<(), QueryError> {
     let rows = items
         .as_array()
         .map(|a| a.as_slice())
@@ -836,19 +878,23 @@ pub fn resolve_where(
 }
 
 /// Port of fsv.cli._merge_same_conditions: one `is_in` / `is_not_in`
-/// item per (condition, operator, type), values concatenated in order.
+/// item per (condition, operator, type), list values concatenated in order;
+/// an item whose value is not a list passes through unchanged.
 pub fn merge_same_conditions(query: Vec<Value>) -> Vec<Value> {
     let mut seen: Vec<([Value; 3], usize)> = Vec::new();
     let mut out: Vec<Value> = Vec::new();
     for item in query {
         let field = |k: &str| item.get(k).cloned().unwrap_or(Value::Null);
         let op = field("operator");
+        let Some(values) = item.get("value").and_then(Value::as_array).cloned() else {
+            out.push(item);
+            continue;
+        };
         if op != "is_in" && op != "is_not_in" {
             out.push(item);
             continue;
         }
         let key = [field("condition"), op, field("type")];
-        let values = py_list(item.get("value"));
         match seen.iter().find(|(k, _)| *k == key) {
             Some(&(_, at)) => {
                 if let Some(Value::Array(merged)) = out[at].get_mut("value") {
@@ -856,29 +902,65 @@ pub fn merge_same_conditions(query: Vec<Value>) -> Vec<Value> {
                 }
             }
             None => {
-                let mut merged = item;
-                if let Value::Object(m) = &mut merged {
-                    m.insert("value".into(), Value::Array(values));
-                }
                 seen.push((key, out.len()));
-                out.push(merged);
+                out.push(item);
             }
         }
     }
     out
 }
 
-/// `list(value or [])`: strings split into code points, objects into keys;
-/// a truthy scalar (a `TypeError` in Python) becomes a one-item list.
-fn py_list(value: Option<&Value>) -> Vec<Value> {
-    match value {
-        None => Vec::new(),
-        Some(v) if !fsv_py::truthy(v) => Vec::new(),
-        Some(Value::Array(a)) => a.clone(),
-        Some(Value::String(s)) => s.chars().map(|c| Value::String(c.into())).collect(),
-        Some(Value::Object(m)) => m.keys().map(|k| Value::String(k.clone())).collect(),
-        Some(other) => vec![other.clone()],
+const LIST_OPERATORS: &[&str] = &["is_in", "is_not_in"];
+
+/// `validate_raw_query`: refuse raw query-hash shapes fsv cannot pass on
+/// faithfully (no wrapping: the wire is sent exactly as given).
+pub fn validate_raw_query(items: &Value, at: &str) -> Result<(), QueryError> {
+    let rows = items
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or(std::slice::from_ref(items));
+    for (n, item) in rows.iter().enumerate() {
+        let label = format!("{at} item {}", n + 1);
+        let Some(obj) = item.as_object() else {
+            return Err(QueryError(format!(
+                "{label} must be a JSON object with condition/operator/value; nothing was sent"
+            )));
+        };
+        for key in ["any", "all"] {
+            if let Some(nested) = obj.get(key) {
+                if !nested.is_array() {
+                    return Err(QueryError(format!(
+                        "{label}: '{key}' must be a JSON list of conditions; nothing was sent"
+                    )));
+                }
+                validate_raw_query(nested, &format!("{label} {key}"))?;
+            }
+        }
+        let Some(condition) = obj.get("condition") else {
+            if !obj.contains_key("any") && !obj.contains_key("all") {
+                return Err(QueryError(format!(
+                    "{label} has no condition; nothing was sent"
+                )));
+            }
+            continue;
+        };
+        let (Some(condition), Some(operator)) = (
+            condition.as_str(),
+            obj.get("operator").and_then(Value::as_str),
+        ) else {
+            return Err(QueryError(format!(
+                "{label}: condition and operator must be strings; nothing was sent"
+            )));
+        };
+        let value = obj.get("value").unwrap_or(&Value::Null);
+        if LIST_OPERATORS.contains(&operator) && !value.is_array() {
+            return Err(QueryError(format!(
+                "{label} ({condition}): operator {operator} takes a JSON list value, e.g. \"value\": [{}]; nothing was sent",
+                fsv_py::dumps(value, &fsv_py::Dumps::default())
+            )));
+        }
     }
+    Ok(())
 }
 
 pub fn load_query_hash(raw: &str) -> Result<Vec<Value>, QueryError> {
@@ -889,10 +971,11 @@ pub fn load_query_hash(raw: &str) -> Result<Vec<Value>, QueryError> {
     };
     let loaded: Value = serde_json::from_str(&text)
         .map_err(|e| QueryError(format!("invalid query-hash JSON: {e}")))?;
-    loaded
-        .as_array()
-        .cloned()
-        .ok_or_else(|| QueryError("query-hash must be a JSON array".into()))
+    let Value::Array(items) = loaded else {
+        return Err(QueryError("query-hash must be a JSON array".into()));
+    };
+    validate_raw_query(&Value::Array(items.clone()), "query-hash")?;
+    Ok(items)
 }
 
 fn query_item(
@@ -1070,7 +1153,12 @@ fn ambiguous(text: &str, fields: &[Value]) -> QueryError {
     ))
 }
 
-fn choice_value(field: &Value, raw: &str, type_: &str) -> Result<Value, QueryError> {
+/// `str(humanize_key(value) or "")`.
+fn humanize_or_empty(value: Option<&Value>) -> String {
+    crate::schema::humanize_value(value)
+}
+
+pub(crate) fn choice_value(field: &Value, raw: &str, type_: &str) -> Result<Value, QueryError> {
     let choices = field
         .get("choices")
         .and_then(Value::as_array)
@@ -1101,7 +1189,9 @@ fn choice_value(field: &Value, raw: &str, type_: &str) -> Result<Value, QueryErr
         let labels = ["value", "name", "label", "requester_display_value"];
         if labels
             .iter()
-            .any(|k| pystr::casefold(&py_or_empty(choice.get(*k))) == folded)
+            .map(|k| py_or_empty(choice.get(*k)))
+            .chain(std::iter::once(humanize_or_empty(choice.get("value"))))
+            .any(|x| pystr::casefold(&x) == folded)
         {
             return Ok(if type_ == "custom_field" {
                 custom_value(choice)

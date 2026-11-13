@@ -95,17 +95,9 @@ fn approvals(a: TicketsApprovalsArgs) -> CmdResult {
     Ok(())
 }
 
-/// `schema.PRIORITY.get(item.get("priority") or 0, "-")`.
+/// `schema.display_label("priority", item.get("priority"), None)`.
 fn priority_label(item: &Value) -> String {
-    let p = item.get("priority").filter(|v| fsv_py::truthy(v));
-    let n = match p {
-        None => Some(0),
-        Some(Value::Number(n)) => n.as_i64(),
-        Some(Value::Bool(b)) => Some(i64::from(*b)),
-        _ => None,
-    };
-    n.and_then(|n| fsv_api::PRIORITY.iter().find(|(k, _)| *k == n))
-        .map_or_else(|| "-".into(), |(_, v)| v.to_string())
+    fsv_api::display_label("priority", item.get("priority"), None, "-")
 }
 
 /// `ticket_associations_resource`.

@@ -17,8 +17,6 @@ const TICKET_STATES: &[(&str, &str)] = &[
     ("overdue", "Overdue"),
 ];
 
-const PRIORITY: &[(i64, &str)] = &[(1, "Low"), (2, "Medium"), (3, "High"), (4, "Urgent")];
-
 const SORT_LABELS: &[(&str, &str)] = &[
     ("created_at", "Created Date"),
     ("updated_at", "Last Modified"),
@@ -466,7 +464,7 @@ pub fn choice_name(schema: Option<&Value>, field_name: &str, value: Option<&Valu
                     .or_else(|| ch.get("label").filter(|v| fsv_py::truthy(v)))
                     .map(fsv_py::py_str)
                     .unwrap_or_else(|| want.clone());
-                return pystr::html_unescape(&text).into_owned();
+                return crate::schema::humanize_key(&pystr::html_unescape(&text));
             }
         }
     }
@@ -519,15 +517,8 @@ pub fn priority_name(item: &Value, schema: Option<&Value>) -> String {
     if !choice.is_empty() {
         return choice;
     }
-    if let Some(n) = v.and_then(as_i64)
-        && let Some((_, label)) = PRIORITY.iter().find(|(k, _)| *k == n)
-    {
-        return (*label).to_string();
-    }
-    match v {
-        Some(v) if !v.is_null() => fsv_py::py_str(v),
-        _ => String::new(),
-    }
+    // runtime choices first; the static platform labels only without them
+    crate::schema::display_label("priority", v, schema.filter(|s| s.is_object()), "")
 }
 
 /// Port of `views.department_name`.
@@ -931,16 +922,6 @@ fn first_truthy<'a>(item: &'a Value, keys: &[&str]) -> Option<&'a Value> {
 fn first_present<'a>(map: &'a Map<String, Value>, keys: &[&str]) -> Option<&'a Value> {
     keys.iter()
         .find_map(|k| map.get(*k).filter(|v| !v.is_null()))
-}
-
-/// Dict-key index: `True == 1`, `False == 0`, integers as themselves.
-fn as_i64(v: &Value) -> Option<i64> {
-    match v {
-        Value::Bool(b) => Some(i64::from(*b)),
-        other => other
-            .as_i64()
-            .or_else(|| other.as_u64().and_then(|u| i64::try_from(u).ok())),
-    }
 }
 
 fn as_py_int(v: &Value) -> Option<i64> {

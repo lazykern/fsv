@@ -86,6 +86,20 @@ pub fn source_name(record: &Value, schema: Option<&Value>) -> String {
     if !named.is_empty() {
         return named;
     }
+    // SOURCES is a fallback only for a form without source choices: with
+    // runtime choices an unknown (custom) source id is shown as the id.
+    let has_choices = schema
+        .and_then(|s| s.get("fields"))
+        .and_then(Value::as_array)
+        .is_some_and(|fs| {
+            fs.iter().any(|f| {
+                f.get("name").and_then(Value::as_str) == Some("source")
+                    && f.get("choices").is_some_and(fsv_py::truthy)
+            })
+        });
+    if has_choices {
+        return fsv_py::py_str(v);
+    }
     if let Some(n) = table_key(v)
         && let Some((_, label)) = SOURCES.iter().find(|(k, _)| *k == n)
     {

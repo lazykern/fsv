@@ -166,16 +166,22 @@
     "condition": "status",
     "operator": "is_not_in",
     "type": "default",
-    "value": [
-     "a",
-     "b"
-    ]
+    "value": null
+   },
+   {
+    "condition": "status",
+    "operator": "is_not_in",
+    "type": "default",
+    "value": "ab"
    },
    {
     "operator": "is_in",
-    "value": [
-     "k"
-    ]
+    "value": {
+     "k": 1
+    }
+   },
+   {
+    "operator": "is_in"
    }
   ]
  },

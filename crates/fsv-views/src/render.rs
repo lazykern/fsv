@@ -3,7 +3,7 @@
 
 use serde_json::{Map, Value, json};
 
-use fsv_api::{IMPACT, PRIORITY, RISK, choice_label, field};
+use fsv_api::{choice_label, display_label, field};
 use fsv_core::output::{fmt_dt, fmt_value, strip_html};
 use fsv_core::pystr;
 use fsv_core::resource::{self, Resource};
@@ -139,24 +139,6 @@ fn obj_get<'a>(v: Option<&'a Value>, key: &str) -> Option<&'a Value> {
     v.and_then(Value::as_object).and_then(|m| m.get(key))
 }
 
-fn lookup(table: &[(i64, &'static str)], v: Option<&Value>) -> Option<&'static str> {
-    let n = match v? {
-        Value::Bool(b) => i64::from(*b),
-        Value::Number(n) => match n.as_i64() {
-            Some(i) => i,
-            None => {
-                let f = n.as_f64()?;
-                if f.fract() != 0.0 {
-                    return None;
-                }
-                f as i64
-            }
-        },
-        _ => return None,
-    };
-    table.iter().find(|(k, _)| *k == n).map(|(_, v)| *v)
-}
-
 /// `value in (None, "", [], False)` (`0 == False` in Python).
 fn blank_answer(v: &Value) -> bool {
     match v {
@@ -221,11 +203,6 @@ fn requester_cell(x: &Value, missing: &str) -> String {
     }
 }
 
-fn priority_cell(v: Option<&Value>) -> &'static str {
-    let v = v.filter(|v| fsv_py::truthy(v)).cloned().unwrap_or(json!(0));
-    lookup(PRIORITY, Some(&v)).unwrap_or("-")
-}
-
 /// `list_rows`: the `--csv`/`--tsv`/`--json` rows of the classic list.
 pub fn list_rows(
     items: &[Value],
@@ -244,7 +221,15 @@ pub fn list_rows(
                 json!(resolve_status_name(x, &sid, &schema)),
             );
             row.insert("status_id".into(), sid);
-            row.insert("priority".into(), json!(priority_cell(x.get("priority"))));
+            row.insert(
+                "priority".into(),
+                json!(display_label(
+                    "priority",
+                    x.get("priority"),
+                    Some(&schema),
+                    "-"
+                )),
+            );
             row.insert(
                 "subject".into(),
                 x.get("subject")
@@ -310,7 +295,12 @@ pub fn list_table(items: &[Value], res: &Resource, schema: Option<&Value>) -> Ta
             );
             row.push(if label.is_empty() { "-".into() } else { label });
         }
-        row.push(priority_cell(x.get("priority")).to_string());
+        row.push(display_label(
+            "priority",
+            x.get("priority"),
+            Some(&schema),
+            "-",
+        ));
         row.push(truthy_str(x.get("subject")).unwrap_or_default());
         row.push(requester_cell(x, "-"));
         t.add_row(row);
@@ -459,7 +449,7 @@ pub fn detail_panel(
         out.push(Block::Markup(format!("type      {ct}")));
         out.push(Block::Markup(format!(
             "risk      {}",
-            lookup(RISK, item.get("risk")).unwrap_or("-")
+            display_label("risk", item.get("risk"), Some(&schema), "-")
         )));
     }
     if res.name == "tickets" {
@@ -477,12 +467,12 @@ pub fn detail_panel(
     }
     out.push(Block::Markup(format!(
         "priority  {}",
-        lookup(PRIORITY, item.get("priority")).unwrap_or("-")
+        display_label("priority", item.get("priority"), Some(&schema), "-")
     )));
     if item.get("impact").is_some_and(|v| !v.is_null()) {
         out.push(Block::Markup(format!(
             "impact    {}",
-            lookup(IMPACT, item.get("impact")).unwrap_or("-")
+            display_label("impact", item.get("impact"), Some(&schema), "-")
         )));
     }
     let get = |k: &str| item.get(k).unwrap_or(&Value::Null);

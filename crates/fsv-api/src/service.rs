@@ -1157,19 +1157,9 @@ pub fn resolve_status(item: &Value, schema: &Value) -> String {
     }
 }
 
-/// `PRIORITY.get(item.get("priority") or 0, "-")`.
-pub fn resolve_priority(item: &Value) -> String {
-    let key = match item.get("priority").filter(|v| truthy(v)) {
-        Some(Value::Number(n)) => n
-            .as_i64()
-            .or_else(|| n.as_f64().filter(|f| f.fract() == 0.0).map(|f| f as i64)),
-        Some(Value::Bool(true)) => Some(1),
-        Some(_) => None,
-        None => Some(0),
-    };
-    key.and_then(|k| crate::PRIORITY.iter().find(|(id, _)| *id == k))
-        .map_or("-", |(_, l)| l)
-        .to_string()
+/// `resolve_priority`: `schema.display_label("priority", ...)`.
+pub fn resolve_priority(item: &Value, schema: Option<&Value>) -> String {
+    crate::schema::display_label("priority", item.get("priority"), schema, "-")
 }
 
 pub fn item_url(resource: &Resource, item_id: i64, domain: &str) -> String {
@@ -1791,8 +1781,8 @@ mod tests {
             "Planning"
         );
         assert_eq!(resolve_status(&json!({"status": 9}), &json!({})), "9");
-        assert_eq!(resolve_priority(&json!({"priority": 2})), "Medium");
-        assert_eq!(resolve_priority(&json!({})), "-");
+        assert_eq!(resolve_priority(&json!({"priority": 2}), None), "Medium");
+        assert_eq!(resolve_priority(&json!({}), None), "-");
     }
 
     #[test]
@@ -2335,8 +2325,9 @@ mod tests {
             resolve_status(&json!({"status": null}), &json!({"fields": []})),
             "None"
         );
-        assert_eq!(resolve_priority(&json!({"priority": 4})), "Urgent");
-        assert_eq!(resolve_priority(&json!({"priority": 9})), "-");
+        assert_eq!(resolve_priority(&json!({"priority": 4}), None), "Urgent");
+        // 936e767: an id without a static label is shown as the id.
+        assert_eq!(resolve_priority(&json!({"priority": 9}), None), "9");
         assert_eq!(
             item_url(&PROBLEMS, 12, "acme.freshservice.com"),
             "https://acme.freshservice.com/a/problems/12"
