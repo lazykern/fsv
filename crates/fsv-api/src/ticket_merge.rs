@@ -27,6 +27,13 @@ fn ticket_id(value: &str) -> Result<i64> {
     Ok(id)
 }
 
+/// `str(i).isdigit() and int(str(i)) > 0`, and not a bool. `१२` counts.
+fn history_id_ok(row: &Value, text: &str) -> bool {
+    !row.get("id").is_some_and(Value::is_boolean)
+        && fsv_core::pystr::is_digit(text)
+        && fsv_core::pystr::parse_decimal(text).is_some_and(|n| n > 0)
+}
+
 /// Complete conversation history with unique positive numeric IDs.
 fn history(c: &dyn Api, ticket: i64) -> Result<Vec<Value>> {
     let pages = load_conversations(c, ticket)?;
@@ -43,12 +50,11 @@ fn history(c: &dyn Api, ticket: i64) -> Result<Vec<Value>> {
         .iter()
         .map(|r| py_str(r.get("id").unwrap_or(&Value::Null)))
         .collect();
-    let bad = pages.rows.iter().zip(&ids).any(|(r, s)| {
-        r.get("id").is_some_and(Value::is_boolean)
-            || s.is_empty()
-            || !s.chars().all(|ch| ch.is_ascii_digit())
-            || s.trim_start_matches('0').is_empty()
-    });
+    let bad = pages
+        .rows
+        .iter()
+        .zip(&ids)
+        .any(|(r, s)| !history_id_ok(r, s));
     let unique: std::collections::HashSet<&String> = ids.iter().collect();
     if bad || unique.len() != ids.len() {
         return Err(refused(

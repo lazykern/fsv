@@ -331,3 +331,13 @@ fn closed_status_accepts_only_positive_digit_identities() {
         assert_eq!(got, want, "{}", case["id"]);
     }
 }
+
+#[test]
+fn history_id_accepts_unicode_decimals() {
+    assert!(history_id_ok(&json!({"id": "१२"}), "१२"));
+    assert!(history_id_ok(&json!({"id": 12}), "12"));
+    assert!(!history_id_ok(&json!({"id": "²"}), "²"));
+    assert!(!history_id_ok(&json!({"id": true}), "True"));
+    assert!(!history_id_ok(&json!({"id": "0"}), "0"));
+    assert!(!history_id_ok(&json!({"id": ""}), ""));
+}

@@ -38,8 +38,9 @@ fn casefold(t: &str) -> String {
     fsv_core::pystr::casefold(t)
 }
 
+/// `str.isdigit()`. `१२` is 12; `²` is a digit `int()` then rejects.
 fn is_digits(t: &str) -> bool {
-    !t.is_empty() && t.chars().all(|c| c.is_ascii_digit())
+    fsv_core::pystr::is_digit(t)
 }
 
 fn py_int(v: &Value) -> Result<i64, Error> {
@@ -1315,6 +1316,26 @@ mod tests {
                 "{case}"
             );
         }
+    }
+
+    /// `str.isdigit()` then `int`: `१२` is display id 12 and never a name search.
+    #[test]
+    fn resolve_asset_id_accepts_unicode_decimals() {
+        let (_env, t) = links();
+        assert_eq!(
+            outcome(|| resolve_asset_id(5, "१२", &t.client, false, None)),
+            json!({"ok": 12, "text": ""})
+        );
+        assert!(t.requests().is_empty());
+        let err = outcome(|| resolve_asset_id(5, "²", &t.client, false, None));
+        assert_eq!(err["exit"], 2, "{err}");
+        assert!(
+            err["text"]
+                .as_str()
+                .unwrap_or("")
+                .contains("invalid literal for int()"),
+            "{err}"
+        );
     }
 
     /// `units.json` `assets.resolve_id`: change 5.

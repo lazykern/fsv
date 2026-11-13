@@ -133,8 +133,14 @@ pub fn configured_workspace_in(config: &Map<String, Json>) -> Json {
         .cloned()
         .unwrap_or(Json::Null);
     match &v {
-        Json::String(s) if !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()) => {
-            s.parse::<i64>().map(Json::from).unwrap_or(v)
+        Json::String(s)
+            if !s.is_empty()
+                && s.chars()
+                    .all(|c| fsv_core::pystr::decimal_value(c).is_some()) =>
+        {
+            fsv_core::pystr::parse_decimal(s)
+                .map(Json::from)
+                .unwrap_or(v)
         }
         _ => v,
     }
@@ -1506,6 +1512,10 @@ mod tests {
         );
         let set = crate::service::obj(json!({"forms": {"workspace_id": "9"}}));
         assert_eq!(configured_workspace_in(&set), json!(9));
+        let devanagari = crate::service::obj(json!({"forms": {"workspace_id": "१२"}}));
+        assert_eq!(configured_workspace_in(&devanagari), json!(12));
+        let superscript = crate::service::obj(json!({"forms": {"workspace_id": "²"}}));
+        assert_eq!(configured_workspace_in(&superscript), json!("²"));
         assert_eq!(configured_workspace_in(&Map::new()), Json::Null);
     }
 
