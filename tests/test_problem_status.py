@@ -232,3 +232,45 @@ def test_workflow_rewrite_to_the_prior_status_uses_activity_evidence(api, eviden
     assert len(s["writes"]) == 1 and s["row"]["status"] == n
     assert result["verified"] is evidence
     assert ("rewritten server-side to Open" in result.get("verified_with_note", "")) is evidence
+
+
+
+@pytest.mark.parametrize("case,verified", [
+    ("closure-workflow-stamped-first", True),   # workflow row 1 s older than the closure row
+    ("closure-same-second", True),
+    ("workflow-label-differs-from-readback", False),
+    ("workflow-minutes-older", False),
+    ("no-own-closure-entry", False),
+])
+def test_closed_rewritten_by_workflow_is_verified_with_note(api, case, verified):
+    """Real live shape: Closed (with planned dates filled) then a workflow
+    put the status back to the pre-write monitoring status."""
+    import datetime as dt
+    c, s, fields, n = api
+    fields[1]["choices"].append({"id": n + 4, "value": "Monitor"})
+    s["row"]["status"] = n + 4  # the record was already in the monitoring status
+    plan = flow.build_plan(c, 123, "Closed")
+    s["mismatch"] = True  # the workflow rewrote Closed back to Monitor
+    now = dt.datetime.now(dt.timezone.utc)
+    stamp = lambda d: (now + dt.timedelta(seconds=d)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    wf_at = {"closure-workflow-stamped-first": -1, "workflow-minutes-older": -60}.get(case, 0)
+    rewritten = "Open" if case == "workflow-label-differs-from-readback" else "Monitor"
+    own = ("set priority as  <b>Low</b>" if case == "no-own-closure-entry" else
+           "set status as  <b>Closed</b> , set planned end date as  <b>Thu, 2 Jan  4:30 PM</b> , "
+           "set planned start date as  <b>Thu, 2 Jan  3:30 PM</b>")
+    s["activities"] = [
+        {"actor": {"id": 0, "name": "Problem Workflow", "is_agent_deleted": False},
+         "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed</b>  event",
+         "sub_contents": [f"set status as <b>{rewritten}</b>", "<b>Workflow Ends</b>"], "created_at": stamp(wf_at)},
+        {"actor": {"id": 9000001, "name": "Acme Agent", "is_agent": True},
+         "content": own, "sub_contents": None, "created_at": stamp(0)}]
+    result = flow.send(plan, c, reviewed_hash=plan.hash)
+    assert len(s["writes"]) == 1 and result["verified"] is verified
+    assert result["readback"]["status"] == n + 4 and result["readback"]["planned_end_date"]
+    if verified:
+        assert "set to Closed by this write, then rewritten server-side to Monitor" in result["verified_with_note"]
+        assert "warning" not in result
+    else:
+        assert "verified_with_note" not in result and "do not resend" in result["warning"]
+    if case == "workflow-label-differs-from-readback":
+        assert "readback status is Monitor" in result["readback_conflict"]

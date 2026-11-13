@@ -23,6 +23,9 @@ class StatusPlan(WritePlan):
     label: str
     before_json: str
     warnings_json: str = "[]"
+    # Runtime status labels by ID (not hashed: the metadata is bound through
+    # context_hash). Used to check a workflow rewrite against the readback.
+    status_labels_json: str = "{}"
 
     def review(self) -> dict[str, Any]:
         out = {**super().review(), "to": self.label, "before": json.loads(self.before_json),
@@ -128,7 +131,9 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
     context = {"before": before, "fields": meta.form_fields, "rules": meta.rules, "closure": closure}
     return StatusPlan("problem_status", target, config.DOMAIN, "PUT", f"problems/{target}",
                       json.dumps({"status": status_id}), journal.snapshot_hash(context) or "", label,
-                      json.dumps(before, sort_keys=True), json.dumps(warnings))
+                      json.dumps(before, sort_keys=True), json.dumps(warnings),
+                      json.dumps({str(i): name for i, name in task_status.active_choices(meta.raw_fields, "problem")},
+                                 sort_keys=True))
 
 
 def status_readback(before: Any, after: Any, sent: Any) -> tuple[bool, str | None]:
@@ -172,15 +177,29 @@ def _set_status(text: str) -> str | None:
     return found.group(1).strip() if found else None
 
 
-def workflow_activity_note(client: Any, target: int, since: dt.datetime, requested: str | None = None) -> str | None:
-    """A note when the first activity page shows a workflow that set the
-    status after the write (for example back to the pre-write status).
+# A workflow triggered by the write can be stamped a moment before the
+# write's own activity row (a closure also fills planned dates in the same
+# save). Rows older than this before the write's entry are not its evidence.
+WORKFLOW_SKEW = dt.timedelta(seconds=5)
 
-    Native rows: the agent write is ``set status as <b>LABEL</b>``; the
+
+def workflow_activity_note(client: Any, target: int, since: dt.datetime, requested: str | None = None) -> str | None:
+    found = workflow_activity(client, target, since, requested)
+    return found[0] if found else None
+
+
+def workflow_activity(client: Any, target: int, since: dt.datetime,
+                      requested: str | None = None) -> tuple[str, str] | None:
+    """(note, label) when the first activity page shows a workflow that set
+    the status after the write (for example back to the pre-write status).
+
+    Native rows: the agent write is ``set status as <b>LABEL</b>`` (a closure
+    adds ``, set planned end/start date as ...`` to the same row); the
     workflow run is ``executed <a>NAME</a> workflow from ... event`` with the
     status it set in ``sub_contents``. With ``requested``, the activity must
     also show this write's own status entry, and the workflow entry must not
-    be older than it; otherwise the readback stays unverified.
+    be older than it (beyond ``WORKFLOW_SKEW``); otherwise the readback stays
+    unverified.
     """
     from fsv import service
     from fsv.resources import PROBLEMS
@@ -198,15 +217,15 @@ def workflow_activity_note(client: Any, target: int, since: dt.datetime, request
             return None
         written = max(mine)
     for at, text, sub, actor in rows:
-        if "workflow" not in text.casefold() or (written is not None and at < written):
+        if "workflow" not in text.casefold() or (written is not None and at < written - WORKFLOW_SKEW):
             continue
         label = _set_status(sub) or _set_status(text)
         if label is None:
             continue
         if requested is None:
-            return "status rewritten server-side after the write (activity shows a workflow set it)"
+            return "status rewritten server-side after the write (activity shows a workflow set it)", label
         return (f"status set to {requested} by this write, then rewritten server-side to {label} "
-                f"by a workflow ({actor or 'workflow'}) per the activity log")
+                f"by a workflow ({actor or 'workflow'}) per the activity log"), label
     return None
 
 
@@ -231,14 +250,26 @@ def send(plan: StatusPlan, client: Any, *, reviewed_hash: str | None) -> dict[st
         row = record(client, plan.target)
         verified, note = status_readback(json.loads(plan.before_json).get("status"), row.get("status"),
                                          plan.payload["status"])
+        conflict = None
         if not verified and row.get("status") is not None:
-            note = workflow_activity_note(client, plan.target, since, plan.label)
+            found = workflow_activity(client, plan.target, since, plan.label)
+            note = found[0] if found else None
             verified = note is not None
+            # The workflow's status must be the server's resulting status
+            # (compared by runtime label when the plan carries the labels).
+            labels = json.loads(plan.status_labels_json)
+            observed = labels.get(str(row.get("status")))
+            if found and observed is not None and observed.casefold() != found[1].casefold():
+                verified, note = False, None
+                conflict = (f"activity shows a workflow setting {found[1]}, but the readback status is {observed}; "
+                            "not verified")
         out = {"problem_id": plan.target, "verified": verified,
                "readback": {k: row[k] for k in ("status", "planned_start_date", "planned_end_date") if k in row},
                "unavailable": [k for k in ("planned_start_date", "planned_end_date") if k not in row]}
         if note:
             out["verified_with_note"] = note
+        if conflict:
+            out["readback_conflict"] = conflict
         return out
     since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=2)  # tolerate clock skew
     return execute(plan, client, reviewed_hash=reviewed_hash,
