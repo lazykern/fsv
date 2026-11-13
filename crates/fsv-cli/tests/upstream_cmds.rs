@@ -19000,13 +19000,13 @@ fn changes_time_create_dry_run() {
   "path": "/api/_/changes/60/time_entries",
   "payload": {
     "agent_id": 9,
-    "billable": true,
+    "billable": false,
     "executed_at": "2030-01-02T09:00:00+07:00",
     "note": "Acme deploy",
     "time_spent": "00:45",
     "timer_running": false
   },
-  "plan_hash": "e81b967f00f9ee82d7e5c8ec7f63a629737464d126513a44fafeefefe7c60752",
+  "plan_hash": "bf99aee3382ce2e1ad8d921e971a72863b42cdd4f9d216df0e9f37db9eaedfc7",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
 }
 "#
@@ -19030,6 +19030,7 @@ fn changes_time_create_send() {
             "2030-01-02T09:00:00+07:00",
             "--note",
             "Acme deploy",
+            "--billable",
             "--yes",
             "--expect-plan",
             "e81b967f00f9ee82d7e5c8ec7f63a629737464d126513a44fafeefefe7c60752",

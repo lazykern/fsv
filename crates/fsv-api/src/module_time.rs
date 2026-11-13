@@ -99,8 +99,10 @@ pub fn build_plan(
         let Some(when) = crate::tasks::date(Some(executed_at))? else {
             return Err(Error::value("executed-at needs an explicit offset"));
         };
+        // Billable only when the user asks: the captured web form pre-ticks the box, but the
+        // wire accepts false (captured ticket time creates and change time updates send it).
         let payload = json!({"executed_at": when, "timer_running": false,
-                             "billable": args.billable.unwrap_or(true),
+                             "billable": args.billable.unwrap_or(false),
                              "time_spent": duration(spent)?, "note": args.note.unwrap_or(""), "agent_id": user});
         ("POST", format!("{module}/{cid}/time_entries"), payload)
     } else {
@@ -551,6 +553,29 @@ pub(crate) mod tests {
         );
         assert_eq!(send(&q, &c, &journal, Some(&q.hash())).unwrap()["verified"], true);
         assert_eq!(state.lock().unwrap().entries[0]["time_spent"], "00:30");
+    }
+
+    /// `test_time_create_billable_only_when_chosen`: no flag is non-billable.
+    #[test]
+    fn time_create_billable_only_when_chosen() {
+        for module in ["changes", "problems"] {
+            let state = Arc::new(Mutex::new(world()));
+            let c = api(Arc::clone(&state));
+            for (billable, expected) in [(None, false), (Some(true), true), (Some(false), false)] {
+                let p = build_plan(
+                    &c,
+                    module,
+                    "123",
+                    &TimeArgs {
+                        billable,
+                        ..create()
+                    },
+                )
+                .unwrap();
+                assert_eq!(p.payload()["billable"], expected, "{module} {billable:?}");
+            }
+            assert!(state.lock().unwrap().writes.is_empty());
+        }
     }
 
     #[test]
