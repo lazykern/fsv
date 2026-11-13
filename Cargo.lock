@@ -872,6 +872,7 @@ dependencies = [
  "fsv-py",
  "indexmap",
  "jiff",
+ "libc",
  "mime_guess",
  "regex",
  "serde_json",

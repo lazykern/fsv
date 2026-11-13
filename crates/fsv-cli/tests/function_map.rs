@@ -16,7 +16,7 @@ use std::path::PathBuf;
 const OPEN_CEILING: usize = 0;
 /// Ratchet: `matched` (name match, not yet reviewed line by line) entries
 /// may only go down as they become `reviewed`.
-const UNREVIEWED_CEILING: usize = 293;
+const UNREVIEWED_CEILING: usize = 265;
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")

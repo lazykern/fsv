@@ -25,7 +25,7 @@ use fsv_forms::{
     Conflict, EvaluatedForm, Field, FormSpec, FormState, Kind, LookupResolver, LookupValue,
     MetadataFingerprint, RulesEngine, StateOptions, metadata_fingerprint, plan_hash,
 };
-use fsv_py::{py_repr_str, py_str, truthy};
+use fsv_py::{py_repr, py_repr_str, py_str, truthy};
 
 use crate::formmeta::{
     MetaStore, RULES_UNAVAILABLE_KEY, RULES_WORKSPACE_KEY, apply_answers, find_field, form_err,
@@ -597,16 +597,62 @@ pub fn lenient_answers(
     (out, notes)
 }
 
-/// `os.path.expanduser` for `~` and `~/...`.
+/// `os.path.expanduser` (POSIX). `~` and `~/...` use `$HOME`, or the current
+/// uid's directory when `HOME` is unset. `~user` and `~user/...` use that
+/// account's home. An unknown name is left unchanged.
 fn expanduser(s: &str) -> String {
-    let home = || std::env::var("HOME").unwrap_or_default();
-    if s == "~" {
-        home()
-    } else if let Some(rest) = s.strip_prefix("~/") {
-        format!("{}/{rest}", home().trim_end_matches('/'))
-    } else {
-        s.to_string()
+    if !s.starts_with('~') {
+        return s.to_string();
     }
+    let i = s[1..].find('/').map(|n| n + 1).unwrap_or(s.len());
+    let userhome = if i == 1 {
+        match std::env::var("HOME") {
+            Ok(h) => h,
+            Err(_) => match pw_dir_uid() {
+                Some(h) => h,
+                None => return s.to_string(),
+            },
+        }
+    } else {
+        match pw_dir_name(&s[1..i]) {
+            Some(h) => h,
+            None => return s.to_string(),
+        }
+    };
+    let joined = format!("{}{}", userhome.trim_end_matches('/'), &s[i..]);
+    if joined.is_empty() {
+        "/".to_string()
+    } else {
+        joined
+    }
+}
+
+fn pw_dir_name(name: &str) -> Option<String> {
+    let c = std::ffi::CString::new(name).ok()?;
+    // SAFETY: `name` is a NUL-terminated C string. The returned `passwd` is
+    // copied before this returns.
+    unsafe { pw_dir(libc::getpwnam(c.as_ptr())) }
+}
+
+fn pw_dir_uid() -> Option<String> {
+    // SAFETY: the returned `passwd` is copied before this returns.
+    unsafe { pw_dir(libc::getpwuid(libc::getuid())) }
+}
+
+/// Copy `pw_dir` from a `getpwnam` / `getpwuid` result. Null means no entry.
+///
+/// # Safety
+/// `pwd` is null or a valid `passwd` from `getpwnam` / `getpwuid`.
+unsafe fn pw_dir(pwd: *mut libc::passwd) -> Option<String> {
+    if pwd.is_null() {
+        return None;
+    }
+    let dir = unsafe { (*pwd).pw_dir };
+    if dir.is_null() {
+        return None;
+    }
+    let s = unsafe { std::ffi::CStr::from_ptr(dir) };
+    s.to_str().ok().map(str::to_string)
 }
 
 /// `file_answers`: file-field answers as paths (`~` expanded, relative to `base`).
@@ -1476,6 +1522,18 @@ impl From<SendFailure> for Error {
     }
 }
 
+/// Placeholders that still occur in `str(body)` after substitution.
+///
+/// Substitution replaces a string only when it equals a placeholder, so a
+/// placeholder that is only a substring of another field stays in the body.
+fn unreplaced_placeholders(body: &Json, ids: &Map<String, Json>) -> Vec<String> {
+    let rendered = py_str(body);
+    ids.keys()
+        .filter(|p| rendered.contains(p.as_str()))
+        .cloned()
+        .collect()
+}
+
 /// `_substitute`: placeholders -> attachment ids, recursively.
 pub fn substitute(value: &Json, ids: &Map<String, Json>) -> Json {
     match value {
@@ -1644,6 +1702,19 @@ pub fn execute_detailed(
         }
     }
     let body = substitute(&Json::Object(payload.clone()), &ids);
+    // `p in str(body)`: a placeholder left inside a longer field still counts.
+    // This is outside the place-request try, so a hit does not mark the journal failed.
+    let missing = unreplaced_placeholders(&body, &ids);
+    if !missing.is_empty() {
+        let shown = py_repr(&Json::Array(
+            missing.into_iter().map(Json::String).collect(),
+        ));
+        return Err(failed(
+            "place-request",
+            &uploaded,
+            Error::other(format!("unreplaced upload placeholders: {shown}")),
+        ));
+    }
     let result = match place_request(c, &plan.meta.display_id(), &body) {
         Ok(r) => r,
         Err(e) => {
@@ -2468,6 +2539,45 @@ mod tests {
         assert_eq!(got["deck"][0], want("file_answers_abs"));
     }
 
+    /// `os.path.expanduser`: `~user` uses the account home; an unknown name stays.
+    #[test]
+    fn file_answers_expands_tilde_user() {
+        let home = std::env::var("HOME").unwrap_or_default();
+        let trimmed = home.trim_end_matches('/');
+        let expect_home = if trimmed.is_empty() {
+            "/".to_string()
+        } else {
+            trimmed.to_string()
+        };
+        assert_eq!(expanduser("~"), expect_home);
+        assert_eq!(expanduser("~/b.pptx"), format!("{expect_home}/b.pptx"));
+        assert_eq!(expanduser("~nosuchuser-fsv-g6c"), "~nosuchuser-fsv-g6c");
+        assert_eq!(
+            expanduser("~nosuchuser-fsv-g6c/c.pptx"),
+            "~nosuchuser-fsv-g6c/c.pptx"
+        );
+
+        let user = std::env::var("USER").expect("USER");
+        let named = expanduser(&format!("~{user}"));
+        assert!(named.starts_with('/'), "{named}");
+        assert_ne!(named, format!("~{user}"));
+        assert_eq!(
+            expanduser(&format!("~{user}/b.pptx")),
+            format!("{named}/b.pptx")
+        );
+
+        let spec = meta().spec();
+        let got = file_answers(
+            &spec,
+            &answers(json!({
+                "deck": [format!("~{user}/b.pptx"), "~nosuchuser-fsv-g6c/c.pptx"]
+            })),
+            Some("/base"),
+        );
+        assert_eq!(got["deck"][0], json!(format!("{named}/b.pptx")));
+        assert_eq!(got["deck"][1], json!("/base/~nosuchuser-fsv-g6c/c.pptx"));
+    }
+
     #[test]
     fn diagnostics_and_lookup_errors() {
         let m = meta();
@@ -2759,6 +2869,52 @@ mod tests {
             panic!("a placed plan is refused");
         };
         assert_eq!(e.to_string(), want_err("dup_done"));
+    }
+
+    /// A placeholder that is only a substring of another field is not
+    /// substituted (`value in ids` is exact) and `p in str(body)` still fails
+    /// the send, without a failed journal mark and without place-request.
+    #[test]
+    fn execute_rejects_placeholder_substring() {
+        let ids = obj(json!({"<upload 1: a.txt>": 9}));
+        let body = substitute(
+            &json!({"note": "see <upload 1: a.txt> please", "file": "<upload 1: a.txt>"}),
+            &ids,
+        );
+        assert_eq!(body["file"], json!(9));
+        assert_eq!(body["note"], json!("see <upload 1: a.txt> please"));
+        assert_eq!(
+            unreplaced_placeholders(&body, &ids),
+            vec!["<upload 1: a.txt>".to_string()]
+        );
+
+        let mut p = full_plan();
+        let ph = p.uploads[0].placeholder.clone();
+        let mut payload = p.payload.clone().unwrap();
+        payload.insert("subject".into(), json!(format!("see {ph} please")));
+        p.payload = Some(payload);
+        p.hash = plan_hash(&p.hashed(), Some(&p.plan_files())).unwrap();
+        let j = MemJournal::default();
+        let a = FakeApi::new().ok(PLACE, json!({"service_request": {"id": 1}}));
+        let Err(Executed::Failed(f)) =
+            execute_detailed(&p, &a, &j, &|_: &dyn Api, _: &str| Ok(7), false)
+        else {
+            panic!("a leftover placeholder must fail the send");
+        };
+        let shown = py_repr(&json!([ph]));
+        assert_eq!(f.step, "place-request");
+        assert_eq!(
+            f.cause.to_string(),
+            format!("unreplaced upload placeholders: {shown}")
+        );
+        assert_eq!(
+            f.to_string(),
+            format!(
+                "place-request failed: unreplaced upload placeholders: {shown}. Uploaded attachment ids: 7 (deck.pptx), 7 (notes.txt)"
+            )
+        );
+        assert_eq!(j.events(), vec!["started".to_string()]);
+        assert!(a.calls.lock().unwrap().is_empty());
     }
 
     #[test]

@@ -1195,9 +1195,10 @@
    "name": "refusal",
    "class": "LegacyChainsError",
    "line": 44,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approval_model.rs",
-   "rust_item": "refusal"
+   "rust_item": "refusal",
+   "note": "Same refusal sentence: action, describe(status), and the not-supported legacy label."
   },
   {
    "module": "change_approvals.py",
@@ -1231,53 +1232,59 @@
    "name": "ApprovalPlan",
    "line": 97,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "ApprovalPlan"
+   "rust_item": "ApprovalPlan",
+   "note": "Same fields, including the everyone default and the recipient-context JSON string."
   },
   {
    "module": "change_approvals.py",
    "name": "path",
    "class": "ApprovalPlan",
    "line": 107,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "path"
+   "rust_item": "path",
+   "note": "Same changes/{id}/approval-groups path."
   },
   {
    "module": "change_approvals.py",
    "name": "payload",
    "class": "ApprovalPlan",
    "line": 111,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "payload"
+   "rust_item": "payload",
+   "note": "Same escaped message paragraph, approval_type from the rule table, and notified_to ids."
   },
   {
    "module": "change_approvals.py",
    "name": "hash",
    "class": "ApprovalPlan",
    "line": 118,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "hash"
+   "rust_item": "hash",
+   "note": "Same plan hash over tenant, path, and payload, with recipient sources only when the context JSON is non-empty."
   },
   {
    "module": "change_approvals.py",
    "name": "review",
    "class": "ApprovalPlan",
    "line": 124,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "review"
+   "rust_item": "review",
+   "note": "Same review keys, warning, verification, and empty-context list."
   },
   {
    "module": "change_approvals.py",
    "name": "build_plan",
    "line": 134,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "Same refusals for the display id, name, message, unique agent ids, and everyone/anyone/majority/first-responder."
   },
   {
    "module": "change_approvals.py",
@@ -1299,41 +1306,46 @@
    "module": "change_approvals.py",
    "name": "_inventory",
    "line": 160,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "inventory"
+   "rust_item": "inventory",
+   "note": "Same unreadable, partial, duplicate-id, and total-mismatch failures; bool totals are rejected and digit strings are accepted."
   },
   {
    "module": "change_approvals.py",
    "name": "get_change_approval_groups",
    "line": 202,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "get_change_approval_groups"
+   "rust_item": "get_change_approval_groups",
+   "note": "Same page walk, legacy 400/404 groups-unavailable text, and chain, group, member, and total checks; type-is-int rejects bools and numeric strings."
   },
   {
    "module": "change_approvals.py",
    "name": "_verify_new",
    "line": 305,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "verify_new"
+   "rust_item": "verify_new",
+   "note": "Same member-conflict error, status and type notes, and set equality of members against the requested approver ids."
   },
   {
    "module": "change_approvals.py",
    "name": "_require_chains",
    "line": 336,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approval_model.rs",
-   "rust_item": "require_chains"
+   "rust_item": "require_chains",
+   "note": "Same LegacyApprovalsError text, returned as the port's exit-2 refusal."
   },
   {
    "module": "change_approvals.py",
    "name": "send",
    "line": 343,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "Same rebuild check, journal guards, one POST, new-id readback, and the single fresh group's name verification."
   },
   {
    "module": "change_approvals.py",
@@ -1832,105 +1844,118 @@
    "module": "change_flow.py",
    "name": "_acknowledge",
    "line": 195,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "acknowledge"
+   "rust_item": "acknowledge",
+   "note": "Same ack-all clear and the ignored-ack warning with the Python repr of the text."
   },
   {
    "module": "change_flow.py",
    "name": "_resolve_planning",
    "line": 208,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "resolve_planning"
+   "rust_item": "resolve_planning",
+   "note": "Same planning rows; a missing field contributes the resolver message, and a falsy label falls back to the draft label."
   },
   {
    "module": "change_flow.py",
    "name": "_file_errors",
    "line": 225,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "file_errors"
+   "rust_item": "file_errors",
+   "note": "Same file not found: path line for a path that is not a file."
   },
   {
    "module": "change_flow.py",
    "name": "real_conflicts",
    "line": 229,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "real_conflicts"
+   "rust_item": "real_conflicts",
+   "note": "Same live-decision filter, opposite show/mandate/disable set, and winner."
   },
   {
    "module": "change_flow.py",
    "name": "only_option",
    "line": 250,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "only_option"
+   "rust_item": "only_option",
+   "note": "Same single visible, non-empty label and value, returned with its restriction."
   },
   {
    "module": "change_flow.py",
    "name": "_rule_of",
    "line": 260,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "rule_of"
+   "rust_item": "rule_of",
+   "note": "Same rule name, or the rule id rendered with str when the name is empty."
   },
   {
    "module": "change_flow.py",
    "name": "_auto_suffix",
    "line": 264,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "auto_suffix"
+   "rust_item": "auto_suffix",
+   "note": "Same (auto), only-option, and choices-limited suffixes."
   },
   {
    "module": "change_flow.py",
    "name": "_unsent_suffix",
    "line": 278,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "unsent_suffix"
+   "rust_item": "unsent_suffix",
+   "note": "Same empty suffix for a sent field and the not-sent note otherwise."
   },
   {
    "module": "change_flow.py",
    "name": "_notes",
    "line": 282,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "notes"
+   "rust_item": "notes",
+   "note": "DIVERGENCE: a name missing from the spec is shown as itself instead of KeyError; the populated, restricted, disabled, overridden, and conflict lines match."
   },
   {
    "module": "change_flow.py",
    "name": "_messages",
    "line": 304,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "messages"
+   "rust_item": "messages",
+   "note": "Same text, blocking, acknowledged, and rule name or rule id."
   },
   {
    "module": "change_flow.py",
    "name": "_dropped",
    "line": 310,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "dropped"
+   "rust_item": "dropped",
+   "note": "Same hidden-by-rule and hidden lines, with the label and the display value."
   },
   {
    "module": "change_flow.py",
    "name": "_hint_lines",
    "line": 318,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "hint_lines"
+   "rust_item": "hint_lines",
+   "note": "Same matching hints; a ValueError from the hints file becomes an empty list plus that message, and other errors propagate."
   },
   {
    "module": "change_flow.py",
    "name": "_attachment_rows",
    "line": 326,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "attachment_rows"
+   "rust_item": "attachment_rows",
+   "note": "DIVERGENCE: an existing file that cannot be read is omitted instead of raising OSError; present files use the same target, name, size, sha256, and path."
   },
   {
    "module": "change_flow.py",
@@ -1945,9 +1970,10 @@
    "module": "change_flow.py",
    "name": "build_create_plan",
    "line": 344,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "build_create_plan"
+   "rust_item": "build_create_plan",
+   "note": "Same create review, risks, problems, and hash for devices=(); device ids are applied by with_devices, which sets device_ids and recomputes that hash."
   },
   {
    "module": "change_flow.py",
@@ -1971,9 +1997,10 @@
    "module": "change_flow.py",
    "name": "build_update_plan",
    "line": 484,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/change.rs",
-   "rust_item": "build_update_plan"
+   "rust_item": "build_update_plan",
+   "note": "Same update body, review, and hash; a lifecycle callable is build_update_plan_with_lifecycle, and a failed read warns with the Python exception class name."
   },
   {
    "module": "change_flow.py",
@@ -5968,9 +5995,10 @@
    "module": "create.py",
    "name": "download_planning_attachments",
    "line": 1030,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/create.rs",
-   "rust_item": "download_planning_attachments"
+   "rust_item": "download_planning_attachments",
+   "note": "DIVERGENCE: a non-list attachments value is skipped instead of raising TypeError; names, description markdown, deduped stems, and non-200 skips match."
   },
   {
    "module": "create.py",

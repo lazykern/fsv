@@ -192,6 +192,12 @@ those stay identical.
 - Change clone assets: a display id that is neither text nor a number gets
   the invalid-literal message. Python raises `TypeError`. A change-approvals
   body that is neither a list nor an object reads as no approvals.
+- Change plan notes: a field name missing from the spec is shown as itself.
+  Python's `change_flow._notes` raises `KeyError`. An attachment file that
+  exists but cannot be read is left out of the plan rows instead of raising
+  `OSError`.
+- Planning attachment download skips an `attachments` value that is not a
+  list. Python raises `TypeError`.
 
 ## fsv-app
 
