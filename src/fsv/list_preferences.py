@@ -14,6 +14,33 @@ from fsv.views import find_view, load_views
 @dataclass(frozen=True)
 class ListPlan(WritePlan):
     inputs_json: str
+    # Export only, display-only (the request itself names no recipient).
+    recipient_json: str = "{}"
+
+    def review(self) -> dict[str, Any]:
+        out = super().review()
+        recipient = json.loads(self.recipient_json)
+        if recipient:
+            out["recipient"] = recipient
+        return out
+
+
+_RECIPIENT_NOTE = ("the export request carries no recipient field; the server delivers the export to the requesting "
+                   "agent's mailbox, which fsv cannot read back")
+
+
+def export_recipient(client: Any) -> dict[str, str]:
+    """The signed-in agent's mailbox, so the reviewer can confirm the export
+    goes only to themselves. Read-only; unavailable is stated, not guessed."""
+    try:
+        agent = client.me()
+    except Exception:
+        agent = None
+    email = agent.get("email") if isinstance(agent, dict) else None
+    if isinstance(email, str) and "@" in email and email.strip() == email:
+        return {"mailbox": email, "source": "signed-in agent profile (GET /api/v2/agents/me)", "note": _RECIPIENT_NOTE}
+    return {"mailbox": "unavailable", "source": "signed-in agent profile could not be read",
+            "note": _RECIPIENT_NOTE + "; do not send unless you know which mailbox this session belongs to"}
 
 
 def headers(client: Any, module: str) -> list[dict[str, Any]]:
@@ -95,7 +122,8 @@ def export_plan(client: Any, module: str, view: str, fields: list[str]) -> ListP
     context = journal.snapshot_hash({"headers": rows, "view": row, "selection": selected.to_json()}) or ""
     return ListPlan("list_export", 0, config.DOMAIN, "POST", f"{module}/export",
                     json.dumps(payload, sort_keys=True), context,
-                    json.dumps({"module": module, "view": selected.id, "fields": fields}))
+                    json.dumps({"module": module, "view": selected.id, "fields": fields}),
+                    json.dumps(export_recipient(client), sort_keys=True))
 
 
 def send(plan: ListPlan, client: Any, *, reviewed_hash: str | None) -> dict[str, Any]:

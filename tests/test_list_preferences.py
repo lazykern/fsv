@@ -4,6 +4,8 @@ import json
 
 import httpx
 import pytest
+
+from fsv.errors import APIError
 from typer.testing import CliRunner
 
 from fsv import cli, config, journal, list_preferences as flow
@@ -131,3 +133,22 @@ def test_cli_hash_gate_and_json_options(wire, monkeypatch):
     sent = runner.invoke(cli.app, args + ["--yes", "--expect-plan", digest])
     assert sent.exit_code == 0, sent.output
     assert json.loads(sent.output)["verified"]
+
+
+
+@pytest.mark.parametrize("me,mailbox", [({"id": 9000001, "email": "agent@example.com"}, "agent@example.com"),
+                                        (APIError(403, "hidden"), "unavailable"), ({"id": 9000001}, "unavailable")])
+def test_export_review_shows_the_recipient_mailbox(wire, monkeypatch, me, mailbox):
+    def fake_me():
+        if isinstance(me, Exception):
+            raise me
+        return me
+    monkeypatch.setattr(wire["client"], "me", fake_me)
+    p = plan(wire, "export")
+    review = p.review()
+    assert review["recipient"]["mailbox"] == mailbox
+    assert "no recipient field" in review["recipient"]["note"]
+    # Display only: the reviewed request and hash do not change with the mailbox.
+    monkeypatch.setattr(wire["client"], "me", lambda: {"email": "other@example.com"})
+    assert plan(wire, "export").hash == p.hash
+    assert "recipient" not in plan(wire, "columns").review() and not wire["writes"]
