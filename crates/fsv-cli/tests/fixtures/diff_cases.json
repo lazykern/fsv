@@ -12270,5 +12270,67 @@
    "--query-hash",
    "[{\"condition\":\"x\",\"operator\":\"is_in\",\"value\":{\"a\":\"é\"}}]"
   ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "due_by>=2030-01-01",
+   "--where",
+   "due_by<=2030-02-01",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Due By>=2030-01-01",
+   "--where",
+   "Due By<=2030-02-01",
+   "--or"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "due_by>=2030-01-01",
+   "--where",
+   "due_by<=2030-02-01",
+   "--where",
+   "status=Open",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "created_at>=2030-01-01",
+   "--where",
+   "created_at<=2030-02-01",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "changes",
+   "ls",
+   "--where",
+   "created_at>=2030-01-01",
+   "--where",
+   "created_at<=2030-02-01",
+   "--json"
+  ]
  }
 ]

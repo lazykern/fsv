@@ -1318,3 +1318,80 @@ fn query_hash_bad_shapes_refuse_cleanly() {
         assert!(r.calls().is_empty(), "{raw}: {:?}", r.calls());
     }
 }
+
+const DUE_BY_NOTE: &str = "Note: Pending tickets have no Due By on this tenant type (the field is hidden and empty while Pending), so a Due By filter never returns them; list them with --where Status=Pending.\n";
+
+/// Python `38ee07d` (`test_due_by_filter_without_status_prints_one_stderr_note`).
+#[test]
+fn due_by_filter_without_status_prints_one_stderr_note() {
+    let r = run_fixture(
+        "where",
+        &[
+            "tickets",
+            "ls",
+            "--where",
+            "due_by>=2030-01-01",
+            "--where",
+            "due_by<=2030-02-01",
+            "--json",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.err, DUE_BY_NOTE);
+    assert!(!r.out.contains("Pending tickets have no Due By"));
+    let r = run_fixture(
+        "where",
+        &[
+            "tickets",
+            "ls",
+            "--where",
+            "Due By>=2030-01-01",
+            "--where",
+            "Due By<=2030-02-01",
+            "--or",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.err, format!("{DUE_BY_NOTE}2 rows\n"));
+}
+
+/// Python `38ee07d` (`test_no_note_with_status_filter_other_fields_or_other_modules`).
+#[test]
+fn no_due_by_note_with_status_filter_other_fields_or_other_modules() {
+    for args in [
+        &[
+            "tickets",
+            "ls",
+            "--where",
+            "due_by>=2030-01-01",
+            "--where",
+            "due_by<=2030-02-01",
+            "--where",
+            "status=Open",
+        ][..],
+        &[
+            "tickets",
+            "ls",
+            "--where",
+            "created_at>=2030-01-01",
+            "--where",
+            "created_at<=2030-02-01",
+        ],
+        &[
+            "changes",
+            "ls",
+            "--where",
+            "created_at>=2030-01-01",
+            "--where",
+            "created_at<=2030-02-01",
+        ],
+    ] {
+        let mut argv = args.to_vec();
+        argv.push("--json");
+        let r = run_fixture("where", &argv, None);
+        assert_eq!(r.code, 0, "{args:?}: {}", r.err);
+        assert!(!r.err.contains("Pending tickets have no Due By"), "{args:?}");
+    }
+}
