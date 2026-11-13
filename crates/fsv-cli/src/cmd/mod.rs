@@ -145,6 +145,9 @@ fn resource_dispatch(res: &'static Resource, sub: &str, m: &ArgMatches) -> CmdRe
         }
         "time write" if res.name == "changes" => reviewed::changes_time_write(parse(m)?),
         "time write" if res.name == "problems" => reviewed::problems_time_write(parse(m)?),
+        // batch misc: 2092e44 time update
+        "time update" if res.name == "changes" => reviewed::changes_time_update(parse(m)?),
+        "time update" if res.name == "problems" => reviewed::problems_time_update(parse(m)?),
         "time list" => reviewed::time_list(parse(m)?),
         "time write" => reviewed::time_write(parse(m)?),
         "task-write" => reviewed::problem_task_write(parse(m)?),

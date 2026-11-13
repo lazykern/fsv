@@ -7,7 +7,7 @@
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::sync::{LazyLock, RwLock};
+use std::sync::RwLock;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde_json::{Map, Value};
@@ -61,24 +61,40 @@ struct State {
     domain: String,
 }
 
-static STATE: LazyLock<RwLock<State>> = LazyLock::new(|| {
+static STATE: RwLock<Option<State>> = RwLock::new(None);
+
+fn from_env() -> State {
     let paths = Paths::from_env();
     let domain = configured_domain_at(&paths.config_file);
-    RwLock::new(State { paths, domain })
-});
+    State { paths, domain }
+}
 
 fn read_state<T>(f: impl FnOnce(&State) -> T) -> T {
-    match STATE.read() {
-        Ok(g) => f(&g),
-        Err(p) => f(&p.into_inner()),
+    {
+        let g = STATE.read().unwrap_or_else(|p| p.into_inner());
+        if let Some(state) = g.as_ref() {
+            return f(state);
+        }
     }
+    let mut g = STATE.write().unwrap_or_else(|p| p.into_inner());
+    f(g.get_or_insert_with(from_env))
 }
 
 fn write_state(f: impl FnOnce(&mut State)) {
-    match STATE.write() {
-        Ok(mut g) => f(&mut g),
-        Err(p) => f(&mut p.into_inner()),
-    }
+    let mut g = STATE.write().unwrap_or_else(|p| p.into_inner());
+    f(g.get_or_insert_with(from_env))
+}
+
+/// Tests: use `paths` and `domain` for the process-wide config without
+/// reading the environment or any config file (the user's real config is
+/// never touched, even on first use).
+#[doc(hidden)]
+pub fn use_for_tests(paths: Paths, domain: &str) {
+    let mut g = STATE.write().unwrap_or_else(|p| p.into_inner());
+    *g = Some(State {
+        paths,
+        domain: domain.to_string(),
+    });
 }
 
 /// Current paths.
@@ -143,12 +159,8 @@ fn urls(domain: &str) -> (String, String, String) {
 
 /// Re-read paths from env and the domain from the config file.
 pub fn reload() {
-    let paths = Paths::from_env();
-    let domain = configured_domain_at(&paths.config_file);
-    write_state(|s| {
-        s.paths = paths;
-        s.domain = domain;
-    });
+    let fresh = from_env();
+    write_state(|s| *s = fresh);
 }
 
 /// Human-friendly path (`~/` for home) for messages.

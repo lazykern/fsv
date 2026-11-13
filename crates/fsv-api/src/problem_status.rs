@@ -14,9 +14,7 @@ use fsv_core::resource::{PROBLEMS, parse_id};
 use fsv_forms::LookupResolver;
 use fsv_py::{py_str, truthy};
 
-use crate::formmeta::{
-    MetaStore, existing_from_record, load_meta, rules_gate, rules_unavailable_warning,
-};
+use crate::formmeta::{MetaStore, existing_from_record, rules_gate, rules_unavailable_warning};
 use crate::planning_text::{self, PROBLEM_SECTIONS};
 use crate::problem_workflows::{inventory, record};
 use crate::readback::submitted_value_matches;
@@ -204,7 +202,9 @@ pub fn build_plan(
             "problem {target} is deleted (in trash); restore it before changing status"
         )));
     }
-    let meta = load_meta(c, store, "problem", "edit", true, &json!(target))?;
+    let rec_ws = crate::formmeta::record_workspace_in(&before);
+    let meta =
+        crate::formmeta::load_meta_in(c, store, "problem", "edit", true, &json!(target), &rec_ws)?;
     let blockers = rules_gate(&meta.rules, &meta.spec(), &["status"]);
     if !blockers.is_empty() {
         return Err(refused(format!(
@@ -214,6 +214,7 @@ pub fn build_plan(
     }
     let mut warnings = rules_unavailable_warning(&meta.rules)
         .into_iter()
+        .chain(meta.form_notes())
         .collect::<Vec<_>>();
     let raw_fields = meta.raw_fields();
     let (status_id, label) =

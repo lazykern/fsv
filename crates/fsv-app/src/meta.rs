@@ -39,13 +39,25 @@ impl MetaSource for LiveMeta {
         fresh: bool,
         module_id: &Value,
     ) -> Result<FormMeta> {
-        formmeta::load_meta(
+        self.load_meta_in(module, mode, fresh, module_id, &Value::Null)
+    }
+
+    fn load_meta_in(
+        &self,
+        module: &str,
+        mode: &str,
+        fresh: bool,
+        module_id: &Value,
+        record_workspace: &Value,
+    ) -> Result<FormMeta> {
+        formmeta::load_meta_in(
             self.api.as_ref(),
             self.store.as_ref(),
             module,
             mode,
             fresh,
             module_id,
+            record_workspace,
         )
     }
 }

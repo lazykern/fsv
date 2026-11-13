@@ -982,9 +982,13 @@ pub fn change_session(deps: &FormDeps, o: ChangeForm) -> Result<FormSession> {
                     .unwrap_or(Json::Null),
                 FormMode::New => Json::Null,
             };
+            let rec_ws = match o.mode {
+                FormMode::Edit => fsv_api::formmeta::record_workspace_of(&record),
+                FormMode::New => Json::Null,
+            };
             Arc::new(
                 deps.meta
-                    .load_meta("change", o.mode.as_str(), false, &mid)?,
+                    .load_meta_in("change", o.mode.as_str(), false, &mid, &rec_ws)?,
             )
         }
     };

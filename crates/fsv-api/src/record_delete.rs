@@ -653,7 +653,10 @@ mod tests {
         assert_eq!(r["verified"], json!(false));
         assert_eq!(r["fields"], json!({"deleted": "mismatched"}));
         assert_eq!(r["readback_attempts"], json!(4));
-        assert!(msg(send(&p, &c, &j, Some(&p.hash()), false)).contains("outcome unknown"));
+        let replay = msg(send(&p, &c, &j, Some(&p.hash()), false));
+        assert!(
+            replay.contains("already sent at") && replay.contains("answered; nothing was sent now")
+        );
         assert_eq!(s.lock().unwrap().writes.len(), 1);
     }
 
@@ -804,6 +807,30 @@ mod tests {
             ]
         );
         assert!(w.problems.contains_key(&23));
+    }
+
+    #[test]
+    fn identical_delete_after_restore_is_refused_as_already_sent() {
+        let s = world();
+        let c = api(Arc::clone(&s));
+        let j = MemJournal::default();
+        let restored = s.lock().unwrap().problem.clone();
+        let first = problem_plan(&c, &j, "12", "delete").unwrap();
+        let r = quiet(|| send(&first, &c, &j, Some(&first.hash()), false)).unwrap();
+        assert_eq!(r["verified"], json!(true));
+        s.lock().unwrap().problem = restored;
+        let again = problem_plan(&c, &j, "12", "delete").unwrap();
+        assert_eq!(again.hash(), first.hash());
+        let writes = s.lock().unwrap().writes.len();
+        let e = msg(send(&again, &c, &j, Some(&again.hash()), false));
+        assert!(
+            regex::Regex::new("already sent at .* no override")
+                .unwrap()
+                .is_match(&e),
+            "{e}"
+        );
+        assert!(!e.contains("outcome unknown"));
+        assert_eq!(s.lock().unwrap().writes.len(), writes);
     }
 
     #[test]

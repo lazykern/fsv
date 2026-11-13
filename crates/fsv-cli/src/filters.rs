@@ -14,13 +14,7 @@ use fsv_py::{py_repr_str, py_str};
 use crate::lookup;
 use crate::util::usage;
 
-const PSEUDO_DATES: &[&str] = &[
-    "created_at",
-    "updated_at",
-    "due_by",
-    "planned_start_date",
-    "planned_end_date",
-];
+const PSEUDO_DATES: &[&str] = fsv_api::DATE_FIELDS;
 
 const DATE_ALIASES: &[(&str, &str)] = &[
     ("created", "created_at"),
@@ -34,6 +28,17 @@ const DATE_ALIASES: &[(&str, &str)] = &[
     ("due", "due_by"),
     ("due by", "due_by"),
     ("due date", "due_by"),
+    ("first response due", "fr_due_by"),
+    ("first response due by", "fr_due_by"),
+    ("fr due by", "fr_due_by"),
+    ("closed", "closed_at"),
+    ("closed at", "closed_at"),
+    ("closed date", "closed_at"),
+    ("closed on", "closed_at"),
+    ("resolved", "resolved_at"),
+    ("resolved at", "resolved_at"),
+    ("resolved date", "resolved_at"),
+    ("resolved on", "resolved_at"),
 ];
 
 const FIELD_ALIASES: &[(&str, &str)] = &[
@@ -193,6 +198,11 @@ pub fn date_condition(
     let trimmed = pystr::strip(raw);
     let token = lookup_in(PERIODS, &pystr::casefold(trimmed))
         .or_else(|| is_period_token(trimmed).then_some(trimmed));
+    if token.is_some() && fsv_api::TICKET_ONLY_DATES.contains(&field_name) {
+        return Err(usage(&format!(
+            "no filter-panel period exists for {field_name}; use on:/last:/next: PERIOD or a YYYY-MM-DD range (nothing was sent)"
+        )));
+    }
     if let Some(token) = token {
         if !matches!(op, "=" | ">=") {
             return Err(usage(
@@ -263,6 +273,17 @@ pub fn resolve_where(
     explain: &mut Vec<Explain>,
 ) -> Result<Value> {
     let (field_text, op, raw) = parse_where(expr)?;
+    if matches!(
+        pystr::casefold(pystr::strip(&field_text)).as_str(),
+        "approval_status" | "approval status"
+    ) {
+        // Not a form field: the change list filters it by raw number (the
+        // shared resolver holds the proven wire); the ticket list ignores it.
+        let shared = format!("approval_status{op}{raw}");
+        return fsv_api::resolve_where(None, res.name, sch, &shared, explain)
+            .map(|(item, ())| item)
+            .map_err(|e| usage(&e.0));
+    }
     let date_name = if PSEUDO_DATES.contains(&field_text.as_str()) {
         Some(field_text.as_str())
     } else {
@@ -514,10 +535,15 @@ pub fn resolve_where(
     ))
 }
 
-/// Port of fsv.cli._load_query_hash: always percent-decoded once.
+/// Port of fsv.cli._load_query_hash: always percent-decoded once; shapes
+/// fsv cannot pass on faithfully are refused (`query.validate_raw_query`).
 pub fn load_query_hash(raw: &str) -> Result<Vec<Value>> {
     match serde_json::from_str::<Value>(&pystr::unquote(raw)) {
-        Ok(Value::Array(items)) => Ok(items),
+        Ok(Value::Array(items)) => {
+            fsv_api::validate_raw_query(&Value::Array(items.clone()), "--query-hash")
+                .map_err(|e| usage(&e.0))?;
+            Ok(items)
+        }
         Ok(_) => Err(usage("--query-hash must be a JSON array")),
         Err(e) => Err(usage(&format!("invalid --query-hash JSON: {e}"))),
     }
@@ -626,8 +652,9 @@ mod tests {
     #[test]
     fn load_query_hash_always_unquotes() {
         assert_eq!(
-            load_query_hash(r#"[{"v":"50%25 off"}]"#).unwrap(),
-            vec![json!({"v": "50% off"})]
+            load_query_hash(r#"[{"condition":"v","operator":"is","value":"50%25 off"}]"#)
+                .unwrap(),
+            vec![json!({"condition": "v", "operator": "is", "value": "50% off"})]
         );
     }
 

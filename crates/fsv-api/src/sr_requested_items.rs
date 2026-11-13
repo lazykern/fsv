@@ -454,6 +454,7 @@ mod tests {
         kind_fields: Option<Value>,
         rotate: bool,
         signed: usize,
+        shard: Option<String>,
     }
 
     fn world() -> World {
@@ -494,7 +495,7 @@ mod tests {
                     }
                     return Ok(json!({"business_rules": []}));
                 }
-                if path == "catalog/service-items/71" && !s.rotate {
+                if path == "catalog/service-items/71" && !s.rotate && s.shard.is_none() {
                     return Ok(json!({"service_item": item()}));
                 }
                 if path == "catalog/service-items/71" {
@@ -504,6 +505,12 @@ mod tests {
                         "https://cdn.example.com/icons/71.png?X-Amz-Date=2026{:04}&X-Amz-Signature=sig{}&X-Amz-Expires=300",
                         s.signed, s.signed
                     ));
+                    if let Some(shard) = &s.shard {
+                        signed["icon_url"] = json!(format!(
+                            "https://assets{}.freshservice.com/assets/cdn-ignored/{shard}",
+                            s.signed % 9 + 1
+                        ));
+                    }
                     return Ok(json!({ "service_item": signed }));
                 }
                 if path == "tickets/123/requested_items" {
@@ -702,6 +709,30 @@ mod tests {
         let renamed =
             build_plan(&c, &MemStore::default(), "SR-123", &args("edit", &answers)).unwrap();
         assert_ne!(renamed.hash(), first.hash());
+    }
+
+    /// `test_plan_hash_stable_across_rotating_cdn_shard_hosts`.
+    #[test]
+    fn plan_hash_stable_across_rotating_cdn_shard_hosts() {
+        for action in ["edit", "add"] {
+            let state = Arc::new(Mutex::new(World {
+                shard: Some("images/icons/acme.png".into()),
+                ..world()
+            }));
+            let c = api(Arc::clone(&state));
+            let answers = if action == "edit" {
+                edit_answers()
+            } else {
+                add_answers()
+            };
+            let plan = || build_plan(&c, &MemStore::default(), "SR-123", &args(action, &answers));
+            let first = plan().unwrap();
+            let second = plan().unwrap();
+            assert!(state.lock().unwrap().signed >= 2, "{action}");
+            assert_eq!(first.hash(), second.hash(), "{action}");
+            state.lock().unwrap().shard = Some("images/icons/globex.png".into());
+            assert_ne!(plan().unwrap().hash(), first.hash(), "{action}");
+        }
     }
 
     #[test]

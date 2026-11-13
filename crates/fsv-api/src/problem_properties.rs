@@ -10,9 +10,7 @@ use fsv_core::resource::{PROBLEMS, parse_id};
 use fsv_forms::pydt::datetime_fromisoformat;
 use fsv_py::Dumps;
 
-use crate::formmeta::{
-    MetaStore, existing_from_record, load_meta, rules_gate, rules_unavailable_warning,
-};
+use crate::formmeta::{MetaStore, existing_from_record, rules_gate, rules_unavailable_warning};
 use crate::problem_workflows::record;
 use crate::readback::same_instant;
 use crate::reviewed_write::{WritePlan, execute_as, refused};
@@ -117,7 +115,9 @@ pub fn build_plan(
     {
         return Err(Error::value("planned end must not precede planned start"));
     }
-    let meta = load_meta(c, store, "problem", "edit", true, &json!(target))?;
+    let rec_ws = crate::formmeta::record_workspace_in(&before_row);
+    let meta =
+        crate::formmeta::load_meta_in(c, store, "problem", "edit", true, &json!(target), &rec_ws)?;
     let spec = meta.spec();
     for key in payload.keys() {
         if spec.find(key).is_none() {
@@ -136,6 +136,7 @@ pub fn build_plan(
     }
     let warnings = rules_unavailable_warning(&meta.rules)
         .into_iter()
+        .chain(meta.form_notes())
         .collect::<Vec<_>>();
     let mut state = meta.state("edit", None, Some(existing_from_record(&spec, &before_row)))?;
     for (key, value) in &payload {

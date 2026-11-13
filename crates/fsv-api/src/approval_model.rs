@@ -80,6 +80,138 @@ pub fn require_chains(c: &dyn Api, module: &str, target: i64, action: &str) -> R
     Ok(())
 }
 
+/// Keys every flat approval row carries in `tickets approvals --json` and
+/// `sr approvals list --json` (added next to the native record's own keys).
+pub const FLAT_KEYS: [&str; 8] = [
+    "level",
+    "approver",
+    "approver_id",
+    "status_name",
+    "status_id",
+    "type_name",
+    "decided",
+    "comment",
+];
+
+fn named(value: Option<&serde_json::Value>) -> (serde_json::Value, String) {
+    use fsv_py::{py_str, truthy};
+    match value {
+        Some(serde_json::Value::Object(m)) => {
+            let name = [m.get("name"), m.get("label")]
+                .into_iter()
+                .flatten()
+                .find(|v| truthy(v))
+                .map(py_str)
+                .unwrap_or_default();
+            (
+                m.get("id").cloned().unwrap_or(serde_json::Value::Null),
+                name,
+            )
+        }
+        other => (
+            other.cloned().unwrap_or(serde_json::Value::Null),
+            String::new(),
+        ),
+    }
+}
+
+/// `flat_row`: display fields of one flat (legacy) approval record. Status
+/// and type names come from the record's own status/type objects; a record
+/// without a name shows its id rather than a guessed label.
+pub fn flat_row(record: &serde_json::Value) -> serde_json::Map<String, serde_json::Value> {
+    use fsv_py::{py_str, truthy};
+    use serde_json::Value;
+    let empty = serde_json::Map::new();
+    let a = record.as_object().unwrap_or(&empty);
+    let remark = match a.get("remark") {
+        Some(Value::Array(rs)) => rs.first().and_then(Value::as_object).unwrap_or(&empty),
+        _ => &empty,
+    };
+    let member = a.get("member").and_then(Value::as_object).unwrap_or(&empty);
+    let (status_id, status_name) = named(a.get("status"));
+    let (type_id, type_name) = named(a.get("type"));
+    let or_id = |name: String, id: &Value| {
+        if !name.is_empty() {
+            name
+        } else if id.is_null() {
+            String::new()
+        } else {
+            py_str(id)
+        }
+    };
+    let member_id = a.get("member_id");
+    let approver = member
+        .get("name")
+        .filter(|v| truthy(v))
+        .map(py_str)
+        .unwrap_or_else(|| {
+            member_id
+                .filter(|v| !v.is_null())
+                .map(py_str)
+                .unwrap_or_default()
+        });
+    let approver_id = match member_id {
+        Some(v) => v.clone(),
+        None => member.get("id").cloned().unwrap_or(Value::Null),
+    };
+    let decided = remark
+        .get("updated_at")
+        .filter(|v| truthy(v))
+        .or_else(|| a.get("updated_at"))
+        .filter(|v| truthy(v))
+        .map(|v| py_str(v).chars().take(19).collect::<String>())
+        .unwrap_or_default();
+    let comment = remark
+        .get("data")
+        .filter(|v| truthy(v))
+        .map(py_str)
+        .unwrap_or_default();
+    let mut out = serde_json::Map::new();
+    out.insert(
+        "level".into(),
+        a.get("level_id").cloned().unwrap_or(Value::Null),
+    );
+    out.insert("approver".into(), json!(approver));
+    out.insert("approver_id".into(), approver_id);
+    out.insert("status_name".into(), json!(or_id(status_name, &status_id)));
+    out.insert("status_id".into(), status_id);
+    out.insert("type_name".into(), json!(or_id(type_name, &type_id)));
+    out.insert("decided".into(), json!(decided));
+    out.insert("comment".into(), json!(comment));
+    out
+}
+
+/// `with_flat`: native records with the [`FLAT_KEYS`] added (native keys kept).
+pub fn with_flat(records: &[serde_json::Value]) -> Vec<serde_json::Value> {
+    records
+        .iter()
+        .filter_map(|r| {
+            let mut m = r.as_object()?.clone();
+            m.extend(flat_row(r));
+            Some(serde_json::Value::Object(m))
+        })
+        .collect()
+}
+
+/// `flat_table` cells: Level, Approver, Status, Decided, Type, Comment, with
+/// `-` for an empty value (markup not yet escaped).
+pub fn flat_cells(record: &serde_json::Value) -> [String; 6] {
+    let row = flat_row(record);
+    [
+        "level",
+        "approver",
+        "status_name",
+        "decided",
+        "type_name",
+        "comment",
+    ]
+    .map(|k| match &row[k] {
+        serde_json::Value::Null => "-".to_string(),
+        serde_json::Value::String(s) if s.is_empty() => "-".to_string(),
+        v => fsv_py::py_str(v),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

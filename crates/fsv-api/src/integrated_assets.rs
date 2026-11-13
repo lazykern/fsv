@@ -47,6 +47,17 @@ pub fn target_id(module: &str, target: &Value) -> Result<(&'static str, i64)> {
     Ok((wire, id))
 }
 
+/// `integrated_assets.PAGE_SIZE`.
+const PAGE_SIZE: i64 = 50;
+
+/// `_past_end`: the `ValueError` for a page after the inventory's last row.
+fn past_end(kind: &str, page: i64, total: i64) -> Error {
+    let pages = std::cmp::max(1, (total + PAGE_SIZE - 1).div_euclid(PAGE_SIZE));
+    Error::value(format!(
+        "no results on page {page}: the {kind} inventory has {total} row(s) ({pages} page(s) of {PAGE_SIZE})"
+    ))
+}
+
 /// Port of `integrated_assets.search`.
 pub fn search(c: &dyn Api, query: &str, kind: &str, page: i64) -> Result<Value> {
     let Some(family) = family(kind) else {
@@ -60,27 +71,42 @@ pub fn search(c: &dyn Api, query: &str, kind: &str, page: i64) -> Result<Value> 
         ));
     }
     let url = format!("https://{}/itam/core/{family}/api/", c.domain());
-    let params = obj(json!({"order": "", "page": page, "page_size": 50, "q": query}));
-    let raw = c.absolute_get(&url, Some(params))?;
+    let params = obj(json!({"order": "", "page": page, "page_size": PAGE_SIZE, "q": query}));
+    let raw = match c.absolute_get(&url, Some(params)) {
+        Ok(raw) => raw,
+        Err(e) if page != 1 && matches!(e.status(), Some(400 | 404)) => Value::Null,
+        Err(e) => return Err(e),
+    };
+    if page > 1
+        && raw.get("error").is_some_and(Value::is_string)
+        && raw.get("data") == Some(&json!([]))
+        && let Some(total) = raw.get("total_rows").and_then(json_int)
+        && (0..=(page - 1) * PAGE_SIZE).contains(&total)
+    {
+        // Native out-of-range answer: {"error": "Requested page is out of range.", "data": [], "page": 1, ...}
+        return Err(past_end(kind, page, total));
+    }
+    let valid = raw.is_object()
+        && !raw.get("error").is_some_and(fsv_py::truthy)
+        && raw.get("data").is_some_and(Value::is_array)
+        && raw.get("page").and_then(json_int) == Some(page)
+        && raw.get("total_rows").and_then(json_int).is_some();
+    let rows_here = raw
+        .get("data")
+        .and_then(Value::as_array)
+        .is_some_and(|d| !d.is_empty());
+    if page > 1 && !(valid && rows_here) {
+        // Other past-the-end shapes (404/400, an error without a total, an
+        // empty page): page 1's total decides; a read-only GET, never a guess.
+        let first = search(c, query, kind, 1)?;
+        let total = first.get("total_rows").and_then(json_int).unwrap_or(0);
+        if total <= (page - 1) * PAGE_SIZE {
+            return Err(past_end(kind, page, total));
+        }
+    }
     let Some(obj) = raw.as_object() else {
         return Err(refused("integrated inventory unavailable"));
     };
-    let out_of_range = obj
-        .get("total_rows")
-        .and_then(Value::as_i64)
-        .filter(|total| {
-            page > 1
-                && obj.get("error").is_some_and(Value::is_string)
-                && obj.get("data") == Some(&json!([]))
-                && (0..=(page - 1) * 50).contains(total)
-        });
-    if let Some(total) = out_of_range {
-        // Native out-of-range answer: {"error": "Requested page is out of range.", "data": [], "page": 1, ...}
-        return Err(Error::value(format!(
-            "no results on page {page}: the {kind} inventory has {total} row(s) ({} page(s) of 50)",
-            std::cmp::max(1, (total + 49) / 50)
-        )));
-    }
     if obj.get("error").is_some_and(fsv_py::truthy) || !obj.get("data").is_some_and(Value::is_array)
     {
         return Err(refused("integrated inventory unavailable"));
@@ -375,6 +401,79 @@ pub fn legacy_candidates(c: &dyn Api, module: &str, target: &Value) -> Result<Ve
         return Err(refused("asset candidates inconsistent"));
     }
     Ok(rows)
+}
+
+/// Port of `integrated_assets.candidates`: the legacy `assets-to-associate`
+/// list only on a legacy-driver record; on its HTTP 403/404, an integrated
+/// or problem record, the integrated inventory search (inventory IDs).
+pub fn candidates(
+    c: &dyn Api,
+    module: &str,
+    target: &Value,
+    query: &str,
+    kind: &str,
+    page: i64,
+) -> Result<Value> {
+    let (module_name, target_num) = target_id(module, target)?;
+    if kind != "devices" && kind != "services" {
+        return Err(Error::value("candidate kind must be devices or services"));
+    }
+    let target_num = json!(target_num);
+    let found = match driver(c, module, &target_num, kind) {
+        Ok(found) => Some(found),
+        Err(Error::Exit { code: 2, .. }) => None,
+        Err(e) => return Err(e),
+    };
+    let mut note = None;
+    if found == Some(LEGACY) && kind == "devices" && legacy_entity(module_name).is_some() {
+        match legacy_candidates(c, module, &target_num) {
+            Ok(rows) => return Ok(json!({"data": rows, "complete": true, "driver": LEGACY})),
+            Err(e) => match e.status() {
+                Some(status @ (403 | 404)) => {
+                    note = Some(format!(
+                        "legacy assets-to-associate answered HTTP {status}; listed from the integrated inventory search instead"
+                    ));
+                }
+                _ => return Err(e),
+            },
+        }
+    }
+    let result = search(c, query, kind, page)?;
+    let associated: Option<HashSet<i64>> = if found == Some(INTEGRATED) {
+        let mut ids = HashSet::new();
+        for r in inventory(c, module, &target_num, kind)? {
+            ids.insert(positive_id(r.get("item_id").unwrap_or(&Value::Null))?);
+        }
+        Some(ids)
+    } else {
+        None
+    };
+    let mut rows = Vec::new();
+    for row in result["data"].as_array().into_iter().flatten() {
+        let ident = positive_id(&row["name"]["id"])?;
+        rows.push(json!({
+            "id": ident,
+            "name": row["name"].get("label").cloned().unwrap_or(Value::Null),
+            "associated": associated.as_ref().map(|a| a.contains(&ident)),
+            "inventory": row,
+        }));
+    }
+    let mut out = obj(json!({
+        "data": rows, "driver": INTEGRATED, "kind": kind, "query": query, "page": page,
+        "total_rows": result.get("total_rows").cloned().unwrap_or(Value::Null),
+        "complete": result.get("complete").cloned().unwrap_or(json!(false)),
+        "id_meaning": "inventory IDs (use with assets add)",
+    }));
+    if associated.is_none() {
+        out.insert(
+            "associated_note".into(),
+            json!("no association list for this record; association state unknown"),
+        );
+    }
+    if let Some(note) = note {
+        out.insert("note".into(), json!(note));
+    }
+    Ok(Value::Object(out))
 }
 
 /// Port of `integrated_assets.legacy_plan`.
@@ -920,47 +1019,250 @@ mod tests {
         assert_eq!(c.writes().len(), 1);
     }
 
-    /// `test_sweep1_messages.py::test_out_of_range_inventory_page_says_no_results` (c692ce2).
+    /// `tests/test_asset_candidates.py`.
+    struct Cand {
+        integrated: bool,
+        legacy_status: u16,
+        searches: Vec<(String, Map<String, Value>)>,
+        writes: Vec<String>,
+    }
+
+    fn cand_api(state: Arc<Mutex<Cand>>) -> FnApi {
+        FnApi::new(move |call: &Call| {
+            let mut s = state.lock().unwrap();
+            if call.method != "GET" {
+                s.writes.push(call.path.clone());
+                return Err(ApiError::new(500, json!({})).into());
+            }
+            if call.path.contains("/itam/core/") {
+                let params = call.params.clone().unwrap_or_default();
+                let page = params["page"].clone();
+                let path = call.path.split_once("/itam/").unwrap().1;
+                s.searches.push((format!("/itam/{path}"), params));
+                return Ok(
+                    json!({"page": page, "error": null, "total_rows": 2, "data": [
+                    {"device_pk": 81, "name": {"id": 81, "label": "Acme laptop"}, "type": "Laptop"},
+                    {"device_pk": 82, "name": {"id": 82, "label": "Globex phone"}, "type": "Phone"}]}),
+                );
+            }
+            let path = call.path.as_str();
+            if path.ends_with("associated-cis") {
+                if !s.integrated {
+                    return Err(ApiError::new(404, json!({})).into());
+                }
+                return Ok(
+                    json!({"data": [{"item_id": 82, "itam_cmdb_request_id": 5, "category": "Device"}],
+                                 "meta": {"total_count": 1, "total_pages": 1}}),
+                );
+            }
+            if path == "tickets/41/associated_assets" || path == "changes/41/assets" {
+                return Ok(json!({"associated_assets": []}));
+            }
+            if path == "tickets/41" || path == "changes/41" {
+                let key = path.split('/').next().unwrap().trim_end_matches('s');
+                return Ok(json!({key: {"id": 41, "requester_id": 7}}));
+            }
+            if path == "assets-to-associate" {
+                if s.legacy_status != 200 {
+                    return Err(ApiError::new(
+                        s.legacy_status,
+                        json!({"description": "feature not in plan"}),
+                    )
+                    .into());
+                }
+                return Ok(
+                    json!({"assets": [{"id": 1, "display_id": 3811}], "meta": {"total_count": 1}}),
+                );
+            }
+            panic!("{path}");
+        })
+    }
+
+    fn cand(integrated: bool, legacy_status: u16) -> (Arc<Mutex<Cand>>, FnApi) {
+        let s = Arc::new(Mutex::new(Cand {
+            integrated,
+            legacy_status,
+            searches: Vec::new(),
+            writes: Vec::new(),
+        }));
+        let c = cand_api(Arc::clone(&s));
+        (s, c)
+    }
+
     #[test]
-    fn out_of_range_inventory_page_says_no_results() {
-        let paged = |answer: fn(i64) -> Value| {
-            FnApi::new(move |call: &Call| {
-                assert_eq!(call.method, "GET");
-                let page = call.params.as_ref().unwrap()["page"].as_i64().unwrap();
-                Ok(answer(page))
-            })
-        };
-        let native = paged(|page| {
+    fn integrated_record_uses_inventory_search_and_marks_associated() {
+        let (s, c) = cand(true, 403);
+        let out = candidates(&c, "tickets", &json!("INC-41"), "acme", "devices", 1).unwrap();
+        assert_eq!(out["driver"], "integrated");
+        let ids: Vec<&Value> = out["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| &r["id"])
+            .collect();
+        assert_eq!(ids, [&json!(81), &json!(82)]);
+        let assoc: Vec<&Value> = out["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| &r["associated"])
+            .collect();
+        assert_eq!(assoc, [&json!(false), &json!(true)]);
+        assert_eq!(out["complete"], true);
+        let s = s.lock().unwrap();
+        assert_eq!(s.searches[0].0, "/itam/core/device/api/");
+        assert_eq!(s.searches[0].1["q"], "acme");
+        assert!(s.writes.is_empty());
+    }
+
+    #[test]
+    fn legacy_403_or_404_falls_back_to_integrated_search() {
+        for status in [403, 404] {
+            for (module, target) in [("tickets", "SR-41"), ("changes", "CHN-41")] {
+                let (_, c) = cand(false, status);
+                let out = candidates(&c, module, &json!(target), "", "devices", 1).unwrap();
+                assert_eq!(out["driver"], "integrated");
+                assert!(
+                    out["note"]
+                        .as_str()
+                        .unwrap()
+                        .contains(&format!("HTTP {status}"))
+                );
+                assert!(
+                    out["data"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .all(|r| r["associated"].is_null())
+                );
+                assert!(out["associated_note"].as_str().unwrap().contains("unknown"));
+            }
+        }
+    }
+
+    #[test]
+    fn legacy_record_with_working_list_keeps_legacy_and_other_errors_propagate() {
+        let (s, c) = cand(false, 200);
+        let out = candidates(&c, "tickets", &json!("SR-41"), "", "devices", 1).unwrap();
+        assert_eq!(out["driver"], "legacy");
+        assert_eq!(out["data"][0]["display_id"], 3811);
+        assert!(s.lock().unwrap().searches.is_empty());
+        s.lock().unwrap().legacy_status = 500;
+        let err = candidates(&c, "tickets", &json!("SR-41"), "", "devices", 1).unwrap_err();
+        assert_eq!(err.status(), Some(500));
+    }
+
+    #[test]
+    fn problem_without_association_endpoint_uses_service_search() {
+        let (s, c) = cand(false, 403);
+        let out = candidates(&c, "problems", &json!("PRB-41"), "", "services", 1).unwrap();
+        assert_eq!(out["kind"], "services");
+        let s = s.lock().unwrap();
+        assert_eq!(
+            s.searches.last().unwrap().0,
+            "/itam/core/businessservice/api/"
+        );
+        assert!(s.writes.is_empty());
+    }
+
+    /// `tests/test_assets_search_pages.py`.
+    type PageCalls = Arc<Mutex<Vec<(String, i64)>>>;
+
+    fn pages_api(page2: (u16, Value), total: i64) -> (PageCalls, FnApi) {
+        let calls = Arc::new(Mutex::new(Vec::new()));
+        let seen = Arc::clone(&calls);
+        let rows = json!([{"device_pk": 81, "name": {"id": 81, "label": "Acme laptop"}},
+                          {"device_pk": 82, "name": {"id": 82, "label": "Globex phone"}}]);
+        let c = FnApi::new(move |call: &Call| {
+            let page = call.params.as_ref().unwrap()["page"].as_i64().unwrap();
+            let path = format!("/itam/{}", call.path.split_once("/itam/").unwrap().1);
+            seen.lock().unwrap().push((path, page));
             if page == 1 {
-                json!({"page": 1, "error": null, "total_rows": 0, "data": []})
+                return Ok(json!({"page": 1, "error": null, "total_rows": total, "data": rows}));
+            }
+            let (status, body) = page2.clone();
+            if status == 200 {
+                Ok(body)
             } else {
-                json!({"page": 1, "error": "Requested page is out of range.", "total_rows": 0, "data": []})
+                Err(ApiError::new(status, body).into())
             }
         });
+        (calls, c)
+    }
+
+    #[test]
+    fn past_the_end_shapes() {
+        let rows = json!([{"device_pk": 81, "name": {"id": 81, "label": "Acme laptop"}},
+                          {"device_pk": 82, "name": {"id": 82, "label": "Globex phone"}}]);
+        for kind in ["devices", "services"] {
+            for page2 in [
+                (404, json!({"detail": "Invalid page."})),
+                (400, json!({"error": "bad page"})),
+                (
+                    200,
+                    json!({"error": "Requested page is out of range.", "data": []}),
+                ),
+                (
+                    200,
+                    json!({"page": 1, "error": null, "total_rows": 2, "data": rows}),
+                ),
+                (
+                    200,
+                    json!({"page": 2, "error": null, "total_rows": 2, "data": []}),
+                ),
+            ] {
+                let (calls, c) = pages_api(page2.clone(), 2);
+                let err = search(&c, "acme", kind, 2).unwrap_err();
+                assert!(matches!(err, Error::Value(_)), "{kind} {page2:?}: {err}");
+                assert!(
+                    err.to_string().starts_with(&format!(
+                        "no results on page 2: the {kind} inventory has 2 row"
+                    )),
+                    "{err}"
+                );
+                let pages: HashSet<i64> = calls.lock().unwrap().iter().map(|(_, p)| *p).collect();
+                assert_eq!(pages, HashSet::from([1, 2]));
+            }
+        }
+        let (_, c) = pages_api((404, json!({})), 2);
         assert_eq!(
-            search(&native, "", "devices", 1).unwrap()["complete"],
-            json!(true)
+            search(&c, "", "devices", 2).unwrap_err().to_string(),
+            "no results on page 2: the devices inventory has 2 row(s) (1 page(s) of 50)"
         );
-        let e = search(&native, "", "devices", 2).unwrap_err();
-        assert!(matches!(e, Error::Value(_)));
+    }
+
+    #[test]
+    fn unreadable_page_inside_the_inventory_stays_unavailable() {
+        let (_, c) = pages_api((200, json!({"error": "internal"})), 120);
+        let err = search(&c, "", "devices", 2).unwrap_err();
+        assert!(
+            matches!(err, Error::Exit { code: 2, .. }) && err.to_string().contains("unavailable")
+        );
+    }
+
+    #[test]
+    fn real_second_page_is_returned() {
+        let rows = json!([{"device_pk": 81, "name": {"id": 81, "label": "Acme laptop"}},
+                          {"device_pk": 82, "name": {"id": 82, "label": "Globex phone"}}]);
+        let (calls, c) = pages_api(
+            (
+                200,
+                json!({"page": 2, "error": null, "total_rows": 52, "data": rows}),
+            ),
+            52,
+        );
+        let out = search(&c, "", "devices", 2).unwrap();
+        let ids: Vec<&Value> = out["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| &r["name"]["id"])
+            .collect();
+        assert_eq!(ids, [&json!(81), &json!(82)]);
+        assert_eq!(out["complete"], false);
         assert_eq!(
-            e.to_string(),
-            "no results on page 2: the devices inventory has 0 row(s) (1 page(s) of 50)"
-        );
-        let broken =
-            paged(|page| json!({"page": page, "error": "boom", "total_rows": 500, "data": []}));
-        assert!(
-            search(&broken, "", "devices", 2)
-                .unwrap_err()
-                .to_string()
-                .contains("integrated inventory unavailable")
-        );
-        let first = paged(|_| json!({"page": 1, "error": "x", "total_rows": 0, "data": []}));
-        assert!(
-            search(&first, "", "devices", 1)
-                .unwrap_err()
-                .to_string()
-                .contains("integrated inventory unavailable")
+            *calls.lock().unwrap(),
+            [("/itam/core/device/api/".to_string(), 2)]
         );
     }
 }

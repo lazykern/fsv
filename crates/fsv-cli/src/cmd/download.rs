@@ -14,6 +14,23 @@ use crate::generated::{ChangesDownloadArgs, ResDownloadArgs};
 use crate::util::{CmdResult, cid, client, fail_exc, uncaught};
 use crate::{lookup, schema};
 
+/// `_download_dir`: exactly `--dir`, or by default `./downloads/<ID>`
+/// (never a bare `./<ID>`); the choice is announced on stderr.
+pub fn download_dir(out: Option<&Path>, label: &str) -> PathBuf {
+    let target =
+        py_path(&out.map_or_else(|| Path::new("downloads").join(label), Path::to_path_buf));
+    let origin = if out.is_some() {
+        "--dir"
+    } else {
+        "default ./downloads/<ID>; choose with --dir"
+    };
+    err().print(&format!(
+        "output directory: {} ({origin})",
+        escape(&target.to_string_lossy())
+    ));
+    target
+}
+
 /// `str(Path(p))`: no `.` segments, repeated or trailing slashes.
 pub fn py_path(p: &Path) -> PathBuf {
     let text = p.to_string_lossy();
@@ -96,11 +113,7 @@ pub fn generic(res: &'static Resource, a: ResDownloadArgs) -> CmdResult {
         main = true;
     }
     let pfx = res.display_prefixes[0];
-    let dir = py_path(
-        &a.out
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(format!("{pfx}-{id}"))),
-    );
+    let dir = download_dir(a.out.as_deref(), &format!("{pfx}-{id}"));
     let mut results = Vec::new();
     let params = crate::util::obj(vec![("include", json!("requester,stats"))]);
     let raw = c
@@ -189,11 +202,7 @@ fn changes_inner(a: &ChangesDownloadArgs, id: i64, c: &std::sync::Arc<Client>) -
     if a.planning.is_empty() && !all_planning && !main && !description {
         all_planning = true;
     }
-    let dir = py_path(
-        &a.out
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(format!("CHN-{id}"))),
-    );
+    let dir = download_dir(a.out.as_deref(), &format!("CHN-{id}"));
     let mut results = Vec::new();
     let mut evidence: Option<Value> = None;
     if all_planning || !a.planning.is_empty() {
@@ -284,4 +293,22 @@ fn changes_inner(a: &ChangesDownloadArgs, id: i64, c: &std::sync::Arc<Client>) -
     }
     report(&results, &format!("CHN-{id}"), &dir, a.json_out);
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `test_change_download_default_matches`.
+    #[test]
+    fn change_download_default_matches() {
+        assert_eq!(
+            download_dir(None, "CHN-4"),
+            Path::new("downloads").join("CHN-4")
+        );
+        assert_eq!(
+            download_dir(Some(Path::new("x")), "CHN-4"),
+            PathBuf::from("x")
+        );
+    }
 }

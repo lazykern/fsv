@@ -302,7 +302,7 @@ mod tests {
         let out = send(&p, &c, &j, &store, Some(&p.hash()), None).unwrap();
         assert_eq!(out["verified"], false);
         assert_eq!(out["tickets"][(cid + 1).to_string()], "mismatched");
-        assert!(err(send(&p, &c, &j, &store, Some(&p.hash()), None)).contains("unknown"));
+        assert!(err(send(&p, &c, &j, &store, Some(&p.hash()), None)).contains("already sent at"));
         assert_eq!(c.writes().len(), 1);
     }
 

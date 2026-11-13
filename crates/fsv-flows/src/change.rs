@@ -1482,9 +1482,10 @@ pub trait ChangeWriter {
         let _ = id;
         Err(Error::other("change readback unavailable"))
     }
-    /// Fingerprint of a fresh edit-form metadata load.
-    fn edit_fingerprint(&self, module_id: &Json) -> Result<String> {
-        let _ = module_id;
+    /// Fingerprint of a fresh edit-form metadata load (rules of the record's
+    /// own workspace when it carries one).
+    fn edit_fingerprint(&self, module_id: &Json, record_workspace: &Json) -> Result<String> {
+        let _ = (module_id, record_workspace);
         Err(Error::other("change metadata unavailable"))
     }
 }
@@ -1512,16 +1513,16 @@ pub(crate) fn lookup(r: &Option<Arc<dyn Resolver>>) -> Option<Arc<dyn fsv_forms:
     r.clone().map(|r| r as Arc<dyn fsv_forms::LookupResolver>)
 }
 
-fn update_journal_hit(journal: &dyn Journal, hash: &str) -> bool {
-    let rows = journal.read();
-    let last = rows.iter().rev().find(|row| {
-        row.get("kind").and_then(Json::as_str) == Some("plan:update")
-            && row.get("plan").and_then(Json::as_str) == Some(hash)
-    });
-    matches!(
-        last.and_then(|row| row.get("event")).and_then(Json::as_str),
-        Some("started" | "done")
-    )
+fn journal_refusal(journal: &dyn Journal, kind: &str, hash: &str, unknown: &str) -> Option<String> {
+    let events: Vec<Json> = journal
+        .read()
+        .into_iter()
+        .filter(|row| {
+            row.get("kind").and_then(Json::as_str) == Some(kind)
+                && row.get("plan").and_then(Json::as_str) == Some(hash)
+        })
+        .collect();
+    fsv_core::journal::replay_refusal(&events, unknown)
 }
 
 fn form_journal_hit(journal: &dyn Journal, hash: &str) -> Option<String> {
@@ -1597,23 +1598,24 @@ fn send_form_update(
         .target
         .ok_or_else(|| flow_exit(2, "Complete hash-bound property plan required"))?;
     for value in [source.hash.as_str(), source.legacy_hash.as_str()] {
-        if update_journal_hit(journal, value) {
-            return Err(flow_exit(
-                2,
-                "Change update was sent or outcome unknown; do not replay",
-            ));
+        if let Some(refusal) = journal_refusal(
+            journal,
+            "plan:update",
+            value,
+            "Change update was sent or outcome unknown; do not replay",
+        ) {
+            return Err(flow_exit(2, &refusal));
         }
     }
-    if matches!(
-        form_journal_hit(journal, &source.hash).as_deref(),
-        Some("started" | "done")
+    if let Some(refusal) = journal_refusal(
+        journal,
+        "plan:change_form_update",
+        &source.hash,
+        "write was sent or outcome unknown; inspect target and journal before retry",
     ) {
-        return Err(flow_exit(
-            2,
-            "write was sent or outcome unknown; inspect target and journal before retry",
-        ));
+        return Err(flow_exit(2, &refusal));
     }
-    let fresh = writer.edit_fingerprint(&source.meta.module_id)?;
+    let fresh = writer.edit_fingerprint(&source.meta.module_id, &source.meta.record_workspace)?;
     if fresh != source.meta.fingerprint().hash
         || fsv_core::journal::snapshot_hash(Some(&Json::Object(change_row(writer, target)?)))
             .map_err(Error::value)?
@@ -1972,7 +1974,13 @@ pub fn freshen(
     } else {
         "edit"
     };
-    let fresh = source.load_meta(&plan.meta.module, mode, true, &plan.meta.module_id)?;
+    let fresh = source.load_meta_in(
+        &plan.meta.module,
+        mode,
+        true,
+        &plan.meta.module_id,
+        &plan.meta.record_workspace,
+    )?;
     if !fresh.fingerprint().changed(&plan.meta.fingerprint()) {
         return Ok((plan, None));
     }

@@ -77,14 +77,15 @@ pub mod views;
 pub mod watchers;
 
 pub use schema::{
-    CACHE_TTL_SECS, IMPACT, PRIORITY, RISK, choice_label, doc_fields, field, merge_v2_choices,
-    unwrap_schema,
+    CACHE_TTL_SECS, IMPACT, PRIORITY, RISK, STATIC_LABELS, choice_label, display_label,
+    doc_fields, field, humanize_key, humanize_value, merge_v2_choices, unwrap_schema,
 };
 
 pub use query::{
-    Directory, Explain, adv_needed, build_query_hash, build_query_hash_from_schema,
-    configured_workspace, date_condition, load_query_hash, merge_date_ranges,
-    merge_same_conditions, resolve_group, runtime_workspace, serialize, typed_condition,
+    DATE_FIELDS, Directory, Explain, TICKET_ONLY_DATES, adv_needed, advanced_date_condition,
+    build_query_hash, build_query_hash_from_schema, check_raw_query, configured_workspace,
+    date_condition, load_query_hash, merge_date_ranges, merge_same_conditions, resolve_group,
+    resolve_where, runtime_workspace, serialize, typed_condition, validate_raw_query,
 };
 pub use task_status::{active_choices, display, fields_from_payload, resolve};
 
@@ -180,3 +181,5 @@ mod provenance_tests;
 mod workflows_tests;
 #[cfg(test)]
 mod private_views_native_tests;
+#[cfg(test)]
+mod runtime_labels_tests;

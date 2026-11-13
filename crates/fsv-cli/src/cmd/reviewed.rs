@@ -783,7 +783,7 @@ pub fn tickets_bulk(a: TicketsBulkArgs) -> CmdResult {
             }
             answers.insert(key, json!(value));
         }
-        let plan = ticket_bulk::build_plan_with_answers(
+        let plan = ticket_bulk::build_plan_scenario(
             c.as_ref(),
             &store,
             &DiskJournal,
@@ -791,6 +791,7 @@ pub fn tickets_bulk(a: TicketsBulkArgs) -> CmdResult {
             &args,
             a.max_records,
             (!answers.is_empty()).then_some(&answers),
+            a.scenario.as_deref(),
         )?;
         let ids: Vec<String> = plan.ids.iter().map(i64::to_string).collect();
         eprintln!("Selected ticket IDs: {}", ids.join(", "));
@@ -800,6 +801,14 @@ pub fn tickets_bulk(a: TicketsBulkArgs) -> CmdResult {
                 "  {}: {}",
                 fsv_py::py_str(&row["id"]),
                 fsv_py::py_str(&row["subject"])
+            );
+        }
+        if a.action == "scenario" {
+            let chosen = plan.review()["scenario"].clone();
+            eprintln!(
+                "Scenario to run: {} ({}); its effects cannot be verified",
+                fsv_py::py_str(&chosen["id"]),
+                fsv_py::py_str(&chosen["name"])
             );
         }
         if a.dry_run {
@@ -971,6 +980,61 @@ pub fn problems_time_write(a: ProblemsTimeWriteArgs) -> CmdResult {
         yes: a.yes,
         expect_plan: a.expect_plan.as_deref(),
     })
+}
+
+/// Port of fsv.module_time_cli's `update`: `time write ID update --entry`
+/// without `--executed-at` or a billable flag.
+#[allow(clippy::too_many_arguments)]
+fn module_time_update(
+    module: &str,
+    id_: &str,
+    entry: i64,
+    spent: Option<&str>,
+    note: Option<&str>,
+    dry_run: bool,
+    yes: bool,
+    expect_plan: Option<&str>,
+) -> CmdResult {
+    module_time_write(ModuleTimeWrite {
+        module,
+        id_,
+        action: "update",
+        entry: Some(entry),
+        spent,
+        executed_at: None,
+        note,
+        billable: false,
+        non_billable: false,
+        dry_run,
+        yes,
+        expect_plan,
+    })
+}
+
+pub fn changes_time_update(a: ChangesTimeUpdateArgs) -> CmdResult {
+    module_time_update(
+        "changes",
+        &a.id_,
+        a.entry,
+        a.spent.as_deref(),
+        a.note.as_deref(),
+        a.dry_run,
+        a.yes,
+        a.expect_plan.as_deref(),
+    )
+}
+
+pub fn problems_time_update(a: ProblemsTimeUpdateArgs) -> CmdResult {
+    module_time_update(
+        "problems",
+        &a.id_,
+        a.entry,
+        a.spent.as_deref(),
+        a.note.as_deref(),
+        a.dry_run,
+        a.yes,
+        a.expect_plan.as_deref(),
+    )
 }
 
 const TASK_SIDE_EFFECTS: &str =

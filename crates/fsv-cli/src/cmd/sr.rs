@@ -1151,7 +1151,13 @@ fn catalog(a: SrCatalogArgs) -> CmdResult {
         out().print_table(&t);
         return Ok(());
     }
-    let items = cat::list_items(c.as_ref(), a.popular, cat::MAX_PAGES).map_err(guard)?;
+    let mut listing = serde_json::Map::new();
+    let items = cat::list_items_info(c.as_ref(), a.popular, cat::MAX_PAGES, Some(&mut listing))
+        .map_err(guard)?;
+    let cut = cat::truncation_notice(&listing);
+    if let Some(cut) = &cut {
+        err().print(&format!("[yellow]warning[/yellow]: {}", escape(cut)));
+    }
     let ids: Option<Vec<Value>> = match a.category.as_deref().filter(|s| !s.is_empty()) {
         Some(text) => Some(
             cat::resolve_category(&cats, text)
@@ -1195,7 +1201,22 @@ fn catalog(a: SrCatalogArgs) -> CmdResult {
                        "category": get(r, "category_name")})
             })
             .collect();
-        print_json(&Value::Array(doc));
+        // A complete list stays a plain array; a truncated one becomes an
+        // object so consumers cannot mistake it for the whole catalog.
+        let Some(cut) = cut else {
+            print_json(&Value::Array(doc));
+            return Ok(());
+        };
+        let mut body = serde_json::Map::new();
+        body.insert("items".into(), Value::Array(doc));
+        body.insert("truncated".into(), json!(true));
+        body.insert("notice".into(), json!(cut));
+        for k in ["pages_read", "per_page", "max_pages", "total_pages"] {
+            if let Some(v) = listing.get(k) {
+                body.insert(k.into(), v.clone());
+            }
+        }
+        print_json(&Value::Object(body));
         return Ok(());
     }
     let title = format!(

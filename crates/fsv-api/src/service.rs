@@ -371,6 +371,16 @@ pub(crate) fn last_event(journal: &dyn Journal, action: &str, hash: &str) -> Opt
         .map(str::to_string)
 }
 
+/// `journal.replay_refusal(events, unknown)` over [`plan_events`].
+pub(crate) fn replay_refusal(
+    journal: &dyn Journal,
+    action: &str,
+    hash: &str,
+    unknown: &str,
+) -> Option<String> {
+    fsv_core::journal::replay_refusal(&plan_events(journal, action, hash), unknown)
+}
+
 /// `journal.plan_hash(body) or ""`.
 pub(crate) fn plan_hash(body: &Value) -> String {
     fsv_core::journal::plan_hash(Some(body)).unwrap_or_default()
@@ -1206,19 +1216,9 @@ pub fn resolve_status(item: &Value, schema: &Value) -> String {
     }
 }
 
-/// `PRIORITY.get(item.get("priority") or 0, "-")`.
-pub fn resolve_priority(item: &Value) -> String {
-    let key = match item.get("priority").filter(|v| truthy(v)) {
-        Some(Value::Number(n)) => n
-            .as_i64()
-            .or_else(|| n.as_f64().filter(|f| f.fract() == 0.0).map(|f| f as i64)),
-        Some(Value::Bool(true)) => Some(1),
-        Some(_) => None,
-        None => Some(0),
-    };
-    key.and_then(|k| crate::PRIORITY.iter().find(|(id, _)| *id == k))
-        .map_or("-", |(_, l)| l)
-        .to_string()
+/// `resolve_priority`: `schema.display_label("priority", ...)`.
+pub fn resolve_priority(item: &Value, schema: Option<&Value>) -> String {
+    crate::schema::display_label("priority", item.get("priority"), schema, "-")
 }
 
 pub fn item_url(resource: &Resource, item_id: i64, domain: &str) -> String {
@@ -1232,6 +1232,16 @@ pub(crate) mod testing {
 
     use super::*;
     use fsv_core::ApiError;
+
+    /// Point the process-wide config at an empty temp dir (no domain) once,
+    /// so no test reads the user's real config.
+    pub(crate) fn hermetic() {
+        static ONCE: std::sync::Once = std::sync::Once::new();
+        ONCE.call_once(|| {
+            let dir = tempfile::tempdir().expect("tempdir").keep();
+            fsv_core::config::use_for_tests(fsv_core::Paths::under(&dir), "");
+        });
+    }
 
     /// The fixture's `rotate`: each read re-signs every attachment link.
     pub(crate) fn rotate_files(rows: &mut Value, reads: u32) {
@@ -1275,6 +1285,7 @@ pub(crate) mod testing {
 
     impl FakeApi {
         pub fn new() -> Self {
+            hermetic();
             Self::default()
         }
 
@@ -1471,6 +1482,7 @@ pub(crate) mod testing {
 
     impl FnApi {
         pub fn new(handler: impl FnMut(&Call) -> Result<Value> + Send + 'static) -> Self {
+            hermetic();
             FnApi {
                 calls: Mutex::new(Vec::new()),
                 handler: Mutex::new(Box::new(handler)),
@@ -1828,8 +1840,8 @@ mod tests {
             "Planning"
         );
         assert_eq!(resolve_status(&json!({"status": 9}), &json!({})), "9");
-        assert_eq!(resolve_priority(&json!({"priority": 2})), "Medium");
-        assert_eq!(resolve_priority(&json!({})), "-");
+        assert_eq!(resolve_priority(&json!({"priority": 2}), None), "Medium");
+        assert_eq!(resolve_priority(&json!({}), None), "-");
     }
 
     #[test]
@@ -2385,8 +2397,9 @@ mod tests {
             resolve_status(&json!({"status": null}), &json!({"fields": []})),
             "None"
         );
-        assert_eq!(resolve_priority(&json!({"priority": 4})), "Urgent");
-        assert_eq!(resolve_priority(&json!({"priority": 9})), "-");
+        assert_eq!(resolve_priority(&json!({"priority": 4}), None), "Urgent");
+        // 936e767: an id without a static label is shown as the id.
+        assert_eq!(resolve_priority(&json!({"priority": 9}), None), "9");
         assert_eq!(
             item_url(&PROBLEMS, 12, "acme.freshservice.com"),
             "https://acme.freshservice.com/a/problems/12"

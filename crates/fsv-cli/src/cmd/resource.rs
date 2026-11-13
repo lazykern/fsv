@@ -43,39 +43,10 @@ fn where_field(expr: &str) -> String {
         .to_string()
 }
 
-/// `_merge_same_conditions`: one `is_in`/`is_not_in` per condition, operator and type.
+/// `_merge_same_conditions`: one `is_in`/`is_not_in` per condition, operator
+/// and type; a non-list value passes through (`query::merge_same_conditions`).
 fn merge_same_conditions(query: Vec<Value>) -> Vec<Value> {
-    let mut out: Vec<Value> = Vec::new();
-    let mut seen: Vec<((Value, Value, Value), usize)> = Vec::new();
-    for item in query {
-        let op = item.get("operator").cloned().unwrap_or(Value::Null);
-        if !matches!(op.as_str(), Some("is_in" | "is_not_in")) {
-            out.push(item);
-            continue;
-        }
-        let field = |k: &str| item.get(k).cloned().unwrap_or(Value::Null);
-        let key = (field("condition"), op, field("type"));
-        let values: Vec<Value> = item
-            .get("value")
-            .filter(|v| fsv_py::truthy(v))
-            .and_then(Value::as_array)
-            .cloned()
-            .unwrap_or_default();
-        match seen.iter().find(|(k, _)| *k == key) {
-            Some((_, at)) => {
-                if let Some(Value::Array(v)) = out[*at].get_mut("value") {
-                    v.extend(values);
-                }
-            }
-            None => {
-                let mut merged = item.as_object().cloned().unwrap_or_default();
-                merged.insert("value".into(), Value::Array(values));
-                seen.push((key, out.len()));
-                out.push(Value::Object(merged));
-            }
-        }
-    }
-    out
+    fsv_api::merge_same_conditions(query)
 }
 
 /// `_build_query_hash`: `(payload, conditions, explanation)`.
@@ -89,7 +60,10 @@ fn build_query_hash(
     let mut query = Vec::new();
     let mut explain = Vec::new();
     if let Some(raw) = raw.filter(|s| !s.is_empty()) {
-        query.extend(filters::load_query_hash(raw)?);
+        let loaded = filters::load_query_hash(raw)?;
+        fsv_api::check_raw_query(res.name, &Value::Array(loaded.clone()))
+            .map_err(|e| crate::util::usage(&e.0))?;
+        query.extend(loaded);
         explain.push(fsv_api::Explain {
             field: "query_hash".into(),
             condition: "raw".into(),
@@ -176,6 +150,25 @@ fn pick_view(
     } else {
         None
     })
+}
+
+const DUE_BY_PENDING_NOTE: &str = "Note: Pending tickets have no Due By on this tenant type (the field is hidden and empty while Pending), so a Due By filter never returns them; list them with --where Status=Pending.";
+
+/// `_due_by_without_status`: a ticket list predicate that filters on Due By
+/// but not on status.
+fn due_by_without_status(clauses: &[Value]) -> bool {
+    let names: Vec<String> = clauses
+        .iter()
+        .filter(|c| c.is_object())
+        .map(|c| {
+            c.get("condition")
+                .filter(|v| fsv_py::truthy(v))
+                .map(fsv_py::py_str)
+                .unwrap_or_default()
+        })
+        .collect();
+    let has = |n: &str| names.iter().any(|x| x == n);
+    (has("due_by") || has("due_by_date")) && !(has("status") || has("status_id"))
 }
 
 /// `list_resource`.
@@ -272,14 +265,21 @@ fn list_resource(res: &'static Resource, a: &ResLsArgs, where_: &[String]) -> Cm
         (items, total, more)
     };
     let sch = schema::load(res, &c, false).map_err(fail_exc)?;
-    if (!where_.is_empty() || raw.is_some()) && !a.or_grouping {
-        let bad = fsv_api::filter_proof::contradictions(&items, &query);
+    if !where_.is_empty() || raw.is_some() {
+        let bad = if a.or_grouping {
+            Vec::new()
+        } else {
+            fsv_api::filter_proof::contradictions(&items, &query)
+        };
         if !bad.is_empty() {
             let ids: Vec<String> = bad.iter().map(fsv_py::py_str).collect();
             err().print(&escape(&format!(
                 "Warning: returned records contradict the requested predicate; do not use this list for writes. IDs: {}",
                 ids.join(", ")
             )));
+        }
+        if res.name == TICKETS.name && due_by_without_status(&query) {
+            err().print(&escape(DUE_BY_PENDING_NOTE));
         }
     }
     let me = if matches!(fmt, OutputFormat::Json) {
@@ -1821,6 +1821,20 @@ mod tests {
         assert_eq!(got, ["Status", "a", "noop", "x"]);
     }
 
+    /// `test_due_by_pending_note.test_due_by_predicate_detection`.
+    #[test]
+    fn due_by_predicate_detection() {
+        assert!(due_by_without_status(&[
+            json!({"condition": "due_by_date"})
+        ]));
+        assert!(!due_by_without_status(&[
+            json!({"condition": "due_by"}),
+            json!({"condition": "status"})
+        ]));
+        assert!(!due_by_without_status(&[json!({"condition": "fr_due_by"})]));
+        assert!(!due_by_without_status(&[]));
+    }
+
     #[test]
     fn merge_same_conditions_joins_is_in() {
         let q = vec![
@@ -1836,7 +1850,7 @@ mod tests {
                 {"condition": "status", "operator": "is_in", "type": "default", "value": [2, 4]},
                 {"condition": "d", "operator": "custom_date", "type": "default", "value": {"from": "x"}},
                 {"condition": "status", "operator": "is_not_in", "type": "default", "value": [5]},
-                {"condition": "status", "operator": "is_in", "type": "custom_field", "value": []},
+                {"condition": "status", "operator": "is_in", "type": "custom_field", "value": null},
             ])
         );
     }

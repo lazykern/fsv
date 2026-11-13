@@ -600,6 +600,32 @@ pub fn workspace_candidates(configured: &Json, preferred: &[Json]) -> Vec<Json> 
     out
 }
 
+/// `record_workspace_of`: the workspace a record itself carries (a positive
+/// integer; an ASCII digit string counts), else `Null`.
+pub fn record_workspace_of(record: &Json) -> Json {
+    record.as_object().map_or(Json::Null, record_workspace_in)
+}
+
+/// [`record_workspace_of`] over a record row.
+pub fn record_workspace_in(record: &Map<String, Json>) -> Json {
+    let Some(ws) = record.get("workspace_id") else {
+        return Json::Null;
+    };
+    let ws = match ws {
+        Json::String(s) if !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()) => {
+            match s.parse::<u64>() {
+                Ok(n) => json!(n),
+                Err(_) => return Json::Null,
+            }
+        }
+        other => other.clone(),
+    };
+    match &ws {
+        Json::Number(n) if n.as_u64().is_some_and(|v| v > 0) => ws,
+        _ => Json::Null,
+    }
+}
+
 /// `load_rules`: [`fetch_rules`] with the workspace defaulted portably.
 pub fn load_rules(
     c: &dyn Api,
@@ -608,6 +634,30 @@ pub fn load_rules(
     preferred: &[Json],
     query: &BusinessRulesOptions,
 ) -> Result<Json> {
+    load_rules_in(c, store, module, preferred, &Json::Null, query)
+}
+
+/// `load_rules(..., record_workspace=...)`: the workspace the record itself
+/// carries beats the global `forms.workspace_id` override (that override is
+/// for records and forms without one), else the override, else `preferred`,
+/// else the account's own workspaces, else the workspace-less path.
+pub fn load_rules_in(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    module: &str,
+    preferred: &[Json],
+    record_workspace: &Json,
+    query: &BusinessRulesOptions,
+) -> Result<Json> {
+    if !record_workspace.is_null() && *record_workspace != json!("") {
+        return fetch_rules(
+            c,
+            module,
+            std::slice::from_ref(record_workspace),
+            None,
+            query,
+        );
+    }
     let configured = store.configured_workspace();
     let cands = workspace_candidates(&configured, preferred);
     let fallback = || account_workspaces(c);
@@ -638,6 +688,11 @@ pub struct FormMeta {
     pub source: String,
     /// Record display id (edit form).
     pub module_id: Json,
+    /// The workspace the edited record carries.
+    pub record_workspace: Json,
+    /// The `forms.workspace_id` override in effect when loaded (read by
+    /// [`FormMeta::form_notes`]).
+    pub configured_workspace: Json,
     /// Time-zone environment for date-times typed without an offset
     /// (`None`: the process).
     pub tz_env: Option<TzEnv>,
@@ -666,9 +721,75 @@ impl FormMeta {
             fetched_at,
             source: source.into(),
             module_id,
+            record_workspace: Json::Null,
+            configured_workspace: Json::Null,
             tz_env: None,
             spec: Arc::new(spec),
         })
+    }
+
+    /// The record's own workspace and the configured override (`load_meta`).
+    pub fn with_workspaces(mut self, record_workspace: Json, configured: Json) -> FormMeta {
+        self.record_workspace = record_workspace;
+        self.configured_workspace = configured;
+        self
+    }
+
+    /// `field_workspaces`: distinct workspaces of the custom fields in the
+    /// loaded form, ordered by their text.
+    pub fn field_workspaces(&self) -> Vec<Json> {
+        let mut out: Vec<Json> = Vec::new();
+        for f in self.raw_fields() {
+            if f.get("default_field").is_some_and(truthy) {
+                continue;
+            }
+            match f.get("workspace_id") {
+                Some(ws) if !ws.is_null() && !out.iter().any(|w| crate::schema::py_eq(w, ws)) => {
+                    out.push(ws.clone())
+                }
+                _ => {}
+            }
+        }
+        out.sort_by_key(py_str);
+        out
+    }
+
+    /// `form_notes`: review notes that make the default-form assumption
+    /// explicit. fsv reads the single `<module>_form_fields` form (no
+    /// per-form or per-workspace field endpoint is captured), so say when the
+    /// metadata or the record shows that more than one form exists.
+    pub fn form_notes(&self) -> Vec<String> {
+        let mut notes = Vec::new();
+        let spans = self.field_workspaces();
+        let joined = spans.iter().map(py_str).collect::<Vec<_>>().join(", ");
+        let module = &self.module;
+        if spans.len() > 1 {
+            notes.push(format!(
+                "the {module} form metadata spans workspaces {joined}: more than one form exists and fsv \
+                 checks the single default {module} form; verify the fields on the web form"
+            ));
+        }
+        let rec = &self.record_workspace;
+        if !rec.is_null()
+            && !spans.is_empty()
+            && !spans.iter().any(|w| crate::schema::py_eq(w, rec))
+        {
+            let rec = py_str(rec);
+            notes.push(format!(
+                "the record is in workspace {rec} but the default {module} form's fields belong to \
+                 workspace {joined}; business rules come from workspace {rec}, the field list is the \
+                 default form's"
+            ));
+        }
+        let o = &self.configured_workspace;
+        if !rec.is_null() && !o.is_null() && *o != json!("") && py_str(o) != py_str(rec) {
+            notes.push(format!(
+                "forms.workspace_id={} does not apply to this record: it carries its own workspace {}",
+                py_str(o),
+                py_str(rec)
+            ));
+        }
+        notes
     }
 
     pub fn with_tz_env(mut self, env: TzEnv) -> FormMeta {
@@ -762,6 +883,19 @@ pub trait MetaSource {
         fresh: bool,
         module_id: &Json,
     ) -> Result<FormMeta>;
+
+    /// `load_meta(..., record_workspace=...)`: the edited record's own
+    /// workspace decides the rules. Sources without workspaces ignore it.
+    fn load_meta_in(
+        &self,
+        module: &str,
+        mode: &str,
+        fresh: bool,
+        module_id: &Json,
+        _record_workspace: &Json,
+    ) -> Result<FormMeta> {
+        self.load_meta(module, mode, fresh, module_id)
+    }
 }
 
 /// A lookup resolver that can also name ids it has seen (`name_for`).
@@ -787,6 +921,36 @@ pub fn load_meta(
     fresh: bool,
     module_id: &Json,
 ) -> Result<FormMeta> {
+    load_meta_in(c, store, module, mode, fresh, module_id, &Json::Null)
+}
+
+/// `load_meta(..., record=...)`: [`load_meta`] for an edited record whose own
+/// workspace ([`record_workspace_of`]) decides the rules, ahead of the global
+/// `forms.workspace_id` override.
+pub fn load_meta_for_record(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    module: &str,
+    mode: &str,
+    fresh: bool,
+    module_id: &Json,
+    record: &Json,
+) -> Result<FormMeta> {
+    let ws = record_workspace_of(record);
+    load_meta_in(c, store, module, mode, fresh, module_id, &ws)
+}
+
+/// `load_meta(..., record_workspace=...)`.
+pub fn load_meta_in(
+    c: &dyn Api,
+    store: &dyn MetaStore,
+    module: &str,
+    mode: &str,
+    fresh: bool,
+    module_id: &Json,
+    record_workspace: &Json,
+) -> Result<FormMeta> {
+    let rec_ws = record_workspace_of(&json!({ "workspace_id": record_workspace }));
     let module = module_name(module)?;
     let form_type = FORM_TYPES
         .iter()
@@ -827,8 +991,10 @@ pub fn load_meta(
         }
     };
     let configured = store.configured_workspace();
-    let ws = if truthy(&configured) {
-        configured
+    let ws = if !rec_ws.is_null() {
+        rec_ws.clone()
+    } else if truthy(&configured) {
+        configured.clone()
     } else {
         workspace_from_fields(
             fields
@@ -856,7 +1022,14 @@ pub fn load_meta(
                 module_id: module_id.clone(),
                 ..Default::default()
             };
-            let rules = load_rules(c, store, &module, std::slice::from_ref(&ws), &query)?;
+            let rules = load_rules_in(
+                c,
+                store,
+                &module,
+                std::slice::from_ref(&ws),
+                &rec_ws,
+                &query,
+            )?;
             // A 5xx is not an answer: ask again next time.
             if !rules_server_error(&rules) {
                 store.save(&ckey, "form_rules", &rules);
@@ -875,6 +1048,7 @@ pub fn load_meta(
         source,
         module_id.clone(),
     )
+    .map(|m| m.with_workspaces(rec_ws, configured))
 }
 
 // ---------------------------------------------------------------------------
@@ -2424,3 +2598,7 @@ mod tests {
         assert!(calls_of(&api).len() > before);
     }
 }
+
+#[cfg(test)]
+#[path = "formmeta_workspace_tests.rs"]
+mod workspace_tests;

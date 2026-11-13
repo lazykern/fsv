@@ -3,7 +3,6 @@ use crate::testing::{
     BASE, FakeWriter, MemJournal, acme_meta, acme_meta_id, fake_client, golden, resolver_arc,
 };
 use std::cell::RefCell;
-use std::ffi::OsString;
 use std::sync::{Mutex, MutexGuard};
 
 /// Update-plan hashes bind `config.DOMAIN`. Goldens are stamped with an empty
@@ -11,37 +10,28 @@ use std::sync::{Mutex, MutexGuard};
 static CONFIG_LOCK: Mutex<()> = Mutex::new(());
 
 struct CfgGuard {
-    prev: Option<OsString>,
     _dir: tempfile::TempDir,
     _lock: MutexGuard<'static, ()>,
 }
 
 impl Drop for CfgGuard {
     fn drop(&mut self) {
-        match &self.prev {
-            Some(v) => unsafe { std::env::set_var("FSV_CONFIG_DIR", v) },
-            None => unsafe { std::env::remove_var("FSV_CONFIG_DIR") },
-        }
-        fsv_core::config::reload();
+        crate::testing::hermetic_reset();
     }
 }
 
+/// The process config under a temp dir with `domain` (never the user's
+/// real config, also not on restore).
 fn config_guard(domain: Option<&str>) -> CfgGuard {
     let lock = CONFIG_LOCK.lock().unwrap_or_else(|p| p.into_inner());
-    let prev = std::env::var_os("FSV_CONFIG_DIR");
     let dir = tempfile::tempdir().unwrap();
+    let paths = fsv_core::Paths::under(dir.path());
+    std::fs::create_dir_all(&paths.config_dir).unwrap();
     if let Some(domain) = domain {
-        std::fs::write(
-            dir.path().join("config.json"),
-            format!("{{\"domain\": \"{domain}\"}}"),
-        )
-        .unwrap();
+        std::fs::write(&paths.config_file, format!("{{\"domain\": \"{domain}\"}}")).unwrap();
     }
-    // SAFETY: CONFIG_LOCK is held by every test that reads or writes this variable.
-    unsafe { std::env::set_var("FSV_CONFIG_DIR", dir.path()) }
-    fsv_core::config::reload();
+    fsv_core::config::use_for_tests(paths, domain.unwrap_or(""));
     CfgGuard {
-        prev,
         _dir: dir,
         _lock: lock,
     }
@@ -951,8 +941,8 @@ impl ChangeWriter for RejectWriter {
     fn get_change(&self, id: i64) -> Result<Map<String, Json>> {
         self.inner.get_change(id)
     }
-    fn edit_fingerprint(&self, module_id: &Json) -> Result<String> {
-        self.inner.edit_fingerprint(module_id)
+    fn edit_fingerprint(&self, module_id: &Json, record_workspace: &Json) -> Result<String> {
+        self.inner.edit_fingerprint(module_id, record_workspace)
     }
     fn attach_files_to_change(&self, id: &Json, paths: &[String], dup: &str) -> Result<()> {
         self.inner.attach_files_to_change(id, paths, dup)

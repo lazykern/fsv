@@ -226,7 +226,7 @@ fn ticket_approvals_table() {
 ┃ Level ┃ Approver ┃ Status    ┃ Decided             ┃ Type     ┃ Comment  ┃
 ┡━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━┩
 │ 1     │ Dee      │ approved  │ 2026-03-01T10:00:00 │ everyone │ ok by me │
-│ 2     │ 44       │ requested │ 2026-03-02T11:00:00 │ -        │          │
+│ 2     │ 44       │ requested │ 2026-03-02T11:00:00 │ -        │ -        │
 └───────┴──────────┴───────────┴─────────────────────┴──────────┴──────────┘
 "#
     );
@@ -243,7 +243,7 @@ fn ticket_approvals_csv() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
-        "level,approver,status,decided,type,comment\r\n1,Dee,approved,2026-03-01T10:00:00,everyone,ok by me\r\n2,44,requested,2026-03-02T11:00:00,-,\r\n"
+        "level,approver,approver_id,status_name,status_id,type_name,decided,comment\r\n1,Dee,,approved,,everyone,2026-03-01T10:00:00,ok by me\r\n2,44,44,requested,,,2026-03-02T11:00:00,\r\n"
     );
     assert_eq!(r.err, r#""#);
 }
@@ -341,12 +341,13 @@ fn download_ticket_main() {
 ┡━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━┩
 │ downloaded │ attachments │ log.txt │    7 │
 └────────────┴─────────────┴─────────┴──────┘
-output INC-5
+output downloads/INC-5
 "#
     );
     assert_eq!(
         r.err,
-        r#"  downloading log.txt...
+        r#"output directory: downloads/INC-5 (default ./downloads/<ID>; choose with --dir)
+  downloading log.txt...
 "#
     );
 }
@@ -364,7 +365,7 @@ fn download_ticket_all_json() {
         r#"[
   {
     "name": "log.txt",
-    "path": "INC-5/log.txt",
+    "path": "downloads/INC-5/log.txt",
     "size": 7,
     "skipped": false,
     "source": "attachments",
@@ -372,7 +373,7 @@ fn download_ticket_all_json() {
   },
   {
     "name": "reply.png",
-    "path": "INC-5/reply.png",
+    "path": "downloads/INC-5/reply.png",
     "size": 4,
     "skipped": false,
     "source": "conversations",
@@ -380,7 +381,7 @@ fn download_ticket_all_json() {
   },
   {
     "name": "attachment-93",
-    "path": "INC-5/attachment-93",
+    "path": "downloads/INC-5/attachment-93",
     "size": 5,
     "skipped": false,
     "source": "description",
@@ -388,7 +389,7 @@ fn download_ticket_all_json() {
   },
   {
     "name": "attachment-94",
-    "path": "INC-5/attachment-94",
+    "path": "downloads/INC-5/attachment-94",
     "size": 5,
     "skipped": false,
     "source": "description",
@@ -399,7 +400,8 @@ fn download_ticket_all_json() {
     );
     assert_eq!(
         r.err,
-        r#"  downloading log.txt...
+        r#"output directory: downloads/INC-5 (default ./downloads/<ID>; choose with --dir)
+  downloading log.txt...
   downloading reply.png...
   downloading attachment-93...
   downloading attachment-94...
@@ -435,7 +437,8 @@ output out
     );
     assert_eq!(
         r.err,
-        r#"  downloading reply.png...
+        r#"output directory: out (--dir)
+  downloading reply.png...
 "#
     );
 }
@@ -447,7 +450,8 @@ fn download_problem_api_error() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: HTTP 500 fetching problem: boom
+        r#"output directory: downloads/PRB-9 (default ./downloads/<ID>; choose with --dir)
+error: HTTP 500 fetching problem: boom
 "#
     );
 }
@@ -464,12 +468,13 @@ fn download_change_planning() {
 ┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━┩
 │ downloaded │ planning:rollout_plan │ plan.pdf │    9 │
 └────────────┴───────────────────────┴──────────┴──────┘
-output CHN-5
+output downloads/CHN-5
 "#
     );
     assert_eq!(
         r.err,
-        r#"  downloading plan.pdf...
+        r#"output directory: downloads/CHN-5 (default ./downloads/<ID>; choose with --dir)
+  downloading plan.pdf...
 "#
     );
 }
@@ -487,7 +492,7 @@ fn download_change_all_json() {
         r#"[
   {
     "name": "plan.pdf",
-    "path": "CHN-5/plan.pdf",
+    "path": "downloads/CHN-5/plan.pdf",
     "size": 9,
     "skipped": false,
     "source": "planning:rollout_plan",
@@ -495,7 +500,7 @@ fn download_change_all_json() {
   },
   {
     "name": "log.txt",
-    "path": "CHN-5/log.txt",
+    "path": "downloads/CHN-5/log.txt",
     "size": 7,
     "skipped": false,
     "source": "attachments",
@@ -503,7 +508,7 @@ fn download_change_all_json() {
   },
   {
     "name": "attachment-93",
-    "path": "CHN-5/attachment-93",
+    "path": "downloads/CHN-5/attachment-93",
     "size": 5,
     "skipped": false,
     "source": "description",
@@ -514,7 +519,8 @@ fn download_change_all_json() {
     );
     assert_eq!(
         r.err,
-        r#"  downloading plan.pdf...
+        r#"output directory: downloads/CHN-5 (default ./downloads/<ID>; choose with --dir)
+  downloading plan.pdf...
   downloading log.txt...
   downloading attachment-93...
 "#
@@ -540,7 +546,8 @@ fn download_change_named_planning() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: planning field not found: 'rollout'; choices: Rollout plan, Backout plan
+        r#"output directory: downloads/CHN-5 (default ./downloads/<ID>; choose with --dir)
+error: planning field not found: 'rollout'; choices: Rollout plan, Backout plan
 "#
     );
 }
@@ -556,7 +563,8 @@ fn download_change_unknown_planning() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: planning field not found: 'nope'; choices: Rollout plan, Backout plan
+        r#"output directory: downloads/CHN-5 (default ./downloads/<ID>; choose with --dir)
+error: planning field not found: 'nope'; choices: Rollout plan, Backout plan
 "#
     );
 }

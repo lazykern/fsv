@@ -496,7 +496,9 @@ pub(crate) fn choice_value(field: &Value, raw: &str, type_: &str) -> Result<Valu
         let labels = ["value", "name", "label", "requester_display_value"];
         if labels
             .iter()
-            .any(|k| pystr::casefold(&s_or(c, k)) == folded)
+            .map(|k| s_or(c, k))
+            .chain(std::iter::once(fsv_api::humanize_value(c.get("value"))))
+            .any(|x| pystr::casefold(&x) == folded)
         {
             return Ok(if type_ == "custom_field" {
                 get_or(c, "value", get_or(c, "id", Value::Null))

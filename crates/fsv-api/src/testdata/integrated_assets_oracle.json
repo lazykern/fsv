@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "ad40a517bc4cbdf16b0eb26acf87725f824c529c",
+  "commit": "3c005b61910e5e29eff3aab4287325a5d040b8cb",
   "dirty": false
  },
  "cases": {
@@ -1210,8 +1210,8 @@
    "outputs": [
     {
      "error": {
-      "type": "ReviewedWriteError",
-      "msg": "integrated inventory pagination unavailable"
+      "type": "ValueError",
+      "msg": "no results on page 2: the devices inventory has 1 row(s) (1 page(s) of 50)"
      }
     }
    ]

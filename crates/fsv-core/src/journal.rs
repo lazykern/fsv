@@ -358,6 +358,26 @@ pub struct PlanEvent<'a> {
     pub error: bool,
 }
 
+/// Port of `journal.replay_refusal`: why a journaled plan must not be sent
+/// again; `None` when it may be sent. A lone `started` keeps the caller's
+/// `unknown` text; `done` names the time the exact plan was already sent.
+pub fn replay_refusal(events: &[Value], unknown: &str) -> Option<String> {
+    let last = events.last()?;
+    match last.get("event").and_then(Value::as_str) {
+        Some("started") => Some(unknown.to_string()),
+        Some("done") => {
+            let when = last
+                .get("ts")
+                .filter(|v| truthy(v))
+                .map_or_else(|| "an earlier run".to_string(), fsv_py::py_str);
+            Some(format!(
+                "this exact plan was already sent at {when} and the server answered; nothing was sent now. Plans are single-use and this one hashes the same because the target, payload and record state are unchanged; there is no override. Make a real change (e.g. edit a field of the record, or change the requested values), then review again for a new plan hash; do not replay it"
+            ))
+        }
+        _ => None,
+    }
+}
+
 /// Append a plan event (`started`, `done`, `failed`). Never fails.
 pub fn record_plan(event: &str, plan: &str, action: &str, extra: PlanEvent<'_>) {
     let _ = try_record_plan(event, plan, action, extra);
@@ -466,6 +486,40 @@ pub fn recent_plan_rows(rows: &[Value], plan: &str, action: &str, cutoff: f64) -
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn replay_refusal_names_a_completed_plan_but_keeps_unknown_outcomes_ambiguous() {
+        assert_eq!(replay_refusal(&[], "unknown"), None);
+        assert_eq!(
+            replay_refusal(&[json!({"event": "failed"})], "unknown"),
+            None
+        );
+        assert_eq!(
+            replay_refusal(
+                &[json!({"event": "done"}), json!({"event": "started"})],
+                "sent or outcome unknown"
+            )
+            .as_deref(),
+            Some("sent or outcome unknown")
+        );
+        let text = replay_refusal(
+            &[
+                json!({"event": "started"}),
+                json!({"event": "done", "ts": "2030-01-02T03:04:05+0000"}),
+            ],
+            "x",
+        )
+        .unwrap();
+        assert!(
+            text.contains("already sent at 2030-01-02T03:04:05+0000")
+                && text.contains("nothing was sent now")
+        );
+        assert!(
+            !text.contains("outcome unknown")
+                && text.contains("no override")
+                && text.contains("review again")
+        );
+    }
 
     #[test]
     fn plan_hash_is_order_independent_and_none_for_no_body() {

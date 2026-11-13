@@ -182,7 +182,7 @@
     "field": "due_by",
     "lower": ">=",
     "upper": "<=",
-    "ok": "[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"due_by\",\"operator\":\"is_in_the_range\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}]"
+    "ok": "{\"all\":[{\"value\":{\"from\":\"2026-01-01\",\"to\":\"2026-12-31\"},\"condition\":\"due_by_date\",\"operator\":\"is_in_the_range\",\"type\":\"default\"},{\"value\":[47],\"condition\":\"status\",\"operator\":\"is_in\",\"type\":\"default\"}],\"any\":[]}"
    },
    {
     "field": "planned_start_date",
@@ -772,10 +772,10 @@
   },
   "repeated_bound": {
    "due_by=2026-01-01|due_by>=2026-02-01": {
-    "err": "two 'from' bounds for due_by; give one lower and one upper bound"
+    "err": "two 'from' bounds for due_by_date; give one lower and one upper bound"
    },
    "due_by>=2026-02-01|due_by<=2026-01-01": {
-    "err": "empty date range on due_by: from 2026-02-01 is after to 2026-01-01"
+    "err": "empty date range on due_by_date: from 2026-02-01 is after to 2026-01-01"
    }
   }
  },

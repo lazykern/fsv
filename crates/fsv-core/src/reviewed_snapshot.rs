@@ -39,13 +39,73 @@ fn signed_query(key: &str) -> bool {
     signing(key) || pystr::casefold(key) == "expires"
 }
 
+/// One pattern character under `re.IGNORECASE` (Unicode): `s` also matches
+/// `ſ`, `i` also matches `İ` and `ı`.
+fn ci_char(pattern: char, c: char) -> bool {
+    c.eq_ignore_ascii_case(&pattern)
+        || (pattern == 's' && c == '\u{17f}')
+        || (pattern == 'i' && matches!(c, '\u{130}' | '\u{131}'))
+}
+
+fn ci_prefix<'a>(text: &'a str, literal: &str) -> Option<(&'a str, &'a str)> {
+    let mut chars = text.char_indices();
+    for p in literal.chars() {
+        let (_, c) = chars.next()?;
+        if !ci_char(p, c) {
+            return None;
+        }
+    }
+    let end = chars.next().map_or(text.len(), |(i, _)| i);
+    Some(text.split_at(end))
+}
+
+fn digits(text: &str) -> &str {
+    let end = text
+        .char_indices()
+        .find(|(_, c)| pystr::decimal_value(*c).is_none())
+        .map_or(text.len(), |(i, _)| i);
+    &text[end..]
+}
+
+/// `_CDN_SHARD = ^(assets)\d+(\.freshservice\.com(?::\d+)?)$` (IGNORECASE):
+/// unsigned web-asset links rotate the CDN shard host per GET; the shard
+/// digits are dropped.
+fn cdn_shard(netloc: &str) -> Option<String> {
+    let (assets, rest) = ci_prefix(netloc, "assets")?;
+    let after = digits(rest);
+    if after.len() == rest.len() {
+        return None;
+    }
+    let (domain, port) = ci_prefix(after, ".freshservice.com")?;
+    if !port.is_empty() {
+        let num = port.strip_prefix(':')?;
+        if num.is_empty() || !digits(num).is_empty() {
+            return None;
+        }
+    }
+    Some(format!("{assets}{domain}{port}"))
+}
+
 /// Port of reviewed_snapshot._stable_url: a signed link keeps its path and
-/// non-signing query; any other link is returned unchanged.
+/// non-signing query; a rotating CDN shard host is collapsed; any other link
+/// is returned unchanged.
 fn stable_url(original: &str) -> Result<String, String> {
     let mut parsed = pystr::urlsplit(&pystr::html_unescape(original))?;
+    let shard = cdn_shard(&parsed.netloc);
+    if let Some(netloc) = &shard {
+        parsed.netloc = netloc.clone();
+    }
     let pairs = pystr::parse_qsl(&parsed.query, true);
     if !pairs.iter().any(|(k, _)| signing(k)) {
-        return Ok(original.to_string());
+        if shard.is_none() {
+            return Ok(original.to_string());
+        }
+        let result = pystr::urlunsplit(&parsed);
+        return Ok(if original.contains("&amp;") {
+            result.replace('&', "&amp;")
+        } else {
+            result
+        });
     }
     let kept: Vec<&(String, String)> = pairs.iter().filter(|(k, _)| !signed_query(k)).collect();
     parsed.query = pystr::urlencode(&kept.iter().map(|(k, v)| (k, v)).collect::<Vec<_>>());
@@ -202,6 +262,57 @@ mod tests {
             };
             assert_eq!(pystr::urlunsplit(&s), row[1].as_str().unwrap(), "{p:?}");
         }
+    }
+
+    #[test]
+    fn cdn_shard_hosts_match_python() {
+        let cases = [
+            ("assets1.freshservice.com", Some("assets.freshservice.com")),
+            (
+                "ASSETS12.FRESHSERVICE.COM:443",
+                Some("ASSETS.FRESHSERVICE.COM:443"),
+            ),
+            (
+                "a\u{17f}\u{17f}ets1.fresh\u{17f}ervice.com",
+                Some("a\u{17f}\u{17f}ets.fresh\u{17f}ervice.com"),
+            ),
+            (
+                "assets1.freshserv\u{130}ce.com",
+                Some("assets.freshserv\u{130}ce.com"),
+            ),
+            (
+                "assets\u{661}.freshservice.com:\u{663}",
+                Some("assets.freshservice.com:\u{663}"),
+            ),
+            ("assets1.freshservice.com:", None),
+            ("assets.freshservice.com", None),
+            ("assets1.freshservice.com.evil", None),
+            ("cdn.example.com", None),
+        ];
+        for (host, want) in cases {
+            assert_eq!(cdn_shard(host).as_deref(), want, "{host}");
+        }
+        let text = |n: u32, icon: &str| {
+            json!({"icon_url": format!("https://assets{n}.freshservice.com/assets/cdn-ignored/{icon}"),
+                "html": format!("<img src=\"https://assets{n}.freshservice.com/a?x=1&amp;y=2\">")})
+        };
+        let a = stable_snapshot(&text(4, "images/icons/acme.png")).unwrap();
+        assert_eq!(
+            a,
+            stable_snapshot(&text(9, "images/icons/acme.png")).unwrap()
+        );
+        assert_eq!(
+            a["icon_url"],
+            "https://assets.freshservice.com/assets/cdn-ignored/images/icons/acme.png"
+        );
+        assert_eq!(
+            a["html"],
+            "<img src=\"https://assets.freshservice.com/a?x=1&amp;y=2\">"
+        );
+        assert_ne!(
+            a,
+            stable_snapshot(&text(4, "images/icons/globex.png")).unwrap()
+        );
     }
 
     #[test]

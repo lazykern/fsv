@@ -26,7 +26,7 @@ use crate::attachments::{self, AttachedPlan, ConversationAttach, LocalFile};
 use crate::formmeta::MetaStore;
 use crate::notes::returned_note;
 use crate::reviewed_write::refused;
-use crate::service::{Api, Journal, last_event, load_conversations, obj, plan_hash};
+use crate::service::{Api, Journal, last_event, load_conversations, obj, plan_hash, replay_refusal};
 use crate::watchers::positive_id;
 
 pub const UPLOAD_PATH: &str = "solutions/inline_images";
@@ -304,13 +304,13 @@ pub fn send(
         ));
     }
     let action = &base.action;
-    if matches!(
-        last_event(journal, action, &hash).as_deref(),
-        Some("started" | "done")
+    if let Some(refusal) = replay_refusal(
+        journal,
+        action,
+        &hash,
+        "inline-image transaction was sent or outcome unknown; do not replay",
     ) {
-        return Err(refused(
-            "inline-image transaction was sent or outcome unknown; do not replay",
-        ));
+        return Err(refused(refusal));
     }
     let paths: Vec<String> = p.files().iter().map(|f| f.path.clone()).collect();
     if rebuild()?.hash() != hash || attachments::local_files(&paths, p.attached.limit)? != p.files()

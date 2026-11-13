@@ -7342,7 +7342,7 @@ fn form_fields_problems() {
 │ Impact      │ impact      │ dropdown (1) │ visible, required │      │
 │ Acme count  │ acme_count  │ number       │ visible           │      │
 └─────────────┴─────────────┴──────────────┴───────────────────┴──────┘
-choices: fsv form fields changes --choices LABEL
+choices: fsv form fields problems --choices LABEL
 "#
     );
     assert_eq!(r.err, r#""#);
@@ -12577,6 +12577,7 @@ fn where_changes_search_error() {
     );
 }
 
+/// Python `f081c97`: the raw query hash is checked before any request.
 #[test]
 fn where_tickets_raw_search_error() {
     let r = run_fixture(
@@ -12593,7 +12594,7 @@ fn where_tickets_raw_search_error() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: the tickets list rejected the filter (search_error) and returned unfiltered rows; nothing shown
+        r#"error: approval_status is not a tickets list filter (the server ignores it and returns unfiltered rows); read approval_status per record instead (e.g. `get`)
 "#
     );
 }
@@ -14492,7 +14493,8 @@ fn tickets_assets_candidates() {
       "name": "Acme laptop 2"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "legacy"
 }
 "#
     );
@@ -14516,7 +14518,8 @@ fn changes_assets_candidates() {
       "name": "Acme router C"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "legacy"
 }
 "#
     );
@@ -14544,7 +14547,8 @@ fn sr_assets_candidates() {
       "name": "Acme laptop 2"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "legacy"
 }
 "#
     );
@@ -14562,7 +14566,7 @@ fn problems_assets_candidates_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no legacy asset association for this module
+        r#"HTTP 404 listing device: no route
 "#
     );
 }
@@ -15558,7 +15562,7 @@ fn changes_approval_remind_chains_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"approval-remind: no change reminder wire was captured on the approval chains model; use the web UI
+        r#"approval-remind is not available on the approval-chains model: the only reminder accepted on a chains tenant is the service-request one (`fsv sr approvals remind`, bodyless PUT tickets/<id>/approvals/<approval id>/resend). The same web constant would build changes/<id>/approvals/<approval id>/resend, but no change reminder was ever accepted (the legacy change capture was aborted unsent), so fsv does not guess it; nothing was sent. Use the web UI: change > Approvals > the approval row menu > Send reminder
 "#
     );
 }
@@ -15573,29 +15577,18 @@ fn sr_legacy_approvals_list() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
-        r#"{
-  "model": "legacy",
-  "note": "this tenant uses legacy flat approvals (approval-chains answered HTTP 400)",
-  "approvals": [
-    {
-      "id": 601,
-      "member_id": 33,
-      "level_id": 1,
-      "status": {
-        "id": 0,
-        "name": "requested"
-      },
-      "type": {
-        "id": 1,
-        "name": "everyone"
-      },
-      "last_reminded_at": null
-    }
-  ]
-}
+        r#"┏━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━┓
+┃ Level ┃ Approver ┃ Status    ┃ Decided ┃ Type     ┃ Comment ┃
+┡━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━┩
+│ 1     │ 33       │ requested │ -       │ everyone │ -       │
+└───────┴──────────┴───────────┴─────────┴──────────┴─────────┘
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        r#"this tenant uses legacy flat approvals (approval-chains answered HTTP 400)
+"#
+    );
 }
 
 #[test]
@@ -19004,13 +18997,13 @@ fn changes_time_create_dry_run() {
   "path": "/api/_/changes/60/time_entries",
   "payload": {
     "agent_id": 9,
-    "billable": true,
+    "billable": false,
     "executed_at": "2030-01-02T09:00:00+07:00",
     "note": "Acme deploy",
     "time_spent": "00:45",
     "timer_running": false
   },
-  "plan_hash": "e81b967f00f9ee82d7e5c8ec7f63a629737464d126513a44fafeefefe7c60752",
+  "plan_hash": "bf99aee3382ce2e1ad8d921e971a72863b42cdd4f9d216df0e9f37db9eaedfc7",
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
 }
 "#
@@ -19034,6 +19027,7 @@ fn changes_time_create_send() {
             "2030-01-02T09:00:00+07:00",
             "--note",
             "Acme deploy",
+            "--billable",
             "--yes",
             "--expect-plan",
             "e81b967f00f9ee82d7e5c8ec7f63a629737464d126513a44fafeefefe7c60752",
@@ -19385,6 +19379,7 @@ fn problems_time_update_refused() {
             "75",
             "--note",
             "x",
+            "--billable",
             "--dry-run",
         ],
         None,
@@ -19393,7 +19388,7 @@ fn problems_time_update_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"problem time update has no captured accepted wire; only create/delete
+        r#"problem time update covers --spent and --note only; billable is not a captured update field
 "#
     );
 }
