@@ -66,3 +66,56 @@ def require_chains(client: Any, module: str, target: int, action: str) -> None:
     model, status = detect(client, module, target)
     if model == LEGACY:
         raise LegacyApprovalsError(f"{action} refused: {describe(status)}; {NOT_SUPPORTED}", status)
+
+
+# Keys every flat approval row carries in `tickets approvals --json` and
+# `sr approvals list --json` (added next to the native record's own keys).
+FLAT_KEYS = ("level", "approver", "approver_id", "status_name", "status_id", "type_name", "decided", "comment")
+
+
+def _named(value: Any) -> tuple[Any, str]:
+    if isinstance(value, dict):
+        return value.get("id"), str(value.get("name") or value.get("label") or "")
+    return value, ""
+
+
+def flat_row(record: Any) -> dict[str, Any]:
+    """Display fields of one flat (legacy) approval record. Status and type
+    names come from the record's own status/type objects; a record without
+    a name shows its id rather than a guessed label."""
+    a = record if isinstance(record, dict) else {}
+    remarks = a.get("remark") if isinstance(a.get("remark"), list) else []
+    remark = remarks[0] if remarks and isinstance(remarks[0], dict) else {}
+    member = a.get("member") if isinstance(a.get("member"), dict) else {}
+    status_id, status_name = _named(a.get("status"))
+    type_id, type_name = _named(a.get("type"))
+    decided = remark.get("updated_at") or a.get("updated_at")
+    return {
+        "level": a.get("level_id"),
+        "approver": member.get("name") or (str(a.get("member_id")) if a.get("member_id") is not None else ""),
+        "approver_id": a.get("member_id", member.get("id")),
+        "status_name": status_name or ("" if status_id is None else str(status_id)),
+        "status_id": status_id,
+        "type_name": type_name or ("" if type_id is None else str(type_id)),
+        "decided": str(decided)[:19] if decided else "",
+        "comment": str(remark.get("data") or ""),
+    }
+
+
+def with_flat(records: Any) -> list[dict[str, Any]]:
+    """Native records with the :data:`FLAT_KEYS` added (native keys kept)."""
+    return [{**r, **flat_row(r)} for r in records or [] if isinstance(r, dict)]
+
+
+def flat_table(records: Any, title: str | None = None) -> Any:
+    from rich.markup import escape
+    from rich.table import Table
+    t = Table(title=title)
+    for col in ("Level", "Approver", "Status", "Decided", "Type", "Comment"):
+        t.add_column(col, overflow="fold")
+    for r in records or []:
+        row = flat_row(r)
+        t.add_row(*(escape(str(x if x not in (None, "") else "-")) for x in
+                    (row["level"], row["approver"], row["status_name"], row["decided"], row["type_name"],
+                     row["comment"] or "")))
+    return t

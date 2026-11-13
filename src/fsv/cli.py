@@ -2394,33 +2394,11 @@ def ticket_approvals_resource(id_: str, format_: OutputFormat | str = "table", j
                 hint += "; INC tickets often do not expose approvals, try SR or another approval-capable ticket"
             _err(hint)
         _err_exc(e)
-    def _flat(a: dict) -> dict:
-        remark = (a.get("remark") or [{}])[0]
-        decided = remark.get("updated_at") or a.get("updated_at") or "-"
-        return {
-            "level": str(a.get("level_id", "-")),
-            "approver": (a.get("member") or {}).get("name") or str(a.get("member_id", "-")),
-            "status": (a.get("status") or {}).get("name") or "-",
-            "decided": decided[:19] if decided != "-" else "-",
-            "type": (a.get("type") or {}).get("name") or "-",
-            "comment": remark.get("data") or "",
-        }
-    if _emit_fmt(items, [_flat(a) for a in items], format_, json_out):
+    from fsv import approval_model
+    flat = [{k: approval_model.flat_row(a)[k] for k in approval_model.FLAT_KEYS} for a in items]
+    if _emit_fmt(approval_model.with_flat(items), flat, format_, json_out):
         return
-    t = Table()
-    t.add_column("Level", style="cyan")
-    t.add_column("Approver")
-    t.add_column("Status")
-    t.add_column("Decided")
-    t.add_column("Type")
-    t.add_column("Comment")
-    for a in items:
-        member = (a.get("member") or {}).get("name") or str(a.get("member_id", "-"))
-        raw_status = (a.get("status") or {}).get("name") or "-"
-        decided = ((a.get("remark") or [{}])[0]).get("updated_at") or a.get("updated_at") or "-"
-        comment = ((a.get("remark") or [{}])[0]).get("data") or ""
-        atype = (a.get("type") or {}).get("name") or "-"
-        t.add_row(str(a.get("level_id", "-")), member, raw_status, decided[:19] if decided != "-" else "-", atype, comment)
+    t = approval_model.flat_table(items)
     console.print(t)
 
 

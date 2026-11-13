@@ -111,3 +111,31 @@ def test_sr_listing_uses_flat_list(legacy):
     out = json.loads(r.stdout)
     assert out["model"] == "legacy" and "legacy flat approvals" in out["note"]
     assert [a["id"] for a in out["approvals"]] == [710000000001]
+
+
+def test_ticket_and_sr_flat_approvals_share_rows_and_print_status_names(legacy, monkeypatch):
+    from fsv import approval_model, render
+    monkeypatch.setattr(render.console, "width", 200)
+    decided = dict(FLAT[0], id=710000000002, level_id=2, status={"id": 1, "name": "Genehmigt"},
+                   remark=[{"delegate_id": None, "status": 1, "updated_at": "2030-01-02T03:04:05Z", "data": "ok [x]"}])
+    FLAT.append(decided)
+    try:
+        runner = CliRunner()
+        tickets = runner.invoke(cli.app, ["tickets", "approvals", "SR-123", "--json"])
+        sr = runner.invoke(cli.app, ["sr", "approvals", "list", "SR-123", "--json"])
+        assert tickets.exit_code == 0 and sr.exit_code == 0, tickets.output + sr.output
+        rows_t = json.loads(tickets.stdout)
+        rows_s = json.loads(sr.stdout)["approvals"]
+        for rows in (rows_t, rows_s):
+            assert [r["status_name"] for r in rows] == ["requested", "Genehmigt"]
+            assert rows[1]["decided"] == "2030-01-02T03:04:05" and rows[1]["comment"] == "ok [x]"
+            assert rows[0]["member_id"] == 9000003001  # native keys stay
+        assert [{k: r[k] for k in approval_model.FLAT_KEYS} for r in rows_t] == \
+            [{k: r[k] for k in approval_model.FLAT_KEYS} for r in rows_s]
+        for args in (["tickets", "approvals", "SR-123"], ["sr", "approvals", "list", "SR-123"]):
+            table = runner.invoke(cli.app, args)
+            flat = " ".join(table.stdout.split())
+            assert table.exit_code == 0 and "Acme Approver" in flat and "Genehmigt" in flat and "ok [x]" in flat
+            assert "requested" in flat
+    finally:
+        FLAT.remove(decided)

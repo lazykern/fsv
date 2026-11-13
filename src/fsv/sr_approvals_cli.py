@@ -14,7 +14,19 @@ def register(app: typer.Typer, factory: Callable[[], Any]) -> None:
     @group.command("list")
     def listing(target: str, json_out: bool = typer.Option(False, "--json")) -> None:
         from fsv.resources import parse_id, TICKETS
-        guard(lambda: typer.echo(json.dumps(approvals.listing(factory(), parse_id(target, TICKETS)), indent=2)))
+        def run() -> None:
+            from fsv import approval_model
+            out = approvals.listing(factory(), parse_id(target, TICKETS))
+            if "approvals" in out:  # the flat (legacy) list: same row keys as `tickets approvals`
+                out = {**out, "approvals": approval_model.with_flat(out["approvals"])}
+            if json_out or "approvals" not in out:
+                typer.echo(json.dumps(out, indent=2))
+                return
+            from fsv.render import console, err
+            console.print(approval_model.flat_table(out["approvals"]))
+            if out.get("note"):
+                err.print(f"[dim]{out['note']}[/dim]", highlight=False)
+        guard(run)
 
     def legacy(c, target):
         from fsv import approval_model
