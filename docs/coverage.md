@@ -13,9 +13,9 @@ plans, roles, forms and workflows differ (see the
 |---|---|---|---|---|---|
 | Tickets | 88 | 51 | 35 | 1 | 1 |
 | Changes | 53 | 36 | 13 | 3 | 1 |
-| Problems and service requests | 62 | 42 | 19 | 1 | 0 |
+| Problems and service requests | 63 | 42 | 20 | 1 | 0 |
 | Cross-cutting | 74 | 36 | 37 | 1 | 0 |
-| **All** | **277** | **165** | **104** | **6** | **2** |
+| **All** | **278** | **165** | **105** | **6** | **2** |
 
 N/A rows are local commands with no wire. Counts are per row: a few commands
 appear both in their module table and in the cross-cutting table.
@@ -253,7 +253,8 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | problems assets add | `PUT problems/{id}/associate-ci {device_ids\|service_ids ints}` | UNSURE | stale (re-test) | no | none | test_integrated_assets.py, test_asset_association_driver.py, test_legacy_asset_association.py, test_asset_picker.py, test_tui_inventory_writes.py | Needs seeded CMDB devices or services on the test tenant. |
 | problems assets remove | `PUT problems/{id}/disassociate-ci {cmdb_request_id per-record}` | UNSURE | stale (re-test) | no | none | test_integrated_assets.py, test_asset_association_driver.py, test_legacy_asset_association.py, test_asset_picker.py, test_tui_inventory_writes.py | Needs seeded CMDB devices or services on the test tenant. |
 | problems time list | `GET problems/{id}/time_entries` | UNSURE | yes (read) | n/a | read-verified | test_module_time_problem_tasks.py | Read ran live but returned no rows; needs a populated fixture. |
-| problems time write create\|delete | `POST problems/{id}/time_entries; DELETE problems/{id}/time_entries/{eid} (update action rejected for problems…` | COVERED | yes | yes | none | test_module_time_problem_tasks.py | Live send verified by an independent readback. |
+| problems time update ENTRY --spent --note | `PUT problems/{id}/time_entries/{eid} {time_spent, note}` | UNSURE | no | no | capture-only | test_module_time_problem_tasks.py | Wire captured; fsv offline only. |
+| problems time write create\|delete | `POST problems/{id}/time_entries; DELETE problems/{id}/time_entries/{eid} (update: see the row above)…` | COVERED | yes | yes | none | test_module_time_problem_tasks.py | Live send verified by an independent readback. |
 | solutions create | `POST solutions/articles` | COVERED | yes | yes | none | test_solutions.py, test_solution_unlink_http.py | Live send verified by an independent readback. |
 | solutions delete | `DELETE solutions/articles/{id} (trash)` | COVERED | yes | yes | none | test_record_delete.py | Live send verified by an independent readback. |
 | solutions delete-forever | `DELETE solutions/articles/{id}/delete_forever` | COVERED | yes | yes | none | test_record_delete.py | Live send verified by an independent readback. |

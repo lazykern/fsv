@@ -1,4 +1,4 @@
-"""Captured self-owned change time CRUD and problem time create/delete only."""
+"""Captured self-owned change and problem time-entry create, update and delete."""
 from __future__ import annotations
 
 import json
@@ -36,8 +36,11 @@ def build_plan(client: Any, module: str, target: str | int, *, action: str, entr
                spent: str | None = None, executed_at: str | None = None, note: str | None = None, billable: bool | None = None) -> WritePlan:
     if action not in {"create", "update", "delete"}:
         raise ValueError("unsupported time-entry action")
-    if module not in {"changes", "problems"} or (module == "problems" and action == "update"):
-        raise ValueError("problem time update has no captured accepted wire; only create/delete")
+    if module not in {"changes", "problems"}:
+        raise ValueError("unsupported time-entry module")
+    if module == "problems" and action == "update" and billable is not None:
+        # The captured problem update sends only time_spent and note.
+        raise ValueError("problem time update covers --spent and --note only; billable is not a captured update field")
     if billable is not None and type(billable) is not bool:
         raise ValueError("billable must be boolean")
     cid = positive_id(parse_id(str(target), CHANGES if module == "changes" else PROBLEMS))

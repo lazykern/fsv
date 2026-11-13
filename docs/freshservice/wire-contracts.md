@@ -243,7 +243,7 @@ Pitfalls:
 |---|---|---|---|---|
 | Add (manual) | `POST /api/_/<module>/<id>/time_entries` | `executed_at`, `timer_running: false`, `billable`, `time_spent: "hh:mm"`, `note`, `agent_id` | 201 `{time_entry}` | VERIFIED LIVE (tickets, problems, changes) |
 | Start timer | same path | same without `time_spent`, `timer_running: true` | not delivered | CAPTURED |
-| Update | `PUT /api/_/<module>/<id>/time_entries/<entry id>` | changed fields | 200 | VERIFIED LIVE |
+| Update | `PUT /api/_/<module>/<id>/time_entries/<entry id>` | changed fields (problems: `{"time_spent": "hh:mm", "note"}`; readback returns `time_spent` as `hh:mm:ss`) | 200 | VERIFIED LIVE (problems: CAPTURED) |
 | Delete | `DELETE /api/_/<module>/<id>/time_entries/<entry id>` | none | 204 | VERIFIED LIVE |
 
 `time_spent` comes back as `00:01:00` internally and `00:01` from

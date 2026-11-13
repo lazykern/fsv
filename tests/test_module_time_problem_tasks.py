@@ -96,8 +96,14 @@ def test_self_time_crud_exact_wires(api, module):
         assert q.payload == {"billable": False, "time_spent": "00:02", "note": "Updated"}
         assert module_time.send(q, c, reviewed_hash=q.hash)["verified"]
     else:
-        with pytest.raises(ValueError, match="no captured"):
-            module_time.build_plan(c, module, 123, action="update", entry_id=456, note="No wire")
+        with pytest.raises(ValueError, match="billable"):
+            module_time.build_plan(c, module, 123, action="update", entry_id=456, note="x", billable=False)
+        # Captured problem update: only time_spent and note; HH:MM:SS readback.
+        q = module_time.build_plan(c, module, 123, action="update", entry_id=456, spent="00:30", note="Acme edited")
+        assert (q.method, q.path, q.payload) == ("PUT", "problems/123/time_entries/456",
+                                                 {"time_spent": "00:30", "note": "Acme edited"})
+        assert module_time.send(q, c, reviewed_hash=q.hash)["verified"]
+        assert s["entries"][0]["time_spent"] == "00:30"
     d = module_time.build_plan(c, module, 123, action="delete", entry_id=456)
     assert module_time.send(d, c, reviewed_hash=d.hash)["verified"]
     assert s["writes"][0][1] == f"{module}/123/time_entries"
@@ -183,3 +189,18 @@ def test_time_task_cli_review_and_send(api, args):
     sent = runner.invoke(cli.app, args + ["--yes", "--expect-plan", p["plan_hash"], "--json"])
     assert sent.exit_code == 0, sent.output
     assert json.loads(sent.stdout)["verified"] and len(s["writes"]) == 1
+
+
+def test_problem_time_update_cli(api):
+    c, s = api
+    p = time_create(c, "problems")
+    module_time.send(p, c, reviewed_hash=p.hash)
+    from typer.testing import CliRunner
+    args = ["problems", "time", "update", "PRB-123", "456", "--spent", "00:45"]
+    review = CliRunner().invoke(cli.app, args + ["--dry-run"])
+    assert review.exit_code == 0, review.output
+    body = json.loads(review.stdout)
+    assert body["payload"] == {"time_spent": "00:45", "note": "Acme work"}
+    done = CliRunner().invoke(cli.app, args + ["--yes", "--expect-plan", body["plan_hash"]])
+    assert done.exit_code == 0 and json.loads(done.stdout)["verified"]
+    assert s["writes"][-1] == ("PUT", "problems/123/time_entries/456", {"time_spent": "00:45", "note": "Acme work"})

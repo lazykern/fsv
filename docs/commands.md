@@ -558,6 +558,7 @@ fsv problems notes -h
 fsv problems add-note -h
 fsv problems assets -h
 fsv problems assets list -h
+fsv problems time update -h
 fsv problems assets candidates -h
 fsv problems assets add -h
 fsv problems assets remove -h
