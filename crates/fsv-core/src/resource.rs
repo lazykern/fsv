@@ -89,7 +89,63 @@ pub fn lookup(name: &str) -> Option<&'static Resource> {
     REGISTRY.iter().copied().find(|r| r.name == name)
 }
 
-/// Accept `INC-123`, `SR-123`, `CHN-123`, `PRB-123`, or bare `123`.
+/// `DEFAULT_KIND_PREFIXES`: built-in display-id prefixes per record kind.
+/// Tenants with custom prefixes declare them in the config
+/// (`ids.<kind>_prefix`).
+pub const DEFAULT_KIND_PREFIXES: [(&str, &str); 4] = [
+    ("incident", "INC"),
+    ("service_request", "SR"),
+    ("change", "CHN"),
+    ("problem", "PRB"),
+];
+
+/// `KIND_RESOURCES`: the resource each record kind lives in.
+pub fn kind_resource(kind: &str) -> &'static str {
+    match kind {
+        "change" => "changes",
+        "problem" => "problems",
+        _ => "tickets",
+    }
+}
+
+/// `kind_prefixes` over an already loaded config: display-id prefix ->
+/// record kind (`incident`, `service request`, `change`, `problem`), the
+/// built-ins then the configured custom ones, in insertion order.
+pub fn kind_prefixes_in(cfg: &serde_json::Map<String, Value>) -> Vec<(String, String)> {
+    static PREFIX: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^[A-Za-z][A-Za-z0-9]*$").expect("regex"));
+    let mut out: Vec<(String, String)> = DEFAULT_KIND_PREFIXES
+        .iter()
+        .map(|(kind, prefix)| (prefix.to_string(), kind.replace('_', " ")))
+        .collect();
+    let ids = cfg
+        .get("ids")
+        .filter(|v| truthy(v))
+        .and_then(Value::as_object);
+    for (kind, _) in DEFAULT_KIND_PREFIXES {
+        let value = ids
+            .and_then(|m| m.get(&format!("{kind}_prefix")))
+            .and_then(Value::as_str)
+            .map(crate::pystr::strip);
+        if let Some(value) = value.filter(|v| PREFIX.is_match(v)) {
+            let key = value.to_uppercase();
+            let mapped = kind.replace('_', " ");
+            match out.iter_mut().find(|(p, _)| *p == key) {
+                Some(slot) => slot.1 = mapped,
+                None => out.push((key, mapped)),
+            }
+        }
+    }
+    out
+}
+
+/// `kind_prefixes`: [`kind_prefixes_in`] of the user's config.
+pub fn kind_prefixes() -> Vec<(String, String)> {
+    kind_prefixes_in(&crate::config::load_config())
+}
+
+/// Accept `INC-123`, `SR-123`, `CHN-123`, `PRB-123` (or a configured custom
+/// prefix of this resource), or bare `123`.
 pub fn parse_id(s: &str, resource: &Resource) -> Result<i64> {
     static ID: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"(?i)^(?:([A-Z]+)-)?(\d+)\n?$").expect("regex"));
@@ -99,7 +155,11 @@ pub fn parse_id(s: &str, resource: &Resource) -> Result<i64> {
         .ok_or_else(|| Error::value(format!("invalid id: {s}")))?;
     if let Some(prefix) = caps.get(1) {
         let prefix = prefix.as_str().to_uppercase();
-        if !resource.display_prefixes.contains(&prefix.as_str()) {
+        if !resource.display_prefixes.contains(&prefix.as_str())
+            && !kind_prefixes()
+                .iter()
+                .any(|(p, kind)| *p == prefix && kind_resource(kind) == resource.name)
+        {
             return Err(Error::value(format!(
                 "prefix {prefix} not valid for {} (expect {})",
                 resource.name,
@@ -129,6 +189,7 @@ mod tests {
 
     #[test]
     fn parse_id_accepts_prefixes_and_rejects_others() {
+        let _env = crate::testenv::isolated();
         assert_eq!(parse_id("CHN-12", &CHANGES).unwrap(), 12);
         assert_eq!(parse_id("chn-12", &CHANGES).unwrap(), 12);
         assert_eq!(parse_id(" 42 ", &TICKETS).unwrap(), 42);
@@ -186,6 +247,35 @@ mod tests {
         assert_eq!(
             TICKETS.portal_url(),
             "https://acme.freshservice.com/a/tickets"
+        );
+    }
+
+    /// tests/test_shifted_tenant.py::test_ticket_kind_comes_from_the_records_own_prefix_and_type
+    /// (the `parse_id` half).
+    #[test]
+    fn parse_id_accepts_configured_custom_prefixes() {
+        let env = crate::testenv::isolated().with_domain("acme.example.com");
+        assert!(
+            matches!(parse_id("IT-77", &TICKETS), Err(Error::Value(m)) if m == "prefix IT not valid for tickets (expect INC or SR)")
+        );
+        std::fs::write(
+            env.config_dir().join("config.json"),
+            r#"{"domain": "acme.example.com", "ids": {"incident_prefix": "IT", "service_request_prefix": "RQ", "change_prefix": " ops "}}"#,
+        )
+        .unwrap();
+        crate::config::reload();
+        assert_eq!(parse_id("it-77", &TICKETS).unwrap(), 77);
+        assert_eq!(parse_id("RQ-78", &TICKETS).unwrap(), 78);
+        assert_eq!(parse_id("OPS-5", &CHANGES).unwrap(), 5);
+        assert!(parse_id("IT-77", &CHANGES).is_err());
+        let prefixes = kind_prefixes();
+        assert_eq!(
+            prefixes[4..],
+            [
+                ("IT".to_string(), "incident".to_string()),
+                ("RQ".to_string(), "service request".to_string()),
+                ("OPS".to_string(), "change".to_string()),
+            ]
         );
     }
 }

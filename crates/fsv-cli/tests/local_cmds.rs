@@ -178,6 +178,10 @@ changes.attach_flow = (unset)  # `changes create` attachments: after-create (def
 forms.workspace_id = (unset)  # workspace whose business rules apply (default: the form metadata, else the account)
 defaults.sr_requester = (unset)  # requester email for `sr create` when --requester is not given
 tui.read_only = (unset)  # open the TUI without write actions 
+ids.incident_prefix = (unset)  # custom incident display-id prefix (default INC)
+ids.service_request_prefix = (unset)  # custom service-request display-id prefix (default SR)
+ids.change_prefix = (unset)  # custom change display-id prefix (default CHN)
+ids.problem_prefix = (unset)  # custom problem display-id prefix (default PRB)
 "#
     );
     assert_eq!(r.err, r#""#);
@@ -216,6 +220,10 @@ changes.attach_flow = (unset)  # `changes create` attachments: after-create (def
 forms.workspace_id = (unset)  # workspace whose business rules apply (default: the form metadata, else the account)
 defaults.sr_requester = (unset)  # requester email for `sr create` when --requester is not given
 tui.read_only = (unset)  # open the TUI without write actions 
+ids.incident_prefix = (unset)  # custom incident display-id prefix (default INC)
+ids.service_request_prefix = (unset)  # custom service-request display-id prefix (default SR)
+ids.change_prefix = (unset)  # custom change display-id prefix (default CHN)
+ids.problem_prefix = (unset)  # custom problem display-id prefix (default PRB)
 "#
     );
     assert_eq!(r.err, r#""#);

@@ -38,6 +38,22 @@ pub const CONFIG_KEYS: &[(&str, &str)] = &[
         "tui.read_only",
         "open the TUI without write actions [on|off]",
     ),
+    (
+        "ids.incident_prefix",
+        "custom incident display-id prefix (default INC)",
+    ),
+    (
+        "ids.service_request_prefix",
+        "custom service-request display-id prefix (default SR)",
+    ),
+    (
+        "ids.change_prefix",
+        "custom change display-id prefix (default CHN)",
+    ),
+    (
+        "ids.problem_prefix",
+        "custom problem display-id prefix (default PRB)",
+    ),
 ];
 
 /// `completion._config_load`: never writes, `{}` when unreadable.

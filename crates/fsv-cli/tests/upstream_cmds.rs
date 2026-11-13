@@ -19358,7 +19358,7 @@ fn sr_items_not_service_request() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"exact parent must be a service request
+        r#"exact parent requires a proven service request; the record's own fields do not prove it (no type or display id). A tenant with a custom display-id prefix can declare it: fsv config set ids.service_request_prefix PREFIX
 "#
     );
 }

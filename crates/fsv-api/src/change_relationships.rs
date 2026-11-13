@@ -401,9 +401,11 @@ fn build_plan_inner(c: &dyn Api, cid: i64, args: &RelArgs<'_>) -> Result<WritePl
         if args.kind == "caused-incident" && args.action == "add" {
             let record = owner_row(c, "tickets", ident)
                 .map_err(|e| refusal(e, &format!("incident {ident}")))?;
-            if crate::ticket_kind::exact_ticket_type(&Value::Object(record))? != "incident" {
-                return Err(refused("caused relationship requires a proven incident"));
-            }
+            crate::ticket_kind::require_kind(
+                &Value::Object(record),
+                crate::ticket_kind::INCIDENT,
+                "caused relationship",
+            )?;
         } else if args.action == "add" {
             let raw = c
                 .int_get(&format!("{key}/{ident}"), None)

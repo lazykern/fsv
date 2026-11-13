@@ -185,9 +185,11 @@ pub fn build_plan(
         return Err(Error::value("unsupported requested-item action"));
     }
     let parent = owner_row(c, "tickets", cid)?;
-    if crate::ticket_kind::exact_ticket_type(&Value::Object(parent.clone()))? != "service request" {
-        return Err(refused("exact parent must be a service request"));
-    }
+    crate::ticket_kind::require_kind(
+        &Value::Object(parent.clone()),
+        crate::ticket_kind::SERVICE_REQUEST,
+        "exact parent",
+    )?;
     let rows = inventory(c, cid)?;
     let empty = Map::new();
     let answers = args.answers.unwrap_or(&empty);

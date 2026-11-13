@@ -95,3 +95,40 @@ fn change_relationship_list_api_failure_is_one_line() {
         "the project relationships of CHN-123 not found (HTTP 404)\n"
     );
 }
+
+/// e12c5ea: a renamed type with a custom display-id prefix proves nothing
+/// until the tenant declares the prefix in the config.
+#[test]
+fn caused_incident_proof_uses_configured_prefix() {
+    let mut routes = change_routes();
+    routes.push(get(
+        "tickets/62",
+        json!({"ticket": {"id": 62, "display_id": 62, "type": "Fault", "human_display_id": "IT-62"}}),
+    ));
+    let env = Env::new(routes);
+    let args = [
+        "changes",
+        "relationships",
+        "write",
+        "CHN-123",
+        "caused-incident",
+        "add",
+        "--item",
+        "62",
+        "--dry-run",
+    ];
+    let r = env.run(&args);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(
+        r.err,
+        "caused relationship requires a proven incident; the record's own fields do not prove it \
+         (type='Fault', human_display_id='IT-62'). A tenant with a custom display-id prefix can \
+         declare it: fsv config set ids.incident_prefix PREFIX\n"
+    );
+    let set = env.run(&["config", "set", "ids.incident_prefix", "IT"]);
+    assert_eq!(set.code, 0, "{}", set.err);
+    let r = env.run(&args);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.json()["path"], "/api/_/changes/123/tickets/associate");
+    assert!(r.writes().is_empty());
+}
