@@ -3945,6 +3945,8 @@ def _make_subapp(res: Resource) -> typer.Typer:
     if res.name == "changes":
         from fsv.asset_picker_cli import register as register_asset_picker
         register_asset_picker(sub, lambda: _client())
+        from fsv.private_view_cli import register as register_change_private_views
+        register_change_private_views(sub, lambda: _client(), "changes")
     if res.name == "problems":
         from fsv.problem_cli import register as register_problem
         register_problem(sub, lambda: _client())

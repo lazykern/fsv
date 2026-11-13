@@ -220,7 +220,8 @@ fsv tickets assets list INC-1234
 fsv tickets columns list
 fsv tickets canned folders
 fsv tickets scenarios list
-fsv tickets private-views show -h
+fsv tickets private-views list
+fsv changes private-views list
 fsv tickets time list INC-1234
 ```
 
@@ -386,6 +387,10 @@ fsv changes -h
 fsv changes ls -h
 fsv changes get -h
 fsv changes activity -h
+fsv changes private-views -h
+fsv changes private-views list -h
+fsv changes private-views show -h
+fsv changes private-views write -h
 fsv changes tasks -h
 fsv changes tasks-add -h
 fsv changes approval-request -h
@@ -477,6 +482,7 @@ fsv tickets tasks update -h
 fsv tickets tasks status -h
 fsv tickets tasks delete -h
 fsv tickets private-views -h
+fsv tickets private-views list -h
 fsv tickets private-views show -h
 fsv tickets private-views write -h
 fsv tickets canned -h

@@ -541,8 +541,11 @@ Other filter facts:
 | Feature | Request | Payload | Proof |
 |---|---|---|---|
 | View definitions | `GET /api/_/ticket_filters`, `GET /api/_/ticket_filters/<id>`, `GET /api/_/change-filters` | → `{ticket_filter: {query_hash, advanced, ...}}` | VERIFIED LIVE |
-| Private view create | `POST /api/_/ticket_filters` | `{name, workspace_id, visibility, query_hash: [...]}` (visibility 3 meant "only me" there; VERIFIED LIVE read-only on another tenant: `GET /api/_/ticket_filters/<id>` returns only a numeric `visibility` with no label, the list omits it, and `GET /api/_/ticket_filters/new` exposes no visibility options, so fsv cannot prove "only me" from metadata and fails closed) | VERIFIED LIVE |
+| Private view create | `POST /api/_/ticket_filters` → 201 | `{name, workspace_id, visibility, query_hash: [..., {condition: "workspace_id", operator: "is", value: [{id: N}], type: "default"}], advanced_query_hash: null, order_by: "created_at", order_type: "desc"}` | VERIFIED LIVE |
 | Private view edit / delete | `PUT /api/_/ticket_filters/<id>`, `DELETE /api/_/ticket_filters/<id>` | same body / none | VERIFIED LIVE |
+| Visibility codes | "Save as" dialog radios (tickets and changes) | Myself = 3, All agents = 1, Agents in groups = 2. Exact reads return only the number (no label); the list rows carry only `{id, name, user_id, default, advanced}` plus `meta.editable_filter_ids` | CAPTURED |
+| Private view read | `GET /api/_/ticket_filters/<id>` | `{id, name, default: false, visibility: 3, user_id, group_id: null, group_ids: [], query_hash, advanced_query_hash, order_by, order_type, meta: {workspace_id: [{id, name}]}}`: **no top-level `workspace_id`**, and the workspace condition reads back as a string (`value: "N"`), not the write form | CAPTURED |
+| Change private view create | `POST /api/_/change-filters` → 200 | `{name, workspace_id, visibility: 3, query_hash: null, advanced_query_hash: {all: [..., {condition: "workspace_id", operator: "is", value: N, type: "default"}]}, order_by, order_type}`; read `GET /api/_/change-filters/<id>` → `{change_filter: {..., visibility, user_id, group_ids: [], default: false}}`. Rename/delete wires for change views are not captured | CAPTURED |
 | Column selection | `POST /api/_/<tickets\|changes\|problems>/headers` | `{"columns": {<key>: <position>}, "frozen_columns": [...]}` | CAPTURED |
 | Export | `POST /api/_/<module>/export` | `{format: "csv", date_filter: 30, export_fields: {<key>: <label>}, ...}` | CAPTURED (job and delivery, possibly by email, unknown) |
 

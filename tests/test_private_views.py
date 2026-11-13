@@ -130,6 +130,6 @@ def test_numeric_only_visibility_refusal_names_the_checked_endpoints(wire):
     with pytest.raises(ReviewedWriteError) as exc:
         views.build_plan(wire["client"], 701, action="create", name="Acme")
     message = str(exc.value)
-    assert "GET /api/_/ticket_filters/701 returns only numeric visibility 1" in message
-    assert "GET /api/_/ticket_filters/new" in message and "Nothing was sent" in message
+    assert "GET /api/_/ticket_filters/701 returns visibility 1 (All agents)" in message
+    assert "Myself (3)" in message and "Nothing was sent" in message
     assert "\n" not in message and not wire["writes"]

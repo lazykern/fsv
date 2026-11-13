@@ -576,30 +576,49 @@ responses without claiming to exhaust any undocumented pagination.
 All tests use synthetic sources and offline transports. Blocked browser wires
 establish shape only, not accepted live sends or portable template schemas.
 
-## Private ticket views
+## Private ticket and change views
 
 ```sh
+fsv tickets private-views list --json
 fsv tickets private-views show 701 --json
 fsv tickets private-views write 701 create --name 'Acme personal queue' --dry-run --json
-fsv tickets private-views write 702 edit --name 'Acme renamed queue' --dry-run --json
+fsv tickets private-views write 702 rename --name 'Acme renamed queue' --dry-run --json
 fsv tickets private-views write 702 delete --dry-run --json
+fsv changes private-views list --json
+fsv changes private-views write 711 create --name 'Globex my changes' --dry-run --json
 ```
 
-`create` clones the source's ordinary query and workspace unchanged; `edit`
-renames an exact view. Every action requires fresh self ownership, an explicitly
-false default flag, and named private visibility metadata (`Me`, `Only me`, or
-`Private`). The numeric visibility enum is taken from that runtime metadata,
-never hardcoded. If an account exposes only a number, mutation is **blocked**;
-this adapter does not infer privacy from ownership. Synthetic metadata tests do
-not prove that every account exposes those labels. Shared/default views,
-advanced queries, arbitrary filter edits and other sort modes remain unsupported.
+`create` clones the source view's conditions; `rename` (alias `edit`) renames
+an exact ticket view. A view is treated as private only when a fresh exact read
+shows it owned by the signed-in agent, an explicitly false default flag, no
+system flag, an empty `group_ids` list, and visibility code 3. The codes come
+from the web UI's "Save as" radios, identical for tickets and changes:
+Myself = 3, All agents = 1, Agents in groups = 2. Exact reads carry only the
+number; a label, when an account exposes one, must name a private visibility.
+`show` prints the read plus whether fsv treats the view as private and why not.
+`list` filters the list to your own non-default views (the list has no
+visibility).
+
+The workspace comes from the read: the exact view read has no top-level
+`workspace_id`, so fsv takes the one workspace that the read's
+`meta.workspace_id` and its workspace condition agree on, and refuses when
+they disagree or are missing. The workspace condition is rewritten into the
+form the UI sends (tickets: `value: [{"id": N}]`; changes: `value: N`), while
+the read returns a string. Other conditions are cloned unchanged. Change views
+use `query_hash: null` with `advanced_query_hash: {"all": [...]}`. Only
+created-at descending views are supported.
+
+Change views: only `create` (`POST /api/_/change-filters`) has a captured
+wire; `rename` and `delete` are refused with "not captured" and nothing is
+sent.
 
 Use `--yes --expect-plan FULL_HASH` after each review. Source/target drift blocks
 sending. Creation requires the exact returned view ID and reads that object,
-never a same-name or latest match. Deletion requires both exact-target 404 (also
-HTML/empty responses) and absence from a complete inventory. Ambiguous write
-outcomes keep the durable single-attempt guard. The captured private lifecycle
-was accepted, but these adapters were exercised offline only.
+never a same-name or latest match; the readback compares name, visibility,
+workspace, order and the conditions (workspace condition compared by id).
+Deletion requires both exact-target 404 (also HTML/empty responses) and absence
+from a complete inventory. Ambiguous write outcomes keep the durable
+single-attempt guard. Tests use synthetic native read shapes offline.
 
 ## Problem workflows
 

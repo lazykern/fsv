@@ -11,11 +11,11 @@ plans, roles, forms and workflows differ (see the
 
 | Area | Rows | COVERED | UNSURE | GAP | N/A |
 |---|---|---|---|---|---|
-| Tickets | 79 | 50 | 26 | 2 | 1 |
+| Tickets | 80 | 51 | 26 | 2 | 1 |
 | Changes | 53 | 36 | 12 | 4 | 1 |
 | Problems and service requests | 62 | 42 | 19 | 1 | 0 |
-| Cross-cutting | 73 | 35 | 37 | 1 | 0 |
-| **All** | **267** | **163** | **94** | **8** | **2** |
+| Cross-cutting | 74 | 36 | 37 | 1 | 0 |
+| **All** | **269** | **165** | **94** | **8** | **2** |
 
 N/A rows are local commands with no wire. Counts are per row: a few commands
 appear both in their module table and in the cross-cutting table.
@@ -49,7 +49,6 @@ Needs seeding on the test tenant before a live proof is possible:
   changes, problems and service requests; device on ticket create);
 * ticket templates (template list/show and `create --template`);
 * canned responses with placeholders (`tickets canned reply`);
-* private-view metadata (private view create/rename/delete).
 
 Blocked (no accepted wire or not reachable from a test tenant):
 
@@ -132,8 +131,9 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets scenarios list/show | `GET /api/_/scenario_automations` | UNSURE | yes (read) | n/a | read-verified | test_canned.py | Read verified live; row-by-row comparison with the web UI pending. |
 | tickets scenarios apply | `PUT /api/_/tickets/execute_scenario` | UNSURE | yes | yes | none | test_canned.py | Partial live proof; a scenario may run workflows and send mail. |
 | tickets views | `GET /api/_/ticket_filters` | UNSURE | yes (read) | n/a | read-verified | test_views_cli.py, test_tui_views.py | Read verified live; row-by-row comparison with the web UI pending. |
-| tickets private-views show | `GET /api/_/ticket_filters/{id}` | UNSURE | yes (read) | n/a | read-verified | test_private_views.py | Read verified live; needs a UI-created private view to compare. |
-| tickets private-views write create/edit/delete | `POST\|PUT\|DELETE /api/_/ticket_filters[/{id}]` | UNSURE | no | no | none | test_private_views.py | Needs private-view metadata (a UI-created private view). |
+| tickets private-views show | `GET /api/_/ticket_filters/{id}` | COVERED | yes (read) | n/a | read-verified | test_private_views.py, test_private_views_native.py | Live read of a UI-created private view (visibility 3, empty group_ids). |
+| tickets private-views list | `GET /api/_/ticket_filters` | UNSURE | no | n/a | none | test_private_views_native.py | New: own non-default views from the list; offline only. |
+| tickets private-views write create/rename/delete | `POST\|PUT\|DELETE /api/_/ticket_filters[/{id}]` | UNSURE | no | no | none | test_private_views.py, test_private_views_native.py | Privacy now read from the captured Myself code and the workspace from the read's meta; not re-run live since this change. |
 | tickets columns list | `GET /api/_/tickets/headers` | UNSURE | yes (read) | n/a | read-verified | test_list_preferences.py, test_views_cli.py | Read verified live; row-by-row comparison with the web UI pending. |
 | tickets columns set | `POST /api/_/tickets/headers` | COVERED | yes | yes | none | test_list_preferences.py | Live send verified by an independent readback. |
 | tickets export | `POST /api/_/tickets/export` | UNSURE | no (dry-run only) | no | none | test_list_preferences.py | Review-only by design: a send emails data to the signed-in agent and cannot be undone. |
@@ -300,8 +300,9 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets views | `GET /api/_/ticket_filters` | UNSURE | yes (read) | n/a | read-verified | test_views_cli.py, test_search_routing.py | Read verified live; row-by-row comparison with the web UI pending. |
 | changes views | `GET /api/_/change-filters` | UNSURE | yes (read) | n/a | read-verified | test_views_cli.py | Read verified live; row-by-row comparison with the web UI pending. |
 | problems views | `GET /api/_/problem-filters` | UNSURE | yes (read) | n/a | read-verified | test_views_cli.py | Read verified live; row-by-row comparison with the web UI pending. |
-| tickets private-views show | `GET ticket_filters/{id}` | UNSURE | yes (read) | n/a | capture-only | test_private_views.py | Read verified live; needs a UI-created private view to compare. |
-| tickets private-views write clone\|rename\|delete | `POST ticket_filters; PUT/DELETE ticket_filters/{id}` | UNSURE | no | no | none | test_private_views.py | Needs private-view metadata (a UI-created private view). |
+| tickets private-views show | `GET ticket_filters/{id}` | COVERED | yes (read) | n/a | capture-only | test_private_views.py, test_private_views_native.py | Live read of a UI-created private view. |
+| tickets private-views write clone\|rename\|delete | `POST ticket_filters; PUT/DELETE ticket_filters/{id}` | UNSURE | no | no | none | test_private_views.py, test_private_views_native.py | Not re-run live since privacy and workspace reading changed. |
+| changes private-views list/show/write create | `GET change-filters[/{id}]; POST change-filters` | UNSURE | no | no | capture-only | test_private_views_native.py | Create wire captured from the UI; offline only. Rename/delete refused: no captured wire. |
 | --view NAME / default view | `filters_path GET then list GET` | UNSURE | yes (read) | n/a | read-verified | test_views_cli.py | Read verified live; row-by-row comparison with the web UI pending. |
 | tickets columns list | `GET /api/_/tickets/headers` | COVERED | yes (read) | n/a | capture-only | test_list_preferences.py | Live read verified. |
 | tickets columns set | `POST /api/_/tickets/headers (ordered map + frozen_columns); shared account pref` | COVERED | yes | yes | capture-only | test_list_preferences.py | Live send verified by an independent readback. |
