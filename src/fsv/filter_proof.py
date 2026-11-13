@@ -56,12 +56,36 @@ def _scalar(value: Any) -> Any:
     return str(value)
 
 
+_NUMBER_OPS = {"is", "is_not", "is_greater_than_or_equal", "is_less_than_or_equal"}
+
+
+def _number_matches(row: dict[str, Any], name: str, op: str, value: Any) -> bool:
+    """Captured custom_number wire: string value, inclusive comparisons."""
+    from decimal import Decimal, InvalidOperation
+    source = row.get("custom_fields")
+    if not isinstance(source, dict) or name not in source:
+        raise ValueError(f"predicate field unavailable in exact record: {name!r}")
+    actual = source[name]
+    if actual is None or isinstance(actual, bool) or not isinstance(value, str):
+        raise ValueError(f"predicate cannot be independently verified for {name!r}")
+    try:
+        a, e = Decimal(str(actual)), Decimal(value)
+    except InvalidOperation:
+        raise ValueError(f"predicate cannot be independently verified for {name!r}") from None
+    return {"is": a == e, "is_not": a != e, "is_greater_than_or_equal": a >= e,
+            "is_less_than_or_equal": a <= e}[op]
+
+
 def matches(row: dict[str, Any], clauses: list[dict[str, Any]]) -> bool:
     if not clauses:
         raise ValueError("empty predicate cannot authorize a filtered write")
     for clause in clauses:
         name, kind = clause.get("condition"), clause.get("type")
         op, values = clause.get("operator"), clause.get("value")
+        if op in _NUMBER_OPS and kind == "custom_field" and isinstance(name, str):
+            if not _number_matches(row, name, op, values):
+                return False
+            continue
         if not isinstance(name, str) or kind not in {"default", "custom_field"} or op not in {"is_in", "is_not_in"} or not isinstance(values, list) or not values:
             raise ValueError(f"predicate cannot be independently verified for {name!r}")
         source = row.get("custom_fields") if kind == "custom_field" else row

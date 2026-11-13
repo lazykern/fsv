@@ -15,7 +15,7 @@ def test_free_text_subject_filter_fails_closed_before_listing(monkeypatch, tenan
     result = CliRunner().invoke(cli.app, ["tickets", "bulk", action, "--where", "Subject=Acme rollout",
                                           "--select-all", "--max-records", "5", *extra, *send, "--json"])
     assert result.exit_code == 2, result.output
-    assert "filter operator unavailable" in result.output
+    assert "no list filter exists" in result.output
     assert not world.calls("/api/_/tickets")
     assert not world.writes()
 

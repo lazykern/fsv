@@ -21,6 +21,9 @@ def selection(client: Any, ids: list[str], where: list[str], select_all: bool, m
         if type(max_records) is not int or not 1 <= max_records <= 50:
             raise ValueError("filtered writes require --max-records N (1 to 50)")
         query, clauses, _ = build_query_hash(client, TICKETS, where)
+        if query is None or query.startswith("{"):
+            raise ValueError("filtered writes take only basic list filters (status, priority, people, groups, "
+                             "date ranges); advanced-only conditions cannot select a write")
         rows = complete_inventory(client, "tickets", "tickets",
                                   {"query_hash": query, "page": 1, "per_page": 100})
         if len(rows) > max_records:

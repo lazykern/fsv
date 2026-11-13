@@ -65,7 +65,7 @@ def test_supported_ranges_and_period_tokens_use_real_list_query_hash(monkeypatch
     result = CliRunner().invoke(cli.app, ["changes", "ls", "--where", "created_at>=2030-01-01", "--where", "created_at<=2030-02-01", "--json"])
     assert result.exit_code == 0, result.output
     items = json.loads(world.calls("/api/_/changes")[-1]["query_hash"])
-    assert items == [{"value": {"from": "2030-01-01", "to": "2030-02-01"}, "condition": "created_at", "operator": "custom_date", "type": "default"}]
+    assert items == [{"value": {"from": "2030-01-01", "to": "2030-02-01"}, "condition": "created_at", "operator": "is_in_the_range", "type": "default"}]
     result = CliRunner().invoke(cli.app, ["changes", "ls", "--where", "Created=Last 6 months", "--json"])
     assert result.exit_code == 0, result.output
     items = json.loads(world.calls("/api/_/changes")[-1]["query_hash"])
@@ -75,7 +75,7 @@ def test_supported_ranges_and_period_tokens_use_real_list_query_hash(monkeypatch
 @pytest.mark.parametrize("resource", [CHANGES, TICKETS, PROBLEMS])
 def test_subject_equality_has_no_guessed_choice_operator(resource):
     fields = {"fields": [{"name": "subject", "label": "Subject", "field_type": "default_subject", "default_field": True}]}
-    with pytest.raises(ValueError, match="operator unavailable"):
+    with pytest.raises(ValueError, match="no list filter exists"):
         query.build_query_hash_from_schema(None, resource, fields, ["Subject=Acme"])
 
 

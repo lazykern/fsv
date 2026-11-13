@@ -948,23 +948,21 @@ _WHERE_ME = {"me", "(me)", "myself"}
 _WHERE_EMPTY = {"(empty)", "empty", "unassigned", "(none)", "none", "-"}
 
 
-def _date_condition(field_name: str, op: str, raw: str, explain: list[dict[str, Any]], shown: str) -> dict[str, Any]:
-    if op in (">", "<", "!="):
-        _err(f"date operator {op!r} is not supported; use =, >= or <= (inclusive)")
+def _date_condition(field_name: str, op: str, raw: str, explain: list[dict[str, Any]], shown: str,
+                    res_name: str = "") -> dict[str, Any]:
+    from fsv import query as Q
     token = _WHERE_PERIODS.get(raw.strip().casefold(), raw.strip() if raw.strip() in _PERIOD_TOKENS else None)
     if token:
         if op not in ("=", ">="):
             _err("relative date periods support only = or >=; no inverse period wire is proven")
+        if res_name == "problems" and (token != "today" or field_name != "created_at"):
+            _err("only Created=today is a proven relative date filter on problems (other shapes returned 0 rows "
+                 "silently); use a created_at>=YYYY-MM-DD and created_at<=YYYY-MM-DD range. Nothing was sent")
         return _query_item(field_name, "is_greater_than", token, "default", explain, shown, raw)
-    if op == ">=":
-        value: Any = {"from": raw}
-    elif op == "<=":
-        value = {"to": raw}
-    elif op == "=":
-        value = {"from": raw, "to": raw}
-    else:
-        _err(f"unsupported date operator {op!r}; use = >= <=")
-    return _query_item(field_name, "custom_date", value, "default", explain, shown, raw)
+    try:
+        return Q.date_condition(res_name, field_name, op, raw, explain, shown)
+    except ValueError as exc:
+        _err(str(exc))
 
 
 def _where_schema_field(res: Resource, sch: dict[str, Any], field_text: str) -> dict[str, Any] | None:
@@ -994,7 +992,7 @@ def _resolve_where(c: Any, res: Resource, sch: dict[str, Any], expr: str, explai
     pseudo_dates = {"created_at", "updated_at", "due_by", "planned_start_date", "planned_end_date"}
     date_name = field_text if field_text in pseudo_dates else _WHERE_DATE_ALIASES.get(" ".join(field_text.split()).casefold())
     if date_name:
-        return _date_condition(date_name, op, raw, explain, field_text)
+        return _date_condition(date_name, op, raw, explain, field_text, res.name)
     if field_text.endswith("_id"):
         if op in (">", "<", ">=", "<=", "~="):
             _err(f"operator {op!r} not supported on ID fields; use = or !=")
@@ -1009,7 +1007,14 @@ def _resolve_where(c: Any, res: Resource, sch: dict[str, Any], expr: str, explai
              f"or see `fsv {res.name} fields`")
     name = f.get("name") or field_text
     if name in pseudo_dates:
-        return _date_condition(str(name), op, raw, explain, field_text)
+        return _date_condition(str(name), op, raw, explain, field_text, res.name)
+    from fsv import query as Q
+    try:
+        typed = Q.typed_condition(res.name, f, op, raw, explain, field_text)
+    except ValueError as exc:
+        _err(str(exc))
+    if typed is not None:
+        return typed
     type_ = _field_api_type(f)
     ftype = str(f.get("field_type") or "")
     from fsv.filter_proof import require_filterable_field
@@ -1063,21 +1068,8 @@ def _resolve_where(c: Any, res: Resource, sch: dict[str, Any], expr: str, explai
 
 
 def _merge_date_ranges(query: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    ranges: dict[tuple[str, str], dict[str, Any]] = {}
-    out: list[dict[str, Any]] = []
-    for item in query:
-        value = item.get("value")
-        if isinstance(value, dict) and ("from" in value or "to" in value):
-            key = (item.get("condition"), item.get("type"))
-            if key not in ranges:
-                merged = dict(item)
-                merged["value"] = {}
-                ranges[key] = merged
-                out.append(merged)
-            ranges[key]["value"].update(value)
-        else:
-            out.append(item)
-    return out
+    from fsv.query import merge_date_ranges
+    return merge_date_ranges(query)
 
 
 def _merge_same_conditions(query: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1110,7 +1102,9 @@ def _show_query_explain(explain: list[dict[str, Any]], query: list[dict[str, Any
         t.add_row(str(x["field"]), str(x["condition"]), str(x["operator"]), str(x["type"]), str(x["value"]))
     console.print(t)
     grouping = "OR" if or_grouping else "AND"
-    console.print(f"api: internal /api/_/ with query_hash ({len(query)} conditions, {grouping})")
+    from fsv.query import _adv_needed
+    param = "advanced_query_hash" if (or_grouping or _adv_needed(query)) else "query_hash"
+    console.print(f"api: internal /api/_/ with {param} ({len(query)} conditions, {grouping})")
 
 
 def _build_query_hash(
@@ -1131,14 +1125,15 @@ def _build_query_hash(
         sch = schema_mod.load(res, c)
         for expr in where:
             query.append(_resolve_where(c, res, sch, expr, explain))
+    from fsv import query as Q
     query = _merge_date_ranges(query)
     query = _merge_same_conditions(query)
     if not query:
         return None, query, explain
-    if or_grouping:
-        payload = json.dumps({"any": query}, separators=(",", ":"))
-        return payload, query, explain
-    return json.dumps(query, separators=(",", ":")), query, explain
+    advanced = or_grouping or Q._adv_needed(query)
+    payload, _adv, clean = Q.serialize(res.name, query, or_grouping,
+                                       Q.runtime_workspace(sch if where else None) if advanced else None)
+    return payload, (query if advanced else clean), explain
 
 
 def _saved_views(c: Any, res: Resource) -> list[Any]:
@@ -1205,8 +1200,11 @@ def list_resource(
     if debug:
         _show_query_explain(explanation, query, or_grouping)
         return
-    if or_grouping and res != CHANGES:
-        _err(f"OR grouping not supported for {res.name}; use AND filters")
+    from fsv.query import _adv_needed
+    advanced = bool(or_grouping or _adv_needed(query))
+    for x in explanation:
+        if "no strict operator exists" in str(x.get("value")):
+            err.print(f"note: {x['field']} {x['value']}", markup=False, highlight=False)
     view = _api(lambda: _pick_view(c, res, filter_name, use_default=not where and not raw_query_hash))
     ot = order_type.value if isinstance(order_type, SortOrder) else order_type
     ob = order_by
@@ -1231,7 +1229,7 @@ def list_resource(
                 batch, data = service.list_page(
                     res, client=c, page=p, per_page=size,
                     filter_name=view_id, order_by=ob, order_type=ot,
-                    query_hash=qh, or_grouping=or_grouping,
+                    query_hash=qh, or_grouping=advanced,
                 )
                 acc.extend(batch)
                 total, more = V.list_meta(data, batch, p, size)
@@ -1242,7 +1240,7 @@ def list_resource(
         items, data = service.list_page(
             res, client=c, page=page, per_page=size,
             filter_name=view_id, order_by=ob, order_type=ot,
-            query_hash=qh, or_grouping=or_grouping,
+            query_hash=qh, or_grouping=advanced,
         )
         total, more = V.list_meta(data, items, page, size)
         return items, schema_mod.load(res, c), total, more

@@ -191,6 +191,9 @@ fsv tui --read-only
 ```bash
 fsv tickets views
 fsv tickets ls --where status=Open --json
+fsv tickets ls --where 'created_at>=2030-01-01' --where 'created_at<=2030-01-31' --json
+fsv tickets ls --where 'created_at=last:one_week' --where 'Impact Score>=3' --json
+fsv tickets ls --where status=Open --where priority=High --or --json
 fsv tickets ls --view 'All Tickets'
 fsv tickets get INC-1234 --json
 fsv tickets activity INC-1234

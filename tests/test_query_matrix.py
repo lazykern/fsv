@@ -28,8 +28,6 @@ def sch():
     ("status!=83", "status", [83], "default", "is_not_in"),
     ("custom:Tier=701", "cf_tier", ["Gold"], "custom_field", "is_in"),
     ("cf_tier=gold", "cf_tier", ["Gold"], "custom_field", "is_in"),
-    ("Count=12", "cf_count", [12], "custom_field", "is_in"),
-    ("Count=-12", "cf_count", ["-12"], "custom_field", "is_in"),
     ("group=Acme Ops", "group_id", ["93"], "default", "is_in"),
     ("group_id!=93", "group_id", [93], "default", "is_not_in"),
     ("asset_id=external", "asset_id", ["external"], "default", "is_in"),
@@ -41,14 +39,22 @@ def test_schema_filters_produce_exact_wire_items(sch, expression, condition, val
     assert json.loads(payload) == [{"condition": condition, "value": value, "type": kind, "operator": operator}]
 
 
+@pytest.mark.parametrize("expression,value", [("Count=12", "12"), ("Count=-12", "-12")])
+def test_number_filters_use_captured_advanced_is_with_string(sch, expression, value):
+    payload = json.loads(query.build_query_hash_from_schema(None, TICKETS, sch, [expression]))
+    assert payload["all"][0] == {"condition": "cf_count", "value": value, "type": "custom_field", "operator": "is"}
+
+
 @pytest.mark.parametrize("expression,message", [
     ("status", "invalid filter"), ("unknown=x", "field not found"),
     ("status=missing", "no choice"), ("status~=review", "contains"),
     *[("status" + op + "47", "not supported") for op in (">", "<", ">=", "<=")],
     *[("group_id" + op + "93", "ID fields") for op in (">", "<", ">=", "<=", "~=")],
-    ("created_at!=2026-01-01", "not supported for date"),
-    *[("created_at" + op + "2026-01-01", "strict date operator") for op in (">", "<")],
-    ("created_at~=2026", "unsupported date operator"),
+    ("created_at!=2026-01-01", "not supported"),
+    *[("created_at" + op + "2026-01-01", "needs both ends") for op in (">", "<", ">=", "<=")],
+    ("created_at>2026-01-01T10:00", "whole day"),
+    ("created_at~=2026", "whole day"),
+    ("created_at~=2026-01-01", "not supported"),
 ])
 def test_invalid_filter_fails_locally_with_actionable_message(sch, expression, message):
     with pytest.raises(ValueError, match=message):
@@ -61,15 +67,15 @@ def test_date_bounds_are_inclusive_merged_and_do_not_erase_other_fields(sch, fie
     result = json.loads(query.build_query_hash_from_schema(None, CHANGES, sch, [
         f"{field}{lower}2026-01-01", "status=47", f"{field}{upper}2026-12-31"]))
     assert result == [
-        {"condition": field, "type": "default", "operator": "custom_date", "value": {"from": "2026-01-01", "to": "2026-12-31"}},
+        {"condition": field, "type": "default", "operator": "is_in_the_range", "value": {"from": "2026-01-01", "to": "2026-12-31"}},
         {"condition": "status", "type": "default", "operator": "is_in", "value": [47]}]
 
 
-def test_exact_date_and_last_repeated_bound_are_preserved(sch):
-    result = json.loads(query.build_query_hash_from_schema(None, CHANGES, sch, [
-        "due_by=2026-01-01", "due_by>=2026-02-01"]))
-    assert result[0]["value"] == {"from": "2026-02-01", "to": "2026-01-01"}
-    # Builder serializes the supplied range; it does not validate date ordering.
+def test_repeated_bound_and_inverted_range_are_refused(sch):
+    with pytest.raises(ValueError, match="two 'from' bounds"):
+        query.build_query_hash_from_schema(None, CHANGES, sch, ["due_by=2026-01-01", "due_by>=2026-02-01"])
+    with pytest.raises(ValueError, match="empty date range"):
+        query.build_query_hash_from_schema(None, CHANGES, sch, ["due_by>=2026-02-01", "due_by<=2026-01-01"])
 
 
 @pytest.mark.parametrize("fields,text,match", [
@@ -101,7 +107,7 @@ def test_named_people_resolve_server_ids_not_display_names(monkeypatch, sch, res
     c = SimpleNamespace(autocomplete=autocomplete)
     monkeypatch.setattr(schema, "load", lambda resource, client: sch)
     payload, items, explain = query.build_query_hash(c, res, ["requester=alex@example.com", "agent=Alex Acme"], or_grouping=True)
-    assert json.loads(payload) == {"any": items}
+    assert json.loads(payload) == {"any": items, "all": []}
     assert items[0]["value"] == [{"id": 71, "name": "Alex Acme"}]
     assert items[1]["condition"] == agent_condition and items[1]["value"] == ["171"]
     assert explain[0]["value"] == "Alex Acme (71)"

@@ -332,6 +332,7 @@ class FsvApp(App):
         items, data = service.list_page(
             res, client=c, page=requested_page, per_page=self._per_page, query_hash=query_hash,
             filter_name=view.id if view is not None else None, order_by=order_by, order_type=order_type,
+            or_grouping=bool(query_hash and query_hash.startswith("{")),
         )
         total, more = V.list_meta(data, items, requested_page, self._per_page)
         self.call_from_thread(self._accept_list, epoch, entity, requested_page, items, total, more, append)

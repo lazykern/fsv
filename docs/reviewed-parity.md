@@ -288,22 +288,48 @@ acceptance for another tenant.
 
 ## List filter limits
 
-Date `>=` and `<=` use inclusive ranges in the actual list `query_hash`.
-Strict date `>` / `<`, date `!=`, numeric inequalities and contains (`~=`)
-remain refused: the reviewed query builders have no proven exact wire for those
-operations. They are never broadened to inclusive/equality filters or sent as
-invented operator names. The captured relative-period token wire
-(`Created=Last 6 months` → `is_greater_than: six_months`) is **not** evidence for
-strict comparisons to a calendar date, arbitrary numeric inequalities, or
-contains. Relative periods support `=` / `>=` only; inverse periods fail closed.
+The filter wires follow what the web's filter panel and advanced builder send:
+
+| `--where` form | Wire | Modules |
+|---|---|---|
+| `created_at=2030-01-05` | `is_in_the_range {from: D, to: D}` | tickets, changes, problems |
+| `created_at>=A` + `created_at<=B` | `is_in_the_range {from: A, to: B}` (whole days, both ends inclusive) | tickets, changes, problems (problems: `created_at` only) |
+| `created_at>D` / `created_at<D` | shifted day boundary: `from D+1` / `to D-1` (no strict operator exists; `--debug` and a stderr note say so) | as above |
+| `created_at=on:yesterday` (`today yesterday tomorrow week month year`) | advanced `on` | tickets, changes |
+| `created_at=last:one_week` / `next:one_week` (`five_minutes one_week one_month two_months six_months one_year`) | advanced `in_the_last` / `in_the_next` | tickets, changes |
+| `Created=Last 6 months` | basic `is_greater_than six_months` | tickets, changes; problems only `Created=today` |
+| number field `= != >= <=` | advanced `is` / `is_not` / `is_greater_than_or_equal` / `is_less_than_or_equal`, string value | tickets, changes |
+| multi-select `=`/`!=` label | advanced `is_in` / `is_not_in` with the integer choice id from runtime metadata | tickets, changes |
+
+A date range needs both ends: the server answers a one-sided `{from}` or `{to}`
+with HTTP 500, so `created_at>=D` alone is refused before any request (no
+invented epoch/far-future bound). Dates are whole days (`YYYY-MM-DD`); time of
+day is refused because the server ignores it. The old `custom_date` operator is
+gone: it is not a server operator (206 `search_error` on tickets/changes, a
+silently empty list on problems). Advanced conditions go in
+`advanced_query_hash={"all":[...,workspace],"any":[]}` with an empty
+`query_hash`; `--or` puts the conditions in `any` and the workspace item in
+`all` (tickets `workspace_id is_in [{id}]`, changes `workspace_id is <id>`; the
+workspace comes from `forms.workspace_id` or the form metadata, and is omitted
+when neither names one). Problems have no advanced builder, so `--or`, relative
+`on`/`last`/`next`, number and multi-select conditions are refused there, and so
+are date fields other than `created_at`.
+
+Text fields (subject, description, custom text/paragraph) have **no** list
+filter in any list UI; `--where Subject=...` fails closed with "no list filter
+exists ... nothing was sent" and points to `fsv <module> search`. Strict number
+`>`/`<`, date `!=` and contains (`~=`) remain refused. A 206 `search_error`
+response is refused ("nothing shown") instead of showing unfiltered rows, and
+returned rows are re-checked client-side for `is_in`/`is_not_in` and number
+predicates (a warning lists contradicting IDs). Filtered bulk writes accept only
+basic `query_hash` filters.
 
 CLI and shared builders use the same strict expression grammar. Malformed
 operators (`==`, `=>`, `<>`, `~~=`), missing fields/values, controls and unmatched
 quotes are rejected, with no default-to-equality operator fallback. Quote literal
-values beginning with an operator, e.g. `--where "Subject='=Acme'"`. Unsupported
-filters stop before any list request; offline two-tenant HTTP tests assert the
-exact supported range/period query hashes and absence of broadened requests.
-Use an inclusive bound only when it matches the intended query.
+values beginning with an operator. Unsupported filters stop before any list
+request; offline two-tenant HTTP tests assert the exact query hashes and the
+absence of broadened requests.
 
 ## Ticket note edits and deletion
 
