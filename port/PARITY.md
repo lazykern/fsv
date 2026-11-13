@@ -27,8 +27,19 @@ those stay identical.
   the cache.
 - Commands that crash with a Python traceback (no domain on `url` and
   `changes associations`, `form explain --id` with a bad id, `completion
-  show powershell`) exit 1 with the same message and no traceback. The
-  exit code stays.
+  show powershell`), and an API error that escapes a command (`canned show`
+  on a 404, `problems columns list` with no route) exit 1 with the same
+  message and no traceback. The exit code stays.
+- Boolean flag pairs (`--billable/--non-billable`, `--pager/--no-pager`,
+  `--watch/--unwatch`, `--private-primary/--public-primary`, ...) complete as
+  two flags. Python's generated scripts put the pair in one word, which the
+  shell offers as a flag that does not exist. Fish gets one line per flag.
+- Help pages use clap's layout (`Usage: fsv [OPTIONS] [COMMAND]`, no Rich
+  boxes). Command and option help text, defaults, choices and examples are the
+  Python strings; `tests/tree.rs` checks them.
+- Concurrent GETs (the parallel loads in `get`, `ls`, `tabs`) can be issued
+  in a different order than Python issues them. Writes keep their order.
+  `tests/differential.rs` compares GETs as a set.
 - The TUI command palette (`ctrl+p`) is not ported. It is Textual's, not
   an fsv screen. Filter history still uses `ctrl+p` / `ctrl+n`.
 - A failed search toasts the error. In Python the worker's uncaught

@@ -1,0 +1,1256 @@
+[
+ {
+  "fixture": "auth",
+  "args": [
+   "auth",
+   "status"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "auth",
+   "logout"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "auth",
+   "logout",
+   "--yes"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "config",
+   "list"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "config",
+   "defaults",
+   "show"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "config",
+   "defaults",
+   "show",
+   "changes"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "config",
+   "defaults",
+   "show",
+   "widgets"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "config",
+   "defaults",
+   "clear",
+   "problems"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "cache",
+   "status"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "journal",
+   "ls"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "journal",
+   "tail",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "completion",
+   "doctor"
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "search",
+   "printer"
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "search",
+   "printer",
+   "-o",
+   "csv"
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "search",
+   "printer",
+   "-o",
+   "tsv"
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "search",
+   "printer",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "search",
+   "printer",
+   "--all"
+  ]
+ },
+ {
+  "fixture": "local",
+  "args": [
+   "search",
+   "printer"
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "search",
+   "zzz",
+   "-o",
+   "csv"
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "search",
+   "zzz",
+   "-o",
+   "tsv"
+  ]
+ },
+ {
+  "fixture": "auth",
+  "args": [
+   "search",
+   "zzz"
+  ]
+ },
+ {
+  "fixture": "change_fields",
+  "args": [
+   "changes",
+   "fields"
+  ]
+ },
+ {
+  "fixture": "change_fields",
+  "args": [
+   "changes",
+   "lookup",
+   "env",
+   "pr"
+  ]
+ },
+ {
+  "fixture": "change_fields",
+  "args": [
+   "changes",
+   "lookup",
+   "nope",
+   "x"
+  ]
+ },
+ {
+  "fixture": "ticket_reads",
+  "args": [
+   "tickets",
+   "conversations",
+   "5"
+  ]
+ },
+ {
+  "fixture": "ticket_reads",
+  "args": [
+   "problems",
+   "notes",
+   "7"
+  ]
+ },
+ {
+  "fixture": "ticket_reads",
+  "args": [
+   "problems",
+   "notes",
+   "8"
+  ]
+ },
+ {
+  "fixture": "ticket_reads",
+  "args": [
+   "tickets",
+   "approvals",
+   "5"
+  ]
+ },
+ {
+  "fixture": "ticket_reads",
+  "args": [
+   "tickets",
+   "approvals",
+   "INC-6"
+  ]
+ },
+ {
+  "fixture": "ticket_reads",
+  "args": [
+   "tickets",
+   "associations",
+   "5"
+  ]
+ },
+ {
+  "fixture": "ticket_reads",
+  "args": [
+   "tickets",
+   "associations",
+   "6"
+  ]
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "tickets",
+   "download",
+   "5"
+  ]
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "problems",
+   "download",
+   "9"
+  ]
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "changes",
+   "download",
+   "5"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "approvals",
+   "5"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "approvals",
+   "6"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "state",
+   "5"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "state",
+   "5",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "state",
+   "6"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "state",
+   "6",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "ls",
+   "5"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "ls",
+   "6"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "tickets",
+   "activity",
+   "5"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "tickets",
+   "activity",
+   "5",
+   "--limit",
+   "2"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "tickets",
+   "activity",
+   "5",
+   "-o",
+   "csv"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "tickets",
+   "activity",
+   "6"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "tickets",
+   "tasks-legacy",
+   "5"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "tickets",
+   "tasks-legacy",
+   "5",
+   "-o",
+   "tsv"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "changes",
+   "tasks",
+   "5"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "changes",
+   "tasks",
+   "5",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "changes",
+   "tasks",
+   "5",
+   "-o",
+   "csv"
+  ]
+ },
+ {
+  "fixture": "tabs",
+  "args": [
+   "changes",
+   "tasks",
+   "6"
+  ]
+ },
+ {
+  "fixture": "get",
+  "args": [
+   "tickets",
+   "get",
+   "5"
+  ]
+ },
+ {
+  "fixture": "get",
+  "args": [
+   "tickets",
+   "get",
+   "5",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "get",
+  "args": [
+   "tickets",
+   "get",
+   "5",
+   "-o",
+   "csv"
+  ]
+ },
+ {
+  "fixture": "get",
+  "args": [
+   "tickets",
+   "get",
+   "5",
+   "-o",
+   "tsv"
+  ]
+ },
+ {
+  "fixture": "get",
+  "args": [
+   "tickets",
+   "get",
+   "5",
+   "--tab",
+   "tasks"
+  ]
+ },
+ {
+  "fixture": "get",
+  "args": [
+   "tickets",
+   "get",
+   "5",
+   "--tab",
+   "nope"
+  ]
+ },
+ {
+  "fixture": "get",
+  "args": [
+   "tickets",
+   "get",
+   "5",
+   "--all-tabs"
+  ]
+ },
+ {
+  "fixture": "get",
+  "args": [
+   "tickets",
+   "get",
+   "9"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "get",
+   "5"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "get",
+   "7",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "change_helpers",
+  "args": [
+   "changes",
+   "get",
+   "7"
+  ]
+ },
+ {
+  "fixture": "ls",
+  "args": [
+   "tickets",
+   "ls"
+  ]
+ },
+ {
+  "fixture": "ls",
+  "args": [
+   "tickets",
+   "ls",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "ls",
+  "args": [
+   "tickets",
+   "ls",
+   "-o",
+   "csv"
+  ]
+ },
+ {
+  "fixture": "ls",
+  "args": [
+   "tickets",
+   "ls",
+   "--view",
+   "My Saved"
+  ]
+ },
+ {
+  "fixture": "ls",
+  "args": [
+   "tickets",
+   "ls",
+   "--view",
+   "nope"
+  ]
+ },
+ {
+  "fixture": "ls",
+  "args": [
+   "tickets",
+   "ls",
+   "--per-page",
+   "2",
+   "-a"
+  ]
+ },
+ {
+  "fixture": "ls",
+  "args": [
+   "tickets",
+   "ls",
+   "--npages",
+   "1"
+  ]
+ },
+ {
+  "fixture": "ls",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Status=Open"
+  ]
+ },
+ {
+  "fixture": "ls",
+  "args": [
+   "tickets",
+   "ls",
+   "--or"
+  ]
+ },
+ {
+  "fixture": "ls",
+  "args": [
+   "changes",
+   "ls"
+  ]
+ },
+ {
+  "fixture": "ls",
+  "args": [
+   "changes",
+   "ls",
+   "--view",
+   "x"
+  ]
+ },
+ {
+  "fixture": "catalog",
+  "args": [
+   "sr",
+   "catalog"
+  ]
+ },
+ {
+  "fixture": "catalog",
+  "args": [
+   "sr",
+   "catalog",
+   "--categories"
+  ]
+ },
+ {
+  "fixture": "catalog",
+  "args": [
+   "sr",
+   "catalog",
+   "--popular"
+  ]
+ },
+ {
+  "fixture": "catalog",
+  "args": [
+   "sr",
+   "catalog",
+   "-s",
+   "laptop"
+  ]
+ },
+ {
+  "fixture": "catalog",
+  "args": [
+   "sr",
+   "catalog",
+   "-c",
+   "nope"
+  ]
+ },
+ {
+  "fixture": "catalog",
+  "args": [
+   "sr",
+   "catalog",
+   "-s",
+   "zzz"
+  ]
+ },
+ {
+  "fixture": "catalog",
+  "args": [
+   "sr",
+   "fields",
+   "77"
+  ]
+ },
+ {
+  "fixture": "catalog",
+  "args": [
+   "sr",
+   "fields",
+   "78"
+  ]
+ },
+ {
+  "fixture": "catalog",
+  "args": [
+   "sr",
+   "fields",
+   "VPN Access"
+  ]
+ },
+ {
+  "fixture": "catalog",
+  "args": [
+   "sr",
+   "fields",
+   "99"
+  ]
+ },
+ {
+  "fixture": "sr_get",
+  "args": [
+   "sr",
+   "get",
+   "SR-123"
+  ]
+ },
+ {
+  "fixture": "sr_get",
+  "args": [
+   "sr",
+   "get",
+   "SR-123",
+   "-o",
+   "json"
+  ]
+ },
+ {
+  "fixture": "sr_get",
+  "args": [
+   "sr",
+   "get",
+   "123",
+   "--items"
+  ]
+ },
+ {
+  "fixture": "sr_get",
+  "args": [
+   "sr",
+   "get",
+   "123",
+   "--download",
+   "ref"
+  ]
+ },
+ {
+  "fixture": "sr_get",
+  "args": [
+   "sr",
+   "get",
+   "124"
+  ]
+ },
+ {
+  "fixture": "sr_get",
+  "args": [
+   "sr",
+   "get",
+   "124",
+   "-o",
+   "json"
+  ]
+ },
+ {
+  "fixture": "sr_get",
+  "args": [
+   "sr",
+   "get",
+   "125"
+  ]
+ },
+ {
+  "fixture": "sr_get",
+  "args": [
+   "sr",
+   "get",
+   "CHN-1"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "fields"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "fields",
+   "-o",
+   "json"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "fields",
+   "--choices",
+   "nope"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "explain"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "explain",
+   "--set",
+   "Bogus=1"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "explain",
+   "--id",
+   "12"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "explain",
+   "assets"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "dump",
+   "--mode",
+   "x"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "diff",
+   "missing.json"
+  ]
+ },
+ {
+  "fixture": "form",
+  "args": [
+   "form",
+   "explain",
+   "--id",
+   "CHN-12"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "tickets",
+   "watchers",
+   "list",
+   "INC-5"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "tickets",
+   "watchers",
+   "list",
+   "6"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "tickets",
+   "watchers",
+   "list",
+   "CHN-5"
+  ]
+ },
+ {
+  "fixture": "ticket_time",
+  "args": [
+   "tickets",
+   "time",
+   "list",
+   "INC-5"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "12"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "abc"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "0"
+  ]
+ },
+ {
+  "fixture": "asset_picker",
+  "args": [
+   "changes",
+   "asset-picker",
+   "INC-12"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "folders"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "list"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "show",
+   "703"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "show",
+   "704"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "scenarios",
+   "show",
+   "999"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "tickets",
+   "columns",
+   "list"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "changes",
+   "columns",
+   "list"
+  ]
+ },
+ {
+  "fixture": "list_prefs",
+  "args": [
+   "problems",
+   "columns",
+   "list"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "problems",
+   "create",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "form",
+   "fields",
+   "problems"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "form",
+   "explain",
+   "problems"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "form",
+   "dump",
+   "nope"
+  ]
+ },
+ {
+  "fixture": "canned",
+  "args": [
+   "tickets",
+   "canned",
+   "show",
+   "706"
+  ]
+ },
+ {
+  "fixture": "private_views",
+  "args": [
+   "problems",
+   "columns",
+   "list"
+  ]
+ },
+ {
+  "fixture": "problem_flows",
+  "args": [
+   "form",
+   "dump",
+   "problems"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "config",
+   "defaults",
+   "set",
+   "changes"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "tickets",
+   "watchers",
+   "set",
+   "5"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "tickets",
+   "bulk-priority"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "changes",
+   "lookup"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "changes",
+   "activity"
+  ]
+ },
+ {
+  "fixture": "watchers",
+  "args": [
+   "changes",
+   "tasks-update",
+   "5"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "assets",
+   "search",
+   "acme"
+  ]
+ },
+ {
+  "fixture": "integrated_assets",
+  "args": [
+   "changes",
+   "assets",
+   "5"
+  ]
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "tickets",
+   "assets",
+   "list",
+   "152"
+  ]
+ },
+ {
+  "fixture": "legacy_assets",
+  "args": [
+   "problems",
+   "assets",
+   "list",
+   "61"
+  ]
+ },
+ {
+  "fixture": "sr_approvals",
+  "args": [
+   "sr",
+   "approvals",
+   "list",
+   "SR-130"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "changes",
+   "time",
+   "list",
+   "CHN-60"
+  ]
+ },
+ {
+  "fixture": "module_time",
+  "args": [
+   "problems",
+   "time",
+   "list",
+   "PRB-63"
+  ]
+ },
+ {
+  "fixture": "sr_items",
+  "args": [
+   "sr",
+   "items",
+   "list",
+   "SR-150"
+  ]
+ },
+ {
+  "fixture": "ticket_update",
+  "args": [
+   "tickets",
+   "update",
+   "5"
+  ]
+ },
+ {
+  "fixture": "downloads",
+  "args": [
+   "changes",
+   "tasks-delete",
+   "5",
+   "3"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-cancel",
+   "5",
+   "4"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-cancel",
+   "5",
+   "9"
+  ]
+ },
+ {
+  "fixture": "review",
+  "args": [
+   "changes",
+   "approval-cancel",
+   "5",
+   "3"
+  ]
+ },
+ {
+  "fixture": "links",
+  "args": [
+   "changes",
+   "associations",
+   "pick",
+   "5"
+  ]
+ },
+ {
+  "fixture": "ticket_create",
+  "args": [
+   "tickets",
+   "create",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "change_create",
+  "args": [
+   "changes",
+   "create",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_create",
+  "args": [
+   "sr",
+   "create",
+   "77",
+   "--dry-run"
+  ]
+ },
+ {
+  "fixture": "sr_create",
+  "args": [
+   "sr",
+   "create",
+   "999",
+   "--dry-run"
+  ]
+ }
+]
