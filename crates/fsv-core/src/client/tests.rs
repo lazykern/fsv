@@ -1110,6 +1110,50 @@ fn int_request_sends_csrf_and_json() {
     assert_eq!(h.mock.gets().len(), 1, "CSRF fetched once");
 }
 
+/// Python tests/test_change_task_wire.py::test_internal_mutation_never_replayed_after_ambiguous_failure
+#[test]
+fn internal_mutation_never_replayed_after_ambiguous_failure() {
+    for method in ["POST", "PUT", "PATCH", "DELETE"] {
+        for disconnect in [false, true] {
+            let h = harness(MockTransport::new(move |r| {
+                if r.method == "GET" {
+                    Ok(Response::html(200, CSRF_PAGE))
+                } else if disconnect {
+                    Err(TransportError::new("ReadError", "synthetic disconnect"))
+                } else {
+                    Ok(Response::json(403, &json!({"error": "denied"})))
+                }
+            }));
+            let err = h
+                .client
+                .int_request(
+                    method,
+                    "changes/41/tasks",
+                    Some(&json!({"title": "Synthetic"})),
+                    None,
+                )
+                .unwrap_err();
+            if disconnect {
+                assert!(
+                    matches!(&err, Error::Http { kind, .. } if kind == "ReadError"),
+                    "{method}: {err:?}"
+                );
+            } else {
+                assert_eq!(err.status(), Some(403), "{method}");
+            }
+            let writes: Vec<_> = h
+                .mock
+                .requests()
+                .into_iter()
+                .filter(|r| r.method != "GET")
+                .collect();
+            assert_eq!(writes.len(), 1, "{method} disconnect={disconnect}");
+            assert_eq!(writes[0].header("x-csrf-token"), Some("tok&1"));
+            assert!(h.sleeps.lock().unwrap().is_empty());
+        }
+    }
+}
+
 #[test]
 fn fulltext_search_maps_sort_names() {
     let h = harness(MockTransport::new(|_| ok_json(json!({"changes": []}))));

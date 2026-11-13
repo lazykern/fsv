@@ -20,13 +20,13 @@ needs for each.
 Statuses: `ported` (Rust has the behavior), `partial` (some is missing),
 `missing` (nothing in Rust).
 
-Counts: **30 ported, 2 partial, 0 missing.** (fsv-api half of `f761a01`…`4d778c3` landed after triage; the fsv-cli/fsv-completion half after that, with goldens captured from Python `dbe553c`; see the per-commit notes.)
+Counts: **32 ported, 0 partial, 0 missing.** (fsv-api half of `f761a01`…`4d778c3` landed after triage; the fsv-cli/fsv-completion half after that, with goldens captured from Python `dbe553c`; see the per-commit notes.)
 
 ## Ledger
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `273ffde` | 11-12 00:38 | fix(writes): gate status changes and avoid replay | partial | fsv-core client and `safety.rs:132-145` ported; open: two tests (fsv-tui, fsv-core) |
+| `273ffde` | 11-12 00:38 | fix(writes): gate status changes and avoid replay | ported | fsv-core client and `safety.rs:132-145`; tests in fsv-tui `actions.rs`, fsv-core `client/tests.rs` |
 | `9d7caa9` | 11-12 00:42 | fix(updates): validate legacy choices and booleans | ported | fsv-cli `lookup.rs:346`, `:546`, `:570` |
 | `b05933f` | 11-12 00:46 | fix(tickets): align note recipients and readback | ported | fsv-api `notes.rs:24`, `:33`, `:263-302` |
 | `612c117` | 11-12 01:00 | fix(writes): retain ambiguous 403 outcomes | ported | fsv-api `service.rs:298`; fsv-flows `ticket.rs:352` |
@@ -53,7 +53,7 @@ Counts: **30 ported, 2 partial, 0 missing.** (fsv-api half of `f761a01`…`4d778
 | `f711010` | 11-12 03:51 | feat(planning): add reviewed native text saves and TUI editor | ported | fsv-api (`planning_text.rs:34`, `:132`); fsv-tui and fsv-app (`LiveBackend::planning_*`); fsv-cli `reviewed.rs` `planning_text`; fsv-completion |
 | `3057492` | 11-12 04:00 | feat(tui): edit reviewed ticket properties and SR beneficiaries | ported | fsv-api `properties.rs:218`, `:374`; fsv-tui; fsv-app `tui.rs` `ticket_property_plan` / `send_ticket_property` (`build_plan_with` / `send_with`) |
 | `f7bf04a` | 11-12 04:07 | feat(problems): add reviewed known-error mark and TUI action | ported | fsv-api (`problem_known_error.rs:36`); fsv-tui and fsv-app (`LiveBackend::known_error_plan` / `send_known_error`); fsv-cli `reviewed.rs` `mark_known_error`; fsv-completion |
-| `1dc7ab6` | 11-12 04:13 | test(writes): exercise ticket property and mail transport guards | partial | fsv-api CC re-check ported (`conversations.rs:560`); open: the HTTP tests over a real `Client` (two are `FakeApi` tests only) |
+| `1dc7ab6` | 11-12 04:13 | test(writes): exercise ticket property and mail transport guards | ported | fsv-api CC re-check (`conversations.rs:560`); HTTP tests over a real `Client` in `conversations/http_tests.rs`, `properties/http_tests.rs` |
 | `c0210a7` | 11-12 04:20 | feat(tickets): add reviewed explicit-ID bulk priority | ported | fsv-api (`bulk_priority.rs:49`, `:125`); fsv-cli `reviewed.rs` `bulk_priority`; fsv-completion |
 | `774f4f1` | 11-12 04:26 | fix(tickets): invalidate old beneficiary rule context | ported | fsv-api `properties.rs:218` |
 | `4d778c3` | 11-12 04:38 | fix(readback): compare durations and offset timestamps semantically | ported | fsv-api `readback.rs:15`, `:29`, `:50`; `properties.rs:540`, `tasks.rs:428` |
@@ -78,7 +78,7 @@ implements all of them. **Fixed:**
 Python tests are in `/Users/phusit.somb/lab/work/fsv/tests/`. Copy expected
 values from them.
 
-### `273ffde` fix(writes): gate status changes and avoid replay — partial
+### `273ffde` fix(writes): gate status changes and avoid replay — ported
 
 Ported: `Client::int_request` fetches CSRF once and never replays
 (`crates/fsv-core/src/client/mod.rs:657-675`).
@@ -92,17 +92,11 @@ confirmation)"` (`crates/fsv-core/src/safety.rs:132-145`; tests
 golden `requires_confirmation` for a non-terminal problem status is in
 `crates/fsv-cli/tests/upstream_cmds.rs:10241`.
 
-Missing (tests only):
-
-- **fsv-tui** `actions.rs`: no test that a ticket status plan to a
-  non-terminal label ("Review") carries a risk naming it. Only `Closed` is
-  pinned (`ticket_status_plan_has_no_change_footer`, `actions.rs:603`).
-  Python: `tests/test_tui_actions.py:101`.
-- **fsv-core** `client/tests.rs`: no `int_request` case for 403 and
-  disconnect × POST/PUT/PATCH/DELETE that asserts one request with
-  `X-CSRF-Token`. `fsv-api/tests/legacy_write_guards.rs:160` covers POST and
-  PUT through the legacy callers only. Python:
-  `tests/test_change_task_wire.py:34-52`.
+Done (tests): fsv-tui `actions::tests::ticket_every_status_transition_warns`
+(Python `tests/test_tui_actions.py:101`) and fsv-core
+`client::tests::internal_mutation_never_replayed_after_ambiguous_failure`
+(403 and disconnect on POST/PUT/PATCH/DELETE send once with
+`X-CSRF-Token`; Python `tests/test_change_task_wire.py:34-52`).
 
 ### `7903e2a` fix(changes): route legacy updates through reviewed form plans — ported
 
@@ -391,7 +385,7 @@ notes below are as triaged.
 Ported in fsv-tui: `a` → "Edit native planning/analysis text", section
 picker, editor, review, outcome (`reviewed.rs:394-475`, `modals.rs:1328`).
 
-Missing:
+Spec at triage (now ported):
 
 - **fsv-api** new `planning_text.rs` on `reviewed_write`:
   `PROBLEM_SECTIONS = {"root cause": "problem_cause", "impact":
@@ -459,7 +453,7 @@ Done: fsv-app `ticket_property_plan` / `send_ticket_property`
 Ported in fsv-tui: `a` → "Mark as known error", review, outcome
 (`reviewed.rs:362-396`, `app/writes.rs:197, 210`).
 
-Missing:
+Spec at triage (now ported):
 
 - **fsv-api** new `problem_known_error.rs` on `reviewed_write`: `record`
   (GET `problems/{id}`, unwrap `problem`; exact id and a **bool**
@@ -478,32 +472,18 @@ Missing:
 - **fsv-completion** (done): new command.
 - Python tests: `tests/test_problem_known_error.py` (all four).
 
-### `1dc7ab6` test(writes): exercise ticket property and mail transport guards — partial
+### `1dc7ab6` test(writes): exercise ticket property and mail transport guards — ported
 
 Done: the CC re-check in `conversations::send`
 (`crates/fsv-api/src/conversations.rs:560`, "CC recipient identity changed;
 review again"). Two Python cases are ported as `FakeApi` tests
 (`conversations.rs:1479`, `:1522`).
 
-Missing (tests only). No fsv-api test drives a real `fsv_core::Client` over
-`MockTransport` for these, so exact HTTP bytes and headers are not pinned:
-
-- `tests/test_ticket_conversation_http.py:11` exact Pending reply/note
-  contract and public consent.
-- `tests/test_ticket_conversation_http.py:47` 403/429/500/disconnect leave
-  the `started` guard.
-- `tests/test_ticket_conversation_http.py:68` Resolved/Closed need a
-  persisted note on readback.
-- `tests/test_ticket_conversation_http.py:35` and `:57` exist only as
-  `FakeApi` tests.
-- `tests/test_ticket_properties_http.py:86` exact property headers, dates,
-  token and metadata.
-- `tests/test_ticket_properties_http.py:103` ambiguous failure never
-  replayed, even with a new client.
-- `tests/test_ticket_properties_http.py:120` wrong-id/missing/contradicting
-  readback stays unverified with no resend.
-- `tests/test_ticket_properties_http.py:129` changed state or metadata
-  blocks the write.
+Done (tests): over a real `fsv_core::Client` with `MockTransport`, both
+Python tenants. `crates/fsv-api/src/conversations/http_tests.rs` ports
+`tests/test_ticket_conversation_http.py` (:11, :35, :47, :57, :68) and
+`crates/fsv-api/src/properties/http_tests.rs` ports
+`tests/test_ticket_properties_http.py` (:86, :103, :120, :129).
 
 ### `c0210a7` feat(tickets): add reviewed explicit-ID bulk priority — ported
 
@@ -1848,9 +1828,10 @@ stays; only the picker stopped calling it.
 `asset_picker::candidates` checks the change id, then searches devices.
 Each row is `display_id`, `name`, `ci_type_name`, and `inventory`.
 
-Create-time devices are not a field on `CreateOptions` or `TicketOptions`
-(fsv-cli builds those as struct literals). `fsv_flows::change::with_devices`
-and `fsv_flows::ticket::with_devices` insert `device_ids` and rehash.
+Change create-time devices are not a field on `CreateOptions`;
+`fsv_flows::change::with_devices` inserts `device_ids` and rehashes.
+Ticket devices are `TicketOptions::devices`, so `device_ids` also reaches
+the rule gate as Python's `ticket_flow.build_create_plan` does.
 After a successful create, a truthy `device_ids` adds `device_verification`.
 `ChangeWriter::associated_devices` fails closed unless the writer reads
 inventory. `LiveWriter` reads change devices. Ticket create reads through
@@ -1862,9 +1843,9 @@ inventory. `LiveWriter` reads change devices. Ticket create reads through
 ### Public API for the fsv-cli owner
 
 - `fsv_api::integrated_assets::{target_id, search, inventory, build_plan, send, verify_devices, verification}`
-- `fsv_flows::change::with_devices(plan, &[i64]) -> Result<Plan>` and
-  `fsv_flows::ticket::with_devices`. Call after `build_create_plan` where
-  Python passes `devices=`.
+- `fsv_flows::change::with_devices(plan, &[i64]) -> Result<Plan>`. Call
+  after the change `build_create_plan` where Python passes `devices=`.
+  Tickets pass `TicketOptions::devices` instead.
 - `Api::absolute_get(&self, url, params) -> Result<Value>`. `LazyApi` must
   forward it to `Client::request("GET", url, params)` or asset search and
   the ITAM commands fail closed.
@@ -3045,12 +3026,11 @@ Triaged against `git show 5711a5a`
 legacy-model sentences. 400 and 404 from `approval-chains` are the
 legacy flat model. 403 and 5xx stay unknown and keep the chains path.
 
-Counts: **0 ported, 1 partial.** `port/UPSTREAM_BASE` is `5711a5a`.
-The partial is two CLI tests, named below.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `5711a5a`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `5711a5a` | 11-13 03:10 | Detect the approval model and refuse chains-only actions on legacy tenants | partial | fsv-api `approval_model`, `approvals`, `sr_approvals`; fsv-cli wiring done, two CLI tests open |
+| `5711a5a` | 11-13 03:10 | Detect the approval model and refuse chains-only actions on legacy tenants | ported | fsv-api `approval_model`, `approvals`, `sr_approvals`; fsv-cli |
 
 `detect` is one read-only GET. `require_chains` refuses a proven legacy
 tenant before any write. SR `build_plan` does not probe before
@@ -3070,12 +3050,10 @@ Done: `sr approvals list` prints `sr_approvals::listing`
 (`crates/fsv-cli/src/cmd/inventory.rs:259`). The library cases are tested
 in `fsv-api/src/approval_model.rs` and `approvals.rs:1972`.
 
-Missing:
-
-- No CLI test that a legacy `changes approval-cancel --dry-run` exits 2
-  and writes nothing (`tests/test_approval_model.py:85`).
-- No CLI test of a legacy `changes approvals --groups` refusal next to a
-  working flat list (`tests/test_approval_model.py:90`).
+Done (tests): `crates/fsv-cli/tests/upstream_tests_gap.rs`
+`change_cancel_cli_refuses_even_on_dry_run` (Python
+`tests/test_approval_model.py:85`) and
+`change_groups_listing_names_model_and_flat_listing_works` (`:90`).
 
 ## Ledger: `a6262dc` (library side)
 
@@ -3261,11 +3239,11 @@ Request is `POST {module}/{id}/approvals` with `approval_type` and
 trusts only the flat list. Cancel, approve, and reject are refused.
 Chains stay the model when `approval-chains` is not legacy.
 
-Counts: **1 partial, 0 ported.**
+Counts: **1 ported, 0 partial.**
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `f5959c8` | 11-13 03:46 | feat: legacy flat approvals driver (capture-based, unproven) | partial | fsv-api (`legacy_approvals`); fsv-cli wiring done, two CLI tests open |
+| `f5959c8` | 11-13 03:46 | feat: legacy flat approvals driver (capture-based, unproven) | ported | fsv-api (`legacy_approvals`); fsv-cli |
 
 ### CLI
 
@@ -3274,14 +3252,10 @@ Done: legacy `changes approval-request` and `approval-remind`
 and `remind` (`cmd/inventory.rs:285-345`). Goldens carry the
 provenance text (`crates/fsv-cli/tests/upstream_cmds.rs:14234-14920`).
 
-Missing:
-
-- No CLI test that a legacy `changes approval-request --cab` expands the
-  CAB members client-side (`tests/test_legacy_approvals.py:76`).
-- No CLI test that legacy `changes approval-cancel`, `sr approvals
-  approve` and `sr approvals cancel` with `--dry-run` exit 2 with
-  "legacy flat approvals" and write nothing
-  (`tests/test_legacy_approvals.py:141-147`).
+Done (tests): `upstream_tests_gap.rs`
+`change_cab_request_expands_members_client_side` (Python
+`tests/test_legacy_approvals.py:76`) and
+`cancel_and_decisions_refuse_on_legacy` (`:141-147`).
 
 ## Ledger: `d378079` (library side)
 
@@ -3297,13 +3271,14 @@ context, and ticket create consume the gate. Ticket create `sent_keys`
 adds `cc_emails` when that option is set. `LifecyclePlan.rule_warnings`
 is review-only and is not in the write hash. Ticket transition send
 still requires `matches()`; a server-side status or routing rewrite is
-not yet `verified_with_note`. `TicketOptions` has no devices field.
+not yet `verified_with_note`. Ticket create `sent_keys` also adds
+`device_ids` when devices are set (`TicketOptions::devices`).
 
-Counts: **1 partial, 0 ported.**
+Counts: **1 ported, 0 partial.**
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `d378079` | 11-13 04:01 | fix: model rule context and gate writes on real rule risk | partial | fsv-forms (`rules`, `state`), fsv-api, fsv-flows; open: gate tests |
+| `d378079` | 11-13 04:01 | fix: model rule context and gate writes on real rule risk | ported | fsv-forms (`rules`, `state`), fsv-api, fsv-flows |
 
 ### CLI
 
@@ -3311,16 +3286,13 @@ Done: reviews print `rule_warnings`
 (`crates/fsv-api/src/ticket_lifecycle.rs:386-387`). Transition readback
 returns `verified_with_note` (ported with `d699b8c`; golden
 `tickets_close_verified_with_note`, `crates/fsv-cli/tests/upstream_cmds.rs:7328`).
-Devices are not on `TicketOptions`.
+`tickets create --device` sends `device_ids` through the gate, as
+Python `ticket_flow.py:55` does; it used to be added after the gate.
 
-Missing:
-
-- No tests of `RulesEngine::write_gate` (`crates/fsv-forms/src/rules.rs:1509`)
-  or `FormState::rule_gate` (`crates/fsv-forms/src/state.rs:1035`): portal
-  false, runtime groups, widget hide and mandate, unknown context rules,
-  hidden answers (`tests/test_rule_write_gate.py:35-108`).
-- No CLI test that the dry-run JSON lists `rule_warnings`
-  (`tests/test_rule_write_gate.py:115`).
+Done (tests): `crates/fsv-flows/src/ticket/rule_gate_tests.rs` ports
+`tests/test_rule_write_gate.py:35-108` through `build_create_plan`
+(`FormState::rule_gate` and `RulesEngine::write_gate` together), and
+`upstream_tests_gap.rs` `dry_run_json_lists_rule_warnings` ports `:115`.
 
 ## Ledger: `7fcdea4` (library side)
 
@@ -3342,11 +3314,11 @@ Problem create names the uncaptured top-level fields and points at
 labels to one form-fields GET and returns the refresh warning. It does
 not block.
 
-Counts: **1 partial, 0 ported.** `port/UPSTREAM_BASE` is `7fcdea4`.
+Counts: **1 ported, 0 partial.** `port/UPSTREAM_BASE` is `7fcdea4`.
 
 | commit | date | subject | status | crates |
 |---|---|---|---|---|
-| `7fcdea4` | 11-13 04:11 | fix: problem update/status/create write gaps and schema freshness | partial | fsv-api (`problem_properties`, `problem_status`, `problem_workflows`, `schema`); fsv-cli done; open: freshness tests |
+| `7fcdea4` | 11-13 04:11 | fix: problem update/status/create write gaps and schema freshness | ported | fsv-api (`problem_properties`, `problem_status`, `problem_workflows`, `schema`); fsv-cli |
 
 ### CLI
 
@@ -3356,13 +3328,12 @@ and explains HTTP 405 (`crates/fsv-cli/src/cmd/resource.rs:1621`,
 `problems_update_custom_field_*`, `problems_update_deleted_refused`
 (`crates/fsv-cli/tests/upstream_cmds.rs:10212-10310`).
 
-Missing:
-
-- No test of `schema::freshness_warning`
-  (`crates/fsv-api/src/schema.rs:474`) for a new server choice and a
-  server-sourced schema (`tests/test_problem_write_fixes.py:139`).
-- No CLI test that a dry-run reports the stale schema warning
-  (`tests/test_problem_write_fixes.py:150`).
+Done (tests): fsv-api `schema::tests::schema_freshness_warns_on_new_server_choice`
+(Python `tests/test_problem_write_fixes.py:139`) and `upstream_tests_gap.rs`
+`dry_run_reports_stale_schema` (`:150`, JSON `warnings` and stderr). The
+fsv-cli schema loader now returns `source`/`stale` and prints the stale
+cache warning (Python `schema.py:155-201`); before, the warning never
+fired from the CLI.
 
 ## Ledger: `140f52f` (library side)
 

@@ -79,6 +79,7 @@ pub fn load(res: &'static Resource, c: &std::sync::Arc<Client>, force: bool) -> 
         if !*stale {
             let _ = cache::update_meta(path, true, true, None);
         } else {
+            eprintln!("{}", fsv_api::schema::stale_warning(res));
             let c = c.clone();
             let _ = cache::refresh_async(
                 &primary,
@@ -87,7 +88,10 @@ pub fn load(res: &'static Resource, c: &std::sync::Arc<Client>, force: bool) -> 
                 None,
             );
         }
-        return Ok(unwrap_schema(doc));
+        let mut out = unwrap_schema(doc);
+        out["stale"] = json!(*stale);
+        out["source"] = json!("cache");
+        return Ok(out);
     }
     let t0 = Instant::now();
     let fields = fetch(c, res)?;
@@ -112,7 +116,7 @@ pub fn load(res: &'static Resource, c: &std::sync::Arc<Client>, force: bool) -> 
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0.0, |d| d.as_secs_f64());
-    Ok(json!({"saved_at": now, "fields": fields}))
+    Ok(json!({"saved_at": now, "fields": fields, "stale": false, "source": "server"}))
 }
 
 /// The field list of a loaded schema.

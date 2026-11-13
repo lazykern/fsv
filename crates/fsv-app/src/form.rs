@@ -573,6 +573,7 @@ impl LiveForm {
                     requester: req.requester.cloned(),
                     ack_all: req.ack_all,
                     cc_emails: Vec::new(),
+                    devices: Vec::new(),
                 };
                 ticket::build_create_plan(&meta, &draft, &opts)?
             }

@@ -499,6 +499,20 @@ mod tests {
         );
     }
 
+    /// Python tests/test_tui_actions.py::test_ticket_every_status_transition_warns
+    #[test]
+    fn ticket_every_status_transition_warns() {
+        let schema = json!({"fields": [{"name": "status", "choices": [{"id": 1, "value": "Open"}, {"id": 2, "value": "Review"}, {"id": 3, "value": "Closed"}]}]});
+        let item = Item::new(
+            &TICKETS,
+            json!({"id": 42, "status": 1, "subject": "Demo", "display_id": 42}),
+        );
+        let plan = status_plan(&TICKETS, &item, &schema, &json!(2), "Review");
+        assert!(!plan.risks.is_empty() && plan.risks[0].contains("Review"));
+        let closed = status_plan(&TICKETS, &item, &schema, &json!(3), "Closed");
+        assert!(!closed.risks.is_empty() && closed.risks[0].contains("Closed"));
+    }
+
     #[test]
     fn clean_error_shapes() {
         assert_eq!(

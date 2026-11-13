@@ -721,9 +721,9 @@ fn ticket_create(
             requester: req,
             ack_all,
             cc_emails: a.cc.clone(),
+            devices: a.device.clone(),
         };
-        let plan = ticket::build_create_plan(&m.unwrap_or_else(|| meta.clone()), d, &opts)?;
-        let mut plan = ticket::with_devices(plan, &a.device)?;
+        let mut plan = ticket::build_create_plan(&m.unwrap_or_else(|| meta.clone()), d, &opts)?;
         if let Some(p) = problem {
             plan.errors.insert(0, p);
             plan.hash.clear();

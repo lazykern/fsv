@@ -260,7 +260,7 @@ fn run(program: &[&str], home: &Path, work: &Path, case: &Case) -> Outcome {
     Outcome {
         code: out.status.code().unwrap_or(-1),
         out: mask_fetched(&mask(&out.stdout)),
-        err: mask(&out.stderr),
+        err: mask_fetched(&mask(&out.stderr)),
         gets,
         writes,
     }

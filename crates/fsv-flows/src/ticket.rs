@@ -34,6 +34,9 @@ pub struct TicketOptions {
     pub requester: Option<LookupValue>,
     pub ack_all: bool,
     pub cc_emails: Vec<String>,
+    /// Integrated device ids sent as `device_ids`; a rule that could hide
+    /// the devices widget then blocks the write.
+    pub devices: Vec<i64>,
 }
 
 pub fn build_create_plan(
@@ -128,6 +131,9 @@ pub fn build_create_plan(
         errors.push("business rules are unavailable; use the web form".into());
     }
     let mut sent_keys = Vec::new();
+    if !opts.devices.is_empty() {
+        sent_keys.push("device_ids".to_string());
+    }
     if !opts.cc_emails.is_empty() {
         sent_keys.push("cc_emails".to_string());
     }
@@ -186,6 +192,14 @@ pub fn build_create_plan(
             Err(FormError::Payload { problems }) => errors.extend(problems),
             Err(e) => errors.push(e.to_string()),
         }
+    }
+    if let (false, Some(p)) = (opts.devices.is_empty(), payload.as_mut()) {
+        let ids = opts
+            .devices
+            .iter()
+            .map(|id| fsv_api::watchers::positive_id(&json!(id)))
+            .collect::<Result<Vec<_>>>()?;
+        p.insert("device_ids".into(), json!(ids));
     }
     let mut review = Review::new("New Incident");
     review.rows.push((
@@ -405,11 +419,6 @@ pub fn execute(
     Ok(Json::Object(out))
 }
 
-/// [`change::with_devices`] for an incident plan.
-pub fn with_devices(plan: Plan, devices: &[i64]) -> Result<Plan> {
-    change::with_devices(plan, devices)
-}
-
 #[allow(clippy::too_many_arguments)]
 pub fn send(
     plan: Plan,
@@ -431,6 +440,9 @@ pub fn send(
     change::expect(&new, expected)?;
     execute(&new, client, journal, allow_duplicate)
 }
+
+#[cfg(test)]
+mod rule_gate_tests;
 
 #[cfg(test)]
 mod tests {

@@ -637,6 +637,9 @@ pub fn send_with(
 }
 
 #[cfg(test)]
+pub(crate) mod http_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::formmeta::MemStore;

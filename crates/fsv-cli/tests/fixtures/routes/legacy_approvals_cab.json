@@ -1,0 +1,114 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/a/changes",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/41/approval-chains",
+  "status": 400,
+  "json": {
+   "errors": "Parallel approvals feature needs to be enabled"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/41/approval-chains",
+  "status": 400,
+  "json": {
+   "errors": "Parallel approvals feature needs to be enabled"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/cabs",
+  "json": {
+   "cabs": [
+    {
+     "id": 9000007001,
+     "name": "Globex CAB"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/41/cab-members",
+  "query": {
+   "cab_id": "9000007001"
+  },
+  "json": {
+   "approval_agents": [
+    {
+     "id": 9000003101,
+     "name": "A",
+     "selected": false,
+     "email": "a@example.com"
+    },
+    {
+     "id": 9000003102,
+     "name": "A",
+     "selected": false,
+     "email": "a@example.com"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/approvals/approval_template",
+  "json": "<p>Hi {{approval.member.name}}, please review {{ticket.subject}}</p>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/41/approvals",
+  "json": {
+   "approvals": [
+    {
+     "id": 710000000001,
+     "member_id": 9000003999,
+     "user_id": 9000009001,
+     "level_id": 1,
+     "approval_level_status": null,
+     "remark": [],
+     "status": {
+      "id": 1,
+      "name": "approved"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": null,
+     "change_id": 41,
+     "member": {
+      "id": 9000003999,
+      "name": "Example Approver",
+      "email": "approver@example.com"
+     }
+    }
+   ],
+   "meta": {
+    "triggerable_level": 1,
+    "approval_type": 1
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/41/approvals",
+  "json": {
+   "approvals": [],
+   "meta": {
+    "triggerable_level": 1,
+    "approval_type": 1
+   }
+  }
+ }
+]

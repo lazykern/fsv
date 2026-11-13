@@ -918,4 +918,34 @@ mod tests {
         assert_eq!(int_fields[0]["choices"].as_array().unwrap().len(), 2);
         assert_eq!(int_fields[1]["choices"].as_array().unwrap().len(), 1);
     }
+
+    /// Python tests/test_problem_write_fixes.py::test_schema_freshness_warns_on_new_server_choice
+    #[test]
+    fn schema_freshness_warns_on_new_server_choice() {
+        use crate::service::testing::FakeApi;
+        use fsv_core::resource::PROBLEMS;
+        let fields = json!([
+            {"name": "priority", "label": "Priority", "field_type": "default_priority", "default_field": true,
+             "choices": [{"id": 1, "value": "Low"}, {"id": 3, "value": "High"}]},
+            {"name": "acme_resolve_by", "label": "Resolve By", "field_type": "custom_dropdown", "default_field": false,
+             "choices": [{"id": 9000002001i64, "value": "Change Management"}, {"id": 9000002002i64, "value": "Cancel"}]},
+        ]);
+        let server = |fresh: &Value| {
+            FakeApi::new().ok(
+                "GET problem_form_fields",
+                json!({"problem_fields": fresh.clone()}),
+            )
+        };
+        let cached = json!({"fields": fields, "source": "cache"});
+        let mut fresh = fields.clone();
+        assert_eq!(freshness_warning(&PROBLEMS, &server(&fresh), &cached), None);
+        fresh[1]["choices"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({"id": 9000002003i64, "value": "Irrelevant"}));
+        let warning = freshness_warning(&PROBLEMS, &server(&fresh), &cached).unwrap();
+        assert!(warning.contains("acme_resolve_by") && warning.contains("--refresh"));
+        let served = json!({"fields": fields, "source": "server"});
+        assert_eq!(freshness_warning(&PROBLEMS, &server(&fresh), &served), None);
+    }
 }

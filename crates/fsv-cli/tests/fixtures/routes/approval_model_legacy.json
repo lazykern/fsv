@@ -1,0 +1,60 @@
+[
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/a/changes",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"synthetic-token\"></head></html>"
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/123/approval-chains",
+  "status": 400,
+  "json": {
+   "errors": "Parallel approvals feature needs to be enabled"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/123/approvals",
+  "json": {
+   "approvals": [
+    {
+     "id": 710000000001,
+     "member_id": 9000003001,
+     "user_id": 9000004001,
+     "level_id": 1,
+     "approval_level_status": null,
+     "remark": [],
+     "status": {
+      "id": 0,
+      "name": "requested"
+     },
+     "type": {
+      "id": 1,
+      "name": "everyone"
+     },
+     "last_reminded_at": null,
+     "change_id": 123,
+     "member": {
+      "id": 9000003001,
+      "name": "Acme Approver",
+      "email": "approver@example.com"
+     }
+    }
+   ],
+   "meta": {
+    "triggerable_level": 1,
+    "approval_type": 1
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/approvals/approval_template",
+  "json": "<p>template</p>"
+ }
+]

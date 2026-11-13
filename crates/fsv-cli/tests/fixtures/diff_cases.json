@@ -10098,6 +10098,17 @@
   "files": "attach"
  },
  {
+  "fixture": "legacy_approvals_cab",
+  "args": [
+   "changes",
+   "approval-request",
+   "CHN-41",
+   "--cab",
+   "Globex CAB",
+   "--dry-run"
+  ]
+ },
+ {
   "fixture": "where",
   "args": [
    "tickets",
