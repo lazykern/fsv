@@ -1,9 +1,13 @@
-//! Ticket templates (read-only)
+//! Ticket templates (read-only) and change maintenance windows
 //! (`templates_cli.py`).
 
-use serde_json::{Value, json};
+use serde_json::{Map, Value, json};
 
+use fsv_api::change_windows::{self as windows, CreateArgs, WindowEnv};
+use fsv_api::service::DiskJournal;
 use fsv_api::templates;
+use fsv_core::resource::CHANGES;
+use fsv_core::{Error, Result};
 
 use crate::cmd::inventory::guard;
 use crate::generated::*;
@@ -19,6 +23,29 @@ fn dumps(v: &Value) -> String {
 
 fn text(v: Option<&Value>) -> String {
     fsv_py::py_str(v.unwrap_or(&Value::Null))
+}
+
+fn review_required() -> Error {
+    Error::exit(
+        2,
+        "review with --dry-run, then --yes --expect-plan FULL_HASH",
+    )
+}
+
+fn dry_run(review: Map<String, Value>) {
+    let mut out = Map::new();
+    out.insert("status".into(), json!("dry_run"));
+    out.extend(review);
+    println!("{}", dumps(&Value::Object(out)));
+}
+
+/// Print a send result; an unverified readback exits 4.
+fn finish(result: &Value) -> Result<()> {
+    println!("{}", dumps(result));
+    if !result.get("verified").is_some_and(fsv_py::truthy) {
+        return Err(Error::exit(4, ""));
+    }
+    Ok(())
 }
 
 /// `fsv templates list`.
@@ -57,5 +84,98 @@ pub fn templates_show(a: TemplatesShowArgs) -> CmdResult {
                          "template_data": row["template_data"]});
         println!("{}", dumps(&doc));
         Ok(())
+    })())
+}
+
+/// `fsv changes windows list`.
+pub fn windows_list(a: ChangesWindowsListArgs) -> CmdResult {
+    let c = client()?;
+    guard((|| {
+        let rows = windows::list_windows(c.as_ref())?;
+        if a.json_out {
+            println!("{}", dumps(&Value::Array(rows)));
+            return Ok(());
+        }
+        for r in &rows {
+            println!(
+                "{}\t{}\t{} -> {}",
+                text(r.get("id")),
+                text(r.get("name")),
+                text(r.get("start_time")),
+                text(r.get("end_time"))
+            );
+        }
+        if rows.is_empty() {
+            println!("No maintenance windows.");
+        }
+        Ok(())
+    })())
+}
+
+/// `fsv changes windows create`.
+pub fn windows_create(a: ChangesWindowsCreateArgs) -> CmdResult {
+    let c = client()?;
+    let api = c.as_ref();
+    let me = std::cell::OnceCell::new();
+    let current_user = || -> Result<Value> {
+        if let Some(v) = me.get() {
+            return Ok(Value::clone(v));
+        }
+        let v = crate::cmd::resource::current_user(api)?;
+        Ok(me.get_or_init(|| v).clone())
+    };
+    let schema = || fsv_api::schema::load(&CHANGES, &c, false);
+    let env = WindowEnv {
+        schema: &schema,
+        configured_workspace: fsv_api::configured_workspace(),
+        fsv_tz: std::env::var("FSV_TZ").ok(),
+        current_user: &current_user,
+    };
+    let args = CreateArgs {
+        name: &a.name,
+        description: &a.description,
+        start: &a.start,
+        end: &a.end,
+        criteria: &a.criteria,
+        alert_suppression: !a.no_alert_suppression,
+        timezone: a.timezone.as_deref(),
+        allow_overlap: a.allow_overlap,
+    };
+    let build = || windows::create_plan(api, &env, &args);
+    guard((|| {
+        let plan = build()?;
+        if a.dry_run {
+            dry_run(plan.review()?);
+            return Ok(());
+        }
+        if !a.yes || a.expect_plan.as_deref() != Some(plan.hash().as_str()) {
+            return Err(review_required());
+        }
+        let result = windows::send_create(
+            &plan,
+            api,
+            &DiskJournal,
+            a.expect_plan.as_deref(),
+            Some(&build),
+        )?;
+        finish(&result)
+    })())
+}
+
+/// `fsv changes windows delete WINDOW_ID`.
+pub fn windows_delete(a: ChangesWindowsDeleteArgs) -> CmdResult {
+    let c = client()?;
+    guard((|| {
+        let plan = windows::delete_plan(c.as_ref(), a.ident)?;
+        if a.dry_run {
+            dry_run(plan.review());
+            return Ok(());
+        }
+        if !a.yes || a.expect_plan.as_deref() != Some(plan.hash().as_str()) {
+            return Err(review_required());
+        }
+        let result =
+            windows::send_delete(&plan, c.as_ref(), &DiskJournal, a.expect_plan.as_deref())?;
+        finish(&result)
     })())
 }

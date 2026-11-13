@@ -79,6 +79,9 @@ pub fn dispatch(path: &str, m: &ArgMatches, prog: &str) -> CmdResult {
         // batch windows: ticket templates and change maintenance windows
         "templates list" => windows::templates_list(parse(m)?),
         "templates show" => windows::templates_show(parse(m)?),
+        "changes windows list" => windows::windows_list(parse(m)?),
+        "changes windows create" => windows::windows_create(parse(m)?),
+        "changes windows delete" => windows::windows_delete(parse(m)?),
         _ if path.starts_with("form ") => form::dispatch(sub, m),
         _ if path.starts_with("sr ") => {
             inventory::dispatch("sr", sub, m).unwrap_or_else(|| sr::dispatch(sub, m))

@@ -4,7 +4,7 @@
 //! tested in `fsv_api::change_windows`.
 
 mod common;
-use common::{Env, fixture, get};
+use common::{Env, fixture, get, route};
 use serde_json::{Value, json};
 
 fn templates() -> Vec<Value> {
@@ -21,6 +21,49 @@ fn templates() -> Vec<Value> {
                 "subject": "Acme outage", "description": "<p>Please help</p>", "status": null, "tags": ["x"]}}}),
         ),
     ]
+}
+
+fn change_schema() -> Value {
+    get(
+        "change_form_fields",
+        json!({"change_fields": [{"name": "change_type", "label": "Change Type", "field_type": "default_change_type",
+                                  "default_field": true, "workspace_id": 3,
+                                  "choices": [{"id": 1, "value": "Normal"}, {"id": 4, "value": "Emergency"}]}]}),
+    )
+}
+
+fn agent(time_zone: Option<&str>) -> Value {
+    let mut a = json!({"id": 7, "first_name": "Robin", "last_name": "Agent"});
+    if let Some(tz) = time_zone {
+        a["time_zone"] = json!(tz);
+    }
+    route("GET", "/api/v2/agents/me", 200, json!({"agent": a}))
+}
+
+fn csrf() -> Value {
+    json!({"method": "GET", "path": "/a/dashboard",
+           "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"})
+}
+
+fn window_routes(windows: Value) -> Vec<Value> {
+    vec![
+        csrf(),
+        agent(Some("Eastern Time (US & Canada)")),
+        change_schema(),
+        get(
+            "maintenance_windows",
+            json!({"maintenance_windows": windows}),
+        ),
+    ]
+}
+
+fn globex() -> Value {
+    json!([{"id": 61, "name": "Globex freeze", "start_time": "2030-11-20T09:00:00Z", "end_time": "2030-11-20T10:00:00Z"}])
+}
+
+fn ny_ac() -> Value {
+    json!([{"id": 71, "name": "Acme A", "start_time": "2030-11-14T02:00:00-05:00", "end_time": "2030-11-14T04:00:00-05:00"},
+           {"id": 72, "name": "Acme C", "start_time": "2030-11-14T04:00:00-05:00", "end_time": "2030-11-14T06:00:00-05:00"}])
 }
 
 fn run(routes: Vec<Value>, args: &[&str]) -> common::Run {
@@ -203,4 +246,271 @@ fn add_note_notify_agent_resolves_name_and_email() {
         r.err,
         "no unique active agent 'Robin' for --notify-agent; use the exact name or email\n"
     );
+}
+
+/// `test_window_delete_and_cli`.
+#[test]
+fn windows_list_delete_and_create_dry_run() {
+    let r = run(
+        window_routes(globex()),
+        &["changes", "windows", "list", "--json"],
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.json()[0]["id"], 61);
+    let r = run(window_routes(globex()), &["changes", "windows", "list"]);
+    assert_eq!(
+        r.out,
+        "61\tGlobex freeze\t2030-11-20T09:00:00Z -> 2030-11-20T10:00:00Z\n"
+    );
+
+    let r = run(
+        window_routes(globex()),
+        &["changes", "windows", "delete", "61", "--dry-run"],
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    let h = r.json()["plan_hash"].as_str().unwrap().to_string();
+    let mut routes = vec![
+        csrf(),
+        json!({"method": "GET", "path": "/api/_/maintenance_windows", "once": true,
+               "json": {"maintenance_windows": globex()}}),
+        json!({"method": "GET", "path": "/api/_/maintenance_windows", "once": true,
+               "json": {"maintenance_windows": globex()}}),
+        get("maintenance_windows", json!({"maintenance_windows": []})),
+        route(
+            "DELETE",
+            "/api/_/maintenance_windows/61",
+            200,
+            json!({"success": true, "message": "delete_success"}),
+        ),
+    ];
+    let r = run(
+        routes.clone(),
+        &[
+            "changes",
+            "windows",
+            "delete",
+            "61",
+            "--yes",
+            "--expect-plan",
+            &h,
+        ],
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.json()["fields"], json!({"absent": "matched"}));
+    assert_eq!(
+        r.writes(),
+        [(
+            "DELETE".to_string(),
+            "/api/_/maintenance_windows/61".to_string(),
+            Value::Null
+        )]
+    );
+
+    routes.truncate(3);
+    let r = run(
+        routes,
+        &[
+            "changes",
+            "windows",
+            "delete",
+            "61",
+            "--yes",
+            "--expect-plan",
+            "abc",
+        ],
+    );
+    assert_eq!(r.code, 2);
+    assert_eq!(
+        r.err,
+        "review with --dry-run, then --yes --expect-plan FULL_HASH\n"
+    );
+    assert!(r.write_paths().is_empty());
+
+    let r = run(
+        window_routes(globex()),
+        &[
+            "changes",
+            "windows",
+            "create",
+            "--name",
+            "Acme",
+            "--start",
+            "2030-11-21 10:00",
+            "--end",
+            "2030-11-21 11:00",
+            "--criteria",
+            "change_type=Emergency",
+            "--dry-run",
+        ],
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.json()["overlap_check"]["payload"]["criteria"][0]["value"],
+        "4"
+    );
+    assert!(r.write_paths().is_empty());
+}
+
+/// `test_window_unknown_tenant_zone_refuses_even_with_fsv_tz` (CLI half).
+#[test]
+fn windows_create_unknown_tenant_zone_refuses() {
+    let mut env = Env::new(vec![
+        agent(None),
+        change_schema(),
+        get("maintenance_windows", json!({"maintenance_windows": []})),
+    ]);
+    env.vars.push(("FSV_TZ".into(), "Asia/Bangkok".into()));
+    let r = env.run(&[
+        "changes",
+        "windows",
+        "create",
+        "--name",
+        "Acme",
+        "--start",
+        "2030-11-14 08:00",
+        "--end",
+        "2030-11-14 09:00",
+        "--criteria",
+        "change_type=Normal",
+        "--dry-run",
+    ]);
+    assert_eq!(r.code, 2);
+    assert!(r.err.contains("tenant time zone unknown"), "{}", r.err);
+    assert!(r.write_paths().is_empty());
+}
+
+fn create_args<'a>(extra: &[&'a str]) -> Vec<&'a str> {
+    let mut v = vec![
+        "changes",
+        "windows",
+        "create",
+        "--name",
+        "Acme",
+        "--start",
+        "2030-11-14 15:00",
+        "--end",
+        "2030-11-14 17:00",
+        "--criteria",
+        "change_type=Normal",
+        "--timezone",
+        "Asia/Bangkok",
+    ];
+    v.extend_from_slice(extra);
+    v
+}
+
+/// `test_window_cli_timezone_option_reviews_both_renderings`,
+/// `test_window_dry_run_reports_overlapping_ids` and
+/// `test_window_allow_overlap_changes_hash_and_warns` (CLI halves).
+#[test]
+fn windows_create_dry_run_send_and_allow_overlap() {
+    let r = run(window_routes(json!([])), &create_args(&["--dry-run"]));
+    assert_eq!(r.code, 0, "{}", r.err);
+    let doc = r.json();
+    assert_eq!(doc["status"], "dry_run");
+    assert_eq!(
+        doc["end"],
+        json!({"input": "2030-11-14 17:00 Asia/Bangkok (+07:00)",
+                                  "tenant": "2030-11-14 05:00 America/New_York (-05:00)"})
+    );
+    assert_eq!(doc["payload"]["change_window"]["start_time"], "3:00am");
+    assert_eq!(doc["overlapping_window_ids"], json!([]));
+    assert!(doc.get("overlap_warning").is_none());
+    assert_eq!(
+        r.calls()
+            .iter()
+            .filter(|(_, p)| p == "/api/v2/agents/me")
+            .count(),
+        1
+    );
+
+    let plain = run(window_routes(ny_ac()), &create_args(&["--dry-run"])).json();
+    let allowed = run(
+        window_routes(ny_ac()),
+        &create_args(&["--dry-run", "--allow-overlap"]),
+    )
+    .json();
+    assert_ne!(plain["plan_hash"], allowed["plan_hash"]);
+    assert_eq!(
+        (&plain["allow_overlap"], &allowed["allow_overlap"]),
+        (&json!(false), &json!(true))
+    );
+    assert_eq!(
+        plain["overlap_warning"],
+        "overlapping windows exist: 71, 72; sending refuses unless --allow-overlap"
+    );
+    assert_eq!(
+        allowed["overlap_warning"],
+        "overlapping windows exist: 71, 72; you chose to create it anyway (--allow-overlap)"
+    );
+    let ph = plain["plan_hash"].as_str().unwrap();
+    let ah = allowed["plan_hash"].as_str().unwrap();
+
+    let r = run(
+        window_routes(ny_ac()),
+        &create_args(&["--yes", "--expect-plan", ph]),
+    );
+    assert_eq!(r.code, 2);
+    assert!(r.err.contains("already listed (71, 72)"), "{}", r.err);
+    assert!(r.write_paths().is_empty());
+    for (extra, hash) in [(&["--allow-overlap"][..], ph), (&[][..], ah)] {
+        let mut a = extra.to_vec();
+        a.extend(["--yes", "--expect-plan", hash]);
+        let r = run(window_routes(ny_ac()), &create_args(&a));
+        assert_eq!(r.code, 2);
+        assert!(r.write_paths().is_empty());
+    }
+
+    let stored = json!({"id": 62, "name": "Acme", "start_time": "2030-11-14T03:00:00-05:00",
+                        "end_time": "2030-11-14T05:00:00-05:00"});
+    let mut after = ny_ac();
+    after.as_array_mut().unwrap().push(stored.clone());
+    let mut routes = vec![
+        csrf(),
+        agent(Some("Eastern Time (US & Canada)")),
+        change_schema(),
+    ];
+    for _ in 0..3 {
+        routes.push(
+            json!({"method": "GET", "path": "/api/_/maintenance_windows", "once": true,
+                           "json": {"maintenance_windows": ny_ac()}}),
+        );
+    }
+    routes.push(get(
+        "maintenance_windows",
+        json!({"maintenance_windows": after}),
+    ));
+    routes.push(route(
+        "POST",
+        "/api/_/change_windows/overlapping_windows",
+        200,
+        json!({"match_found": false}),
+    ));
+    routes.push(route(
+        "POST",
+        "/api/_/maintenance_windows",
+        201,
+        json!({"maintenance_window": stored}),
+    ));
+    let r = run(
+        routes,
+        &create_args(&["--allow-overlap", "--yes", "--expect-plan", ah]),
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    let out = r.json();
+    assert_eq!(out["verified"], json!(true));
+    assert_eq!(out["overlapping_window_ids"], json!([71, 72]));
+    assert_eq!(
+        out["fields"],
+        json!({"name": "matched", "start": "matched", "end": "matched"})
+    );
+    assert_eq!(
+        r.write_paths(),
+        [
+            "POST /api/_/change_windows/overlapping_windows",
+            "POST /api/_/maintenance_windows"
+        ]
+    );
+    let overlap_body = &r.writes()[0].2;
+    assert_eq!(overlap_body["type"], "blackout_events");
 }

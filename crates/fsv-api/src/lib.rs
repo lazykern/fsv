@@ -20,6 +20,7 @@ pub mod change_lifecycle;
 pub mod change_relationships;
 pub mod change_task_delete;
 pub mod change_task_update;
+pub mod change_windows;
 pub mod choice_ids;
 pub mod conversations;
 pub mod create;
