@@ -4064,26 +4064,31 @@ fn pv_show() {
     assert_eq!(
         r.out,
         r#"{
-  "id": 701,
-  "user_id": 9,
-  "default": false,
-  "visibility": 81,
-  "visibility_name": "Me",
-  "name": "Acme source",
-  "workspace_id": 17,
-  "query_hash": [
-    {
-      "condition": "status",
-      "operator": "is_in",
-      "type": "default",
-      "value": [
-        "42"
-      ]
-    }
-  ],
-  "advanced_query_hash": null,
-  "order_by": "created_at",
-  "order_type": "desc"
+  "view": {
+    "id": 701,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Acme source",
+    "workspace_id": 17,
+    "query_hash": [
+      {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+          "42"
+        ]
+      }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+  },
+  "visibility": "private",
+  "private": true,
+  "workspace_id": 17
 }
 "#
     );
@@ -4101,26 +4106,31 @@ fn pv_show_json_flag() {
     assert_eq!(
         r.out,
         r#"{
-  "id": 702,
-  "user_id": 9,
-  "default": false,
-  "visibility": 81,
-  "visibility_name": "Me",
-  "name": "Globex clone",
-  "workspace_id": 17,
-  "query_hash": [
-    {
-      "condition": "status",
-      "operator": "is_in",
-      "type": "default",
-      "value": [
-        "42"
-      ]
-    }
-  ],
-  "advanced_query_hash": null,
-  "order_by": "created_at",
-  "order_type": "desc"
+  "view": {
+    "id": 702,
+    "user_id": 9,
+    "default": false,
+    "visibility": 81,
+    "visibility_name": "Me",
+    "name": "Globex clone",
+    "workspace_id": 17,
+    "query_hash": [
+      {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+          "42"
+        ]
+      }
+    ],
+    "advanced_query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc"
+  },
+  "visibility": "private",
+  "private": true,
+  "workspace_id": 17
 }
 "#
     );
@@ -4375,13 +4385,38 @@ fn pv_unsupported_action() {
         ],
         None,
     );
-    assert_eq!(r.code, 2, "{}", r.err);
-    assert_eq!(r.out, r#""#);
+    assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
-        r.err,
-        r#"unsupported saved-view action
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "private_view_edit",
+  "method": "PUT",
+  "path": "/api/_/ticket_filters/701",
+  "payload": {
+    "advanced_query_hash": null,
+    "name": "x",
+    "order_by": "created_at",
+    "order_type": "desc",
+    "query_hash": [
+      {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+          "42"
+        ]
+      }
+    ],
+    "visibility": 81,
+    "workspace_id": 17
+  },
+  "plan_hash": "5c16cc288e892dbbd92783a6a92049f6802032d818b64c9991d1dcec0823ad70",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
 "#
     );
+    assert_eq!(r.err, r#""#);
 }
 
 #[test]
@@ -4427,7 +4462,7 @@ fn pv_create_without_name() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"create/edit requires a nonempty --name
+        r#"create/rename requires a nonempty --name
 "#
     );
 }
@@ -4452,7 +4487,7 @@ fn pv_create_blank_name() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"create/edit requires a nonempty --name
+        r#"create/rename requires a nonempty --name
 "#
     );
 }
@@ -4527,7 +4562,7 @@ fn pv_refuses_visibility_name() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"named private visibility metadata is unavailable; numeric visibility alone is not proof
+        r#"view visibility is 'All agents', not private; nothing was sent
 "#
     );
 }
@@ -4627,7 +4662,7 @@ fn pv_refuses_null_visibility_name() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"named private visibility metadata is unavailable; numeric visibility alone is not proof
+        r#"GET /api/_/ticket_filters/713 returns visibility 81 (unknown) without group_ids; only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent
 "#
     );
 }
@@ -4684,13 +4719,12 @@ fn pv_create_send() {
   "verified": false,
   "view_id": 702,
   "fields": {
-    "advanced_query_hash": "matched",
+    "visibility": "matched",
+    "workspace_id": "matched",
     "name": "mismatched",
     "order_by": "matched",
     "order_type": "matched",
-    "query_hash": "matched",
-    "visibility": "matched",
-    "workspace_id": "matched"
+    "conditions": "matched"
   },
   "warning": "Readback was not fully verified; do not resend."
 }
@@ -4727,13 +4761,12 @@ fn pv_edit_send() {
   "verified": true,
   "view_id": 703,
   "fields": {
-    "advanced_query_hash": "matched",
+    "visibility": "matched",
+    "workspace_id": "matched",
     "name": "matched",
     "order_by": "matched",
     "order_type": "matched",
-    "query_hash": "matched",
-    "visibility": "matched",
-    "workspace_id": "matched"
+    "conditions": "matched"
   }
 }
 "#
@@ -4769,13 +4802,12 @@ fn pv_edit_send_mismatch() {
   "verified": false,
   "view_id": 703,
   "fields": {
-    "advanced_query_hash": "matched",
+    "visibility": "matched",
+    "workspace_id": "matched",
     "name": "mismatched",
     "order_by": "matched",
     "order_type": "matched",
-    "query_hash": "matched",
-    "visibility": "matched",
-    "workspace_id": "matched"
+    "conditions": "matched"
   },
   "warning": "Readback was not fully verified; do not resend."
 }
@@ -4814,6 +4846,701 @@ fn pv_delete_send() {
     );
     assert_eq!(r.err, r#""#);
     assert_eq!(r.write_paths(), ["DELETE /api/_/ticket_filters/704"]);
+}
+
+#[test]
+fn pv_list() {
+    let r = run_fixture("private_views", &["tickets", "private-views", "list"], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"HTTP 404 listing ticket filters: no route
+"#
+    );
+}
+
+#[test]
+fn pv_show_refused_identity() {
+    let r = run_fixture(
+        "private_views",
+        &["tickets", "private-views", "show", "711"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"exact saved-view identity is unavailable
+"#
+    );
+}
+
+#[test]
+fn pv_show_api_error() {
+    let r = run_fixture(
+        "private_views",
+        &["tickets", "private-views", "show", "799"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"HTTP 404 fetching ticket filter: no route
+"#
+    );
+}
+
+#[test]
+fn pv_write_read_failed() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "799",
+            "create",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"read failed (HTTP 404); nothing was sent
+"#
+    );
+}
+
+#[test]
+fn pv_rename_dry_run() {
+    let r = run_fixture(
+        "private_views",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "703",
+            "rename",
+            "--name",
+            "Globex renamed",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "private_view_edit",
+  "method": "PUT",
+  "path": "/api/_/ticket_filters/703",
+  "payload": {
+    "advanced_query_hash": null,
+    "name": "Globex renamed",
+    "order_by": "created_at",
+    "order_type": "desc",
+    "query_hash": [
+      {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+          "42"
+        ]
+      }
+    ],
+    "visibility": 81,
+    "workspace_id": 17
+  },
+  "plan_hash": "af7255ec8f4d3148c71b7c83bde4811a8c75d6afda269d5347645bbe18795817",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn pv_native_list() {
+    let r = run_fixture(
+        "private_views_native",
+        &["tickets", "private-views", "list"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "views": [
+    {
+      "id": 801,
+      "name": "Acme queue",
+      "editable": null
+    }
+  ],
+  "note": "the list carries no visibility; run show ID to see whether a view is private"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn pv_native_show() {
+    let r = run_fixture(
+        "private_views_native",
+        &["tickets", "private-views", "show", "801"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "view": {
+    "id": 801,
+    "name": "Acme queue",
+    "default": false,
+    "visibility": 3,
+    "user_id": 9,
+    "group_id": null,
+    "group_ids": [],
+    "advanced_query_hash": null,
+    "advanced": false,
+    "order_by": "created_at",
+    "order_type": "desc",
+    "per_page": 30,
+    "query_hash": [
+      {
+        "condition": "priority",
+        "operator": "is_in",
+        "value": [
+          "3"
+        ],
+        "type": "default"
+      },
+      {
+        "condition": "workspace_id",
+        "operator": "is",
+        "value": "7",
+        "type": "default"
+      }
+    ],
+    "meta": {
+      "workspace_id": [
+        {
+          "id": 7,
+          "name": "Acme IT"
+        }
+      ]
+    }
+  },
+  "visibility": "Myself",
+  "private": true,
+  "workspace_id": 7
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn pv_native_create_dry_run() {
+    let r = run_fixture(
+        "private_views_native",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "801",
+            "create",
+            "--name",
+            "Acme mine",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "private_view_create",
+  "method": "POST",
+  "path": "/api/_/ticket_filters",
+  "payload": {
+    "advanced_query_hash": null,
+    "name": "Acme mine",
+    "order_by": "created_at",
+    "order_type": "desc",
+    "query_hash": [
+      {
+        "condition": "priority",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+          "3"
+        ]
+      },
+      {
+        "condition": "workspace_id",
+        "operator": "is",
+        "type": "default",
+        "value": [
+          {
+            "id": 7
+          }
+        ]
+      }
+    ],
+    "visibility": 3,
+    "workspace_id": 7
+  },
+  "plan_hash": "3a8921a0810f9cfc5bd13e64bdcc76b847ef84a45751482cfff300b43524baf7",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn pv_native_create_send() {
+    let r = run_fixture(
+        "private_views_native",
+        &[
+            "tickets",
+            "private-views",
+            "write",
+            "801",
+            "create",
+            "--name",
+            "Acme mine",
+            "--yes",
+            "--expect-plan",
+            "3a8921a0810f9cfc5bd13e64bdcc76b847ef84a45751482cfff300b43524baf7",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "3a8921a0810f9cfc5bd13e64bdcc76b847ef84a45751482cfff300b43524baf7",
+  "verified": true,
+  "view_id": 901,
+  "fields": {
+    "visibility": "matched",
+    "workspace_id": "matched",
+    "name": "matched",
+    "order_by": "matched",
+    "order_type": "matched",
+    "conditions": "matched"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/ticket_filters"]);
+}
+
+#[test]
+fn cpv_list() {
+    let r = run_fixture(
+        "private_views_native",
+        &["changes", "private-views", "list"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "views": [
+    {
+      "id": 811,
+      "name": "Globex changes",
+      "editable": true
+    },
+    {
+      "id": 812,
+      "name": "Globex shared",
+      "editable": false
+    }
+  ],
+  "note": "the list carries no visibility; run show ID to see whether a view is private"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn cpv_list_json() {
+    let r = run_fixture(
+        "private_views_native",
+        &["changes", "private-views", "list", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "views": [
+    {
+      "id": 811,
+      "name": "Globex changes",
+      "editable": true
+    },
+    {
+      "id": 812,
+      "name": "Globex shared",
+      "editable": false
+    }
+  ],
+  "note": "the list carries no visibility; run show ID to see whether a view is private"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn cpv_show() {
+    let r = run_fixture(
+        "private_views_native",
+        &["changes", "private-views", "show", "811"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "view": {
+    "id": 811,
+    "name": "Globex changes",
+    "default": false,
+    "visibility": 3,
+    "user_id": 9,
+    "group_ids": [],
+    "query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc",
+    "advanced_query_hash": {
+      "all": [
+        {
+          "condition": "planned_start_date",
+          "operator": "in_the_last",
+          "value": "one_week",
+          "type": "default"
+        },
+        {
+          "condition": "workspace_id",
+          "operator": "is",
+          "value": 7,
+          "type": "default"
+        }
+      ]
+    }
+  },
+  "visibility": "Myself",
+  "private": true,
+  "workspace_id": 7
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn cpv_show_shared() {
+    let r = run_fixture(
+        "private_views_native",
+        &["changes", "private-views", "show", "812"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "view": {
+    "id": 812,
+    "name": "Globex shared",
+    "default": false,
+    "visibility": 2,
+    "user_id": 9,
+    "group_ids": [
+      44
+    ],
+    "query_hash": null,
+    "order_by": "created_at",
+    "order_type": "desc",
+    "advanced_query_hash": {
+      "all": [
+        {
+          "condition": "planned_start_date",
+          "operator": "in_the_last",
+          "value": "one_week",
+          "type": "default"
+        },
+        {
+          "condition": "workspace_id",
+          "operator": "is",
+          "value": 7,
+          "type": "default"
+        }
+      ]
+    }
+  },
+  "private": false,
+  "reason": "the view is shared with groups; only views visible to you alone are supported",
+  "workspace_id": 7
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn cpv_show_missing() {
+    let r = run_fixture(
+        "private_views_native",
+        &["changes", "private-views", "show", "899"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"HTTP 404 fetching change-filter: no route
+"#
+    );
+}
+
+#[test]
+fn cpv_create_dry_run() {
+    let r = run_fixture(
+        "private_views_native",
+        &[
+            "changes",
+            "private-views",
+            "write",
+            "811",
+            "create",
+            "--name",
+            "Globex mine",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "change_private_view_create",
+  "method": "POST",
+  "path": "/api/_/change-filters",
+  "payload": {
+    "advanced_query_hash": {
+      "all": [
+        {
+          "condition": "planned_start_date",
+          "operator": "in_the_last",
+          "type": "default",
+          "value": "one_week"
+        },
+        {
+          "condition": "workspace_id",
+          "operator": "is",
+          "type": "default",
+          "value": 7
+        }
+      ]
+    },
+    "name": "Globex mine",
+    "order_by": "created_at",
+    "order_type": "desc",
+    "query_hash": null,
+    "visibility": 3,
+    "workspace_id": 7
+  },
+  "plan_hash": "76226cc21cb86df81dfb7a89b536bab25dc80a8071d7a8a8ccdaedb4a3389592",
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn cpv_create_needs_hash() {
+    let r = run_fixture(
+        "private_views_native",
+        &[
+            "changes",
+            "private-views",
+            "write",
+            "811",
+            "create",
+            "--name",
+            "Globex mine",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"review with --dry-run, then pass --yes and the full --expect-plan hash
+"#
+    );
+}
+
+#[test]
+fn cpv_create_send() {
+    let r = run_fixture(
+        "private_views_native",
+        &[
+            "changes",
+            "private-views",
+            "write",
+            "811",
+            "create",
+            "--name",
+            "Globex mine",
+            "--yes",
+            "--expect-plan",
+            "76226cc21cb86df81dfb7a89b536bab25dc80a8071d7a8a8ccdaedb4a3389592",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "76226cc21cb86df81dfb7a89b536bab25dc80a8071d7a8a8ccdaedb4a3389592",
+  "verified": true,
+  "view_id": 900,
+  "fields": {
+    "visibility": "matched",
+    "workspace_id": "matched",
+    "name": "matched",
+    "order_by": "matched",
+    "order_type": "matched",
+    "conditions": "matched"
+  }
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["POST /api/_/change-filters"]);
+}
+
+#[test]
+fn cpv_create_shared_refused() {
+    let r = run_fixture(
+        "private_views_native",
+        &[
+            "changes",
+            "private-views",
+            "write",
+            "812",
+            "create",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"the view is shared with groups; only views visible to you alone are supported
+"#
+    );
+}
+
+#[test]
+fn cpv_delete_not_captured() {
+    let r = run_fixture(
+        "private_views_native",
+        &[
+            "changes",
+            "private-views",
+            "write",
+            "811",
+            "delete",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"changes private-view delete is not captured (PUT/DELETE /api/_/change-filters/<id> has no accepted wire); nothing was sent; use the web UI
+"#
+    );
+}
+
+#[test]
+fn cpv_rename_not_captured() {
+    let r = run_fixture(
+        "private_views_native",
+        &[
+            "changes",
+            "private-views",
+            "write",
+            "811",
+            "rename",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"changes private-view rename is not captured (PUT/DELETE /api/_/change-filters/<id> has no accepted wire); nothing was sent; use the web UI
+"#
+    );
+}
+
+#[test]
+fn cpv_write_read_failed() {
+    let r = run_fixture(
+        "private_views_native",
+        &[
+            "changes",
+            "private-views",
+            "write",
+            "899",
+            "create",
+            "--name",
+            "x",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"read failed (HTTP 404); nothing was sent
+"#
+    );
 }
 
 #[test]
@@ -5025,7 +5752,24 @@ fn tickets_export_dry_run() {
     "ticket_state_filter": "created_at"
   },
   "plan_hash": "8d40b150f5aca4efb14583eb29cb46703b5497d1786ffbf1f0261ee154871e32",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+  "recipient": {
+    "mailbox": "agent@example.com",
+    "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
+    "source": "signed-in agent profile (GET /api/v2/agents/me)"
+  },
+  "body_keys": [
+    "advanced_data_hash",
+    "custom_fields",
+    "data_hash",
+    "date_filter",
+    "export_fields",
+    "format",
+    "selected_filter_view",
+    "ticket_state_filter"
+  ],
+  "review_only": true,
+  "delivery": "unknown"
 }
 "#
     );
@@ -5053,22 +5797,13 @@ fn tickets_export_send() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "8d40b150f5aca4efb14583eb29cb46703b5497d1786ffbf1f0261ee154871e32",
-  "verified": false,
-  "source_readback": true,
-  "job": "unavailable",
-  "download": "unavailable",
-  "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend."
-}
+        r.err,
+        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
 "#
     );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["POST /api/_/tickets/export"]);
 }
 
 #[test]
@@ -5290,7 +6025,23 @@ fn changes_export_dry_run() {
     "state_filter": "created_at"
   },
   "plan_hash": "724d390aea5fd89f52addbd0542798bcd6132f345697453bae7383cd2d9e7e89",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+  "recipient": {
+    "mailbox": "agent@example.com",
+    "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
+    "source": "signed-in agent profile (GET /api/v2/agents/me)"
+  },
+  "body_keys": [
+    "advanced_data_hash",
+    "custom_fields",
+    "data_hash",
+    "date_filter",
+    "export_fields",
+    "format",
+    "state_filter"
+  ],
+  "review_only": true,
+  "delivery": "unknown"
 }
 "#
     );
@@ -5318,22 +6069,13 @@ fn changes_export_send() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "724d390aea5fd89f52addbd0542798bcd6132f345697453bae7383cd2d9e7e89",
-  "verified": false,
-  "source_readback": true,
-  "job": "unavailable",
-  "download": "unavailable",
-  "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend."
-}
+        r.err,
+        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
 "#
     );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["POST /api/_/changes/export"]);
 }
 
 #[test]
@@ -5543,7 +6285,22 @@ fn problems_export_dry_run() {
     "state_filter": "created_at"
   },
   "plan_hash": "96634ff8a9e6f5eb960f4e8027a6be90f83a0c78d534ec8b44a7657733d366f3",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+  "recipient": {
+    "mailbox": "agent@example.com",
+    "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
+    "source": "signed-in agent profile (GET /api/v2/agents/me)"
+  },
+  "body_keys": [
+    "custom_fields",
+    "data_hash",
+    "date_filter",
+    "export_fields",
+    "format",
+    "state_filter"
+  ],
+  "review_only": true,
+  "delivery": "unknown"
 }
 "#
     );
@@ -5571,22 +6328,13 @@ fn problems_export_send() {
         ],
         None,
     );
-    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
     assert_eq!(
-        r.out,
-        r#"{
-  "status": "submitted",
-  "plan_hash": "96634ff8a9e6f5eb960f4e8027a6be90f83a0c78d534ec8b44a7657733d366f3",
-  "verified": false,
-  "source_readback": true,
-  "job": "unavailable",
-  "download": "unavailable",
-  "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend."
-}
+        r.err,
+        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
 "#
     );
-    assert_eq!(r.err, r#""#);
-    assert_eq!(r.write_paths(), ["POST /api/_/problems/export"]);
 }
 
 #[test]
@@ -5908,6 +6656,141 @@ fn export_ambiguous_view() {
     assert_eq!(
         r.err,
         r#"view 'Acme' is ambiguous: 'Acme queue', 'Acme advanced'
+"#
+    );
+}
+
+#[test]
+fn tickets_export_without_dry_run() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "tickets",
+            "export",
+            "--view",
+            "Acme queue",
+            "--field",
+            "subject",
+            "--field",
+            "status_name",
+            "--field",
+            "display_id",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "list_export",
+  "method": "POST",
+  "path": "/api/_/tickets/export",
+  "payload": {
+    "advanced_data_hash": null,
+    "custom_fields": {},
+    "data_hash": [
+      {
+        "condition": "status",
+        "operator": "is_in",
+        "type": "default",
+        "value": [
+          "47"
+        ]
+      }
+    ],
+    "date_filter": 30,
+    "export_fields": {
+      "display_id": "Acme ID",
+      "status_name": "Acme state",
+      "subject": "Acme subject"
+    },
+    "format": "csv",
+    "selected_filter_view": {
+      "id": "701",
+      "is_additional_filters_applied": false,
+      "name": "Acme queue"
+    },
+    "ticket_state_filter": "created_at"
+  },
+  "plan_hash": "8d40b150f5aca4efb14583eb29cb46703b5497d1786ffbf1f0261ee154871e32",
+  "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+  "recipient": {
+    "mailbox": "agent@example.com",
+    "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back",
+    "source": "signed-in agent profile (GET /api/v2/agents/me)"
+  },
+  "body_keys": [
+    "advanced_data_hash",
+    "custom_fields",
+    "data_hash",
+    "date_filter",
+    "export_fields",
+    "format",
+    "selected_filter_view",
+    "ticket_state_filter"
+  ],
+  "review_only": true,
+  "delivery": "unknown"
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn changes_export_yes_refused() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "changes",
+            "export",
+            "--view",
+            "Acme queue",
+            "--field",
+            "subject",
+            "--field",
+            "status_name",
+            "--field",
+            "display_id",
+            "--yes",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
+"#
+    );
+}
+
+#[test]
+fn problems_export_expect_plan_refused() {
+    let r = run_fixture(
+        "list_prefs",
+        &[
+            "problems",
+            "export",
+            "--view",
+            "Acme queue",
+            "--field",
+            "subject",
+            "--field",
+            "status_name",
+            "--field",
+            "display_id",
+            "--expect-plan",
+            "abc",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, r#""#);
+    assert_eq!(
+        r.err,
+        r#"export is review-only in fsv (delivery cannot be verified); nothing was sent; use --dry-run to review, and the web UI to export
 "#
     );
 }
@@ -6565,23 +7448,6 @@ fn canned_show_api_error_is_uncaught() {
     assert!(
         r.err
             .contains("HTTP 404 fetching canned response: not found"),
-        "{}",
-        r.err
-    );
-}
-
-#[test]
-fn private_view_show_refusal_is_uncaught() {
-    // `show` has no `try`: ReviewedWriteError is a traceback (exit 1), not exit 2.
-    let r = run_fixture(
-        "private_views",
-        &["tickets", "private-views", "show", "711"],
-        None,
-    );
-    assert_eq!(r.code, 1, "{}", r.err);
-    assert_eq!(r.out, "");
-    assert!(
-        r.err.contains("exact saved-view identity is unavailable"),
         "{}",
         r.err
     );

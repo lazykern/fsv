@@ -21,6 +21,8 @@ use crate::views::load_views;
 pub struct ListPlan {
     pub plan: WritePlan,
     pub inputs_json: String,
+    /// Export only, display-only (the request itself names no recipient).
+    pub recipient_json: String,
 }
 
 impl ListPlan {
@@ -29,11 +31,54 @@ impl ListPlan {
     }
 
     pub fn review(&self) -> Map<String, Value> {
-        self.plan.review()
+        let mut out = self.plan.review();
+        if let Ok(Value::Object(recipient)) = serde_json::from_str(&self.recipient_json)
+            && !recipient.is_empty()
+        {
+            out.insert("recipient".into(), Value::Object(recipient));
+        }
+        if self.plan.action == "list_export" {
+            let mut keys: Vec<String> = self
+                .payload()
+                .as_object()
+                .map(|m| m.keys().cloned().collect())
+                .unwrap_or_default();
+            keys.sort();
+            out.insert("body_keys".into(), json!(keys));
+            out.insert("review_only".into(), json!(true));
+            out.insert("delivery".into(), json!("unknown"));
+            out.insert("warning".into(), json!(EXPORT_REVIEW_ONLY));
+        }
+        out
     }
 
     pub fn payload(&self) -> Value {
         self.plan.payload()
+    }
+}
+
+const EXPORT_REVIEW_ONLY: &str = "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.";
+
+const RECIPIENT_NOTE: &str = "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back";
+
+/// Port of fsv.list_preferences.export_recipient: the signed-in agent's
+/// mailbox, so the reviewer can confirm the export goes only to themselves.
+/// Read-only; unavailable is stated, not guessed.
+pub fn export_recipient(c: &dyn Api) -> Map<String, Value> {
+    let agent = c.me().ok();
+    let email = agent
+        .as_ref()
+        .and_then(Value::as_object)
+        .and_then(|a| a.get("email"))
+        .and_then(Value::as_str)
+        .filter(|e| e.contains('@') && fsv_core::pystr::strip(e) == *e);
+    match email {
+        Some(email) => obj(json!({"mailbox": email,
+                                  "source": "signed-in agent profile (GET /api/v2/agents/me)",
+                                  "note": RECIPIENT_NOTE})),
+        None => obj(json!({"mailbox": "unavailable",
+                           "source": "signed-in agent profile could not be read",
+                           "note": format!("{RECIPIENT_NOTE}; do not send unless you know which mailbox this session belongs to")})),
     }
 }
 
@@ -126,6 +171,7 @@ pub fn columns_plan(
         },
         inputs_json: Dumps::default()
             .dump(&json!({"module": module, "columns": columns, "frozen": frozen})),
+        recipient_json: "{}".into(),
     })
 }
 
@@ -241,6 +287,9 @@ pub fn export_plan(c: &dyn Api, module: &str, view: &str, fields: &[String]) -> 
         },
         inputs_json: Dumps::default()
             .dump(&json!({"module": module, "view": selected.id, "fields": fields})),
+        recipient_json: Dumps::default()
+            .sort_keys(true)
+            .dump(&Value::Object(export_recipient(c))),
     })
 }
 
@@ -251,7 +300,7 @@ fn strings(v: &Value) -> Vec<String> {
 }
 
 /// Port of fsv.list_preferences.send: a columns change is read back from
-/// the headers; an export is only requested, never claimed delivered.
+/// the headers; an export is review-only and never sent.
 pub fn send(
     plan: &ListPlan,
     c: &dyn Api,
@@ -260,37 +309,20 @@ pub fn send(
 ) -> Result<Value> {
     let inputs: Value = serde_json::from_str(&plan.inputs_json)?;
     let module = inputs["module"].as_str().unwrap_or_default().to_string();
-    let columns = plan.plan.action == "list_columns";
+    if plan.plan.action != "list_columns" {
+        return Err(refused("export is review-only in fsv; nothing was sent"));
+    }
     let payload = plan.payload();
     let rebuild = || -> Result<WritePlan> {
-        Ok(if columns {
-            columns_plan(
-                c,
-                &module,
-                &strings(&inputs["columns"]),
-                &strings(&inputs["frozen"]),
-            )?
-        } else {
-            export_plan(
-                c,
-                &module,
-                inputs["view"].as_str().unwrap_or_default(),
-                &strings(&inputs["fields"]),
-            )?
-        }
+        Ok(columns_plan(
+            c,
+            &module,
+            &strings(&inputs["columns"]),
+            &strings(&inputs["frozen"]),
+        )?
         .plan)
     };
     let verify = |_: &Value| -> Result<Map<String, Value>> {
-        if !columns {
-            let view = inputs["view"].as_str().unwrap_or_default();
-            let (_, row) = export_source(c, &module, view)?;
-            return Ok(obj(json!({
-                "verified": false,
-                "source_readback": py_str(row.get("id").unwrap_or(&Value::Null)) == view,
-                "job": "unavailable", "download": "unavailable",
-                "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend.",
-            })));
-        }
         let rows = headers(c, &module)?;
         let frozen = strings(&payload["frozen_columns"]);
         let empty = Map::new();

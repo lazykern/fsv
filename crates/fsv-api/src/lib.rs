@@ -170,3 +170,5 @@ pub fn is_session_error(e: &fsv_core::Error) -> bool {
 mod provenance_tests;
 #[cfg(test)]
 mod workflows_tests;
+#[cfg(test)]
+mod private_views_native_tests;

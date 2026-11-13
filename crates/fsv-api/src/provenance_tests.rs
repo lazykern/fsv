@@ -74,6 +74,10 @@ fn fixtures_record_their_python_commit() {
             include_str!("testdata/workflows_oracle.json"),
         ),
         (
+            "private_views_native_oracle",
+            include_str!("testdata/private_views_native_oracle.json"),
+        ),
+        (
             "attachments_oracle",
             include_str!("testdata/attachments_oracle.json"),
         ),

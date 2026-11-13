@@ -471,8 +471,14 @@ fn private_views_lifecycle_and_refusals() {
         let n = w.log().len();
         let ctx = entry["action"].as_str().unwrap();
         let action = ctx.strip_prefix("private_view_").unwrap();
-        let p = private_views::build_plan(&w.api, &entry["source"], action, entry["name"].as_str())
-            .unwrap();
+        let p = private_views::build_plan(
+            &w.api,
+            &entry["source"],
+            action,
+            entry["name"].as_str(),
+            &private_views::TICKETS,
+        )
+        .unwrap();
         assert_eq!(
             Value::Array(w.log().split_off(n)),
             entry["plan_calls"],
@@ -486,7 +492,8 @@ fn private_views_lifecycle_and_refusals() {
     }
 
     let w = view_wire(view());
-    let p = private_views::build_plan(&w.api, &json!(701), "delete", None).unwrap();
+    let p = private_views::build_plan(&w.api, &json!(701), "delete", None, &private_views::TICKETS)
+        .unwrap();
     w.set(|s| s["partial"] = json!(true));
     check(
         &view_send(&w, &p),
@@ -495,7 +502,14 @@ fn private_views_lifecycle_and_refusals() {
     );
 
     let w = view_wire(view());
-    let p = private_views::build_plan(&w.api, &json!(701), "create", Some("Globex")).unwrap();
+    let p = private_views::build_plan(
+        &w.api,
+        &json!(701),
+        "create",
+        Some("Globex"),
+        &private_views::TICKETS,
+    )
+    .unwrap();
     w.set(|s| s["failure"] = json!(500));
     check(
         &view_send(&w, &p),
@@ -519,6 +533,7 @@ fn private_views_lifecycle_and_refusals() {
                 &json!(701),
                 case["action"].as_str().unwrap(),
                 case["name"].as_str(),
+                &private_views::TICKETS,
             )
             .map(|p| view_plan(&p)),
         );
@@ -607,7 +622,8 @@ fn list_wire(module: &str) -> Wire {
 }
 
 fn list_plan(p: &list_preferences::ListPlan) -> Value {
-    with(write_plan(&p.plan), "inputs_json", json!(p.inputs_json))
+    let plan = with(write_plan(&p.plan), "review", Value::Object(p.review()));
+    with(plan, "inputs_json", json!(p.inputs_json))
 }
 
 fn list_send(w: &Wire, p: &list_preferences::ListPlan) -> Value {
@@ -1208,7 +1224,8 @@ fn direct_reads_match_python() {
 
     let w = view_wire(view());
     let detail = &want["private_detail"];
-    let read = |w: &Wire, id| attempt_map(private_views::detail(&w.api, id));
+    let read =
+        |w: &Wire, id| attempt_map(private_views::detail(&w.api, id, &private_views::TICKETS));
     check(&read(&w, 701), &detail["ok"], "detail");
     check(&read(&w, 9), &detail["missing"], "detail missing");
     w.set(|s| s["rows"]["701"]["id"] = json!(702));
@@ -1219,7 +1236,10 @@ fn direct_reads_match_python() {
     for case in want["private_visibility"].as_array().unwrap() {
         let mut row = view().as_object().unwrap().clone();
         row.extend(case["mods"].as_object().unwrap().clone());
-        let got = attempt(private_views::private_visibility(&row, 901).map(|id| json!(id)));
+        let got = attempt(
+            private_views::private_visibility(&row, 901, &private_views::TICKETS)
+                .map(|id| json!(id)),
+        );
         check(&got, case, &case["mods"].to_string());
     }
 

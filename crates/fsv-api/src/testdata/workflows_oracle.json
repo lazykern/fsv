@@ -660,13 +660,12 @@
       "verified": true,
       "view_id": 702,
       "fields": {
-       "advanced_query_hash": "matched",
+       "visibility": "matched",
+       "workspace_id": "matched",
        "name": "matched",
        "order_by": "matched",
        "order_type": "matched",
-       "query_hash": "matched",
-       "visibility": "matched",
-       "workspace_id": "matched"
+       "conditions": "matched"
       }
      },
      "calls": [
@@ -759,13 +758,12 @@
       "verified": true,
       "view_id": 702,
       "fields": {
-       "advanced_query_hash": "matched",
+       "visibility": "matched",
+       "workspace_id": "matched",
        "name": "matched",
        "order_by": "matched",
        "order_type": "matched",
-       "query_hash": "matched",
-       "visibility": "matched",
-       "workspace_id": "matched"
+       "conditions": "matched"
       }
      },
      "calls": [
@@ -1197,8 +1195,41 @@
     "mods": {},
     "action": "rename",
     "name": "x",
-    "error": "unsupported saved-view action",
-    "type": "ValueError"
+    "ok": {
+     "hash": "8c94ba84baba4970b35f6fd3a405022b8524afa434aa236bb5fd98b77564c05e",
+     "review": {
+      "action": "private_view_edit",
+      "method": "PUT",
+      "path": "/api/_/ticket_filters/701",
+      "payload": {
+       "advanced_query_hash": null,
+       "name": "x",
+       "order_by": "created_at",
+       "order_type": "desc",
+       "query_hash": [
+        {
+         "condition": "status",
+         "operator": "is_in",
+         "type": "default",
+         "value": [
+          "42"
+         ]
+        }
+       ],
+       "visibility": 81,
+       "workspace_id": 17
+      },
+      "plan_hash": "8c94ba84baba4970b35f6fd3a405022b8524afa434aa236bb5fd98b77564c05e",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     },
+     "action": "private_view_edit",
+     "target": 701,
+     "method": "PUT",
+     "path": "ticket_filters/701",
+     "payload_json": "{\"advanced_query_hash\": null, \"name\": \"x\", \"order_by\": \"created_at\", \"order_type\": \"desc\", \"query_hash\": [{\"condition\": \"status\", \"operator\": \"is_in\", \"type\": \"default\", \"value\": [\"42\"]}], \"visibility\": 81, \"workspace_id\": 17}",
+     "context_hash": "d0f69e59bbeb9147b162d6927044bc938f18b7aa964f7376bd31e4e708e94d6c",
+     "source_id": 701
+    }
    },
    {
     "mods": {},
@@ -1211,14 +1242,14 @@
     "mods": {},
     "action": "create",
     "name": " ",
-    "error": "create/edit requires a nonempty --name",
+    "error": "create/rename requires a nonempty --name",
     "type": "ValueError"
    },
    {
     "mods": {},
     "action": "edit",
     "name": null,
-    "error": "create/edit requires a nonempty --name",
+    "error": "create/rename requires a nonempty --name",
     "type": "ValueError"
    },
    {
@@ -1254,7 +1285,7 @@
     },
     "action": "create",
     "name": "x",
-    "error": "named private visibility metadata is unavailable; numeric visibility alone is not proof",
+    "error": "view visibility is 'Everyone', not private; nothing was sent",
     "type": "ReviewedWriteError"
    },
    {
@@ -1263,7 +1294,7 @@
     },
     "action": "create",
     "name": "x",
-    "error": "named private visibility metadata is unavailable; numeric visibility alone is not proof",
+    "error": "GET /api/_/ticket_filters/701 returns visibility 81 (unknown) without group_ids; only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
     "type": "ReviewedWriteError"
    },
    {
@@ -1320,7 +1351,7 @@
     },
     "action": "create",
     "name": "x",
-    "error": "named private visibility metadata is unavailable; numeric visibility alone is not proof",
+    "error": "view visibility is 'Agents', not private; nothing was sent",
     "type": "ReviewedWriteError"
    },
    {
@@ -1374,7 +1405,7 @@
     },
     "action": "create",
     "name": "x",
-    "error": "expected a positive numeric identity",
+    "error": "the view's workspace is missing or ambiguous in its read; nothing was sent",
     "type": "ReviewedWriteError"
    },
    {
@@ -1563,7 +1594,24 @@
       "ticket_state_filter": "created_at"
      },
      "plan_hash": "132af14d22df0869dd963e13ce581c36df4482b6d6d947d444e1b768bfb4857a",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+     "recipient": {
+      "mailbox": "unavailable",
+      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+      "source": "signed-in agent profile could not be read"
+     },
+     "body_keys": [
+      "advanced_data_hash",
+      "custom_fields",
+      "data_hash",
+      "date_filter",
+      "export_fields",
+      "format",
+      "selected_filter_view",
+      "ticket_state_filter"
+     ],
+     "review_only": true,
+     "delivery": "unknown"
     },
     "action": "list_export",
     "target": 0,
@@ -1573,77 +1621,10 @@
     "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
     "inputs_json": "{\"module\": \"tickets\", \"view\": \"701\", \"fields\": [\"subject\", \"status_name\", \"display_id\"]}",
     "send": {
-     "ok": {
-      "status": "submitted",
-      "plan_hash": "132af14d22df0869dd963e13ce581c36df4482b6d6d947d444e1b768bfb4857a",
-      "verified": false,
-      "source_readback": true,
-      "job": "unavailable",
-      "download": "unavailable",
-      "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend."
-     },
-     "calls": [
-      [
-       "GET",
-       "tickets/headers",
-       null
-      ],
-      [
-       "GET",
-       "ticket_filters",
-       null
-      ],
-      [
-       "GET",
-       "ticket_filters/701",
-       null
-      ],
-      [
-       "POST",
-       "tickets/export",
-       {
-        "advanced_data_hash": null,
-        "custom_fields": {},
-        "data_hash": [
-         {
-          "condition": "status",
-          "operator": "is_in",
-          "type": "default",
-          "value": [
-           "47"
-          ]
-         }
-        ],
-        "date_filter": 30,
-        "export_fields": {
-         "display_id": "Acme ID",
-         "status_name": "Acme state",
-         "subject": "Acme subject"
-        },
-        "format": "csv",
-        "selected_filter_view": {
-         "id": "701",
-         "is_additional_filters_applied": false,
-         "name": "Acme queue"
-        },
-        "ticket_state_filter": "created_at"
-       }
-      ],
-      [
-       "GET",
-       "ticket_filters",
-       null
-      ],
-      [
-       "GET",
-       "ticket_filters/701",
-       null
-      ]
-     ],
-     "events": [
-      "started",
-      "done"
-     ]
+     "error": "export is review-only in fsv; nothing was sent",
+     "type": "ReviewedWriteError",
+     "calls": [],
+     "events": []
     }
    },
    "columns_missing": {
@@ -1703,57 +1684,10 @@
     "events": []
    },
    "export_fail_429": {
-    "error": "write outcome unknown; inspect target and journal before retry",
+    "error": "export is review-only in fsv; nothing was sent",
     "type": "ReviewedWriteError",
-    "calls": [
-     [
-      "GET",
-      "tickets/headers",
-      null
-     ],
-     [
-      "GET",
-      "ticket_filters",
-      null
-     ],
-     [
-      "GET",
-      "ticket_filters/701",
-      null
-     ],
-     [
-      "POST",
-      "tickets/export",
-      {
-       "advanced_data_hash": null,
-       "custom_fields": {},
-       "data_hash": [
-        {
-         "condition": "status",
-         "operator": "is_in",
-         "type": "default",
-         "value": [
-          "47"
-         ]
-        }
-       ],
-       "date_filter": 30,
-       "export_fields": {
-        "subject": "Acme subject"
-       },
-       "format": "csv",
-       "selected_filter_view": {
-        "id": "701",
-        "is_additional_filters_applied": false,
-        "name": "Acme queue"
-       },
-       "ticket_state_filter": "created_at"
-      }
-     ]
-    ],
-    "events": [
-     "started"
-    ]
+    "calls": [],
+    "events": []
    },
    "refusals": [
     {
@@ -1940,7 +1874,24 @@
         "ticket_state_filter": "created_at"
        },
        "plan_hash": "0bc75a130df9ddb1e8447efebcc63c39be9b548befa49bdece24890e4312b9a5",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "recipient": {
+        "mailbox": "unavailable",
+        "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+        "source": "signed-in agent profile could not be read"
+       },
+       "body_keys": [
+        "advanced_data_hash",
+        "custom_fields",
+        "data_hash",
+        "date_filter",
+        "export_fields",
+        "format",
+        "selected_filter_view",
+        "ticket_state_filter"
+       ],
+       "review_only": true,
+       "delivery": "unknown"
       },
       "action": "list_export",
       "target": 0,
@@ -2002,7 +1953,24 @@
         "ticket_state_filter": "created_at"
        },
        "plan_hash": "118d8bb9a0a0ebbec2211ac288d6fb73db88b61a2893fafc8262b119e8d7d570",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "recipient": {
+        "mailbox": "unavailable",
+        "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+        "source": "signed-in agent profile could not be read"
+       },
+       "body_keys": [
+        "advanced_data_hash",
+        "custom_fields",
+        "data_hash",
+        "date_filter",
+        "export_fields",
+        "format",
+        "selected_filter_view",
+        "ticket_state_filter"
+       ],
+       "review_only": true,
+       "delivery": "unknown"
       },
       "action": "list_export",
       "target": 0,
@@ -2053,7 +2021,24 @@
         "ticket_state_filter": "created_at"
        },
        "plan_hash": "d534ac2ae8da57107d3b9140c74f711740aa28c4064713c7d45d4e84211665c2",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "recipient": {
+        "mailbox": "unavailable",
+        "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+        "source": "signed-in agent profile could not be read"
+       },
+       "body_keys": [
+        "advanced_data_hash",
+        "custom_fields",
+        "data_hash",
+        "date_filter",
+        "export_fields",
+        "format",
+        "selected_filter_view",
+        "ticket_state_filter"
+       ],
+       "review_only": true,
+       "delivery": "unknown"
       },
       "action": "list_export",
       "target": 0,
@@ -2261,7 +2246,23 @@
       "state_filter": "created_at"
      },
      "plan_hash": "0c180e75b3f4c968d62f25c36684abac06abc12abd09c6b52b2aa7fac9ca0747",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+     "recipient": {
+      "mailbox": "unavailable",
+      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+      "source": "signed-in agent profile could not be read"
+     },
+     "body_keys": [
+      "advanced_data_hash",
+      "custom_fields",
+      "data_hash",
+      "date_filter",
+      "export_fields",
+      "format",
+      "state_filter"
+     ],
+     "review_only": true,
+     "delivery": "unknown"
     },
     "action": "list_export",
     "target": 0,
@@ -2271,72 +2272,10 @@
     "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
     "inputs_json": "{\"module\": \"changes\", \"view\": \"701\", \"fields\": [\"subject\", \"status_name\", \"display_id\"]}",
     "send": {
-     "ok": {
-      "status": "submitted",
-      "plan_hash": "0c180e75b3f4c968d62f25c36684abac06abc12abd09c6b52b2aa7fac9ca0747",
-      "verified": false,
-      "source_readback": true,
-      "job": "unavailable",
-      "download": "unavailable",
-      "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend."
-     },
-     "calls": [
-      [
-       "GET",
-       "changes/headers",
-       null
-      ],
-      [
-       "GET",
-       "change-filters",
-       null
-      ],
-      [
-       "GET",
-       "change-filters/701",
-       null
-      ],
-      [
-       "POST",
-       "changes/export",
-       {
-        "advanced_data_hash": null,
-        "custom_fields": {},
-        "data_hash": [
-         {
-          "condition": "status",
-          "operator": "is_in",
-          "type": "default",
-          "value": [
-           "47"
-          ]
-         }
-        ],
-        "date_filter": 30,
-        "export_fields": {
-         "display_id": "Acme ID",
-         "status_name": "Acme state",
-         "subject": "Acme subject"
-        },
-        "format": "csv",
-        "state_filter": "created_at"
-       }
-      ],
-      [
-       "GET",
-       "change-filters",
-       null
-      ],
-      [
-       "GET",
-       "change-filters/701",
-       null
-      ]
-     ],
-     "events": [
-      "started",
-      "done"
-     ]
+     "error": "export is review-only in fsv; nothing was sent",
+     "type": "ReviewedWriteError",
+     "calls": [],
+     "events": []
     }
    },
    "columns_missing": {
@@ -2396,52 +2335,10 @@
     "events": []
    },
    "export_fail_429": {
-    "error": "write outcome unknown; inspect target and journal before retry",
+    "error": "export is review-only in fsv; nothing was sent",
     "type": "ReviewedWriteError",
-    "calls": [
-     [
-      "GET",
-      "changes/headers",
-      null
-     ],
-     [
-      "GET",
-      "change-filters",
-      null
-     ],
-     [
-      "GET",
-      "change-filters/701",
-      null
-     ],
-     [
-      "POST",
-      "changes/export",
-      {
-       "advanced_data_hash": null,
-       "custom_fields": {},
-       "data_hash": [
-        {
-         "condition": "status",
-         "operator": "is_in",
-         "type": "default",
-         "value": [
-          "47"
-         ]
-        }
-       ],
-       "date_filter": 30,
-       "export_fields": {
-        "subject": "Acme subject"
-       },
-       "format": "csv",
-       "state_filter": "created_at"
-      }
-     ]
-    ],
-    "events": [
-     "started"
-    ]
+    "calls": [],
+    "events": []
    },
    "refusals": [
     {
@@ -2638,7 +2535,23 @@
         "state_filter": "created_at"
        },
        "plan_hash": "402e66771dd506488e5a377abd89b14af86617c070ddff6bac83727aad80ab19",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "recipient": {
+        "mailbox": "unavailable",
+        "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+        "source": "signed-in agent profile could not be read"
+       },
+       "body_keys": [
+        "advanced_data_hash",
+        "custom_fields",
+        "data_hash",
+        "date_filter",
+        "export_fields",
+        "format",
+        "state_filter"
+       ],
+       "review_only": true,
+       "delivery": "unknown"
       },
       "action": "list_export",
       "target": 0,
@@ -2706,7 +2619,23 @@
         "state_filter": "created_at"
        },
        "plan_hash": "7bbd60d1594543cf94997f312928d44363786d318e3f93b2941e693605becbd1",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "recipient": {
+        "mailbox": "unavailable",
+        "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+        "source": "signed-in agent profile could not be read"
+       },
+       "body_keys": [
+        "advanced_data_hash",
+        "custom_fields",
+        "data_hash",
+        "date_filter",
+        "export_fields",
+        "format",
+        "state_filter"
+       ],
+       "review_only": true,
+       "delivery": "unknown"
       },
       "action": "list_export",
       "target": 0,
@@ -2752,7 +2681,23 @@
         "state_filter": "created_at"
        },
        "plan_hash": "0f385c43fc7e171ad3fa7fc5ebbcfab783cbaefdd96e230cbbe4bd040a2cd027",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "recipient": {
+        "mailbox": "unavailable",
+        "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+        "source": "signed-in agent profile could not be read"
+       },
+       "body_keys": [
+        "advanced_data_hash",
+        "custom_fields",
+        "data_hash",
+        "date_filter",
+        "export_fields",
+        "format",
+        "state_filter"
+       ],
+       "review_only": true,
+       "delivery": "unknown"
       },
       "action": "list_export",
       "target": 0,
@@ -2959,7 +2904,22 @@
       "state_filter": "created_at"
      },
      "plan_hash": "c490107c6d167c8e0a97c87d8949a790804f0d3932fe3a752f66f6536042d59c",
-     "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+     "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+     "recipient": {
+      "mailbox": "unavailable",
+      "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+      "source": "signed-in agent profile could not be read"
+     },
+     "body_keys": [
+      "custom_fields",
+      "data_hash",
+      "date_filter",
+      "export_fields",
+      "format",
+      "state_filter"
+     ],
+     "review_only": true,
+     "delivery": "unknown"
     },
     "action": "list_export",
     "target": 0,
@@ -2969,71 +2929,10 @@
     "context_hash": "56bb1b1c5bc1ca874921529078d73e9209525a46cfa84e2f6a94a92eeb4993a5",
     "inputs_json": "{\"module\": \"problems\", \"view\": \"701\", \"fields\": [\"subject\", \"status_name\", \"display_id\"]}",
     "send": {
-     "ok": {
-      "status": "submitted",
-      "plan_hash": "c490107c6d167c8e0a97c87d8949a790804f0d3932fe3a752f66f6536042d59c",
-      "verified": false,
-      "source_readback": true,
-      "job": "unavailable",
-      "download": "unavailable",
-      "warning": "Export requested once; delivery/job/download effects are unverified. Do not resend."
-     },
-     "calls": [
-      [
-       "GET",
-       "problems/headers",
-       null
-      ],
-      [
-       "GET",
-       "problem-filters",
-       null
-      ],
-      [
-       "GET",
-       "problem-filters/701",
-       null
-      ],
-      [
-       "POST",
-       "problems/export",
-       {
-        "custom_fields": {},
-        "data_hash": [
-         {
-          "condition": "status",
-          "operator": "is_in",
-          "type": "default",
-          "value": [
-           "47"
-          ]
-         }
-        ],
-        "date_filter": 30,
-        "export_fields": {
-         "display_id": "Acme ID",
-         "status_name": "Acme state",
-         "subject": "Acme subject"
-        },
-        "format": "csv",
-        "state_filter": "created_at"
-       }
-      ],
-      [
-       "GET",
-       "problem-filters",
-       null
-      ],
-      [
-       "GET",
-       "problem-filters/701",
-       null
-      ]
-     ],
-     "events": [
-      "started",
-      "done"
-     ]
+     "error": "export is review-only in fsv; nothing was sent",
+     "type": "ReviewedWriteError",
+     "calls": [],
+     "events": []
     }
    },
    "columns_missing": {
@@ -3093,51 +2992,10 @@
     "events": []
    },
    "export_fail_429": {
-    "error": "write outcome unknown; inspect target and journal before retry",
+    "error": "export is review-only in fsv; nothing was sent",
     "type": "ReviewedWriteError",
-    "calls": [
-     [
-      "GET",
-      "problems/headers",
-      null
-     ],
-     [
-      "GET",
-      "problem-filters",
-      null
-     ],
-     [
-      "GET",
-      "problem-filters/701",
-      null
-     ],
-     [
-      "POST",
-      "problems/export",
-      {
-       "custom_fields": {},
-       "data_hash": [
-        {
-         "condition": "status",
-         "operator": "is_in",
-         "type": "default",
-         "value": [
-          "47"
-         ]
-        }
-       ],
-       "date_filter": 30,
-       "export_fields": {
-        "subject": "Acme subject"
-       },
-       "format": "csv",
-       "state_filter": "created_at"
-      }
-     ]
-    ],
-    "events": [
-     "started"
-    ]
+    "calls": [],
+    "events": []
    },
    "refusals": [
     {
@@ -3307,7 +3165,22 @@
         "state_filter": "created_at"
        },
        "plan_hash": "85d2bfa0e1934a4948928d0aefabc0868fc3747eb457b5e7e0f9a7f781081885",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "recipient": {
+        "mailbox": "unavailable",
+        "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+        "source": "signed-in agent profile could not be read"
+       },
+       "body_keys": [
+        "custom_fields",
+        "data_hash",
+        "date_filter",
+        "export_fields",
+        "format",
+        "state_filter"
+       ],
+       "review_only": true,
+       "delivery": "unknown"
       },
       "action": "list_export",
       "target": 0,
@@ -3374,7 +3247,22 @@
         "state_filter": "created_at"
        },
        "plan_hash": "efcd86c4bad5972227a5a5e042a885636920dbc43abe21e58906459eabbf43bf",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "recipient": {
+        "mailbox": "unavailable",
+        "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+        "source": "signed-in agent profile could not be read"
+       },
+       "body_keys": [
+        "custom_fields",
+        "data_hash",
+        "date_filter",
+        "export_fields",
+        "format",
+        "state_filter"
+       ],
+       "review_only": true,
+       "delivery": "unknown"
       },
       "action": "list_export",
       "target": 0,
@@ -3419,7 +3307,22 @@
         "state_filter": "created_at"
        },
        "plan_hash": "7064db9678bfc44f740f3c20cff4dbacb021e7e210d526f9180b8186956bbb65",
-       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+       "warning": "Review only: fsv never sends an export. The captured request carries the keys above; the server's job, file and delivery (presumably mail to the recipient below) are unknown, so a send could not be verified. Run the export from the web UI if you need it.",
+       "recipient": {
+        "mailbox": "unavailable",
+        "note": "the export request carries no recipient field; the server delivers the export to the requesting agent's mailbox, which fsv cannot read back; do not send unless you know which mailbox this session belongs to",
+        "source": "signed-in agent profile could not be read"
+       },
+       "body_keys": [
+        "custom_fields",
+        "data_hash",
+        "date_filter",
+        "export_fields",
+        "format",
+        "state_filter"
+       ],
+       "review_only": true,
+       "delivery": "unknown"
       },
       "action": "list_export",
       "target": 0,
@@ -9821,14 +9724,14 @@
     "mods": {
      "visibility_name": "Everyone"
     },
-    "error": "named private visibility metadata is unavailable; numeric visibility alone is not proof",
+    "error": "view visibility is 'Everyone', not private; nothing was sent",
     "type": "ReviewedWriteError"
    },
    {
     "mods": {
      "visibility_name": 5
     },
-    "error": "named private visibility metadata is unavailable; numeric visibility alone is not proof",
+    "error": "GET /api/_/ticket_filters/701 returns visibility 81 (unknown) without group_ids; only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
     "type": "ReviewedWriteError"
    },
    {
@@ -9856,7 +9759,7 @@
       "id": 5
      }
     },
-    "error": "named private visibility metadata is unavailable; numeric visibility alone is not proof",
+    "error": "GET /api/_/ticket_filters/701 returns visibility 5 (unknown) without group_ids; only Myself (3) with an empty group_ids list is treated as private (1 = All agents, 2 = Agents in groups). Nothing was sent",
     "type": "ReviewedWriteError"
    },
    {
@@ -10581,6 +10484,17 @@
      ]
     ]
    }
+  ]
+ },
+ "_regenerated": {
+  "commit": "72b4716d470a853a4080698b01a1254db27951dc",
+  "dirty": false,
+  "keys": [
+   "private_views",
+   "list_preferences.<module>.export",
+   "list_preferences.<module>.export_fail_429",
+   "list_preferences.<module>.refusals",
+   "direct.private_visibility"
   ]
  }
 }

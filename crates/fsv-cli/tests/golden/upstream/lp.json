@@ -533,5 +533,56 @@
    "--dry-run"
   ],
   "fixture": "list_prefs"
+ },
+ {
+  "name": "tickets_export_without_dry_run",
+  "args": [
+   "tickets",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "changes_export_yes_refused",
+  "args": [
+   "changes",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--yes"
+  ],
+  "fixture": "list_prefs"
+ },
+ {
+  "name": "problems_export_expect_plan_refused",
+  "args": [
+   "problems",
+   "export",
+   "--view",
+   "Acme queue",
+   "--field",
+   "subject",
+   "--field",
+   "status_name",
+   "--field",
+   "display_id",
+   "--expect-plan",
+   "abc"
+  ],
+  "fixture": "list_prefs"
  }
 ]

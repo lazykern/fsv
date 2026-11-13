@@ -9,15 +9,6 @@ fn canned_show_api_error_is_uncaught() {
 }
 
 #[test]
-fn private_view_show_refusal_is_uncaught() {
-    // `show` has no `try`: ReviewedWriteError is a traceback (exit 1), not exit 2.
-    let r = run_fixture("private_views", &["tickets", "private-views", "show", "711"], None);
-    assert_eq!(r.code, 1, "{}", r.err);
-    assert_eq!(r.out, "");
-    assert!(r.err.contains("exact saved-view identity is unavailable"), "{}", r.err);
-}
-
-#[test]
 fn columns_list_api_error_is_uncaught() {
     let r = run_fixture("private_views", &["problems", "columns", "list"], None);
     assert_eq!(r.code, 1, "{}", r.err);
