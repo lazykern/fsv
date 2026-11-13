@@ -89,23 +89,19 @@ pub fn choice_label(field_name: &str, val: &Value, schema: &Value) -> String {
 
 /// Copy v2 `choices` onto an internal field when v2 lists more of them.
 /// Internal fields stay in their original order. A v2 field with no `name`
-/// key is ignored, matching `{"name" in f}`.
+/// key is ignored, matching `{"name" in f}`; of two v2 fields with the same
+/// name the later wins (dict assignment). An internal field without a name
+/// looks up `None`, so it matches a v2 field whose name is null.
 pub fn merge_v2_choices(int_fields: &mut [Value], v2_fields: &[Value]) {
+    let null = Value::Null;
     for field in int_fields.iter_mut() {
         let Some(obj) = field.as_object_mut() else {
             continue;
         };
-        let Some(name) = obj.get("name").filter(|v| !v.is_null()) else {
-            continue;
-        };
-        let Some(v2) = v2_fields.iter().find_map(|f| {
-            let obj = f.as_object()?;
-            if !obj.contains_key("name") {
-                return None;
-            }
-            obj.get("name")
-                .is_some_and(|n| py_eq(n, name))
-                .then_some(obj)
+        let name = obj.get("name").unwrap_or(&null);
+        let Some(v2) = v2_fields.iter().rev().find_map(|f| {
+            let n = f.as_object()?.get("name")?;
+            py_eq(n, name).then_some(f)
         }) else {
             continue;
         };
@@ -116,8 +112,14 @@ pub fn merge_v2_choices(int_fields: &mut [Value], v2_fields: &[Value]) {
     }
 }
 
+/// `len(choices or [])`: list items, dict keys or string characters.
 fn choice_len(v: Option<&Value>) -> usize {
-    v.and_then(Value::as_array).map(|a| a.len()).unwrap_or(0)
+    match v {
+        Some(Value::Array(a)) => a.len(),
+        Some(Value::Object(m)) => m.len(),
+        Some(Value::String(s)) => s.chars().count(),
+        _ => 0,
+    }
 }
 
 /// Python `==` for JSON values the schema compares (ids and choice values).
@@ -917,6 +919,36 @@ mod tests {
         merge_v2_choices(&mut int_fields, &v2);
         assert_eq!(int_fields[0]["choices"].as_array().unwrap().len(), 2);
         assert_eq!(int_fields[1]["choices"].as_array().unwrap().len(), 1);
+    }
+
+    /// Expected values from Python 406ca71 `_fetch_schema`: the later v2
+    /// field of a name wins, `len()` counts dict keys and string characters,
+    /// and a nameless internal field matches a v2 field named null.
+    #[test]
+    fn merge_follows_python_dict_and_len() {
+        let mut int_fields = vec![
+            json!({"name": "dup", "choices": [1]}),
+            json!({"name": "nested", "choices": {"a": 1}}),
+            json!({"choices": []}),
+            json!({"name": "text", "choices": "ab"}),
+        ];
+        let v2 = vec![
+            json!({"name": "dup", "choices": [1, 2, 3]}),
+            json!({"name": "dup", "choices": [1, 2]}),
+            json!({"name": "nested", "choices": {"a": 1, "b": 2}}),
+            json!({"name": null, "choices": [7]}),
+            json!({"name": "text", "choices": ["x", "y", "z"]}),
+        ];
+        merge_v2_choices(&mut int_fields, &v2);
+        assert_eq!(
+            Value::Array(int_fields),
+            json!([
+                {"name": "dup", "choices": [1, 2]},
+                {"name": "nested", "choices": {"a": 1, "b": 2}},
+                {"choices": [7]},
+                {"name": "text", "choices": ["x", "y", "z"]}
+            ])
+        );
     }
 
     /// Python tests/test_problem_write_fixes.py::test_schema_freshness_warns_on_new_server_choice
