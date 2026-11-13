@@ -154,7 +154,15 @@ pub fn context_ack(
     row: Option<Map<String, Value>>,
     ack: bool,
 ) -> Result<(Map<String, Value>, String, String, Vec<String>)> {
-    let other = |e: fsv_forms::FormError| Error::other(e.to_string());
+    // An invalid --set value/label (e.g. a choice that does not exist) is a
+    // local refusal listing the valid choices, never a traceback.
+    let other = |e: fsv_forms::FormError| {
+        if e.is_form_error() {
+            refused(format!("{e}; nothing was sent"))
+        } else {
+            Error::other(e.to_string())
+        }
+    };
     let row = match row {
         Some(row) => row,
         None => record(c, cid)?,
@@ -179,7 +187,13 @@ pub fn context_ack(
             ..StateOptions::default()
         },
     )
-    .map_err(form_err)?;
+    .map_err(|e| {
+        if e.is_form_error() {
+            other(e)
+        } else {
+            form_err(e)
+        }
+    })?;
     let fields: Vec<_> = spec.fields().iter().filter(|f| is_status(f)).collect();
     if fields.len() != 1 {
         return Err(refused("status metadata is not unique"));
