@@ -12,7 +12,7 @@ use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 /// Ratchet: the number of `open` entries may only go down.
-const OPEN_CEILING: usize = 141;
+const OPEN_CEILING: usize = 93;
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")

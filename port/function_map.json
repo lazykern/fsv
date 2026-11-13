@@ -2347,20 +2347,24 @@
    "module": "cli.py",
    "name": "_reorder_root_flags",
    "line": 51,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/app.rs",
+   "rust_item": "rewrite"
   },
   {
    "module": "cli.py",
    "name": "_global_help_params",
    "line": 84,
-   "status": "open"
+   "status": "idiom",
+   "note": "Click/Typer help and parse class; clap builds the command surface in generated.rs and tests/tree.rs checks it"
   },
   {
    "module": "cli.py",
    "name": "_FSVHelpMixin",
    "line": 103,
    "kind": "class",
-   "status": "open"
+   "status": "idiom",
+   "note": "Click/Typer help and parse class; clap builds the command surface in generated.rs and tests/tree.rs checks it"
   },
   {
    "module": "cli.py",
@@ -2381,14 +2385,16 @@
    "name": "FSVCommand",
    "line": 118,
    "kind": "class",
-   "status": "open"
+   "status": "idiom",
+   "note": "Click/Typer help and parse class; clap builds the command surface in generated.rs and tests/tree.rs checks it"
   },
   {
    "module": "cli.py",
    "name": "FSVGroup",
    "line": 122,
    "kind": "class",
-   "status": "open"
+   "status": "idiom",
+   "note": "Click/Typer help and parse class; clap builds the command surface in generated.rs and tests/tree.rs checks it"
   },
   {
    "module": "cli.py",
@@ -2402,7 +2408,8 @@
    "name": "ChangeLegacyGroup",
    "line": 127,
    "kind": "class",
-   "status": "open"
+   "status": "idiom",
+   "note": "Click/Typer help and parse class; clap builds the command surface in generated.rs and tests/tree.rs checks it"
   },
   {
    "module": "cli.py",
@@ -2431,7 +2438,8 @@
    "module": "cli.py",
    "name": "_patch_typer_shell_detection",
    "line": 180,
-   "status": "open"
+   "status": "idiom",
+   "note": "Click/Typer help and parse class; clap builds the command surface in generated.rs and tests/tree.rs checks it"
   },
   {
    "module": "cli.py",
@@ -2526,7 +2534,9 @@
    "module": "cli.py",
    "name": "_cid",
    "line": 364,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/util.rs",
+   "rust_item": "cid"
   },
   {
    "module": "cli.py",
@@ -2548,7 +2558,9 @@
    "module": "cli.py",
    "name": "_emit_items",
    "line": 388,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/util.rs",
+   "rust_item": "emit_fmt"
   },
   {
    "module": "cli.py",
@@ -2610,19 +2622,25 @@
    "module": "cli.py",
    "name": "_show_fields_table",
    "line": 472,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
+   "rust_item": "fields"
   },
   {
    "module": "cli.py",
    "name": "fields_resource",
    "line": 493,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
+   "rust_item": "fields"
   },
   {
    "module": "cli.py",
    "name": "lookup_resource",
    "line": 539,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
+   "rust_item": "lookup"
   },
   {
    "module": "cli.py",
@@ -2900,7 +2918,9 @@
    "module": "cli.py",
    "name": "get_resource",
    "line": 1287,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
+   "rust_item": "get"
   },
   {
    "module": "cli.py",
@@ -2938,13 +2958,17 @@
    "module": "cli.py",
    "name": "activity_resource",
    "line": 1386,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
+   "rust_item": "activity"
   },
   {
    "module": "cli.py",
    "name": "tasks_resource",
    "line": 1417,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
+   "rust_item": "tasks"
   },
   {
    "module": "cli.py",
@@ -3034,19 +3058,25 @@
    "module": "cli.py",
    "name": "assets_resource",
    "line": 1730,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/links.rs",
+   "rust_item": "assets"
   },
   {
    "module": "cli.py",
    "name": "asset_categories_resource",
    "line": 1839,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/links.rs",
+   "rust_item": "categories"
   },
   {
    "module": "cli.py",
    "name": "change_associations_resource",
    "line": 1851,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/links.rs",
+   "rust_item": "associations"
   },
   {
    "module": "cli.py",
@@ -3200,7 +3230,9 @@
    "module": "cli.py",
    "name": "notes_resource",
    "line": 2294,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
+   "rust_item": "notes"
   },
   {
    "module": "cli.py",
@@ -3218,7 +3250,9 @@
    "module": "cli.py",
    "name": "ticket_associations_resource",
    "line": 2391,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/tickets.rs",
+   "rust_item": "associations"
   },
   {
    "module": "cli.py",
@@ -3240,7 +3274,9 @@
    "module": "cli.py",
    "name": "views_resource",
    "line": 2479,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
+   "rust_item": "views"
   },
   {
    "module": "cli.py",
@@ -3254,7 +3290,9 @@
    "module": "cli.py",
    "name": "search_resource",
    "line": 2543,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
+   "rust_item": "search"
   },
   {
    "module": "cli.py",
@@ -3276,13 +3314,17 @@
    "module": "cli.py",
    "name": "global_search",
    "line": 2577,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/misc.rs",
+   "rust_item": "search"
   },
   {
    "module": "cli.py",
    "name": "url_resource",
    "line": 2626,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
+   "rust_item": "url"
   },
   {
    "module": "cli.py",
@@ -3304,13 +3346,17 @@
    "module": "cli.py",
    "name": "note_resource",
    "line": 2749,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
+   "rust_item": "add_note"
   },
   {
    "module": "cli.py",
    "name": "reply_resource",
    "line": 2765,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
+   "rust_item": "reply"
   },
   {
    "module": "cli.py",
@@ -3332,31 +3378,41 @@
    "module": "cli.py",
    "name": "auth_login",
    "line": 2820,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/auth.rs",
+   "rust_item": "login"
   },
   {
    "module": "cli.py",
    "name": "auth_logout",
    "line": 2891,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/auth.rs",
+   "rust_item": "logout"
   },
   {
    "module": "cli.py",
    "name": "auth_status",
    "line": 2908,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/auth.rs",
+   "rust_item": "status"
   },
   {
    "module": "cli.py",
    "name": "help_topic",
    "line": 2956,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/misc.rs",
+   "rust_item": "help"
   },
   {
    "module": "cli.py",
    "name": "_refresh_cache",
    "line": 2982,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/cache.rs",
+   "rust_item": "refresh_background"
   },
   {
    "module": "cli.py",
@@ -3370,13 +3426,17 @@
    "module": "cli.py",
    "name": "completion_show",
    "line": 3076,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/completion.rs",
+   "rust_item": "show"
   },
   {
    "module": "cli.py",
    "name": "completion_install",
    "line": 3088,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/completion.rs",
+   "rust_item": "install"
   },
   {
    "module": "cli.py",
@@ -3388,25 +3448,33 @@
    "module": "cli.py",
    "name": "completion_doctor",
    "line": 3135,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/completion.rs",
+   "rust_item": "doctor"
   },
   {
    "module": "cli.py",
    "name": "config_list",
    "line": 3173,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/config.rs",
+   "rust_item": "list"
   },
   {
    "module": "cli.py",
    "name": "config_get",
    "line": 3183,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/config.rs",
+   "rust_item": "get"
   },
   {
    "module": "cli.py",
    "name": "config_set",
    "line": 3196,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/config.rs",
+   "rust_item": "set"
   },
   {
    "module": "cli.py",
@@ -3436,19 +3504,25 @@
    "module": "cli.py",
    "name": "cache_status",
    "line": 3272,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/cache.rs",
+   "rust_item": "status"
   },
   {
    "module": "cli.py",
    "name": "cache_refresh",
    "line": 3323,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/cache.rs",
+   "rust_item": "refresh"
   },
   {
    "module": "cli.py",
    "name": "cache_clear",
    "line": 3329,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/cache.rs",
+   "rust_item": "clear"
   },
   {
    "module": "cli.py",
@@ -3460,19 +3534,25 @@
    "module": "cli.py",
    "name": "journal_ls",
    "line": 3386,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/journal.rs",
+   "rust_item": "ls"
   },
   {
    "module": "cli.py",
    "name": "journal_tail",
    "line": 3398,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/journal.rs",
+   "rust_item": "tail"
   },
   {
    "module": "cli.py",
    "name": "journal_path_cmd",
    "line": 3408,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/journal.rs",
+   "rust_item": "path"
   },
   {
    "module": "cli.py",
@@ -3490,7 +3570,8 @@
    "module": "cli.py",
    "name": "_make_subapp",
    "line": 3434,
-   "status": "open"
+   "status": "idiom",
+   "note": "Click/Typer help and parse class; clap builds the command surface in generated.rs and tests/tree.rs checks it"
   },
   {
    "module": "cli.py",
@@ -3504,7 +3585,9 @@
    "module": "cli.py",
    "name": "global_search_cmd",
    "line": 4847,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/misc.rs",
+   "rust_item": "search"
   },
   {
    "module": "cli.py",
@@ -4702,7 +4785,9 @@
    "module": "config.py",
    "name": "_configured_domain",
    "line": 115,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-core/src/config.rs",
+   "rust_item": "configured_domain_at"
   },
   {
    "module": "config.py",
@@ -11606,7 +11691,9 @@
    "module": "query.py",
    "name": "_isdigit",
    "line": 10,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-core/src/pystr/mod.rs",
+   "rust_item": "is_digit"
   },
   {
    "module": "query.py",
@@ -12284,7 +12371,9 @@
    "module": "schema.py",
    "name": "_cached_path",
    "line": 39,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-api/src/schema.rs",
+   "rust_item": "cache_path"
   },
   {
    "module": "schema.py",

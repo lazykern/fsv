@@ -3,6 +3,10 @@
 Each section: Python module → Rust location, status, ported tests, golden
 fixtures, known gaps. Statuses: `ported`, `partial`, `missing`.
 
+Function-level status for every Python def lives in `port/function_map.json`
+(checked by `crates/fsv-cli/tests/function_map.rs`). `matched` entries are name
+matches that still need a line-by-line review; `open` entries are the parity queue.
+
 ## Divergences
 
 Fixes of bad Python behavior, plus a few platform differences. The
