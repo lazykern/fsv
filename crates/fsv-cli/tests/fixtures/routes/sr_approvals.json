@@ -483,6 +483,116 @@
          "remark": []
         }
        ]
+      }
+     ]
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/131/approval-chains",
+  "json": {
+   "approval_chains": [
+    {
+     "id": 1,
+     "approval_groups": [
+      {
+       "id": 40,
+       "name": "Acme CAB",
+       "approval_type": 1,
+       "approval_status": 0,
+       "approvals": [
+        {
+         "id": 401,
+         "member_id": 31,
+         "status": {
+          "id": 0,
+          "name": "requested"
+         },
+         "last_reminded_at": null,
+         "remark": []
+        },
+        {
+         "id": 402,
+         "member_id": 32,
+         "status": {
+          "id": 0,
+          "name": "requested"
+         },
+         "last_reminded_at": null,
+         "remark": []
+        },
+        {
+         "id": 403,
+         "member_id": 35,
+         "status": {
+          "id": 1,
+          "name": "approved"
+         },
+         "last_reminded_at": null,
+         "remark": []
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/131/approval-chains",
+  "json": {
+   "approval_chains": [
+    {
+     "id": 1,
+     "approval_groups": [
+      {
+       "id": 40,
+       "name": "Acme CAB",
+       "approval_type": 1,
+       "approval_status": 0,
+       "approvals": [
+        {
+         "id": 401,
+         "member_id": 31,
+         "status": {
+          "id": 0,
+          "name": "requested"
+         },
+         "last_reminded_at": null,
+         "remark": []
+        },
+        {
+         "id": 402,
+         "member_id": 32,
+         "status": {
+          "id": 0,
+          "name": "requested"
+         },
+         "last_reminded_at": null,
+         "remark": []
+        },
+        {
+         "id": 403,
+         "member_id": 35,
+         "status": {
+          "id": 1,
+          "name": "approved"
+         },
+         "last_reminded_at": null,
+         "remark": []
+        }
+       ]
       },
       {
        "id": 41,
@@ -519,6 +629,116 @@
     "has_next": false
    }
   }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/132/approval-chains",
+  "json": {
+   "approval_chains": [
+    {
+     "id": 1,
+     "approval_groups": [
+      {
+       "id": 40,
+       "name": "Acme CAB",
+       "approval_type": 1,
+       "approval_status": 0,
+       "approvals": [
+        {
+         "id": 401,
+         "member_id": 31,
+         "status": {
+          "id": 0,
+          "name": "requested"
+         },
+         "last_reminded_at": null,
+         "remark": []
+        },
+        {
+         "id": 402,
+         "member_id": 32,
+         "status": {
+          "id": 0,
+          "name": "requested"
+         },
+         "last_reminded_at": null,
+         "remark": []
+        },
+        {
+         "id": 403,
+         "member_id": 35,
+         "status": {
+          "id": 1,
+          "name": "approved"
+         },
+         "last_reminded_at": null,
+         "remark": []
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/132/approval-chains",
+  "json": {
+   "approval_chains": [
+    {
+     "id": 1,
+     "approval_groups": [
+      {
+       "id": 40,
+       "name": "Acme CAB",
+       "approval_type": 1,
+       "approval_status": 0,
+       "approvals": [
+        {
+         "id": 401,
+         "member_id": 31,
+         "status": {
+          "id": 0,
+          "name": "requested"
+         },
+         "last_reminded_at": null,
+         "remark": []
+        },
+        {
+         "id": 402,
+         "member_id": 32,
+         "status": {
+          "id": 0,
+          "name": "requested"
+         },
+         "last_reminded_at": null,
+         "remark": []
+        },
+        {
+         "id": 403,
+         "member_id": 35,
+         "status": {
+          "id": 1,
+          "name": "approved"
+         },
+         "last_reminded_at": null,
+         "remark": []
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "meta": {
+    "has_next": false
+   }
+  },
+  "once": true
  },
  {
   "method": "GET",

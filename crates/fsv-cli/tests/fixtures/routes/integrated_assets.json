@@ -56,6 +56,50 @@
      "itam_cmdb_request_id": 9001,
      "name": "Acme laptop",
      "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 701,
+     "itam_cmdb_request_id": 9001,
+     "name": "Acme laptop",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/123/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 701,
+     "itam_cmdb_request_id": 9001,
+     "name": "Acme laptop",
+     "category": "Device"
     },
     {
      "item_id": 702,
@@ -134,6 +178,50 @@
     "total_pages": 1
    }
   }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 701,
+     "itam_cmdb_request_id": 9001,
+     "name": "Acme laptop",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/7/associated-cis",
+  "query": {
+   "association_type": "cis"
+  },
+  "json": {
+   "data": [
+    {
+     "item_id": 701,
+     "itam_cmdb_request_id": 9001,
+     "name": "Acme laptop",
+     "category": "Device"
+    }
+   ],
+   "meta": {
+    "total_count": 1,
+    "total_pages": 1
+   }
+  },
+  "once": true
  },
  {
   "method": "GET",
