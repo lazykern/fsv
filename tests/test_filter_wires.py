@@ -152,3 +152,52 @@ def test_cli_strict_date_shift_is_sent_and_noted(monkeypatch, tenant):
     sent = json.loads(world.calls("/api/_/changes")[-1]["query_hash"])
     assert sent == [{"value": {"from": "2030-02-01", "to": "2030-02-28"}, "condition": "created_at",
                      "operator": "is_in_the_range", "type": "default"}]
+
+
+WS_TICKETS = {"condition": "workspace_id", "operator": "is_in", "value": [{"id": 7}], "type": "default"}
+
+
+@pytest.mark.parametrize("field,advanced", [("due_by", "due_by_date"), ("fr_due_by", "fr_due_by_date"),
+                                            ("closed_at", "closed_date"), ("resolved_at", "resolved_date")])
+def test_date_ranges_without_a_basic_wire_use_the_advanced_condition_name(field, advanced):
+    # A basic query_hash due_by range answers 206 + search_error (unfiltered rows).
+    payload = json.loads(build(TICKETS, f"{field}>=2030-01-01", f"{field}<=2030-01-31"))
+    assert payload == {"all": [
+        {"value": {"from": "2030-01-01", "to": "2030-01-31"}, "condition": advanced,
+         "operator": "is_in_the_range", "type": "default"}, WS_TICKETS], "any": []}
+
+
+@pytest.mark.parametrize("field", ["created_at", "updated_at", "planned_start_date", "planned_end_date"])
+def test_date_ranges_with_a_basic_name_stay_in_query_hash(field):
+    assert json.loads(build(TICKETS, f"{field}=2030-01-05")) == [
+        {"value": {"from": "2030-01-05", "to": "2030-01-05"}, "condition": field,
+         "operator": "is_in_the_range", "type": "default"}]
+
+
+def test_due_range_on_changes_is_advanced_and_ticket_only_dates_refuse_elsewhere():
+    due = json.loads(build(CHANGES, "due_by=2030-01-05"))
+    assert due["all"][0]["condition"] == "due_by_date"
+    for res in (CHANGES, PROBLEMS):
+        with pytest.raises(ValueError, match="nothing was sent"):
+            build(res, "closed_at=2030-01-05")
+    with pytest.raises(ValueError, match="nothing was sent"):
+        build(CHANGES, "resolved_at=on:today")
+
+
+def test_updated_relative_period_uses_advanced_updated_at():
+    payload = json.loads(build(TICKETS, "updated_at=last:one_week"))
+    assert payload["all"][0] == {"value": "one_week", "condition": "updated_at", "operator": "in_the_last",
+                                 "type": "default"}
+
+
+@pytest.mark.parametrize("label,advanced", [("Due By", "due_by_date"), ("Closed", "closed_date"),
+                                            ("Resolved date", "resolved_date"), ("First response due", "fr_due_by_date")])
+def test_cli_panel_labels_for_due_closed_resolved_ranges(label, advanced):
+    explain: list = []
+    items = [cli._resolve_where(None, TICKETS, SCH, f"{label}{op}{day}", explain)
+             for op, day in ((">=", "2030-11-13"), ("<=", "2030-11-16"))]
+    payload, adv, _ = query.serialize("tickets", query.merge_date_ranges(items), False, 7)
+    assert adv and json.loads(payload)["all"][0] == {
+        "value": {"from": "2030-11-13", "to": "2030-11-16"}, "condition": advanced,
+        "operator": "is_in_the_range", "type": "default"}
+    assert [x["condition"] for x in explain] == [advanced, advanced]

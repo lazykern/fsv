@@ -61,13 +61,23 @@ def test_invalid_filter_fails_locally_with_actionable_message(sch, expression, m
         query.build_query_hash_from_schema(None, CHANGES, sch, [expression])
 
 
-@pytest.mark.parametrize("field", ["created_at", "updated_at", "due_by", "planned_start_date", "planned_end_date"])
+@pytest.mark.parametrize("field", ["created_at", "updated_at", "planned_start_date", "planned_end_date"])
 @pytest.mark.parametrize("lower,upper", [(">=", "<=")])
 def test_date_bounds_are_inclusive_merged_and_do_not_erase_other_fields(sch, field, lower, upper):
     result = json.loads(query.build_query_hash_from_schema(None, CHANGES, sch, [
         f"{field}{lower}2026-01-01", "status=47", f"{field}{upper}2026-12-31"]))
     assert result == [
         {"condition": field, "type": "default", "operator": "is_in_the_range", "value": {"from": "2026-01-01", "to": "2026-12-31"}},
+        {"condition": "status", "type": "default", "operator": "is_in", "value": [47]}]
+
+
+def test_due_range_is_merged_in_the_advanced_builder_without_erasing_other_fields(sch):
+    # The basic due_by range answers 206 + search_error; the builder names it due_by_date.
+    result = json.loads(query.build_query_hash_from_schema(None, CHANGES, sch, [
+        "due_by>=2026-01-01", "status=47", "due_by<=2026-12-31"]))
+    assert result["any"] == [] and result["all"][:2] == [
+        {"condition": "due_by_date", "type": "default", "operator": "is_in_the_range",
+         "value": {"from": "2026-01-01", "to": "2026-12-31"}},
         {"condition": "status", "type": "default", "operator": "is_in", "value": [47]}]
 
 

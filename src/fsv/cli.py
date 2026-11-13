@@ -931,6 +931,10 @@ _WHERE_DATE_ALIASES = {
     "created": "created_at", "created date": "created_at", "created on": "created_at", "created at": "created_at",
     "updated": "updated_at", "last modified": "updated_at", "modified": "updated_at", "updated at": "updated_at",
     "due": "due_by", "due by": "due_by", "due date": "due_by",
+    "first response due": "fr_due_by", "first response due by": "fr_due_by", "fr due by": "fr_due_by",
+    "closed": "closed_at", "closed at": "closed_at", "closed date": "closed_at", "closed on": "closed_at",
+    "resolved": "resolved_at", "resolved at": "resolved_at", "resolved date": "resolved_at",
+    "resolved on": "resolved_at",
 }
 _WHERE_FIELD_ALIASES = {"assigned to": "agent", "agents": "agent", "groups": "group", "requesters": "requester",
                         "departments": "department", "responder": "agent"}
@@ -952,6 +956,9 @@ def _date_condition(field_name: str, op: str, raw: str, explain: list[dict[str, 
                     res_name: str = "") -> dict[str, Any]:
     from fsv import query as Q
     token = _WHERE_PERIODS.get(raw.strip().casefold(), raw.strip() if raw.strip() in _PERIOD_TOKENS else None)
+    if token and field_name in Q.TICKET_ONLY_DATES:
+        _err(f"no filter-panel period exists for {field_name}; use on:/last:/next: PERIOD or a YYYY-MM-DD range "
+             "(nothing was sent)")
     if token:
         if op not in ("=", ">="):
             _err("relative date periods support only = or >=; no inverse period wire is proven")
@@ -989,7 +996,7 @@ def _resolve_where(c: Any, res: Resource, sch: dict[str, Any], expr: str, explai
     a custom dropdown's label); VALUE a choice label, a person/group name,
     "Me", "Unassigned"/"(empty)", a date, or a period ("Last 6 months")."""
     field_text, op, raw = _parse_where(expr)
-    pseudo_dates = {"created_at", "updated_at", "due_by", "planned_start_date", "planned_end_date"}
+    from fsv.query import DATE_FIELDS as pseudo_dates
     date_name = field_text if field_text in pseudo_dates else _WHERE_DATE_ALIASES.get(" ".join(field_text.split()).casefold())
     if date_name:
         return _date_condition(date_name, op, raw, explain, field_text, res.name)

@@ -196,13 +196,29 @@ def _query_item(
 # ---------------------------------------------------------------------------
 import datetime as _dt
 
-DATE_FIELDS = frozenset({"created_at", "updated_at", "due_by", "planned_start_date", "planned_end_date"})
+DATE_FIELDS = frozenset({"created_at", "updated_at", "due_by", "planned_start_date", "planned_end_date",
+                         "fr_due_by", "closed_at", "resolved_at"})
 ON_TOKENS = ("today", "yesterday", "tomorrow", "week", "month", "year")
 RANGE_TOKENS = ("five_minutes", "one_week", "one_month", "two_months", "six_months", "one_year")
 ADVANCED_MODULES = frozenset({"tickets", "changes"})
-# Date conditions offered by the advanced builder (due date is due_by_date there).
-ADVANCED_DATE_CONDITIONS = {"created_at": "created_at", "due_by": "due_by_date",
+# Date conditions offered by the advanced builder, keyed by fsv's field name.
+# fsv reads no filter-field metadata that names them: the builder's field list
+# ships in the web bundle (created_at, updated_at, planned_start_date,
+# planned_end_date, due_by_date, fr_due_by_date, closed_date, resolved_date),
+# and neither the form fields nor the saved views carry the advanced name, so
+# this table is the source. Record fields keep their names in the basic
+# query_hash panel; the due, first-response-due, closed and resolved dates
+# differ.
+ADVANCED_DATE_CONDITIONS = {"created_at": "created_at", "updated_at": "updated_at",
+                            "due_by": "due_by_date", "fr_due_by": "fr_due_by_date",
+                            "closed_at": "closed_date", "resolved_at": "resolved_date",
                             "planned_start_date": "planned_start_date", "planned_end_date": "planned_end_date"}
+# Advanced dates that exist only in the ticket builder.
+TICKET_ONLY_DATES = frozenset({"fr_due_by", "closed_at", "resolved_at"})
+# Dates whose range goes through the advanced builder under its advanced
+# name: the basic ``due_by`` range answers 206 + meta.search_error (unfiltered
+# rows), and the closed/resolved/first-response dates have no basic panel.
+ADVANCED_RANGE_DATES = frozenset({"due_by", "fr_due_by", "closed_at", "resolved_at"})
 # Problems: only the created range is proven; other shapes returned 0 rows silently.
 PROBLEM_DATE_FIELDS = frozenset({"created_at"})
 NUMBER_OPERATORS = {"=": "is", "!=": "is_not", ">=": "is_greater_than_or_equal", "<=": "is_less_than_or_equal"}
@@ -246,10 +262,8 @@ def date_condition(res_name: str, field: str, op: str, raw: str, explain: list[d
         if res_name not in ADVANCED_MODULES:
             raise ValueError(f"{operator} date filters exist only in the tickets/changes advanced filter; "
                              f"{res_name} has none, nothing was sent")
-        cond = ADVANCED_DATE_CONDITIONS.get(field)
-        if cond is None:
-            raise ValueError(f"{field} is not a date in the advanced filter builder; nothing was sent")
-        return _advanced(_query_item(cond, operator, token, "default", explain, shown, text))
+        return _advanced(_query_item(advanced_date_condition(res_name, field), operator, token, "default",
+                                     explain, shown, text))
     if not _ISO_DAY.fullmatch(text):
         raise ValueError("date filters take a whole day YYYY-MM-DD (the server ignores time of day) or a "
                          "relative on:/last:/next: period; nothing was sent")
@@ -275,7 +289,21 @@ def date_condition(res_name: str, field: str, op: str, raw: str, explain: list[d
         value, note = {"to": shifted}, f" (no strict operator exists: sent as to {shifted}, whole days)"
     else:
         raise ValueError(f"date operator {op!r} is not supported; use = > >= < <= (whole days)")
+    if field in ADVANCED_RANGE_DATES:
+        if res_name not in ADVANCED_MODULES:
+            raise ValueError(f"{field} date ranges exist only in the tickets/changes advanced filter; "
+                             f"{res_name} has none, nothing was sent")
+        return _advanced(_query_item(advanced_date_condition(res_name, field), "is_in_the_range", value, "default",
+                                     explain, shown, text + note))
     return _query_item(field, "is_in_the_range", value, "default", explain, shown, text + note)
+
+
+def advanced_date_condition(res_name: str, field: str) -> str:
+    """The advanced builder's condition name for an fsv date field."""
+    cond = ADVANCED_DATE_CONDITIONS.get(field)
+    if cond is None or (field in TICKET_ONLY_DATES and res_name != "tickets"):
+        raise ValueError(f"{field} is not a date in the {res_name} advanced filter builder; nothing was sent")
+    return cond
 
 
 def _int_choice_id(value: Any) -> int | None:
