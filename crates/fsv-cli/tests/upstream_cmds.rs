@@ -7322,6 +7322,41 @@ fn tickets_close_send() {
     assert_eq!(r.write_paths(), ["PUT /api/_/tickets/124"]);
 }
 
+/// `close`/`resolve`/`reopen`/`status` share `lifecycle`, which prints the
+/// send object. A workflow status rewrite adds `verified_with_note`.
+#[test]
+fn tickets_close_verified_with_note() {
+    let r = run_fixture(
+        "ticket_lifecycle_rewrite",
+        &[
+            "tickets",
+            "close",
+            "124",
+            "--yes",
+            "--expect-plan",
+            "809b34350b79011c765c2372918154b8d0eae87d6c0a084dc5c74b5f5029d920",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.err, "");
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "ticket_id": 124,
+  "status_label": "Closed",
+  "plan_hash": "809b34350b79011c765c2372918154b8d0eae87d6c0a084dc5c74b5f5029d920",
+  "verified": true,
+  "verified_with_note": [
+    "status rewritten server-side to 5 after the write (workflow)"
+  ]
+}
+"#
+    );
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/124"]);
+}
+
 #[test]
 fn tickets_close_needs_resolution_note() {
     let r = run_fixture(
@@ -9657,6 +9692,44 @@ fn problems_status_send_reports_planned_dates() {
 "#
     );
     assert_eq!(r.err, r#""#);
+    assert_eq!(r.write_paths(), ["PUT /api/_/problems/7"]);
+}
+
+#[test]
+fn problems_status_verified_with_note() {
+    let r = run_fixture(
+        "problem_status_rewrite",
+        &[
+            "problems",
+            "status",
+            "PRB-7",
+            "--to",
+            "Change Requested",
+            "--yes",
+            "--expect-plan",
+            "28ccd8db0856f97d127a6d82e4fec3fa7e9bb028bbb57edd6edffc670af5b729",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.err, "");
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "28ccd8db0856f97d127a6d82e4fec3fa7e9bb028bbb57edd6edffc670af5b729",
+  "verified": true,
+  "problem_id": 7,
+  "readback": {
+    "status": 9,
+    "planned_start_date": "2030-01-02T00:00:00Z",
+    "planned_end_date": "2030-01-03T00:00:00Z"
+  },
+  "unavailable": [],
+  "verified_with_note": "status rewritten server-side to 9 after the write (workflow)"
+}
+"#
+    );
     assert_eq!(r.write_paths(), ["PUT /api/_/problems/7"]);
 }
 
