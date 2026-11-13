@@ -522,65 +522,73 @@
    "module": "canned.py",
    "name": "folders",
    "line": 18,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/canned.rs",
-   "rust_item": "folders"
+   "rust_item": "folders",
+   "note": "same folder list request and order"
   },
   {
    "module": "canned.py",
    "name": "responses",
    "line": 22,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/canned.rs",
-   "rust_item": "responses"
+   "rust_item": "responses",
+   "note": "same responses listed for a folder"
   },
   {
    "module": "canned.py",
    "name": "show",
    "line": 26,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/canned.rs",
-   "rust_item": "show"
+   "rust_item": "show",
+   "note": "same canned-response fetch by positive id"
   },
   {
    "module": "canned.py",
    "name": "content",
    "line": 30,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/canned.rs",
-   "rust_item": "content"
+   "rust_item": "content",
+   "note": "same RFC 6901 unescape, pointer rules, and placeholder rejection"
   },
   {
    "module": "canned.py",
    "name": "reply_plan",
    "line": 49,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/canned.rs",
-   "rust_item": "reply_plan"
+   "rust_item": "reply_plan",
+   "note": "same HTML reply plan, selected body, and sender"
   },
   {
    "module": "canned.py",
    "name": "freshen",
    "line": 57,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/canned.rs",
-   "rust_item": "freshen"
+   "rust_item": "freshen",
+   "note": "DIVERGENCE: hash or body mismatch refuses \"canned source changed; review again\"; a payload without body is refused instead of KeyError"
   },
   {
    "module": "canned.py",
    "name": "scenarios",
    "line": 63,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/canned.rs",
-   "rust_item": "scenarios"
+   "rust_item": "scenarios",
+   "note": "same scenario_automations list"
   },
   {
    "module": "canned.py",
    "name": "scenario",
    "line": 67,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/canned.rs",
-   "rust_item": "scenario"
+   "rust_item": "scenario",
+   "note": "same single scenario fetch"
   },
   {
    "module": "canned_cli.py",
@@ -5881,179 +5889,201 @@
    "module": "drafts.py",
    "name": "user_dir",
    "line": 43,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "user_dir"
+   "rust_item": "user_dir",
+   "note": "same FSV_CONFIG_DIR, then XDG_CONFIG_HOME/fsv, then ~/.config/fsv; empty env is unset"
   },
   {
    "module": "drafts.py",
    "name": "presets_dir",
    "line": 51,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "presets_dir"
+   "rust_item": "presets_dir",
+   "note": "same presets directory under the user dir"
   },
   {
    "module": "drafts.py",
    "name": "hints_path",
    "line": 55,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "hints_path"
+   "rust_item": "hints_path",
+   "note": "same hints file path"
   },
   {
    "module": "drafts.py",
    "name": "Draft",
    "line": 60,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "Draft"
+   "rust_item": "Draft",
+   "note": "same draft fields and defaults"
   },
   {
    "module": "drafts.py",
    "name": "merged",
    "class": "Draft",
    "line": 71,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "merged"
+   "rust_item": "merged",
+   "note": "same overlay: other wins, truthy requester and preset, empty description and base_dir kept, answers and planning merged"
   },
   {
    "module": "drafts.py",
    "name": "_path",
    "line": 86,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "path"
+   "status": "reviewed",
+   "rust": "crates/fsv-flows/src/drafts.rs",
+   "rust_item": "draft_path",
+   "note": "same expanduser and relative join that keeps ..; approvals.rs path is a different plan path"
   },
   {
    "module": "drafts.py",
    "name": "_str_list",
    "line": 93,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "str_list"
+   "rust_item": "str_list",
+   "note": "same null to [], scalars including bool to one str(), otherwise the list-of-strings error"
   },
   {
    "module": "drafts.py",
    "name": "draft_from_data",
    "line": 103,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "draft_from_data"
+   "rust_item": "draft_from_data",
+   "note": "same unknown-key rejection, including requested_for; the allow_requested_for path is sr_draft_from_data"
   },
   {
    "module": "drafts.py",
    "name": "load_draft_file",
    "line": 163,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "load_draft_file"
+   "rust_item": "load_draft_file",
+   "note": "same YAML load into draft_from_data"
   },
   {
    "module": "drafts.py",
    "name": "preset_path",
    "line": 172,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "preset_path"
+   "rust_item": "preset_path",
+   "note": "same .yaml/.yml, slash, or existing file versus the presets dir; the error uses the Python repr"
   },
   {
    "module": "drafts.py",
    "name": "load_preset",
    "line": 188,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "load_preset"
+   "rust_item": "load_preset",
+   "note": "same preset file load"
   },
   {
    "module": "drafts.py",
    "name": "parse_sets",
    "line": 195,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "parse_sets"
+   "rust_item": "parse_sets",
+   "note": "same stripped keys and last-wins pairs; values are not stripped"
   },
   {
    "module": "drafts.py",
    "name": "resolve_draft",
    "line": 207,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "resolve_draft"
+   "rust_item": "resolve_draft",
+   "note": "same preset, file, --set, then extra order; empty strings are falsy"
   },
   {
    "module": "drafts.py",
    "name": "_kind_text",
    "line": 224,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "kind_text"
+   "rust_item": "kind_text",
+   "note": "same field-kind wording"
   },
   {
    "module": "drafts.py",
    "name": "_one_line",
    "line": 239,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "one_line"
+   "rust_item": "one_line",
+   "note": "same single-line collapse"
   },
   {
    "module": "drafts.py",
    "name": "_value_for_yaml",
    "line": 244,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "value_for_yaml"
+   "rust_item": "value_for_yaml",
+   "note": "same blank None, empty string, and empty tuple, then kind-specific YAML"
   },
   {
    "module": "drafts.py",
    "name": "render_template",
    "line": 269,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "render_template"
+   "rust_item": "render_template",
+   "note": "same header, requester, answers, description, attachments, planning, and blocking ack"
   },
   {
    "module": "drafts.py",
    "name": "_label_unique",
    "line": 407,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "label_unique"
+   "rust_item": "label_unique",
+   "note": "same disambiguated labels"
   },
   {
    "module": "drafts.py",
    "name": "_kv",
    "line": 411,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "kv"
+   "rust_item": "kv",
+   "note": "same bool YAML scalars and multiline block style"
   },
   {
    "module": "drafts.py",
    "name": "parse_template",
    "line": 423,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "parse_template"
+   "rust_item": "parse_template",
+   "note": "same template parsed back into a draft"
   },
   {
    "module": "drafts.py",
    "name": "load_hints",
    "line": 432,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "load_hints"
+   "rust_item": "load_hints",
+   "note": "same falsy document or section to empty, and a truthy warn"
   },
   {
    "module": "drafts.py",
    "name": "matching_hints",
    "line": 461,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-flows/src/drafts.rs",
-   "rust_item": "matching_hints"
+   "rust_item": "matching_hints",
+   "note": "same comma-split and full-display norms; bool wants become Yes/No; \"*\" is exact"
   },
   {
    "module": "editor.py",
@@ -11891,49 +11921,55 @@
    "name": "ListPlan",
    "line": 15,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/list_preferences.rs",
-   "rust_item": "ListPlan"
+   "rust_item": "ListPlan",
+   "note": "same plan fields"
   },
   {
    "module": "list_preferences.py",
    "name": "headers",
    "line": 19,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/list_preferences.rs",
-   "rust_item": "headers"
+   "rust_item": "headers",
+   "note": "same truthy unique header names and the selected-header checks"
   },
   {
    "module": "list_preferences.py",
    "name": "columns_plan",
    "line": 31,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/list_preferences.rs",
-   "rust_item": "columns_plan"
+   "rust_item": "columns_plan",
+   "note": "same ticket_subject requirement, display_id rejection, frozen requester on changes, and display_id position copied from ticket_subject"
   },
   {
    "module": "list_preferences.py",
    "name": "export_source",
    "line": 55,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/list_preferences.rs",
-   "rust_item": "export_source"
+   "rust_item": "export_source",
+   "note": "same export source selection"
   },
   {
    "module": "list_preferences.py",
    "name": "export_plan",
    "line": 70,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/list_preferences.rs",
-   "rust_item": "export_plan"
+   "rust_item": "export_plan",
+   "note": "same tickets-versus-other exclusions, CSV date_filter 30 on created_at, and null advanced_data_hash on changes"
   },
   {
    "module": "list_preferences.py",
    "name": "send",
    "line": 101,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/list_preferences.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same column readback: selected true, position equality, frozen membership, omitted unless selected is false"
   },
   {
    "module": "list_preferences_cli.py",
@@ -12007,233 +12043,262 @@
    "module": "pages.py",
    "name": "_e",
    "line": 19,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "e"
+   "rust_item": "e",
+   "note": "same Rich escaping of cell text"
   },
   {
    "module": "pages.py",
    "name": "section",
    "line": 23,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "section"
+   "rust_item": "section",
+   "note": "same section heading"
   },
   {
    "module": "pages.py",
    "name": "list_table",
    "line": 31,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "list_table"
+   "rust_item": "list_table",
+   "note": "same subject under the id and the bold (Me) suffix on assigned_to"
   },
   {
    "module": "pages.py",
    "name": "list_header",
    "line": 52,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "list_header"
+   "rust_item": "list_header",
+   "note": "same title skip of the title's character length plus 3"
   },
   {
    "module": "pages.py",
    "name": "header_lines",
    "line": 60,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "header_lines"
+   "rust_item": "header_lines",
+   "note": "same detail header lines"
   },
   {
    "module": "pages.py",
    "name": "lifecycle_markup",
    "line": 72,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "lifecycle_markup"
+   "rust_item": "lifecycle_markup",
+   "note": "same lifecycle arrow markup"
   },
   {
    "module": "pages.py",
    "name": "status_line",
    "line": 95,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "status_line"
+   "rust_item": "status_line",
+   "note": "same status line"
   },
   {
    "module": "pages.py",
    "name": "reporter_markup",
    "line": 101,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "reporter_markup"
+   "rust_item": "reporter_markup",
+   "note": "same reporter block"
   },
   {
    "module": "pages.py",
    "name": "tab_bar",
    "line": 115,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "tab_bar"
+   "rust_item": "tab_bar",
+   "note": "same tab labels and counts"
   },
   {
    "module": "pages.py",
    "name": "_indent",
    "line": 129,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "indent"
+   "rust_item": "indent",
+   "note": "same indent"
   },
   {
    "module": "pages.py",
    "name": "main_lines",
    "line": 133,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "main_lines"
+   "rust_item": "main_lines",
+   "note": "same main column"
   },
   {
    "module": "pages.py",
    "name": "conversation_lines",
    "line": 192,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "conversation_lines"
+   "rust_item": "conversation_lines",
+   "note": "same conversation blocks; the earlier count uses an exact int"
   },
   {
    "module": "pages.py",
    "name": "_human_size",
    "line": 206,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "human_size"
+   "rust_item": "human_size",
+   "note": "fixed: half-even fixed-point like f\"{x:.Nf}\", and a minus is kept when a negative value rounds to zero"
   },
   {
    "module": "pages.py",
    "name": "side_lines",
    "line": 218,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "side_lines"
+   "rust_item": "side_lines",
+   "note": "same side card"
   },
   {
    "module": "pages.py",
    "name": "notes_lines",
    "line": 236,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "notes_lines"
+   "rust_item": "notes_lines",
+   "note": "same missing-section notes"
   },
   {
    "module": "pages.py",
    "name": "_who",
    "line": 244,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "who"
+   "rust_item": "who",
+   "note": "same name_of, or empty for a non-object"
   },
   {
    "module": "pages.py",
    "name": "_status_text",
    "line": 248,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "status_text"
+   "rust_item": "status_text",
+   "note": "same status text"
   },
   {
    "module": "pages.py",
    "name": "tab_lines",
    "line": 257,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "tab_lines"
+   "rust_item": "tab_lines",
+   "note": "same tab dispatch"
   },
   {
    "module": "pages.py",
    "name": "_notes_tab",
    "line": 268,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "notes_tab"
+   "rust_item": "notes_tab",
+   "note": "same note rows"
   },
   {
    "module": "pages.py",
    "name": "_tasks_tab",
    "line": 284,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "tasks_tab"
+   "rust_item": "tasks_tab",
+   "note": "same task id, status, and owner lines"
   },
   {
    "module": "pages.py",
    "name": "_approvals_tab",
    "line": 305,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "approvals_tab"
+   "rust_item": "approvals_tab",
+   "note": "same approval level order and rows"
   },
   {
    "module": "pages.py",
    "name": "_assets_tab",
    "line": 326,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "assets_tab"
+   "rust_item": "assets_tab",
+   "note": "same asset rows"
   },
   {
    "module": "pages.py",
    "name": "_activity_tab",
    "line": 339,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "activity_tab"
+   "rust_item": "activity_tab",
+   "note": "same English day headings and activity lines"
   },
   {
    "module": "pages.py",
    "name": "_item_line",
    "line": 360,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "item_line"
+   "rust_item": "item_line",
+   "note": "same item line"
   },
   {
    "module": "pages.py",
    "name": "_parts_tab",
    "line": 366,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "parts_tab"
+   "rust_item": "parts_tab",
+   "note": "same parts rows"
   },
   {
    "module": "pages.py",
    "name": "_risk_tab",
    "line": 380,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "risk_tab"
+   "rust_item": "risk_tab",
+   "note": "same risk survey, including bool answers"
   },
   {
    "module": "pages.py",
    "name": "_resolution_tab",
    "line": 405,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "resolution_tab"
+   "rust_item": "resolution_tab",
+   "note": "same resolution text; empty plus missing omits the placeholder"
   },
   {
    "module": "pages.py",
    "name": "_generic_tab",
    "line": 421,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "generic_tab"
+   "rust_item": "generic_tab",
+   "note": "same generic rows"
   },
   {
    "module": "pages.py",
    "name": "print_detail",
    "line": 441,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/pages.rs",
-   "rust_item": "print_detail"
+   "rust_item": "print_detail",
+   "note": "same detail page assembly"
   },
   {
    "module": "planning_cli.py",
@@ -12345,41 +12410,46 @@
    "name": "ViewPlan",
    "line": 20,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/private_views.rs",
-   "rust_item": "ViewPlan"
+   "rust_item": "ViewPlan",
+   "note": "same plan fields"
   },
   {
    "module": "private_views.py",
    "name": "detail",
    "line": 24,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/private_views.rs",
-   "rust_item": "detail"
+   "rust_item": "detail",
+   "note": "same positive-id errors, then reviewed-write errors"
   },
   {
    "module": "private_views.py",
    "name": "private_visibility",
    "line": 32,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/private_views.rs",
-   "rust_item": "private_visibility"
+   "rust_item": "private_visibility",
+   "note": "same casefold of the stripped label against me, only me, and private"
   },
   {
    "module": "private_views.py",
    "name": "build_plan",
    "line": 46,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/private_views.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same nonempty stripped name, exact False default, list query_hash, null advanced_query_hash, and delete name rejection"
   },
   {
    "module": "private_views.py",
    "name": "send",
    "line": 74,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/private_views.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same delete 404 then complete relist, and create refused when the returned id equals the source id"
   },
   {
    "module": "problem_cli.py",
@@ -13150,146 +13220,163 @@
    "module": "render.py",
    "name": "_custom_field_category",
    "line": 54,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/render.rs",
-   "rust_item": "custom_field_category"
+   "rust_item": "custom_field_category",
+   "note": "same field-type category, casefolded"
   },
   {
    "module": "render.py",
    "name": "_strip_internal",
    "line": 73,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/output.rs",
-   "rust_item": "strip_internal"
+   "rust_item": "strip_internal",
+   "note": "same internal-key stripping before JSON"
   },
   {
    "module": "render.py",
    "name": "fmt_dt",
    "line": 81,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/output.rs",
-   "rust_item": "fmt_dt"
+   "rust_item": "fmt_dt",
+   "note": "same datetime text"
   },
   {
    "module": "render.py",
    "name": "fmt_value",
    "line": 96,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/output.rs",
-   "rust_item": "fmt_value"
+   "rust_item": "fmt_value",
+   "note": "same Yes/No for bools and the other scalar formats"
   },
   {
    "module": "render.py",
    "name": "emit_json",
    "line": 109,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/output.rs",
-   "rust_item": "emit_json"
+   "rust_item": "emit_json",
+   "note": "same indent-2 ensure_ascii JSON and trailing newline"
   },
   {
    "module": "render.py",
    "name": "strip_html",
    "line": 114,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/output.rs",
-   "rust_item": "strip_html"
+   "rust_item": "strip_html",
+   "note": "same tag-to-space unescape and strip; falsy text is empty"
   },
   {
    "module": "render.py",
    "name": "_resolve_status_name",
    "line": 120,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/render.rs",
-   "rust_item": "resolve_status_name"
+   "rust_item": "resolve_status_name",
+   "note": "same status_name, then nested status name, then the schema choice"
   },
   {
    "module": "render.py",
    "name": "list_rows",
    "line": 130,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/render.rs",
-   "rust_item": "list_rows"
+   "rust_item": "list_rows",
+   "note": "same id, status, status_id, priority with or 0, subject, requester, and type columns"
   },
   {
    "module": "render.py",
    "name": "emit_delimited",
    "line": 150,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-core/src/output.rs",
-   "rust_item": "emit_delimited"
+   "rust_item": "emit_delimited",
+   "note": "same CSV quoting, empty field, and line endings"
   },
   {
    "module": "render.py",
    "name": "list_table",
    "line": 158,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/render.rs",
-   "rust_item": "list_table"
+   "rust_item": "list_table",
+   "note": "same classic columns, including status (sid) with None rendered as None"
   },
   {
    "module": "render.py",
    "name": "_state_label",
    "line": 189,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/render/flow.rs",
-   "rust_item": "state_label"
+   "rust_item": "state_label",
+   "note": "same state label"
   },
   {
    "module": "render.py",
    "name": "_change_flow",
    "line": 198,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/render/flow.rs",
-   "rust_item": "change_flow"
+   "rust_item": "change_flow",
+   "note": "fixed: state equality uses Python ==, so True matches id 1"
   },
   {
    "module": "render.py",
    "name": "_party_display",
    "line": 215,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/render.rs",
-   "rust_item": "party_display"
+   "rust_item": "party_display",
+   "note": "same falsy id fallthrough and str of the id or a dash"
   },
   {
    "module": "render.py",
    "name": "_field_value_text",
    "line": 230,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/render.rs",
-   "rust_item": "field_value_text"
+   "rust_item": "field_value_text",
+   "note": "same value text, without a bool Yes/No special case"
   },
   {
    "module": "render.py",
    "name": "_requested_item_field_defs",
    "line": 242,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/render.rs",
    "rust_item": "field_defs",
-   "note": "Field then nested_fields depth-first. Tested by render/coverage.rs requested_item_field_defs_depth_first and requested_item_rows_active_section_and_nested."
+   "note": "same requested-item field definitions"
   },
   {
    "module": "render.py",
    "name": "_requested_item_rows",
    "line": 249,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/render.rs",
-   "rust_item": "requested_item_rows"
+   "rust_item": "requested_item_rows",
+   "note": "fixed: section-name equality uses Python ==, so True matches 1 and 1 matches 1.0"
   },
   {
    "module": "render.py",
    "name": "requested_items_panel",
    "line": 292,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/render.rs",
-   "rust_item": "requested_items_panel"
+   "rust_item": "requested_items_panel",
+   "note": "same requested-items panel"
   },
   {
    "module": "render.py",
    "name": "detail_panel",
    "line": 313,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/render.rs",
-   "rust_item": "detail_panel"
+   "rust_item": "detail_panel",
+   "note": "DIVERGENCE: same panels and a priority lookup that does not coerce None to 0; a non-string description or description_text is omitted or stringified instead of TypeError"
   },
   {
    "module": "resources.py",
@@ -13566,25 +13653,28 @@
    "module": "scenarios.py",
    "name": "context",
    "line": 14,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/scenarios.rs",
-   "rust_item": "context"
+   "rust_item": "context",
+   "note": "same scenario context"
   },
   {
    "module": "scenarios.py",
    "name": "build_plan",
    "line": 18,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/scenarios.rs",
-   "rust_item": "build_plan"
+   "rust_item": "build_plan",
+   "note": "same PUT tickets/execute_scenario body of ids and scenario_id"
   },
   {
    "module": "scenarios.py",
    "name": "send",
    "line": 26,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/scenarios.rs",
-   "rust_item": "send"
+   "rust_item": "send",
+   "note": "same verify warning and identity check of str(id) against the target"
   },
   {
    "module": "schema.py",
@@ -17555,794 +17645,887 @@
    "name": "Missing",
    "line": 88,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "Missing"
+   "rust_item": "Missing",
+   "note": "same missing-section fields"
   },
   {
    "module": "views.py",
    "name": "note",
    "class": "Missing",
    "line": 95,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "note"
+   "rust_item": "note",
+   "note": "same note text"
   },
   {
    "module": "views.py",
    "name": "to_json",
    "class": "Missing",
    "line": 104,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "to_json"
+   "rust_item": "to_json",
+   "note": "same missing-section JSON"
   },
   {
    "module": "views.py",
    "name": "optional_get",
    "line": 108,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/views.rs",
-   "rust_item": "optional_get"
+   "rust_item": "optional_get",
+   "note": "same named section on failure versus the payload"
   },
   {
    "module": "views.py",
    "name": "workspace_get",
    "line": 122,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/source.rs",
-   "rust_item": "workspace_get"
+   "rust_item": "workspace_get",
+   "note": "same workspace read with the 404 fallback"
   },
   {
    "module": "views.py",
    "name": "current_user",
    "line": 133,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "current_user"
+   "rust_item": "current_user",
+   "note": "fixed: the joined first and last name uses str.strip, including U+001C through U+001F; still cached once, and session errors still propagate"
   },
   {
    "module": "views.py",
    "name": "user_tz",
    "line": 156,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "user_tz"
+   "rust_item": "user_tz",
+   "note": "same FSV_TZ, then the profile zone, then the system zone"
   },
   {
    "module": "views.py",
    "name": "_now",
    "line": 169,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "now"
+   "status": "idiom",
+   "note": "UTC now is inlined as Timestamp::now inside relative and summary; catalog.rs now is a different unix clock"
   },
   {
    "module": "views.py",
    "name": "parse_dt",
    "line": 173,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/format.rs",
-   "rust_item": "parse_dt"
+   "rust_item": "parse_dt",
+   "note": "same datetime parse"
   },
   {
    "module": "views.py",
    "name": "_is_date_only",
    "line": 185,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/format.rs",
-   "rust_item": "is_date_only"
+   "rust_item": "is_date_only",
+   "note": "same date-only detection"
   },
   {
    "module": "views.py",
    "name": "fmt_when",
    "line": 189,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/format.rs",
-   "rust_item": "fmt_when"
+   "rust_item": "fmt_when",
+   "note": "fixed: an invalid date-only value returns the original string, including surrounding spaces"
   },
   {
    "module": "views.py",
    "name": "relative",
    "line": 208,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/format.rs",
-   "rust_item": "relative"
+   "rust_item": "relative",
+   "note": "same relative phrases from the passed UTC clock"
   },
   {
    "module": "views.py",
    "name": "span",
    "line": 242,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/format.rs",
-   "rust_item": "span"
+   "rust_item": "span",
+   "note": "same duration phrases, half-even"
   },
   {
    "module": "views.py",
    "name": "html_to_text",
    "line": 262,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/format.rs",
-   "rust_item": "html_to_text"
+   "rust_item": "html_to_text",
+   "note": "same HTML-to-text"
   },
   {
    "module": "views.py",
    "name": "one_line",
    "line": 283,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/format.rs",
-   "rust_item": "one_line"
+   "rust_item": "one_line",
+   "note": "same one-line collapse"
   },
   {
    "module": "views.py",
    "name": "SavedView",
    "line": 292,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "SavedView"
+   "rust_item": "SavedView",
+   "note": "same saved-view fields"
   },
   {
    "module": "views.py",
    "name": "to_json",
    "class": "SavedView",
    "line": 299,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "to_json"
+   "rust_item": "to_json",
+   "note": "same saved-view JSON"
   },
   {
    "module": "views.py",
    "name": "_view_list",
    "line": 303,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "view_list"
+   "rust_item": "view_list",
+   "note": "same view-list extraction"
   },
   {
    "module": "views.py",
    "name": "load_views",
    "line": 313,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/views.rs",
-   "rust_item": "load_views"
+   "rust_item": "load_views",
+   "note": "same saved views in server order, or a missing section"
   },
   {
    "module": "views.py",
    "name": "default_view",
    "line": 331,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "default_view"
+   "rust_item": "default_view",
+   "note": "same default-view selection"
   },
   {
    "module": "views.py",
    "name": "_fold",
    "line": 339,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "fold"
+   "rust_item": "fold",
+   "note": "same casefold"
   },
   {
    "module": "views.py",
    "name": "find_view",
    "line": 343,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "find_view"
+   "rust_item": "find_view",
+   "note": "same view lookup"
   },
   {
    "module": "views.py",
    "name": "view_settings",
    "line": 365,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/views.rs",
-   "rust_item": "view_settings"
+   "rust_item": "view_settings",
+   "note": "same first nested object, otherwise the answer, or {} when hidden"
   },
   {
    "module": "views.py",
    "name": "Column",
    "line": 383,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "Column"
+   "rust_item": "Column",
+   "note": "same column key and label"
   },
   {
    "module": "views.py",
    "name": "_schema_label",
    "line": 401,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "schema_label"
+   "rust_item": "schema_label",
+   "note": "same schema label"
   },
   {
    "module": "views.py",
    "name": "list_columns",
    "line": 408,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "list_columns"
+   "rust_item": "list_columns",
+   "note": "same header columns, inserted subject, and chrome fallback"
   },
   {
    "module": "views.py",
    "name": "_name",
    "line": 434,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "name"
+   "status": "reviewed",
+   "rust": "crates/fsv-views/src/source.rs",
+   "rust_item": "name_of",
+   "note": "same first truthy name, value, or email, then str.strip; catalog.rs name is a different helper"
   },
   {
    "module": "views.py",
    "name": "choice_name",
    "line": 440,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "choice_name"
+   "rust_item": "choice_name",
+   "note": "same empty result for None and \"\", otherwise the unescaped choice or None"
   },
   {
    "module": "views.py",
    "name": "status_name",
    "line": 453,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "status_name"
+   "rust_item": "status_name",
+   "note": "same status choice"
   },
   {
    "module": "views.py",
    "name": "priority_name",
    "line": 462,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "priority_name"
+   "rust_item": "priority_name",
+   "note": "fixed: True looks up key 1 (Low) and False falls through to the text False"
   },
   {
    "module": "views.py",
    "name": "department_name",
    "line": 468,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "department_name"
+   "rust_item": "department_name",
+   "note": "same department name"
   },
   {
    "module": "views.py",
    "name": "requester_name",
    "line": 473,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "requester_name"
+   "rust_item": "requester_name",
+   "note": "same requester name"
   },
   {
    "module": "views.py",
    "name": "agent_of",
    "line": 477,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "agent_of"
+   "rust_item": "agent_of",
+   "note": "same truthy name or a set id, then agent_id or responder_id"
   },
   {
    "module": "views.py",
    "name": "group_name_of",
    "line": 487,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "group_name_of"
+   "rust_item": "group_name_of",
+   "note": "same group name"
   },
   {
    "module": "views.py",
    "name": "assigned_to",
    "line": 492,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "assigned_to"
+   "rust_item": "assigned_to",
+   "note": "same assigned agent and group"
   },
   {
    "module": "views.py",
    "name": "ticket_state",
    "line": 503,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "ticket_state"
+   "rust_item": "ticket_state",
+   "note": "same ticket state"
   },
   {
    "module": "views.py",
    "name": "cell",
    "line": 512,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "cell"
+   "rust_item": "cell",
+   "note": "same date formatting and Yes/No for true and false"
   },
   {
    "module": "views.py",
    "name": "list_row",
    "line": 553,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "list_row"
+   "rust_item": "list_row",
+   "note": "same row cells"
   },
   {
    "module": "views.py",
    "name": "sort_label",
    "line": 562,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "sort_label"
+   "rust_item": "sort_label",
+   "note": "same sort label"
   },
   {
    "module": "views.py",
    "name": "ListPage",
    "line": 572,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "ListPage"
+   "rust_item": "ListPage",
+   "note": "same list-page fields"
   },
   {
    "module": "views.py",
    "name": "title",
    "class": "ListPage",
    "line": 588,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "title"
+   "rust_item": "title",
+   "note": "same title"
   },
   {
    "module": "views.py",
    "name": "header",
    "class": "ListPage",
    "line": 591,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "header"
+   "rust_item": "header",
+   "note": "same header range"
   },
   {
    "module": "views.py",
    "name": "list_meta",
    "line": 606,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "list_meta"
+   "rust_item": "list_meta",
+   "note": "fixed: an explicit null has_next does not fall through to has_more"
   },
   {
    "module": "views.py",
    "name": "ticket_headers",
    "line": 629,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "ticket_headers"
+   "status": "reviewed",
+   "rust": "crates/fsv-views/src/source.rs",
+   "rust_item": "ticket_headers",
+   "note": "same tickets/headers rows; the TUI method only forwards here"
   },
   {
    "module": "views.py",
    "name": "Tab",
    "line": 642,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "Tab"
+   "rust_item": "Tab",
+   "note": "same tab fields"
   },
   {
    "module": "views.py",
    "name": "to_json",
    "class": "Tab",
    "line": 647,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "to_json"
+   "rust_item": "to_json",
+   "note": "same tab JSON on Tab"
   },
   {
    "module": "views.py",
    "name": "canonical_tab",
    "line": 651,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "canonical_tab"
+   "rust_item": "canonical_tab",
+   "note": "fixed: strip includes U+001C through U+001F before lowercasing and replacing spaces"
   },
   {
    "module": "views.py",
    "name": "tab_label",
    "line": 656,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "tab_label"
+   "rust_item": "tab_label",
+   "note": "same tab labels"
   },
   {
    "module": "views.py",
    "name": "parse_tabs",
    "line": 660,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "parse_tabs"
+   "rust_item": "parse_tabs",
+   "note": "same parsed tabs and labels"
   },
   {
    "module": "views.py",
    "name": "LifecycleState",
    "line": 675,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/detail.rs",
-   "rust_item": "LifecycleState"
+   "rust_item": "LifecycleState",
+   "note": "same lifecycle-state fields"
   },
   {
    "module": "views.py",
    "name": "Lifecycle",
    "line": 682,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/detail.rs",
-   "rust_item": "Lifecycle"
+   "rust_item": "Lifecycle",
+   "note": "same lifecycle fields"
   },
   {
    "module": "views.py",
    "name": "to_json",
    "class": "Lifecycle",
    "line": 686,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "to_json"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/site/detail.rs",
+   "rust_item": "to_json",
+   "note": "same lifecycle JSON; list.rs to_json is a different type"
   },
   {
    "module": "views.py",
    "name": "load_lifecycle",
    "line": 690,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "load_lifecycle"
+   "rust_item": "load_lifecycle",
+   "note": "same visited set and current id compared as strings; a missing current is None"
   },
   {
    "module": "views.py",
    "name": "PlanningEntry",
    "line": 720,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/detail.rs",
-   "rust_item": "PlanningEntry"
+   "rust_item": "PlanningEntry",
+   "note": "same planning-entry fields"
   },
   {
    "module": "views.py",
    "name": "empty",
    "class": "PlanningEntry",
    "line": 728,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/detail.rs",
-   "rust_item": "empty"
+   "rust_item": "empty",
+   "note": "same empty check"
   },
   {
    "module": "views.py",
    "name": "to_json",
    "class": "PlanningEntry",
    "line": 731,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "to_json"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/site/detail.rs",
+   "rust_item": "to_json",
+   "note": "same planning JSON"
   },
   {
    "module": "views.py",
    "name": "_file_names",
    "line": 739,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/detail.rs",
-   "rust_item": "file_names"
+   "rust_item": "file_names",
+   "note": "same name chain, ending in the text or None"
   },
   {
    "module": "views.py",
    "name": "load_planning",
    "line": 747,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "load_planning"
+   "rust_item": "load_planning",
+   "note": "same planning rows for changes and problems"
   },
   {
    "module": "views.py",
    "name": "Prop",
    "line": 786,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/detail.rs",
-   "rust_item": "Prop"
+   "rust_item": "Prop",
+   "note": "same property fields"
   },
   {
    "module": "views.py",
    "name": "to_json",
    "class": "Prop",
    "line": 792,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "to_json"
+   "status": "reviewed",
+   "rust": "crates/fsv-api/src/site/detail.rs",
+   "rust_item": "to_json",
+   "note": "same property JSON"
   },
   {
    "module": "views.py",
    "name": "_record_for_form",
    "line": 799,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/views.rs",
-   "rust_item": "record_for_form"
+   "rust_item": "record_for_form",
+   "note": "same ticket name mapping into the form record"
   },
   {
    "module": "views.py",
    "name": "load_edit_rules",
    "line": 808,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/views.rs",
-   "rust_item": "load_edit_rules"
+   "rust_item": "load_edit_rules",
+   "note": "same per-record edit rules"
   },
   {
    "module": "views.py",
    "name": "_prop_value",
    "line": 847,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/views.rs",
-   "rust_item": "prop_value"
+   "rust_item": "prop_value",
+   "note": "same displayed property value"
   },
   {
    "module": "views.py",
    "name": "flat_properties",
    "line": 863,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/detail.rs",
-   "rust_item": "flat_properties"
+   "rust_item": "flat_properties",
+   "note": "same schema-order properties, skipping subject and using choice labels"
   },
   {
    "module": "views.py",
    "name": "load_properties",
    "line": 884,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/views.rs",
-   "rust_item": "load_properties"
+   "rust_item": "load_properties",
+   "note": "same property list and the note when rules cannot run"
   },
   {
    "module": "views.py",
    "name": "collect_pages",
    "line": 936,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "collect_pages"
+   "rust_item": "collect_pages",
+   "note": "same bounded page walk, continuation query, kept rows, and re-raised session errors"
   },
   {
    "module": "views.py",
    "name": "load_conversations",
    "line": 1048,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/service.rs",
-   "rust_item": "load_conversations"
+   "status": "reviewed",
+   "rust": "crates/fsv-views/src/source.rs",
+   "rust_item": "load_conversations",
+   "note": "same latest page by default and the full walk when all_pages, oldest first; service.rs load_conversations is only the all-pages path"
   },
   {
    "module": "views.py",
    "name": "_oldest_first",
    "line": 1079,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/record.rs",
-   "rust_item": "oldest_first"
+   "rust_item": "oldest_first",
+   "note": "same oldest-first order"
   },
   {
    "module": "views.py",
    "name": "conversation_kind",
    "line": 1091,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/record.rs",
-   "rust_item": "conversation_kind"
+   "rust_item": "conversation_kind",
+   "note": "same private note, public note when source is 2, otherwise replied"
   },
   {
    "module": "views.py",
    "name": "source_name",
    "line": 1101,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/record.rs",
-   "rust_item": "source_name"
+   "rust_item": "source_name",
+   "note": "fixed: True looks up Email and False falls through to the text False"
   },
   {
    "module": "views.py",
    "name": "status_badge",
    "line": 1108,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/record.rs",
-   "rust_item": "status_badge"
+   "rust_item": "status_badge",
+   "note": "same badge text"
   },
   {
    "module": "views.py",
    "name": "approval_name",
    "line": 1120,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/record.rs",
-   "rust_item": "approval_name"
+   "rust_item": "approval_name",
+   "note": "fixed: True looks up Approved and False falls through to the text False"
   },
   {
    "module": "views.py",
    "name": "TabData",
    "line": 1134,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "TabData"
+   "rust_item": "TabData",
+   "note": "same tab-data fields"
   },
   {
    "module": "views.py",
    "name": "to_json",
    "class": "TabData",
    "line": 1144,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "to_json"
+   "status": "reviewed",
+   "rust": "crates/fsv-views/src/detail.rs",
+   "rust_item": "to_json",
+   "note": "same tab-data JSON"
   },
   {
    "module": "views.py",
    "name": "_rows",
    "line": 1161,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "rows"
+   "rust_item": "rows",
+   "note": "same object rows of a list or of data[key]"
   },
   {
    "module": "views.py",
    "name": "_parts",
    "line": 1168,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "parts"
+   "rust_item": "parts",
+   "note": "same part fetches, notes, and missing section"
   },
   {
    "module": "views.py",
    "name": "load_tab",
    "line": 1190,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "load_tab"
+   "rust_item": "load_tab",
+   "note": "same tab load"
   },
   {
    "module": "views.py",
    "name": "Detail",
    "line": 1321,
    "kind": "class",
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "Detail"
+   "rust_item": "Detail",
+   "note": "same detail fields"
   },
   {
    "module": "views.py",
    "name": "id",
    "class": "Detail",
    "line": 1345,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "id"
+   "rust_item": "id",
+   "note": "same formatted id"
   },
   {
    "module": "views.py",
    "name": "subject",
    "class": "Detail",
    "line": 1349,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "subject"
+   "rust_item": "subject",
+   "note": "same subject, or empty when missing"
   },
   {
    "module": "views.py",
    "name": "badge",
    "class": "Detail",
    "line": 1353,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "badge"
+   "rust_item": "badge",
+   "note": "same status badge"
   },
   {
    "module": "views.py",
    "name": "me_id",
    "class": "Detail",
    "line": 1357,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "me_id"
+   "rust_item": "me_id",
+   "note": "same user id"
   },
   {
    "module": "views.py",
    "name": "due_text",
    "class": "Detail",
    "line": 1360,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "due_text"
+   "rust_item": "due_text",
+   "note": "same due-by formatting"
   },
   {
    "module": "views.py",
    "name": "tab_names",
    "class": "Detail",
    "line": 1363,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "tab_names"
+   "rust_item": "tab_names",
+   "note": "same tab names"
   },
   {
    "module": "views.py",
    "name": "reporter",
    "class": "Detail",
    "line": 1366,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "reporter"
+   "rust_item": "reporter",
+   "note": "same reporter, via, and request_for"
   },
   {
    "module": "views.py",
    "name": "summary",
    "class": "Detail",
    "line": 1378,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "summary"
+   "rust_item": "summary",
+   "note": "same summary rows; resolved or closed clears the countdown, and status 5 or 6 does so only on tickets"
   },
   {
    "module": "views.py",
    "name": "description",
    "class": "Detail",
    "line": 1410,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "description"
+   "rust_item": "description",
+   "note": "same description text"
   },
   {
    "module": "views.py",
    "name": "attachments",
    "class": "Detail",
    "line": 1413,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "attachments"
+   "rust_item": "attachments",
+   "note": "same attachments"
   },
   {
    "module": "views.py",
    "name": "notes",
    "class": "Detail",
    "line": 1421,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "notes"
+   "rust_item": "notes",
+   "note": "same missing-section notes plus the properties note"
   },
   {
    "module": "views.py",
    "name": "to_json",
    "class": "Detail",
    "line": 1431,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "to_json"
+   "status": "reviewed",
+   "rust": "crates/fsv-views/src/detail.rs",
+   "rust_item": "to_json",
+   "note": "same detail JSON"
   },
   {
    "module": "views.py",
    "name": "requested_item_json",
    "line": 1454,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/render.rs",
-   "rust_item": "requested_item_json"
+   "rust_item": "requested_item_json",
+   "note": "same requested-item JSON"
   },
   {
    "module": "views.py",
    "name": "conversation_json",
    "line": 1464,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-api/src/site/record.rs",
-   "rust_item": "conversation_json"
+   "rust_item": "conversation_json",
+   "note": "same conversation JSON"
   },
   {
    "module": "views.py",
    "name": "_requested_for",
    "line": 1472,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/source.rs",
-   "rust_item": "requested_for"
+   "rust_item": "requested_for",
+   "note": "same requested-for name, or #id"
   },
   {
    "module": "views.py",
    "name": "load_detail",
    "line": 1487,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "load_detail"
+   "rust_item": "load_detail",
+   "note": "same detail assembly, fallback tabs, requested items, and partial conversations"
   },
   {
    "module": "views.py",
    "name": "resolve_tab",
    "line": 1547,
-   "status": "matched",
+   "status": "reviewed",
    "rust": "crates/fsv-views/src/detail.rs",
-   "rust_item": "resolve_tab"
+   "rust_item": "resolve_tab",
+   "note": "fixed: the prefix match strips with str.strip before casefold; an unknown tab raises the same message"
   },
   {
    "module": "watcher_cli.py",

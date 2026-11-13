@@ -178,6 +178,10 @@ those stay identical.
 - `form explain` with a bad `--id` exits 1 with the message. Python prints
   a traceback. A requester lookup that fails with something other than a
   value error (change and SR create) also exits with the message.
+- Canned responses: a payload with no `body` is refused with "canned source
+  changed; review again". Python's `canned.freshen` raises `KeyError`.
+- Detail panel: a `description` or `description_text` that is not text is
+  omitted or stringified. Python's `render.detail_panel` raises `TypeError`.
 
 ## fsv-app
 

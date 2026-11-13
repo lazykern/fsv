@@ -86,7 +86,7 @@ pub fn source_name(record: &Value, schema: Option<&Value>) -> String {
     if !named.is_empty() {
         return named;
     }
-    if let Some(n) = v.as_i64()
+    if let Some(n) = table_key(v)
         && let Some((_, label)) = SOURCES.iter().find(|(k, _)| *k == n)
     {
         return (*label).to_string();
@@ -129,12 +129,20 @@ pub fn approval_name(record: &Value) -> String {
     else {
         return String::new();
     };
-    if let Some(n) = v.as_i64()
+    if let Some(n) = table_key(v)
         && let Some((_, label)) = APPROVAL_STATUS.iter().find(|(k, _)| *k == n)
     {
         return (*label).to_string();
     }
     fsv_py::py_str(v)
+}
+
+/// `True == 1` and `False == 0` when a status/source table is keyed by int.
+fn table_key(v: &Value) -> Option<i64> {
+    match v {
+        Value::Bool(b) => Some(i64::from(*b)),
+        other => other.as_i64(),
+    }
 }
 
 pub fn description_text(record: &Value) -> String {
@@ -334,7 +342,7 @@ pub fn resolve_tab(
     if names.contains(&name.as_str()) {
         return Ok(name);
     }
-    let folded = pystr::casefold(text.trim());
+    let folded = pystr::casefold(pystr::strip(text));
     let matches: Vec<&str> = names
         .iter()
         .copied()
@@ -389,6 +397,14 @@ mod tests {
     use super::*;
     use fsv_core::resource::{CHANGES, TICKETS};
     use serde_json::json;
+
+    #[test]
+    fn bool_source_and_approval_match_python_dict_keys() {
+        assert_eq!(source_name(&json!({"source": true}), None), "Email");
+        assert_eq!(source_name(&json!({"source": false}), None), "False");
+        assert_eq!(approval_name(&json!({"approval_status": true})), "Approved");
+        assert_eq!(approval_name(&json!({"approval_status": false})), "False");
+    }
 
     #[test]
     fn file_names_and_conversation_json_match_python() {
@@ -453,6 +469,10 @@ mod tests {
             },
         ];
         assert_eq!(resolve_tab(&tabs, "note", "CHN-1", false).unwrap(), "notes");
+        assert_eq!(
+            resolve_tab(&tabs, "\u{1c}note", "CHN-1", false).unwrap(),
+            "notes"
+        );
         let err = resolve_tab(&tabs, "risk", "CHN-1", false).unwrap_err().0;
         assert!(err.contains("not shown"), "{err}");
         assert_eq!(resolve_tab(&tabs, "risk", "CHN-1", true).unwrap(), "risk");

@@ -5,12 +5,9 @@ use serde_json::{Value, json};
 use fsv_api::choice_label;
 use fsv_core::term::escape;
 
-/// Python `==` between JSON scalars (`1 == 1.0`, bools excluded).
+/// Python `==` (`1 == 1.0 == True`).
 fn py_eq(a: &Value, b: &Value) -> bool {
-    match (a, b) {
-        (Value::Number(x), Value::Number(y)) => x.as_f64() == y.as_f64(),
-        _ => a == b,
-    }
+    fsv_api::readback::py_equal(a, b)
 }
 
 /// `_state_label`: a state's own name, else its status choice label, else `str(value)`.
@@ -63,4 +60,20 @@ pub fn change_flow(item: &Value, schema: Option<&Value>) -> String {
         parts.push(text);
     }
     parts.join(" → ")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn current_state_matches_bool_one() {
+        let item = json!({
+            "status": true,
+            "status_name": "Elsewhere",
+            "state_traversal": [{"id": 1, "name": "Open"}, {"id": 2, "name": "Planning"}],
+        });
+        assert_eq!(change_flow(&item, None), "[bold]Open[/] → Planning");
+    }
 }

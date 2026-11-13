@@ -424,14 +424,40 @@ fn py_float(n: &Value) -> Option<f64> {
     }
 }
 
+/// `f"{x:.{places}f}"`: half-even, and a negative value that rounds to zero
+/// keeps the minus (`-0`, `-0.0`).
 fn fmt_fixed(x: f64, places: usize) -> String {
     if x.is_nan() {
-        "nan".into()
-    } else if x.is_infinite() {
-        if x > 0.0 { "inf".into() } else { "-inf".into() }
-    } else {
-        format!("{x:.places$}")
+        return "nan".into();
     }
+    if x.is_infinite() {
+        return if x.is_sign_positive() {
+            "inf".into()
+        } else {
+            "-inf".into()
+        };
+    }
+    let scale = 10f64.powi(places as i32);
+    let scaled = x * scale;
+    if !scaled.is_finite() {
+        return format!("{x:.places$}");
+    }
+    let rounded = fsv_core::pystr::round_half_even(scaled);
+    let neg = if rounded == 0.0 {
+        x.is_sign_negative()
+    } else {
+        rounded.is_sign_negative()
+    };
+    let digits = format!("{:.0}", rounded.abs());
+    let body = if places == 0 {
+        digits
+    } else if digits.len() <= places {
+        format!("0.{digits:0>places$}")
+    } else {
+        let split = digits.len() - places;
+        format!("{}.{}", &digits[..split], &digits[split..])
+    };
+    if neg { format!("-{body}") } else { body }
 }
 
 /// `_human_size`: `512 B`, `1.5 KB`, … up to GB.

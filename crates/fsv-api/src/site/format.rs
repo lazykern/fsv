@@ -50,10 +50,12 @@ pub fn fmt_when(value: &Value, tz: Option<&TimeZone>, year: bool) -> String {
         return String::new();
     }
     if is_date_only(value) {
-        let text = pystr::strip(value.as_str().unwrap_or_default());
+        let raw = value.as_str().unwrap_or_default();
+        let text = pystr::strip(raw);
         return match pydt::date_fromisoformat(text) {
             Some(d) => format!("{}, {} {} {}", weekday(d), d.day(), month(d), d.year()),
-            None => text.to_string(),
+            // Invalid calendar dates come back as stored, whitespace included.
+            None => raw.to_string(),
         };
     }
     let Some(when) = parse_dt(value) else {
@@ -318,6 +320,14 @@ mod tests {
         assert_eq!(
             fmt_when(&json!("2031-02-30"), Some(&utc), true),
             "2031-02-30"
+        );
+        assert_eq!(
+            fmt_when(&json!(" 2031-02-30 "), Some(&utc), true),
+            " 2031-02-30 "
+        );
+        assert_eq!(
+            fmt_when(&json!(" 2026-11-27 "), Some(&utc), true),
+            "Fri, 27 Nov 2026"
         );
         assert_eq!(fmt_when(&json!("soon"), Some(&utc), true), "soon");
         assert_eq!(fmt_when(&json!(null), Some(&utc), true), "");

@@ -155,6 +155,19 @@ fn current_user_is_read_once_and_named() {
 }
 
 #[test]
+fn current_user_name_uses_python_strip() {
+    let t = tenant(|c| {
+        (c.path == "/api/v2/agents/me")
+            .then(|| {
+                ok(json!({"agent": {"id": 1, "first_name": "\u{1c}Ann", "last_name": "Lee\u{1c}"}}))
+            })
+            .flatten()
+    });
+    let me = backend(&t).current_user().unwrap();
+    assert_eq!(me["name"], json!("Ann Lee"));
+}
+
+#[test]
 fn detail_pages_load_like_views_load_detail_and_render_through_pages() {
     let t = tenant(route);
     let b = backend(&t);

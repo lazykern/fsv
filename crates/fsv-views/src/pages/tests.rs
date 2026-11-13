@@ -507,6 +507,13 @@ fn human_size_units() {
             "-5 B"
         ]
     );
+    // Python `f"{x:.1f}"` / `f"{x:.0f}"` ties to even, so 1.25 KB is 1.2 not 1.3.
+    assert_eq!(human_size(&json!(1280)), "1.2 KB");
+    assert_eq!(human_size(&json!(1024.0 * 1.35)), "1.4 KB");
+    assert_eq!(human_size(&json!(1023.5)), "1024 B");
+    assert_eq!(human_size(&json!(1.5)), "2 B");
+    assert_eq!(human_size(&json!(2.5)), "2 B");
+    assert_eq!(human_size(&json!(-1.5)), "-2 B");
 }
 
 #[test]

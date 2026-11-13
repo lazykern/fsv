@@ -775,8 +775,16 @@ pub fn list_meta(data: &Value, item_count: usize, page: i64, per_page: i64) -> (
     if total.is_some_and(|t| t < floor) {
         total = None;
     }
-    let explicit = first_present(meta, &["has_next", "has_more"])
-        .or_else(|| first_present(data_map, &["has_next", "has_more"]));
+    // `meta.get` treats a missing key and null the same. The data-level
+    // lookup is `data.get("has_next", data.get("has_more"))`: an explicit
+    // null `has_next` stays unset and does not consult `has_more`.
+    let explicit = first_present(meta, &["has_next", "has_more"]).or_else(|| {
+        if data_map.contains_key("has_next") {
+            data_map.get("has_next").filter(|v| !v.is_null())
+        } else {
+            data_map.get("has_more").filter(|v| !v.is_null())
+        }
+    });
     let has_next = if let Some(v) = explicit {
         fsv_py::truthy(v)
     } else if data_map.contains_key("next_page_url") || meta.contains_key("next_page_url") {
@@ -795,7 +803,7 @@ pub fn list_meta(data: &Value, item_count: usize, page: i64, per_page: i64) -> (
 
 /// Port of `views.canonical_tab`.
 pub fn canonical_tab(name: &str) -> String {
-    let n = name.trim().to_lowercase().replace(' ', "_");
+    let n = pystr::strip(name).to_lowercase().replace(' ', "_");
     if let Some((_, v)) = TAB_ALIASES.iter().find(|(k, _)| *k == n) {
         return (*v).to_string();
     }
@@ -902,7 +910,7 @@ pub(crate) fn obj_name(obj: Option<&Value>) -> String {
     };
     for key in ["name", "value", "email"] {
         if let Some(v) = map.get(key).filter(|v| fsv_py::truthy(v)) {
-            return fsv_py::py_str(v).trim().to_string();
+            return pystr::strip(&fsv_py::py_str(v)).to_string();
         }
     }
     String::new()
@@ -925,9 +933,14 @@ fn first_present<'a>(map: &'a Map<String, Value>, keys: &[&str]) -> Option<&'a V
         .find_map(|k| map.get(*k).filter(|v| !v.is_null()))
 }
 
+/// Dict-key index: `True == 1`, `False == 0`, integers as themselves.
 fn as_i64(v: &Value) -> Option<i64> {
-    v.as_i64()
-        .or_else(|| v.as_u64().and_then(|u| i64::try_from(u).ok()))
+    match v {
+        Value::Bool(b) => Some(i64::from(*b)),
+        other => other
+            .as_i64()
+            .or_else(|| other.as_u64().and_then(|u| i64::try_from(u).ok())),
+    }
 }
 
 fn as_py_int(v: &Value) -> Option<i64> {
@@ -1161,6 +1174,23 @@ mod tests {
             list_meta(&json!({"meta": {"total_count": 30}}), 30, 1, 30),
             (Some(30), false)
         );
+        // Explicit null has_next does not fall through to has_more.
+        assert_eq!(
+            list_meta(&json!({"has_next": null, "has_more": true}), 1, 1, 30),
+            (None, false)
+        );
+        assert_eq!(
+            list_meta(&json!({"has_more": true}), 1, 1, 30),
+            (None, true)
+        );
+    }
+
+    #[test]
+    fn name_strip_and_bool_priority_match_python() {
+        assert_eq!(obj_name(Some(&json!({"name": "\u{1c}Ada\u{1c}"}))), "Ada");
+        assert_eq!(priority_name(&json!({"priority": true}), None), "Low");
+        assert_eq!(priority_name(&json!({"priority": false}), None), "False");
+        assert_eq!(canonical_tab("\u{1c}Details"), "details");
     }
 
     #[test]

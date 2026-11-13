@@ -690,7 +690,7 @@ impl Backend for LiveBackend {
                 })
                 .collect::<Vec<_>>()
                 .join(" ");
-            me.insert("name".into(), json!(name.trim()));
+            me.insert("name".into(), json!(fsv_core::pystr::strip(&name)));
         }
         let me = Value::Object(me);
         *g = Some(me.clone());

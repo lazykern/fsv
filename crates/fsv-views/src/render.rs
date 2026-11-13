@@ -321,11 +321,9 @@ pub fn list_table(items: &[Value], res: &Resource, schema: Option<&Value>) -> Ta
 // --------------------------------------------------------------------------
 // state flow (`state_flow.render_state_diagram`, flow already fetched)
 
+/// Python `==` (`1 == 1.0 == True`).
 fn same(a: &Value, b: &Value) -> bool {
-    match (a.as_f64(), b.as_f64()) {
-        (Some(x), Some(y)) if !a.is_boolean() && !b.is_boolean() => x == y,
-        _ => a == b,
-    }
+    fsv_api::readback::py_equal(a, b)
 }
 
 /// The compact state diagram the classic detail prints for a change.
