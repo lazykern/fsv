@@ -336,6 +336,21 @@ def default_view(views: Sequence[SavedView]) -> SavedView | None:
     return views[0] if views else None
 
 
+# System views that list every record of a module (ids as the web uses them).
+ALL_VIEW_IDS = {"tickets": "all_tickets", "changes": "all", "problems": "all"}
+
+
+def all_records_view(views: Sequence[SavedView], module: str) -> SavedView | None:
+    """The system 'All' view of a module, or None when the tenant has none.
+
+    Only an exact system id counts: a custom view named 'All ...' may filter."""
+    want = ALL_VIEW_IDS.get(module)
+    for v in views:
+        if want and v.system and str(v.id) == want:
+            return v
+    return None
+
+
 def _fold(s: Any) -> str:
     return " ".join(str(s or "").split()).casefold()
 

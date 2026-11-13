@@ -1223,6 +1223,7 @@ def list_resource(
     order_by: str | None = None,
     order_type: SortOrder | str | None = None,
     n_pages: int | None = None,
+    no_defaults: bool = False,
 ) -> None:
     """A list page like the web's: a saved view (by name; the server's
     default when neither --view nor filters are given), the site's columns
@@ -1241,7 +1242,24 @@ def list_resource(
     for x in explanation:
         if "no strict operator exists" in str(x.get("value")):
             err.print(f"note: {x['field']} {x['value']}", markup=False, highlight=False)
-    view = _api(lambda: _pick_view(c, res, filter_name, use_default=not where and not raw_query_hash))
+    unfiltered = not filter_name and not where and not raw_query_hash
+    if no_defaults and unfiltered:
+        # The list endpoint applies the server's default view (for example
+        # "New & My Open") when no filter is sent, so dropping fsv's config
+        # defaults alone still lists a filtered subset: use the system "All"
+        # view instead, or say which view still filters.
+        saved = _api(lambda: _saved_views(c, res))
+        view = V.all_records_view(saved, res.name)
+        if view is not None:
+            err.print(f"view: {view.name} ({view.id}): --no-defaults lists every record the server's "
+                      f"system 'All' view returns, not the default view", markup=False, highlight=False, soft_wrap=True)
+        else:
+            view = V.default_view(saved)
+            label = f"{view.name} ({view.id})" if view is not None else "the server's default"
+            err.print(f"note: --no-defaults: no system 'All' view found for {res.name}; the default view "
+                      f"{label} still filters this list (use --view or --where)", markup=False, highlight=False, soft_wrap=True)
+    else:
+        view = _api(lambda: _pick_view(c, res, filter_name, use_default=not where and not raw_query_hash))
     ot = order_type.value if isinstance(order_type, SortOrder) else order_type
     ob = order_by
     if view is not None and not ob and view.raw:
@@ -3540,7 +3558,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
         format_: OutputFormat = typer.Option(OutputFormat.table, "--output", "-o", help="output format", autocompletion=completion.complete_format),
         json_out: bool = typer.Option(False, "--json", help="alias for --output json"),
         pager: bool = typer.Option(True, "--pager/--no-pager", help="page long table output when stdout is a TTY"),
-        no_defaults: bool = typer.Option(False, "--no-defaults", help="ignore default --where filters from config"),
+        no_defaults: bool = typer.Option(False, "--no-defaults", help="ignore default --where filters from config; with no --view/--where/--query-hash, list the system 'All' view instead of the server's default view"),
     ) -> None:
         f"""List {res.name}."""
         explicit_where = where or []
@@ -3564,6 +3582,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             order_by,
             order_type,
             n_pages,
+            no_defaults=no_defaults,
         )
 
     @sub.command("get", help=f"Show one {singular}.", epilog=(
