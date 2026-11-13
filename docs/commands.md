@@ -200,6 +200,7 @@ fsv tickets activity INC-1234
 fsv tickets fields --refresh
 fsv tickets search 'Acme service'
 fsv tickets conversations INC-1234
+fsv tickets add-note INC-1234 --body 'See screenshot' --inline-image shot.png --dry-run
 fsv tickets approvals INC-1234
 fsv tickets associations INC-1234
 fsv tickets download INC-1234 --all --dir ./downloads

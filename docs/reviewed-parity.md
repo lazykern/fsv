@@ -331,6 +331,27 @@ values beginning with an operator. Unsupported filters stop before any list
 request; offline two-tenant HTTP tests assert the exact query hashes and the
 absence of broadened requests.
 
+## Inline images in replies and notes
+
+`fsv tickets reply ID BODY --inline-image shot.png --sender support@example.com`
+and `fsv tickets add-note ID --body TEXT --inline-image shot.png` (repeatable)
+follow the editor's captured wire: each image is uploaded once with
+`POST /api/_/solutions/inline_images` (multipart, single field `file`) which
+answers 201 `{link, fileid}`; the returned link is embedded after the body as
+`<div><img src="LINK" style="width: auto;" class="fr-fil fr-dib" fileid="ID" data-id="ID"></div>`
+in `body` (and the reply's `full_text`). No attachment-id array is sent. The
+review lists every image with its size and the attachment size limit (tenant
+form metadata, the agent page `MAX_ATTACHMENT_LIMIT`, or `--max-bytes`); only
+JPEG, PNG, GIF and WebP are accepted (the editor's file filter). The send is
+single-attempt and journaled, every returned image id is journaled before the
+reply/note POST, and readback requires the exact conversation's body to keep
+each link and `data-id` (the server drops `fileid`). Combining with `--attach`,
+`--cc`, `--bcc` or `--set-status` is refused as uncaptured.
+
+There is **no delete path** for inline images: removing an image in the editor
+sends no request and the probed delete routes answer 404/500. A failed or
+unknown transaction leaves orphan images; the error lists their ids.
+
 ## Ticket note edits and deletion
 
 ```sh

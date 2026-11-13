@@ -4744,6 +4744,7 @@ def _make_subapp(res: Resource) -> typer.Typer:
             cc: Optional[List[str]] = typer.Option(None, "--cc", help="CC email from user lookup (repeatable)"),
             bcc: Optional[List[str]] = typer.Option(None, "--bcc", help="BCC plain email from user lookup (repeatable; requires --sender)"),
             attach: Optional[List[str]] = typer.Option(None, "--attach", help="local attachment (repeatable; requires full review and --sender)"),
+            inline_image: Optional[List[str]] = typer.Option(None, "--inline-image", help="local JPEG/PNG/GIF/WebP shown inside the reply body (repeatable; requires --sender; reviewed upload)"),
             max_bytes: Optional[int] = typer.Option(None, "--max-bytes", min=1, help="explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)"),
             json_out: bool = typer.Option(False, "--json"),
             sender: Optional[str] = typer.Option(None, "--sender", help="explicit configured support mailbox; not inferred"),
@@ -4754,6 +4755,21 @@ def _make_subapp(res: Resource) -> typer.Typer:
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),
         ) -> None:
             """Add a reply (conversation) to a ticket."""
+            if inline_image:
+                from fsv import inline_images
+                from fsv.reviewed_write import ReviewedWriteError
+                try:
+                    if attach or cc or bcc or set_status:
+                        raise ReviewedWriteError("--inline-image with --attach/--cc/--bcc/--set-status is not a captured "
+                                                 "combination; nothing was sent")
+                    client = _client()
+                    rebuild = lambda: inline_images.plan(client, id_, body, list(inline_image), kind="reply",
+                                                         sender=sender, max_bytes=max_bytes)
+                    inline_images.finish(rebuild(), client, dry_run=dry_run, yes=yes, expected=expect_plan, rebuild=rebuild)
+                    return
+                except (ValueError, ReviewedWriteError) as exc:
+                    typer.echo(str(exc), err=True)
+                    raise typer.Exit(2) from None
             if attach:
                 from fsv import attachments
                 from fsv.attachments_cli import finish

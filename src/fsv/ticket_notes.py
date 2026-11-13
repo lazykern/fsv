@@ -228,6 +228,7 @@ def register(app: typer.Typer) -> None:
         html_body: bool = typer.Option(False, "--html", help="body is already HTML; otherwise escape plain text"),
         notify: list[str] | None = typer.Option(None, "--notify-email", help="explicit notification recipient (repeatable; default none)"),
         attach: list[str] | None = typer.Option(None, "--attach", help="local file (repeatable; reviewed two-step upload)"),
+        inline_image: list[str] | None = typer.Option(None, "--inline-image", help="local JPEG/PNG/GIF/WebP shown inside the note body (repeatable; reviewed upload)"),
         max_bytes: int | None = typer.Option(None, "--max-bytes", min=1, help="explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)"),
         set_status: str | None = typer.Option(None, "--set-status", help="add and set status (Pending, Resolved or Closed; runtime requirements apply)"),
         dry_run: bool = typer.Option(False, "--dry-run", help="review only; no POST or journal writes"),
@@ -238,6 +239,26 @@ def register(app: typer.Typer) -> None:
         json_out: bool = typer.Option(False, "--json", help="emit structured result"),
     ) -> None:
         try:
+            if inline_image:
+                from fsv import inline_images
+                from fsv.reviewed_write import ReviewedWriteError
+                try:
+                    if read_only and not dry_run:
+                        raise ReviewedWriteError("read-only mode: nothing was sent")
+                    if attach or set_status is not None:
+                        raise ReviewedWriteError("--inline-image with --attach/--set-status is not a captured combination; "
+                                                 "nothing was sent")
+                    if public and not confirm_public and not dry_run:
+                        raise ReviewedWriteError("public note requires --confirm-public")
+                    client = get_client()
+                    rebuild_inline = lambda: inline_images.plan(client, id_, body, list(inline_image), kind="note",
+                                                                public=public, html_body=html_body,
+                                                                notify=tuple(notify or ()), max_bytes=max_bytes)
+                    inline_images.finish(rebuild_inline(), client, dry_run=dry_run, yes=yes, expected=expected,
+                                         rebuild=rebuild_inline)
+                    return
+                except ReviewedWriteError as exc:
+                    raise NoteError(str(exc)) from None
             if attach:
                 from fsv import attachments
                 from fsv.attachments_cli import finish
