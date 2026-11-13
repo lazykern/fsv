@@ -38,6 +38,9 @@ pub struct StatusPlan {
     pub before_json: String,
     /// Review warnings that are not part of the write hash. `"[]"` when none.
     pub warnings_json: String,
+    /// Runtime status labels by ID (not hashed: the metadata is bound through
+    /// `context_hash`). Used to check a workflow rewrite against the readback.
+    pub status_labels_json: String,
 }
 
 impl StatusPlan {
@@ -289,7 +292,21 @@ pub fn build_plan(
             .sort_keys(true)
             .dump(&Value::Object(before)),
         warnings_json: serde_json::to_string(&warnings).unwrap_or_else(|_| "[]".into()),
+        status_labels_json: status_labels_json(&raw_fields)?,
     })
+}
+
+/// `json.dumps({str(id): label for active choices}, sort_keys=True)`.
+fn status_labels_json(raw_fields: &[Value]) -> Result<String> {
+    let choices =
+        task_status::active_choices_of(raw_fields, "problem").map_err(|e| Error::value(e.0))?;
+    let labels: Map<String, Value> = choices
+        .into_iter()
+        .map(|(id, label)| (id.to_string(), json!(label)))
+        .collect();
+    Ok(fsv_py::Dumps::default()
+        .sort_keys(true)
+        .dump(&Value::Object(labels)))
 }
 
 /// Port of problem_status.rejection: a server closure-rule refusal names
@@ -419,15 +436,22 @@ fn set_status(text: &str) -> Option<String> {
         .map(|m| m[1].trim().to_string())
 }
 
-/// A note when the activity rows show a workflow that set the status after
-/// the write (for example back to the pre-write status). With `requested`,
-/// the rows must also show this write's own `set status as <requested>`
-/// entry, and the workflow entry must not be older than it.
+/// A workflow triggered by the write can be stamped a moment before the
+/// write's own activity row (a closure also fills planned dates in the same
+/// save). Rows older than this before the write's entry are not its evidence.
+const WORKFLOW_SKEW: jiff::SignedDuration = jiff::SignedDuration::from_secs(5);
+
+/// Port of problem_status.workflow_activity: `(note, label)` when the
+/// activity rows show a workflow that set the status after the write (for
+/// example back to the pre-write status). With `requested`, the rows must
+/// also show this write's own `set status as <requested>` entry (a closure
+/// adds `, set planned end/start date as ...` to the same row), and the
+/// workflow entry must not be older than it (beyond [`WORKFLOW_SKEW`]).
 fn workflow_note(
     rows: &[Value],
     since: jiff::Timestamp,
     requested: Option<&str>,
-) -> Option<String> {
+) -> Option<(String, String)> {
     let rows: Vec<_> = activity_rows(rows)
         .into_iter()
         .filter(|r| r.0 >= since)
@@ -446,21 +470,28 @@ fn workflow_note(
         written?;
     }
     for (at, text, sub, actor) in &rows {
-        if !casefold(text).contains("workflow") || written.is_some_and(|w| *at < w) {
+        let too_old = written.is_some_and(|w: jiff::Timestamp| {
+            w.checked_sub(WORKFLOW_SKEW).is_ok_and(|limit| *at < limit)
+        });
+        if !casefold(text).contains("workflow") || too_old {
             continue;
         }
         let Some(label) = set_status(sub).or_else(|| set_status(text)) else {
             continue;
         };
         let Some(requested) = requested else {
-            return Some(
+            return Some((
                 "status rewritten server-side after the write (activity shows a workflow set it)"
                     .into(),
-            );
+                label,
+            ));
         };
         let actor = if actor.is_empty() { "workflow" } else { actor };
-        return Some(format!(
-            "status set to {requested} by this write, then rewritten server-side to {label} by a workflow ({actor}) per the activity log"
+        return Some((
+            format!(
+                "status set to {requested} by this write, then rewritten server-side to {label} by a workflow ({actor}) per the activity log"
+            ),
+            label,
         ));
     }
     None
@@ -473,7 +504,7 @@ fn workflow_activity_note(
     target: i64,
     since: jiff::Timestamp,
     requested: Option<&str>,
-) -> Option<String> {
+) -> Option<(String, String)> {
     let rows = crate::service::get_activities(c, &PROBLEMS, target, 1).ok()?;
     workflow_note(&rows, since, requested)
 }
@@ -501,9 +532,25 @@ pub fn send(
             .unwrap_or(Value::Null);
         let after = row.get("status").cloned().unwrap_or(Value::Null);
         let (mut verified, mut note) = status_readback(&before_status, &after, want);
+        let mut conflict = None;
         if !verified && !after.is_null() {
-            note = workflow_activity_note(c, plan.write.target, since, Some(&plan.label));
+            let found = workflow_activity_note(c, plan.write.target, since, Some(&plan.label));
+            note = found.as_ref().map(|f| f.0.clone());
             verified = note.is_some();
+            // The workflow's status must be the server's resulting status
+            // (compared by runtime label when the plan carries the labels).
+            let labels: Value =
+                serde_json::from_str(&plan.status_labels_json).unwrap_or(Value::Null);
+            let observed = labels.get(py_str(&after)).and_then(Value::as_str);
+            if let (Some((_, wf_label)), Some(observed)) = (&found, observed)
+                && casefold(observed) != casefold(wf_label)
+            {
+                verified = false;
+                note = None;
+                conflict = Some(format!(
+                    "activity shows a workflow setting {wf_label}, but the readback status is {observed}; not verified"
+                ));
+            }
         }
         let mut readback = Map::new();
         for k in ["status", "planned_start_date", "planned_end_date"] {
@@ -521,6 +568,9 @@ pub fn send(
         }));
         if let Some(note) = note {
             out.insert("verified_with_note".into(), json!(note));
+        }
+        if let Some(conflict) = conflict {
+            out.insert("readback_conflict".into(), json!(conflict));
         }
         Ok(out)
     };

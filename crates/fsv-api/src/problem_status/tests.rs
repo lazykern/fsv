@@ -116,6 +116,9 @@ fn api(state: Arc<Mutex<Value>>) -> FnApi {
         if path == "problems/123" {
             return Ok(json!({"problem": s["row"]}));
         }
+        if path == "problems/123/activities" {
+            return Ok(json!({"activities": s.get("activities").cloned().unwrap_or(json!([]))}));
+        }
         Err(ApiError::new(404, json!({"error": "unexpected"})).into())
     });
     a.domain = "acme.example.com".into();
@@ -270,6 +273,114 @@ fn workflow_activity_note_matches_python() {
             since,
             case["requested"].as_str(),
         );
-        assert_eq!(json!(got), case["expected"], "{}", case["name"]);
+        assert_eq!(
+            json!(got.map(|g| g.0)),
+            case["expected"],
+            "{}",
+            case["name"]
+        );
+    }
+}
+
+/// `test_closed_rewritten_by_workflow_is_verified_with_note` (Python 92b7a55):
+/// Closed (with planned dates filled), then a workflow put the status back
+/// to the pre-write monitoring status.
+#[test]
+fn closed_rewritten_by_workflow_is_verified_with_note() {
+    let cases = [
+        ("closure-workflow-stamped-first", true),
+        ("closure-same-second", true),
+        ("workflow-label-differs-from-readback", false),
+        ("workflow-minutes-older", false),
+        ("no-own-closure-entry", false),
+    ];
+    for n in [41, 81] {
+        for (case, verified) in cases {
+            let state = Arc::new(Mutex::new(new_state(n)));
+            state.lock().unwrap()["fields"][1]["choices"]
+                .as_array_mut()
+                .unwrap()
+                .push(json!({"id": n + 4, "value": "Monitor"}));
+            state.lock().unwrap()["row"]["status"] = json!(n + 4);
+            let c = Arc::new(api(state.clone()));
+            let store = MemStore::default();
+            let resolver = || -> Option<Arc<dyn LookupResolver>> {
+                Some(Arc::new(ClientResolver::new(c.clone())))
+            };
+            let plan = build_plan(&*c, &store, "123", "Closed", resolver()).unwrap();
+            let now = jiff::Timestamp::now();
+            let stamp = |d: i64| {
+                now.checked_add(jiff::SignedDuration::from_secs(d))
+                    .unwrap()
+                    .strftime("%Y-%m-%dT%H:%M:%SZ")
+                    .to_string()
+            };
+            let wf_at = match case {
+                "closure-workflow-stamped-first" => -1,
+                "workflow-minutes-older" => -60,
+                _ => 0,
+            };
+            let rewritten = if case == "workflow-label-differs-from-readback" {
+                "Open"
+            } else {
+                "Monitor"
+            };
+            let own = if case == "no-own-closure-entry" {
+                "set priority as  <b>Low</b>"
+            } else {
+                "set status as  <b>Closed</b> , set planned end date as  <b>Thu, 2 Jan  4:30 PM</b> , set planned start date as  <b>Thu, 2 Jan  3:30 PM</b>"
+            };
+            {
+                let mut s = state.lock().unwrap();
+                s["mismatch"] = json!(true);
+                s["activities"] = json!([
+                    {"actor": {"id": 0, "name": "Problem Workflow", "is_agent_deleted": false},
+                     "content": "executed  <a>Acme status workflow</a>  workflow from  <b>Problem status changed</b>  event",
+                     "sub_contents": [format!("set status as <b>{rewritten}</b>"), "<b>Workflow Ends</b>"],
+                     "created_at": stamp(wf_at)},
+                    {"actor": {"id": 9000001, "name": "Acme Agent", "is_agent": true},
+                     "content": own, "sub_contents": null, "created_at": stamp(0)}]);
+            }
+            let journal = MemJournal::default();
+            let result =
+                send(&plan, &*c, &store, &journal, Some(&plan.hash()), resolver()).unwrap();
+            let ctx = format!("{n} {case}: {result}");
+            let s = state.lock().unwrap();
+            let writes = s["requests"].as_array().unwrap().len();
+            assert_eq!(writes, 1, "{ctx}");
+            assert_eq!(result["verified"], json!(verified), "{ctx}");
+            assert_eq!(result["readback"]["status"], json!(n + 4), "{ctx}");
+            assert!(
+                fsv_py::truthy(&result["readback"]["planned_end_date"]),
+                "{ctx}"
+            );
+            if verified {
+                assert!(
+                    result["verified_with_note"].as_str().unwrap().contains(
+                        "set to Closed by this write, then rewritten server-side to Monitor"
+                    ),
+                    "{ctx}"
+                );
+                assert!(result.get("warning").is_none(), "{ctx}");
+            } else {
+                assert!(result.get("verified_with_note").is_none(), "{ctx}");
+                assert!(
+                    result["warning"]
+                        .as_str()
+                        .unwrap()
+                        .contains("do not resend"),
+                    "{ctx}"
+                );
+            }
+            if case == "workflow-label-differs-from-readback" {
+                assert!(
+                    result["readback_conflict"]
+                        .as_str()
+                        .unwrap()
+                        .contains("readback status is Monitor"),
+                    "{ctx}"
+                );
+            }
+        }
     }
 }
