@@ -11,11 +11,11 @@ plans, roles, forms and workflows differ (see the
 
 | Area | Rows | COVERED | UNSURE | GAP | N/A |
 |---|---|---|---|---|---|
-| Tickets | 87 | 51 | 34 | 1 | 1 |
+| Tickets | 88 | 51 | 35 | 1 | 1 |
 | Changes | 53 | 36 | 13 | 3 | 1 |
 | Problems and service requests | 62 | 42 | 19 | 1 | 0 |
 | Cross-cutting | 74 | 36 | 37 | 1 | 0 |
-| **All** | **276** | **165** | **103** | **6** | **2** |
+| **All** | **277** | **165** | **104** | **6** | **2** |
 
 N/A rows are local commands with no wire. Counts are per row: a few commands
 appear both in their module table and in the cross-cutting table.
@@ -105,6 +105,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | tickets bulk pickup | `PUT /api/_/tickets/pick_up` | COVERED | yes | yes | none | test_ticket_bulk.py | Live send verified by an independent readback. |
 | tickets bulk merge | `POST /api/_/merge_tickets/complete_merge` | COVERED | yes | yes | none | test_ticket_bulk.py, test_ticket_merge.py | Live send verified by an independent readback. |
 | tickets bulk spam / unspam | `POST /api/_/tickets/spam_multiple, POST /api/_/tickets/unspam_multiple` | COVERED | yes | yes | none | test_ticket_bulk.py | Live send verified by an independent readback. |
+| tickets bulk scenario --scenario NAME_OR_ID | `PUT /api/_/tickets/execute_scenario {scenario_id, ids}` | UNSURE | no | no | capture-only | test_ticket_bulk_scenario.py | Wire captured (202, async); effects cannot be verified by design. |
 | tickets bulk delete (soft) | `DELETE /api/_/tickets/delete_multiple?ids=` | COVERED | yes | yes | none | test_ticket_bulk.py | Live send verified by an independent readback. |
 | tickets bulk ... --where --select-all (filtered) | `expands to <=50 explicit IDs then wires above` | UNSURE | stale (re-test) | no | none | test_ticket_bulk_filter_cli.py, test_ticket_bulk_set.py, test_filter_wires.py | Live result predates later fixes or was partial; re-test. |
 | tickets bulk --json output | stdout JSON only | COVERED | n/a (local) | n/a | none | test_ticket_bulk_set.py | Local command; offline tests. |

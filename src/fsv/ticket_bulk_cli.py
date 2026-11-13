@@ -25,6 +25,7 @@ def register(app, client_factory):
              dry_run: bool = typer.Option(False, "--dry-run"), yes: bool = typer.Option(False, "--yes"),
              expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
              sets: Optional[list[str]] = typer.Option(None, "--set", help="status only: FIELD=VALUE the status's rules require; repeatable"),
+             scenario: Optional[str] = typer.Option(None, "--scenario", help="scenario only: exact scenario name or ID (never by position)"),
              json_out: bool = typer.Option(False, "--json", help="accepted for symmetry; stdout is always JSON only (selection list goes to stderr)")):
         try:
             answers: dict[str, str] = {}
@@ -36,12 +37,16 @@ def register(app, client_factory):
             client = client_factory()
             plan = ticket_bulk.build_plan(client, list(ids or []), action=action, where=list(where or []),
                 select_all=select_all, max_records=max_records, status=status, agent=agent, group=group, primary=primary,
-                note_primary=note_primary, note_secondary=note_secondary, answers=answers or None)
+                note_primary=note_primary, note_secondary=note_secondary, answers=answers or None,
+                **({"scenario": scenario} if scenario is not None else {}))
             # Human inspection list (destructive actions rely on it): stderr
             # only, so stdout stays pure JSON; JSON also carries the selection.
             typer.echo("Selected ticket IDs: " + ", ".join(map(str, plan.ids)), err=True)
             for row in json.loads(plan.selected_json):
                 typer.echo(f"  {row['id']}: {row['subject']}", err=True)
+            if action == "scenario":
+                chosen = plan.review()["scenario"]
+                typer.echo(f"Scenario to run: {chosen['id']} ({chosen['name']}); its effects cannot be verified", err=True)
             if dry_run:
                 typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2))
                 return

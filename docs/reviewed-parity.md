@@ -166,6 +166,7 @@ fsv tickets bulk merge INC-123 INC-124 --primary INC-123 --note-primary Combined
 fsv tickets bulk spam INC-123 INC-124 --dry-run --json
 fsv tickets bulk unspam INC-123 INC-124 --dry-run --json
 fsv tickets bulk delete --where 'Priority=Low' --select-all --dry-run --json
+fsv tickets bulk scenario INC-123 INC-124 --scenario 'Assign to Acme Desk' --dry-run --json
 ```
 
 Send with `--yes --expect-plan FULL_HASH`. Spam and delete additionally require
@@ -176,6 +177,16 @@ all-pages mutation flag. Rebuild checks selection/metadata/records before send.
 No chunking, ambiguous retry, null assignment or bulk closure. Group and agent
 must both be supplied for the accepted assignment variant. Pickup and merge
 reuse their existing reviewed planners, durable guards and independent readback.
+
+`bulk scenario` sends `PUT tickets/execute_scenario {"scenario_id", "ids"}` for
+explicit IDs only (no filters). `--scenario` must match exactly one scenario by
+ID or exact name (case-insensitive only when no exact match exists); an ID that
+is also another scenario's name, or several matches, is refused. Scenarios are
+never chosen by position. The review and stderr print the resolved scenario ID
+and name and warn that its actions (ticket type changes, assignments, emails,
+notes) run asynchronously (HTTP 202) and cannot be proven: the result reads
+each exact ticket back for identity but keeps `verified: false`. Check the
+scenario name before sending; never replay.
 
 
 ## Exact-conversation forward

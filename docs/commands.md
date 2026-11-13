@@ -222,6 +222,7 @@ fsv tickets canned folders
 fsv tickets scenarios list
 fsv tickets private-views list
 fsv changes private-views list
+fsv tickets bulk scenario INC-1234 INC-1235 --scenario 'Assign to Acme Desk' --dry-run
 fsv tickets trash list
 fsv tickets restore INC-1234 --dry-run
 fsv tickets problems link INC-1234 PRB-7 --dry-run
