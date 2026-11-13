@@ -10,8 +10,8 @@ from test_ticket_properties_http import wire  # noqa: F401
 
 
 def prepare(w, label):
-    w.closed = w.pending + 100
-    w.fields[1]["choices"].append({"id": w.closed, "value": label})
+    # the built-in Resolved/Closed internal ids are already in the fixture
+    w.closed = {"Resolved": 4, "Closed": 5}[label]
     w.row.update(group_id=None, responder_id=9000001234,
                  resolution_notes={"notes_html": "<p>Acme recovery verified</p>", "user": {"name": "Acme Operator"}},
                  custom_fields={"summary": "Existing fix"})

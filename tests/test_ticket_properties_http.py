@@ -12,7 +12,7 @@ from test_ticket_notes import mock_client
 
 
 @pytest.fixture(params=[("acme.example.com", 123, 2, 3, 9000008101),
-                        ("globex.example.com", 742, 17, 43, 9000008201)])
+                        ("globex.example.com", 742, 2, 3, 9000008201)])
 def wire(request, monkeypatch):
     domain, cid, opened, pending, fid = request.param
     monkeypatch.setattr(config, "DOMAIN", domain)
@@ -23,7 +23,8 @@ def wire(request, monkeypatch):
              "planned_start_date": None, "planned_end_date": None},
         fields=[{"id": fid, "name": "subject", "label": "Subject", "field_type": "default_subject", "position": 1},
                 {"id": fid + 1, "name": "status", "label": "Status", "field_type": "default_status", "position": 2,
-                 "choices": [{"id": opened, "value": "Open"}, {"id": pending, "value": "Pending"}]}],
+                 "choices": [{"id": opened, "value": "Open"}, {"id": pending, "value": "Pending"},
+                             {"id": 4, "value": "Resolved"}, {"id": 5, "value": "Closed"}]}],
         conv_id=cid + 9000000000, conversation=None, conv_readback=None, conv_transform=None,
         lookup_name=domain.split(".")[0].title() + " Operator")
 
@@ -129,7 +130,7 @@ def test_bad_readback_stays_unverified_without_resend(wire, readback):
 def test_changed_state_or_metadata_blocks_write(wire):
     w = wire
     p = props.build_plan(w.client, w.cid, answers={"Status": "Pending"})
-    w.fields[1]["choices"][1]["id"] += 1
+    w.fields[1]["choices"].append({"id": 9, "value": "Assigned"})
     with pytest.raises(props.PropertyError, match="changed"):
         props.send(p, w.client, reviewed_hash=p.hash)
     assert not [r for r in w.requests if r.method == "PUT"]

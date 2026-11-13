@@ -13,12 +13,12 @@ from fsv.formmeta import FormMeta
 
 
 def metadata():
-    fields = [a._f("status", "Status", "default_status", 1, choices=[{"id": 31, "value": "Open"}, {"id": 47, "value": "Pending"}]),
+    fields = [a._f("status", "Status", "default_status", 1, choices=[{"id": 2, "value": "Open"}, {"id": 3, "value": "Pending"}, {"id": 4, "value": "Resolved"}, {"id": 5, "value": "Closed"}]),
               a._f("reason", "Pending Reason", "custom_text", 2)]
     for index, field in enumerate(fields, 9000007201):
         field["id"] = index
     # Real tenant shape: a rule mandates the reason when the status becomes Pending.
-    cond = {"all": [{"name": "status", "operator": "is", "value": "47", "evaluate_on": "ticket"}]}
+    cond = {"all": [{"name": "status", "operator": "is", "value": "3", "evaluate_on": "ticket"}]}
     rule = a._rule(9000007210, "Pending needs reason", cond, [a._a("mandate", ["customFields.reason"])])
     rule["module_type"], rule["workspace_id"] = "ticket", 1
     return FormMeta("ticket", "edit_form", {"ticket_fields": fields}, {"business_rules": [rule]}, 1, 0, "fixture", 123)
@@ -26,7 +26,7 @@ def metadata():
 
 class Client:
     def __init__(self):
-        self.rows = {i: {"id": i, "subject": f"Acme {i}", "status": 31, "custom_fields": {"reason": None}} for i in (71, 72)}
+        self.rows = {i: {"id": i, "subject": f"Acme {i}", "status": 2, "custom_fields": {"reason": None}} for i in (71, 72)}
         self.writes = []
         self.fail_on = None
     def int_get(self, path, params=None):
@@ -74,14 +74,14 @@ def test_json_stdout_is_pure_json_and_set_sends_per_ticket(client):
     body = json.loads(review.stdout)  # the whole of stdout parses
     assert "Selected ticket IDs" not in review.stdout and "Selected ticket IDs: 71, 72" in review.stderr
     assert body["ticket_ids"] == [71, 72] and [t["id"] for t in body["selected_tickets"]] == [71, 72]
-    assert all(p["custom_fields"] == {"reason": "Waiting on Acme vendor"} and p["status"] == 47 for p in body["payload"])
+    assert all(p["custom_fields"] == {"reason": "Waiting on Acme vendor"} and p["status"] == 3 for p in body["payload"])
     assert not client.writes
     sent = runner.invoke(cli.app, args + ["--yes", "--expect-plan", body["plan_hash"]])
     assert sent.exit_code == 0, sent.output
     result = json.loads(sent.stdout)
     assert result["verified"] and set(result["tickets"]) == {"71", "72"}
     assert [(m, i, b["status"], b["custom_fields"]) for m, i, b in client.writes] == [
-        ("PUT", 71, 47, {"reason": "Waiting on Acme vendor"}), ("PUT", 72, 47, {"reason": "Waiting on Acme vendor"})]
+        ("PUT", 71, 3, {"reason": "Waiting on Acme vendor"}), ("PUT", 72, 3, {"reason": "Waiting on Acme vendor"})]
     # The same reviewed plan is never replayed.
     again = runner.invoke(cli.app, args + ["--yes", "--expect-plan", body["plan_hash"]])
     assert again.exit_code != 0 and len(client.writes) == 2

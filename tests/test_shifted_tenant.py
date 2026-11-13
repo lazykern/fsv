@@ -14,7 +14,16 @@ from fsv import change_tasks, config, formmeta, journal, problem_status
 from fsv.client import Client
 from fsv.forms import FormSpec, RulesEngine
 
-PROBLEM_STATUSES = [{"id": 21, "value": "New"}, {"id": 22, "value": "Wip"}, {"id": 23, "value": "Done"}]
+# Built-in problem statuses keep their platform internal ids (1 Open, 3 Closed)
+# under renamed/translated labels; custom statuses get tenant-specific ids.
+PROBLEM_STATUSES = [{"id": 1, "value": "Neu"}, {"id": 21, "value": "Prüfung"}, {"id": 22, "value": "Wip"},
+                    {"id": 3, "value": "Erledigt"}]
+# Ticket statuses: renamed built-ins (2-5) plus shifted custom statuses.
+TICKET_STATUSES = [{"id": 2, "value": "Offen"}, {"id": 3, "value": "Wartend"}, {"id": 12, "value": "Abgebrochen"},
+                   {"id": 4, "value": "Gelöst"}, {"id": 5, "value": "Erledigt"}, {"id": 13, "value": "In Arbeit"}]
+# A metadata shape without the built-in internal ids: every meaning is ambiguous.
+UNPROVABLE_STATUSES = [{"id": 10, "value": "New"}, {"id": 11, "value": "Wip"}, {"id": 12, "value": "Fixed"},
+                       {"id": 13, "value": "Done"}]
 TASK_FIELDS = [{"name": "status", "choices": [{"id": 7, "value": "Todo"}, {"id": 8, "value": "Doing"},
                                               {"id": 9, "value": "Done"}]},
                {"name": "notify_before", "choices": [{"id": 0, "value": "None"}, {"id": 600, "value": "10 Min"}]}]
@@ -111,3 +120,92 @@ def test_current_entity_rule_reads_a_shifted_status_id():
     eng = RulesEngine(spec, {"business_rules": [rule]}, module="problem")
     assert "subject" in eng.evaluate({"status": 21}, "edit", base={"status": 23, "subject": "x"}).disabled
     assert "subject" not in eng.evaluate({"status": 23}, "edit", base={"status": 3, "subject": "x"}).disabled
+
+
+# --- status semantics: internal ids, never English labels --------------------
+
+def ticket_meta(statuses=TICKET_STATUSES):
+    from fsv.formmeta import FormMeta
+    fields = [{"id": 9000007101, "name": "status", "label": "Zustand", "field_type": "default_status", "position": 1,
+               "choices": copy.deepcopy(statuses)},
+              {"id": 9000007102, "name": "summary", "label": "Lösung", "field_type": "custom_text", "position": 2,
+               "required_for_closure": True}]
+    return FormMeta("ticket", "edit_form", {"ticket_fields": fields}, {"business_rules": []}, 9, 0, "fixture", 123)
+
+
+class TicketClient:
+    def __init__(self):
+        self.row = {"id": 123, "status": 2, "group_id": None, "responder_id": 9000001234, "workspace_id": 9,
+                    "resolution_notes": None, "custom_fields": {"summary": "Globex fix"}}
+
+    def int_get(self, path):
+        return {"ticket": copy.deepcopy(self.row)}
+
+
+@pytest.fixture
+def globex_tickets(monkeypatch, tmp_path):
+    from fsv import ticket_lifecycle, ticket_merge, ticket_conversation
+    monkeypatch.setattr(config, "DOMAIN", "globex.example.com")
+    monkeypatch.setattr(journal, "journal_path", lambda: tmp_path / "journal")
+    holder = {"statuses": TICKET_STATUSES}
+    for mod in (ticket_lifecycle, ticket_merge, ticket_conversation):
+        monkeypatch.setattr(mod, "load_meta", lambda *a, **k: ticket_meta(holder["statuses"]))
+    return holder
+
+
+def test_renamed_builtin_ticket_statuses_keep_their_meaning(globex_tickets):
+    from fsv import ticket_lifecycle as flow
+    from fsv.status_semantics import CLOSED, OPEN, RESOLVED
+    c = TicketClient()
+    resolved = flow.build_plan(c, 123, RESOLVED, note="Globex fix")
+    assert resolved.payload["status"] == 4 and resolved.status == "Gelöst" and resolved.note_html
+    c.row["resolution_notes"] = {"notes_html": "<p>Globex fix</p>"}
+    assert flow.build_plan(c, 123, CLOSED).payload["status"] == 5
+    assert flow.build_plan(c, 123, OPEN).payload["status"] == 2
+    # a custom status is not closing: no resolution note or closure field is demanded
+    c.row["custom_fields"]["summary"] = None
+    assert flow.build_plan(c, 123, "Abgebrochen").payload["status"] == 12
+    with pytest.raises(Exception, match="Lösung"):
+        flow.build_plan(c, 123, "Erledigt")  # the translated Closed still enforces closure fields
+
+
+def test_ticket_statuses_without_builtin_ids_are_refused(globex_tickets):
+    from fsv import ticket_lifecycle as flow
+    from fsv.reviewed_write import ReviewedWriteError
+    from fsv.status_semantics import RESOLVED
+    globex_tickets["statuses"] = UNPROVABLE_STATUSES
+    with pytest.raises(ReviewedWriteError, match="not identifiable"):
+        flow.build_plan(TicketClient(), 123, RESOLVED, note="Globex fix")
+    with pytest.raises(ReviewedWriteError, match="cannot tell"):
+        flow.build_plan(TicketClient(), 123, "Fixed")  # an English-looking label proves nothing
+
+
+def test_merge_and_conversation_resolve_builtin_ids_under_translated_labels(globex_tickets):
+    from fsv import ticket_conversation as conv, ticket_merge
+    assert ticket_merge._closed(None, 123)[0] == 5
+    choice, role = conv._status_choice(None, 123, "Wartend")
+    assert (choice.id, role) == (3, "pending")
+    with pytest.raises(conv.ConversationError, match="not a supported status"):
+        conv._status_choice(None, 123, "Abgebrochen")
+    globex_tickets["statuses"] = UNPROVABLE_STATUSES
+    with pytest.raises(Exception, match="Closed status"):
+        ticket_merge._closed(None, 123)
+
+
+def test_safety_and_problem_semantics_use_ids_not_words():
+    from fsv import safety, status_semantics as sem
+    assert safety.status_closes("tickets", 4, TICKET_STATUSES) is True
+    assert safety.status_closes("tickets", 12, TICKET_STATUSES) is False
+    assert safety.status_closes("tickets", 12, UNPROVABLE_STATUSES) is None
+    assert safety.status_closes("changes", 4, TICKET_STATUSES) is None
+    assert sem.closes(PROBLEM_STATUSES, "problem", 3) is True
+    assert sem.closes(PROBLEM_STATUSES, "problem", 22) is False
+    assert sem.closes([{"id": 21, "value": "Closed"}], "problem", 21) is None
+
+
+def test_problem_closed_label_translated_still_runs_closure_checks(shifted):
+    c, s = shifted
+    use_workspace(5)
+    with pytest.raises(Exception) as exc:
+        problem_status.build_plan(c, "PRB-77", "Erledigt")
+    assert "closes the problem" not in str(exc.value)  # closing was recognised by id 3

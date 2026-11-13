@@ -11,6 +11,12 @@ from fsv.client import Client
 from fsv.reviewed_write import ReviewedWriteError
 
 
+def sid(n, label):
+    """Built-in Open/Closed keep their platform internal ids (1, 3); custom
+    statuses get tenant-specific ids."""
+    return {"Open": 1, "Closed": 3, "In Progress": n + 1, "Resolve": n + 2}[label]
+
+
 @pytest.fixture(params=[41, 81])
 def api(request, monkeypatch, tmp_path):
     n = request.param
@@ -22,8 +28,8 @@ def api(request, monkeypatch, tmp_path):
     fields = [{"id": 501, "name": "subject", "label": "Subject", "field_type": "default_subject", "position": 1,
                "required_for_closure": True},
               {"id": 502, "name": "status", "label": "Status", "field_type": "default_status", "position": 2,
-               "choices": [{"id": n+i, "value": label} for i, label in enumerate(["Open", "In Progress", "Resolve", "Closed"])]}]
-    s = {"row": {"id": 123, "subject": "Acme problem", "status": n, "planned_start_date": None, "planned_end_date": None},
+               "choices": [{"id": sid(n, label), "value": label} for label in ["Open", "In Progress", "Resolve", "Closed"]]}]
+    s = {"row": {"id": 123, "subject": "Acme problem", "status": sid(n, "Open"), "planned_start_date": None, "planned_end_date": None},
          "analysis": [{"id": i+1, "name": key, "description": "<div>Acme evidence</div>"} for i, key in enumerate(flow.planning_text.PROBLEM_SECTIONS.values())],
          "solutions": [{"id": 701, "title": "Acme solution", "article_type": 1}], "writes": [], "fail": None, "mismatch": False, "partial": False}
     def handler(req):
@@ -80,7 +86,7 @@ def test_status_transitions_and_side_effect_review(api, label):
     assert "auto-fill" in p.review()["side_effects"]
     r = flow.send(p, c, reviewed_hash=p.hash)
     assert r["verified"] and r["readback"]["planned_start_date"]
-    assert s["writes"] == [("PUT", "problems/123", {"status": n+["Open", "In Progress", "Resolve", "Closed"].index(label)})]
+    assert s["writes"] == [("PUT", "problems/123", {"status": sid(n, label)})]
     with pytest.raises(ReviewedWriteError, match="was sent"):
         flow.send(p, c, reviewed_hash=p.hash)
 
@@ -229,7 +235,7 @@ def test_workflow_rewrite_to_the_prior_status_uses_activity_evidence(api, eviden
             {"actor": {"id": 9000001, "name": "Acme Agent", "is_agent": True},
              "content": "set status as  <b>Resolve</b>", "sub_contents": None, "created_at": now}]
     result = flow.send(plan, c, reviewed_hash=plan.hash)
-    assert len(s["writes"]) == 1 and s["row"]["status"] == n
+    assert len(s["writes"]) == 1 and s["row"]["status"] == sid(n, "Open")
     assert result["verified"] is evidence
     assert ("rewritten server-side to Open" in result.get("verified_with_note", "")) is evidence
 

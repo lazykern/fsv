@@ -8,17 +8,8 @@ tenant status ids or names are hard-coded.
 from __future__ import annotations
 
 import unicodedata
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
 
-TERMINAL_STATUS_WORDS = {"closed", "resolved", "rejected", "cancelled", "canceled"}
-# Status labels known NOT to close a record. A label that is neither known
-# terminal nor known open (a localized or custom status) is treated as
-# possibly terminal: confirming one extra time beats closing silently.
-OPEN_STATUS_WORDS = {"open", "pending", "in progress", "waiting", "on hold", "new", "planning", "awaiting",
-                     "assigned", "scheduled", "review", "reopened"}
-# Freshservice API default terminal status ids (tickets: 4 Resolved,
-# 5 Closed; problems: 3 Closed), used when the label is unknown.
-TERMINAL_STATUS_IDS = {"tickets": {"4", "5"}, "problems": {"3"}}
 ASSIGNEE_KEYS = ("agent_id", "responder_id", "owner_id")
 GROUP_KEYS = ("group_id",)
 
@@ -28,24 +19,17 @@ def norm(text: Any) -> str:
     return " ".join(unicodedata.normalize("NFC", str(text or "")).casefold().split())
 
 
-def is_terminal_label(label: str) -> bool:
-    folded = norm(label)
-    return any(word in folded for word in TERMINAL_STATUS_WORDS)
-
-
-def is_open_label(label: str) -> bool:
-    folded = norm(label)
-    return not is_terminal_label(label) and any(word in folded for word in OPEN_STATUS_WORDS)
-
-
-def status_closes(resource: str, value: Any, label: str) -> bool | None:
-    """True: the status closes/resolves the record; False: known open;
-    None: unknown (e.g. a localized or custom label)."""
-    if is_terminal_label(label) or str(value) in TERMINAL_STATUS_IDS.get(resource, set()):
-        return True
-    if is_open_label(label):
-        return False
-    return None
+def status_closes(resource: str, value: Any, choices: Iterable[Any]) -> bool | None:
+    """True: the status resolves/closes the record; False: it does not;
+    None: unknown. Decided by the built-in internal status ids present in
+    the runtime ``choices`` (see :mod:`fsv.status_semantics`), never by the
+    label, so renamed or translated statuses keep their meaning. Resources
+    without built-in status semantics are always unknown."""
+    from fsv import status_semantics
+    module = resource[:-1] if resource.endswith("s") else resource
+    if module not in status_semantics.BUILTIN_IDS:
+        return None
+    return status_semantics.closes(choices, module, value)
 
 
 def _plain(v: Any) -> Any:

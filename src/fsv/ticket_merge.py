@@ -36,9 +36,15 @@ def _history(client: Any, ticket: int) -> list[dict[str, Any]]:
 def _closed(client: Any, ticket: int) -> tuple[int, str]:
     meta = load_meta(client, "ticket", "edit", fresh=True, module_id=ticket)
     fields = [f for f in meta.spec.fields if is_status(f)]
-    choices = [c for f in fields for c in f.choices if c.visible and c.label.casefold() == "closed"]
+    from fsv import status_semantics
     from fsv.choice_ids import runtime_choice_id
-    ident = runtime_choice_id(choices[0].id) if len(fields) == 1 and len(choices) == 1 else None
+    try:
+        # the built-in Closed status by internal id, whatever its label
+        choice = status_semantics.find([c for c in fields[0].choices if c.visible], "ticket",
+                                       status_semantics.CLOSED) if len(fields) == 1 else None
+    except status_semantics.StatusSemanticsError:
+        choice = None
+    ident = runtime_choice_id(choice.id) if choice is not None else None
     if ident is None:
         raise ReviewedWriteError("a unique runtime Closed status ID is required")
     return ident, meta.fingerprint.hash

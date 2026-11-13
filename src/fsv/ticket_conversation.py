@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from email.utils import parseaddr
 from typing import Any, Literal
 
-from fsv import config, journal
+from fsv import config, journal, status_semantics
 from fsv.errors import APIError
 from fsv.formmeta import RULES_UNAVAILABLE_KEY, existing_from_record, is_status, load_meta, resolve_requester
 from fsv.forms import FormState, build_br_validation_excludes
@@ -14,6 +14,7 @@ from fsv.forms.payload import format_requester
 from fsv.ticket_notes import build_plan as note_plan, _note_id, _returned_note, _valid_recipient
 from fsv.ticket_properties import _record
 from fsv.views import load_conversations
+from fsv.status_semantics import PENDING, Role
 
 
 class ConversationError(RuntimeError):
@@ -70,9 +71,31 @@ def recipients(client: Any, emails: list[str]) -> tuple[str, ...]:
     return tuple(out)
 
 
-def status_context(client: Any, cid: int, label: str) -> tuple[int, str, str]:
+def _status_choice(client: Any, cid: int, label: "str | Role") -> tuple[Any, str]:
+    """(runtime choice, role) for --set-status: a tenant label or a role word,
+    resolved by the built-in internal ids in this ticket's status choices."""
+    try:
+        meta = load_meta(client, "ticket", "edit", fresh=True, module_id=cid)
+        fields = [f for f in meta.spec.fields if is_status(f)]
+        if len(fields) != 1:
+            raise ValueError("status field not unique")
+        choice = status_semantics.select(fields[0].choices, "ticket", label)
+        role = status_semantics.role_of(fields[0].choices, "ticket", choice.id)
+    except status_semantics.StatusSemanticsError as exc:
+        raise ConversationError(f"--set-status {label!r} is not a supported status; choices: "
+                                f"{', '.join(SET_STATUS_CHOICES)} (or the tenant's own label of one of these): "
+                                f"{exc}; nothing was sent") from None
+    except Exception:
+        raise ConversationError("could not read the runtime ticket statuses; no send attempted") from None
+    if role not in SET_STATUS_ROLES:
+        raise ConversationError(f"--set-status {choice.label!r} is not a supported status: only the built-in Pending, "
+                                "Resolved and Closed statuses have captured wires; nothing was sent")
+    return choice, role
+
+
+def status_context(client: Any, cid: int, label: "str | Role") -> tuple[int, str, str]:
     # Only Pending was captured; other transitions may require resolution text.
-    if not isinstance(label, str) or label.casefold() != "pending":
+    if label != PENDING and (not isinstance(label, str) or label.casefold() != "pending"):
         raise ValueError("only the Pending status transition was captured; use the web form for other statuses")
     try:
         row = _record(client, cid)
@@ -84,47 +107,61 @@ def status_context(client: Any, cid: int, label: str) -> tuple[int, str, str]:
         if len(fields) != 1:
             raise ValueError("status field not unique")
         field = fields[0]
-        choices = [choice for choice in field.choices if choice.visible and
-                   (choice.label.casefold() == label.casefold() or choice.value.casefold() == label.casefold())]
-        if len(choices) != 1 or not isinstance(choices[0].id, int) or isinstance(choices[0].id, bool) or choices[0].id <= 0:
+        # the built-in Pending status by internal id, whatever its label
+        choice = status_semantics.find([c for c in field.choices if c.visible], "ticket", PENDING)
+        if not isinstance(choice.id, int) or isinstance(choice.id, bool) or choice.id <= 0:
             raise ValueError("status choice not unique")
-        state.set(field.api_name, choices[0].value)
+        state.set(field.api_name, choice.value)
         gate = state.rule_gate()
         if field.api_name not in state.evaluated.visible or state.errors() or gate.blockers:
             raise ValueError("status form rules or context unavailable" +
                              (": " + "; ".join(gate.blockers) if gate.blockers else ""))
         token = build_br_validation_excludes(state.evaluated, "ticket")
-        return choices[0].id, token, journal.snapshot_hash(row) or ""
+        return choice.id, token, journal.snapshot_hash(row) or ""
     except Exception:
         raise ConversationError("could not resolve Pending and evaluate ticket rules from fresh metadata; no send attempted") from None
 
 
 SET_STATUS_CHOICES = ("Pending", "Resolved", "Closed")
+SET_STATUS_ROLES = ("pending", "resolved", "closed")
 
 
-def status_fields(client: Any, cid: int, label: str, *, ack: bool = False) -> tuple[dict[str, Any], str]:
-    if not isinstance(label, str) or label.strip().casefold() not in {c.casefold() for c in SET_STATUS_CHOICES}:
-        # Local usage refusal (exit 2) that names the accepted values, like
-        # `tickets resolve --set`; only these transitions have captured wires.
+def status_fields(client: Any, cid: int, label: str, *, ack: bool = False) -> tuple[dict[str, Any], str, bool]:
+    """(payload, fingerprint, closing) for --set-status. ``label`` is a role
+    word (Pending/Resolved/Closed) or the tenant's own label for one of the
+    built-in statuses; closing comes from the internal id, not the label."""
+    if not isinstance(label, str) or not label.strip():
         raise ValueError(f"--set-status {label!r} is not a supported status; choices: "
                          f"{', '.join(SET_STATUS_CHOICES)}; nothing was sent")
     label = label.strip()
-    if label.casefold() in {"resolved", "closed"}:
+    if label.casefold() == "open" or label.isdigit():
+        # Local usage refusal (exit 2), like `tickets resolve --set`: only the
+        # listed transitions have captured wires.
+        raise ValueError(f"--set-status {label!r} is not a supported status; choices: "
+                         f"{', '.join(SET_STATUS_CHOICES)}; nothing was sent")
+    words = {c.casefold(): Role(c.casefold()) for c in SET_STATUS_CHOICES}
+    wanted: "str | Role" = words.get(label.casefold(), label)
+    if isinstance(wanted, Role):
+        role = wanted.name
+    else:
+        _, role = _status_choice(client, cid, label)
+        wanted = Role(role)
+    if role in status_semantics.TERMINAL_ROLES:
         from fsv.ticket_lifecycle import context
         from fsv.reviewed_write import ReviewedWriteError
         try:
             # --ack has the same meaning as tickets close/status --ack: the
             # reviewer read the blocking rule messages; they are bound into the
             # returned fingerprint (and so the review hash) only when used.
-            payload, fingerprint, _ = context(client, cid, label, ack=ack)
+            payload, fingerprint, _ = context(client, cid, wanted, ack=ack)
         except ReviewedWriteError as exc:
             raise ConversationError(str(exc)) from None
-        return payload, fingerprint
+        return payload, fingerprint, True
     if ack:
         raise ConversationError("--ack applies only with --set-status Resolved or Closed; the captured Pending wire has "
                                 "no blocking-rule acknowledgement")
-    status_id, token, record_hash = status_context(client, cid, label)
-    return {"status": status_id, "br_validation_excludes": token}, record_hash
+    status_id, token, record_hash = status_context(client, cid, PENDING)
+    return {"status": status_id, "br_validation_excludes": token}, record_hash, False
 
 
 @dataclass(frozen=True)
@@ -244,7 +281,7 @@ def build_plan(client: Any, ticket_id: str | int, body: str, *, kind: str = "rep
         record_hash = forward_source(client, note.ticket_id, conversation_id)
         payload["conversation_id"] = conversation_id
     if set_status is not None:
-        payload["helpdesk_ticket"], record_hash = status_fields(client, note.ticket_id, set_status, ack=ack)
+        payload["helpdesk_ticket"], record_hash, _ = status_fields(client, note.ticket_id, set_status, ack=ack)
     return ConversationPlan(kind, note.ticket_id, config.DOMAIN,
                             json.dumps(payload, sort_keys=True, ensure_ascii=False), set_status, record_hash,
                             ack=bool(ack and set_status is not None))
@@ -270,8 +307,9 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
     if plan.canned_id is not None:
         from fsv.canned import freshen
         freshen(plan, client)
+    status_closes = False
     if plan.status_label is not None:
-        status_payload, record_hash = status_fields(client, plan.ticket_id, plan.status_label, ack=plan.ack)
+        status_payload, record_hash, status_closes = status_fields(client, plan.ticket_id, plan.status_label, ack=plan.ack)
         if record_hash != plan.record_hash or payload.get("helpdesk_ticket") != status_payload:
             raise ConversationError("ticket or status metadata changed; review again")
     # Reconfirm formatted CC recipients without silently changing reviewed bytes.
@@ -287,7 +325,7 @@ def send(plan: ConversationPlan, client: Any, *, reviewed_hash: str | None,
         csrf = client._get_csrf()
     except Exception:
         raise ConversationError("could not prepare session; no send attempted") from None
-    closing = bool(plan.status_label and plan.status_label.casefold() in {"resolved", "closed"})
+    closing = bool(plan.status_label is not None and status_closes)
     journal.record_plan("started", plan.hash, action=action, target=plan.ticket_id)
     events = [r for r in journal.read() if r.get("kind") == f"plan:{action}" and r.get("plan") == plan.hash]
     if not events or events[-1].get("event") != "started":

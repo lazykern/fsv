@@ -139,7 +139,10 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
                 encoded = encode_value(meta.spec, field, value, state.evaluated.values)
             if is_status(field):
                 choice = field.choice(value)
-                if choice is None or choice.label.casefold() in {"resolved", "closed"}:
+                from fsv import status_semantics
+                # by internal id: a renamed/translated Resolved still closes;
+                # an unprovable status (built-in ids missing) is refused too
+                if choice is None or status_semantics.closes(field.choices, "ticket", choice.id) is not False:
                     raise PropertyError("update does not resolve or close tickets (combined resolution/closure requirements are"
                                         " not proven here); use `fsv tickets resolve ID --note TEXT` or `fsv tickets close ID`"
                                         " (both check runtime closure requirements and accept --set/--ack), or the web form")

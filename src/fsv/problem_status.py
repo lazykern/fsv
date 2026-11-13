@@ -139,7 +139,12 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
     if field.api_name not in state.evaluated.visible or state.errors():
         raise ReviewedWriteError("problem form validation failed: " + "; ".join(state.errors()))
     closure = {}
-    if label.casefold() == "closed":
+    from fsv import status_semantics
+    closing = status_semantics.closes(field.choices, "problem", status_id)
+    if closing is None:
+        raise ReviewedWriteError(f"cannot tell from the runtime problem status metadata whether {label!r} closes the "
+                                 "problem (built-in status ids are missing); nothing was sent")
+    if closing:
         closure = closure_context(client, target)
         missing = []
         for raw in meta.raw_fields:

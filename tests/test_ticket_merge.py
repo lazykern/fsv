@@ -16,7 +16,7 @@ from fsv.reviewed_write import ReviewedWriteError
 
 def metadata():
     fields = [a._f("status", "Status", "default_status", 1, choices=[
-        {"id": 31, "value": "Open"}, {"id": 89, "value": "Closed"}])]
+        {"id": 2, "value": "Open"}, {"id": 5, "value": "Closed"}])]
     fields[0]["id"] = 9000007101
     return FormMeta("ticket", "edit_form", {"ticket_fields": fields}, {"business_rules": []}, 1, 0, "fixture", 123)
 
@@ -27,7 +27,7 @@ def api(monkeypatch, tmp_path):
     monkeypatch.setattr(config, "API_INT", "https://acme.example.com/api/_")
     monkeypatch.setattr(journal, "journal_path", lambda: tmp_path / "journal")
     monkeypatch.setattr(flow, "load_meta", lambda *a, **k: metadata())
-    state = {"records": {i: {"id": i, "status": 31, "subject": f"Acme {i}"} for i in (123, 124, 125)},
+    state = {"records": {i: {"id": i, "status": 2, "subject": f"Acme {i}"} for i in (123, 124, 125)},
              "histories": {123: [{"id": 10, "body": "earlier"}],
                            124: [{"id": 11, "body": "source A"}],
                            125: [{"id": 12, "body": "source B"}]}, "writes": [], "fail": None}
@@ -43,7 +43,7 @@ def api(monkeypatch, tmp_path):
             body = json.loads(request.content)
             assert path == "merge_tickets/complete_merge"
             for i in body["source"]["ticket_ids"]:
-                state["records"][i]["status"] = 89
+                state["records"][i]["status"] = 5
                 state["histories"][123].extend(state["histories"][i])
                 state["histories"][i] = [{"id": 100 + i, "body": "<div>Secondary note</div>", "private": True}]
             state["histories"][123].append({"id": 20, "body": "<p>Primary note</p>", "private": True})
@@ -148,10 +148,10 @@ def test_cli_json_review_and_full_hash_gate(api, monkeypatch):
     assert bad.exit_code == 2 and not state["writes"]
 
 
-@pytest.mark.parametrize("ident,expected", [("89", 89), (89, 89), ("0", None), ("8a", None), (True, None), ("-89", None)])
+@pytest.mark.parametrize("ident,expected", [("5", 5), (5, 5), ("0", None), ("5a", None), (True, None), ("-5", None)])
 def test_closed_status_accepts_only_positive_digit_identities(monkeypatch, ident, expected):
     fields = [a._f("status", "Status", "default_status", 1, choices=[
-        {"id": "31", "value": "Open"}, {"id": ident, "value": "Closed"}])]
+        {"id": "2", "value": "Open"}, {"id": ident, "value": "Closed"}])]
     fields[0]["id"] = 9000007101
     monkeypatch.setattr(flow, "load_meta", lambda *a, **k: FormMeta(
         "ticket", "edit_form", {"ticket_fields": fields}, {"business_rules": []}, 1, 0, "fixture", 123))

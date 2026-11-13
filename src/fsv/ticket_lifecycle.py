@@ -12,12 +12,14 @@ from fsv.forms.payload import encode_value
 from fsv.forms.state import is_empty
 from fsv.readback import resolution_text, same_text, submitted_value_matches
 from fsv.resources import TICKETS, parse_id
+from fsv import status_semantics
+from fsv.status_semantics import RESOLVED, Role
 from fsv.reviewed_write import ReviewedWriteError
 from fsv.ticket_notes import build_plan as note_plan
 from fsv.ticket_properties import _record
 
 
-def context(client: Any, cid: int, status: str, answers: dict[str, Any] | None = None,
+def context(client: Any, cid: int, status: "str | Role", answers: dict[str, Any] | None = None,
             *, resolution: str | None = None, row: dict[str, Any] | None = None,
             warnings_out: list[str] | None = None, ack: bool = False) -> tuple[dict[str, Any], str, str]:
     from fsv.forms import FormError
@@ -30,7 +32,7 @@ def context(client: Any, cid: int, status: str, answers: dict[str, Any] | None =
         raise ReviewedWriteError(f"{exc}; nothing was sent") from None
 
 
-def _context(client: Any, cid: int, status: str, answers: dict[str, Any] | None = None,
+def _context(client: Any, cid: int, status: "str | Role", answers: dict[str, Any] | None = None,
              *, resolution: str | None = None, row: dict[str, Any] | None = None,
              warnings_out: list[str] | None = None, ack: bool = False) -> tuple[dict[str, Any], str, str]:
     row = _record(client, cid) if row is None else row
@@ -43,13 +45,20 @@ def _context(client: Any, cid: int, status: str, answers: dict[str, Any] | None 
     if len(fields) != 1:
         raise ReviewedWriteError("status metadata is not unique")
     field = fields[0]
-    choices = [c for c in field.choices if c.visible and status.casefold() in {c.label.casefold(), c.value.casefold()}]
     from fsv.choice_ids import runtime_choice_id
-    status_id = runtime_choice_id(choices[0].id) if len(choices) == 1 else None
+    try:
+        choice = status_semantics.select(field.choices, "ticket", status)
+    except status_semantics.StatusSemanticsError as exc:
+        raise ReviewedWriteError(f"{exc}; nothing was sent") from None
+    status_id = runtime_choice_id(choice.id)
     if status_id is None:
         raise ReviewedWriteError("status must identify one visible runtime status label")
-    choice = choices[0]
-    closing = choice.label.casefold() in {"resolved", "closed"}
+    # Closure semantics come from the built-in internal status ids in this
+    # ticket's runtime choices, never from the (renamable) label.
+    closing = status_semantics.closes(field.choices, "ticket", status_id)
+    if closing is None:
+        raise ReviewedWriteError(f"cannot tell from the runtime status metadata whether {choice.label!r} resolves or "
+                                 "closes the ticket (built-in status ids are missing); nothing was sent")
     state.set(field.api_name, choice.value)
     custom = {}
     seen = set()
@@ -156,12 +165,14 @@ class LifecyclePlan:
         return list(json.loads(self.context_hash).get("acknowledged") or [])
 
 
-def build_plan(client: Any, target: str | int, status: str, *, note: str | None = None,
+def build_plan(client: Any, target: str | int, status: "str | Role", *, note: str | None = None,
                answers: dict[str, Any] | None = None, ack: bool = False) -> LifecyclePlan:
     cid = parse_id(str(target), TICKETS)
     if cid <= 0:
         raise ValueError("ticket ID must be positive")
-    if note is not None and status.casefold() != "resolved":
+    if note is not None and isinstance(status, str) and status.strip().casefold() == RESOLVED.name:
+        status = RESOLVED
+    if note is not None and status != RESOLVED:
         raise ValueError("--note is supported by resolve only")
     html = note_plan(cid, note).body_html if note is not None else None
     warnings: list[str] = []

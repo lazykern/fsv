@@ -17,8 +17,8 @@ from fsv.reviewed_write import ReviewedWriteError
 
 def metadata():
     fields = [a._f("status", "Status", "default_status", 1, choices=[
-        {"id": 31, "value": "Open"}, {"id": 47, "value": "Pending"},
-        {"id": 62, "value": "Resolved"}, {"id": 89, "value": "Closed"}]),
+        {"id": 2, "value": "Open"}, {"id": 3, "value": "Pending"},
+        {"id": 4, "value": "Resolved"}, {"id": 5, "value": "Closed"}]),
         a._f("summary", "Resolution Summary", "custom_text", 2),
         a._f("reason", "Pending Reason", "custom_text", 3)]
     for index, field in enumerate(fields, 9000007101):
@@ -29,7 +29,7 @@ def metadata():
 
 class Client:
     def __init__(self):
-        self.row = {"id": 123, "status": 31, "group_id": None, "responder_id": 9000001234,
+        self.row = {"id": 123, "status": 2, "group_id": None, "responder_id": 9000001234,
                     "resolution_notes": None, "custom_fields": {"summary": "Acme fix", "reason": "", "untouched": "keep"}}
         self.writes = []
         self.fail_at = None
@@ -74,7 +74,7 @@ def test_resolution_persists_then_transitions(tenant, prefix, monkeypatch):
     c = Client()
     p = flow.build_plan(c, prefix + "-123", "Resolved", note="Acme fix <safe>", answers={"summary": "Globex fix"})
     assert not c.writes and len(p.review()["steps"]) == 2
-    assert "&lt;safe&gt;" in p.note_html and p.payload["status"] == 62
+    assert "&lt;safe&gt;" in p.note_html and p.payload["status"] == 4
     assert p.payload["custom_fields"] == {"summary": "Globex fix"}
     result = flow.send(p, c, reviewed_hash=p.hash)
     assert result["verified"] and len(c.writes) == 2
@@ -86,7 +86,7 @@ def test_resolution_persists_then_transitions(tenant, prefix, monkeypatch):
     assert len(c.writes) == 2
 
 
-@pytest.mark.parametrize("status,expected", [("Closed", 89), ("Open", 31), ("Pending", 47)])
+@pytest.mark.parametrize("status,expected", [("Closed", 5), ("Open", 2), ("Pending", 3)])
 def test_single_transition_preserves_resolution(status, expected):
     c = Client()
     c.row["resolution_notes"] = {"notes_html": "<p>Earlier fix</p>"}
@@ -121,13 +121,13 @@ def test_missing_resolution_is_not_a_match(value):
     ("bad_note", ["resolution note save outcome unknown", "transition not attempted"]),
     # SR shape: a workflow/approval rewrote routing when the note saved, so the
     # status write was never sent and the status stayed where it was.
-    ("change_after_note", ["resolution note saved and verified; status unchanged (readback status 31)",
+    ("change_after_note", ["resolution note saved and verified; status unchanged (readback status 2)",
                            "group_id", "tickets status 123 Resolved --dry-run", "Do not resend this plan"]),
-    ("bad_status", ["resolution note saved; status unchanged (readback status 31)", "held by a tenant workflow or rule",
+    ("bad_status", ["resolution note saved; status unchanged (readback status 2)", "held by a tenant workflow or rule",
                     "tickets activity 123"]),
     ("fail_first", ["resolution note save outcome unknown (HTTP 403: synthetic rejection)"]),
     ("fail_second", ["resolution note saved; the status write was rejected (HTTP 403: synthetic rejection)",
-                     "readback status 31"]),
+                     "readback status 2"]),
 ])
 def test_partial_transactions_stay_started_and_never_replay(bad, report):
     c = Client()
@@ -222,7 +222,7 @@ def test_real_client_transport_never_retries(failure, monkeypatch):
 
 def test_pending_reason_rule_and_hidden_closure_requirements(monkeypatch):
     m = metadata()
-    condition = {"all": [{"name": "status", "operator": "is", "value": "47", "evaluate_on": "ticket"}]}
+    condition = {"all": [{"name": "status", "operator": "is", "value": "3", "evaluate_on": "ticket"}]}
     rule = a._rule(9000007107, "Pending needs reason", condition, [a._a("mandate", ["customFields.reason"])])
     rule["module_type"] = "ticket"
     rule["workspace_id"] = 1
@@ -238,7 +238,7 @@ def test_pending_reason_rule_and_hidden_closure_requirements(monkeypatch):
     m.rules["business_rules"].append(hide)
     m.spec.account_id = "900000777"
     c.row["custom_fields"]["summary"] = None
-    assert flow.build_plan(c, 123, "Resolved", note="fix").payload["status"] == 62
+    assert flow.build_plan(c, 123, "Resolved", note="fix").payload["status"] == 4
     assert not c.writes
 
 
@@ -274,12 +274,12 @@ def test_digit_string_status_ids_send_integer_wire(monkeypatch):
     monkeypatch.setattr(flow, "load_meta", lambda *args, **kwargs: string_ids())
     c = Client()
     p = flow.build_plan(c, 123, "Pending", answers={"reason": "Waiting for self"})
-    assert p.payload["status"] == 47 and type(p.payload["status"]) is int
+    assert p.payload["status"] == 3 and type(p.payload["status"]) is int
     assert flow.send(p, c, reviewed_hash=p.hash)["verified"]
-    assert c.writes[-1]["status"] == 47
+    assert c.writes[-1]["status"] == 3
 
 
-def _blocking_close_rule(m, status_id="89"):
+def _blocking_close_rule(m, status_id="5"):
     # Shape of a real tenant is_validation rule: a message shown when the
     # status becomes Closed, which the web form blocks on until dealt with.
     cond = {"all": [{"name": "status", "operator": "is", "value": status_id, "evaluate_on": "ticket"}]}

@@ -161,7 +161,6 @@ app = typer.Typer(
 T = TypeVar("T")
 NO_INPUT = False
 VERBOSE = False
-TERMINAL_STATUS_WORDS = {"closed", "resolved", "rejected", "cancelled", "canceled"}
 
 
 def _no_input(local: bool = False) -> bool:
@@ -715,11 +714,6 @@ def _status_label(sch: dict[str, Any], status: int | str) -> str:
     from fsv import schema as schema_mod
     label = schema_mod.choice_label("status", status, sch)
     return label if label != "-" else str(status)
-
-
-def _is_terminal_status(label: str) -> bool:
-    from fsv.safety import is_terminal_label
-    return is_terminal_label(label)
 
 
 def _confirm_writes(risks: list[str], subject: str, yes: bool, no_input: bool = False) -> None:

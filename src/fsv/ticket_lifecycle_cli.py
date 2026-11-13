@@ -9,6 +9,7 @@ import typer
 from fsv import ticket_lifecycle as flow
 from fsv.forms import FormError
 from fsv.reviewed_write import ReviewedWriteError
+from fsv.status_semantics import CLOSED, OPEN, RESOLVED
 
 
 def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
@@ -40,7 +41,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                 yes: bool = typer.Option(False, "--yes"),
                 expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
                 ack: bool = typer.Option(False, "--ack", help="acknowledge blocking rule messages (bound to the review hash)")) -> None:
-        run(id_, "Resolved", note, sets, dry_run, yes, expect_plan, ack)
+        run(id_, RESOLVED, note, sets, dry_run, yes, expect_plan, ack)
 
     @app.command("close", help="Close a ticket with a persisted resolution note and required fields.")
     def close(id_: str = typer.Argument(..., metavar="ID"),
@@ -49,7 +50,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
               yes: bool = typer.Option(False, "--yes"),
               expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
               ack: bool = typer.Option(False, "--ack", help="acknowledge blocking rule messages (bound to the review hash)")) -> None:
-        run(id_, "Closed", None, sets, dry_run, yes, expect_plan, ack)
+        run(id_, CLOSED, None, sets, dry_run, yes, expect_plan, ack)
 
     @app.command("reopen", help="Set the runtime Open status; preserve the resolution note.")
     def reopen(id_: str = typer.Argument(..., metavar="ID"),
@@ -57,7 +58,7 @@ def register(app: typer.Typer, client_factory: Callable[[], Any]) -> None:
                yes: bool = typer.Option(False, "--yes"),
                expect_plan: Optional[str] = typer.Option(None, "--expect-plan"),
                ack: bool = typer.Option(False, "--ack", help="acknowledge blocking rule messages (bound to the review hash)")) -> None:
-        run(id_, "Open", None, [], dry_run, yes, expect_plan, ack)
+        run(id_, OPEN, None, [], dry_run, yes, expect_plan, ack)
 
     @app.command("status", help="Reviewed runtime status transition with conditional custom answers.")
     def status(id_: str = typer.Argument(..., metavar="ID"),
