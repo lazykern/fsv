@@ -3244,6 +3244,10 @@ _CONFIG_KEYS: dict[str, str] = {
     "forms.workspace_id": "workspace whose business rules apply (default: the form metadata, else the account)",
     "defaults.sr_requester": "requester email for `sr create` when --requester is not given",
     "tui.read_only": "open the TUI without write actions [on|off]",
+    "ids.incident_prefix": "custom incident display-id prefix (default INC)",
+    "ids.service_request_prefix": "custom service-request display-id prefix (default SR)",
+    "ids.change_prefix": "custom change display-id prefix (default CHN)",
+    "ids.problem_prefix": "custom problem display-id prefix (default PRB)",
 }
 
 

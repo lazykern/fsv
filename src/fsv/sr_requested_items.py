@@ -68,9 +68,8 @@ def build_plan(client: Any, target: str | int, *, action: str, item: int | None 
     if action not in {"edit", "stage", "add", "remove"}:
         raise ValueError("unsupported requested-item action")
     parent = owner_row(client, "tickets", cid)
-    from fsv.ticket_kind import exact_ticket_type
-    if exact_ticket_type(parent) not in {"service request"}:
-        raise ReviewedWriteError("exact parent must be a service request")
+    from fsv.ticket_kind import SERVICE_REQUEST, require_kind
+    require_kind(parent, SERVICE_REQUEST, "exact parent")
     rows = inventory(client, cid)
     path, metadata_hash, snapshot = f"tickets/{cid}/requested_items", None, None
     if action == "add":

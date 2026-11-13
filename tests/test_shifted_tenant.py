@@ -209,3 +209,28 @@ def test_problem_closed_label_translated_still_runs_closure_checks(shifted):
     with pytest.raises(Exception) as exc:
         problem_status.build_plan(c, "PRB-77", "Erledigt")
     assert "closes the problem" not in str(exc.value)  # closing was recognised by id 3
+
+
+# --- ticket kind and display-id prefix from the record's own fields ---------
+
+def test_ticket_kind_comes_from_the_records_own_prefix_and_type(monkeypatch, tmp_path):
+    from fsv import ticket_kind as tk
+    from fsv.resources import TICKETS, parse_id
+    from fsv.reviewed_write import ReviewedWriteError
+    monkeypatch.setattr(config, "CONFIG_FILE", tmp_path / "config.json")
+    fault = {"id": 77, "display_id": 77, "type": "Fault", "human_display_id": "IT-77"}
+    assert tk.ticket_kind(fault) is None  # renamed type and a custom prefix prove nothing yet
+    with pytest.raises(ReviewedWriteError, match="ids.incident_prefix"):
+        tk.require_kind(fault, tk.INCIDENT, "caused relationship")
+    with pytest.raises(ValueError, match="prefix IT"):
+        parse_id("IT-77", TICKETS)
+    config.save_config({"ids": {"incident_prefix": "IT", "service_request_prefix": "RQ"}})
+    assert tk.ticket_kind(fault) == tk.INCIDENT and parse_id("it-77", TICKETS) == 77
+    assert tk.ticket_kind({"display_id": 78, "type": "Anfrage", "human_display_id": "RQ-78"}) == tk.SERVICE_REQUEST
+    # translated built-in type with the platform prefix, and SR proof from requested items
+    assert tk.ticket_kind({"display_id": 5, "type": "Störung", "human_display_id": "INC-5"}) == tk.INCIDENT
+    assert tk.ticket_kind({"display_id": 6, "type": "Anfrage", "has_requested_items": True}) == tk.SERVICE_REQUEST
+    # conflicting evidence is never resolved by preference
+    assert tk.ticket_kind({"display_id": 7, "type": "Service Request", "human_display_id": "INC-7"}) is None
+    # a prefix that does not match the record's own number is not evidence
+    assert tk.ticket_kind({"display_id": 8, "type": "Fault", "human_display_id": "IT-9"}) is None

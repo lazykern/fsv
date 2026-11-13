@@ -35,9 +35,10 @@ def build_plan(client: Any, problem: str | int, incident: str | int, *, unlink: 
         raise ReviewedWriteError("problem read did not identify exact target")
     if not isinstance(ticket, dict) or str(ticket.get("id")) != str(tid):
         raise ReviewedWriteError("incident read did not identify exact target")
-    kind = ticket.get("type")
-    display = ticket.get("human_display_id")
-    if kind != "Incident" or (display is not None and display != f"INC-{tid}"):
+    from fsv.ticket_kind import INCIDENT, kind_evidence
+    evidence = kind_evidence(ticket)
+    # every piece of evidence the record carries must say incident
+    if not evidence or set(evidence.values()) != {INCIDENT}:
         raise ReviewedWriteError("ticket is not a verified incident")
     rows = _inventory(client, pid)
     present = any(str(row["id"]) == str(tid) for row in rows)

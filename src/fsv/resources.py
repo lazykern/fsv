@@ -67,8 +67,29 @@ PROBLEMS = Resource(
 REGISTRY: dict[str, Resource] = {r.name: r for r in (CHANGES, TICKETS, PROBLEMS)}
 
 
+# Built-in display-id prefixes per record kind. Tenants with custom prefixes
+# declare them in the config (``ids.<kind>_prefix``); records carrying their
+# own ``human_display_id`` are displayed with it as is.
+DEFAULT_KIND_PREFIXES = {"incident": "INC", "service_request": "SR", "change": "CHN", "problem": "PRB"}
+KIND_RESOURCES = {"incident": "tickets", "service_request": "tickets", "change": "changes", "problem": "problems"}
+
+
+def kind_prefixes() -> dict[str, str]:
+    """Display-id prefix -> record kind (``incident``, ``service request``,
+    ``change``, ``problem``): the built-ins plus configured custom ones."""
+    from fsv import config
+    out = {prefix: kind.replace("_", " ") for kind, prefix in DEFAULT_KIND_PREFIXES.items()}
+    ids = config.load_config().get("ids") or {}
+    for kind in DEFAULT_KIND_PREFIXES:
+        value = ids.get(f"{kind}_prefix") if isinstance(ids, dict) else None
+        if isinstance(value, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9]*", value.strip()):
+            out[value.strip().upper()] = kind.replace("_", " ")
+    return out
+
+
 def parse_id(s: str, resource: Resource) -> int:
-    """Accept INC-123, SR-123, CHN-123, PRB-123, or bare 123."""
+    """Accept INC-123, SR-123, CHN-123, PRB-123 (or a configured custom
+    prefix of this resource), or bare 123."""
     s = s.strip()
     m = re.match(r"(?:([A-Z]+)-)?(\d+)$", s, re.IGNORECASE)
     if not m:
@@ -76,7 +97,9 @@ def parse_id(s: str, resource: Resource) -> int:
     prefix, num = m.group(1), m.group(2)
     if prefix:
         prefix = prefix.upper()
-        if prefix not in resource.display_prefixes:
+        custom = () if prefix in resource.display_prefixes else tuple(
+            p for p, kind in kind_prefixes().items() if KIND_RESOURCES[kind.replace(" ", "_")] == resource.name)
+        if prefix not in resource.display_prefixes and prefix not in custom:
             raise ValueError(f"prefix {prefix} not valid for {resource.name} (expect {' or '.join(resource.display_prefixes)})")
     return int(num)
 

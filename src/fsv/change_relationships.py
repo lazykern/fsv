@@ -150,9 +150,8 @@ def _build_plan(client: Any, cid: int, *, kind: str, action: str, item: str | No
                 record = owner_row(client, "tickets", ident)
             except APIError as exc:
                 raise _refusal(exc, f"incident {ident}") from None
-            from fsv.ticket_kind import exact_ticket_type
-            if exact_ticket_type(record) != "incident":
-                raise ReviewedWriteError("caused relationship requires a proven incident")
+            from fsv.ticket_kind import INCIDENT, require_kind
+            require_kind(record, INCIDENT, "caused relationship")
         elif action == "add":
             try:
                 raw = client.int_get(f"{key}/{ident}")
