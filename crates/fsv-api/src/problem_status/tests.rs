@@ -168,7 +168,9 @@ fn cases_match_python() {
                                     "tenant": w.tenant, "method": w.method, "path": w.path,
                                     "payload_json": w.payload_json, "context_hash": w.context_hash,
                                     "label": p.label, "before_json": p.before_json,
-                                    "warnings_json": p.warnings_json},
+                                    "warnings_json": p.warnings_json,
+                                    "status_labels_json": p.status_labels_json,
+                                    "closure_check_json": p.closure_check_json},
                                     "hash": p.hash(), "review": p.review()});
                                 plan = Some(p);
                                 out

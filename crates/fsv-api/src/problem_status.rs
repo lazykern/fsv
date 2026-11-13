@@ -41,6 +41,9 @@ pub struct StatusPlan {
     /// Runtime status labels by ID (not hashed: the metadata is bound through
     /// `context_hash`). Used to check a workflow rewrite against the readback.
     pub status_labels_json: String,
+    /// Closure preflight summary shown up front in the review (bound through
+    /// `context_hash`, which hashes the closure inventories). `"{}"` when none.
+    pub closure_check_json: String,
 }
 
 impl StatusPlan {
@@ -57,6 +60,11 @@ impl StatusPlan {
             serde_json::from_str(&self.before_json).unwrap_or(Value::Null),
         );
         out.insert("side_effects".into(), json!(SIDE_EFFECTS));
+        let closure_check: Value =
+            serde_json::from_str(&self.closure_check_json).unwrap_or(Value::Null);
+        if closure_check.as_object().is_some_and(|m| !m.is_empty()) {
+            out.insert("closure_check".into(), closure_check);
+        }
         let warnings: Value =
             serde_json::from_str(&self.warnings_json).unwrap_or(Value::Array(vec![]));
         if warnings.as_array().is_some_and(|a| !a.is_empty()) {
@@ -142,14 +150,7 @@ pub fn closure_context(c: &dyn Api, target: i64) -> Result<Map<String, Value>> {
             missing.push(title.to_string());
         }
     }
-    let linked = solutions.iter().any(|row| {
-        !row.get("deleted").is_some_and(truthy)
-            && matches!(
-                row.get("article_type"),
-                Some(Value::Number(n))
-                    if (n.is_i64() || n.is_u64()) && matches!(n.as_i64(), Some(1 | 2))
-            )
-    });
+    let linked = solutions.iter().any(linked_solution);
     if !linked {
         if proven_closure_rules().contains(SOLUTION_RULE) {
             missing.push("linked workaround / solution".into());
@@ -160,8 +161,13 @@ pub fn closure_context(c: &dyn Api, target: i64) -> Result<Map<String, Value>> {
         }
     }
     if !missing.is_empty() {
+        let remembered = if missing.iter().any(|m| m == "linked workaround / solution") {
+            " (this tenant rejected a closure without a linked workaround / solution earlier; fsv remembers that per tenant, so the dry-run blocks instead of letting the server refuse)"
+        } else {
+            ""
+        };
         return Err(refused(format!(
-            "violated_closure_rules: missing {}",
+            "violated_closure_rules: missing {}{remembered}",
             missing.join(", ")
         )));
     }
@@ -293,6 +299,11 @@ pub fn build_plan(
             .dump(&Value::Object(before)),
         warnings_json: serde_json::to_string(&warnings).unwrap_or_else(|_| "[]".into()),
         status_labels_json: status_labels_json(&raw_fields)?,
+        closure_check_json: fsv_py::Dumps::default().dump(&if closure.is_empty() {
+            json!({})
+        } else {
+            closure_summary(&closure)
+        }),
     })
 }
 
@@ -307,6 +318,34 @@ fn status_labels_json(raw_fields: &[Value]) -> Result<String> {
     Ok(fsv_py::Dumps::default()
         .sort_keys(true)
         .dump(&Value::Object(labels)))
+}
+
+/// A live (not deleted) workaround (1) or solution (2) article row.
+fn linked_solution(row: &Value) -> bool {
+    !row.get("deleted").is_some_and(truthy)
+        && matches!(
+            row.get("article_type"),
+            Some(Value::Number(n))
+                if (n.is_i64() || n.is_u64()) && matches!(n.as_i64(), Some(1 | 2))
+        )
+}
+
+/// Port of problem_status.closure_summary: the up-front closure preflight
+/// for the review (no values, only outcomes).
+fn closure_summary(closure: &Map<String, Value>) -> Value {
+    let linked = closure
+        .get("solutions")
+        .and_then(Value::as_array)
+        .map_or(0, |rows| rows.iter().filter(|r| linked_solution(r)).count());
+    let solution = if linked > 0 {
+        format!("linked ({linked})")
+    } else if proven_closure_rules().contains(SOLUTION_RULE) {
+        // Unreachable: closure_context refuses first.
+        "missing: required by this tenant (remembered rejection)".into()
+    } else {
+        "missing: this tenant may require a linked workaround / solution for closure (not proven here; the server decides and fsv remembers a rejection for later dry-runs)".into()
+    };
+    json!({"analysis": "Root Cause, Impact and Symptoms are filled", "linked_solution": solution})
 }
 
 /// Port of problem_status.rejection: a server closure-rule refusal names

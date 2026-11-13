@@ -10632,7 +10632,11 @@ fn problems_status_close_dry_run() {
     "status": 2,
     "subject": "Acme problem 8"
   },
-  "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+  "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+  "closure_check": {
+    "analysis": "Root Cause, Impact and Symptoms are filled",
+    "linked_solution": "linked (1)"
+  }
 }
 "#
     );

@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "233b08f89bd009f5da2e5241788ab88b6f213de1",
+  "commit": "84813b6241f861a026c0f38a520ed5ff953a401c",
   "dirty": false
  },
  "transition_Open_41": {
@@ -29,7 +29,9 @@
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Open",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "4540c8d3324fef7b38032ec732e123a00fe011698af4612647028e884a16d6d9",
     "review": {
@@ -114,7 +116,9 @@
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "In Progress",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "c62635718ab4a2e842119882c0735148c7a089d8ae98f11eb1b3bb3ea51b545b",
     "review": {
@@ -199,7 +203,9 @@
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -284,7 +290,9 @@
      "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (1)\"}"
     },
     "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
@@ -304,7 +312,11 @@
       "status": 41,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (1)"
+     }
     },
     "writes": 0
    },
@@ -418,7 +430,9 @@
      "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (1)\"}"
     },
     "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
@@ -438,7 +452,11 @@
       "status": 41,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (1)"
+     }
     },
     "writes": 0
    },
@@ -499,7 +517,9 @@
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -585,7 +605,9 @@
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -671,7 +693,9 @@
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -757,7 +781,9 @@
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -853,7 +879,9 @@
      "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (1)\"}"
     },
     "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
@@ -873,7 +901,11 @@
       "status": 41,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (1)"
+     }
     },
     "writes": 0
    },
@@ -929,7 +961,9 @@
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -1011,7 +1045,9 @@
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Open",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"81\": \"Open\", \"82\": \"In Progress\", \"83\": \"Resolve\", \"84\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "d33731dc744d2b52eb9c39c9aabda4151306555994c248f6d1a4aa6708f3368f",
     "review": {
@@ -1096,7 +1132,9 @@
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "In Progress",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"81\": \"Open\", \"82\": \"In Progress\", \"83\": \"Resolve\", \"84\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "cd587718ba75ecad801d3037794465a64e8c3b9b6d516c061ee137eb3a4efc40",
     "review": {
@@ -1181,7 +1219,9 @@
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Resolve",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"81\": \"Open\", \"82\": \"In Progress\", \"83\": \"Resolve\", \"84\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
     "review": {
@@ -1266,7 +1306,9 @@
      "context_hash": "f851e69df1a44c35d07539f50eb5907f0f037f1a7ea24ed77d9579b0892d9f18",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"81\": \"Open\", \"82\": \"In Progress\", \"83\": \"Resolve\", \"84\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (1)\"}"
     },
     "hash": "fd47f2a84398c9e7648e6127c6a43d04cf155dea2f26996c13812d135fc938cd",
     "review": {
@@ -1286,7 +1328,11 @@
       "status": 81,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (1)"
+     }
     },
     "writes": 0
    },
@@ -1348,7 +1394,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "violated_closure_rules: missing Root Cause, Impact, Symptoms, linked workaround / solution"
+     "msg": "violated_closure_rules: missing Root Cause, Impact, Symptoms, linked workaround / solution (this tenant rejected a closure without a linked workaround / solution earlier; fsv remembers that per tenant, so the dry-run blocks instead of letting the server refuse)"
     },
     "writes": 0
    }
@@ -1400,7 +1446,9 @@
      "context_hash": "f851e69df1a44c35d07539f50eb5907f0f037f1a7ea24ed77d9579b0892d9f18",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"81\": \"Open\", \"82\": \"In Progress\", \"83\": \"Resolve\", \"84\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (1)\"}"
     },
     "hash": "fd47f2a84398c9e7648e6127c6a43d04cf155dea2f26996c13812d135fc938cd",
     "review": {
@@ -1420,7 +1468,11 @@
       "status": 81,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (1)"
+     }
     },
     "writes": 0
    },
@@ -1481,7 +1533,9 @@
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Resolve",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"81\": \"Open\", \"82\": \"In Progress\", \"83\": \"Resolve\", \"84\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
     "review": {
@@ -1567,7 +1621,9 @@
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Resolve",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"81\": \"Open\", \"82\": \"In Progress\", \"83\": \"Resolve\", \"84\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
     "review": {
@@ -1653,7 +1709,9 @@
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Resolve",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"81\": \"Open\", \"82\": \"In Progress\", \"83\": \"Resolve\", \"84\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
     "review": {
@@ -1739,7 +1797,9 @@
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Resolve",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"81\": \"Open\", \"82\": \"In Progress\", \"83\": \"Resolve\", \"84\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
     "review": {
@@ -1835,7 +1895,9 @@
      "context_hash": "f851e69df1a44c35d07539f50eb5907f0f037f1a7ea24ed77d9579b0892d9f18",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"81\": \"Open\", \"82\": \"In Progress\", \"83\": \"Resolve\", \"84\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (1)\"}"
     },
     "hash": "fd47f2a84398c9e7648e6127c6a43d04cf155dea2f26996c13812d135fc938cd",
     "review": {
@@ -1855,7 +1917,11 @@
       "status": 81,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (1)"
+     }
     },
     "writes": 0
    },
@@ -1911,7 +1977,9 @@
      "context_hash": "fef1e00bc2a3f8eda6f0cf6eb7e8d4a138eb43377cfde1a1162c853162c114ec",
      "label": "Resolve",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 81, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"81\": \"Open\", \"82\": \"In Progress\", \"83\": \"Resolve\", \"84\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "c5e6b98374783e803a73e66fdc7d3aac430044e162e3702eba916885dcfc5869",
     "review": {
@@ -2008,7 +2076,9 @@
      "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (1)\"}"
     },
     "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
@@ -2028,7 +2098,11 @@
       "status": 41,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (1)"
+     }
     },
     "writes": 0
    },
@@ -2094,7 +2168,9 @@
      "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (1)\"}"
     },
     "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
@@ -2114,7 +2190,11 @@
       "status": 41,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (1)"
+     }
     },
     "writes": 0
    },
@@ -2180,7 +2260,9 @@
      "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (1)\"}"
     },
     "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
@@ -2200,7 +2282,11 @@
       "status": 41,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (1)"
+     }
     },
     "writes": 0
    },
@@ -2261,7 +2347,9 @@
      "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (1)\"}"
     },
     "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
@@ -2281,7 +2369,11 @@
       "status": 41,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (1)"
+     }
     },
     "writes": 0
    },
@@ -2342,7 +2434,9 @@
      "context_hash": "ddd6880c0d1b6e9f1958c12ff676f62d0dcb7f42e8db1433bfe0c45c136f8bb8",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (1)\"}"
     },
     "hash": "3b077c4b1563d4482ce41fed5225a877d2e5ada71fefe6e2753809fc281820f5",
     "review": {
@@ -2362,7 +2456,11 @@
       "status": 41,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (1)"
+     }
     },
     "writes": 0
    },
@@ -2726,7 +2824,9 @@
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "In Progress",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "c62635718ab4a2e842119882c0735148c7a089d8ae98f11eb1b3bb3ea51b545b",
     "review": {
@@ -2761,7 +2861,9 @@
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "In Progress",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "c62635718ab4a2e842119882c0735148c7a089d8ae98f11eb1b3bb3ea51b545b",
     "review": {
@@ -2815,7 +2917,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "violated_closure_rules: missing linked workaround / solution"
+     "msg": "violated_closure_rules: missing linked workaround / solution (this tenant rejected a closure without a linked workaround / solution earlier; fsv remembers that per tenant, so the dry-run blocks instead of letting the server refuse)"
     },
     "writes": 0
    },
@@ -2825,7 +2927,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "violated_closure_rules: missing Root Cause, Impact, Symptoms, linked workaround / solution"
+     "msg": "violated_closure_rules: missing Root Cause, Impact, Symptoms, linked workaround / solution (this tenant rejected a closure without a linked workaround / solution earlier; fsv remembers that per tenant, so the dry-run blocks instead of letting the server refuse)"
     },
     "writes": 0
    },
@@ -2835,7 +2937,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "violated_closure_rules: missing Root Cause, Symptoms, linked workaround / solution"
+     "msg": "violated_closure_rules: missing Root Cause, Symptoms, linked workaround / solution (this tenant rejected a closure without a linked workaround / solution earlier; fsv remembers that per tenant, so the dry-run blocks instead of letting the server refuse)"
     },
     "writes": 0
    },
@@ -2845,7 +2947,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "violated_closure_rules: missing linked workaround / solution"
+     "msg": "violated_closure_rules: missing linked workaround / solution (this tenant rejected a closure without a linked workaround / solution earlier; fsv remembers that per tenant, so the dry-run blocks instead of letting the server refuse)"
     },
     "writes": 0
    },
@@ -2855,7 +2957,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "violated_closure_rules: missing linked workaround / solution"
+     "msg": "violated_closure_rules: missing linked workaround / solution (this tenant rejected a closure without a linked workaround / solution earlier; fsv remembers that per tenant, so the dry-run blocks instead of letting the server refuse)"
     },
     "writes": 0
    },
@@ -2865,7 +2967,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "violated_closure_rules: missing linked workaround / solution"
+     "msg": "violated_closure_rules: missing linked workaround / solution (this tenant rejected a closure without a linked workaround / solution earlier; fsv remembers that per tenant, so the dry-run blocks instead of letting the server refuse)"
     },
     "writes": 0
    },
@@ -2908,7 +3010,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "violated_closure_rules: missing linked workaround / solution"
+     "msg": "violated_closure_rules: missing linked workaround / solution (this tenant rejected a closure without a linked workaround / solution earlier; fsv remembers that per tenant, so the dry-run blocks instead of letting the server refuse)"
     },
     "writes": 0
    },
@@ -2918,7 +3020,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "violated_closure_rules: missing linked workaround / solution"
+     "msg": "violated_closure_rules: missing linked workaround / solution (this tenant rejected a closure without a linked workaround / solution earlier; fsv remembers that per tenant, so the dry-run blocks instead of letting the server refuse)"
     },
     "writes": 0
    },
@@ -2933,7 +3035,9 @@
      "context_hash": "04e4cbb0e93a23cc54d21a6ff95f741d68972258a7f636fa4a85bd70ad60fb5c",
      "label": "Open",
      "before_json": "{\"custom_fields\": {\"cf_reason\": \"Because\"}, \"id\": 123, \"status\": 41, \"subject\": \"Acme\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "c2a176e8dd3f24e529943c108a971935173977713688e3621ed20a22fcd0f6cf",
     "review": {
@@ -3005,7 +3109,9 @@
      "context_hash": "2a24c361b085ae2a8504023d32d03477d52606df99c36f540bd1561287368765",
      "label": "Resolve",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "f32e4c30b28576712bda5ac6507fa45bed860e130708897a757a30af993504a6",
     "review": {
@@ -3120,7 +3226,7 @@
    {
     "error": {
      "type": "ReviewedWriteError",
-     "msg": "violated_closure_rules: missing linked workaround / solution"
+     "msg": "violated_closure_rules: missing linked workaround / solution (this tenant rejected a closure without a linked workaround / solution earlier; fsv remembers that per tenant, so the dry-run blocks instead of letting the server refuse)"
     },
     "writes": 0
    },
@@ -3138,7 +3244,9 @@
      "context_hash": "a28762425bb9f10cea689de32ea8b0ada30d8bca794d8a7b9615f1f686ca1e1b",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (1)\"}"
     },
     "hash": "6ed7b23d20bff8fa79fae23c4d49364178a775f88cb99f5ff1a405f65e19cf85",
     "review": {
@@ -3158,7 +3266,11 @@
       "status": 41,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (1)"
+     }
     },
     "writes": 0
    },
@@ -3176,7 +3288,9 @@
      "context_hash": "4662b53fad2c543394f7875b5ceba6d09f2ed98601175fd768d042685c10ea17",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (1)\"}"
     },
     "hash": "cff83d01c8890027e5c5cb89da4ff9d0ee27d70c7e924915a651a6a6a28775ab",
     "review": {
@@ -3196,7 +3310,11 @@
       "status": 41,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (1)"
+     }
     },
     "writes": 0
    }
@@ -3254,7 +3372,9 @@
      "context_hash": "e047aa0cc77382d4e7b30118bb66595085e4d1de12d98a0d9d4e44f2e61605e6",
      "label": "Closed",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[]"
+     "warnings_json": "[]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{\"analysis\": \"Root Cause, Impact and Symptoms are filled\", \"linked_solution\": \"linked (2)\"}"
     },
     "hash": "cf765ca4aee9d435c18d7ed6ade69fc1f26c4a1cbc7e70ace5189b611a07499d",
     "review": {
@@ -3274,7 +3394,11 @@
       "status": 41,
       "subject": "Acme problem"
      },
-     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values."
+     "side_effects": "Server may auto-fill empty planned_start_date and planned_end_date on status transitions; readback reports these values.",
+     "closure_check": {
+      "analysis": "Root Cause, Impact and Symptoms are filled",
+      "linked_solution": "linked (2)"
+     }
     },
     "writes": 0
    }
@@ -3541,7 +3665,9 @@
      "context_hash": "1fecead30820151efffa38fe8f3f77f877d435efe5877300fd1820b9b517842c",
      "label": "In Progress",
      "before_json": "{\"id\": 123, \"planned_end_date\": null, \"planned_start_date\": null, \"status\": 41, \"subject\": \"Acme problem\"}",
-     "warnings_json": "[\"rules unavailable (workspace 17 answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules\"]"
+     "warnings_json": "[\"rules unavailable (workspace 17 answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules\"]",
+     "status_labels_json": "{\"41\": \"Open\", \"42\": \"In Progress\", \"43\": \"Resolve\", \"44\": \"Closed\"}",
+     "closure_check_json": "{}"
     },
     "hash": "1bca3f33dbd2f144d6814c5ac6673f5f26e6b4ed6378d816a517ea2b5d66f092",
     "review": {
