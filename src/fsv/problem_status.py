@@ -123,11 +123,11 @@ def build_plan(client: Any, target: str | int, to: str) -> StatusPlan:
         raise ReviewedWriteError("current problem status unavailable")
     if before.get("deleted") is True:
         raise ReviewedWriteError(f"problem {target} is deleted (in trash); restore it before changing status")
-    meta = load_meta(client, "problem", "edit", fresh=True, module_id=target)
+    meta = load_meta(client, "problem", "edit", fresh=True, module_id=target, record=before)
     blockers = rules_gate(meta.rules, meta.spec, ["status"])
     if blockers:
         raise ReviewedWriteError("problem rules are unavailable and this write depends on them: " + "; ".join(blockers))
-    warnings = [w for w in [rules_unavailable_warning(meta.rules)] if w]
+    warnings = [w for w in [rules_unavailable_warning(meta.rules)] if w] + list(meta.form_notes)
     status_id, label = task_status.resolve(to, meta.raw_fields, kind="problem")
     state = FormState(meta.spec, meta.engine(), mode="edit", existing=existing_from_record(meta.spec, before), resolver=ClientResolver(client))
     field = meta.spec.field("status")

@@ -69,14 +69,14 @@ def build_plan(client: Any, target: str | int, *, planned_start: str | None = No
     if isinstance(start, str) and isinstance(end, str) and _instant(end) and _instant(start) \
             and _instant(end) < _instant(start):
         raise ValueError("planned end must not precede planned start")
-    meta = load_meta(client, "problem", "edit", fresh=True, module_id=target)
+    meta = load_meta(client, "problem", "edit", fresh=True, module_id=target, record=before_row)
     for key in payload:
         if meta.spec.find(key) is None:
             raise ReviewedWriteError(f"problem form metadata has no {key} field; nothing sent")
     blockers = rules_gate(meta.rules, meta.spec, list(payload))
     if blockers:
         raise ReviewedWriteError("problem rules are unavailable and this write depends on them: " + "; ".join(blockers))
-    warnings = [w for w in [rules_unavailable_warning(meta.rules)] if w]
+    warnings = [w for w in [rules_unavailable_warning(meta.rules)] if w] + list(meta.form_notes)
     state = FormState(meta.spec, meta.engine(), mode="edit", existing=existing_from_record(meta.spec, before_row),
                       resolver=ClientResolver(client))
     for key, value in payload.items():

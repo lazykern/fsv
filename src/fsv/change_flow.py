@@ -728,7 +728,8 @@ def freshen(plan: Plan, client: Any, rebuild: Callable[[FormMeta], Plan]) -> tup
     """Re-fetch the metadata synchronously. -> (plan to send, diff lines if
     the plan changed, else None)."""
     mode = "new" if plan.meta.form_type == "new_form" else "edit"
-    fresh = load_meta(client, plan.meta.module, mode, fresh=True, module_id=plan.meta.module_id)
+    fresh = load_meta(client, plan.meta.module, mode, fresh=True, module_id=plan.meta.module_id,
+                      record_workspace=plan.meta.record_workspace)
     if not fresh.fingerprint.changed(plan.meta.fingerprint):
         return plan, None
     new = rebuild(fresh)

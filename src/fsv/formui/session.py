@@ -763,7 +763,7 @@ def change_session(client: Any, *, mode: str = "new", target: Any = None, record
     if meta is None:
         mid = (((record or {}).get("display_id") or (record or {}).get("id") or target)
                if mode == "edit" else None)
-        meta = load_meta(client, "change", mode, module_id=mid)
+        meta = load_meta(client, "change", mode, module_id=mid, record=record if mode == "edit" else None)
     note = ""
     if mode == "new" and requester is None:
         requester, note = _default_requester(client, "requester")

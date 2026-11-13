@@ -36,7 +36,7 @@ def _context(client: Any, cid: int, status: "str | Role", answers: dict[str, Any
              *, resolution: str | None = None, row: dict[str, Any] | None = None,
              warnings_out: list[str] | None = None, ack: bool = False) -> tuple[dict[str, Any], str, str]:
     row = _record(client, cid) if row is None else row
-    meta = load_meta(client, "ticket", "edit", fresh=True, module_id=cid)
+    meta = load_meta(client, "ticket", "edit", fresh=True, module_id=cid, record=row)
     if meta.rules.get(RULES_UNAVAILABLE_KEY):
         raise ReviewedWriteError("ticket rules unavailable; no write attempted")
     state = FormState(meta.spec, meta.engine(), mode="edit", existing=existing_from_record(meta.spec, row),
@@ -75,6 +75,7 @@ def _context(client: Any, cid: int, status: "str | Role", answers: dict[str, Any
         raise ReviewedWriteError("ticket rules block this transition; no write attempted: " + "; ".join(gate.blockers))
     if warnings_out is not None:
         warnings_out.extend(gate.warnings)
+        warnings_out.extend(meta.form_notes)
     # Closure flags are separate from ordinary edit requiredness. Hidden fields
     # are not requested by the native closure form; conditional rules still run.
     required = set(state.evaluated.required)

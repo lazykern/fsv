@@ -72,6 +72,8 @@ def _note_rules(meta: Any) -> None:
     note = rules_note(meta.rules)
     if note:
         err.print(f"[dim]{escape(note)}[/dim]", highlight=False)
+    for form_note in getattr(meta, "form_notes", None) or []:
+        err.print(f"[yellow]note[/yellow]: {escape(form_note)}", highlight=False)
 
 
 def _one_line(text: str, limit: int = 100) -> str:
@@ -104,7 +106,8 @@ def explain(
         data = _guard(lambda: c.int_get(f"{resource.api_path}/{cid}"))
         record = data.get(resource.item_key, data)
     meta = _guard(lambda: load_meta(c, mod, "edit" if record else "new",
-                                    module_id=(record.get("display_id") or record.get("id")) if record else None))
+                                    module_id=(record.get("display_id") or record.get("id")) if record else None,
+                                    record=record))
     _note_rules(meta)
     draft = _guard(lambda: resolve_draft(from_, preset, set_))
     spec = meta.spec
@@ -132,7 +135,7 @@ def explain(
         })
     out = {"rows": rows, "messages": [{"text": m.text, "blocking": m.blocking, "rule": m.rule_name} for m in ev.messages],
            "conflicts": [c.describe() for c in real_conflicts(ev)], "errors": errors,
-           "metadata": meta.as_of()}
+           "metadata": meta.as_of(), "form_notes": list(getattr(meta, "form_notes", []) or [])}
     if output == "json":
         print(json.dumps(out, indent=2, default=str, ensure_ascii=False))
         return

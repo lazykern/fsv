@@ -409,10 +409,24 @@ def workspace_candidates(*preferred: Any) -> list[Any]:
     return out
 
 
-def load_rules(client: Any, module: str, *preferred: Any, **query: Any) -> dict[str, Any]:
-    """:func:`fetch_rules` with the workspace defaulted portably: the config
-    override, else ``preferred`` (record / metadata workspaces), else the
-    account's own workspaces, else the workspace-less path."""
+def record_workspace_of(record: Any) -> int | None:
+    """The workspace a record itself carries (a positive integer), else None."""
+    ws = record.get("workspace_id") if isinstance(record, Mapping) else None
+    if isinstance(ws, str) and ws.isascii() and ws.isdigit():
+        ws = int(ws)
+    return ws if type(ws) is int and ws > 0 else None
+
+
+def load_rules(client: Any, module: str, *preferred: Any, record_workspace: Any = None,
+               **query: Any) -> dict[str, Any]:
+    """:func:`fetch_rules` with the workspace defaulted portably: the
+    workspace the record itself carries (it beats the global
+    ``forms.workspace_id`` override: that override is for records and forms
+    without one), else the config override, else ``preferred`` (metadata
+    workspaces), else the account's own workspaces, else the workspace-less
+    path."""
+    if record_workspace not in (None, ""):
+        return fetch_rules(client, module, [record_workspace], fallback=None, **query)
     cands = workspace_candidates(*preferred)
     use_account = configured_workspace() in (None, "")
     return fetch_rules(client, module, cands, fallback=(lambda: account_workspaces(client)) if use_account else None,
@@ -429,6 +443,7 @@ class FormMeta:
     fetched_at: float
     source: str  # "server" | "cache"
     module_id: Any = None  # record display id (edit form)
+    record_workspace: Any = None  # the workspace the edited record carries
     _spec: FormSpec | None = dc_field(default=None, repr=False)
 
     @property
@@ -462,6 +477,35 @@ class FormMeta:
             self._spec = FormSpec.from_form_fields(self.form_fields, module=self.module)
         return self._spec
 
+    @property
+    def field_workspaces(self) -> list[Any]:
+        """Distinct workspaces of the custom fields in the loaded form."""
+        return sorted({f.get("workspace_id") for f in self.raw_fields
+                       if not f.get("default_field") and f.get("workspace_id") is not None}, key=str)
+
+    @property
+    def form_notes(self) -> list[str]:
+        """Review notes that make the default-form assumption explicit: fsv
+        reads the single ``<module>_form_fields`` form (no per-form or
+        per-workspace field endpoint is captured), so say when the metadata
+        or the record shows that more than one form exists."""
+        notes: list[str] = []
+        spans = self.field_workspaces
+        if len(spans) > 1:
+            notes.append(f"the {self.module} form metadata spans workspaces {', '.join(map(str, spans))}: more than one "
+                         f"form exists and fsv checks the single default {self.module} form; verify the fields on the "
+                         "web form")
+        rec = self.record_workspace
+        if rec is not None and spans and rec not in spans:
+            notes.append(f"the record is in workspace {rec} but the default {self.module} form's fields belong to "
+                         f"workspace {', '.join(map(str, spans))}; business rules come from workspace {rec}, the field "
+                         "list is the default form's")
+        override = configured_workspace()
+        if rec is not None and override not in (None, "") and str(override) != str(rec):
+            notes.append(f"forms.workspace_id={override} does not apply to this record: it carries its own "
+                         f"workspace {rec}")
+        return notes
+
     def engine(self) -> RulesEngine:
         # fsv fills the agent-side form: the portal flag is known to be false
         return RulesEngine(self.spec, self.rules, module=self.module, workspace_id=self.workspace_id,
@@ -469,9 +513,14 @@ class FormMeta:
 
 
 def load_meta(client: Any, module: str = "change", mode: str = "new", *, fresh: bool = False,
-              module_id: Any = None) -> FormMeta:
+              module_id: Any = None, record: Mapping[str, Any] | None = None,
+              record_workspace: Any = None) -> FormMeta:
     """Form fields + rules for ``module``; ``fresh`` bypasses the cache (writes).
-    ``module_id``: the record's display id on an edit form."""
+    ``module_id``: the record's display id on an edit form. ``record`` (or
+    ``record_workspace``): the edited record; its own workspace decides the
+    rules, ahead of the global ``forms.workspace_id`` override."""
+    rec_ws = record_workspace_of({"workspace_id": record_workspace}) if record_workspace is not None \
+        else record_workspace_of(record)
     module = module_name(module)
     form_type = FORM_TYPES[mode]
     path, key = MODULES[module]
@@ -486,16 +535,16 @@ def load_meta(client: Any, module: str = "change", mode: str = "new", *, fresh: 
         _save(f"{module}-fields", "schema", fields)
     # the override, else the fields' workspace; accounts without one get the
     # account's own workspace or the workspace-less path (load_rules)
-    ws = configured_workspace() or workspace_from_fields(fields[key])
+    ws = rec_ws if rec_ws is not None else (configured_workspace() or workspace_from_fields(fields[key]))
     ckey = f"{module}-rules-{form_type}-ws{ws}" + (f"-{module_id}" if module_id is not None else "")
     rules = None if fresh else _cached(ckey)
     if rules is None:
         source = "server"
-        rules = load_rules(client, module, ws, form_type=form_type, module_id=module_id)
+        rules = load_rules(client, module, ws, record_workspace=rec_ws, form_type=form_type, module_id=module_id)
         if not rules_server_error(rules):  # a 5xx is not an answer: ask again next time
             _save(ckey, "form_rules", rules)
     ws = rules.get(RULES_WORKSPACE_KEY, ws)
-    return FormMeta(module, form_type, fields, rules, ws, time.time(), source, module_id)
+    return FormMeta(module, form_type, fields, rules, ws, time.time(), source, module_id, rec_ws)
 
 
 # ---------------------------------------------------------------------------

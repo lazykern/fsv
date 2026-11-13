@@ -99,7 +99,7 @@ def status_context(client: Any, cid: int, label: "str | Role") -> tuple[int, str
         raise ValueError("only the Pending status transition was captured; use the web form for other statuses")
     try:
         row = _record(client, cid)
-        meta = load_meta(client, "ticket", "edit", fresh=True, module_id=cid)
+        meta = load_meta(client, "ticket", "edit", fresh=True, module_id=cid, record=row)
         if meta.rules.get(RULES_UNAVAILABLE_KEY):
             raise ValueError("rules unavailable")
         state = FormState(meta.spec, meta.engine(), mode="edit", existing=existing_from_record(meta.spec, row))

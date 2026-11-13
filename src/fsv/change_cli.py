@@ -425,7 +425,7 @@ def update_command(
     data = client.int_get(f"changes/{cid}")
     record = data.get("change", data) if isinstance(data, dict) else {}
     meta = load_meta(client, "change", "edit", fresh=dry_run or yes or not tty,
-                     module_id=record.get("display_id") or record.get("id") or cid)
+                     module_id=record.get("display_id") or record.get("id") or cid, record=record)
     legacy = {k: v for k, v in legacy.items() if v is not None}
     status = legacy.pop("status", None)
     extra = Draft(attachments=[os.path.expanduser(p) for p in attach or []])

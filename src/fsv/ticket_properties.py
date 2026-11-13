@@ -43,6 +43,9 @@ class PropertyPlan:
     answers_json: str = "{}"
     metadata_hash: str = ""
     acknowledged_json: str = "[]"
+    # display only (not in the hash): the default-form assumption, when the
+    # metadata or the record shows that more than one form exists
+    form_notes_json: str = "[]"
 
     @property
     def payload(self) -> dict[str, Any]:
@@ -74,6 +77,9 @@ class PropertyPlan:
                "plan_hash": self.hash, "warning": "Tags replace the full existing list. Updates may trigger tenant workflows."}
         if self.acknowledged:
             out["acknowledged_rule_messages"] = self.acknowledged
+        notes = json.loads(self.form_notes_json)
+        if notes:
+            out["form_notes"] = notes
         return out
 
 
@@ -104,7 +110,7 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
         raise PropertyError("ticket read did not include: " + ", ".join(missing))
     before = {k: row[k] for k in body}
     try:
-        meta = load_meta(c, "ticket", "edit", fresh=True, module_id=cid)
+        meta = load_meta(c, "ticket", "edit", fresh=True, module_id=cid, record=row)
         if meta.rules.get(RULES_UNAVAILABLE_KEY):
             raise PropertyError("ticket business rules are unavailable; use the web form")
         engine = meta.engine()
@@ -187,7 +193,8 @@ def build_plan(c: Any, ticket_id: str | int, *, tags: list[str] | None = None,
     return PropertyPlan(cid, config.DOMAIN, json.dumps(body, sort_keys=True, ensure_ascii=False),
                         json.dumps(before, sort_keys=True, ensure_ascii=False), journal.snapshot_hash(row) or "",
                         json.dumps(answers or {}, sort_keys=True, ensure_ascii=False),
-                        meta.fingerprint.hash if answers else "", json.dumps(acknowledged, ensure_ascii=False))
+                        meta.fingerprint.hash if answers else "", json.dumps(acknowledged, ensure_ascii=False),
+                        json.dumps(meta.form_notes, ensure_ascii=False))
 
 
 def send(plan: PropertyPlan, c: Any, *, reviewed_hash: str | None) -> dict[str, Any]:

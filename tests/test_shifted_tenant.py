@@ -57,6 +57,7 @@ def shifted(monkeypatch, tmp_path):
                 s["field_reads"] += 1
                 return httpx.Response(200, json={"problem_fields": problem_fields(s["workspace"])})
             if path.endswith("business_rules"):
+                s.setdefault("rule_paths", []).append(path)
                 return httpx.Response(200, json={"business_rules": []})
             if path == "problems/77":
                 return httpx.Response(200, json={"problem": copy.deepcopy(s["row"])})
@@ -269,3 +270,33 @@ def test_source_labels_translate_raw_i18n_keys_and_filter_by_them():
     source = SHIFTED_SCHEMA["fields"][2]
     assert query._choice_value(source, "Portal", "default") == 2
     assert query._choice_value(source, "portal_key", "default") == 2
+
+
+# --- per-record workspace and the default-form assumption ------------------
+
+def test_record_workspace_beats_the_global_override_and_is_reviewed(shifted):
+    c, s = shifted
+    use_workspace(5)  # global override; the record carries workspace 9
+    s["row"]["workspace_id"] = 9
+    plan = problem_status.build_plan(c, "PRB-77", "Wip")
+    assert s["rule_paths"] and all(p.startswith("ws/9/") for p in s["rule_paths"])
+    notes = plan.review().get("warnings") or []
+    assert any("record is in workspace 9" in n for n in notes)
+    assert any("forms.workspace_id=5 does not apply" in n for n in notes)
+    # a record without its own workspace still follows the override
+    s["row"].pop("workspace_id")
+    s["rule_paths"].clear()
+    problem_status.build_plan(c, "PRB-77", "Wip")
+    assert all(p.startswith("ws/5/") for p in s["rule_paths"])
+
+
+def test_form_spanning_workspaces_makes_the_default_form_explicit(monkeypatch):
+    from fsv.formmeta import FormMeta
+    monkeypatch.setattr(formmeta, "configured_workspace", lambda: None)
+    fields = problem_fields(5) + [dict(problem_fields(9)[2], id=604)]
+    meta = FormMeta("problem", "edit_form", {"problem_fields": fields}, {"business_rules": []}, 5, 0, "fixture", 77)
+    assert meta.field_workspaces == [5, 9]
+    assert any("more than one form exists" in n for n in meta.form_notes)
+    single = FormMeta("problem", "edit_form", {"problem_fields": problem_fields(5)}, {"business_rules": []}, 5, 0,
+                      "fixture", 77, 5)
+    assert single.form_notes == []

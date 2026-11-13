@@ -50,7 +50,8 @@ def send(source: Any, client: Any, *, reviewed_hash: str | None) -> dict[str, An
     def rebuild():
         if journal.snapshot_hash(stable_snapshot(record())) != source.record_hash:
             raise ReviewedWriteError("Change record changed since review")
-        fresh = load_meta(client, "change", "edit", fresh=True, module_id=source.meta.module_id)
+        fresh = load_meta(client, "change", "edit", fresh=True, module_id=source.meta.module_id,
+                          record_workspace=source.meta.record_workspace)
         if fresh.fingerprint.changed(source.meta.fingerprint):
             raise ReviewedWriteError("Change metadata changed since review")
         return plan
