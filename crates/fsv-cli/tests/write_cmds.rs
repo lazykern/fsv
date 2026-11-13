@@ -2709,6 +2709,60 @@ No payload yet — fix the problems above
     );
 }
 
+#[test]
+fn change_update_status_planning_is_allowed() {
+    let r = run_fixture(
+        "change_create",
+        &[
+            "changes",
+            "update",
+            "13",
+            "--status",
+            "Planning",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.err, "");
+    let out = mask_fetched(&r.out);
+    assert!(
+        !out.contains("not an allowed lifecycle transition"),
+        "{out}"
+    );
+    assert_eq!(
+        out,
+        r#"──────── Review: Update change 13 ────────
+Field   Old      New     
+Status  Open  →  Planning
+Messages
+  [message] Tell the payments on-call before you start
+Rule notes
+  Sign-off Date: choices limited to N/A by rule 'Emergency'
+  Department: read-only (disable by rule 'Labs team' (id 14) on change of status)
+  Subject: read-only (disable by rule 'Edit: lock subject' (id 19) on change of status)
+Requires confirmation
+  change status -> Planning
+Problems (must be fixed before sending)
+  Requester is required
+  Group is required
+  Agent is required
+  Services is required
+  Cloud Only is required
+  Description is required
+  Emergency Reason is required
+  Needs Security Review is required
+  Planned Start Date is required
+  Planned End Date is required
+  Impact is required
+  Priority is required
+  Risk is required
+form metadata as of unknown (fetched NOW, server, fingerprint 9f57a1ae09548281)
+No payload yet — fix the problems above
+"#
+    );
+}
+
 /// The review's `fetched <now>` stamp.
 fn mask_fetched(out: &str) -> String {
     match out.find("(fetched ") {
