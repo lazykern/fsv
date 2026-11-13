@@ -952,7 +952,13 @@ fn change_update(
     let api = c.clone();
     let deps = fsv_app::FormDeps::live(c)?;
     let fresh = a.dry_run || a.yes || !tty;
-    let meta = Arc::new(deps.meta.load_meta("change", "edit", fresh, &module_id)?);
+    let meta = Arc::new(deps.meta.load_meta_in(
+        "change",
+        "edit",
+        fresh,
+        &module_id,
+        &fsv_api::formmeta::record_workspace_of(&record),
+    )?);
     let mut extra = Draft {
         attachments: a.attach.iter().map(|p| expanduser(p)).collect(),
         ..Draft::default()

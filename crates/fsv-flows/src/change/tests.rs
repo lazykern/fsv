@@ -951,8 +951,8 @@ impl ChangeWriter for RejectWriter {
     fn get_change(&self, id: i64) -> Result<Map<String, Json>> {
         self.inner.get_change(id)
     }
-    fn edit_fingerprint(&self, module_id: &Json) -> Result<String> {
-        self.inner.edit_fingerprint(module_id)
+    fn edit_fingerprint(&self, module_id: &Json, record_workspace: &Json) -> Result<String> {
+        self.inner.edit_fingerprint(module_id, record_workspace)
     }
     fn attach_files_to_change(&self, id: &Json, paths: &[String], dup: &str) -> Result<()> {
         self.inner.attach_files_to_change(id, paths, dup)

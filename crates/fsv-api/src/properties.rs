@@ -13,7 +13,7 @@ use fsv_forms::{FormState, Kind, LookupResolver, StateOptions, build_br_validati
 use fsv_py::py_str;
 
 use crate::formmeta::{
-    MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, form_err, is_status, load_meta,
+    MetaStore, RULES_UNAVAILABLE_KEY, existing_from_record, form_err, is_status,
 };
 use crate::readback::same_instant;
 use crate::service::{
@@ -143,6 +143,9 @@ pub struct AnsweredPropertyPlan {
     pub metadata_hash: String,
     /// Acknowledged blocking rule message texts, sorted (`"[]"` when none).
     pub acknowledged_json: String,
+    /// Display only (not in the hash): the default-form assumption, when the
+    /// metadata or the record shows that more than one form exists.
+    pub form_notes_json: String,
 }
 
 impl From<PropertyPlan> for AnsweredPropertyPlan {
@@ -152,6 +155,7 @@ impl From<PropertyPlan> for AnsweredPropertyPlan {
             answers_json: "{}".into(),
             metadata_hash: String::new(),
             acknowledged_json: "[]".into(),
+            form_notes_json: "[]".into(),
         }
     }
 }
@@ -181,6 +185,10 @@ impl AnsweredPropertyPlan {
         let acknowledged = self.acknowledged();
         if !acknowledged.is_empty() {
             out.insert("acknowledged_rule_messages".into(), json!(acknowledged));
+        }
+        let notes: Vec<String> = serde_json::from_str(&self.form_notes_json).unwrap_or_default();
+        if !notes.is_empty() {
+            out.insert("form_notes".into(), json!(notes));
         }
         out
     }
@@ -218,9 +226,11 @@ fn evaluate(
     answers: &Map<String, Value>,
     resolver: Option<Arc<dyn LookupResolver>>,
     ack: bool,
-) -> Result<(String, String, Vec<String>)> {
+) -> Result<(String, String, Vec<String>, Vec<String>)> {
     let other = |e: fsv_forms::FormError| Error::other(e.to_string());
-    let meta = load_meta(c, store, "ticket", "edit", true, &json!(cid))?;
+    let rec_ws = crate::formmeta::record_workspace_in(row);
+    let meta =
+        crate::formmeta::load_meta_in(c, store, "ticket", "edit", true, &json!(cid), &rec_ws)?;
     if meta
         .rules
         .get(RULES_UNAVAILABLE_KEY)
@@ -368,7 +378,7 @@ fn evaluate(
     } else {
         meta.fingerprint().hash
     };
-    Ok((token, metadata_hash, acknowledged))
+    Ok((token, metadata_hash, acknowledged, meta.form_notes()))
 }
 
 /// Sorted texts of the blocking rule messages the reviewer acknowledged.
@@ -485,7 +495,7 @@ pub fn build_plan_ack(
     }
     let row = record(c, cid)?;
     missing_keys(&body, &row)?;
-    let (token, metadata_hash, acknowledged) =
+    let (token, metadata_hash, acknowledged, form_notes) =
         match evaluate(c, store, cid, &row, &mut body, answers, resolver, ack) {
             Ok(t) => t,
             Err(e @ Error::Exit { .. }) => return Err(e),
@@ -510,6 +520,9 @@ pub fn build_plan_ack(
         acknowledged_json: fsv_py::Dumps::default()
             .ensure_ascii(false)
             .dump(&json!(acknowledged)),
+        form_notes_json: fsv_py::Dumps::default()
+            .ensure_ascii(false)
+            .dump(&json!(form_notes)),
     })
 }
 

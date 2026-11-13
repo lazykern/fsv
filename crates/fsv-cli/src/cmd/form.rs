@@ -42,7 +42,7 @@ fn dump(a: FormDumpArgs) -> CmdResult {
         return Err(form_fail("--mode must be new or edit"));
     }
     let c = client()?;
-    let meta = load(&c, &module, &a.mode, true, &Value::Null)?;
+    let meta = load(&c, &module, &a.mode, true, &Value::Null, &Value::Null)?;
     let snap = json!({
         "fsv_form_snapshot": SNAPSHOT_VERSION,
         "module": module,
@@ -72,7 +72,7 @@ fn diff(a: FormDiffArgs) -> CmdResult {
             .get("module")
             .filter(|v| fsv_py::truthy(v))
             .map_or_else(|| "change".to_string(), fsv_py::py_str);
-        let meta = load(&c, &module, mode, true, &Value::Null)?;
+        let meta = load(&c, &module, mode, true, &Value::Null, &Value::Null)?;
         json!({"fields": meta.raw_fields(), "business_rules": rule_list(&meta.rules)})
     };
     let changes = diff_snapshots(&old, &new);
@@ -147,15 +147,20 @@ fn load(
     mode: &str,
     fresh: bool,
     module_id: &Value,
+    record: &Value,
 ) -> Result<formmeta::FormMeta> {
     let store = formmeta::DiskStore::current();
-    formmeta::load_meta(c.as_ref(), &store, module, mode, fresh, module_id).map_err(guard)
+    formmeta::load_meta_for_record(c.as_ref(), &store, module, mode, fresh, module_id, record)
+        .map_err(guard)
 }
 
 /// `_note_rules`.
 fn note_rules(meta: &formmeta::FormMeta) {
     if let Some(note) = formmeta::rules_note(&meta.rules) {
         err().print(&format!("[dim]{}[/dim]", escape(&note)));
+    }
+    for form_note in meta.form_notes() {
+        err().print(&format!("[yellow]note[/yellow]: {}", escape(&form_note)));
     }
 }
 
@@ -214,6 +219,7 @@ fn explain(a: FormExplainArgs) -> CmdResult {
         if edit { "edit" } else { "new" },
         false,
         &module_id,
+        &record.clone().map_or(Value::Null, Value::Object),
     )?;
     note_rules(&meta);
     let draft =
@@ -281,7 +287,8 @@ fn explain(a: FormExplainArgs) -> CmdResult {
     if a.output == "json" {
         print_json(
             &json!({"rows": rows, "messages": messages, "conflicts": conflicts,
-                           "errors": errors, "metadata": Value::Object(meta.as_of())}),
+                           "errors": errors, "metadata": Value::Object(meta.as_of()),
+                           "form_notes": meta.form_notes()}),
         );
         return Ok(());
     }
@@ -347,7 +354,7 @@ fn explain(a: FormExplainArgs) -> CmdResult {
 fn fields(a: FormFieldsArgs) -> CmdResult {
     let module = module(&a.module)?;
     let c = client()?;
-    let meta = load(&c, &module, "new", false, &Value::Null)?;
+    let meta = load(&c, &module, "new", false, &Value::Null, &Value::Null)?;
     note_rules(&meta);
     let spec = meta.spec();
     let state = meta.state("new", None, None).map_err(guard)?;
