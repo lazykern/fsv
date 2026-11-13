@@ -361,6 +361,79 @@ pub fn legacy_candidates(c: &dyn Api, module: &str, target: &Value) -> Result<Ve
     Ok(rows)
 }
 
+/// Port of `integrated_assets.candidates`: the legacy `assets-to-associate`
+/// list only on a legacy-driver record; on its HTTP 403/404, an integrated
+/// or problem record, the integrated inventory search (inventory IDs).
+pub fn candidates(
+    c: &dyn Api,
+    module: &str,
+    target: &Value,
+    query: &str,
+    kind: &str,
+    page: i64,
+) -> Result<Value> {
+    let (module_name, target_num) = target_id(module, target)?;
+    if kind != "devices" && kind != "services" {
+        return Err(Error::value("candidate kind must be devices or services"));
+    }
+    let target_num = json!(target_num);
+    let found = match driver(c, module, &target_num, kind) {
+        Ok(found) => Some(found),
+        Err(Error::Exit { code: 2, .. }) => None,
+        Err(e) => return Err(e),
+    };
+    let mut note = None;
+    if found == Some(LEGACY) && kind == "devices" && legacy_entity(module_name).is_some() {
+        match legacy_candidates(c, module, &target_num) {
+            Ok(rows) => return Ok(json!({"data": rows, "complete": true, "driver": LEGACY})),
+            Err(e) => match e.status() {
+                Some(status @ (403 | 404)) => {
+                    note = Some(format!(
+                        "legacy assets-to-associate answered HTTP {status}; listed from the integrated inventory search instead"
+                    ));
+                }
+                _ => return Err(e),
+            },
+        }
+    }
+    let result = search(c, query, kind, page)?;
+    let associated: Option<HashSet<i64>> = if found == Some(INTEGRATED) {
+        let mut ids = HashSet::new();
+        for r in inventory(c, module, &target_num, kind)? {
+            ids.insert(positive_id(r.get("item_id").unwrap_or(&Value::Null))?);
+        }
+        Some(ids)
+    } else {
+        None
+    };
+    let mut rows = Vec::new();
+    for row in result["data"].as_array().into_iter().flatten() {
+        let ident = positive_id(&row["name"]["id"])?;
+        rows.push(json!({
+            "id": ident,
+            "name": row["name"].get("label").cloned().unwrap_or(Value::Null),
+            "associated": associated.as_ref().map(|a| a.contains(&ident)),
+            "inventory": row,
+        }));
+    }
+    let mut out = obj(json!({
+        "data": rows, "driver": INTEGRATED, "kind": kind, "query": query, "page": page,
+        "total_rows": result.get("total_rows").cloned().unwrap_or(Value::Null),
+        "complete": result.get("complete").cloned().unwrap_or(json!(false)),
+        "id_meaning": "inventory IDs (use with assets add)",
+    }));
+    if associated.is_none() {
+        out.insert(
+            "associated_note".into(),
+            json!("no association list for this record; association state unknown"),
+        );
+    }
+    if let Some(note) = note {
+        out.insert("note".into(), json!(note));
+    }
+    Ok(Value::Object(out))
+}
+
 /// Port of `integrated_assets.legacy_plan`.
 pub fn legacy_plan(
     c: &dyn Api,
@@ -902,5 +975,151 @@ mod tests {
                 .contains("not yet live-proven")
         );
         assert_eq!(c.writes().len(), 1);
+    }
+
+    /// `tests/test_asset_candidates.py`.
+    struct Cand {
+        integrated: bool,
+        legacy_status: u16,
+        searches: Vec<(String, Map<String, Value>)>,
+        writes: Vec<String>,
+    }
+
+    fn cand_api(state: Arc<Mutex<Cand>>) -> FnApi {
+        FnApi::new(move |call: &Call| {
+            let mut s = state.lock().unwrap();
+            if call.method != "GET" {
+                s.writes.push(call.path.clone());
+                return Err(ApiError::new(500, json!({})).into());
+            }
+            if call.path.contains("/itam/core/") {
+                let params = call.params.clone().unwrap_or_default();
+                let page = params["page"].clone();
+                let path = call.path.split_once("/itam/").unwrap().1;
+                s.searches.push((format!("/itam/{path}"), params));
+                return Ok(
+                    json!({"page": page, "error": null, "total_rows": 2, "data": [
+                    {"device_pk": 81, "name": {"id": 81, "label": "Acme laptop"}, "type": "Laptop"},
+                    {"device_pk": 82, "name": {"id": 82, "label": "Globex phone"}, "type": "Phone"}]}),
+                );
+            }
+            let path = call.path.as_str();
+            if path.ends_with("associated-cis") {
+                if !s.integrated {
+                    return Err(ApiError::new(404, json!({})).into());
+                }
+                return Ok(
+                    json!({"data": [{"item_id": 82, "itam_cmdb_request_id": 5, "category": "Device"}],
+                                 "meta": {"total_count": 1, "total_pages": 1}}),
+                );
+            }
+            if path == "tickets/41/associated_assets" || path == "changes/41/assets" {
+                return Ok(json!({"associated_assets": []}));
+            }
+            if path == "tickets/41" || path == "changes/41" {
+                let key = path.split('/').next().unwrap().trim_end_matches('s');
+                return Ok(json!({key: {"id": 41, "requester_id": 7}}));
+            }
+            if path == "assets-to-associate" {
+                if s.legacy_status != 200 {
+                    return Err(ApiError::new(
+                        s.legacy_status,
+                        json!({"description": "feature not in plan"}),
+                    )
+                    .into());
+                }
+                return Ok(
+                    json!({"assets": [{"id": 1, "display_id": 3811}], "meta": {"total_count": 1}}),
+                );
+            }
+            panic!("{path}");
+        })
+    }
+
+    fn cand(integrated: bool, legacy_status: u16) -> (Arc<Mutex<Cand>>, FnApi) {
+        let s = Arc::new(Mutex::new(Cand {
+            integrated,
+            legacy_status,
+            searches: Vec::new(),
+            writes: Vec::new(),
+        }));
+        let c = cand_api(Arc::clone(&s));
+        (s, c)
+    }
+
+    #[test]
+    fn integrated_record_uses_inventory_search_and_marks_associated() {
+        let (s, c) = cand(true, 403);
+        let out = candidates(&c, "tickets", &json!("INC-41"), "acme", "devices", 1).unwrap();
+        assert_eq!(out["driver"], "integrated");
+        let ids: Vec<&Value> = out["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| &r["id"])
+            .collect();
+        assert_eq!(ids, [&json!(81), &json!(82)]);
+        let assoc: Vec<&Value> = out["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| &r["associated"])
+            .collect();
+        assert_eq!(assoc, [&json!(false), &json!(true)]);
+        assert_eq!(out["complete"], true);
+        let s = s.lock().unwrap();
+        assert_eq!(s.searches[0].0, "/itam/core/device/api/");
+        assert_eq!(s.searches[0].1["q"], "acme");
+        assert!(s.writes.is_empty());
+    }
+
+    #[test]
+    fn legacy_403_or_404_falls_back_to_integrated_search() {
+        for status in [403, 404] {
+            for (module, target) in [("tickets", "SR-41"), ("changes", "CHN-41")] {
+                let (_, c) = cand(false, status);
+                let out = candidates(&c, module, &json!(target), "", "devices", 1).unwrap();
+                assert_eq!(out["driver"], "integrated");
+                assert!(
+                    out["note"]
+                        .as_str()
+                        .unwrap()
+                        .contains(&format!("HTTP {status}"))
+                );
+                assert!(
+                    out["data"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .all(|r| r["associated"].is_null())
+                );
+                assert!(out["associated_note"].as_str().unwrap().contains("unknown"));
+            }
+        }
+    }
+
+    #[test]
+    fn legacy_record_with_working_list_keeps_legacy_and_other_errors_propagate() {
+        let (s, c) = cand(false, 200);
+        let out = candidates(&c, "tickets", &json!("SR-41"), "", "devices", 1).unwrap();
+        assert_eq!(out["driver"], "legacy");
+        assert_eq!(out["data"][0]["display_id"], 3811);
+        assert!(s.lock().unwrap().searches.is_empty());
+        s.lock().unwrap().legacy_status = 500;
+        let err = candidates(&c, "tickets", &json!("SR-41"), "", "devices", 1).unwrap_err();
+        assert_eq!(err.status(), Some(500));
+    }
+
+    #[test]
+    fn problem_without_association_endpoint_uses_service_search() {
+        let (s, c) = cand(false, 403);
+        let out = candidates(&c, "problems", &json!("PRB-41"), "", "services", 1).unwrap();
+        assert_eq!(out["kind"], "services");
+        let s = s.lock().unwrap();
+        assert_eq!(
+            s.searches.last().unwrap().0,
+            "/itam/core/businessservice/api/"
+        );
+        assert!(s.writes.is_empty());
     }
 }

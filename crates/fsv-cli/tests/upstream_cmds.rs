@@ -14485,7 +14485,8 @@ fn tickets_assets_candidates() {
       "name": "Acme laptop 2"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "legacy"
 }
 "#
     );
@@ -14509,7 +14510,8 @@ fn changes_assets_candidates() {
       "name": "Acme router C"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "legacy"
 }
 "#
     );
@@ -14537,7 +14539,8 @@ fn sr_assets_candidates() {
       "name": "Acme laptop 2"
     }
   ],
-  "complete": true
+  "complete": true,
+  "driver": "legacy"
 }
 "#
     );
@@ -14555,7 +14558,7 @@ fn problems_assets_candidates_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"no legacy asset association for this module
+        r#"HTTP 404 listing device: no route
 "#
     );
 }

@@ -1,0 +1,89 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/41/associated-cis",
+  "status": 404,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/41/associated-cis",
+  "status": 404,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/problems/41/associated-cis",
+  "status": 404,
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/41/associated_assets",
+  "json": {
+   "associated_assets": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/41/assets",
+  "json": {
+   "associated_assets": []
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/41",
+  "json": {
+   "ticket": {
+    "id": 41,
+    "requester_id": 7
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/changes/41",
+  "json": {
+   "change": {
+    "id": 41,
+    "requester_id": 7
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/assets-to-associate",
+  "status": 403,
+  "json": {
+   "description": "feature not in plan"
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/itam/core/device/api/",
+  "json": {
+   "page": 1,
+   "error": null,
+   "total_rows": 2,
+   "data": [
+    {
+     "device_pk": 81,
+     "name": {
+      "id": 81,
+      "label": "Acme laptop"
+     },
+     "type": "Laptop"
+    },
+    {
+     "device_pk": 82,
+     "name": {
+      "id": 82,
+      "label": "Globex phone"
+     },
+     "type": "Phone"
+    }
+   ]
+  }
+ }
+]
