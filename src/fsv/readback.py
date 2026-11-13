@@ -55,6 +55,37 @@ def submitted_value_matches(actual: Any, expected: Any) -> bool:
     return False
 
 
+def tag_names(value: Any) -> list[str] | None:
+    """Tag names from a readback list of strings or native ``{id, name}`` objects.
+
+    Returns ``None`` for anything else (missing list, non-text names), so an
+    unreadable shape never compares equal to the submitted tags.
+    """
+    if not isinstance(value, list):
+        return None
+    names: list[str] = []
+    for item in value:
+        if isinstance(item, dict):
+            item = item.get("name")
+        if not isinstance(item, str) or not item.strip():
+            return None
+        names.append(item.strip())
+    return names
+
+
+def same_tags(actual: Any, expected: Any) -> bool:
+    """Compare tag lists by name, case-insensitively and order-independently.
+
+    The internal ticket API echoes submitted strings but reads tags back as
+    ``[{"id": N, "name": "x"}]`` objects; both sides normalise to names.
+    """
+    got, want = tag_names(actual), tag_names(expected)
+    if got is None or want is None:
+        return False
+    return sorted({t.casefold() for t in got}) == sorted({t.casefold() for t in want}) and \
+        len({t.casefold() for t in got}) == len(got)
+
+
 def custom_fields_match(actual: Any, expected: Any) -> bool:
     """Submitted custom keys only, including native lookup identity wrappers.
 

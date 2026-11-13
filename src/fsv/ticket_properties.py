@@ -7,7 +7,7 @@ from typing import Any
 
 from fsv import config, journal
 from fsv.reviewed_snapshot import stable_snapshot
-from fsv.readback import same_instant
+from fsv.readback import same_instant, same_tags
 from fsv.change_tasks import _date
 from fsv.errors import APIError
 from fsv.formmeta import ClientResolver, RULES_UNAVAILABLE_KEY, existing_from_record, is_status, load_meta
@@ -234,6 +234,8 @@ def send(plan: PropertyPlan, c: Any, *, reviewed_hash: str | None) -> dict[str, 
                 fields[key] = "unavailable"
             elif key in ("planned_start_date", "planned_end_date"):
                 fields[key] = "matched" if same_instant(actual, expected) else "mismatched"
+            elif key == "tags":
+                fields[key] = "matched" if same_tags(actual, expected) else "mismatched"
             elif key == "custom_fields" and isinstance(actual, dict):
                 fields[key] = "matched" if all(k in actual and actual[k] == v for k, v in expected.items()) else "mismatched"
             else:

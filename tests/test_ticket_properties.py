@@ -188,3 +188,35 @@ def test_legacy_property_hash_identity_is_unchanged():
         props.send(plan, c, reviewed_hash=plan.hash)
     assert not c.writes
 
+
+
+@pytest.mark.parametrize("readback,ok", [
+    ([{"id": 7, "name": "Acme"}, {"id": 8, "name": "one"}], True),   # native object shape
+    ([{"id": 8, "name": "ONE"}, {"id": 7, "name": "acme"}], True),   # case/order differences
+    (["Acme", "one"], True),                                          # string echo
+    ([{"id": 7, "name": "Acme"}], False),                             # missing tag
+    ([{"id": 7, "name": "Acme"}, {"id": 9, "name": "two"}], False),   # different tag
+    ([{"id": 7}], False),                                             # unreadable shape
+    (None, False),
+])
+def test_tag_readback_normalises_native_objects(readback, ok):
+    c = Client()
+    p = props.build_plan(c, 123, tags=["Acme", "one"])
+    orig = c._request
+
+    def put(method, path, **kw):
+        out = orig(method, path, **kw)
+        c.row["tags"] = readback
+        return out
+    c._request = put
+    result = props.send(p, c, reviewed_hash=p.hash)
+    assert result["fields"]["tags"] == ("matched" if ok else "mismatched")
+    assert result["verified"] is ok and len(c.writes) == 1
+    assert ("warning" in result) is (not ok)
+
+
+def test_same_tags_helper_edges():
+    from fsv.readback import same_tags, tag_names
+    assert tag_names([{"id": 1, "name": " x "}, "y"]) == ["x", "y"]
+    assert tag_names("x") is None and tag_names([1]) is None
+    assert not same_tags([], ["x"]) and same_tags([], [])
