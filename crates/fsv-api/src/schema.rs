@@ -17,9 +17,108 @@ use crate::service::Api;
 /// Field definitions rarely change. `schema.CACHE_TTL`.
 pub const CACHE_TTL_SECS: u64 = 7 * 86_400;
 
+// Static labels for the platform's default priority/impact/risk ids. These
+// are ONLY a documented fallback when no runtime schema is loaded (or the
+// schema has no choices for the field): tenants rename and re-label these
+// choices, so `display_label` always prefers the field's own runtime choices.
 pub const PRIORITY: &[(i64, &str)] = &[(1, "Low"), (2, "Medium"), (3, "High"), (4, "Urgent")];
 pub const IMPACT: &[(i64, &str)] = &[(1, "Low"), (2, "Medium"), (3, "High")];
 pub const RISK: &[(i64, &str)] = &[(1, "Low"), (2, "Medium"), (3, "High"), (4, "Very High")];
+pub const STATIC_LABELS: &[(&str, &[(i64, &str)])] =
+    &[("priority", PRIORITY), ("impact", IMPACT), ("risk", RISK)];
+
+/// `_I18N_KEY.fullmatch`: `[a-z][a-z0-9]*(?:_[a-z0-9]+)*_key`.
+fn is_i18n_key(s: &str) -> bool {
+    let Some(stem) = s.strip_suffix("_key") else {
+        return false;
+    };
+    let mut parts = stem.split('_');
+    let first = parts.next().unwrap_or("");
+    first.starts_with(|c: char| c.is_ascii_lowercase())
+        && first
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+        && parts.all(|p| {
+            !p.is_empty()
+                && p.chars()
+                    .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+        })
+}
+
+/// `humanize_key`: some tenants' choice metadata carries untranslated i18n
+/// keys as labels (`portal_key`, `feedback_widget_key`). Show them as words
+/// (`Portal`, `Feedback Widget`); any other label is returned unchanged.
+pub fn humanize_key(text: &str) -> String {
+    if !is_i18n_key(text) {
+        return text.to_string();
+    }
+    text[..text.len() - "_key".len()]
+        .split('_')
+        .map(|w| {
+            let mut cs = w.chars();
+            cs.next()
+                .map(|c| c.to_ascii_uppercase().to_string() + cs.as_str())
+                .unwrap_or_default()
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// `humanize_key(value)` for any JSON value (`str(value)` first; `None` is "").
+pub fn humanize_value(value: Option<&Value>) -> String {
+    match value {
+        None | Some(Value::Null) => String::new(),
+        Some(v) => humanize_key(&fsv_py::py_str(v)),
+    }
+}
+
+/// `STATIC_LABELS[field].get(val)`: dict lookup by Python hash equality
+/// (`True == 1 == 1.0`).
+fn static_label(field_name: &str, val: &Value) -> Option<&'static str> {
+    let table = STATIC_LABELS.iter().find(|(k, _)| *k == field_name)?.1;
+    table
+        .iter()
+        .find(|(k, _)| py_eq(&Value::from(*k), val))
+        .map(|(_, l)| *l)
+}
+
+/// `display_label`: label of a choice field value, the runtime schema's
+/// choices first, the static platform map only when the schema has no
+/// choices for the field. A runtime value without a choice is its id.
+pub fn display_label(
+    field_name: &str,
+    val: Option<&Value>,
+    schema: Option<&Value>,
+    default: &str,
+) -> String {
+    let Some(val) = val.filter(|v| !v.is_null() && v.as_str() != Some("")) else {
+        return default.to_string();
+    };
+    let f = schema
+        .filter(|s| s.get("fields").is_some_and(Value::is_array))
+        .and_then(|s| field(field_name, s));
+    let choices = f
+        .and_then(|f| f.get("choices"))
+        .filter(|c| fsv_py::truthy(c))
+        .and_then(Value::as_array);
+    if let Some(choices) = choices {
+        let want = fsv_py::py_str(val);
+        for c in choices.iter().filter_map(Value::as_object) {
+            let id = c
+                .get("id")
+                .map_or_else(|| "None".to_string(), fsv_py::py_str);
+            if id == want || c.get("value").is_some_and(|v| py_eq(v, val)) {
+                let text = ["value", "name", "label"]
+                    .iter()
+                    .find_map(|k| c.get(*k).filter(|v| fsv_py::truthy(v)))
+                    .unwrap_or(val);
+                return humanize_key(&fsv_py::py_str(text));
+            }
+        }
+        return want;
+    }
+    static_label(field_name, val).map_or_else(|| fsv_py::py_str(val), str::to_string)
+}
 
 /// Non-empty field list stored under `data` or `fields`. Empty or malformed
 /// documents are a cache miss.
@@ -75,12 +174,13 @@ pub fn choice_label(field_name: &str, val: &Value, schema: &Value) -> String {
             let id_hit = c.get("id").is_some_and(|id| py_eq(id, val));
             let value_hit = c.get("value").is_some_and(|v| py_eq(v, val));
             if id_hit || value_hit {
-                return c
-                    .get("value")
-                    .filter(|v| fsv_py::truthy(v))
-                    .or_else(|| c.get("name").filter(|v| fsv_py::truthy(v)))
-                    .map(fsv_py::py_str)
-                    .unwrap_or_else(|| fsv_py::py_str(val));
+                return humanize_key(
+                    &c.get("value")
+                        .filter(|v| fsv_py::truthy(v))
+                        .or_else(|| c.get("name").filter(|v| fsv_py::truthy(v)))
+                        .map(fsv_py::py_str)
+                        .unwrap_or_else(|| fsv_py::py_str(val)),
+                );
             }
         }
     }

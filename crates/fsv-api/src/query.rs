@@ -480,7 +480,9 @@ pub fn typed_condition(
                 py_str(ch.get("id").unwrap_or(&Value::Null)) == wanted
                     || ["value", "name", "label"]
                         .iter()
-                        .any(|k| pystr::casefold(pystr::strip(&py_or_empty(ch.get(*k)))) == folded)
+                        .map(|k| py_or_empty(ch.get(*k)))
+                        .chain(std::iter::once(humanize_or_empty(ch.get("value"))))
+                        .any(|x| pystr::casefold(pystr::strip(&x)) == folded)
             })
             .collect();
         let mut ids: Vec<Option<i64>> =
@@ -1151,7 +1153,12 @@ fn ambiguous(text: &str, fields: &[Value]) -> QueryError {
     ))
 }
 
-fn choice_value(field: &Value, raw: &str, type_: &str) -> Result<Value, QueryError> {
+/// `str(humanize_key(value) or "")`.
+fn humanize_or_empty(value: Option<&Value>) -> String {
+    crate::schema::humanize_value(value)
+}
+
+pub(crate) fn choice_value(field: &Value, raw: &str, type_: &str) -> Result<Value, QueryError> {
     let choices = field
         .get("choices")
         .and_then(Value::as_array)
@@ -1182,7 +1189,9 @@ fn choice_value(field: &Value, raw: &str, type_: &str) -> Result<Value, QueryErr
         let labels = ["value", "name", "label", "requester_display_value"];
         if labels
             .iter()
-            .any(|k| pystr::casefold(&py_or_empty(choice.get(*k))) == folded)
+            .map(|k| py_or_empty(choice.get(*k)))
+            .chain(std::iter::once(humanize_or_empty(choice.get("value"))))
+            .any(|x| pystr::casefold(&x) == folded)
         {
             return Ok(if type_ == "custom_field" {
                 custom_value(choice)
