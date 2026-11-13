@@ -996,6 +996,12 @@ impl FormSession {
 
     // -- effects ("Picking No will show ...") --------------------------------
     pub fn effects(&self, key: &str) -> Vec<String> {
+        self.effects_limited(key, MAX_EFFECT_CHOICES)
+    }
+
+    /// [`Self::effects`] previewing at most `limit` choices; the rest are
+    /// announced, not silently cut.
+    fn effects_limited(&self, key: &str, limit: usize) -> Vec<String> {
         let Some(it) = self.item(key) else {
             return vec![];
         };
@@ -1018,15 +1024,17 @@ impl FormSession {
         if let Some(hit) = self.effects_cache.borrow().get(&cache_key) {
             return hit.clone();
         }
+        let mut pool_len = 0;
         let options: Vec<(String, Value)> = if it.widget == WidgetKind::Checkbox {
             vec![
                 ("ticked".into(), Value::Bool(true)),
                 ("unticked".into(), Value::Bool(false)),
             ]
         } else {
-            self.pool(it)
-                .into_iter()
-                .take(MAX_EFFECT_CHOICES)
+            let pool = self.pool(it);
+            pool_len = pool.len();
+            pool.into_iter()
+                .take(limit)
                 .map(|c| (c.label, Value::Str(c.value)))
                 .collect()
         };
@@ -1053,6 +1061,13 @@ impl FormSession {
                 };
                 out.push(format!("{verb} will {}", parts.join("; ")));
             }
+        }
+        if it.widget != WidgetKind::Checkbox && pool_len > limit {
+            // say the preview is partial instead of silently cutting it
+            out.push(format!(
+                "(effects of the other {} choices are not previewed; only the first {limit} were checked)",
+                pool_len - limit
+            ));
         }
         self.effects_cache
             .borrow_mut()
@@ -1765,6 +1780,18 @@ mod tests {
             ]
         );
         assert!(matches!(s.state.get("cloud_only"), Ok(None)));
+    }
+
+    /// `test_effects_preview_limit_is_announced`.
+    #[test]
+    fn effects_preview_limit_is_announced() {
+        let (_a, s) = acme::acme();
+        let eff = s.effects_limited("cloud_only", 1);
+        let last = eff.last().expect("effects");
+        assert!(
+            last.contains("not previewed") && last.contains("first 1 were checked"),
+            "{eff:?}"
+        );
     }
 
     #[test]

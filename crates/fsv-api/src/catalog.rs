@@ -106,6 +106,25 @@ pub fn list_categories(c: &dyn Api) -> Result<Vec<Json>> {
 
 /// `list_items`: every requestable item (all pages), or the popular ones.
 pub fn list_items(c: &dyn Api, popular: bool, max_pages: i64) -> Result<Vec<Json>> {
+    list_items_info(c, popular, max_pages, None)
+}
+
+/// `list_items(..., info=...)`: reading stops after `max_pages` pages; then
+/// `info` gets `truncated: true` with the pages read and per-page size (and
+/// `total_pages` when the server said), so callers can say the list is
+/// incomplete instead of silently cutting it.
+pub fn list_items_info(
+    c: &dyn Api,
+    popular: bool,
+    max_pages: i64,
+    mut info: Option<&mut Map<String, Json>>,
+) -> Result<Vec<Json>> {
+    if let Some(info) = info.as_deref_mut() {
+        info.insert("truncated".into(), json!(false));
+        info.insert("pages_read".into(), json!(0));
+        info.insert("per_page".into(), json!(PER_PAGE));
+        info.insert("max_pages".into(), json!(max_pages));
+    }
     if popular {
         return Ok(rows(
             &c.int_get(
@@ -117,6 +136,8 @@ pub fn list_items(c: &dyn Api, popular: bool, max_pages: i64) -> Result<Vec<Json
     }
     let mut out = Vec::new();
     let mut seen: Vec<Json> = Vec::new();
+    let mut complete = false;
+    let mut total = Json::Null;
     for page in 1..=max_pages {
         let data = c.int_get(
             "catalog/service-items",
@@ -136,20 +157,50 @@ pub fn list_items(c: &dyn Api, popular: bool, max_pages: i64) -> Result<Vec<Json
                 out.push(r.clone());
             }
         }
-        let total = data
+        total = data
             .get("meta")
             .filter(|m| truthy(m))
             .and_then(|m| m.get("total_pages"))
             .cloned()
             .unwrap_or(Json::Null);
+        if let Some(info) = info.as_deref_mut() {
+            info.insert("pages_read".into(), json!(page));
+        }
         if rs.is_empty()
             || total.as_i64().is_some_and(|t| page >= t)
             || (total.is_null() && (rs.len() as i64) < PER_PAGE)
         {
+            complete = true;
             break;
         }
     }
+    if !complete && let Some(info) = info {
+        info.insert("truncated".into(), json!(true));
+        if total.is_i64() {
+            info.insert("total_pages".into(), total);
+        }
+    }
     Ok(out)
+}
+
+/// `truncation_notice`: one line when [`list_items_info`] stopped before
+/// the last page.
+pub fn truncation_notice(info: &Map<String, Json>) -> Option<String> {
+    if !info.get("truncated").is_some_and(truthy) {
+        return None;
+    }
+    let field = |k: &str| py_str(info.get(k).unwrap_or(&Json::Null));
+    let more = match info.get("total_pages") {
+        Some(t) if t.is_i64() => format!(" of {}", py_str(t)),
+        _ => String::new(),
+    };
+    Some(format!(
+        "catalog list truncated: read {}{more} pages of {} items (limit {} pages); more items exist \
+         and are not shown or searched",
+        field("pages_read"),
+        field("per_page"),
+        field("max_pages")
+    ))
 }
 
 fn name_of(c: &Json) -> String {
@@ -331,7 +382,8 @@ pub fn find_item(c: &dyn Api, r: &str) -> Result<Json> {
         let id = fsv_core::pystr::parse_decimal(&s).unwrap_or(0);
         return get_item(c, &json!(id));
     }
-    let items = list_items(c, false, MAX_PAGES)?;
+    let mut info = Map::new();
+    let items = list_items_info(c, false, MAX_PAGES, Some(&mut info))?;
     let exact: Vec<Json> = items
         .iter()
         .filter(|i| norm_s(&name_of(i)) == norm_s(&s))
@@ -345,8 +397,11 @@ pub fn find_item(c: &dyn Api, r: &str) -> Result<Json> {
     match hits.len() {
         1 => get_item(c, hits[0].get("display_id").unwrap_or(&Json::Null)),
         0 => Err(Error::value(format!(
-            "no catalog item matches {}; list them with `fsv sr catalog --search TEXT`",
-            py_repr_str(&s)
+            "no catalog item matches {}; list them with `fsv sr catalog --search TEXT`{}",
+            py_repr_str(&s),
+            truncation_notice(&info)
+                .map(|cut| format!(" ({cut}; use the item's display id)"))
+                .unwrap_or_default()
         ))),
         n => {
             let shown: Vec<String> = hits
