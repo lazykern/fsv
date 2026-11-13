@@ -3,6 +3,71 @@
 //! When the sibling `fsv` checkout is present, its `src/fsv` tree must match
 //! the map exactly.
 
+#[test]
+fn command_tree_matches_python_flags() {
+    fn surface(
+        cmd: &clap::Command,
+        prefix: &str,
+        out: &mut BTreeSet<(String, BTreeSet<String>, usize)>,
+    ) {
+        let path = if prefix.is_empty() {
+            cmd.get_name().to_string()
+        } else {
+            format!("{prefix} {}", cmd.get_name())
+        };
+        let mut longs = BTreeSet::new();
+        let mut positionals = 0usize;
+        for arg in cmd.get_arguments() {
+            if let Some(long) = arg.get_long() {
+                longs.insert(format!("--{long}"));
+                for alias in arg
+                    .get_aliases()
+                    .into_iter()
+                    .flatten()
+                    .chain(arg.get_visible_aliases().into_iter().flatten())
+                {
+                    longs.insert(format!("--{alias}"));
+                }
+            } else if arg.is_positional() {
+                positionals += 1;
+            }
+        }
+        if path != "fsv" {
+            longs.remove("--verbose");
+        }
+        out.insert((path.clone(), longs, positionals));
+        for sub in cmd.get_subcommands() {
+            surface(sub, &path, out);
+        }
+    }
+    let mut rust = BTreeSet::new();
+    surface(&fsv_cli::command(), "", &mut rust);
+
+    let raw = std::fs::read_to_string(repo_root().join("port/command_flags.txt")).unwrap();
+    let mut python = BTreeSet::new();
+    for line in raw.lines() {
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let mut parts = line.split('\t');
+        let path = parts.next().unwrap().to_string();
+        let flags = parts.next().unwrap();
+        let positionals: usize = parts.next().unwrap().parse().unwrap();
+        let longs = flags
+            .split(',')
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+            .collect();
+        python.insert((path, longs, positionals));
+    }
+    let missing: Vec<_> = python.difference(&rust).cloned().collect();
+    let extra: Vec<_> = rust.difference(&python).cloned().collect();
+    assert!(
+        missing.is_empty() && extra.is_empty(),
+        "command tree drifted\nmissing from rust: {missing:?}\nextra in rust: {extra:?}"
+    );
+}
+
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
