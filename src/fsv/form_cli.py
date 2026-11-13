@@ -51,7 +51,14 @@ def _fail(msg: str, code: int = 2) -> None:
     raise typer.Exit(code)
 
 
+SR_ALIASES = {"sr", "srs", "service_request", "service_requests", "service-request", "service-requests", "catalog"}
+SR = "service_request"
+MODULE_HELP = "form: changes, tickets, problems, or sr (with --item)"
+
+
 def _module(text: str) -> str:
+    if (text or "").strip().lower() in SR_ALIASES:
+        return SR
     try:
         return module_name(text)
     except ValueError as e:
@@ -66,6 +73,21 @@ def _guard(fn: Any) -> Any:
         return fn()
     except (SessionError, APIError, FormError, ValueError) as e:
         _fail(str(e), exit_code_for(e) if not isinstance(e, FormError) else 2)
+
+
+def _load(c: Any, mod: str, item: Optional[str], mode: str = "new", **kw: Any) -> Any:
+    """Form metadata for a module, or a catalog item's form for ``sr``: the
+    same item form and rules `fsv sr fields` uses."""
+    if mod == SR:
+        if not item:
+            _fail("sr forms are per catalog item: pass --item ID (the display id or exact name)")
+        if mode != "new" or kw.get("record") is not None:
+            _fail("sr item forms have no edit form here; use --item without --id/--mode edit")
+        from fsv import catalog as cat
+        return _guard(lambda: cat.load_item_meta(c, item))
+    if item:
+        _fail("--item applies to sr forms only")
+    return _guard(lambda: load_meta(c, mod, mode, **kw))
 
 
 def _note_rules(meta: Any) -> None:
@@ -86,18 +108,21 @@ def _one_line(text: str, limit: int = 100) -> str:
     "fsv form explain changes --from change.yaml  |  fsv form explain changes --id CHN-12 --set 'Stage=Live'"
 ))
 def explain(
-    module: str = typer.Argument("changes", help="form: changes"),
+    module: str = typer.Argument("changes", help=MODULE_HELP),
     set_: Optional[List[str]] = typer.Option(None, "--set", help="answer LABEL=VALUE (repeatable)"),
     from_: Optional[str] = typer.Option(None, "--from", help="draft YAML with answers"),
     preset: Optional[str] = typer.Option(None, "--preset", help="preset name or path"),
     id_: Optional[str] = typer.Option(None, "--id", help="explain the edit form of this record"),
     all_: bool = typer.Option(False, "--all", help="also list fields hidden by metadata/sections"),
     output: str = typer.Option("table", "--output", "-o", help="table|json"),
+    item: Optional[str] = typer.Option(None, "--item", help="sr: the catalog item (display id or exact name)"),
 ) -> None:
     """Why each field is visible, required or hidden, by rule."""
     mod = _module(module)
     c = _client()
     record = None
+    if id_ and mod == SR:
+        _fail("--id does not apply to sr item forms; use --item")
     if id_:
         from fsv.resources import REGISTRY, parse_id
 
@@ -105,9 +130,8 @@ def explain(
         cid = parse_id(id_, resource)
         data = _guard(lambda: c.int_get(f"{resource.api_path}/{cid}"))
         record = data.get(resource.item_key, data)
-    meta = _guard(lambda: load_meta(c, mod, "edit" if record else "new",
-                                    module_id=(record.get("display_id") or record.get("id")) if record else None,
-                                    record=record))
+    meta = _load(c, mod, item, "edit" if record else "new",
+                 module_id=(record.get("display_id") or record.get("id")) if record else None, record=record)
     _note_rules(meta)
     draft = _guard(lambda: resolve_draft(from_, preset, set_))
     spec = meta.spec
@@ -163,14 +187,15 @@ def explain(
     "[bold]Examples:[/bold]  fsv form fields changes  |  fsv form fields changes --choices 'Change Type'"
 ))
 def fields(
-    module: str = typer.Argument("changes", help="form: changes"),
+    module: str = typer.Argument("changes", help=MODULE_HELP),
     choices: Optional[str] = typer.Option(None, "--choices", help="list the choices of this field (label or name)"),
     output: str = typer.Option("table", "--output", "-o", help="table|json"),
+    item: Optional[str] = typer.Option(None, "--item", help="sr: the catalog item (display id or exact name)"),
 ) -> None:
     """Fields in web order with labels, help text and choices."""
     mod = _module(module)
     c = _client()
-    meta = _guard(lambda: load_meta(c, mod, "new"))
+    meta = _load(c, mod, item)
     _note_rules(meta)
     spec = meta.spec
     state = _guard(lambda: FormState(spec, meta.engine(), mode="new"))
@@ -226,13 +251,15 @@ def fields(
         shown = "; ".join(_one_line(f.content or f.label, 60) for f in notes[:5])
         console.print(f"[dim]{len(notes)} information block(s) on the form, not inputs: {escape(shown)}[/dim]",
                       highlight=False)
-    console.print("[dim]choices: fsv form fields changes --choices LABEL[/dim]", highlight=False)
+    hint = f"sr --item {item}" if mod == SR else f"{mod}s"
+    console.print(f"[dim]choices: fsv form fields {escape(hint)} --choices LABEL[/dim]", highlight=False)
 
 
 @form_app.command("dump", epilog="[bold]Examples:[/bold]  fsv form dump changes > snap.json")
 def dump(
-    module: str = typer.Argument("changes", help="form: changes"),
+    module: str = typer.Argument("changes", help=MODULE_HELP),
     mode: str = typer.Option("new", "--mode", help="new|edit (which form's rules)"),
+    item: Optional[str] = typer.Option(None, "--item", help="sr: the catalog item (display id or exact name)"),
 ) -> None:
     """Print a metadata snapshot (fields + rules) as JSON. Keep it local:
     the requesting user's profile is left out."""
@@ -240,10 +267,11 @@ def dump(
     if mode not in ("new", "edit"):
         _fail("--mode must be new or edit")
     c = _client()
-    meta = _guard(lambda: load_meta(c, mod, mode, fresh=True))
+    meta = _load(c, mod, item, mode, fresh=True)
     snap = {
         "fsv_form_snapshot": SNAPSHOT_VERSION,
         "module": mod,
+        **({"item": meta.item.get("display_id")} if mod == SR else {}),
         "form_type": meta.form_type,
         "workspace_id": meta.workspace_id,
         "taken_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
@@ -329,7 +357,11 @@ def diff(
     else:
         c = _client()
         mode = "edit" if old.get("form_type") == "edit_form" else "new"
-        meta = _guard(lambda: load_meta(c, old.get("module") or "change", mode, fresh=True))
+        mod = _module(str(old.get("module") or "change"))
+        item = str(old["item"]) if mod == SR and old.get("item") is not None else None
+        if mod == SR and item is None:
+            _fail(f"{snapshot} is an sr snapshot without its catalog item; dump it again with --item")
+        meta = _load(c, mod, item, mode, **({} if mod == SR else {"fresh": True}))
         new = {"fields": meta.raw_fields, "business_rules": meta.rules.get("business_rules") or []}
     changes = diff_snapshots(old, new)
     if output == "json":

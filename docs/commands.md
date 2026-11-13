@@ -280,6 +280,9 @@ fsv form fields changes --choices Priority
 fsv form explain changes --set 'Priority=High'
 fsv form dump changes > snapshot.json
 fsv form diff snapshot.json
+fsv form fields problems
+fsv form explain sr --item 77 --set 'Access level=Admin'
+fsv form dump sr --item 77 > item77.json
 ```
 
 A metadata snapshot may contain account configuration; keep it private. See [forms](forms.md), [views](views.md), and [reviewed operations](reviewed-parity.md).

@@ -150,3 +150,35 @@ def test_catalog_page_limit_is_reported_not_silently_cut(fake, monkeypatch):
     assert "catalog list truncated" in " ".join(table.stderr.split())
     with pytest.raises(ValueError, match="catalog list truncated"):
         cat.find_item(fake.client(), "no such item anywhere")
+
+
+def test_form_fields_explain_dump_diff_for_an_sr_item(fake, monkeypatch, tmp_path):
+    import fsv.cli as cli
+    c = fake.client()
+    monkeypatch.setattr(cli, "_client", lambda: c)
+    fields = runner.invoke(cli.app, ["form", "fields", "sr", "--item", "78", "-o", "json"])
+    assert fields.exit_code == 0, fields.output
+    rows = {r["name"]: r for r in json.loads(fields.stdout)}
+    assert rows["access_level"]["required_static"] and rows["access_level"]["choices"] == 3
+    choices = runner.invoke(cli.app, ["form", "fields", "sr", "--item", "78", "--choices", "Access level", "-o", "json"])
+    assert [ch["label"] for ch in json.loads(choices.stdout)["choices"]] == ["Read only", "Read  write", "Admin"]
+    explain = runner.invoke(cli.app, ["form", "explain", "sr", "--item", "78", "--set", "Access level=Admin",
+                                      "-o", "json"])
+    assert explain.exit_code == 0, explain.output
+    why = {r["field"]: r for r in json.loads(explain.stdout)["rows"]}
+    assert why["justification"]["visible"] and why["justification"]["why"]  # shown by the item rule
+    dump = runner.invoke(cli.app, ["form", "dump", "sr", "--item", "78"])
+    snap = json.loads(dump.stdout)
+    assert snap["module"] == "service_request" and snap["item"] == 78
+    assert {f["name"] for f in snap["fields"]} >= {"reason_200", "access_level", "justification"}
+    path = tmp_path / "snap.json"
+    path.write_text(dump.stdout)
+    same = runner.invoke(cli.app, ["form", "diff", str(path), "-o", "json"])
+    assert same.exit_code == 0 and json.loads(same.stdout) == []
+    snap["fields"] = [f for f in snap["fields"] if f["name"] != "justification"]
+    path.write_text(json.dumps(snap))
+    changed = json.loads(runner.invoke(cli.app, ["form", "diff", str(path), "-o", "json"]).stdout)
+    assert [(d["change"], d["name"]) for d in changed] == [("added", "justification")]
+    assert runner.invoke(cli.app, ["form", "fields", "sr"]).exit_code == 2  # --item is required
+    assert runner.invoke(cli.app, ["form", "explain", "sr", "--item", "78", "--id", "SR-1"]).exit_code == 2
+    assert not fake.writes()

@@ -14,8 +14,8 @@ plans, roles, forms and workflows differ (see the
 | Tickets | 79 | 50 | 26 | 2 | 1 |
 | Changes | 53 | 36 | 12 | 4 | 1 |
 | Problems and service requests | 62 | 42 | 19 | 1 | 0 |
-| Cross-cutting | 73 | 35 | 36 | 2 | 0 |
-| **All** | **267** | **163** | **93** | **9** | **2** |
+| Cross-cutting | 73 | 35 | 37 | 1 | 0 |
+| **All** | **267** | **163** | **94** | **8** | **2** |
 
 N/A rows are local commands with no wire. Counts are per row: a few commands
 appear both in their module table and in the cross-cutting table.
@@ -294,7 +294,7 @@ Blocked (no accepted wire or not reachable from a test tenant):
 | form explain MODULE [--set --from --preset --id --all] | `same + rule evaluation (forms/rules.py)` | UNSURE | yes (read) | n/a | none | test_content_fields.py, test_rules_workspace.py | Read verified live; row-by-row comparison with the web UI pending. |
 | form dump MODULE [--mode new\|edit] | `same reads; local snapshot` | UNSURE | yes (read) | n/a | none | test_changes_form_cli.py | Read verified live; row-by-row comparison with the web UI pending. |
 | form diff SNAPSHOT [--against] | `snapshot vs current metadata` | UNSURE | yes (read) | n/a | none | test_changes_form_cli.py | Read verified live; row-by-row comparison with the web UI pending. |
-| form * for problems / sr | `rules GET business_rules?module_type=problem` | GAP | yes (read) | n/a | read-verified | test_problem_workflows.py | Problem and SR form rules are not modelled. |
+| form * for problems / sr (`form fields\|explain\|dump\|diff problems`; `... sr --item ID`) | `GET problem_form_fields + business_rules?module_type=problem; SR: GET catalog/service-items/{id} + item rules (as sr fields)` | UNSURE | yes (read) | n/a | none | test_problem_workflows.py, test_sr_catalog.py | Problems use the shared forms engine (module problem); an unreadable rules endpoint (403/5xx) leaves the read-only commands usable with a note. SR item forms load the catalog item form and rules `sr fields` uses; `--item` is required, there is no SR edit form. Offline only since this change. |
 | schema loader: ticket/change/problem form fields + choices cache | `GET {module} form fields; business_rules; cached` | UNSURE | yes (read) | n/a | none | test_schema_cache.py, test_cache_config_hardening.py | Read verified live; row-by-row comparison with the web UI pending. |
 | schema loader: SR catalog item form + place-request rules | `GET catalog/service-items/{id}; business_rules module_type=service_request` | COVERED | yes (read) | n/a | none | test_sr_catalog.py, test_catalog_safety.py | Live read verified. |
 | tickets views | `GET /api/_/ticket_filters` | UNSURE | yes (read) | n/a | read-verified | test_views_cli.py, test_search_routing.py | Read verified live; row-by-row comparison with the web UI pending. |

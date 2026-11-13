@@ -327,3 +327,26 @@ def test_child_task_reminder_not_exposed_by_server(wire, monkeypatch, shape, ver
     else:
         assert "do not resend" in result["warning"]
         assert result["fields"].get("notify_before") != "unavailable (not exposed by the server)" or shape != "wrong-reminder"
+
+
+def test_problem_form_fields_explain_and_diff_cli(wire, monkeypatch, tmp_path):
+    monkeypatch.setattr(cli, "_client", lambda: wire["client"])
+    runner = CliRunner()
+    fields = runner.invoke(cli.app, ["form", "fields", "problems", "-o", "json"])
+    assert fields.exit_code == 0, fields.output
+    assert [r["name"] for r in json.loads(fields.stdout)][:3] == ["subject", "description", "requester"]
+    explain = runner.invoke(cli.app, ["form", "explain", "problems", "--set", "Subject=Acme", "-o", "json"])
+    assert explain.exit_code == 0, explain.output
+    rows = {r["field"]: r for r in json.loads(explain.stdout)["rows"]}
+    assert rows["subject"]["value"] == "Acme" and rows["status"]["required"]
+    path = tmp_path / "problem.json"
+    path.write_text(runner.invoke(cli.app, ["form", "dump", "problems"]).stdout)
+    wire["fields"].append({"id": 599, "name": "root_cause", "label": "Root cause", "field_type": "custom_text",
+                           "position": 99})
+    diff = runner.invoke(cli.app, ["form", "diff", str(path), "-o", "json"])
+    assert [(d["change"], d["name"]) for d in json.loads(diff.stdout)] == [("added", "root_cause")]
+    # rules the server cannot answer leave the read-only form commands usable with a note
+    wire["rules_denied"] = True
+    denied = runner.invoke(cli.app, ["form", "fields", "problems", "-o", "json"])
+    assert denied.exit_code == 0 and "business rules not loaded" in " ".join(denied.stderr.split())
+    assert not wire["writes"]

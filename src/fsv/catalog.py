@@ -283,6 +283,30 @@ class ItemMeta:
     def fingerprint(self) -> MetadataFingerprint:
         return metadata_fingerprint(None, self.rules, self.item)
 
+    # the FormMeta surface `fsv form` reads (an item form is always a new form)
+    module = "service_request"
+    form_type = "new_form"
+    form_notes: tuple[str, ...] = ()
+
+    @property
+    def raw_fields(self) -> list[dict[str, Any]]:
+        """The item's fields flattened in web order; children name their parent."""
+        si = self.item.get("service_item", self.item)
+        out: list[dict[str, Any]] = []
+
+        def walk(rows: Any, parent: Any) -> None:
+            for row in rows or []:
+                if not isinstance(row, Mapping) or row.get("deleted"):
+                    continue
+                flat = {k: v for k, v in row.items() if k != "fields"}
+                if parent is not None:
+                    flat["parent"] = parent
+                out.append(flat)
+                walk(row.get("fields"), row.get("name"))
+
+        walk(si.get("custom_fields") if isinstance(si, Mapping) else None, None)
+        return out
+
     def as_of(self) -> dict[str, Any]:
         fp = self.fingerprint
         return {
