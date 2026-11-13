@@ -1,0 +1,1410 @@
+# upstream 754eef18692934c644263911bb39df1fa0cc9618
+# C<path> or A<path><flag> help text, as Typer declares it.
+# Rust repeats --verbose on every command; those lines are not listed.
+C	fsv	Freshservice CLI
+A	fsv	--no-input	fail instead of prompting
+A	fsv	--verbose	print debug info to stderr
+A	fsv	--version	print version and exit
+A	fsv	--install-completion	Install completion for the current shell.
+A	fsv	--show-completion	Show completion for the current shell, to copy it or customize the installation.
+C	fsv help	Show topic help.
+A	fsv help	<topic>	topic: auth|workflow|fields|scripting|comments
+C	fsv search	Global search across all entities (tickets, problems, changes, tasks, assets, solutions).
+A	fsv search	<query>	Free-text term, e.g. 'AcmeApp'
+A	fsv search	--page	
+A	fsv search	--sort	relevance | created | modified
+A	fsv search	--output	output format
+A	fsv search	--json	alias for --output json
+A	fsv search	--npages	fetch exactly N pages (30 results each)
+A	fsv search	--all	fetch all pages (auto-paginate)
+C	fsv setup	Interactive setup wizard.
+C	fsv tui	Launch interactive TUI.
+A	fsv tui	--read-only	disable write actions (status, notes, replies)
+C	fsv auth	authenticate and manage sessions
+C	fsv auth login	Save Freshservice session cookies.
+A	fsv auth login	--domain	Freshservice domain or URL, e.g. acme.freshservice.com. Saved before login.
+A	fsv auth login	--header	Cookie header string. Use '-' to read from stdin.
+A	fsv auth login	--browser	Open an isolated browser, let you finish SSO/MFA, then read HttpOnly cookies via CDP.
+A	fsv auth login	--store	Where to save: 'file' (plain chmod 600), 'argon' (Argon2id + AES-GCM), or 'keychain' (macOS Keychain). Interactive when omitted; default keychain on macOS.
+A	fsv auth login	--no-input	fail instead of prompting
+A	fsv auth login	--force	save cookies even if they fail validation against the tenant
+C	fsv auth logout	Wipe stored session (file + Keychain + backend pref).
+A	fsv auth logout	--yes	skip confirmation prompt
+A	fsv auth logout	--no-input	fail instead of prompting
+C	fsv auth status	Show current agent identity and session status.
+C	fsv assets	Integrated inventory search (read-only).
+C	fsv assets search	
+A	fsv assets search	<query>	
+A	fsv assets search	--kind	
+A	fsv assets search	--page	
+A	fsv assets search	--json	
+C	fsv solutions	Draft knowledge solutions.
+C	fsv solutions create	Create a draft workaround/permanent article; does not link or publish it.
+A	fsv solutions create	--title	
+A	fsv solutions create	--body	plain text
+A	fsv solutions create	--type	workaround or permanent
+A	fsv solutions create	--category	runtime ID/name; unique default if omitted
+A	fsv solutions create	--folder	runtime ID/name within category; unique default if omitted
+A	fsv solutions create	--dry-run	
+A	fsv solutions create	--yes	
+A	fsv solutions create	--expect-plan	
+A	fsv solutions create	--read-only	
+A	fsv solutions create	--json	
+C	fsv completion	shell completion helpers
+C	fsv completion show	Show shell completion script.
+A	fsv completion show	<shell>	bash|zsh|fish|powershell|pwsh
+C	fsv completion install	Install shell completion for current shell.
+A	fsv completion install	<shell>	bash|zsh|fish|powershell|pwsh
+C	fsv completion refresh	Alias for `fsv cache refresh`.
+C	fsv completion doctor	Show completion install/cache diagnostics.
+C	fsv config	manage fsv settings
+C	fsv config list	List all config keys and current values.
+C	fsv config get	Get a single config value.
+A	fsv config get	<key>	config key
+C	fsv config set	Set a config value.
+A	fsv config set	<key>	completion.network, ...
+A	fsv config set	<value>	on|off|true|false|1|0
+C	fsv config defaults	manage default --where filters per resource
+C	fsv config defaults show	Show default --where filters.
+A	fsv config defaults show	<resource>	changes|tickets|problems; omit for all
+C	fsv config defaults set	Set (replace) default --where filters for a resource.
+A	fsv config defaults set	<resource>	changes|tickets|problems
+A	fsv config defaults set	--where	field=value filter; repeat to add multiple
+C	fsv config defaults clear	Clear default --where filters for a resource.
+A	fsv config defaults clear	<resource>	changes|tickets|problems
+C	fsv cache	inspect and manage local cache
+C	fsv cache status	Show cache health and TTL.
+C	fsv cache refresh	Refresh only stale caches.
+C	fsv cache clear	Delete cached data.
+A	fsv cache clear	<target>	schema|views|groups|all
+C	fsv journal	read the local write journal
+C	fsv journal ls	List journaled write requests (oldest first).
+A	fsv journal ls	--limit	only the last N entries (0 = all)
+A	fsv journal ls	--failed	only failed writes
+A	fsv journal ls	--json	one JSON object per line
+C	fsv journal tail	Show the most recent journaled writes.
+A	fsv journal tail	--limit	number of entries
+A	fsv journal tail	--json	one JSON object per line
+C	fsv journal path	Print the journal file location.
+C	fsv changes	changes commands
+C	fsv changes ls	List changes.
+A	fsv changes ls	--view	saved view by name as the web shows it (exact or unique prefix; see `views`); default: the view the server marks default
+A	fsv changes ls	--where	filter like the web's filter panel: LABEL=VALUE, e.g. Status=Open, Agents=Me, Created='Last 6 months', 'Environment=(empty)'; internal names work too
+A	fsv changes ls	--query-hash	raw or URL-encoded Freshservice query_hash JSON array
+A	fsv changes ls	--or	combine --where conditions with OR instead of AND
+A	fsv changes ls	--debug	show resolved query_hash and exit
+A	fsv changes ls	--per-page	
+A	fsv changes ls	--page	
+A	fsv changes ls	--order-by	sort field, e.g. created_at
+A	fsv changes ls	--order-type	asc | desc
+A	fsv changes ls	--all	fetch all pages (auto-paginate)
+A	fsv changes ls	--npages	fetch exactly N pages
+A	fsv changes ls	--output	output format
+A	fsv changes ls	--json	alias for --output json
+A	fsv changes ls	--pager	page long table output when stdout is a TTY
+A	fsv changes ls	--no-defaults	ignore default --where filters from config
+C	fsv changes get	Show one change.
+A	fsv changes get	<id_>	
+A	fsv changes get	--tab	show one tab of the page: notes|tasks|approvals|assets|impacted|associations|activity|risk|devops (only tabs the server shows)
+A	fsv changes get	--all-tabs	print the Details tab and every other tab the server shows
+A	fsv changes get	--all-conversations	every conversation, not only the latest (tickets)
+A	fsv changes get	--stats	with --json: the record plus planning fields and attachment evidence
+A	fsv changes get	--output	output format
+A	fsv changes get	--json	alias for --output json
+C	fsv changes activity	List change activity.
+A	fsv changes activity	<id_>	
+A	fsv changes activity	--limit	newest N entries (a 'truncated' notice reports the rest)
+A	fsv changes activity	--all	every loaded entry (overrides --limit)
+A	fsv changes activity	--output	output format
+A	fsv changes activity	--json	alias for --output json
+C	fsv changes tasks	List change tasks.
+A	fsv changes tasks	<id_>	
+A	fsv changes tasks	--output	output format
+A	fsv changes tasks	--json	alias for --output json
+C	fsv changes tasks-add	Review and create a change task (no implicit owner).
+A	fsv changes tasks-add	<id_>	
+A	fsv changes tasks-add	--title	exact task title to review
+A	fsv changes tasks-add	--owner	explicit user ID or exact agent email/full name; default none, no implicit self
+A	fsv changes tasks-add	--group	positive group ID or exact group name
+A	fsv changes tasks-add	--set	runtime custom field NAME=VALUE (repeatable)
+A	fsv changes tasks-add	--system	runtime System choice label/ID
+A	fsv changes tasks-add	--environment	runtime Environment choice label/ID
+A	fsv changes tasks-add	--status	exact active runtime status label or ID (default: the form's first active status)
+A	fsv changes tasks-add	--note	plain text, HTML-escaped
+A	fsv changes tasks-add	--notify-before	runtime reminder label or seconds (default: the form's first choice)
+A	fsv changes tasks-add	--planned-start	ISO date/time with explicit timezone offset
+A	fsv changes tasks-add	--planned-end	ISO date/time with explicit timezone offset
+A	fsv changes tasks-add	--planned-effort	1h30m or 01:30; sends 1h 30m
+A	fsv changes tasks-add	--dry-run	review only; email resolution may read, no POST or journal writes
+A	fsv changes tasks-add	--read-only	refuse task creation
+A	fsv changes tasks-add	--yes	confirm the full previously reviewed --expect-plan
+A	fsv changes tasks-add	--expect-plan	full hash from the exact task review
+A	fsv changes tasks-add	--no-input	never prompt
+A	fsv changes tasks-add	--json	emit structured result
+C	fsv changes approval-request	Review and REQUEST manual change approval (selected rule; sends irreversible emails).
+A	fsv changes approval-request	<id_>	
+A	fsv changes approval-request	--name	exact approval group name (approval chains model)
+A	fsv changes approval-request	--message	plain text; always HTML-escaped (approval chains model)
+A	fsv changes approval-request	--approver	explicit recipient ID or exact email (repeatable)
+A	fsv changes approval-request	--approver-group	expand ALL eligible users of this exact group ID/name; review recipients
+A	fsv changes approval-request	--cab	expand ALL eligible users of this CAB ID/name; review recipients
+A	fsv changes approval-request	--rule	everyone, anyone, majority or first-responder (legacy: everyone, first-responder)
+A	fsv changes approval-request	--model	approval model: auto (one read-only approval-chains GET), chains or legacy
+A	fsv changes approval-request	--dry-run	review only; emails may require read-only lookup
+A	fsv changes approval-request	--read-only	refuse approval requests
+A	fsv changes approval-request	--yes	confirm the full previously reviewed --expect-plan
+A	fsv changes approval-request	--expect-plan	full hash from the exact prior review
+A	fsv changes approval-request	--no-input	never prompt
+A	fsv changes approval-request	--json	emit structured result
+C	fsv changes approval-remind	Review a reminder for one requested approval (legacy flat approvals; capture-based).
+A	fsv changes approval-remind	<id_>	
+A	fsv changes approval-remind	<approval_id>	
+A	fsv changes approval-remind	--model	approval model: auto, chains or legacy
+A	fsv changes approval-remind	--dry-run	
+A	fsv changes approval-remind	--yes	
+A	fsv changes approval-remind	--expect-plan	
+A	fsv changes approval-remind	--json	
+C	fsv changes approval-respond	Review and approve/reject an exact approval record (notifies people; may move workflow).
+A	fsv changes approval-respond	<change>	
+A	fsv changes approval-respond	<approval_id>	
+A	fsv changes approval-respond	--approve	
+A	fsv changes approval-respond	--reject	
+A	fsv changes approval-respond	--remark	required nonempty for reject; optional for approve
+A	fsv changes approval-respond	--dry-run	
+A	fsv changes approval-respond	--read-only	
+A	fsv changes approval-respond	--yes	
+A	fsv changes approval-respond	--expect-plan	
+A	fsv changes approval-respond	--no-input	
+A	fsv changes approval-respond	--json	
+C	fsv changes approval-cancel	Review and cancel an exact approval group (irreversible; notifies people).
+A	fsv changes approval-cancel	<change>	
+A	fsv changes approval-cancel	<group_id>	
+A	fsv changes approval-cancel	--dry-run	
+A	fsv changes approval-cancel	--read-only	
+A	fsv changes approval-cancel	--yes	
+A	fsv changes approval-cancel	--expect-plan	
+A	fsv changes approval-cancel	--no-input	
+A	fsv changes approval-cancel	--json	
+C	fsv changes delete	Soft-delete one exact change (reviewed, destructive).
+A	fsv changes delete	<id_>	
+A	fsv changes delete	--dry-run	print the exact target without deleting
+A	fsv changes delete	--yes	confirm deletion
+A	fsv changes delete	--confirm-destructive	required destructive acknowledgement
+A	fsv changes delete	--expect-plan	
+A	fsv changes delete	--json	
+C	fsv changes tasks-update	Update a change task.
+A	fsv changes tasks-update	<id_>	
+A	fsv changes tasks-update	<task_id>	
+A	fsv changes tasks-update	--status	Open/Completed or status ID
+A	fsv changes tasks-update	--title	task title
+A	fsv changes tasks-update	--group	group name or ID
+A	fsv changes tasks-update	--owner	agent name/email/user ID
+A	fsv changes tasks-update	--system	task custom field system label or numeric ID
+A	fsv changes tasks-update	--environment	task custom field environment label or numeric ID
+A	fsv changes tasks-update	--due-date	ISO-8601 due date
+A	fsv changes tasks-update	--planned-start	ISO-8601 planned start
+A	fsv changes tasks-update	--planned-end	ISO-8601 planned end
+A	fsv changes tasks-update	--edit	open $EDITOR with all task fields
+A	fsv changes tasks-update	--note	plain text note
+A	fsv changes tasks-update	--planned-effort	
+A	fsv changes tasks-update	--notify-before	runtime label or seconds, not minutes
+A	fsv changes tasks-update	--expect-plan	
+A	fsv changes tasks-update	--read-only	
+A	fsv changes tasks-update	--dry-run	print resolved payload without updating
+A	fsv changes tasks-update	--yes	confirm status changes and reassignment
+A	fsv changes tasks-update	--json	emit JSON
+A	fsv changes tasks-update	--no-input	fail instead of prompting
+C	fsv changes tasks-delete	Delete a change task.
+A	fsv changes tasks-delete	<id_>	
+A	fsv changes tasks-delete	<task_id>	
+A	fsv changes tasks-delete	--dry-run	print target without deleting
+A	fsv changes tasks-delete	--yes	confirm deletion
+A	fsv changes tasks-delete	--expect-plan	
+A	fsv changes tasks-delete	--json	
+C	fsv changes approvals	List change approvals.
+A	fsv changes approvals	<id_>	
+A	fsv changes approvals	--groups	read approval-chain groups (IDs, raw statuses, members), instead of legacy records
+A	fsv changes approvals	--output	output format
+A	fsv changes approvals	--json	alias for --output json
+C	fsv changes state	Approval lifecycle state flow.
+A	fsv changes state	<id_>	
+A	fsv changes state	--output	output format
+A	fsv changes state	--json	alias for --output json
+C	fsv changes ci-add	
+A	fsv changes ci-add	<target>	
+A	fsv changes ci-add	<ids>	
+A	fsv changes ci-add	--kind	
+A	fsv changes ci-add	--dry-run	
+A	fsv changes ci-add	--yes	
+A	fsv changes ci-add	--expect-plan	
+A	fsv changes ci-add	--read-only	
+A	fsv changes ci-add	--json	
+C	fsv changes ci-remove	
+A	fsv changes ci-remove	<target>	
+A	fsv changes ci-remove	<ids>	
+A	fsv changes ci-remove	--kind	
+A	fsv changes ci-remove	--dry-run	
+A	fsv changes ci-remove	--yes	
+A	fsv changes ci-remove	--expect-plan	
+A	fsv changes ci-remove	--read-only	
+A	fsv changes ci-remove	--json	
+C	fsv changes ci-list	
+A	fsv changes ci-list	<target>	
+A	fsv changes ci-list	--kind	
+A	fsv changes ci-list	--json	
+C	fsv changes export	Review a native CSV/30-day export request; may email data, job/download contract is unknown.
+A	fsv changes export	--view	saved view ID or unique name
+A	fsv changes export	--field	captured export field key (repeatable)
+A	fsv changes export	--dry-run	
+A	fsv changes export	--yes	
+A	fsv changes export	--expect-plan	
+A	fsv changes export	--output	
+A	fsv changes export	--json	
+C	fsv changes asset-picker	Search/select a change asset candidate without associating it (read-only).
+A	fsv changes asset-picker	<target>	
+A	fsv changes asset-picker	--search	
+A	fsv changes asset-picker	--page	
+A	fsv changes asset-picker	--select	exact display ID from this page, not internal ID
+A	fsv changes asset-picker	--output	
+A	fsv changes asset-picker	--json	
+C	fsv changes planning-text	Review a native planning/analysis text section; no files.
+A	fsv changes planning-text	<id_>	
+A	fsv changes planning-text	--section	exact metadata label/name; problems: Root Cause, Impact, Symptoms
+A	fsv changes planning-text	--description	text/HTML; reviewed verbatim; mutually exclusive with --clear
+A	fsv changes planning-text	--clear	delete existing section text; refuses files or unknown state
+A	fsv changes planning-text	--dry-run	
+A	fsv changes planning-text	--yes	
+A	fsv changes planning-text	--output	output format (JSON only)
+A	fsv changes planning-text	--json	alias for --output json
+A	fsv changes planning-text	--expect-plan	
+C	fsv changes fields	List discoverable change fields.
+A	fsv changes fields	<search>	field name/label search
+A	fsv changes fields	--default	show portable Freshservice fields only
+A	fsv changes fields	--custom	show tenant custom fields only
+A	fsv changes fields	--required	show only fields required to create
+A	fsv changes fields	--choices	show choices for a field
+A	fsv changes fields	--refresh	
+A	fsv changes fields	--output	output format
+A	fsv changes fields	--json	alias for --output json
+C	fsv changes lookup	Look up users, groups, or field choices.
+A	fsv changes lookup	<kind>	requester | agent | group | field name/label
+A	fsv changes lookup	<query>	name/email/text to search
+A	fsv changes lookup	--refresh	fetch current schema choices synchronously
+A	fsv changes lookup	--output	output format
+A	fsv changes lookup	--json	alias for --output json
+C	fsv changes views	List saved view names.
+A	fsv changes views	--output	output format
+A	fsv changes views	--json	alias for --output json
+C	fsv changes search	Full-text keyword search changes.
+A	fsv changes search	<query>	free-text keyword(s)
+A	fsv changes search	--page	
+A	fsv changes search	--sort	relevance | created | modified
+A	fsv changes search	--output	output format
+A	fsv changes search	--json	alias for --output json
+A	fsv changes search	--npages	fetch exactly N pages (30 results each)
+A	fsv changes search	--all	fetch all pages (auto-paginate)
+C	fsv changes url	Print change browser URL.
+A	fsv changes url	<id_>	
+C	fsv changes update	Update change fields.
+A	fsv changes update	<id_>	
+A	fsv changes update	--status	status label or ID
+A	fsv changes update	--priority	priority label or ID
+A	fsv changes update	--agent	agent name/email/user ID
+A	fsv changes update	--group	group name or ID
+A	fsv changes update	--edit	open $EDITOR with all fields
+A	fsv changes update	--set	set FIELD=VALUE (repeatable)
+A	fsv changes update	--planning	planning field label/name/id to update
+A	fsv changes update	--description	planning field description HTML/text; use '-' for stdin
+A	fsv changes update	--file	file(s) to upload to --planning field
+A	fsv changes update	--duplicate	same-name attachment behavior: prompt|skip|replace|append
+A	fsv changes update	--backup-replaced	when --duplicate replace, backup old attachment first
+A	fsv changes update	--backup-name	backup filename for replaced attachment
+A	fsv changes update	--attach	file(s) to attach to main change (Attachments section)
+A	fsv changes update	--due-by	set resolution due date (ISO-8601, e.g. 2026-06-09T18:00:00+07:00)
+A	fsv changes update	--dry-run	print resolved payload without updating
+A	fsv changes update	--yes	confirm status changes, reassignment and other notifying writes
+A	fsv changes update	--json	emit JSON
+A	fsv changes update	--no-input	fail instead of prompting
+A	fsv changes update	--from	YAML draft with answers to change (labels or internal names)
+A	fsv changes update	--preset	preset name or path (partial answers)
+A	fsv changes update	--expect-plan	refuse unless the computed plan hash matches
+A	fsv changes update	--ack	acknowledge blocking rule messages
+C	fsv changes download	Download change attachments.
+A	fsv changes download	<id_>	
+A	fsv changes download	--planning	planning field label/name/id (repeatable)
+A	fsv changes download	--all-planning	download all planning field attachments
+A	fsv changes download	--attachments	download main change attachments
+A	fsv changes download	--description-attachments	download attachment links found in description HTML
+A	fsv changes download	--all	download planning, main, and description attachments
+A	fsv changes download	--dir	output directory (default: ./CHN-<id>)
+A	fsv changes download	--force	overwrite existing files
+A	fsv changes download	--json	emit JSON manifest
+C	fsv changes clone	Clone a change.
+A	fsv changes clone	<id_>	change ID to clone (pre-fills form)
+A	fsv changes clone	--no-edit	create directly without editing
+A	fsv changes clone	--dry-run	print template to stdout and list side effects on stderr; do not create
+A	fsv changes clone	--with-tasks	clone tasks from source change (owners and past dates are dropped)
+A	fsv changes clone	--keep-task-owners	with --with-tasks: keep task owners and past dates (notifies people)
+A	fsv changes clone	--with-assets	associate same assets as source change
+A	fsv changes clone	--with-planning	clone planning fields (text + attachments)
+A	fsv changes clone	--yes	confirm --with-tasks
+A	fsv changes clone	--json	emit JSON
+A	fsv changes clone	--no-input	fail instead of prompting
+C	fsv changes create	Create a change through the web form's own fields and rules.
+A	fsv changes create	--device	integrated Device inventory ID (repeatable)
+A	fsv changes create	--from	draft YAML (answers by label, description_md, attachments, planning)
+A	fsv changes create	--set	answer LABEL=VALUE (label or internal name; repeatable)
+A	fsv changes create	--preset	preset name (config presets/NAME.yaml) or path
+A	fsv changes create	--edit	advanced: edit an annotated YAML draft in $EDITOR (default in a terminal: the interactive form)
+A	fsv changes create	--requester	requester email or exact name (default: config defaults.requester)
+A	fsv changes create	--attach	file to attach (uploaded only after you confirm; repeatable)
+A	fsv changes create	--max-bytes	total byte limit for reviewed before-create uploads
+A	fsv changes create	--attach-flow	after-create (default: create, upload, PUT ids) | before-create (upload, send ids in the create body); config changes.attach_flow
+A	fsv changes create	--dry-run	print the review, exact payload and plan hash; send nothing
+A	fsv changes create	--output	table|json (json: {plan_hash, payload, review, warnings})
+A	fsv changes create	--json	alias for --output json
+A	fsv changes create	--yes	send without the interactive review (required without a terminal)
+A	fsv changes create	--expect-plan	refuse unless the computed plan hash matches (prefix >= 12 chars)
+A	fsv changes create	--allow-duplicate	send even if the journal shows this exact plan in the last 24h
+A	fsv changes create	--ack	acknowledge blocking rule messages
+A	fsv changes create	--no-input	never prompt or open an editor
+A	fsv changes create	--subject	subject (same as --set Subject=...)
+A	fsv changes create	--description	description HTML/text; '-' for stdin
+A	fsv changes create	--status	status on create (default: the form default; others need confirmation)
+A	fsv changes create	--priority	priority label
+A	fsv changes create	--agent	agent name/email/ID
+A	fsv changes create	--group	group name or ID
+A	fsv changes create	--no-validate	skip the client-side required-field check (the server still checks)
+A	fsv changes create	--optional	(ignored; the draft lists every visible field)
+A	fsv changes create	--all	(ignored; the draft lists every visible field)
+C	fsv changes notes	List change notes.
+A	fsv changes notes	<id_>	
+A	fsv changes notes	--page	
+A	fsv changes notes	--per-page	
+A	fsv changes notes	--output	output format
+A	fsv changes notes	--json	alias for --output json
+A	fsv changes notes	--all	fetch all pages (auto-paginate)
+A	fsv changes notes	--npages	fetch exactly N pages
+C	fsv changes add-note	Add change note.
+A	fsv changes add-note	<id_>	
+A	fsv changes add-note	<body>	HTML or plain text
+A	fsv changes add-note	--public	
+A	fsv changes add-note	--dry-run	print the note without adding it
+A	fsv changes add-note	--yes	confirm a public note
+A	fsv changes add-note	--no-input	fail instead of prompting
+C	fsv changes relationships	Captured change relationships; project add creates a new project.
+C	fsv changes relationships list	
+A	fsv changes relationships list	<target>	
+A	fsv changes relationships list	<kind>	
+A	fsv changes relationships list	--json	
+C	fsv changes relationships write	
+A	fsv changes relationships write	<target>	
+A	fsv changes relationships write	<kind>	
+A	fsv changes relationships write	<action>	
+A	fsv changes relationships write	--item	
+A	fsv changes relationships write	--project-json	create-and-associate project details as JSON
+A	fsv changes relationships write	--project-key	
+A	fsv changes relationships write	--name	
+A	fsv changes relationships write	--dry-run	
+A	fsv changes relationships write	--yes	
+A	fsv changes relationships write	--expect-plan	
+A	fsv changes relationships write	--json	
+C	fsv changes time	Reviewed self-owned manual time entries; problem updates remain blocked.
+C	fsv changes time list	
+A	fsv changes time list	<id_>	
+A	fsv changes time list	--output	output format (JSON only)
+A	fsv changes time list	--json	alias for --output json
+C	fsv changes time write	
+A	fsv changes time write	<id_>	
+A	fsv changes time write	<action>	create | update | delete
+A	fsv changes time write	--entry	exact existing entry ID for update/delete
+A	fsv changes time write	--spent	manual duration HH:MM
+A	fsv changes time write	--executed-at	ISO timestamp with explicit offset
+A	fsv changes time write	--note	
+A	fsv changes time write	--billable	
+A	fsv changes time write	--dry-run	
+A	fsv changes time write	--yes	
+A	fsv changes time write	--output	output format (JSON only)
+A	fsv changes time write	--json	alias for --output json
+A	fsv changes time write	--expect-plan	
+C	fsv changes associations	Manage change ticket associations.
+C	fsv changes associations legacy	
+A	fsv changes associations legacy	<id_>	
+A	fsv changes associations legacy	--search	search tickets available to associate
+A	fsv changes associations legacy	--add	ticket ID(s) or subject text to associate, e.g. SR-565163
+A	fsv changes associations legacy	--remove	ticket ID(s) or subject text to dissociate
+A	fsv changes associations legacy	--pick	interactive picker for add flow
+A	fsv changes associations legacy	--dry-run	print resolved payload without mutating
+A	fsv changes associations legacy	--yes	confirm mutation
+A	fsv changes associations legacy	--expect-plan	full hash from exact association review
+A	fsv changes associations legacy	--read-only	refuse association writes
+A	fsv changes associations legacy	--output	output format
+A	fsv changes associations legacy	--json	alias for --output json
+C	fsv changes associations ls	List associated tickets for change.
+A	fsv changes associations ls	<id_>	
+A	fsv changes associations ls	--output	output format
+A	fsv changes associations ls	--json	alias for --output json
+C	fsv changes associations search	Search tickets available to associate.
+A	fsv changes associations search	<id_>	
+A	fsv changes associations search	<query>	
+A	fsv changes associations search	--output	output format
+A	fsv changes associations search	--json	alias for --output json
+C	fsv changes associations add	Associate ticket(s) to change.
+A	fsv changes associations add	<id_>	
+A	fsv changes associations add	<tickets_>	
+A	fsv changes associations add	--dry-run	print resolved payload without mutating
+A	fsv changes associations add	--yes	confirm mutation
+A	fsv changes associations add	--expect-plan	full hash from exact association review
+A	fsv changes associations add	--read-only	refuse association writes
+A	fsv changes associations add	--json	emit JSON
+C	fsv changes associations remove	Dissociate ticket(s) from change.
+A	fsv changes associations remove	<id_>	
+A	fsv changes associations remove	<tickets_>	
+A	fsv changes associations remove	--dry-run	print resolved payload without mutating
+A	fsv changes associations remove	--yes	confirm mutation
+A	fsv changes associations remove	--expect-plan	full hash from exact association review
+A	fsv changes associations remove	--read-only	refuse association writes
+A	fsv changes associations remove	--json	emit JSON
+C	fsv changes associations pick	Interactively pick ticket(s) to associate.
+A	fsv changes associations pick	<id_>	
+A	fsv changes associations pick	--dry-run	print resolved payload without mutating
+A	fsv changes associations pick	--yes	confirm mutation
+A	fsv changes associations pick	--expect-plan	full hash from exact association review
+A	fsv changes associations pick	--read-only	refuse association writes
+A	fsv changes associations pick	--json	emit JSON
+C	fsv changes assets	Integrated Devices and Business services; IDs are inventory IDs, not legacy display IDs.
+C	fsv changes assets ls	
+A	fsv changes assets ls	<target>	
+A	fsv changes assets ls	--kind	
+A	fsv changes assets ls	--json	
+C	fsv changes assets list	
+A	fsv changes assets list	<target>	
+A	fsv changes assets list	--kind	
+A	fsv changes assets list	--json	
+C	fsv changes assets candidates	Assets the web offers to associate (legacy asset association driver).
+A	fsv changes assets candidates	<target>	
+A	fsv changes assets candidates	--json	
+C	fsv changes assets legacy	
+A	fsv changes assets legacy	<target>	
+A	fsv changes assets legacy	--search	
+A	fsv changes assets legacy	--json	
+C	fsv changes assets add	
+A	fsv changes assets add	<target>	
+A	fsv changes assets add	<ids>	
+A	fsv changes assets add	--kind	
+A	fsv changes assets add	--dry-run	
+A	fsv changes assets add	--yes	
+A	fsv changes assets add	--expect-plan	
+A	fsv changes assets add	--read-only	
+A	fsv changes assets add	--json	
+C	fsv changes assets remove	
+A	fsv changes assets remove	<target>	
+A	fsv changes assets remove	<ids>	
+A	fsv changes assets remove	--kind	
+A	fsv changes assets remove	--dry-run	
+A	fsv changes assets remove	--yes	
+A	fsv changes assets remove	--expect-plan	
+A	fsv changes assets remove	--read-only	
+A	fsv changes assets remove	--json	
+C	fsv changes assets search	
+A	fsv changes assets search	<query>	
+A	fsv changes assets search	--kind	
+A	fsv changes assets search	--page	
+A	fsv changes assets search	--json	
+C	fsv changes columns	Inspect/set native list columns (shared account preferences may be affected).
+C	fsv changes columns list	
+A	fsv changes columns list	--output	
+A	fsv changes columns list	--json	
+C	fsv changes columns set	
+A	fsv changes columns set	--column	exact runtime column name, in desired order (repeatable)
+A	fsv changes columns set	--freeze	captured change requester freeze only; display_id is automatic
+A	fsv changes columns set	--dry-run	
+A	fsv changes columns set	--yes	
+A	fsv changes columns set	--expect-plan	
+A	fsv changes columns set	--output	
+A	fsv changes columns set	--json	
+C	fsv changes watchers	Read watcher membership and review self-only watch changes.
+C	fsv changes watchers list	
+A	fsv changes watchers list	<id_>	
+A	fsv changes watchers list	--output	output format (JSON only)
+A	fsv changes watchers list	--json	alias for --output json
+C	fsv changes watchers set	
+A	fsv changes watchers set	<id_>	
+A	fsv changes watchers set	--watch	
+A	fsv changes watchers set	--dry-run	
+A	fsv changes watchers set	--yes	
+A	fsv changes watchers set	--output	output format (JSON only)
+A	fsv changes watchers set	--json	alias for --output json
+A	fsv changes watchers set	--expect-plan	
+C	fsv tickets	tickets commands
+C	fsv tickets ls	List tickets.
+A	fsv tickets ls	--view	saved view by name as the web shows it (exact or unique prefix; see `views`); default: the view the server marks default
+A	fsv tickets ls	--where	filter like the web's filter panel: LABEL=VALUE, e.g. Status=Open, Agents=Me, Created='Last 6 months', 'Environment=(empty)'; internal names work too
+A	fsv tickets ls	--query-hash	raw or URL-encoded Freshservice query_hash JSON array
+A	fsv tickets ls	--or	combine --where conditions with OR instead of AND
+A	fsv tickets ls	--debug	show resolved query_hash and exit
+A	fsv tickets ls	--per-page	
+A	fsv tickets ls	--page	
+A	fsv tickets ls	--order-by	sort field, e.g. created_at
+A	fsv tickets ls	--order-type	asc | desc
+A	fsv tickets ls	--all	fetch all pages (auto-paginate)
+A	fsv tickets ls	--npages	fetch exactly N pages
+A	fsv tickets ls	--output	output format
+A	fsv tickets ls	--json	alias for --output json
+A	fsv tickets ls	--pager	page long table output when stdout is a TTY
+A	fsv tickets ls	--no-defaults	ignore default --where filters from config
+C	fsv tickets get	Show one ticket.
+A	fsv tickets get	<id_>	
+A	fsv tickets get	--tab	show one tab of the page: related|tasks|assets|associations|approvals|activity|resolution (only tabs the server shows)
+A	fsv tickets get	--all-tabs	print the Details tab and every other tab the server shows
+A	fsv tickets get	--all-conversations	every conversation, not only the latest (tickets)
+A	fsv tickets get	--stats	with --json: the record plus planning fields and attachment evidence
+A	fsv tickets get	--output	output format
+A	fsv tickets get	--json	alias for --output json
+C	fsv tickets activity	List ticket activity.
+A	fsv tickets activity	<id_>	
+A	fsv tickets activity	--limit	newest N entries (a 'truncated' notice reports the rest)
+A	fsv tickets activity	--all	every loaded entry (overrides --limit)
+A	fsv tickets activity	--output	output format
+A	fsv tickets activity	--json	alias for --output json
+C	fsv tickets tasks-legacy	List ticket tasks.
+A	fsv tickets tasks-legacy	<id_>	
+A	fsv tickets tasks-legacy	--output	output format
+A	fsv tickets tasks-legacy	--json	alias for --output json
+C	fsv tickets export	Review a native CSV/30-day export request; may email data, job/download contract is unknown.
+A	fsv tickets export	--view	saved view ID or unique name
+A	fsv tickets export	--field	captured export field key (repeatable)
+A	fsv tickets export	--dry-run	
+A	fsv tickets export	--yes	
+A	fsv tickets export	--expect-plan	
+A	fsv tickets export	--output	
+A	fsv tickets export	--json	
+C	fsv tickets note-edit	Review an edit to an exact ticket note.
+A	fsv tickets note-edit	<id_>	
+A	fsv tickets note-edit	<conversation_id>	
+A	fsv tickets note-edit	--body	
+A	fsv tickets note-edit	--dry-run	
+A	fsv tickets note-edit	--yes	
+A	fsv tickets note-edit	--expect-plan	
+A	fsv tickets note-edit	--output	
+A	fsv tickets note-edit	--json	
+C	fsv tickets note-delete	Review deletion of an exact ticket note.
+A	fsv tickets note-delete	<id_>	
+A	fsv tickets note-delete	<conversation_id>	
+A	fsv tickets note-delete	--dry-run	
+A	fsv tickets note-delete	--yes	
+A	fsv tickets note-delete	--expect-plan	
+A	fsv tickets note-delete	--output	
+A	fsv tickets note-delete	--json	
+C	fsv tickets assign	Review ticket assignment, group assignment, or agent unassignment.
+A	fsv tickets assign	<id_>	
+A	fsv tickets assign	--agent	
+A	fsv tickets assign	--group	
+A	fsv tickets assign	--unassign	
+A	fsv tickets assign	--dry-run	
+A	fsv tickets assign	--yes	
+A	fsv tickets assign	--expect-plan	
+A	fsv tickets assign	--output	
+A	fsv tickets assign	--json	
+C	fsv tickets pick-up	Review picking up explicit tickets as the current agent.
+A	fsv tickets pick-up	<ids>	
+A	fsv tickets pick-up	--dry-run	
+A	fsv tickets pick-up	--yes	
+A	fsv tickets pick-up	--expect-plan	
+A	fsv tickets pick-up	--output	
+A	fsv tickets pick-up	--json	
+C	fsv tickets merge	Irreversibly merge secondary tickets into the surviving primary.
+A	fsv tickets merge	<primary>	
+A	fsv tickets merge	<secondary>	
+A	fsv tickets merge	--note-primary	
+A	fsv tickets merge	--note-secondary	
+A	fsv tickets merge	--private-primary	
+A	fsv tickets merge	--private-secondary	
+A	fsv tickets merge	--dry-run	
+A	fsv tickets merge	--yes	
+A	fsv tickets merge	--expect-plan	
+A	fsv tickets merge	--output	
+A	fsv tickets merge	--json	
+C	fsv tickets resolve	Save a resolution note, verify it, then resolve using runtime requirements.
+A	fsv tickets resolve	<id_>	
+A	fsv tickets resolve	--note	
+A	fsv tickets resolve	--set	custom FIELD=VALUE; repeatable
+A	fsv tickets resolve	--dry-run	
+A	fsv tickets resolve	--yes	
+A	fsv tickets resolve	--expect-plan	
+A	fsv tickets resolve	--ack	acknowledge blocking rule messages (bound to the review hash)
+C	fsv tickets close	Close a ticket with a persisted resolution note and required fields.
+A	fsv tickets close	<id_>	
+A	fsv tickets close	--set	
+A	fsv tickets close	--dry-run	
+A	fsv tickets close	--yes	
+A	fsv tickets close	--expect-plan	
+A	fsv tickets close	--ack	acknowledge blocking rule messages (bound to the review hash)
+C	fsv tickets reopen	Set the runtime Open status; preserve the resolution note.
+A	fsv tickets reopen	<id_>	
+A	fsv tickets reopen	--dry-run	
+A	fsv tickets reopen	--yes	
+A	fsv tickets reopen	--expect-plan	
+A	fsv tickets reopen	--ack	acknowledge blocking rule messages (bound to the review hash)
+C	fsv tickets status	Reviewed runtime status transition with conditional custom answers.
+A	fsv tickets status	<id_>	
+A	fsv tickets status	<status_>	
+A	fsv tickets status	--set	
+A	fsv tickets status	--dry-run	
+A	fsv tickets status	--yes	
+A	fsv tickets status	--expect-plan	
+A	fsv tickets status	--ack	acknowledge blocking rule messages (bound to the review hash)
+C	fsv tickets bulk-priority	Review priority for explicit ticket IDs; no filter/all-pages expansion.
+A	fsv tickets bulk-priority	<ids>	
+A	fsv tickets bulk-priority	--priority	
+A	fsv tickets bulk-priority	--dry-run	
+A	fsv tickets bulk-priority	--yes	
+A	fsv tickets bulk-priority	--output	output format (JSON only)
+A	fsv tickets bulk-priority	--json	alias for --output json
+A	fsv tickets bulk-priority	--expect-plan	
+C	fsv tickets bulk	Review captured bulk actions on explicit IDs or a complete filtered expansion.
+A	fsv tickets bulk	<action>	
+A	fsv tickets bulk	<ids>	
+A	fsv tickets bulk	--where	
+A	fsv tickets bulk	--select-all	
+A	fsv tickets bulk	--max-records	Required filtered-write bound, 1 to 50.
+A	fsv tickets bulk	--status	
+A	fsv tickets bulk	--agent	
+A	fsv tickets bulk	--group	
+A	fsv tickets bulk	--primary	
+A	fsv tickets bulk	--note-primary	
+A	fsv tickets bulk	--note-secondary	
+A	fsv tickets bulk	--confirm-destructive	
+A	fsv tickets bulk	--dry-run	
+A	fsv tickets bulk	--yes	
+A	fsv tickets bulk	--expect-plan	
+A	fsv tickets bulk	--set	status only: FIELD=VALUE the status's rules require; repeatable
+A	fsv tickets bulk	--json	accepted for symmetry; stdout is always JSON only (selection list goes to stderr)
+C	fsv tickets fields	List discoverable ticket fields.
+A	fsv tickets fields	<search>	field name/label search
+A	fsv tickets fields	--default	show portable Freshservice fields only
+A	fsv tickets fields	--custom	show tenant custom fields only
+A	fsv tickets fields	--required	show only fields required to create
+A	fsv tickets fields	--choices	show choices for a field
+A	fsv tickets fields	--refresh	
+A	fsv tickets fields	--output	output format
+A	fsv tickets fields	--json	alias for --output json
+C	fsv tickets lookup	Look up users, groups, or field choices.
+A	fsv tickets lookup	<kind>	requester | agent | group | field name/label
+A	fsv tickets lookup	<query>	name/email/text to search
+A	fsv tickets lookup	--refresh	fetch current schema choices synchronously
+A	fsv tickets lookup	--output	output format
+A	fsv tickets lookup	--json	alias for --output json
+C	fsv tickets views	List saved view names.
+A	fsv tickets views	--output	output format
+A	fsv tickets views	--json	alias for --output json
+C	fsv tickets search	Full-text keyword search tickets.
+A	fsv tickets search	<query>	free-text keyword(s)
+A	fsv tickets search	--page	
+A	fsv tickets search	--sort	relevance | created | modified
+A	fsv tickets search	--output	output format
+A	fsv tickets search	--json	alias for --output json
+A	fsv tickets search	--npages	fetch exactly N pages (30 results each)
+A	fsv tickets search	--all	fetch all pages (auto-paginate)
+C	fsv tickets url	Print ticket browser URL.
+A	fsv tickets url	<id_>	
+C	fsv tickets add-note	Review and add a ticket note (private by default; not a reply).
+A	fsv tickets add-note	<id_>	
+A	fsv tickets add-note	--body	note body to review
+A	fsv tickets add-note	--public	select a public note visible to the customer
+A	fsv tickets add-note	--confirm-public	separately confirm public visibility
+A	fsv tickets add-note	--html	body is already HTML; otherwise escape plain text
+A	fsv tickets add-note	--notify-email	explicit notification recipient (repeatable; default none)
+A	fsv tickets add-note	--attach	local file (repeatable; reviewed two-step upload)
+A	fsv tickets add-note	--max-bytes	explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)
+A	fsv tickets add-note	--set-status	add and set status (Pending, Resolved or Closed; runtime requirements apply)
+A	fsv tickets add-note	--dry-run	review only; no POST or journal writes
+A	fsv tickets add-note	--read-only	refuse sends
+A	fsv tickets add-note	--yes	confirm the exact previously reviewed --expect-plan
+A	fsv tickets add-note	--expect-plan	full hash from a prior body review
+A	fsv tickets add-note	--no-input	never prompt
+A	fsv tickets add-note	--json	emit structured result
+C	fsv tickets create	Create an incident using the ticket form and business rules.
+A	fsv tickets create	--device	integrated Device inventory ID (repeatable)
+A	fsv tickets create	--from	YAML draft
+A	fsv tickets create	--set	answer LABEL=VALUE (repeatable)
+A	fsv tickets create	--preset	draft preset
+A	fsv tickets create	--edit	edit YAML in a terminal
+A	fsv tickets create	--requester	requester email or exact name
+A	fsv tickets create	--cc	plain CC email (repeatable)
+A	fsv tickets create	--attach	reviewed local file (repeatable)
+A	fsv tickets create	--max-bytes	explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)
+A	fsv tickets create	--dry-run	review and show the payload without sending
+A	fsv tickets create	--output	table or json
+A	fsv tickets create	--json	emit JSON
+A	fsv tickets create	--yes	confirm create
+A	fsv tickets create	--expect-plan	reviewed plan hash prefix
+A	fsv tickets create	--allow-duplicate	allow a known completed duplicate
+A	fsv tickets create	--ack	acknowledge blocking rule messages
+A	fsv tickets create	--no-input	never prompt
+C	fsv tickets approvals	List ticket approvals for approval-capable tickets; some INC tickets may return 404.
+A	fsv tickets approvals	<id_>	
+A	fsv tickets approvals	--output	output format
+A	fsv tickets approvals	--json	alias for --output json
+C	fsv tickets associations	List ticket associations.
+A	fsv tickets associations	<id_>	
+A	fsv tickets associations	--output	output format
+A	fsv tickets associations	--json	alias for --output json
+C	fsv tickets update	Update ticket fields.
+A	fsv tickets update	<id_>	
+A	fsv tickets update	--status	status label or ID
+A	fsv tickets update	--priority	priority label or ID
+A	fsv tickets update	--agent	agent name/email/user ID
+A	fsv tickets update	--group	group name or ID
+A	fsv tickets update	--set	set FIELD=VALUE (repeatable)
+A	fsv tickets update	--tag	tickets only: replace all tags with these values (repeatable)
+A	fsv tickets update	--planned-start	tickets and problems: ISO date/time with explicit UTC offset
+A	fsv tickets update	--planned-end	tickets and problems: ISO date/time with explicit UTC offset
+A	fsv tickets update	--planned-effort	problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field
+A	fsv tickets update	--reviewed	tickets only: evaluate --set and core flags as a hash-bound property plan
+A	fsv tickets update	--ack	tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)
+A	fsv tickets update	--expect-plan	full reviewed hash for ticket property update
+A	fsv tickets update	--dry-run	print resolved payload without updating
+A	fsv tickets update	--yes	confirm status changes, reassignment and other notifying writes
+A	fsv tickets update	--json	emit JSON
+A	fsv tickets update	--no-input	fail instead of prompting
+C	fsv tickets download	Download ticket attachments.
+A	fsv tickets download	<id_>	
+A	fsv tickets download	--attachments	download main attachments
+A	fsv tickets download	--conversations	download attachments from conversations/replies
+A	fsv tickets download	--description-attachments	download attachment links found in description HTML
+A	fsv tickets download	--all	download all attachments from all sources
+A	fsv tickets download	--dir	output directory
+A	fsv tickets download	--force	overwrite existing files
+A	fsv tickets download	--json	emit JSON manifest
+C	fsv tickets conversations	List ticket conversations/replies.
+A	fsv tickets conversations	<id_>	
+A	fsv tickets conversations	--page	
+A	fsv tickets conversations	--per-page	
+A	fsv tickets conversations	--output	output format
+A	fsv tickets conversations	--json	alias for --output json
+A	fsv tickets conversations	--all	fetch all pages (auto-paginate)
+A	fsv tickets conversations	--npages	fetch exactly N pages
+C	fsv tickets reply	Add a ticket reply.
+A	fsv tickets reply	<id_>	
+A	fsv tickets reply	<body>	
+A	fsv tickets reply	--cc	CC email from user lookup (repeatable)
+A	fsv tickets reply	--bcc	BCC plain email from user lookup (repeatable; requires --sender)
+A	fsv tickets reply	--attach	local attachment (repeatable; requires full review and --sender)
+A	fsv tickets reply	--max-bytes	explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)
+A	fsv tickets reply	--json	
+A	fsv tickets reply	--sender	explicit configured support mailbox; not inferred
+A	fsv tickets reply	--set-status	send and set status (Pending, Resolved or Closed; runtime requirements apply)
+A	fsv tickets reply	--expect-plan	full hash from prior reply review
+A	fsv tickets reply	--dry-run	print the reply without sending it
+A	fsv tickets reply	--yes	confirm sending the reply
+A	fsv tickets reply	--no-input	fail instead of prompting
+C	fsv tickets forward	Review a whole-ticket or exact-conversation forward.
+A	fsv tickets forward	<id_>	
+A	fsv tickets forward	<body>	
+A	fsv tickets forward	--conversation	exact source conversation ID in this ticket
+A	fsv tickets forward	--to	plain recipient email (repeatable)
+A	fsv tickets forward	--sender	configured support mailbox; not inferred
+A	fsv tickets forward	--output	output format (JSON only)
+A	fsv tickets forward	--json	alias for --output json
+A	fsv tickets forward	--dry-run	
+A	fsv tickets forward	--yes	
+A	fsv tickets forward	--expect-plan	
+C	fsv tickets assets	Integrated Devices and Business services; IDs are inventory IDs, not legacy display IDs.
+C	fsv tickets assets ls	
+A	fsv tickets assets ls	<target>	
+A	fsv tickets assets ls	--kind	
+A	fsv tickets assets ls	--json	
+C	fsv tickets assets list	
+A	fsv tickets assets list	<target>	
+A	fsv tickets assets list	--kind	
+A	fsv tickets assets list	--json	
+C	fsv tickets assets candidates	Assets the web offers to associate (legacy asset association driver).
+A	fsv tickets assets candidates	<target>	
+A	fsv tickets assets candidates	--json	
+C	fsv tickets assets add	
+A	fsv tickets assets add	<target>	
+A	fsv tickets assets add	<ids>	
+A	fsv tickets assets add	--kind	
+A	fsv tickets assets add	--dry-run	
+A	fsv tickets assets add	--yes	
+A	fsv tickets assets add	--expect-plan	
+A	fsv tickets assets add	--read-only	
+A	fsv tickets assets add	--json	
+C	fsv tickets assets remove	
+A	fsv tickets assets remove	<target>	
+A	fsv tickets assets remove	<ids>	
+A	fsv tickets assets remove	--kind	
+A	fsv tickets assets remove	--dry-run	
+A	fsv tickets assets remove	--yes	
+A	fsv tickets assets remove	--expect-plan	
+A	fsv tickets assets remove	--read-only	
+A	fsv tickets assets remove	--json	
+C	fsv tickets columns	Inspect/set native list columns (shared account preferences may be affected).
+C	fsv tickets columns list	
+A	fsv tickets columns list	--output	
+A	fsv tickets columns list	--json	
+C	fsv tickets columns set	
+A	fsv tickets columns set	--column	exact runtime column name, in desired order (repeatable)
+A	fsv tickets columns set	--freeze	captured change requester freeze only; display_id is automatic
+A	fsv tickets columns set	--dry-run	
+A	fsv tickets columns set	--yes	
+A	fsv tickets columns set	--expect-plan	
+A	fsv tickets columns set	--output	
+A	fsv tickets columns set	--json	
+C	fsv tickets watchers	Read watcher membership and review self-only watch changes.
+C	fsv tickets watchers list	
+A	fsv tickets watchers list	<id_>	
+A	fsv tickets watchers list	--output	output format (JSON only)
+A	fsv tickets watchers list	--json	alias for --output json
+C	fsv tickets watchers set	
+A	fsv tickets watchers set	<id_>	
+A	fsv tickets watchers set	--watch	
+A	fsv tickets watchers set	--dry-run	
+A	fsv tickets watchers set	--yes	
+A	fsv tickets watchers set	--output	output format (JSON only)
+A	fsv tickets watchers set	--json	alias for --output json
+A	fsv tickets watchers set	--expect-plan	
+C	fsv tickets tasks	List, add, change status, or delete ticket tasks.
+C	fsv tickets tasks list	
+A	fsv tickets tasks list	<target>	
+A	fsv tickets tasks list	--json	
+C	fsv tickets tasks add	
+A	fsv tickets tasks add	<target>	
+A	fsv tickets tasks add	--title	
+A	fsv tickets tasks add	--status	
+A	fsv tickets tasks add	--owner	
+A	fsv tickets tasks add	--group	
+A	fsv tickets tasks add	--set	
+A	fsv tickets tasks add	--dry-run	
+A	fsv tickets tasks add	--yes	
+A	fsv tickets tasks add	--expect-plan	
+A	fsv tickets tasks add	--json	
+C	fsv tickets tasks update	
+A	fsv tickets tasks update	<target>	
+A	fsv tickets tasks update	<task>	
+A	fsv tickets tasks update	--title	
+A	fsv tickets tasks update	--owner	
+A	fsv tickets tasks update	--group	
+A	fsv tickets tasks update	--dry-run	
+A	fsv tickets tasks update	--yes	
+A	fsv tickets tasks update	--expect-plan	
+A	fsv tickets tasks update	--json	
+C	fsv tickets tasks status	
+A	fsv tickets tasks status	<target>	
+A	fsv tickets tasks status	<task>	
+A	fsv tickets tasks status	--to	
+A	fsv tickets tasks status	--dry-run	
+A	fsv tickets tasks status	--yes	
+A	fsv tickets tasks status	--expect-plan	
+A	fsv tickets tasks status	--json	
+C	fsv tickets tasks delete	
+A	fsv tickets tasks delete	<target>	
+A	fsv tickets tasks delete	<task>	
+A	fsv tickets tasks delete	--dry-run	
+A	fsv tickets tasks delete	--yes	
+A	fsv tickets tasks delete	--expect-plan	
+A	fsv tickets tasks delete	--json	
+C	fsv tickets private-views	Private ticket views: clone, rename or delete an exact self-owned non-default view.
+C	fsv tickets private-views show	
+A	fsv tickets private-views show	<id_>	
+A	fsv tickets private-views show	--output	
+A	fsv tickets private-views show	--json	
+C	fsv tickets private-views write	
+A	fsv tickets private-views write	<id_>	
+A	fsv tickets private-views write	<action>	create (clone source) | edit (rename) | delete
+A	fsv tickets private-views write	--name	
+A	fsv tickets private-views write	--dry-run	
+A	fsv tickets private-views write	--yes	
+A	fsv tickets private-views write	--expect-plan	
+A	fsv tickets private-views write	--output	
+A	fsv tickets private-views write	--json	
+C	fsv tickets canned	Read canned responses and insert selected literal HTML into a reviewed reply.
+C	fsv tickets canned folders	
+A	fsv tickets canned folders	--output	
+A	fsv tickets canned folders	--json	
+C	fsv tickets canned list	
+A	fsv tickets canned list	--folder	
+A	fsv tickets canned list	--output	
+A	fsv tickets canned list	--json	
+C	fsv tickets canned show	
+A	fsv tickets canned show	<id_>	
+A	fsv tickets canned show	--output	
+A	fsv tickets canned show	--json	
+C	fsv tickets canned reply	
+A	fsv tickets canned reply	<target>	
+A	fsv tickets canned reply	--response	
+A	fsv tickets canned reply	--content-pointer	JSON pointer from show; no automatic template expansion
+A	fsv tickets canned reply	--sender	explicit configured support mailbox
+A	fsv tickets canned reply	--dry-run	
+A	fsv tickets canned reply	--yes	
+A	fsv tickets canned reply	--expect-plan	
+A	fsv tickets canned reply	--output	
+A	fsv tickets canned reply	--json	
+C	fsv tickets scenarios	Read/review native scenarios. Execution side effects remain unverified.
+C	fsv tickets scenarios list	
+A	fsv tickets scenarios list	--output	
+A	fsv tickets scenarios list	--json	
+C	fsv tickets scenarios show	
+A	fsv tickets scenarios show	<id_>	
+A	fsv tickets scenarios show	--output	
+A	fsv tickets scenarios show	--json	
+C	fsv tickets scenarios apply	Review native scenario execution on one ticket; may send mail or trigger workflows, not just insert reply text.
+A	fsv tickets scenarios apply	<target>	
+A	fsv tickets scenarios apply	--scenario	
+A	fsv tickets scenarios apply	--dry-run	
+A	fsv tickets scenarios apply	--yes	
+A	fsv tickets scenarios apply	--expect-plan	
+A	fsv tickets scenarios apply	--output	
+A	fsv tickets scenarios apply	--json	
+C	fsv tickets time	Reviewed self-owned, nonbillable manual time entries.
+C	fsv tickets time list	
+A	fsv tickets time list	<id_>	
+A	fsv tickets time list	--output	output format (JSON only)
+A	fsv tickets time list	--json	alias for --output json
+C	fsv tickets time write	
+A	fsv tickets time write	<id_>	
+A	fsv tickets time write	<action>	create | update | delete
+A	fsv tickets time write	--entry	exact existing entry ID for update/delete
+A	fsv tickets time write	--spent	manual duration HH:MM
+A	fsv tickets time write	--executed-at	ISO timestamp with explicit offset
+A	fsv tickets time write	--note	
+A	fsv tickets time write	--dry-run	
+A	fsv tickets time write	--yes	
+A	fsv tickets time write	--output	output format (JSON only)
+A	fsv tickets time write	--json	alias for --output json
+A	fsv tickets time write	--expect-plan	
+C	fsv problems	problems commands
+C	fsv problems ls	List problems.
+A	fsv problems ls	--view	saved view by name as the web shows it (exact or unique prefix; see `views`); default: the view the server marks default
+A	fsv problems ls	--where	filter like the web's filter panel: LABEL=VALUE, e.g. Status=Open, Agents=Me, Created='Last 6 months', 'Environment=(empty)'; internal names work too
+A	fsv problems ls	--query-hash	raw or URL-encoded Freshservice query_hash JSON array
+A	fsv problems ls	--or	combine --where conditions with OR instead of AND
+A	fsv problems ls	--debug	show resolved query_hash and exit
+A	fsv problems ls	--per-page	
+A	fsv problems ls	--page	
+A	fsv problems ls	--order-by	sort field, e.g. created_at
+A	fsv problems ls	--order-type	asc | desc
+A	fsv problems ls	--all	fetch all pages (auto-paginate)
+A	fsv problems ls	--npages	fetch exactly N pages
+A	fsv problems ls	--output	output format
+A	fsv problems ls	--json	alias for --output json
+A	fsv problems ls	--pager	page long table output when stdout is a TTY
+A	fsv problems ls	--no-defaults	ignore default --where filters from config
+C	fsv problems get	Show one problem.
+A	fsv problems get	<id_>	
+A	fsv problems get	--tab	show one tab of the page: notes|tasks|assets|associations|activity (only tabs the server shows)
+A	fsv problems get	--all-tabs	print the Details tab and every other tab the server shows
+A	fsv problems get	--all-conversations	every conversation, not only the latest (tickets)
+A	fsv problems get	--stats	with --json: the record plus planning fields and attachment evidence
+A	fsv problems get	--output	output format
+A	fsv problems get	--json	alias for --output json
+C	fsv problems activity	List problem activity.
+A	fsv problems activity	<id_>	
+A	fsv problems activity	--limit	newest N entries (a 'truncated' notice reports the rest)
+A	fsv problems activity	--all	every loaded entry (overrides --limit)
+A	fsv problems activity	--output	output format
+A	fsv problems activity	--json	alias for --output json
+C	fsv problems tasks	List problem tasks.
+A	fsv problems tasks	<id_>	
+A	fsv problems tasks	--output	output format
+A	fsv problems tasks	--json	alias for --output json
+C	fsv problems export	Review a native CSV/30-day export request; may email data, job/download contract is unknown.
+A	fsv problems export	--view	saved view ID or unique name
+A	fsv problems export	--field	captured export field key (repeatable)
+A	fsv problems export	--dry-run	
+A	fsv problems export	--yes	
+A	fsv problems export	--expect-plan	
+A	fsv problems export	--output	
+A	fsv problems export	--json	
+C	fsv problems task-write	Review a problem task update, complete or delete; completion may rewrite planned dates.
+A	fsv problems task-write	<target>	
+A	fsv problems task-write	<task>	
+A	fsv problems task-write	<action>	
+A	fsv problems task-write	--title	
+A	fsv problems task-write	--status	
+A	fsv problems task-write	--owner	
+A	fsv problems task-write	--group	
+A	fsv problems task-write	--note	
+A	fsv problems task-write	--due-date	
+A	fsv problems task-write	--planned-start	
+A	fsv problems task-write	--planned-end	
+A	fsv problems task-write	--planned-effort	
+A	fsv problems task-write	--notify-before	
+A	fsv problems task-write	--dry-run	
+A	fsv problems task-write	--yes	
+A	fsv problems task-write	--expect-plan	
+A	fsv problems task-write	--json	
+C	fsv problems link-incident	Review an incident association to a problem.
+A	fsv problems link-incident	<problem>	
+A	fsv problems link-incident	<incident>	
+A	fsv problems link-incident	--dry-run	
+A	fsv problems link-incident	--yes	
+A	fsv problems link-incident	--expect-plan	
+A	fsv problems link-incident	--output	
+A	fsv problems link-incident	--json	
+C	fsv problems unlink-incident	Review removal of a problem-incident association.
+A	fsv problems unlink-incident	<problem>	
+A	fsv problems unlink-incident	<incident>	
+A	fsv problems unlink-incident	--dry-run	
+A	fsv problems unlink-incident	--yes	
+A	fsv problems unlink-incident	--expect-plan	
+A	fsv problems unlink-incident	--output	
+A	fsv problems unlink-incident	--json	
+C	fsv problems note	Review a problem note, optionally with local attachments; visibility is not inferred.
+A	fsv problems note	<target>	
+A	fsv problems note	--body	
+A	fsv problems note	--attach	
+A	fsv problems note	--max-bytes	explicit total attachment size limit in bytes; replaces the tenant-published limit (required to send when the tenant publishes none)
+A	fsv problems note	--dry-run	
+A	fsv problems note	--yes	
+A	fsv problems note	--expect-plan	
+A	fsv problems note	--json	
+C	fsv problems status	Review a metadata-backed problem status transition, including closure checks.
+A	fsv problems status	<target>	
+A	fsv problems status	--to	
+A	fsv problems status	--dry-run	
+A	fsv problems status	--yes	
+A	fsv problems status	--expect-plan	
+A	fsv problems status	--json	
+C	fsv problems create	Create a problem through fresh form fields and business rules; no files.
+A	fsv problems create	--from	YAML answers draft
+A	fsv problems create	--set	LABEL=VALUE (repeatable)
+A	fsv problems create	--requester	exact requester email/name lookup
+A	fsv problems create	--dry-run	
+A	fsv problems create	--yes	
+A	fsv problems create	--expect-plan	
+A	fsv problems create	--output	
+A	fsv problems create	--json	
+C	fsv problems write-child	Review a body-only note or basic self-owned one-minute task; note visibility is not proven.
+A	fsv problems write-child	<target>	
+A	fsv problems write-child	<kind>	note | task
+A	fsv problems write-child	<text>	note body HTML/text or task title
+A	fsv problems write-child	--dry-run	
+A	fsv problems write-child	--yes	
+A	fsv problems write-child	--expect-plan	
+A	fsv problems write-child	--output	
+A	fsv problems write-child	--json	
+C	fsv problems link-solution	
+A	fsv problems link-solution	<target>	
+A	fsv problems link-solution	<article>	
+A	fsv problems link-solution	--dry-run	
+A	fsv problems link-solution	--yes	
+A	fsv problems link-solution	--expect-plan	
+A	fsv problems link-solution	--read-only	
+A	fsv problems link-solution	--json	
+C	fsv problems unlink-solution	
+A	fsv problems unlink-solution	<target>	
+A	fsv problems unlink-solution	<article>	
+A	fsv problems unlink-solution	--dry-run	
+A	fsv problems unlink-solution	--yes	
+A	fsv problems unlink-solution	--expect-plan	
+A	fsv problems unlink-solution	--read-only	
+A	fsv problems unlink-solution	--json	
+C	fsv problems mark-known-error	Review marking a problem as a known error; no reversal wire is proven.
+A	fsv problems mark-known-error	<id_>	
+A	fsv problems mark-known-error	--dry-run	
+A	fsv problems mark-known-error	--yes	
+A	fsv problems mark-known-error	--output	output format (JSON only)
+A	fsv problems mark-known-error	--json	alias for --output json
+A	fsv problems mark-known-error	--expect-plan	
+C	fsv problems planning-text	Review a native planning/analysis text section; no files.
+A	fsv problems planning-text	<id_>	
+A	fsv problems planning-text	--section	exact metadata label/name; problems: Root Cause, Impact, Symptoms
+A	fsv problems planning-text	--description	text/HTML; reviewed verbatim; mutually exclusive with --clear
+A	fsv problems planning-text	--clear	delete existing section text; refuses files or unknown state
+A	fsv problems planning-text	--dry-run	
+A	fsv problems planning-text	--yes	
+A	fsv problems planning-text	--output	output format (JSON only)
+A	fsv problems planning-text	--json	alias for --output json
+A	fsv problems planning-text	--expect-plan	
+C	fsv problems fields	List discoverable problem fields.
+A	fsv problems fields	<search>	field name/label search
+A	fsv problems fields	--default	show portable Freshservice fields only
+A	fsv problems fields	--custom	show tenant custom fields only
+A	fsv problems fields	--required	show only fields required to create
+A	fsv problems fields	--choices	show choices for a field
+A	fsv problems fields	--refresh	
+A	fsv problems fields	--output	output format
+A	fsv problems fields	--json	alias for --output json
+C	fsv problems lookup	Look up users, groups, or field choices.
+A	fsv problems lookup	<kind>	requester | agent | group | field name/label
+A	fsv problems lookup	<query>	name/email/text to search
+A	fsv problems lookup	--refresh	fetch current schema choices synchronously
+A	fsv problems lookup	--output	output format
+A	fsv problems lookup	--json	alias for --output json
+C	fsv problems views	List saved view names.
+A	fsv problems views	--output	output format
+A	fsv problems views	--json	alias for --output json
+C	fsv problems search	Full-text keyword search problems.
+A	fsv problems search	<query>	free-text keyword(s)
+A	fsv problems search	--page	
+A	fsv problems search	--sort	relevance | created | modified
+A	fsv problems search	--output	output format
+A	fsv problems search	--json	alias for --output json
+A	fsv problems search	--npages	fetch exactly N pages (30 results each)
+A	fsv problems search	--all	fetch all pages (auto-paginate)
+C	fsv problems url	Print problem browser URL.
+A	fsv problems url	<id_>	
+C	fsv problems update	Update problem fields.
+A	fsv problems update	<id_>	
+A	fsv problems update	--status	status label or ID
+A	fsv problems update	--priority	priority label or ID
+A	fsv problems update	--agent	agent name/email/user ID
+A	fsv problems update	--group	group name or ID
+A	fsv problems update	--set	set FIELD=VALUE (repeatable)
+A	fsv problems update	--tag	tickets only: replace all tags with these values (repeatable)
+A	fsv problems update	--planned-start	tickets and problems: ISO date/time with explicit UTC offset
+A	fsv problems update	--planned-end	tickets and problems: ISO date/time with explicit UTC offset
+A	fsv problems update	--planned-effort	problems only: 1h30m or 01:30 (sent as '1h 30m'), when the problem form has the field
+A	fsv problems update	--reviewed	tickets only: evaluate --set and core flags as a hash-bound property plan
+A	fsv problems update	--ack	tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)
+A	fsv problems update	--expect-plan	full reviewed hash for ticket property update
+A	fsv problems update	--dry-run	print resolved payload without updating
+A	fsv problems update	--yes	confirm status changes, reassignment and other notifying writes
+A	fsv problems update	--json	emit JSON
+A	fsv problems update	--no-input	fail instead of prompting
+C	fsv problems download	Download problem attachments.
+A	fsv problems download	<id_>	
+A	fsv problems download	--attachments	download main attachments
+A	fsv problems download	--notes	download attachments from notes
+A	fsv problems download	--description-attachments	download attachment links found in description HTML
+A	fsv problems download	--all	download all attachments from all sources
+A	fsv problems download	--dir	output directory
+A	fsv problems download	--force	overwrite existing files
+A	fsv problems download	--json	emit JSON manifest
+C	fsv problems notes	List problem notes.
+A	fsv problems notes	<id_>	
+A	fsv problems notes	--page	
+A	fsv problems notes	--per-page	
+A	fsv problems notes	--output	output format
+A	fsv problems notes	--json	alias for --output json
+A	fsv problems notes	--all	fetch all pages (auto-paginate)
+A	fsv problems notes	--npages	fetch exactly N pages
+C	fsv problems add-note	Add problem note.
+A	fsv problems add-note	<id_>	
+A	fsv problems add-note	<body>	HTML or plain text
+A	fsv problems add-note	--public	
+A	fsv problems add-note	--dry-run	print the note without adding it
+A	fsv problems add-note	--yes	confirm a public note
+A	fsv problems add-note	--no-input	fail instead of prompting
+C	fsv problems assets	Integrated Devices and Business services; IDs are inventory IDs, not legacy display IDs.
+C	fsv problems assets ls	
+A	fsv problems assets ls	<target>	
+A	fsv problems assets ls	--kind	
+A	fsv problems assets ls	--json	
+C	fsv problems assets list	
+A	fsv problems assets list	<target>	
+A	fsv problems assets list	--kind	
+A	fsv problems assets list	--json	
+C	fsv problems assets candidates	Assets the web offers to associate (legacy asset association driver).
+A	fsv problems assets candidates	<target>	
+A	fsv problems assets candidates	--json	
+C	fsv problems assets add	
+A	fsv problems assets add	<target>	
+A	fsv problems assets add	<ids>	
+A	fsv problems assets add	--kind	
+A	fsv problems assets add	--dry-run	
+A	fsv problems assets add	--yes	
+A	fsv problems assets add	--expect-plan	
+A	fsv problems assets add	--read-only	
+A	fsv problems assets add	--json	
+C	fsv problems assets remove	
+A	fsv problems assets remove	<target>	
+A	fsv problems assets remove	<ids>	
+A	fsv problems assets remove	--kind	
+A	fsv problems assets remove	--dry-run	
+A	fsv problems assets remove	--yes	
+A	fsv problems assets remove	--expect-plan	
+A	fsv problems assets remove	--read-only	
+A	fsv problems assets remove	--json	
+C	fsv problems columns	Inspect/set native list columns (shared account preferences may be affected).
+C	fsv problems columns list	
+A	fsv problems columns list	--output	
+A	fsv problems columns list	--json	
+C	fsv problems columns set	
+A	fsv problems columns set	--column	exact runtime column name, in desired order (repeatable)
+A	fsv problems columns set	--freeze	captured change requester freeze only; display_id is automatic
+A	fsv problems columns set	--dry-run	
+A	fsv problems columns set	--yes	
+A	fsv problems columns set	--expect-plan	
+A	fsv problems columns set	--output	
+A	fsv problems columns set	--json	
+C	fsv problems time	Reviewed self-owned manual time entries; problem updates remain blocked.
+C	fsv problems time list	
+A	fsv problems time list	<id_>	
+A	fsv problems time list	--output	output format (JSON only)
+A	fsv problems time list	--json	alias for --output json
+C	fsv problems time write	
+A	fsv problems time write	<id_>	
+A	fsv problems time write	<action>	create | update | delete
+A	fsv problems time write	--entry	exact existing entry ID for update/delete
+A	fsv problems time write	--spent	manual duration HH:MM
+A	fsv problems time write	--executed-at	ISO timestamp with explicit offset
+A	fsv problems time write	--note	
+A	fsv problems time write	--billable	
+A	fsv problems time write	--dry-run	
+A	fsv problems time write	--yes	
+A	fsv problems time write	--output	output format (JSON only)
+A	fsv problems time write	--json	alias for --output json
+A	fsv problems time write	--expect-plan	
+C	fsv attachments	Reviewed attachment deletion with independent owner readback.
+C	fsv attachments delete	
+A	fsv attachments delete	<ident>	
+A	fsv attachments delete	--owner	tickets/ID, problems/ID or changes/ID
+A	fsv attachments delete	--child	exact conversation/note ID
+A	fsv attachments delete	--section	exact native planning section key
+A	fsv attachments delete	--dry-run	
+A	fsv attachments delete	--yes	
+A	fsv attachments delete	--expect-plan	
+A	fsv attachments delete	--json	
+C	fsv form	inspect form fields and business rules (explain, fields, dump, diff)
+C	fsv form explain	Why each field is visible, required or hidden, by rule.
+A	fsv form explain	<module>	form: changes
+A	fsv form explain	--set	answer LABEL=VALUE (repeatable)
+A	fsv form explain	--from	draft YAML with answers
+A	fsv form explain	--preset	preset name or path
+A	fsv form explain	--id	explain the edit form of this record
+A	fsv form explain	--all	also list fields hidden by metadata/sections
+A	fsv form explain	--output	table|json
+C	fsv form fields	Fields in web order with labels, help text and choices.
+A	fsv form fields	<module>	form: changes
+A	fsv form fields	--choices	list the choices of this field (label or name)
+A	fsv form fields	--output	table|json
+C	fsv form dump	Print a metadata snapshot (fields + rules) as JSON. Keep it local: the requesting user's profile is left out.
+A	fsv form dump	<module>	form: changes
+A	fsv form dump	--mode	new|edit (which form's rules)
+C	fsv form diff	Compare a snapshot with the current metadata (or another snapshot).
+A	fsv form diff	<snapshot>	snapshot from `fsv form dump`
+A	fsv form diff	--against	compare with this snapshot instead of the server
+A	fsv form diff	--output	table|json
+C	fsv sr	service requests: browse the catalog, see an item's form, place and read requests
+C	fsv sr catalog	List catalog categories and items (name, short description, id).
+A	fsv sr catalog	--category	category name or id
+A	fsv sr catalog	--search	words in the name or description
+A	fsv sr catalog	--popular	only frequently requested items
+A	fsv sr catalog	--categories	list the categories only
+A	fsv sr catalog	--output	table|json
+C	fsv sr fields	Show an item's form like the web: labels, required, help, choices, fields revealed by a choice, and the attachment rules.
+A	fsv sr fields	<item>	catalog item id or name
+A	fsv sr fields	--output	table|json
+C	fsv sr create	Place a service request from a catalog item (review first; files are uploaded only after you confirm).
+A	fsv sr create	<item>	catalog item id or name
+A	fsv sr create	--from	draft YAML (requester, answers, attachments)
+A	fsv sr create	--set	answer LABEL=VALUE (repeatable; file fields take a path)
+A	fsv sr create	--preset	preset name or path (partial answers)
+A	fsv sr create	--edit	advanced: the annotated YAML draft in $EDITOR (default in a terminal: the interactive form)
+A	fsv sr create	--requester	requester email or exact name
+A	fsv sr create	--requested-for	exact user email or name
+A	fsv sr create	--cc	plain CC email (repeatable)
+A	fsv sr create	--attach	general attachment (repeatable)
+A	fsv sr create	--dry-run	show the review, payload and plan hash; send nothing
+A	fsv sr create	--output	table|json (with --dry-run: the plan)
+A	fsv sr create	--yes	place without the prompt (required without a terminal)
+A	fsv sr create	--expect-plan	refuse unless the plan hash matches
+A	fsv sr create	--allow-duplicate	send a plan the journal says was sent
+A	fsv sr create	--ack	acknowledge blocking rule messages
+A	fsv sr create	--no-input	never prompt
+C	fsv sr get	A service request's requested-item values (labels, not internal names) and its attachments.
+A	fsv sr get	<sr_id>	
+A	fsv sr get	--items	requested item values, by label
+A	fsv sr get	--attachments	list attachments
+A	fsv sr get	--download	download attachments into DIR; prefix names starting with - with ./
+A	fsv sr get	--force	overwrite files that exist in DIR
+A	fsv sr get	--output	table|json
+C	fsv sr assets	Integrated Devices and Business services; IDs are inventory IDs, not legacy display IDs.
+C	fsv sr assets ls	
+A	fsv sr assets ls	<target>	
+A	fsv sr assets ls	--kind	
+A	fsv sr assets ls	--json	
+C	fsv sr assets list	
+A	fsv sr assets list	<target>	
+A	fsv sr assets list	--kind	
+A	fsv sr assets list	--json	
+C	fsv sr assets candidates	Assets the web offers to associate (legacy asset association driver).
+A	fsv sr assets candidates	<target>	
+A	fsv sr assets candidates	--json	
+C	fsv sr assets add	
+A	fsv sr assets add	<target>	
+A	fsv sr assets add	<ids>	
+A	fsv sr assets add	--kind	
+A	fsv sr assets add	--dry-run	
+A	fsv sr assets add	--yes	
+A	fsv sr assets add	--expect-plan	
+A	fsv sr assets add	--read-only	
+A	fsv sr assets add	--json	
+C	fsv sr assets remove	
+A	fsv sr assets remove	<target>	
+A	fsv sr assets remove	<ids>	
+A	fsv sr assets remove	--kind	
+A	fsv sr assets remove	--dry-run	
+A	fsv sr assets remove	--yes	
+A	fsv sr assets remove	--expect-plan	
+A	fsv sr assets remove	--read-only	
+A	fsv sr assets remove	--json	
+C	fsv sr approvals	Approval actions send irreversible notifications; delegation is not supported.
+C	fsv sr approvals list	
+A	fsv sr approvals list	<target>	
+A	fsv sr approvals list	--json	
+C	fsv sr approvals request	
+A	fsv sr approvals request	<target>	
+A	fsv sr approvals request	--name	approval group name (approval chains model)
+A	fsv sr approvals request	--message	email text (approval chains model)
+A	fsv sr approvals request	--approver	
+A	fsv sr approvals request	--rule	
+A	fsv sr approvals request	--dry-run	
+A	fsv sr approvals request	--yes	
+A	fsv sr approvals request	--expect-plan	
+A	fsv sr approvals request	--read-only	
+A	fsv sr approvals request	--json	
+C	fsv sr approvals approve	
+A	fsv sr approvals approve	<target>	
+A	fsv sr approvals approve	<ident>	approval ID; cancel requires group ID
+A	fsv sr approvals approve	--remark	
+A	fsv sr approvals approve	--dry-run	
+A	fsv sr approvals approve	--yes	
+A	fsv sr approvals approve	--expect-plan	
+A	fsv sr approvals approve	--read-only	
+A	fsv sr approvals approve	--json	
+C	fsv sr approvals reject	
+A	fsv sr approvals reject	<target>	
+A	fsv sr approvals reject	<ident>	approval ID; cancel requires group ID
+A	fsv sr approvals reject	--remark	
+A	fsv sr approvals reject	--dry-run	
+A	fsv sr approvals reject	--yes	
+A	fsv sr approvals reject	--expect-plan	
+A	fsv sr approvals reject	--read-only	
+A	fsv sr approvals reject	--json	
+C	fsv sr approvals cancel	
+A	fsv sr approvals cancel	<target>	
+A	fsv sr approvals cancel	<ident>	approval ID; cancel requires group ID
+A	fsv sr approvals cancel	--remark	
+A	fsv sr approvals cancel	--dry-run	
+A	fsv sr approvals cancel	--yes	
+A	fsv sr approvals cancel	--expect-plan	
+A	fsv sr approvals cancel	--read-only	
+A	fsv sr approvals cancel	--json	
+C	fsv sr approvals remind	
+A	fsv sr approvals remind	<target>	
+A	fsv sr approvals remind	<ident>	approval ID; cancel requires group ID
+A	fsv sr approvals remind	--remark	
+A	fsv sr approvals remind	--dry-run	
+A	fsv sr approvals remind	--yes	
+A	fsv sr approvals remind	--expect-plan	
+A	fsv sr approvals remind	--read-only	
+A	fsv sr approvals remind	--json	
+C	fsv sr items	Requested-item text answers, captured stage 2, add and non-parent removal.
+C	fsv sr items list	
+A	fsv sr items list	<target>	
+A	fsv sr items list	--json	
+C	fsv sr items write	
+A	fsv sr items write	<target>	
+A	fsv sr items write	<action>	
+A	fsv sr items write	--item	
+A	fsv sr items write	--catalog-item	
+A	fsv sr items write	--answers-json	changed API-name text answers as JSON object
+A	fsv sr items write	--stage	
+A	fsv sr items write	--dry-run	
+A	fsv sr items write	--yes	
+A	fsv sr items write	--expect-plan	
+A	fsv sr items write	--json	

@@ -132,3 +132,52 @@ fn every_python_module_has_a_rust_counterpart() {
         );
     }
 }
+
+fn flat(text: &str) -> String {
+    text.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
+#[test]
+fn command_help_matches_python() {
+    fn text(v: Option<&clap::builder::StyledStr>) -> String {
+        flat(&v.map(|s| s.to_string()).unwrap_or_default())
+    }
+    fn walk(cmd: &clap::Command, prefix: &str, out: &mut BTreeSet<(String, String)>) {
+        let path = if prefix.is_empty() {
+            cmd.get_name().to_string()
+        } else {
+            format!("{prefix} {}", cmd.get_name())
+        };
+        out.insert((format!("C\t{path}"), text(cmd.get_about())));
+        for arg in cmd.get_arguments() {
+            let key = if let Some(long) = arg.get_long() {
+                format!("--{long}")
+            } else if arg.is_positional() {
+                format!("<{}>", arg.get_id())
+            } else {
+                continue;
+            };
+            out.insert((format!("A\t{path}\t{key}"), text(arg.get_help())));
+        }
+        for sub in cmd.get_subcommands() {
+            walk(sub, &path, out);
+        }
+    }
+    let mut rust = BTreeSet::new();
+    walk(&fsv_cli::command(), "", &mut rust);
+    let rust: std::collections::BTreeMap<_, _> = rust.into_iter().collect();
+    let raw = std::fs::read_to_string(repo_root().join("port/command_help.txt")).unwrap();
+    let mut missing = Vec::new();
+    for line in raw.lines() {
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let (key, help) = line.rsplit_once('\t').unwrap();
+        match rust.get(key) {
+            Some(got) if got == &flat(help) => {}
+            Some(got) => missing.push(format!("{key}\n  python: {help}\n  rust:   {got}")),
+            None => missing.push(format!("{key}\n  missing from rust")),
+        }
+    }
+    assert!(missing.is_empty(), "{}", missing.join("\n"));
+}
