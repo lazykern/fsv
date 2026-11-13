@@ -165,3 +165,14 @@ def test_forward_uncaptured_variants_refused():
     with pytest.raises(ValueError, match="forward requires"):
         conv.build_plan(c, 123, "Hello", kind="forward", sender="support@example.com", notify=("person@example.com",), set_status="Pending")
 
+
+
+@pytest.mark.parametrize("cmd", [["tickets", "reply", "123", "Hello"], ["tickets", "add-note", "123", "--body", "Private"]])
+def test_cli_set_status_invalid_choice_lists_choices(monkeypatch, cmd):
+    c = Client()
+    monkeypatch.setattr(cli, "_client", lambda: c)
+    monkeypatch.setattr("fsv.ticket_notes.get_client", lambda: c)
+    r = CliRunner().invoke(cli.app, cmd + ["--set-status", "Bogus", "--dry-run"])
+    assert r.exit_code == 2, r.output
+    assert "choices: Pending, Resolved, Closed" in r.output and "Traceback" not in r.output
+    assert not c.writes

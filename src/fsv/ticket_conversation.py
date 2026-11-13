@@ -99,8 +99,17 @@ def status_context(client: Any, cid: int, label: str) -> tuple[int, str, str]:
         raise ConversationError("could not resolve Pending and evaluate ticket rules from fresh metadata; no send attempted") from None
 
 
+SET_STATUS_CHOICES = ("Pending", "Resolved", "Closed")
+
+
 def status_fields(client: Any, cid: int, label: str, *, ack: bool = False) -> tuple[dict[str, Any], str]:
-    if isinstance(label, str) and label.casefold() in {"resolved", "closed"}:
+    if not isinstance(label, str) or label.strip().casefold() not in {c.casefold() for c in SET_STATUS_CHOICES}:
+        # Local usage refusal (exit 2) that names the accepted values, like
+        # `tickets resolve --set`; only these transitions have captured wires.
+        raise ValueError(f"--set-status {label!r} is not a supported status; choices: "
+                         f"{', '.join(SET_STATUS_CHOICES)}; nothing was sent")
+    label = label.strip()
+    if label.casefold() in {"resolved", "closed"}:
         from fsv.ticket_lifecycle import context
         from fsv.reviewed_write import ReviewedWriteError
         try:
