@@ -53,6 +53,33 @@ fn walk(node: &Value, cmd: &Command, seen: &mut Vec<String>, problems: &mut Vec<
                 problems.push(format!("{path}: missing option {o}"));
             }
         }
+        // Option help: compare when Python sets plain text (rich markup is
+        // not reproduced by clap, so `[`-bearing help is skipped).
+        if let Some(want) = p["help"]
+            .as_str()
+            .filter(|h| !h.is_empty() && !h.contains('['))
+        {
+            // Match by long flag: Python's param names (`sets`) need not equal
+            // the Rust field ids (`set_`).
+            let flag = p["opts"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|o| o.as_str().unwrap())
+                .find(|o| o.starts_with("--"))
+                .unwrap_or_else(|| panic!("{path}: no long flag for {p}"))
+                .trim_start_matches("--");
+            let got = cmd
+                .get_arguments()
+                .find(|a| a.get_long() == Some(flag))
+                .and_then(|a| a.get_help().map(|h| h.to_string()));
+            match got {
+                Some(got) if collapse(&got) == collapse(want) => {}
+                other => problems.push(format!(
+                    "{path}: option --{flag} help {other:?} != {want:?}"
+                )),
+            }
+        }
     }
     let clap_positionals = cmd.get_positionals().count();
     if !is_group && clap_positionals != positionals {
@@ -108,9 +135,18 @@ fn tree_matches_python() {
     assert_eq!(seen.len(), 223);
 }
 
-/// The dumps record the Python commit they came from (`tests/golden/pyrev.py`).
+/// Fixtures still stamped with an older Python commit. Each one must be
+/// regenerated against `port/UPSTREAM_BASE` before its stamp moves; until
+/// then the debt is named here instead of hidden behind a false stamp.
+const STAMP_DEBT: &[(&str, &str)] = &[(
+    "completion_tree",
+    "7fcdea40050b962d13c70c38328c6d5ea4455ae1",
+)];
+
+/// Every JSON oracle records the Python commit it was dumped from.
 #[test]
 fn fixtures_record_the_python_commit() {
+    let pinned = include_str!("../../../port/UPSTREAM_BASE").trim();
     let completion: Value =
         serde_json::from_str(include_str!("fixtures/completion_tree.json")).unwrap();
     for (name, tree) in [("cli_tree", fixture()), ("completion_tree", completion)] {
@@ -121,6 +157,10 @@ fn fixtures_record_the_python_commit() {
             "{name}: _python.commit {rev}"
         );
         assert!(rev["dirty"].is_boolean(), "{name}: _python.dirty {rev}");
+        match STAMP_DEBT.iter().find(|(n, _)| *n == name) {
+            Some((_, old)) => assert_eq!(commit, *old, "{name}: stale stamp list out of date"),
+            None => assert_eq!(commit, pinned, "{name}: fixture predates UPSTREAM_BASE"),
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 {
  "_python": {
-  "commit": "7fcdea40050b962d13c70c38328c6d5ea4455ae1",
+  "commit": "754eef18692934c644263911bb39df1fa0cc9618",
   "dirty": false
  },
  "path": "fsv",
@@ -1837,7 +1837,7 @@
        "is_flag": false,
        "default": 20,
        "hidden": false,
-       "help": null,
+       "help": "newest N entries (a 'truncated' notice reports the rest)",
        "metavar": null,
        "envvar": null
       },
@@ -10061,7 +10061,7 @@
        "is_flag": false,
        "default": 20,
        "hidden": false,
-       "help": null,
+       "help": "newest N entries (a 'truncated' notice reports the rest)",
        "metavar": null,
        "envvar": null
       },
@@ -12185,7 +12185,7 @@
        "is_flag": true,
        "default": false,
        "hidden": false,
-       "help": null,
+       "help": "accepted for symmetry; stdout is always JSON only (selection list goes to stderr)",
        "metavar": null,
        "envvar": null
       }
@@ -18015,7 +18015,7 @@
        "is_flag": false,
        "default": 20,
        "hidden": false,
-       "help": null,
+       "help": "newest N entries (a 'truncated' notice reports the rest)",
        "metavar": null,
        "envvar": null
       },
