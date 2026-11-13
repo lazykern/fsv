@@ -515,22 +515,13 @@ fn setup_defaults() -> CmdResult {
     Ok(())
 }
 
-/// `tui/actions.py resolve_read_only`.
-pub fn tui_read_only(flag: bool) -> bool {
-    if flag {
-        return true;
-    }
-    let cfg = fsv_core::config::load_config();
-    let v = cfg.get("tui").and_then(|t| t.get("read_only"));
-    v.is_some_and(|v| {
-        let s = pystr::casefold(pystr::strip(&fsv_py::py_str(v)));
-        matches!(s.as_str(), "on" | "true" | "1" | "yes")
-    })
-}
-
-/// `fsv tui`.
-pub fn tui(a: TuiArgs) -> CmdResult {
-    fsv_app::run_tui(tui_read_only(a.read_only)).map_err(crate::util::uncaught)
+/// `fsv tui`: the full-screen app is being redesigned and is not in this
+/// build. The command stays so the tree, flags and completion match Python.
+pub fn tui(_a: TuiArgs) -> CmdResult {
+    Err(crate::util::fail(
+        "the TUI is not in this build (it is being redesigned); use the fsv commands",
+        1,
+    ))
 }
 
 #[cfg(test)]

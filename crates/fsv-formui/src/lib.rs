@@ -11,7 +11,7 @@
 //! }
 //! ```
 //!
-//! Embedders (`fsv-tui`) drive a [`FormScreen`] with keys, ticks and draws
+//! An embedding app drives a [`FormScreen`] with keys, ticks and draws
 //! and take its [`FormResult`] when it finishes. Nothing is sent by the
 //! screen itself.
 

@@ -6,7 +6,8 @@
   "reviewed": "checked line by line against the Python def (messages, exit codes, ordering, edge cases); the note says what was compared or fixed",
   "idiom": "Python-only construct (dunder, Textual hook, exception class, hand-rolled framing) with no Rust counterpart by design; note says what replaces it",
   "cli-tree": "Typer registration closure; the command surface is checked by crates/fsv-cli/tests/tree.rs",
-  "open": "no Rust counterpart found yet; this is the residual parity work queue"
+  "open": "no Rust counterpart found yet; this is the residual parity work queue",
+  "dropped": "removed from the Rust port on purpose (the full-screen TUI is being redesigned); note says why"
  },
  "entries": [
   {
@@ -15793,2078 +15794,1889 @@
    "module": "tui/__init__.py",
    "name": "launch",
    "line": 1,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui/desktop.rs",
-   "rust_item": "launch"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "resolve_read_only",
    "line": 19,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "resolve_read_only"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "can_change_status",
    "line": 35,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "can_change_status"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "can_note",
    "line": 39,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "can_note"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "can_reply",
    "line": 44,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "can_reply"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "status_choices",
    "line": 48,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "status_choices"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "ConfirmPlan",
    "line": 61,
    "kind": "class",
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "ConfirmPlan"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "status_plan",
    "line": 67,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "status_plan"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "note_plan",
    "line": 81,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "note_plan"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "apply_status",
    "line": 88,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "apply_status"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "apply_note",
    "line": 92,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "apply_note"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "apply_reply",
    "line": 96,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "apply_reply"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "clean_error",
    "line": 100,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "clean_error"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "failure_detail",
    "line": 113,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "failure_detail"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "form_result",
    "line": 123,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "form_result"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "task_patch",
    "line": 136,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "task_patch"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "apply_change_action",
    "line": 149,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "apply_change_action"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "download_choices",
    "line": 163,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "download_choices"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "download_selected",
    "line": 194,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "download_selected"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/actions.py",
    "name": "target_inventory",
    "line": 201,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/actions.rs",
-   "rust_item": "target_inventory"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_split_filter_token",
    "line": 38,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/filter.rs",
-   "rust_item": "split_filter_token"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_resource_for_entity",
    "line": 56,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app.rs",
-   "rust_item": "resource_for",
-   "note": "Folds in the callers' `or TICKETS` fallback; the entity is always one of ENTITY_TABS, so Python's None case (which would raise AttributeError at its unguarded caller) can't happen."
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_form_session",
    "line": 60,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui/forms.rs",
-   "rust_item": "session",
-   "note": "new -> change_session(New); edit -> record (loaded page record else row, built in fsv-tui app/forms.rs) minus _resource, target = display_id (if truthy) else id. Python's open_new_change/open_edit_change getattr fallback has no use because Rust formui always provides change_session."
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_clip",
    "line": 81,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/format.rs",
-   "rust_item": "clip"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_markup",
    "line": 86,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/format.rs",
-   "rust_item": "mv",
-   "note": "escape(str(value)), None/null -> ''. Tested by formatters_escape_markup."
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "HelpScreen",
    "line": 90,
    "kind": "class",
-   "status": "idiom",
-   "note": "Textual widget/screen class; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "compose",
    "class": "HelpScreen",
    "line": 157,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "on_key",
    "class": "HelpScreen",
    "line": 160,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "on_key"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "FsvApp",
    "line": 166,
    "kind": "class",
-   "status": "idiom",
-   "note": "Textual widget/screen class; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "__init__",
    "class": "FsvApp",
    "line": 174,
-   "status": "idiom",
-   "note": "Python dunder; Rust uses constructors, Display, Drop or Error impls"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "compose",
    "class": "FsvApp",
    "line": 232,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "on_mount",
    "class": "FsvApp",
    "line": 254,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_list",
    "class": "FsvApp",
    "line": 281,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/list.rs",
-   "rust_item": "load_list"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_list_failed",
    "class": "FsvApp",
    "line": 289,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/list.rs",
-   "rust_item": "list_failed"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_fetch_list",
    "class": "FsvApp",
    "line": 296,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app.rs",
-   "rust_item": "fetch_list"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_accept_list",
    "class": "FsvApp",
    "line": 340,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/list.rs",
-   "rust_item": "accept_list"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_list_columns",
    "class": "FsvApp",
    "line": 350,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/site/list.rs",
-   "rust_item": "list_columns"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_populate_list",
    "class": "FsvApp",
    "line": 353,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/list.rs",
-   "rust_item": "populate_list"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_detail",
    "class": "FsvApp",
    "line": 426,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "load_detail"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_detail_error",
    "class": "FsvApp",
    "line": 452,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "detail_error"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_page_for",
    "class": "FsvApp",
    "line": 457,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "page_for"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_show_detail",
    "class": "FsvApp",
    "line": 463,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "show_detail"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_sub_resource",
    "class": "FsvApp",
    "line": 479,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "load_sub_resource"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_item_key",
    "class": "FsvApp",
    "line": 501,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_selected_key",
    "class": "FsvApp",
    "line": 504,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "selected_key"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_tab_names",
    "class": "FsvApp",
    "line": 510,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "tab_names"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_current_tab_name",
    "class": "FsvApp",
    "line": 520,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "current_tab_name"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_maybe",
    "class": "FsvApp",
    "line": 526,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_show_side",
    "class": "FsvApp",
    "line": 532,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "show_side"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_active_pane",
    "class": "FsvApp",
    "line": 543,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "active_pane"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_focus_pane",
    "class": "FsvApp",
    "line": 548,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "focus_pane"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_toggle_pane",
    "class": "FsvApp",
    "line": 556,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "toggle_pane"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_resize_panes",
    "class": "FsvApp",
    "line": 559,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/key_handler.rs",
-   "rust_item": "resize_panes"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_scroll_detail_home",
    "class": "FsvApp",
    "line": 565,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "scroll_detail_home"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_reset_detail_scroll",
    "class": "FsvApp",
    "line": 568,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "reset_detail_scroll"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_clear_detail",
    "class": "FsvApp",
    "line": 571,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "clear_detail"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_set_pending_detail",
    "class": "FsvApp",
    "line": 589,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "set_pending_detail"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_set_filter_error",
    "class": "FsvApp",
    "line": 601,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_get_default_filters",
    "class": "FsvApp",
    "line": 605,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/entities.rs",
-   "rust_item": "get_default_filters"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_filter_history",
    "class": "FsvApp",
    "line": 611,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "load_filter_history"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_save_filter_history",
    "class": "FsvApp",
    "line": 620,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "save_filter_history"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_history_navigate",
    "class": "FsvApp",
    "line": 629,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/filter.rs",
-   "rust_item": "history_navigate"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_extract_item_values",
    "class": "FsvApp",
    "line": 654,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/filter.rs",
-   "rust_item": "extract_item_values"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_get_suggestions",
    "class": "FsvApp",
    "line": 679,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_update_suggestion_bar",
    "class": "FsvApp",
    "line": 782,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_show_suggestions_cycling",
    "class": "FsvApp",
    "line": 805,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_complete_suggestion",
    "class": "FsvApp",
    "line": 828,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_maybe_schedule_network_lookup",
    "class": "FsvApp",
    "line": 876,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_run_network_lookup",
    "class": "FsvApp",
    "line": 930,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/filter_input.rs",
-   "rust_item": "run_network_lookup"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_apply_network_suggestions",
    "class": "FsvApp",
    "line": 954,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_open_filter_input",
    "class": "FsvApp",
    "line": 972,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/filter_input.rs",
-   "rust_item": "open_filter_input"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_apply_filter",
    "class": "FsvApp",
    "line": 989,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/filter_input.rs",
-   "rust_item": "apply_filter"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_cancel_filter_input",
    "class": "FsvApp",
    "line": 1015,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_open_search_input",
    "class": "FsvApp",
    "line": 1030,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/search.rs",
-   "rust_item": "open_search_input"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_apply_search",
    "class": "FsvApp",
    "line": 1036,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/search.rs",
-   "rust_item": "apply_search"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_cancel_search_input",
    "class": "FsvApp",
    "line": 1068,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/filter_input.rs",
-   "rust_item": "cancel_search_input"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_exit_search_mode",
    "class": "FsvApp",
    "line": 1073,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/search.rs",
-   "rust_item": "exit_search_mode"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_step_search_entity",
    "class": "FsvApp",
    "line": 1087,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/search.rs",
-   "rust_item": "step_search_entity"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_search_narrow_entity",
    "class": "FsvApp",
    "line": 1119,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/search.rs",
-   "rust_item": "search_narrow_entity"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_save_search_cache",
    "class": "FsvApp",
    "line": 1137,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/search.rs",
-   "rust_item": "save_search_cache"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_restore_search_cache",
    "class": "FsvApp",
    "line": 1146,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/search.rs",
-   "rust_item": "restore_search_cache"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_search",
    "class": "FsvApp",
    "line": 1180,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/search.rs",
-   "rust_item": "load_search"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_populate_search",
    "class": "FsvApp",
    "line": 1195,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/search.rs",
-   "rust_item": "populate_search"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_search_load_more",
    "class": "FsvApp",
    "line": 1240,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/search.rs",
-   "rust_item": "search_load_more"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_cycle_search_sort",
    "class": "FsvApp",
    "line": 1249,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/search.rs",
-   "rust_item": "cycle_search_sort"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_more",
    "class": "FsvApp",
    "line": 1266,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/list.rs",
-   "rust_item": "load_more"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_reload_list",
    "class": "FsvApp",
    "line": 1274,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/list.rs",
-   "rust_item": "reload_list"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_render_header",
    "class": "FsvApp",
    "line": 1294,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_view_header",
    "class": "FsvApp",
    "line": 1328,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/bars.rs",
-   "rust_item": "view_header"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_pick_view",
    "class": "FsvApp",
    "line": 1340,
-   "status": "matched",
-   "rust": "crates/fsv-cli/src/cmd/resource.rs",
-   "rust_item": "pick_view"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_open_form",
    "class": "FsvApp",
    "line": 1358,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "open_form"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_ticket_property_fields",
    "class": "FsvApp",
    "line": 1385,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/reviewed.rs",
-   "rust_item": "load_ticket_property_fields"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prepare_ticket_property",
    "class": "FsvApp",
    "line": 1413,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/reviewed.rs",
-   "rust_item": "prepare_ticket_property"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_send_ticket_property",
    "class": "FsvApp",
    "line": 1427,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "send_ticket_property"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_create_choice",
    "class": "FsvApp",
    "line": 1440,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/forms.rs",
-   "rust_item": "create_choice"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_launch_create",
    "class": "FsvApp",
    "line": 1448,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/forms.rs",
-   "rust_item": "launch_create"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_catalog",
    "class": "FsvApp",
    "line": 1458,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/forms.rs",
-   "rust_item": "load_catalog"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_pick_catalog",
    "class": "FsvApp",
    "line": 1469,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/forms.rs",
-   "rust_item": "pick_catalog"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_build_form",
    "class": "FsvApp",
    "line": 1488,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/forms.rs",
-   "rust_item": "build_form"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_push_form",
    "class": "FsvApp",
    "line": 1501,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/forms.rs",
-   "rust_item": "push_form"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_send_form",
    "class": "FsvApp",
    "line": 1515,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/forms.rs",
-   "rust_item": "send_form"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_show_failure",
    "class": "FsvApp",
    "line": 1532,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/runtime.rs",
-   "rust_item": "show_failure"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_render_filter_bar",
    "class": "FsvApp",
    "line": 1536,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_trigger_state_flow",
    "class": "FsvApp",
    "line": 1555,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "trigger_state_flow"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_render_detail_bar",
    "class": "FsvApp",
    "line": 1569,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "render_detail_bar"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_render_detail_tabs",
    "class": "FsvApp",
    "line": 1595,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "render_detail_tabs"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_render_detail_content",
    "class": "FsvApp",
    "line": 1614,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "render_detail_content"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_render_sub_content",
    "class": "FsvApp",
    "line": 1638,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "render_sub_content"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_render_status",
    "class": "FsvApp",
    "line": 1667,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_render_key_hints",
    "class": "FsvApp",
    "line": 1689,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_format_details",
    "class": "FsvApp",
    "line": 1714,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/format.rs",
-   "rust_item": "format_details"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_format_notes",
    "class": "FsvApp",
    "line": 1791,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/format.rs",
-   "rust_item": "format_notes"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_format_tasks",
    "class": "FsvApp",
    "line": 1809,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/format.rs",
-   "rust_item": "format_tasks"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_format_approvals",
    "class": "FsvApp",
    "line": 1837,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/format.rs",
-   "rust_item": "format_approvals"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_format_assets",
    "class": "FsvApp",
    "line": 1859,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/format.rs",
-   "rust_item": "format_assets"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_format_associations",
    "class": "FsvApp",
    "line": 1885,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/format.rs",
-   "rust_item": "format_associations"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_format_activity",
    "class": "FsvApp",
    "line": 1904,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/format.rs",
-   "rust_item": "format_activity"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_format_resolution",
    "class": "FsvApp",
    "line": 1927,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/format.rs",
-   "rust_item": "format_resolution"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "on_input_submitted",
    "class": "FsvApp",
    "line": 1949,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/filter_input.rs",
-   "rust_item": "on_input_submitted"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "on_input_changed",
    "class": "FsvApp",
    "line": 1957,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/filter_input.rs",
-   "rust_item": "on_input_changed"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "on_key",
    "class": "FsvApp",
    "line": 1971,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "on_key"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "on_data_table_row_highlighted",
    "class": "FsvApp",
    "line": 2202,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_find_item",
    "class": "FsvApp",
    "line": 2231,
-   "status": "matched",
-   "rust": "crates/fsv-api/src/catalog.rs",
-   "rust_item": "find_item"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_switch_entity",
    "class": "FsvApp",
    "line": 2240,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/entities.rs",
-   "rust_item": "switch_entity"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_next_entity",
    "class": "FsvApp",
    "line": 2257,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/entities.rs",
-   "rust_item": "next_entity"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prev_entity",
    "class": "FsvApp",
    "line": 2262,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/entities.rs",
-   "rust_item": "prev_entity"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_step_detail_tab",
    "class": "FsvApp",
    "line": 2267,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/detail.rs",
-   "rust_item": "step_detail_tab"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_asset_inventory_prompt",
    "class": "FsvApp",
    "line": 2281,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/assets.rs",
-   "rust_item": "asset_inventory_prompt"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_asset_search_prompt",
    "class": "FsvApp",
    "line": 2305,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/assets.rs",
-   "rust_item": "asset_search_prompt"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_asset_inventory",
    "class": "FsvApp",
    "line": 2313,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/assets.rs",
-   "rust_item": "load_asset_inventory"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_associated_inventory",
    "class": "FsvApp",
    "line": 2343,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/assets.rs",
-   "rust_item": "load_associated_inventory"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prepare_inventory_association",
    "class": "FsvApp",
    "line": 2363,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/assets.rs",
-   "rust_item": "prepare_inventory_association"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_send_inventory_association",
    "class": "FsvApp",
    "line": 2379,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "send_inventory_association"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_action_menu",
    "class": "FsvApp",
    "line": 2389,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "action_menu"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prepare_action",
    "class": "FsvApp",
    "line": 2410,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "prepare_action"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prepare_known_error",
    "class": "FsvApp",
    "line": 2430,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/reviewed.rs",
-   "rust_item": "prepare_known_error"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_send_known_error",
    "class": "FsvApp",
    "line": 2445,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "send_known_error"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_planning_sections",
    "class": "FsvApp",
    "line": 2459,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/reviewed.rs",
-   "rust_item": "load_planning_sections"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_planning_editor",
    "class": "FsvApp",
    "line": 2477,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/reviewed.rs",
-   "rust_item": "load_planning_editor"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prepare_planning_text",
    "class": "FsvApp",
    "line": 2497,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/reviewed.rs",
-   "rust_item": "prepare_planning_text"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_send_planning_text",
    "class": "FsvApp",
    "line": 2512,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "send_planning_text"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_compose_approval_request",
    "class": "FsvApp",
    "line": 2525,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "compose_approval_request"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prepare_approval_request",
    "class": "FsvApp",
    "line": 2546,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "prepare_approval_request"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_approval_targets",
    "class": "FsvApp",
    "line": 2560,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "load_approval_targets"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_pick_approval_target",
    "class": "FsvApp",
    "line": 2576,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "pick_approval_target"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prepare_approval_action",
    "class": "FsvApp",
    "line": 2602,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "prepare_approval_action"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_review_approval",
    "class": "FsvApp",
    "line": 2612,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "review_approval"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_send_approval",
    "class": "FsvApp",
    "line": 2622,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "send_approval"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_approval_result",
    "class": "FsvApp",
    "line": 2637,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "approval_result"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_compose_change_task",
    "class": "FsvApp",
    "line": 2642,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "compose_change_task"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_change_task_options",
    "class": "FsvApp",
    "line": 2662,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "change_task_options"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_change_task_choices",
    "class": "FsvApp",
    "line": 2697,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prepare_change_task",
    "class": "FsvApp",
    "line": 2712,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "prepare_change_task"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_review_change_task",
    "class": "FsvApp",
    "line": 2736,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "review_change_task"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_send_change_task",
    "class": "FsvApp",
    "line": 2743,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "send_change_task"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_action_targets",
    "class": "FsvApp",
    "line": 2760,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "load_action_targets"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_pick_action_target",
    "class": "FsvApp",
    "line": 2777,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "pick_action_target"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prepare_download",
    "class": "FsvApp",
    "line": 2807,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "prepare_download"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_load_task_editor",
    "class": "FsvApp",
    "line": 2831,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "load_task_editor"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_edit_task_field",
    "class": "FsvApp",
    "line": 2841,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "edit_task_field"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_confirm_action",
    "class": "FsvApp",
    "line": 2863,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "confirm_action"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prepare_task_mutation",
    "class": "FsvApp",
    "line": 2892,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "prepare_task_mutation"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_send_task_mutation",
    "class": "FsvApp",
    "line": 2913,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "send_task_mutation"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_execute_action",
    "class": "FsvApp",
    "line": 2927,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "execute_action"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_reply_possible",
    "class": "FsvApp",
    "line": 2965,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "reply_possible"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_write_key",
    "class": "FsvApp",
    "line": 2969,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "write_key"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_target_label",
    "class": "FsvApp",
    "line": 2984,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "target_label"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_start_status",
    "class": "FsvApp",
    "line": 2987,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "start_status"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prepare_change_status",
    "class": "FsvApp",
    "line": 3011,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "prepare_change_status"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_start_note",
    "class": "FsvApp",
    "line": 3031,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "start_note"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prepare_problem_note",
    "class": "FsvApp",
    "line": 3065,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "prepare_problem_note"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_send_problem_note",
    "class": "FsvApp",
    "line": 3080,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "send_problem_note"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_ticket_conversation_options",
    "class": "FsvApp",
    "line": 3092,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/reviewed.rs",
-   "rust_item": "ticket_conversation_options"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_prepare_ticket_conversation",
    "class": "FsvApp",
    "line": 3118,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/reviewed.rs",
-   "rust_item": "prepare_ticket_conversation"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_review_ticket_conversation",
    "class": "FsvApp",
    "line": 3137,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/reviewed.rs",
-   "rust_item": "review_ticket_conversation"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_send_ticket_conversation",
    "class": "FsvApp",
    "line": 3153,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "send_ticket_conversation"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_review_ticket_note",
    "class": "FsvApp",
    "line": 3166,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "review_ticket_note"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_send_ticket_note",
    "class": "FsvApp",
    "line": 3191,
-   "status": "matched",
-   "rust": "crates/fsv-app/src/tui.rs",
-   "rust_item": "send_ticket_note"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_do_write",
    "class": "FsvApp",
    "line": 3213,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "do_write"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_after_write",
    "class": "FsvApp",
    "line": 3219,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/writes.rs",
-   "rust_item": "after_write"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_open_browser",
    "class": "FsvApp",
    "line": 3230,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/key_handler.rs",
-   "rust_item": "open_browser"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/app.py",
    "name": "_yank",
    "class": "FsvApp",
    "line": 3241,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/app/key_handler.rs",
-   "rust_item": "yank"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "StatusScreen",
    "line": 17,
    "kind": "class",
-   "status": "idiom",
-   "note": "Textual widget/screen class; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "__init__",
    "class": "StatusScreen",
    "line": 22,
-   "status": "idiom",
-   "note": "Python dunder; Rust uses constructors, Display, Drop or Error impls"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "compose",
    "class": "StatusScreen",
    "line": 27,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "on_mount",
    "class": "StatusScreen",
    "line": 34,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "_selected",
    "class": "StatusScreen",
    "line": 45,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "selected"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "action_cancel",
    "class": "StatusScreen",
    "line": 49,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "action_cancel"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "ConfirmScreen",
    "line": 54,
    "kind": "class",
-   "status": "idiom",
-   "note": "Textual widget/screen class; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "__init__",
    "class": "ConfirmScreen",
    "line": 57,
-   "status": "idiom",
-   "note": "Python dunder; Rust uses constructors, Display, Drop or Error impls"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "compose",
    "class": "ConfirmScreen",
    "line": 62,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "on_mount",
    "class": "ConfirmScreen",
    "line": 72,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "_yes",
    "class": "ConfirmScreen",
    "line": 76,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "yes"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "_no",
    "class": "ConfirmScreen",
    "line": 81,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "no"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "action_confirm",
    "class": "ConfirmScreen",
    "line": 85,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "action_confirm"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "action_cancel",
    "class": "ConfirmScreen",
    "line": 88,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "action_cancel"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "NoteScreen",
    "line": 93,
    "kind": "class",
-   "status": "idiom",
-   "note": "Textual widget/screen class; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "__init__",
    "class": "NoteScreen",
    "line": 103,
-   "status": "idiom",
-   "note": "Python dunder; Rust uses constructors, Display, Drop or Error impls"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "compose",
    "class": "NoteScreen",
    "line": 112,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "on_mount",
    "class": "NoteScreen",
    "line": 127,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "_refresh",
    "class": "NoteScreen",
    "line": 131,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "refresh"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "_changed",
    "class": "NoteScreen",
    "line": 147,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "changed"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "action_toggle_public",
    "class": "NoteScreen",
    "line": 151,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "action_toggle_public"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "action_options",
    "class": "NoteScreen",
    "line": 156,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "action_options"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "action_submit",
    "class": "NoteScreen",
    "line": 165,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "action_submit"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "action_cancel",
    "class": "NoteScreen",
    "line": 172,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "action_cancel"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "_submit",
    "class": "NoteScreen",
    "line": 176,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "submit"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "_cancel",
    "class": "NoteScreen",
    "line": 181,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "cancel"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "PlanningTextScreen",
    "line": 187,
    "kind": "class",
-   "status": "idiom",
-   "note": "Textual widget/screen class; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "__init__",
    "class": "PlanningTextScreen",
    "line": 190,
-   "status": "idiom",
-   "note": "Python dunder; Rust uses constructors, Display, Drop or Error impls"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "compose",
    "class": "PlanningTextScreen",
    "line": 194,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "_refresh",
    "class": "PlanningTextScreen",
    "line": 205,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "refresh"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "ViewPickerScreen",
    "line": 209,
    "kind": "class",
-   "status": "idiom",
-   "note": "Textual widget/screen class; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "__init__",
    "class": "ViewPickerScreen",
    "line": 214,
-   "status": "idiom",
-   "note": "Python dunder; Rust uses constructors, Display, Drop or Error impls"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "compose",
    "class": "ViewPickerScreen",
    "line": 224,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "on_mount",
    "class": "ViewPickerScreen",
    "line": 231,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "_fill",
    "class": "ViewPickerScreen",
    "line": 235,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "fill"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "_filter",
    "class": "ViewPickerScreen",
    "line": 249,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "filter"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "_submit",
    "class": "ViewPickerScreen",
    "line": 254,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "submit"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "on_key",
    "class": "ViewPickerScreen",
    "line": 260,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "on_key"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "_selected",
    "class": "ViewPickerScreen",
    "line": 271,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "selected"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "action_cancel",
    "class": "ViewPickerScreen",
    "line": 275,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "action_cancel"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "ChoiceScreen",
    "line": 279,
    "kind": "class",
-   "status": "idiom",
-   "note": "Textual widget/screen class; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "__init__",
    "class": "ChoiceScreen",
    "line": 282,
-   "status": "idiom",
-   "note": "Python dunder; Rust uses constructors, Display, Drop or Error impls"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "dismiss",
    "class": "ChoiceScreen",
    "line": 287,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "dismiss"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "ValueScreen",
    "line": 291,
    "kind": "class",
-   "status": "idiom",
-   "note": "Textual widget/screen class; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "__init__",
    "class": "ValueScreen",
    "line": 294,
-   "status": "idiom",
-   "note": "Python dunder; Rust uses constructors, Display, Drop or Error impls"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "compose",
    "class": "ValueScreen",
    "line": 298,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "on_mount",
    "class": "ValueScreen",
    "line": 304,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "submitted",
    "class": "ValueScreen",
    "line": 308,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "submitted"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "action_cancel",
    "class": "ValueScreen",
    "line": 313,
-   "status": "matched",
-   "rust": "crates/fsv-formui/src/screen/mod.rs",
-   "rust_item": "action_cancel"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "OutcomeScreen",
    "line": 317,
    "kind": "class",
-   "status": "idiom",
-   "note": "Textual widget/screen class; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "__init__",
    "class": "OutcomeScreen",
    "line": 322,
-   "status": "idiom",
-   "note": "Python dunder; Rust uses constructors, Display, Drop or Error impls"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "compose",
    "class": "OutcomeScreen",
    "line": 327,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "action_close",
    "class": "OutcomeScreen",
    "line": 335,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "action_close"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "FailureScreen",
    "line": 339,
    "kind": "class",
-   "status": "idiom",
-   "note": "Textual widget/screen class; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "__init__",
    "class": "FailureScreen",
    "line": 344,
-   "status": "idiom",
-   "note": "Python dunder; Rust uses constructors, Display, Drop or Error impls"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "compose",
    "class": "FailureScreen",
    "line": 348,
-   "status": "idiom",
-   "note": "Textual hook or widget method; behaviour lives in ratatui Msg handlers"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "tui/modals.py",
    "name": "action_close",
    "class": "FailureScreen",
    "line": 356,
-   "status": "matched",
-   "rust": "crates/fsv-tui/src/modals.rs",
-   "rust_item": "action_close"
+   "status": "dropped",
+   "note": "fsv tui is not in the Rust port; the TUI is being redesigned (port/PARITY.md)"
   },
   {
    "module": "views.py",
@@ -17919,7 +17731,7 @@
    "name": "current_user",
    "line": 133,
    "status": "reviewed",
-   "rust": "crates/fsv-app/src/tui.rs",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
    "rust_item": "current_user",
    "note": "fixed: the joined first and last name uses str.strip, including U+001C through U+001F; still cached once, and session errors still propagate"
   },
@@ -17928,7 +17740,7 @@
    "name": "user_tz",
    "line": 156,
    "status": "reviewed",
-   "rust": "crates/fsv-app/src/tui.rs",
+   "rust": "crates/fsv-cli/src/cmd/resource.rs",
    "rust_item": "user_tz",
    "note": "same FSV_TZ, then the profile zone, then the system zone"
   },

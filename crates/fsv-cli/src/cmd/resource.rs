@@ -287,13 +287,7 @@ fn list_resource(res: &'static Resource, a: &ResLsArgs, where_: &[String]) -> Cm
     } else {
         current_user(&c)?
     };
-    let tz = fsv_forms::tz::resolve_timezone(
-        None,
-        me.as_object()
-            .filter(|m| m.get("time_zone").is_some_and(fsv_py::truthy)),
-    )
-    .map(|(z, _)| z.tz)
-    .unwrap_or_else(|_| jiff::tz::TimeZone::system());
+    let tz = user_tz(&me);
     let columns = fsv_api::site::list_columns(res, Some(&sch), Some(&headers));
     let rows: Vec<Map<String, Value>> = items
         .iter()
@@ -442,13 +436,7 @@ fn load_detail(
         .then_some("requester,stats,phone,feedback,ticket_status,responder");
     let record = service::get_item(c.as_ref(), res, id, includes).map_err(fail_exc)?;
     let user = current_user(c)?;
-    let tz = fsv_forms::tz::resolve_timezone(
-        None,
-        user.as_object()
-            .filter(|m| m.get("time_zone").is_some_and(fsv_py::truthy)),
-    )
-    .map(|(z, _)| z.tz)
-    .unwrap_or_else(|_| jiff::tz::TimeZone::system());
+    let tz = user_tz(&user);
     let api: std::sync::Arc<dyn fsv_api::service::Api + Send + Sync> = c.clone();
     let store = fsv_api::formmeta::DiskStore::current();
     let props = fsv_views::properties::load_properties(
@@ -487,6 +475,18 @@ fn load_detail(
         d.set_tab(td);
     }
     Ok(d)
+}
+
+/// `views.user_tz`: `FSV_TZ`, then the agent's profile zone, then the
+/// system zone.
+pub(crate) fn user_tz(me: &Value) -> jiff::tz::TimeZone {
+    fsv_forms::tz::resolve_timezone(
+        None,
+        me.as_object()
+            .filter(|m| m.get("time_zone").is_some_and(fsv_py::truthy)),
+    )
+    .map(|(z, _)| z.tz)
+    .unwrap_or_else(|_| jiff::tz::TimeZone::system())
 }
 
 /// `views.current_user`: the signed-in agent, `{}` when unreadable; fetched

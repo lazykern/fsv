@@ -20,14 +20,6 @@ fn assert_stamped(name: &str, text: &str) {
 fn fixtures_record_their_python_commit() {
     for (name, text) in [
         (
-            "properties_change_501",
-            include_str!("tui/testdata/properties_change_501.json"),
-        ),
-        (
-            "reviewed_expected",
-            include_str!("tui/testdata/reviewed_expected.json"),
-        ),
-        (
             "form_lookup",
             include_str!("form/testdata/form_lookup.json"),
         ),

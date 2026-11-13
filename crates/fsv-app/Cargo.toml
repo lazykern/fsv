@@ -1,6 +1,6 @@
 [package]
 name = "fsv-app"
-description = "Live adapters: the seam traits of fsv-views, fsv-flows, fsv-formui and fsv-tui over the HTTP client"
+description = "Live adapters: the seam traits of fsv-views, fsv-flows and fsv-formui over the HTTP client"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -13,7 +13,6 @@ fsv-api.workspace = true
 fsv-flows.workspace = true
 fsv-views.workspace = true
 fsv-formui.workspace = true
-fsv-tui.workspace = true
 fsv-completion.workspace = true
 serde_json.workspace = true
 indexmap.workspace = true

@@ -26,10 +26,9 @@ fsv auth status
 fsv changes ls --where status=Open
 fsv changes get CHN-1234
 fsv tickets ls --where requester=alice@example.com
-fsv tui
 ```
 
-The full-screen TUI has saved views, filter suggestions, search and keyboard navigation. You can also use individual commands and pipe JSON into other tools.
+You can pipe JSON from any command into other tools. The full-screen TUI is being redesigned and is not in this build.
 
 ## Fill out a form
 
@@ -98,7 +97,7 @@ fsv changes associations add CHN-1234 SR-5678 --dry-run
 
 Use `--dry-run` first when you're unsure. Writes can trigger your account's workflows, send notifications or create tasks. fsv can't discover every downstream effect.
 
-[Change-task creation](docs/change-tasks.md) uses an exact reviewed hash for scripted sends (`--yes --expect-plan FULL_HASH --no-input`), defaults to no owner, and never retries an uncertain POST. In the main TUI, select a change and use **a → Add task**. Task CREATE is backed by a blocked request capture; its accepted live response remains unobserved.
+[Change-task creation](docs/change-tasks.md) uses an exact reviewed hash for scripted sends (`--yes --expect-plan FULL_HASH --no-input`), defaults to no owner, and never retries an uncertain POST. Task CREATE is backed by a blocked request capture; its accepted live response remains unobserved.
 
 [Change–ticket associations](docs/change-associations.md) use a reviewed hash, one write attempt and complete paginated readback. Scripted sends require `--yes --expect-plan FULL_HASH`; uncertain outcomes block resubmission. Lists retain partial rows with explicit completeness warnings.
 
@@ -233,4 +232,4 @@ cargo test --workspace --offline
 cargo clippy --workspace --all-targets --offline -- -D warnings
 ```
 
-The binary is `fsv-cli`. Domain code is split across `fsv-core` (HTTP, session, journal), `fsv-api` (Freshservice operations), `fsv-forms` (form engine), `fsv-flows` (change, ticket, and catalog flows), `fsv-views` (rendering), `fsv-tui` and `fsv-formui` (screens), and `fsv-app` (the adapters that wire them together). The Python source this port tracks lives in a separate checkout, not in this tree. JSON fixtures under `crates/` and `port/golden` are frozen expected values.
+The binary is `fsv-cli`. Domain code is split across `fsv-core` (HTTP, session, journal), `fsv-api` (Freshservice operations), `fsv-forms` (form engine), `fsv-flows` (change, ticket, and catalog flows), `fsv-views` (rendering), `fsv-formui` (interactive forms), and `fsv-app` (the adapters that wire them together). The Python source this port tracks lives in a separate checkout, not in this tree. JSON fixtures under `crates/` and `port/golden` are frozen expected values.

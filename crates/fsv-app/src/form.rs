@@ -474,7 +474,8 @@ struct Carried<P> {
     form: LiveForm,
 }
 
-/// `change_flow.Plan.to_json`: the body the TUI status confirm prints.
+/// `change_flow.Plan.to_json`.
+#[cfg(test)]
 pub(crate) fn change_plan_json(plan: &fsv_formui::Plan) -> Option<Json> {
     carried::<change::Plan>(plan).map(change::Plan::to_json)
 }

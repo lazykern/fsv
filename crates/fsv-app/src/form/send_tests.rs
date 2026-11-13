@@ -1,8 +1,7 @@
 //! Form sends whose metadata changed after the review, and a change written
 //! before a later step failed. Expected text is from
 //! `port/golden/gen_fsv_app_send.py` (Python `FormSession.send`,
-//! `change_cli._send`, `cli_sr._send`, `_report_partial`,
-//! `tui.actions.failure_detail`) over the same tenant.
+//! `change_cli._send`, `cli_sr._send`, `_report_partial`) over the same tenant.
 
 use std::sync::Mutex;
 
@@ -401,19 +400,6 @@ fn cli_reports_a_partial_failure_like_report_partial() {
 }
 
 #[test]
-fn a_tui_send_partial_failure_lists_the_outcome() {
-    let f = Fixture::new();
-    let s = f.change(Some(&attachment(&f)));
-    let (r, _) = fsv_core::term::capture(|| crate::tui::forms::send_submitted(s));
-    let failure = r.unwrap_err();
-    assert_eq!(
-        fsv_tui::actions::failure_detail(&failure),
-        "change 78 was written, then a later step failed: update failed: boom. Uploaded attachment ids: 9000005001\ncreated_id: 78\nsteps: [{'step': 'create', 'ok': True, 'id': 78}, {'step': 'after', 'ok': False, 'error': 'update failed: boom'}]\nuploaded: [{'id': 9000005001, 'name': 'a.txt'}]\nerror: update failed: boom\nNo automatic retry. Check the exact record and journal before another send; outcome may be unknown."
-    );
-    assert_eq!(failure.error.exit_code(), 1);
-}
-
-#[test]
 fn session_send_refuses_a_changed_service_request() {
     let f = Fixture::new();
     let s = f.sr();
@@ -614,20 +600,3 @@ fn sr_cli_upload_failure_places_nothing() {
     assert_eq!(f.write_paths(), [UPLOAD]);
 }
 
-#[test]
-fn a_tui_sr_send_failure_lists_uploaded_and_error() {
-    let f = Fixture::failing(Fail {
-        place: 500,
-        files: true,
-        ..NO_FAIL
-    });
-    let s = f.sr_with(true);
-    let (r, _) = fsv_core::term::capture(|| crate::tui::forms::send_submitted(s));
-    let failure = r.unwrap_err();
-    assert_eq!(
-        fsv_tui::actions::failure_detail(&failure),
-        "place-request failed: HTTP 500 creating place-request: place boom. Uploaded attachment ids: 9000005001 (a.txt)\nuploaded: [{'id': 9000005001, 'name': 'a.txt', 'target': 'Other attachments'}]\nerror: HTTP 500 creating place-request: place boom\nNo automatic retry. Check the exact record and journal before another send; outcome may be unknown."
-    );
-    assert_eq!(failure.error.exit_code(), 5);
-    assert_eq!(f.write_paths(), [UPLOAD, PLACE]);
-}

@@ -114,6 +114,10 @@ fn every_python_module_has_a_rust_counterpart() {
         let py = module["py"].as_str().expect("py");
         assert!(listed.insert(py.to_string()), "duplicate {py}");
         let rust = module["rust"].as_array().expect("rust");
+        if module["dropped"].as_str().is_some_and(|n| !n.is_empty()) {
+            assert!(rust.is_empty(), "{py} is dropped but lists Rust files");
+            continue;
+        }
         assert!(!rust.is_empty(), "{py} has no Rust file");
         for path in rust {
             let rel = path.as_str().expect("rust path");

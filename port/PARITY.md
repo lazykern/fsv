@@ -9,6 +9,7 @@ matches that still need a line-by-line review; `open` entries are the parity que
 
 ## Divergences
 
+- The full-screen TUI (`fsv tui`) is not ported; the command exits 1. It is being redesigned.
 Fixes of bad Python behavior, plus a few platform differences. The
 end-of-port review reads this list. Wire formats (requests, plan hashes,
 journal kinds, cache filenames, session bytes, draft keys) are not on it:
@@ -401,7 +402,7 @@ CLI divergences:
 - Completion scripts call `FSV_THIN_COMPLETE=1 fsv _complete` in place of `python -m fsv._complete`.
 - `--backup-replaced` carries a `value_flag` override so completion treats it as taking a value, as Python's generator does.
 - `--query-hash` with bad JSON prints `error: invalid --query-hash JSON: ` as Python does, then serde_json's message (`[{` gives `EOF while parsing an object at line 1 column 2`) where Python prints `json.JSONDecodeError`'s (`Expecting property name enclosed in double quotes: line 1 column 3 (char 2)`). Exit 2 in both.
-- `fsv tui` with no terminal exits 1 with an error. Python hangs waiting for Textual's driver.
+- `fsv tui` exits 1: the full-screen TUI is not in the Rust port (see fsv-tui below).
 - `--show-completion` / `--install-completion` with an undetectable shell print `error: could not detect shell; ...` and exit 1. Typer prints `Shell  not supported.` or `Shell None is not supported.`, also exit 1. Shell detection reads only `$SHELL`; Typer asks shellingham about the parent process first.
 - `form explain --id x` (not an ID) prints `error: invalid id: x` and exits 1; Python raises an uncaught `ValueError` (traceback, exit 1).
 - Test-only: the routed mock (`src/mock.rs`, `tests/golden/run_py.py`) supports `"once": true` routes, so a second fetch of the same URL can answer differently.
@@ -446,42 +447,9 @@ CLI divergences:
 
 ## fsv-tui
 
-| Python | Rust | status |
-|---|---|---|
-| `tui/app.py`, `actions.py`, `modals.py`, `tui/__init__.launch` | `fsv_tui` (`app`, `app/reviewed.rs`, `modals`, `runtime::{launch, run}`) | partial. `cargo test -p fsv-tui --offline` was 199 passed (119 unit, 7 in `tests/actions.rs`, 66 in `tests/keys.rs`, 7 in `tests/tui.rs`). Key bindings, modals, status/note/approval/download/form flows, the `a` menu, ticket property edit (`e` on a ticket), known-error mark, native planning text, ticket reply/note options (Ctrl+O) and the read-only asset candidate picker (`i`, `app/assets.rs`; mirrors `test_asset_picker.py::test_pilot_readonly_search_selection_and_cancel`) are covered against a recording `Backend`. The new flows mirror `test_tui_ticket_options.py`, `test_tui_ticket_properties.py`, `test_planning_text.py` and `test_problem_known_error.py`; all 23 of those Python tests pass. Gaps below. |
-
-- `FsvApp._maybe` is a Textual `query_one` shim, so it has no counterpart. `FsvApp._set_filter_error` has no caller in Python (dead), so it is not ported; `filter_error` is set directly.
-- `launch` needs a terminal. Its loop is `fsv_tui::run(terminal, app, next_event)`, tested with `TestBackend` and scripted events.
-- The key-hint row advertises `gw`, which does nothing. Copied from Python; Python does the same.
-- Help dialog is clipped on 36-row terminals and does not scroll.
-- `s` on a change confirms with `change_flow.Plan.to_json` (review, warnings, risks, payload), the same object Python dumps into the status confirm.
-- Plain ticket replies (`r`, Ctrl+S) go through `ticket_conversation_plan` / `send_ticket_conversation`, as in Python. `Backend::add_reply`, `actions::apply_reply` and the "Confirm reply" write path were unreachable (`can_reply` is tickets-only) and are deleted; `fsv_api::service::add_reply` stays for the CLI.
-- Read-only mode is also enforced at the backend: `fsv_app::run_tui` wraps `LiveBackend` in `fsv_tui::backend::ReadOnly`, whose write methods fail with `read-only mode: writes are disabled (…)` before any request and whose `forms_available()` is false. Python gates read-only only in the UI; nothing changes for the user. The `Backend` network methods have no defaults; test doubles opt into stubs with `backend_stubs!`.
-- Python `exclusive=True` cancels the previous worker in that group. Rust drops the older result once a newer exclusive worker in the group has started (`spawn_group`). The request itself still finishes. `_load_asset_inventory` is group `asset-inventory`. `_send_inventory_association` is the exclusive member of group `write`. `_change_task_choices` is exclusive group `task-create-choices` and lists runtime `change_task_fields` labels. An omitted task status or reminder is that form's first choice.
-- Asset picker: Python calls `asset_picker.select` inside the picker callback, outside the worker's `try`, so a failure there would be an unhandled exception. Rust shows the failure screen `"Asset search unavailable: {exc}"` instead. It is unreachable in practice, because `candidates` already rejects duplicate display IDs. `AssetCandidates::select` and `backend::positive_id` port `asset_picker.select` and `watchers.positive_id` locally; fsv-api now has `asset_picker::select` too.
-- Asset picker failures are pushed as a plain `FailureScreen`, as in Python: they do not set the `!` "last write failure".
-
-### fsv-tui → fsv-app wiring (new `Backend` methods, all default to "… is not available in this build")
-
-`LiveBackend` in `fsv-app/src/tui.rs` should implement:
-
-| `Backend` method | Python call | fsv-api today |
-|---|---|---|
-| `ticket_property_fields(ticket_id) -> Vec<PropertyField>` | `formmeta.load_meta(c, "ticket", "edit", fresh=True, module_id=ticket_id)`, then keep `spec.fields` where `(f.sent or f.field_type == "default_requested_for") and not f.synthetic and f.is_input() and f.kind != unsupported and (f.is_custom or f.api_name in {subject, description, requester, requested_for, group, agent, status, priority, urgency, impact, source, category, ticket_type})`. `name = api_name`, `label`. For `kind == dropdown`, `choices = Some([(ch.value, ch.label) for visible ch])`, else `None`. | `fsv_api::formmeta::load_meta(c, store, "ticket", "edit", true, &id)` + `FormMeta::spec()`. |
-| `ticket_property_plan(ticket_id, name, value) -> ReviewPlan` | `ticket_properties.build_plan(c, ticket_id, answers={name: value})` | wired: `properties::build_plan_with` + `ClientResolver`. |
-| `send_ticket_property(plan) -> Value` | `ticket_properties.send(plan, c, reviewed_hash=plan.hash)` wired: `properties::send_with`. |
-| `known_error_plan(problem_id) -> ReviewPlan` | `problem_known_error.build_plan(c, id)`: a `WritePlan("problem_known_error_mark", cid, domain, "PUT", "problems/{cid}", '{"known_error": true}', plan_hash(record))` | wired: `problem_known_error::build_plan`. |
-| `send_known_error(plan) -> Value` | `problem_known_error.send(plan, c, reviewed_hash=plan.hash)` | wired: `problem_known_error::send`. |
-| `planning_definitions(module) -> Vec<Value>` | `planning_text.definitions(c, module)`. `changes`: `create.planning_definitions(schema.load(CHANGES, force=True)["fields"])`. `problems`: the three fixed `{name, label}` rows. | wired: `planning_text::definitions`. |
-| `planning_row(module, id, section) -> Option<Value>` | `create.match_planning_row({"name": section}, planning_text.inventory(c, module, id))` | wired: `planning_text::inventory` + `create::match_planning_row`. The TUI does the "preservation is unavailable" check itself. |
-| `planning_text_plan(module, id, section, description) -> ReviewPlan` | `planning_text.build_plan(c, module, id, section, description)` (create into an empty section, edit of stored text) | wired: `planning_text::build_plan`. The TUI never clears. |
-| `send_planning_text(plan) -> Value` | `planning_text.send(plan, c, reviewed_hash=plan.hash)` | wired: `planning_text::send`. |
-| `ticket_conversation_plan(ticket_id, body, &ConversationRequest) -> ReviewPlan` | `recipients(c, cc)`, `recipients(c, notify)`, `recipients(c, bcc)` (validation only), then `build_plan(c, id, body, kind="reply"/"note", public, cc, notify, bcc, sender, set_status)` | wired: `conversations::{recipients, build_plan_mail}` + `MailArgs`; `ReviewPlan.raw = plan.payload()`. |
-| `send_ticket_conversation(plan, public_confirmed) -> Value` | `ticket_conversation.send(plan, c, reviewed_hash=plan.hash, public_confirmed=...)` | wired: `conversations::send`. |
-| `asset_candidates(&AssetCandidatesRequest { change, query, page }) -> AssetCandidates` | `asset_picker.candidates(c, change, query, page=page)` (TUI: page 1, `change = display_id or id`). One `GET /itam/core/device/api/` (`36408b2`). Map the result dict onto `AssetCandidates { change_id, page, scope, assets, mutation, warning }`; `assets` rows stay as returned, including `inventory`. Its errors (`"page must be positive"`, `"asset candidate response is unavailable"`, `"integrated inventory unavailable"`, `"duplicate asset display identities; selection is ambiguous"`, `positive_id`'s) become `Failure`s, shown as `"Asset search unavailable: {e}"`. | wired: `fsv_api::asset_picker::candidates`. GET only. |
-
-`LiveBackend` implements every method in this table. See the fsv-app section.
-
-Each send result is shown pretty-printed with `json.dumps(indent=2)`. A truthy `verified` reloads the record.
-
-- Ticket reply/note option values ("Comma-separated plain emails (empty clears)", "Configured support email") accept an empty Enter, which clears the field. Python's `ValueScreen` ignores an empty Enter there, so a set CC/notify/BCC/sender cannot be cleared despite the prompt.
+Removed. The Rust port has no full-screen TUI: `fsv-tui` and the
+`fsv-app` TUI adapters are deleted while the TUI is redesigned. `fsv tui`
+stays in the command tree (same flags and completion as Python) and exits 1
+with `error: the TUI is not in this build (it is being redesigned); use the
+fsv commands`. `port/function_map.json` marks every `tui/*` def `dropped`.
+The interactive forms (`fsv-formui`) stay.

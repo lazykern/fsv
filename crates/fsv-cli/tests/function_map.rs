@@ -14,7 +14,7 @@ use std::path::PathBuf;
 
 /// Ratchet: `matched` (name match, not yet reviewed line by line) entries
 /// may only go down as they become `reviewed`.
-const UNREVIEWED_CEILING: usize = 186;
+const UNREVIEWED_CEILING: usize = 0;
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
@@ -61,7 +61,7 @@ fn every_entry_has_a_known_status_and_its_reason() {
                     && e["note"].as_str().is_some_and(|n| !n.is_empty()),
                 "reviewed entry needs rust, rust_item and a note: {e}"
             ),
-            "idiom" | "cli-tree" => assert!(
+            "idiom" | "cli-tree" | "dropped" => assert!(
                 e["note"].as_str().is_some_and(|n| !n.is_empty()),
                 "{status} entry needs a note: {e}"
             ),

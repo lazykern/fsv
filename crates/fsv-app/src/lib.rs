@@ -1,9 +1,8 @@
-//! Live implementations of the seams the flows, views, form and TUI crates
+//! Live implementations of the seams the flows, views, and form crates
 //! are written against, plus the entry points that wire them to a client.
 pub mod form;
 pub mod meta;
 pub mod source;
-pub mod tui;
 pub mod writer;
 
 #[cfg(test)]
@@ -17,5 +16,4 @@ pub use form::{
 };
 pub use meta::LiveMeta;
 pub use source::ClientSource;
-pub use tui::{LiveBackend, LivePages, SchemaLoader, run_tui, schema_loader};
 pub use writer::LiveWriter;

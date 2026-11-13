@@ -890,7 +890,6 @@ dependencies = [
  "fsv-forms",
  "fsv-formui",
  "fsv-py",
- "fsv-tui",
  "fsv-views",
  "indexmap",
  "jiff",
@@ -1022,20 +1021,6 @@ name = "fsv-py"
 version = "2026.11.12"
 dependencies = [
  "serde_json",
-]
-
-[[package]]
-name = "fsv-tui"
-version = "2026.11.12"
-dependencies = [
- "crossterm",
- "fsv-api",
- "fsv-core",
- "fsv-py",
- "jiff",
- "ratatui",
- "serde_json",
- "unicode-width",
 ]
 
 [[package]]

@@ -17,7 +17,6 @@ fsv-api = { path = "crates/fsv-api" }
 fsv-flows = { path = "crates/fsv-flows" }
 fsv-views = { path = "crates/fsv-views" }
 fsv-formui = { path = "crates/fsv-formui" }
-fsv-tui = { path = "crates/fsv-tui" }
 fsv-completion = { path = "crates/fsv-completion" }
 fsv-app = { path = "crates/fsv-app" }
 

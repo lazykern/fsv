@@ -770,27 +770,23 @@
   },
   {
    "py": "tui/__init__.py",
-   "rust": [
-    "crates/fsv-tui/src/lib.rs"
-   ]
+   "rust": [],
+   "dropped": "fsv tui is not in the Rust port; the TUI is being redesigned"
   },
   {
    "py": "tui/actions.py",
-   "rust": [
-    "crates/fsv-tui/src/actions.rs"
-   ]
+   "rust": [],
+   "dropped": "fsv tui is not in the Rust port; the TUI is being redesigned"
   },
   {
    "py": "tui/app.py",
-   "rust": [
-    "crates/fsv-tui/src/app.rs"
-   ]
+   "rust": [],
+   "dropped": "fsv tui is not in the Rust port; the TUI is being redesigned"
   },
   {
    "py": "tui/modals.py",
-   "rust": [
-    "crates/fsv-tui/src/modals.rs"
-   ]
+   "rust": [],
+   "dropped": "fsv tui is not in the Rust port; the TUI is being redesigned"
   },
   {
    "py": "views.py",
