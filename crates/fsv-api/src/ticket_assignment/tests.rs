@@ -261,6 +261,8 @@ fn helpers_match_python() {
     for case in h["positive"].as_array().unwrap() {
         assert_eq!(json!(positive(&case["value"])), case["expected"], "{case}");
     }
+    assert_eq!(positive(&json!("१२")), Some(12));
+    assert_eq!(positive(&json!("²")), None);
     for case in h["resolve"].as_array().unwrap() {
         match resolve(&case["rows"], case["value"].as_str().unwrap(), "agent") {
             Ok(row) => assert_eq!(Value::Object(row), case["ok"], "{case}"),

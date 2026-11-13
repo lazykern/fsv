@@ -197,8 +197,9 @@ pub fn pick_lookup(
     )))
 }
 
+/// `str.isdigit()` for decimal digits. `१२` counts; `²` does not (`int` rejects it).
 fn is_digits(s: &str) -> bool {
-    !s.is_empty() && s.chars().all(|c| c.is_ascii_digit())
+    !s.is_empty() && s.chars().all(|c| pystr::decimal_value(c).is_some())
 }
 
 fn to_int(v: &Value) -> Option<i64> {
@@ -212,7 +213,7 @@ fn to_int(v: &Value) -> Option<i64> {
 /// `_resolve_requester`: `(id, name)`.
 pub fn resolve_requester(c: &Client, value: &str) -> Result<(Value, String)> {
     if is_digits(value) {
-        return Ok((json!(value.parse::<i64>().unwrap_or(0)), value.to_string()));
+        return Ok((int_id(value), value.to_string()));
     }
     let params: Map<String, Value> = [("all_users".to_string(), json!("true"))]
         .into_iter()
@@ -279,6 +280,11 @@ pub fn resolve_group(c: &Client, value: &str) -> Result<String> {
 
 /// `int(text)` of a resolved id.
 pub fn int_id(text: &str) -> Value {
+    if is_digits(text)
+        && let Some(n) = pystr::parse_decimal(text)
+    {
+        return json!(n);
+    }
     text.parse::<i64>()
         .map_or_else(|_| json!(text), |n| json!(n))
 }
@@ -631,6 +637,14 @@ mod tests {
     use super::*;
 
     /// Values from `cli._format_field_ref` and `cli._candidate_label`.
+    #[test]
+    fn unicode_decimal_ids_become_ints() {
+        assert_eq!(int_id("१२"), json!(12));
+        assert_eq!(int_id("12"), json!(12));
+        assert_eq!(int_id("²"), json!("²"));
+        assert_eq!(int_id("-3"), json!(-3));
+    }
+
     #[test]
     fn format_field_ref_columns() {
         let f = json!({"name": "cf_x", "label": "X", "field_type": "custom_dropdown", "default_field": false});

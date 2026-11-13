@@ -88,17 +88,18 @@ pub fn bounded_readback(
 /// Port of fsv.readback.duration_seconds: `HH:MM` or `HH:MM:SS` with
 /// unbounded hours; never wraps at 24h.
 pub fn duration_seconds(value: &Value) -> Result<i64> {
-    static RE: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new(r"^([0-9]{2,}):([0-5][0-9])(?::([0-5][0-9]))?$").expect("regex")
-    });
+    // Python `\d` is a Unicode decimal digit. `[0-5]` stays ASCII.
+    static RE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^(\d{2,}):([0-5]\d)(?::([0-5]\d))?$").expect("regex"));
     let bad = || Error::value("duration must be HH:MM or HH:MM:SS");
     let caps = value
         .as_str()
         .and_then(|s| RE.captures(s))
         .ok_or_else(bad)?;
     let num = |i: usize| -> Result<i64> {
-        caps.get(i)
-            .map_or(Ok(0), |m| m.as_str().parse::<i64>().map_err(|_| bad()))
+        caps.get(i).map_or(Ok(0), |m| {
+            fsv_core::pystr::parse_decimal(m.as_str()).ok_or_else(bad)
+        })
     };
     let rest = num(2)? * 60 + num(3)?;
     num(1)?
@@ -359,6 +360,16 @@ mod tests {
             );
         }
         assert_eq!(duration_seconds(&json!("125:05")).unwrap(), 450300);
+        assert_eq!(
+            duration_seconds(&json!("१२:05")).unwrap(),
+            12 * 3600 + 5 * 60
+        );
+        assert_eq!(
+            duration_seconds(&json!("10:0३:09")).unwrap(),
+            10 * 3600 + 3 * 60 + 9
+        );
+        assert!(same_duration(&json!("१२:05"), &json!("12:05")));
+        assert!(duration_seconds(&json!("१२:३०")).is_err());
         assert_eq!(
             duration_seconds(&json!("1:00")).unwrap_err().to_string(),
             "duration must be HH:MM or HH:MM:SS"

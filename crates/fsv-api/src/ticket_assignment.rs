@@ -27,9 +27,7 @@ fn dumps(v: &Value) -> String {
 fn positive(v: &Value) -> Option<i64> {
     match v {
         Value::Number(n) if n.is_i64() || n.is_u64() => n.as_i64().filter(|i| *i > 0),
-        Value::String(s) if !s.is_empty() && s.chars().all(|c| c.is_ascii_digit()) => {
-            s.parse::<i64>().ok().filter(|i| *i > 0)
-        }
+        Value::String(s) if !s.is_empty() => fsv_core::pystr::parse_decimal(s).filter(|i| *i > 0),
         _ => None,
     }
 }

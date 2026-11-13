@@ -324,8 +324,12 @@ pub fn find_item(c: &dyn Api, r: &str) -> Result<Json> {
     if s.is_empty() {
         return Err(Error::value("catalog item is empty"));
     }
-    if s.bytes().all(|b| b.is_ascii_digit()) {
-        return get_item(c, &json!(s.parse::<i64>().unwrap_or(0)));
+    if !s.is_empty()
+        && s.chars()
+            .all(|c| fsv_core::pystr::decimal_value(c).is_some())
+    {
+        let id = fsv_core::pystr::parse_decimal(&s).unwrap_or(0);
+        return get_item(c, &json!(id));
     }
     let items = list_items(c, false, MAX_PAGES)?;
     let exact: Vec<Json> = items
@@ -2324,6 +2328,10 @@ mod tests {
             .ok(
                 "GET catalog/service-items/77",
                 json!({"service_item": {"display_id": 77}}),
+            )
+            .ok(
+                "GET catalog/service-items/12",
+                json!({"service_item": {"display_id": 12, "name": "By digits"}}),
             );
         assert_eq!(
             json!([
@@ -2332,6 +2340,7 @@ mod tests {
             ]),
             want("find_item")
         );
+        assert_eq!(find_item(&a, "१२").unwrap()["display_id"], json!(12));
         assert_eq!(err(find_item(&a, " # ")), want_err("find_item_empty"));
         assert_eq!(err(find_item(&a, "printer")), want_err("find_item_none"));
         assert_eq!(err(find_item(&a, "a")), want_err("find_item_many"));
