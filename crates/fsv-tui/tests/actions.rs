@@ -310,10 +310,7 @@ fn add_task(a: &mut App) {
     assert!(s.contains("No owner (default)"), "{s}");
     a.press("enter");
     let s = screen(a);
-    assert!(
-        s.contains("defaults: the form's first status"),
-        "{s}"
-    );
+    assert!(s.contains("defaults: the form's first status"), "{s}");
     a.press("enter");
     a.settle();
     let s = screen(a);

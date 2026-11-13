@@ -298,8 +298,26 @@ impl AssetCandidates {
     }
 }
 
-/// Port of fsv.watchers.positive_id.
+/// Port of fsv.watchers.positive_id: a positive decimal int or digit string,
+/// never a bool. Like `int()`, any Unicode decimal digits count; a
+/// `str.isdigit` character that is not one (`²`) is `int()`'s `ValueError`.
 pub fn positive_id(value: &Value) -> BResult<i64> {
+    if let Value::String(s) = value
+        && !s.is_ascii()
+        && fsv_core::pystr::is_digit(s)
+    {
+        let ascii: Option<String> = s
+            .chars()
+            .map(|c| fsv_core::pystr::decimal_value(c).and_then(|d| char::from_digit(d, 10)))
+            .collect();
+        let Some(ascii) = ascii else {
+            return Err(Failure::value(format!(
+                "invalid literal for int() with base 10: {}",
+                fsv_py::py_repr_str(s)
+            )));
+        };
+        return positive_id(&Value::String(ascii));
+    }
     let s = fsv_py::py_str(value);
     match value {
         Value::Bool(_) => None,

@@ -252,16 +252,23 @@ pub fn task_patch(
     let v = match field {
         "status" => site::resolve_task_status(value, fields)?,
         "title" => Value::String(value.to_string()),
-        _ => match value.parse::<i64>() {
-            Ok(n) if n >= 1 && value.chars().all(|c| c.is_ascii_digit()) => Value::from(n),
-            _ => return Err("Enter a positive numeric ID".into()),
-        },
+        // `str.isdecimal()` then `int()`. Unicode decimal digits count; `²` does not.
+        _ => Value::from(decimal_id(value)?),
     };
     let mut out = Map::new();
     if current.get(field) != Some(&v) {
         out.insert(field.into(), v);
     }
     Ok(out)
+}
+
+/// Python `value.isdecimal() and int(value) >= 1`.
+fn decimal_id(value: &str) -> Result<i64, String> {
+    // `to_digit` misses some Nd blocks this toolchain's tables omit; `parse_decimal` has them.
+    match fsv_core::pystr::parse_decimal(value) {
+        Some(n) if !value.is_empty() && n >= 1 => Ok(n),
+        _ => Err("Enter a positive numeric ID".into()),
+    }
 }
 
 /// `(rows, warnings, complete)` for task / initiating-ticket targets.
@@ -546,6 +553,14 @@ mod tests {
         );
         assert_eq!(
             task_patch(&cur, "owner_id", "1.5", &[]).unwrap_err(),
+            "Enter a positive numeric ID"
+        );
+        assert_eq!(
+            task_patch(&cur, "group_id", "१२", &[]).unwrap()["group_id"],
+            json!(12)
+        );
+        assert_eq!(
+            task_patch(&cur, "owner_id", "²", &[]).unwrap_err(),
             "Enter a positive numeric ID"
         );
     }

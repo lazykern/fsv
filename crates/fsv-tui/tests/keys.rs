@@ -2101,6 +2101,15 @@ fn asset_select_needs_an_exact_unique_display_id() {
     };
     assert_eq!(result.select(&json!(701)).unwrap()["display_id"], 701);
     assert_eq!(result.select(&json!("702")).unwrap()["display_id"], "702");
+    result.assets.push(row(json!(12)));
+    assert_eq!(result.select(&json!("१२")).unwrap()["display_id"], 12);
+    assert!(
+        result
+            .select(&json!("²"))
+            .unwrap_err()
+            .to_string()
+            .contains("invalid literal for int()")
+    );
     let not_unique = "exact asset display ID is not unique on this search page";
     assert_eq!(
         result
