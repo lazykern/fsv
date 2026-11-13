@@ -226,6 +226,21 @@ pub fn emit_dry_run_full(
     display_id: Option<String>,
     warnings: &[String],
 ) {
+    emit_dry_run_hashed(res, cid, body, action, risks, display_id, warnings, None);
+}
+
+/// `_emit_dry_run(..., plan_hash=...)`.
+#[allow(clippy::too_many_arguments)]
+pub fn emit_dry_run_hashed(
+    res: &Resource,
+    cid: i64,
+    body: Value,
+    action: &str,
+    risks: &[String],
+    display_id: Option<String>,
+    warnings: &[String],
+    plan_hash: Option<&str>,
+) {
     let mut out = Map::new();
     out.insert("dry_run".into(), json!(true));
     out.insert("action".into(), json!(action));
@@ -234,6 +249,9 @@ pub fn emit_dry_run_full(
         json!(display_id.unwrap_or_else(|| format_cid(cid, res))),
     );
     out.insert("body".into(), body);
+    if let Some(h) = plan_hash.filter(|h| !h.is_empty()) {
+        out.insert("plan_hash".into(), json!(h));
+    }
     if !risks.is_empty() {
         out.insert("requires_confirmation".into(), json!(risks));
     }

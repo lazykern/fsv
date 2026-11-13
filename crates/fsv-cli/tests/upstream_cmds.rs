@@ -11104,6 +11104,7 @@ fn problems_update_custom_field_dry_run() {
       "cf_owner_note": "Acme new owner"
     }
   },
+  "plan_hash": "cf2c602b13bc95730db21789d995b51a33dd60ab6d6670d3a88c0f07f95fa750",
   "requires_confirmation": [
     "problem status -> Change Requested (status semantics and workflows require confirmation)"
   ]

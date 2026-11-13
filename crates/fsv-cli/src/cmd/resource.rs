@@ -1383,7 +1383,7 @@ pub fn update(res: &'static Resource, a: ResUpdateArgs) -> CmdResult {
             other => uncaught(other),
         });
     }
-    if a.expect_plan.as_deref().is_some_and(|s| !s.is_empty()) {
+    if a.expect_plan.as_deref().is_some_and(|s| !s.is_empty()) && res.name != PROBLEMS.name {
         return Err(usage(
             "--expect-plan requires --reviewed, --tag, --planned-start or --planned-end",
         ));
@@ -1572,9 +1572,14 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
     if let Some(w) = &stale_warning {
         err().print(&format!("[yellow]warning[/yellow]: {w}"));
     }
+    let mut row = None;
     if res.name == PROBLEMS.name {
-        let row = c.int_get(&format!("{}/{id}", res.api_path), None).ok();
-        let row = row.map(|r| r.get(res.item_key).cloned().unwrap_or(r));
+        row = c
+            .int_get(&format!("{}/{id}", res.api_path), None)
+            .ok()
+            .filter(Value::is_object)
+            .map(|r| r.get(res.item_key).cloned().unwrap_or(r))
+            .filter(Value::is_object);
         if row.as_ref().and_then(|r| r.get("deleted")) == Some(&Value::Bool(true)) {
             return Err(usage(&format!(
                 "{} is deleted (in trash); restore it before updating",
@@ -1645,6 +1650,19 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
         None
     };
     let risks = lookup::risks_for_item_write(res, id, &body, &sch, &c, current.clone());
+    let plan_hash = if res.name == PROBLEMS.name {
+        problem_update_hash(res, id, &body, row.as_ref(), &c.tenant().domain)
+    } else {
+        None
+    };
+    if let Some(expect) = &a.expect_plan
+        && plan_hash.as_deref() != Some(expect.as_str())
+    {
+        return Err(usage(&format!(
+            "{} or the update changed since review (or the problem could not be read); review again with --dry-run. Nothing was sent",
+            format_cid(id, res)
+        )));
+    }
     if a.dry_run {
         let display_id = (res.name == TICKETS.name).then(|| {
             static TID: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
@@ -1662,7 +1680,7 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
             }
         });
         let warnings: Vec<String> = stale_warning.into_iter().collect();
-        crate::util::emit_dry_run_full(
+        crate::util::emit_dry_run_hashed(
             res,
             id,
             Value::Object(body),
@@ -1670,6 +1688,7 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
             &risks,
             display_id,
             &warnings,
+            plan_hash.as_deref(),
         );
         return Ok(());
     }
@@ -1697,6 +1716,28 @@ fn update_resource(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
         fsv_core::resource::format_id(&item, res)
     ));
     Ok(())
+}
+
+/// `_problem_update_hash`: tenant, target, exact PUT body and the stable
+/// snapshot of the problem it was reviewed against (`None` when the problem
+/// could not be read).
+fn problem_update_hash(
+    res: &Resource,
+    id: i64,
+    body: &Map<String, Value>,
+    row: Option<&Value>,
+    domain: &str,
+) -> Option<String> {
+    let row = row.filter(|r| r.is_object())?;
+    if domain.is_empty() {
+        return None;
+    }
+    let record = fsv_core::journal::snapshot_hash(Some(row)).ok()?;
+    fsv_core::journal::plan_hash(Some(&json!({
+        "action": "update", "resource": res.name, "target": id, "tenant": domain,
+        "method": "PUT", "path": format!("{}/{id}", res.api_path), "payload": body,
+        "record": record,
+    })))
 }
 
 /// Generic `download` (tickets, problems).
