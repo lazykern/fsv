@@ -824,3 +824,276 @@ N`)
 "#
     );
 }
+
+// Python commit: ebfbdd5
+
+#[test]
+fn tickets_approvals_flat_rows_json() {
+    let r = run_fixture(
+        "approvals_flat",
+        &["tickets", "approvals", "SR-123", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"[
+  {
+    "id": 710000000001,
+    "member_id": 9000003001,
+    "user_id": 9000004001,
+    "level_id": 1,
+    "approval_level_status": null,
+    "remark": [],
+    "status": {
+      "id": 0,
+      "name": "requested"
+    },
+    "type": {
+      "id": 1,
+      "name": "everyone"
+    },
+    "last_reminded_at": null,
+    "change_id": 123,
+    "member": {
+      "id": 9000003001,
+      "name": "Acme Approver",
+      "email": "approver@example.com"
+    },
+    "level": 1,
+    "approver": "Acme Approver",
+    "approver_id": 9000003001,
+    "status_name": "requested",
+    "status_id": 0,
+    "type_name": "everyone",
+    "decided": "",
+    "comment": ""
+  },
+  {
+    "id": 710000000002,
+    "member_id": 9000003001,
+    "user_id": 9000004001,
+    "level_id": 2,
+    "approval_level_status": null,
+    "remark": [
+      {
+        "delegate_id": null,
+        "status": 1,
+        "updated_at": "2030-01-02T03:04:05Z",
+        "data": "ok [x]"
+      }
+    ],
+    "status": {
+      "id": 1,
+      "name": "Genehmigt"
+    },
+    "type": {
+      "id": 1,
+      "name": "everyone"
+    },
+    "last_reminded_at": null,
+    "change_id": 123,
+    "member": {
+      "id": 9000003001,
+      "name": "Acme Approver",
+      "email": "approver@example.com"
+    },
+    "level": 2,
+    "approver": "Acme Approver",
+    "approver_id": 9000003001,
+    "status_name": "Genehmigt",
+    "status_id": 1,
+    "type_name": "everyone",
+    "decided": "2030-01-02T03:04:05",
+    "comment": "ok [x]"
+  },
+  {
+    "id": 710000000003,
+    "member_id": 9000003002,
+    "level_id": 2,
+    "status": {
+      "id": 4
+    },
+    "type": 2,
+    "updated_at": "2030-01-03T00:00:00Z",
+    "level": 2,
+    "approver": "9000003002",
+    "approver_id": 9000003002,
+    "status_name": "4",
+    "status_id": 4,
+    "type_name": "2",
+    "decided": "2030-01-03T00:00:00",
+    "comment": ""
+  }
+]
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_approvals_flat_rows_table() {
+    let r = run_fixture("approvals_flat", &["tickets", "approvals", "SR-123"], None);
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"┏━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━┓
+┃ Level ┃ Approver      ┃ Status    ┃ Decided             ┃ Type     ┃ Comment ┃
+┡━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━┩
+│ 1     │ Acme Approver │ requested │ -                   │ everyone │ -       │
+│ 2     │ Acme Approver │ Genehmigt │ 2030-01-02T03:04:05 │ everyone │ ok [x]  │
+│ 2     │ 9000003002    │ 4         │ 2030-01-03T00:00:00 │ 2        │ -       │
+└───────┴───────────────┴───────────┴─────────────────────┴──────────┴─────────┘
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn tickets_approvals_flat_rows_csv() {
+    let r = run_fixture(
+        "approvals_flat",
+        &["tickets", "approvals", "SR-123", "-o", "csv"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        "level,approver,approver_id,status_name,status_id,type_name,decided,comment\r\n1,Acme Approver,9000003001,requested,0,everyone,,\r\n2,Acme Approver,9000003001,Genehmigt,1,everyone,2030-01-02T03:04:05,ok [x]\r\n2,9000003002,9000003002,4,4,2,2030-01-03T00:00:00,\r\n"
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn sr_approvals_list_flat_rows_json() {
+    let r = run_fixture(
+        "approvals_flat",
+        &["sr", "approvals", "list", "SR-123", "--json"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "model": "legacy",
+  "note": "this tenant uses legacy flat approvals (approval-chains answered HTTP 400)",
+  "approvals": [
+    {
+      "id": 710000000001,
+      "member_id": 9000003001,
+      "user_id": 9000004001,
+      "level_id": 1,
+      "approval_level_status": null,
+      "remark": [],
+      "status": {
+        "id": 0,
+        "name": "requested"
+      },
+      "type": {
+        "id": 1,
+        "name": "everyone"
+      },
+      "last_reminded_at": null,
+      "change_id": 123,
+      "member": {
+        "id": 9000003001,
+        "name": "Acme Approver",
+        "email": "approver@example.com"
+      },
+      "level": 1,
+      "approver": "Acme Approver",
+      "approver_id": 9000003001,
+      "status_name": "requested",
+      "status_id": 0,
+      "type_name": "everyone",
+      "decided": "",
+      "comment": ""
+    },
+    {
+      "id": 710000000002,
+      "member_id": 9000003001,
+      "user_id": 9000004001,
+      "level_id": 2,
+      "approval_level_status": null,
+      "remark": [
+        {
+          "delegate_id": null,
+          "status": 1,
+          "updated_at": "2030-01-02T03:04:05Z",
+          "data": "ok [x]"
+        }
+      ],
+      "status": {
+        "id": 1,
+        "name": "Genehmigt"
+      },
+      "type": {
+        "id": 1,
+        "name": "everyone"
+      },
+      "last_reminded_at": null,
+      "change_id": 123,
+      "member": {
+        "id": 9000003001,
+        "name": "Acme Approver",
+        "email": "approver@example.com"
+      },
+      "level": 2,
+      "approver": "Acme Approver",
+      "approver_id": 9000003001,
+      "status_name": "Genehmigt",
+      "status_id": 1,
+      "type_name": "everyone",
+      "decided": "2030-01-02T03:04:05",
+      "comment": "ok [x]"
+    },
+    {
+      "id": 710000000003,
+      "member_id": 9000003002,
+      "level_id": 2,
+      "status": {
+        "id": 4
+      },
+      "type": 2,
+      "updated_at": "2030-01-03T00:00:00Z",
+      "level": 2,
+      "approver": "9000003002",
+      "approver_id": 9000003002,
+      "status_name": "4",
+      "status_id": 4,
+      "type_name": "2",
+      "decided": "2030-01-03T00:00:00",
+      "comment": ""
+    }
+  ]
+}
+"#
+    );
+    assert_eq!(r.err, r#""#);
+}
+
+#[test]
+fn sr_approvals_list_flat_rows_table() {
+    let r = run_fixture(
+        "approvals_flat",
+        &["sr", "approvals", "list", "SR-123"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"┏━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━┓
+┃ Level ┃ Approver      ┃ Status    ┃ Decided             ┃ Type     ┃ Comment ┃
+┡━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━┩
+│ 1     │ Acme Approver │ requested │ -                   │ everyone │ -       │
+│ 2     │ Acme Approver │ Genehmigt │ 2030-01-02T03:04:05 │ everyone │ ok [x]  │
+│ 2     │ 9000003002    │ 4         │ 2030-01-03T00:00:00 │ 2        │ -       │
+└───────┴───────────────┴───────────┴─────────────────────┴──────────┴─────────┘
+"#
+    );
+    assert_eq!(
+        r.err,
+        r#"this tenant uses legacy flat approvals (approval-chains answered HTTP 400)
+"#
+    );
+}

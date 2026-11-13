@@ -228,7 +228,7 @@ pub fn dispatch(module: &str, sub: &str, m: &clap::ArgMatches) -> Option<CmdResu
         ("sr", "assets add") => write!(SrAssetsAddArgs, false),
         ("sr", "assets remove") => write!(SrAssetsRemoveArgs, true),
         ("sr", "approvals list") => match parse::<SrApprovalsListArgs>(m) {
-            Ok(a) => approvals_list(&a.target),
+            Ok(a) => approvals_list(&a.target, a.json_out),
             Err(e) => Err(e),
         },
         ("sr", "approvals request") => match parse::<SrApprovalsRequestArgs>(m) {
@@ -251,13 +251,46 @@ pub fn dispatch(module: &str, sub: &str, m: &clap::ArgMatches) -> Option<CmdResu
     })
 }
 
-/// `sr approvals list TARGET`.
-fn approvals_list(target: &str) -> CmdResult {
+/// `approval_model.flat_table`: one row per flat (legacy) approval record.
+pub(crate) fn flat_approval_table(records: &[Value]) -> fsv_core::term::Table {
+    use fsv_core::term::{Column, Overflow, Table, escape};
+    let mut t = Table::new();
+    for col in ["Level", "Approver", "Status", "Decided", "Type", "Comment"] {
+        t.add_column(Column::new(col).overflow(Overflow::Fold));
+    }
+    for r in records {
+        t.add_row(approval_model::flat_cells(r).map(|c| escape(&c)));
+    }
+    t
+}
+
+/// `sr approvals list TARGET`: the flat (legacy) list gets the same row keys
+/// and table as `tickets approvals`; chains output is unchanged.
+fn approvals_list(target: &str, json_out: bool) -> CmdResult {
     let c = LazyApi::default();
     guard(
         parse_id(target, &TICKETS)
             .and_then(|id| sr_approvals::listing(&c, id))
-            .map(|v| println!("{}", dumps(&v))),
+            .map(|mut out| {
+                let flat = match out.get("approvals") {
+                    Some(Value::Array(rows)) => Some(approval_model::with_flat(rows)),
+                    Some(_) => Some(Vec::new()),
+                    None => None,
+                };
+                let Some(flat) = flat else {
+                    println!("{}", dumps(&out));
+                    return;
+                };
+                out["approvals"] = Value::Array(flat.clone());
+                if json_out {
+                    println!("{}", dumps(&out));
+                    return;
+                }
+                fsv_core::term::out().print_table(&flat_approval_table(&flat));
+                if let Some(note) = out.get("note").filter(|n| fsv_py::truthy(n)) {
+                    fsv_core::term::err().print(&format!("[dim]{}[/dim]", fsv_py::py_str(note)));
+                }
+            }),
     )
 }
 

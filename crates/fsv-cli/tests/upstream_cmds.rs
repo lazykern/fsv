@@ -15566,29 +15566,18 @@ fn sr_legacy_approvals_list() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
-        r#"{
-  "model": "legacy",
-  "note": "this tenant uses legacy flat approvals (approval-chains answered HTTP 400)",
-  "approvals": [
-    {
-      "id": 601,
-      "member_id": 33,
-      "level_id": 1,
-      "status": {
-        "id": 0,
-        "name": "requested"
-      },
-      "type": {
-        "id": 1,
-        "name": "everyone"
-      },
-      "last_reminded_at": null
-    }
-  ]
-}
+        r#"┏━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━┓
+┃ Level ┃ Approver ┃ Status    ┃ Decided ┃ Type     ┃ Comment ┃
+┡━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━┩
+│ 1     │ 33       │ requested │ -       │ everyone │ -       │
+└───────┴──────────┴───────────┴─────────┴──────────┴─────────┘
 "#
     );
-    assert_eq!(r.err, r#""#);
+    assert_eq!(
+        r.err,
+        r#"this tenant uses legacy flat approvals (approval-chains answered HTTP 400)
+"#
+    );
 }
 
 #[test]
