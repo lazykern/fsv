@@ -2492,7 +2492,7 @@ fn update_reviewed_unknown_choice() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"could not evaluate ticket edit form and rules; no update attempted
+        r#"Priority: 'Urgent' is not a valid choice; choose one of: Low, Medium, High; no update attempted
 "#
     );
 }
@@ -3000,7 +3000,7 @@ fn bulk_priority_unknown_priority() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"could not evaluate ticket edit form and rules; no update attempted
+        r#"Priority: 'Urgent' is not a valid choice; choose one of: Low, Medium, High; no update attempted
 "#
     );
 }
@@ -10745,7 +10745,7 @@ fn problems_status_unknown_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"status must match one active runtime task-status ID or label
+        r#"status must match one active runtime problem-status ID or label; 'Bogus' is not one (options: Open, Change Requested, Closed)
 "#
     );
 }
@@ -11742,7 +11742,7 @@ fn tickets_tasks_status_unknown_refused() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"status must match one active runtime task-status ID or label
+        r#"status must match one active runtime task-status ID or label; 'Bogus' is not one (options: Open, In Progress, Completed)
 "#
     );
 }
@@ -18479,7 +18479,7 @@ fn changes_tasks_update_unknown_status() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"status must match one active runtime task-status ID or label
+        r#"status must match one active runtime task-status ID or label; 'Bogus' is not one (options: Open, In Progress, Completed)
 "#
     );
 }
@@ -19658,7 +19658,7 @@ fn problems_task_update_unknown_status() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"status must match one active runtime task-status ID or label
+        r#"status must match one active runtime task-status ID or label; 'Bogus' is not one (options: Open, In Progress, Completed)
 "#
     );
 }

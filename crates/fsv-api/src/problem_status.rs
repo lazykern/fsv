@@ -208,7 +208,7 @@ pub fn build_plan(
         .collect::<Vec<_>>();
     let raw_fields = meta.raw_fields();
     let (status_id, label) =
-        task_status::resolve(to, &raw_fields).map_err(|e| Error::value(e.0))?;
+        task_status::resolve_of(to, &raw_fields, "problem").map_err(|e| Error::value(e.0))?;
     let spec = meta.spec();
     let mut state = meta.state("edit", resolver, Some(existing_from_record(&spec, &before)))?;
     let field = spec.field("status").map_err(other)?;

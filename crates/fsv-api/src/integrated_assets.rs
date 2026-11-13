@@ -65,6 +65,22 @@ pub fn search(c: &dyn Api, query: &str, kind: &str, page: i64) -> Result<Value> 
     let Some(obj) = raw.as_object() else {
         return Err(refused("integrated inventory unavailable"));
     };
+    let out_of_range = obj
+        .get("total_rows")
+        .and_then(Value::as_i64)
+        .filter(|total| {
+            page > 1
+                && obj.get("error").is_some_and(Value::is_string)
+                && obj.get("data") == Some(&json!([]))
+                && (0..=(page - 1) * 50).contains(total)
+        });
+    if let Some(total) = out_of_range {
+        // Native out-of-range answer: {"error": "Requested page is out of range.", "data": [], "page": 1, ...}
+        return Err(Error::value(format!(
+            "no results on page {page}: the {kind} inventory has {total} row(s) ({} page(s) of 50)",
+            std::cmp::max(1, (total + 49) / 50)
+        )));
+    }
     if obj.get("error").is_some_and(fsv_py::truthy) || !obj.get("data").is_some_and(Value::is_array)
     {
         return Err(refused("integrated inventory unavailable"));
@@ -902,5 +918,49 @@ mod tests {
                 .contains("not yet live-proven")
         );
         assert_eq!(c.writes().len(), 1);
+    }
+
+    /// `test_sweep1_messages.py::test_out_of_range_inventory_page_says_no_results` (c692ce2).
+    #[test]
+    fn out_of_range_inventory_page_says_no_results() {
+        let paged = |answer: fn(i64) -> Value| {
+            FnApi::new(move |call: &Call| {
+                assert_eq!(call.method, "GET");
+                let page = call.params.as_ref().unwrap()["page"].as_i64().unwrap();
+                Ok(answer(page))
+            })
+        };
+        let native = paged(|page| {
+            if page == 1 {
+                json!({"page": 1, "error": null, "total_rows": 0, "data": []})
+            } else {
+                json!({"page": 1, "error": "Requested page is out of range.", "total_rows": 0, "data": []})
+            }
+        });
+        assert_eq!(
+            search(&native, "", "devices", 1).unwrap()["complete"],
+            json!(true)
+        );
+        let e = search(&native, "", "devices", 2).unwrap_err();
+        assert!(matches!(e, Error::Value(_)));
+        assert_eq!(
+            e.to_string(),
+            "no results on page 2: the devices inventory has 0 row(s) (1 page(s) of 50)"
+        );
+        let broken =
+            paged(|page| json!({"page": page, "error": "boom", "total_rows": 500, "data": []}));
+        assert!(
+            search(&broken, "", "devices", 2)
+                .unwrap_err()
+                .to_string()
+                .contains("integrated inventory unavailable")
+        );
+        let first = paged(|_| json!({"page": 1, "error": "x", "total_rows": 0, "data": []}));
+        assert!(
+            search(&first, "", "devices", 1)
+                .unwrap_err()
+                .to_string()
+                .contains("integrated inventory unavailable")
+        );
     }
 }

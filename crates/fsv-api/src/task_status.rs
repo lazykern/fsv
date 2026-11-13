@@ -14,6 +14,11 @@ pub type Choice = (i64, String);
 /// `active_choices`. Skips deleted rows. Fails closed on a missing, duplicate
 /// or unreadable status field.
 pub fn active_choices(fields: &[Value]) -> Result<Vec<Choice>, QueryError> {
+    active_choices_of(fields, "task")
+}
+
+/// `active_choices(fields, kind)`: `kind` names the record in messages.
+pub fn active_choices_of(fields: &[Value], kind: &str) -> Result<Vec<Choice>, QueryError> {
     let statuses: Vec<&Value> = fields
         .iter()
         .filter(|f| {
@@ -22,7 +27,9 @@ pub fn active_choices(fields: &[Value]) -> Result<Vec<Choice>, QueryError> {
         })
         .collect();
     if statuses.len() != 1 {
-        return Err(err("exactly one runtime task-status field is required"));
+        return Err(err(&format!(
+            "exactly one runtime {kind}-status field is required"
+        )));
     }
     let mut result = Vec::new();
     for choice in statuses[0]
@@ -67,15 +74,26 @@ pub fn active_choices(fields: &[Value]) -> Result<Vec<Choice>, QueryError> {
 
 /// `resolve`: the text must be one active id or one label (case-insensitive).
 pub fn resolve(value: &str, fields: &[Value]) -> Result<Choice, QueryError> {
+    resolve_of(value, fields, "task")
+}
+
+/// `resolve(value, fields, kind)`: `kind` names the record in messages
+/// ("task", "problem").
+pub fn resolve_of(value: &str, fields: &[Value], kind: &str) -> Result<Choice, QueryError> {
     let key = pystr::casefold(pystr::strip(value));
-    let matches: Vec<Choice> = active_choices(fields)?
-        .into_iter()
+    let choices = active_choices_of(fields, kind)?;
+    let matches: Vec<Choice> = choices
+        .iter()
         .filter(|(id, label)| key == id.to_string() || key == pystr::casefold(label))
+        .cloned()
         .collect();
     if matches.len() != 1 {
-        return Err(err(
-            "status must match one active runtime task-status ID or label",
-        ));
+        let options: Vec<&str> = choices.iter().map(|(_, l)| l.as_str()).collect();
+        return Err(err(&format!(
+            "status must match one active runtime {kind}-status ID or label; {} is not one (options: {})",
+            fsv_py::py_repr_str(value),
+            options.join(", ")
+        )));
     }
     Ok(matches[0].clone())
 }
@@ -241,5 +259,33 @@ mod tests {
         assert_eq!(display(&json!({}), None), "None");
         assert_eq!(display(&json!({"value": 0, "id": "7"}), None), "7");
         assert_eq!(display(&json!({"label": "  x  "}), None), "  x  ");
+    }
+
+    /// `test_sweep1_messages.py::test_problem_status_label_error_names_problem_status_and_options` (c692ce2).
+    #[test]
+    fn problem_status_label_error_names_problem_status_and_options() {
+        let fields = vec![
+            json!({"name": "status", "choices": [{"id": 1, "value": "Open"},
+            {"id": 2, "value": "Change Requested"}, {"id": 3, "value": "Closed"}]}),
+        ];
+        let text = resolve_of("Resolved", &fields, "problem").unwrap_err().0;
+        assert_eq!(
+            text,
+            "status must match one active runtime problem-status ID or label; 'Resolved' is not one (options: Open, Change Requested, Closed)"
+        );
+        assert!(
+            resolve("Resolved", &fields)
+                .unwrap_err()
+                .0
+                .contains("task-status ID or label")
+        );
+        assert_eq!(
+            resolve_of("closed", &fields, "problem").unwrap(),
+            (3, "Closed".to_string())
+        );
+        assert_eq!(
+            active_choices_of(&[], "problem").unwrap_err().0,
+            "exactly one runtime problem-status field is required"
+        );
     }
 }

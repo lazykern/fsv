@@ -2233,7 +2233,7 @@
    {
     "error": {
      "type": "ValueError",
-     "msg": "status must match one active runtime task-status ID or label"
+     "msg": "status must match one active runtime task-status ID or label; 'Done' is not one (options: Open, Completed, Canceled)"
     },
     "writes": 0
    },

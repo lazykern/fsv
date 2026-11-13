@@ -219,7 +219,21 @@ fn evaluate(
     resolver: Option<Arc<dyn LookupResolver>>,
     ack: bool,
 ) -> Result<(String, String, Vec<String>)> {
-    let other = |e: fsv_forms::FormError| Error::other(e.to_string());
+    let other = |e: fsv_forms::FormError| match e {
+        fsv_forms::FormError::UnknownField { name, suggestions } => {
+            let hint = if suggestions.is_empty() {
+                "; see `fsv tickets fields` for the exact labels".to_string()
+            } else {
+                format!("; full labels containing it: {}", suggestions.join(", "))
+            };
+            refused(format!(
+                "--set field {} did not match a ticket field label exactly{hint}; no update attempted",
+                fsv_py::py_repr_str(&name)
+            ))
+        }
+        e @ fsv_forms::FormError::ValueParse { .. } => refused(format!("{e}; no update attempted")),
+        e => Error::other(e.to_string()),
+    };
     let meta = load_meta(c, store, "ticket", "edit", true, &json!(cid))?;
     if meta
         .rules
@@ -1172,6 +1186,32 @@ mod tests {
                 &answers(&[("Requested For", "person@example.com")])
             )),
             "ticket business rules block this write: rule 9000000006 'Acme rule': unavailable fields or context (requested_for 'department_id'); it could change Subject"
+        );
+        assert!(c.writes().is_empty());
+    }
+
+    /// `test_sweep1_messages.py::test_partial_set_label_names_the_full_labels` (c692ce2).
+    #[test]
+    fn partial_set_label_names_the_full_labels() {
+        let c = rich_api(rich_form(&[]), json!({"business_rules": []}), rich_row());
+        let text = err(answer_plan(&c, "SR-123", &answers(&[("Cost", "new")])));
+        assert!(
+            text.contains("did not match a ticket field label exactly"),
+            "{text}"
+        );
+        assert!(
+            text.contains("Cost Code") && !text.contains("could not evaluate"),
+            "{text}"
+        );
+        let text = err(answer_plan(
+            &c,
+            "SR-123",
+            &answers(&[("Globex nothing", "x")]),
+        ));
+        assert!(text.contains("tickets fields"), "{text}");
+        assert_eq!(
+            text,
+            "--set field 'Globex nothing' did not match a ticket field label exactly; see `fsv tickets fields` for the exact labels; no update attempted"
         );
         assert!(c.writes().is_empty());
     }
