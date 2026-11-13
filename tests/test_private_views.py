@@ -120,3 +120,16 @@ def test_cli_review_full_hash_gate(wire, monkeypatch):
     result = runner.invoke(cli.app, args + ["--yes", "--expect-plan", digest])
     assert result.exit_code == 0, result.output
     assert json.loads(result.output)["verified"]
+
+
+
+def test_numeric_only_visibility_refusal_names_the_checked_endpoints(wire):
+    """Real tenant shape: the exact view read carries only a number (here 1)."""
+    wire["rows"][701].pop("visibility_name", None)
+    wire["rows"][701]["visibility"] = 1
+    with pytest.raises(ReviewedWriteError) as exc:
+        views.build_plan(wire["client"], 701, action="create", name="Acme")
+    message = str(exc.value)
+    assert "GET /api/_/ticket_filters/701 returns only numeric visibility 1" in message
+    assert "GET /api/_/ticket_filters/new" in message and "Nothing was sent" in message
+    assert "\n" not in message and not wire["writes"]

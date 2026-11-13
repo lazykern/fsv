@@ -519,7 +519,7 @@ Other filter facts:
 | Feature | Request | Payload | Proof |
 |---|---|---|---|
 | View definitions | `GET /api/_/ticket_filters`, `GET /api/_/ticket_filters/<id>`, `GET /api/_/change-filters` | → `{ticket_filter: {query_hash, advanced, ...}}` | VERIFIED LIVE |
-| Private view create | `POST /api/_/ticket_filters` | `{name, workspace_id, visibility, query_hash: [...]}` (visibility 3 meant "only me" there) | VERIFIED LIVE |
+| Private view create | `POST /api/_/ticket_filters` | `{name, workspace_id, visibility, query_hash: [...]}` (visibility 3 meant "only me" there; VERIFIED LIVE read-only on another tenant: `GET /api/_/ticket_filters/<id>` returns only a numeric `visibility` with no label, the list omits it, and `GET /api/_/ticket_filters/new` exposes no visibility options, so fsv cannot prove "only me" from metadata and fails closed) | VERIFIED LIVE |
 | Private view edit / delete | `PUT /api/_/ticket_filters/<id>`, `DELETE /api/_/ticket_filters/<id>` | same body / none | VERIFIED LIVE |
 | Column selection | `POST /api/_/<tickets\|changes\|problems>/headers` | `{"columns": {<key>: <position>}, "frozen_columns": [...]}` | CAPTURED |
 | Export | `POST /api/_/<module>/export` | `{format: "csv", date_filter: 30, export_fields: {<key>: <label>}, ...}` | CAPTURED (job and delivery, possibly by email, unknown) |

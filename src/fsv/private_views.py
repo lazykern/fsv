@@ -39,7 +39,13 @@ def private_visibility(row: dict[str, Any], user: int) -> int:
     else:
         label = row.get("visibility_name")
     if not isinstance(label, str) or label.strip().casefold() not in {"me", "only me", "private"}:
-        raise ReviewedWriteError("named private visibility metadata is unavailable; numeric visibility alone is not proof")
+        code = value if isinstance(value, int) and not isinstance(value, bool) else "unreadable"
+        raise ReviewedWriteError(
+            f"named private visibility metadata is unavailable: GET /api/_/ticket_filters/{row.get('id')} returns only "
+            f"numeric visibility {code} (no label), and neither GET /api/_/ticket_filters (list) nor "
+            "GET /api/_/ticket_filters/new exposes visibility options; a number alone is not proof that the view is "
+            "visible only to you (shared views use other codes). Nothing was sent; create or change private views "
+            "in the web UI")
     return positive_id(value)
 
 
