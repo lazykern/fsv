@@ -683,7 +683,10 @@ struct CreateModes {
 fn change_create(a: &ChangesCreateArgs, c: Arc<fsv_core::Client>, m: CreateModes) -> CmdResult {
     let as_json = a.json_out || a.format_ == OutputFormat::Json;
     let tty = m.tty;
-    let deps = fsv_app::FormDeps::live(c)?;
+    let deps = fsv_app::FormDeps {
+        attach_flow: Some(m.attach_flow.clone()),
+        ..fsv_app::FormDeps::live(c)?
+    };
     let fresh = a.dry || a.yes || !tty;
     let meta = Arc::new(deps.meta.load_meta("change", "new", fresh, &Value::Null)?);
     let mut extra = Draft {

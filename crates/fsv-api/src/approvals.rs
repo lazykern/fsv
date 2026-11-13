@@ -402,8 +402,9 @@ pub fn approval_groups(c: &dyn Api, change_id: &Value, module: &str) -> Result<V
             Some(obj(json!({"page": page, "per_page": 100}))),
         ) {
             Ok(data) => data,
-            Err(Error::Api(e)) if page == 1 && matches!(e.status, 400 | 404) => {
-                return Err(crate::approval_model::groups_unavailable(e.status));
+            Err(e) if page == 1 && crate::approval_model::is_absent(&e) => {
+                let status = e.status().unwrap_or_default();
+                return Err(crate::approval_model::groups_unavailable(status));
             }
             Err(e) => return Err(e),
         };

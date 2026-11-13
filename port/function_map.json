@@ -92,7 +92,10 @@
    "module": "approval_model.py",
    "name": "is_absent",
    "line": 36,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-api/src/approval_model.rs",
+   "rust_item": "is_absent",
+   "note": "Was inlined as matches!(e.status, 400 | 404); now a named fn (direct Error::Api only, like isinstance(exc, APIError)) used by detect and approvals::get_change_approval_groups; test is_absent_only_for_direct_400_and_404."
   },
   {
    "module": "approval_model.py",
@@ -1161,7 +1164,8 @@
    "name": "_InventoryPlan",
    "line": 155,
    "kind": "class",
-   "status": "open"
+   "status": "idiom",
+   "note": "typing.Protocol with only change_id; Rust approvals::inventory (crates/fsv-api/src/approvals.rs) takes change_id: i64 directly."
   },
   {
    "module": "change_approvals.py",
@@ -1216,13 +1220,19 @@
    "module": "change_approvals.py",
    "name": "_legacy_request_cli",
    "line": 434,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/review.rs",
+   "rust_item": "legacy_request",
+   "note": "Same refusals/order, dry_run JSON on stdout, review on stderr, --yes/--no-input/confirm, validate then send; unverified result exits 4 via reviewed::print_verified."
   },
   {
    "module": "change_approvals.py",
    "name": "_model",
    "line": 466,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/review.rs",
+   "rust_item": "approval_model",
+   "note": "auto -> one approval_model::detect GET; LEGACY only when proven, else CHAINS."
   },
   {
    "module": "change_approvals.py",
@@ -1380,7 +1390,10 @@
    "module": "change_cli.py",
    "name": "_print_plan",
    "line": 25,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/changes.rs",
+   "rust_item": "print_change_plan",
+   "note": "Python callers always use to_stdout=True; Rust prints only that branch (incl. 'PUT changes/None' for a missing target)."
   },
   {
    "module": "change_cli.py",
@@ -1395,7 +1408,10 @@
    "name": "_Requester",
    "line": 56,
    "kind": "class",
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/formflow.rs",
+   "rust_item": "Requester",
+   "note": "Requester::new (config defaults.requester); value/ask/resolve mapped separately."
   },
   {
    "module": "change_cli.py",
@@ -1444,7 +1460,10 @@
    "module": "change_cli.py",
    "name": "_abort_editor",
    "line": 96,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/formflow.rs",
+   "rust_item": "editor_abort",
+   "note": "EditorAbort -> FlowExit(1, message)."
   },
   {
    "module": "change_cli.py",
@@ -1483,8 +1502,8 @@
    "name": "_send",
    "line": 168,
    "status": "matched",
-   "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "send"
+   "rust": "crates/fsv-cli/src/cmd/changes.rs",
+   "rust_item": "send_plan"
   },
   {
    "module": "change_cli.py",
@@ -1498,7 +1517,10 @@
    "module": "change_cli.py",
    "name": "create_command",
    "line": 206,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/changes.rs",
+   "rust_item": "change_create",
+   "note": "Mode/input checks live in changes::create, the rest in change_create. Fixed: the form-session send now uses the CLI-resolved --attach-flow (Python passes attach_flow to _send); before, FormDeps.attach_flow was None and the send fell back to config changes.attach_flow."
   },
   {
    "module": "change_cli.py",
@@ -1512,7 +1534,10 @@
    "module": "change_cli.py",
    "name": "update_command",
    "line": 393,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/changes.rs",
+   "rust_item": "change_update",
+   "note": "Form/--edit TTY checks are in changes::update; record/meta load, status field, lifecycle cache, dry-run, no-changes, risks/blocking, JSON shape and unverified exit 4 all match."
   },
   {
    "module": "change_delete.py",
@@ -1899,7 +1924,8 @@
    "name": "FormWritePlan",
    "line": 14,
    "kind": "class",
-   "status": "open"
+   "status": "idiom",
+   "note": "A WritePlan subclass whose hash is source_hash, so the generic reviewed_write.execute journals under the source plan hash. Rust send_form_update (crates/fsv-flows/src/change.rs) inlines execute and journals with source.hash directly, so no type is needed."
   },
   {
    "module": "change_form_update.py",
@@ -1915,8 +1941,8 @@
    "name": "send",
    "line": 22,
    "status": "matched",
-   "rust": "crates/fsv-api/src/approvals.rs",
-   "rust_item": "send"
+   "rust": "crates/fsv-flows/src/change.rs",
+   "rust_item": "send_form_update"
   },
   {
    "module": "change_lifecycle.py",
@@ -2263,7 +2289,10 @@
    "module": "change_tasks.py",
    "name": "check_inputs",
    "line": 272,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/review.rs",
+   "rust_item": "check_task_inputs",
+   "note": "Same order (id, title, planned dates, note, effort) and messages; called after status_label as in Python. The TUI caller (tui/app.py) is group C's."
   },
   {
    "module": "change_tasks.py",
@@ -3757,7 +3786,10 @@
    "module": "cli_sr.py",
    "name": "catalog_cmd",
    "line": 95,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/sr.rs",
+   "rust_item": "catalog",
+   "note": "Tables, JSON shape, last-wins category names, sort key and the stderr footers all match."
   },
   {
    "module": "cli_sr.py",
@@ -3787,7 +3819,10 @@
    "module": "cli_sr.py",
    "name": "fields_cmd",
    "line": 224,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/sr.rs",
+   "rust_item": "fields",
+   "note": "Header, attachment rule, per-field details, warnings on stderr and footer match."
   },
   {
    "module": "cli_sr.py",
@@ -3834,7 +3869,10 @@
    "name": "_Requester",
    "line": 459,
    "kind": "class",
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/formflow.rs",
+   "rust_item": "Requester",
+   "note": "Requester::sr (config defaults.sr_requester) with ask_sr (strip; empty -> FlowExit 2)."
   },
   {
    "module": "cli_sr.py",
@@ -3875,7 +3913,9 @@
    "module": "cli_sr.py",
    "name": "_print_plan",
    "line": 497,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/sr.rs",
+   "rust_item": "sr_print_plan"
   },
   {
    "module": "cli_sr.py",
@@ -3897,13 +3937,19 @@
    "module": "cli_sr.py",
    "name": "create_command",
    "line": 600,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/sr.rs",
+   "rust_item": "sr_create",
+   "note": "Mode checks are in sr::create. Fixed: the --cc exact-email check used to_lowercase; Python uses casefold (the email regex admits non-ASCII). Now same_email -> pystr::casefold; test cc_exact_match_casefolds_like_python."
   },
   {
    "module": "cli_sr.py",
    "name": "create_cmd",
    "line": 768,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/sr.rs",
+   "rust_item": "create",
+   "note": "clap handler: as_json = output == json, raw --no-input, errors through guard/report (FlowExit printing matches _guard)."
   },
   {
    "module": "cli_sr.py",
@@ -3925,7 +3971,10 @@
    "module": "cli_sr.py",
    "name": "get_cmd",
    "line": 870,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/sr.rs",
+   "rust_item": "get",
+   "note": "Fixed: 'Saved to DIR' now uses print_soft (Python soft_wrap=True) instead of a wrapping print; test read_cmds::sr_get_download_long_dir_not_wrapped."
   },
   {
    "module": "client.py",
@@ -3939,7 +3988,9 @@
    "module": "client.py",
    "name": "is_verbose",
    "line": 40,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-core/src/runtime.rs",
+   "rust_item": "verbose"
   },
   {
    "module": "client.py",
@@ -4049,7 +4100,10 @@
    "module": "client.py",
    "name": "_make_cookie",
    "line": 185,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-core/src/client/cookies.rs",
+   "rust_item": "set_session",
+   "note": "CookieJar::set_session: host-only, Secure, path /, tenant domain; test make_cookie_is_secure_and_host_scoped."
   },
   {
    "module": "client.py",
@@ -4821,7 +4875,10 @@
    "module": "config.py",
    "name": "refresh_paths",
    "line": 22,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-core/src/config.rs",
+   "rust_item": "from_env",
+   "note": "Paths::from_env (empty env var falls back like `or`); config::reload installs it; test refresh_paths_follow_env."
   },
   {
    "module": "config.py",
@@ -5451,7 +5508,10 @@
    "module": "create.py",
    "name": "_get_change_schema_fields",
    "line": 1116,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-api/src/create.rs",
+   "rust_item": "change_schema_fields",
+   "note": "Takes the loaded schema (callers load_schema). Same fields -> data.change_fields|fields fallback, with no fallback to fields when change_fields is present but empty."
   },
   {
    "module": "create.py",
@@ -5667,7 +5727,10 @@
    "module": "editor.py",
    "name": "_editor",
    "line": 15,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-core/src/editor.rs",
+   "rust_item": "editor_command",
+   "note": "$VISUAL, else $EDITOR (empty skipped), else vi; shlex split."
   },
   {
    "module": "editor.py",
@@ -5803,7 +5866,10 @@
    "module": "errors.py",
    "name": "exit_code_for",
    "line": 98,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-core/src/error.rs",
+   "rust_item": "exit_code",
+   "note": "Error::exit_code plus ApiError::exit_code (409 / 400|422 duplicate regex); Context follows only Api|Session causes; test exit_code_for_matches_python."
   },
   {
    "module": "filter_proof.py",
@@ -11331,7 +11397,8 @@
    "module": "planning_cli.py",
    "name": "complete_section",
    "line": 17,
-   "status": "open"
+   "status": "idiom",
+   "note": "Completer factory. Rust dispatches completion by name from generated.rs OptionHint: changes -> complete_planning_field_names (crates/fsv-completion/src/dynamic.rs); problems -> 'complete_section', unknown to _completions so nothing prints (pinned by dynamic.rs complete_section_prints_nothing_like_python)."
   },
   {
    "module": "planning_cli.py",
@@ -12588,7 +12655,10 @@
    "module": "schema.py",
    "name": "_fetch_schema",
    "line": 51,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-api/src/schema.rs",
+   "rust_item": "fetch",
+   "note": "Control flow and error preference (session, then API, then first) match. Divergences in the merge helper merge_v2_choices (owner's file, not edited): Python v2_by_name is last-wins for duplicate names (Rust is first-wins); len() counts dict/str choices (Rust choice_len counts arrays only, so nested dict choices are never merged); name None/missing matches a v2 entry with name null."
   },
   {
    "module": "schema.py",
@@ -13553,13 +13623,18 @@
    "module": "ticket_cli.py",
    "name": "print_plan",
    "line": 16,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/tickets.rs",
+   "rust_item": "ticket_print_plan"
   },
   {
    "module": "ticket_cli.py",
    "name": "create_command",
    "line": 29,
-   "status": "open"
+   "status": "matched",
+   "rust": "crates/fsv-cli/src/cmd/tickets.rs",
+   "rust_item": "ticket_create",
+   "note": "Mode checks are in tickets::create. Attach transaction, confirm/--yes/--expect-plan gates, compact JSON output and the warning on stderr match."
   },
   {
    "module": "ticket_conversation.py",

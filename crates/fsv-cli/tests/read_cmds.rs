@@ -2601,6 +2601,16 @@ Saved to ref
     assert_eq!(r.err, r#""#);
 }
 
+/// `console.print(f"Saved to {download}", soft_wrap=True)`: a long DIR
+/// stays on one line.
+#[test]
+fn sr_get_download_long_dir_not_wrapped() {
+    let dir = "segment0123456789/".repeat(14);
+    let r = run_fixture("sr_get", &["sr", "get", "123", "--download", &dir], None);
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert!(r.out.ends_with(&format!("\nSaved to {dir}\n")), "{}", r.out);
+}
+
 #[test]
 fn sr_get_no_items() {
     let r = run_fixture("sr_get", &["sr", "get", "124"], None);

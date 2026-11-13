@@ -422,7 +422,7 @@ fn sr_create(a: &SrCreateArgs, c: std::sync::Arc<fsv_core::Client>, m: SrModes) 
                 Ok(p) => p
                     .email
                     .clone()
-                    .filter(|e| e.to_lowercase() == email.to_lowercase())
+                    .filter(|e| same_email(e, email))
                     .map(|e| (e, p.id.clone())),
                 Err(Error::Value(_)) => None,
                 Err(e) => return Err(e),
@@ -862,7 +862,7 @@ fn get(a: SrGetArgs) -> CmdResult {
             .iter()
             .any(|d| matches!(status(d).as_str(), "downloaded" | "exists"))
     {
-        out().print(&format!("Saved to {}", escape(dir)));
+        out().print_soft(&format!("Saved to {}", escape(dir)));
     }
     if bad {
         return Err(Error::exit(2, ""));
@@ -1539,9 +1539,22 @@ pub(crate) fn expanduser(s: &str) -> String {
     }
 }
 
+/// `person.email.casefold() == email.casefold()` for `sr create --cc`.
+fn same_email(found: &str, given: &str) -> bool {
+    fsv_core::pystr::casefold(found) == fsv_core::pystr::casefold(given)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn cc_exact_match_casefolds_like_python() {
+        assert!(same_email("Ann@Acme.com", "ann@ACME.COM"));
+        assert!(same_email("strasse@acme.com", "STRASSE@acme.com"));
+        assert!(same_email("straße@acme.com", "STRASSE@acme.com"));
+        assert!(!same_email("ann2@acme.com", "ann@acme.com"));
+    }
 
     /// Values from Python `_valid_recipient(e) and _EMAIL.fullmatch(e)`, the
     /// `sr create --cc` check.

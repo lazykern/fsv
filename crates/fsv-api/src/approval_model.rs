@@ -23,6 +23,11 @@ pub fn describe(status: Option<u16>) -> String {
     format!("this tenant uses {LEGACY_LABEL} (approval-chains answered HTTP {shown})")
 }
 
+/// An approval-chains error that means "no parallel approvals here".
+pub fn is_absent(err: &Error) -> bool {
+    matches!(err, Error::Api(e) if matches!(e.status, 400 | 404))
+}
+
 /// Chains-only actions on a proven legacy tenant.
 pub fn refusal(action: &str, status: Option<u16>) -> Error {
     refused(format!(
@@ -60,9 +65,7 @@ pub fn detect(c: &dyn Api, module: &str, target: i64) -> Result<(String, Option<
         Some(obj(json!({"page": 1, "per_page": 100}))),
     ) {
         Ok(_) => Ok((CHAINS.to_string(), None)),
-        Err(Error::Api(e)) if matches!(e.status, 400 | 404) => {
-            Ok((LEGACY.to_string(), Some(e.status)))
-        }
+        Err(e) if is_absent(&e) => Ok((LEGACY.to_string(), e.status())),
         Err(Error::Api(e)) => Ok((UNKNOWN.to_string(), Some(e.status))),
         Err(e) => Err(e),
     }
@@ -86,6 +89,21 @@ mod tests {
 
     fn oracle() -> Value {
         serde_json::from_str(include_str!("testdata/approval_model_oracle.json")).unwrap()
+    }
+
+    #[test]
+    fn is_absent_only_for_direct_400_and_404() {
+        use fsv_core::error::ApiError;
+        assert!(is_absent(&ApiError::new(400, "x").into()));
+        assert!(is_absent(&ApiError::new(404, "x").into()));
+        for status in [403, 409, 422, 500] {
+            assert!(!is_absent(&ApiError::new(status, "x").into()));
+        }
+        assert!(!is_absent(
+            &Error::from(ApiError::new(404, "x")).context("outer")
+        ));
+        assert!(!is_absent(&Error::session("s")));
+        assert!(!is_absent(&Error::value("v")));
     }
 
     #[test]
