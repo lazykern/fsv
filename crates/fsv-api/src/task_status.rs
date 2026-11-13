@@ -134,12 +134,9 @@ fn truthy(value: Option<&Value>) -> bool {
     }
 }
 
+/// Python `str(value)`: `None`, `True` and floats keep Python's spelling.
 fn scalar(value: &Value) -> String {
-    match value {
-        Value::String(s) => s.clone(),
-        Value::Number(n) => n.to_string(),
-        other => other.to_string(),
-    }
+    fsv_py::py_str(value)
 }
 
 fn err(msg: &str) -> QueryError {
@@ -216,5 +213,15 @@ mod tests {
     fn no_default_id_inference() {
         assert!(fields_from_payload(&json!({})).is_err());
         assert_eq!(display(&json!(3), None), "3 (unknown)");
+    }
+
+    #[test]
+    fn unknown_scalars_use_python_str() {
+        // Python: f"{value} (unknown)" over str(value) / task_status_display(None).
+        assert_eq!(display(&Value::Null, None), "None (unknown)");
+        assert_eq!(display(&json!(true), None), "True (unknown)");
+        assert_eq!(display(&json!(false), None), "False (unknown)");
+        assert_eq!(display(&json!(1.5), None), "1.5 (unknown)");
+        assert_eq!(display(&json!("Open"), None), "Open (unknown)");
     }
 }
