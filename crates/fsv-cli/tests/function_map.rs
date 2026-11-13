@@ -4,8 +4,9 @@
 //! The map is data, not a proof: `matched` entries are name matches that a
 //! reviewer still has to check line by line. This test keeps the map honest:
 //! it must be stamped to `port/UPSTREAM_BASE`, every Rust reference must still
-//! exist, every Python module must be covered, and the open queue may only
-//! shrink.
+//! exist, every Python module must be covered, and the open and unreviewed
+//! queues may only shrink. `reviewed` entries were checked line by line and
+//! carry a note on what was compared.
 
 use serde_json::Value;
 use std::collections::BTreeSet;
@@ -13,6 +14,9 @@ use std::path::PathBuf;
 
 /// Ratchet: the number of `open` entries may only go down.
 const OPEN_CEILING: usize = 0;
+/// Ratchet: `matched` (name match, not yet reviewed line by line) entries
+/// may only go down as they become `reviewed`.
+const UNREVIEWED_CEILING: usize = 1831;
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
@@ -53,6 +57,12 @@ fn every_entry_has_a_known_status_and_its_reason() {
                 e["rust"].is_string() && e["rust_item"].is_string(),
                 "matched entry needs rust and rust_item: {e}"
             ),
+            "reviewed" => assert!(
+                e["rust"].is_string()
+                    && e["rust_item"].is_string()
+                    && e["note"].as_str().is_some_and(|n| !n.is_empty()),
+                "reviewed entry needs rust, rust_item and a note: {e}"
+            ),
             "idiom" | "cli-tree" => assert!(
                 e["note"].as_str().is_some_and(|n| !n.is_empty()),
                 "{status} entry needs a note: {e}"
@@ -68,7 +78,7 @@ fn every_matched_reference_still_declares_its_item() {
     let map = load();
     let mut missing = Vec::new();
     for e in map["entries"].as_array().unwrap() {
-        if e["status"] != "matched" {
+        if e["status"] != "matched" && e["status"] != "reviewed" {
             continue;
         }
         let file = e["rust"].as_str().unwrap();
@@ -127,5 +137,20 @@ fn open_queue_only_shrinks() {
     assert!(
         open <= OPEN_CEILING,
         "open parity items grew to {open} (ceiling {OPEN_CEILING})"
+    );
+}
+
+#[test]
+fn unreviewed_queue_only_shrinks() {
+    let map = load();
+    let unreviewed = map["entries"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|e| e["status"] == "matched")
+        .count();
+    assert!(
+        unreviewed <= UNREVIEWED_CEILING,
+        "unreviewed matches grew to {unreviewed} (ceiling {UNREVIEWED_CEILING})"
     );
 }

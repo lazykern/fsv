@@ -3,6 +3,7 @@
  "scope": "every top-level def and every method/class of a top-level class in src/fsv/**/*.py",
  "statuses": {
   "matched": "a Rust item with the same name (leading underscores stripped) exists in the Rust counterpart; name match only, not yet reviewed line by line",
+  "reviewed": "checked line by line against the Python def (messages, exit codes, ordering, edge cases); the note says what was compared or fixed",
   "idiom": "Python-only construct (dunder, Textual hook, exception class, hand-rolled framing) with no Rust counterpart by design; note says what replaces it",
   "cli-tree": "Typer registration closure; the command surface is checked by crates/fsv-cli/tests/tree.rs",
   "open": "no Rust counterpart found yet; this is the residual parity work queue"
