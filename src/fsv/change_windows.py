@@ -119,6 +119,10 @@ def create_plan(client: Any, name: str, description: str, start: str, end: str, 
 
 
 _FLAG_WORDS = ("overlap", "conflict")
+# Exact boolean keys whose names do not contain a flag word. ``match_found``
+# is the tenant's real answer to overlapping_windows (VERIFIED LIVE: with no
+# windows at all it answered {"match_found": false}).
+_FLAG_KEYS = frozenset({"match_found"})
 _COUNT_KEYS = frozenset({"count", "total", "total_count", "overlap_count", "overlapping_count", "conflict_count"})
 _UNSPECIFIED = {"overlap": "reported without details"}
 
@@ -134,7 +138,8 @@ def _shape(value: Any, depth: int = 0) -> str:
 def _overlaps(response: Any) -> list[Any]:
     """Conflicting windows from the overlap-check answer.
 
-    Accepted shapes: a list of windows; ``true``/``false`` (JSON or text); an
+    Accepted shapes: the native ``{"match_found": bool}`` answer; a list of
+    windows; ``true``/``false`` (JSON or text); an
     object whose values are window lists (one or several, e.g. per window
     kind, optionally one level nested), overlap/conflict boolean flags and
     numeric counts; an empty object (nothing reported). A flag or count that
@@ -155,7 +160,7 @@ def _overlaps(response: Any) -> list[Any]:
             word = str(key).casefold()
             if isinstance(value, list):
                 rows.extend(value)
-            elif isinstance(value, bool) and any(w in word for w in _FLAG_WORDS):
+            elif isinstance(value, bool) and (word in _FLAG_KEYS or any(w in word for w in _FLAG_WORDS)):
                 flags.append(value)
             elif (isinstance(value, int) and not isinstance(value, bool) and value >= 0
                   and (word in _COUNT_KEYS or any(w in word for w in _FLAG_WORDS))):

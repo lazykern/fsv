@@ -185,6 +185,7 @@ def test_window_delete_and_cli(wapi):
     [], {}, False, {"overlapping_windows": []}, {"overlaps": []}, {"conflicts": [], "count": 0},
     {"blackout_windows": [], "maintenance_windows": []}, {"overlap": False}, {"is_overlapping": False},
     {"overlapping_windows": {"blackout_windows": [], "maintenance_windows": []}},
+    {"match_found": False},  # native tenant answer (no windows to overlap)
     httpx.Response(200, text="false", headers={"content-type": "text/plain"}),
 ])
 def test_window_overlap_answer_shapes_without_conflicts_create(wapi, answer):
@@ -197,7 +198,7 @@ def test_window_overlap_answer_shapes_without_conflicts_create(wapi, answer):
 
 
 @pytest.mark.parametrize("answer", [
-    [{"id": 61}], True, {"has_overlap": True}, {"overlap_count": 2}, {"conflicts": [{"id": 61}]},
+    [{"id": 61}], True, {"has_overlap": True}, {"match_found": True}, {"overlap_count": 2}, {"conflicts": [{"id": 61}]},
     {"blackout_windows": [], "maintenance_windows": [{"id": 61}]},
     {"overlapping_windows": {"maintenance_windows": [{"id": 61}]}},
 ])
@@ -211,7 +212,8 @@ def test_window_overlap_answer_shapes_with_conflicts_refuse(wapi, answer):
 
 
 @pytest.mark.parametrize("answer", [
-    {"message": "Acme"}, {"status": "ok"}, {"overlap": False, "windows": [{"id": 61}]}, {"a": {"b": {"c": []}}},
+    {"message": "Acme"}, {"status": "ok"}, {"overlap": False, "windows": [{"id": 61}]},
+    {"match_found": "no"}, {"match_found": False, "windows": [{"id": 61}]}, {"matches": True}, {"a": {"b": {"c": []}}},
     httpx.Response(200), httpx.Response(200, text="Globex", headers={"content-type": "text/plain"}),
 ])
 def test_window_overlap_unknown_answer_refuses_unless_allowed(wapi, answer):

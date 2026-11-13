@@ -432,7 +432,7 @@ custom names), never a numeric row id.
 
 | Feature | Request | Payload | Response | Proof |
 |---|---|---|---|---|
-| Overlap check | `POST /api/_/change_windows/overlapping_windows` | `{type: "blackout_events", start_date: "DD-MM-YYYY", start_time: "h:mmam", end_date, end_time, criteria: [{name: "change_type", operator: "is", value: "1"}], workspace_id}` | 200, conflicting windows | VERIFIED LIVE |
+| Overlap check | `POST /api/_/change_windows/overlapping_windows` | `{type: "blackout_events", start_date: "DD-MM-YYYY", start_time: "h:mmam", end_date, end_time, criteria: [{name: "change_type", operator: "is", value: "1"}], workspace_id}` | 200 `{"match_found": false}` (no conflict; `true` = conflict) | VERIFIED LIVE |
 | Create | `POST /api/_/maintenance_windows` | `{"change_window": {name, description, start_date, start_time, end_date, end_time, change_event: {additional_info: {}, criteria: [...]}, workspace_id, alert_suppression}}` | 201 `{maintenance_window: {id, ...}}` | VERIFIED LIVE |
 | List | `GET /api/_/maintenance_windows` | — | `{maintenance_windows: [...]}` | VERIFIED LIVE |
 | Delete | `DELETE /api/_/maintenance_windows/<id>` | none | 200 `{success: true}` | VERIFIED LIVE |
