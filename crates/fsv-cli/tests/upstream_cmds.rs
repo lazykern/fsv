@@ -15621,6 +15621,102 @@ bulk selection, metadata or records changed; review again
 }
 
 #[test]
+fn tickets_bulk_unspam_stable_dry_run() {
+    let r = run_fixture(
+        "ticket_bulk",
+        &["tickets", "bulk", "unspam", "146", "--dry-run"],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}\n{}", r.err, r.out);
+    assert_eq!(r.err, "Selected ticket IDs: 146\n  146: Acme ticket 146\n");
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_bulk_unspam",
+  "method": "POST",
+  "path": "/api/_/tickets/unspam_multiple",
+  "payload": {
+    "ids": [
+      146
+    ]
+  },
+  "plan_hash": "29bef3a1d82e0c047b37a8fcdc180fa4f129bf14fb694b130ea4917d8e9c7d33",
+  "warning": "Frozen explicit IDs, not server select-all. Partial outcomes are possible; never replay an uncertain bulk action.",
+  "ticket_ids": [
+    146
+  ],
+  "selection": {
+    "action": "unspam",
+    "agent": null,
+    "group": null,
+    "ids": [
+      "146"
+    ],
+    "max_records": null,
+    "note_primary": null,
+    "note_secondary": null,
+    "primary": null,
+    "select_all": false,
+    "status": null,
+    "where": []
+  },
+  "selected_tickets": [
+    {
+      "id": 146,
+      "subject": "Acme ticket 146"
+    }
+  ]
+}
+"#
+    );
+}
+
+#[test]
+fn tickets_bulk_unspam_send_reports_selection() {
+    let r = run_fixture(
+        "ticket_bulk",
+        &[
+            "tickets",
+            "bulk",
+            "unspam",
+            "146",
+            "--yes",
+            "--expect-plan",
+            "29bef3a1d82e0c047b37a8fcdc180fa4f129bf14fb694b130ea4917d8e9c7d33",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}\n{}", r.err, r.out);
+    assert_eq!(r.err, "Selected ticket IDs: 146\n  146: Acme ticket 146\n");
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "plan_hash": "29bef3a1d82e0c047b37a8fcdc180fa4f129bf14fb694b130ea4917d8e9c7d33",
+  "verified": true,
+  "ticket_ids": [
+    146
+  ],
+  "tickets": {
+    "146": {
+      "spam": "matched"
+    }
+  },
+  "readback_attempts": 1,
+  "delegated_plan_hash": "4d96c858add3673ca018005931b31266669e47f01bc735ab76cbb0ae0b2b8522",
+  "selected_tickets": [
+    {
+      "id": 146,
+      "subject": "Acme ticket 146"
+    }
+  ]
+}
+"#
+    );
+}
+
+#[test]
 fn tickets_bulk_unspam_send_partial() {
     let r = run_fixture(
         "ticket_bulk",
