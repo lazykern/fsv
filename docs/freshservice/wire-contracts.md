@@ -345,7 +345,10 @@ Two models exist; probe which one a tenant has (see
 | Remove | not captured | — | — |
 
 On a legacy tenant, `associated-cis` answers 404; on an integrated tenant,
-`assets-to-associate` answers 403 `require_feature`. [VERIFIED LIVE]
+`assets-to-associate` answers 403 `require_feature`. [VERIFIED LIVE] The web
+picker on an integrated tenant searches `GET /itam/core/<device|businessservice>/api/?q=`
+instead, for tickets, service requests, changes and problems alike; fsv's
+`assets candidates` falls back to that search. [VERIFIED LIVE, read-only]
 
 ## Record associations
 

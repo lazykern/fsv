@@ -872,6 +872,15 @@ reviewed PUT; removal accepts exactly one inventory ID and resolves its exact
 `--yes --expect-plan FULL_HASH`. Use `--kind services` for business services.
 `changes ci-list|ci-add|ci-remove` are aliases. The legacy nested search alias
 and `changes asset-picker` now read integrated Devices, not `assets-to-associate`.
+`tickets|sr|problems|changes assets candidates ID [--search TEXT] [--kind
+devices|services] [--page N]` probes the record's association driver first.
+Only a legacy-driver record reads the legacy `assets-to-associate` list; when
+that list answers 403 (plan without the CMDB feature) or 404, and on every
+integrated or problem record, candidates come from the integrated inventory
+search (the web picker's read, as `assets search`). Rows carry inventory IDs
+for `assets add` and an `associated` flag from the exact record's complete
+association list (`null` when the record has no association list). A search
+page is not a complete inventory; `complete` says so.
 The TUI `i` menu keeps read-only browsing separate from explicit add/remove.
 Choose devices/CI or business services; add searches one page, while remove
 reads the exact parent's complete associated inventory. Selection prepares the

@@ -147,6 +147,52 @@ def legacy_candidates(client: Any, module: str, target: str | int) -> list[dict[
     return rows
 
 
+def candidates(client: Any, module: str, target: str | int, query: str = "", *, kind: str = "devices",
+               page: int = 1) -> dict[str, Any]:
+    """Assets offered for association on whichever driver the tenant exposes.
+
+    The legacy ``assets-to-associate`` list is used only on a legacy-driver
+    record; when it answers 403 (plan without the CMDB feature) or 404, or the
+    record is on the integrated driver (or has no legacy entity, e.g.
+    problems), the integrated inventory search is used: the same read the web
+    picker and ``assets search`` use. Rows carry inventory IDs for ``assets add``.
+    """
+    from fsv.errors import APIError
+    module_name, target_num = target_id(module, target)
+    if kind not in {"devices", "services"}:
+        raise ValueError("candidate kind must be devices or services")
+    try:
+        found = driver(client, module, target_num, kind)
+    except ReviewedWriteError:
+        found = None
+    note = None
+    if found == LEGACY and kind == "devices" and module_name in LEGACY_ENTITY:
+        try:
+            return {"data": legacy_candidates(client, module, target_num), "complete": True, "driver": LEGACY}
+        except APIError as exc:
+            if exc.status not in (403, 404):
+                raise
+            note = (f"legacy assets-to-associate answered HTTP {exc.status}; "
+                    "listed from the integrated inventory search instead")
+    result = search(client, query, kind=kind, page=page)
+    associated: set[int] | None = None
+    if found == INTEGRATED:
+        associated = {positive_id(r["item_id"]) for r in inventory(client, module, target_num, kind)}
+    rows = []
+    for row in result["data"]:
+        ident = positive_id(row["name"]["id"])
+        rows.append({"id": ident, "name": row["name"].get("label"),
+                     "associated": None if associated is None else ident in associated, "inventory": row})
+    out = {"data": rows, "driver": INTEGRATED, "kind": kind, "query": query, "page": page,
+           "total_rows": result.get("total_rows"), "complete": result.get("complete", False),
+           "id_meaning": "inventory IDs (use with assets add)"}
+    if associated is None:
+        out["associated_note"] = "no association list for this record; association state unknown"
+    if note:
+        out["note"] = note
+    return out
+
+
 def legacy_plan(client: Any, module: str, target: int, ids: list[int], *, kind: str = "devices",
                 remove: bool = False) -> WritePlan:
     if remove:

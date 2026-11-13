@@ -422,6 +422,7 @@ fsv changes associations remove -h
 fsv changes associations pick -h
 fsv changes assets -h
 fsv changes assets list -h
+fsv changes assets candidates -h
 fsv changes assets add -h
 fsv changes assets remove -h
 fsv changes assets search -h
@@ -467,6 +468,7 @@ fsv tickets reply -h
 fsv tickets forward -h
 fsv tickets assets -h
 fsv tickets assets list -h
+fsv tickets assets candidates -h
 fsv tickets assets add -h
 fsv tickets assets remove -h
 fsv tickets columns -h
@@ -529,6 +531,7 @@ fsv problems notes -h
 fsv problems add-note -h
 fsv problems assets -h
 fsv problems assets list -h
+fsv problems assets candidates -h
 fsv problems assets add -h
 fsv problems assets remove -h
 fsv problems columns -h
@@ -574,6 +577,7 @@ fsv sr create -h
 fsv sr get -h
 fsv sr assets -h
 fsv sr assets list -h
+fsv sr assets candidates -h
 fsv sr assets add -h
 fsv sr assets remove -h
 fsv sr approvals -h
