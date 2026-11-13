@@ -1,0 +1,476 @@
+{
+  "default": {
+    "hash": "1a55a52664da9d1e64244dad568551634b9d185ad731358abc2ea0cd3ea76f93",
+    "legacy": "cb664bdffcba59ceb2c43fd1e565e6d2d94cf44f3584d7911198662dbba6cf44",
+    "payload_json": "{\"change_window\": {\"alert_suppression\": true, \"change_event\": {\"additional_info\": {}, \"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}]}, \"description\": \"Quarterly\", \"end_date\": \"21-11-2030\", \"end_time\": \"1:30pm\", \"name\": \"Acme release\", \"start_date\": \"21-11-2030\", \"start_time\": \"10:00am\", \"workspace_id\": 3}}",
+    "overlap_json": "{\"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}], \"end_date\": \"21-11-2030\", \"end_time\": \"1:30pm\", \"start_date\": \"21-11-2030\", \"start_time\": \"10:00am\", \"type\": \"blackout_events\", \"workspace_id\": 3}",
+    "start": "2030-11-21T10:00-05:00",
+    "end": "2030-11-21T13:30-05:00",
+    "review": {
+      "action": "change_window_create",
+      "method": "POST",
+      "path": "/api/_/maintenance_windows",
+      "payload": {
+        "change_window": {
+          "alert_suppression": true,
+          "change_event": {
+            "additional_info": {},
+            "criteria": [
+              {
+                "name": "change_type",
+                "operator": "is",
+                "value": "1"
+              }
+            ]
+          },
+          "description": "Quarterly",
+          "end_date": "21-11-2030",
+          "end_time": "1:30pm",
+          "name": "Acme release",
+          "start_date": "21-11-2030",
+          "start_time": "10:00am",
+          "workspace_id": 3
+        }
+      },
+      "plan_hash": "1a55a52664da9d1e64244dad568551634b9d185ad731358abc2ea0cd3ea76f93",
+      "warning": "The existing-window check and the overlap check run first; any overlapping window, or an answer that does not show 'no overlap', refuses the create unless --allow-overlap. Single attempt; never resend an unknown outcome.",
+      "time_zone": {
+        "input": "America/New_York (tenant time zone)",
+        "tenant": "America/New_York (agent profile time zone; the tenant reads the sent wall clock in it)"
+      },
+      "start": {
+        "input": "2030-11-21 10:00 America/New_York (-05:00)",
+        "tenant": "2030-11-21 10:00 America/New_York (-05:00)"
+      },
+      "end": {
+        "input": "2030-11-21 13:30 America/New_York (-05:00)",
+        "tenant": "2030-11-21 13:30 America/New_York (-05:00)"
+      },
+      "overlap_check": {
+        "method": "POST",
+        "path": "/api/_/change_windows/overlapping_windows",
+        "payload": {
+          "criteria": [
+            {
+              "name": "change_type",
+              "operator": "is",
+              "value": "1"
+            }
+          ],
+          "end_date": "21-11-2030",
+          "end_time": "1:30pm",
+          "start_date": "21-11-2030",
+          "start_time": "10:00am",
+          "type": "blackout_events",
+          "workspace_id": 3
+        }
+      },
+      "existing_window_check": {
+        "method": "GET",
+        "path": "/api/_/maintenance_windows",
+        "rule": "any listed window whose time range intersects 2030-11-21 10:00 America/New_York (-05:00) -> 2030-11-21 13:30 America/New_York (-05:00) refuses; unreadable window times refuse"
+      },
+      "allow_overlap": false,
+      "overlapping_window_ids": []
+    }
+  },
+  "allow": {
+    "hash": "824f0aea9465bfd28efb2b55ec08f59bc994616093648bfd9688bca39ca7c3b8",
+    "legacy": "cb664bdffcba59ceb2c43fd1e565e6d2d94cf44f3584d7911198662dbba6cf44",
+    "payload_json": "{\"change_window\": {\"alert_suppression\": true, \"change_event\": {\"additional_info\": {}, \"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}]}, \"description\": \"Quarterly\", \"end_date\": \"21-11-2030\", \"end_time\": \"1:30pm\", \"name\": \"Acme release\", \"start_date\": \"21-11-2030\", \"start_time\": \"10:00am\", \"workspace_id\": 3}}",
+    "overlap_json": "{\"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}], \"end_date\": \"21-11-2030\", \"end_time\": \"1:30pm\", \"start_date\": \"21-11-2030\", \"start_time\": \"10:00am\", \"type\": \"blackout_events\", \"workspace_id\": 3}",
+    "start": "2030-11-21T10:00-05:00",
+    "end": "2030-11-21T13:30-05:00",
+    "review": {
+      "action": "change_window_create",
+      "method": "POST",
+      "path": "/api/_/maintenance_windows",
+      "payload": {
+        "change_window": {
+          "alert_suppression": true,
+          "change_event": {
+            "additional_info": {},
+            "criteria": [
+              {
+                "name": "change_type",
+                "operator": "is",
+                "value": "1"
+              }
+            ]
+          },
+          "description": "Quarterly",
+          "end_date": "21-11-2030",
+          "end_time": "1:30pm",
+          "name": "Acme release",
+          "start_date": "21-11-2030",
+          "start_time": "10:00am",
+          "workspace_id": 3
+        }
+      },
+      "plan_hash": "824f0aea9465bfd28efb2b55ec08f59bc994616093648bfd9688bca39ca7c3b8",
+      "warning": "The existing-window check and the overlap check run first; any overlapping window, or an answer that does not show 'no overlap', refuses the create unless --allow-overlap. Single attempt; never resend an unknown outcome.",
+      "time_zone": {
+        "input": "America/New_York (tenant time zone)",
+        "tenant": "America/New_York (agent profile time zone; the tenant reads the sent wall clock in it)"
+      },
+      "start": {
+        "input": "2030-11-21 10:00 America/New_York (-05:00)",
+        "tenant": "2030-11-21 10:00 America/New_York (-05:00)"
+      },
+      "end": {
+        "input": "2030-11-21 13:30 America/New_York (-05:00)",
+        "tenant": "2030-11-21 13:30 America/New_York (-05:00)"
+      },
+      "overlap_check": {
+        "method": "POST",
+        "path": "/api/_/change_windows/overlapping_windows",
+        "payload": {
+          "criteria": [
+            {
+              "name": "change_type",
+              "operator": "is",
+              "value": "1"
+            }
+          ],
+          "end_date": "21-11-2030",
+          "end_time": "1:30pm",
+          "start_date": "21-11-2030",
+          "start_time": "10:00am",
+          "type": "blackout_events",
+          "workspace_id": 3
+        }
+      },
+      "existing_window_check": {
+        "method": "GET",
+        "path": "/api/_/maintenance_windows",
+        "rule": "any listed window whose time range intersects 2030-11-21 10:00 America/New_York (-05:00) -> 2030-11-21 13:30 America/New_York (-05:00) refuses; unreadable window times refuse"
+      },
+      "allow_overlap": true,
+      "overlapping_window_ids": [],
+      "overlap_warning": "--allow-overlap: no overlapping window is listed now, but an overlap found at send or an unreadable overlap answer will not refuse the create"
+    }
+  },
+  "bangkok": {
+    "hash": "b126a07c70c17aaac4ab113235341e3c0654d158b2c92ae7d3f0781610b1db27",
+    "legacy": "f9073808f8ac5357935bd35057bd50ae2bb4e966d181b4393b85466caf7406f6",
+    "payload_json": "{\"change_window\": {\"alert_suppression\": true, \"change_event\": {\"additional_info\": {}, \"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}]}, \"description\": \"\", \"end_date\": \"14-11-2030\", \"end_time\": \"5:00am\", \"name\": \"Acme zone\", \"start_date\": \"14-11-2030\", \"start_time\": \"3:00am\", \"workspace_id\": 3}}",
+    "overlap_json": "{\"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}], \"end_date\": \"14-11-2030\", \"end_time\": \"5:00am\", \"start_date\": \"14-11-2030\", \"start_time\": \"3:00am\", \"type\": \"blackout_events\", \"workspace_id\": 3}",
+    "start": "2030-11-14T03:00-05:00",
+    "end": "2030-11-14T05:00-05:00",
+    "review": {
+      "action": "change_window_create",
+      "method": "POST",
+      "path": "/api/_/maintenance_windows",
+      "payload": {
+        "change_window": {
+          "alert_suppression": true,
+          "change_event": {
+            "additional_info": {},
+            "criteria": [
+              {
+                "name": "change_type",
+                "operator": "is",
+                "value": "1"
+              }
+            ]
+          },
+          "description": "",
+          "end_date": "14-11-2030",
+          "end_time": "5:00am",
+          "name": "Acme zone",
+          "start_date": "14-11-2030",
+          "start_time": "3:00am",
+          "workspace_id": 3
+        }
+      },
+      "plan_hash": "b126a07c70c17aaac4ab113235341e3c0654d158b2c92ae7d3f0781610b1db27",
+      "warning": "The existing-window check and the overlap check run first; any overlapping window, or an answer that does not show 'no overlap', refuses the create unless --allow-overlap. Single attempt; never resend an unknown outcome.",
+      "time_zone": {
+        "input": "Asia/Bangkok (--timezone)",
+        "tenant": "America/New_York (agent profile time zone; the tenant reads the sent wall clock in it)"
+      },
+      "start": {
+        "input": "2030-11-14 15:00 Asia/Bangkok (+07:00)",
+        "tenant": "2030-11-14 03:00 America/New_York (-05:00)"
+      },
+      "end": {
+        "input": "2030-11-14 17:00 Asia/Bangkok (+07:00)",
+        "tenant": "2030-11-14 05:00 America/New_York (-05:00)"
+      },
+      "overlap_check": {
+        "method": "POST",
+        "path": "/api/_/change_windows/overlapping_windows",
+        "payload": {
+          "criteria": [
+            {
+              "name": "change_type",
+              "operator": "is",
+              "value": "1"
+            }
+          ],
+          "end_date": "14-11-2030",
+          "end_time": "5:00am",
+          "start_date": "14-11-2030",
+          "start_time": "3:00am",
+          "type": "blackout_events",
+          "workspace_id": 3
+        }
+      },
+      "existing_window_check": {
+        "method": "GET",
+        "path": "/api/_/maintenance_windows",
+        "rule": "any listed window whose time range intersects 2030-11-14 03:00 America/New_York (-05:00) -> 2030-11-14 05:00 America/New_York (-05:00) refuses; unreadable window times refuse"
+      },
+      "allow_overlap": false,
+      "overlapping_window_ids": [
+        71,
+        72
+      ],
+      "overlap_warning": "overlapping windows exist: 71, 72; sending refuses unless --allow-overlap"
+    }
+  },
+  "env": {
+    "hash": "fa0c70d060f2441c205b2eb8a570fd4f550567ff5029346ab4ef059140bead90",
+    "legacy": "f9073808f8ac5357935bd35057bd50ae2bb4e966d181b4393b85466caf7406f6",
+    "payload_json": "{\"change_window\": {\"alert_suppression\": true, \"change_event\": {\"additional_info\": {}, \"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}]}, \"description\": \"\", \"end_date\": \"14-11-2030\", \"end_time\": \"5:00am\", \"name\": \"Acme zone\", \"start_date\": \"14-11-2030\", \"start_time\": \"3:00am\", \"workspace_id\": 3}}",
+    "overlap_json": "{\"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}], \"end_date\": \"14-11-2030\", \"end_time\": \"5:00am\", \"start_date\": \"14-11-2030\", \"start_time\": \"3:00am\", \"type\": \"blackout_events\", \"workspace_id\": 3}",
+    "start": "2030-11-14T03:00-05:00",
+    "end": "2030-11-14T05:00-05:00",
+    "review": {
+      "action": "change_window_create",
+      "method": "POST",
+      "path": "/api/_/maintenance_windows",
+      "payload": {
+        "change_window": {
+          "alert_suppression": true,
+          "change_event": {
+            "additional_info": {},
+            "criteria": [
+              {
+                "name": "change_type",
+                "operator": "is",
+                "value": "1"
+              }
+            ]
+          },
+          "description": "",
+          "end_date": "14-11-2030",
+          "end_time": "5:00am",
+          "name": "Acme zone",
+          "start_date": "14-11-2030",
+          "start_time": "3:00am",
+          "workspace_id": 3
+        }
+      },
+      "plan_hash": "fa0c70d060f2441c205b2eb8a570fd4f550567ff5029346ab4ef059140bead90",
+      "warning": "The existing-window check and the overlap check run first; any overlapping window, or an answer that does not show 'no overlap', refuses the create unless --allow-overlap. Single attempt; never resend an unknown outcome.",
+      "time_zone": {
+        "input": "Asia/Bangkok (FSV_TZ)",
+        "tenant": "America/New_York (agent profile time zone; the tenant reads the sent wall clock in it)"
+      },
+      "start": {
+        "input": "2030-11-14 15:00 Asia/Bangkok (+07:00)",
+        "tenant": "2030-11-14 03:00 America/New_York (-05:00)"
+      },
+      "end": {
+        "input": "2030-11-14 17:00 Asia/Bangkok (+07:00)",
+        "tenant": "2030-11-14 05:00 America/New_York (-05:00)"
+      },
+      "overlap_check": {
+        "method": "POST",
+        "path": "/api/_/change_windows/overlapping_windows",
+        "payload": {
+          "criteria": [
+            {
+              "name": "change_type",
+              "operator": "is",
+              "value": "1"
+            }
+          ],
+          "end_date": "14-11-2030",
+          "end_time": "5:00am",
+          "start_date": "14-11-2030",
+          "start_time": "3:00am",
+          "type": "blackout_events",
+          "workspace_id": 3
+        }
+      },
+      "existing_window_check": {
+        "method": "GET",
+        "path": "/api/_/maintenance_windows",
+        "rule": "any listed window whose time range intersects 2030-11-14 03:00 America/New_York (-05:00) -> 2030-11-14 05:00 America/New_York (-05:00) refuses; unreadable window times refuse"
+      },
+      "allow_overlap": false,
+      "overlapping_window_ids": [
+        71,
+        72
+      ],
+      "overlap_warning": "overlapping windows exist: 71, 72; sending refuses unless --allow-overlap"
+    }
+  },
+  "offset": {
+    "hash": "46aa7af58c3695a9d2736b57b870746b2ca66fda5072671c85b1a448219592cf",
+    "legacy": "1f4d0e234969c8dc32886099b1b2d3344a76b08686cea428a37538a50127571d",
+    "payload_json": "{\"change_window\": {\"alert_suppression\": true, \"change_event\": {\"additional_info\": {}, \"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}]}, \"description\": \"\", \"end_date\": \"14-11-2030\", \"end_time\": \"4:00am\", \"name\": \"Acme zone\", \"start_date\": \"14-11-2030\", \"start_time\": \"3:00am\", \"workspace_id\": 3}}",
+    "overlap_json": "{\"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}], \"end_date\": \"14-11-2030\", \"end_time\": \"4:00am\", \"start_date\": \"14-11-2030\", \"start_time\": \"3:00am\", \"type\": \"blackout_events\", \"workspace_id\": 3}",
+    "start": "2030-11-14T03:00-05:00",
+    "end": "2030-11-14T04:00-05:00",
+    "review": {
+      "action": "change_window_create",
+      "method": "POST",
+      "path": "/api/_/maintenance_windows",
+      "payload": {
+        "change_window": {
+          "alert_suppression": true,
+          "change_event": {
+            "additional_info": {},
+            "criteria": [
+              {
+                "name": "change_type",
+                "operator": "is",
+                "value": "1"
+              }
+            ]
+          },
+          "description": "",
+          "end_date": "14-11-2030",
+          "end_time": "4:00am",
+          "name": "Acme zone",
+          "start_date": "14-11-2030",
+          "start_time": "3:00am",
+          "workspace_id": 3
+        }
+      },
+      "plan_hash": "46aa7af58c3695a9d2736b57b870746b2ca66fda5072671c85b1a448219592cf",
+      "warning": "The existing-window check and the overlap check run first; any overlapping window, or an answer that does not show 'no overlap', refuses the create unless --allow-overlap. Single attempt; never resend an unknown outcome.",
+      "time_zone": {
+        "input": "Europe/London (--timezone)",
+        "tenant": "America/New_York (agent profile time zone; the tenant reads the sent wall clock in it)"
+      },
+      "start": {
+        "input": "2030-11-14 08:00 Europe/London (+00:00)",
+        "tenant": "2030-11-14 03:00 America/New_York (-05:00)"
+      },
+      "end": {
+        "input": "2030-11-14 09:00 Europe/London (+00:00)",
+        "tenant": "2030-11-14 04:00 America/New_York (-05:00)"
+      },
+      "overlap_check": {
+        "method": "POST",
+        "path": "/api/_/change_windows/overlapping_windows",
+        "payload": {
+          "criteria": [
+            {
+              "name": "change_type",
+              "operator": "is",
+              "value": "1"
+            }
+          ],
+          "end_date": "14-11-2030",
+          "end_time": "4:00am",
+          "start_date": "14-11-2030",
+          "start_time": "3:00am",
+          "type": "blackout_events",
+          "workspace_id": 3
+        }
+      },
+      "existing_window_check": {
+        "method": "GET",
+        "path": "/api/_/maintenance_windows",
+        "rule": "any listed window whose time range intersects 2030-11-14 03:00 America/New_York (-05:00) -> 2030-11-14 04:00 America/New_York (-05:00) refuses; unreadable window times refuse"
+      },
+      "allow_overlap": false,
+      "overlapping_window_ids": [
+        71
+      ],
+      "overlap_warning": "overlapping windows exist: 71; sending refuses unless --allow-overlap"
+    }
+  },
+  "unknown_allow": {
+    "hash": "e32c6352d07bb08a0cf7b88b1d82d7d49d371a058f167e3f4c96a17729872117",
+    "legacy": "3953f704490db7dcb246afc4b8f3fe2be3448b1b5c660d633a0d88fcdda02c0a",
+    "payload_json": "{\"change_window\": {\"alert_suppression\": true, \"change_event\": {\"additional_info\": {}, \"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}]}, \"description\": \"\", \"end_date\": \"14-11-2030\", \"end_time\": \"9:00am\", \"name\": \"Acme zone\", \"start_date\": \"14-11-2030\", \"start_time\": \"8:00am\", \"workspace_id\": 3}}",
+    "overlap_json": "{\"criteria\": [{\"name\": \"change_type\", \"operator\": \"is\", \"value\": \"1\"}], \"end_date\": \"14-11-2030\", \"end_time\": \"9:00am\", \"start_date\": \"14-11-2030\", \"start_time\": \"8:00am\", \"type\": \"blackout_events\", \"workspace_id\": 3}",
+    "start": "2030-11-14T08:00-05:00",
+    "end": "2030-11-14T09:00-05:00",
+    "review": {
+      "action": "change_window_create",
+      "method": "POST",
+      "path": "/api/_/maintenance_windows",
+      "payload": {
+        "change_window": {
+          "alert_suppression": true,
+          "change_event": {
+            "additional_info": {},
+            "criteria": [
+              {
+                "name": "change_type",
+                "operator": "is",
+                "value": "1"
+              }
+            ]
+          },
+          "description": "",
+          "end_date": "14-11-2030",
+          "end_time": "9:00am",
+          "name": "Acme zone",
+          "start_date": "14-11-2030",
+          "start_time": "8:00am",
+          "workspace_id": 3
+        }
+      },
+      "plan_hash": "e32c6352d07bb08a0cf7b88b1d82d7d49d371a058f167e3f4c96a17729872117",
+      "warning": "The existing-window check and the overlap check run first; any overlapping window, or an answer that does not show 'no overlap', refuses the create unless --allow-overlap. Single attempt; never resend an unknown outcome.",
+      "time_zone": {
+        "input": "America/New_York (tenant time zone)",
+        "tenant": "America/New_York (agent profile time zone; the tenant reads the sent wall clock in it)"
+      },
+      "start": {
+        "input": "2030-11-14 08:00 America/New_York (-05:00)",
+        "tenant": "2030-11-14 08:00 America/New_York (-05:00)"
+      },
+      "end": {
+        "input": "2030-11-14 09:00 America/New_York (-05:00)",
+        "tenant": "2030-11-14 09:00 America/New_York (-05:00)"
+      },
+      "overlap_check": {
+        "method": "POST",
+        "path": "/api/_/change_windows/overlapping_windows",
+        "payload": {
+          "criteria": [
+            {
+              "name": "change_type",
+              "operator": "is",
+              "value": "1"
+            }
+          ],
+          "end_date": "14-11-2030",
+          "end_time": "9:00am",
+          "start_date": "14-11-2030",
+          "start_time": "8:00am",
+          "type": "blackout_events",
+          "workspace_id": 3
+        }
+      },
+      "existing_window_check": {
+        "method": "GET",
+        "path": "/api/_/maintenance_windows",
+        "rule": "any listed window whose time range intersects 2030-11-14 08:00 America/New_York (-05:00) -> 2030-11-14 09:00 America/New_York (-05:00) refuses; unreadable window times refuse"
+      },
+      "allow_overlap": true,
+      "overlapping_window_ids": "unknown",
+      "overlap_warning": "overlap unknown: a listed window has unreadable start/end times; you chose to create it anyway (--allow-overlap)"
+    }
+  },
+  "delete": {
+    "hash": "601c44dd793a2979822e0229fcc0785519027b26d41b462f8d4764c40afb00dc",
+    "review": {
+      "action": "change_window_delete",
+      "method": "DELETE",
+      "path": "/api/_/maintenance_windows/61",
+      "payload": null,
+      "plan_hash": "601c44dd793a2979822e0229fcc0785519027b26d41b462f8d4764c40afb00dc",
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    }
+  }
+}

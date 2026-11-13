@@ -300,12 +300,25 @@ fn note_error(e: Error) -> Error {
     }
 }
 
+/// `--notify-email` plus one `Name <email>` entry per `--notify-agent`.
+fn notify_with_agents(a: &TicketsAddNoteArgs) -> Result<Vec<String>> {
+    let mut notify = a.notify.clone();
+    if !a.notify_agent.is_empty() {
+        let c = crate::util::shared_client()?;
+        for name in &a.notify_agent {
+            notify.push(fsv_api::templates::notify_entry(c.as_ref(), name)?);
+        }
+    }
+    Ok(notify)
+}
+
 /// Reviewed `tickets add-note` (`ticket_notes.register`).
 pub fn add_note(a: TicketsAddNoteArgs) -> CmdResult {
     add_note_inner(&a).map_err(note_error)
 }
 
 fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
+    let notify = notify_with_agents(a)?;
     if !a.attach.is_empty() {
         if a.read_only && !a.dry_run {
             return Err(Error::exit(2, "read-only mode: no upload attempted"));
@@ -322,7 +335,7 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
             kind: "note",
             public: a.public,
             html_body: a.html_body,
-            notify: &a.notify,
+            notify: &notify,
             max_bytes: a.max_bytes,
             ..Default::default()
         };
@@ -353,7 +366,7 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
         let args = ConversationArgs {
             kind: "note",
             public: a.public,
-            notify: &a.notify,
+            notify: &notify,
             format,
             set_status: a.set_status.as_deref(),
             ..Default::default()
@@ -426,7 +439,7 @@ fn add_note_inner(a: &TicketsAddNoteArgs) -> Result<()> {
         &a.id_,
         &a.body,
         a.public,
-        &a.notify,
+        &notify,
         format,
         &config::domain(),
     )?;
@@ -655,7 +668,15 @@ fn create(a: TicketsCreateArgs) -> CmdResult {
     let local_no_input = no_input(a.no_input);
     let _as_json = a.json_out || a.format_ == OutputFormat::Json;
     let tty = interactive() && !local_no_input;
-    let inputs = a.from_.is_some() || !a.set_.is_empty() || a.preset.is_some() || a.edit;
+    let prefill = match a.template.as_deref().filter(|t| !t.is_empty()) {
+        Some(name) => Some(template_prefill(name)?),
+        None => None,
+    };
+    let inputs = a.from_.is_some()
+        || !a.set_.is_empty()
+        || a.preset.is_some()
+        || a.edit
+        || prefill.is_some();
     let form = !inputs && tty && form_tty();
     let template_only = !inputs && !form && a.dry;
     if !(inputs || form || template_only) {
@@ -683,7 +704,69 @@ fn create(a: TicketsCreateArgs) -> CmdResult {
         ));
     }
     let c = client()?;
-    ticket_create(&a, c, tty, form, template_only).map_err(fail_exc)
+    ticket_create(&a, c, tty, form, template_only, prefill).map_err(fail_exc)
+}
+
+/// `--template NAME`: the template's prefill draft and the keys it applies.
+fn template_prefill(name: &str) -> Result<(fsv_flows::drafts::Draft, Vec<String>)> {
+    let c = client()?;
+    let row = fsv_api::templates::show(c.as_ref(), name).map_err(|e| match e {
+        Error::Value(m) => Error::exit(2, m),
+        other => fail_exc(other),
+    })?;
+    let p = fsv_api::templates::to_draft(&row);
+    let shown = row
+        .get("name")
+        .map_or_else(|| "None".to_string(), fsv_py::py_repr);
+    let applied = if p.applied.is_empty() {
+        "nothing".to_string()
+    } else {
+        p.applied.join(", ")
+    };
+    let ignored = if p.ignored.is_empty() {
+        String::new()
+    } else {
+        format!("; not applied: {}", p.ignored.join(", "))
+    };
+    err().print_plain(&format!("template {shown} prefills: {applied}{ignored}"));
+    let draft = fsv_flows::drafts::Draft {
+        answers: p.answers,
+        description_html: p.description_html,
+        ..Default::default()
+    };
+    Ok((draft, p.applied))
+}
+
+/// `templates.prefill_changes` after a template create, reported on stderr.
+fn template_readback(
+    api: &dyn fsv_api::service::Api,
+    id: &Value,
+    payload: &Map<String, Value>,
+    prefilled: &[String],
+) -> Value {
+    let check = fsv_api::templates::prefill_changes(api, id, payload, prefilled);
+    for change in check["changes"].as_array().into_iter().flatten() {
+        err().print_plain(&format!(
+            "server changed {} from {} to {}",
+            fsv_py::py_str(&change["field"]),
+            fsv_py::py_str(&change["sent"]),
+            fsv_py::py_str(&change["server"])
+        ));
+    }
+    if let Some(w) = check.get("warning").filter(|w| fsv_py::truthy(w)) {
+        err().print_plain(&fsv_py::py_str(w));
+    } else if let Some(missing) = check
+        .get("unavailable")
+        .and_then(Value::as_array)
+        .filter(|u| !u.is_empty())
+    {
+        let names: Vec<String> = missing.iter().map(fsv_py::py_str).collect();
+        err().print_plain(&format!(
+            "not in the ticket read-back: {}",
+            names.join(", ")
+        ));
+    }
+    check
 }
 
 /// `ticket_cli.create_command` after the input checks.
@@ -693,6 +776,7 @@ fn ticket_create(
     tty: bool,
     form: bool,
     template_only: bool,
+    prefill: Option<(fsv_flows::drafts::Draft, Vec<String>)>,
 ) -> CmdResult {
     use formflow::{Requester, Reviewed};
     use fsv_flows::change::{Plan, edit_loop, editor_edit, flow_exit, template_for};
@@ -712,6 +796,10 @@ fn ticket_create(
         Some(&Draft::default()),
     )
     .map_err(formflow::draft_error)?;
+    let (draft, prefilled) = match prefill {
+        Some((base, applied)) => (base.merged(&draft), applied),
+        None => (draft, Vec::new()),
+    };
     let who = Requester::new(deps.api.as_ref(), a.requester.clone(), tty);
     let resolver: Arc<dyn Resolver> = deps.resolver.clone();
     let build = |d: &Draft, ack_all: bool, m: Option<Arc<FormMeta>>| -> Result<Plan> {
@@ -860,6 +948,7 @@ fn ticket_create(
         return Err(flow_exit(2, format!("cannot create: {}", why.join("; "))));
     }
     plan.expect(a.expect_plan.as_deref())?;
+    let sent_payload = plan.payload();
     let result = match plan {
         Reviewed::Form(s) => {
             let o = fsv_app::SendOptions {
@@ -888,10 +977,19 @@ fn ticket_create(
         }
     };
     let get = |k: &str| result.get(k).cloned().unwrap_or(Value::Null);
+    let template_check = match sent_payload {
+        Some(Value::Object(p)) if !prefilled.is_empty() && !p.is_empty() => Some(
+            template_readback(deps.api.as_ref(), &get("id"), &p, &prefilled),
+        ),
+        _ => None,
+    };
     if as_json {
         let mut o = Map::new();
         o.insert("created".into(), get("result"));
         o.insert("plan_hash".into(), get("plan_hash"));
+        if let Some(v) = template_check {
+            o.insert("template_readback".into(), v);
+        }
         if let Some(v) = result.get("verification") {
             o.insert("verification".into(), v.clone());
         }
