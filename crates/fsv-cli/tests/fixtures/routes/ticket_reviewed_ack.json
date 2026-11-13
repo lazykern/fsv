@@ -1,0 +1,346 @@
+[
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/5",
+  "once": true,
+  "json": {
+   "ticket": {
+    "id": 5,
+    "subject": "Acme VPN",
+    "status": 2,
+    "priority": 1,
+    "human_display_id": "INC-5",
+    "custom_fields": {
+     "cost_code": "old",
+     "other": "kept"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/5",
+  "once": true,
+  "json": {
+   "ticket": {
+    "id": 5,
+    "subject": "Acme VPN",
+    "status": 2,
+    "priority": 1,
+    "human_display_id": "INC-5",
+    "custom_fields": {
+     "cost_code": "old",
+     "other": "kept"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/5",
+  "json": {
+   "ticket": {
+    "id": 5,
+    "subject": "Globex",
+    "status": 2,
+    "priority": 73,
+    "human_display_id": "INC-5",
+    "custom_fields": {
+     "cost_code": "new",
+     "other": "kept"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/6",
+  "once": true,
+  "json": {
+   "ticket": {
+    "id": 6,
+    "subject": "Acme VPN",
+    "status": 2,
+    "priority": 1,
+    "human_display_id": "INC-6",
+    "custom_fields": {
+     "cost_code": "old",
+     "other": "kept"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/6",
+  "once": true,
+  "json": {
+   "ticket": {
+    "id": 6,
+    "subject": "Acme VPN",
+    "status": 2,
+    "priority": 1,
+    "human_display_id": "INC-6",
+    "custom_fields": {
+     "cost_code": "old",
+     "other": "kept"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/6",
+  "json": {
+   "ticket": {
+    "id": 6,
+    "subject": "Globex",
+    "status": 2,
+    "priority": 73,
+    "human_display_id": "INC-6",
+    "custom_fields": {
+     "cost_code": "new",
+     "other": "kept"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/7",
+  "once": true,
+  "json": {
+   "ticket": {
+    "id": 7,
+    "subject": "Acme VPN",
+    "status": 2,
+    "priority": 1,
+    "human_display_id": "INC-7",
+    "custom_fields": {
+     "cost_code": "old",
+     "other": "kept"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/7",
+  "once": true,
+  "json": {
+   "ticket": {
+    "id": 7,
+    "subject": "Acme VPN",
+    "status": 2,
+    "priority": 1,
+    "human_display_id": "INC-7",
+    "custom_fields": {
+     "cost_code": "old",
+     "other": "kept"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/tickets/7",
+  "json": {
+   "ticket": {
+    "id": 7,
+    "subject": "Globex",
+    "status": 2,
+    "priority": 1,
+    "human_display_id": "INC-7",
+    "custom_fields": {
+     "cost_code": "new",
+     "other": "kept"
+    }
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/ticket_form_fields",
+  "json": {
+   "ticket_fields": [
+    {
+     "id": 9000008001,
+     "name": "subject",
+     "label": "Subject",
+     "description": "",
+     "field_type": "default_subject",
+     "required": false,
+     "required_for_closure": false,
+     "position": 1,
+     "default_field": true,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000008002,
+     "name": "priority",
+     "label": "Priority",
+     "description": "",
+     "field_type": "default_priority",
+     "required": false,
+     "required_for_closure": false,
+     "position": 2,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 1,
+       "value": "Low"
+      },
+      {
+       "id": 2,
+       "value": "Medium"
+      },
+      {
+       "id": 73,
+       "value": "High"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000008003,
+     "name": "status",
+     "label": "Status",
+     "description": "",
+     "field_type": "default_status",
+     "required": false,
+     "required_for_closure": false,
+     "position": 3,
+     "default_field": true,
+     "choices": [
+      {
+       "id": 2,
+       "value": "Open"
+      },
+      {
+       "id": 3,
+       "value": "Pending"
+      },
+      {
+       "id": 5,
+       "value": "Closed"
+      }
+     ],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 1,
+     "updated_at": "2030-01-02T03:04:05Z"
+    },
+    {
+     "id": 9000008004,
+     "name": "cost_code",
+     "label": "Cost Code",
+     "description": "",
+     "field_type": "custom_text",
+     "required": false,
+     "required_for_closure": false,
+     "position": 4,
+     "default_field": false,
+     "choices": [],
+     "nested_fields": [],
+     "placeholder": "",
+     "helptext": "",
+     "hint": false,
+     "content": null,
+     "displayed_to_agents": true,
+     "data_source": 0,
+     "lookup_config": null,
+     "workspace_id": 2,
+     "updated_at": "2030-01-02T03:04:05Z"
+    }
+   ]
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/api/_/business_rules",
+  "json": {
+   "business_rules": [
+    {
+     "id": 9000008101,
+     "name": "High needs lead",
+     "workspace_id": 2,
+     "module_type": "ticket",
+     "item_id": null,
+     "deleted": false,
+     "user_type": "both",
+     "form_type": "both",
+     "state": "active",
+     "rule_type": "client_side",
+     "description": "",
+     "condition_data": {
+      "all": [
+       {
+        "name": "priority",
+        "operator": "is",
+        "value": "73",
+        "evaluate_on": "ticket"
+       }
+      ]
+     },
+     "action_data": {
+      "action": [
+       {
+        "name": [
+         "High priority needs the Acme lead"
+        ],
+        "property": "message"
+       }
+      ]
+     },
+     "is_reversible": false,
+     "is_validation": true,
+     "updated_at": "2030-01-03T00:00:00Z"
+    }
+   ]
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/tickets/5",
+  "json": {
+   "ticket": {
+    "id": 5
+   }
+  }
+ },
+ {
+  "method": "PUT",
+  "path": "/api/_/bulk_ticket_actions/update_multiple",
+  "json": {}
+ },
+ {
+  "method": "GET",
+  "path": "/a/dashboard",
+  "text": "<html><head><meta name=\"csrf-token\" content=\"tok\"></head></html>"
+ }
+]

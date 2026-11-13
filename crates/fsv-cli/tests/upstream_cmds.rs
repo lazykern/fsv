@@ -2572,6 +2572,191 @@ fn update_reviewed_problems_refused() {
 }
 
 #[test]
+fn update_ack_requires_reviewed() {
+    let r = run_fixture(
+        "ticket_reviewed",
+        &["tickets", "update", "5", "--priority", "High", "--ack"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert_eq!(r.err, "error: --ack requires tickets --reviewed\n");
+}
+
+#[test]
+fn problems_update_ack_requires_reviewed() {
+    let r = run_fixture(
+        "ticket_reviewed",
+        &["problems", "update", "5", "--ack"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert_eq!(r.err, "error: --ack requires tickets --reviewed\n");
+}
+
+#[test]
+fn update_reviewed_ack_without_blocking_keeps_hash() {
+    let r = run_fixture(
+        "ticket_reviewed",
+        &[
+            "tickets",
+            "update",
+            "5",
+            "--reviewed",
+            "--ack",
+            "--priority",
+            "High",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert!(
+        r.out.contains(
+            "\"plan_hash\": \"3212f8ceb7a5590061f639e5731caeaa0955a7617781938856beb69db8b6e8e7\""
+        ),
+        "{}",
+        r.out
+    );
+    assert!(!r.out.contains("acknowledged_rule_messages"), "{}", r.out);
+}
+
+#[test]
+fn update_reviewed_blocking_needs_ack() {
+    let r = run_fixture(
+        "ticket_reviewed_ack",
+        &[
+            "tickets",
+            "update",
+            "5",
+            "--reviewed",
+            "--priority",
+            "High",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert_eq!(
+        r.err,
+        "ticket form validation failed: blocked by rule (acknowledge to continue): High priority needs the Acme lead; pass --ack to acknowledge the blocking rule message(s) after reading them\n"
+    );
+}
+
+#[test]
+fn update_reviewed_ack_dry_run() {
+    let r = run_fixture(
+        "ticket_reviewed_ack",
+        &[
+            "tickets",
+            "update",
+            "5",
+            "--reviewed",
+            "--ack",
+            "--priority",
+            "High",
+            "--dry-run",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(r.err, "");
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "dry_run",
+  "action": "ticket_properties",
+  "method": "PUT",
+  "path": "/api/_/tickets/5",
+  "before": {
+    "priority": 1
+  },
+  "after": {
+    "priority": 73
+  },
+  "payload": {
+    "br_validation_excludes": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcHRpb25hbCI6IltdIiwiZGlzYWJsZWQiOiJbXSIsImhpZGRlbiI6IltdIn0=",
+    "priority": 73
+  },
+  "plan_hash": "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5",
+  "warning": "Tags replace the full existing list. Updates may trigger tenant workflows.",
+  "acknowledged_rule_messages": [
+    "High priority needs the Acme lead"
+  ]
+}
+"#
+    );
+}
+
+#[test]
+fn update_reviewed_ack_send() {
+    let r = run_fixture(
+        "ticket_reviewed_ack",
+        &[
+            "tickets",
+            "update",
+            "5",
+            "--reviewed",
+            "--ack",
+            "--priority",
+            "High",
+            "--yes",
+            "--expect-plan",
+            "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"{
+  "status": "submitted",
+  "ticket_id": 5,
+  "plan_hash": "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5",
+  "verified": true,
+  "fields": {
+    "priority": "matched"
+  }
+}
+"#
+    );
+    assert!(
+        r.err.contains("\"acknowledged_rule_messages\""),
+        "{}",
+        r.err
+    );
+    assert_eq!(r.write_paths(), ["PUT /api/_/tickets/5"]);
+}
+
+#[test]
+fn update_reviewed_acked_hash_without_ack() {
+    let r = run_fixture(
+        "ticket_reviewed_ack",
+        &[
+            "tickets",
+            "update",
+            "5",
+            "--reviewed",
+            "--priority",
+            "High",
+            "--yes",
+            "--expect-plan",
+            "ef717dbaced486c6b863cfff6004a4384ac28c021f09ebaec43df1b22827dcb5",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(r.out, "");
+    assert_eq!(
+        r.err,
+        "ticket form validation failed: blocked by rule (acknowledge to continue): High priority needs the Acme lead; pass --ack to acknowledge the blocking rule message(s) after reading them\n"
+    );
+    assert!(r.write_paths().is_empty(), "{:?}", r.write_paths());
+}
+
+#[test]
 fn update_expect_plan_needs_reviewed() {
     let r = run_fixture(
         "ticket_reviewed",

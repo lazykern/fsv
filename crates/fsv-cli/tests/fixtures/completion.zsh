@@ -669,7 +669,7 @@ _fsv() {
                     local _vals; _vals=($( FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete zsh complete_set tickets "$cur" ))
                     compadd -a _vals; return 0 ;;
             esac
-            compadd -- --verbose -v --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --reviewed --expect-plan --dry-run --yes -y --json --no-input; return 0 ;;
+            compadd -- --verbose -v --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --reviewed --ack --expect-plan --dry-run --yes -y --json --no-input; return 0 ;;
         "tickets download")
             compadd -- --verbose -v --attachments --main-attachments --conversations --description-attachments --all --dir --out --force --json; return 0 ;;
         "tickets conversations")
@@ -850,7 +850,7 @@ _fsv() {
                     local _vals; _vals=($( FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete zsh complete_set problems "$cur" ))
                     compadd -a _vals; return 0 ;;
             esac
-            compadd -- --verbose -v --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --reviewed --expect-plan --dry-run --yes -y --json --no-input; return 0 ;;
+            compadd -- --verbose -v --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --reviewed --ack --expect-plan --dry-run --yes -y --json --no-input; return 0 ;;
         "problems download")
             compadd -- --verbose -v --attachments --main-attachments --notes --description-attachments --all --dir --out --force --json; return 0 ;;
         "problems notes")

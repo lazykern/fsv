@@ -765,7 +765,7 @@ _fsv_complete() {
                 --set)
                     COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash complete_set tickets "$cur") ); return 0 ;;
             esac
-            COMPREPLY=( $(compgen -W "--verbose -v --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --reviewed --expect-plan --dry-run --yes -y --json --no-input" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --reviewed --ack --expect-plan --dry-run --yes -y --json --no-input" -- "$cur") )
             return 0 ;;
         "tickets download")
             COMPREPLY=( $(compgen -W "--verbose -v --attachments --main-attachments --conversations --description-attachments --all --dir --out --force --json" -- "$cur") )
@@ -963,7 +963,7 @@ _fsv_complete() {
                 --set)
                     COMPREPLY=( $(FSV_THIN_COMPLETE=1 @FSV_EXE@ _complete bash complete_set problems "$cur") ); return 0 ;;
             esac
-            COMPREPLY=( $(compgen -W "--verbose -v --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --reviewed --expect-plan --dry-run --yes -y --json --no-input" -- "$cur") )
+            COMPREPLY=( $(compgen -W "--verbose -v --status -s --priority -p --agent --agent-id --group --group-id --set --tag --planned-start --planned-end --planned-effort --reviewed --ack --expect-plan --dry-run --yes -y --json --no-input" -- "$cur") )
             return 0 ;;
         "problems download")
             COMPREPLY=( $(compgen -W "--verbose -v --attachments --main-attachments --notes --description-attachments --all --dir --out --force --json" -- "$cur") )

@@ -1380,6 +1380,9 @@ pub fn update(res: &'static Resource, a: ResUpdateArgs) -> CmdResult {
             "--expect-plan requires --reviewed, --tag, --planned-start or --planned-end",
         ));
     }
+    if a.ack {
+        return Err(usage("--ack requires tickets --reviewed"));
+    }
     update_resource(res, &a)
 }
 
@@ -1498,7 +1501,8 @@ fn ticket_properties(res: &'static Resource, a: &ResUpdateArgs) -> CmdResult {
         planned_end: a.planned_end.as_deref(),
         answers: Some(&answers),
     };
-    let plan = fsv_api::properties::build_plan_with(c.as_ref(), &store, &a.id_, &args, resolver())?;
+    let plan =
+        fsv_api::properties::build_plan_ack(c.as_ref(), &store, &a.id_, &args, resolver(), a.ack)?;
     let pretty = |v: &Value| {
         fsv_py::Dumps::default()
             .indent(2)

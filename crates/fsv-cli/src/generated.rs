@@ -2871,6 +2871,11 @@ pub struct ResUpdateArgs {
     )]
     pub reviewed: bool,
     #[arg(
+        help = "tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)",
+        long = "ack"
+    )]
+    pub ack: bool,
+    #[arg(
         help = "full reviewed hash for ticket property update",
         long = "expect-plan",
         allow_hyphen_values = true,
@@ -10399,6 +10404,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
                 value_flag: false,
             },
             OptionHint {
+                id: "ack",
+                flags: &["--ack"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
                 id: "expect_plan",
                 flags: &["--expect-plan"],
                 completer: None,
@@ -12625,6 +12637,13 @@ pub static COMPLETION_HINTS: &[(&str, &str, &[OptionHint])] = &[
             OptionHint {
                 id: "reviewed",
                 flags: &["--reviewed"],
+                completer: None,
+                resource: None,
+                value_flag: false,
+            },
+            OptionHint {
+                id: "ack",
+                flags: &["--ack"],
                 completer: None,
                 resource: None,
                 value_flag: false,

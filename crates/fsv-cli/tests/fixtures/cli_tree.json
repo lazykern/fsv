@@ -13721,6 +13721,25 @@
        "envvar": null
       },
       {
+       "name": "ack",
+       "kind": "option",
+       "opts": [
+        "--ack"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)",
+       "metavar": null,
+       "envvar": null
+      },
+      {
        "name": "expect_plan",
        "kind": "option",
        "opts": [
@@ -20866,6 +20885,25 @@
        "default": false,
        "hidden": false,
        "help": "tickets only: evaluate --set and core flags as a hash-bound property plan",
+       "metavar": null,
+       "envvar": null
+      },
+      {
+       "name": "ack",
+       "kind": "option",
+       "opts": [
+        "--ack"
+       ],
+       "secondary_opts": [],
+       "type": "boolean",
+       "choices": null,
+       "required": false,
+       "multiple": false,
+       "nargs": 1,
+       "is_flag": true,
+       "default": false,
+       "hidden": false,
+       "help": "tickets --reviewed only: acknowledge blocking rule messages (bound to the review hash)",
        "metavar": null,
        "envvar": null
       },
