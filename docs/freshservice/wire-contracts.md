@@ -114,7 +114,7 @@ Pitfalls:
 | Reply | `POST /api/_/tickets/<id>/reply` | `body`, `full_text` (same HTML), `from_email` (a configured support mailbox, `"Name" <addr>`), `freddy_message_id: null`, `conversation_from_summary: false`, `translate_reply: false`, `cc_emails: ["Name <addr>"]`, `bcc_emails`, `attachments` | 201 `{conversation}` with `to_emails`, `cc_emails`, `bcc_emails`, `from_email`, `attachments` (`source` 0) | VERIFIED LIVE (incl. BCC) |
 | Forward whole ticket | `POST /api/_/tickets/<id>/forward` | `body`, `from_email`, `notify_emails: ["Name <addr>"]`, `private: true`, `conversation_from_summary: false` | 201; recipients read back as `to_emails` | VERIFIED LIVE |
 | Forward one conversation | `POST /api/_/tickets/<id>/forward` | as above plus `conversation_id` | 201; the source link is not independently readable | VERIFIED LIVE |
-| Problem / change note | `POST /api/_/problems/<id>/notes`, `POST /api/_/changes/<id>/notes` | `body`, `attachments` (the problem UI sends no `private` key) | 201; `GET .../notes` | VERIFIED LIVE |
+| Problem / change note | `POST /api/_/problems/<id>/notes`, `POST /api/_/changes/<id>/notes` | `body`, `attachments` (the problem UI sends no `private` key; VERIFIED LIVE: a problem note carrying `private` is rejected HTTP 400 `private: Unexpected/invalid field`, so problem-note visibility is not controllable) | 201; `GET .../notes` | VERIFIED LIVE |
 | Scenario (macro) | `PUT /api/_/tickets/execute_scenario` | `scenario_id`, `ids` | not delivered | CAPTURED |
 
 Pitfalls:

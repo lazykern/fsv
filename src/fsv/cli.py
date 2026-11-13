@@ -2794,16 +2794,25 @@ def note_resource(res: Resource, id_: str, body: str, public: bool, dry_run: boo
                   yes: bool = False, no_input: bool = False) -> None:
     from fsv import service
     from fsv.safety import note_risks
+    from fsv.errors import UsageError
     cid = _cid(id_, res)
+    try:
+        payload = service.note_payload(res, body, public)
+    except UsageError as exc:
+        _err(str(exc))
+        return
     risks = note_risks(public)
+    problem = res.name == "problems"
     if dry_run:
-        _emit_dry_run(res, cid, {"body": body, "private": not public}, "add_note", risks=risks)
+        _emit_dry_run(res, cid, payload, "add_note", risks=risks,
+                      warnings=["visibility: " + service.PROBLEM_NOTE_VISIBILITY] if problem else None)
         return
     _confirm_writes(risks, f"note on {format_id({'id': cid}, res)}", yes, no_input)
     c = _client()
     n = _api(lambda: service.add_note(res, cid, body, public=public, client=c))
-    visibility = "public" if public else "private"
-    console.print(f"[green]added[/] {visibility} note {n.get('id')}")
+    visibility = "" if problem else ("public " if public else "private ")
+    suffix = " (visibility: tenant default; not controllable on problem notes)" if problem else ""
+    console.print(f"[green]added[/] {visibility}note {n.get('id')}{suffix}")
 
 
 def reply_resource(res: Resource, id_: str, body: str, dry_run: bool = False,
@@ -4756,13 +4765,14 @@ def _make_subapp(res: Resource) -> typer.Typer:
         @sub.command("add-note", help=f"Add {singular} note.", epilog=(
             f"[bold]Note:[/bold] Changes/problems use add-note; ticket notes have a separate reviewed flow (docs/ticket-notes.md).  "
             f"[bold]Examples:[/bold]  "
-            f"fsv {res.name} add-note {_pfx}-1234 'Checked deployment evidence'  |  "
-            f"fsv {res.name} add-note {_pfx}-1234 'Visible update' --public"
+            f"fsv {res.name} add-note {_pfx}-1234 'Checked deployment evidence'"
+            + (f"  |  fsv {res.name} add-note {_pfx}-1234 'Visible update' --public" if res.name != "problems" else
+               "  (problem notes have no visibility key: the tenant default applies)")
         ))
         def add_note(
             id_: str = typer.Argument(...),
             body: str = typer.Argument(..., help="HTML or plain text"),
-            public: bool = typer.Option(False, "--public"),
+            public: bool = typer.Option(False, "--public", help="changes only: public note (problem notes have no visibility key)"),
             dry_run: bool = typer.Option(False, "--dry-run", help="print the note without adding it"),
             yes: bool = typer.Option(False, "--yes", "-y", help="confirm a public note"),
             no_input: bool = typer.Option(False, "--no-input", help="fail instead of prompting"),

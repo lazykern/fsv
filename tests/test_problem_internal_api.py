@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from fsv.resources import PROBLEMS
 
 
@@ -17,12 +19,15 @@ def test_problem_note_uses_internal_api(monkeypatch):
 
     cli.note_resource(PROBLEMS, "PRB-1", "hello", public=False)
 
-    assert calls == [("int_post", "problems/1/notes", {"body": "hello", "private": True})]
+    # Captured problem-note body: no visibility key (the tenant rejects `private`).
+    assert calls == [("int_post", "problems/1/notes", {"body": "hello"})]
 
     calls.clear()
-    cli.note_resource(PROBLEMS, "PRB-1", "hello", public=True, yes=True)
+    import typer
+    with pytest.raises(typer.Exit):
+        cli.note_resource(PROBLEMS, "PRB-1", "hello", public=True, yes=True)  # visibility is not controllable
 
-    assert calls == [("int_post", "problems/1/notes", {"body": "hello", "private": False})]
+    assert calls == []
 
 
 def test_problem_update_uses_internal_api(monkeypatch):

@@ -444,6 +444,24 @@ def update_item(
     return data.get(resource.item_key, data)
 
 
+PROBLEM_NOTE_VISIBILITY = ("problem notes accept only a body (captured `{body}`; the tenant rejects `private` with "
+                           "HTTP 400): visibility is not controllable and the tenant default applies")
+
+
+def note_payload(resource: Resource, body: str, public: bool = False) -> dict[str, Any]:
+    """Legacy add-note body. Problem notes have no visibility key: the
+    captured browser body is ``{"body": ...}`` and the tenant answers HTTP 400
+    ``private: Unexpected/invalid field`` when one is sent."""
+    from fsv.errors import UsageError
+    payload: dict[str, Any] = {"body": body}
+    if resource.name == "problems":
+        if public:
+            raise UsageError("--public: " + PROBLEM_NOTE_VISIBILITY)
+    elif resource.name == "changes":
+        payload["private"] = not public
+    return payload
+
+
 def add_note(
     resource: Resource,
     item_id: int,
@@ -452,9 +470,7 @@ def add_note(
     client: Client | None = None,
 ) -> dict[str, Any]:
     c = client or get_client()
-    payload: dict[str, Any] = {"body": body}
-    if resource.name in ("changes", "problems"):
-        payload["private"] = not public
+    payload = note_payload(resource, body, public)
     data = c.int_post(f"{resource.api_path}/{item_id}/notes", payload)
     return data.get("note", data)
 
