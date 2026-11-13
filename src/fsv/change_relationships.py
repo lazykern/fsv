@@ -9,6 +9,7 @@ from urllib.parse import urlencode
 
 from fsv import config, journal
 from fsv.attachments import owner_row
+from fsv.errors import APIError
 from fsv.resources import CHANGES, parse_id
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
 from fsv.reviewed_snapshot import stable_snapshot
@@ -50,14 +51,39 @@ def inventory(client: Any, target: int, kind: str) -> list[dict]:
     return sorted(rows, key=lambda r: positive_id(r["id"]))
 
 
+def _refusal(exc: APIError, what: str) -> ReviewedWriteError:
+    """One-line refusal for a failed read while building a relationship plan."""
+    if exc.status == 404:
+        return ReviewedWriteError(f"{what} not found (HTTP 404); nothing was sent")
+    status = f"HTTP {exc.status}" if exc.status else "local error"
+    return ReviewedWriteError(f"could not read {what} ({status}); nothing was sent")
+
+
 def build_plan(client: Any, target: str | int, *, kind: str, action: str,
                item: str | None = None, project: dict | None = None,
                project_key: str | None = None, name: str | None = None) -> WritePlan:
     cid = positive_id(parse_id(str(target), CHANGES))
     if kind not in KINDS or action not in {"add", "remove"}:
         raise ValueError("choose a captured relationship kind and add/remove")
-    parent = owner_row(client, "changes", cid)
-    rows = inventory(client, cid, kind)
+    try:
+        return _build_plan(client, cid, kind=kind, action=action, item=item, project=project,
+                           project_key=project_key, name=name)
+    except APIError as exc:
+        # Every read here (parent change, relationship inventory, candidate
+        # record) is a precondition: a server error is a clean refusal.
+        raise _refusal(exc, f"change {cid} or its {kind} relationships") from None
+
+
+def _build_plan(client: Any, cid: int, *, kind: str, action: str, item: str | None, project: dict | None,
+                project_key: str | None, name: str | None) -> WritePlan:
+    try:
+        parent = owner_row(client, "changes", cid)
+    except APIError as exc:
+        raise _refusal(exc, f"change {cid}") from None
+    try:
+        rows = inventory(client, cid, kind)
+    except APIError as exc:
+        raise _refusal(exc, f"the {kind} relationship inventory of change {cid}") from None
     key, module = KINDS[kind]
     if kind in {"project", "project-task"}:
         matches = [r for r in rows if str(r.get("id")) == item or r.get("key") == item] if item else []
@@ -89,7 +115,10 @@ def build_plan(client: Any, target: str | int, *, kind: str, action: str,
                 raise ValueError("project-task requires an exact uppercase --project-key")
             if not isinstance(item, str) or not re.fullmatch(re.escape(project_key) + r"-[1-9][0-9]*", item):
                 raise ValueError("project-task item must be an exact project-key-number")
-            projects = inventory(client, cid, "project")
+            try:
+                projects = inventory(client, cid, "project")
+            except APIError as exc:
+                raise _refusal(exc, f"the linked projects of change {cid}") from None
             selected = [p for p in projects if p.get("key") == project_key]
             if len(selected) != 1:
                 raise ReviewedWriteError("project task requires an exact linked project")
@@ -117,12 +146,18 @@ def build_plan(client: Any, target: str | int, *, kind: str, action: str,
         if present != (action == "remove"):
             raise ReviewedWriteError("relationship already present or removal target absent")
         if kind == "caused-incident" and action == "add":
-            record = owner_row(client, "tickets", ident)
+            try:
+                record = owner_row(client, "tickets", ident)
+            except APIError as exc:
+                raise _refusal(exc, f"incident {ident}") from None
             from fsv.ticket_kind import exact_ticket_type
             if exact_ticket_type(record) != "incident":
                 raise ReviewedWriteError("caused relationship requires a proven incident")
         elif action == "add":
-            raw = client.int_get(f"{key}/{ident}")
+            try:
+                raw = client.int_get(f"{key}/{ident}")
+            except APIError as exc:
+                raise _refusal(exc, f"{key[:-1]} {ident}") from None
             row = raw.get(key[:-1], raw) if isinstance(raw, dict) else {}
             if positive_id(row.get("id")) != ident:
                 raise ReviewedWriteError("exact relationship candidate unavailable")

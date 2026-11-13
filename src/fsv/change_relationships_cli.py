@@ -7,6 +7,7 @@ import typer
 
 from fsv import change_relationships as flow
 from fsv.resources import CHANGES, parse_id
+from fsv.errors import APIError
 from fsv.reviewed_write import ReviewedWriteError
 
 
@@ -18,6 +19,10 @@ def register(app, client_factory):
     def list_(target: str, kind: str, json_out: bool = typer.Option(False, "--json")):
         try:
             typer.echo(json.dumps(flow.inventory(client_factory(), parse_id(target, CHANGES), kind), indent=2))
+        except APIError as exc:
+            typer.echo(str(flow._refusal(exc, f"the {kind} relationships of {target}")).replace("; nothing was sent", ""),
+                       err=True)
+            raise typer.Exit(2) from None
         except (ValueError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None
@@ -42,6 +47,10 @@ def register(app, client_factory):
             typer.echo(json.dumps(result, indent=2))
             if not result.get("verified"):
                 raise typer.Exit(4)
+        except APIError as exc:
+            # Plan building maps its reads; this is a last-resort one-liner.
+            typer.echo(f"error: {exc}; nothing was sent", err=True)
+            raise typer.Exit(2) from None
         except (ValueError, ReviewedWriteError) as exc:
             typer.echo(str(exc), err=True)
             raise typer.Exit(2) from None

@@ -21,6 +21,8 @@ def api(monkeypatch, tmp_path):
     def handler(req):
         path = req.url.path.removeprefix("/api/_/")
         if req.method == "GET":
+            if path in s.get("missing", ()):
+                return httpx.Response(404, json={"errors": "Record not found"})
             if path == "changes/123":
                 return httpx.Response(200, json={"change": {"id": 123, "subject": "Acme change"}})
             if path.startswith("freshrelease"):
@@ -35,6 +37,8 @@ def api(monkeypatch, tmp_path):
                 if kind == "caused-incident":
                     assert req.url.params["filter"] == "associated_tickets_caused"
                 return httpx.Response(200, json={key: copy.deepcopy(s["rows"][kind]), "meta": {"has_next": s["partial"]}})
+            if path in s.get("missing", ()):
+                return httpx.Response(404, json={"errors": "Record not found"})
             module, ident = path.split("/")
             # Native exact ticket reads expose ``type``, not the form/echo ``ticket_type``.
             return httpx.Response(200, json={module[:-1]: {"id": int(ident), **s.get("kind_fields", {"type": "Incident"})}})
@@ -166,3 +170,22 @@ def test_caused_incident_type_proof_uses_native_exact_read(api, fields, allowed)
         with pytest.raises(ReviewedWriteError, match="incident|ticket type"):
             flow.build_plan(c, "CHN-123", kind="caused-incident", action="add", item="71")
     assert not s["writes"]
+
+
+
+@pytest.mark.parametrize("kind,missing,named", [
+    ("release", "releases/62", "release 62 not found"),
+    ("problem", "problems/62", "problem 62 not found"),
+    ("caused-incident", "tickets/62", "incident 62 not found"),
+    ("release", "changes/123", "change 123 not found"),
+    ("problem", "changes/123/problems", "mutation inventory unavailable"),
+])
+def test_missing_ids_are_one_line_refusals(api, kind, missing, named):
+    c, s = api
+    s["missing"] = {missing}
+    with pytest.raises(ReviewedWriteError, match=named):
+        flow.build_plan(c, "CHN-123", kind=kind, action="add", item="62")
+    r = CliRunner().invoke(cli.app, ["changes", "relationships", "write", "CHN-123", kind, "add", "--item", "62",
+                                     "--dry-run", "--json"])
+    assert r.exit_code == 2 and named in r.output and "Traceback" not in r.output and not s["writes"]
+    assert len(r.output.strip().splitlines()) == 1
