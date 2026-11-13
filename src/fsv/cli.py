@@ -573,6 +573,11 @@ def _load_query_hash(raw: str) -> list[dict[str, Any]]:
         _err(f"invalid --query-hash JSON: {e}")
     if not isinstance(loaded, list):
         _err("--query-hash must be a JSON array")
+    from fsv.query import validate_raw_query
+    try:
+        validate_raw_query(loaded, "--query-hash")
+    except ValueError as exc:
+        _err(str(exc))
     return loaded
 
 
@@ -998,6 +1003,14 @@ def _resolve_where(c: Any, res: Resource, sch: dict[str, Any], expr: str, explai
     a custom dropdown's label); VALUE a choice label, a person/group name,
     "Me", "Unassigned"/"(empty)", a date, or a period ("Last 6 months")."""
     field_text, op, raw = _parse_where(expr)
+    if field_text.strip().casefold() in ("approval_status", "approval status"):
+        # Not a form field: the change list filters it by raw number (query.py
+        # holds the proven wire); the ticket list ignores it, so refuse there.
+        from fsv import query as Q
+        try:
+            return Q._resolve_where(c, res, sch, "approval_status" + op + raw, explain)
+        except ValueError as exc:
+            _err(str(exc))
     from fsv.query import DATE_FIELDS as pseudo_dates
     date_name = field_text if field_text in pseudo_dates else _WHERE_DATE_ALIASES.get(" ".join(field_text.split()).casefold())
     if date_name:
@@ -1086,7 +1099,7 @@ def _merge_same_conditions(query: list[dict[str, Any]]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for item in query:
         op = item.get("operator")
-        if op not in ("is_in", "is_not_in"):
+        if op not in ("is_in", "is_not_in") or not isinstance(item.get("value"), list):
             out.append(item)
             continue
         key = (item.get("condition"), op, item.get("type"))
@@ -1128,7 +1141,13 @@ def _build_query_hash(
     query: list[dict[str, Any]] = []
     explain: list[dict[str, Any]] = []
     if raw:
-        query.extend(_load_query_hash(raw))
+        loaded = _load_query_hash(raw)
+        from fsv.query import _check_raw_query
+        try:
+            _check_raw_query(res, loaded)
+        except ValueError as exc:
+            _err(str(exc))
+        query.extend(loaded)
         explain.append({"field": "query_hash", "condition": "raw", "operator": "raw", "type": "raw", "value": raw})
     if where:
         sch = schema_mod.load(res, c)

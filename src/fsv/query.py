@@ -518,7 +518,35 @@ def _load_query_hash(raw: str) -> list[dict[str, Any]]:
         raise ValueError(f"invalid query-hash JSON: {e}")
     if not isinstance(loaded, list):
         raise ValueError("query-hash must be a JSON array")
+    validate_raw_query(loaded)
     return loaded
+
+
+_LIST_OPERATORS = frozenset({"is_in", "is_not_in"})
+
+
+def validate_raw_query(items: Any, where: str = "query-hash") -> None:
+    """Refuse raw query-hash shapes fsv cannot pass on faithfully (no wrapping:
+    the wire is sent exactly as given). Raises ValueError; nothing is sent."""
+    for n, item in enumerate(items if isinstance(items, list) else [items], 1):
+        label = f"{where} item {n}"
+        if not isinstance(item, dict):
+            raise ValueError(f"{label} must be a JSON object with condition/operator/value; nothing was sent")
+        for key in ("any", "all"):
+            if key in item:
+                if not isinstance(item[key], list):
+                    raise ValueError(f"{label}: {key!r} must be a JSON list of conditions; nothing was sent")
+                validate_raw_query(item[key], f"{label} {key}")
+        if "condition" not in item:
+            if not any(k in item for k in ("any", "all")):
+                raise ValueError(f"{label} has no condition; nothing was sent")
+            continue
+        operator = item.get("operator")
+        if not isinstance(item.get("condition"), str) or not isinstance(operator, str):
+            raise ValueError(f"{label}: condition and operator must be strings; nothing was sent")
+        if operator in _LIST_OPERATORS and not isinstance(item.get("value"), list):
+            raise ValueError(f"{label} ({item['condition']}): operator {operator} takes a JSON list value, e.g. "
+                             f"\"value\": [{json.dumps(item.get('value'))}]; nothing was sent")
 
 
 def build_query_hash_from_schema(
