@@ -223,6 +223,25 @@ fn matches<'a>(rows: &'a [Value], item: &str) -> Vec<&'a Value> {
         .collect()
 }
 
+/// `_refusal`: one-line refusal for a failed read while building a
+/// relationship plan. Only API errors are mapped; anything else is returned.
+pub fn refusal(e: Error, what: &str) -> Error {
+    let Some(api) = e.as_api() else {
+        return e;
+    };
+    if api.status == 404 {
+        return refused(format!("{what} not found (HTTP 404); nothing was sent"));
+    }
+    let status = if api.status != 0 {
+        format!("HTTP {}", api.status)
+    } else {
+        "local error".to_string()
+    };
+    refused(format!(
+        "could not read {what} ({status}); nothing was sent"
+    ))
+}
+
 /// `build_plan`.
 pub fn build_plan(c: &dyn Api, target: &str, args: &RelArgs<'_>) -> Result<WritePlan> {
     let cid = watchers::positive_id(&json!(parse_id(target, &CHANGES)?))?;
@@ -231,8 +250,25 @@ pub fn build_plan(c: &dyn Api, target: &str, args: &RelArgs<'_>) -> Result<Write
             "choose a captured relationship kind and add/remove",
         ));
     }
-    let parent = owner_row(c, "changes", cid)?;
-    let rows = inventory(c, cid, args.kind)?;
+    // Every read here (parent change, relationship inventory, candidate
+    // record) is a precondition: a server error is a clean refusal.
+    build_plan_inner(c, cid, args).map_err(|e| {
+        refusal(
+            e,
+            &format!("change {cid} or its {} relationships", args.kind),
+        )
+    })
+}
+
+/// `_build_plan`.
+fn build_plan_inner(c: &dyn Api, cid: i64, args: &RelArgs<'_>) -> Result<WritePlan> {
+    let parent = owner_row(c, "changes", cid).map_err(|e| refusal(e, &format!("change {cid}")))?;
+    let rows = inventory(c, cid, args.kind).map_err(|e| {
+        refusal(
+            e,
+            &format!("the {} relationship inventory of change {cid}", args.kind),
+        )
+    })?;
     let (key, module) = kind_spec(args.kind).unwrap();
     let (method, path, body) = if matches!(args.kind, "project" | "project-task") {
         let found = args
@@ -294,7 +330,8 @@ pub fn build_plan(c: &dyn Api, target: &str, args: &RelArgs<'_>) -> Result<Write
                     "project-task item must be an exact project-key-number",
                 ));
             }
-            let projects = inventory(c, cid, "project")?;
+            let projects = inventory(c, cid, "project")
+                .map_err(|e| refusal(e, &format!("the linked projects of change {cid}")))?;
             let selected: Vec<&Value> = projects
                 .iter()
                 .filter(|row| row.get("key").and_then(Value::as_str) == Some(project_key))
@@ -362,12 +399,15 @@ pub fn build_plan(c: &dyn Api, target: &str, args: &RelArgs<'_>) -> Result<Write
             ));
         }
         if args.kind == "caused-incident" && args.action == "add" {
-            let record = owner_row(c, "tickets", ident)?;
+            let record = owner_row(c, "tickets", ident)
+                .map_err(|e| refusal(e, &format!("incident {ident}")))?;
             if crate::ticket_kind::exact_ticket_type(&Value::Object(record))? != "incident" {
                 return Err(refused("caused relationship requires a proven incident"));
             }
         } else if args.action == "add" {
-            let raw = c.int_get(&format!("{key}/{ident}"), None)?;
+            let raw = c
+                .int_get(&format!("{key}/{ident}"), None)
+                .map_err(|e| refusal(e, &format!("{} {ident}", &key[..key.len() - 1])))?;
             let row = match &raw {
                 Value::Object(m) => m
                     .get(&key[..key.len().saturating_sub(1)])
@@ -574,6 +614,7 @@ mod tests {
         nested_fail: bool,
         no_effect: bool,
         kind_fields: Value,
+        missing: BTreeSet<String>,
     }
 
     fn empty_world() -> World {
@@ -594,6 +635,7 @@ mod tests {
             nested_fail: false,
             no_effect: false,
             kind_fields: json!({"type": "Incident"}),
+            missing: BTreeSet::new(),
         }
     }
 
@@ -629,6 +671,11 @@ mod tests {
     fn api(state: Arc<Mutex<World>>) -> FnApi {
         FnApi::new(move |call: &Call| {
             let mut s = state.lock().unwrap();
+            if call.method == "GET" && s.missing.contains(&call.path) {
+                return Err(
+                    fsv_core::ApiError::new(404, json!({"errors": "Record not found"})).into(),
+                );
+            }
             if call.method == "GET" && call.path == "changes/123" {
                 return Ok(json!({"change": {"id": 123, "subject": "Acme change"}}));
             }
@@ -1056,5 +1103,50 @@ mod tests {
         .unwrap_err();
         assert!(err.to_string().contains("complete"), "{err}");
         assert!(posts(&c).is_empty());
+    }
+
+    /// `test_missing_ids_are_one_line_refusals` (library half).
+    #[test]
+    fn missing_ids_are_one_line_refusals() {
+        for (kind, missing, named) in [
+            ("release", "releases/62", "release 62 not found"),
+            ("problem", "problems/62", "problem 62 not found"),
+            ("caused-incident", "tickets/62", "incident 62 not found"),
+            ("release", "changes/123", "change 123 not found"),
+            (
+                "problem",
+                "changes/123/problems",
+                "mutation inventory unavailable",
+            ),
+        ] {
+            let mut world = empty_world();
+            world.missing.insert(missing.into());
+            let c = api(Arc::new(Mutex::new(world)));
+            let err = build_plan(
+                &c,
+                "CHN-123",
+                &args(kind, "add", Some("62"), None, None, None),
+            )
+            .unwrap_err();
+            assert_eq!(err.exit_code(), 2, "{kind} {missing}");
+            assert!(err.to_string().contains(named), "{kind} {missing}: {err}");
+            assert!(posts(&c).is_empty());
+        }
+    }
+
+    #[test]
+    fn refusal_words_other_statuses() {
+        let e = refusal(fsv_core::ApiError::new(500, json!({})).into(), "change 5");
+        assert_eq!(
+            e.to_string(),
+            "could not read change 5 (HTTP 500); nothing was sent"
+        );
+        let e = refusal(fsv_core::ApiError::new(0, json!({})).into(), "change 5");
+        assert_eq!(
+            e.to_string(),
+            "could not read change 5 (local error); nothing was sent"
+        );
+        let e = refusal(Error::session("expired"), "change 5");
+        assert_eq!(e.exit_code(), 3);
     }
 }
