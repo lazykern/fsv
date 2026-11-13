@@ -55,6 +55,24 @@ def submitted_value_matches(actual: Any, expected: Any) -> bool:
     return False
 
 
+REMINDER_NOT_EXPOSED = "unavailable (not exposed by the server)"
+REMINDER_NOTE = ("The task reminder (notify_before) is not returned by the tenant's task reads; it was sent exactly "
+                 "as reviewed but cannot be read back. Every readable field matched.")
+
+
+def exempt_unexposed_reminder(fields: dict[str, str], row_present: bool) -> bool:
+    """Mark a create-time reminder the task GET never returns as not exposed.
+
+    Only an *absent* ``notify_before`` on an exactly identified task row is
+    exempt; a returned-but-different reminder stays ``mismatched`` and every
+    other missing field stays ``unavailable`` (both still fail verification).
+    """
+    if row_present and fields.get("notify_before") == "unavailable":
+        fields["notify_before"] = REMINDER_NOT_EXPOSED
+        return True
+    return False
+
+
 def tag_names(value: Any) -> list[str] | None:
     """Tag names from a readback list of strings or native ``{id, name}`` objects.
 

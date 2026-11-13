@@ -279,3 +279,33 @@ def test_owner_lookup_failure_is_safe(monkeypatch):
         tasks.resolve_owner("agent@example.com", c)
     assert "private session details" not in str(exc.value)
     assert journal.read() == []
+
+
+
+@pytest.mark.parametrize("reminder,verified,fields_verified", [(None, True, True), (900, False, False), (0, True, True)])
+def test_create_reminder_absent_from_get_is_not_exposed(monkeypatch, tenant, reminder, verified, fields_verified):
+    exact = {"id": 9000002010, "title": "Acme verification", "owner_id": None, "status": 1}
+    if reminder is not None:
+        exact["notify_before"] = reminder
+    calls = []
+
+    def handler(req):
+        calls.append(req)
+        if req.method == "POST":
+            return httpx.Response(200, json={"task": exact})
+        return httpx.Response(200, json={"tasks": [] if len(calls) == 1 else [exact]})
+    c = mock_client(monkeypatch, handler)
+    try:
+        plan = tasks.build_plan("CHN-123", exact["title"], status_id=1)
+        result = tasks.send(plan, c, reviewed_hash=plan.hash)
+        assert result["verified"] is verified and result["fields_verified"] is fields_verified
+        if reminder is None:
+            assert result["unexposed_fields"] == {"notify_before": "unavailable (not exposed by the server)"}
+            assert result["unverified_fields"] == [] and "warning" not in result and "readback_note" in result
+        elif reminder == 900:
+            assert result["mismatched_fields"] == ["notify_before"] and "do not resend" in result["warning"]
+        else:
+            assert "unexposed_fields" not in result and "readback_note" not in result
+        assert len([r for r in calls if r.method == "POST"]) == 1
+    finally:
+        c.close()

@@ -126,8 +126,12 @@ def test_task_optional_readback_single_attempt(monkeypatch, mode):
     result = tasks.send(plan, c, reviewed_hash=plan.hash)
     assert result["identity_verified"] is True
     assert result["verified"] is (mode != "mismatch")
-    assert result["fields_verified"] is (mode in ("complete", "different-offset", "normalized-effort"))
-    assert result["unverified_fields"] == (["notify_before", "description"] if mode == "absent" else ["notify_before"] if mode == "collection-shape" else [])
+    # The task collection never returns the reminder: on an exactly identified
+    # row that is "not exposed", not an unverified field; other gaps still are.
+    assert result["fields_verified"] is (mode in ("complete", "different-offset", "normalized-effort", "collection-shape"))
+    assert result["unverified_fields"] == (["description"] if mode == "absent" else [])
+    assert ("unexposed_fields" in result) is (mode in ("absent", "collection-shape"))
+    assert ("readback_note" in result) is (mode == "collection-shape")
     assert result["mismatched_fields"] == (["planned_effort"] if mode == "mismatch" else [])
     if mode == "absent":
         assert "absent from GET" in result["warning"]

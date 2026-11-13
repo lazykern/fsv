@@ -455,12 +455,21 @@ def send(plan: TaskPlan, client: Any = None, *, reviewed_hash: str | None,
     identity_verified = exact is not None and tid not in before and _matches(exact, plan)
     verified_fields, unverified_fields, mismatched_fields = _compare_fields(exact, plan)
     verified = identity_verified and not mismatched_fields
+    # The task GET never returns the create-time reminder: on an exactly
+    # identified row its absence is "not exposed", not an unverified field.
+    from fsv.readback import REMINDER_NOT_EXPOSED, REMINDER_NOTE
+    unexposed = ["notify_before"] if identity_verified and "notify_before" in unverified_fields else []
+    unverified_fields = [k for k in unverified_fields if k not in unexposed]
 
     result = {"status": "submitted", "change_id": plan.change_id, "task_id": tid,
               "verified": verified, "identity_verified": identity_verified,
               "fields_verified": verified and not unverified_fields,
               "verified_fields": verified_fields, "unverified_fields": unverified_fields,
               "mismatched_fields": mismatched_fields, "readback": exact, "plan_hash": plan.hash}
+    if unexposed:
+        result["unexposed_fields"] = {k: REMINDER_NOT_EXPOSED for k in unexposed}
+        if verified and not unverified_fields:
+            result["readback_note"] = REMINDER_NOTE
     if not verified:
         result["warning"] = "Returned task ID/state not verified in task read-back; do not resend."
     elif unverified_fields:

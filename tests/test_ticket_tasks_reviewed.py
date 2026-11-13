@@ -259,3 +259,41 @@ def test_cli_full_hash(api):
     assert r.exit_code == 0, r.output
     assert json.loads(r.output)["verified"]
     assert runner.invoke(cli.app, ["tickets", "tasks", "list", "INC-123", "--json"]).exit_code == 0
+
+
+
+@pytest.mark.parametrize("shape,verified", [
+    ("omit-reminder", True),        # real tenant: the task GET never returns notify_before
+    ("wrong-reminder", False),      # a returned but different reminder is a real mismatch
+    ("omit-reminder-and-title", False),
+    ("wrong-status", False),
+])
+def test_task_create_reminder_not_exposed_by_server(api, monkeypatch, shape, verified):
+    c, s, _, n = api
+    real = flow.inventory
+
+    def rows(client, target):
+        out = real(client, target)
+        for r in out:
+            if shape.startswith("omit-reminder"):
+                r.pop("notify_before", None)
+            if shape == "omit-reminder-and-title":
+                r.pop("title", None)
+            if shape == "wrong-reminder":
+                r["notify_before"] = 900
+            if shape == "wrong-status":
+                r.pop("notify_before", None)
+                r["status"] = n + 1
+        return out
+    monkeypatch.setattr(flow, "inventory", rows)
+    plan = add(c)
+    result = flow.send(plan, c, reviewed_hash=plan.hash)
+    assert result["verified"] is verified and len(s["writes"]) == 1
+    if shape == "omit-reminder":
+        assert result["fields"]["notify_before"] == "unavailable (not exposed by the server)"
+        assert "not returned" in result["readback_note"] and "warning" not in result
+        assert {k for k, v in result["fields"].items() if v == "matched"} == {"title", "status", "custom_fields"}
+    else:
+        assert "do not resend" in result["warning"] and "readback_note" not in result
+    if shape == "wrong-reminder":
+        assert result["fields"]["notify_before"] == "mismatched"

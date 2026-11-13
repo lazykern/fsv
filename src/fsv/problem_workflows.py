@@ -10,7 +10,7 @@ from fsv.formmeta import (ClientResolver, apply_answers, find_field, is_requeste
                          resolve_requester, rules_gate, rules_unavailable_warning)
 from fsv.forms import FormState
 from fsv.forms.payload import _check, _module_body
-from fsv.readback import same_text, submitted_value_matches
+from fsv.readback import REMINDER_NOTE, exempt_unexposed_reminder, same_text, submitted_value_matches
 from fsv.resources import PROBLEMS, parse_id
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
 from fsv.views import collect_pages
@@ -200,6 +200,8 @@ def send(plan: ProblemPlan, client: Any, *, reviewed_hash: str | None) -> dict[s
                   "matched" if matches(k, row[k], value) else "mismatched"
                   for k, value in plan.payload.items()}
         exempt = set()
+        if not create and key == "task" and exempt_unexposed_reminder(fields, row is not None):
+            exempt.add("notify_before")
         if create and row is not None and fields.get("email") == "unavailable":
             # Native problem reads omit the requester email; prove the
             # requester by identity instead. Email is reported as not exposed
@@ -212,6 +214,8 @@ def send(plan: ProblemPlan, client: Any, *, reviewed_hash: str | None) -> dict[s
                "verified": row is not None and all(v == "matched" for k, v in fields.items() if k not in exempt)}
         if "email" in exempt:
             out["readback_note"] = EMAIL_NOTE
+        if "notify_before" in exempt and out["verified"]:
+            out["readback_note"] = REMINDER_NOTE
         return out
 
     return execute(plan, client, reviewed_hash=reviewed_hash, rebuild=rebuild, verify=verify)

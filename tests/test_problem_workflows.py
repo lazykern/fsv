@@ -299,3 +299,31 @@ def test_create_requester_identity_when_email_is_not_read_back(wire, readback, e
     assert result["fields"]["requester"] == expected
     assert result["verified"] is verified
     assert len(wire["writes"]) == 1
+
+
+
+@pytest.mark.parametrize("shape,verified", [("omit-reminder", True), ("wrong-reminder", False),
+                                            ("omit-reminder-and-title", False)])
+def test_child_task_reminder_not_exposed_by_server(wire, monkeypatch, shape, verified):
+    real = flow.inventory
+
+    def rows(client, target, kind):
+        out = real(client, target, kind)
+        for r in out:
+            if shape.startswith("omit-reminder"):
+                r.pop("notify_before", None)
+            if shape == "omit-reminder-and-title":
+                r.pop("title", None)
+            if shape == "wrong-reminder":
+                r["notify_before"] = wire["base"] + 99
+        return out
+    monkeypatch.setattr(flow, "inventory", rows)
+    p = flow.child_plan(wire["client"], "PRB-123", kind="task", text="Acme")
+    result = flow.send(p, wire["client"], reviewed_hash=p.hash)
+    assert result["verified"] is verified and len(wire["writes"]) == 1
+    if verified:
+        assert result["fields"]["notify_before"] == "unavailable (not exposed by the server)"
+        assert "not returned" in result["readback_note"] and "warning" not in result
+    else:
+        assert "do not resend" in result["warning"]
+        assert result["fields"].get("notify_before") != "unavailable (not exposed by the server)" or shape != "wrong-reminder"

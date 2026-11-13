@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from fsv import config, journal, task_status
-from fsv.readback import submitted_value_matches
+from fsv.readback import REMINDER_NOTE, exempt_unexposed_reminder, submitted_value_matches
 from fsv.resources import TICKETS, parse_id
 from fsv.reviewed_write import ReviewedWriteError, WritePlan, execute
 from fsv.views import collect_pages
@@ -184,6 +184,11 @@ def send(plan: TaskPlan, client: Any, *, reviewed_hash: str | None) -> dict[str,
         row = matches[0] if len(matches) == 1 else {}
         fields = {k: "unavailable" if k not in row else "matched" if submitted_value_matches(row[k], v) else "mismatched"
                   for k, v in plan.payload.items()}
-        return {"task_id": tid, "fields": fields, "verified": bool(row) and all(v == "matched" for v in fields.values())}
+        exempt = {"notify_before"} if exempt_unexposed_reminder(fields, bool(row)) else set()
+        out = {"task_id": tid, "fields": fields,
+               "verified": bool(row) and all(v == "matched" for k, v in fields.items() if k not in exempt)}
+        if exempt and out["verified"]:
+            out["readback_note"] = REMINDER_NOTE
+        return out
     return execute(plan, client, reviewed_hash=reviewed_hash,
                    rebuild=lambda: build_plan(client, plan.target, **inputs), verify=verify)
