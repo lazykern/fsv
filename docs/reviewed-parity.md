@@ -391,7 +391,15 @@ create/delete are classic admin form posts and are not implemented.
 `fsv changes windows list|create|delete` follow the captured window page:
 `create` needs at least one `--criteria change_type=<label or id>` (the UI's
 mandatory "Applicable to Changes" row; only this condition is captured), takes
-`--start/--end 'YYYY-MM-DD HH:MM'` and sends `DD-MM-YYYY` / `h:mmam` values.
+`--start/--end 'YYYY-MM-DD HH:MM'` (an offset may be added) and sends
+`DD-MM-YYYY` / `h:mmam` values. The wire has no offset and the tenant reads it
+in the agent profile zone (`/api/v2/agents/me` `time_zone`), so fsv reads the
+entered times in `--timezone ZONE` (else `FSV_TZ`, else that tenant zone),
+converts them to the tenant zone before every overlap check and the send, and
+the review shows both renderings (`start`/`end` `input` and `tenant`). An
+unreadable tenant zone, an unknown `--timezone`, or a time that a
+daylight-saving change skips or repeats refuses. The zones and instants are
+bound into the plan hash; journals of the earlier hash format still guard.
 After `--yes --expect-plan` it first re-reads the maintenance window list and
 refuses when any listed window's time range intersects the new one (criteria
 are not compared; unreadable window times also refuse), then posts the UI's
@@ -401,7 +409,7 @@ maintenance windows) and refuses when it reports an overlap or its answer
 cannot be read as 'no overlap'. `--allow-overlap` skips both refusals and the
 result then says which windows overlapped (or `unknown`); then one
 `POST /api/_/maintenance_windows` with the `change_window` body, verified in
-the window list. `delete` is `DELETE /api/_/maintenance_windows/<id>`, verified
+the window list (name, and start/end by instant when the list shows offsets). `delete` is `DELETE /api/_/maintenance_windows/<id>`, verified
 by absence. Matching windows to a change is not implemented (no accepted
 contract in this round).
 

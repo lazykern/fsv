@@ -57,8 +57,14 @@ def register_windows(app: typer.Typer, factory: Callable[[], Any]) -> None:
         guard(run)
 
     @sub.command("create", help="Create a maintenance window (overlap check, then reviewed POST).")
-    def create(name: str = typer.Option(..., "--name"), start: str = typer.Option(..., "--start", help="YYYY-MM-DD HH:MM"),
-               end: str = typer.Option(..., "--end", help="YYYY-MM-DD HH:MM"),
+    def create(name: str = typer.Option(..., "--name"),
+               start: str = typer.Option(..., "--start", help="YYYY-MM-DD HH:MM (in --timezone)"),
+               end: str = typer.Option(..., "--end", help="YYYY-MM-DD HH:MM (in --timezone)"),
+               timezone: Optional[str] = typer.Option(None, "--timezone", metavar="ZONE",
+                                                      help="zone --start/--end are in (IANA name; default FSV_TZ, "
+                                                           "else the tenant zone: the agent profile time zone). "
+                                                           "Times are converted to the tenant zone before checking "
+                                                           "and sending"),
                criteria: List[str] = typer.Option(..., "--criteria", help="change_type=<label or id> (repeatable; at least one)"),
                description: str = typer.Option("", "--description"),
                no_alert_suppression: bool = typer.Option(False, "--no-alert-suppression"),
@@ -71,7 +77,7 @@ def register_windows(app: typer.Typer, factory: Callable[[], Any]) -> None:
         def run() -> None:
             c = factory()
             build = lambda: W.create_plan(c, name, description, start, end, list(criteria),
-                                          alert_suppression=not no_alert_suppression)
+                                          alert_suppression=not no_alert_suppression, timezone=timezone)
             plan = build()
             if dry_run:
                 typer.echo(json.dumps({"status": "dry_run", **plan.review()}, indent=2, ensure_ascii=False))

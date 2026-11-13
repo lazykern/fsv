@@ -447,6 +447,19 @@ check only; detect maintenance-window overlaps from the window list's
 `start_time`/`end_time`. Whether a `maintenance_events` type is accepted here
 was not captured. [VERIFIED LIVE / INFERRED for the blackout-only scope]
 
+Time zone. The create and overlap bodies carry wall-clock dates and times
+with no offset, and the tenant stores them in the signed-in agent's profile
+zone: the list then answers `start_time`/`end_time` as ISO 8601 with that
+zone's offset (e.g. `2030-11-14T03:00:00-05:00`). A wall clock meant for
+another zone and sent unchanged lands hours away. fsv reads the tenant zone
+from `GET /api/v2/agents/me` `time_zone` (Rails or IANA name), converts the
+user's times (`--timezone`, else `FSV_TZ`, else the tenant zone) to it before
+the overlap checks and the send, refuses when that zone is unreadable, and
+refuses wall-clock times a daylight-saving change makes nonexistent or
+repeated. [VERIFIED LIVE for the storing zone and the offset form in the list;
+INFERRED that the agent profile zone, not a separate account zone, is the one
+applied: both were equal on the tested tenant]
+
 The window page takes several seconds to render its form, and the UI
 refuses an empty criteria row; the API accepts `criteria: []`. Some
 `change_windows` GET variants answer 500 even on a working tenant.

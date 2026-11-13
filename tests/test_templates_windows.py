@@ -1,5 +1,7 @@
 """Ticket templates, maintenance windows and agent notify entries (offline)."""
+import datetime as dt
 import json
+from zoneinfo import ZoneInfo
 
 import httpx
 import pytest
@@ -91,14 +93,21 @@ def wapi(request, monkeypatch):
     sch = {"fields": [{"name": "change_type", "label": "Change Type", "workspace_id": 3,
                        "choices": [{"id": 1, "value": "Normal"}, {"id": 4, "value": "Emergency"}]}]}
     monkeypatch.setattr(schema, "load", lambda res, client=None, force=False: sch)
-    monkeypatch.setenv("FSV_TZ", "America/New_York")
+    monkeypatch.delenv("FSV_TZ", raising=False)
     s = {"windows": [{"id": 61, "name": "Globex freeze", "start_time": "2030-11-20T09:00:00Z",
-                      "end_time": "2030-11-20T10:00:00Z"}], "writes": [], "overlaps": []}
+                      "end_time": "2030-11-20T10:00:00Z"}], "writes": [], "overlaps": [],
+         "agent": {"id": 7, "time_zone": "Eastern Time (US & Canada)"}}
+
+    s["tenant_tz"] = "America/New_York"
+
+    def stored(day, clock):
+        when = dt.datetime.strptime(f"{day} {clock}", "%d-%m-%Y %I:%M%p")
+        return when.replace(tzinfo=ZoneInfo(s["tenant_tz"])).isoformat()
 
     def handler(req):
         path = req.url.path.removeprefix("/api/_/")
         if req.method == "GET" and path.endswith("agents/me"):
-            return httpx.Response(404, json={})
+            return httpx.Response(200, json={"agent": s["agent"]}) if s["agent"] else httpx.Response(404, json={})
         if req.method == "GET":
             assert path == "maintenance_windows"
             return httpx.Response(200, json={"maintenance_windows": s["windows"]})
@@ -112,7 +121,10 @@ def wapi(request, monkeypatch):
                 return httpx.Response(200, json=answer)
             return httpx.Response(200, json={"overlapping_windows": s["overlaps"]})
         if req.method == "POST":
-            row = {"id": 62, "name": body["change_window"]["name"]}
+            # The tenant stores the wall clock in ITS zone (VERIFIED LIVE).
+            cw = body["change_window"]
+            row = {"id": 62, "name": cw["name"], "start_time": stored(cw["start_date"], cw["start_time"]),
+                   "end_time": stored(cw["end_date"], cw["end_time"])}
             s["windows"].append(row)
             return httpx.Response(201, json={"maintenance_window": row})
         wid = int(path.rsplit("/", 1)[1])
@@ -287,3 +299,129 @@ def test_window_unreadable_existing_times_fail_closed(wapi, bad):
     assert s["writes"] == []
     r = W.send_create(p, c, reviewed_hash=p.hash, allow_overlap=True)
     assert r["verified"] and r["overlaps"] == "unknown" and r["overlapping_window_ids"] == "unknown"
+
+
+# --- time zones: the tenant reads the sent wall clock in the agent profile
+# zone, whatever zone the user typed in (live regression: FSV_TZ moved the
+# guard's zone but not the sent wall clock, giving a false 'no overlap' and a
+# false refusal).
+NY_A = {"id": 71, "name": "Acme A", "start_time": "2030-11-14T02:00:00-05:00", "end_time": "2030-11-14T04:00:00-05:00"}
+NY_C = {"id": 72, "name": "Acme C", "start_time": "2030-11-14T04:00:00-05:00", "end_time": "2030-11-14T06:00:00-05:00"}
+
+
+def _zplan(c, start, end, **kw):
+    return W.create_plan(c, "Acme zone", "", start, end, ["change_type=Normal"], **kw)
+
+
+@pytest.mark.parametrize("via", ["option", "env"])
+def test_window_other_input_zone_converts_to_tenant_zone_before_check_and_send(wapi, monkeypatch, via):
+    c, s = wapi
+    s["windows"] = [dict(NY_A), dict(NY_C)]
+    s["overlap_answer"] = {"match_found": False}
+    kw = {"timezone": "Asia/Bangkok"} if via == "option" else {}
+    if via == "env":
+        monkeypatch.setenv("FSV_TZ", "Asia/Bangkok")
+    # 15:00-17:00 +07:00 is 03:00-05:00 -05:00: overlaps A and C (was a false 'no overlap' live).
+    p = _zplan(c, "2030-11-14 15:00", "2030-11-14 17:00", **kw)
+    assert p.write.payload["change_window"]["start_time"] == "3:00am"
+    assert p.write.payload["change_window"]["end_time"] == "5:00am"
+    rv = p.review()
+    assert rv["start"] == {"input": "2030-11-14 15:00 Asia/Bangkok (+07:00)",
+                           "tenant": "2030-11-14 03:00 America/New_York (-05:00)"}
+    assert rv["time_zone"]["input"].startswith("Asia/Bangkok (")
+    assert rv["time_zone"]["tenant"].startswith("America/New_York")
+    with pytest.raises(ReviewedWriteError, match=r"already listed \(71, 72\)"):
+        W.send_create(p, c, reviewed_hash=p.hash)
+    assert s["writes"] == []
+    # 03:00-05:00 +07:00 is the previous day 15:00-17:00 -05:00: no overlap (was a false refusal live).
+    p = _zplan(c, "2030-11-14 03:00", "2030-11-14 05:00", **kw)
+    assert {k: p.write.payload["change_window"][k] for k in ("start_date", "start_time", "end_date", "end_time")} == {
+        "start_date": "13-11-2030", "start_time": "3:00pm", "end_date": "13-11-2030", "end_time": "5:00pm"}
+    r = W.send_create(p, c, reviewed_hash=p.hash, rebuild=lambda: _zplan(c, "2030-11-14 03:00", "2030-11-14 05:00", **kw))
+    assert r["verified"] and r["overlapping_window_ids"] == [] and r["fields"] == {
+        "name": "matched", "start": "matched", "end": "matched"}
+
+
+def test_window_timezone_option_beats_env_and_offsets_are_accepted(wapi, monkeypatch):
+    c, s = wapi
+    monkeypatch.setenv("FSV_TZ", "Asia/Bangkok")
+    p = _zplan(c, "2030-11-14 08:00", "2030-11-14 09:00", timezone="Europe/London")
+    assert p.write.payload["change_window"]["start_time"] == "3:00am"
+    assert p.review()["time_zone"]["input"] == "Europe/London (--timezone)"
+    q = _zplan(c, "2030-11-14 15:00+07:00", "2030-11-14T16:00+07:00", timezone="Europe/London")
+    assert q.write.payload["change_window"]["start_time"] == "3:00am"
+    monkeypatch.delenv("FSV_TZ")
+    d = _zplan(c, "2030-11-14 08:00", "2030-11-14 09:00")
+    assert d.write.payload["change_window"]["start_time"] == "8:00am"
+    assert d.review()["time_zone"]["input"] == "America/New_York (tenant time zone)"
+    assert d.hash != _zplan(c, "2030-11-14 08:00", "2030-11-14 09:00", timezone="America/New_York").hash
+
+
+@pytest.mark.parametrize("agent", [None, {"id": 7}, {"id": 7, "time_zone": "Atlantis/Nowhere"}, {"id": 7, "time_zone": 5}])
+def test_window_unknown_tenant_zone_refuses_even_with_fsv_tz(wapi, monkeypatch, agent):
+    c, s = wapi
+    s["agent"] = agent
+    monkeypatch.setenv("FSV_TZ", "Asia/Bangkok")
+    with pytest.raises(ReviewedWriteError, match="tenant time zone unknown"):
+        _zplan(c, "2030-11-14 08:00", "2030-11-14 09:00")
+    r = CliRunner().invoke(cli.app, ["changes", "windows", "create", "--name", "Acme", "--start", "2030-11-14 08:00",
+                                     "--end", "2030-11-14 09:00", "--criteria", "change_type=Normal", "--dry-run"])
+    assert r.exit_code != 0 and "tenant time zone unknown" in r.output
+    assert s["writes"] == []
+
+
+@pytest.mark.parametrize("start,end,tz,match", [
+    ("2030-03-10 02:30", "2030-03-10 04:00", None, "does not exist"),        # spring gap in the tenant zone
+    ("2030-11-03 01:30", "2030-11-03 03:00", None, "happens twice"),         # fall-back hour typed in the tenant zone
+    ("2030-11-03 12:30", "2030-11-03 14:00", "Asia/Bangkok", "happens twice there"),  # lands on the tenant's repeated hour
+    ("2030-11-14 08:00", "2030-11-14 09:00", "Mars/Olympus", "unknown time zone"),
+    ("2030-11-14 08:00", "2030-11-14 08:00", None, "after its start"),
+    ("2030-11-14 09:00+00:00", "2030-11-14 15:30", "Asia/Bangkok", "after its start"),  # 09:00Z vs 08:30Z
+    ("2030-11-14 8am", "2030-11-14 09:00", None, "must be 'YYYY-MM-DD HH:MM'"),
+])
+def test_window_dst_and_zone_edges_refuse(wapi, start, end, tz, match):
+    c, s = wapi
+    with pytest.raises(ReviewedWriteError, match=match):
+        _zplan(c, start, end, timezone=tz)
+    assert s["writes"] == []
+
+
+def test_window_dst_offsets_follow_the_date(wapi):
+    c, s = wapi
+    summer = _zplan(c, "2030-07-01 20:00", "2030-07-01 21:00", timezone="Asia/Bangkok")
+    winter = _zplan(c, "2030-12-01 20:00", "2030-12-01 21:00", timezone="Asia/Bangkok")
+    assert summer.write.payload["change_window"]["start_time"] == "9:00am"   # -04:00
+    assert winter.write.payload["change_window"]["start_time"] == "8:00am"   # -05:00
+    assert summer.review()["start"]["tenant"].endswith("(-04:00)")
+
+
+def test_window_readback_in_another_zone_is_not_verified(wapi):
+    c, s = wapi
+    s["tenant_tz"] = "UTC"  # the tenant stored it in a zone other than the agent profile says
+    s["overlap_answer"] = {"match_found": False}
+    p = _zplan(c, "2030-11-14 08:00", "2030-11-14 09:00")
+    r = W.send_create(p, c, reviewed_hash=p.hash)
+    assert not r["verified"] and r["fields"]["start"] == "mismatched" and r["fields"]["name"] == "matched"
+
+
+def test_window_legacy_hash_journal_still_guards(wapi):
+    c, s = wapi
+    p = _zplan(c, "2030-11-14 08:00", "2030-11-14 09:00")
+    assert p.legacy_hash and p.legacy_hash != p.hash
+    journal.record_plan("started", p.legacy_hash, action="change_window_create", target=0)
+    with pytest.raises(ReviewedWriteError, match="do not replay"):
+        W.send_create(p, c, reviewed_hash=p.hash)
+    assert s["writes"] == []
+
+
+def test_window_cli_timezone_option_reviews_both_renderings(wapi):
+    c, s = wapi
+    r = CliRunner().invoke(cli.app, ["changes", "windows", "create", "--name", "Acme", "--start", "2030-11-14 15:00",
+                                     "--end", "2030-11-14 17:00", "--criteria", "change_type=Normal",
+                                     "--timezone", "Asia/Bangkok", "--dry-run"])
+    assert r.exit_code == 0, r.output
+    doc = json.loads(r.output)
+    assert doc["end"] == {"input": "2030-11-14 17:00 Asia/Bangkok (+07:00)",
+                          "tenant": "2030-11-14 05:00 America/New_York (-05:00)"}
+    assert doc["payload"]["change_window"]["start_time"] == "3:00am"
+    assert s["writes"] == []
