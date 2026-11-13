@@ -220,6 +220,8 @@ fn closing_label(label: &str) -> bool {
     )
 }
 
+pub const SET_STATUS_CHOICES: [&str; 3] = ["Pending", "Resolved", "Closed"];
+
 /// `status_fields`: the nested `helpdesk_ticket` payload and its record
 /// fingerprint. Resolved/Closed use the lifecycle closure checks (routing
 /// preserved, persisted resolution required); others are Pending-only.
@@ -230,6 +232,20 @@ pub fn status_fields(
     label: &str,
     ack: bool,
 ) -> Result<(Map<String, Value>, String)> {
+    let folded = fsv_core::pystr::casefold(fsv_core::pystr::strip(label));
+    if !SET_STATUS_CHOICES
+        .iter()
+        .any(|c| fsv_core::pystr::casefold(c) == folded)
+    {
+        // Local usage refusal (exit 2) that names the accepted values, like
+        // `tickets resolve --set`; only these transitions have captured wires.
+        return Err(Error::value(format!(
+            "--set-status {} is not a supported status; choices: {}; nothing was sent",
+            fsv_py::py_repr_str(label),
+            SET_STATUS_CHOICES.join(", ")
+        )));
+    }
+    let label = fsv_core::pystr::strip(label);
     if closing_label(label) {
         // --ack has the same meaning as tickets close/status --ack: the
         // reviewer read the blocking rule messages; they are bound into the

@@ -9575,7 +9575,7 @@ fn reply_set_status_unknown() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"only the Pending status transition was captured; use the web form for other statuses
+        r#"--set-status 'Bogus' is not a supported status; choices: Pending, Resolved, Closed; nothing was sent
 "#
     );
 }
@@ -9694,7 +9694,7 @@ fn reply_set_status_not_pending() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"only the Pending status transition was captured; use the web form for other statuses
+        r#"--set-status 'Open' is not a supported status; choices: Pending, Resolved, Closed; nothing was sent
 "#
     );
 }
@@ -9719,7 +9719,7 @@ fn note_set_status_not_pending() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"only the Pending status transition was captured; use the web form for other statuses
+        r#"--set-status 'Open' is not a supported status; choices: Pending, Resolved, Closed; nothing was sent
 "#
     );
 }
