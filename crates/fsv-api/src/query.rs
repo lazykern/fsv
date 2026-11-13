@@ -29,6 +29,9 @@ pub const DATE_FIELDS: &[&str] = &[
     "due_by",
     "planned_start_date",
     "planned_end_date",
+    "fr_due_by",
+    "closed_at",
+    "resolved_at",
 ];
 const ON_TOKENS: &[&str] = &["today", "yesterday", "tomorrow", "week", "month", "year"];
 const RANGE_TOKENS: &[&str] = &[
@@ -40,13 +43,28 @@ const RANGE_TOKENS: &[&str] = &[
     "one_year",
 ];
 const ADVANCED_MODULES: &[&str] = &["tickets", "changes"];
-/// Date conditions offered by the advanced builder (due date is `due_by_date` there).
+/// Date conditions offered by the advanced builder, keyed by fsv's field name.
+/// fsv reads no filter-field metadata that names them: the builder's field
+/// list ships in the web bundle, and neither the form fields nor the saved
+/// views carry the advanced name, so this table is the source. The due,
+/// first-response-due, closed and resolved dates differ from the record names.
 const ADVANCED_DATE_CONDITIONS: &[(&str, &str)] = &[
     ("created_at", "created_at"),
+    ("updated_at", "updated_at"),
     ("due_by", "due_by_date"),
+    ("fr_due_by", "fr_due_by_date"),
+    ("closed_at", "closed_date"),
+    ("resolved_at", "resolved_date"),
     ("planned_start_date", "planned_start_date"),
     ("planned_end_date", "planned_end_date"),
 ];
+/// Advanced dates that exist only in the ticket builder.
+pub const TICKET_ONLY_DATES: &[&str] = &["fr_due_by", "closed_at", "resolved_at"];
+/// Dates whose range goes through the advanced builder under its advanced
+/// name: the basic `due_by` range answers 206 + `meta.search_error`
+/// (unfiltered rows), and the closed/resolved/first-response dates have no
+/// basic panel.
+const ADVANCED_RANGE_DATES: &[&str] = &["due_by", "fr_due_by", "closed_at", "resolved_at"];
 /// Problems: only the created range is proven; other shapes returned 0 rows silently.
 const PROBLEM_DATE_FIELDS: &[&str] = &["created_at"];
 const NUMBER_OPERATORS: &[(&str, &str)] = &[
@@ -288,13 +306,8 @@ pub fn date_condition(
                 "{operator} date filters exist only in the tickets/changes advanced filter; {resource} has none, nothing was sent"
             )));
         }
-        let Some(cond) = lookup(ADVANCED_DATE_CONDITIONS, field) else {
-            return Err(QueryError(format!(
-                "{field} is not a date in the advanced filter builder; nothing was sent"
-            )));
-        };
         return Ok(advanced(query_item(
-            cond,
+            advanced_date_condition(resource, field)?,
             operator,
             json!(token),
             "default",
@@ -339,6 +352,22 @@ pub fn date_condition(
             )));
         }
     };
+    if ADVANCED_RANGE_DATES.contains(&field) {
+        if !ADVANCED_MODULES.contains(&resource) {
+            return Err(QueryError(format!(
+                "{field} date ranges exist only in the tickets/changes advanced filter; {resource} has none, nothing was sent"
+            )));
+        }
+        return Ok(advanced(query_item(
+            advanced_date_condition(resource, field)?,
+            "is_in_the_range",
+            value,
+            "default",
+            explain,
+            shown,
+            &format!("{text}{note}"),
+        )));
+    }
     Ok(query_item(
         field,
         "is_in_the_range",
@@ -348,6 +377,16 @@ pub fn date_condition(
         shown,
         &format!("{text}{note}"),
     ))
+}
+
+/// `advanced_date_condition`: the advanced builder's condition name for an fsv date field.
+pub fn advanced_date_condition(resource: &str, field: &str) -> Result<&'static str, QueryError> {
+    match lookup(ADVANCED_DATE_CONDITIONS, field) {
+        Some(cond) if !(TICKET_ONLY_DATES.contains(&field) && resource != "tickets") => Ok(cond),
+        _ => Err(QueryError(format!(
+            "{field} is not a date in the {resource} advanced filter builder; nothing was sent"
+        ))),
+    }
 }
 
 fn lookup<'a>(table: &[(&str, &'a str)], key: &str) -> Option<&'a str> {

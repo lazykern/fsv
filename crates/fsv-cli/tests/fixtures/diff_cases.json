@@ -12058,5 +12058,87 @@
    "--title",
    "Do it"
   ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Closed>=2030-11-13",
+   "--where",
+   "Closed<=2030-11-16",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Resolved date>=2030-11-13",
+   "--where",
+   "Resolved date<=2030-11-16",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "First response due>=2030-11-13",
+   "--where",
+   "First response due<=2030-11-16",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Due By>=2030-11-13",
+   "--where",
+   "Due By<=2030-11-16",
+   "--json"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Resolved date>=2030-11-13",
+   "--where",
+   "Resolved date<=2030-11-16",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "tickets",
+   "ls",
+   "--where",
+   "Closed=Today",
+   "--debug"
+  ]
+ },
+ {
+  "fixture": "where",
+  "args": [
+   "changes",
+   "ls",
+   "--where",
+   "Closed>=2030-01-05",
+   "--where",
+   "Closed<=2030-01-06",
+   "--debug"
+  ]
  }
 ]

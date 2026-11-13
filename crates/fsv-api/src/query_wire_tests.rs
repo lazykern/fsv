@@ -256,3 +256,94 @@ fn number_predicates_are_verified_client_side() {
     );
     assert!(matches(row(Value::Null).as_object().unwrap(), &clause).is_err());
 }
+
+// Python `3ad6041`: dates without a basic range wire use the advanced builder.
+
+fn ws_tickets() -> Value {
+    json!({"condition": "workspace_id", "operator": "is_in", "value": [{"id": 7}], "type": "default"})
+}
+
+#[test]
+fn date_ranges_without_a_basic_wire_use_the_advanced_condition_name() {
+    for (field, adv) in [
+        ("due_by", "due_by_date"),
+        ("fr_due_by", "fr_due_by_date"),
+        ("closed_at", "closed_date"),
+        ("resolved_at", "resolved_date"),
+    ] {
+        assert_eq!(
+            build(
+                "tickets",
+                &[
+                    &format!("{field}>=2030-01-01"),
+                    &format!("{field}<=2030-01-31")
+                ]
+            )
+            .unwrap(),
+            json!({"all": [
+                {"value": {"from": "2030-01-01", "to": "2030-01-31"}, "condition": adv,
+                 "operator": "is_in_the_range", "type": "default"}, ws_tickets()], "any": []}),
+            "{field}"
+        );
+    }
+}
+
+#[test]
+fn date_ranges_with_a_basic_name_stay_in_query_hash() {
+    for field in [
+        "created_at",
+        "updated_at",
+        "planned_start_date",
+        "planned_end_date",
+    ] {
+        assert_eq!(
+            build("tickets", &[&format!("{field}=2030-01-05")]).unwrap(),
+            json!([{"value": {"from": "2030-01-05", "to": "2030-01-05"}, "condition": field,
+                    "operator": "is_in_the_range", "type": "default"}]),
+            "{field}"
+        );
+    }
+}
+
+#[test]
+fn due_range_on_changes_is_advanced_and_ticket_only_dates_refuse_elsewhere() {
+    let due = build("changes", &["due_by=2030-01-05"]).unwrap();
+    assert_eq!(due["all"][0]["condition"], "due_by_date");
+    for res in ["changes", "problems"] {
+        let err = refused(res, &["closed_at=2030-01-05"]);
+        assert!(err.contains("nothing was sent"), "{res}: {err}");
+    }
+    let err = refused("changes", &["resolved_at=on:today"]);
+    assert!(err.contains("nothing was sent"), "{err}");
+}
+
+#[test]
+fn updated_relative_period_uses_advanced_updated_at() {
+    let payload = build("tickets", &["updated_at=last:one_week"]).unwrap();
+    assert_eq!(
+        payload["all"][0],
+        json!({"value": "one_week", "condition": "updated_at", "operator": "in_the_last", "type": "default"})
+    );
+}
+
+/// `test_query_matrix.test_due_range_is_merged_in_the_advanced_builder_without_erasing_other_fields`.
+#[test]
+fn due_range_is_merged_in_the_advanced_builder_without_erasing_other_fields() {
+    let sch = json!({"fields": [{"name": "status", "label": "State", "default_field": true,
+        "field_type": "default_status", "choices": [{"id": 47, "value": "Awaiting review"}]}]});
+    let result = build_in(
+        "changes",
+        &sch,
+        &["due_by>=2026-01-01", "status=47", "due_by<=2026-12-31"],
+    )
+    .unwrap();
+    assert_eq!(result["any"], json!([]));
+    assert_eq!(
+        result["all"].as_array().unwrap()[..2],
+        [
+            json!({"condition": "due_by_date", "type": "default", "operator": "is_in_the_range",
+                   "value": {"from": "2026-01-01", "to": "2026-12-31"}}),
+            json!({"condition": "status", "type": "default", "operator": "is_in", "value": [47]}),
+        ]
+    );
+}

@@ -14,13 +14,7 @@ use fsv_py::{py_repr_str, py_str};
 use crate::lookup;
 use crate::util::usage;
 
-const PSEUDO_DATES: &[&str] = &[
-    "created_at",
-    "updated_at",
-    "due_by",
-    "planned_start_date",
-    "planned_end_date",
-];
+const PSEUDO_DATES: &[&str] = fsv_api::DATE_FIELDS;
 
 const DATE_ALIASES: &[(&str, &str)] = &[
     ("created", "created_at"),
@@ -34,6 +28,17 @@ const DATE_ALIASES: &[(&str, &str)] = &[
     ("due", "due_by"),
     ("due by", "due_by"),
     ("due date", "due_by"),
+    ("first response due", "fr_due_by"),
+    ("first response due by", "fr_due_by"),
+    ("fr due by", "fr_due_by"),
+    ("closed", "closed_at"),
+    ("closed at", "closed_at"),
+    ("closed date", "closed_at"),
+    ("closed on", "closed_at"),
+    ("resolved", "resolved_at"),
+    ("resolved at", "resolved_at"),
+    ("resolved date", "resolved_at"),
+    ("resolved on", "resolved_at"),
 ];
 
 const FIELD_ALIASES: &[(&str, &str)] = &[
@@ -193,6 +198,11 @@ pub fn date_condition(
     let trimmed = pystr::strip(raw);
     let token = lookup_in(PERIODS, &pystr::casefold(trimmed))
         .or_else(|| is_period_token(trimmed).then_some(trimmed));
+    if token.is_some() && fsv_api::TICKET_ONLY_DATES.contains(&field_name) {
+        return Err(usage(&format!(
+            "no filter-panel period exists for {field_name}; use on:/last:/next: PERIOD or a YYYY-MM-DD range (nothing was sent)"
+        )));
+    }
     if let Some(token) = token {
         if !matches!(op, "=" | ">=") {
             return Err(usage(

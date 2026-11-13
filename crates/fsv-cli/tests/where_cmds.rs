@@ -340,12 +340,12 @@ fn where_due_label() {
     assert_eq!(r.out, r#""#);
     assert_eq!(
         r.err,
-        r#"error: a date range on due_by needs both ends (e.g. due_by>=2030-01-01 and due_by<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent
+        r#"error: a date range on due_by_date needs both ends (e.g. due_by_date>=2030-01-01 and due_by_date<=2030-01-31): the server answers a one-sided range with HTTP 500, so nothing was sent
 "#
     );
 }
 
-/// Python `406ca71` through the CLI on the same schema.
+/// Python `3ad6041` through the CLI on the same schema: the due range is advanced.
 #[test]
 fn where_due_label_range() {
     let r = run_fixture(
@@ -364,14 +364,14 @@ fn where_due_label_range() {
     assert_eq!(r.code, 0, "{}", r.err);
     assert_eq!(
         r.out,
-        r#"                              query                              
-┏━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━┓
-┃ field    ┃ condition ┃ operator        ┃ type    ┃ value      ┃
-┡━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━┩
-│ Due Date │ due_by    │ is_in_the_range │ default │ 2026-02-01 │
-│ Due Date │ due_by    │ is_in_the_range │ default │ 2026-02-28 │
-└──────────┴───────────┴─────────────────┴─────────┴────────────┘
-api: internal /api/_/ with query_hash (1 conditions, AND)
+        r#"                               query                               
+┏━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ field    ┃ condition   ┃ operator        ┃ type    ┃ value      ┃
+┡━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━┩
+│ Due Date │ due_by_date │ is_in_the_range │ default │ 2026-02-01 │
+│ Due Date │ due_by_date │ is_in_the_range │ default │ 2026-02-28 │
+└──────────┴─────────────┴─────────────────┴─────────┴────────────┘
+api: internal /api/_/ with advanced_query_hash (1 conditions, AND)
 "#
     );
     assert_eq!(r.err, r#""#);
@@ -1129,5 +1129,100 @@ fn where_or_sends_advanced_query_hash() {
     assert_eq!(
         sent_param(&r, "tickets", "advanced_query_hash").0,
         r#"{"any":[{"value":[2],"condition":"status","operator":"is_in","type":"default"},{"value":[1],"condition":"priority","operator":"is_not_in","type":"default"}],"all":[]}"#
+    );
+}
+
+/// Python `3ad6041` (`test_cli_panel_labels_for_due_closed_resolved_ranges`):
+/// panel labels for closed, resolved and first-response-due ranges send the
+/// advanced builder's condition names.
+#[test]
+fn where_closed_resolved_first_response_labels_are_advanced() {
+    for (label, cond) in [
+        ("Closed", "closed_date"),
+        ("Resolved date", "resolved_date"),
+        ("First response due", "fr_due_by_date"),
+        ("Due By", "due_by_date"),
+    ] {
+        let lo = format!("{label}>=2030-11-13");
+        let hi = format!("{label}<=2030-11-16");
+        let r = run_fixture(
+            "where",
+            &["tickets", "ls", "--where", &lo, "--where", &hi, "--json"],
+            None,
+        );
+        assert_eq!(r.code, 0, "{label}: {}", r.err);
+        assert_eq!(sent(&r, "tickets").0, "", "{label}");
+        assert_eq!(
+            sent_param(&r, "tickets", "advanced_query_hash").0,
+            format!(
+                r#"{{"all":[{{"value":{{"from":"2030-11-13","to":"2030-11-16"}},"condition":"{cond}","operator":"is_in_the_range","type":"default"}}],"any":[]}}"#
+            ),
+            "{label}"
+        );
+    }
+}
+
+/// Python `3ad6041` through the CLI on the same schema.
+#[test]
+fn where_resolved_label_debug() {
+    let r = run_fixture(
+        "where",
+        &[
+            "tickets",
+            "ls",
+            "--where",
+            "Resolved date>=2030-11-13",
+            "--where",
+            "Resolved date<=2030-11-16",
+            "--debug",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 0, "{}", r.err);
+    assert_eq!(
+        r.out,
+        r#"                                  query                                   
+┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ field         ┃ condition     ┃ operator        ┃ type    ┃ value      ┃
+┡━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━┩
+│ Resolved date │ resolved_date │ is_in_the_range │ default │ 2030-11-13 │
+│ Resolved date │ resolved_date │ is_in_the_range │ default │ 2030-11-16 │
+└───────────────┴───────────────┴─────────────────┴─────────┴────────────┘
+api: internal /api/_/ with advanced_query_hash (1 conditions, AND)
+"#
+    );
+    assert_eq!(r.err, "");
+}
+
+/// Python `3ad6041`: ticket-only dates have no panel period and no change builder name.
+#[test]
+fn where_ticket_only_dates_refuse() {
+    let r = run_fixture(
+        "where",
+        &["tickets", "ls", "--where", "Closed=Today", "--debug"],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(
+        r.err,
+        "error: no filter-panel period exists for closed_at; use on:/last:/next: PERIOD or a YYYY-MM-DD range (nothing was sent)\n"
+    );
+    let r = run_fixture(
+        "where",
+        &[
+            "changes",
+            "ls",
+            "--where",
+            "Closed>=2030-01-05",
+            "--where",
+            "Closed<=2030-01-06",
+            "--debug",
+        ],
+        None,
+    );
+    assert_eq!(r.code, 2, "{}", r.err);
+    assert_eq!(
+        r.err,
+        "error: closed_at is not a date in the changes advanced filter builder; nothing was sent\n"
     );
 }
