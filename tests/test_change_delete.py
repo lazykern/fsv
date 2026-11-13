@@ -130,3 +130,20 @@ def test_cli_review_then_confirmed_send(api):
     sent = runner.invoke(cli.app, base + ["--confirm-destructive", "--yes", "--expect-plan", plan["plan_hash"]])
     assert sent.exit_code == 0, sent.output
     assert json.loads(sent.stdout)["verified"] and len(s["writes"]) == 1
+
+
+
+def test_delete_after_web_restore_is_fresh_but_unchanged_record_is_a_replay(api):
+    c, s = api
+    first = flow.build_plan(c, s["cid"])
+    assert flow.send(first, c, reviewed_hash=first.hash, confirm_destructive=True)["verified"]
+    s["row"]["deleted"] = False
+    same = flow.build_plan(c, s["cid"])
+    assert same.hash == first.hash
+    with pytest.raises(ReviewedWriteError, match="already sent"):
+        flow.send(same, c, reviewed_hash=same.hash, confirm_destructive=True)
+    s["row"]["updated_at"] = "2030-01-01T00:00:09Z"  # the server bumps it on restore
+    again = flow.build_plan(c, s["cid"])
+    assert again.hash != first.hash
+    assert flow.send(again, c, reviewed_hash=again.hash, confirm_destructive=True)["verified"]
+    assert len(s["writes"]) == 2

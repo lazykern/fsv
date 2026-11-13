@@ -69,8 +69,11 @@ def problem_plan(client: Any, target: str | int, action: str) -> WritePlan:
         raise ReviewedWriteError(f"{action} applies only to a problem in the trash (delete it first)")
     method, path = {"delete": ("DELETE", f"problems/{pid}"), "restore": ("PUT", f"problems/{pid}/restore"),
                     "delete-forever": ("DELETE", f"problems/delete-forever?ids={pid}")}[action]
+    state = {"problem": row}
+    if action == "delete":  # a delete after a restore is a new plan, not a replay
+        state["state"] = journal.delete_state_tokens([row], [pid], ("problem_restore",))[0]
     return WritePlan("problem_" + action.replace("-", "_"), pid, config.DOMAIN, method, path, "null",
-                     journal.snapshot_hash({"problem": row}) or "")
+                     journal.snapshot_hash(state) or "")
 
 
 def article_plan(client: Any, ident: int | str, action: str) -> WritePlan:

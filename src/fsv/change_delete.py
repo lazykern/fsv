@@ -30,8 +30,9 @@ def build_plan(client: Any, target: str | int) -> WritePlan:
         raise ReviewedWriteError("change must be readable with deleted:false before deletion")
     if not isinstance(row.get("subject"), str):
         raise ReviewedWriteError("exact change subject unavailable")
+    token = journal.delete_state_tokens([row], [cid], ())[0]
     return WritePlan("change_delete", cid, config.DOMAIN, "DELETE", f"changes/{cid}", "null",
-                     journal.snapshot_hash({"change": row}) or "")
+                     journal.snapshot_hash({"change": row, "state": token}) or "")
 
 
 def review(plan: WritePlan, client: Any) -> dict[str, Any]:

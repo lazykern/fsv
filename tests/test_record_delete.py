@@ -250,3 +250,28 @@ def test_forever_batch_stops_at_first_failure_and_is_bound_to_max_records(many):
     r = flow.send_forever(a, c, reviewed_hash=a.hash, confirm_destructive=True)
     assert r["status"] == "partial" and r["stopped_at"] == 22 and r["not_attempted"] == [23]
     assert [w[2]["ids"] for w in s["writes"]] == ["21", "22"] and 23 in s["problem"]
+
+
+
+def test_fsv_restore_then_delete_again_is_a_fresh_plan(api):
+    c, s, pid, _ = api
+    first = flow.problem_plan(c, pid, "delete")
+    assert flow.send(first, c, reviewed_hash=first.hash)["verified"]
+    restore = flow.problem_plan(c, pid, "restore")
+    assert flow.send(restore, c, reviewed_hash=restore.hash)["verified"]
+    again = flow.problem_plan(c, pid, "delete")
+    assert again.hash != first.hash
+    assert flow.send(again, c, reviewed_hash=again.hash)["verified"] and s["problem"]["deleted"] is True
+
+
+def test_restore_journal_alone_moves_the_delete_hash_and_ambiguous_stays_refused(api):
+    c, s, pid, _ = api
+    before = flow.problem_plan(c, pid, "delete")
+    journal.record_plan("done", "0" * 64, action="problem_restore", target=pid)
+    after = flow.problem_plan(c, pid, "delete")
+    assert after.hash != before.hash
+    assert flow.problem_plan(c, pid, "delete").hash == after.hash  # stable while nothing changes
+    journal.record_plan("started", after.hash, action=after.action, target=pid)
+    with pytest.raises(ReviewedWriteError, match="outcome unknown"):
+        flow.send(flow.problem_plan(c, pid, "delete"), c, reviewed_hash=after.hash)
+    assert not s["writes"]

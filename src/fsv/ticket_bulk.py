@@ -183,8 +183,11 @@ def build_plan(client: Any, ids: list[str], *, action: str, where: list[str] | N
         else:
             method, path, body = "POST", f"tickets/{action}_multiple", {"ids": cids}
         if not answers:
+            state: dict[str, Any] = {"records": baselines, "plans": [p.hash for p in props]}
+            if action == "delete":  # a delete after a restore is a new plan, not a replay
+                state["states"] = journal.delete_state_tokens(baselines, list(cids), ("ticket_restore",))
             write = WritePlan("ticket_bulk_" + action, cids[0], config.DOMAIN, method, path, json.dumps(body, sort_keys=True),
-                              journal.snapshot_hash({"records": baselines, "plans": [p.hash for p in props]}) or "")
+                              journal.snapshot_hash(state) or "")
     selected = []
     for cid in cids:
         row = ticket_properties._record(client, cid)

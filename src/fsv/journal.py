@@ -179,6 +179,29 @@ def _append(entry: dict[str, Any]) -> None:
 
 
 
+def delete_state_tokens(rows: list[dict[str, Any]], targets: list[Any],
+                        restore_actions: tuple[str, ...]) -> list[dict[str, Any]]:
+    """Record-state tokens that move when a record is restored, for delete plans.
+
+    Stable snapshots drop ``updated_at``, so a record restored to the same
+    business state would plan the same delete hash and a legitimate delete
+    after a restore would be refused as a replay. Each token binds the raw
+    server ``updated_at`` read at review time (the server bumps it on restore)
+    and how many restores of this exact target fsv has journaled as answered
+    (monotonic, even when the server keeps ``updated_at``). A true replay
+    against an unchanged record keeps the token, so the guard still refuses it;
+    a ``started`` without an answer is unchanged and stays non-replayable.
+    The key is not ``updated_at``: snapshot hashing drops that name.
+    """
+    kinds = {f"plan:{action}" for action in restore_actions}
+    counts: dict[Any, int] = {}
+    for event in read():
+        if event.get("event") == "done" and event.get("kind") in kinds:
+            counts[event.get("target")] = counts.get(event.get("target"), 0) + 1
+    return [{"server_version": row.get("updated_at"), "restores": counts.get(_safe_target(target), 0)}
+            for row, target in zip(rows, targets)]
+
+
 def replay_refusal(events: list[dict[str, Any]], unknown: str) -> str | None:
     """Why a journaled plan must not be sent again; None when it may be sent.
 

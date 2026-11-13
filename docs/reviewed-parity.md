@@ -424,7 +424,12 @@ unverified record.
 All are bodyless JSON requests, reviewed with `--dry-run` (title, deleted flag,
 effect), hash-bound to the exact record snapshot, single-attempt and journaled
 (no replay; an identical re-review of the same record keeps its hash and is
-refused). `delete-forever` and article trash also need
+refused). Delete plans (`problems delete`, `changes delete`, `tickets bulk
+delete`) also bind a record-state token: the server `updated_at` read at review
+time and the count of restores fsv journaled for that record. A delete after a
+restore therefore plans a fresh hash and can be sent, while a re-send of the same
+plan against an unchanged record is still refused and an unknown outcome stays
+non-replayable. `delete-forever` and article trash also need
 `--confirm-destructive`. There is no captured article restore.
 
 `projects delete` is **blocked**: the project UI is an iframe to a separate

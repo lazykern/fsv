@@ -192,3 +192,29 @@ def test_eventual_readback_polls_gets_without_resending(api, action, options, la
     with pytest.raises(ReviewedWriteError, match="was sent"):
         flow.send(p, c, reviewed_hash=p.hash, confirm_destructive=True)
     assert len(s["writes"]) == 1
+
+
+
+@pytest.mark.parametrize("restore", ["fsv", "web-bumps-updated_at"])
+def test_delete_after_restore_plans_fresh_hash_but_true_replay_refuses(api, restore):
+    c, s = api
+    first = flow.build_plan(c, ["INC-71"], action="delete")
+    assert flow.send(first, c, reviewed_hash=first.hash, confirm_destructive=True)["verified"]
+    s["rows"][71]["deleted"] = False
+    same = flow.build_plan(c, ["INC-71"], action="delete")
+    assert same.hash == first.hash  # unchanged record state: a replay
+    with pytest.raises(ReviewedWriteError, match="already sent at .* no override"):
+        flow.send(same, c, reviewed_hash=same.hash, confirm_destructive=True)
+    if restore == "fsv":
+        journal.record_plan("done", "0" * 64, action="ticket_restore", target=71)
+    else:
+        s["rows"][71]["updated_at"] = "2030-01-01T00:00:09Z"
+    again = flow.build_plan(c, ["INC-71"], action="delete")
+    assert again.hash != first.hash
+    writes = len(s["writes"])
+    assert flow.send(again, c, reviewed_hash=again.hash, confirm_destructive=True)["verified"]
+    assert len(s["writes"]) == writes + 1
+    s["rows"][71]["deleted"] = False
+    with pytest.raises(ReviewedWriteError, match="already sent"):
+        flow.send(flow.build_plan(c, ["INC-71"], action="delete"), c, reviewed_hash=again.hash, confirm_destructive=True)
+    assert len(s["writes"]) == writes + 1
