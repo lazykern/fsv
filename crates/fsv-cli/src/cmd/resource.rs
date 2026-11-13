@@ -334,7 +334,7 @@ fn list_resource(res: &'static Resource, a: &ResLsArgs, where_: &[String]) -> Cm
         out().print(&head_line);
         out().print_table(&fsv_views::pages::list_table(&lp));
     };
-    let pager = a.pager && !a.no_pager;
+    let pager = list_pager(a.pager, a.no_pager);
     if fsv_core::term::should_page(n * 2 + 2, pager) {
         let ((), text) = fsv_core::term::capture(print);
         if !fsv_core::term::page_text(&text) {
@@ -1696,12 +1696,25 @@ pub fn download(res: &'static Resource, a: ResDownloadArgs) -> CmdResult {
     crate::cmd::download::generic(res, a)
 }
 
+/// Python `--pager/--no-pager` defaults to on. Clap stores an absent flag as
+/// `false`, and `overrides_with` clears the side that lost when both are passed.
+fn list_pager(pager: bool, no_pager: bool) -> bool {
+    pager || !no_pager
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::testkit::{UNITS, cmd_outcome, python, tenant, with_client};
     use crate::types::SearchSort;
     use fsv_core::resource::CHANGES;
+
+    #[test]
+    fn list_pager_defaults_on_like_python() {
+        assert!(list_pager(false, false));
+        assert!(list_pager(true, false));
+        assert!(!list_pager(false, true));
+    }
 
     /// `units.json` `search_resource`: `search_resource(changes, query, 1,
     /// json_out, relevance)` on the `units` tenant.
