@@ -3508,7 +3508,8 @@
      "subject": "Acme problem"
     },
     "plan_hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
-    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+    "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+    "readback_note": "Problem reads do not expose the requester email; the readback proves the requester by identity (requester id or nested requester) instead."
    },
    "action": "problem_create",
    "target": 0,
@@ -4607,13 +4608,14 @@
      "fields": {
       "custom_fields": "matched",
       "description": "matched",
-      "email": "unavailable",
+      "email": "not exposed by the server",
       "impact": "matched",
       "priority": "matched",
       "status": "matched",
       "subject": "matched",
       "requester": "matched"
-     }
+     },
+     "readback_note": "Problem reads do not expose the requester email; the readback proves the requester by identity (requester id or nested requester) instead."
     },
     "calls": [
      [
@@ -4742,13 +4744,14 @@
      "fields": {
       "custom_fields": "matched",
       "description": "matched",
-      "email": "unavailable",
+      "email": "not exposed by the server",
       "impact": "matched",
       "priority": "matched",
       "status": "matched",
       "subject": "matched",
       "requester": "matched"
-     }
+     },
+     "readback_note": "Problem reads do not expose the requester email; the readback proves the requester by identity (requester id or nested requester) instead."
     },
     "calls": [
      [
@@ -4995,7 +4998,8 @@
       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
       "warnings": [
        "rules unavailable (workspace 17 and the workspace-less path answered HTTP 403): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
-      ]
+      ],
+      "readback_note": "Problem reads do not expose the requester email; the readback proves the requester by identity (requester id or nested requester) instead."
      },
      "action": "problem_create",
      "target": 0,
@@ -5027,7 +5031,8 @@
       "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
       "warnings": [
        "rules unavailable (workspace 17 answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
-      ]
+      ],
+      "readback_note": "Problem reads do not expose the requester email; the readback proves the requester by identity (requester id or nested requester) instead."
      },
      "action": "problem_create",
      "target": 0,
@@ -5081,7 +5086,8 @@
        "subject": "Acme problem"
       },
       "plan_hash": "b59c8c2f0286f2006328a31ee3f75b92017127eb7e134b07a4a90971a41b08ba",
-      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+      "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+      "readback_note": "Problem reads do not expose the requester email; the readback proves the requester by identity (requester id or nested requester) instead."
      },
      "action": "problem_create",
      "target": 0,

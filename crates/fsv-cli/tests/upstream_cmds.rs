@@ -6840,7 +6840,8 @@ fn problem_create_dry_run() {
     "subject": "Acme problem"
   },
   "plan_hash": "5baf2437f0de8ce64f064102eaab12d22a3510bd78c6ac6fe588bb0f761ca236",
-  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent."
+  "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
+  "readback_note": "Problem reads do not expose the requester email; the readback proves the requester by identity (requester id or nested requester) instead."
 }
 "#
     );
@@ -11237,7 +11238,8 @@ fn problem_create_rules_unavailable_dry_run() {
   "warning": "Single-attempt write. Unknown outcomes must be inspected, never automatically resent.",
   "warnings": [
     "rules unavailable (the workspace-less path answered HTTP 500 (server error)): conditional mandates, field locks, choice limits and validation messages of the web form were not checked; the server still enforces the static required fields and its own closure rules"
-  ]
+  ],
+  "readback_note": "Problem reads do not expose the requester email; the readback proves the requester by identity (requester id or nested requester) instead."
 }
 "#
     );

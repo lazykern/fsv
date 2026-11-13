@@ -46,6 +46,9 @@ impl ProblemPlan {
         if warnings.as_array().is_some_and(|a| !a.is_empty()) {
             out.insert("warnings".into(), warnings);
         }
+        if self.plan.action == "problem_create" {
+            out.insert("readback_note".into(), json!(EMAIL_NOTE));
+        }
         out
     }
 
@@ -53,6 +56,9 @@ impl ProblemPlan {
         self.plan.payload()
     }
 }
+
+pub const EMAIL_NOTE: &str = "Problem reads do not expose the requester email; the readback proves the requester by identity (requester id or nested requester) instead.";
+pub const EMAIL_NOT_EXPOSED: &str = "not exposed by the server";
 
 /// The create form's top-level keys, in payload order.
 const TOP: [&str; 5] = ["subject", "description", "status", "priority", "impact"];
@@ -442,7 +448,8 @@ pub fn send(
             && fields.get("email") == Some(&json!("unavailable"))
         {
             // Native problem reads omit the requester email; prove the
-            // requester by identity instead. Email stays "unavailable".
+            // requester by identity instead. Email is reported as not exposed
+            // only once the identity matched; otherwise it stays "unavailable".
             let email = plan
                 .payload()
                 .get("email")
@@ -452,6 +459,7 @@ pub fn send(
             let state = requester_identity(c, r, &text("requester"), &email);
             fields.insert("requester".into(), json!(state));
             if state == "matched" {
+                fields.insert("email".into(), json!(EMAIL_NOT_EXPOSED));
                 exempt = Some("email");
             }
         }
@@ -459,9 +467,12 @@ pub fn send(
             && fields
                 .iter()
                 .all(|(k, v)| Some(k.as_str()) == exempt || v == "matched");
-        Ok(obj(
-            json!({format!("{key}_id"): exact_id, "fields": fields, "verified": verified}),
-        ))
+        let mut out =
+            obj(json!({format!("{key}_id"): exact_id, "fields": fields, "verified": verified}));
+        if exempt.is_some() {
+            out.insert("readback_note".into(), json!(EMAIL_NOTE));
+        }
+        Ok(out)
     };
     execute(&plan.plan, c, journal, reviewed_hash, &rebuild, &verify)
 }
